@@ -1,4 +1,4 @@
-saleor
+Saleor
 ======
 
-Well shiver me timbers! A Satchless-based store!
+Avast ye landlubbers! Saleor be a Satchless store ye can fork.
