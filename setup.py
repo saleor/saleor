@@ -6,6 +6,7 @@ from saleor import version
 REQUIREMENTS = [
     'Django == 1.5c1',
     'South >= 0.7.6',
+    'satchless',
 ]
 
 setup(name='saleor',
@@ -18,7 +19,10 @@ setup(name='saleor',
       packages=find_packages(where='saleor'),
       include_package_data=True,
       install_requires=REQUIREMENTS,
-      dependency_links=['http://github.com/django/django/tarball/1.5c1#egg=Django-1.5c1'],
+      dependency_links=[
+          'http://github.com/django/django/tarball/1.5c1#egg=Django-1.5c1',
+          'http://github.com/mirumee/satchless/tarball/master#egg=satchless',
+      ],
       entry_points={
           'console_scripts': [
               'saleor = saleor:manage'
