@@ -32,7 +32,7 @@ setup(name='saleor',
       license='BSD',
       version=version,
       url='http://getsaleor.com/',
-      packages=find_packages(where=os.path.normpath(os.path.dirname(__file__))),
+      packages=find_packages(),
       include_package_data=True,
       install_requires=REQUIREMENTS,
       dependency_links=[
