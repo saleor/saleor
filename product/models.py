@@ -1,9 +1,12 @@
 from django.db import models
+from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext as _
 from django_prices.models import PriceField
-from satchless.util.models import Subtyped
-from satchless.item import ItemRange
 from mptt.models import MPTTModel
+from satchless.item import ItemRange
+from satchless.util.models import Subtyped
+from unidecode import unidecode
+import re
 
 
 class Category(MPTTModel):
@@ -24,8 +27,6 @@ class Category(MPTTModel):
 class Product(Subtyped, ItemRange):
 
     name = models.CharField(_('Product field', 'name'), max_length=128)
-    slug = models.SlugField(_('Product field', 'slug'), max_length=50,
-                            unique=True)
     price = PriceField(_('Product field', 'price'), currency='USD',
                        max_digits=12, decimal_places=4)
     category = models.ForeignKey(Category,
@@ -33,3 +34,13 @@ class Product(Subtyped, ItemRange):
 
     def __unicode__(self):
         return self.name
+
+    def get_slug(self):
+        value = unidecode(self.name)
+        value = re.sub('[^\w\s-]', '', value).strip().lower()
+
+        return mark_safe(re.sub('[-\s]+', '-', value))
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('product:details', [self.get_slug(), self.id])
