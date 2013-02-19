@@ -78,7 +78,7 @@ INSTALLED_APPS = (
     # External apps
     'south',
     # Local apps
-    'saleor',
+    'product',
 )
 
 LOGGING = {
@@ -125,3 +125,5 @@ LOGGING = {
 }
 
 WARN_ABOUT_INVALID_HTML5_OUTPUT = True
+
+SATCHLESS_DEFAULT_CURRENCY = 'USD'
