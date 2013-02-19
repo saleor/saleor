@@ -1,16 +1,11 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import patterns, url, include
+from django.contrib import admin
 
-# Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
+
+admin.autodiscover()
 
 urlpatterns = patterns('',
+    url(r'^admin/', include(admin.site.urls)),
     url(r'^$', 'saleor.views.home', name='home'),
-    # url(r'^saleor/', include('saleor.foo.urls')),
-
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    # Uncomment the next line to enable the admin:
-    # url(r'^admin/', include(admin.site.urls)),
+    url(r'^products/', include('product.urls', namespace='product'))
 )

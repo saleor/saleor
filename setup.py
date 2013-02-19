@@ -7,6 +7,7 @@ REQUIREMENTS = [
     'Django == 1.5c1',
     'South >= 0.7.6',
     'satchless',
+    'unidecode',
 ]
 
 setup(name='saleor',
