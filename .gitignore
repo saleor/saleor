@@ -4,7 +4,7 @@
 *.pot
 *.pyc
 local_settings.py
-dev.db
+dev.sqlite
 build/
 dist/
 *.egg-info
