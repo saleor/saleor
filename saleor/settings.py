@@ -78,6 +78,7 @@ INSTALLED_APPS = (
     # External apps
     'south',
     # Local apps
+    'saleor',
 )
 
 LOGGING = {
