@@ -1,5 +1,7 @@
 #! /usr/bin/env python
-from setuptools import setup, find_packages
+import os
+from setuptools import setup, find_packages, Command
+from setuptools.command import easy_install
 from saleor import version
 
 
@@ -9,6 +11,20 @@ REQUIREMENTS = [
     'satchless',
 ]
 
+DEVELOPMENT_DEPENDECIES = [
+    'https://github.com/lamby/django-lint/archive/55290d.zip',
+    'pylint==0.26.0',
+]
+
+
+class DevelopmentDependecies(Command):
+    user_options = []
+    initialize_options = lambda self: None
+    finalize_options = lambda self: None
+
+    def run(self):
+        easy_install.main(DEVELOPMENT_DEPENDECIES)
+
 setup(name='saleor',
       author='Mirumee Software',
       author_email='hello@mirumee.com',
@@ -16,7 +32,7 @@ setup(name='saleor',
       license='BSD',
       version=version,
       url='http://getsaleor.com/',
-      packages=find_packages(where='saleor'),
+      packages=find_packages(),
       include_package_data=True,
       install_requires=REQUIREMENTS,
       dependency_links=[
@@ -28,4 +44,5 @@ setup(name='saleor',
               'saleor = saleor:manage'
           ]
       },
+      cmdclass={'development_dependecies': DevelopmentDependecies},
       )
