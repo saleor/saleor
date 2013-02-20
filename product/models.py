@@ -29,18 +29,18 @@ class Product(Subtyped, ItemRange):
     name = models.CharField(_('Product field', 'name'), max_length=128)
     price = PriceField(_('Product field', 'price'), currency='USD',
                        max_digits=12, decimal_places=4)
-    category = models.ForeignKey(Category,
+    category = models.ForeignKey(Category, related_name='products',
                                  verbose_name=_('Product field', 'category'))
 
     def __unicode__(self):
         return self.name
 
-    def get_slug(self):
-        value = unidecode(self.name)
-        value = re.sub('[^\w\s-]', '', value).strip().lower()
-
-        return mark_safe(re.sub('[-\s]+', '-', value))
-
     @models.permalink
     def get_absolute_url(self):
         return ('product:details', [self.get_slug(), self.id])
+
+    def get_slug(self):
+        value = unidecode(self.name)
+        value = re.sub(r'[^\w\s-]', '', value).strip().lower()
+
+        return mark_safe(re.sub(r'[-\s]+', '-', value))
