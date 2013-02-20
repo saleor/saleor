@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-version = "n0t-3v3n-v3rs10ned.y3t"
-
 
 def manage():
     import os
