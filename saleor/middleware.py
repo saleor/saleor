@@ -11,7 +11,7 @@ class CheckHTML(object):
         if (
             settings.DEBUG
             and settings.WARN_ABOUT_INVALID_HTML5_OUTPUT
-            and 200 <= response.status.code < 300
+            and 200 <= response.status_code < 300
         ):
             proc = Popen(["tidy"], stdout=PIPE, stderr=PIPE, stdin=PIPE)
             _out, err = proc.communicate(response.content)
