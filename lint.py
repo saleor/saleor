@@ -50,7 +50,7 @@ DISABLED_WARNINGS = [
     # 'E1001',  # Use __slots__ on an old style class Used when an old style class use the __slots__ attribute.
     # 'E1002',  # Use super on an old style class Used when an old style class use the super builtin.
     # 'E1003',  # Bad first argument %r given to super class Used when another argument than the current class is given as first argument of the super builtin.
-    # 'E1101',  # %s %r has no %r member Used when a variable is accessed for an unexistent member.
+    'E1101',  # %s %r has no %r member Used when a variable is accessed for an unexistent member.
     # 'E1102',  # %s is not callable Used when an object being called has been inferred to a non callable object
     # 'E1103',  # %s %r has no %r member (but some types could not be inferred) Used when a variable is accessed for an unexistent member, but astng was not able to interpret all possible types of this variable.
     # 'E1111',  # Assigning to function call which doesn't return Used when an assignment is done on a function call but the inferred function doesn't return anything.
@@ -68,7 +68,7 @@ DISABLED_WARNINGS = [
     # 'R0901',  # Too many ancestors (%s/%s) Used when class has too many parent classes, try to reduce this to get a more simple (and so easier to use) class.
     # 'R0902',  # Too many instance attributes (%s/%s) Used when class has too many instance attributes, try to reduce this to get a more simple (and so easier to use) class.
     'R0903',  # Too few public methods (%s/%s) Used when class has too few public methods, so be sure it's really worth it.
-    # 'R0904',  # Too many public methods (%s/%s) Used when class has too many public methods, try to reduce this to get a more simple (and so easier to use) class.
+    'R0904',  # Too many public methods (%s/%s) Used when class has too many public methods, try to reduce this to get a more simple (and so easier to use) class.
     # 'R0911',  # Too many return statements (%s/%s) Used when a function or method has too many return statement, making it hard to follow.
     # 'R0912',  # Too many branches (%s/%s) Used when a function or method has too many branches, making it hard to follow.
     # 'R0913',  # Too many arguments (%s/%s) Used when a function or method takes too many arguments.
@@ -129,6 +129,8 @@ DISABLED_WARNINGS = [
     # 'W0710',  # Exception doesn't inherit from standard "Exception" class Used when a custom exception class is raised but doesn't inherit from the builtin "Exception" class.
     # 'W1001',  # Use of "property" on an old style class Used when PyLint detect the use of the builtin "property" on an old style class while this is relying on new style classes features
     # 'W1111',  # Assigning to function call which only returns None Used when an assignment is done on a function call but the inferred function returns nothing but None.
+    # DjangoLint:
+    'W6001',  # Naive tree structure implementation using ForeignKey('self')
 ]
 
 
@@ -141,10 +143,12 @@ def run(show_reports=False):
 
     checkers.initialize(linter)
 
+    AstCheckers.register(linter)
+
     for warning in DISABLED_WARNINGS:
         linter.disable(warning)
 
-    AstCheckers.register(linter)
+    linter.set_option('ignore', ['local_settings.py', 'migrations'])
 
     if not show_reports:
         linter.set_option('reports', False)
