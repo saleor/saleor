@@ -1,5 +1,16 @@
 #! /usr/bin/env python
 from setuptools import setup, find_packages, Command
+from setuptools.command.test import test
+import os
+
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'saleor.settings'
+
+
+class Test(test):
+    def run(self):
+        os.environ['DJANGO_SETTINGS_MODULE'] = 'saleor.settings'
+        return test.run(self)
 
 
 class Command(Command):
@@ -42,5 +53,12 @@ setup(name='saleor',
               'saleor = saleor:manage'
           ]
       },
-      cmdclass={'lint': Lint},
-      )
+      cmdclass={
+          'lint': Lint,
+          'test': Test
+      },
+      tests_require=[
+          'coverage==3.6',
+          'mock==1.0.1',
+          'nose==1.2.1'],
+      test_suite='nose.collector')
