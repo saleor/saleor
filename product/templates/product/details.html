@@ -1,5 +1,30 @@
 {% extends "base.html" %}
+{% load i18n %}
+{% load gross from prices %}
 
 {% block content %}
-asd
+<h1>{{ product }}</h1>
+<p>Price: {% gross product.price %}</p>
+<form class="form-horizontal" method="post" action=".">
+    {% csrf_token %}
+    <div class="control-group  {{ form.quantity.html_name }}{{ form.quantity.html_name }}{{ form.quantity.html_name }}{% if form.quantity.errors %} error{% endif %}{% if form.quantity.field.required %} required{% endif %}">
+        <label class="control-label" for="inputEmail">{{ form.quantity.label }}</label>
+        <div class="controls">
+            {{ form.quantity }}
+            {% if form.quantity.errors %}
+            {% for error in form.quantity.errors %}
+            <span class="help-inline error">{{ error }}</span>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="control-group">
+        <div class="controls">
+            <button class="btn">
+                {% trans "Add to cart" %}
+            </button>
+        </div>
+    </div>
+</form>
 {% endblock content %}

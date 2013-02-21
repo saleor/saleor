@@ -82,10 +82,11 @@ INSTALLED_APPS = (
 
     # External apps
     'south',
-    'mptt',
-
+    'django_prices',
+	'mptt',
     # Local apps
     'product',
+    'cart',
 )
 
 LOGGING = {
