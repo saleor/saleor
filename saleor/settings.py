@@ -50,7 +50,8 @@ TEMPLATE_DIRS = (
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-    # 'django.template.loaders.eggs.Loader',
+    # TODO: this one is slow, but for now need for mptt?
+    'django.template.loaders.eggs.Loader',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -67,6 +68,9 @@ MIDDLEWARE_CLASSES = (
 )
 
 INSTALLED_APPS = (
+    # External apps that need to go before django's
+    'admin_bootstrap',
+
     # Django modules
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -75,8 +79,11 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
+
     # External apps
     'south',
+    'mptt',
+
     # Local apps
     'product',
 )
