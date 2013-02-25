@@ -48,7 +48,7 @@ DISABLED_WARNINGS = [
     # 'E0710',  # Raising a new style class which doesn't inherit from BaseException Used when a new style class which doesn't inherit from BaseException raised since it's not possible with python < 2.5.
     # 'E0711',  # NotImplemented raised - should raise NotImplementedError Used when NotImplemented is raised instead of NotImplementedError
     # 'E1001',  # Use __slots__ on an old style class Used when an old style class use the __slots__ attribute.
-    # 'E1002',  # Use super on an old style class Used when an old style class use the super builtin.
+    'E1002',  # Use super on an old style class Used when an old style class use the super builtin.
     # 'E1003',  # Bad first argument %r given to super class Used when another argument than the current class is given as first argument of the super builtin.
     'E1101',  # %s %r has no %r member Used when a variable is accessed for an unexistent member.
     # 'E1102',  # %s is not callable Used when an object being called has been inferred to a non callable object
