@@ -33,4 +33,3 @@ class AddToCartForm(forms.Form):
     def save(self):
         return self.cart.add_item(self.product,
                                   self.cleaned_data['quantity'])
-

@@ -96,6 +96,7 @@ INSTALLED_APPS = (
     'django_prices',
     'mptt',
     # Local apps
+    'saleor',
     'product',
     'cart',
 )
@@ -142,6 +143,8 @@ LOGGING = {
         },
     }
 }
+
+AUTH_USER_MODEL = 'saleor.User'
 
 WARN_ABOUT_INVALID_HTML5_OUTPUT = True
 
