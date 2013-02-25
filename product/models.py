@@ -39,15 +39,15 @@ class Product(Subtyped, Item):
     def __unicode__(self):
         return self.name
 
+    @models.permalink
+    def get_absolute_url(self):
+        return ('product:details', [self.get_slug(), self.id])
+
+    def get_price_per_item(self, **kwargs):
+        return self.price
+
     def get_slug(self):
         value = unidecode(self.name)
         value = re.sub(r'[^\w\s-]', '', value).strip().lower()
 
         return mark_safe(re.sub(r'[-\s]+', '-', value))
-
-    def get_price_per_item(self, **kwargs):
-        return self.price
-
-    @models.permalink
-    def get_absolute_url(self):
-        return ('product:details', [self.get_slug(), self.id])
