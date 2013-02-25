@@ -34,3 +34,12 @@ class Cart(cart.Cart):
     def get_default_currency(self):
         return settings.SATCHLESS_DEFAULT_CURRENCY
 
+
+def get_cart_from_request(request):
+    try:
+        return request.session[Cart.SESSION_KEY]
+    except KeyError:
+        _cart = Cart()
+        request.session[Cart.SESSION_KEY] = _cart
+        return _cart
+
