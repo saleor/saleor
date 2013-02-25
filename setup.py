@@ -45,7 +45,7 @@ setup(name='saleor',
       },
       dependency_links=[
           'http://github.com/django/django/tarball/1.5c1#egg=Django-1.5c1',
-          'http://github.com/mirumee/satchless/tarball/master#egg=satchless',
+          'http://github.com/mirumee/satchless/tarball/django-removal#egg=satchless',
           'http://github.com/lamby/django-lint/tarball/master#egg=django-lint-dev',
       ],
       entry_points={
