@@ -97,6 +97,7 @@ INSTALLED_APPS = (
     'saleor',
     'product',
     'cart',
+    'order',
 )
 
 LOGGING = {
