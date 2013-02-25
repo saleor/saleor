@@ -1,13 +1,39 @@
 # coding: utf-8
-from product.models import Product
 from decimal import Decimal
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.translation import pgettext as _p, ugettext as _
+from product.models import Product
+from . import InvalidQuantityException
 from satchless.item import ItemSet, ItemLine
-from django.conf import settings
 from uuid import uuid4
-from satchless.cart import InvalidQuantityException
+
+
+SESSION_KEY = 'cart-token'
+
+
+class CartManager(models.Manager):
+
+    def get_from_request(self, request):
+        try:
+            token = request.session[SESSION_KEY]
+        except KeyError:
+            raise Cart.DoesNotExist
+
+        return self.get_query_set().get(token=token)
+
+    def get_or_create_from_request(self, request):
+        try:
+            return self.get_from_request(request)
+        except Cart.DoesNotExist:
+            if request.user.is_authenticated():
+                cart = Cart.objects.create(owner=request.user)
+            else:
+                cart = Cart.objects.create()
+            request.session[SESSION_KEY] = cart.token
+
+            return cart
 
 
 class Cart(models.Model, ItemSet):
@@ -17,24 +43,23 @@ class Cart(models.Model, ItemSet):
     token = models.CharField(_p('Cart field','token'), max_length=36,
                              blank=True, default='')
 
+    objects = CartManager()
+
     def __iter__(self):
         for i in self.get_all_items():
             yield i
 
     def save(self, *args, **kwargs):
         if not self.token:
-            for i in xrange(100):
+            for _i in xrange(100):
                 token = str(uuid4())
                 if not type(self).objects.filter(token=token).exists():
                     self.token = token
                     break
+
         return super(Cart, self).save(*args, **kwargs)
 
     def check_quantity(self, product, quantity, replace=False):
-        '''
-        Method checks quantity. Return valid quantity or raise
-        InvalidQuantityException.
-        '''
         if not replace:
             try:
                 cart_item = self.get_item(product=product)
@@ -58,7 +83,10 @@ class Cart(models.Model, ItemSet):
         except InvalidQuantityException:
             quantity = product.stock
 
-        cart_item = self.get_item(product=product)
+        try:
+            cart_item = self.get_item(product=product)
+        except CartItem.DoesNotExist:
+            cart_item = None
 
         if not quantity and cart_item:
             cart_item.delete()
@@ -111,9 +139,9 @@ class CartItem(models.Model, ItemLine):
     def get_price_per_item(self, **kwargs):
         return self.product.get_price(**kwargs)
 
-    def get_quantity(self, **kwargs):
-        return self.quantity
-
     def save(self, *args, **kwargs):
         assert self.quantity > 0
         return super(CartItem, self).save(*args, **kwargs)
+
+    def get_quantity(self, **kwargs):
+        return self.quantity
