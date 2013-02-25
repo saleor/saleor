@@ -1,7 +1,7 @@
 from decimal import Decimal
 from django import forms
 from django.utils.translation import pgettext as _
-from satchless.cart import InvalidQuantityException
+from . import InvalidQuantityException
 
 
 class QuantityField(forms.DecimalField):
@@ -23,9 +23,11 @@ class AddToCartForm(forms.Form):
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
         try:
-            return self.cart.check_quantity(self.product, quantity)
+            self.cart.check_quantity(self.product, quantity)
         except InvalidQuantityException as e:
             raise forms.ValidationError(e.reason)
+
+        return quantity
 
     def save(self):
         return self.cart.add_item(self.product,
