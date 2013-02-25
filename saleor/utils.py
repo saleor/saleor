@@ -5,7 +5,7 @@ from django import forms
 
 class CategoryChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
-        level = getattr(obj, obj._mptt_meta.level_attr)
+        level = getattr(obj, obj._mptt_meta.level_attr)  # pylint: disable=W0212
         indent = max(0, level - 1) * u'│'
         if obj.parent:
             last = ((obj.parent.rght - obj.rght == 1)
