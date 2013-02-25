@@ -96,7 +96,7 @@ DISABLED_WARNINGS = [
     # 'W0222',  # Signature differs from %s method Used when a method signature is different than in the implemented interface or in an overridden method.
     # 'W0223',  # Method %r is abstract in class %r but is not overridden Used when an abstract method (i.e. raise NotImplementedError) is not overridden in concrete class.
     # 'W0231',  # __init__ method from base class %r is not called Used when an ancestor class method has an __init__ method which is not called by a derived class.
-    # 'W0232',  # Class has no __init__ method Used when a class has no __init__ method, neither its parent classes.
+    'W0232',  # Class has no __init__ method Used when a class has no __init__ method, neither its parent classes.
     # 'W0233',  # __init__ method from a non direct base class %r is called Used when an __init__ method is called on a class which is not in the direct ancestors for the analysed class.
     # 'W0301',  # Unnecessary semicolon Used when a statement is ended by a semi -colon (";"), which isn't necessary (that's python, not C ;).
     # 'W0311',  # Bad indentation. Found %s %s, expected %s Used when an unexpected number of indentation's tabulations or spaces has been found.
