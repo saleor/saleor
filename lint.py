@@ -135,9 +135,9 @@ DISABLED_WARNINGS = [
 
 
 def run(show_reports=False):
-    targets = [x for x in os.listdir('.') if (os.path.isdir(x)
-                                              and not x.startswith('.')
-                                              and not x.endswith('.egg-info'))]
+    targets = [x for x in os.listdir('.')
+               if (os.path.isdir(x) and
+                   os.path.exists('%s/__init__.py' % (x,)))]
 
     linter = lint.PyLinter()
 
