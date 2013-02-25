@@ -23,9 +23,10 @@ class AddToCartForm(forms.Form):
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
         try:
-            self.cart.check_quantity(self.product, quantity)
+            self.cart.check_quantity(self.product,
+                                     quantity + self.product.stock)
         except InvalidQuantityException as e:
-            raise forms.ValidationError(e.reason)
+            raise forms.ValidationError(e)
 
         return quantity
 

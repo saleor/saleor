@@ -20,7 +20,7 @@ class Cart(cart.Cart):
     def __unicode__(self):
         return _('Cart (%(cart_count)s)' % {'cart_count': self.count()})
 
-    def check_quantity(self, product, quantity, replace=False):
+    def check_quantity(self, product, quantity, data=None):
         if quantity > product.stock:
             raise InvalidQuantityException(
                 _(u'Only %(total)s of product in stock.' % {
@@ -29,7 +29,7 @@ class Cart(cart.Cart):
                 product.stock - quantity
             )
 
-        return super(Cart, self).check_quantity(product, quantity, replace)
+        return super(Cart, self).check_quantity(product, quantity, data)
 
     def get_default_currency(self):
         return settings.SATCHLESS_DEFAULT_CURRENCY
