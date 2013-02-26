@@ -4,7 +4,7 @@ from django.utils.translation import pgettext_lazy as _
 from django_prices.models import PriceField
 from prices import Price
 from satchless.item import ItemSet, ItemLine
-from satchless.util import countries
+from saleor import countries
 from uuid import uuid4
 import datetime
 from product.models import Product
@@ -95,8 +95,6 @@ class Order(models.Model, ItemSet):
                              blank=True, default='')
 
     class Meta:
-        verbose_name = _('Order model', 'order (business)')
-        verbose_name_plural = _('Order model','orders (business)')
         ordering = ('-last_status_change',)
 
     def save(self, *args, **kwargs):
