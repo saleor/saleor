@@ -131,6 +131,7 @@ DISABLED_WARNINGS = [
     # 'W1111',  # Assigning to function call which only returns None Used when an assignment is done on a function call but the inferred function returns nothing but None.
     # DjangoLint:
     'W6001',  # Naive tree structure implementation using ForeignKey('self')
+    'I0011',  # Locally disabling
 ]
 
 
