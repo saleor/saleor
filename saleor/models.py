@@ -1,6 +1,7 @@
+from django.contrib.auth.hashers import (
+    check_password, make_password, is_password_usable
+)
 from django.contrib.auth.models import (
-    AbstractBaseUser,
-    PermissionsMixin,
     BaseUserManager,
 )
 from django.db import models
@@ -29,18 +30,21 @@ class UserManager(BaseUserManager):
         return self.create_user(email, password, is_staff=True,
                                 is_superuser=True, **extra_fields)
 
-    def get_by_natural_key(self, email):
-        return self.get(email=email)
 
-
-class User(AbstractBaseUser, PermissionsMixin):
+class User(models.Model):
     email = models.EmailField(unique=True)
-
-    USERNAME_FIELD = 'email'
 
     is_staff = models.BooleanField(_('staff status'), default=False)
     is_active = models.BooleanField(_('active'), default=False)
-    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+    password = models.CharField(_('password'), max_length=128, editable=False)
+    date_joined = models.DateTimeField(_('date joined'), default=timezone.now,
+                                       editable=False)
+    last_login = models.DateTimeField(_('last login'), default=timezone.now,
+                                      editable=False)
+
+    USERNAME_FIELD = 'email'
+
+    REQUIRED_FIELDS = []
 
     objects = UserManager()
 
@@ -49,3 +53,43 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def get_short_name(self):
         return self.email
+
+    def has_perm(self, perm, obj=None):
+        return True
+
+    def has_perms(self, perm_list, obj=None):
+        return True
+
+    def has_module_perms(self, app_label):
+        return True
+
+    def get_username(self):
+        "Return the identifying username for this User"
+        return self.email
+
+    def __unicode__(self):
+        return self.get_username()
+
+    def natural_key(self):
+        return (self.get_username(),)
+
+    def is_anonymous(self):
+        return False
+
+    def is_authenticated(self):
+        return True
+
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+
+    def check_password(self, raw_password):
+        def setter(raw_password):
+            self.set_password(raw_password)
+            self.save(update_fields=["password"])
+        return check_password(raw_password, self.password, setter)
+
+    def set_unusable_password(self):
+        self.password = make_password(None)
+
+    def has_usable_password(self):
+        return is_password_usable(self.password)
