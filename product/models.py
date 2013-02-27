@@ -15,7 +15,10 @@ class SubtypedQuerySet(QuerySet):
 
     def find_subclasses(self, root):
         for a in dir(root):
-            attr = getattr(root, a)
+            try:
+                attr = getattr(root, a)
+            except AttributeError:
+                continue
             if isinstance(attr, SingleRelatedObjectDescriptor):
                 child = attr.related.model
                 if (issubclass(child, root) and
@@ -30,24 +33,31 @@ class SubtypedQuerySet(QuerySet):
             root = type(subtype)
             last_root = root
             for a in dir(root):
-                attr = getattr(root, a)
+                try:
+                    attr = getattr(root, a)
+                except AttributeError:
+                    continue
                 if isinstance(attr, SingleRelatedObjectDescriptor):
                     child = attr.related.model
                     if (issubclass(child, root) and
                         child is not root):
-                        next = getattr(subtype, a)
-                        if next:
-                            subtype = next
+                        try:
+                            next_type = getattr(subtype, a)
+                        except models.ObjectDoesNotExist:
+                            pass
+                        else:
+                            subtype = next_type
                             break
             if root == last_root:
                 break
         return subtype
 
-    def iterator(self, filter=True):
+    def iterator(self, subclass=True):
         subclasses = list(self.find_subclasses(self.model))
-        if subclasses and filter:
+        if subclasses and subclass:
             # https://code.djangoproject.com/ticket/16572
-            for obj in self.select_related(*subclasses).iterator(filter=False):
+            related = self.select_related(*subclasses)
+            for obj in related.iterator(subclass=False):
                 yield obj
         else:
             objs = super(SubtypedQuerySet, self).iterator()
@@ -110,3 +120,4 @@ class Product(Subtyped, Item):
         value = re.sub(r'[^\w\s-]', '', value).strip().lower()
 
         return mark_safe(re.sub(r'[-\s]+', '-', value))
+
