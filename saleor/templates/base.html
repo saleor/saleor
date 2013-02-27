@@ -42,6 +42,14 @@
                             <li>
                                 <a href="{% url "product:index" %}">Products</a>
                             </li>
+                            <li class="dropdown">
+                                <a data-toggle="dropdown" class="dropdown-toggle" href="#">{{ request.cart }}</a>
+                                <ul class="dropdown-menu" role="menu">
+                                    {% for cart_line in request.cart %}
+                                    <li><a href="{{ cart_line.product.get_absolute_url }}">{{ cart_line.product }} ({{ cart_line.quantity }})</a></li>
+                                    {% endfor %}
+                                  </ul>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -51,9 +59,6 @@
         <div class="container">
             {% block outercontent %}
             <div class="row">
-                <div>
-                    {{ request.cart }}
-                </div>
                 {% block content %}
                 <p>
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer tempor ornare neque et consequat. Vestibulum euismod, ante mollis luctus tincidunt, ligula lorem tempor libero, sed molestie nisi lectus id dolor. Sed pharetra tempor hendrerit. Duis condimentum hendrerit libero eget rutrum. Duis facilisis placerat purus ut tincidunt. Fusce sit amet diam eu ante posuere semper. Curabitur vehicula, mauris non volutpat gravida, urna mauris rutrum erat, convallis commodo arcu quam ac nunc. Pellentesque mattis rutrum ornare. Etiam sed suscipit nunc. Maecenas malesuada metus dapibus nibh lobortis non rutrum tellus facilisis. Fusce a urna in lacus ultricies adipiscing non ut leo.
@@ -80,6 +85,7 @@
                 </p>
             </footer>
         </div>
-
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+        <script src="//twitter.github.com/bootstrap/assets/js/bootstrap-dropdown.js"></script>
     </body>
 </html>

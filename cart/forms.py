@@ -22,14 +22,16 @@ class AddToCartForm(forms.Form):
 
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
+        cart_line = self.cart.get_line(self.product)
+
         try:
             self.cart.check_quantity(self.product,
-                                     quantity + self.product.stock)
+                quantity + cart_line.quantity if cart_line else quantity)
         except InvalidQuantityException as e:
             raise forms.ValidationError(e)
 
         return quantity
 
     def save(self):
-        return self.cart.add_item(self.product,
+        return self.cart.add_line(self.product,
                                   self.cleaned_data['quantity'])
