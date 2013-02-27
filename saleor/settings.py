@@ -98,6 +98,7 @@ INSTALLED_APPS = (
     'product',
     'cart',
     'order',
+    'userprofile',
 )
 
 LOGGING = {
@@ -143,7 +144,7 @@ LOGGING = {
     }
 }
 
-AUTH_USER_MODEL = 'saleor.User'
+AUTH_USER_MODEL = 'userprofile.User'
 
 WARN_ABOUT_INVALID_HTML5_OUTPUT = True
 
