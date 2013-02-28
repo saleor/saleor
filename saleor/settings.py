@@ -15,7 +15,7 @@ ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
 MANAGERS = ADMINS
-INTERNAL_IPS = ('127.0.0.1',)
+INTERNAL_IPS = ['127.0.0.1']
 
 DATABASES = {
     'default': {
@@ -35,39 +35,39 @@ MEDIA_URL = '/media/'
 
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
 STATIC_URL = '/static/'
-STATICFILES_DIRS = (
+STATICFILES_DIRS = [
     os.path.join(PROJECT_ROOT, 'saleor', 'static'),
-)
-STATICFILES_FINDERS = (
+]
+STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     # 'django.contrib.staticfiles.finders.DefaultStorageFinder',
-)
+]
 
-TEMPLATE_DIRS = (
+TEMPLATE_DIRS = [
     os.path.join(PROJECT_ROOT, 'saleor', 'templates'),
-)
-TEMPLATE_LOADERS = (
+]
+TEMPLATE_LOADERS = [
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
     # TODO: this one is slow, but for now need for mptt?
     'django.template.loaders.eggs.Loader',
-)
+]
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'wk!n_sudfsx=nc1s7_lnn)-#^m9v&amp;94lntwif&amp;+)8z-2fyokw%'
 
-MIDDLEWARE_CLASSES = (
-    'saleor.middleware.CheckHTML',
+MIDDLEWARE_CLASSES = [
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'cart.middleware.CartMiddleware',
-)
+    'saleor.middleware.CheckHTML',
+]
 
-TEMPLATE_CONTEXT_PROCESSORS = (
+TEMPLATE_CONTEXT_PROCESSORS = [
     'django.contrib.auth.context_processors.auth',
     'django.core.context_processors.debug',
     'django.core.context_processors.i18n',
@@ -76,9 +76,9 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.tz',
     'django.contrib.messages.context_processors.messages',
     'django.core.context_processors.request',
-)
+]
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     # External apps that need to go before django's
 
     # Django modules
@@ -99,7 +99,7 @@ INSTALLED_APPS = (
     'cart',
     'order',
     'userprofile',
-)
+]
 
 LOGGING = {
     'version': 1,
