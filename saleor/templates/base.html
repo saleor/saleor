@@ -48,6 +48,7 @@
                                     {% for cart_line in request.cart %}
                                     <li><a href="{{ cart_line.product.get_absolute_url }}">{{ cart_line.product }} ({{ cart_line.quantity }})</a></li>
                                     {% endfor %}
+                                    <li><a href="{% url "order:billing-address" %}">Order</a></li>
                                   </ul>
                             </li>
                         </ul>
