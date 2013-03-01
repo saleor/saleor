@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% load gross from prices %}
+
+{% block content %}
+{% if cart %}
+<form action="." method="post">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>#</th><th>name</th><th colspan="2">quantity</th><th>price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for form in formset %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ form.cart_line.product }}</td>
+                <td colspan="2">
+                    {{ form.quantity }}
+                </td>
+                <td>{% gross form.cart_line.get_price_per_item %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="2"></td>
+                <td><button class="btn" type="submit">Update</button></td>
+                <td>Total:</td>
+                <td>{% gross cart.get_total %}</td>
+            </tr>
+        </tfoot>
+    </table>
+</form>
+{% else %}
+<p>Your cart is empty</p>
+{% endif %}
+{% endblock content %}
