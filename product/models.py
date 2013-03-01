@@ -22,7 +22,7 @@ class SubtypedQuerySet(QuerySet):
             if isinstance(attr, SingleRelatedObjectDescriptor):
                 child = attr.related.model
                 if (issubclass(child, root) and
-                    child is not root):
+                        child is not root):
                     yield a
                     for s in self.find_subclasses(child):
                         yield '%s__%s' % (a, s)
@@ -40,7 +40,7 @@ class SubtypedQuerySet(QuerySet):
                 if isinstance(attr, SingleRelatedObjectDescriptor):
                     child = attr.related.model
                     if (issubclass(child, root) and
-                        child is not root):
+                            child is not root):
                         try:
                             next_type = getattr(subtype, a)
                         except models.ObjectDoesNotExist:
@@ -110,8 +110,9 @@ class Product(models.Model, Item):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('product:details', (), {'slug':self.get_slug(),
-                                        'product_id':self.id})
+        return ('product:details',
+                (),
+                {'slug': self.get_slug(), 'product_id': self.id})
 
     def get_price_per_item(self, **kwargs):
         return self.price
@@ -121,4 +122,3 @@ class Product(models.Model, Item):
         value = re.sub(r'[^\w\s-]', '', value).strip().lower()
 
         return mark_safe(re.sub(r'[-\s]+', '-', value))
-
