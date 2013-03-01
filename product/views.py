@@ -24,7 +24,7 @@ def details(request, slug, product_id):
 
     cart = get_cart_from_request(request)
 
-    form = ProductForm(cart, product, request.POST or None)
+    form = ProductForm(request.POST or None, cart=cart, product=product)
 
     if form.is_valid():
         form.save()

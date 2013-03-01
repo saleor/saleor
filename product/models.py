@@ -94,7 +94,7 @@ class Category(MPTTModel):
         return self.name
 
 
-class Product(Subtyped, Item):
+class Product(models.Model, Item):
 
     name = models.CharField(_('Product field', 'name'), max_length=128)
     price = PriceField(_('Product field', 'price'), currency='USD',
@@ -110,7 +110,8 @@ class Product(Subtyped, Item):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('product:details', [self.get_slug(), self.id])
+        return ('product:details', (), {'slug':self.get_slug(),
+                                        'product_id':self.id})
 
     def get_price_per_item(self, **kwargs):
         return self.price
