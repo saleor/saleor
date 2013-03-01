@@ -1,34 +1,26 @@
-from decimal import Decimal
 from django.conf import settings
 from django.utils.translation import ugettext as _
-from satchless.item import ItemSet, ItemLine
 from satchless import cart
 
 
-class InvalidQuantityException(Exception):
+class InsufficientStockException(Exception):
 
-    def __init__(self, reason, quantity_delta):
-        super(InvalidQuantityException, self).__init__(reason)
-        self.quantity_delta = quantity_delta
+    def __init__(self, product):
+        super(InsufficientStockException, self).__init__(
+            'Insufficient stock for %r' % (product,))
+        self.product = product
 
 
 class Cart(cart.Cart):
 
     SESSION_KEY = 'cart'
-    modified = False
 
     def __unicode__(self):
         return _('Cart (%(cart_count)s)' % {'cart_count': self.count()})
 
     def check_quantity(self, product, quantity, data=None):
         if quantity > product.stock:
-            raise InvalidQuantityException(
-                _(u'Only %(total)s of product in stock.' % {
-                    'total':product.stock
-                }),
-                product.stock - quantity
-            )
-
+            raise InsufficientStockException(product)
         return super(Cart, self).check_quantity(product, quantity, data)
 
     def get_default_currency(self):
@@ -42,4 +34,3 @@ def get_cart_from_request(request):
         _cart = Cart()
         request.session[Cart.SESSION_KEY] = _cart
         return _cart
-

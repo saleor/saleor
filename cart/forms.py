@@ -1,4 +1,4 @@
-from . import InvalidQuantityException
+from . import InsufficientStockException
 from decimal import Decimal
 from django import forms
 from django.forms.formsets import BaseFormSet
@@ -15,6 +15,8 @@ class AddToCartForm(forms.Form):
     quantity = QuantityField(_('Form field', 'quantity'), min_value=Decimal(0),
                              max_digits=10, decimal_places=4,
                              initial=Decimal(1))
+    error_messages = {
+        'insufficient-stock': _('Only %(remaining)d remaining in stock.')}
 
     def __init__(self, *args, **kwargs):
         self.cart = kwargs.pop('cart')
@@ -25,36 +27,36 @@ class AddToCartForm(forms.Form):
 
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
-
+        if self.cart_line:
+            new_quantity = quantity + self.cart_line.quantity
+        else:
+            new_quantity = quantity
         try:
-            self.cart.check_quantity(self.product,
-                quantity + self.cart_line.quantity if
-                self.cart_line else quantity)
-        except InvalidQuantityException as e:
-            raise forms.ValidationError(e)
-
+            self.cart.check_quantity(self.product, new_quantity)
+        except InsufficientStockException as e:
+            remaining = e.product.stock - quantity
+            msg = self.error_messages['insufficient-stock']
+            raise forms.ValidationError(msg % {'remaining': remaining})
         return quantity
 
     def save(self):
-        return self.cart.add_line(self.product,
-                                  self.cleaned_data['quantity'])
+        return self.cart.add(self.product, self.cleaned_data['quantity'])
 
 
 class ReplaceCartLineForm(AddToCartForm):
 
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
-
         try:
             self.cart.check_quantity(self.product, quantity)
-        except InvalidQuantityException as e:
-            raise forms.ValidationError(e)
-
+        except InsufficientStockException as e:
+            msg = self.error_messages['insufficient-stock']
+            raise forms.ValidationError(msg % {'remaining': e.product.stock})
         return quantity
 
     def save(self):
-        return self.cart.add_line(self.product,
-                                  self.cleaned_data['quantity'], replace=True)
+        return self.cart.add(self.product, self.cleaned_data['quantity'],
+                             replace=True)
 
 
 class ReplaceCartLineFormSet(BaseFormSet):
@@ -67,9 +69,8 @@ class ReplaceCartLineFormSet(BaseFormSet):
 
     def __init__(self, *args, **kwargs):
         self.cart = kwargs.pop('cart')
-        kwargs['initial'] = [{'quantity':cart_line.get_quantity()} for
-                             cart_line in self.cart]
-
+        kwargs['initial'] = [{'quantity': cart_line.get_quantity()}
+                             for cart_line in self.cart]
         super(ReplaceCartLineFormSet, self).__init__(*args, **kwargs)
 
     def _construct_form(self, i, **kwargs):
