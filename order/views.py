@@ -10,7 +10,8 @@ class BillingFormManager(object):
     method = None
 
     def __init__(self, request):
-        self.managment_form = ManagementForm(request.POST or None)
+        self.managment_form = ManagementForm(request.user.is_authenticated(),
+                                             request.POST or None)
         self.address_list_form = UserAddressesForm(user=request.user)
         self.address_form = AddressForm()
 
@@ -47,7 +48,6 @@ def billing_address(request):
 
     if manager.is_valid():
         print manager.cleaned_data
-
 
     return TemplateResponse(request, 'order/address.html', {
         'order': order,

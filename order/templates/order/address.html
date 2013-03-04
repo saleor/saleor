@@ -1,12 +1,22 @@
 {% extends "base.html" %}
 
+{% load as_bootstrap from bootstrap %}
+
 {% block content %}
 
-<form action="." method="post">
+<form action="." method="post" class="form-horizontal">
     {% csrf_token %}
-    {{ managment_form }}
-    {{ address_list_form }}
-    {{ address_form }}
+    {{ managment_form|as_bootstrap }}
+    {% if user.is_authenticated %}
+    <fieldset>
+        <legend>Select address:</legend>
+        {{ address_list_form|as_bootstrap }}
+    </fieldset>
+    {% endif %}
+    <fieldset>
+        <legend>Complete address:</legend>
+        {{ address_form|as_bootstrap }}
+    </fieldset>
 
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">
