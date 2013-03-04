@@ -43,7 +43,7 @@
                                 <a href="{% url "product:index" %}">Products</a>
                             </li>
                             <li class="dropdown">
-                                <a data-toggle="dropdown" class="dropdown-toggle" href="#">{{ request.cart }}</a>
+                                <a data-toggle="dropdown" class="dropdown-toggle" href="{% url "cart:index" %}">{{ request.cart }}</a>
                                 <ul class="dropdown-menu" role="menu">
                                     {% for cart_line in request.cart %}
                                     <li><a href="{{ cart_line.product.get_absolute_url }}">{{ cart_line.product }} ({{ cart_line.quantity }})</a></li>
