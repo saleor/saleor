@@ -29,6 +29,10 @@ class Address(models.Model):
                                     max_length=128)
     phone = models.CharField(_('phone number'), max_length=30, blank=True)
 
+
+    class Meta:
+        unique_together = ('user', 'alias')
+
     def __unicode__(self):
         return self.alias
 
