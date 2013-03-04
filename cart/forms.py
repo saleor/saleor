@@ -69,8 +69,10 @@ class ReplaceCartLineFormSet(BaseFormSet):
 
     def __init__(self, *args, **kwargs):
         self.cart = kwargs.pop('cart')
-        kwargs['initial'] = [{'quantity': cart_line.get_quantity()}
-                             for cart_line in self.cart]
+        kwargs['initial'] = [{'quantity':cart_line.get_quantity()}
+						     for cart_line in self.cart
+                             if cart_line.get_quantity()]
+
         super(ReplaceCartLineFormSet, self).__init__(*args, **kwargs)
 
     def _construct_form(self, i, **kwargs):
