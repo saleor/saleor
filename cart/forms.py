@@ -2,7 +2,7 @@ from . import InsufficientStockException
 from decimal import Decimal
 from django import forms
 from django.forms.formsets import BaseFormSet
-from django.utils.translation import pgettext as _
+from django.utils.translation import pgettext as _, gettext as _g
 
 
 class QuantityField(forms.DecimalField):
@@ -16,7 +16,7 @@ class AddToCartForm(forms.Form):
                              max_digits=10, decimal_places=4,
                              initial=Decimal(1))
     error_messages = {
-        'insufficient-stock': _('Only %(remaining)d remaining in stock.')}
+        'insufficient-stock': _g('Only %(remaining)d remaining in stock.')}
 
     def __init__(self, *args, **kwargs):
         self.cart = kwargs.pop('cart')
@@ -70,7 +70,7 @@ class ReplaceCartLineFormSet(BaseFormSet):
     def __init__(self, *args, **kwargs):
         self.cart = kwargs.pop('cart')
         kwargs['initial'] = [{'quantity':cart_line.get_quantity()}
-						     for cart_line in self.cart
+                             for cart_line in self.cart
                              if cart_line.get_quantity()]
 
         super(ReplaceCartLineFormSet, self).__init__(*args, **kwargs)
