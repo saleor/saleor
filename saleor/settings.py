@@ -92,6 +92,7 @@ INSTALLED_APPS = [
     'south',
     'django_prices',
     'mptt',
+    'registration',
 
     # Local apps
     'saleor',
@@ -149,3 +150,5 @@ AUTH_USER_MODEL = 'userprofile.User'
 WARN_ABOUT_INVALID_HTML5_OUTPUT = True
 
 SATCHLESS_DEFAULT_CURRENCY = 'USD'
+
+ACCOUNT_ACTIVATION_DAYS = 3

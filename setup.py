@@ -40,12 +40,14 @@ setup(
         'django-prices>=2013.1',
         'satchless>=2013.2a',
         'South>=0.7.6',
-        'unidecode'],
+        'unidecode',
+        'django-registration==0.8'],
     extras_require={
         'lint': ['pylint==0.26.0', 'django-lint==dev']},
     dependency_links=[
         'http://github.com/mirumee/satchless/tarball/django-removal#egg=satchless-2013.2a',
-        'http://github.com/lamby/django-lint/tarball/master#egg=django-lint-dev'],
+        'http://github.com/lamby/django-lint/tarball/master#egg=django-lint-dev',
+        'https://bitbucket.org/LinnTroll/django-registration-1.5/get/c71d5b8e2735.zip#egg=django-registration-0.8'],
     entry_points={
         'console_scripts': ['saleor = saleor:manage']},
     cmdclass={

@@ -4,10 +4,12 @@ from django.contrib import admin
 
 admin.autodiscover()
 
-urlpatterns = patterns('',
+urlpatterns = patterns(
+    '',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', 'saleor.views.home', name='home'),
     url(r'^products/', include('product.urls', namespace='product')),
     url(r'^order/', include('order.urls', namespace='order')),
     url(r'^cart/', include('cart.urls', namespace='cart')),
+    url(r'^account/', include('registration.backends.default.urls')),
 )
