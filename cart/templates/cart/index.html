@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% load gross from prices %}
+{% load as_bootstrap from bootstrap %}
 
 {% block content %}
 {% if cart %}
@@ -19,7 +20,7 @@
                 <td>{{ forloop.counter }}</td>
                 <td>{{ form.cart_line.product }}</td>
                 <td colspan="2">
-                    {{ form.quantity }}
+                    {{ form.quantity|as_bootstrap:"False" }}
                 </td>
                 <td>{% gross form.cart_line.get_price_per_item %}</td>
             </tr>
