@@ -12,4 +12,5 @@ urlpatterns = patterns(
     url(r'^order/', include('order.urls', namespace='order')),
     url(r'^cart/', include('cart.urls', namespace='cart')),
     url(r'^account/', include('registration.backends.default.urls')),
+    url(r'^profile/', include('userprofile.urls', namespace='profile')),
 )

@@ -10,6 +10,21 @@ class AddressForm(forms.ModelForm):
         exclude = ['user', 'alias']
 
 
+class AddressFormWithAlias(forms.ModelForm):
+
+    class Meta:
+        model = Address
+        exclude = ['user']
+
+    def clean(self):
+        if Address.objects.filter(user=self.instance.user,
+                                  alias=self.cleaned_data['alias']).exists():
+            self._errors['alias'] = self.error_class(
+                ['You are already using such alias for another address'])
+
+        return self.cleaned_data
+
+
 class UserAddressesForm(forms.Form):
 
     address = forms.ModelChoiceField(queryset=Address.objects.none())

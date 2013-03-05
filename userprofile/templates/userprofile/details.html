@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+    <ul>
+    {% for address in addresses %}
+        <li>
+            <p>
+                {{ address }}
+            </p>
+            <a href="{% url 'profile:address-edit' pk=address.pk slug=address.get_slug %}" class="btn">Edit</a>
+            <a href="{% url 'profile:address-delete' pk=address.pk slug=address.get_slug %}" class="btn">Delete</a>
+        </li>
+    {% endfor %}
+    </ul>
+
+    <div>
+        <a href="{% url 'profile:address-create' %}" class="btn">Add new address</a>
+    </div>
+
+
+{% endblock content %}
+

@@ -1,4 +1,8 @@
 from django.core.mail import send_mail
+from unidecode import unidecode
+import re
+
+from django.utils.safestring import mark_safe
 from django.contrib.auth.hashers import (check_password, make_password,
                                          is_password_usable)
 from django.contrib.auth.models import BaseUserManager
@@ -27,7 +31,7 @@ class Address(models.Model):
     country = models.CharField(_('country'), choices=COUNTRY_CHOICES,
                                max_length=2)
     country_area = models.CharField(_('country administrative area'),
-                                    max_length=128)
+                                    max_length=128, blank=True)
     phone = models.CharField(_('phone number'), max_length=30, blank=True)
 
     class Meta:
@@ -35,6 +39,18 @@ class Address(models.Model):
 
     def __unicode__(self):
         return self.alias
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('profile:address-edit',
+                (),
+                {'slug': self.get_slug(), 'pk': self.id})
+
+    def get_slug(self):
+        value = unidecode(self.alias)
+        value = re.sub(r'[^\w\s-]', '', value).strip().lower()
+
+        return mark_safe(re.sub(r'[-\s]+', '-', value))
 
 
 class UserManager(BaseUserManager):
