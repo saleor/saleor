@@ -8,6 +8,7 @@ from saleor import countries
 from uuid import uuid4
 import datetime
 from product.models import Product
+from userprofile.models import Address
 
 
 class PaymentInfo(ItemLine):
@@ -94,6 +95,7 @@ class Order(models.Model, ItemSet):
     token = models.CharField(_('Order field', 'token'), max_length=36,
                              blank=True, default='')
 
+
     class Meta:
         ordering = ('-last_status_change',)
 
@@ -115,6 +117,9 @@ class Order(models.Model, ItemSet):
 
     def __repr__(self):
         return '<Order #%r>' % (self.id,)
+
+    def __unicode__(self):
+        return self.token
 
     def get_default_currency(self):
         return settings.SATCHLESS_DEFAULT_CURRENCY
@@ -141,6 +146,30 @@ class Order(models.Model, ItemSet):
 
     def is_empty(self):
         return not self.groups.exists()
+
+    def set_billing_address(self, address):
+        self.billing_first_name = address.first_name
+        self.billing_last_name = address.last_name
+        self.billing_company_name = address.company_name
+        self.billing_street_address_1 = address.street_address_1
+        self.billing_street_address_2 = address.street_address_2
+        self.billing_city = address.city
+        self.billing_postal_code = address.postal_code
+        self.billing_country = address.country
+        self.billing_country_area = address.country_area
+        self.billing_phone = address.phone
+
+    def get_billing_address(self):
+        return Address(first_name=self.billing_first_name,
+                       last_name=self.billing_last_name,
+                       company_name=self.billing_company_name,
+                       street_address_1=self.billing_street_address_1,
+                       street_address_2=self.billing_street_address_2,
+                       city=self.billing_city,
+                       postal_code=self.billing_postal_code,
+                       country=self.billing_country,
+                       country_area=self.billing_country_area,
+                       phone=self.billing_phone)
 
 
 class DeliveryInfo(ItemLine):
