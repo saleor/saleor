@@ -3,8 +3,18 @@
 {% load as_bootstrap from bootstrap %}
 
 {% block content %}
-
-<form action="." method="post" class="form-horizontal">
+<ul class="nav nav-tabs">
+    <li class="active">
+        <a href="">Billing</a>
+    </li>
+    <li class="disabled">
+        <a href="">Shipping</a>
+    </li>
+    <li class="disabled">
+        <a href="">Payment</a>
+    </li>
+</ul>
+<form action="{% url "order:billing-address" %}" method="post" class="form-horizontal">
     {% csrf_token %}
     {{ managment_form|as_bootstrap }}
     {% if user.is_authenticated %}

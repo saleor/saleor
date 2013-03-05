@@ -1,25 +1,27 @@
-from django.template.response import TemplateResponse
-from . import get_order_from_request
 from .forms import ManagementForm
-from userprofile.forms import AddressForm, UserAddressesForm
 from django.forms.models import model_to_dict
+from django.template.response import TemplateResponse
+from order import get_order_from_request
+from userprofile.forms import AddressForm, UserAddressesForm
 
 
 class BillingFormManager(object):
 
     method = None
 
-    def __init__(self, request):
+    def __init__(self, request, instance=None):
+        self.instance = instance
         self.managment_form = ManagementForm(request.user.is_authenticated(),
                                              request.POST or None)
         self.address_list_form = UserAddressesForm(user=request.user)
-        self.address_form = AddressForm()
+        self.address_form = AddressForm(instance=instance)
 
         if self.managment_form.is_valid():
             self.method = self.managment_form.cleaned_data['choice_method']
 
             if self.method == 'new':
-                self.address_form = AddressForm(request.POST)
+                self.address_form = AddressForm(request.POST,
+                                                instance=instance)
             elif self.method == 'select':
                 self.address_list_form = UserAddressesForm(request.POST,
                                                            user=request.user)
@@ -31,11 +33,13 @@ class BillingFormManager(object):
         if self.method:
             if self.method == 'new' and self.address_form.is_valid():
                 self.cleaned_data = self.address_form.cleaned_data
+                self.instance = self.address_form.instance
                 return True
             elif self.method == 'select' and self.address_list_form.is_valid():
-                address = self.address_list_form.cleaned_data['address']
-                self.cleaned_data = model_to_dict(
-                                      address,exclude=['id', 'user', 'alias'])
+                self.instance = self.address_list_form.cleaned_data['address']
+                self.cleaned_data = model_to_dict(self.instance,
+                                                  exclude=['id', 'user',
+                                                           'alias'])
                 return True
 
         return False
@@ -43,15 +47,15 @@ class BillingFormManager(object):
 
 def billing_address(request):
     order = get_order_from_request(request)
-
-    manager = BillingFormManager(request)
+    manager = BillingFormManager(request, instance=order.get_billing_address())
 
     if manager.is_valid():
-        print manager.cleaned_data
+        order.set_billing_address(manager.instance)
+        order.save()
 
     return TemplateResponse(request, 'order/address.html', {
-        'order': order,
         'managment_form': manager.managment_form,
         'address_list_form': manager.address_list_form,
-        'address_form': manager.address_form
+        'address_form': manager.address_form,
+        'order': order
     })
