@@ -53,15 +53,15 @@
                             </li>
                             {% if user.is_authenticated %}
                             <li class="dropdown pull-right"> {# TODO pull-right not working #}
-                                <a data-toggle="dropdown" class="dropdown-toggle" href="{% url "home" %}">{{ user }}</a>{# TODO url #}
+                                <a data-toggle="dropdown" class="dropdown-toggle" href=".">{{ user }}</a>
                                 <ul class="dropdown-menu" role="menu">
-                                    <li><a href="{% url "home" %}">Profile edit</a></li> {# TODO url #}
-                                    <li><a href="{% url "auth_logout" %}">Log out</a></li>
+                                    <li><a href="{% url "profile:details" %}">Profile edit</a></li>
+                                    <li><a href="{% url "registration:logout" %}">Log out</a></li>
                                   </ul>
                             </li>
                             {% else %}
                             <li>
-                                <a href="{% url "auth_login" %}">Log in</a>
+                                <a href="{% url "registration:login" %}">Log in</a>
                             </li>
                             {% endif %}
                         </ul>
