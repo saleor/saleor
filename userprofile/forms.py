@@ -1,6 +1,7 @@
-from .models import Address
 from django import forms
 from django.contrib.auth.models import AnonymousUser
+
+from .models import Address
 
 
 class AddressForm(forms.ModelForm):
@@ -8,6 +9,22 @@ class AddressForm(forms.ModelForm):
     class Meta:
         model = Address
         exclude = ['user', 'alias']
+
+
+class AddressFormWithAlias(forms.ModelForm):
+
+    class Meta:
+        model = Address
+        exclude = ['user']
+
+    def clean(self):
+        if Address.objects.filter(
+            user=self.instance.user, alias=self.cleaned_data['alias']
+        ).exclude(id=self.instance.id).exists():
+            self._errors['alias'] = self.error_class(
+                ['You are already using such alias for another address'])
+
+        return self.cleaned_data
 
 
 class UserAddressesForm(forms.Form):

@@ -1,3 +1,8 @@
+from django.core.mail import send_mail
+from unidecode import unidecode
+import re
+
+from django.utils.safestring import mark_safe
 from django.contrib.auth.hashers import (check_password, make_password,
                                          is_password_usable)
 from django.contrib.auth.models import BaseUserManager
@@ -9,9 +14,9 @@ from saleor.countries import COUNTRY_CHOICES
 
 class Address(models.Model):
     user = models.ForeignKey('User', related_name='addressbook')
-    alias = models.CharField(_('short alias'), max_length=30,
-            default=_('Home'),
-            help_text=_('User-defined alias which identifies this address'))
+    alias = models.CharField(
+        _('short alias'), max_length=30, default=_('Home'),
+        help_text=_('User-defined alias which identifies this address'))
     first_name = models.CharField(_('first name'),
                                   max_length=256, blank=True)
     last_name = models.CharField(_('last name'),
@@ -26,15 +31,26 @@ class Address(models.Model):
     country = models.CharField(_('country'), choices=COUNTRY_CHOICES,
                                max_length=2)
     country_area = models.CharField(_('country administrative area'),
-                                    max_length=128)
+                                    max_length=128, blank=True)
     phone = models.CharField(_('phone number'), max_length=30, blank=True)
-
 
     class Meta:
         unique_together = ('user', 'alias')
 
     def __unicode__(self):
         return self.alias
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('profile:address-edit',
+                (),
+                {'slug': self.get_slug(), 'pk': self.id})
+
+    def get_slug(self):
+        value = unidecode(self.alias)
+        value = re.sub(r'[^\w\s-]', '', value).strip().lower()
+
+        return mark_safe(re.sub(r'[-\s]+', '-', value))
 
 
 class UserManager(BaseUserManager):
@@ -123,3 +139,9 @@ class User(models.Model):
 
     def has_usable_password(self):
         return is_password_usable(self.password)
+
+    def email_user(self, subject, message, from_email=None):
+        """
+        Sends an email to this User.
+        """
+        send_mail(subject, message, from_email, [self.email])

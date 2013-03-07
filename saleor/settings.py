@@ -48,7 +48,6 @@ TEMPLATE_DIRS = [
     os.path.join(PROJECT_ROOT, 'saleor', 'templates'),
 ]
 TEMPLATE_LOADERS = [
-    'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
     # TODO: this one is slow, but for now need for mptt?
     'django.template.loaders.eggs.Loader',
@@ -99,6 +98,7 @@ INSTALLED_APPS = [
     'cart',
     'order',
     'userprofile',
+    'registration',
 ]
 
 LOGGING = {
@@ -144,8 +144,14 @@ LOGGING = {
     }
 }
 
+AUTHENTICATION_BACKENDS = ('registration.backends.EmailPasswordBackend',)
+
 AUTH_USER_MODEL = 'userprofile.User'
 
 WARN_ABOUT_INVALID_HTML5_OUTPUT = True
 
 SATCHLESS_DEFAULT_CURRENCY = 'USD'
+
+ACCOUNT_ACTIVATION_DAYS = 3
+
+LOGIN_REDIRECT_URL = "home"

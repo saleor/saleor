@@ -1,6 +1,6 @@
 from django import forms
 from userprofile.forms import AddressForm
-from django.contrib.auth.models import AnonymousUser
+
 
 class ShippingForm(AddressForm):
 
@@ -22,5 +22,3 @@ class ManagementForm(forms.Form):
             choice_method = self.fields['choice_method']
             choice_method.initial = self.CHOICES[1][0]
             choice_method.widget = choice_method.hidden_widget()
-
-

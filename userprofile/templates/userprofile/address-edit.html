@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <form action="." method="post">
+        {% csrf_token %}
+        {% if form.errors %}
+            <div class="alert alert-error">
+                Please correct errors below.
+            </div>
+        {% endif %}
+        {% if form.is_valid %}
+            <div class="alert alert-success">
+                Address updated.
+            </div>
+        {% endif %}
+        <fieldset>
+            <legend>Address</legend>
+            {% for field in form %}
+                <div class="control-group{% if field.errors %} error{% endif %}">
+                <label for="{{ field.id }}">{{ field.label }}</label>
+                <div class="control">
+                    {{ field }}
+                    <span class="help-inline">{{ field.errors }}</span>
+                </div>
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn">Save</button>
+        </fieldset>
+    </form>
+{% endblock content %}
