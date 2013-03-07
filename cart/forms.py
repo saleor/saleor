@@ -15,7 +15,7 @@ class QuantityField(forms.DecimalField):
 
 class AddToCartForm(forms.Form):
 
-    quantity = QuantityField(pgettext('Form field', 'quantity'))
+    quantity = QuantityField(label=pgettext('Form field', 'quantity'))
     error_messages = {
         'insufficient-stock': ugettext(
             'Only %(remaining)d remaining in stock.')}

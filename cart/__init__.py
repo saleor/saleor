@@ -1,6 +1,37 @@
 from django.conf import settings
 from django.utils.translation import ugettext
+from prices import Price
 from satchless import cart
+from satchless.item import ItemSet, ItemLine, Item, ItemRange
+
+
+class Shipping(Item):
+
+    def get_price_per_item(self, **kwargs):
+        return Price(5, currency=settings.SATCHLESS_DEFAULT_CURRENCY)
+
+
+class DeliveryGroup(ItemSet):
+
+    items = None
+
+    def __init__(self, items):
+        self.items = items or []
+
+    def __iter__(self):
+        for i in self.items:
+            yield i
+
+    def get_delivery_methods(self, **kwargs):
+        yield Shipping(**kwargs)
+
+    def get_min_delivery_method(self, **kwargs):
+        return min(self.get_delivery_methods(),
+                   key=lambda x: x.get_price_per_item(**kwargs))
+
+
+def cart_partition(cart):
+    yield DeliveryGroup(list(cart))
 
 
 class InsufficientStockException(Exception):
