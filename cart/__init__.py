@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext
 from satchless import cart
 
 
@@ -16,15 +16,13 @@ class Cart(cart.Cart):
     SESSION_KEY = 'cart'
 
     def __unicode__(self):
-        return _('Cart (%(cart_count)s)' % {'cart_count': self.count()})
+        return ugettext('Your cart (%(cart_count)s)') % {
+            'cart_count': self.count()}
 
     def check_quantity(self, product, quantity, data=None):
         if quantity > product.stock:
             raise InsufficientStockException(product)
         return super(Cart, self).check_quantity(product, quantity, data)
-
-    def get_default_currency(self):
-        return settings.SATCHLESS_DEFAULT_CURRENCY
 
 
 def get_cart_from_request(request):

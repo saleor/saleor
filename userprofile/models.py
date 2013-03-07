@@ -2,33 +2,36 @@ from django.contrib.auth.hashers import (check_password, make_password,
                                          is_password_usable)
 from django.contrib.auth.models import BaseUserManager
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy
 from django.utils import timezone
 from saleor.countries import COUNTRY_CHOICES
 
 
 class Address(models.Model):
     user = models.ForeignKey('User', related_name='addressbook')
-    alias = models.CharField(_('short alias'), max_length=30,
-            default=_('Home'),
-            help_text=_('User-defined alias which identifies this address'))
-    first_name = models.CharField(_('first name'),
-                                  max_length=256, blank=True)
-    last_name = models.CharField(_('last name'),
-                                 max_length=256, blank=True)
-    company_name = models.CharField(_('company name'), max_length=256,
-                                    blank=True)
-    street_address_1 = models.CharField(_('street address 1'), max_length=256)
-    street_address_2 = models.CharField(_('street address 2'), max_length=256,
-                                        blank=True)
-    city = models.CharField(_('city'), max_length=256)
-    postal_code = models.CharField(_('postal code'), max_length=20)
-    country = models.CharField(_('country'), choices=COUNTRY_CHOICES,
-                               max_length=2)
-    country_area = models.CharField(_('country administrative area'),
-                                    max_length=128)
-    phone = models.CharField(_('phone number'), max_length=30, blank=True)
-
+    alias = models.CharField(
+        ugettext_lazy('short alias'),
+        max_length=30, default=ugettext_lazy('Home'),
+        help_text=ugettext_lazy(
+            'User-defined alias which identifies this address'))
+    first_name = models.CharField(
+        ugettext_lazy('first name'), max_length=256, blank=True)
+    last_name = models.CharField(
+        ugettext_lazy('last name'), max_length=256, blank=True)
+    company_name = models.CharField(
+        ugettext_lazy('company name'), max_length=256, blank=True)
+    street_address_1 = models.CharField(
+        ugettext_lazy('street address 1'), max_length=256)
+    street_address_2 = models.CharField(
+        ugettext_lazy('street address 2'), max_length=256, blank=True)
+    city = models.CharField(ugettext_lazy('city'), max_length=256)
+    postal_code = models.CharField(ugettext_lazy('postal code'), max_length=20)
+    country = models.CharField(
+        ugettext_lazy('country'), choices=COUNTRY_CHOICES, max_length=2)
+    country_area = models.CharField(
+        ugettext_lazy('country administrative area'), max_length=128)
+    phone = models.CharField(
+        ugettext_lazy('phone number'), max_length=30, blank=True)
 
     class Meta:
         unique_together = ('user', 'alias')
@@ -60,17 +63,19 @@ class UserManager(BaseUserManager):
 class User(models.Model):
     email = models.EmailField(unique=True)
 
-    is_staff = models.BooleanField(_('staff status'), default=False)
-    is_active = models.BooleanField(_('active'), default=False)
-    password = models.CharField(_('password'), max_length=128, editable=False)
-    date_joined = models.DateTimeField(_('date joined'), default=timezone.now,
-                                       editable=False)
-    last_login = models.DateTimeField(_('last login'), default=timezone.now,
-                                      editable=False)
-    default_shipping_address = models.ForeignKey(Address, related_name='+',
-                                                 null=True, blank=True)
-    default_billing_address = models.ForeignKey(Address, related_name='+',
-                                                null=True, blank=True)
+    is_staff = models.BooleanField(
+        ugettext_lazy('staff status'), default=False)
+    is_active = models.BooleanField(ugettext_lazy('active'), default=False)
+    password = models.CharField(
+        ugettext_lazy('password'), max_length=128, editable=False)
+    date_joined = models.DateTimeField(
+        ugettext_lazy('date joined'), default=timezone.now, editable=False)
+    last_login = models.DateTimeField(
+        ugettext_lazy('last login'), default=timezone.now, editable=False)
+    default_shipping_address = models.ForeignKey(
+        Address, related_name='+', null=True, blank=True)
+    default_billing_address = models.ForeignKey(
+        Address, related_name='+', null=True, blank=True)
 
     USERNAME_FIELD = 'email'
 

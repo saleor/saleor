@@ -2,27 +2,28 @@ from . import InsufficientStockException
 from decimal import Decimal
 from django import forms
 from django.forms.formsets import BaseFormSet
-from django.utils.translation import pgettext as _, gettext as _g
+from django.utils.translation import pgettext, ugettext
 
 
 class QuantityField(forms.DecimalField):
 
-    pass
+    def __init__(self, *args, **kwargs):
+        return super(QuantityField, self).__init__(
+            *args, max_value=None, min_value=Decimal(0), max_digits=10,
+            decimal_places=4, initial=Decimal(1), **kwargs)
 
 
 class AddToCartForm(forms.Form):
 
-    quantity = QuantityField(_('Form field', 'quantity'), min_value=Decimal(0),
-                             max_digits=10, decimal_places=4,
-                             initial=Decimal(1))
+    quantity = QuantityField(pgettext('Form field', 'quantity'))
     error_messages = {
-        'insufficient-stock': _g('Only %(remaining)d remaining in stock.')}
+        'insufficient-stock': ugettext(
+            'Only %(remaining)d remaining in stock.')}
 
     def __init__(self, *args, **kwargs):
         self.cart = kwargs.pop('cart')
         self.product = kwargs.pop('product')
         self.cart_line = self.cart.get_line(self.product)
-
         super(AddToCartForm, self).__init__(*args, **kwargs)
 
     def clean_quantity(self):
@@ -63,16 +64,15 @@ class ReplaceCartLineFormSet(BaseFormSet):
 
     form = ReplaceCartLineForm
     extra = 0
-    can_order = False,
+    can_order = False
     can_delete = False
     max_num = None
 
     def __init__(self, *args, **kwargs):
         self.cart = kwargs.pop('cart')
-        kwargs['initial'] = [{'quantity':cart_line.get_quantity()}
+        kwargs['initial'] = [{'quantity': cart_line.get_quantity()}
                              for cart_line in self.cart
                              if cart_line.get_quantity()]
-
         super(ReplaceCartLineFormSet, self).__init__(*args, **kwargs)
 
     def _construct_form(self, i, **kwargs):
