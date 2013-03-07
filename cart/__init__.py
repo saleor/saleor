@@ -1,8 +1,22 @@
 from django.conf import settings
 from django.utils.translation import ugettext
 from prices import Price
+from satchless.item import Item, ItemLine, ItemSet, Partitioner
 from satchless import cart
-from satchless.item import Item
+
+
+class DeliveryLine(ItemLine):
+    name = None
+    price = None
+    description = None
+
+    def __init__(self, name, price, description):
+        self.name = name
+        self.price = price
+        self.description = description
+
+    def get_price_per_item(self, **kwargs):
+        return self.price
 
 
 class Shipping(Item):
@@ -11,29 +25,28 @@ class Shipping(Item):
         return Price(5, currency=settings.SATCHLESS_DEFAULT_CURRENCY)
 
 
-class DeliveryGroup(cart.CartPartition):
-
-    items = None
-
-    def __init__(self, items):
-        self.items = items or []
+class BaseDeliveryGroup(ItemSet):
 
     def __iter__(self):
-        for i in self.items:
+        for i in super(BaseDeliveryGroup, self).__iter__():
             yield i
+        delivery_total = self.get_delivery_total()
+        if delivery_total:
+            yield DeliveryLine(ugettext('Estimated delivery'), delivery_total,
+                               '')
 
     def get_delivery_methods(self, **kwargs):
         yield Shipping(**kwargs)
 
     def get_delivery_total(self, **kwargs):
-        return min(self.get_delivery_methods(),
-                   key=lambda x: x.get_price_per_item(**kwargs))
+        methods = self.get_delivery_methods()
+        return min(method.get_price_per_item(**kwargs) for method in methods)
 
 
-class Partitioner(cart.CartPartitioner):
+class CartPartitioner(Partitioner):
 
     def __iter__(self):
-        yield DeliveryGroup(list(self.cart))
+        yield BaseDeliveryGroup(*self.item_set)
 
     def get_delivery_subtotal(self, partion, **kwargs):
         return partion.get_delivery_total(**kwargs)

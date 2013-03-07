@@ -1,4 +1,5 @@
 from .forms import ManagementForm
+from cart import get_cart_from_request, CartPartitioner
 from django.forms.models import model_to_dict
 from django.template.response import TemplateResponse
 from order import get_order_from_request
@@ -46,7 +47,8 @@ class BillingFormManager(object):
 
 
 def billing_address(request):
-    order = get_order_from_request(request)
+    cart = get_cart_from_request(request)
+    order = get_order_from_request(request, CartPartitioner(cart))
     manager = BillingFormManager(request, instance=order.get_billing_address())
 
     if manager.is_valid():

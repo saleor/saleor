@@ -9,21 +9,16 @@ from uuid import uuid4
 import datetime
 from product.models import Product
 from userprofile.models import Address
+from cart import BaseDeliveryGroup, DeliveryLine
 
 
-class PaymentInfo(ItemLine):
+class OrderManager(models.Manager):
 
-    name = None
-    price = None
-    description = None
-
-    def __init__(self, name, price, description):
-        self.name = name
-        self.price = price
-        self.description = description
-
-    def get_price_per_item(self, **kwargs):
-        return self.price
+    def create_from_partitions(self, partitions):
+        order = self.get_query_set().create()
+        for partition in partitions:
+            order.groups.create_from_partition(order, partition)
+        return order
 
 
 class Order(models.Model, ItemSet):
@@ -101,6 +96,8 @@ class Order(models.Model, ItemSet):
         pgettext_lazy('Order field', 'token'),
         max_length=36, blank=True, default='')
 
+    objects = OrderManager()
+
     class Meta:
         ordering = ('-last_status_change',)
 
@@ -114,11 +111,7 @@ class Order(models.Model, ItemSet):
         return super(Order, self).save(*args, **kwargs)
 
     def __iter__(self):
-        for g in self.get_groups():
-            yield g
-        payment = self.get_payment()
-        if payment:
-            yield payment
+        return iter(self.groups.all())
 
     def __repr__(self):
         return '<Order #%r>' % (self.id,)
@@ -129,25 +122,6 @@ class Order(models.Model, ItemSet):
     @property
     def billing_full_name(self):
         return u'%s %s' % (self.billing_first_name, self.billing_last_name)
-
-    def get_groups(self):
-        return self.groups.all()
-
-    def get_delivery_price(self):
-        return sum([g.get_delivery().get_total() for g in self.get_groups()],
-                   Price(0, currency=settings.SATCHLESS_DEFAULT_CURRENCY))
-
-    def get_payment(self):
-        return PaymentInfo(name=self.payment_type_name,
-                           price=self.payment_price,
-                           description=self.payment_type_description)
-
-    def create_delivery_group(self, group):
-        return self.groups.create(order=self,
-                                  require_shipping_address=group.is_shipping)
-
-    def is_empty(self):
-        return not self.groups.exists()
 
     def set_billing_address(self, address):
         self.billing_first_name = address.first_name
@@ -174,21 +148,25 @@ class Order(models.Model, ItemSet):
                        phone=self.billing_phone)
 
 
-class DeliveryInfo(ItemLine):
-    name = None
-    price = None
-    description = None
+class DeliveryGroupManager(models.Manager):
 
-    def __init__(self, name, price, description):
-        self.name = name
-        self.price = price
-        self.description = description
+    def create_from_partition(self, order, partition):
+        group = self.get_query_set().create(order=order)
+        for item_line in partition:
+            if isinstance(item_line, DeliveryLine):
+                continue
+            product_name = unicode(item_line.product)
+            price = item_line.get_price_per_item()
+            group.items.create(
+                product=item_line.product,
+                quantity=item_line.get_quantity(),
+                unit_price_net=price.net,
+                product_name=product_name,
+                unit_price_gross=price.gross)
+        return group
 
-    def get_price_per_item(self, **kwargs):
-        return self.price
 
-
-class DeliveryGroup(models.Model, ItemSet):
+class DeliveryGroup(models.Model, BaseDeliveryGroup):
 
     order = models.ForeignKey('order', related_name='groups', editable=False)
     delivery_price = PriceField(
@@ -233,27 +211,19 @@ class DeliveryGroup(models.Model, ItemSet):
         pgettext_lazy('DeliveryGroup field', 'phone number'),
         max_length=30, blank=True)
 
+    objects = DeliveryGroupManager()
+
     def __iter__(self):
-        for i in self.get_items():
+        for i in super(DeliveryGroup, self).__iter__():
             yield i
         delivery = self.get_delivery()
         if delivery:
             yield delivery
 
     def get_delivery(self):
-        return DeliveryInfo(name=self.delivery_type_name,
+        return DeliveryLine(name=self.delivery_type_name,
                             price=self.delivery_price,
                             description=self.delivery_type_description)
-
-    def get_items(self):
-        return self.items.all()
-
-    def add_item(self, variant, quantity, price, product_name=None):
-        product_name = product_name or unicode(variant)
-        return self.items.create(product_variant=variant, quantity=quantity,
-                                 unit_price_net=price.net,
-                                 product_name=product_name,
-                                 unit_price_gross=price.gross)
 
 
 class OrderedItem(models.Model, ItemLine):
