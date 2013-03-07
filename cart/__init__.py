@@ -2,7 +2,7 @@ from django.conf import settings
 from django.utils.translation import ugettext
 from prices import Price
 from satchless import cart
-from satchless.item import ItemSet, ItemLine, Item, ItemRange
+from satchless.item import Item
 
 
 class Shipping(Item):
@@ -11,7 +11,7 @@ class Shipping(Item):
         return Price(5, currency=settings.SATCHLESS_DEFAULT_CURRENCY)
 
 
-class DeliveryGroup(ItemSet):
+class DeliveryGroup(cart.CartPartition):
 
     items = None
 
@@ -25,13 +25,26 @@ class DeliveryGroup(ItemSet):
     def get_delivery_methods(self, **kwargs):
         yield Shipping(**kwargs)
 
-    def get_min_delivery_method(self, **kwargs):
+    def get_delivery_total(self, **kwargs):
         return min(self.get_delivery_methods(),
                    key=lambda x: x.get_price_per_item(**kwargs))
 
 
-def cart_partition(cart):
-    yield DeliveryGroup(list(cart))
+class Partitioner(cart.CartPartitioner):
+
+    def __iter__(self):
+        yield DeliveryGroup(list(self.cart))
+
+    def get_delivery_subtotal(self, partion, **kwargs):
+        return partion.get_delivery_total(**kwargs)
+
+    def get_delivery_total(self, **kwargs):
+        items = [self.get_delivery_subtotal(partion, **kwargs)
+                 for partion in self]
+        if not items:
+            raise AttributeError(
+                'Calling get_delivery_total() for an empty cart')
+        return sum(items[1:], items[0])
 
 
 class InsufficientStockException(Exception):

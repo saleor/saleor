@@ -62,10 +62,11 @@ class ReplaceCartLineForm(AddToCartForm):
 
 class ReplaceCartLineFormSet(BaseFormSet):
 
-    form = ReplaceCartLineForm
-    extra = 0
-    can_order = False
+    absolute_max = 9999
     can_delete = False
+    can_order = False
+    extra = 0
+    form = ReplaceCartLineForm
     max_num = None
 
     def __init__(self, *args, **kwargs):
