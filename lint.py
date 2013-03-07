@@ -52,7 +52,7 @@ DISABLED_WARNINGS = [
     # 'E1003',  # Bad first argument %r given to super class Used when another argument than the current class is given as first argument of the super builtin.
     'E1101',  # %s %r has no %r member Used when a variable is accessed for an unexistent member.
     # 'E1102',  # %s is not callable Used when an object being called has been inferred to a non callable object
-    # 'E1103',  # %s %r has no %r member (but some types could not be inferred) Used when a variable is accessed for an unexistent member, but astng was not able to interpret all possible types of this variable.
+    'E1103',  # %s %r has no %r member (but some types could not be inferred) Used when a variable is accessed for an unexistent member, but astng was not able to interpret all possible types of this variable.
     # 'E1111',  # Assigning to function call which doesn't return Used when an assignment is done on a function call but the inferred function doesn't return anything.
     # 'E1120',  # No value passed for parameter %s in function call Used when a function call passes too few arguments.
     # 'E1121',  # Too many positional arguments for function call Used when a function call passes too many positional arguments.

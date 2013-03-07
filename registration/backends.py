@@ -12,7 +12,7 @@ class EmailPasswordBackend(object):
         except User.DoesNotExist:
             return None
 
-    def authenticate(self, username=None, password=None, **kwargs):
+    def authenticate(self, username=None, password=None, **_kwargs):
         try:
             user = User.objects.get(email=username)
         except User.DoesNotExist:
