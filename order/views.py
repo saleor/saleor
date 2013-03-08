@@ -1,9 +1,47 @@
 from .forms import ManagementForm
-from cart import get_cart_from_request, CartPartitioner
+from cart import (get_cart_from_request, remove_cart_from_request,
+                  CartPartitioner)
 from django.forms.models import model_to_dict
+from django.http.response import Http404
+from django.shortcuts import redirect
 from django.template.response import TemplateResponse
-from order import get_order_from_request
+from order.models import Order
 from userprofile.forms import AddressForm, UserAddressesForm
+from satchless.process import Step, ProcessManager, InvalidData
+from django.db import models
+
+
+class BillingAddressStep(Step):
+
+    def __init__(self, order, request):
+        self.manager = BillingFormManager(request,
+                                          instance=order.get_billing_address())
+        self.order = order
+
+    def __str__(self):
+        return 'billing-address'
+
+    def validate(self):
+        if not self.manager.is_valid():
+            raise InvalidData()
+
+    def save(self):
+        self.order.set_billing_address(self.manager.instance)
+        self.order.save()
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('order:details', (), {'token': self.order.token, 'step':str(self)})
+
+class CheckoutProcessManager(ProcessManager):
+
+    steps = []
+
+    def __init__(self, order, request):
+        self.steps.append(BillingAddressStep(order, request))
+
+    def __iter__(self):
+        return iter(self.steps)
 
 
 class BillingFormManager(object):
@@ -46,9 +84,24 @@ class BillingFormManager(object):
         return False
 
 
-def billing_address(request):
+def index(request, token=None):
     cart = get_cart_from_request(request)
-    order = get_order_from_request(request, CartPartitioner(cart))
+    if not cart:
+        return redirect('cart:index')
+    order = Order.objects.create_from_partitions(CartPartitioner(cart))
+    remove_cart_from_request(request)
+
+    checkout = CheckoutProcessManager(order, request)
+
+    return redirect(checkout.get_next_step().get_absolute_url())
+
+
+def details(request, token, step):
+    try:
+        order = Order.objects.get(token=token)
+    except Order.DoesNotExist:
+        raise Http404()
+
     manager = BillingFormManager(request, instance=order.get_billing_address())
 
     if manager.is_valid():

@@ -91,3 +91,7 @@ def get_cart_from_request(request):
         _cart = Cart()
         request.session[Cart.SESSION_KEY] = _cart
         return _cart
+
+
+def remove_cart_from_request(request):
+    del request.session[Cart.SESSION_KEY]

@@ -147,6 +147,10 @@ class Order(models.Model, ItemSet):
                        country_area=self.billing_country_area,
                        phone=self.billing_phone)
 
+    @models.permalink
+    def get_absolute_url(self):
+        return ('order:details', (), {'token': self.token})
+
 
 class DeliveryGroupManager(models.Manager):
 

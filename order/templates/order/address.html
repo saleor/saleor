@@ -14,7 +14,7 @@
         <a href="">Payment</a>
     </li>
 </ul>
-<form action="{% url "order:billing-address" %}" method="post" class="form-horizontal">
+<form action="." method="post" class="form-horizontal">
     {% csrf_token %}
     {{ managment_form|as_bootstrap }}
     {% if user.is_authenticated %}
