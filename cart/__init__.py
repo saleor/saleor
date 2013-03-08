@@ -1,8 +1,9 @@
 from django.conf import settings
 from django.utils.translation import ugettext
 from prices import Price
-from satchless.item import Item, ItemLine, ItemSet, Partitioner
 from satchless import cart
+from satchless.item import Item, ItemLine, ItemSet, Partitioner
+import datetime
 
 
 class DeliveryLine(ItemLine):
@@ -27,26 +28,22 @@ class Shipping(Item):
 
 class BaseDeliveryGroup(ItemSet):
 
-    def __iter__(self):
-        for i in super(BaseDeliveryGroup, self).__iter__():
-            yield i
-        delivery_total = self.get_delivery_total()
-        if delivery_total:
-            yield DeliveryLine(ugettext('Estimated delivery'), delivery_total,
-                               '')
-
-    def get_delivery_methods(self, **kwargs):
-        yield Shipping(**kwargs)
+    def get_total(self, **kwargs):
+        return (super(BaseDeliveryGroup, self).get_total(**kwargs) +
+                self.get_delivery_total(**kwargs))
 
     def get_delivery_total(self, **kwargs):
         methods = self.get_delivery_methods()
         return min(method.get_price_per_item(**kwargs) for method in methods)
 
+    def get_delivery_methods(self, **kwargs):
+        yield Shipping(**kwargs)
+
 
 class CartPartitioner(Partitioner):
 
     def __iter__(self):
-        yield BaseDeliveryGroup(*self.item_set)
+        yield BaseDeliveryGroup(list(self.item_set))
 
     def get_delivery_subtotal(self, partion, **kwargs):
         return partion.get_delivery_total(**kwargs)
@@ -71,6 +68,11 @@ class InsufficientStockException(Exception):
 class Cart(cart.Cart):
 
     SESSION_KEY = 'cart'
+    timestamp = None
+
+    def __init__(self, *args, **kwargs):
+        super(Cart, self).__init__(self, *args, **kwargs)
+        self.timestamp = datetime.datetime.now()
 
     def __unicode__(self):
         return ugettext('Your cart (%(cart_count)s)') % {

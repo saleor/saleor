@@ -153,8 +153,6 @@ class DeliveryGroupManager(models.Manager):
     def create_from_partition(self, order, partition):
         group = self.get_query_set().create(order=order)
         for item_line in partition:
-            if isinstance(item_line, DeliveryLine):
-                continue
             product_name = unicode(item_line.product)
             price = item_line.get_price_per_item()
             group.items.create(
@@ -212,13 +210,6 @@ class DeliveryGroup(models.Model, BaseDeliveryGroup):
         max_length=30, blank=True)
 
     objects = DeliveryGroupManager()
-
-    def __iter__(self):
-        for i in super(DeliveryGroup, self).__iter__():
-            yield i
-        delivery = self.get_delivery()
-        if delivery:
-            yield delivery
 
     def get_delivery(self):
         return DeliveryLine(name=self.delivery_type_name,
