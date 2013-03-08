@@ -31,7 +31,11 @@ class BillingAddressStep(Step):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('order:details', (), {'token': self.order.token, 'step':str(self)})
+        return (
+            'order:details',
+            (),
+            {'token': self.order.token, 'step': str(self)})
+
 
 class CheckoutProcessManager(ProcessManager):
 
@@ -54,7 +58,6 @@ class BillingFormManager(object):
                                              request.POST or None)
         self.address_list_form = UserAddressesForm(user=request.user)
         self.address_form = AddressForm(instance=instance)
-
         if self.managment_form.is_valid():
             self.method = self.managment_form.cleaned_data['choice_method']
 
@@ -76,9 +79,8 @@ class BillingFormManager(object):
                 return True
             elif self.method == 'select' and self.address_list_form.is_valid():
                 self.instance = self.address_list_form.cleaned_data['address']
-                self.cleaned_data = model_to_dict(self.instance,
-                                                  exclude=['id', 'user',
-                                                           'alias'])
+                self.cleaned_data = model_to_dict(
+                    self.instance, exclude=['id', 'user', 'alias'])
                 return True
 
         return False
