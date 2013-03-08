@@ -1,9 +1,17 @@
 {% extends "base.html" %}
 {% block title %}Register for an account{% endblock %}
 {% block content %}
-    <form method='post' action='{% url 'registration:register' %}'>
-        {% csrf_token %}
-        {{ form }}
-        <input type="submit" value="Register">
-    </form>
+    <div>
+        <form method='post' action='{% url 'registration:register' %}'>
+            {% csrf_token %}
+            {{ form }}
+            <input type="submit" value="Register">
+        </form>
+    </div>
+    <div>
+        OR
+    </div>
+    <div>
+        <a href="{{ facebook_login_url }}">Login via Facebook<a>
+    </div>
 {% endblock %}

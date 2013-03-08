@@ -24,3 +24,8 @@ class RegisterForm(forms.Form):
             if User.objects.filter(email=email).exists():
                 raise forms.ValidationError('Email already registered')
         return self.cleaned_data
+
+
+class EmailForm(forms.Form):
+
+    email = forms.EmailField()

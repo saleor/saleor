@@ -40,7 +40,8 @@ setup(
         'django-prices>=2013.1',
         'satchless>=2013.2a',
         'South>=0.7.6',
-        'unidecode'],
+        'unidecode',
+        "facebook-sdk>=0.4.0"],
     extras_require={
         'lint': ['pylint==0.26.0', 'django-lint==dev']},
     dependency_links=[

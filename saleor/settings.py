@@ -144,7 +144,11 @@ LOGGING = {
     }
 }
 
-AUTHENTICATION_BACKENDS = ('registration.backends.EmailPasswordBackend',)
+AUTHENTICATION_BACKENDS = (
+    'registration.backends.EmailPasswordBackend',
+    'registration.backends.FacebookBackend',
+    'registration.backends.TrivialBackend',
+)
 
 AUTH_USER_MODEL = 'userprofile.User'
 
