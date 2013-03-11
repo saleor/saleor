@@ -56,7 +56,15 @@
                 </div>
             </div>
         </div>
-
+        {% if messages %}
+        <div class="container">
+            {% for message in messages %}
+            <div class="row alert{% if message.tags %} alert-{{ message.tags }}{% endif %}">
+            {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
         <div class="container">
             {% block outercontent %}
             <div class="row">
