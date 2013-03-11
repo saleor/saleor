@@ -25,16 +25,17 @@ class EmailPasswordBackend(Backend):
             return user
 
 
-class FacebookBackend(Backend):
-    """Authenticate with facebook id"""
+class ExternalLoginBackend(Backend):
+    """Authenticate with external service id"""
 
-    def authenticate(self, facebook_uid=None, **_kwargs):
+    def authenticate(self, external_username=None, external_service=None,
+                     **_kwargs):
         try:
             return ExternalUserID.objects.select_related('user').get(
-                provider='facebook', username=facebook_uid
+                provider=external_service, username=external_username
             ).user
         except ExternalUserID.DoesNotExist:
-            return
+            return None
 
 
 class TrivialBackend(Backend):

@@ -146,7 +146,7 @@ LOGGING = {
 
 AUTHENTICATION_BACKENDS = (
     'registration.backends.EmailPasswordBackend',
-    'registration.backends.FacebookBackend',
+    'registration.backends.ExternalLoginBackend',
     'registration.backends.TrivialBackend',
 )
 
