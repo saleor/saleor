@@ -11,10 +11,12 @@ from django.contrib.auth import login as auth_login, authenticate
 from django.http import HttpResponseNotFound
 
 import facebook
+import httplib2
+import json
 
 from .forms import LoginForm, RegisterForm, EmailForm
 from .models import ExternalUserID
-from .utils import callback_url
+from .utils import callback_url, get_google_flow, google_query_url
 
 User = get_user_model()
 
@@ -24,7 +26,13 @@ def login(request):
         'facebook_login_url': facebook.auth_url(
             settings.FACEBOOK_APP_ID,
             callback_url('facebook'),
-            ['email'])
+            ['email']),
+        'google_login_url':
+        'https://accounts.google.com/o/oauth2/auth?'
+        'scope=https://www.googleapis.com/auth/userinfo.email+'
+        'https://www.googleapis.com/auth/plus.me&'
+        'redirect_uri=http://localhost:8000/account/oauth_callback/google/'
+        '&response_type=code&client_id=656911639082.apps.googleusercontent.com'
     }
     return django_login_view(request, authentication_form=LoginForm,
                              extra_context=ctx)
@@ -69,6 +77,19 @@ def oauth_callback(request, service):
 
         user = authenticate(external_service='facebook',
                             external_username=external_username)
+    elif service == 'google':
+        code = request.GET['code']
+        credentials = get_google_flow().step2_exchange(code)
+        http = credentials.authorize(httplib2.Http())
+        _header, content = http.request(google_query_url())
+        google_user_data = json.loads(content)
+        email = (google_user_data['email']
+                 if google_user_data.get('verified_email')
+                 else '')
+        external_username = google_user_data['id']
+        user = authenticate(external_service='google',
+                            external_username=external_username)
+
     else:
         return HttpResponseNotFound()
 
