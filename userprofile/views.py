@@ -2,8 +2,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
+from django.views.decorators.http import require_POST
 
 from .models import Address
 from .forms import AddressFormWithAlias
@@ -75,3 +76,23 @@ def address_delete(request, slug, pk):
         return HttpResponseRedirect(reverse("profile:details"))
 
     return TemplateResponse(request, "userprofile/address-delete.html")
+
+
+@login_required
+@require_POST
+def address_make_default(request, pk, purpose):
+    user = request.user
+
+    address = get_object_or_404(Address, pk=pk, user=user)
+
+    if purpose == 'shipping':
+        user.default_shipping_address = address
+    elif purpose == 'billing':
+        user.default_billing_address = address
+    else:
+        raise AssertionError(
+            "``purpose`` should be ``billing`` or ``shipping``")
+
+    user.save()
+
+    return redirect('profile:details')
