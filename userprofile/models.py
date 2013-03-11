@@ -83,10 +83,12 @@ class User(models.Model):
                                        editable=False)
     last_login = models.DateTimeField(_('last login'), default=timezone.now,
                                       editable=False)
-    default_shipping_address = models.ForeignKey(Address, related_name='+',
-                                                 null=True, blank=True)
-    default_billing_address = models.ForeignKey(Address, related_name='+',
-                                                null=True, blank=True)
+    default_shipping_address = models.ForeignKey(
+        Address, related_name='+', null=True, blank=True,
+        on_delete=models.SET_NULL)
+    default_billing_address = models.ForeignKey(
+        Address, related_name='+', null=True, blank=True,
+        on_delete=models.SET_NULL)
 
     USERNAME_FIELD = 'email'
 
