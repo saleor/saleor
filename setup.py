@@ -9,7 +9,6 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'saleor.settings'
 
 class Test(test):
     def run(self):
-        os.environ['DJANGO_SETTINGS_MODULE'] = 'saleor.settings'
         return test.run(self)
 
 
