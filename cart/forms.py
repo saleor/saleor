@@ -3,6 +3,7 @@ from decimal import Decimal
 from django import forms
 from django.forms.formsets import BaseFormSet
 from django.utils.translation import pgettext, ugettext
+from product.models import StockedProduct
 
 
 class QuantityField(forms.DecimalField):
@@ -28,6 +29,8 @@ class AddToCartForm(forms.Form):
 
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
+        if not isinstance(self.product, StockedProduct):
+            return quantity
         if self.cart_line:
             new_quantity = quantity + self.cart_line.quantity
         else:
@@ -48,6 +51,8 @@ class ReplaceCartLineForm(AddToCartForm):
 
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
+        if not isinstance(self.product, StockedProduct):
+            return quantity
         try:
             self.cart.check_quantity(self.product, quantity)
         except InsufficientStockException as e:

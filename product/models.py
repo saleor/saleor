@@ -95,7 +95,7 @@ class Category(MPTTModel):
         return self.name
 
 
-class Product(models.Model, Item):
+class Product(Subtyped, Item):
 
     name = models.CharField(
         pgettext_lazy('Product field', 'name'), max_length=128)
@@ -105,9 +105,6 @@ class Product(models.Model, Item):
     category = models.ForeignKey(
         Category, related_name='products',
         verbose_name=pgettext_lazy('Product field', 'category'))
-    stock = models.DecimalField(
-        pgettext_lazy('Product item field', 'stock'),
-        max_digits=10, decimal_places=4, default=Decimal(1))
 
     def __unicode__(self):
         return self.name
@@ -126,3 +123,34 @@ class Product(models.Model, Item):
         value = re.sub(r'[^\w\s-]', '', value).strip().lower()
 
         return mark_safe(re.sub(r'[-\s]+', '-', value))
+
+
+class StockedProduct(models.Model):
+
+    stock = models.DecimalField(
+        pgettext_lazy('Product item field', 'stock'),
+        max_digits=10, decimal_places=4, default=Decimal(1))
+
+    class Meta:
+        abstract = True
+
+
+class PhisicalProduct(models.Model):
+
+    weight = models.PositiveIntegerField()
+    length = models.PositiveIntegerField(blank=True, default=0)
+    width = models.PositiveIntegerField(blank=True, default=0)
+    depth = models.PositiveIntegerField(blank=True, default=0)
+
+    class Meta:
+        abstract = True
+
+
+class DigitalShip(Product):
+
+    url = models.URLField()
+
+
+class Ship(Product, StockedProduct, PhisicalProduct):
+
+    pass

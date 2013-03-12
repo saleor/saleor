@@ -1,8 +1,10 @@
 from django.conf import settings
 from django.utils.translation import ugettext
 from prices import Price
+from product.models import StockedProduct
 from satchless import cart
 from satchless.item import Item, ItemLine, ItemSet, Partitioner
+from userprofile.forms import AddressForm
 import datetime
 
 
@@ -24,6 +26,12 @@ class Shipping(Item):
 
     def get_price_per_item(self, **kwargs):
         return Price(5, currency=settings.SATCHLESS_DEFAULT_CURRENCY)
+
+    def __unicode__(self):
+        return u'Shipping'
+
+    def get_Form(self):
+        return AddressForm
 
 
 class BaseDeliveryGroup(ItemSet):
@@ -79,7 +87,8 @@ class Cart(cart.Cart):
             'cart_count': self.count()}
 
     def check_quantity(self, product, quantity, data=None):
-        if quantity > product.stock:
+        if (isinstance(product, StockedProduct) and
+            quantity > product.stock):
             raise InsufficientStockException(product)
         return super(Cart, self).check_quantity(product, quantity, data)
 
