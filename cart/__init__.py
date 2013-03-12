@@ -4,6 +4,7 @@ from prices import Price
 from product.models import StockedProduct
 from satchless import cart
 from satchless.item import Item, ItemLine, ItemSet, Partitioner
+from shipping import get_shipping_methods
 from userprofile.forms import AddressForm
 import datetime
 
@@ -22,18 +23,6 @@ class DeliveryLine(ItemLine):
         return self.price
 
 
-class Shipping(Item):
-
-    def get_price_per_item(self, **kwargs):
-        return Price(5, currency=settings.SATCHLESS_DEFAULT_CURRENCY)
-
-    def __unicode__(self):
-        return u'Shipping'
-
-    def get_Form(self):
-        return AddressForm
-
-
 class BaseDeliveryGroup(ItemSet):
 
     def get_total(self, **kwargs):
@@ -45,13 +34,13 @@ class BaseDeliveryGroup(ItemSet):
         return min(method.get_price_per_item(**kwargs) for method in methods)
 
     def get_delivery_methods(self, **kwargs):
-        yield Shipping(**kwargs)
+        return [shipping for shipping in get_shipping_methods(self, **kwargs)]
 
 
 class CartPartitioner(Partitioner):
 
     def __iter__(self):
-        yield BaseDeliveryGroup(list(self.item_set))
+        yield BaseDeliveryGroup(list(self.subject))
 
     def get_delivery_subtotal(self, partion, **kwargs):
         return partion.get_delivery_total(**kwargs)
