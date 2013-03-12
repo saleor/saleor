@@ -6,11 +6,24 @@ from satchless.handler import Handler, filter_handlers
 from product.models import PhisicalProduct, DigitalShip
 
 
-class DummyShipping(Handler, Item):
+class BaseDelivery(Handler, Item):
+
+    def __init__(self, delivery_group, **kwargs):
+        self.group = delivery_group
+
+    @classmethod
+    def can_handle(cls, delivery_group, **kwargs):
+        return True
+
+    def get_price_per_item(self, **kwargs):
+        return Price(0, currency=settings.SATCHLESS_DEFAULT_CURRENCY)
+
+
+class DummyShipping(BaseDelivery):
 
     def __init__(self, delivery_group, address=None, **kwargs):
         self.address = address
-        self.group = delivery_group
+        super(DummyShipping, self).__init__(delivery_group, **kwargs)
 
     @classmethod
     def can_handle(cls, delivery_group, **kwargs):
@@ -25,10 +38,7 @@ class DummyShipping(Handler, Item):
         return Price(weight*qty, currency=settings.SATCHLESS_DEFAULT_CURRENCY)
 
 
-class DigitalShipping(Handler, Item):
-
-    def __init__(self, delivery_group, **kwargs):
-        return
+class DigitalDelivery(BaseDelivery):
 
     @classmethod
     def can_handle(cls, delivery_group, **kwargs):
@@ -37,8 +47,6 @@ class DigitalShipping(Handler, Item):
                 return False
         return True
 
-    def get_price_per_item(self, **kwargs):
-        return Price(0, currency=settings.SATCHLESS_DEFAULT_CURRENCY)
 
-def get_shipping_methods(delivery, **kwargs):
-    return filter_handlers([DummyShipping, DigitalShipping],delivery, **kwargs)
+def get_delivery_methods(delivery, **kwargs):
+    return filter_handlers([DummyShipping, DigitalDelivery],delivery, **kwargs)

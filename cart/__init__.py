@@ -4,7 +4,7 @@ from prices import Price
 from product.models import StockedProduct
 from satchless import cart
 from satchless.item import Item, ItemLine, ItemSet, Partitioner
-from shipping import get_shipping_methods
+from delivery import get_delivery_methods
 from userprofile.forms import AddressForm
 import datetime
 
@@ -34,7 +34,7 @@ class BaseDeliveryGroup(ItemSet):
         return min(method.get_price_per_item(**kwargs) for method in methods)
 
     def get_delivery_methods(self, **kwargs):
-        return [shipping for shipping in get_shipping_methods(self, **kwargs)]
+        return [shipping for shipping in get_delivery_methods(self, **kwargs)]
 
     def __repr__(self):
         return 'BaseDeliveryGroup(%r)'%(list(self),)
