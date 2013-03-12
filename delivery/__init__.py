@@ -12,8 +12,12 @@ class BaseDelivery(Handler, Item):
         self.group = delivery_group
 
     @classmethod
-    def can_handle(cls, delivery_group, **kwargs):
+    def can_handle_item(cls, item):
         return True
+
+    @classmethod
+    def can_handle(cls, delivery_group, **kwargs):
+        return all(cls.can_handle_item(item) for item in delivery_group)
 
     def get_price_per_item(self, **kwargs):
         return Price(0, currency=settings.SATCHLESS_DEFAULT_CURRENCY)
@@ -26,11 +30,8 @@ class DummyShipping(BaseDelivery):
         super(DummyShipping, self).__init__(delivery_group, **kwargs)
 
     @classmethod
-    def can_handle(cls, delivery_group, **kwargs):
-        for item in delivery_group:
-            if not isinstance(item.product, PhisicalProduct):
-                return False
-        return True
+    def can_handle_item(cls, item):
+        return isinstance(item.product, PhisicalProduct)
 
     def get_price_per_item(self, **kwargs):
         weight = sum(grup.product.weight for grup in self.group)
@@ -41,12 +42,10 @@ class DummyShipping(BaseDelivery):
 class DigitalDelivery(BaseDelivery):
 
     @classmethod
-    def can_handle(cls, delivery_group, **kwargs):
-        for item in delivery_group:
-            if not isinstance(item.product, DigitalShip):
-                return False
-        return True
+    def can_handle_item(cls, item):
+        return isinstance(item.product, DigitalShip)
 
 
 def get_delivery_methods(delivery, **kwargs):
-    return filter_handlers([DummyShipping, DigitalDelivery],delivery, **kwargs)
+    return filter_handlers([DummyShipping, DigitalDelivery],
+                           delivery, **kwargs)

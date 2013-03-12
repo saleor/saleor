@@ -1,10 +1,11 @@
+from delivery import get_delivery_methods
 from django.conf import settings
 from django.utils.translation import ugettext
+from itertools import groupby
 from prices import Price
 from product.models import StockedProduct
 from satchless import cart
 from satchless.item import Item, ItemLine, ItemSet, Partitioner
-from delivery import get_delivery_methods
 from userprofile.forms import AddressForm
 import datetime
 
@@ -43,11 +44,8 @@ class BaseDeliveryGroup(ItemSet):
 class CartPartitioner(Partitioner):
 
     def __iter__(self):
-        groups = {}
-        for cart_item in self.subject:
-            class_name = cart_item.product.__class__.__name__
-            groups.setdefault(class_name, []).append(cart_item)
-        for items in groups.values():
+        for _key, items in groupby(self.subject,
+                                  lambda cart_item: type(cart_item.product)):
             yield BaseDeliveryGroup(items)
 
     def get_delivery_subtotal(self, partion, **kwargs):
