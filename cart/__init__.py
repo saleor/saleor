@@ -36,11 +36,19 @@ class BaseDeliveryGroup(ItemSet):
     def get_delivery_methods(self, **kwargs):
         return [shipping for shipping in get_shipping_methods(self, **kwargs)]
 
+    def __repr__(self):
+        return 'BaseDeliveryGroup(%r)'%(list(self),)
+
 
 class CartPartitioner(Partitioner):
 
     def __iter__(self):
-        yield BaseDeliveryGroup(list(self.subject))
+        groups = {}
+        for cart_item in self.subject:
+            class_name = cart_item.product.__class__.__name__
+            groups.setdefault(class_name, []).append(cart_item)
+        for items in groups.values():
+            yield BaseDeliveryGroup(items)
 
     def get_delivery_subtotal(self, partion, **kwargs):
         return partion.get_delivery_total(**kwargs)
@@ -52,6 +60,9 @@ class CartPartitioner(Partitioner):
             raise AttributeError(
                 'Calling get_delivery_total() for an empty cart')
         return sum(items[1:], items[0])
+
+    def __repr__(self):
+        return 'CartPartitioner(%r)'%(list(self),)
 
 
 class InsufficientStockException(Exception):
