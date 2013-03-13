@@ -1,8 +1,6 @@
 from django.conf import settings
 from prices import Price
 from satchless.item import Item
-from userprofile.forms import AddressForm
-from product.models import PhisicalProduct, DigitalShip
 
 
 class BaseDelivery(Item):

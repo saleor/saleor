@@ -135,7 +135,7 @@ class StockedProduct(models.Model):
         abstract = True
 
 
-class PhisicalProduct(models.Model):
+class PhysicalProduct(models.Model):
 
     weight = models.PositiveIntegerField()
     length = models.PositiveIntegerField(blank=True, default=0)
@@ -151,6 +151,6 @@ class DigitalShip(Product):
     url = models.URLField()
 
 
-class Ship(Product, StockedProduct, PhisicalProduct):
+class Ship(Product, StockedProduct, PhysicalProduct):
 
     pass

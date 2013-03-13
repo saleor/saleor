@@ -1,4 +1,3 @@
-from cart import BaseDeliveryGroup
 from django.conf import settings
 from django.db import models
 from django.utils.translation import pgettext_lazy
@@ -112,7 +111,7 @@ class DeliveryGroupManager(models.Manager):
         return group
 
 
-class DeliveryGroup(Subtyped, BaseDeliveryGroup):
+class DeliveryGroup(Subtyped, ItemSet):
 
     order = models.ForeignKey('order', related_name='groups', editable=False)
     price = PriceField(
@@ -123,6 +122,20 @@ class DeliveryGroup(Subtyped, BaseDeliveryGroup):
         editable=False)
 
     objects = DeliveryGroupManager()
+
+    def get_total(self, **kwargs):
+        return (super(DeliveryGroup, self).get_total(**kwargs) +
+                self.get_delivery_total(**kwargs))
+
+    def get_delivery_total(self, **kwargs):
+        methods = self.get_delivery_methods()
+        return min(method.get_price_per_item(**kwargs) for method in methods)
+
+    def get_delivery_methods(self, **kwargs):
+        raise NotImplemented()
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, list(self))
 
 
 class ShippedDeliveryGroup(DeliveryGroup):

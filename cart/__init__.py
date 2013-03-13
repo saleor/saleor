@@ -1,37 +1,27 @@
 from django.conf import settings
 from django.utils.translation import ugettext
 from itertools import groupby
+from order.models import DigitalDeliveryGroup, ShippedDeliveryGroup
 from prices import Price
-from product.models import StockedProduct
+from product.models import StockedProduct, DigitalShip
 from satchless import cart
 from satchless.item import Item, ItemLine, ItemSet, Partitioner
 from userprofile.forms import AddressForm
 import datetime
 
 
-class BaseDeliveryGroup(ItemSet):
-
-    def get_total(self, **kwargs):
-        return (super(BaseDeliveryGroup, self).get_total(**kwargs) +
-                self.get_delivery_total(**kwargs))
-
-    def get_delivery_total(self, **kwargs):
-        methods = self.get_delivery_methods()
-        return min(method.get_price_per_item(**kwargs) for method in methods)
-
-    def get_delivery_methods(self, **kwargs):
-        raise NotImplemented()
-
-    def __repr__(self):
-        return '%s(%r)' % (self.__class__.__name__, list(self))
-
-
 class CartPartitioner(Partitioner):
 
     def __iter__(self):
-        for _key, items in groupby(self.subject,
-                                   lambda cart_item: type(cart_item.product)):
-            yield BaseDeliveryGroup(items)
+        for product_class, items in groupby(
+                self.subject,
+                lambda cart_item: cart_item.product.__class__):
+            delivery_class = ShippedDeliveryGroup
+            if issubclass(product_class, DigitalShip):
+                delivery_class = DigitalDeliveryGroup
+            delivery = delivery_class()
+            delivery.extend(items)
+            yield delivery
 
     def get_delivery_subtotal(self, partion, **kwargs):
         return partion.get_delivery_total(**kwargs)
