@@ -37,7 +37,7 @@ setup(
     install_requires=[
         'Django>=1.5',
         'django-mptt>=0.5',
-        'django-prices>=2013.1',
+        'django-prices>=2013.3',
         'satchless>=2013.2a',
         'South>=0.7.6',
         'unidecode'],
