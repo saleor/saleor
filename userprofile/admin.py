@@ -1,10 +1,10 @@
 from django.contrib import admin
-from .models import User, Address
+from .models import User, AddressBook
 
 
 class AddressAdmin(admin.TabularInline):
 
-    model = Address
+    model = AddressBook
 
 
 class UserAdmin(admin.ModelAdmin):

@@ -7,13 +7,25 @@ from django.utils import timezone
 from saleor.countries import COUNTRY_CHOICES
 
 
-class Address(models.Model):
-    user = models.ForeignKey('User', related_name='addressbook')
+class AddressBook(models.Model):
+
+    user = models.ForeignKey('User', related_name='+')
+    address = models.ForeignKey('Address', related_name='+')
     alias = models.CharField(
         ugettext_lazy('short alias'),
         max_length=30, default=ugettext_lazy('Home'),
         help_text=ugettext_lazy(
             'User-defined alias which identifies this address'))
+
+    class Meta:
+        unique_together = ('user', 'alias')
+
+    def __unicode__(self):
+        return self.alias
+
+
+class Address(models.Model):
+
     first_name = models.CharField(
         ugettext_lazy('first name'), max_length=256, blank=True)
     last_name = models.CharField(
@@ -33,11 +45,17 @@ class Address(models.Model):
     phone = models.CharField(
         ugettext_lazy('phone number'), max_length=30, blank=True)
 
-    class Meta:
-        unique_together = ('user', 'alias')
-
     def __unicode__(self):
-        return self.alias
+        return u'%s %s' % (self.first_name, self.last_name)
+
+    def __repr__(self):
+        return ('Address(first_name=%r, last_name=%r, company_name=%r, '
+                'street_address_1=%r, street_address_2=%r, city=%r, '
+                'postal_code=%r, country=%r, country_area=%r, phone=%r)' % (
+                 self.first_name, self.last_name, self.company_name,
+                 self.street_address_1, self.street_address_2, self.city,
+                 self.postal_code, self.country, self.country_area,
+                 self.phone))
 
 
 class UserManager(BaseUserManager):
@@ -62,6 +80,7 @@ class UserManager(BaseUserManager):
 
 class User(models.Model):
     email = models.EmailField(unique=True)
+    addresses = models.ManyToManyField(Address, through=AddressBook)
 
     is_staff = models.BooleanField(
         ugettext_lazy('staff status'), default=False)
@@ -73,9 +92,9 @@ class User(models.Model):
     last_login = models.DateTimeField(
         ugettext_lazy('last login'), default=timezone.now, editable=False)
     default_shipping_address = models.ForeignKey(
-        Address, related_name='+', null=True, blank=True)
+        AddressBook, related_name='+', null=True, blank=True)
     default_billing_address = models.ForeignKey(
-        Address, related_name='+', null=True, blank=True)
+        AddressBook, related_name='+', null=True, blank=True)
 
     USERNAME_FIELD = 'email'
 
