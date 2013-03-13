@@ -5,6 +5,7 @@ from django.shortcuts import redirect
 from order.forms import ManagementForm
 from satchless.process import InvalidData
 from userprofile.forms import AddressForm, UserAddressesForm
+from userprofile.models import Address
 
 
 class BaseShippingStep(Step):
@@ -15,7 +16,7 @@ class BaseShippingStep(Step):
 
     def __init__(self, order, request):
         super(BaseShippingStep, self).__init__(order, request)
-        self.address = order.get_billing_address()
+        self.address = order.billing_address or Address()
         self.forms = {
             'managment': ManagementForm(request.user.is_authenticated(),
                                         request.POST or None),
@@ -50,6 +51,9 @@ class BaseShippingStep(Step):
             return True
         return False
 
+    def save(self):
+        self.address.save()
+
 
 class BillingAddressStep(BaseShippingStep):
 
@@ -57,7 +61,8 @@ class BillingAddressStep(BaseShippingStep):
         return 'billing-address'
 
     def save(self):
-        self.order.set_billing_address(self.address)
+        super(BillingAddressStep, self).save()
+        self.order.address = self.address
         self.order.save()
 
 
@@ -69,9 +74,6 @@ class DeliveryStep(BaseShippingStep):
 
     def __str__(self):
         return 'delivery-%s' % (self.group.id,)
-
-    def save(self):
-        pass
 
 
 class SuccessStep(BaseShippingStep):

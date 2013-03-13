@@ -47,39 +47,7 @@ class Order(models.Model, ItemSet):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='+',
         verbose_name=pgettext_lazy('Order field', 'user'))
-    billing_first_name = models.CharField(
-        pgettext_lazy('Order field billing', 'first name'),
-        max_length=256, blank=True)
-    billing_last_name = models.CharField(
-        pgettext_lazy('Order field billing', 'last name'),
-        max_length=256, blank=True)
-    billing_company_name = models.CharField(
-        pgettext_lazy('Order field billing', 'company name'),
-        max_length=256, blank=True)
-    billing_street_address_1 = models.CharField(
-        pgettext_lazy('Order field billing', 'street address 1'),
-        max_length=256, blank=True)
-    billing_street_address_2 = models.CharField(
-        pgettext_lazy('Order field billing', 'street address 2'),
-        max_length=256, blank=True)
-    billing_city = models.CharField(
-        pgettext_lazy('Order field billing', 'city'),
-        max_length=256, blank=True)
-    billing_postal_code = models.CharField(
-        pgettext_lazy('Order field billing', 'postal code'),
-        max_length=20, blank=True)
-    billing_country = models.CharField(
-        pgettext_lazy('Order field billing', 'country'),
-        choices=countries.COUNTRY_CHOICES, max_length=2, blank=True)
-    billing_country_area = models.CharField(
-        pgettext_lazy('Order field billing', 'country administrative area'),
-        max_length=128, blank=True)
-    billing_tax_id = models.CharField(
-        pgettext_lazy('Order field billing', 'tax ID'),
-        max_length=40, blank=True)
-    billing_phone = models.CharField(
-        pgettext_lazy('Order field billing', 'phone number'),
-        max_length=30, blank=True)
+    billing_address = models.ForeignKey(Address, blank=True, null=True)
     payment_type = models.CharField(
         pgettext_lazy('Order field', 'payment type'),
         max_length=256, blank=True)
@@ -122,30 +90,6 @@ class Order(models.Model, ItemSet):
     @property
     def billing_full_name(self):
         return u'%s %s' % (self.billing_first_name, self.billing_last_name)
-
-    def set_billing_address(self, address):
-        self.billing_first_name = address.first_name
-        self.billing_last_name = address.last_name
-        self.billing_company_name = address.company_name
-        self.billing_street_address_1 = address.street_address_1
-        self.billing_street_address_2 = address.street_address_2
-        self.billing_city = address.city
-        self.billing_postal_code = address.postal_code
-        self.billing_country = address.country
-        self.billing_country_area = address.country_area
-        self.billing_phone = address.phone
-
-    def get_billing_address(self):
-        return Address(first_name=self.billing_first_name,
-                       last_name=self.billing_last_name,
-                       company_name=self.billing_company_name,
-                       street_address_1=self.billing_street_address_1,
-                       street_address_2=self.billing_street_address_2,
-                       city=self.billing_city,
-                       postal_code=self.billing_postal_code,
-                       country=self.billing_country,
-                       country_area=self.billing_country_area,
-                       phone=self.billing_phone)
 
     @models.permalink
     def get_absolute_url(self):
