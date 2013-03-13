@@ -1,15 +1,15 @@
+from cart import BaseDeliveryGroup
 from django.conf import settings
 from django.db import models
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from prices import Price
+from product.models import Product, Subtyped
 from satchless.item import ItemSet, ItemLine
-from saleor import countries
+from userprofile.models import Address
 from uuid import uuid4
 import datetime
-from product.models import Product
-from userprofile.models import Address
-from cart import BaseDeliveryGroup, DeliveryLine
+from delivery import DigitalDelivery, DummyShipping
 
 
 class OrderManager(models.Manager):
@@ -112,57 +112,33 @@ class DeliveryGroupManager(models.Manager):
         return group
 
 
-class DeliveryGroup(models.Model, BaseDeliveryGroup):
+class DeliveryGroup(Subtyped, BaseDeliveryGroup):
 
     order = models.ForeignKey('order', related_name='groups', editable=False)
-    delivery_price = PriceField(
+    price = PriceField(
         pgettext_lazy('DeliveryGroup field', 'unit price'),
         currency=settings.SATCHLESS_DEFAULT_CURRENCY, max_digits=12,
-        decimal_places=4, default=0, editable=False)
-    delivery_type = models.CharField(
-        pgettext_lazy('DeliveryGroup field', 'type'),
-        max_length=256, blank=True)
-    delivery_type_name = models.CharField(
-        pgettext_lazy('DeliveryGroup field', 'name'),
-        max_length=128, blank=True, editable=False)
-    delivery_type_description = models.TextField(
-        pgettext_lazy('DeliveryGroup field', 'description'),
-        blank=True, editable=False)
-    require_shipping_address = models.BooleanField(
-        default=False, editable=False)
-    shipping_first_name = models.CharField(
-        pgettext_lazy('DeliveryGroup field', 'first name'), max_length=256)
-    shipping_last_name = models.CharField(
-        pgettext_lazy('DeliveryGroup field', 'last name'), max_length=256)
-    shipping_company_name = models.CharField(
-        pgettext_lazy('DeliveryGroup field', 'company name'),
-        max_length=256, blank=True)
-    shipping_street_address_1 = models.CharField(
-        pgettext_lazy('DeliveryGroup field', 'street address 1'),
-        max_length=256)
-    shipping_street_address_2 = models.CharField(
-        pgettext_lazy('DeliveryGroup field', 'street address 2'),
-        max_length=256, blank=True)
-    shipping_city = models.CharField(
-        pgettext_lazy('DeliveryGroup field', 'city'), max_length=256)
-    shipping_postal_code = models.CharField(
-        pgettext_lazy('DeliveryGroup field', 'postal code'), max_length=20)
-    shipping_country = models.CharField(
-        pgettext_lazy('DeliveryGroup field', 'country'),
-        choices=countries.COUNTRY_CHOICES, max_length=2, blank=True)
-    shipping_country_area = models.CharField(
-        pgettext_lazy('DeliveryGroup field', 'country administrative area'),
-        max_length=128, blank=True)
-    shipping_phone = models.CharField(
-        pgettext_lazy('DeliveryGroup field', 'phone number'),
-        max_length=30, blank=True)
+        decimal_places=4,
+        default=0,
+        editable=False)
 
     objects = DeliveryGroupManager()
 
-    def get_delivery(self):
-        return DeliveryLine(name=self.delivery_type_name,
-                            price=self.delivery_price,
-                            description=self.delivery_type_description)
+
+class ShippedDeliveryGroup(DeliveryGroup):
+
+    address = models.ForeignKey(Address)
+
+    def get_delivery_methods(self, **kwargs):
+        yield DummyShipping(self)
+
+
+class DigitalDeliveryGroup(DeliveryGroup):
+
+    email = models.EmailField()
+
+    def get_delivery_methods(self, **kwargs):
+        yield DigitalDelivery(self)
 
 
 class OrderedItem(models.Model, ItemLine):

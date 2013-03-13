@@ -1,4 +1,3 @@
-from delivery import get_delivery_methods
 from django.conf import settings
 from django.utils.translation import ugettext
 from itertools import groupby
@@ -8,20 +7,6 @@ from satchless import cart
 from satchless.item import Item, ItemLine, ItemSet, Partitioner
 from userprofile.forms import AddressForm
 import datetime
-
-
-class DeliveryLine(ItemLine):
-    name = None
-    price = None
-    description = None
-
-    def __init__(self, name, price, description):
-        self.name = name
-        self.price = price
-        self.description = description
-
-    def get_price_per_item(self, **kwargs):
-        return self.price
 
 
 class BaseDeliveryGroup(ItemSet):
@@ -35,10 +20,10 @@ class BaseDeliveryGroup(ItemSet):
         return min(method.get_price_per_item(**kwargs) for method in methods)
 
     def get_delivery_methods(self, **kwargs):
-        return [shipping for shipping in get_delivery_methods(self, **kwargs)]
+        raise NotImplemented()
 
     def __repr__(self):
-        return 'BaseDeliveryGroup(%r)'%(list(self),)
+        return '%s(%r)' % (self.__class__.__name__, list(self))
 
 
 class CartPartitioner(Partitioner):
