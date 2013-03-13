@@ -1,6 +1,5 @@
 from django import forms
 from userprofile.forms import AddressForm
-from django.contrib.auth.models import AnonymousUser
 
 class ShippingForm(AddressForm):
 

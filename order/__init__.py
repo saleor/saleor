@@ -4,6 +4,7 @@ from django.template.response import TemplateResponse
 from satchless import process
 from satchless.process import InvalidData
 
+
 class Step(process.Step):
 
     forms = None

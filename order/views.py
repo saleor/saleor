@@ -1,24 +1,22 @@
-from .steps import BillingAddressStep
+from .steps import BillingAddressStep, DeliveryStep, SuccessStep
 from cart import get_cart_from_request, remove_cart_from_request, \
     CartPartitioner
-from django.contrib import messages
 from django.http.response import Http404
 from django.shortcuts import redirect, get_object_or_404
-from django.template.response import TemplateResponse
 from order.models import Order
-from order.steps import SuccessStep
 from satchless.process import ProcessManager
 
 
 class CheckoutProcessManager(ProcessManager):
 
     def __init__(self, order, request):
-        self.order = order
-        self.request = request
+        self.steps = [BillingAddressStep(order, request)]
+        for delivery_group in order.groups.all():
+            self.steps.append(DeliveryStep(order, request, delivery_group))
+        self.steps.append(SuccessStep(order, request))
 
     def __iter__(self):
-        yield BillingAddressStep(self.order, self.request)
-        yield SuccessStep(self.order, self.request)
+        return iter(self.steps)
 
 
 def index(request, token=None):

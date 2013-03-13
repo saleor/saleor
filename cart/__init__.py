@@ -45,7 +45,7 @@ class CartPartitioner(Partitioner):
 
     def __iter__(self):
         for _key, items in groupby(self.subject,
-                                  lambda cart_item: type(cart_item.product)):
+                                   lambda cart_item: type(cart_item.product)):
             yield BaseDeliveryGroup(items)
 
     def get_delivery_subtotal(self, partion, **kwargs):
