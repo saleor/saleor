@@ -1,3 +1,4 @@
+from delivery import DigitalDelivery, DummyShipping
 from django.conf import settings
 from django.db import models
 from django.utils.translation import pgettext_lazy
@@ -8,15 +9,16 @@ from satchless.item import ItemSet, ItemLine
 from userprofile.models import Address
 from uuid import uuid4
 import datetime
-from delivery import DigitalDelivery, DummyShipping
 
 
 class OrderManager(models.Manager):
 
     def create_from_partitions(self, partitions):
         order = self.get_query_set().create()
-        for partition in partitions:
-            order.groups.create_from_partition(order, partition)
+        for delivery_group in partitions:
+            delivery_group.order = order
+            delivery_group.price = delivery_group.get_total()
+            delivery_group.save()
         return order
 
 
@@ -95,22 +97,6 @@ class Order(models.Model, ItemSet):
         return ('order:details', (), {'token': self.token})
 
 
-class DeliveryGroupManager(models.Manager):
-
-    def create_from_partition(self, order, partition):
-        group = self.get_query_set().create(order=order)
-        for item_line in partition:
-            product_name = unicode(item_line.product)
-            price = item_line.get_price_per_item()
-            group.items.create(
-                product=item_line.product,
-                quantity=item_line.get_quantity(),
-                unit_price_net=price.net,
-                product_name=product_name,
-                unit_price_gross=price.gross)
-        return group
-
-
 class DeliveryGroup(Subtyped, ItemSet):
 
     order = models.ForeignKey('order', related_name='groups', editable=False)
@@ -121,7 +107,29 @@ class DeliveryGroup(Subtyped, ItemSet):
         default=0,
         editable=False)
 
-    objects = DeliveryGroupManager()
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, list(self))
+
+    def __iter__(self):
+        if self.id:
+            return iter(self.items.all())
+        return super(DeliveryGroup, self).__iter__()
+
+    def save(self, *args, **kwargs):
+        add_items = not self.id
+        super(DeliveryGroup, self).save(**kwargs)
+        if add_items:
+            for item_line in self[:]:
+                product_name = unicode(item_line.product)
+                price = item_line.get_price_per_item()
+                self.items.create(
+                    product=item_line.product,
+                    quantity=item_line.get_quantity(),
+                    unit_price_net=price.net,
+                    product_name=product_name,
+                    unit_price_gross=price.gross)
+        del self[:]
+
 
     def get_total(self, **kwargs):
         return (super(DeliveryGroup, self).get_total(**kwargs) +
@@ -134,13 +142,10 @@ class DeliveryGroup(Subtyped, ItemSet):
     def get_delivery_methods(self, **kwargs):
         raise NotImplemented()
 
-    def __repr__(self):
-        return '%s(%r)' % (self.__class__.__name__, list(self))
-
 
 class ShippedDeliveryGroup(DeliveryGroup):
 
-    address = models.ForeignKey(Address)
+    address = models.ForeignKey(Address, blank=True, null=True)
 
     def get_delivery_methods(self, **kwargs):
         yield DummyShipping(self)
@@ -148,7 +153,7 @@ class ShippedDeliveryGroup(DeliveryGroup):
 
 class DigitalDeliveryGroup(DeliveryGroup):
 
-    email = models.EmailField()
+    email = models.EmailField(blank=True, default='')
 
     def get_delivery_methods(self, **kwargs):
         yield DigitalDelivery(self)

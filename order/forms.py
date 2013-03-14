@@ -1,5 +1,6 @@
 from django import forms
 from userprofile.forms import AddressForm
+from .models import DigitalDeliveryGroup
 
 class ShippingForm(AddressForm):
 
@@ -23,3 +24,12 @@ class ManagementForm(forms.Form):
             choice_method.widget = choice_method.hidden_widget()
 
 
+class DigitalDeliveryForm(forms.ModelForm):
+
+    class Meta:
+        model = DigitalDeliveryGroup
+        exclude = ['order', 'price']
+
+    def __init__(self, *args, **kwargs):
+        super(DigitalDeliveryForm, self).__init__(*args, **kwargs)
+        self.fields['email'].required = True

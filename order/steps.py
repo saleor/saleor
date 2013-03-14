@@ -2,7 +2,7 @@ from . import Step
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import redirect
-from order.forms import ManagementForm
+from order.forms import ManagementForm, DigitalDeliveryForm
 from satchless.process import InvalidData
 from userprofile.forms import AddressForm, UserAddressesForm
 from userprofile.models import Address
@@ -46,7 +46,8 @@ class BaseShippingStep(Step):
             self.validate()
             return True
         elif self.method == 'select' and self.forms['address_list'].is_valid():
-            self.address = self.forms['address_list'].cleaned_data['address']
+            address_book = self.forms['address_list'].cleaned_data['address']
+            self.address = address_book.address
             self.validate()
             return True
         return False
@@ -62,18 +63,48 @@ class BillingAddressStep(BaseShippingStep):
 
     def save(self):
         super(BillingAddressStep, self).save()
-        self.order.address = self.address
+        self.order.billing_address = self.address
         self.order.save()
 
 
-class DeliveryStep(BaseShippingStep):
+class ShippingStep(BaseShippingStep):
 
     def __init__(self, order, request, group):
-        super(DeliveryStep, self).__init__(order, request)
+        super(ShippingStep, self).__init__(order, request)
         self.group = group
 
     def __str__(self):
         return 'delivery-%s' % (self.group.id,)
+
+    def save(self):
+        super(ShippingStep, self).save()
+        self.group.address = self.address
+        self.group.save()
+
+
+class DigitalDeliveryStep(Step):
+
+    template = 'order/digitaldelivery.html'
+
+    def __init__(self, order, request, group):
+        super(DigitalDeliveryStep, self).__init__(order, request)
+        self.group = group
+        self.forms['email'] = DigitalDeliveryForm(request.POST or None,
+                                                  instance=self.group)
+
+    def __str__(self):
+        return 'digital-delivery-%s' % (self.group.id,)
+
+    def validate(self):
+        try:
+            self.group.full_clean()
+        except ValidationError as e:
+            raise InvalidData(e.messages)
+        if not self.group.email:
+            raise InvalidData()
+
+    def save(self):
+        self.group.save()
 
 
 class SuccessStep(BaseShippingStep):
