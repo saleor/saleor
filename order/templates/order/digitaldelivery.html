@@ -1,20 +1,9 @@
-{% extends "base.html" %}
+{% extends "order/details.html" %}
 
 {% load as_bootstrap from bootstrap %}
 
-{% block content %}
-<ul class="nav nav-tabs">
-    <li class="active">
-        <a href="">Billing</a>
-    </li>
-    <li class="disabled">
-        <a href="">Shipping</a>
-    </li>
-    <li class="disabled">
-        <a href="">Payment</a>
-    </li>
-</ul>
-<form action="." method="post" class="form-horizontal">
+{% block forms %}
+<form method="post" class="form-horizontal">
     {% csrf_token %}
     {{ forms.email|as_bootstrap }}
     <div class="form-actions">
@@ -26,5 +15,4 @@
         </button>
     </div>
 </form>
-
-{% endblock content %}
+{% endblock forms %}

@@ -44,5 +44,7 @@ def details(request, token, step):
     except KeyError:
         raise Http404()
     response = step.process()
+    if response:
+        response.context_data['steps'] = checkout.steps
     return response or redirect(checkout.get_next_step())
 

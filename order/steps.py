@@ -61,6 +61,9 @@ class BillingAddressStep(BaseShippingStep):
     def __str__(self):
         return 'billing-address'
 
+    def __unicode__(self):
+        return u'Billing Address'
+
     def save(self):
         super(BillingAddressStep, self).save()
         self.order.billing_address = self.address
@@ -75,6 +78,9 @@ class ShippingStep(BaseShippingStep):
 
     def __str__(self):
         return 'delivery-%s' % (self.group.id,)
+
+    def __unicode__(self):
+        return u'Shipping'
 
     def save(self):
         super(ShippingStep, self).save()
@@ -94,6 +100,9 @@ class DigitalDeliveryStep(Step):
 
     def __str__(self):
         return 'digital-delivery-%s' % (self.group.id,)
+
+    def __unicode__(self):
+        return u'Digital delivery'
 
     def validate(self):
         try:

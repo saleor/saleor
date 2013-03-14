@@ -15,6 +15,9 @@ class Step(process.Step):
         self.order = order
         self.request = request
 
+    def __unicode__(self):
+        return u'Step'
+
     def save(self):
         raise NotImplementedError()
 
@@ -32,12 +35,11 @@ class Step(process.Step):
         return True
 
     def process(self):
-        if self.is_valid():
-            return
         if not self.forms_are_valid():
             return TemplateResponse(self.request, self.template, {
                 'forms': self.forms,
-                'order': self.order
+                'order': self.order,
+                'step': self
             })
         self.save()
 

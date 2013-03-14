@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% load as_bootstrap from bootstrap %}
+
+{% block content %}
+<ul class="nav nav-tabs">
+    {% for stepitem in steps %}
+    <li class="{% if stepitem == step %}active{% else %}disabled{% endif %}">
+        <a href="{{ stepitem.get_absolute_url }}">{{ stepitem }}</a>
+    </li>
+    {% endfor %}
+</ul>
+{% block forms %}{% endblock %}
+
+{% endblock content %}
