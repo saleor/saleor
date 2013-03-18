@@ -114,10 +114,12 @@ def select_email(request):
                 return HttpResponseBadRequest()
             if submitted_email == confirmed_email:
                 user, _ = User.objects.get_or_create(email=submitted_email)
-                ExternalUserData.objects.get_or_create(
-                    user=user,
+                external_user_data, _ = ExternalUserData.objects.get_or_create(
                     provider=external_service,
                     username=external_username)
+                if not external_user_data.user:
+                    external_user_data.user = user
+                    external_user_data.save()
                 user = authenticate(user=user)
                 auth_login(request, user)
                 messages.success(
