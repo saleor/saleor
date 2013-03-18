@@ -48,7 +48,6 @@ TEMPLATE_DIRS = [
     os.path.join(PROJECT_ROOT, 'saleor', 'templates'),
 ]
 TEMPLATE_LOADERS = [
-    'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
     # TODO: this one is slow, but for now need for mptt?
     'django.template.loaders.eggs.Loader',
@@ -99,6 +98,7 @@ INSTALLED_APPS = [
     'cart',
     'order',
     'userprofile',
+    'registration',
 ]
 
 LOGGING = {
@@ -144,8 +144,28 @@ LOGGING = {
     }
 }
 
+AUTHENTICATION_BACKENDS = (
+    'registration.backends.EmailPasswordBackend',
+    'registration.backends.ExternalLoginBackend',
+    'registration.backends.TrivialBackend',
+)
+
 AUTH_USER_MODEL = 'userprofile.User'
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 WARN_ABOUT_INVALID_HTML5_OUTPUT = True
 
 SATCHLESS_DEFAULT_CURRENCY = 'USD'
+
+ACCOUNT_ACTIVATION_DAYS = 3
+
+LOGIN_REDIRECT_URL = "home"
+
+FACEBOOK_APP_ID = "YOUR_FACEBOOK_APP_ID"
+
+FACEBOOK_SECRET = "YOUR_FACEBOOK_APP_SECRET"
+
+GOOGLE_CLIENT_ID = "YOUR_GOOGLE_APP_ID"
+
+GOOGLE_SECRET = "YOUR_GOOGLE_APP_SECRET"

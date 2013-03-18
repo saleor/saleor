@@ -9,7 +9,6 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'saleor.settings'
 
 class Test(test):
     def run(self):
-        os.environ['DJANGO_SETTINGS_MODULE'] = 'saleor.settings'
         return test.run(self)
 
 
@@ -40,7 +39,11 @@ setup(
         'django-prices>=2013.3',
         'satchless>=2013.2a',
         'South>=0.7.6',
-        'unidecode'],
+        'unidecode',
+        'oauth2client>=1.1',
+        'httplib2>=0.8',
+        'purl>=0.4.1',
+        "facebook-sdk>=0.4.0"],
     extras_require={
         'lint': ['pylint==0.26.0', 'django-lint==dev']},
     dependency_links=[
@@ -54,5 +57,6 @@ setup(
     tests_require=[
         'coverage==3.6',
         'mock==1.0.1',
+        'httpretty>=0.5.10',
         'nose==1.2.1'],
     test_suite='nose.collector')

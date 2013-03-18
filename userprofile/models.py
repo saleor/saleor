@@ -1,3 +1,8 @@
+from django.core.mail import send_mail
+from unidecode import unidecode
+import re
+
+from django.utils.safestring import mark_safe
 from django.contrib.auth.hashers import (check_password, make_password,
                                          is_password_usable)
 from django.contrib.auth.models import BaseUserManager
@@ -22,6 +27,18 @@ class AddressBook(models.Model):
 
     def __unicode__(self):
         return self.alias
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('profile:address-edit',
+                (),
+                {'slug': self.get_slug(), 'pk': self.id})
+
+    def get_slug(self):
+        value = unidecode(self.alias)
+        value = re.sub(r'[^\w\s-]', '', value).strip().lower()
+
+        return mark_safe(re.sub(r'[-\s]+', '-', value))
 
 
 class Address(models.Model):
@@ -52,10 +69,10 @@ class Address(models.Model):
         return ('Address(first_name=%r, last_name=%r, company_name=%r, '
                 'street_address_1=%r, street_address_2=%r, city=%r, '
                 'postal_code=%r, country=%r, country_area=%r, phone=%r)' % (
-                 self.first_name, self.last_name, self.company_name,
-                 self.street_address_1, self.street_address_2, self.city,
-                 self.postal_code, self.country, self.country_area,
-                 self.phone))
+                self.first_name, self.last_name, self.company_name,
+                self.street_address_1, self.street_address_2, self.city,
+                self.postal_code, self.country, self.country_area,
+                self.phone))
 
 
 class UserManager(BaseUserManager):
@@ -80,6 +97,7 @@ class UserManager(BaseUserManager):
 
 class User(models.Model):
     email = models.EmailField(unique=True)
+
     addresses = models.ManyToManyField(Address, through=AddressBook)
 
     is_staff = models.BooleanField(
@@ -92,9 +110,11 @@ class User(models.Model):
     last_login = models.DateTimeField(
         ugettext_lazy('last login'), default=timezone.now, editable=False)
     default_shipping_address = models.ForeignKey(
-        AddressBook, related_name='+', null=True, blank=True)
+        AddressBook, related_name='+', null=True, blank=True,
+        on_delete=models.SET_NULL)
     default_billing_address = models.ForeignKey(
-        AddressBook, related_name='+', null=True, blank=True)
+        AddressBook, related_name='+', null=True, blank=True,
+        on_delete=models.SET_NULL)
 
     USERNAME_FIELD = 'email'
 
@@ -147,3 +167,9 @@ class User(models.Model):
 
     def has_usable_password(self):
         return is_password_usable(self.password)
+
+    def email_user(self, subject, message, from_email=None):
+        """
+        Sends an email to this User.
+        """
+        send_mail(subject, message, from_email, [self.email])

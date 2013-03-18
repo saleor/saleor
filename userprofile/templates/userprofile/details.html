@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+    <ul>
+    {% for address in addresses %}
+        <li>
+            <p>
+                {{ address }}
+                {% if user.default_shipping_address == address and user.default_billing_address == address %}
+                    (default for billing and shipping)
+                {% elif user.default_shipping_address == address %}
+                    (default for shipping)
+                {% elif user.default_billing_address == address %}
+                    (default for billing)
+                {% endif %}
+            </p>
+            <div class="row">
+                <div class="span">
+                    <a href="{% url 'profile:address-edit' pk=address.pk slug=address.get_slug %}" class="btn">Edit</a>
+                </div>
+                <div class="span">
+                    <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="shipping" %}" class="form-inline form-horizontal">
+                        {% csrf_token %}
+                        <input type="submit" value="Make default for shipping" class="btn">
+                    </form>
+                </div>
+                <div class="span">
+                    <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="billing" %}" class="form-inline form-horizontal">
+                        {% csrf_token %}
+                        <input type="submit" value="Make default for billing" class="btn">
+                    </form>
+                </div>
+                <div class="span">
+                    <a href="{% url 'profile:address-delete' pk=address.pk slug=address.get_slug %}" class="btn">Delete</a>
+                </div>
+            </div>
+        </li>
+    {% endfor %}
+    </ul>
+
+    <div>
+        <a href="{% url 'profile:address-create' %}" class="btn">Add new address</a>
+    </div>
+
+
+{% endblock content %}
+

@@ -2,6 +2,7 @@ from django import forms
 from userprofile.forms import AddressForm
 from .models import DigitalDeliveryGroup
 
+
 class ShippingForm(AddressForm):
 
     use_billing = forms.BooleanField(initial=True)

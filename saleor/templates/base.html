@@ -51,6 +51,19 @@
                                     <li><a href="{% url "order:index" %}">Order</a></li>
                                   </ul>
                             </li>
+                            {% if user.is_authenticated %}
+                            <li class="dropdown pull-right"> {# TODO pull-right not working #}
+                                <a data-toggle="dropdown" class="dropdown-toggle" href=".">{{ user }}</a>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="{% url "profile:details" %}">Profile edit</a></li>
+                                    <li><a href="{% url "registration:logout" %}">Log out</a></li>
+                                  </ul>
+                            </li>
+                            {% else %}
+                            <li>
+                                <a href="{% url "registration:login" %}">Log in</a>
+                            </li>
+                            {% endif %}
                         </ul>
                     </div>
                 </div>
@@ -68,6 +81,15 @@
         <div class="container">
             {% block outercontent %}
             <div class="row">
+
+                {% block messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endblock messages %}
+
                 {% block content %}
                 <p>
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer tempor ornare neque et consequat. Vestibulum euismod, ante mollis luctus tincidunt, ligula lorem tempor libero, sed molestie nisi lectus id dolor. Sed pharetra tempor hendrerit. Duis condimentum hendrerit libero eget rutrum. Duis facilisis placerat purus ut tincidunt. Fusce sit amet diam eu ante posuere semper. Curabitur vehicula, mauris non volutpat gravida, urna mauris rutrum erat, convallis commodo arcu quam ac nunc. Pellentesque mattis rutrum ornare. Etiam sed suscipit nunc. Maecenas malesuada metus dapibus nibh lobortis non rutrum tellus facilisis. Fusce a urna in lacus ultricies adipiscing non ut leo.
