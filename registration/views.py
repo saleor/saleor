@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from django.contrib.auth.views import (
     login as django_login_view, logout as django_logout,
 )
@@ -22,6 +24,7 @@ from .utils import (
 )
 
 User = get_user_model()
+now = datetime.now
 
 
 def login(request):
@@ -141,9 +144,9 @@ def select_email(request):
 
 def confirm_email(request, pk, token):
     try:
-        # TODO: validity period
         email_confirmation = EmailConfirmation.objects.get(
-            pk=pk, token=token)
+            pk=pk, token=token, valid_until__gte=now())
+        # TODO: cronjob (celery task) to delete stale tokens
     except EmailConfirmation.DoesNotExist:
         return TemplateResponse(request, 'registration/invalid_token.html')
 

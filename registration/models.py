@@ -1,9 +1,12 @@
 import os
+from datetime import datetime, timedelta
 
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 User = get_user_model()
+now = datetime.now
 
 
 class ExternalUserData(models.Model):
@@ -21,6 +24,8 @@ class EmailConfirmation(models.Model):
     external_user = models.ForeignKey(ExternalUserData, null=True, blank=True)
     token = models.CharField(
         max_length=32, default=lambda: os.urandom(16).encode('hex'))
+    valid_until = models.DateTimeField(
+        default=lambda: now() + timedelta(settings.ACCOUNT_ACTIVATION_DAYS))
 
     def get_confirmed_user(self):
         """Confirm that user owns this email address and return User insatnce.
