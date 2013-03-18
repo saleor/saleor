@@ -34,7 +34,8 @@ class Order(models.Model, ItemSet):
         ('payment-failed', pgettext_lazy(
             'Order status field value', 'payment failed')),
         ('delivery', pgettext_lazy('Order status field value', 'shipped')),
-        ('cancelled', pgettext_lazy('Order status field value', 'cancelled')))
+        ('cancelled', pgettext_lazy('Order status field value', 'cancelled')),
+        ('completed', pgettext_lazy('Order status field value', 'completed')))
 
     status = models.CharField(
         pgettext_lazy('Order field', 'order status'),
