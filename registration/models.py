@@ -21,7 +21,9 @@ class ExternalUserData(models.Model):
 
 class EmailConfirmation(models.Model):
     email = models.EmailField()
-    external_user = models.ForeignKey(ExternalUserData, null=True, blank=True)
+    external_user = models.ForeignKey(
+        ExternalUserData, null=True, blank=True,
+        related_name='email_confirmations')
     token = models.CharField(
         max_length=32, default=lambda: os.urandom(16).encode('hex'))
     valid_until = models.DateTimeField(

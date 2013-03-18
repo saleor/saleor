@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from django.contrib.auth.views import (
     login as django_login_view, logout as django_logout,
