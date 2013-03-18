@@ -5,7 +5,7 @@
         <form method='post' action='{% url 'registration:register' %}'>
             {% csrf_token %}
             {{ form }}
-            <input type="submit" value="Register">
+            <input type="submit" value="Continue">
         </form>
     </div>
 {% endblock %}
