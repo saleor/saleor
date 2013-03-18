@@ -14,9 +14,9 @@ class BaseShippingStep(Step):
     address = None
     template = 'order/address.html'
 
-    def __init__(self, order, request):
+    def __init__(self, order, request, address):
         super(BaseShippingStep, self).__init__(order, request)
-        self.address = order.billing_address or Address()
+        self.address = address
         self.forms = {
             'managment': ManagementForm(request.user.is_authenticated(),
                                         request.POST or None),
@@ -33,22 +33,15 @@ class BaseShippingStep(Step):
             else:
                 raise ValueError(self.method)
 
-    def validate(self):
-        try:
-            self.address.full_clean()
-        except ValidationError as e:
-            raise InvalidData(e.messages)
-
     def forms_are_valid(self):
         self.cleaned_data = {}
         if self.method == 'new' and self.forms['address'].is_valid():
             self.address = self.forms['address'].instance
-            self.validate()
             return True
         elif self.method == 'select' and self.forms['address_list'].is_valid():
             address_book = self.forms['address_list'].cleaned_data['address']
+            address_book.address.id = self.address.id
             self.address = address_book.address
-            self.validate()
             return True
         return False
 
@@ -57,6 +50,10 @@ class BaseShippingStep(Step):
 
 
 class BillingAddressStep(BaseShippingStep):
+
+    def __init__(self, order, request):
+        address = order.billing_address or Address()
+        super(BillingAddressStep, self).__init__(order, request, address)
 
     def __str__(self):
         return 'billing-address'
@@ -69,11 +66,22 @@ class BillingAddressStep(BaseShippingStep):
         self.order.billing_address = self.address
         self.order.save()
 
+    def validate(self):
+        try:
+            self.address.clean_fields()
+        except ValidationError as e:
+            raise InvalidData(e.messages)
+
 
 class ShippingStep(BaseShippingStep):
 
     def __init__(self, order, request, group):
-        super(ShippingStep, self).__init__(order, request)
+        if group.address:
+            address = group.address
+        else:
+            address = order.billing_address or Address()
+            address.id = None
+        super(ShippingStep, self).__init__(order, request, address)
         self.group = group
 
     def __str__(self):
@@ -86,6 +94,14 @@ class ShippingStep(BaseShippingStep):
         super(ShippingStep, self).save()
         self.group.address = self.address
         self.group.save()
+
+    def validate(self):
+        try:
+            self.group.clean_fields()
+        except ValidationError as e:
+            raise InvalidData(e.messages)
+        if not self.group.address:
+            raise InvalidData()
 
 
 class DigitalDeliveryStep(Step):
@@ -106,7 +122,7 @@ class DigitalDeliveryStep(Step):
 
     def validate(self):
         try:
-            self.group.full_clean()
+            self.group.clean_fields()
         except ValidationError as e:
             raise InvalidData(e.messages)
         if not self.group.email:
@@ -116,14 +132,19 @@ class DigitalDeliveryStep(Step):
         self.group.save()
 
 
-class SuccessStep(BaseShippingStep):
+class SuccessStep(Step):
 
     def process(self):
+        self.order.status = 'completed'
+        self.order.save()
         messages.success(self.request, 'Your order was successfully processed')
         return redirect('home')
 
     def __str__(self):
-        return 'success'
+        return 'summary'
+
+    def __unicode__(self):
+        return u'Summary'
 
     def validate(self):
         raise InvalidData('Last step')

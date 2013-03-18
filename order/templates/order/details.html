@@ -4,9 +4,9 @@
 
 {% block content %}
 <ul class="nav nav-tabs">
-    {% for stepitem in steps %}
+    {% for stepitem in checkout %}
     <li class="{% if stepitem == step %}active{% else %}disabled{% endif %}">
-        <a href="{{ stepitem.get_absolute_url }}">{{ stepitem }}</a>
+        <a href="{{ stepitem.get_absolute_url }}"><i class="{% if stepitem %}icon-ok{% else %}icon-remove{% endif %}"></i> {{ stepitem }}</a>
     </li>
     {% endfor %}
 </ul>

@@ -18,6 +18,13 @@ class Step(process.Step):
     def __unicode__(self):
         return u'Step'
 
+    def __nonzero__(self):
+        try:
+            self.validate()
+        except InvalidData:
+            return False
+        return True
+
     def save(self):
         raise NotImplementedError()
 
@@ -35,7 +42,7 @@ class Step(process.Step):
         return True
 
     def process(self):
-        if not self.forms_are_valid():
+        if self.order.status != 'completed' and not self.forms_are_valid():
             return TemplateResponse(self.request, self.template, {
                 'forms': self.forms,
                 'order': self.order,
