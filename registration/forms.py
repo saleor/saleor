@@ -14,13 +14,11 @@ class LoginForm(AuthenticationForm):
 class RegisterForm(forms.Form):
 
     email = forms.EmailField()
-    password = forms.CharField(widget=forms.PasswordInput())
 
     def clean(self):
         email = self.cleaned_data.get('email')
-        password = self.cleaned_data.get('password')
 
-        if email and password:
+        if email:
             if User.objects.filter(email=email).exists():
                 raise forms.ValidationError('Email already registered')
         return self.cleaned_data

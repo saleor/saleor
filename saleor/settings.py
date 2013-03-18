@@ -152,6 +152,8 @@ AUTHENTICATION_BACKENDS = (
 
 AUTH_USER_MODEL = 'userprofile.User'
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 WARN_ABOUT_INVALID_HTML5_OUTPUT = True
 
 SATCHLESS_DEFAULT_CURRENCY = 'USD'

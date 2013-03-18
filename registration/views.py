@@ -1,22 +1,24 @@
 from django.contrib.auth.views import (
-    login as django_login_view,
-    logout as django_logout,
+    login as django_login_view, logout as django_logout,
 )
 from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import SetPasswordForm
 from django.template.response import TemplateResponse
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.contrib.auth import login as auth_login, authenticate
-from django.http import HttpResponseNotFound
+from django.http import HttpResponseNotFound, HttpResponseBadRequest
 from django.core.urlresolvers import reverse
+from django.core.mail.message import EmailMessage
 
 from .forms import LoginForm, RegisterForm, EmailForm
-from .models import ExternalUserID
+from .models import ExternalUserData, EmailConfirmation
 from .utils import (
     facebook_callback,
     google_callback,
     get_google_login_url,
     get_facebook_login_url,
+    get_email_confirmation_message,
 )
 
 User = get_user_model()
@@ -35,16 +37,22 @@ def logout(request):
     return django_logout(request, template_name='registration/logout.html')
 
 
-def register(request):  # pragma: no cover
+def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            User.objects.create_user(
-                form.cleaned_data['email'], form.cleaned_data['password'])
-            messages.success(
+            email = form.cleaned_data['email']
+            email_confirmation = EmailConfirmation.objects.create(
+                email=email)
+            message = get_email_confirmation_message(
+                request, email_confirmation)
+            subject = "[Saleor] Email confirmation"
+            EmailMessage(subject, message, to=[email]).send()
+            messages.warning(
                 request,
-                "You have been successfully registered. You may login now.")
-            return redirect("registration:login")
+                "We have sent you a verifiacation email. "
+                "Please check your email inbox.")
+            return redirect("home")
     else:
         form = RegisterForm()
 
@@ -81,26 +89,29 @@ def oauth_callback(request, service):
         request.session['external_service'] = service
         request.session['external_username'] = external_username
 
-        return redirect('registration:confirm_email')
+        return redirect('registration:select_email')
 
 
-def confirm_email(request):
+def select_email(request):
     if request.method == 'GET':
         email = request.session.get('confirmed_email', '')
         form = EmailForm({'email': email})
-        return TemplateResponse(request, 'registration/confirm_email.html',
+        return TemplateResponse(request, 'registration/select_email.html',
                                 {'form': form})
 
     if request.method == 'POST':
         form = EmailForm(request.POST)
         if form.is_valid():
             submitted_email = form.cleaned_data['email']
-            confirmed_email = request.session.get('confirmed_email', '')
+            confirmed_email = request.session.pop('confirmed_email', '')
+            try:
+                external_username = request.session.pop('external_username')
+                external_service = request.session.pop('external_service')
+            except KeyError:
+                return HttpResponseBadRequest()
             if submitted_email == confirmed_email:
-                external_username = request.session.get('external_username')
-                external_service = request.session.get('external_service')
                 user, _ = User.objects.get_or_create(email=submitted_email)
-                ExternalUserID.objects.get_or_create(
+                ExternalUserData.objects.get_or_create(
                     user=user,
                     provider=external_service,
                     username=external_username)
@@ -110,11 +121,59 @@ def confirm_email(request):
                     request,
                     "You have been successfully registered and logged in.")
             else:
+                external_user, _ = ExternalUserData.objects.get_or_create(
+                    provider=external_service, username=external_username)
+                email_confirmation = EmailConfirmation.objects.create(
+                    email=submitted_email, external_user=external_user)
+                message = get_email_confirmation_message(
+                    request, email_confirmation)
+                subject = "[Saleor] Email confirmation"
+                EmailMessage(subject, message, to=[submitted_email]).send()
                 messages.warning(
                     request,
-                    "Supplied custom email, confirmation is sent... NOT!!! "
-                    "Actually this is a TODO, to sent activation email now")
+                    "Supplied custom email, confirmation sent. "
+                    "Please check your email.")
             return redirect('home')
         else:
-            return TemplateResponse(request, 'registration/confirm_email.html',
+            return TemplateResponse(request, 'registration/select_email.html',
                                     {'form': form})
+
+
+def confirm_email(request, pk, token):
+    try:
+        # TODO: validity period
+        email_confirmation = EmailConfirmation.objects.get(
+            pk=pk, token=token)
+    except EmailConfirmation.DoesNotExist:
+        return TemplateResponse(request, 'registration/invalid_token.html')
+
+    proceed = False
+    password = None
+
+    if request.method == 'GET':
+        form = SetPasswordForm(user=None)
+    elif request.method == 'POST':
+        if "nopassword" in request.POST:
+            proceed = True
+        else:
+            form = SetPasswordForm(user=None, data=request.POST)
+            if form.is_valid():
+                proceed = True
+                password = form.cleaned_data['new_password1']
+
+    if proceed:
+        user = email_confirmation.get_confirmed_user()
+        if password:
+            user.set_password(password)
+            user.save()
+        email_confirmation.delete()
+
+        user = authenticate(user=user)
+        auth_login(request, user)
+        messages.success(
+            request,
+            "You have been successfully registered and logged in.")
+        return redirect('home')
+    else:
+        return TemplateResponse(
+            request, "registration/set_password.html", {"form": form})

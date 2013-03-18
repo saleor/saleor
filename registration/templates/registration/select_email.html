@@ -5,7 +5,7 @@
         <h3>
             Use this email as your identifier:
         </h3>
-        <form method="post" action="{% url 'registration:confirm_email' %}">
+        <form method="post" action="{% url 'registration:select_email' %}">
             {% csrf_token %}
             {{ form }}
             <input type="submit" value="OK">

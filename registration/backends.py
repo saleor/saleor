@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from registration.models import ExternalUserID
+from registration.models import ExternalUserData
 
 User = get_user_model()
 
@@ -31,10 +31,10 @@ class ExternalLoginBackend(Backend):
     def authenticate(self, external_username=None, external_service=None,
                      **_kwargs):
         try:
-            return ExternalUserID.objects.select_related('user').get(
+            return ExternalUserData.objects.select_related('user').get(
                 provider=external_service, username=external_username
             ).user
-        except ExternalUserID.DoesNotExist:
+        except ExternalUserData.DoesNotExist:
             return None
 
 

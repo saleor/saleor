@@ -78,7 +78,8 @@ class User(models.Model):
 
     is_staff = models.BooleanField(_('staff status'), default=False)
     is_active = models.BooleanField(_('active'), default=False)
-    password = models.CharField(_('password'), max_length=128, editable=False)
+    password = models.CharField(
+        _('password'), max_length=128, editable=False, default='')
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now,
                                        editable=False)
     last_login = models.DateTimeField(_('last login'), default=timezone.now,

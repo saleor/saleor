@@ -1,3 +1,5 @@
+from django.template.loader import render_to_string
+from django.contrib.sites.models import get_current_site
 from django.core.urlresolvers import reverse
 from django.conf import settings
 
@@ -84,3 +86,13 @@ def facebook_callback(GET):
     email = fb_user_data.get('email')
 
     return email, external_username
+
+
+def get_email_confirmation_message(request, email_confirmation):
+    return render_to_string(
+        'registration/email/confirm_email_ownership.txt',
+        {'confirmation_url':
+            unicode(get_current_site(request))
+            + reverse("registration:confirm_email", kwargs={
+                'pk': email_confirmation.pk,
+                'token': email_confirmation.token})})
