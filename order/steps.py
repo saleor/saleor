@@ -2,7 +2,7 @@ from . import Step
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import redirect
-from order.forms import ManagementForm, DigitalDeliveryForm
+from order.forms import ManagementForm, DigitalDeliveryForm, DeliveryForm
 from satchless.process import InvalidData
 from userprofile.forms import AddressForm, UserAddressesForm
 from userprofile.models import Address
@@ -75,6 +75,9 @@ class BillingAddressStep(BaseShippingStep):
 
 class ShippingStep(BaseShippingStep):
 
+    template = 'order/shipping.html'
+    delivery_method = None
+
     def __init__(self, order, request, group):
         if group.address:
             address = group.address
@@ -82,6 +85,7 @@ class ShippingStep(BaseShippingStep):
             address = order.billing_address or Address()
             address.id = None
         super(ShippingStep, self).__init__(order, request, address)
+        self.forms['delivery'] = DeliveryForm(group, request.POST or None)
         self.group = group
 
     def __str__(self):
@@ -93,6 +97,7 @@ class ShippingStep(BaseShippingStep):
     def save(self):
         super(ShippingStep, self).save()
         self.group.address = self.address
+        self.group.price = self.delivery_method.get_price_per_item()
         self.group.save()
 
     def validate(self):
@@ -102,6 +107,14 @@ class ShippingStep(BaseShippingStep):
             raise InvalidData(e.messages)
         if not self.group.address:
             raise InvalidData()
+
+    def forms_are_valid(self):
+        base_forms_are_valid = super(ShippingStep, self).forms_are_valid()
+        delivery_form = self.forms['delivery']
+        if base_forms_are_valid and delivery_form.is_valid():
+            self.delivery_method = delivery_form.cleaned_data['method']
+            return True
+        return False
 
 
 class DigitalDeliveryStep(Step):
@@ -132,6 +145,27 @@ class DigitalDeliveryStep(Step):
         self.group.save()
 
 
+class SummaryStep(Step):
+
+    template = 'order/summary.html'
+
+    def __str__(self):
+        return 'summary'
+
+    def __unicode__(self):
+        return u'Summary'
+
+    def validate(self):
+        if self.order.status != 'completed':
+            raise InvalidData('Last step')
+
+    def forms_are_valid(self):
+        return False
+
+    def save(self):
+        pass
+
+
 class SuccessStep(Step):
 
     def process(self):
@@ -141,10 +175,10 @@ class SuccessStep(Step):
         return redirect('home')
 
     def __str__(self):
-        return 'summary'
+        return 'success'
 
     def __unicode__(self):
-        return u'Summary'
+        return u'Success'
 
     def validate(self):
         raise InvalidData('Last step')

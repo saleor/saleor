@@ -1,0 +1,53 @@
+{% extends "order/details.html" %}
+
+{% load as_bootstrap from bootstrap %}
+{% load gross from prices %}
+
+{% block forms %}
+<h2>Billing address</h2>
+{% with address=order.billing_address %}
+<p>
+    {{ address.first_name }} {{ address.last_name }}
+    <br />
+    {{ address.street_address_1 }}{% if address.street_address_2 %}{{ address.street_address_2 }}{% endif %}
+    <br />
+    {{ address.postal_code }} {{ address.city }}
+    <br />
+    {{ address.country_area }} {{ address.country }}
+    <br />
+    {{ address.phone }}
+</p>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Name</th><th>Price per item</th><th>Quantity</th><th>Total</th><th>Delivery price</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for group in order.groups.all %}
+            {% for item in group.items.all %}
+        <tr>
+                {% if forloop.first %}
+            <td>{{ item }}</td><td>{% gross item.get_price_per_item %}</td><td>{{ item.quantity }}</td><td>{% gross item.get_total %}</td><td rowspan="{{ group.items.all|length }}">{% gross group.price %}</td>
+                {% else %}
+            <td>{{ item }}</td><td>{% gross item.get_price_per_item %}</td><td>{{ item.quantity }}</td><td>{% gross item.get_total %}</td>
+                {% endif %}
+        </tr>
+            {% endfor %}
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td>Total</td><td colspan="4">{% gross order.get_total %}</td>
+        </tr>
+    </tfoot>
+</table>
+{% endwith %}
+<form method="post" class="form-horizontal">
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+            Save changes
+        </button>
+    </div>
+</form>
+{% endblock forms %}

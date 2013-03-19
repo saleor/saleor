@@ -16,6 +16,7 @@
         <legend>Complete address:</legend>
         {{ forms.address|as_bootstrap }}
     </fieldset>
+    {% block extra_forms %}{% endblock %}
 
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">

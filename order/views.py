@@ -1,6 +1,7 @@
-from .steps import BillingAddressStep, ShippingStep, DigitalDeliveryStep, SuccessStep
-from cart import get_cart_from_request, remove_cart_from_request, \
-    CartPartitioner
+from .steps import (BillingAddressStep, ShippingStep, DigitalDeliveryStep,
+                    SummaryStep, SuccessStep)
+from cart import (get_cart_from_request, remove_cart_from_request,
+                  CartPartitioner)
 from django.http.response import Http404
 from django.shortcuts import redirect, get_object_or_404
 from order.models import Order, DigitalDeliveryGroup
@@ -17,6 +18,7 @@ class CheckoutProcessManager(ProcessManager):
                 delivery_step_class = DigitalDeliveryStep
             self.steps.append(delivery_step_class(order, request,
                                                   delivery_group))
+        self.steps.append(SummaryStep(order, request))
         self.steps.append(SuccessStep(order, request))
 
     def __iter__(self):
