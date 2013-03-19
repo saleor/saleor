@@ -3,28 +3,20 @@
 {% block content %}
     <form action="." method="post">
         {% csrf_token %}
-        {% if form.errors %}
+        {% if address_form.errors or address_book_form.errors %}
             <div class="alert alert-error">
                 Please correct errors below.
             </div>
         {% endif %}
-        {% if form.is_valid %}
-            <div class="alert alert-success">
-                Address updated.
-            </div>
-        {% endif %}
         <fieldset>
             <legend>Address</legend>
-            {% for field in form %}
-                <div class="control-group{% if field.errors %} error{% endif %}">
-                <label for="{{ field.id }}">{{ field.label }}</label>
-                <div class="control">
-                    {{ field }}
-                    <span class="help-inline">{{ field.errors }}</span>
-                </div>
-            </div>
-            {% endfor %}
-            <button type="submit" class="btn">Save</button>
+            {% with form=address_book_form %}
+                {% include 'saleor/partials/form.html' %}
+            {% endwith %}
+            {% with form=address_form %}
+                {% include 'saleor/partials/form.html' %}
+            {% endwith %}
         </fieldset>
+        <button type="submit" class="btn">Save</button>
     </form>
 {% endblock content %}

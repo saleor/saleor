@@ -5,10 +5,6 @@
         Are you sure?
         <form action="." method="post">
             {% csrf_token %}
-            {% if form.errors %}
-                {{ form.errors }}
-            {% endif %}
-
             <button type="submit" class="btn">Delete</button>
             <a href="{% url 'profile:details' %}" class="btn">Cancel</a>
         </form>

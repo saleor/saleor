@@ -5,21 +5,21 @@ from .models import Address, AddressBook
 
 
 class AddressForm(forms.ModelForm):
-
     class Meta:
         model = Address
 
 
-class AddressFormWithAlias(forms.ModelForm):
+class AddressBookForm(forms.ModelForm):
 
     class Meta:
-        model = Address
-        exclude = ['user']
+        model = AddressBook
+        fields = ['alias']
 
     def clean(self):
-        if Address.objects.filter(
-            user=self.instance.user, alias=self.cleaned_data['alias']
-        ).exclude(id=self.instance.id).exists():
+        super(AddressBookForm, self).clean()
+        if AddressBook.objects.filter(
+            user_id=self.instance.user_id, alias=self.cleaned_data.get('alias')
+        ).exclude(address=self.instance.address_id).exists():
             self._errors['alias'] = self.error_class(
                 ['You are already using such alias for another address'])
 

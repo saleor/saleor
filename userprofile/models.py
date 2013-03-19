@@ -14,8 +14,8 @@ from saleor.countries import COUNTRY_CHOICES
 
 class AddressBook(models.Model):
 
-    user = models.ForeignKey('User', related_name='+')
-    address = models.ForeignKey('Address', related_name='+')
+    user = models.ForeignKey('User', related_name='address_book')
+    address = models.ForeignKey('Address', related_name='+', unique=True)
     alias = models.CharField(
         ugettext_lazy('short alias'),
         max_length=30, default=ugettext_lazy('Home'),
@@ -58,7 +58,8 @@ class Address(models.Model):
     country = models.CharField(
         ugettext_lazy('country'), choices=COUNTRY_CHOICES, max_length=2)
     country_area = models.CharField(
-        ugettext_lazy('country administrative area'), max_length=128)
+        ugettext_lazy('country administrative area'), max_length=128,
+        blank=True)
     phone = models.CharField(
         ugettext_lazy('phone number'), max_length=30, blank=True)
 
