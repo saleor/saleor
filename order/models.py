@@ -1,6 +1,7 @@
 from delivery import DigitalDelivery, DummyShipping
 from django.conf import settings
 from django.db import models
+from django.db.models.aggregates import Sum
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from prices import Price
@@ -97,6 +98,10 @@ class Order(models.Model, ItemSet):
     def get_absolute_url(self):
         return ('order:details', (), {'token': self.token})
 
+    def get_delivery_total(self):
+        return sum([group.price for group in self.groups.all()],
+                   Price(0, currency=settings.SATCHLESS_DEFAULT_CURRENCY))
+
 
 class DeliveryGroup(Subtyped, ItemSet):
 
@@ -113,7 +118,7 @@ class DeliveryGroup(Subtyped, ItemSet):
 
     def __iter__(self):
         if self.id:
-            return iter(self.items.all())
+            return iter(self.items.select_related('product').all())
         return super(DeliveryGroup, self).__iter__()
 
     def save(self, *args, **kwargs):
@@ -186,3 +191,7 @@ class OrderedItem(models.Model, ItemLine):
 
     def get_quantity(self):
         return self.quantity
+
+    def __unicode__(self):
+        return self.product_name
+

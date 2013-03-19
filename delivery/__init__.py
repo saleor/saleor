@@ -14,10 +14,14 @@ class BaseDelivery(Item):
 
 class DummyShipping(BaseDelivery):
 
+    def __unicode__(self):
+        return u'Dummy shipping'
+
     def get_price_per_item(self, **kwargs):
-        weight = sum(grup.product.weight for grup in self.group)
+        # I don't getting good product class
+        #weight = sum(grup.product.weight for grup in self.group)
         qty = sum(grup.quantity for grup in self.group)
-        return Price(weight*qty, currency=settings.SATCHLESS_DEFAULT_CURRENCY)
+        return Price(qty, currency=settings.SATCHLESS_DEFAULT_CURRENCY)
 
 
 class DigitalDelivery(BaseDelivery):
