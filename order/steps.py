@@ -156,14 +156,12 @@ class SummaryStep(Step):
         return u'Summary'
 
     def validate(self):
-        if self.order.status != 'completed':
+        if self.order.status not in ('summary', 'completed'):
             raise InvalidData('Last step')
 
-    def forms_are_valid(self):
-        return False
-
     def save(self):
-        pass
+        self.order.status = 'summary'
+        self.order.save()
 
 
 class SuccessStep(Step):

@@ -42,13 +42,14 @@ class Step(process.Step):
         return True
 
     def process(self):
-        if self.order.status != 'completed' and not self.forms_are_valid():
-            return TemplateResponse(self.request, self.template, {
-                'forms': self.forms,
-                'order': self.order,
-                'step': self
-            })
-        self.save()
+        if self.order.status != 'completed':
+            if self.request.method == 'GET' or not self.forms_are_valid():
+                return TemplateResponse(self.request, self.template, {
+                    'forms': self.forms,
+                    'order': self.order,
+                    'step': self
+                })
+            self.save()
 
     @models.permalink
     def get_absolute_url(self):
