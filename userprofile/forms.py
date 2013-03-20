@@ -35,4 +35,4 @@ class UserAddressesForm(forms.Form):
         super(UserAddressesForm, self).__init__(*args, **kwargs)
         address = self.fields['address']
         if user.is_authenticated():
-            address.queryset = AddressBook.objects.filter(user=user)
+            address.queryset = user.address_book.all()

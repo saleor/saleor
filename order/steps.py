@@ -30,8 +30,6 @@ class BaseShippingStep(Step):
             elif self.method == 'select':
                 self.forms['address_list'] = UserAddressesForm(request.POST,
                                                            user=request.user)
-            else:
-                raise ValueError(self.method)
 
     def forms_are_valid(self):
         self.cleaned_data = {}

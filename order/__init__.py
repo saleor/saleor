@@ -28,13 +28,6 @@ class Step(process.Step):
     def save(self):
         raise NotImplementedError()
 
-    def is_valid(self):
-        try:
-            self.validate()
-        except InvalidData:
-            return False
-        return True
-
     def forms_are_valid(self):
         for form in self.forms.values():
             if not form.is_valid():

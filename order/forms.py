@@ -21,10 +21,19 @@ class ManagementForm(forms.Form):
 
     def __init__(self, is_user_authenticated, *args, **kwargs):
         super(ManagementForm, self).__init__(*args, **kwargs)
+        self.is_user_authenticated = is_user_authenticated
         if not is_user_authenticated:
             choice_method = self.fields['choice_method']
             choice_method.initial = self.CHOICES[1][0]
             choice_method.widget = choice_method.hidden_widget()
+
+    def clean(self):
+        cleaned_data = super(ManagementForm, self).clean()
+        choice_method = cleaned_data.get('choice_method')
+        if choice_method == 'select' and not self.is_user_authenticated:
+            raise forms.ValidationError('Only authenticated users can select '
+                                        'address.')
+        return cleaned_data
 
 
 class DigitalDeliveryForm(forms.ModelForm):
