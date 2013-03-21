@@ -13,7 +13,7 @@ from django.http import HttpResponseNotFound, HttpResponseBadRequest
 from django.core.urlresolvers import reverse
 from django.core.mail.message import EmailMessage
 
-from .forms import LoginForm, RegisterForm, EmailForm
+from .forms import LoginForm, EmailForm
 from .models import ExternalUserData, EmailConfirmation
 from .utils import (
     facebook_callback,
@@ -42,7 +42,7 @@ def logout(request):
 
 def register(request):
     if request.method == 'POST':
-        form = RegisterForm(request.POST)
+        form = EmailForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data['email']
             email_confirmation = EmailConfirmation.objects.create(
@@ -57,7 +57,7 @@ def register(request):
                 "Please check your email inbox.")
             return redirect("home")
     else:
-        form = RegisterForm()
+        form = EmailForm()
 
     ctx = {'form': form}
     return TemplateResponse(request, 'registration/register.html', ctx)
@@ -124,7 +124,7 @@ def select_email(request):
                 auth_login(request, user)
                 messages.success(
                     request,
-                    "You have been successfully registered and logged in.")
+                    "You have been successfully logged in.")
             else:
                 external_user, _ = ExternalUserData.objects.get_or_create(
                     provider=external_service, username=external_username)
