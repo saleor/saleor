@@ -1,0 +1,12 @@
+{% extends "order/address.html" %}
+
+{% load as_bootstrap from bootstrap %}
+
+{% block extra_forms %}
+<fieldset>
+    <legend>
+        Delivery method:
+    </legend>
+    {{ step.forms.delivery|as_bootstrap }}
+</fieldset>
+{% endblock extra_forms %}

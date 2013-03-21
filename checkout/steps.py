@@ -7,20 +7,20 @@ from order.models import DigitalDeliveryGroup
 from satchless.process import InvalidData, ProcessManager
 from userprofile.forms import AddressForm, UserAddressesForm
 from userprofile.models import Address
-
+from cart import CartPartitioner
 
 class CheckoutProcessManager(ProcessManager):
 
-    def __init__(self, order, request):
-        self.steps = [BillingAddressStep(order, request)]
-        for delivery_group in order.groups.all():
+    def __init__(self, cart, request):
+        self.steps = [BillingAddressStep(cart, request)]
+        for delivery_group in CartPartitioner(cart):
             delivery_step_class = ShippingStep
             if isinstance(delivery_group, DigitalDeliveryGroup):
                 delivery_step_class = DigitalDeliveryStep
-            self.steps.append(delivery_step_class(order, request,
+            self.steps.append(delivery_step_class(cart, request,
                                                   delivery_group))
-        self.steps.append(SummaryStep(order, request))
-        self.steps.append(SuccessStep(order, request))
+        self.steps.append(SummaryStep(cart, request))
+        self.steps.append(SuccessStep(cart, request))
 
     def __iter__(self):
         return iter(self.steps)
@@ -30,10 +30,10 @@ class BaseShippingStep(Step):
 
     method = None
     address = None
-    template = 'order/address.html'
+    template = 'checkout/address.html'
 
-    def __init__(self, order, request, address):
-        super(BaseShippingStep, self).__init__(order, request)
+    def __init__(self, cart, request, address):
+        super(BaseShippingStep, self).__init__(cart, request)
         self.address = address
         self.forms = {
             'management': ManagementForm(request.user.is_authenticated(),
@@ -66,9 +66,9 @@ class BaseShippingStep(Step):
 
 class BillingAddressStep(BaseShippingStep):
 
-    def __init__(self, order, request):
-        address = order.billing_address or Address()
-        super(BillingAddressStep, self).__init__(order, request, address)
+    def __init__(self, cart, request):
+        address = cart.billing_address or Address()
+        super(BillingAddressStep, self).__init__(cart, request, address)
 
     def __str__(self):
         return 'billing-address'
@@ -78,8 +78,8 @@ class BillingAddressStep(BaseShippingStep):
 
     def save(self):
         super(BillingAddressStep, self).save()
-        self.order.billing_address = self.address
-        self.order.save()
+        self.cart.billing_address = self.address
+        self.cart.save()
 
     def validate(self):
         try:
@@ -90,16 +90,16 @@ class BillingAddressStep(BaseShippingStep):
 
 class ShippingStep(BaseShippingStep):
 
-    template = 'order/shipping.html'
+    template = 'checkout/shipping.html'
     delivery_method = None
 
-    def __init__(self, order, request, group):
+    def __init__(self, cart, request, group):
         if group.address:
             address = group.address
         else:
-            address = order.billing_address or Address()
+            address = cart.billing_address or Address()
             address.id = None
-        super(ShippingStep, self).__init__(order, request, address)
+        super(ShippingStep, self).__init__(cart, request, address)
         self.forms['delivery'] = DeliveryForm(group, request.POST or None)
         self.group = group
 
@@ -134,10 +134,10 @@ class ShippingStep(BaseShippingStep):
 
 class DigitalDeliveryStep(Step):
 
-    template = 'order/digitaldelivery.html'
+    template = 'checkout/digitaldelivery.html'
 
-    def __init__(self, order, request, group):
-        super(DigitalDeliveryStep, self).__init__(order, request)
+    def __init__(self, cart, request, group):
+        super(DigitalDeliveryStep, self).__init__(cart, request)
         self.group = group
         self.forms['email'] = DigitalDeliveryForm(request.POST or None,
                                                   instance=self.group)
@@ -162,7 +162,7 @@ class DigitalDeliveryStep(Step):
 
 class SummaryStep(Step):
 
-    template = 'order/summary.html'
+    template = 'checkout/summary.html'
 
     def __str__(self):
         return 'summary'
@@ -171,19 +171,17 @@ class SummaryStep(Step):
         return u'Summary'
 
     def validate(self):
-        if self.order.status not in ('summary', 'completed'):
-            raise InvalidData('Last step')
+        raise InvalidData('Last step')
 
     def save(self):
-        self.order.status = 'summary'
-        self.order.save()
+        pass
 
 
 class SuccessStep(Step):
 
     def process(self):
-        self.order.status = 'completed'
-        self.order.save()
+        self.cart.status = 'completed'
+        self.cart.save()
         messages.success(self.request, 'Your order was successfully processed')
         return redirect('home')
 
