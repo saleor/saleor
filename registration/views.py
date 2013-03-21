@@ -3,13 +3,13 @@ from datetime import datetime
 from django.contrib.auth.views import (
     login as django_login_view, logout as django_logout,
 )
+from django.http import HttpResponseNotFound, HttpResponseBadRequest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import SetPasswordForm
 from django.template.response import TemplateResponse
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.contrib.auth import login as auth_login, authenticate
-from django.http import HttpResponseNotFound, HttpResponseBadRequest
 from django.core.urlresolvers import reverse
 from django.core.mail.message import EmailMessage
 
@@ -38,29 +38,6 @@ def login(request):
 
 def logout(request):
     return django_logout(request, template_name='registration/logout.html')
-
-
-def register(request):
-    if request.method == 'POST':
-        form = EmailForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data['email']
-            email_confirmation = EmailConfirmation.objects.create(
-                email=email)
-            message = get_email_confirmation_message(
-                request, email_confirmation)
-            subject = "[Saleor] Email confirmation"
-            EmailMessage(subject, message, to=[email]).send()
-            messages.warning(
-                request,
-                "We have sent you a verifiacation email. "
-                "Please check your email inbox.")
-            return redirect("home")
-    else:
-        form = EmailForm()
-
-    ctx = {'form': form}
-    return TemplateResponse(request, 'registration/register.html', ctx)
 
 
 def oauth_callback(request, service):
@@ -92,15 +69,13 @@ def oauth_callback(request, service):
         request.session['external_service'] = service
         request.session['external_username'] = external_username
 
-        return redirect('registration:select_email')
+        return redirect('registration:register')
 
 
-def select_email(request):
+def register(request):
     if request.method == 'GET':
-        email = request.session.get('confirmed_email', '')
-        form = EmailForm({'email': email})
-        return TemplateResponse(request, 'registration/select_email.html',
-                                {'form': form})
+        email = request.session.get('confirmed_email', None)
+        form = EmailForm({'email': email} if email else None)
 
     if request.method == 'POST':
         form = EmailForm(request.POST)
@@ -108,26 +83,31 @@ def select_email(request):
             submitted_email = form.cleaned_data['email']
             confirmed_email = request.session.pop('confirmed_email', '')
             try:
-                external_username = request.session.pop('external_username')
-                external_service = request.session.pop('external_service')
+                external_user_data = {
+                    'username': request.session.pop(
+                        'external_username'),
+                    'provider': request.session.pop('external_service')
+                }
             except KeyError:
-                return HttpResponseBadRequest()
+                external_user = None
+            else:
+                external_user, _ = ExternalUserData.objects.get_or_create(
+                    **external_user_data)
+
             if submitted_email == confirmed_email:
+                if not external_user:
+                    # TODO: this should never happen unless sb is hacking
+                    return HttpResponseBadRequest()
                 user, _ = User.objects.get_or_create(email=submitted_email)
-                external_user_data, _ = ExternalUserData.objects.get_or_create(
-                    provider=external_service,
-                    username=external_username)
-                if not external_user_data.user:
-                    external_user_data.user = user
-                    external_user_data.save()
+                if external_user and not external_user.user:
+                    external_user.user = user
+                    external_user.save()
                 user = authenticate(user=user)
                 auth_login(request, user)
                 messages.success(
                     request,
                     "You have been successfully logged in.")
             else:
-                external_user, _ = ExternalUserData.objects.get_or_create(
-                    provider=external_service, username=external_username)
                 email_confirmation = EmailConfirmation.objects.create(
                     email=submitted_email, external_user=external_user)
                 message = get_email_confirmation_message(
@@ -136,12 +116,12 @@ def select_email(request):
                 EmailMessage(subject, message, to=[submitted_email]).send()
                 messages.warning(
                     request,
-                    "Supplied custom email, confirmation sent. "
+                    "We have sent you a confirmation email. "
                     "Please check your email.")
             return redirect('home')
-        else:
-            return TemplateResponse(request, 'registration/select_email.html',
-                                    {'form': form})
+
+    return TemplateResponse(request, 'registration/register.html',
+                            {'form': form})
 
 
 def confirm_email(request, pk, token):
@@ -177,7 +157,7 @@ def confirm_email(request, pk, token):
         auth_login(request, user)
         messages.success(
             request,
-            "You have been successfully registered and logged in.")
+            "You have been successfully logged in, %s" % user.email)
         return redirect('home')
     else:
         return TemplateResponse(

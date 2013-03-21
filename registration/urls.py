@@ -9,8 +9,6 @@ urlpatterns = patterns(
     url(r'^oauth_callback/(?P<service>\w+)/$',
         'registration.views.oauth_callback',
         name='oauth_callback'),
-    url(r'^select_email/$', 'registration.views.select_email',
-        name='select_email'),
     url(r'^confirm_email/(?P<pk>\d+)/(?P<token>\w+)/$',
         'registration.views.confirm_email', name='confirm_email'),
 )
