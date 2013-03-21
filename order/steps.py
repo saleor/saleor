@@ -18,12 +18,12 @@ class BaseShippingStep(Step):
         super(BaseShippingStep, self).__init__(order, request)
         self.address = address
         self.forms = {
-            'managment': ManagementForm(request.user.is_authenticated(),
+            'management': ManagementForm(request.user.is_authenticated(),
                                         request.POST or None),
             'address_list': UserAddressesForm(user=request.user),
             'address': AddressForm(instance=self.address)}
-        if self.forms['managment'].is_valid():
-            self.method = self.forms['managment'].cleaned_data['choice_method']
+        if self.forms['management'].is_valid():
+            self.method = self.forms['management'].cleaned_data['choice_method']
             if self.method == 'new':
                 self.forms['address'] = AddressForm(request.POST,
                                                     instance=self.address)
@@ -34,7 +34,6 @@ class BaseShippingStep(Step):
     def forms_are_valid(self):
         self.cleaned_data = {}
         if self.method == 'new' and self.forms['address'].is_valid():
-            self.address = self.forms['address'].instance
             return True
         elif self.method == 'select' and self.forms['address_list'].is_valid():
             address_book = self.forms['address_list'].cleaned_data['address']

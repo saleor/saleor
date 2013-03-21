@@ -1,6 +1,7 @@
 from .. import Step
 from ..models import Order
-from .steps import TestBaseShippingStep, TestBillingAddressStep
+from .steps import (TestBaseShippingStep, TestBillingAddressStep,
+                    TestShippingStep)
 from django.core.urlresolvers import reverse
 from django.template.response import TemplateResponse
 from django.test import TestCase

@@ -1,8 +1,8 @@
 from .models import DigitalDeliveryGroup
 from django import forms
+from django.core import validators
 from django.core.exceptions import ValidationError
 from userprofile.forms import AddressForm
-from django.utils.translation import ugettext_lazy as _
 
 
 class ShippingForm(AddressForm):
@@ -56,11 +56,13 @@ class DeliveryField(forms.ChoiceField):
         super(DeliveryField, self).__init__(choices, *args, **kwargs)
 
     def to_python(self, value):
+        if value in validators.EMPTY_VALUES:
+            return None
         try:
             return self.methods[int(value)]
         except (IndexError, ValueError):
             raise ValidationError(
-                self.error_messages['invalid_choice'] % value)
+                self.error_messages['invalid_choice'] % {'value':value})
 
     def valid_value(self, value):
         return value in self.methods
