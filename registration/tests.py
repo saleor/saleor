@@ -1,14 +1,17 @@
-from django.test.client import Client
+import datetime
+
+from django.contrib.auth import get_user_model
+from django.test import TestCase
 from httpretty import HTTPretty, httprettified
 from purl import URL
 
+from .models import EmailConfirmation, ExternalUserData
 
-from django.test import TestCase
+User = get_user_model()
 
 
 class LoginViewTest(TestCase):
     def setUp(self):
-        self.client = Client()
         self.response = self.client.get('/account/login/')
 
     def test_facebook_url(self):
@@ -43,9 +46,6 @@ class LoginViewTest(TestCase):
 
 
 class CallbackViewTest(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.response = self.client.get('/account/login/')
 
     @httprettified
     def test_google_success(self):
@@ -71,6 +71,32 @@ class CallbackViewTest(TestCase):
                          self.client.session.get('external_username'))
         self.assertEqual('fake@gmail.com',
                          self.client.session.get('confirmed_email'))
+
+    @httprettified
+    def test_google_success_second_time(self):
+        user = User.objects.create(email='fake@email.com')
+        ExternalUserData.objects.create(
+            username='fake_google_id', provider='google', user=user)
+
+        HTTPretty.register_uri(
+            HTTPretty.POST, 'https://accounts.google.com/o/oauth2/token',
+            body='{"access_token" : "dummy_token_content"}'
+        )
+
+        HTTPretty.register_uri(
+            HTTPretty.GET,
+            'https://www.googleapis.com/oauth2/v1/userinfo',
+            body=('{"id": "fake_google_id","email": "fake@gmail.com",'
+                  '"verified_email": true}'))
+
+        response = self.client.get(
+            '/account/oauth_callback/google/?code=dummycode')
+
+        self.assertEqual(302, response.status_code)
+
+        self.assertNotIn('confirmed_email', self.client.session)
+        self.assertNotIn('external_username', self.client.session)
+        self.assertNotIn('external_service', self.client.session)
 
     @httprettified
     def test_google_bad_code(self):
@@ -157,3 +183,248 @@ class CallbackViewTest(TestCase):
         self.assertEqual(302, response.status_code)
 
         self.assertEqual('/account/login/', URL(response['Location']).path())
+
+
+class RegisterViewTest(TestCase):
+
+    def test_registration_page(self):
+
+        initial_user_count = User.objects.count()
+
+        response = self.client.get('/account/register/')
+
+        self.assertEqual(initial_user_count, User.objects.count())
+        self.assertEqual(200, response.status_code)
+        self.assertFalse(response.context_data['form'].is_valid())
+        self.assertFalse(response.context_data['form'].errors)
+
+    def test_register_new(self):
+
+        initial_user_count = User.objects.count()
+        email = 'some.non.exeistanst@email.com'
+        self.assertFalse(User.objects.filter(email=email).exists())
+        self.assertFalse(
+            EmailConfirmation.objects.filter(email=email).exists())
+
+        response = self.client.post('/account/register/', {'email': email})
+
+        self.assertEqual(initial_user_count, User.objects.count())
+        self.assertEqual(302, response.status_code)
+        self.assertTrue(EmailConfirmation.objects.filter(email=email).exists())
+
+    def test_send_reset_password_token(self):
+
+        email = 'some@email.com'
+        user, _ = User.objects.get_or_create(email=email)
+        initial_user_count = User.objects.count()
+        self.assertFalse(
+            EmailConfirmation.objects.filter(email=email).exists())
+
+        response = self.client.post('/account/register/', {'email': email})
+
+        self.assertEqual(initial_user_count, User.objects.count())
+        self.assertEqual(302, response.status_code)
+        self.assertTrue(EmailConfirmation.objects.filter(email=email).exists())
+
+    def test_register_with_extrnally_confirmed_email_and_no_extern_login(self):
+
+        # if we don't impose some action for TestClient we shall not be able to
+        # set variables to session
+        self.client.get('/')
+
+        email = 'some@email.com'
+        self.assertFalse(User.objects.filter(email=email).exists())
+        initial_user_count = User.objects.count()
+        initial_email_confirmation_count = EmailConfirmation.objects.count()
+
+        session = self.client.session
+        session['confirmed_email'] = email
+        session.save()
+
+        response = self.client.post('/account/register/', {'email': email})
+
+        self.assertEqual(initial_user_count, User.objects.count())
+        self.assertEqual(
+            initial_email_confirmation_count,
+            EmailConfirmation.objects.count())
+        self.assertEqual(400, response.status_code)
+        self.assertFalse('confirmed_email' in self.client.session)
+
+    def test_register_with_externally_confirmed_email(self):
+
+        # if we don't impose some action for TestClient we shall not be able to
+        # set variables to session
+        self.client.get('/')
+
+        email = 'some@email.com'
+
+        self.assertFalse(User.objects.filter(email=email).exists())
+
+        initial_user_count = User.objects.count()
+        initial_email_confirmation_count = EmailConfirmation.objects.count()
+
+        session = self.client.session
+        session['confirmed_email'] = email
+        session['external_username'] = 'some_external_id'
+        session['external_service'] = 'a_service'
+        session.save()
+
+        response = self.client.post('/account/register/', {'email': email})
+
+        self.assertEqual(initial_user_count + 1, User.objects.count())
+        self.assertEqual(302, response.status_code)
+        self.assertFalse(EmailConfirmation.objects.filter(email=email).exists())
+        self.assertEqual(
+            initial_email_confirmation_count,
+            EmailConfirmation.objects.count())
+
+    def test_register_from_external_provider_and_change_email(self):
+
+        # if we don't impose some action for TestClient we shall not be able to
+        # set variables to session
+        self.client.get('/')
+
+        initial_user_count = User.objects.count()
+        confirmed_email = 'confirmed@email.com'
+        supplied_email = 'supplied@email.com'
+        self.assertFalse(User.objects.filter(email=supplied_email).exists())
+        self.assertFalse(
+            EmailConfirmation.objects.filter(email=supplied_email).exists())
+
+        session = self.client.session
+        session['confirmed_email'] = confirmed_email
+        session['external_username'] = 'some_external_id'
+        session['external_service'] = 'a_service'
+        session.save()
+
+        response = self.client.post(
+            '/account/register/', {'email': supplied_email})
+
+        self.assertEqual(initial_user_count, User.objects.count())
+        self.assertEqual(302, response.status_code)
+        self.assertTrue(EmailConfirmation.objects.filter(
+            email=supplied_email).exists())
+
+
+class ConfirmationEmailTest(TestCase):
+
+    def test_confirm_new_email(self):
+        email = 'email@example.com'
+        self.assertFalse(User.objects.filter(email=email).exists())
+        ec = EmailConfirmation.objects.create(email=email)
+        initial_user_count = User.objects.count()
+
+        response = self.client.get(
+            '/account/confirm_email/%s/%s/' % (ec.id, ec.token))
+
+        self.assertTrue(EmailConfirmation.objects.filter(pk=ec.pk).exists())
+        self.assertFalse(User.objects.filter(email=email).exists())
+        self.assertEqual(initial_user_count, User.objects.count())
+        self.assertEqual(200, response.status_code)
+
+    def test_confirm_new_email_and_set_password(self):
+        email = 'email@example.com'
+        password = 's0m3 P4sSw0rd'
+        self.assertFalse(User.objects.filter(email=email).exists())
+        initial_user_count = User.objects.count()
+
+        ec = EmailConfirmation.objects.create(email=email)
+
+        response = self.client.post(
+            '/account/confirm_email/%s/%s/' % (ec.id, ec.token),
+            {'new_password1': password,
+             'new_password2': password})
+
+        self.assertTrue(User.objects.get(email=email).check_password(password))
+        self.assertFalse(EmailConfirmation.objects.filter(pk=ec.pk).exists())
+        self.assertTrue(User.objects.filter(email=email).exists())
+        self.assertEqual(initial_user_count + 1, User.objects.count())
+        self.assertEqual(302, response.status_code)
+
+    def test_confirm_new_email_and_dont_set_password(self):
+        email = 'email@example.com'
+        self.assertFalse(User.objects.filter(email=email).exists())
+        initial_user_count = User.objects.count()
+
+        ec = EmailConfirmation.objects.create(email=email)
+
+        response = self.client.post(
+            '/account/confirm_email/%s/%s/' % (ec.id, ec.token),
+            {'nopassword': None})
+
+        self.assertFalse(EmailConfirmation.objects.filter(pk=ec.pk).exists())
+        self.assertFalse(User.objects.get(email=email).has_usable_password())
+        self.assertEqual(initial_user_count + 1, User.objects.count())
+        self.assertEqual(302, response.status_code)
+
+    def test_confirm_existing_email_and_set_password(self):
+        email = 'email@example.com'
+        password = 's0m3 P4sSw0rd'
+        User.objects.create(email=email)
+
+        initial_user_count = User.objects.count()
+
+        ec = EmailConfirmation.objects.create(email=email)
+
+        response = self.client.post(
+            '/account/confirm_email/%s/%s/' % (ec.id, ec.token),
+            {'new_password1': password,
+             'new_password2': password})
+
+        self.assertFalse(EmailConfirmation.objects.filter(pk=ec.pk).exists())
+        self.assertTrue(User.objects.get(email=email).check_password(password))
+        self.assertEqual(initial_user_count, User.objects.count())
+        self.assertEqual(302, response.status_code)
+
+    def test_confirm_existing_email_and_dont_set_password(self):
+        email = 'email@example.com'
+        password = 's0m3 P4sSw0rd'
+        user = User.objects.create(email=email)
+        user.set_password(password)
+        user.save()
+
+        initial_user_count = User.objects.count()
+
+        ec = EmailConfirmation.objects.create(email=email)
+
+        response = self.client.post(
+            '/account/confirm_email/%s/%s/' % (ec.id, ec.token),
+            {'nopassword': None})
+
+        self.assertFalse(EmailConfirmation.objects.filter(pk=ec.pk).exists())
+        self.assertTrue(User.objects.get(email=email).check_password(password))
+        self.assertEqual(initial_user_count, User.objects.count())
+        self.assertEqual(302, response.status_code)
+
+    def test_non_existant_token(self):
+        initial_user_count = User.objects.count()
+        initial_email_confirmation_count = EmailConfirmation.objects.count()
+
+        response = self.client.post(
+            '/account/confirm_email/%s/%s/' % ('123', 'a798797b8979c7f890'),
+            {'nopassword': None})
+
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(initial_user_count, User.objects.count())
+        self.assertEqual(
+            initial_email_confirmation_count,
+            EmailConfirmation.objects.count())
+
+    def test_confirmation_link_expired(self):
+        email = 'email@example.com'
+        password = 's0m3 P4sSw0rd'
+        initial_user_count = User.objects.count()
+
+        self.assertFalse(User.objects.filter(email=email).exists())
+
+        ec = EmailConfirmation.objects.create(email=email)
+        ec.valid_until = datetime.datetime(1970, 1, 1, 12, 0)
+        ec.save()
+
+        response = self.client.post(
+            '/account/confirm_email/%s/%s/' % (ec.id, ec.token),
+            {'new_password1': password,
+             'new_password2': password})
+
+        self.assertEqual(initial_user_count, User.objects.count())
+        self.assertEqual(200, response.status_code)
