@@ -3,9 +3,27 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import redirect
 from order.forms import ManagementForm, DigitalDeliveryForm, DeliveryForm
-from satchless.process import InvalidData
+from order.models import DigitalDeliveryGroup
+from satchless.process import InvalidData, ProcessManager
 from userprofile.forms import AddressForm, UserAddressesForm
 from userprofile.models import Address
+
+
+class CheckoutProcessManager(ProcessManager):
+
+    def __init__(self, order, request):
+        self.steps = [BillingAddressStep(order, request)]
+        for delivery_group in order.groups.all():
+            delivery_step_class = ShippingStep
+            if isinstance(delivery_group, DigitalDeliveryGroup):
+                delivery_step_class = DigitalDeliveryStep
+            self.steps.append(delivery_step_class(order, request,
+                                                  delivery_group))
+        self.steps.append(SummaryStep(order, request))
+        self.steps.append(SuccessStep(order, request))
+
+    def __iter__(self):
+        return iter(self.steps)
 
 
 class BaseShippingStep(Step):
