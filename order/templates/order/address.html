@@ -5,7 +5,7 @@
 {% block forms %}
 <form method="post" class="form-horizontal">
     {% csrf_token %}
-    {{ forms.managment|as_bootstrap }}
+    {{ forms.management|as_bootstrap }}
     {% if user.is_authenticated %}
     <fieldset>
         <legend>Select address:</legend>
@@ -28,3 +28,4 @@
     </div>
 </form>
 {% endblock forms %}
+
