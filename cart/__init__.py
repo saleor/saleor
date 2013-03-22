@@ -12,28 +12,6 @@ import datetime
 
 class Group(ItemSet):
 
-    _state = None
-    default_error_messages = {
-        'attribute_error': '\'%s\' object has no attribute \'%s\''
-    }
-
-    def __init__(self, items):
-        super(Group, self).__init__(items)
-        self._state = {}
-
-    def __getstate__(self):
-        self._state['pk'] = str(self)
-        return self._state
-
-    def __setstate__(self, state):
-        self._state = state
-
-    def __str__(self):
-        raise NotImplementedError()
-
-    def add_to_order(self, order):
-        raise NotImplementedError()
-
     def get_delivery_methods(self, **kwargs):
         raise NotImplementedError()
 
@@ -44,79 +22,11 @@ class Group(ItemSet):
 
 class ShippedGroup(Group):
 
-    def __init__(self, items, pk=None, address=None, delivery=None):
-        super(Group, self).__init__(items)
-        self.pk = pk
-        self._state = {}
-        self._state['address'] = address
-        self._state['delivery'] = delivery
-
-    def __str__(self):
-        if self.pk:
-            return 'delivery-' % (self.pk, )
-        return 'delivery'
-
-    @property
-    def address(self):
-        return self._state['address']
-
-    @address.setter
-    def address(self, value):
-        self._state['address'] = value
-
-    @address.deleter
-    def address(self):
-        del self._state['address']
-
-    @property
-    def delivery(self):
-        if self._state['delivery'] != None:
-            delivery_methods = list(self.get_delivery_methods())
-            return delivery_methods[self._state['delivery']]
-
-    @delivery.setter
-    def delivery(self, value):
-        delivery_methods = list(self.get_delivery_methods())
-        self._state['delivery'] = delivery_methods.index(value)
-
-    @delivery.deleter
-    def delivery(self):
-        del self._state['delivery']
-
-    def add_to_order(self, order):
-        raise NotImplementedError()
-
     def get_delivery_methods(self):
         yield DummyShipping(self)
 
 
 class DigitalGroup(Group):
-
-    def __init__(self, items, pk=None, email=None):
-        super(Group, self).__init__(items)
-        self.pk = pk
-        self._state = {}
-        self._state['email'] = email
-
-    def __str__(self):
-        if self.pk:
-            return 'digital-delivery-' % (self.pk, )
-        return 'digital-delivery'
-
-    @property
-    def email(self):
-        return self._state['email']
-
-    @email.setter
-    def email(self, value):
-        self._state['email'] = value
-
-    @email.deleter
-    def email(self):
-        del self._state['email']
-
-    def add_to_order(self, order):
-        raise NotImplementedError()
 
     def get_delivery_methods(self, **kwargs):
         yield DigitalDelivery(self)
@@ -145,7 +55,7 @@ class CartPartitioner(Partitioner):
                 'Calling get_delivery_total() for an empty cart')
         return sum(items[1:], items[0])
 
-    def _repr__(self):
+    def __repr__(self):
         return 'CartPartitioner(%r)'%(list(self),)
 
 
