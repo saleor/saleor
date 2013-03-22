@@ -2,7 +2,6 @@ from delivery import DummyShipping, DigitalDelivery
 from django.conf import settings
 from django.utils.translation import ugettext
 from itertools import groupby
-from order.models import DigitalDeliveryGroup, ShippedDeliveryGroup
 from prices import Price
 from product.models import StockedProduct, DigitalShip
 from satchless import cart
@@ -14,8 +13,16 @@ import datetime
 class Group(ItemSet):
 
     _state = None
+    default_error_messages = {
+        'attribute_error': '\'%s\' object has no attribute \'%s\''
+    }
+
+    def __init__(self, items):
+        super(Group, self).__init__(items)
+        self._state = {}
 
     def __getstate__(self):
+        self._state['pk'] = str(self)
         return self._state
 
     def __setstate__(self, state):
@@ -30,25 +37,56 @@ class Group(ItemSet):
     def get_delivery_methods(self, **kwargs):
         raise NotImplementedError()
 
+    def get_delivery_total(self, **kwargs):
+        methods = self.get_delivery_methods()
+        return min(method.get_price_per_item(**kwargs) for method in methods)
+
 
 class ShippedGroup(Group):
 
     def __init__(self, items, pk=None, address=None, delivery=None):
         super(Group, self).__init__(items)
+        self.pk = pk
         self._state = {}
-        self._state['pk'] = pk
         self._state['address'] = address
         self._state['delivery'] = delivery
 
     def __str__(self):
-        if self._state['pk']:
-            return 'delivery-' % (self._state['pk'], )
+        if self.pk:
+            return 'delivery-' % (self.pk, )
         return 'delivery'
+
+    @property
+    def address(self):
+        return self._state['address']
+
+    @address.setter
+    def address(self, value):
+        self._state['address'] = value
+
+    @address.deleter
+    def address(self):
+        del self._state['address']
+
+    @property
+    def delivery(self):
+        if self._state['delivery'] != None:
+            delivery_methods = list(self.get_delivery_methods())
+            return delivery_methods[self._state['delivery']]
+
+    @delivery.setter
+    def delivery(self, value):
+        delivery_methods = list(self.get_delivery_methods())
+        self._state['delivery'] = delivery_methods.index(value)
+
+    @delivery.deleter
+    def delivery(self):
+        del self._state['delivery']
 
     def add_to_order(self, order):
         raise NotImplementedError()
 
-    def get_delivery_methods(self, **kwargs):
+    def get_delivery_methods(self):
         yield DummyShipping(self)
 
 
@@ -56,14 +94,26 @@ class DigitalGroup(Group):
 
     def __init__(self, items, pk=None, email=None):
         super(Group, self).__init__(items)
+        self.pk = pk
         self._state = {}
-        self._state['pk'] = pk
         self._state['email'] = email
 
     def __str__(self):
-        if self._state['pk']:
-            return 'digital-delivery-' % (self._state['pk'], )
+        if self.pk:
+            return 'digital-delivery-' % (self.pk, )
         return 'digital-delivery'
+
+    @property
+    def email(self):
+        return self._state['email']
+
+    @email.setter
+    def email(self, value):
+        self._state['email'] = value
+
+    @email.deleter
+    def email(self):
+        del self._state['email']
 
     def add_to_order(self, order):
         raise NotImplementedError()
@@ -80,9 +130,8 @@ class CartPartitioner(Partitioner):
                 lambda cart_item: cart_item.product.__class__):
             delivery_class = ShippedGroup
             if issubclass(product_class, DigitalShip):
-                delivery_class = DigitalDeliveryGroup
-            delivery = delivery_class()
-            delivery.extend(items)
+                delivery_class = DigitalGroup
+            delivery = delivery_class(items)
             yield delivery
 
     def get_delivery_subtotal(self, partion, **kwargs):
@@ -96,7 +145,7 @@ class CartPartitioner(Partitioner):
                 'Calling get_delivery_total() for an empty cart')
         return sum(items[1:], items[0])
 
-    def __repr__(self):
+    def _repr__(self):
         return 'CartPartitioner(%r)'%(list(self),)
 
 

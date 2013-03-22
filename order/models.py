@@ -1,7 +1,6 @@
 from delivery import DigitalDelivery, DummyShipping
 from django.conf import settings
 from django.db import models
-from django.db.models.aggregates import Sum
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from prices import Price
