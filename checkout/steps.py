@@ -3,24 +3,25 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import redirect
 from order.forms import ManagementForm, DigitalDeliveryForm, DeliveryForm
-from order.models import DigitalDeliveryGroup
+from cart import DigitalGroup
 from satchless.process import InvalidData, ProcessManager
 from userprofile.forms import AddressForm, UserAddressesForm
 from userprofile.models import Address
-from cart import CartPartitioner
+
 
 class CheckoutProcessManager(ProcessManager):
 
-    def __init__(self, cart, request):
-        self.steps = [BillingAddressStep(cart, request)]
-        for delivery_group in CartPartitioner(cart):
-            delivery_step_class = ShippingStep
-            if isinstance(delivery_group, DigitalDeliveryGroup):
-                delivery_step_class = DigitalDeliveryStep
-            self.steps.append(delivery_step_class(cart, request,
-                                                  delivery_group))
-        self.steps.append(SummaryStep(cart, request))
-        self.steps.append(SuccessStep(cart, request))
+    def __init__(self, cart_partitions, checkout, request):
+        self.steps = [BillingAddressStep(checkout, request)]
+        for index, delivery_group in enumerate(cart_partitions):
+            step_class = ShippingStep
+            if isinstance(delivery_group, DigitalGroup):
+                step_class = DigitalDeliveryStep
+            step = step_class(checkout, request,
+                              delivery_group.get_delivery_methods(), index)
+            self.steps.append(step)
+        self.steps.append(SummaryStep(checkout, request))
+        self.steps.append(SuccessStep(checkout, request))
 
     def __iter__(self):
         return iter(self.steps)
@@ -32,8 +33,8 @@ class BaseShippingStep(Step):
     address = None
     template = 'checkout/address.html'
 
-    def __init__(self, cart, request, address):
-        super(BaseShippingStep, self).__init__(cart, request)
+    def __init__(self, checkout, request, address):
+        super(BaseShippingStep, self).__init__(checkout, request)
         self.address = address
         self.forms = {
             'management': ManagementForm(request.user.is_authenticated(),
@@ -55,31 +56,10 @@ class BaseShippingStep(Step):
             return True
         elif self.method == 'select' and self.forms['address_list'].is_valid():
             address_book = self.forms['address_list'].cleaned_data['address']
-            address_book.address.id = self.address.id
+            address_book.address.id = None
             self.address = address_book.address
             return True
         return False
-
-    def save(self):
-        self.address.save()
-
-
-class BillingAddressStep(BaseShippingStep):
-
-    def __init__(self, cart, request):
-        address = cart.billing_address or Address()
-        super(BillingAddressStep, self).__init__(cart, request, address)
-
-    def __str__(self):
-        return 'billing-address'
-
-    def __unicode__(self):
-        return u'Billing Address'
-
-    def save(self):
-        super(BillingAddressStep, self).save()
-        self.cart.billing_address = self.address
-        self.cart.save()
 
     def validate(self):
         try:
@@ -88,46 +68,66 @@ class BillingAddressStep(BaseShippingStep):
             raise InvalidData(e.messages)
 
 
+class BillingAddressStep(BaseShippingStep):
+
+    def __init__(self, checkout, request):
+        address = checkout.billing_address or Address()
+        super(BillingAddressStep, self).__init__(checkout, request, address)
+
+    def __str__(self):
+        return 'billing-address'
+
+    def __unicode__(self):
+        return u'Billing Address'
+
+    def save(self):
+        self.checkout.billing_address = self.address
+        self.checkout.save()
+
+    def add_to_order(self, order):
+        self.address.save()
+        order.billing_address = self.address
+
+
 class ShippingStep(BaseShippingStep):
 
     template = 'checkout/shipping.html'
     delivery_method = None
 
-    def __init__(self, cart, request, group):
-        if group.address:
-            address = group.address
+    def __init__(self, checkout, request, delivery_methods=None, _id=None):
+        self.id = _id
+        self.group = checkout.get_group(str(self))
+        if 'address' in self.group:
+            address = self.group['address']
         else:
-            address = cart.billing_address or Address()
-            address.id = None
-        super(ShippingStep, self).__init__(cart, request, address)
-        self.forms['delivery'] = DeliveryForm(group, request.POST or None)
-        self.group = group
+            address = checkout.billing_address or Address()
+        super(ShippingStep, self).__init__(checkout, request, address)
+        self.forms['delivery'] = DeliveryForm(delivery_methods,
+                                              request.POST or None)
 
     def __str__(self):
-        return 'delivery-%s' % (self.group.id,)
+        if self.id:
+            return 'delivery-%s' % (self.id,)
+        return 'delivery'
 
     def __unicode__(self):
         return u'Shipping'
 
     def save(self):
-        super(ShippingStep, self).save()
-        self.group.address = self.address
-        self.group.price = self.delivery_method.get_price_per_item()
-        self.group.save()
+        delivery_form = self.forms['delivery']
+        self.group['address'] = self.address
+        self.group['delivery_method'] = delivery_form.clean_data['method']
+        self.checkout.save()
 
     def validate(self):
-        try:
-            self.group.clean_fields()
-        except ValidationError as e:
-            raise InvalidData(e.messages)
-        if not self.group.address:
+        super(ShippingStep, self).validate()
+        if 'delivery_method' not in self.group:
             raise InvalidData()
 
     def forms_are_valid(self):
         base_forms_are_valid = super(ShippingStep, self).forms_are_valid()
         delivery_form = self.forms['delivery']
         if base_forms_are_valid and delivery_form.is_valid():
-            self.delivery_method = delivery_form.cleaned_data['method']
             return True
         return False
 
@@ -136,28 +136,28 @@ class DigitalDeliveryStep(Step):
 
     template = 'checkout/digitaldelivery.html'
 
-    def __init__(self, cart, request, group):
-        super(DigitalDeliveryStep, self).__init__(cart, request)
-        self.group = group
+    def __init__(self, checkout, request, delivery_methods=None, _id=None):
+        super(DigitalDeliveryStep, self).__init__(checkout, request)
+        self.id = _id
+        self.group = checkout.get_group(str(self))
         self.forms['email'] = DigitalDeliveryForm(request.POST or None,
-                                                  instance=self.group)
+                                                  initial=self.group)
 
     def __str__(self):
-        return 'digital-delivery-%s' % (self.group.id,)
+        if self.id:
+            return 'digital-delivery-%s' % (self.id,)
+        return 'delivery'
 
     def __unicode__(self):
         return u'Digital delivery'
 
     def validate(self):
-        try:
-            self.group.clean_fields()
-        except ValidationError as e:
-            raise InvalidData(e.messages)
-        if not self.group.email:
+        if not 'email' in self.group:
             raise InvalidData()
 
     def save(self):
-        self.group.save()
+        self.group = self.forms['email'].cleaned_data
+        self.checkout.save()
 
 
 class SummaryStep(Step):
@@ -180,8 +180,8 @@ class SummaryStep(Step):
 class SuccessStep(Step):
 
     def process(self):
-        self.cart.status = 'completed'
-        self.cart.save()
+        self.checkout.status = 'completed'
+        self.checkout.save()
         messages.success(self.request, 'Your order was successfully processed')
         return redirect('home')
 
@@ -189,7 +189,7 @@ class SuccessStep(Step):
         return 'success'
 
     def __unicode__(self):
-        return u'Success'
+        return u'Payment'
 
     def validate(self):
-        raise InvalidData('Last step')
+        raise InvalidData('Redirect to peyment')
