@@ -5,7 +5,7 @@
 
 {% block forms %}
 <h2>Billing address</h2>
-{% with address=cart.billing_address %}
+{% with address=checkout.billing_address %}
 <p>
     {{ address.first_name }} {{ address.last_name }}
     <br />
@@ -17,6 +17,7 @@
     <br />
     {{ address.phone }}
 </p>
+{% endwith %}
 <table class="table table-bordered">
     <thead>
         <tr>
@@ -24,25 +25,24 @@
         </tr>
     </thead>
     <tbody>
-        {% for group in order.groups.all %}
-            {% for item in group.items.all %}
+{% for group in checkout.groups %}
+    {% for item in group %}
         <tr>
-                {% if forloop.first %}
-            <td>{{ item }}</td><td>{% gross item.get_price_per_item %}</td><td>{{ item.quantity }}</td><td>{% gross item.get_total %}</td><td rowspan="{{ group.items.all|length }}">{% gross group.price %}</td>
-                {% else %}
-            <td>{{ item }}</td><td>{% gross item.get_price_per_item %}</td><td>{{ item.quantity }}</td><td>{% gross item.get_total %}</td>
-                {% endif %}
+        {% if forloop.first %}
+            <td>{{ item.product }}</td><td>{% gross item.get_price_per_item %}</td><td>{{ item.quantity }}</td><td>{% gross item.get_total %}</td><td rowspan="{{ group.items.all|length }}">{% gross group.get_delivery_total %}</td>
+        {% else %}
+            <td>{{ item.product }}</td><td>{% gross item.get_price_per_item %}</td><td>{{ item.quantity }}</td><td>{% gross item.get_total %}</td>
+        {% endif %}
         </tr>
-            {% endfor %}
-        {% endfor %}
+    {% endfor %}
+{% endfor %}
     </tbody>
     <tfoot>
         <tr>
-            <td>Total</td><td colspan="4">{% gross order.get_total %}</td>
+            <td>Total</td><td colspan="4">{% gross checkout.groups.get_total %}</td>
         </tr>
     </tfoot>
 </table>
-{% endwith %}
 <form method="post" class="form-horizontal">
     {% csrf_token %}
     <div class="form-actions">

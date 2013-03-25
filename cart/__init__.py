@@ -12,10 +12,20 @@ import datetime
 
 class Group(ItemSet):
 
+    delivery_method = None
+
+    def __init__(self, items, delivery_method=None):
+        super(Group, self).__init__(items)
+        if delivery_method and delivery_method not in self.delivery_method():
+            raise AttributeError('Bad delivery method')
+        self.delivery_method = delivery_method
+
     def get_delivery_methods(self, **kwargs):
         raise NotImplementedError()
 
     def get_delivery_total(self, **kwargs):
+        if self.delivery_method:
+            return self.delivery_method.get_price_per_item(**kwargs)
         methods = self.get_delivery_methods()
         return min(method.get_price_per_item(**kwargs) for method in methods)
 
@@ -86,15 +96,6 @@ class Cart(cart.Cart):
             quantity > product.stock):
             raise InsufficientStockException(product)
         return super(Cart, self).check_quantity(product, quantity, data)
-
-
-def get_cart_from_request(request):
-    try:
-        return request.session[Cart.SESSION_KEY]
-    except KeyError:
-        _cart = Cart()
-        request.session[Cart.SESSION_KEY] = _cart
-        return _cart
 
 
 def remove_cart_from_request(request):

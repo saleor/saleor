@@ -63,7 +63,6 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'cart.middleware.CartMiddleware',
-    'checkout.middleware.CheckoutMiddleware',
     'saleor.middleware.CheckHTML',
 ]
 

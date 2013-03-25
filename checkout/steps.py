@@ -1,30 +1,61 @@
-from . import Step
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.db import models
 from django.shortcuts import redirect
+from django.template.response import TemplateResponse
 from order.forms import ManagementForm, DigitalDeliveryForm, DeliveryForm
-from cart import DigitalGroup
-from satchless.process import InvalidData, ProcessManager
+from satchless import process
+from satchless.process import InvalidData
 from userprofile.forms import AddressForm, UserAddressesForm
 from userprofile.models import Address
 
 
-class CheckoutProcessManager(ProcessManager):
+class Step(process.Step):
 
-    def __init__(self, cart_partitions, checkout, request):
-        self.steps = [BillingAddressStep(checkout, request)]
-        for index, delivery_group in enumerate(cart_partitions):
-            step_class = ShippingStep
-            if isinstance(delivery_group, DigitalGroup):
-                step_class = DigitalDeliveryStep
-            step = step_class(checkout, request,
-                              delivery_group.get_delivery_methods(), index)
-            self.steps.append(step)
-        self.steps.append(SummaryStep(checkout, request))
-        self.steps.append(SuccessStep(checkout, request))
+    forms = None
+    template = ''
 
-    def __iter__(self):
-        return iter(self.steps)
+    def __init__(self, checkout, request):
+        self.forms = {}
+        self.checkout = checkout
+        self.request = request
+
+    def __unicode__(self):
+        return u'Step'
+
+    def __nonzero__(self):
+        try:
+            self.validate()
+        except InvalidData:
+            return False
+        return True
+
+    def save(self):
+        raise NotImplementedError()
+
+    def forms_are_valid(self):
+        for form in self.forms.values():
+            if not form.is_valid():
+                return False
+        return True
+
+    def validate(self):
+        if not self.forms_are_valid():
+            raise InvalidData()
+
+    def process(self):
+        if not self.forms_are_valid() or self.request.method == 'GET':
+            return TemplateResponse(self.request, self.template, {
+                'step': self
+            })
+        self.save()
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('checkout:details', (), {'step': str(self)})
+
+    def add_to_order(self, order):
+        raise NotImplementedError()
 
 
 class BaseShippingStep(Step):
