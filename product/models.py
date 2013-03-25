@@ -67,6 +67,8 @@ class SubtypedQuerySet(QuerySet):
 
 class SubtypedManager(models.Manager):
 
+    use_for_related_fields = True
+
     def get_query_set(self):
         return SubtypedQuerySet(self.model)
 
