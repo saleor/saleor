@@ -116,7 +116,7 @@ class ShippingStep(BaseShippingStep):
     def save(self):
         delivery_form = self.forms['delivery']
         self.group['address'] = self.address
-        self.group['delivery_method'] = delivery_form.clean_data['method']
+        self.group['delivery_method'] = delivery_form.cleaned_data['method']
         self.checkout.save()
 
     def validate(self):
@@ -156,7 +156,7 @@ class DigitalDeliveryStep(Step):
             raise InvalidData()
 
     def save(self):
-        self.group = self.forms['email'].cleaned_data
+        self.group.update(self.forms['email'].cleaned_data)
         self.checkout.save()
 
 
