@@ -6,7 +6,6 @@ from prices import Price
 from product.models import StockedProduct, DigitalShip
 from satchless import cart
 from satchless.item import Item, ItemLine, ItemSet, Partitioner
-from userprofile.forms import AddressForm
 import datetime
 
 
@@ -32,11 +31,15 @@ class Group(ItemSet):
 
 class ShippedGroup(Group):
 
+    address = None
+
     def get_delivery_methods(self):
         yield DummyShipping(self)
 
 
 class DigitalGroup(Group):
+
+    email = None
 
     def get_delivery_methods(self, **kwargs):
         yield DigitalDelivery(self)

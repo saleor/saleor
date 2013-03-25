@@ -1,11 +1,12 @@
 from .steps import BillingAddressStep, ShippingStep, DigitalDeliveryStep, \
     SummaryStep, SuccessStep
-from cart import CartPartitioner, DigitalGroup
+from cart import CartPartitioner, DigitalGroup, remove_cart_from_request
 from collections import defaultdict
 from delivery import DummyShipping, DigitalDelivery
 from django.db import models
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
+from order.models import Order
 from satchless import process
 from satchless.item import ItemSet
 from satchless.process import InvalidData, ProcessManager
@@ -22,7 +23,8 @@ class CheckoutStorage(dict):
         super(CheckoutStorage, self).__init__(*args, **kwargs)
         self.update({
             'billing_address': None,
-            'groups': defaultdict(dict)})
+            'groups': defaultdict(dict),
+            'summary': False})
 
 
 class Checkout(ProcessManager):
@@ -47,7 +49,7 @@ class Checkout(ProcessManager):
             if isinstance(delivery_group, DigitalGroup):
                 step_class = DigitalDeliveryStep
             step = step_class(self, self.request,
-                              delivery_group.get_delivery_methods(), index)
+                              delivery_group, index)
             step_group = self.get_group(str(step))
             if 'delivery_method' in step_group:
                 delivery_group.delivery_method = step_group['delivery_method']
@@ -76,7 +78,16 @@ class Checkout(ProcessManager):
     def save(self):
         self.request.session[STORAGE_SESSION_KEY] = self.storage
 
+    def clear_storage(self):
+        del self.request.session[STORAGE_SESSION_KEY]
+        remove_cart_from_request(self.request)
+
     def __iter__(self):
         return iter(self.steps)
 
+    def create_order(self):
+        order = Order()
+        for step in self.steps:
+            step.add_to_order(order)
+        order.save()
 

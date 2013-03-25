@@ -1,4 +1,3 @@
-from delivery import DigitalDelivery, DummyShipping
 from django.conf import settings
 from django.db import models
 from django.utils.translation import pgettext_lazy
@@ -9,17 +8,6 @@ from satchless.item import ItemSet, ItemLine
 from userprofile.models import Address
 from uuid import uuid4
 import datetime
-
-
-class OrderManager(models.Manager):
-
-    def create_from_partitions(self, partitions):
-        order = self.get_query_set().create()
-        for delivery_group in partitions:
-            delivery_group.order = order
-            delivery_group.price = delivery_group.get_total()
-            delivery_group.save()
-        return order
 
 
 class Order(models.Model, ItemSet):
@@ -43,14 +31,14 @@ class Order(models.Model, ItemSet):
         max_length=32, choices=STATUS_CHOICES, default='checkout')
     created = models.DateTimeField(
         pgettext_lazy('Order field', 'created'),
-        default=datetime.datetime.now, editable=False, blank=True)
+        default=datetime.datetime.now, editable=False)
     last_status_change = models.DateTimeField(
         pgettext_lazy('Order field', 'last status change'),
-        default=datetime.datetime.now, editable=False, blank=True)
+        default=datetime.datetime.now, editable=False)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='+',
         verbose_name=pgettext_lazy('Order field', 'user'))
-    billing_address = models.ForeignKey(Address, blank=True, null=True)
+    billing_address = models.ForeignKey(Address)
     payment_type = models.CharField(
         pgettext_lazy('Order field', 'payment type'),
         max_length=256, blank=True)
@@ -66,8 +54,6 @@ class Order(models.Model, ItemSet):
     token = models.CharField(
         pgettext_lazy('Order field', 'token'),
         max_length=36, blank=True, default='')
-
-    objects = OrderManager()
 
     class Meta:
         ordering = ('-last_status_change',)
@@ -121,22 +107,6 @@ class DeliveryGroup(Subtyped, ItemSet):
             return iter(self.items.select_related('product').all())
         return super(DeliveryGroup, self).__iter__()
 
-    def save(self, *args, **kwargs):
-        add_items = not self.id
-        super(DeliveryGroup, self).save(**kwargs)
-        if add_items:
-            for item_line in self[:]:
-                product_name = unicode(item_line.product)
-                price = item_line.get_price_per_item()
-                self.items.create(
-                    product=item_line.product,
-                    quantity=item_line.get_quantity(),
-                    unit_price_net=price.net,
-                    product_name=product_name,
-                    unit_price_gross=price.gross)
-        del self[:]
-
-
     def get_total(self, **kwargs):
         return (super(DeliveryGroup, self).get_total(**kwargs) +
                 self.get_delivery_total(**kwargs))
@@ -145,24 +115,26 @@ class DeliveryGroup(Subtyped, ItemSet):
         methods = self.get_delivery_methods()
         return min(method.get_price_per_item(**kwargs) for method in methods)
 
-    def get_delivery_methods(self, **kwargs):
-        raise NotImplemented()
+    def add_items_from_partition(self, partition):
+        for item_line in partition:
+            product_name = unicode(item_line.product)
+            price = item_line.get_price_per_item()
+            self.items.create(
+                product=item_line.product,
+                quantity=item_line.get_quantity(),
+                unit_price_net=price.net,
+                product_name=product_name,
+                unit_price_gross=price.gross)
 
 
 class ShippedDeliveryGroup(DeliveryGroup):
 
-    address = models.ForeignKey(Address, blank=True, null=True)
-
-    def get_delivery_methods(self, **kwargs):
-        yield DummyShipping(self)
+    address = models.ForeignKey(Address)
 
 
 class DigitalDeliveryGroup(DeliveryGroup):
 
-    email = models.EmailField(blank=True, default='')
-
-    def get_delivery_methods(self, **kwargs):
-        yield DigitalDelivery(self)
+    email = models.EmailField()
 
 
 class OrderedItem(models.Model, ItemLine):

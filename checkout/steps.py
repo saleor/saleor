@@ -4,6 +4,7 @@ from django.db import models
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from order.forms import ManagementForm, DigitalDeliveryForm, DeliveryForm
+from order.models import DigitalDeliveryGroup, ShippedDeliveryGroup
 from satchless import process
 from satchless.process import InvalidData
 from userprofile.forms import AddressForm, UserAddressesForm
@@ -118,6 +119,7 @@ class BillingAddressStep(BaseShippingStep):
     def add_to_order(self, order):
         self.address.save()
         order.billing_address = self.address
+        order.save()
 
 
 class ShippingStep(BaseShippingStep):
@@ -125,15 +127,16 @@ class ShippingStep(BaseShippingStep):
     template = 'checkout/shipping.html'
     delivery_method = None
 
-    def __init__(self, checkout, request, delivery_methods=None, _id=None):
+    def __init__(self, checkout, request, delivery_group, _id=None):
         self.id = _id
         self.group = checkout.get_group(str(self))
+        self.delivery_group = delivery_group
         if 'address' in self.group:
             address = self.group['address']
         else:
             address = checkout.billing_address or Address()
         super(ShippingStep, self).__init__(checkout, request, address)
-        self.forms['delivery'] = DeliveryForm(delivery_methods,
+        self.forms['delivery'] = DeliveryForm(delivery_group.get_delivery_methods(),
                                               request.POST or None)
 
     def __str__(self):
@@ -162,17 +165,28 @@ class ShippingStep(BaseShippingStep):
             return True
         return False
 
+    def add_to_order(self, order):
+        self.address.save()
+        delivery_method = self.group['delivery_method']
+        group = ShippedDeliveryGroup.objects.create(
+            order=order, address=self.address,
+            price=delivery_method.get_price())
+        group.add_items_from_partition(self.delivery_group)
+
 
 class DigitalDeliveryStep(Step):
 
     template = 'checkout/digitaldelivery.html'
 
-    def __init__(self, checkout, request, delivery_methods=None, _id=None):
+    def __init__(self, checkout, request, delivery_group=None, _id=None):
         super(DigitalDeliveryStep, self).__init__(checkout, request)
         self.id = _id
+        self.delivery_group = delivery_group
         self.group = checkout.get_group(str(self))
         self.forms['email'] = DigitalDeliveryForm(request.POST or None,
                                                   initial=self.group)
+        delivery_methods = list(delivery_group.get_delivery_methods())
+        self.group['delivery_method'] = delivery_methods[0]
 
     def __str__(self):
         if self.id:
@@ -190,6 +204,13 @@ class DigitalDeliveryStep(Step):
         self.group.update(self.forms['email'].cleaned_data)
         self.checkout.save()
 
+    def add_to_order(self, order):
+        delivery_method = self.group['delivery_method']
+        group = DigitalDeliveryGroup.objects.create(
+            order=order, email=self.group['email'],
+            price=delivery_method.get_price())
+        group.add_items_from_partition(self.delivery_group)
+
 
 class SummaryStep(Step):
 
@@ -202,17 +223,21 @@ class SummaryStep(Step):
         return u'Summary'
 
     def validate(self):
-        raise InvalidData('Last step')
+        if not self.checkout.storage['summary']:
+            raise InvalidData()
 
     def save(self):
-        pass
+        self.checkout.storage['summary'] = True
+        self.checkout.save()
+
+    def add_to_order(self, order):
+        order.status = 'summary'
 
 
 class SuccessStep(Step):
 
     def process(self):
-        self.checkout.status = 'completed'
-        self.checkout.save()
+        self.checkout.create_order()
         messages.success(self.request, 'Your order was successfully processed')
         return redirect('home')
 
@@ -224,3 +249,6 @@ class SuccessStep(Step):
 
     def validate(self):
         raise InvalidData('Redirect to peyment')
+
+    def add_to_order(self, order):
+        self.checkout.clear_storage()
