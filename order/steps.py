@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.db import models
 from django.shortcuts import redirect
+from payment.forms import PaymentForm
 from saleor.utils import BaseStep
 from satchless.process import InvalidData, ProcessManager
 
@@ -29,6 +30,10 @@ class BaseOrderStep(BaseStep):
 class PaymentStep(BaseOrderStep):
 
     template = 'order/payment.html'
+
+    def __init__(self, order, request):
+        super(PaymentStep, self).__init__(order, request)
+        self.forms['payment'] = PaymentForm(request.POST or None)
 
     def __str__(self):
         return 'payment'

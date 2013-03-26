@@ -4,8 +4,10 @@
 {% load gross from prices %}
 
 {% block forms %}
+<h2>Payment</h2>
 <form method="post" class="form-horizontal">
     {% csrf_token %}
+    {{ step.forms.payment|as_bootstrap }}
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">
             Save changes
