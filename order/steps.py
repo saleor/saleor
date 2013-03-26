@@ -9,7 +9,7 @@ from satchless.process import InvalidData, ProcessManager
 class OrderProcessManager(ProcessManager):
 
     def __init__(self, order, request):
-        self.steps = [PaymentStep(order, request)]
+        self.steps = [PaymentStep(order, request), SuccessStep(order, request)]
 
     def __iter__(self):
         return iter(self.steps)
