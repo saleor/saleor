@@ -1,7 +1,5 @@
-from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.shortcuts import redirect
 from order.forms import ManagementForm, DigitalDeliveryForm, DeliveryForm
 from order.models import DigitalDeliveryGroup, ShippedDeliveryGroup
 from saleor.utils import BaseStep
