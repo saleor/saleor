@@ -96,6 +96,7 @@ INSTALLED_APPS = [
     'saleor',
     'product',
     'cart',
+    'checkout',
     'order',
     'userprofile',
     'registration',

@@ -1,0 +1,18 @@
+{% extends "checkout/details.html" %}
+
+{% load as_bootstrap from bootstrap %}
+
+{% block forms %}
+<form method="post" class="form-horizontal">
+    {% csrf_token %}
+    {{ step.forms.email|as_bootstrap }}
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+            Save changes
+        </button>
+        <button type="button" class="btn">
+            Cancel
+        </button>
+    </div>
+</form>
+{% endblock forms %}

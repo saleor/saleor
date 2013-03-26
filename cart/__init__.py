@@ -1,13 +1,48 @@
+from delivery import DummyShipping, DigitalDelivery
 from django.conf import settings
 from django.utils.translation import ugettext
 from itertools import groupby
-from order.models import DigitalDeliveryGroup, ShippedDeliveryGroup
 from prices import Price
 from product.models import StockedProduct, DigitalShip
 from satchless import cart
 from satchless.item import Item, ItemLine, ItemSet, Partitioner
-from userprofile.forms import AddressForm
 import datetime
+
+
+class Group(ItemSet):
+
+    delivery_method = None
+
+    def __init__(self, items, delivery_method=None):
+        super(Group, self).__init__(items)
+        if delivery_method and delivery_method not in self.delivery_method():
+            raise AttributeError('Bad delivery method')
+        self.delivery_method = delivery_method
+
+    def get_delivery_methods(self, **kwargs):
+        raise NotImplementedError()
+
+    def get_delivery_total(self, **kwargs):
+        if self.delivery_method:
+            return self.delivery_method.get_price_per_item(**kwargs)
+        methods = self.get_delivery_methods()
+        return min(method.get_price_per_item(**kwargs) for method in methods)
+
+
+class ShippedGroup(Group):
+
+    address = None
+
+    def get_delivery_methods(self):
+        yield DummyShipping(self)
+
+
+class DigitalGroup(Group):
+
+    email = None
+
+    def get_delivery_methods(self, **kwargs):
+        yield DigitalDelivery(self)
 
 
 class CartPartitioner(Partitioner):
@@ -16,11 +51,10 @@ class CartPartitioner(Partitioner):
         for product_class, items in groupby(
                 self.subject,
                 lambda cart_item: cart_item.product.__class__):
-            delivery_class = ShippedDeliveryGroup
+            delivery_class = ShippedGroup
             if issubclass(product_class, DigitalShip):
-                delivery_class = DigitalDeliveryGroup
-            delivery = delivery_class()
-            delivery.extend(items)
+                delivery_class = DigitalGroup
+            delivery = delivery_class(items)
             yield delivery
 
     def get_delivery_subtotal(self, partion, **kwargs):
@@ -50,6 +84,7 @@ class Cart(cart.Cart):
 
     SESSION_KEY = 'cart'
     timestamp = None
+    billing_address = None
 
     def __init__(self, *args, **kwargs):
         super(Cart, self).__init__(self, *args, **kwargs)
@@ -64,15 +99,6 @@ class Cart(cart.Cart):
             quantity > product.stock):
             raise InsufficientStockException(product)
         return super(Cart, self).check_quantity(product, quantity, data)
-
-
-def get_cart_from_request(request):
-    try:
-        return request.session[Cart.SESSION_KEY]
-    except KeyError:
-        _cart = Cart()
-        request.session[Cart.SESSION_KEY] = _cart
-        return _cart
 
 
 def remove_cart_from_request(request):

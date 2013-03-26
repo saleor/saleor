@@ -70,6 +70,6 @@ class DeliveryField(forms.ChoiceField):
 
 class DeliveryForm(forms.Form):
 
-    def __init__(self, group, *args, **kwargs):
+    def __init__(self, delivery_methods, *args, **kwargs):
         super(DeliveryForm, self).__init__(*args, **kwargs)
-        self.fields['method'] = DeliveryField(group.get_delivery_methods())
+        self.fields['method'] = DeliveryField(delivery_methods)
