@@ -2,54 +2,19 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.shortcuts import redirect
-from django.template.response import TemplateResponse
 from order.forms import ManagementForm, DigitalDeliveryForm, DeliveryForm
 from order.models import DigitalDeliveryGroup, ShippedDeliveryGroup
-from satchless import process
+from saleor.utils import BaseStep
 from satchless.process import InvalidData
 from userprofile.forms import AddressForm, UserAddressesForm
 from userprofile.models import Address
 
 
-class Step(process.Step):
-
-    forms = None
-    template = ''
+class BaseCheckoutStep(BaseStep):
 
     def __init__(self, checkout, request):
-        self.forms = {}
+        super(BaseCheckoutStep, self).__init__(request)
         self.checkout = checkout
-        self.request = request
-
-    def __unicode__(self):
-        return u'Step'
-
-    def __nonzero__(self):
-        try:
-            self.validate()
-        except InvalidData:
-            return False
-        return True
-
-    def save(self):
-        raise NotImplementedError()
-
-    def forms_are_valid(self):
-        for form in self.forms.values():
-            if not form.is_valid():
-                return False
-        return True
-
-    def validate(self):
-        if not self.forms_are_valid():
-            raise InvalidData()
-
-    def process(self):
-        if not self.forms_are_valid() or self.request.method == 'GET':
-            return TemplateResponse(self.request, self.template, {
-                'step': self
-            })
-        self.save()
 
     @models.permalink
     def get_absolute_url(self):
@@ -59,7 +24,7 @@ class Step(process.Step):
         raise NotImplementedError()
 
 
-class BaseShippingStep(Step):
+class BaseShippingStep(BaseCheckoutStep):
 
     method = None
     address = None
@@ -174,7 +139,7 @@ class ShippingStep(BaseShippingStep):
         group.add_items_from_partition(self.delivery_group)
 
 
-class DigitalDeliveryStep(Step):
+class DigitalDeliveryStep(BaseCheckoutStep):
 
     template = 'checkout/digitaldelivery.html'
 
@@ -212,7 +177,7 @@ class DigitalDeliveryStep(Step):
         group.add_items_from_partition(self.delivery_group)
 
 
-class SummaryStep(Step):
+class SummaryStep(BaseCheckoutStep):
 
     template = 'checkout/summary.html'
 
@@ -234,12 +199,10 @@ class SummaryStep(Step):
         order.status = 'summary'
 
 
-class SuccessStep(Step):
+class SuccessStep(BaseCheckoutStep):
 
     def process(self):
-        self.checkout.create_order()
-        messages.success(self.request, 'Your order was successfully processed')
-        return redirect('home')
+        return self.checkout.create_order()
 
     def __str__(self):
         return 'success'

@@ -7,6 +7,7 @@ from django.db import models
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from order.models import Order
+from order.steps import OrderProcessManager
 from satchless import process
 from satchless.item import ItemSet
 from satchless.process import InvalidData, ProcessManager
@@ -87,7 +88,9 @@ class Checkout(ProcessManager):
 
     def create_order(self):
         order = Order()
+        order_processor = OrderProcessManager(order, self.request)
         for step in self.steps:
             step.add_to_order(order)
         order.save()
+        return redirect(order_processor.get_next_step())
 
