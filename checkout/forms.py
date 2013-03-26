@@ -1,4 +1,4 @@
-from .models import DigitalDeliveryGroup
+from order.models import DigitalDeliveryGroup
 from django import forms
 from django.core import validators
 from django.core.exceptions import ValidationError

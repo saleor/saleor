@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-from order.forms import ManagementForm, DigitalDeliveryForm, DeliveryForm
+from .forms import ManagementForm, DigitalDeliveryForm, DeliveryForm
 from order.models import DigitalDeliveryGroup, ShippedDeliveryGroup
 from saleor.utils import BaseStep
 from satchless.process import InvalidData
