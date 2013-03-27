@@ -69,14 +69,18 @@ class CartPartitioner(Partitioner):
         '''
         Change this method to provide custom delivery groups.
         '''
-        for product_class, items in groupby(
-                self.subject,
-                lambda cart_item: cart_item.product.__class__):
-            delivery_class = ShippedGroup
-            if issubclass(product_class, DigitalShip):
-                delivery_class = DigitalGroup
+        for classifier, items in groupby(self.subject, self.classify):
+            delivery_class = self.get_delivery_class(classifier)
             delivery = delivery_class(items)
             yield delivery
+
+    def classify(self, item):
+        return item.product.__class__
+
+    def get_delivery_class(self, classifier):
+        if issubclass(classifier, DigitalShip):
+            return DigitalGroup
+        return ShippedGroup
 
     def get_delivery_subtotal(self, partion, **kwargs):
         return partion.get_delivery_total(**kwargs)
