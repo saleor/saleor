@@ -13,5 +13,5 @@ def details(request, token, step):
         raise Http404()
     response = step.process()
     if hasattr(response, 'context_data'):
-        response.context_data['order'] = order
+        response.context_data['order_processor'] = order_processor
     return response or redirect(order_processor.get_next_step())
