@@ -19,8 +19,8 @@ def details(request, slug, product_id):
         return Http404()
     if product.get_slug() != slug:
         return HttpResponsePermanentRedirect(product.get_absolute_url())
-    form = ProductForm(request.POST or None, cart=request.cart,
-                       product=product)
+    form = ProductForm(cart=request.cart, product=product,
+                       data=request.POST or None)
     if form.is_valid():
         form.save()
     return TemplateResponse(request, 'product/details.html', {

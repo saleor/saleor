@@ -15,7 +15,9 @@ class QuantityField(forms.DecimalField):
 
 
 class AddToCartForm(forms.Form):
-
+    '''
+    Class use product and cart instance.
+    '''
     quantity = QuantityField(label=pgettext('Form field', 'quantity'))
     error_messages = {
         'insufficient-stock': ugettext(
@@ -44,11 +46,16 @@ class AddToCartForm(forms.Form):
         return quantity
 
     def save(self):
+        '''
+        Adds CartLine into the Cart instance.
+        '''
         return self.cart.add(self.product, self.cleaned_data['quantity'])
 
 
 class ReplaceCartLineForm(AddToCartForm):
-
+    '''
+    Replaces quantity in CartLine.
+    '''
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
         if not isinstance(self.product, StockedProduct):
@@ -61,12 +68,17 @@ class ReplaceCartLineForm(AddToCartForm):
         return quantity
 
     def save(self):
+        '''
+        Replace quantity.
+        '''
         return self.cart.add(self.product, self.cleaned_data['quantity'],
                              replace=True)
 
 
 class ReplaceCartLineFormSet(BaseFormSet):
-
+    '''
+    Formset for all CartLines in the cart instance.
+    '''
     absolute_max = 9999
     can_delete = False
     can_order = False

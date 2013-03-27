@@ -1,7 +1,9 @@
 from cart import Cart
 
 class CartMiddleware(object):
-
+    '''
+    Saves the cart instance into the django session.
+    '''
     def process_request(self, request):
         try:
             cart = request.session[Cart.SESSION_KEY]
