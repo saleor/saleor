@@ -13,22 +13,24 @@ import datetime
 class Order(models.Model, ItemSet):
 
     STATUS_CHOICES = (
-        ('checkout', pgettext_lazy(
-            'Order status field value', 'undergoing checkout')),
-        ('payment-pending', pgettext_lazy(
-            'Order status field value', 'waiting for payment')),
-        ('payment-complete', pgettext_lazy(
-            'Order status field value', 'paid')),
-        ('payment-failed', pgettext_lazy(
-            'Order status field value', 'payment failed')),
-        ('delivery', pgettext_lazy('Order status field value', 'shipped')),
-        ('payment', pgettext_lazy('Order status field value', 'payment')),
+        ('new', pgettext_lazy('Order status field value', 'new')),
         ('cancelled', pgettext_lazy('Order status field value', 'cancelled')),
         ('completed', pgettext_lazy('Order status field value', 'completed')))
-
+    PAYMENT_STATUS_CHOICES = (
+        ('initial', pgettext_lazy('Order status payment field value',
+                                  'initial')),
+        ('pending', pgettext_lazy('Order status payment field value',
+                                  'pending')),
+        ('complete', pgettext_lazy('Order status payment field value',
+                                  'complete')),
+        ('failed', pgettext_lazy('Order status payment field value',
+                                  'failed')))
     status = models.CharField(
         pgettext_lazy('Order field', 'order status'),
-        max_length=32, choices=STATUS_CHOICES, default='checkout')
+        max_length=32, choices=STATUS_CHOICES, default='new')
+    payment_status = models.CharField(
+        pgettext_lazy('Order field', 'order payment status'),
+        max_length=32, choices=PAYMENT_STATUS_CHOICES, default='initial')
     created = models.DateTimeField(
         pgettext_lazy('Order field', 'created'),
         default=datetime.datetime.now, editable=False)
@@ -39,18 +41,6 @@ class Order(models.Model, ItemSet):
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='+',
         verbose_name=pgettext_lazy('Order field', 'user'))
     billing_address = models.ForeignKey(Address)
-    payment_type = models.CharField(
-        pgettext_lazy('Order field', 'payment type'),
-        max_length=256, blank=True)
-    payment_type_name = models.CharField(
-        pgettext_lazy('Order field', 'payment name'),
-        max_length=128, blank=True, editable=False)
-    payment_type_description = models.TextField(
-        pgettext_lazy('Order field', 'payment description'), blank=True)
-    payment_price = PriceField(
-        pgettext_lazy('Order field', 'payment unit price'),
-        currency=settings.SATCHLESS_DEFAULT_CURRENCY,
-        max_digits=12, decimal_places=4, default=0, editable=False)
     token = models.CharField(
         pgettext_lazy('Order field', 'token'),
         max_length=36, blank=True, default='')

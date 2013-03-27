@@ -1,5 +1,5 @@
-from .steps import BillingAddressStep, ShippingStep, DigitalDeliveryStep, \
-    SummaryStep, PaymentStep
+from .steps import (BillingAddressStep, ShippingStep, DigitalDeliveryStep,
+                    SummaryStep, PaymentStep)
 from cart import CartPartitioner, DigitalGroup, remove_cart_from_request
 from collections import defaultdict
 from delivery import DummyShipping, DigitalDelivery
@@ -7,7 +7,6 @@ from django.db import models
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from order.models import Order
-from order.steps import OrderProcessManager
 from satchless import process
 from satchless.item import ItemSet
 from satchless.process import InvalidData, ProcessManager
@@ -86,11 +85,10 @@ class Checkout(ProcessManager):
     def __iter__(self):
         return iter(self.steps)
 
-    def create_order_and_redirect(self):
+    def create_order(self):
         order = Order()
-        order_processor = OrderProcessManager(order, self.request)
         for step in self.steps:
             step.add_to_order(order)
         order.save()
-        return redirect(order_processor.get_next_step())
+        return order
 

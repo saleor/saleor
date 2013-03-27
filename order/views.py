@@ -1,17 +1,16 @@
-from django.http.response import Http404
+from django.contrib import messages
 from django.shortcuts import redirect, get_object_or_404
+from django.template.response import TemplateResponse
 from order.models import Order
-from order.steps import OrderProcessManager
+from payment.forms import PaymentForm
 
 
-def details(request, token, step):
+def payment(request, token):
     order = get_object_or_404(Order, token=token)
-    order_processor = OrderProcessManager(order, request)
-    try:
-        step = order_processor[step]
-    except KeyError:
-        raise Http404()
-    response = step.process()
-    if hasattr(response, 'context_data'):
-        response.context_data['order_processor'] = order_processor
-    return response or redirect(order_processor.get_next_step())
+    form = PaymentForm(request.POST or None)
+    if form.is_valid():
+        order.payment_status = 'complete'
+        order.save()
+        messages.success(request, 'Your order was successfully processed')
+        return redirect('home')
+    return TemplateResponse(request, 'order/payment.html', {'form': form })

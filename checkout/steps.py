@@ -1,6 +1,7 @@
+from .forms import ManagementForm, DigitalDeliveryForm, DeliveryForm
 from django.core.exceptions import ValidationError
 from django.db import models
-from .forms import ManagementForm, DigitalDeliveryForm, DeliveryForm
+from django.shortcuts import redirect
 from order.models import DigitalDeliveryGroup, ShippedDeliveryGroup
 from saleor.utils import BaseStep
 from satchless.process import InvalidData
@@ -188,7 +189,8 @@ class SummaryStep(BaseCheckoutStep):
     def process(self):
         response = super(SummaryStep, self).process()
         if not response:
-            return self.checkout.create_order_and_redirect()
+            order = self.checkout.create_order()
+            return redirect('order:payment', token=order.token)
         return response
 
     def validate(self):
