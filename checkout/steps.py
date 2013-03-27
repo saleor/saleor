@@ -185,25 +185,26 @@ class SummaryStep(BaseCheckoutStep):
     def __unicode__(self):
         return u'Summary'
 
+    def process(self):
+        response = super(SummaryStep, self).process()
+        if not response:
+            return self.checkout.create_order_and_redirect()
+        return response
+
     def validate(self):
-        if not self.checkout.storage['summary']:
-            raise InvalidData()
+        raise InvalidData()
 
     def save(self):
-        self.checkout.storage['summary'] = True
-        self.checkout.save()
+        pass
 
     def add_to_order(self, order):
-        order.status = 'summary'
+        self.checkout.clear_storage()
 
 
-class SuccessStep(BaseCheckoutStep):
-
-    def process(self):
-        return self.checkout.create_order()
+class PaymentStep(BaseCheckoutStep):
 
     def __str__(self):
-        return 'success'
+        return 'payment'
 
     def __unicode__(self):
         return u'Payment'
@@ -212,4 +213,4 @@ class SuccessStep(BaseCheckoutStep):
         raise InvalidData('Redirect to peyment')
 
     def add_to_order(self, order):
-        self.checkout.clear_storage()
+        order.status = 'payment'

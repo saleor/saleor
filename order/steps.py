@@ -9,7 +9,7 @@ from satchless.process import InvalidData, ProcessManager
 class OrderProcessManager(ProcessManager):
 
     def __init__(self, order, request):
-        self.steps = [PaymentStep(order, request), SuccessStep(order, request)]
+        self.steps = [PaymentStep(order, request)]
 
     def __iter__(self):
         return iter(self.steps)
@@ -41,6 +41,15 @@ class PaymentStep(BaseOrderStep):
     def __unicode__(self):
         return u'Payment'
 
+    def process(self):
+        response = super(PaymentForm, self).process()
+        if not response:
+            self.order.save()
+            messages.success(self.request,
+                             'Your order was successfully processed')
+            return redirect('home')
+        return response
+
     def validate(self):
         if not self.order.status == 'payment-pending':
             raise InvalidData()
@@ -48,21 +57,4 @@ class PaymentStep(BaseOrderStep):
     def save(self):
         self.order.status = 'payment-pending'
         self.order.save()
-
-
-class SuccessStep(BaseOrderStep):
-
-    def process(self):
-        self.order.save()
-        messages.success(self.request, 'Your order was successfully processed')
-        return redirect('home')
-
-    def __str__(self):
-        return 'success'
-
-    def __unicode__(self):
-        return u'Success'
-
-    def validate(self):
-        raise InvalidData('Redirect to home')
 

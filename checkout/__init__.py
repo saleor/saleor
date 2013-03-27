@@ -1,5 +1,5 @@
 from .steps import BillingAddressStep, ShippingStep, DigitalDeliveryStep, \
-    SummaryStep, SuccessStep
+    SummaryStep, PaymentStep
 from cart import CartPartitioner, DigitalGroup, remove_cart_from_request
 from collections import defaultdict
 from delivery import DummyShipping, DigitalDelivery
@@ -56,7 +56,7 @@ class Checkout(ProcessManager):
                 delivery_group.delivery_method = step_group['delivery_method']
             self.steps.append(step)
         self.steps.append(SummaryStep(self, self.request))
-        self.steps.append(SuccessStep(self, self.request))
+        self.steps.append(PaymentStep(self, self.request))
 
     @property
     def billing_address(self):
@@ -86,7 +86,7 @@ class Checkout(ProcessManager):
     def __iter__(self):
         return iter(self.steps)
 
-    def create_order(self):
+    def create_order_and_redirect(self):
         order = Order()
         order_processor = OrderProcessManager(order, self.request)
         for step in self.steps:
