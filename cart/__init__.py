@@ -9,7 +9,7 @@ from satchless.item import Item, ItemLine, ItemSet, Partitioner
 import datetime
 
 
-class Group(ItemSet):
+class Group(list, ItemSet):
 
     delivery_method = None
 
