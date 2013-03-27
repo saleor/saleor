@@ -10,18 +10,18 @@ CVV_VALIDATOR = validators.RegexValidator('^[0-9]{1,4}$',
 
 
 class PaymentForm(forms.Form):
-    cc_name = forms.CharField(label=_('Name on Credit Card'), max_length=128)
-    cc_number = CreditCardNumberField(label=_('Card Number'), max_length=32,
+    name = forms.CharField(label=_('Name on Credit Card'), max_length=128)
+    number = CreditCardNumberField(label=_('Card Number'), max_length=32,
                                       required=True)
-    cc_expiration_year = CreditCardExpirationYearField(label=_('Exp. date'))
-    cc_expiration_month = CreditCardExpirationMonthField(label=_('Exp. date'))
-    cc_cvv2 = forms.CharField(validators=[CVV_VALIDATOR], required=False,
+    expiration_year = CreditCardExpirationYearField(label=_('Exp. date'))
+    expiration_month = CreditCardExpirationMonthField(label=_('Exp. date'))
+    cvv2 = forms.CharField(validators=[CVV_VALIDATOR], required=False,
                               label=_('CVV2 Security Number'), max_length=4)
 
     def clean(self):
         cleaned_data = super(PaymentForm, self).clean()
-        month = cleaned_data.get('cc_expiration_month')
-        year = cleaned_data.get('cc_expiration_year')
+        month = cleaned_data.get('expiration_month')
+        year = cleaned_data.get('expiration_year')
         try:
             expiration = date(int(year), int(month), 01)
         except ValueError:
