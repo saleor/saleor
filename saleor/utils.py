@@ -1,10 +1,12 @@
 # coding: utf-8
 
 from django import forms
-from django.db import models
 from django.template.response import TemplateResponse
 from satchless.process import Step
 from satchless.process import InvalidData
+
+
+__all__ = ['BaseStep', 'CategoryChoiceField']
 
 
 class CategoryChoiceField(forms.ModelChoiceField):
@@ -60,6 +62,5 @@ class BaseStep(Step):
             })
         self.save()
 
-    @models.permalink
     def get_absolute_url(self):
         raise NotImplementedError()
