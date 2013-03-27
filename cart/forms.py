@@ -9,7 +9,7 @@ from product.models import StockedProduct
 class QuantityField(forms.DecimalField):
 
     def __init__(self, *args, **kwargs):
-        return super(QuantityField, self).__init__(
+        super(QuantityField, self).__init__(
             *args, max_value=None, min_value=Decimal(0), max_digits=10,
             decimal_places=4, initial=Decimal(1), **kwargs)
 

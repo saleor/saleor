@@ -73,7 +73,7 @@ class CartPartitioner(Partitioner):
         return total + self.get_delivery_total()
 
     def __repr__(self):
-        return 'CartPartitioner(%r)'%(list(self),)
+        return 'CartPartitioner(%r)' % (list(self),)
 
 
 class InsufficientStockException(Exception):
