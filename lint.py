@@ -135,30 +135,28 @@ DISABLED_WARNINGS = [
 ]
 
 
-def run(show_reports=False):
-    targets = [x for x in os.listdir('.')
-               if (os.path.isdir(x) and
-                   os.path.exists('%s/__init__.py' % (x,)))]
-
+def run(argv, show_reports=False):
     linter = lint.PyLinter()
-
     checkers.initialize(linter)
-
     AstCheckers.register(linter)
-
     for warning in DISABLED_WARNINGS:
         linter.disable(warning)
-
     linter.set_option('ignore', ['local_settings.py', 'migrations'])
-
+    linter.set_option('include-ids', True)
     if not show_reports:
         linter.set_option('reports', False)
-
-    # django lint uses deprecated style of pylint warning and we are not
-    # interested in seeing warnings about this
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore')
-        linter.check(targets)
+    if not argv:
+        # django lint uses deprecated style of pylint warning and we are not
+        # interested in seeing warnings about this
+        with warnings.catch_warnings():
+            targets = [x for x in os.listdir('.')
+               if (os.path.isdir(x) and
+                   os.path.exists('%s/__init__.py' % (x,)))]
+            warnings.simplefilter('ignore')
+            linter.check(targets)
+    else:
+        files = linter.load_command_line_configuration(argv)
+        linter.check(files)
 
 if __name__ == "__main__":
-    run()
+    run(os.sys.argv[1:])
