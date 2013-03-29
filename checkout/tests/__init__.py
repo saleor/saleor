@@ -143,5 +143,3 @@ class TestShippingStep(TestCase):
         step.save()
         self.assertEqual(Address.objects.count(), 0,
                          'No addresses in database expected')
-
-

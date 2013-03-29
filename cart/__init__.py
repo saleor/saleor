@@ -1,12 +1,11 @@
-from delivery import DummyShipping, DigitalDelivery
-from django.conf import settings
-from django.utils.translation import ugettext
 from itertools import groupby
-from prices import Price
-from product.models import StockedProduct, DigitalShip
+
+from django.utils.translation import ugettext
 from satchless import cart
-from satchless.item import Item, ItemLine, ItemSet, Partitioner
-import datetime
+from satchless.item import ItemSet, Partitioner
+
+from delivery import DummyShipping, DigitalDelivery
+from product.models import StockedProduct, DigitalShip
 
 
 class BaseGroup(list, ItemSet):
@@ -127,8 +126,7 @@ class Cart(cart.Cart):
         Raises exception when product has stock and user insert too big
         quantity.
         '''
-        if (isinstance(product, StockedProduct) and
-            quantity > product.stock):
+        if isinstance(product, StockedProduct) and quantity > product.stock:
             raise InsufficientStockException(product)
         return super(Cart, self).check_quantity(product, quantity, data)
 
