@@ -2,7 +2,7 @@ from ..steps import BaseShippingStep, BillingAddressStep, ShippingStep
 from checkout import Checkout
 from delivery import DummyShipping
 from django.test import TestCase
-from mock import MagicMock
+from mock import MagicMock, patch
 from userprofile.models import Address
 
 NEW_ADDRESS = {
@@ -78,18 +78,12 @@ class TestBillingAddressStep(TestCase):
         self.checkout.save.assert_called_once_with()
         self.assertEqual(type(self.checkout.billing_address), Address)
         self.assertEqual(self.checkout.billing_address.first_name, 'Test')
-        step.save()
-        self.assertEqual(Address.objects.count(), 0,
-                         'No addresses in database expected')
 
     def test_address_save_with_address_in_checkout(self):
         self.request.POST = NEW_ADDRESS_POST
         self.checkout.billing_address = Address()
         step = BillingAddressStep(self.checkout, self.request)
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
-        step.save()
-        self.assertEqual(Address.objects.count(), 0,
-                         'No addresses in database expected')
 
 
 class TestShippingStep(TestCase):
@@ -101,7 +95,8 @@ class TestShippingStep(TestCase):
         self.checkout = MagicMock()
         self.checkout.billing_address = None
 
-    def test_address_save_without_address(self):
+    @patch.object(Address, 'save')
+    def test_address_save_without_address(self, mock_save):
         self.request.POST = NEW_ADDRESS_POST
         self.request.POST['method'] = 0
         group = MagicMock()
@@ -110,16 +105,14 @@ class TestShippingStep(TestCase):
         group.get_delivery_methods.return_value = [DummyShipping(group)]
         step = ShippingStep(checkout, self.request, group)
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
-        self.assertFalse(Address.objects.exists(), 'Init and form validator '
-                         'cant\'n create any Addresses')
         step.save()
-        self.assertEqual(Address.objects.count(), 0,
-                         'No addresses in database expected')
+        self.assertEqual(mock_save.call_count, 0)
         grup_storage = checkout.get_group(str(step))
         self.assertEqual(type(grup_storage['address']), Address,
                          'Address instance expected')
 
-    def test_address_save_with_address_in_group(self):
+    @patch.object(Address, 'save')
+    def test_address_save_with_address_in_group(self, mock_save):
         self.request.POST = NEW_ADDRESS_POST
         self.request.POST['method'] = 0
         group = MagicMock()
@@ -128,10 +121,10 @@ class TestShippingStep(TestCase):
         step = ShippingStep(self.checkout, self.request, group)
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
         step.save()
-        self.assertEqual(Address.objects.count(), 0,
-                         'No addresses in database expected')
+        self.assertEqual(mock_save.call_count, 0)
 
-    def test_address_save_with_address_in_checkout(self):
+    @patch.object(Address, 'save')
+    def test_address_save_with_address_in_checkout(self, mock_save):
         self.request.POST = NEW_ADDRESS_POST
         self.request.POST['method'] = 0
         self.checkout.billing_address = Address()
@@ -141,5 +134,4 @@ class TestShippingStep(TestCase):
         step = ShippingStep(self.checkout, self.request, group)
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
         step.save()
-        self.assertEqual(Address.objects.count(), 0,
-                         'No addresses in database expected')
+        self.assertEqual(mock_save.call_count, 0)
