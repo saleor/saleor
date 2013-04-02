@@ -91,6 +91,7 @@ INSTALLED_APPS = [
     'south',
     'django_prices',
     'mptt',
+    'authorizenet',
 
     # Local apps
     'saleor',
