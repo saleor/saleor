@@ -27,14 +27,12 @@
         <![endif]-->
     </head>
 
-    <body>
-
-        <div class="navbar navbar-inverse navbar-static-top">
+    <body itemscope itemtype="http://schema.org/WebPage">
+        <header class="navbar navbar-inverse navbar-static-top">
             <div class="navbar-inner">
-                <div class="container-fluid">
-                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> Menu </a>
-                    <a class="brand" href="#">Saleor</a>
-                    <div class="nav-collapse collapse">
+                <div class="containe">
+                    <a class="brand" href="/">Saleor</a>
+                    <nav class="nav-collapse collapse">
                         <ul class="nav">
                             <li class="active">
                                 <a href="/">Home</a>
@@ -44,7 +42,7 @@
                             </li>
                             <li class="dropdown">
                                 <a data-toggle="dropdown" class="dropdown-toggle" href="{% url "cart:index" %}">{{ request.cart }}</a>
-                                <ul class="dropdown-menu" role="menu">
+                                <ul class="dropdown-menu">
                                     {% for cart_line in request.cart %}
                                     <li><a href="{{ cart_line.product.get_absolute_url }}">{{ cart_line.product }} ({{ cart_line.quantity }})</a></li>
                                     {% endfor %}
@@ -55,7 +53,7 @@
                             {% if user.is_authenticated %}
                             <li class="dropdown pull-right"> {# TODO pull-right not working #}
                                 <a data-toggle="dropdown" class="dropdown-toggle" href=".">{{ user }}</a>
-                                <ul class="dropdown-menu" role="menu">
+                                <ul class="dropdown-menu">
                                     <li><a href="{% url "profile:details" %}">Profile edit</a></li>
                                     <li><a href="{% url "registration:logout" %}">Log out</a></li>
                                   </ul>
@@ -66,10 +64,10 @@
                             </li>
                             {% endif %}
                         </ul>
-                    </div>
+                    </nav>
                 </div>
             </div>
-        </div>
+        </header>
         {% if messages %}
         <div class="container">
             {% for message in messages %}
@@ -80,6 +78,13 @@
         </div>
         {% endif %}
         <div class="container">
+            <div class="row">
+                <ul class="breadcrumb" itemprop="breadcrumb">
+                    <li>
+                        <a href="/">Home</a><span class="divider">/</span>
+                    </li>
+                </ul>
+            </div>
             {% block outercontent %}
             <div class="row">
 
