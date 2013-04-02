@@ -98,12 +98,7 @@ class DeliveryGroup(Subtyped, ItemSet):
         return super(DeliveryGroup, self).__iter__()
 
     def get_total(self, **kwargs):
-        return (super(DeliveryGroup, self).get_total(**kwargs) +
-                self.get_delivery_total(**kwargs))
-
-    def get_delivery_total(self, **kwargs):
-        methods = self.get_delivery_methods()
-        return min(method.get_price_per_item(**kwargs) for method in methods)
+        return (super(DeliveryGroup, self).get_total(**kwargs) + self.price)
 
     def add_items_from_partition(self, partition):
         for item_line in partition:
