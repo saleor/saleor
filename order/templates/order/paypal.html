@@ -4,7 +4,7 @@
 {% load gross from prices %}
 
 {% block forms %}
-<form method="post" class="form-horizontal">
+<form method="post" action="{{ action }}" class="form-horizontal">
     {% csrf_token %}
     {{ form|as_bootstrap }}
     <div class="form-actions">
