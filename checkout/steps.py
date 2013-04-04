@@ -37,8 +37,9 @@ class BaseShippingStep(BaseCheckoutStep):
                                         request.POST or None),
             'address_list': UserAddressesForm(user=request.user),
             'address': AddressForm(instance=self.address)}
-        if self.forms['management'].is_valid():
-            self.method = self.forms['management'].cleaned_data['choice_method']
+        management_form = self.forms['management']
+        if management_form.is_valid():
+            self.method = management_form.cleaned_data['choice_method']
             if self.method == 'new':
                 self.forms['address'] = AddressForm(request.POST,
                                                     instance=self.address)
@@ -100,8 +101,8 @@ class ShippingStep(BaseShippingStep):
         else:
             address = checkout.billing_address or Address()
         super(ShippingStep, self).__init__(checkout, request, address)
-        self.forms['delivery'] = DeliveryForm(delivery_group.get_delivery_methods(),
-                                              request.POST or None)
+        self.forms['delivery'] = DeliveryForm(
+            delivery_group.get_delivery_methods(), request.POST or None)
 
     def __str__(self):
         if self.id:
@@ -190,7 +191,7 @@ class SummaryStep(BaseCheckoutStep):
         response = super(SummaryStep, self).process()
         if not response:
             order = self.checkout.create_order()
-            return redirect('order:payment', token=order.token)
+            return redirect('order:payment:index', token=order.token)
         return response
 
     def validate(self):
@@ -199,7 +200,7 @@ class SummaryStep(BaseCheckoutStep):
     def save(self):
         pass
 
-    def add_to_order(self, order):
+    def add_to_order(self, _order):
         self.checkout.clear_storage()
 
 
@@ -216,3 +217,6 @@ class PaymentStep(BaseCheckoutStep):
 
     def add_to_order(self, order):
         order.status = 'payment'
+
+    def save(self):
+        pass
