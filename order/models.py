@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
+from payments.models import Payment
 from prices import Price
 from product.models import Product, Subtyped
 from satchless.item import ItemSet, ItemLine
@@ -44,6 +45,7 @@ class Order(models.Model, ItemSet):
     token = models.CharField(
         pgettext_lazy('Order field', 'token'),
         max_length=36, blank=True, default='')
+    payments = models.ManyToManyField(Payment, related_name='order')
 
     class Meta:
         ordering = ('-last_status_change',)
@@ -56,6 +58,9 @@ class Order(models.Model, ItemSet):
                     self.token = token
                     break
         return super(Order, self).save(*args, **kwargs)
+
+    def get_items(self):
+        return OrderedItem.objects.filter(delivery_group__order=self)
 
     def __iter__(self):
         return iter(self.groups.all())

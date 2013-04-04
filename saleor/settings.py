@@ -92,6 +92,7 @@ INSTALLED_APPS = [
     'django_prices',
     'mptt',
     'authorizenet',
+    'payments',
 
     # Local apps
     'saleor',
@@ -101,6 +102,7 @@ INSTALLED_APPS = [
     'order',
     'userprofile',
     'registration',
+    'payment',
 ]
 
 LOGGING = {

@@ -3,6 +3,7 @@ from authorizenet.fields import CreditCardExpiryField
 from django import forms
 from django.core import validators
 from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
 
 CVV_VALIDATOR = validators.RegexValidator('^[0-9]{1,4}$',
                                           _('Enter a valid security number.'))
@@ -20,8 +21,8 @@ class PaymentForm(forms.Form):
 
 class PaymentMethodsForm(forms.Form):
 
-    method = forms.ChoiceField(choices=(('paypal', 'Paypal'),
-                                        ('authorizenet', 'Authorizenet')))
+    CHOICES = [(key, key.title()) for key in settings.PAYMENT_VARIANTS.keys()]
+    method = forms.ChoiceField(choices=CHOICES)
 
 
 class PaypalForm(forms.Form):
