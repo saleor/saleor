@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% load as_bootstrap from bootstrap %}
+
+{% block content %}
+<h2>Payment</h2>
+{% block forms %}
+{% if form %}
+<form method="post" action="{{ form.action }}" class="form-horizontal">
+    {{ form|as_bootstrap }}
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+            Save changes
+        </button>
+    </div>
+</form>
+{% endif %}
+{% endblock forms %}
+
+{% endblock content %}
