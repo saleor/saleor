@@ -1,13 +1,13 @@
+from decimal import Decimal
 from django.conf import settings
 from django.contrib import messages
 from django.http.response import Http404
 from django.shortcuts import redirect, get_object_or_404
 from django.template.response import TemplateResponse
-from django.views.decorators.csrf import csrf_exempt
 from order.models import Order
 from payment import authorizenet
-from payment.forms import PaymentForm, PaymentMethodsForm, PaypalForm
-from payments import factory
+from payment.forms import PaymentForm, PaymentMethodsForm
+from payments import factory, RedirectNeeded, PaymentItem
 from payments.models import Payment
 
 
@@ -30,34 +30,6 @@ def authorizenet_payment(request, token):
                             {'form': form})
 
 
-@csrf_exempt
-def paypal_payment(request, token):
-    order = get_object_or_404(Order, token=token)
-    #if request.method == 'GET':
-    #    redirect()
-    address = order.billing_address
-    initial = {
-        'first_name': address.first_name,
-        'last_name': address.last_name,
-        'city': address.city,
-        'state': address.country_area,
-        'zip': address.postal_code,
-        'country': address.country,
-        'currency_code': order.get_total().currency,
-        'amount': order.get_total().gross,
-        'email': getattr(settings, 'PAYPAL_EMAIL')
-    }
-    form = PaypalForm(request.POST or None, initial=initial)
-    if form.is_valid():
-        order.payment_status = 'complete'
-        order.save()
-        messages.success(request, 'Your order was successfully processed')
-        authorizenet(order, form.cleaned_data)
-        return redirect('home')
-    return TemplateResponse(request, 'payment/paypal.html', {'form': form,
-        'action': 'https://www.sandbox.paypal.com/cgi-bin/webscr'})
-
-
 def index(request, token):
     exists_order_or_404(token=token)
     form = PaymentMethodsForm(request.POST or None)
@@ -70,17 +42,26 @@ def index(request, token):
 
 def details(request, token, variant):
     order = get_object_or_404(Order, token=token)
+    items = [PaymentItem(name=item.product_name, quantity=item.quantity,
+                          price=item.unit_price_gross, sku=item.product.id,
+                          currency=settings.SATCHLESS_DEFAULT_CURRENCY)
+             for item in order.get_items()]
     try:
-        provider = factory(variant, order.get_items())
+        provider = factory(variant, items)
     except ValueError as e:
         raise Http404(e)
     try:
         payment = order.payments.get(variant=variant)
     except Payment.DoesNotExist:
-        price = order.get_total()
-        payment = order.payments.create(variant=variant, total=price.gross,
-                                        currency=price.currency)
-        form = provider.get_form(payment)
+        total = order.get_total()
+        delivery = order.get_delivery_total().gross
+        payment = order.payments.create(variant=variant, total=total.gross,
+                                        currency=total.currency,
+                                        delivery=delivery, tax=Decimal(0))
+        try:
+            form = provider.get_form(payment)
+        except RedirectNeeded as redirect_to:
+            return redirect(str(redirect_to))
         return TemplateResponse(request, 'payment/details.html',
                                 {'form': form, 'payment': payment,
                                  'provider': provider})
