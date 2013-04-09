@@ -1,17 +1,21 @@
 from datetime import datetime
 
 from django.contrib.auth.views import (
-    login as django_login_view, logout as django_logout,
+    login as django_login_view,
+    logout as django_logout,
 )
-from django.http import HttpResponseNotFound, HttpResponseBadRequest
-from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import SetPasswordForm
-from django.template.response import TemplateResponse
 from django.contrib import messages
-from django.shortcuts import redirect
-from django.contrib.auth import login as auth_login, authenticate
+from django.contrib.auth import (
+    login as auth_login,
+    authenticate,
+    get_user_model,
+)
+from django.contrib.auth.forms import SetPasswordForm
 from django.core.urlresolvers import reverse
 from django.core.mail.message import EmailMessage
+from django.http import HttpResponseNotFound, HttpResponseBadRequest
+from django.shortcuts import redirect
+from django.template.response import TemplateResponse
 
 from .forms import LoginForm, EmailForm
 from .models import ExternalUserData, EmailConfirmation
@@ -28,10 +32,8 @@ now = datetime.now
 
 
 def login(request):
-    ctx = {
-        'facebook_login_url': get_facebook_login_url(),
-        'google_login_url': get_google_login_url()
-    }
+    ctx = {'facebook_login_url': get_facebook_login_url(),
+           'google_login_url': get_google_login_url()}
     return django_login_view(request, authentication_form=LoginForm,
                              extra_context=ctx)
 
@@ -51,8 +53,8 @@ def oauth_callback(request, service):
     if not external_username:
         messages.warning(
             request,
-            "Failed to retrieve user information from external service."
-            " Please try again.")
+            'Failed to retrieve user information from external service. '
+            'Please try again.')
         return redirect(reverse('registration:login'))
 
     user = authenticate(external_service=service,
@@ -62,7 +64,7 @@ def oauth_callback(request, service):
         auth_login(request, user)
         messages.success(
             request,
-            "You have been successfully logged in.")
+            'You have been successfully logged in.')
         return redirect('home')
     else:
         request.session['confirmed_email'] = email
@@ -84,8 +86,7 @@ def register(request):
             confirmed_email = request.session.pop('confirmed_email', '')
             try:
                 external_user_data = {
-                    'username': request.session.pop(
-                        'external_username'),
+                    'username': request.session.pop('external_username'),
                     'provider': request.session.pop('external_service')
                 }
             except KeyError:
@@ -106,18 +107,18 @@ def register(request):
                 auth_login(request, user)
                 messages.success(
                     request,
-                    "You have been successfully logged in.")
+                    'You have been successfully logged in.')
             else:
                 email_confirmation = EmailConfirmation.objects.create(
                     email=submitted_email, external_user=external_user)
                 message = get_email_confirmation_message(
                     request, email_confirmation)
-                subject = "[Saleor] Email confirmation"
+                subject = '[Saleor] Email confirmation'
                 EmailMessage(subject, message, to=[submitted_email]).send()
                 messages.warning(
                     request,
-                    "We have sent you a confirmation email. "
-                    "Please check your email.")
+                    'We have sent you a confirmation email. '
+                    'Please check your email.')
             return redirect('home')
 
     return TemplateResponse(request, 'registration/register.html',
@@ -157,8 +158,8 @@ def confirm_email(request, pk, token):
         auth_login(request, user)
         messages.success(
             request,
-            "You have been successfully logged in, %s" % user.email)
+            'You have been successfully logged in, %s' % (user.email,))
         return redirect('home')
     else:
         return TemplateResponse(
-            request, "registration/set_password.html", {"form": form})
+            request, 'registration/set_password.html', {'form': form})

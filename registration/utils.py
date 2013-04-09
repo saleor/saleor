@@ -1,12 +1,12 @@
-from django.template.loader import render_to_string
 from django.contrib.sites.models import get_current_site
 from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.template.loader import render_to_string
 
-from oauth2client.client import OAuth2WebServerFlow, FlowExchangeError
 import facebook
 import httplib2
 import json
+from oauth2client.client import OAuth2WebServerFlow, FlowExchangeError
 
 
 def get_callback_url(service):

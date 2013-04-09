@@ -10,16 +10,18 @@ now = datetime.now
 
 
 class ExternalUserData(models.Model):
+
     user = models.ForeignKey(
         User, related_name='external_ids', null=True, blank=True)
     provider = models.TextField(db_index=True)
     username = models.TextField(db_index=True)
 
     class Meta:
-        unique_together = (('provider', 'username'),)
+        unique_together = [['provider', 'username']]
 
 
 class EmailConfirmation(models.Model):
+
     email = models.EmailField()
     external_user = models.ForeignKey(
         ExternalUserData, null=True, blank=True,

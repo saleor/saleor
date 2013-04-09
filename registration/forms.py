@@ -11,19 +11,16 @@ class LoginForm(AuthenticationForm):
     username = forms.EmailField(label=_("Email"), max_length=75)
 
 
-class RegisterForm(forms.Form):
-
-    email = forms.EmailField()
-
-    def clean(self):
-        email = self.cleaned_data.get('email')
-
-        if email:
-            if User.objects.filter(email=email).exists():
-                raise forms.ValidationError('Email already registered')
-        return self.cleaned_data
-
-
 class EmailForm(forms.Form):
 
     email = forms.EmailField()
+
+
+class RegisterForm(EmailForm):
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            if User.objects.filter(email=email).exists():
+                raise forms.ValidationError('Email already registered.')
+        return email
