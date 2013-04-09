@@ -10,14 +10,13 @@ from django.contrib.auth import (
     authenticate,
     get_user_model,
 )
-from django.contrib.auth.forms import SetPasswordForm
 from django.core.urlresolvers import reverse
 from django.core.mail.message import EmailMessage
 from django.http import HttpResponseNotFound, HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
-from .forms import LoginForm, EmailForm
+from .forms import LoginForm, EmailForm, EmailConfirmationFormset
 from .models import ExternalUserData, EmailConfirmation
 from .utils import (
     facebook_callback,
@@ -62,9 +61,8 @@ def oauth_callback(request, service):
 
     if user:
         auth_login(request, user)
-        messages.success(
-            request,
-            'You have been successfully logged in.')
+        msg = 'You have been successfully logged in.'
+        messages.success(request, msg)
         return redirect('home')
     else:
         request.session['confirmed_email'] = email
@@ -105,9 +103,8 @@ def register(request):
                     external_user.save()
                 user = authenticate(user=user)
                 auth_login(request, user)
-                messages.success(
-                    request,
-                    'You have been successfully logged in.')
+                msg = 'You have been successfully logged in.'
+                messages.success(request, msg)
             else:
                 email_confirmation = EmailConfirmation.objects.create(
                     email=submitted_email, external_user=external_user)
@@ -118,7 +115,7 @@ def register(request):
                 messages.warning(
                     request,
                     'We have sent you a confirmation email. '
-                    'Please check your email.')
+                    'Please check your inbox.')
             return redirect('home')
 
     return TemplateResponse(request, 'registration/register.html',
@@ -133,33 +130,20 @@ def confirm_email(request, pk, token):
     except EmailConfirmation.DoesNotExist:
         return TemplateResponse(request, 'registration/invalid_token.html')
 
-    proceed = False
-    password = None
-
     if request.method == 'GET':
-        form = SetPasswordForm(user=None)
+        formset = EmailConfirmationFormset(
+            email_confirmation=email_confirmation)
+
     elif request.method == 'POST':
-        if "nopassword" in request.POST:
-            proceed = True
-        else:
-            form = SetPasswordForm(user=None, data=request.POST)
-            if form.is_valid():
-                proceed = True
-                password = form.cleaned_data['new_password1']
+        formset = EmailConfirmationFormset(
+            email_confirmation=email_confirmation, data=request.POST)
+        if formset.is_valid():
+            user = formset.save()
+            user = authenticate(user=user)
+            auth_login(request, user)
+            msg = 'You have been successfully logged in.'
+            messages.success(request, msg)
+            return redirect('home')
 
-    if proceed:
-        user = email_confirmation.get_confirmed_user()
-        if password:
-            user.set_password(password)
-            user.save()
-        email_confirmation.delete()
-
-        user = authenticate(user=user)
-        auth_login(request, user)
-        messages.success(
-            request,
-            'You have been successfully logged in, %s' % (user.email,))
-        return redirect('home')
-    else:
-        return TemplateResponse(
-            request, 'registration/set_password.html', {'form': form})
+    return TemplateResponse(
+        request, 'registration/set_password.html', {'formset': formset})

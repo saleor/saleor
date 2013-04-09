@@ -31,7 +31,7 @@ class EmailConfirmation(models.Model):
     valid_until = models.DateTimeField(
         default=lambda: now() + timedelta(settings.ACCOUNT_ACTIVATION_DAYS))
 
-    def get_confirmed_user(self):
+    def get_or_create_user(self):
         """Confirm that user owns this email address and return User insatnce.
         """
         if self.external_user and self.external_user.user:

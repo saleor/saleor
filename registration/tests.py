@@ -350,7 +350,7 @@ class ConfirmationEmailTest(TestCase):
 
         response = self.client.post(
             '/account/confirm_email/%s/%s/' % (ec.id, ec.token),
-            {'nopassword': None})
+            {'no_password': True})
 
         user = User.objects.get(email=email)
         self.assertFalse(EmailConfirmation.objects.filter(pk=ec.pk).exists())
@@ -391,7 +391,7 @@ class ConfirmationEmailTest(TestCase):
 
         response = self.client.post(
             '/account/confirm_email/%s/%s/' % (ec.id, ec.token),
-            {'nopassword': None})
+            {'no_password': True})
 
         self.assertFalse(EmailConfirmation.objects.filter(pk=ec.pk).exists())
         self.assertTrue(User.objects.get(email=email).check_password(password))
