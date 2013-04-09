@@ -37,7 +37,8 @@ class EmailConfirmation(models.Model):
         if self.external_user and self.external_user.user:
             return self.external_user.user
 
-        user, _created = User.objects.get_or_create(email=self.email)
+        user, _created = User.objects.get_or_create(
+            email=self.email, defaults={'is_active': True})
 
         if self.external_user:
             self.external_user.user = user

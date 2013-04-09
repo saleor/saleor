@@ -337,7 +337,7 @@ class ConfirmationEmailTest(TestCase):
 
         self.assertTrue(User.objects.get(email=email).check_password(password))
         self.assertFalse(EmailConfirmation.objects.filter(pk=ec.pk).exists())
-        self.assertTrue(User.objects.filter(email=email).exists())
+        self.assertTrue(User.objects.get(email=email).is_active)
         self.assertEqual(initial_user_count + 1, User.objects.count())
         self.assertEqual(302, response.status_code)
 
@@ -352,8 +352,10 @@ class ConfirmationEmailTest(TestCase):
             '/account/confirm_email/%s/%s/' % (ec.id, ec.token),
             {'nopassword': None})
 
+        user = User.objects.get(email=email)
         self.assertFalse(EmailConfirmation.objects.filter(pk=ec.pk).exists())
-        self.assertFalse(User.objects.get(email=email).has_usable_password())
+        self.assertFalse(user.has_usable_password())
+        self.assertTrue(user.is_active)
         self.assertEqual(initial_user_count + 1, User.objects.count())
         self.assertEqual(302, response.status_code)
 
