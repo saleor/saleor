@@ -1,5 +1,3 @@
-from django.utils import timezone
-
 from django.contrib.auth.views import (
     login as django_login_view,
     logout as django_logout,
@@ -15,6 +13,7 @@ from django.core.mail.message import EmailMessage
 from django.http import HttpResponseNotFound, HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
+from django.utils import timezone
 
 from .forms import LoginForm, EmailForm, EmailConfirmationFormset
 from .models import ExternalUserData, EmailConfirmation

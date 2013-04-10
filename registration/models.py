@@ -1,12 +1,14 @@
 import os
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.utils import timezone
+
 
 User = get_user_model()
-now = datetime.now
+now = timezone.now
 
 
 class ExternalUserData(models.Model):

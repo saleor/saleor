@@ -1,7 +1,8 @@
-import datetime
-
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.utils import timezone
+
+import datetime
 from httpretty import HTTPretty, httprettified
 from purl import URL
 
@@ -11,6 +12,7 @@ User = get_user_model()
 
 
 class LoginViewTest(TestCase):
+
     def setUp(self):
         self.response = self.client.get('/account/login/')
 
@@ -227,7 +229,6 @@ class RegisterViewTest(TestCase):
         self.assertTrue(EmailConfirmation.objects.filter(email=email).exists())
 
     def test_register_with_extrnally_confirmed_email_and_no_extern_login(self):
-
         # if we don't impose some action for TestClient we shall not be able to
         # set variables to session
         self.client.get('/')
@@ -251,7 +252,6 @@ class RegisterViewTest(TestCase):
         self.assertFalse('confirmed_email' in self.client.session)
 
     def test_register_with_externally_confirmed_email(self):
-
         # if we don't impose some action for TestClient we shall not be able to
         # set variables to session
         self.client.get('/')
@@ -279,7 +279,6 @@ class RegisterViewTest(TestCase):
             EmailConfirmation.objects.count())
 
     def test_register_from_external_provider_and_change_email(self):
-
         # if we don't impose some action for TestClient we shall not be able to
         # set variables to session
         self.client.get('/')
@@ -419,9 +418,10 @@ class ConfirmationEmailTest(TestCase):
 
         self.assertFalse(User.objects.filter(email=email).exists())
 
-        ec = EmailConfirmation.objects.create(email=email)
-        ec.valid_until = datetime.datetime(1970, 1, 1, 12, 0)
-        ec.save()
+        valid_until = timezone.now() - datetime.timedelta(days=1)
+
+        ec = EmailConfirmation.objects.create(email=email,
+                                              valid_until=valid_until)
 
         response = self.client.post(
             '/account/confirm_email/%s/%s/' % (ec.id, ec.token),

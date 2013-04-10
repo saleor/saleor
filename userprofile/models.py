@@ -7,8 +7,8 @@ from django.contrib.auth.hashers import (check_password, make_password,
                                          is_password_usable)
 from django.contrib.auth.models import BaseUserManager
 from django.db import models
-from django.utils.translation import ugettext_lazy
 from django.utils import timezone
+from django.utils.translation import ugettext_lazy
 from saleor.countries import COUNTRY_CHOICES
 
 
