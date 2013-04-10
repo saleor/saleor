@@ -4,6 +4,7 @@ from django.utils import timezone
 
 import datetime
 from httpretty import HTTPretty, httprettified
+from mock import patch
 from purl import URL
 
 from .models import EmailConfirmation, ExternalUserData
@@ -200,8 +201,8 @@ class RegisterViewTest(TestCase):
         self.assertFalse(response.context_data['form'].is_valid())
         self.assertFalse(response.context_data['form'].errors)
 
-    def test_register_new(self):
-
+    @patch('registration.views.EmailMessage')
+    def test_register_new(self, email_mock):
         initial_user_count = User.objects.count()
         email = 'some.non.exeistanst@email.com'
         self.assertFalse(User.objects.filter(email=email).exists())
@@ -213,8 +214,10 @@ class RegisterViewTest(TestCase):
         self.assertEqual(initial_user_count, User.objects.count())
         self.assertEqual(302, response.status_code)
         self.assertTrue(EmailConfirmation.objects.filter(email=email).exists())
+        email_mock.send.assert_called_once()
 
-    def test_send_reset_password_token(self):
+    @patch('registration.views.EmailMessage')
+    def test_send_reset_password_token(self, email_mock):
 
         email = 'some@email.com'
         user, _ = User.objects.get_or_create(email=email)
@@ -227,6 +230,7 @@ class RegisterViewTest(TestCase):
         self.assertEqual(initial_user_count, User.objects.count())
         self.assertEqual(302, response.status_code)
         self.assertTrue(EmailConfirmation.objects.filter(email=email).exists())
+        email_mock.send.assert_called_once()
 
     def test_register_with_extrnally_confirmed_email_and_no_extern_login(self):
         # if we don't impose some action for TestClient we shall not be able to
@@ -278,7 +282,8 @@ class RegisterViewTest(TestCase):
             initial_email_confirmation_count,
             EmailConfirmation.objects.count())
 
-    def test_register_from_external_provider_and_change_email(self):
+    @patch('registration.views.EmailMessage')
+    def test_register_from_external_provider_and_change_email(self, email_mock):
         # if we don't impose some action for TestClient we shall not be able to
         # set variables to session
         self.client.get('/')
@@ -303,6 +308,7 @@ class RegisterViewTest(TestCase):
         self.assertEqual(302, response.status_code)
         self.assertTrue(EmailConfirmation.objects.filter(
             email=supplied_email).exists())
+        email_mock.send.assert_called_once()
 
 
 class ConfirmationEmailTest(TestCase):
