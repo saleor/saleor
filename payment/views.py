@@ -1,6 +1,7 @@
 from decimal import Decimal
 from django.conf import settings
 from django.contrib import messages
+from django.core.urlresolvers import reverse
 from django.http.response import Http404
 from django.shortcuts import redirect, get_object_or_404
 from django.template.response import TemplateResponse
@@ -31,13 +32,14 @@ def authorizenet_payment(request, token):
 
 
 def index(request, token):
-    exists_order_or_404(token=token)
+    order = get_object_or_404(Order, token=token)
     form = PaymentMethodsForm(request.POST or None)
     if form.is_valid():
         payment_method = form.cleaned_data['method']
         return redirect('order:payment:details', token=token,
                         variant=payment_method)
-    return TemplateResponse(request, 'payment/index.html', {'form': form})
+    return TemplateResponse(request, 'payment/index.html',
+                            {'form': form, 'payments': order.payments.all()})
 
 
 def details(request, token, variant):
@@ -46,25 +48,25 @@ def details(request, token, variant):
                           price=item.unit_price_gross, sku=item.product.id,
                           currency=settings.SATCHLESS_DEFAULT_CURRENCY)
              for item in order.get_items()]
+    total = order.get_total()
+    url = reverse('order:payment:index', kwargs={'token': token})
+    defaults = {'variant': variant, 'total': total.gross, 'tax': Decimal(0),
+                'delivery': order.get_delivery_total().gross,
+                'currency': total.currency,
+                'cancel_url': url,
+                'success_url': url}
+    payment, _created = order.payments.get_or_create(variant=variant,
+                                                     defaults=defaults)
     try:
-        provider = factory(variant, items)
+        provider = factory(payment, variant, items)
     except ValueError as e:
         raise Http404(e)
     try:
-        payment = order.payments.get(variant=variant)
-    except Payment.DoesNotExist:
-        total = order.get_total()
-        delivery = order.get_delivery_total().gross
-        payment = order.payments.create(variant=variant, total=total.gross,
-                                        currency=total.currency,
-                                        delivery=delivery, tax=Decimal(0))
-        try:
-            form = provider.get_form(payment)
-        except RedirectNeeded as redirect_to:
-            return redirect(str(redirect_to))
-        return TemplateResponse(request, 'payment/details.html',
-                                {'form': form, 'payment': payment,
-                                 'provider': provider})
-    else:
-        return TemplateResponse(request, 'payment/details.html',
-                                {'payment': payment})
+        form = provider.get_form(request.POST or None)
+    except RedirectNeeded as redirect_to:
+        return redirect(str(redirect_to))
+    if form.is_valid():
+        return redirect(form.cleaned_data['next'])
+    return TemplateResponse(request, 'payment/%s.html' % variant,
+                            {'form': form, 'payment': payment,
+                             'provider': provider})

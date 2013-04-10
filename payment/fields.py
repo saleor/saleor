@@ -7,7 +7,7 @@ import re
 
 
 class CreditCardNumberField(forms.CharField):
-    widget =  widgets.CreditCardNumberWidget
+    widget = widgets.CreditCardNumberWidget
     default_error_messages = {
         'invalid': _(u'Please enter a valid card number'),
     }
