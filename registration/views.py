@@ -1,4 +1,4 @@
-from datetime import datetime
+from django.utils import timezone
 
 from django.contrib.auth.views import (
     login as django_login_view,
@@ -24,15 +24,17 @@ from .utils import (
     get_google_login_url,
     get_facebook_login_url,
     get_email_confirmation_message,
+    get_protocol_and_host,
 )
 
 User = get_user_model()
-now = datetime.now
+now = timezone.now
 
 
 def login(request):
-    ctx = {'facebook_login_url': get_facebook_login_url(),
-           'google_login_url': get_google_login_url()}
+    local_host = get_protocol_and_host(request)
+    ctx = {'facebook_login_url': get_facebook_login_url(local_host),
+           'google_login_url': get_google_login_url(local_host)}
     return django_login_view(request, authentication_form=LoginForm,
                              extra_context=ctx)
 
@@ -42,10 +44,12 @@ def logout(request):
 
 
 def oauth_callback(request, service):
+    local_host = get_protocol_and_host(request)
+
     if service == 'facebook':
-        email, external_username = facebook_callback(request.GET)
+        email, external_username = facebook_callback(local_host, request.GET)
     elif service == 'google':
-        email, external_username = google_callback(request.GET)
+        email, external_username = google_callback(local_host, request.GET)
     else:
         return HttpResponseNotFound()
 
@@ -60,19 +64,18 @@ def oauth_callback(request, service):
                         external_username=external_username)
 
     if user:
-        auth_login(request, user)
-        msg = 'You have been successfully logged in.'
-        messages.success(request, msg)
+        _login_user(request, user)
         return redirect('home')
     else:
         request.session['confirmed_email'] = email
         request.session['external_service'] = service
         request.session['external_username'] = external_username
-
         return redirect('registration:register')
 
 
 def register(request):
+    local_host = get_protocol_and_host(request)
+
     if request.method == 'GET':
         email = request.session.get('confirmed_email', None)
         form = EmailForm({'email': email} if email else None)
@@ -102,14 +105,12 @@ def register(request):
                     external_user.user = user
                     external_user.save()
                 user = authenticate(user=user)
-                auth_login(request, user)
-                msg = 'You have been successfully logged in.'
-                messages.success(request, msg)
+                _login_user(request, user)
             else:
                 email_confirmation = EmailConfirmation.objects.create(
                     email=submitted_email, external_user=external_user)
                 message = get_email_confirmation_message(
-                    request, email_confirmation)
+                    local_host, email_confirmation)
                 subject = '[Saleor] Email confirmation'
                 EmailMessage(subject, message, to=[submitted_email]).send()
                 messages.warning(
@@ -134,16 +135,20 @@ def confirm_email(request, pk, token):
         formset = EmailConfirmationFormset(
             email_confirmation=email_confirmation)
 
-    elif request.method == 'POST':
+    if request.method == 'POST':
         formset = EmailConfirmationFormset(
             email_confirmation=email_confirmation, data=request.POST)
         if formset.is_valid():
             user = formset.save()
             user = authenticate(user=user)
-            auth_login(request, user)
-            msg = 'You have been successfully logged in.'
-            messages.success(request, msg)
+            _login_user(request, user)
             return redirect('home')
 
     return TemplateResponse(
         request, 'registration/set_password.html', {'formset': formset})
+
+
+def _login_user(request, user):
+    auth_login(request, user)
+    msg = 'You have been successfully logged in.'
+    messages.success(request, msg)
