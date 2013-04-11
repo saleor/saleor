@@ -1,3 +1,8 @@
 from django.db import models
+from order.models import Order
+from payments.models import BasePayment
 
-# Create your models here.
+
+class Payment(BasePayment):
+
+    order = models.ForeignKey(Order, related_name='payments')
