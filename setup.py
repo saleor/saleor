@@ -33,10 +33,8 @@ setup(
         'satchless>=1.0a0,<1.1a0',
         'South>=0.7.6',
         'unidecode',
-        'oauth2client>=1.1',
-        'httplib2>=0.8',
         'purl>=0.4.1',
-        'facebook-sdk>=0.4.0'],
+        'requests>=1.2.0'],
     extras_require={
         'lint': ['pylint==0.26.0', 'django-lint==dev']},
     dependency_links=[

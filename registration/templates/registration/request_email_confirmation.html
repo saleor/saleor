@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load bootstrap %}
+
+{% block title %}Request email confirmation{% endblock %}
+
+{% block content %}
+<div>
+    <form method='post'>
+        {% csrf_token %}
+        {{ form|as_bootstrap }}
+        <input type="submit" value="Continue">
+    </form>
+</div>
+{% endblock %}

@@ -37,11 +37,8 @@ class EmailConfirmation(models.Model):
         'Confirms that user owns this email address and returns User insatnce'
         if self.external_user and self.external_user.user:
             return self.external_user.user
-
         user, _created = User.objects.get_or_create(email=self.email)
-
         if self.external_user:
             self.external_user.user = user
             self.external_user.save()
-
         return user
