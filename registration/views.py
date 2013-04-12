@@ -15,7 +15,7 @@ from .forms import (
     RequestEmailConfirmationForm,
     LoginForm,
     OAuth2CallbackForm)
-from .models import EmailConfirmation
+from .models import EmailConfirmationRequest
 from .utils import (
     get_facebook_login_url,
     get_google_login_url,
@@ -75,24 +75,25 @@ def request_email_confirmation(request):
                             {'form': form})
 
 
-def confirm_email(request, pk, token):
+def confirm_email(request, token):
     try:
-        email_confirmation = EmailConfirmation.objects.get(
-            pk=pk, token=token, valid_until__gte=now())
+        email_confirmation_request = EmailConfirmationRequest.objects.get(
+            token=token, valid_until__gte=now())
         # TODO: cronjob (celery task) to delete stale tokens
-    except EmailConfirmation.DoesNotExist:
+    except EmailConfirmationRequest.DoesNotExist:
         return TemplateResponse(request, 'registration/invalid_token.html')
 
     if request.method == 'POST':
         formset = EmailConfirmationFormset(
-            email_confirmation=email_confirmation, data=request.POST)
+            email_confirmation_request=email_confirmation_request,
+            data=request.POST)
         if formset.is_valid():
             user = formset.get_authenticated_user()
             _login_user(request, user)
             return redirect('home')
     else:
         formset = EmailConfirmationFormset(
-            email_confirmation=email_confirmation)
+            email_confirmation_request=email_confirmation_request)
 
     return TemplateResponse(
         request, 'registration/set_password.html', {'formset': formset})

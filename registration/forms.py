@@ -6,7 +6,7 @@ from django.core.urlresolvers import reverse
 from django.template.loader import render_to_string
 from django.utils.translation import ugettext_lazy as _
 
-from .models import EmailConfirmation, ExternalUserData
+from .models import EmailConfirmationRequest, ExternalUserData
 from .utils import get_client_class_for_serivce
 
 import urlparse
@@ -29,10 +29,9 @@ class RequestEmailConfirmationForm(forms.Form):
 
     def send(self):
         email = self.cleaned_data['email']
-        request = EmailConfirmation.objects.create(email=email)
+        request = EmailConfirmationRequest.objects.create(email=email)
         path = reverse('registration:confirm_email',
-                       kwargs={'pk': request.pk,
-                               'token': request.token})
+                       kwargs={'token': request.token})
         context = {'confirmation_url': urlparse.urljoin(self.local_host, path)}
         msg = render_to_string('registration/email/confirm_email.txt', context)
         subject = _('Email confirmation')
@@ -46,8 +45,8 @@ class NoPasswordForm(forms.Form):
 
 class EmailConfirmationFormset(object):
 
-    def __init__(self, email_confirmation, data=None):
-        self.email_confirmation = email_confirmation
+    def __init__(self, email_confirmation_request, data=None):
+        self.email_confirmation_request = email_confirmation_request
         self.set_password_form = SetPasswordForm(user=False, data=data)
         self.no_password_form = NoPasswordForm(data=data)
 
@@ -61,8 +60,8 @@ class EmailConfirmationFormset(object):
             return self.set_password_form.is_valid()
 
     def get_authenticated_user(self):
-        user = self.email_confirmation.get_or_create_user()
-        self.email_confirmation.delete()
+        user = self.email_confirmation_request.get_or_create_user()
+        self.email_confirmation_request.delete()
         if not self.no_password():
             self.set_password_form.user = user
             user = self.set_password_form.save()
@@ -91,11 +90,10 @@ class OAuth2CallbackForm(forms.Form):
         client_class = get_client_class_for_serivce(self.service)
         client = client_class(local_host=self.local_host, code=code)
         user_info = client.get_user_info()
-        user = authenticate(external_service=self.service,
-                            external_username=user_info['id'])
+        user = authenticate(service=self.service, username=user_info['id'])
         if not user:
             user, _ = User.objects.get_or_create(email=user_info['email'])
-            external_user, _ = ExternalUserData.objects.get_or_create(
-                username=user_info['id'], provider=self.service, user=user)
+            ExternalUserData.objects.create(
+                service=self.service, username=user_info['id'], user=user)
             user = authenticate(user=user)
         return user

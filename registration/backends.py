@@ -14,7 +14,7 @@ class Backend(object):
 
 
 class EmailPasswordBackend(Backend):
-    """Authentication backend that expects an email in username parameter"""
+    """Authentication backend that expects an email in username parameter."""
 
     def authenticate(self, username=None, password=None, **_kwargs):
         try:
@@ -26,20 +26,21 @@ class EmailPasswordBackend(Backend):
 
 
 class ExternalLoginBackend(Backend):
-    """Authenticate with external service id"""
+    """Authenticate with external service id."""
 
-    def authenticate(self, external_username=None, external_service=None,
-                     **_kwargs):
+    def authenticate(self, service=None, username=None, **_kwargs):
         try:
-            return ExternalUserData.objects.select_related('user').get(
-                provider=external_service, username=external_username
-            ).user
+            user_data = (ExternalUserData.objects
+                                         .select_related('user')
+                                         .get(service=service,
+                                              username=username))
+            return user_data.user
         except ExternalUserData.DoesNotExist:
             return None
 
 
 class TrivialBackend(Backend):
-    """Authenticate with user instance"""
+    """Authenticate with user instance."""
 
     def authenticate(self, user=None, **_kwargs):
         if isinstance(user, User):

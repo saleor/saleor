@@ -5,40 +5,48 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 
 
 User = get_user_model()
 now = timezone.now
+TOKEN_LENGTH = 32
 
 
 class ExternalUserData(models.Model):
 
-    user = models.ForeignKey(
-        User, related_name='external_ids', null=True, blank=True)
-    provider = models.TextField(db_index=True)
+    user = models.ForeignKey(User, related_name='external_ids')
+    service = models.TextField(db_index=True)
     username = models.TextField(db_index=True)
 
     class Meta:
-        unique_together = [['provider', 'username']]
+        unique_together = [['service', 'username']]
 
 
-class EmailConfirmation(models.Model):
+class UniqueTokenManager(models.Manager):
+
+    TOKEN_FIELD = 'token'
+
+    def create(self, **kwargs):
+        assert self.TOKEN_FIELD not in kwargs
+        for x in xrange(100):
+            token = get_random_string(TOKEN_LENGTH)
+            conflict = EmailConfirmationRequest.objects.filter(token=token)
+            if not conflict.exists():
+                kwargs[self.TOKEN_FIELD] = token
+                return super(UniqueTokenManager, self).create(**kwargs)
+        raise RuntimeError('Could not create unique token.')
+
+
+class EmailConfirmationRequest(models.Model):
 
     email = models.EmailField()
-    external_user = models.ForeignKey(
-        ExternalUserData, null=True, blank=True,
-        related_name='email_confirmations')
-    token = models.CharField(
-        max_length=32, default=lambda: os.urandom(16).encode('hex'))
+    token = models.CharField(max_length=TOKEN_LENGTH, unique=True)
     valid_until = models.DateTimeField(
         default=lambda: now() + timedelta(settings.ACCOUNT_ACTIVATION_DAYS))
 
+    objects = UniqueTokenManager()
+
     def get_or_create_user(self):
-        'Confirms that user owns this email address and returns User insatnce'
-        if self.external_user and self.external_user.user:
-            return self.external_user.user
         user, _created = User.objects.get_or_create(email=self.email)
-        if self.external_user:
-            self.external_user.user = user
-            self.external_user.save()
         return user
