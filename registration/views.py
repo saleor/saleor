@@ -1,9 +1,9 @@
-from django.contrib.auth.views import (
-    login as django_login_view,
-    logout as django_logout_view)
+from django.conf import settings
+from django.contrib.auth.views import login as django_login_view
 from django.contrib import messages
 from django.contrib.auth import (
     login as auth_login,
+    logout as auth_logout,
     get_user_model)
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
@@ -34,7 +34,9 @@ def login(request):
 
 
 def logout(request):
-    return django_logout_view(request, template_name='registration/logout.html')
+    auth_logout(request)
+    messages.success(request, _('You have been successfully logged out.'))
+    return redirect(settings.LOGIN_REDIRECT_URL)
 
 
 def oauth_callback(request, service):
@@ -44,8 +46,7 @@ def oauth_callback(request, service):
     if form.is_valid():
         try:
             user = form.get_authenticated_user()
-            _login_user(request, user)
-            return redirect('home')
+            return _login_user(request, user)
         except ValueError, e:
             messages.warning(request, unicode(e))
     else:
@@ -65,7 +66,7 @@ def request_email_confirmation(request):
             msg = _('Confirmation email has been sent. '
                     'Please check your inbox.')
             messages.success(request, msg)
-            return redirect('home')
+            return redirect(settings.LOGIN_REDIRECT_URL)
     else:
         form = RequestEmailConfirmationForm(local_host=local_host)
 
@@ -88,8 +89,7 @@ def confirm_email(request, token):
             data=request.POST)
         if formset.is_valid():
             user = formset.get_authenticated_user()
-            _login_user(request, user)
-            return redirect('home')
+            return _login_user(request, user)
     else:
         formset = EmailConfirmationFormset(
             email_confirmation_request=email_confirmation_request)
@@ -102,3 +102,4 @@ def _login_user(request, user):
     auth_login(request, user)
     msg = _('You have been successfully logged in.')
     messages.success(request, msg)
+    return redirect(settings.LOGIN_REDIRECT_URL)
