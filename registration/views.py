@@ -19,14 +19,14 @@ from .models import EmailConfirmationRequest
 from .utils import (
     get_facebook_login_url,
     get_google_login_url,
-    get_protocol_and_host)
+    get_local_host)
 
 User = get_user_model()
 now = timezone.now
 
 
 def login(request):
-    local_host = get_protocol_and_host(request)
+    local_host = get_local_host(request)
     ctx = {'facebook_login_url': get_facebook_login_url(local_host),
            'google_login_url': get_google_login_url(local_host)}
     return django_login_view(request, authentication_form=LoginForm,
@@ -40,7 +40,7 @@ def logout(request):
 
 
 def oauth_callback(request, service):
-    local_host = get_protocol_and_host(request)
+    local_host = get_local_host(request)
     form = OAuth2CallbackForm(service=service, local_host=local_host,
                               data=request.GET)
     if form.is_valid():
@@ -57,7 +57,7 @@ def oauth_callback(request, service):
 
 
 def request_email_confirmation(request):
-    local_host = get_protocol_and_host(request)
+    local_host = get_local_host(request)
     if request.method == 'POST':
         form = RequestEmailConfirmationForm(local_host=local_host,
                                             data=request.POST)

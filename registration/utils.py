@@ -1,6 +1,7 @@
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.utils.translation import ugettext_lazy as _
 
 import logging
 import requests
@@ -8,13 +9,18 @@ import urllib
 import urlparse
 
 GOOGLE, FACEBOOK = 'google', 'facebook'
-User = get_user_model()
+JSON_MIME_TYPE = 'application/json'
 logger = logging.getLogger('saleor.registration')
+User = get_user_model()
 
 
-def get_protocol_and_host(request):
+def get_local_host(request):
     scheme = 'http' + ('s' if request.is_secure() else '')
     return url(scheme=scheme, host=request.get_host())
+
+
+def url(scheme='', host='', path='', params='', query='', fragment=''):
+    return urlparse.urlunparse((scheme, host, path, params, query, fragment))
 
 
 def get_client_class_for_serivce(service):
@@ -29,11 +35,7 @@ def get_facebook_login_url(local_host):
     return get_client_class_for_serivce(FACEBOOK)(local_host).get_login_uri()
 
 
-def url(scheme='', host='', path='', params='', query='', fragment=''):
-    return urlparse.urlunparse((scheme, host, path, params, query, fragment))
-
-
-class OAuth2Authorizer(requests.auth.AuthBase):
+class OAuth2RequestAuthorizer(requests.auth.AuthBase):
 
     def __init__(self, access_token):
         self.access_token = access_token
@@ -43,72 +45,23 @@ class OAuth2Authorizer(requests.auth.AuthBase):
         return request
 
 
-class OAuth2Connection(object):
-
-    def __init__(self, code, client):
-        self.code = code
-        self.client = client
-        self.access_token = None
-        self.refresh_token = None
-
-    def get(self, address, params=None, auth=True):
-        args, kwargs = (address,), {'params': params}
-        return self._make_request(requests.get, args, kwargs, auth)
-
-    def post(self, address, data=None, auth=True):
-        args, kwargs = (address,), {'data': data}
-        return self._make_request(requests.post, args, kwargs, auth)
-
-    def _make_request(self, method, args, kwargs, auth):
-        if auth:
-            if not self.access_token:
-                self.access_token = self.client.get_access_token(self.code)
-            kwargs['auth'] = OAuth2Authorizer(access_token=self.access_token)
-        response = method(*args, **kwargs)
-        content = self._parse_response(response)
-        if response.status_code == requests.codes.ok:
-            return content
-        else:
-            logger.error('[%s]: %s', response.status_code, response.text)
-            error = self.extract_error(content)
-            raise ValueError(error)
-
-    def _parse_response(self, response):
-        if 'application/json' in response.headers['Content-Type']:
-            return response.json()
-        else:
-            content = urlparse.parse_qsl(response.text)
-            content = dict((x, y[0] if len(y) == 1 else y) for x, y in content)
-            return content
-
-
-class GoogleConnection(OAuth2Connection):
-
-    def extract_error(self, content):
-        return content['error']
-
-
-class FacebookConnection(OAuth2Connection):
-
-    def extract_error(self, content):
-        return content['error']['message']
-
-
 class OAuth2Client(object):
 
     service = None
-    connection_class = None
+
     client_id = None
     client_secret = None
+
     auth_uri = None
     token_uri = None
     user_info_uri = None
+
     scope = None
 
     def __init__(self, local_host, code=None):
         self.local_host = local_host
-        if code:
-            self.connection = self.connection_class(code=code, client=self)
+        self.code = code
+        self.access_token = None
 
     def get_redirect_uri(self):
         kwargs = {'service': self.service}
@@ -124,7 +77,7 @@ class OAuth2Client(object):
         return urlparse.urljoin(self.auth_uri, url(query=query))
 
     def get_user_info(self):
-        return self.connection.get(self.user_info_uri)
+        return self.get(self.user_info_uri)
 
     def get_access_token(self, code):
         data = {'grant_type': 'authorization_code',
@@ -133,14 +86,48 @@ class OAuth2Client(object):
                 'code': code,
                 'redirect_uri': self.get_redirect_uri(),
                 'scope': self.scope}
-        response = self.connection.post(self.token_uri, data=data, auth=False)
+        response = self.post(self.token_uri, data=data, auth=False)
         return response['access_token']
+
+    def get(self, address, params=None, auth=True):
+        auth = self.get_authorizer() if auth else None
+        response = requests.get(address, params=params, auth=auth)
+        return self._handle_response(response)
+
+    def post(self, address, data=None, auth=True):
+        auth = self.get_authorizer() if auth else None
+        response = requests.post(address, data=data, auth=auth)
+        return self._handle_response(response)
+
+    def get_authorizer(self):
+        if not self.access_token:
+            self.access_token = self.get_access_token(self.code)
+        return OAuth2RequestAuthorizer(access_token=self.access_token)
+
+    def _handle_response(self, response):
+        response_content = self._parse_response(response)
+        if response.status_code == requests.codes.ok:
+            return response_content
+        else:
+            logger.error('[%s]: %s', response.status_code, response.text)
+            error = self._extract_error_from_response(response_content)
+            raise ValueError(error)
+
+    def _parse_response(self, response):
+        if JSON_MIME_TYPE in response.headers['Content-Type']:
+            return response.json()
+        else:
+            content = urlparse.parse_qsl(response.text)
+            content = dict((x, y[0] if len(y) == 1 else y) for x, y in content)
+            return content
+
+    def _extract_error_from_response(self, response_content):
+        raise NotImplementedError()
 
 
 class GoogleClient(OAuth2Client):
 
     service = GOOGLE
-    connection_class = GoogleConnection
 
     client_id = settings.GOOGLE_CLIENT_ID
     client_secret = settings.GOOGLE_SECRET
@@ -157,13 +144,15 @@ class GoogleClient(OAuth2Client):
         if response['verified_email']:
             return response
         else:
-            raise ValueError('Google account not verified.')
+            raise ValueError(_('Google account not verified.'))
+
+    def _extract_error_from_response(self, response_content):
+        return response_content['error']
 
 
 class FacebookClient(OAuth2Client):
 
     service = FACEBOOK
-    connection_class = FacebookConnection
 
     client_id = settings.FACEBOOK_APP_ID
     client_secret = settings.FACEBOOK_SECRET
@@ -179,4 +168,7 @@ class FacebookClient(OAuth2Client):
         if response['verified']:
             return response
         else:
-            raise ValueError('Facebook account not verified.')
+            raise ValueError(_('Facebook account not verified.'))
+
+    def _extract_error_from_response(self, response_content):
+        return response_content['error']['message']
