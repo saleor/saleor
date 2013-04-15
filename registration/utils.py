@@ -60,8 +60,9 @@ class OAuth2Client(object):
 
     def __init__(self, local_host, code=None):
         self.local_host = local_host
-        self.code = code
-        self.access_token = None
+        if code:
+            access_token = self.get_access_token(code)
+            self.authorizer = OAuth2RequestAuthorizer(access_token=access_token)
 
     def get_redirect_uri(self):
         kwargs = {'service': self.service}
@@ -76,9 +77,6 @@ class OAuth2Client(object):
         query = urllib.urlencode(data)
         return urlparse.urljoin(self.auth_uri, url(query=query))
 
-    def get_user_info(self):
-        return self.get(self.user_info_uri)
-
     def get_access_token(self, code):
         data = {'grant_type': 'authorization_code',
                 'client_id': self.client_id,
@@ -86,34 +84,32 @@ class OAuth2Client(object):
                 'code': code,
                 'redirect_uri': self.get_redirect_uri(),
                 'scope': self.scope}
-        response = self.post(self.token_uri, data=data, auth=False)
+        response = self.post(self.token_uri, data=data, authorize=False)
         return response['access_token']
 
-    def get(self, address, params=None, auth=True):
-        auth = self.get_authorizer() if auth else None
+    def get_user_info(self):
+        return self.get(self.user_info_uri)
+
+    def get(self, address, params=None, authorize=True):
+        auth = self.authorizer if authorize else None
         response = requests.get(address, params=params, auth=auth)
-        return self._handle_response(response)
+        return self.handle_response(response)
 
-    def post(self, address, data=None, auth=True):
-        auth = self.get_authorizer() if auth else None
+    def post(self, address, data=None, authorize=True):
+        auth = self.authorizer if authorize else None
         response = requests.post(address, data=data, auth=auth)
-        return self._handle_response(response)
+        return self.handle_response(response)
 
-    def get_authorizer(self):
-        if not self.access_token:
-            self.access_token = self.get_access_token(self.code)
-        return OAuth2RequestAuthorizer(access_token=self.access_token)
-
-    def _handle_response(self, response):
-        response_content = self._parse_response(response)
+    def handle_response(self, response):
+        response_content = self.parse_response(response)
         if response.status_code == requests.codes.ok:
             return response_content
         else:
             logger.error('[%s]: %s', response.status_code, response.text)
-            error = self._extract_error_from_response(response_content)
+            error = self.extract_error_from_response(response_content)
             raise ValueError(error)
 
-    def _parse_response(self, response):
+    def parse_response(self, response):
         if JSON_MIME_TYPE in response.headers['Content-Type']:
             return response.json()
         else:
@@ -121,7 +117,7 @@ class OAuth2Client(object):
             content = dict((x, y[0] if len(y) == 1 else y) for x, y in content)
             return content
 
-    def _extract_error_from_response(self, response_content):
+    def extract_error_from_response(self, response_content):
         raise NotImplementedError()
 
 
@@ -146,7 +142,7 @@ class GoogleClient(OAuth2Client):
         else:
             raise ValueError(_('Google account not verified.'))
 
-    def _extract_error_from_response(self, response_content):
+    def extract_error_from_response(self, response_content):
         return response_content['error']
 
 
@@ -170,5 +166,5 @@ class FacebookClient(OAuth2Client):
         else:
             raise ValueError(_('Facebook account not verified.'))
 
-    def _extract_error_from_response(self, response_content):
+    def extract_error_from_response(self, response_content):
         return response_content['error']['message']
