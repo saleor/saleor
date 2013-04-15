@@ -50,7 +50,6 @@ def oauth_callback(request, service):
             messages.warning(request, unicode(e))
     else:
         for field, errors in form.errors.items():
-            print form.errors
             for error in errors:
                 messages.warning(request, '[%s] %s' % (field, error))
     return redirect('registration:login')

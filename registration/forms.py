@@ -29,6 +29,7 @@ class RequestEmailConfirmationForm(forms.Form):
 
     def send(self):
         email = self.cleaned_data['email']
+        EmailConfirmationRequest.objects.filter(email=email).delete()
         request = EmailConfirmationRequest.objects.create(email=email)
         path = reverse('registration:confirm_email',
                        kwargs={'token': request.token})
@@ -40,14 +41,19 @@ class RequestEmailConfirmationForm(forms.Form):
 
 class NoPasswordForm(forms.Form):
 
-    no_password = forms.BooleanField(initial=True, widget=forms.HiddenInput())
+    no_password = forms.BooleanField(initial=True, required=False,
+                                     widget=forms.HiddenInput())
+
+    def __init__(self, data):
+        data = data if 'no_password' in data else None
+        super(NoPasswordForm, self).__init__(data=data)
 
 
 class EmailConfirmationFormset(object):
 
     def __init__(self, email_confirmation_request, data=None):
         self.email_confirmation_request = email_confirmation_request
-        self.set_password_form = SetPasswordForm(user=False, data=data)
+        self.set_password_form = SetPasswordForm(user=None, data=data)
         self.no_password_form = NoPasswordForm(data=data)
 
     def no_password(self):
