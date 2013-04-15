@@ -1,4 +1,3 @@
-import os
 from datetime import timedelta
 
 from django.db import models
@@ -7,10 +6,8 @@ from django.conf import settings
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
-
 User = get_user_model()
 now = timezone.now
-TOKEN_LENGTH = 32
 
 
 class ExternalUserData(models.Model):
@@ -23,29 +20,34 @@ class ExternalUserData(models.Model):
         unique_together = [['service', 'username']]
 
 
-class UniqueTokenManager(models.Manager):
+class UniqueTokenManager(models.Manager):  # this might end up in `utils`
 
-    TOKEN_FIELD = 'token'
+    def __init__(self, token_field, token_length):
+        self.token_field = token_field
+        self.token_length = token_length
+        super(UniqueTokenManager, self).__init__()
 
     def create(self, **kwargs):
-        assert self.TOKEN_FIELD not in kwargs
+        assert self.token_field not in kwargs
         for x in xrange(100):
-            token = get_random_string(TOKEN_LENGTH)
-            conflict = EmailConfirmationRequest.objects.filter(token=token)
+            token = get_random_string(self.token_length)
+            conflict = self.model.objects.filter(token=token)
             if not conflict.exists():
-                kwargs[self.TOKEN_FIELD] = token
+                kwargs[self.token_field] = token
                 return super(UniqueTokenManager, self).create(**kwargs)
         raise RuntimeError('Could not create unique token.')
 
 
 class EmailConfirmationRequest(models.Model):
 
+    TOKEN_LENGTH = 32
+
     email = models.EmailField()
     token = models.CharField(max_length=TOKEN_LENGTH, unique=True)
     valid_until = models.DateTimeField(
         default=lambda: now() + timedelta(settings.ACCOUNT_ACTIVATION_DAYS))
 
-    objects = UniqueTokenManager()
+    objects = UniqueTokenManager(token_field='token', token_length=TOKEN_LENGTH)
 
     def get_or_create_user(self):
         user, _created = User.objects.get_or_create(email=self.email)
