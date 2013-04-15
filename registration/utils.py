@@ -33,6 +33,16 @@ def url(scheme='', host='', path='', params='', query='', fragment=''):
     return urlparse.urlunparse((scheme, host, path, params, query, fragment))
 
 
+class OAuth2Authorizer(requests.auth.AuthBase):
+
+    def __init__(self, access_token):
+        self.access_token = access_token
+
+    def __call__(self, request):
+        request.headers['Authorization'] = 'Bearer %s' % (self.access_token,)
+        return request
+
+
 class OAuth2Connection(object):
 
     def __init__(self, code, client):
@@ -41,17 +51,19 @@ class OAuth2Connection(object):
         self.access_token = None
         self.refresh_token = None
 
-    def get(self, address, params=None, headers=None, auth=True):
-        args, kwargs = (address,), {'params': params, 'headers': headers or {}}
+    def get(self, address, params=None, auth=True):
+        args, kwargs = (address,), {'params': params}
         return self._make_request(requests.get, args, kwargs, auth)
 
-    def post(self, address, data=None, headers=None, auth=True):
-        args, kwargs = (address,), {'data': data, 'headers': headers or {}}
+    def post(self, address, data=None, auth=True):
+        args, kwargs = (address,), {'data': data}
         return self._make_request(requests.post, args, kwargs, auth)
 
     def _make_request(self, method, args, kwargs, auth):
         if auth:
-            kwargs['headers'].update(self._get_auth_headers())
+            if not self.access_token:
+                self.access_token = self.client.get_access_token(self.code)
+            kwargs['auth'] = OAuth2Authorizer(access_token=self.access_token)
         response = method(*args, **kwargs)
         content = self._parse_response(response)
         if response.status_code == requests.codes.ok:
@@ -60,11 +72,6 @@ class OAuth2Connection(object):
             logger.error('[%s]: %s', response.status_code, response.text)
             error = self.extract_error(content)
             raise ValueError(error)
-
-    def _get_auth_headers(self):
-        if not self.access_token:
-            self.access_token = self.client.get_access_token(self.code)
-        return {'Authorization': 'Bearer %s' % (self.access_token,)}
 
     def _parse_response(self, response):
         if 'application/json' in response.headers['Content-Type']:
