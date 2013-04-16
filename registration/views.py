@@ -48,11 +48,11 @@ def oauth_callback(request, service):
             user = form.get_authenticated_user()
             return _login_user(request, user)
         except ValueError, e:
-            messages.warning(request, unicode(e))
+            messages.error(request, unicode(e))
     else:
-        for field, errors in form.errors.items():
+        for _field, errors in form.errors.items():
             for error in errors:
-                messages.warning(request, '[%s] %s' % (field, error))
+                messages.error(request, error)
     return redirect('registration:login')
 
 
