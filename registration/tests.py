@@ -1,438 +1,170 @@
 from django.contrib.auth import get_user_model
+from django.core.urlresolvers import resolve
 from django.test import TestCase
-from django.utils import timezone
 
-import datetime
-from httpretty import HTTPretty, httprettified
-from mock import patch
+from mock import Mock, MagicMock, patch, sentinel
 from purl import URL
 
-from .models import EmailConfirmation, ExternalUserData
+from .utils import (
+    FACEBOOK,
+    FacebookClient,
+    GOOGLE,
+    GoogleClient,
+    OAuth2RequestAuthorizer,
+    OAuth2Client,
+    parse_response)
+from .views import oauth_callback
 
 User = get_user_model()
 
+JSON_MIME_TYPE = 'application/json; charset=UTF-8'
+URLENCODED_MIME_TYPE = 'application/x-www-form-urlencoded; charset=UTF-8'
 
-class LoginViewTest(TestCase):
+
+class LoginUrlsTestCase(TestCase):
+    """Tests login url generation."""
+
+    def test_facebook_login_url(self):
+        facebook_client = FacebookClient(local_host='localhost')
+        facebook_login_url = URL(facebook_client.get_login_uri())
+        query = facebook_login_url.query_params()
+        callback_url = URL(query['redirect_uri'][0])
+        func, args, kwargs = resolve(callback_url.path())
+        self.assertEquals(func, oauth_callback)
+        self.assertEquals(kwargs['service'], FACEBOOK)
+        self.assertEqual(query['scope'][0], FacebookClient.scope)
+        self.assertEqual(query['client_id'][0], FacebookClient.client_id)
+
+    def test_google_login_url(self):
+        google_client = GoogleClient(local_host='local_host')
+        google_login_url = URL(google_client.get_login_uri())
+        params = google_login_url.query_params()
+        callback_url = URL(params['redirect_uri'][0])
+        func, args, kwargs = resolve(callback_url.path())
+        self.assertEquals(func, oauth_callback)
+        self.assertEquals(kwargs['service'], GOOGLE)
+        self.assertIn(params['scope'][0], GoogleClient.scope)
+        self.assertEqual(params['client_id'][0], GoogleClient.client_id)
+
+
+class ResponseParsingTestCase(TestCase):
 
     def setUp(self):
-        self.response = self.client.get('/account/login/')
-
-    def test_facebook_url(self):
-        facebook_login_url = URL(
-            self.response.context_data['facebook_login_url'])
-        facebook_params = facebook_login_url.query_params()
-        callback_url = URL(facebook_params['redirect_uri'][0])
-        self.assertEqual(
-            callback_url.path(),
-            '/account/oauth_callback/facebook/')
-        self.assertEqual(facebook_params['scope'], ['email'])
-        self.assertEqual(facebook_params['client_id'],
-                         ['YOUR_FACEBOOK_APP_ID'])
-        self.assertNotIn('YOUR_FACEBOOK_APP_SECRET',
-                         self.response.context_data['facebook_login_url'])
-
-    def test_google_url(self):
-        google_login_url = URL(self.response.context_data['google_login_url'])
-        google_params = google_login_url.query_params()
-        callback_url = URL(google_params['redirect_uri'][0])
-        self.assertEqual(
-            callback_url.path(),
-            '/account/oauth_callback/google/')
-        self.assertEqual(1, len(google_params['scope']))
-        self.assertIn('https://www.googleapis.com/auth/userinfo.email',
-                      google_params['scope'][0])
-        self.assertIn('https://www.googleapis.com/auth/plus.me',
-                      google_params['scope'][0])
-        self.assertEqual(google_params['client_id'], ['YOUR_GOOGLE_APP_ID'])
-        self.assertNotIn('YOUR_GOOGLE_APP_SECRET',
-                         self.response.context_data['google_login_url'])
-
-
-class CallbackViewTest(TestCase):
-
-    @httprettified
-    def test_google_success(self):
-        HTTPretty.register_uri(
-            HTTPretty.POST, 'https://accounts.google.com/o/oauth2/token',
-            body='{"access_token" : "dummy_token_content"}'
-        )
-
-        HTTPretty.register_uri(
-            HTTPretty.GET,
-            'https://www.googleapis.com/oauth2/v1/userinfo',
-            body=('{"id": "fake_google_id","email": "fake@gmail.com",'
-                  '"verified_email": true}'))
-
-        response = self.client.get(
-            '/account/oauth_callback/google/?code=dummycode')
-
-        self.assertEqual(302, response.status_code)
-
-        self.assertEqual('google',
-                         self.client.session.get('external_service'))
-        self.assertEqual('fake_google_id',
-                         self.client.session.get('external_username'))
-        self.assertEqual('fake@gmail.com',
-                         self.client.session.get('confirmed_email'))
-
-    @httprettified
-    def test_google_success_second_time(self):
-        user = User.objects.create(email='fake@email.com')
-        ExternalUserData.objects.create(
-            username='fake_google_id', provider='google', user=user)
-
-        HTTPretty.register_uri(
-            HTTPretty.POST, 'https://accounts.google.com/o/oauth2/token',
-            body='{"access_token" : "dummy_token_content"}'
-        )
-
-        HTTPretty.register_uri(
-            HTTPretty.GET,
-            'https://www.googleapis.com/oauth2/v1/userinfo',
-            body=('{"id": "fake_google_id","email": "fake@gmail.com",'
-                  '"verified_email": true}'))
-
-        response = self.client.get(
-            '/account/oauth_callback/google/?code=dummycode')
-
-        self.assertEqual(302, response.status_code)
-
-        self.assertNotIn('confirmed_email', self.client.session)
-        self.assertNotIn('external_username', self.client.session)
-        self.assertNotIn('external_service', self.client.session)
-
-    @httprettified
-    def test_google_bad_code(self):
-        HTTPretty.register_uri(
-            HTTPretty.POST, 'https://accounts.google.com/o/oauth2/token',
-            body='{"error" : "some_error"}',
-            status=400
-        )
-
-        response = self.client.get(
-            '/account/oauth_callback/google/?code=wrongcode')
-
-        self.assertEqual(302, response.status_code)
-
-        self.assertEqual('/account/login/', URL(response['Location']).path())
-
-    @httprettified
-    def test_google_not_responding(self):
-        HTTPretty.register_uri(
-            HTTPretty.POST, 'https://accounts.google.com/o/oauth2/token',
-            body='Some non-json data',
-            status=500
-        )
+        self.response = MagicMock()
 
-        response = self.client.get(
-            '/account/oauth_callback/google/?code=wrongcode')
+    def test_parse_json(self):
+        self.response.headers = {'Content-Type': JSON_MIME_TYPE}
+        self.response.json.return_value = sentinel.json_content
+        content = parse_response(self.response)
+        self.assertEquals(content, sentinel.json_content)
 
-        self.assertEqual(302, response.status_code)
+    def test_parse_urlencoded(self):
+        self.response.headers = {'Content-Type': URLENCODED_MIME_TYPE}
+        self.response.text = 'key=value&multi=a&multi=b'
+        content = parse_response(self.response)
+        self.assertEquals(content, {'key': 'value', 'multi': ['a', 'b']})
 
-        self.assertEqual('/account/login/', URL(response['Location']).path())
 
-    @httprettified
-    def test_facebook_success(self):
-        HTTPretty.register_uri(
-            HTTPretty.GET, 'https://graph.facebook.com/oauth/access_token',
-            body='access_token=dummy_token_content'
-        )
+class TestClient(OAuth2Client):
 
-        HTTPretty.register_uri(
-            HTTPretty.GET,
-            'https://graph.facebook.com/me',
-            body=('{"id": "fake_facebook_id","email": "fake@facebook.com"}'))
+    service = sentinel.service
 
-        response = self.client.get(
-            '/account/oauth_callback/facebook/?code=dummycode')
+    client_id = sentinel.client_id
+    client_secret = sentinel.client_secret
 
-        self.assertEqual(302, response.status_code)
+    auth_uri = sentinel.auth_uri
+    token_uri = sentinel.token_uri
+    user_info_uri = sentinel.user_info_uri
 
-        self.assertEqual('facebook',
-                         self.client.session.get('external_service'))
-        self.assertEqual('fake_facebook_id',
-                         self.client.session.get('external_username'))
-        self.assertEqual('fake@facebook.com',
-                         self.client.session.get('confirmed_email'))
+    scope = sentinel.scope
 
-    @httprettified
-    def test_facebook_bad_code(self):
-        HTTPretty.register_uri(
-            HTTPretty.GET, 'https://graph.facebook.com/oauth/access_token',
-            body='{"error": {"code": 100,'
-                 '"message": "Invalid verification code format.",'
-                 '"type": "OAuthException"}}',
-            status=400
-        )
+    def get_redirect_uri(self):
+        return sentinel.redirect_uri
 
-        response = self.client.get(
-            '/account/oauth_callback/facebook/?code=wrongcode')
+    def extract_error_from_response(self, response_content):
+        return 'some error'
 
-        self.assertEqual(302, response.status_code)
 
-        self.assertEqual('/account/login/', URL(response['Location']).path())
+class BaseCommunicationTestCase(TestCase):
 
-    @httprettified
-    def test_facebook_not_responding(self):
-        HTTPretty.register_uri(
-            HTTPretty.POST, 'https://accounts.google.com/o/oauth2/token',
-            body='Some data',
-            status=500
-        )
+    def setUp(self):
+        self.parse_mock = patch('registration.utils.parse_response').start()
 
-        response = self.client.get(
-            '/account/oauth_callback/google/?code=wrongcode')
+        self.requests_mock = patch('registration.utils.requests').start()
+        self.requests_mock.codes.ok = sentinel.ok
 
-        self.assertEqual(302, response.status_code)
+        self.client = TestClient(local_host='http://localhost')
 
-        self.assertEqual('/account/login/', URL(response['Location']).path())
+    def tearDown(self):
+        patch.stopall()
 
 
-class RegisterViewTest(TestCase):
+class AccessTokenTestCase(BaseCommunicationTestCase):
+    """Tests obtaining access_token."""
 
-    def test_registration_page(self):
+    def setUp(self):
+        super(AccessTokenTestCase, self).setUp()
 
-        initial_user_count = User.objects.count()
-
-        response = self.client.get('/account/register/')
+        self.parse_mock.return_value = {'access_token': sentinel.access_token}
 
-        self.assertEqual(initial_user_count, User.objects.count())
-        self.assertEqual(200, response.status_code)
-        self.assertFalse(response.context_data['form'].is_valid())
-        self.assertFalse(response.context_data['form'].errors)
-
-    @patch('registration.views.EmailMessage')
-    def test_register_new(self, email_mock):
-        initial_user_count = User.objects.count()
-        email = 'some.non.exeistanst@email.com'
-        self.assertFalse(User.objects.filter(email=email).exists())
-        self.assertFalse(
-            EmailConfirmation.objects.filter(email=email).exists())
-
-        response = self.client.post('/account/register/', {'email': email})
-
-        self.assertEqual(initial_user_count, User.objects.count())
-        self.assertEqual(302, response.status_code)
-        self.assertTrue(EmailConfirmation.objects.filter(email=email).exists())
-        email_mock.send.assert_called_once()
+        self.access_token_response = MagicMock()
+        self.requests_mock.post.return_value = self.access_token_response
 
-    @patch('registration.views.EmailMessage')
-    def test_send_reset_password_token(self, email_mock):
-
-        email = 'some@email.com'
-        user, _ = User.objects.get_or_create(email=email)
-        initial_user_count = User.objects.count()
-        self.assertFalse(
-            EmailConfirmation.objects.filter(email=email).exists())
-
-        response = self.client.post('/account/register/', {'email': email})
-
-        self.assertEqual(initial_user_count, User.objects.count())
-        self.assertEqual(302, response.status_code)
-        self.assertTrue(EmailConfirmation.objects.filter(email=email).exists())
-        email_mock.send.assert_called_once()
-
-    def test_register_with_extrnally_confirmed_email_and_no_extern_login(self):
-        # if we don't impose some action for TestClient we shall not be able to
-        # set variables to session
-        self.client.get('/')
-
-        email = 'some@email.com'
-        self.assertFalse(User.objects.filter(email=email).exists())
-        initial_user_count = User.objects.count()
-        initial_email_confirmation_count = EmailConfirmation.objects.count()
-
-        session = self.client.session
-        session['confirmed_email'] = email
-        session.save()
-
-        response = self.client.post('/account/register/', {'email': email})
-
-        self.assertEqual(initial_user_count, User.objects.count())
-        self.assertEqual(
-            initial_email_confirmation_count,
-            EmailConfirmation.objects.count())
-        self.assertEqual(400, response.status_code)
-        self.assertFalse('confirmed_email' in self.client.session)
-
-    def test_register_with_externally_confirmed_email(self):
-        # if we don't impose some action for TestClient we shall not be able to
-        # set variables to session
-        self.client.get('/')
-
-        email = 'some@email.com'
-
-        self.assertFalse(User.objects.filter(email=email).exists())
-
-        initial_user_count = User.objects.count()
-        initial_email_confirmation_count = EmailConfirmation.objects.count()
-
-        session = self.client.session
-        session['confirmed_email'] = email
-        session['external_username'] = 'some_external_id'
-        session['external_service'] = 'a_service'
-        session.save()
-
-        response = self.client.post('/account/register/', {'email': email})
-
-        self.assertEqual(initial_user_count + 1, User.objects.count())
-        self.assertEqual(302, response.status_code)
-        self.assertFalse(EmailConfirmation.objects.filter(email=email).exists())
-        self.assertEqual(
-            initial_email_confirmation_count,
-            EmailConfirmation.objects.count())
-
-    @patch('registration.views.EmailMessage')
-    def test_register_from_external_provider_and_change_email(self, email_mock):
-        # if we don't impose some action for TestClient we shall not be able to
-        # set variables to session
-        self.client.get('/')
-
-        initial_user_count = User.objects.count()
-        confirmed_email = 'confirmed@email.com'
-        supplied_email = 'supplied@email.com'
-        self.assertFalse(User.objects.filter(email=supplied_email).exists())
-        self.assertFalse(
-            EmailConfirmation.objects.filter(email=supplied_email).exists())
-
-        session = self.client.session
-        session['confirmed_email'] = confirmed_email
-        session['external_username'] = 'some_external_id'
-        session['external_service'] = 'a_service'
-        session.save()
-
-        response = self.client.post(
-            '/account/register/', {'email': supplied_email})
-
-        self.assertEqual(initial_user_count, User.objects.count())
-        self.assertEqual(302, response.status_code)
-        self.assertTrue(EmailConfirmation.objects.filter(
-            email=supplied_email).exists())
-        email_mock.send.assert_called_once()
-
-
-class ConfirmationEmailTest(TestCase):
-
-    def test_confirm_new_email(self):
-        email = 'email@example.com'
-        self.assertFalse(User.objects.filter(email=email).exists())
-        ec = EmailConfirmation.objects.create(email=email)
-        initial_user_count = User.objects.count()
-
-        response = self.client.get(
-            '/account/confirm_email/%s/%s/' % (ec.id, ec.token))
-
-        self.assertTrue(EmailConfirmation.objects.filter(pk=ec.pk).exists())
-        self.assertFalse(User.objects.filter(email=email).exists())
-        self.assertEqual(initial_user_count, User.objects.count())
-        self.assertEqual(200, response.status_code)
-
-    def test_confirm_new_email_and_set_password(self):
-        email = 'email@example.com'
-        password = 's0m3 P4sSw0rd'
-        self.assertFalse(User.objects.filter(email=email).exists())
-        initial_user_count = User.objects.count()
-
-        ec = EmailConfirmation.objects.create(email=email)
-
-        response = self.client.post(
-            '/account/confirm_email/%s/%s/' % (ec.id, ec.token),
-            {'new_password1': password,
-             'new_password2': password})
-
-        self.assertTrue(User.objects.get(email=email).check_password(password))
-        self.assertFalse(EmailConfirmation.objects.filter(pk=ec.pk).exists())
-        self.assertTrue(User.objects.get(email=email).is_active)
-        self.assertEqual(initial_user_count + 1, User.objects.count())
-        self.assertEqual(302, response.status_code)
-
-    def test_confirm_new_email_and_dont_set_password(self):
-        email = 'email@example.com'
-        self.assertFalse(User.objects.filter(email=email).exists())
-        initial_user_count = User.objects.count()
-
-        ec = EmailConfirmation.objects.create(email=email)
-
-        response = self.client.post(
-            '/account/confirm_email/%s/%s/' % (ec.id, ec.token),
-            {'no_password': True})
-
-        user = User.objects.get(email=email)
-        self.assertFalse(EmailConfirmation.objects.filter(pk=ec.pk).exists())
-        self.assertFalse(user.has_usable_password())
-        self.assertTrue(user.is_active)
-        self.assertEqual(initial_user_count + 1, User.objects.count())
-        self.assertEqual(302, response.status_code)
-
-    def test_confirm_existing_email_and_set_password(self):
-        email = 'email@example.com'
-        password = 's0m3 P4sSw0rd'
-        User.objects.create(email=email)
-
-        initial_user_count = User.objects.count()
-
-        ec = EmailConfirmation.objects.create(email=email)
-
-        response = self.client.post(
-            '/account/confirm_email/%s/%s/' % (ec.id, ec.token),
-            {'new_password1': password,
-             'new_password2': password})
-
-        self.assertFalse(EmailConfirmation.objects.filter(pk=ec.pk).exists())
-        self.assertTrue(User.objects.get(email=email).check_password(password))
-        self.assertEqual(initial_user_count, User.objects.count())
-        self.assertEqual(302, response.status_code)
-
-    def test_confirm_existing_email_and_dont_set_password(self):
-        email = 'email@example.com'
-        password = 's0m3 P4sSw0rd'
-        user = User.objects.create(email=email)
-        user.set_password(password)
-        user.save()
-
-        initial_user_count = User.objects.count()
-
-        ec = EmailConfirmation.objects.create(email=email)
-
-        response = self.client.post(
-            '/account/confirm_email/%s/%s/' % (ec.id, ec.token),
-            {'no_password': True})
-
-        self.assertFalse(EmailConfirmation.objects.filter(pk=ec.pk).exists())
-        self.assertTrue(User.objects.get(email=email).check_password(password))
-        self.assertEqual(initial_user_count, User.objects.count())
-        self.assertEqual(302, response.status_code)
-
-    def test_non_existant_token(self):
-        initial_user_count = User.objects.count()
-        initial_email_confirmation_count = EmailConfirmation.objects.count()
-
-        response = self.client.post(
-            '/account/confirm_email/%s/%s/' % ('123', 'a798797b8979c7f890'),
-            {'nopassword': None})
-
-        self.assertEqual(200, response.status_code)
-        self.assertEqual(initial_user_count, User.objects.count())
-        self.assertEqual(
-            initial_email_confirmation_count,
-            EmailConfirmation.objects.count())
-
-    def test_confirmation_link_expired(self):
-        email = 'email@example.com'
-        password = 's0m3 P4sSw0rd'
-        initial_user_count = User.objects.count()
-
-        self.assertFalse(User.objects.filter(email=email).exists())
-
-        valid_until = timezone.now() - datetime.timedelta(days=1)
-
-        ec = EmailConfirmation.objects.create(email=email,
-                                              valid_until=valid_until)
-
-        response = self.client.post(
-            '/account/confirm_email/%s/%s/' % (ec.id, ec.token),
-            {'new_password1': password,
-             'new_password2': password})
-
-        self.assertEqual(initial_user_count, User.objects.count())
-        self.assertEqual(200, response.status_code)
+    def test_token_success(self):
+        self.access_token_response.status_code = sentinel.ok
+        access_token = self.client.get_access_token(code=sentinel.code)
+        self.assertEquals(access_token, sentinel.access_token)
+        self.requests_mock.post.assert_called_once_with(
+            sentinel.token_uri,
+            data={'grant_type': 'authorization_code',
+                  'client_id': sentinel.client_id,
+                  'client_secret': sentinel.client_secret,
+                  'code': sentinel.code,
+                  'redirect_uri': sentinel.redirect_uri,
+                  'scope': sentinel.scope},
+            auth=None)
+
+    def test_token_failure(self):
+        self.access_token_response.status_code = sentinel.fail
+        self.assertRaises(ValueError, self.client.get_access_token,
+                          code=sentinel.code)
+
+
+class UserInfoTestCase(BaseCommunicationTestCase):
+    """Tests obtaining user data."""
+
+    def setUp(self):
+        super(UserInfoTestCase, self).setUp()
+
+        self.user_info_response = MagicMock()
+        self.requests_mock.get.return_value = self.user_info_response
+
+    def test_user_data_success(self):
+        self.parse_mock.return_value = sentinel.user_info
+        self.user_info_response.status_code = sentinel.ok
+        user_info = self.client.get_user_info()
+        self.assertEquals(user_info, sentinel.user_info)
+
+    def test_user_data_failure(self):
+        self.assertRaises(ValueError, self.client.get_user_info)
+
+    def test_google_user_data_email_not_verified(self):
+        self.user_info_response.status_code = sentinel.ok
+        self.parse_mock.return_value = {'verified_email': False}
+        google_client = GoogleClient(local_host='http://localhost')
+        self.assertRaises(ValueError, google_client.get_user_info)
+
+    def test_facebook_user_data_account_not_verified(self):
+        self.user_info_response.status_code = sentinel.ok
+        self.parse_mock.return_value = {'verified': False}
+        facebook_client = FacebookClient(local_host='http://localhost')
+        self.assertRaises(ValueError, facebook_client.get_user_info)
+
+
+class AuthorizerTestCase(TestCase):
+
+    def test_authorizes(self):
+        authorizer = OAuth2RequestAuthorizer(access_token='token')
+        request = Mock(headers={})
+        authorizer(request)
+        self.assertEquals('Bearer token', request.headers['Authorization'])
