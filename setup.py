@@ -33,7 +33,6 @@ setup(
         'satchless>=1.0a0,<1.1a0',
         'South>=0.7.6',
         'unidecode',
-        'purl>=0.4.1',
         'requests>=1.2.0'],
     extras_require={
         'lint': ['pylint==0.26.0', 'django-lint==dev']},
@@ -46,6 +45,6 @@ setup(
         'lint': Lint},
     tests_require=[
         'mock==1.0.1',
-        'httpretty>=0.5.10',
-        'discover==0.4.0'],
+        'discover==0.4.0',
+        'purl>=0.4.1'],
     test_suite='discover.collector')
