@@ -23,16 +23,26 @@ def url(scheme='', host='', path='', params='', query='', fragment=''):
     return urlparse.urlunparse((scheme, host, path, params, query, fragment))
 
 
-def get_client_class_for_serivce(service):
+def get_client_class_for_service(service):
     return {GOOGLE: GoogleClient, FACEBOOK: FacebookClient}[service]
 
 
 def get_google_login_url(local_host):
-    return get_client_class_for_serivce(GOOGLE)(local_host).get_login_uri()
+    return get_client_class_for_service(GOOGLE)(local_host).get_login_uri()
 
 
 def get_facebook_login_url(local_host):
-    return get_client_class_for_serivce(FACEBOOK)(local_host).get_login_uri()
+    return get_client_class_for_service(FACEBOOK)(local_host).get_login_uri()
+
+
+def parse_response(response):
+    if JSON_MIME_TYPE in response.headers['Content-Type']:
+        return response.json()
+    else:
+        content = urlparse.parse_qs(response.text)
+        content = dict((x, y[0] if len(y) == 1 else y)
+                       for x, y in content.iteritems())
+        return content
 
 
 class OAuth2RequestAuthorizer(requests.auth.AuthBase):
@@ -63,6 +73,8 @@ class OAuth2Client(object):
         if code:
             access_token = self.get_access_token(code)
             self.authorizer = OAuth2RequestAuthorizer(access_token=access_token)
+        else:
+            self.authorizer = None
 
     def get_redirect_uri(self):
         kwargs = {'service': self.service}
@@ -101,21 +113,13 @@ class OAuth2Client(object):
         return self.handle_response(response)
 
     def handle_response(self, response):
-        response_content = self.parse_response(response)
+        response_content = parse_response(response)
         if response.status_code == requests.codes.ok:
             return response_content
         else:
             logger.error('[%s]: %s', response.status_code, response.text)
             error = self.extract_error_from_response(response_content)
             raise ValueError(error)
-
-    def parse_response(self, response):
-        if JSON_MIME_TYPE in response.headers['Content-Type']:
-            return response.json()
-        else:
-            content = urlparse.parse_qsl(response.text)
-            content = dict((x, y[0] if len(y) == 1 else y) for x, y in content)
-            return content
 
     def extract_error_from_response(self, response_content):
         raise NotImplementedError()

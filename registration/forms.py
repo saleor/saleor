@@ -7,7 +7,7 @@ from django.template.loader import render_to_string
 from django.utils.translation import ugettext_lazy as _
 
 from .models import EmailConfirmationRequest, ExternalUserData
-from .utils import get_client_class_for_serivce
+from .utils import get_client_class_for_service
 
 import urlparse
 
@@ -93,7 +93,7 @@ class OAuth2CallbackForm(forms.Form):
 
     def get_authenticated_user(self):
         code = self.cleaned_data.get('code')
-        client_class = get_client_class_for_serivce(self.service)
+        client_class = get_client_class_for_service(self.service)
         client = client_class(local_host=self.local_host, code=code)
         user_info = client.get_user_info()
         user = authenticate(service=self.service, username=user_info['id'])
