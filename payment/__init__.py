@@ -1,6 +1,8 @@
 from authorizenet.utils import process_payment
 from django.utils.translation import ugettext
 import urllib2
+from payments.signals import status_changed
+from django.dispatch import receiver
 
 
 class PaymentFailure(Exception):
@@ -39,3 +41,11 @@ def authorizenet(order, cleaned_data, capture=True):
         raise PaymentFailure(ugettext('Could not connect to the gateway.'))
     if not response.is_approved:
         raise PaymentFailure(response.response_reason_text)
+
+
+@receiver(status_changed)
+def order_status_change(sender, instance, **kwargs):
+    order = instance.order
+    if order.is_full_paid():
+        order.status = 'complete'
+        order.save()
