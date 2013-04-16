@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.conf import settings
 from django.db import models
 from django.utils.translation import pgettext_lazy
@@ -59,6 +60,12 @@ class Order(models.Model, ItemSet):
 
     def get_items(self):
         return OrderedItem.objects.filter(delivery_group__order=self)
+
+    def is_full_paid(self):
+        total_paid = sum([payment.total for payment in
+                          self.payments.filter(status='confirmed')], Decimal())
+        total = self.get_total()
+        return total_paid >= total.gross
 
     def __iter__(self):
         return iter(self.groups.all())
