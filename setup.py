@@ -45,6 +45,6 @@ setup(
         'lint': Lint},
     tests_require=[
         'mock==1.0.1',
-        'discover==0.4.0',
-        'purl>=0.4.1'],
-    test_suite='discover.collector')
+        'purl>=0.4.1',
+        'unittest2'],
+    test_suite='unittest2.collector')
