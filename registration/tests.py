@@ -66,6 +66,7 @@ class ResponseParsingTestCase(TestCase):
 
 
 class TestClient(OAuth2Client):
+    """OAuth2Client configured for testing purposes."""
 
     service = sentinel.service
 
@@ -93,8 +94,6 @@ class BaseCommunicationTestCase(TestCase):
         self.requests_mock = patch('registration.utils.requests').start()
         self.requests_mock.codes.ok = sentinel.ok
 
-        self.client = TestClient(local_host='http://localhost')
-
     def tearDown(self):
         patch.stopall()
 
@@ -110,9 +109,15 @@ class AccessTokenTestCase(BaseCommunicationTestCase):
         self.access_token_response = MagicMock()
         self.requests_mock.post.return_value = self.access_token_response
 
-    def test_token_success(self):
+    def test_token_is_obtained_on_construction(self):
         self.access_token_response.status_code = sentinel.ok
-        access_token = self.client.get_access_token(code=sentinel.code)
+        TestClient(local_host='http://localhost', code=sentinel.code)
+        self.requests_mock.post.assert_called_once()
+
+    def test_token_success(self):
+        client = TestClient(local_host='http://localhost')
+        self.access_token_response.status_code = sentinel.ok
+        access_token = client.get_access_token(code=sentinel.code)
         self.assertEquals(access_token, sentinel.access_token)
         self.requests_mock.post.assert_called_once_with(
             sentinel.token_uri,
@@ -125,8 +130,9 @@ class AccessTokenTestCase(BaseCommunicationTestCase):
             auth=None)
 
     def test_token_failure(self):
+        client = TestClient(local_host='http://localhost')
         self.access_token_response.status_code = sentinel.fail
-        self.assertRaises(ValueError, self.client.get_access_token,
+        self.assertRaises(ValueError, client.get_access_token,
                           code=sentinel.code)
 
 
@@ -140,13 +146,15 @@ class UserInfoTestCase(BaseCommunicationTestCase):
         self.requests_mock.get.return_value = self.user_info_response
 
     def test_user_data_success(self):
+        client = TestClient(local_host='http://localhost')
         self.parse_mock.return_value = sentinel.user_info
         self.user_info_response.status_code = sentinel.ok
-        user_info = self.client.get_user_info()
+        user_info = client.get_user_info()
         self.assertEquals(user_info, sentinel.user_info)
 
     def test_user_data_failure(self):
-        self.assertRaises(ValueError, self.client.get_user_info)
+        client = TestClient(local_host='http://localhost')
+        self.assertRaises(ValueError, client.get_user_info)
 
     def test_google_user_data_email_not_verified(self):
         self.user_info_response.status_code = sentinel.ok
