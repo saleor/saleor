@@ -1,9 +1,12 @@
 from .fields import CreditCardNumberField
 from authorizenet.fields import CreditCardExpiryField
 from django import forms
+from django.conf import settings
 from django.core import validators
 from django.utils.translation import ugettext_lazy as _
-from django.conf import settings
+from payments import get_payment_model
+
+Payment = get_payment_model()
 
 CVV_VALIDATOR = validators.RegexValidator('^[0-9]{1,4}$',
                                           _('Enter a valid security number.'))
@@ -41,3 +44,30 @@ class PaypalForm(forms.Form):
     cmd = forms.CharField(initial='_cart')
     upload = forms.CharField(initial='1')
     charset = forms.CharField(initial='utf-8')
+
+
+class PaymentDeledeForm(forms.Form):
+
+    payment_id = forms.IntegerField(widget=forms.HiddenInput())
+
+    def __init__(self, *args, **kwargs):
+        self.order = kwargs.pop('order')
+        super(PaymentDeledeForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super(PaymentDeledeForm, self).clean()
+        payment_id = cleaned_data.get('payment_id')
+        waiting_payments = self.order.payments.filter(status='waiting')
+        try:
+            payment = waiting_payments.get(id=payment_id)
+        except Payment.DoesNotExist:
+            self._errors['number'] = self.error_class(['Payment does not exist'
+                                                       ])
+        else:
+            cleaned_data['payment'] = payment
+        return cleaned_data
+
+    def save(self):
+        payment = self.cleaned_data['payment']
+        payment.status = 'rejected'
+        payment.save()
