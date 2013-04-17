@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from .forms import (
-    EmailConfirmationFormset,
+    EmailConfirmationForm,
     RequestEmailConfirmationForm,
     LoginForm,
     OAuth2CallbackForm)
@@ -84,18 +84,18 @@ def confirm_email(request, token):
         return TemplateResponse(request, 'registration/invalid_token.html')
 
     if request.method == 'POST':
-        formset = EmailConfirmationFormset(
+        form = EmailConfirmationForm(
             email_confirmation_request=email_confirmation_request,
             data=request.POST)
-        if formset.is_valid():
-            user = formset.get_authenticated_user()
+        if form.is_valid():
+            user = form.get_authenticated_user()
             return _login_user(request, user)
     else:
-        formset = EmailConfirmationFormset(
+        form = EmailConfirmationForm(
             email_confirmation_request=email_confirmation_request)
 
     return TemplateResponse(
-        request, 'registration/set_password.html', {'formset': formset})
+        request, 'registration/set_password.html', {'form': form})
 
 
 def _login_user(request, user):

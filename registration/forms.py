@@ -39,40 +39,21 @@ class RequestEmailConfirmationForm(forms.Form):
         EmailMessage(subject, msg, to=[email]).send()
 
 
-class NoPasswordForm(forms.Form):
-
-    no_password = forms.BooleanField(initial=True, required=False,
-                                     widget=forms.HiddenInput())
-
-    def __init__(self, data):
-        data = data if 'no_password' in data else None
-        super(NoPasswordForm, self).__init__(data=data)
-
-
-class EmailConfirmationFormset(object):
+class EmailConfirmationForm(SetPasswordForm):
 
     def __init__(self, email_confirmation_request, data=None):
         self.email_confirmation_request = email_confirmation_request
-        self.set_password_form = SetPasswordForm(user=None, data=data)
-        self.no_password_form = NoPasswordForm(data=data)
-
-    def no_password(self):
-        return self.no_password_form.cleaned_data.get('no_password')
-
-    def is_valid(self):
-        if self.no_password_form.is_valid() and self.no_password():
-            return True
-        else:
-            return self.set_password_form.is_valid()
+        super(EmailConfirmationForm, self).__init__(
+            user=None, data=data, empty_permitted=True)
 
     def get_authenticated_user(self):
-        user = self.email_confirmation_request.get_or_create_user()
+        self.user = self.email_confirmation_request.get_or_create_user()
         self.email_confirmation_request.delete()
-        if not self.no_password():
-            self.set_password_form.user = user
-            user = self.set_password_form.save()
-        user = authenticate(user=user)
-        return user
+        if self.cleaned_data.get('new_password1'):
+            self.save()
+        else:
+            self.user.set_unusable_password()
+        return authenticate(user=self.user)
 
 
 class OAuth2CallbackForm(forms.Form):
