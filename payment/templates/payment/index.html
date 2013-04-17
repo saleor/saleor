@@ -4,13 +4,13 @@
 {% load gross from prices %}
 
 {% block forms %}
-{% if payments %}
-<ul>
-    {% for payment in payments %}
-        <li>{{ payment }} - {{ payment.status }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
+{% if waiting_payment %}
+<form class="form-inline" method="post" action="{% url 'order:payment:delete' token=order.token %}">
+    {% csrf_token %}
+    {{ waiting_payment }} - {{ waiting_payment.status }} {{ waiting_payment_form }}
+    <button type="submit" class="btn">Delete</button>
+</form>
+{% else %}
 <form method="post" class="form-horizontal">
     {% csrf_token %}
     {{ form|as_bootstrap }}
@@ -20,4 +20,5 @@
         </button>
     </div>
 </form>
+{% endif %}
 {% endblock forms %}

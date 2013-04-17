@@ -2,20 +2,40 @@ from decimal import Decimal
 from django.conf import settings
 from django.contrib import messages
 from django.core.urlresolvers import reverse
-from django.http.response import Http404
-from django.shortcuts import redirect, get_object_or_404
+from django.http.response import Http404, HttpResponseForbidden
+from django.shortcuts import redirect
 from django.template.response import TemplateResponse
-from django.utils.http import urlencode
-from order.models import Order
+from order import check_order_status
 from payment import authorizenet
-from payment.forms import PaymentForm, PaymentMethodsForm
+from payment.forms import PaymentForm, PaymentMethodsForm, PaymentDeledeForm
 from payments import factory, RedirectNeeded, PaymentItem, get_payment_model
 
 Payment = get_payment_model()
 
 
-def authorizenet_payment(request, token):
-    order = get_object_or_404(Order, token=token)
+def get_payment_items_from_order(order):
+    items = [PaymentItem(name=item.product_name, quantity=item.quantity,
+                          price=item.unit_price_gross, sku=item.product.id,
+                          currency=settings.SATCHLESS_DEFAULT_CURRENCY)
+             for item in order.get_items()]
+    return items
+
+
+def get_payment_from_order(variant, order):
+    total = order.get_total()
+    cancel_url = reverse('order:payment:index', kwargs={'token': order.token})
+    success_url = reverse('order:success', kwargs={'token': order.token})
+    try:
+        return order.payments.get(variant=variant, status='waiting')
+    except Payment.DoesNotExist:
+        return Payment(variant=variant, total=total.gross, tax=Decimal(0),
+                       currency=total.currency, order=order,
+                       delivery=order.get_delivery_total().gross,
+                       success_url=success_url, cancel_url=cancel_url)
+
+
+@check_order_status
+def authorizenet_payment(request, order):
     form = PaymentForm(request.POST or None)
     if form.is_valid():
         order.payment_status = 'complete'
@@ -27,41 +47,35 @@ def authorizenet_payment(request, token):
                             {'form': form})
 
 
-def index(request, token):
-    order = get_object_or_404(Order, token=token)
+@check_order_status
+def index(request, order):
     form = PaymentMethodsForm(request.POST or None)
-    if form.is_valid():
+    try:
+        waiting_payment = order.payments.get(status='waiting')
+    except Payment.DoesNotExist:
+        waiting_payment = None
+        waiting_payment_form = None
+    else:
+        waiting_payment_form = PaymentDeledeForm(None, order=order,
+                                                 initial={'payment_id':
+                                                          waiting_payment.id})
+    if form.is_valid() and not waiting_payment:
         payment_method = form.cleaned_data['method']
-        return redirect('order:payment:details', token=token,
+        return redirect('order:payment:details', token=order.token,
                         variant=payment_method)
     return TemplateResponse(request, 'payment/index.html',
-                            {'form': form, 'payments': order.payments.all()})
+                            {'form': form, 'order': order,
+                             'waiting_payment': waiting_payment,
+                             'waiting_payment_form': waiting_payment_form})
 
 
-def get_payment_items_from_order(order):
-    items = [PaymentItem(name=item.product_name, quantity=item.quantity,
-                          price=item.unit_price_gross, sku=item.product.id,
-                          currency=settings.SATCHLESS_DEFAULT_CURRENCY)
-             for item in order.get_items()]
-    return items
-
-
-def get_or_create_payment_from_order(variant, order):
-    total = order.get_total()
-    cancel_url = reverse('order:payment:index', kwargs={'token': order.token})
-    success_url = reverse('order:success', kwargs={'token': order.token})
-    defaults = {'variant': variant, 'total': total.gross, 'tax': Decimal(0),
-                'delivery': order.get_delivery_total().gross,
-                'currency': total.currency,
-                'cancel_url': cancel_url,
-                'success_url': success_url}
-    return order.payments.get_or_create(variant=variant, defaults=defaults)
-
-
-def details(request, token, variant):
-    order = get_object_or_404(Order, token=token)
+@check_order_status
+def details(request, order, variant):
     items = get_payment_items_from_order(order)
-    payment, _created = get_or_create_payment_from_order(variant, order)
+    are_waiting_payments = order.payments.filter(status='waiting').exists()
+    payment = get_payment_from_order(variant, order)
+    if are_waiting_payments:
+        return redirect('order:payment:index', token=order.token)
     try:
         provider = factory(payment, variant, items)
     except ValueError as e:
@@ -71,9 +85,17 @@ def details(request, token, variant):
     except RedirectNeeded as redirect_to:
         return redirect(str(redirect_to))
     if form.is_valid():
-        order.status = 'completed'
-        order.save()
+        payment.save()
         return redirect(form.cleaned_data['next'])
     return TemplateResponse(request, 'payment/%s.html' % variant,
                             {'form': form, 'payment': payment,
                              'provider': provider})
+
+
+@check_order_status
+def delete(request, order):
+    form = PaymentDeledeForm(request.POST or None, order=order)
+    if form.is_valid():
+        form.save()
+        return redirect('order:payment:index', token=order.token)
+    return HttpResponseForbidden()
