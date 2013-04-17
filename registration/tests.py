@@ -226,7 +226,7 @@ class CallbackTestCase(TestCase):
         self.assertEquals(user, sentinel.authed_user)
 
     def test_existing_user(self):
-        """OAuth2 recognizes existing user via external data credentials."""
+        """OAuth2 recognizes existing user via external data credentials"""
         self.authenticate_mock.return_value = sentinel.authed_user
 
         user = self.form.get_authenticated_user()
