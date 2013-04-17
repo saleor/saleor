@@ -1,9 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import resolve
-from django.test import TestCase
 
 from mock import call, Mock, MagicMock, patch, sentinel
 from purl import URL
+from unittest2 import TestCase
 
 from .forms import OAuth2CallbackForm
 from .utils import (
@@ -26,6 +26,7 @@ class LoginUrlsTestCase(TestCase):
     """Tests login url generation."""
 
     def test_facebook_login_url(self):
+        """Facebook login url is properly generated"""
         facebook_client = FacebookClient(local_host='localhost')
         facebook_login_url = URL(facebook_client.get_login_uri())
         query = facebook_login_url.query_params()
@@ -37,6 +38,7 @@ class LoginUrlsTestCase(TestCase):
         self.assertEqual(query['client_id'][0], FacebookClient.client_id)
 
     def test_google_login_url(self):
+        """Google login url is properly generated"""
         google_client = GoogleClient(local_host='local_host')
         google_login_url = URL(google_client.get_login_uri())
         params = google_login_url.query_params()
@@ -54,12 +56,14 @@ class ResponseParsingTestCase(TestCase):
         self.response = MagicMock()
 
     def test_parse_json(self):
+        """OAuth2 client is able to parse json response"""
         self.response.headers = {'Content-Type': JSON_MIME_TYPE}
         self.response.json.return_value = sentinel.json_content
         content = parse_response(self.response)
         self.assertEquals(content, sentinel.json_content)
 
     def test_parse_urlencoded(self):
+        """OAuth2 client is able to parse urlencoded response"""
         self.response.headers = {'Content-Type': URLENCODED_MIME_TYPE}
         self.response.text = 'key=value&multi=a&multi=b'
         content = parse_response(self.response)
@@ -111,11 +115,13 @@ class AccessTokenTestCase(BaseCommunicationTestCase):
         self.requests_mock.post.return_value = self.access_token_response
 
     def test_token_is_obtained_on_construction(self):
+        """OAuth2 client asks for access token if temporary code is available"""
         self.access_token_response.status_code = sentinel.ok
         TestClient(local_host='http://localhost', code=sentinel.code)
         self.requests_mock.post.assert_called_once()
 
     def test_token_success(self):
+        """OAuth2 client properly obtains access token"""
         client = TestClient(local_host='http://localhost')
         self.access_token_response.status_code = sentinel.ok
         access_token = client.get_access_token(code=sentinel.code)
@@ -131,6 +137,7 @@ class AccessTokenTestCase(BaseCommunicationTestCase):
             auth=None)
 
     def test_token_failure(self):
+        """OAuth2 client properly reacts to access token fetch failure"""
         client = TestClient(local_host='http://localhost')
         self.access_token_response.status_code = sentinel.fail
         self.assertRaises(ValueError, client.get_access_token,
@@ -146,7 +153,8 @@ class UserInfoTestCase(BaseCommunicationTestCase):
         self.user_info_response = MagicMock()
         self.requests_mock.get.return_value = self.user_info_response
 
-    def test_user_data_success(self):
+    def test_user_info_success(self):
+        """OAuth2 client properly fetches user info"""
         client = TestClient(local_host='http://localhost')
         self.parse_mock.return_value = sentinel.user_info
         self.user_info_response.status_code = sentinel.ok
@@ -154,16 +162,19 @@ class UserInfoTestCase(BaseCommunicationTestCase):
         self.assertEquals(user_info, sentinel.user_info)
 
     def test_user_data_failure(self):
+        """OAuth2 client reacts well to user info fetch failure"""
         client = TestClient(local_host='http://localhost')
         self.assertRaises(ValueError, client.get_user_info)
 
     def test_google_user_data_email_not_verified(self):
+        """Google OAuth2 client checks for email verification"""
         self.user_info_response.status_code = sentinel.ok
         self.parse_mock.return_value = {'verified_email': False}
         google_client = GoogleClient(local_host='http://localhost')
         self.assertRaises(ValueError, google_client.get_user_info)
 
     def test_facebook_user_data_account_not_verified(self):
+        """Facebook OAuth2 client checks for account verification"""
         self.user_info_response.status_code = sentinel.ok
         self.parse_mock.return_value = {'verified': False}
         facebook_client = FacebookClient(local_host='http://localhost')
@@ -173,6 +184,7 @@ class UserInfoTestCase(BaseCommunicationTestCase):
 class AuthorizerTestCase(TestCase):
 
     def test_authorizes(self):
+        """OAuth2 authorizer sets proper auth headers"""
         authorizer = OAuth2RequestAuthorizer(access_token='token')
         request = Mock(headers={})
         authorizer(request)
