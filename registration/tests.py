@@ -2,9 +2,10 @@ from django.contrib.auth import get_user_model
 from django.core.urlresolvers import resolve
 from django.test import TestCase
 
-from mock import Mock, MagicMock, patch, sentinel
+from mock import call, Mock, MagicMock, patch, sentinel
 from purl import URL
 
+from .forms import OAuth2CallbackForm
 from .utils import (
     FACEBOOK,
     FacebookClient,
@@ -176,3 +177,51 @@ class AuthorizerTestCase(TestCase):
         request = Mock(headers={})
         authorizer(request)
         self.assertEquals('Bearer token', request.headers['Authorization'])
+
+
+class CallbackTestCase(TestCase):
+
+    def setUp(self):
+        patcher = patch('registration.forms.get_client_class_for_service')
+        self.getter_mock = patcher.start()
+        patcher = patch('registration.forms.authenticate')
+        self.authenticate_mock = patcher.start()
+
+        self.client_class = self.getter_mock()
+        self.client = self.client_class()
+        self.client.get_user_info.return_value = {'id': sentinel.id,
+                                                  'email': sentinel.email}
+
+        self.form = OAuth2CallbackForm(service=sentinel.service,
+                                       local_host=sentinel.local_host,
+                                       data={'code': 'test_code'})
+        self.assertTrue(self.form.is_valid(), self.form.errors)
+
+    @patch('registration.forms.ExternalUserData')
+    @patch('registration.forms.User')
+    def test_new_user(self, user_mock, external_data_mock):
+        """OAuth2 callback creates a new user with proper external data"""
+        user_mock.objects.get_or_create.return_value = sentinel.user, None
+        self.authenticate_mock.side_effect = [None, sentinel.authed_user]
+
+        user = self.form.get_authenticated_user()
+
+        self.assertEquals(self.authenticate_mock.mock_calls,
+                          [call(service=sentinel.service, username=sentinel.id),
+                           call(user=sentinel.user)])
+        external_data_mock.objects.create.assert_called_once_with(
+            service=sentinel.service, username=sentinel.id, user=sentinel.user)
+        self.assertEquals(user, sentinel.authed_user)
+
+    def test_existing_user(self):
+        """OAuth2 recognizes existing user via external data credentials."""
+        self.authenticate_mock.return_value = sentinel.authed_user
+
+        user = self.form.get_authenticated_user()
+
+        self.assertEquals(user, sentinel.authed_user)
+        self.authenticate_mock.assert_called_once_with(
+            service=sentinel.service, username=sentinel.id)
+
+    def tearDown(self):
+        patch.stopall()
