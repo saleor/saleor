@@ -118,10 +118,16 @@ class ShippedDeliveryGroup(DeliveryGroup):
 
     address = models.ForeignKey(Address, related_name='+')
 
+    def __unicode__(self):
+        return u'Shipped delivery'
+
 
 class DigitalDeliveryGroup(DeliveryGroup):
 
     email = models.EmailField()
+
+    def __unicode__(self):
+        return u'Digital delivery'
 
 
 class OrderedItem(models.Model, ItemLine):
