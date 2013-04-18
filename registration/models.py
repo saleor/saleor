@@ -31,7 +31,8 @@ class UniqueTokenManager(models.Manager):  # this might end up in `utils`
         assert self.token_field not in kwargs
         for x in xrange(100):
             token = get_random_string(self.token_length)
-            conflict = self.get_query_set().filter(token=token)
+            conflict_filter = {self.token_field: token}
+            conflict = self.get_query_set().filter(**conflict_filter)
             if not conflict.exists():
                 kwargs[self.token_field] = token
                 return super(UniqueTokenManager, self).create(**kwargs)
