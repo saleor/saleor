@@ -9,10 +9,16 @@
     {{ form.non_field_errors|as_bootstrap }}
     {{ form.name|as_bootstrap }}
     {{ form.number|as_bootstrap }}
-    <div class="control-group name required">
+    <div class="control-group name required{% if form.expiration.errors  %} error{% endif %}">
         <label class="control-label">Expiry date</label>
         <div class="controls controls-row">
             {{ form.expiration }}
+            {% if form.expiration.errors  %}
+            <span class="help-inline error">
+                {% for error in form.expiration.errors %}
+                {{ error }}
+                {% endfor %}
+            </span>{% endif %}
         </div>
     </div>
     {{ form.cvv2|as_bootstrap }}
