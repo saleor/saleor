@@ -14,36 +14,38 @@ import datetime
 class Order(models.Model, ItemSet):
 
     STATUS_CHOICES = (
-        ('new', pgettext_lazy('Order status field value', 'new')),
-        ('cancelled', pgettext_lazy('Order status field value', 'cancelled')),
-        ('completed', pgettext_lazy('Order status field value', 'completed')))
+        ('new', pgettext_lazy(u'Order status field value', u'new')),
+        ('cancelled', pgettext_lazy(u'Order status field value',
+                                    u'cancelled')),
+        ('completed', pgettext_lazy(u'Order status field value',
+                                    u'completed')))
     PAYMENT_STATUS_CHOICES = (
-        ('initial', pgettext_lazy('Order status payment field value',
-                                  'initial')),
-        ('pending', pgettext_lazy('Order status payment field value',
-                                  'pending')),
-        ('complete', pgettext_lazy('Order status payment field value',
-                                  'complete')),
-        ('failed', pgettext_lazy('Order status payment field value',
-                                  'failed')))
+        ('initial', pgettext_lazy(u'Order status payment field value',
+                                  u'initial')),
+        ('pending', pgettext_lazy(u'Order status payment field value',
+                                  u'pending')),
+        ('complete', pgettext_lazy(u'Order status payment field value',
+                                  u'complete')),
+        ('failed', pgettext_lazy(u'Order status payment field value',
+                                  u'failed')))
     status = models.CharField(
-        pgettext_lazy('Order field', 'order status'),
+        pgettext_lazy(u'Order field', u'order status'),
         max_length=32, choices=STATUS_CHOICES, default='new')
     payment_status = models.CharField(
-        pgettext_lazy('Order field', 'order payment status'),
+        pgettext_lazy(u'Order field', u'order payment status'),
         max_length=32, choices=PAYMENT_STATUS_CHOICES, default='initial')
     created = models.DateTimeField(
-        pgettext_lazy('Order field', 'created'),
+        pgettext_lazy(u'Order field', u'created'),
         default=datetime.datetime.now, editable=False)
     last_status_change = models.DateTimeField(
-        pgettext_lazy('Order field', 'last status change'),
+        pgettext_lazy(u'Order field', u'last status change'),
         default=datetime.datetime.now, editable=False)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='+',
-        verbose_name=pgettext_lazy('Order field', 'user'))
+        verbose_name=pgettext_lazy(u'Order field', u'user'))
     billing_address = models.ForeignKey(Address)
     token = models.CharField(
-        pgettext_lazy('Order field', 'token'),
+        pgettext_lazy(u'Order field', u'token'),
         max_length=36, blank=True, default='')
 
     class Meta:
@@ -91,9 +93,9 @@ class Order(models.Model, ItemSet):
 
 class DeliveryGroup(Subtyped, ItemSet):
 
-    order = models.ForeignKey('order', related_name='groups', editable=False)
+    order = models.ForeignKey(Order, related_name='groups', editable=False)
     price = PriceField(
-        pgettext_lazy('DeliveryGroup field', 'unit price'),
+        pgettext_lazy(u'DeliveryGroup field', u'unit price'),
         currency=settings.SATCHLESS_DEFAULT_CURRENCY, max_digits=12,
         decimal_places=4,
         default=0,
@@ -139,17 +141,17 @@ class OrderedItem(models.Model, ItemLine):
     product = models.ForeignKey(
         Product, blank=True, null=True, related_name='+',
         on_delete=models.SET_NULL,
-        verbose_name=pgettext_lazy('OrderedItem field', 'product'))
+        verbose_name=pgettext_lazy(u'OrderedItem field', u'product'))
     product_name = models.CharField(
-        pgettext_lazy('OrderedItem field', 'product name'), max_length=128)
+        pgettext_lazy(u'OrderedItem field', u'product name'), max_length=128)
     quantity = models.DecimalField(
-        pgettext_lazy('OrderedItem field', 'quantity'),
+        pgettext_lazy(u'OrderedItem field', u'quantity'),
         max_digits=10, decimal_places=4)
     unit_price_net = models.DecimalField(
-        pgettext_lazy('OrderedItem field', 'unit price (net)'),
+        pgettext_lazy(u'OrderedItem field', u'unit price (net)'),
         max_digits=12, decimal_places=4)
     unit_price_gross = models.DecimalField(
-        pgettext_lazy('OrderedItem field', 'unit price (gross)'),
+        pgettext_lazy(u'OrderedItem field', u'unit price (gross)'),
         max_digits=12, decimal_places=4)
 
     def get_price_per_item(self, **kwargs):
@@ -161,4 +163,3 @@ class OrderedItem(models.Model, ItemLine):
 
     def __unicode__(self):
         return self.product_name
-
