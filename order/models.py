@@ -31,9 +31,6 @@ class Order(models.Model, ItemSet):
     status = models.CharField(
         pgettext_lazy(u'Order field', u'order status'),
         max_length=32, choices=STATUS_CHOICES, default='new')
-    payment_status = models.CharField(
-        pgettext_lazy(u'Order field', u'order payment status'),
-        max_length=32, choices=PAYMENT_STATUS_CHOICES, default='initial')
     created = models.DateTimeField(
         pgettext_lazy(u'Order field', u'created'),
         default=datetime.datetime.now, editable=False)
