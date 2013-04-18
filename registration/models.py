@@ -28,7 +28,7 @@ class UniqueTokenManager(models.Manager):  # this might end up in `utils`
         super(UniqueTokenManager, self).__init__()
 
     def create(self, **kwargs):
-        assert self.token_field not in kwargs
+        assert self.token_field not in kwargs, u'Token field already filled.'
         for x in xrange(100):
             token = get_random_string(self.token_length)
             conflict_filter = {self.token_field: token}
