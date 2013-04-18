@@ -40,7 +40,7 @@ class Order(models.Model, ItemSet):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='+',
         verbose_name=pgettext_lazy(u'Order field', u'user'))
-    billing_address = models.ForeignKey(Address)
+    billing_address = models.ForeignKey(Address, related_name='+')
     token = models.CharField(
         pgettext_lazy(u'Order field', u'token'),
         max_length=36, blank=True, default='')
@@ -123,7 +123,7 @@ class DeliveryGroup(Subtyped, ItemSet):
 
 class ShippedDeliveryGroup(DeliveryGroup):
 
-    address = models.ForeignKey(Address)
+    address = models.ForeignKey(Address, related_name='+')
 
 
 class DigitalDeliveryGroup(DeliveryGroup):
