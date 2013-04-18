@@ -1,15 +1,8 @@
 #! /usr/bin/env python
 from setuptools import setup, find_packages, Command
-from setuptools.command.test import test
 import os
 
-
 os.environ['DJANGO_SETTINGS_MODULE'] = 'saleor.settings'
-
-
-class Test(test):
-    def run(self):
-        return test.run(self)
 
 
 class Command(Command):
@@ -40,10 +33,7 @@ setup(
         'satchless>=1.0a0,<1.1a0',
         'South>=0.7.6',
         'unidecode',
-        'oauth2client>=1.1',
-        'httplib2>=0.8',
-        'purl>=0.4.1',
-        "facebook-sdk>=0.4.0"],
+        'requests>=1.2.0'],
     extras_require={
         'lint': ['pylint==0.26.0', 'django-lint==dev']},
     dependency_links=[
@@ -52,11 +42,9 @@ setup(
     entry_points={
         'console_scripts': ['saleor = saleor:manage']},
     cmdclass={
-        'lint': Lint,
-        'test': Test},
+        'lint': Lint},
     tests_require=[
-        'coverage==3.6',
         'mock==1.0.1',
-        'httpretty>=0.5.10',
-        'nose==1.2.1'],
-    test_suite='nose.collector')
+        'purl>=0.4.1',
+        'unittest2'],
+    test_suite='unittest2.collector')

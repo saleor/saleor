@@ -1,164 +1,105 @@
-from datetime import datetime
-
-from django.contrib.auth.views import (
-    login as django_login_view, logout as django_logout,
-)
-from django.http import HttpResponseNotFound, HttpResponseBadRequest
-from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import SetPasswordForm
-from django.template.response import TemplateResponse
+from django.conf import settings
+from django.contrib.auth.views import login as django_login_view
 from django.contrib import messages
+from django.contrib.auth import (
+    login as auth_login,
+    logout as auth_logout,
+    get_user_model)
 from django.shortcuts import redirect
-from django.contrib.auth import login as auth_login, authenticate
-from django.core.urlresolvers import reverse
-from django.core.mail.message import EmailMessage
+from django.template.response import TemplateResponse
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 
-from .forms import LoginForm, EmailForm
-from .models import ExternalUserData, EmailConfirmation
+from .forms import (
+    EmailConfirmationForm,
+    RequestEmailConfirmationForm,
+    LoginForm,
+    OAuth2CallbackForm)
+from .models import EmailConfirmationRequest
 from .utils import (
-    facebook_callback,
-    google_callback,
-    get_google_login_url,
     get_facebook_login_url,
-    get_email_confirmation_message,
-)
+    get_google_login_url,
+    get_local_host)
 
 User = get_user_model()
-now = datetime.now
+now = timezone.now
 
 
 def login(request):
-    ctx = {
-        'facebook_login_url': get_facebook_login_url(),
-        'google_login_url': get_google_login_url()
-    }
+    local_host = get_local_host(request)
+    ctx = {'facebook_login_url': get_facebook_login_url(local_host),
+           'google_login_url': get_google_login_url(local_host)}
     return django_login_view(request, authentication_form=LoginForm,
                              extra_context=ctx)
 
 
 def logout(request):
-    return django_logout(request, template_name='registration/logout.html')
+    auth_logout(request)
+    messages.success(request, _('You have been successfully logged out.'))
+    return redirect(settings.LOGIN_REDIRECT_URL)
 
 
 def oauth_callback(request, service):
-    if service == 'facebook':
-        email, external_username = facebook_callback(request.GET)
-    elif service == 'google':
-        email, external_username = google_callback(request.GET)
+    local_host = get_local_host(request)
+    form = OAuth2CallbackForm(service=service, local_host=local_host,
+                              data=request.GET)
+    if form.is_valid():
+        try:
+            user = form.get_authenticated_user()
+            return _login_user(request, user)
+        except ValueError, e:
+            messages.error(request, unicode(e))
     else:
-        return HttpResponseNotFound()
-
-    if not external_username:
-        messages.warning(
-            request,
-            "Failed to retrieve user information from external service."
-            " Please try again.")
-        return redirect(reverse('registration:login'))
-
-    user = authenticate(external_service=service,
-                        external_username=external_username)
-
-    if user:
-        auth_login(request, user)
-        messages.success(
-            request,
-            "You have been successfully logged in.")
-        return redirect('home')
-    else:
-        request.session['confirmed_email'] = email
-        request.session['external_service'] = service
-        request.session['external_username'] = external_username
-
-        return redirect('registration:register')
+        for _field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, error)
+    return redirect('registration:login')
 
 
-def register(request):
-    if request.method == 'GET':
-        email = request.session.get('confirmed_email', None)
-        form = EmailForm({'email': email} if email else None)
-
+def request_email_confirmation(request):
+    local_host = get_local_host(request)
     if request.method == 'POST':
-        form = EmailForm(request.POST)
+        form = RequestEmailConfirmationForm(local_host=local_host,
+                                            data=request.POST)
         if form.is_valid():
-            submitted_email = form.cleaned_data['email']
-            confirmed_email = request.session.pop('confirmed_email', '')
-            try:
-                external_user_data = {
-                    'username': request.session.pop(
-                        'external_username'),
-                    'provider': request.session.pop('external_service')
-                }
-            except KeyError:
-                external_user = None
-            else:
-                external_user, _ = ExternalUserData.objects.get_or_create(
-                    **external_user_data)
+            form.send()
+            msg = _('Confirmation email has been sent. '
+                    'Please check your inbox.')
+            messages.success(request, msg)
+            return redirect(settings.LOGIN_REDIRECT_URL)
+    else:
+        form = RequestEmailConfirmationForm(local_host=local_host)
 
-            if submitted_email == confirmed_email:
-                if not external_user:
-                    # TODO: this should never happen unless sb is hacking
-                    return HttpResponseBadRequest()
-                user, _ = User.objects.get_or_create(email=submitted_email)
-                if external_user and not external_user.user:
-                    external_user.user = user
-                    external_user.save()
-                user = authenticate(user=user)
-                auth_login(request, user)
-                messages.success(
-                    request,
-                    "You have been successfully logged in.")
-            else:
-                email_confirmation = EmailConfirmation.objects.create(
-                    email=submitted_email, external_user=external_user)
-                message = get_email_confirmation_message(
-                    request, email_confirmation)
-                subject = "[Saleor] Email confirmation"
-                EmailMessage(subject, message, to=[submitted_email]).send()
-                messages.warning(
-                    request,
-                    "We have sent you a confirmation email. "
-                    "Please check your email.")
-            return redirect('home')
-
-    return TemplateResponse(request, 'registration/register.html',
+    return TemplateResponse(request,
+                            'registration/request_email_confirmation.html',
                             {'form': form})
 
 
-def confirm_email(request, pk, token):
+def confirm_email(request, token):
     try:
-        email_confirmation = EmailConfirmation.objects.get(
-            pk=pk, token=token, valid_until__gte=now())
+        email_confirmation_request = EmailConfirmationRequest.objects.get(
+            token=token, valid_until__gte=now())
         # TODO: cronjob (celery task) to delete stale tokens
-    except EmailConfirmation.DoesNotExist:
+    except EmailConfirmationRequest.DoesNotExist:
         return TemplateResponse(request, 'registration/invalid_token.html')
 
-    proceed = False
-    password = None
-
-    if request.method == 'GET':
-        form = SetPasswordForm(user=None)
-    elif request.method == 'POST':
-        if "nopassword" in request.POST:
-            proceed = True
-        else:
-            form = SetPasswordForm(user=None, data=request.POST)
-            if form.is_valid():
-                proceed = True
-                password = form.cleaned_data['new_password1']
-
-    if proceed:
-        user = email_confirmation.get_confirmed_user()
-        if password:
-            user.set_password(password)
-            user.save()
-        email_confirmation.delete()
-
-        user = authenticate(user=user)
-        auth_login(request, user)
-        messages.success(
-            request,
-            "You have been successfully logged in, %s" % user.email)
-        return redirect('home')
+    if request.method == 'POST':
+        form = EmailConfirmationForm(
+            email_confirmation_request=email_confirmation_request,
+            data=request.POST)
+        if form.is_valid():
+            user = form.get_authenticated_user()
+            return _login_user(request, user)
     else:
-        return TemplateResponse(
-            request, "registration/set_password.html", {"form": form})
+        form = EmailConfirmationForm(
+            email_confirmation_request=email_confirmation_request)
+
+    return TemplateResponse(
+        request, 'registration/set_password.html', {'form': form})
+
+
+def _login_user(request, user):
+    auth_login(request, user)
+    msg = _('You have been successfully logged in.')
+    messages.success(request, msg)
+    return redirect(settings.LOGIN_REDIRECT_URL)

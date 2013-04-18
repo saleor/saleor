@@ -7,8 +7,8 @@ from django.contrib.auth.hashers import (check_password, make_password,
                                          is_password_usable)
 from django.contrib.auth.models import BaseUserManager
 from django.db import models
-from django.utils.translation import ugettext_lazy
 from django.utils import timezone
+from django.utils.translation import ugettext_lazy
 from saleor.countries import COUNTRY_CHOICES
 
 
@@ -78,17 +78,22 @@ class Address(models.Model):
 
 class UserManager(BaseUserManager):
 
+    def get_or_create(self, **kwargs):
+        defaults = kwargs.pop('defaults', {})
+        try:
+            return self.get_query_set().get(**kwargs), False
+        except self.model.DoesNotExist:
+            defaults.update(kwargs)
+            return self.create_user(**defaults), True
+
     def create_user(self, email, password=None, is_staff=False,
                     is_active=True, **extra_fields):
-        '''
-        Creates and saves a User with the given username, email and password.
-        '''
-        now = timezone.now()
+        'Creates a User with the given username, email and password'
         email = UserManager.normalize_email(email)
-        user = self.model(email=email, is_active=is_active, is_staff=is_staff,
-                          last_login=now, date_joined=now, **extra_fields)
-
-        user.set_password(password)
+        user = self.model(
+            email=email, is_active=is_active, is_staff=is_staff, **extra_fields)
+        if password:
+            user.set_password(password)
         user.save()
         return user
 
@@ -170,7 +175,5 @@ class User(models.Model):
         return is_password_usable(self.password)
 
     def email_user(self, subject, message, from_email=None):
-        """
-        Sends an email to this User.
-        """
+        'Sends an email to this User'
         send_mail(subject, message, from_email, [self.email])
