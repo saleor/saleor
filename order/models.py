@@ -17,17 +17,10 @@ class Order(models.Model, ItemSet):
         ('new', pgettext_lazy(u'Order status field value', u'new')),
         ('cancelled', pgettext_lazy(u'Order status field value',
                                     u'cancelled')),
+        ('payment', pgettext_lazy(u'Order status field value',
+                                    u'payment')),
         ('completed', pgettext_lazy(u'Order status field value',
                                     u'completed')))
-    PAYMENT_STATUS_CHOICES = (
-        ('initial', pgettext_lazy(u'Order status payment field value',
-                                  u'initial')),
-        ('pending', pgettext_lazy(u'Order status payment field value',
-                                  u'pending')),
-        ('complete', pgettext_lazy(u'Order status payment field value',
-                                  u'complete')),
-        ('failed', pgettext_lazy(u'Order status payment field value',
-                                  u'failed')))
     status = models.CharField(
         pgettext_lazy(u'Order field', u'order status'),
         max_length=32, choices=STATUS_CHOICES, default='new')
@@ -73,7 +66,7 @@ class Order(models.Model, ItemSet):
         return '<Order #%r>' % (self.id,)
 
     def __unicode__(self):
-        return self.token
+        return u'#%d %s' % (self.id, self.status)
 
     @property
     def billing_full_name(self):
