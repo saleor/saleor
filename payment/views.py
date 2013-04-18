@@ -1,13 +1,11 @@
 from decimal import Decimal
 from django.conf import settings
-from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http.response import Http404, HttpResponseForbidden
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from order import check_order_status
-from payment import authorizenet
-from payment.forms import PaymentForm, PaymentMethodsForm, PaymentDeledeForm
+from payment.forms import PaymentMethodsForm, PaymentDeledeForm
 from payments import factory, RedirectNeeded, PaymentItem, get_payment_model
 
 Payment = get_payment_model()
@@ -32,19 +30,6 @@ def get_payment_from_order(variant, order):
                        currency=total.currency, order=order,
                        delivery=order.get_delivery_total().gross,
                        success_url=success_url, cancel_url=cancel_url)
-
-
-@check_order_status
-def authorizenet_payment(request, order):
-    form = PaymentForm(request.POST or None)
-    if form.is_valid():
-        order.payment_status = 'complete'
-        order.save()
-        messages.success(request, 'Your order was successfully processed')
-        authorizenet(order, form.cleaned_data)
-        return redirect('home')
-    return TemplateResponse(request, 'payment/authorizenet.html',
-                            {'form': form})
 
 
 @check_order_status

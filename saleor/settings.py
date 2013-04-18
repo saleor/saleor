@@ -92,7 +92,6 @@ INSTALLED_APPS = [
     'south',
     'django_prices',
     'mptt',
-    'authorizenet',
     'payments',
 
     # Local apps

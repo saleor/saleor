@@ -1,5 +1,4 @@
-from .fields import CreditCardNumberField
-from authorizenet.fields import CreditCardExpiryField
+from .fields import CreditCardNumberField, CreditCardExpiryField
 from django import forms
 from django.conf import settings
 from django.core import validators

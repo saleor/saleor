@@ -3,6 +3,7 @@ from django import forms
 from django.core import validators
 from django.utils.translation import ugettext_lazy as _
 from datetime import datetime
+from calendar import monthrange
 import re
 
 
@@ -44,20 +45,68 @@ class CreditCardNumberField(forms.CharField):
         return sum(digits) % 10 == 0 if digits else False
 
 
-class CreditCardExpirationYearField(forms.ChoiceField):
+# Credit Card Expiry Fields from:
+# http://www.djangosnippets.org/snippets/907/
+class CreditCardExpiryWidget(forms.MultiWidget):
+    """MultiWidget for representing credit card expiry date."""
+    def decompress(self, value):
+        if value:
+            return [value.month, value.year]
+        else:
+            return [None, None]
+
+    def format_output(self, rendered_widgets):
+        html = u' / '.join(rendered_widgets)
+        return u'<span style="white-space: nowrap">%s</span>' % html
+
+
+# From https://github.com/zen4ever/django-authorizenet
+class CreditCardExpiryField(forms.MultiValueField):
+    EXP_MONTH = [(x, "%02d" % x) for x in xrange(1, 13)]
+    EXP_YEAR = [(x, x) for x in xrange(datetime.today().year,
+                                       datetime.today().year + 15)]
+
+    default_error_messages = {
+        'invalid_month': u'Enter a valid month.',
+        'invalid_year': u'Enter a valid year.',
+    }
 
     def __init__(self, *args, **kwargs):
-        current_year = datetime.now().year
-        kwargs['choices'] = [(year, year) for year in
-                             xrange(current_year, current_year + 11)]
-        super(CreditCardExpirationYearField, self).__init__(*args, **kwargs)
+        errors = self.default_error_messages.copy()
+        if 'error_messages' in kwargs:
+            errors.update(kwargs['error_messages'])
 
+        fields = (
+            forms.ChoiceField(
+                choices=self.EXP_MONTH,
+                error_messages={'invalid': errors['invalid_month']}),
+            forms.ChoiceField(
+                choices=self.EXP_YEAR,
+                error_messages={'invalid': errors['invalid_year']}),
+        )
 
-class CreditCardExpirationMonthField(forms.ChoiceField):
+        super(CreditCardExpiryField, self).__init__(fields, *args, **kwargs)
+        self.widget = CreditCardExpiryWidget(widgets=[fields[0].widget,
+                                                      fields[1].widget])
 
-    def __init__(self, *args, **kwargs):
-        kwargs['choices'] = [(month, '%.2d' % (month, )) for month in
-                             xrange(1, 13)]
-        super(CreditCardExpirationMonthField, self).__init__(*args, **kwargs)
+    def clean(self, value):
+        exp = super(CreditCardExpiryField, self).clean(value)
+        if datetime.today() > exp:
+            raise forms.ValidationError(
+                "The expiration date you entered is in the past.")
+        return exp
 
-
+    def compress(self, data_list):
+        if data_list:
+            if data_list[1] in forms.fields.EMPTY_VALUES:
+                error = self.error_messages['invalid_year']
+                raise forms.ValidationError(error)
+            if data_list[0] in forms.fields.EMPTY_VALUES:
+                error = self.error_messages['invalid_month']
+                raise forms.ValidationError(error)
+            year = int(data_list[1])
+            month = int(data_list[0])
+            # find last day of the month
+            day = monthrange(year, month)[1]
+            return datetime.date(year, month, day)
+        return None
