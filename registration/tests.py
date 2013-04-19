@@ -5,7 +5,7 @@ from mock import call, Mock, MagicMock, patch, sentinel
 from purl import URL
 from unittest2 import TestCase
 
-from .forms import EmailConfirmationForm, OAuth2CallbackForm
+from .forms import RegisterOrResetPasswordForm, OAuth2CallbackForm
 from .utils import (
     FACEBOOK,
     FacebookClient,
@@ -27,7 +27,7 @@ class LoginUrlsTestCase(TestCase):
 
     def test_facebook_login_url(self):
         """Facebook login url is properly generated"""
-        facebook_client = FacebookClient(local_host='localhost')
+        facebook_client = FacebookClient(base_url='localhost')
         facebook_login_url = URL(facebook_client.get_login_uri())
         query = facebook_login_url.query_params()
         callback_url = URL(query['redirect_uri'][0])
@@ -39,7 +39,7 @@ class LoginUrlsTestCase(TestCase):
 
     def test_google_login_url(self):
         """Google login url is properly generated"""
-        google_client = GoogleClient(local_host='local_host')
+        google_client = GoogleClient(base_url='local_host')
         google_login_url = URL(google_client.get_login_uri())
         params = google_login_url.query_params()
         callback_url = URL(params['redirect_uri'][0])
@@ -117,12 +117,12 @@ class AccessTokenTestCase(BaseCommunicationTestCase):
     def test_token_is_obtained_on_construction(self):
         """OAuth2 client asks for access token if temporary code is available"""
         self.access_token_response.status_code = sentinel.ok
-        TestClient(local_host='http://localhost', code=sentinel.code)
+        TestClient(base_url='http://localhost', code=sentinel.code)
         self.requests_mock.post.assert_called_once()
 
     def test_token_success(self):
         """OAuth2 client properly obtains access token"""
-        client = TestClient(local_host='http://localhost')
+        client = TestClient(base_url='http://localhost')
         self.access_token_response.status_code = sentinel.ok
         access_token = client.get_access_token(code=sentinel.code)
         self.assertEquals(access_token, sentinel.access_token)
@@ -138,7 +138,7 @@ class AccessTokenTestCase(BaseCommunicationTestCase):
 
     def test_token_failure(self):
         """OAuth2 client properly reacts to access token fetch failure"""
-        client = TestClient(local_host='http://localhost')
+        client = TestClient(base_url='http://localhost')
         self.access_token_response.status_code = sentinel.fail
         self.assertRaises(ValueError, client.get_access_token,
                           code=sentinel.code)
@@ -155,7 +155,7 @@ class UserInfoTestCase(BaseCommunicationTestCase):
 
     def test_user_info_success(self):
         """OAuth2 client properly fetches user info"""
-        client = TestClient(local_host='http://localhost')
+        client = TestClient(base_url='http://localhost')
         self.parse_mock.return_value = sentinel.user_info
         self.user_info_response.status_code = sentinel.ok
         user_info = client.get_user_info()
@@ -163,21 +163,21 @@ class UserInfoTestCase(BaseCommunicationTestCase):
 
     def test_user_data_failure(self):
         """OAuth2 client reacts well to user info fetch failure"""
-        client = TestClient(local_host='http://localhost')
+        client = TestClient(base_url='http://localhost')
         self.assertRaises(ValueError, client.get_user_info)
 
     def test_google_user_data_email_not_verified(self):
         """Google OAuth2 client checks for email verification"""
         self.user_info_response.status_code = sentinel.ok
         self.parse_mock.return_value = {'verified_email': False}
-        google_client = GoogleClient(local_host='http://localhost')
+        google_client = GoogleClient(base_url='http://localhost')
         self.assertRaises(ValueError, google_client.get_user_info)
 
     def test_facebook_user_data_account_not_verified(self):
         """Facebook OAuth2 client checks for account verification"""
         self.user_info_response.status_code = sentinel.ok
         self.parse_mock.return_value = {'verified': False}
-        facebook_client = FacebookClient(local_host='http://localhost')
+        facebook_client = FacebookClient(base_url='http://localhost')
         self.assertRaises(ValueError, facebook_client.get_user_info)
 
 
@@ -248,7 +248,7 @@ class EmailConfirmationTestCase(TestCase):
         authenticate_mock.return_value = sentinel.authed_user
         email_confirmation_request = Mock()
         email_confirmation_request.get_or_create_user.return_value = user
-        form = EmailConfirmationForm(
+        form = RegisterOrResetPasswordForm(
             email_confirmation_request=email_confirmation_request,
             data={'new_password1': 'pass', 'new_password2': 'pass'})
         self.assertTrue(form.is_valid(), form.errors)
@@ -264,7 +264,7 @@ class EmailConfirmationTestCase(TestCase):
         authenticate_mock.return_value = sentinel.authed_user
         email_confirmation_request = Mock()
         email_confirmation_request.get_or_create_user.return_value = user
-        form = EmailConfirmationForm(
+        form = RegisterOrResetPasswordForm(
             email_confirmation_request=email_confirmation_request,
             data={})
         self.assertTrue(form.is_valid(), form.errors)

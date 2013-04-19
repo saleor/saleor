@@ -53,8 +53,18 @@ class EmailConfirmationRequest(models.Model):
 
     def get_or_create_user(self):
         user, _created = User.objects.get_or_create(email=self.email)
+        EmailConfirmationRequest.objects.filter(email=self.email).delete()
         return user
 
     def get_confirmation_url(self):
         return reverse('registration:confirm_email',
+                       kwargs={'token': self.token})
+
+
+class EmailChangeRequest(EmailConfirmationRequest):
+
+    user = models.ForeignKey(User, related_name="email_change_requests")
+
+    def get_confirmation_url(self):
+        return reverse('registration:change_email',
                        kwargs={'token': self.token})
