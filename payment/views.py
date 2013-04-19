@@ -21,15 +21,12 @@ def get_payment_items_from_order(order):
 
 def get_payment_from_order(variant, order):
     total = order.get_total()
-    cancel_url = reverse('order:payment:index', kwargs={'token': order.token})
-    success_url = reverse('order:success', kwargs={'token': order.token})
     try:
         return order.payments.get(variant=variant, status='waiting')
     except Payment.DoesNotExist:
         return Payment(variant=variant, total=total.gross, tax=Decimal(0),
                        currency=total.currency, order=order,
-                       delivery=order.get_delivery_total().gross,
-                       success_url=success_url, cancel_url=cancel_url)
+                       delivery=order.get_delivery_total().gross)
 
 
 @check_order_status

@@ -177,16 +177,5 @@ GOOGLE_SECRET = "YOUR_GOOGLE_APP_SECRET"
 PAYMENT_MODEL = "payment.Payment"
 
 PAYMENT_VARIANTS = {
-    'paypal': ('payments.paypal.PaypalProvider', {
-        'endpoint': 'CHANGEME',
-        'client_id': 'CHANGEME',
-        'secret': 'CHANGEME'
-    },
-    ),
-    'paypal-card': ('CHANGEME', {
-        'endpoint': 'CHANGEME',
-        'client_id': 'CHANGEME',
-        'secret': 'CHANGEME'
-    },
-    ),
+    'default': ('payments.dummy.DummyProvider', {'url': 'http://google.pl/'})
 }
