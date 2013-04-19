@@ -66,5 +66,8 @@ class RenderBlocksTestCase(TestCase):
         get_template_mock.return_value = [html_block, some_block, non_block]
         blocks = render_blocks(template_name=sentinel.template_name,
                                context=sentinel.context)
-        self.assertEquals(blocks, {HTML: html_block.render()})
         context_mock.assert_called_once_with(sentinel.context)
+        html_block.render.assert_called_once_with(context_mock())
+        some_block.render.assert_not_called()
+        non_block.render.assert_not_called()
+        self.assertEquals(blocks, {HTML: html_block.render()})
