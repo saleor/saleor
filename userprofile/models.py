@@ -173,7 +173,3 @@ class User(models.Model):
 
     def has_usable_password(self):
         return is_password_usable(self.password)
-
-    def email_user(self, subject, message, from_email=None):
-        'Sends an email to this User'
-        send_mail(subject, message, from_email, [self.email])
