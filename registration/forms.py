@@ -1,15 +1,12 @@
 from django import forms
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
-from django.core.mail.message import EmailMessage
-from django.core.urlresolvers import reverse
-from django.template.loader import render_to_string
 from django.utils.translation import ugettext_lazy as _
 
 from .models import EmailConfirmationRequest, ExternalUserData
 from .utils import get_client_class_for_service
 
-import urlparse
+from communication.mail import send_email
 
 User = get_user_model()
 
@@ -29,14 +26,10 @@ class RequestEmailConfirmationForm(forms.Form):
 
     def send(self):
         email = self.cleaned_data['email']
-        EmailConfirmationRequest.objects.filter(email=email).delete()
         request = EmailConfirmationRequest.objects.create(email=email)
-        path = reverse('registration:confirm_email',
-                       kwargs={'token': request.token})
-        context = {'confirmation_url': urlparse.urljoin(self.local_host, path)}
-        msg = render_to_string('registration/email/confirm_email.txt', context)
-        subject = _('Email confirmation')
-        EmailMessage(subject, msg, to=[email]).send()
+        confirmation_url = self.local_host + request.get_confirmation_url()
+        context = {'confirmation_url': confirmation_url}
+        send_email(email, 'registration/emails/confirm_email.txt', context)
 
 
 class EmailConfirmationForm(SetPasswordForm):
