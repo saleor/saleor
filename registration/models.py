@@ -54,6 +54,7 @@ class EmailConfirmationRequest(models.Model):
     def get_or_create_user(self):
         user, _created = User.objects.get_or_create(email=self.email)
         EmailConfirmationRequest.objects.filter(email=self.email).delete()
+        EmailChangeRequestManager.objects.filter(email=self.email).delete()
         return user
 
     def get_confirmation_url(self):
