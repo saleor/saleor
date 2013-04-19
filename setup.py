@@ -33,11 +33,13 @@ setup(
         'satchless>=1.0a0,<1.1a0',
         'South>=0.7.6',
         'unidecode',
-        'requests>=1.2.0'],
+        'requests>=1.2.0',
+        'django-payments>=2013.2'],
     extras_require={
         'lint': ['pylint==0.26.0', 'django-lint==dev']},
     dependency_links=[
-        'http://github.com/mirumee/satchless/tarball/django-removal#egg=satchless-2013.2a',
+        'http://github.com/mirumee/django-payments/tarball/paypal#egg=django-payments-2013.2',
+        'http://github.com/mirumee/satchless/tarball/django-removal#egg=satchless-1.0a0',
         'http://github.com/lamby/django-lint/tarball/master#egg=django-lint-dev'],
     entry_points={
         'console_scripts': ['saleor = saleor:manage']},

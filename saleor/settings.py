@@ -158,7 +158,7 @@ AUTH_USER_MODEL = 'userprofile.User'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-WARN_ABOUT_INVALID_HTML5_OUTPUT = True
+WARN_ABOUT_INVALID_HTML5_OUTPUT = False
 
 SATCHLESS_DEFAULT_CURRENCY = 'USD'
 
@@ -173,3 +173,20 @@ FACEBOOK_SECRET = "YOUR_FACEBOOK_APP_SECRET"
 GOOGLE_CLIENT_ID = "YOUR_GOOGLE_APP_ID"
 
 GOOGLE_SECRET = "YOUR_GOOGLE_APP_SECRET"
+
+PAYMENT_MODEL = "payment.Payment"
+
+PAYMENT_VARIANTS = {
+    'paypal': ('payments.paypal.PaypalProvider', {
+        'endpoint': 'CHANGEME',
+        'client_id': 'CHANGEME',
+        'secret': 'CHANGEME'
+    },
+    ),
+    'paypal-card': ('CHANGEME', {
+        'endpoint': 'CHANGEME',
+        'client_id': 'CHANGEME',
+        'secret': 'CHANGEME'
+    },
+    ),
+}
