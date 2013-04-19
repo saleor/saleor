@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
@@ -53,3 +54,7 @@ class EmailConfirmationRequest(models.Model):
     def get_or_create_user(self):
         user, _created = User.objects.get_or_create(email=self.email)
         return user
+
+    def get_confirmation_url(self):
+        return reverse('registration:confirm_email',
+                       kwargs={'token': self.token})
