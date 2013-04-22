@@ -1,4 +1,5 @@
 from .forms import ManagementForm, DigitalDeliveryForm, DeliveryForm
+from checkout.forms import AnonymousEmailForm
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.shortcuts import redirect
@@ -67,9 +68,17 @@ class BaseShippingStep(BaseCheckoutStep):
 
 class BillingAddressStep(BaseShippingStep):
 
+    template = 'checkout/billing.html'
+    anonymous_user_email = None
+
     def __init__(self, checkout, request):
         address = checkout.billing_address or Address()
         super(BillingAddressStep, self).__init__(checkout, request, address)
+        if not request.user.is_authenticated():
+            self.anonymous_user_email = self.checkout.anonymous_user_email
+            initial = {'email': self.anonymous_user_email}
+            self.forms['anonymous'] = AnonymousEmailForm(request.POST or None,
+                                                         initial=initial)
 
     def __str__(self):
         return 'billing-address'
@@ -77,14 +86,31 @@ class BillingAddressStep(BaseShippingStep):
     def __unicode__(self):
         return u'Billing Address'
 
+    def forms_are_valid(self):
+        forms_are_valid = super(BillingAddressStep, self).forms_are_valid()
+        if 'anonymous' not in self.forms:
+            return forms_are_valid
+        anonymous_form = self.forms['anonymous']
+        if forms_are_valid and anonymous_form.is_valid():
+            self.anonymous_user_email = anonymous_form.cleaned_data['email']
+            return True
+        return False
+
     def save(self):
+        self.checkout.anonymous_user_email = self.anonymous_user_email
         self.checkout.billing_address = self.address
         self.checkout.save()
 
     def add_to_order(self, order):
         self.address.save()
+        order.anonymous_user_email = self.anonymous_user_email
         order.billing_address = self.address
         order.save()
+
+    def validate(self):
+        super(BillingAddressStep, self).validate()
+        if 'anonymous' in self.forms and not self.anonymous_user_email:
+            raise InvalidData()
 
 
 class ShippingStep(BaseShippingStep):

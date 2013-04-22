@@ -62,7 +62,7 @@ class DeliveryField(forms.ChoiceField):
             return self.methods[int(value)]
         except (IndexError, ValueError):
             raise ValidationError(
-                self.error_messages['invalid_choice'] % {'value':value})
+                self.error_messages['invalid_choice'] % {'value': value})
 
     def valid_value(self, value):
         return value in self.methods
@@ -73,3 +73,8 @@ class DeliveryForm(forms.Form):
     def __init__(self, delivery_methods, *args, **kwargs):
         super(DeliveryForm, self).__init__(*args, **kwargs)
         self.fields['method'] = DeliveryField(delivery_methods)
+
+
+class AnonymousEmailForm(forms.Form):
+
+    email = forms.EmailField()
