@@ -2,15 +2,8 @@ from .steps import (BillingAddressStep, ShippingStep, DigitalDeliveryStep,
                     SummaryStep, PaymentStep)
 from cart import CartPartitioner, DigitalGroup, remove_cart_from_request
 from collections import defaultdict
-from delivery import DummyShipping, DigitalDelivery
-from django.db import models
-from django.shortcuts import redirect
-from django.template.response import TemplateResponse
 from order.models import Order
-from satchless import process
-from satchless.item import ItemSet
-from satchless.process import InvalidData, ProcessManager
-from userprofile.models import Address
+from satchless.process import ProcessManager
 
 STORAGE_SESSION_KEY = 'checkout_storage'
 
@@ -21,10 +14,8 @@ class CheckoutStorage(dict):
 
     def __init__(self, *args, **kwargs):
         super(CheckoutStorage, self).__init__(*args, **kwargs)
-        self.update({
-            'billing_address': None,
-            'groups': defaultdict(dict),
-            'summary': False})
+        self.update({'anonymous_user_email': None, 'billing_address': None,
+                     'groups': defaultdict(dict), 'summary': False})
 
 
 class Checkout(ProcessManager):
@@ -56,6 +47,18 @@ class Checkout(ProcessManager):
             self.steps.append(step)
         self.steps.append(SummaryStep(self, self.request))
         self.steps.append(PaymentStep(self, self.request))
+
+    @property
+    def anonymous_user_email(self):
+        return self.storage['anonymous_user_email']
+
+    @anonymous_user_email.setter
+    def anonymous_user_email(self, email):
+        self.storage['anonymous_user_email'] = email
+
+    @anonymous_user_email.deleter
+    def anonymous_user_email(self, email):
+        self.storage['anonymous_user_email'] = None
 
     @property
     def billing_address(self):
@@ -91,4 +94,3 @@ class Checkout(ProcessManager):
             step.add_to_order(order)
         order.save()
         return order
-
