@@ -14,7 +14,7 @@ class CheckoutStorage(dict):
 
     def __init__(self, *args, **kwargs):
         super(CheckoutStorage, self).__init__(*args, **kwargs)
-        self.update({'anonymous_user_email': None, 'billing_address': None,
+        self.update({'anonymous_user_email': '', 'billing_address': None,
                      'groups': defaultdict(dict), 'summary': False})
 
 
@@ -58,7 +58,7 @@ class Checkout(ProcessManager):
 
     @anonymous_user_email.deleter
     def anonymous_user_email(self, email):
-        self.storage['anonymous_user_email'] = None
+        self.storage['anonymous_user_email'] = ''
 
     @property
     def billing_address(self):
@@ -92,5 +92,8 @@ class Checkout(ProcessManager):
         order = Order()
         for step in self.steps:
             step.add_to_order(order)
+        if self.request.user.is_authenticated():
+            order.user = self.request.user
+            order.anonymous_user_email = ''
         order.save()
         return order

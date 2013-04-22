@@ -69,7 +69,7 @@ class BaseShippingStep(BaseCheckoutStep):
 class BillingAddressStep(BaseShippingStep):
 
     template = 'checkout/billing.html'
-    anonymous_user_email = None
+    anonymous_user_email = ''
 
     def __init__(self, checkout, request):
         address = checkout.billing_address or Address()
