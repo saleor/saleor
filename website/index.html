@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Saleor</title>
+        <link rel="stylesheet" href="css/bootstrap.min.css" media="screen">
+        <link rel="stylesheet" href="css/saleor.css" media="screen">
+        <link rel="stylesheet" href="css/font-awesome.min.css">
+        <meta charset="utf-8">
+    </head>
+    <body>
+        <div class="navbar navbar-fixed-top">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a href="#" class="brand">Saleor</a>
+                    <nav>
+                        <ul class="nav">
+                            <li><a href="#features">Features</a></li>
+                            <li><a href="#roadmap">Roadmap</a></li>
+                            <li><a href="#installation">Installation</a></li>
+                        </ul>
+                        <ul class="nav pull-right">
+                            <li><a href="https://github.com/mirumee/saleor">Fork me on GitHub</a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        <div id="header">
+            <div class="container">
+                <div class="row">
+                    <div class="span4">
+                        <div class="hero-unit">
+                            <h1>Saleor</h1>
+                            <dl>
+                                <dt>/ˈseɪlə(r)/</dt>
+                                <dd>
+                                    <p>A <em>forkable</em> Django store powered by <em>Satchless</em>.</p>
+                                    <ol class="features">
+                                        <li>Lightweight</li>
+                                        <li>Performant</li>
+                                        <li>Customizable</li>
+                                    </ol>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <section id="features">
+                <h2><i class="icon-gift"></i> Main Features</h2>
+                <div class="row">
+                    <div class="span6">
+                        <h4>Free as in beer</h4>
+                        <p>The <em>BSD</em> license allows you to use the code for any purpose without paying us a dime.</p>
+                    </div>
+                    <div class="span6">
+                        <h4>SEO-friendly</h4>
+                        <p>All templates come with built-in support for <a href="http://schema.org/">Schema.org</a> meta-data. Each piece of content is available under exactly one address. All URLs are crafted with search engines in mind.</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="span6">
+                        <h4>Designed for customization</h4>
+                        <p>It's not a framework. We are not going to force you to do things our way. Just <em>fork it</em> and make it do whatever you like.</p>
+                    </div>
+                    <div class="span6">
+                        <h4>Built for easy upgrading</h4>
+                        <p>Critical logic like price handling lives in external libraries. No matter what you do and how much your fork derives from the upstream you can still upgrade the important parts.</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="span6">
+                        <h4>Optimized for performance</h4>
+                        <p>Instead of relying on heavy caching we make sure there are as few database queries as possible. The shopping cart lives in the session object and does not touch the database unless you want it to. Multiple product types are retrieved using a single query.</p>
+                    </div>
+                    <div class="span6">
+                        <h4>Built with Bootstrap</h4>
+                        <p>Easily customize your application without rewriting all of the templates. Share common code between your projects. Take advantage of third-party resources.</p>
+                    </div>
+                </div>
+            </section>
+            <section id="roadmap">
+                <h2><i class="icon-road"></i> Roadmap</h2>
+                <ul>
+                    <li>A demo store</li>
+                    <li>Even easier upgrading (less logic to fork)</li>
+                    <li>A beautiful and easy to use <em>dashboard</em> (a standalone and optional component)</li>
+                    <li>Collective intelligence (recommendations, context-driven shopping)</li>
+                    <li>Reporting</li>
+                    <li>Built-in discounts and promotions</li>
+                    <li>Optional support for dynamic (entity-attribute-value) product attributes</li>
+                </ul>
+            </section>
+            <section id="installation">
+                <h2><i class="icon-download"></i> Installation <small>and requirements</small></h2>
+                <p>The requirements are fairly simple:</p>
+                <ul>
+                    <li>Python 2.6 or 2.7</li>
+                    <li>Django 1.5</li>
+                </ul>
+                <p>To get yourself started:</p>
+                <pre><code>$ git clone https://github.com/mirumee/saleor.git
+$ cd saleor
+$ python setup.py develop</code></pre>
+            </section>
+        </div>
+    </body>
+</html>
