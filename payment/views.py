@@ -53,6 +53,8 @@ def index(request, order):
 
 @check_order_status
 def details(request, order, variant):
+    order.status = 'payment'
+    order.save()
     items = get_payment_items_from_order(order)
     are_waiting_payments = order.payments.filter(status='waiting').exists()
     payment = get_payment_from_order(variant, order)
