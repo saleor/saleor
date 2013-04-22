@@ -1,6 +1,10 @@
 {% extends "payment/details.html" %}
-
 {% load as_bootstrap from bootstrap %}
+{% load i18n %}
+
+{% block title %}
+{{ block.super }} » {% trans "Default" %}
+{% endblock %}
 
 {% block forms %}
 <form method="{{ form.method }}" class="form-horizontal"{% if form.action %} action="{{ form.action }}"{% endif %}>

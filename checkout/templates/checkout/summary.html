@@ -1,7 +1,12 @@
 {% extends "checkout/details.html" %}
-
 {% load as_bootstrap from bootstrap %}
 {% load gross from prices %}
+{% load i18n %}
+
+{% block title %}
+{{ block.super }} » {% trans "Shipping" %}
+{% endblock %}
+
 
 {% block forms %}
 <h2>Billing address</h2>
