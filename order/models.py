@@ -66,7 +66,7 @@ class Order(models.Model, ItemSet):
         return '<Order #%r>' % (self.id,)
 
     def __unicode__(self):
-        return u'#%d %s' % (self.id, self.status)
+        return u'#%d' % (self.id, )
 
     @property
     def billing_full_name(self):

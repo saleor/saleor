@@ -76,10 +76,14 @@ class OrderAdmin(OrderModelAdmin):
     exclude = ['token']
     readonly_fields = ['user', 'billing_address', 'total']
     form = OrderAdminForm
+    list_display = ['__unicode__', 'status', 'created', 'user']
 
     def total(self, obj):
         return obj.get_total().gross
     total.short_description = u'Total'
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 admin.site.register(Order, OrderAdmin)
