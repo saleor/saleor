@@ -216,7 +216,7 @@ class PaymentStep(BaseCheckoutStep):
         raise InvalidData('Redirect to peyment')
 
     def add_to_order(self, order):
-        order.status = 'payment'
+        pass
 
     def save(self):
         pass
