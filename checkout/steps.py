@@ -1,4 +1,5 @@
 from .forms import ManagementForm, DigitalDeliveryForm, DeliveryForm
+from checkout.forms import AnonymousEmailForm
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.shortcuts import redirect
@@ -21,6 +22,11 @@ class BaseCheckoutStep(BaseStep):
 
     def add_to_order(self, order):
         raise NotImplementedError()
+
+    def process(self, extra_context=None):
+        context = extra_context or {}
+        context['checkout'] = self.checkout
+        return super(BaseCheckoutStep, self).process(extra_context=context)
 
 
 class BaseShippingStep(BaseCheckoutStep):
@@ -67,9 +73,17 @@ class BaseShippingStep(BaseCheckoutStep):
 
 class BillingAddressStep(BaseShippingStep):
 
+    template = 'checkout/billing.html'
+    anonymous_user_email = ''
+
     def __init__(self, checkout, request):
         address = checkout.billing_address or Address()
         super(BillingAddressStep, self).__init__(checkout, request, address)
+        if not request.user.is_authenticated():
+            self.anonymous_user_email = self.checkout.anonymous_user_email
+            initial = {'email': self.anonymous_user_email}
+            self.forms['anonymous'] = AnonymousEmailForm(request.POST or None,
+                                                         initial=initial)
 
     def __str__(self):
         return 'billing-address'
@@ -77,14 +91,31 @@ class BillingAddressStep(BaseShippingStep):
     def __unicode__(self):
         return u'Billing Address'
 
+    def forms_are_valid(self):
+        forms_are_valid = super(BillingAddressStep, self).forms_are_valid()
+        if 'anonymous' not in self.forms:
+            return forms_are_valid
+        anonymous_form = self.forms['anonymous']
+        if forms_are_valid and anonymous_form.is_valid():
+            self.anonymous_user_email = anonymous_form.cleaned_data['email']
+            return True
+        return False
+
     def save(self):
+        self.checkout.anonymous_user_email = self.anonymous_user_email
         self.checkout.billing_address = self.address
         self.checkout.save()
 
     def add_to_order(self, order):
         self.address.save()
+        order.anonymous_user_email = self.anonymous_user_email
         order.billing_address = self.address
         order.save()
+
+    def validate(self):
+        super(BillingAddressStep, self).validate()
+        if 'anonymous' in self.forms and not self.anonymous_user_email:
+            raise InvalidData()
 
 
 class ShippingStep(BaseShippingStep):
@@ -100,6 +131,7 @@ class ShippingStep(BaseShippingStep):
             address = self.group['address']
         else:
             address = checkout.billing_address or Address()
+            address.id = None
         super(ShippingStep, self).__init__(checkout, request, address)
         self.forms['delivery'] = DeliveryForm(
             delivery_group.get_delivery_methods(), request.POST or None)
@@ -187,8 +219,8 @@ class SummaryStep(BaseCheckoutStep):
     def __unicode__(self):
         return u'Summary'
 
-    def process(self):
-        response = super(SummaryStep, self).process()
+    def process(self, extra_context=None):
+        response = super(SummaryStep, self).process(extra_context)
         if not response:
             order = self.checkout.create_order()
             return redirect('order:payment:index', token=order.token)
@@ -197,26 +229,12 @@ class SummaryStep(BaseCheckoutStep):
     def validate(self):
         raise InvalidData()
 
+    def forms_are_valid(self):
+        next_step = self.checkout.get_next_step()
+        return next_step == self
+
     def save(self):
         pass
 
     def add_to_order(self, _order):
         self.checkout.clear_storage()
-
-
-class PaymentStep(BaseCheckoutStep):
-
-    def __str__(self):
-        return 'payment'
-
-    def __unicode__(self):
-        return u'Payment'
-
-    def validate(self):
-        raise InvalidData('Redirect to peyment')
-
-    def add_to_order(self, order):
-        pass
-
-    def save(self):
-        pass

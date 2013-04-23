@@ -5,6 +5,9 @@
 {% block forms %}
 <form method="post" class="form-horizontal">
     {% csrf_token %}
+
+    {% block extra_forms %}{% endblock %}
+
     {{ step.forms.management|as_bootstrap }}
     {% if user.is_authenticated %}
     <fieldset>
@@ -16,7 +19,6 @@
         <legend>Complete address:</legend>
         {{ step.forms.address|as_bootstrap }}
     </fieldset>
-    {% block extra_forms %}{% endblock %}
 
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">

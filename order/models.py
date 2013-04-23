@@ -34,6 +34,7 @@ class Order(models.Model, ItemSet):
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='+',
         verbose_name=pgettext_lazy(u'Order field', u'user'))
     billing_address = models.ForeignKey(Address, related_name='+')
+    anonymous_user_email = models.EmailField(blank=True, default='')
     token = models.CharField(
         pgettext_lazy(u'Order field', u'token'),
         max_length=36, blank=True, default='')
@@ -67,6 +68,11 @@ class Order(models.Model, ItemSet):
 
     def __unicode__(self):
         return u'#%d' % (self.id, )
+
+    def get_user_email(self):
+        if self.user:
+            return self.user.email
+        return self.anonymous_user_email
 
     @property
     def billing_full_name(self):
