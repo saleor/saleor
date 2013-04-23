@@ -55,11 +55,11 @@ class BaseStep(Step):
         if not self.forms_are_valid():
             raise InvalidData()
 
-    def process(self):
+    def process(self, extra_context=None):
+        context = extra_context or {}
         if not self.forms_are_valid() or self.request.method == 'GET':
-            return TemplateResponse(self.request, self.template, {
-                'step': self
-            })
+            context['step'] = self
+            return TemplateResponse(self.request, self.template, context)
         self.save()
 
     def get_absolute_url(self):

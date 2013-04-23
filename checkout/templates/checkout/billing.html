@@ -1,0 +1,14 @@
+{% extends "checkout/address.html" %}
+
+{% load as_bootstrap from bootstrap %}
+
+{% block extra_forms %}
+{% if not user.is_authenticated %}
+<fieldset>
+    <legend>
+        User data:
+    </legend>
+    {{ step.forms.anonymous|as_bootstrap }}
+</fieldset>
+{% endif %}
+{% endblock extra_forms %}
