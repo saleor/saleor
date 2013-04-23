@@ -81,6 +81,7 @@ class TestBillingAddressStep(TestCase):
 
     def test_address_save_with_address_in_checkout(self):
         self.request.POST = NEW_ADDRESS_POST
+        self.request.POST['email'] = 'test@gmail.com'
         self.checkout.billing_address = Address()
         step = BillingAddressStep(self.checkout, self.request)
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
