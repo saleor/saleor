@@ -160,6 +160,8 @@ AUTHENTICATION_BACKENDS = (
 
 AUTH_USER_MODEL = 'userprofile.User'
 
+CANONICAL_HOSTNAME = 'localhost:8000'
+
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 WARN_ABOUT_INVALID_HTML5_OUTPUT = False
