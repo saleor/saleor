@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% load as_bootstrap from bootstrap %}
+{% load gross from prices %}
+
+{% block content %}
+<h2>Billing address</h2>
+{% with address=order.billing_address %}
+<p>
+    {{ address.first_name }} {{ address.last_name }}
+    <br />
+    {{ address.street_address_1 }}{% if address.street_address_2 %}{{ address.street_address_2 }}{% endif %}
+    <br />
+    {{ address.postal_code }} {{ address.city }}
+    <br />
+    {{ address.country_area }} {{ address.country }}
+    <br />
+    {{ address.phone }}
+</p>
+{% endwith %}
+<h2>Order details</h2>
+<p>Status: {{ order.status }}</p>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Name</th><th>Price per item</th><th>Quantity</th><th>Total</th><th>Delivery price</th>
+        </tr>
+    </thead>
+    <tbody>
+{% for group in groups %}
+    {% for item in group %}
+        <tr>
+        {% if forloop.first %}
+            <td>{{ item.product }}</td><td>{% gross item.get_price_per_item %}</td><td>{{ item.quantity }}</td><td>{% gross item.get_price_per_item %}</td><td rowspan="{{ group.items.all|length }}">{% gross group.price %}</td>
+        {% else %}
+            <td>{{ item.product }}</td><td>{% gross item.get_price_per_item %}</td><td>{{ item.quantity }}</td><td>{% gross item.get_price_per_item %}</td>
+        {% endif %}
+        </tr>
+    {% endfor %}
+{% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td>Total</td><td colspan="4">{% gross order.get_total %}</td>
+        </tr>
+    </tfoot>
+</table>
+<h2>Payments</h2>
+<ul>
+{% for payment in payments %}
+    <li>{{ payment }} - {{ payment.status }}</li>
+{% endfor %}
+</ul>
+{% if not order.is_full_paid %}
+<a href="{% url 'order:payment:index' token=order.token %}">Pay again</a>
+{% endif %}
+{% endblock content %}

@@ -1,0 +1,11 @@
+{% load i18n %}
+
+{% block subject %}{% trans "Payment details" %}{% endblock %}
+
+{% block text %}{% blocktrans %}Hi!
+
+Thank you for your payment. To see your payment details please visit:
+{{ order_url }}
+
+Sincerely,
+Saleor Team{% endblocktrans %}{% endblock %}

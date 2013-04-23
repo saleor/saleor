@@ -1,10 +1,13 @@
+from communication.mail import send_email
 from decimal import Decimal
 from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from prices import Price
 from product.models import Product, Subtyped
+from saleor.utils import build_absolute_uri
 from satchless.item import ItemSet, ItemLine
 from userprofile.models import Address
 from uuid import uuid4
@@ -78,13 +81,19 @@ class Order(models.Model, ItemSet):
     def billing_full_name(self):
         return u'%s %s' % (self.billing_first_name, self.billing_last_name)
 
-    @models.permalink
     def get_absolute_url(self):
-        return ('order:details', (), {'token': self.token})
+        return reverse('order:details', kwargs={'token': self.token})
 
     def get_delivery_total(self):
         return sum([group.price for group in self.groups.all()],
                    Price(0, currency=settings.SATCHLESS_DEFAULT_CURRENCY))
+
+    def send_confirmation_email(self):
+        email = self.get_user_email()
+        payment_url = build_absolute_uri(
+            reverse('order:payment:index', kwargs={'token': self.token}))
+        context = {'payment_url': payment_url}
+        send_email(email, 'order/emails/confirm_email.txt', context)
 
 
 class DeliveryGroup(Subtyped, ItemSet):

@@ -223,6 +223,7 @@ class SummaryStep(BaseCheckoutStep):
         response = super(SummaryStep, self).process(extra_context)
         if not response:
             order = self.checkout.create_order()
+            order.send_confirmation_email()
             return redirect('order:payment:index', token=order.token)
         return response
 
