@@ -1,5 +1,5 @@
 from .steps import (BillingAddressStep, ShippingStep, DigitalDeliveryStep,
-                    SummaryStep, PaymentStep)
+                    SummaryStep)
 from cart import CartPartitioner, DigitalGroup, remove_cart_from_request
 from collections import defaultdict
 from order.models import Order
@@ -46,7 +46,6 @@ class Checkout(ProcessManager):
                 delivery_group.delivery_method = step_group['delivery_method']
             self.steps.append(step)
         self.steps.append(SummaryStep(self, self.request))
-        self.steps.append(PaymentStep(self, self.request))
 
     @property
     def anonymous_user_email(self):

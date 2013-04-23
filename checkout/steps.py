@@ -238,21 +238,3 @@ class SummaryStep(BaseCheckoutStep):
 
     def add_to_order(self, _order):
         self.checkout.clear_storage()
-
-
-class PaymentStep(BaseCheckoutStep):
-
-    def __str__(self):
-        return 'payment'
-
-    def __unicode__(self):
-        return u'Payment'
-
-    def validate(self):
-        raise InvalidData('Redirect to peyment')
-
-    def add_to_order(self, order):
-        pass
-
-    def save(self):
-        pass

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% load as_bootstrap from bootstrap %}
+{% load i18n %}
 
 {% block content %}
 <ul class="nav nav-tabs">
@@ -9,6 +10,9 @@
         <a href="{{ stepitem.get_absolute_url }}"><i class="{% if stepitem %}icon-ok{% else %}icon-remove{% endif %}"></i> {{ stepitem }}</a>
     </li>
     {% endfor %}
+    <li class="disabled">
+        <a href="#"><i class="icon-remove"></i>{% trans "Payment" %}</a>
+    </li>
 </ul>
 {% block forms %}{% endblock %}
 
