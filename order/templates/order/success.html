@@ -4,7 +4,7 @@
 <h2>Your order has been received</h2>
 <p>
     <strong>Thank you for your purchase!</strong><br />
-    Your order # is: {{ order.id }}.
+    Your order # is: <a href="{% url 'order:details' token=order.token %}">{{ order.id }}</a>.
 </p>
 
 {% endblock content %}
