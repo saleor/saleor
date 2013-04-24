@@ -18,6 +18,13 @@ class LoginForm(AuthenticationForm):
 
     username = forms.EmailField(label=ugettext_lazy("Email"), max_length=75)
 
+    def __init__(self, request=None, *args, **kwargs):
+        super(LoginForm, self).__init__(request=request, *args, **kwargs)
+        if request:
+            email = request.GET.get('email')
+            if email:
+                self.fields['username'].initial = email
+
 
 class RequestEmailConfirmationForm(forms.Form):
 
