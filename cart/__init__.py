@@ -126,9 +126,9 @@ class Cart(cart.Cart):
         Raises exception when product has stock and user insert too big
         quantity.
         '''
+        super(Cart, self).check_quantity(product, quantity, data)
         if isinstance(product, StockedProduct) and quantity > product.stock:
             raise InsufficientStockException(product)
-        return super(Cart, self).check_quantity(product, quantity, data)
 
 
 def remove_cart_from_request(request):
