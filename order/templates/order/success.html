@@ -1,10 +1,36 @@
 {% extends "base.html" %}
 
+{% load gross from prices %}
+
 {% block content %}
 <h2>Your order has been received</h2>
 <p>
-    <strong>Thank you for your purchase!</strong><br />
+    <strong>Thank you for your purchase!</strong>
+    <br />
     Your order # is: <a href="{% url 'order:details' token=order.token %}">{{ order.id }}</a>.
 </p>
 
 {% endblock content %}
+{% block google-analytics-script %}
+    {{ block.super }}
+    __ga('require', 'ecommerce', 'ecommerce.js');
+    __ga('set', 'currencyCode', '{{ DEFAULT_CURRENCY }}');
+    __ga('ecommerce:addTransaction', {
+      'id': '{{ order.id }}',
+      'affiliation': 'Saleor',
+      'revenue': '{{ order.get_total.gross }}',
+      'shipping': '{{ order.get_delivery_total.gross }}',
+      'tax': '{{ order.get_total.tax }}
+    });
+    {% for item in order.get_items %}
+     __ga('ecommerce:addItem', {
+        'id': '{{ item.id }}',
+        'name': '{{ item }}',
+        'sku': '{{ item.id }}',
+        'category': '{{ item.product.category }}',
+        'price': '{{ item.unit_price_gross }}',
+        'quantity': '{{ item.quantity }}'
+      });
+    {% endfor %}
+    __ga('ecommerce:send');
+{% endblock google-analytics-script %}
