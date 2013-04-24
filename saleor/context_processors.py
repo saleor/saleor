@@ -1,15 +1,21 @@
 from django.conf import settings
 
 
-def googe_analytics(request):
+def get_setting_as_dict(name, short_name=None):
+    short_name = short_name or name
     try:
-        return {'GOOGLE_ANALYTICS_CODE': settings.GOOGLE_ANALYTICS_CODE}
+        return {short_name: getattr(settings, name)}
     except AttributeError:
         return {}
+
+def googe_analytics(request):
+    return get_setting_as_dict('GOOGLE_ANALYTICS_CODE')
 
 
 def canonical_hostname(request):
-    try:
-        return {'CANONICAL_HOSTNAME': settings.CANONICAL_HOSTNAME}
-    except AttributeError:
-        return {}
+    return get_setting_as_dict('CANONICAL_HOSTNAME')
+
+
+def default_currency(request):
+    return get_setting_as_dict('SATCHLESS_DEFAULT_CURRENCY',
+                               'DEFAULT_CURRENCY')
