@@ -41,7 +41,7 @@ class RequestEmailConfirmationForm(forms.Form):
         request = self.create_request_instance()
         confirmation_url = self.local_host + request.get_confirmation_url()
         context = {'confirmation_url': confirmation_url}
-        send_email(email, 'registration/emails/confirm_email.txt', context)
+        send_email(email, self.template, context)
 
     def create_request_instance(self):
         email = self.cleaned_data['email']
