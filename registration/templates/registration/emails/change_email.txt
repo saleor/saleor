@@ -1,0 +1,14 @@
+{% load i18n %}
+
+{% block subject %}{% trans "Confirm your email address" %}{% endblock %}
+
+{% block text %}{% blocktrans %}Hi!
+
+You have requested email change in saleor project. To continue visit the link below.
+
+{{ confirmation_url }}
+
+If you didn't mean to change your email please ignore this message. We apologise for inconvenience.
+
+Sincerely,
+Saleor Team{% endblocktrans %}{% endblock %}

@@ -164,6 +164,8 @@ CANONICAL_HOSTNAME = 'localhost:8000'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+LOGIN_URL = '/account/login'
+
 WARN_ABOUT_INVALID_HTML5_OUTPUT = False
 
 SATCHLESS_DEFAULT_CURRENCY = 'USD'
