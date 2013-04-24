@@ -40,21 +40,27 @@ class UniqueTokenManager(models.Manager):  # this might end up in `utils`
         raise RuntimeError('Could not create unique token.')
 
 
-class EmailConfirmationRequest(models.Model):
+class AbstractToken(models.Model):
+
+    class Meta:
+        abstract = True
 
     TOKEN_LENGTH = 32
 
-    email = models.EmailField()
     token = models.CharField(max_length=TOKEN_LENGTH, unique=True)
     valid_until = models.DateTimeField(
         default=lambda: now() + timedelta(settings.ACCOUNT_ACTIVATION_DAYS))
 
     objects = UniqueTokenManager(token_field='token', token_length=TOKEN_LENGTH)
 
+
+class EmailConfirmationRequest(AbstractToken):
+
+    email = models.EmailField()
+
     def get_or_create_user(self):
         user, _created = User.objects.get_or_create(email=self.email)
         EmailConfirmationRequest.objects.filter(email=self.email).delete()
-        EmailChangeRequestManager.objects.filter(email=self.email).delete()
         return user
 
     def get_confirmation_url(self):
@@ -62,9 +68,10 @@ class EmailConfirmationRequest(models.Model):
                        kwargs={'token': self.token})
 
 
-class EmailChangeRequest(EmailConfirmationRequest):
+class EmailChangeRequest(AbstractToken):
 
     user = models.ForeignKey(User, related_name="email_change_requests")
+    email = models.EmailField()  # email address that user is switching to
 
     def get_confirmation_url(self):
         return reverse('registration:change_email',
