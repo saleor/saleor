@@ -1,12 +1,13 @@
 from urllib import urlencode
 
 from django.conf import settings
-from django.contrib.auth.views import login as django_login_view
 from django.contrib import messages
 from django.contrib.auth import (
     login as auth_login,
     logout as auth_logout,
     get_user_model)
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import login as django_login_view
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils import timezone
@@ -79,6 +80,7 @@ def request_email_confirmation(request):
                             {'form': form})
 
 
+@login_required
 def request_email_change(request):
     if request.method == 'POST':
         form = RequestEmailChangeForm(local_host=get_local_host(request),
@@ -122,7 +124,7 @@ def confirm_email(request, token):
 
 def change_email(request, token):
     try:
-        email_confirmation_request = EmailChangeRequest.objects.get(
+        email_change_request = EmailChangeRequest.objects.get(
             token=token, valid_until__gte=now())
             # TODO: cronjob (celery task) to delete stale tokens
     except EmailChangeRequest.DoesNotExist:
@@ -130,18 +132,18 @@ def change_email(request, token):
 
     # if another user is logged in, we need to log him out, to allow the email
     # owner confirm his identity
-    if request.user != email_confirmation_request.user:
+    if request.user != email_change_request.user:
         auth_logout(request)
     if not request.user.is_authenticated():
         query = urlencode({
             'next': request.get_full_path(),
-            'email': email_confirmation_request.user.email})
+            'email': email_change_request.user.email})
         login_url = url(path=settings.LOGIN_URL, query=query)
         return redirect(login_url)
 
-    request.user.email = email_confirmation_request.email
+    request.user.email = email_change_request.email
     request.user.save()
-    email_confirmation_request.delete()
+    email_change_request.delete()
 
     messages.success(request, _('Your email has been successfully changed'))
     return redirect(settings.LOGIN_REDIRECT_URL)
