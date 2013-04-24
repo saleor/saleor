@@ -1,3 +1,4 @@
+*.py[cod]
 !.gitignore
 .*
 *.log
