@@ -298,7 +298,7 @@ class EmailChangeTestCase(TestCase):
         get.assert_called_once_with(
             token=token_object.token, valid_until__gte=now())
         self.assertFalse(request.user.is_authenticated())
-        self.assertEqual(token_object.delete.call_count, 0)
+        token_object.delete.assert_not_called()
 
     @patch('registration.views.now')
     @patch('registration.views.EmailChangeRequest.objects.get')

@@ -30,7 +30,7 @@ class RequestEmailConfirmationForm(forms.Form):
 
     email = forms.EmailField()
 
-    template = 'registration/email/confirm_email.txt'
+    template = 'registration/emails/confirm_email.txt'
 
     def __init__(self, local_host=None, data=None):
         self.local_host = local_host
@@ -52,9 +52,7 @@ class RequestEmailConfirmationForm(forms.Form):
 
 class RequestEmailChangeForm(RequestEmailConfirmationForm):
 
-    email = forms.EmailField()
-
-    template = 'registration/email/change_email.txt'
+    template = 'registration/emails/change_email.txt'
 
     def __init__(self, user=None, *args, **kwargs):
         self.user = user
