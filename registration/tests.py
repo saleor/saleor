@@ -5,7 +5,7 @@ from mock import call, Mock, MagicMock, patch, sentinel
 from purl import URL
 from unittest2 import TestCase
 
-from .forms import EmailConfirmationForm, OAuth2CallbackForm
+from .forms import RegisterOrResetPasswordForm, OAuth2CallbackForm
 from .utils import (
     FACEBOOK,
     FacebookClient,
@@ -14,7 +14,7 @@ from .utils import (
     OAuth2RequestAuthorizer,
     OAuth2Client,
     parse_response)
-from .views import oauth_callback
+from .views import oauth_callback, change_email
 
 User = get_user_model()
 
@@ -248,7 +248,7 @@ class EmailConfirmationTestCase(TestCase):
         authenticate_mock.return_value = sentinel.authed_user
         email_confirmation_request = Mock()
         email_confirmation_request.get_or_create_user.return_value = user
-        form = EmailConfirmationForm(
+        form = RegisterOrResetPasswordForm(
             email_confirmation_request=email_confirmation_request,
             data={'new_password1': 'pass', 'new_password2': 'pass'})
         self.assertTrue(form.is_valid(), form.errors)
@@ -264,7 +264,7 @@ class EmailConfirmationTestCase(TestCase):
         authenticate_mock.return_value = sentinel.authed_user
         email_confirmation_request = Mock()
         email_confirmation_request.get_or_create_user.return_value = user
-        form = EmailConfirmationForm(
+        form = RegisterOrResetPasswordForm(
             email_confirmation_request=email_confirmation_request,
             data={})
         self.assertTrue(form.is_valid(), form.errors)
@@ -272,3 +272,58 @@ class EmailConfirmationTestCase(TestCase):
         self.assertEquals(authed_user, sentinel.authed_user)
         user.set_unusable_password.assert_called_once()
         authenticate_mock.assert_called_once_with(user=user)
+
+
+class EmailChangeTestCase(TestCase):
+
+    @patch('registration.views.now')
+    @patch('registration.views.EmailChangeRequest.objects.get')
+    def test_another_user_logged_out(self, get, now):
+
+        # user requests email change
+        user = Mock()
+        token_object = Mock()
+        token_object.token = 'sometokencontent'
+        token_object.user = user
+        get.return_value = token_object
+
+        # another user is logged in
+        another_user = Mock()
+        request = Mock()
+        request.user = another_user
+
+        # first user clicks link in his email
+        result = change_email(request, token_object.token)
+        self.assertEquals(result.status_code, 302)
+        get.assert_called_once_with(
+            token=token_object.token, valid_until__gte=now())
+        self.assertFalse(request.user.is_authenticated())
+        token_object.delete.assert_not_called()
+
+    @patch('registration.views.now')
+    @patch('registration.views.EmailChangeRequest.objects.get')
+    def test_user_logged_in(self, get, now):
+
+        # user requests email change
+        user = Mock()
+        token_object = Mock()
+        token_object.token = 'sometokencontent'
+        token_object.user = user
+        get.return_value = token_object
+
+        # user is logged in
+        request = Mock()
+        request.user = user
+
+        # user clicks link in his email
+        result = change_email(request, token_object.token)
+        self.assertEquals(result.status_code, 302)
+        get.assert_called_once_with(
+            token=token_object.token, valid_until__gte=now())
+        # user stays logged in
+        self.assertTrue(request.user.is_authenticated())
+        # token is deleted
+        token_object.delete.assert_called_once_with()
+        user.save.assert_called_once_with()
+        # user email gets changed
+        self.assertEqual(user.email, token_object.email)

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 
 
 {% block content %}
@@ -8,31 +9,31 @@
             <p>
                 {{ entry }}
                 {% if user.default_shipping_address == entry and user.default_billing_address == entry %}
-                    (default for billing and shipping)
+                    {% trans "(default for billing and shipping)" %}
                 {% elif user.default_shipping_address == entry %}
-                    (default for shipping)
+                    {% trans "(default for shipping)" %}
                 {% elif user.default_billing_address == entry %}
-                    (default for billing)
+                    {% trans "(default for billing)" %}
                 {% endif %}
             </p>
             <div class="row">
                 <div class="span">
-                    <a href="{% url 'profile:address-edit' pk=entry.pk slug=entry.get_slug %}" class="btn">Edit</a>
+                    <a href="{% url 'profile:address-edit' pk=entry.pk slug=entry.get_slug %}" class="btn">{% trans "Edit" %}</a>
                 </div>
                 <div class="span">
                     <form method="post" action="{% url "profile:address-make-default" pk=entry.pk purpose="shipping" %}" class="form-inline form-horizontal">
                         {% csrf_token %}
-                        <input type="submit" value="Make default for shipping" class="btn">
+                        <input type="submit" value="{% trans "Make default for shipping" %}" class="btn">
                     </form>
                 </div>
                 <div class="span">
                     <form method="post" action="{% url "profile:address-make-default" pk=entry.pk purpose="billing" %}" class="form-inline form-horizontal">
                         {% csrf_token %}
-                        <input type="submit" value="Make default for billing" class="btn">
+                        <input type="submit" value="{% trans "Make default for billing" %}" class="btn">
                     </form>
                 </div>
                 <div class="span">
-                    <a href="{% url 'profile:address-delete' pk=entry.pk slug=entry.get_slug %}" class="btn">Delete</a>
+                    <a href="{% url 'profile:address-delete' pk=entry.pk slug=entry.get_slug %}" class="btn">{% trans "Delete" %}</a>
                 </div>
             </div>
         </li>
@@ -40,7 +41,10 @@
     </ul>
 
     <div>
-        <a href="{% url 'profile:address-create' %}" class="btn">Add new address</a>
+        <a href="{% url 'profile:address-create' %}" class="btn">{% trans "Add new address" %}</a>
+    </div>
+    <div>
+        <a href="{% url 'registration:request_email_change' %}">{% trans 'Change your email address' %}</a>
     </div>
 
 

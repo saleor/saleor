@@ -1,9 +1,12 @@
 from django import forms
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy, ugettext
 
-from .models import EmailConfirmationRequest, ExternalUserData
+from .models import (
+    EmailConfirmationRequest,
+    EmailChangeRequest,
+    ExternalUserData)
 from .utils import get_client_class_for_service
 
 from communication.mail import send_email
@@ -13,35 +16,69 @@ User = get_user_model()
 
 class LoginForm(AuthenticationForm):
 
-    username = forms.EmailField(label=_("Email"), max_length=75)
+    username = forms.EmailField(label=ugettext_lazy("Email"), max_length=75)
+
+    def __init__(self, request=None, *args, **kwargs):
+        super(LoginForm, self).__init__(request=request, *args, **kwargs)
+        if request:
+            email = request.GET.get('email')
+            if email:
+                self.fields['username'].initial = email
 
 
 class RequestEmailConfirmationForm(forms.Form):
 
     email = forms.EmailField()
 
-    def __init__(self, local_host, data=None):
+    template = 'registration/emails/confirm_email.txt'
+
+    def __init__(self, local_host=None, data=None):
         self.local_host = local_host
         super(RequestEmailConfirmationForm, self).__init__(data)
 
     def send(self):
         email = self.cleaned_data['email']
-        request = EmailConfirmationRequest.objects.create(email=email)
+        request = self.create_request_instance()
         confirmation_url = self.local_host + request.get_confirmation_url()
         context = {'confirmation_url': confirmation_url}
-        send_email(email, 'registration/emails/confirm_email.txt', context)
+        send_email(email, self.template, context)
+
+    def create_request_instance(self):
+        email = self.cleaned_data['email']
+        EmailConfirmationRequest.objects.filter(email=email).delete()
+        return EmailConfirmationRequest.objects.create(
+            email=self.cleaned_data['email'])
 
 
-class EmailConfirmationForm(SetPasswordForm):
+class RequestEmailChangeForm(RequestEmailConfirmationForm):
+
+    template = 'registration/emails/change_email.txt'
+
+    def __init__(self, user=None, *args, **kwargs):
+        self.user = user
+        super(RequestEmailChangeForm, self).__init__(*args, **kwargs)
+
+    def clean_email(self):
+        if User.objects.filter(email=self.cleaned_data['email']).exists():
+            raise forms.ValidationError(
+                ugettext('Account with this email already exists'))
+        return self.cleaned_data['email']
+
+    def create_request_instance(self):
+        EmailChangeRequest.objects.filter(user=self.user).delete()
+        return EmailChangeRequest.objects.create(
+            email=self.cleaned_data['email'], user=self.user)
+
+
+class RegisterOrResetPasswordForm(SetPasswordForm):
 
     def __init__(self, email_confirmation_request, data=None):
         self.email_confirmation_request = email_confirmation_request
-        super(EmailConfirmationForm, self).__init__(
+        super(RegisterOrResetPasswordForm, self).__init__(
             user=None, data=data, empty_permitted=True)
 
     def get_authenticated_user(self):
         self.user = self.email_confirmation_request.get_or_create_user()
-        self.email_confirmation_request.delete()
         if self.cleaned_data.get('new_password1'):
             self.save()
         else:
