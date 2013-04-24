@@ -75,6 +75,8 @@ TEMPLATE_CONTEXT_PROCESSORS = [
     'django.core.context_processors.tz',
     'django.contrib.messages.context_processors.messages',
     'django.core.context_processors.request',
+    'saleor.context_processors.googe_analytics',
+    'saleor.context_processors.canonical_hostname',
 ]
 
 INSTALLED_APPS = [
