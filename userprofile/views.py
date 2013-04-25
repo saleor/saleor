@@ -20,7 +20,7 @@ def details(request):
 @login_required
 def orders(request):
 
-    ctx = {'orders': request.user.orders.all()}
+    ctx = {'orders': request.user.orders.prefetch_related('groups')}
     return TemplateResponse(request, "userprofile/orders.html", ctx)
 
 

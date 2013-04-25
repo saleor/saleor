@@ -55,8 +55,9 @@
                                 <a data-toggle="dropdown" class="dropdown-toggle" href=".">{{ user }}</a>
                                 <ul class="dropdown-menu">
                                     <li><a href="{% url "profile:details" %}">{% trans "Profile edit" %}</a></li>
-                                    <li><a href="{% url "registration:logout" %}">{% trans "Log out" %}</a></li>
                                     <li><a href="{% url "profile:orders" %}">{% trans "Orders" %}</a></li>
+                                    <li class="divider"></li>
+                                    <li><a href="{% url "registration:logout" %}">{% trans "Log out" %}</a></li>
                                   </ul>
                             </li>
                             {% else %}
