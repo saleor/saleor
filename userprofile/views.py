@@ -17,6 +17,13 @@ def details(request):
     return TemplateResponse(request, "userprofile/details.html", ctx)
 
 
+@login_required
+def orders(request):
+
+    ctx = {'orders': request.user.orders.all()}
+    return TemplateResponse(request, "userprofile/orders.html", ctx)
+
+
 def validate_address_and_render(request, address_form, address_book_form,
                                 success_message):
     if address_form.is_valid() and address_book_form.is_valid():

@@ -21,7 +21,7 @@ class Order(models.Model, ItemSet):
         ('cancelled', pgettext_lazy(u'Order status field value',
                                     u'cancelled')),
         ('payment', pgettext_lazy(u'Order status field value',
-                                    u'payment')),
+                                  u'payment')),
         ('completed', pgettext_lazy(u'Order status field value',
                                     u'completed')))
     status = models.CharField(
@@ -34,7 +34,7 @@ class Order(models.Model, ItemSet):
         pgettext_lazy(u'Order field', u'last status change'),
         default=datetime.datetime.now, editable=False)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, blank=True, null=True, related_name='+',
+        settings.AUTH_USER_MODEL, blank=True, null=True, related_name='orders',
         verbose_name=pgettext_lazy(u'Order field', u'user'))
     billing_address = models.ForeignKey(Address, related_name='+')
     anonymous_user_email = models.EmailField(blank=True, default='')
