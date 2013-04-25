@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+
+{% block content %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    {% trans "Order token" %}
+                </th>
+                <th>
+                    {% trans "Status" %}
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+                <tr>
+                    <td>
+                        <a href="{{ order.get_absolute_url }}">{{ order.token }}</a>
+                    </td>
+                    <td>
+                        {{ order.get_status_display }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock content %}
+
