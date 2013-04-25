@@ -13,7 +13,7 @@ Payment = get_payment_model()
 
 def get_payment_items_from_order(order):
     items = [PaymentItem(name=item.product_name, quantity=item.quantity,
-                          price=item.unit_price_gross, sku=item.product.id,
+                          price=item.unit_price_gross, sku=item.product.sku,
                           currency=settings.SATCHLESS_DEFAULT_CURRENCY)
              for item in order.get_items()]
     return items
