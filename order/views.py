@@ -5,7 +5,7 @@ from order.models import Order
 
 def success(request, token):
     order = get_object_or_404(Order, token=token)
-    if order.status == 'complete':
+    if order.status == 'fully-paid':
         return TemplateResponse(request, 'order/success.html',
                                 {'order': order})
     return redirect('order:payment:index', token=order.token)
