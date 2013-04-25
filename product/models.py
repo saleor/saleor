@@ -1,7 +1,8 @@
 from decimal import Decimal
+from django.conf import settings
 from django.db import models
-from django.db.models.query import QuerySet
 from django.db.models.fields.related import SingleRelatedObjectDescriptor
+from django.db.models.query import QuerySet
 from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
@@ -83,15 +84,16 @@ class Subtyped(models.Model):
 
 class Category(MPTTModel):
 
-    name = models.CharField(
-        pgettext_lazy('Category field', 'name'), max_length=128)
-    slug = models.SlugField(
-        pgettext_lazy('Category field', 'slug'), max_length=50, unique=True)
-    description = models.TextField(
-        pgettext_lazy('Category field', 'description'), blank=True)
-    parent = models.ForeignKey(
-        'self', null=True, related_name='children', blank=True,
-        verbose_name=pgettext_lazy('Category field', 'parent'))
+    name = models.CharField(pgettext_lazy(u'Category field', u'name'),
+                            max_length=128)
+    slug = models.SlugField(pgettext_lazy(u'Category field', u'slug'),
+                            max_length=50, unique=True)
+    description = models.TextField(pgettext_lazy(u'Category field',
+                                                 u'description'), blank=True)
+    parent = models.ForeignKey('self', null=True, related_name='children',
+                               verbose_name=pgettext_lazy(u'Category field',
+                                                          u'parent'),
+                               blank=True)
 
     def __unicode__(self):
         return self.name
@@ -99,15 +101,16 @@ class Category(MPTTModel):
 
 class Product(Subtyped, Item):
 
-    name = models.CharField(
-        pgettext_lazy('Product field', 'name'), max_length=128)
-    price = PriceField(
-        pgettext_lazy('Product field', 'price'),
-        currency='USD', max_digits=12, decimal_places=4)
-    sku = models.CharField(pgettext_lazy('Product field', 'sku'),
+    name = models.CharField(pgettext_lazy(u'Product field', u'name'),
+                            max_length=128)
+    price = PriceField(pgettext_lazy(u'Product field', u'price'),
+                       currency=settings.SATCHLESS_DEFAULT_CURRENCY,
+                       max_digits=12, decimal_places=4)
+    sku = models.CharField(pgettext_lazy(u'Product field', u'sku'),
                            max_length=32, unique=True)
     category = models.ForeignKey(Category, related_name='products',
-        verbose_name=pgettext_lazy('Product field', 'category'))
+                                 verbose_name=pgettext_lazy(u'Product field',
+                                                            u'category'))
 
     def __unicode__(self):
         return self.name
@@ -130,9 +133,9 @@ class Product(Subtyped, Item):
 
 class StockedProduct(models.Model):
 
-    stock = models.DecimalField(
-        pgettext_lazy('Product item field', 'stock'),
-        max_digits=10, decimal_places=4, default=Decimal(1))
+    stock = models.DecimalField(pgettext_lazy(u'Product item field', u'stock'),
+                                max_digits=10, decimal_places=4,
+                                default=Decimal(1))
 
     class Meta:
         abstract = True
