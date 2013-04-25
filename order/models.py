@@ -17,13 +17,15 @@ import datetime
 class Order(models.Model, ItemSet):
 
     STATUS_CHOICES = (
-        ('new', pgettext_lazy(u'Order status field value', u'new')),
+        ('new', pgettext_lazy(u'Order status field value', u'New')),
         ('cancelled', pgettext_lazy(u'Order status field value',
-                                    u'cancelled')),
-        ('payment', pgettext_lazy(u'Order status field value',
-                                  u'payment')),
-        ('completed', pgettext_lazy(u'Order status field value',
-                                    u'completed')))
+                                    u'Cancelled')),
+        ('payment-pending', pgettext_lazy(u'Order status field value',
+                                          u'Waiting for payment')),
+        ('fully-paid', pgettext_lazy(u'Order status field value',
+                                     u'Fully paid')),
+        ('shipped', pgettext_lazy(u'Order status field value',
+                                  u'Shipped')))
     status = models.CharField(
         pgettext_lazy(u'Order field', u'order status'),
         max_length=32, choices=STATUS_CHOICES, default='new')
@@ -53,6 +55,10 @@ class Order(models.Model, ItemSet):
                     self.token = token
                     break
         return super(Order, self).save(*args, **kwargs)
+
+    def change_status(self, status):
+        self.status = status
+        self.save()
 
     def get_items(self):
         return OrderedItem.objects.filter(delivery_group__order=self)
@@ -97,7 +103,15 @@ class Order(models.Model, ItemSet):
 
 
 class DeliveryGroup(Subtyped, ItemSet):
-
+    STATUS_CHOICES = (
+        ('new', pgettext_lazy(u'Delivery group status field value', u'New')),
+        ('cancelled', pgettext_lazy(u'Delivery group status field value',
+                                    u'Cancelled')),
+        ('shipped', pgettext_lazy(u'Delivery group status field value',
+                                  u'Shipped')))
+    status = models.CharField(
+        pgettext_lazy(u'Delivery group field', u'Delivery status'),
+        max_length=32, default='new', choices=STATUS_CHOICES)
     order = models.ForeignKey(Order, related_name='groups', editable=False)
     price = PriceField(
         pgettext_lazy(u'DeliveryGroup field', u'unit price'),
@@ -113,6 +127,10 @@ class DeliveryGroup(Subtyped, ItemSet):
         if self.id:
             return iter(self.items.select_related('product').all())
         return super(DeliveryGroup, self).__iter__()
+
+    def change_status(self, status):
+        self.status = status
+        self.save()
 
     def get_total(self, **kwargs):
         return (super(DeliveryGroup, self).get_total(**kwargs) + self.price)
