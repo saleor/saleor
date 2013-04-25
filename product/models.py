@@ -104,8 +104,9 @@ class Product(Subtyped, Item):
     price = PriceField(
         pgettext_lazy('Product field', 'price'),
         currency='USD', max_digits=12, decimal_places=4)
-    category = models.ForeignKey(
-        Category, related_name='products',
+    sku = models.CharField(pgettext_lazy('Product field', 'sku'),
+                           max_length=32, unique=True)
+    category = models.ForeignKey(Category, related_name='products',
         verbose_name=pgettext_lazy('Product field', 'category'))
 
     def __unicode__(self):
