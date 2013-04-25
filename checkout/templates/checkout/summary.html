@@ -28,10 +28,12 @@
 {% for group in checkout.groups %}
     {% for item in group %}
         <tr>
+            <td>{{ item.product }}</td>
+            <td>{% gross item.get_price_per_item %}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{% gross item.get_total %}</td>
         {% if forloop.first %}
-            <td>{{ item.product }}</td><td>{% gross item.get_price_per_item %}</td><td>{{ item.quantity }}</td><td>{% gross item.get_total %}</td><td rowspan="{{ group.items.all|length }}">{% gross group.get_delivery_total %}</td>
-        {% else %}
-            <td>{{ item.product }}</td><td>{% gross item.get_price_per_item %}</td><td>{{ item.quantity }}</td><td>{% gross item.get_total %}</td>
+            <td rowspan="{{ group|length }}">{% gross group.get_delivery_total %}</td>
         {% endif %}
         </tr>
     {% endfor %}

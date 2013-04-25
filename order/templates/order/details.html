@@ -40,10 +40,12 @@
 {% for group in groups %}
     {% for item in group %}
         <tr>
+            <td>{{ item.product }}</td>
+            <td>{% gross item.get_price_per_item %}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{% gross item.get_price_per_item %}</td>
         {% if forloop.first %}
-            <td>{{ item.product }}</td><td>{% gross item.get_price_per_item %}</td><td>{{ item.quantity }}</td><td>{% gross item.get_price_per_item %}</td><td rowspan="{{ group.items.all|length }}">{% gross group.price %}</td>
-        {% else %}
-            <td>{{ item.product }}</td><td>{% gross item.get_price_per_item %}</td><td>{{ item.quantity }}</td><td>{% gross item.get_price_per_item %}</td>
+            <td colspan="{{ group|length }}">{% gross group.price %}</td>
         {% endif %}
         </tr>
     {% endfor %}
@@ -51,7 +53,8 @@
     </tbody>
     <tfoot>
         <tr>
-            <td>{% trans "Total" %}</td><td colspan="4">{% gross order.get_total %}</td>
+            <td>{% trans "Total" %}</td>
+            <td colspan="4">{% gross order.get_total %}</td>
         </tr>
     </tfoot>
 </table>
