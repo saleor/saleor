@@ -7,7 +7,8 @@ from django.contrib.auth import (
     logout as auth_logout,
     get_user_model)
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import login as django_login_view
+from django.contrib.auth.views import login as django_login_view, password_change
+from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils import timezone
@@ -154,3 +155,10 @@ def _login_user(request, user):
     msg = _('You have been successfully logged in.')
     messages.success(request, msg)
     return redirect(settings.LOGIN_REDIRECT_URL)
+
+
+def change_password(request):
+    return password_change(
+        request, template_name='registration/change_password.html',
+        post_change_redirect=reverse('profile:details')
+    )
