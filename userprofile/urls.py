@@ -4,6 +4,7 @@ from django.conf.urls import patterns, url
 urlpatterns = patterns(
     '',
     url(r'^$', 'userprofile.views.details', name='details'),
+    url(r'^orders/$', 'userprofile.views.orders', name='orders'),
     url(r'^address/create/$',
         'userprofile.views.address_create',
         name='address-create'),
