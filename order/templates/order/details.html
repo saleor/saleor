@@ -2,28 +2,38 @@
 
 {% load as_bootstrap from bootstrap %}
 {% load gross from prices %}
+{% load i18n %}
 
 {% block content %}
-<h2>Billing address</h2>
-{% with address=order.billing_address %}
-<p>
-    {{ address.first_name }} {{ address.last_name }}
-    <br />
-    {{ address.street_address_1 }}{% if address.street_address_2 %}{{ address.street_address_2 }}{% endif %}
-    <br />
-    {{ address.postal_code }} {{ address.city }}
-    <br />
-    {{ address.country_area }} {{ address.country }}
-    <br />
-    {{ address.phone }}
-</p>
-{% endwith %}
-<h2>Order details</h2>
-<p>Status: {{ order.status }}</p>
+{# This view is available by just knowing url,          #}
+{# so we don't show all details (like delivery address) #}
+{# unless current user is owner of the order.           #}
+{% if user.is_authenticated and order.user == user %}
+    <h2>{% trans "Billing address" %}</h2>
+    {% with address=order.billing_address %}
+    <p>
+        {{ address.first_name }} {{ address.last_name }}
+        <br />
+        {{ address.street_address_1 }}{% if address.street_address_2 %}{{ address.street_address_2 }}{% endif %}
+        <br />
+        {{ address.postal_code }} {{ address.city }}
+        <br />
+        {{ address.country_area }} {{ address.country }}
+        <br />
+        {{ address.phone }}
+    </p>
+    {% endwith %}
+{% endif %}
+<h2>{% trans "Order details" %}</h2>
+<p>{% trans "Status" %}: {{ order.get_status_display }}</p>
 <table class="table table-bordered">
     <thead>
         <tr>
-            <th>Name</th><th>Price per item</th><th>Quantity</th><th>Total</th><th>Delivery price</th>
+            <th>{% trans "Name" %}</th>
+            <th>{% trans "Price per item" %}</th>
+            <th>{% trans "Quantity" %}</th>
+            <th>{% trans "Total" %}</th>
+            <th>{% trans "Delivery price" %}</th>
         </tr>
     </thead>
     <tbody>
@@ -41,17 +51,17 @@
     </tbody>
     <tfoot>
         <tr>
-            <td>Total</td><td colspan="4">{% gross order.get_total %}</td>
+            <td>{% trans "Total" %}</td><td colspan="4">{% gross order.get_total %}</td>
         </tr>
     </tfoot>
 </table>
-<h2>Payments</h2>
+<h2>{% trans "Payments" %}</h2>
 <ul>
 {% for payment in payments %}
     <li>{{ payment }} - {{ payment.status }}</li>
 {% endfor %}
 </ul>
 {% if not order.is_full_paid %}
-<a href="{% url 'order:payment:index' token=order.token %}">Pay again</a>
+    <a href="{% url 'order:payment:index' token=order.token %}">{% trans "Pay again" %}</a>
 {% endif %}
 {% endblock content %}

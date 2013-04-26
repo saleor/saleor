@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load gross from prices %}
 
 
 {% block content %}
@@ -7,10 +8,22 @@
         <thead>
             <tr>
                 <th>
-                    {% trans "Order token" %}
+                    {% trans "Order" %}
+                </th>
+                <th>
+                    {% trans "Price" %}
+                </th>
+                <th>
+                    {% trans "Date" %}
+                </th>
+                <th>
+                    {% trans "Last status change" %}
                 </th>
                 <th>
                     {% trans "Status" %}
+                </th>
+                <th>
+                    <!-- details link -->
                 </th>
             </tr>
         </thead>
@@ -18,10 +31,22 @@
             {% for order in orders %}
                 <tr>
                     <td>
-                        <a href="{{ order.get_absolute_url }}">{{ order.token }}</a>
+                        {{ order }}
+                    </td>
+                    <td>
+                        {% gross order.get_total %}
+                    </td>
+                    <td>
+                        {{ order.created }}
+                    </td>
+                    <td>
+                        {{ order.last_status_change }}
                     </td>
                     <td>
                         {{ order.get_status_display }}
+                    </td>
+                    <td>
+                        <a href="{{ order.get_absolute_url }}">{% trans "See details" %}</a>
                     </td>
                 </tr>
             {% endfor %}
