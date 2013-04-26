@@ -1,29 +1,23 @@
-@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/patrys\/web\/saleor\/website\/less\/saleor\.less}line{font-family:\000031}}
 body {
   margin-top: 40px;
 }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/patrys\/web\/saleor\/website\/less\/saleor\.less}line{font-family:\000035}}
 section {
   margin-bottom: 60px;
 }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/patrys\/web\/saleor\/website\/less\/saleor\.less}line{font-family:\000039}}
-#header {
-  background: url('../img/header.png') 50% 20px no-repeat;
+#header .container {
+  background: url('../img/header.jpg') 100% 40px no-repeat;
 }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/patrys\/web\/saleor\/website\/less\/saleor\.less}line{font-family:\0000313}}
 .hero-unit {
   background: transparent;
-  height: 433px;
+  height: 350px;
   margin-bottom: 60px;
-  padding: 97px 0 0;
+  padding: 100px 0 0;
 }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/patrys\/web\/saleor\/website\/less\/saleor\.less}line{font-family:\0000318}}
 .hero-unit h1 {
   border-bottom: 1px solid #eee;
   margin-bottom: 10px;
   padding-bottom: 10px;
 }
-@media -sass-debug-info{filename{font-family:file\:\/\/\/home\/patrys\/web\/saleor\/website\/less\/saleor\.less}line{font-family:\0000323}}
 .hero-unit dt {
   margin-bottom: 10px;
 }
