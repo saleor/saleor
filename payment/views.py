@@ -68,7 +68,8 @@ def details(request, order, variant):
     if form.is_valid():
         payment.save()
         return redirect(form.cleaned_data['next'])
-    return TemplateResponse(request, 'payment/%s.html' % variant,
+    template = 'payment/%s.html' % variant
+    return TemplateResponse(request, [template, 'payment/default.html'],
                             {'form': form, 'payment': payment,
                              'provider': provider})
 

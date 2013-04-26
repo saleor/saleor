@@ -11,11 +11,12 @@ class Payment(BasePayment):
     order = models.ForeignKey(Order, related_name='payments')
 
     def get_cancel_url(self):
-        return reverse('order:payment:index', kwargs={'token':
-                                                      self.order.token})
+        return build_absolute_uri(
+            reverse('order:payment:index', kwargs={'token': self.order.token}))
 
     def get_success_url(self):
-        return reverse('order:success', kwargs={'token': self.order.token})
+        return build_absolute_uri(
+            reverse('order:success', kwargs={'token': self.order.token}))
 
     def send_confirmation_email(self):
         email = self.order.get_user_email()
