@@ -23,8 +23,11 @@ class PaymentInlineAdmin(admin.TabularInline):
     model = Payment
     extra = 0
     readonly_fields = ['variant', 'status', 'transaction_id', 'currency',
-                       'total', 'delivery', 'description', 'first_name', 'tax',
-                       'last_name', 'city', 'country_area', 'zip', 'country']
+                       'total', 'delivery', 'description', 'tax',
+                       'billing_first_name', 'billing_last_name',
+                       'billing_address_1', 'billing_address_2',
+                       'billing_city', 'billing_country_code',
+                       'billing_country_area', 'billing_postcode']
     exclude = ['token', 'extra_data']
     can_delete = False
 

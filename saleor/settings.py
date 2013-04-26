@@ -54,7 +54,7 @@ TEMPLATE_LOADERS = [
 ]
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = 'wk!n_sudfsx=nc1s7_lnn)-#^m9v&amp;94lntwif&amp;+)8z-2fyokw%'
+SECRET_KEY = ''
 
 MIDDLEWARE_CLASSES = [
     'django.middleware.common.CommonMiddleware',
@@ -189,5 +189,9 @@ PAYMENT_BASE_URL = 'http://%s/' % CANONICAL_HOSTNAME
 PAYMENT_MODEL = "payment.Payment"
 
 PAYMENT_VARIANTS = {
-    'default': ('payments.dummy.DummyProvider', {'url': 'http://google.pl/'})
+    'default': ('payments.dummy.DummyProvider', {'url': 'http://google.pl/'}),
 }
+
+CHECKOUT_PAYMENT_CHOICES = [
+    ('default', 'Dummy provider')
+]

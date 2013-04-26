@@ -8,8 +8,7 @@ Payment = get_payment_model()
 
 class PaymentMethodsForm(forms.Form):
 
-    CHOICES = [(key, key.title()) for key in settings.PAYMENT_VARIANTS.keys()]
-    method = forms.ChoiceField(choices=CHOICES)
+    method = forms.ChoiceField(choices=settings.CHECKOUT_PAYMENT_CHOICES)
 
 
 class PaymentDeledeForm(forms.Form):

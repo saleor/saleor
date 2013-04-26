@@ -10,7 +10,7 @@ class Payment(BasePayment):
 
     order = models.ForeignKey(Order, related_name='payments')
 
-    def get_cancel_url(self):
+    def get_failure_url(self):
         return build_absolute_uri(
             reverse('order:payment:index', kwargs={'token': self.order.token}))
 
