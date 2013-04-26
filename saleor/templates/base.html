@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load categories_list from category %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -37,8 +38,11 @@
                             <li class="active">
                                 <a href="/">Home</a>
                             </li>
-                            <li>
-                                <a href="{% url "product:index" %}">Products</a>
+                            <li class="dropdown">
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#"> {% trans "Categories" %} <b class="caret"></b> </a>
+                                <ul class="dropdown-menu">
+                                    {% categories_list %}
+                                </ul>
                             </li>
                             <li class="dropdown">
                                 <a data-toggle="dropdown" class="dropdown-toggle" href="{% url "cart:index" %}">{{ request.cart }}</a>

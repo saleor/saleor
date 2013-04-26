@@ -1,22 +1,12 @@
 from .forms import ProductForm
-from .models import Product
-from django.http import HttpResponsePermanentRedirect, Http404
+from .models import Product, Category
+from django.http import HttpResponsePermanentRedirect
+from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 
 
-def index(request):
-    products = Product.objects.all()
-
-    return TemplateResponse(request, 'product/index.html', {
-        'products': products
-    })
-
-
-def details(request, slug, product_id):
-    try:
-        product = Product.objects.get(id=product_id)
-    except Product.DoesNotExist:
-        return Http404()
+def product_details(request, slug, product_id):
+    product = get_object_or_404(Product, id=product_id)
     if product.get_slug() != slug:
         return HttpResponsePermanentRedirect(product.get_absolute_url())
     form = ProductForm(cart=request.cart, product=product,
@@ -26,4 +16,13 @@ def details(request, slug, product_id):
     return TemplateResponse(request, 'product/details.html', {
         'product': product,
         'form': form
+    })
+
+
+def category_index(request, slug):
+    category = get_object_or_404(Category, slug=slug)
+    products = category.products.all()
+    return TemplateResponse(request, 'category/index.html', {
+        'products': products,
+        'category': category
     })
