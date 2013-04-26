@@ -3,6 +3,13 @@
 
 {% block title %}{{ block.super }} » {% trans "Products" %}{% endblock %}
 
+{% block breadcrumb %}
+    {{ block.super }}
+<li>
+    <a href="{% url 'product:index' %}">{% trans "Products" %}</a> <span class="divider">/</span>
+</li>
+{% endblock breadcrumb %}
+
 {% block content %}
 <ul>
     {% for product in products %}

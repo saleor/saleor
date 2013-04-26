@@ -4,6 +4,14 @@
 
 {% block title %}{{ block.super }} » {% trans "Request email confirmation" %}{% endblock %}
 
+{% block breadcrumb %}
+    {{ block.super }}
+<li>
+    {# TODO: this serves for two view: email change and password reset/registration. Create new template to allow better breadcrumbs #}
+    <a href=".">{% trans "Request email confirmation" %}</a> <span class="divider">/</span>
+</li>
+{% endblock breadcrumb %}
+
 {% block content %}
 <div>
     <form method='post'>

@@ -4,6 +4,18 @@
 
 {% block title %}{{ block.super }} » {% trans "Product" %} » {{ product.name }}{% endblock %}
 
+{% block breadcrumb %}
+    {{ block.super }}
+<li>
+    <a href="{% url 'product:index' %}">{% trans "Products" %}</a>
+    <span class="divider">/</span>
+</li>
+<li>
+    <a href="{{ product.get_absolute_url }}">{{ product }}</a>
+    <span class="divider">/</span>
+</li>
+{% endblock breadcrumb %}
+
 {% block outercontent %}
 <div itemscope itemtype="http://schema.org/Product" class="row">
     <h1 itemprop="name">{{ product }}</h1>
