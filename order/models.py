@@ -114,7 +114,7 @@ class DeliveryGroup(Subtyped, ItemSet):
         max_length=32, default='new', choices=STATUS_CHOICES)
     order = models.ForeignKey(Order, related_name='groups', editable=False)
     price = PriceField(
-        pgettext_lazy(u'DeliveryGroup field', u'unit price'),
+        pgettext_lazy(u'Delivery group field', u'unit price'),
         currency=settings.SATCHLESS_DEFAULT_CURRENCY, max_digits=12,
         decimal_places=4,
         default=0,

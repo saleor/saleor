@@ -1,6 +1,6 @@
 from itertools import groupby
 
-from django.utils.translation import ugettext
+from django.utils.translation import pgettext
 from satchless import cart
 from satchless.item import ItemSet, Partitioner
 
@@ -118,7 +118,7 @@ class Cart(cart.Cart):
     billing_address = None
 
     def __unicode__(self):
-        return ugettext('Your cart (%(cart_count)s)') % {
+        return pgettext(u'Shopping cart', u'Your cart (%(cart_count)s)') % {
             'cart_count': self.count()}
 
     def check_quantity(self, product, quantity, data=None):

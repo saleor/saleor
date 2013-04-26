@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
-from django.utils.translation import ugettext_lazy, ugettext
+from django.utils.translation import pgettext_lazy, ugettext
 
 from .models import (
     EmailConfirmationRequest,
@@ -16,7 +16,7 @@ User = get_user_model()
 
 class LoginForm(AuthenticationForm):
 
-    username = forms.EmailField(label=ugettext_lazy("Email"), max_length=75)
+    username = forms.EmailField(label=pgettext_lazy(u"Form field", u"Email"), max_length=75)
 
     def __init__(self, request=None, *args, **kwargs):
         super(LoginForm, self).__init__(request=request, *args, **kwargs)

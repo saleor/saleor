@@ -1,14 +1,14 @@
-from django.core.mail import send_mail
-from unidecode import unidecode
 import re
 
-from django.utils.safestring import mark_safe
 from django.contrib.auth.hashers import (check_password, make_password,
                                          is_password_usable)
 from django.contrib.auth.models import BaseUserManager
 from django.db import models
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy
+from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy, pgettext_lazy
+from unidecode import unidecode
+
 from saleor.countries import COUNTRY_CHOICES
 
 
@@ -18,9 +18,11 @@ class AddressBook(models.Model):
     address = models.ForeignKey('Address', related_name='+', unique=True)
     alias = models.CharField(
         ugettext_lazy('short alias'),
-        max_length=30, default=ugettext_lazy('Home'),
-        help_text=ugettext_lazy(
-            'User-defined alias which identifies this address'))
+        max_length=30,
+        default=pgettext_lazy(u'Default value for alias field', u'Home'),
+        help_text=pgettext_lazy(
+            u'help text',
+            u'User-defined alias which identifies this address'))
 
     class Meta:
         unique_together = ('user', 'alias')
@@ -44,24 +46,32 @@ class AddressBook(models.Model):
 class Address(models.Model):
 
     first_name = models.CharField(
-        ugettext_lazy('first name'), max_length=256, blank=True)
+        pgettext_lazy(u'Address field', u'first name'),
+        max_length=256, blank=True)
     last_name = models.CharField(
-        ugettext_lazy('last name'), max_length=256, blank=True)
+        pgettext_lazy(u'Address field', u'last name'),
+        max_length=256, blank=True)
     company_name = models.CharField(
-        ugettext_lazy('company name'), max_length=256, blank=True)
+        pgettext_lazy(u'Address field', u'company name'),
+        max_length=256, blank=True)
     street_address_1 = models.CharField(
-        ugettext_lazy('street address 1'), max_length=256)
+        pgettext_lazy(u'Address field', u'street address 1'), max_length=256)
     street_address_2 = models.CharField(
-        ugettext_lazy('street address 2'), max_length=256, blank=True)
-    city = models.CharField(ugettext_lazy('city'), max_length=256)
-    postal_code = models.CharField(ugettext_lazy('postal code'), max_length=20)
+        pgettext_lazy(u'Address field', u'street address 2'),
+        max_length=256, blank=True)
+    city = models.CharField(pgettext_lazy(u'Address field', u'city'),
+                            max_length=256)
+    postal_code = models.CharField(
+        pgettext_lazy(u'Address field', u'postal code'), max_length=20)
     country = models.CharField(
-        ugettext_lazy('country'), choices=COUNTRY_CHOICES, max_length=2)
+        pgettext_lazy(u'Address field', u'country'),
+        choices=COUNTRY_CHOICES, max_length=2)
     country_area = models.CharField(
-        ugettext_lazy('country administrative area'), max_length=128,
-        blank=True)
+        pgettext_lazy(u'Address field', u'country administrative area'),
+        max_length=128, blank=True)
     phone = models.CharField(
-        ugettext_lazy('phone number'), max_length=30, blank=True)
+        pgettext_lazy(u'Address field', u'phone number'),
+        max_length=30, blank=True)
 
     def __unicode__(self):
         return u'%s %s' % (self.first_name, self.last_name)
@@ -107,20 +117,24 @@ class User(models.Model):
     addresses = models.ManyToManyField(Address, through=AddressBook)
 
     is_staff = models.BooleanField(
-        ugettext_lazy('staff status'), default=False)
-    is_active = models.BooleanField(ugettext_lazy('active'), default=False)
-    password = models.CharField(
-        ugettext_lazy('password'), max_length=128, editable=False)
+        pgettext_lazy(u'User field', u'staff status'), default=False)
+    is_active = models.BooleanField(pgettext_lazy('active'), default=False)
+    password = models.CharField(pgettext_lazy(u'User field', u'password'),
+                                max_length=128, editable=False)
     date_joined = models.DateTimeField(
-        ugettext_lazy('date joined'), default=timezone.now, editable=False)
+        pgettext_lazy(u'User field', u'date joined'),
+        default=timezone.now, editable=False)
     last_login = models.DateTimeField(
-        ugettext_lazy('last login'), default=timezone.now, editable=False)
+        pgettext_lazy(u'User field', u'last login'),
+        default=timezone.now, editable=False)
     default_shipping_address = models.ForeignKey(
         AddressBook, related_name='+', null=True, blank=True,
-        on_delete=models.SET_NULL)
+        on_delete=models.SET_NULL,
+        verbose_name=pgettext_lazy(u'User field', u'default shipping address'))
     default_billing_address = models.ForeignKey(
         AddressBook, related_name='+', null=True, blank=True,
-        on_delete=models.SET_NULL)
+        on_delete=models.SET_NULL,
+        verbose_name=pgettext_lazy(u'User field', u'default billing address'))
 
     USERNAME_FIELD = 'email'
 
