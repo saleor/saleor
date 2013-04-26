@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ block.super }} » {% trans "Edit Address" %}{% endblock %}
 
 {% block content %}
     <form action="." method="post">

@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ block.super }} » {% trans "Order received!" %}{% endblock %}
 
 {% load gross from prices %}
 

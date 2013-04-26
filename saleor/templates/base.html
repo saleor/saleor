@@ -81,11 +81,15 @@
         {% endif %}
         <div class="container">
             <div class="row">
+                {% block outerbreadcrumb %}
                 <ul class="breadcrumb" itemprop="breadcrumb">
+                    {% block breadcrumb %}
                     <li>
                         <a href="/">Home</a> <span class="divider">/</span>
                     </li>
+                    {% endblock breadcrumb %}
                 </ul>
+                {% endblock outerbreadcrumb %}
             </div>
             {% block outercontent %}
             <div class="row">

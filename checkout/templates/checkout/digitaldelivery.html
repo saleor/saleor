@@ -1,6 +1,8 @@
 {% extends "checkout/details.html" %}
-
+{% load i18n %}
 {% load as_bootstrap from bootstrap %}
+
+{% block title %}{{ block.super }} » {% trans "Digital delivery" %}{% endblock %}
 
 {% block forms %}
 <form method="post" class="form-horizontal">

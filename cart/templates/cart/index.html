@@ -1,7 +1,9 @@
 {% extends "base.html" %}
-
-{% load gross from prices %}
 {% load as_bootstrap from bootstrap %}
+{% load gross from prices %}
+{% load i18n %}
+
+{% block title %}{{ block.super }} » {% trans "Your cart" %}{% endblock %}
 
 {% block content %}
 {% if cart %}
