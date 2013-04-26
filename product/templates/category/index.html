@@ -6,7 +6,7 @@
 {% block breadcrumb %}
     {{ block.super }}
 <li>
-    <a href="{% url 'product:index' %}">{% trans "Products" %}</a> <span class="divider">/</span>
+    <a href="{{ category.get_absolute_url }}">{{ category }}</a> <span class="divider">/</span>
 </li>
 {% endblock breadcrumb %}
 
