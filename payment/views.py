@@ -1,6 +1,5 @@
 from decimal import Decimal
 from django.conf import settings
-from django.core.urlresolvers import reverse
 from django.http.response import Http404, HttpResponseForbidden
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
@@ -38,9 +37,8 @@ def index(request, order):
         waiting_payment = None
         waiting_payment_form = None
     else:
-        waiting_payment_form = PaymentDeledeForm(None, order=order,
-                                                 initial={'payment_id':
-                                                          waiting_payment.id})
+        waiting_payment_form = PaymentDeledeForm(
+            None, order=order, initial={'payment_id': waiting_payment.id})
     if form.is_valid() and not waiting_payment:
         payment_method = form.cleaned_data['method']
         return redirect('order:payment:details', token=order.token,
@@ -53,8 +51,7 @@ def index(request, order):
 
 @check_order_status
 def details(request, order, variant):
-    order.status = 'payment'
-    order.save()
+    order.change_status('payment-pending')
     items = get_payment_items_from_order(order)
     are_waiting_payments = order.payments.filter(status='waiting').exists()
     payment = get_payment_from_order(variant, order)
