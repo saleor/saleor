@@ -129,7 +129,10 @@ class TestShippingStep(TestCase):
     def test_address_save_with_address_in_checkout(self, mock_save):
         self.request.POST = NEW_ADDRESS_POST
         self.request.POST['method'] = 0
-        self.checkout.billing_address = Address()
+        original_billing_address_data = {'first_name': 'Change',
+                                         'last_name': 'Me'}
+        original_billing_address = Address(original_billing_address_data)
+        self.checkout.billing_address = original_billing_address
         group = MagicMock()
         group.address = None
         group.get_delivery_methods.return_value = [DummyShipping(group)]
@@ -137,3 +140,5 @@ class TestShippingStep(TestCase):
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
         step.save()
         self.assertEqual(mock_save.call_count, 0)
+        self.assertEqual(self.checkout.billing_address,
+                         Address(original_billing_address_data))

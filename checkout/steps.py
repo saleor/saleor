@@ -1,3 +1,4 @@
+from django.forms.models import model_to_dict
 from .forms import ManagementForm, DigitalDeliveryForm, DeliveryForm
 from checkout.forms import AnonymousEmailForm
 from django.core.exceptions import ValidationError
@@ -130,8 +131,9 @@ class ShippingStep(BaseShippingStep):
         if 'address' in self.group:
             address = self.group['address']
         else:
-            address = checkout.billing_address or Address()
-            address.id = None
+            address = (Address(model_to_dict(checkout.billing_address))
+                       if checkout.billing_address
+                       else Address())
         super(ShippingStep, self).__init__(checkout, request, address)
         self.forms['delivery'] = DeliveryForm(
             delivery_group.get_delivery_methods(), request.POST or None)
