@@ -1,1 +1,1 @@
-$(".address-details").popover();
+$(function(){$(".address-details").popover();});
