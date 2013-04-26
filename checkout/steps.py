@@ -41,7 +41,7 @@ class BaseShippingStep(BaseCheckoutStep):
         self.address = address
         self.forms = {
             'management': ManagementForm(request.user.is_authenticated(),
-                                        request.POST or None),
+                                         request.POST or None),
             'address_list': UserAddressesForm(user=request.user),
             'address': AddressForm(instance=self.address)}
         management_form = self.forms['management']
@@ -51,8 +51,8 @@ class BaseShippingStep(BaseCheckoutStep):
                 self.forms['address'] = AddressForm(request.POST,
                                                     instance=self.address)
             elif self.method == 'select':
-                self.forms['address_list'] = UserAddressesForm(request.POST,
-                                                           user=request.user)
+                self.forms['address_list'] = UserAddressesForm(
+                    request.POST, user=request.user)
 
     def forms_are_valid(self):
         self.cleaned_data = {}
