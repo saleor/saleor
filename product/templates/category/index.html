@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{{ block.super }} » {% trans "Products" %}{% endblock %}
+{% block title %}{{ block.super }} » {% trans "Category" %} {{ category }}{% endblock %}
 
 {% block content %}
+<h2>{% trans "Category" %} {{ category }}</h2>
 <ul>
     {% for product in products %}
     <li><a href="{{ product.get_absolute_url }}">{{ product }}</a></li>
