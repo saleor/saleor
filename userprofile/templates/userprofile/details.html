@@ -3,6 +3,13 @@
 
 {% block title %}{{ block.super }} » {% trans "User profile" %}{% endblock %}
 
+{% block breadcrumb %}
+    {{ block.super }}
+<li>
+    <a href="{% url 'profile:details' %}">{% trans "Your profile" %}</a> <span class="divider">/</span>
+</li>
+{% endblock breadcrumb %}
+
 {% block content %}
     <ul>
     {% for entry in address_book %}

@@ -3,6 +3,16 @@
 
 {% block title %}{{ block.super }} » {% trans "Edit Address" %}{% endblock %}
 
+{% block breadcrumb %}
+    {{ block.super }}
+<li>
+    <a href="{% url 'profile:details' %}">{% trans "Your profile" %}</a> <span class="divider">/</span>
+</li>
+<li>
+    <a href=".">{% trans "Edit address" %}</a> <span class="divider">/</span>
+</li>
+{% endblock breadcrumb %}
+
 {% block content %}
     <form action="." method="post">
         {% csrf_token %}

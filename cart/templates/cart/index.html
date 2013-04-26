@@ -5,6 +5,13 @@
 
 {% block title %}{{ block.super }} » {% trans "Your cart" %}{% endblock %}
 
+{% block breadcrumb %}
+    {{ block.super }}
+<li>
+    <a href="{% url 'cart:index' %}">{% trans "Cart" %}</a> <span class="divider">/</span>
+</li>
+{% endblock breadcrumb %}
+
 {% block content %}
 {% if cart %}
 <form action="." method="post">
