@@ -31,7 +31,7 @@
     <body itemscope itemtype="http://schema.org/WebPage">
         <header class="navbar navbar-inverse navbar-static-top">
             <div class="navbar-inner">
-                <div class="containe">
+                <div class="container">
                     <a class="brand" href="/">Saleor</a>
                     <nav class="nav-collapse collapse">
                         <ul class="nav">
@@ -39,13 +39,15 @@
                                 <a href="/">Home</a>
                             </li>
                             <li class="dropdown">
-                                <a class="dropdown-toggle" data-toggle="dropdown" href="#"> {% trans "Categories" %} <b class="caret"></b> </a>
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#"> {% trans "Categories" %} <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     {% categories_list %}
                                 </ul>
                             </li>
+                        </ul>
+                        <ul class="nav pull-right">
                             <li class="dropdown">
-                                <a data-toggle="dropdown" class="dropdown-toggle" href="{% url "cart:index" %}">{{ request.cart }}</a>
+                                <a data-toggle="dropdown" class="dropdown-toggle" href="{% url "cart:index" %}">{{ request.cart }} <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     {% for cart_line in request.cart %}
                                     <li><a href="{{ cart_line.product.get_absolute_url }}">{{ cart_line.product }} ({{ cart_line.quantity }})</a></li>
@@ -56,10 +58,10 @@
                             </li>
                             {% if user.is_authenticated %}
                             <li class="dropdown pull-right"> {# TODO pull-right not working #}
-                                <a data-toggle="dropdown" class="dropdown-toggle" href=".">{{ user }}</a>
+                                <a data-toggle="dropdown" class="dropdown-toggle" href=".">{{ user }} <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
-                                    <li><a href="{% url "profile:details" %}">{% trans "Profile edit" %}</a></li>
-                                    <li><a href="{% url "profile:orders" %}">{% trans "Orders" %}</a></li>
+                                    <li><a href="{% url "profile:details" %}">{% trans "Your profile" %}</a></li>
+                                    <li><a href="{% url "profile:orders" %}">{% trans "Your orders" %}</a></li>
                                     <li class="divider"></li>
                                     <li><a href="{% url "registration:logout" %}">{% trans "Log out" %}</a></li>
                                   </ul>

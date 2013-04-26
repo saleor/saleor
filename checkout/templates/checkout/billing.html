@@ -4,11 +4,6 @@
 
 {% block extra_forms %}
 {% if not user.is_authenticated %}
-<fieldset>
-    <legend>
-        User data:
-    </legend>
-    {{ step.forms.anonymous|as_bootstrap }}
-</fieldset>
+{{ step.forms.anonymous|as_bootstrap }}
 {% endif %}
 {% endblock extra_forms %}

@@ -7,17 +7,20 @@
 {% block breadcrumb %}
     {{ block.super }}
 <li>
-    {# TODO: this serves for two view: email change and password reset/registration. Create new template to allow better breadcrumbs #}
-    <a href=".">{% trans "Request email confirmation" %}</a> <span class="divider">/</span>
+    <a href="#">{% trans "Request email confirmation" %}</a> <span class="divider">/</span>
 </li>
 {% endblock breadcrumb %}
 
 {% block content %}
-<div>
-    <form method='post'>
-        {% csrf_token %}
+<form method="post" class="form-horizontal">
+    {% csrf_token %}
+    <fieldset>
+        <legend>{% trans 'Request email confirmation' %}</legend>
         {{ form|as_bootstrap }}
-        <input type="submit" value="Continue">
-    </form>
-</div>
+        <input type="hidden" name="next" value="{{ next }}" />
+    </fieldset>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">{% trans 'Continue' %}</button>
+    </div>
+</form>
 {% endblock %}

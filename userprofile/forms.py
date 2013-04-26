@@ -5,6 +5,7 @@ from .models import Address, AddressBook
 
 
 class AddressForm(forms.ModelForm):
+
     class Meta:
         model = Address
 
@@ -28,7 +29,9 @@ class AddressBookForm(forms.ModelForm):
 
 class UserAddressesForm(forms.Form):
 
-    address = forms.ModelChoiceField(queryset=AddressBook.objects.none())
+    address = forms.ModelChoiceField(queryset=AddressBook.objects.none(),
+                                     required=False,
+                                     empty_label='Enter below')
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', AnonymousUser()) or AnonymousUser()

@@ -17,5 +17,4 @@ urlpatterns = patterns(
     url(r'^address/(?P<pk>\d+)/make-default-for-'
         '(?P<purpose>billing|shipping)/$',
         'userprofile.views.address_make_default',
-        name='address-make-default'),
-)
+        name='address-make-default'))

@@ -7,19 +7,15 @@
 {% block forms %}
 <form method="post" class="form-horizontal">
     {% csrf_token %}
-
-    {% block extra_forms %}{% endblock %}
-
-    {{ step.forms.management|as_bootstrap }}
-    {% if user.is_authenticated %}
     <fieldset>
+    {% if user.is_authenticated %}
         <legend>Select address:</legend>
         {{ step.forms.address_list|as_bootstrap }}
-    </fieldset>
+    {% else %}
+        <legend>Enter address:</legend>
     {% endif %}
-    <fieldset>
-        <legend>Complete address:</legend>
         {{ step.forms.address|as_bootstrap }}
+        {% block extra_forms %}{% endblock %}
     </fieldset>
 
     <div class="form-actions">

@@ -4,7 +4,23 @@
 {% load gross from prices %}
 {% load i18n %}
 
- {% block title %}{{ block.super }} » {% trans "Order details" %}{% endblock %} 
+{% block title %}{{ block.super }} » {% trans "Order details" %}{% endblock %}
+
+{% block outerbreadcrumb %}
+{% if order.user == user %}
+<ul class="breadcrumb" itemprop="breadcrumb">
+    <li>
+        <a href="/">{% trans "Home" %}</a> <span class="divider">/</span>
+    </li>
+    <li>
+        <a href="{% url 'profile:orders' %}">{% trans "Your orders" %}</a> <span class="divider">/</span>
+    </li>
+    <li>
+        <a href="{% url 'order:details' token=order.token %}">{{ order }}</a> <span class="divider">/</span>
+    </li>
+</ul>
+{% endif %}
+{% endblock outerbreadcrumb %}
 
 {% block content %}
 {# This view is available by just knowing url,          #}
@@ -60,22 +76,13 @@
                 {% elif  group.address %}
                     {{ group.address }}
                     <a class="address-details"  href="#"
-                       data-content="{{ group.address.first_name }} {{ group.address.last_name }}
-                                     <br>
-                                     {{ group.address.company_name }}
-                                     <br>
-                                     {{ group.address.street_address_1 }}
-                                     <br>
-                                     {{ group.address.street_address_2 }}
-                                     <br>
-                                     {{ group.address.postal_code }} {{ group.address.city }}
-                                     <br>
-                                     {{ group.address.get_country_display }}
-                                     <br>
-                                     {{ group.address.country_area }}
-                                     <br>
+                       data-content="{% if group.address.company_name %}{{ group.address.company_name }}<br>{% endif %}
+                                     {{ group.address.street_address_1 }}<br>
+                                     {% if group.address.street_address_2 %}{{ group.address.street_address_2 }}<br>{% endif %}
+                                     {{ group.address.postal_code }} {{ group.address.city }}<br>
+                                     {{ group.address.country_area }}, {{ group.address.get_country_display }}<br>
                                      {{ group.address.phone }}"
-                       data-html="true"><small>{% trans "details" %}</small></a>
+                       data-html="true" title="{{ group.address.first_name }} {{ group.address.last_name }}"><small>{% trans "details" %}</small></a>
                 {% endif %}
             </td>
             {% endif %}
@@ -97,7 +104,7 @@
     <li>{{ payment }} - {{ payment.status }}</li>
 {% endfor %}
 </ul>
-{% if not order.is_full_paid %}
+{% if not order.is_fully_paid %}
     <a href="{% url 'order:payment:index' token=order.token %}">{% trans "Pay again" %}</a>
 {% endif %}
 {% endblock content %}
