@@ -2,7 +2,7 @@
 {% load gross from prices %}
 {% load i18n %}
 
-{% block title %}{% trans "Product" %} » {{ product.name }}{% endblock %}
+{% block title %}{{ block.super }} » {% trans "Product" %} » {{ product.name }}{% endblock %}
 
 {% block outercontent %}
 <div itemscope itemtype="http://schema.org/Product" class="row">

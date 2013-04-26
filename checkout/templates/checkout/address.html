@@ -2,9 +2,7 @@
 {% load as_bootstrap from bootstrap %}
 {% load i18n %}
 
-{% block title %}
-{{ block.super }} » {% trans "Billing Address" %}
-{% endblock %}
+{% block title %}{{ block.super }} » {% trans "Billing Address" %}{% endblock %}
 
 {% block forms %}
 <form method="post" class="form-horizontal">

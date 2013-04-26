@@ -3,7 +3,7 @@
 {% load gross from prices %}
 {% load i18n %}
 
-{% block title %}{% trans "Your cart" %}{% endblock %}
+{% block title %}{{ block.super }} » {% trans "Your cart" %}{% endblock %}
 
 {% block content %}
 {% if cart %}

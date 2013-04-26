@@ -2,7 +2,7 @@
 {% load bootstrap %}
 {% load i18n %}
 
-{% block title %}{% trans "Login" %}{% endblock %}
+{% block title %}{{ block.super }} » {% trans "Login" %}{% endblock %}
 
 {% block content %}
 <form method="post" action="{% url 'registration:login' %}">

@@ -3,9 +3,7 @@
 {% load gross from prices %}
 {% load i18n %}
 
-{% block title %}
-{{ block.super }} » {% trans "Method" %}
-{% endblock %}
+{% block title %}{{ block.super }} » {% trans "Select method" %}{% endblock %}
 
 {% block forms %}
 {% if waiting_payment %}

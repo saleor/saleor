@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Invalid token" %}{% endblock %}
+{% block title %}{{ block.super }} » {% trans "Invalid token" %}{% endblock %}
 
 {% block content %}
     <div>

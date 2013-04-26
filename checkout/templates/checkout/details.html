@@ -2,7 +2,9 @@
 {% load as_bootstrap from bootstrap %}
 {% load i18n %}
 
-{% block title %}{% trans "Checkout" %}{% endblock %}
+{% block title %}{{ block.super }} » {% trans "Checkout" %}{% endblock %}
+
+{% block outerbreadcrumb %}{% endblock %}
 
 {% block content %}
 <ul class="nav nav-tabs">
