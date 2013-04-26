@@ -21,9 +21,7 @@
             <tr>
                 <td>{{ forloop.counter }}</td>
                 <td>{{ form.cart_line.product }}</td>
-                <td colspan="2">
-                    {{ form.quantity|as_bootstrap:"False" }}
-                </td>
+                <td colspan="2"> {{ form.quantity|as_bootstrap:"False" }} </td>
                 <td>{% gross form.cart_line.get_price_per_item %}</td>
             </tr>
             {% endfor %}
@@ -31,14 +29,22 @@
         <tfoot>
             <tr>
                 <td colspan="2">Shipping: {% gross cart.get_delivery_total %}</td>
-                <td><button class="btn" type="submit">Update</button></td>
+                <td>
+                <button class="btn" type="submit">
+                    Update
+                </button></td>
                 <td>Total:</td>
                 <td>{% gross cart.get_total %}</td>
             </tr>
         </tfoot>
     </table>
+    <div class="form-actions">
+        <a href="{% url "checkout:index" %}" class="btn btn-primary">Checkout</a>
+    </div>
 </form>
 {% else %}
-<p>Your cart is empty</p>
+<p>
+    Your cart is empty
+</p>
 {% endif %}
 {% endblock content %}
