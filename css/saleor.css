@@ -8,7 +8,7 @@ p {
   color: #5c5c5c;
 }
 .navbar .brand {
-  color: #135790;
+  color: #ca341e;
   font-weight: 700;
   -webkit-transition-duration: 0.4s;
   -moz-transition-duration: 0.4s;
@@ -16,7 +16,7 @@ p {
   transition-duration: 0.4s;
 }
 .navbar .brand:hover {
-  color: #1665a7;
+  color: #de3b23;
 }
 .navbar-fixed-top .navbar-inner {
   background-image: none;
