@@ -4,19 +4,57 @@ body {
 section {
   margin-bottom: 60px;
 }
+p {
+  color: #5c5c5c;
+}
+.navbar .brand {
+  color: #1774b3;
+  font-weight: 700;
+  -webkit-transition-duration: 0.4s;
+  -moz-transition-duration: 0.4s;
+  -o-transition-duration: 0.4s;
+  transition-duration: 0.4s;
+}
+.navbar .brand:hover {
+  color: #1d91e0;
+}
+.navbar-fixed-top .navbar-inner {
+  background-image: none;
+  background-color: #fbfbfb;
+  box-shadow: rgba(0, 0, 0, 0.062) 0px 1px 4px 0px;
+  -moz-box-shadow: rgba(0, 0, 0, 0.062) 0px 1px 4px 0px;
+  -webkit-box-shadow: rgba(0, 0, 0, 0.062) 0px 1px 4px 0px;
+}
 #header .container {
   background: url('../img/header.jpg') 100% 40px no-repeat;
+}
+#footer {
+  border-top: 1px dashed #ccc;
+  color: #777;
+  font-size: 12px;
+  padding-top: 9px;
+  vertical-align: top;
+}
+#footer .technologies {
+  text-align: right;
+}
+#footer .copyright {
+  margin-top: 4px;
 }
 .hero-unit {
   background: transparent;
   height: 350px;
-  margin-bottom: 60px;
+  margin-bottom: 50px;
   padding: 100px 0 0;
 }
 .hero-unit h1 {
   border-bottom: 1px solid #eee;
+  letter-spacing: -3px;
   margin-bottom: 10px;
   padding-bottom: 10px;
+}
+.hero-unit ol li {
+  line-height: 28px;
 }
 .hero-unit dt {
   margin-bottom: 10px;
