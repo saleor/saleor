@@ -1,5 +1,5 @@
 from django.forms.models import model_to_dict
-from .forms import ManagementForm, DigitalDeliveryForm, DeliveryForm
+from .forms import DigitalDeliveryForm, DeliveryForm
 from checkout.forms import AnonymousEmailForm
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -43,30 +43,27 @@ class BaseShippingStep(BaseCheckoutStep):
             self.address = Address(**address_dict)
         else:
             self.address = Address()
-        self.forms = {
-            'management': ManagementForm(request.user.is_authenticated(),
-                                         request.POST or None),
-            'address_list': UserAddressesForm(user=request.user),
-            'address': AddressForm(instance=self.address)}
-        management_form = self.forms['management']
-        if management_form.is_valid():
-            self.method = management_form.cleaned_data['choice_method']
-            if self.method == 'new':
-                self.forms['address'] = AddressForm(request.POST,
-                                                    instance=self.address)
-            elif self.method == 'select':
-                self.forms['address_list'] = UserAddressesForm(
-                    request.POST, user=request.user)
+        address_list = UserAddressesForm(request.POST or None,
+                                         user=request.user)
+        if (address_list.is_valid() and
+                not address_list.cleaned_data['address']):
+            address_form = AddressForm(request.POST, instance=self.address)
+        else:
+            address_form = AddressForm(instance=self.address)
+        self.forms = {'address_list': address_list, 'address': address_form}
 
     def forms_are_valid(self):
         self.cleaned_data = {}
-        if self.method == 'new' and self.forms['address'].is_valid():
-            return True
-        elif self.method == 'select' and self.forms['address_list'].is_valid():
-            address_book = self.forms['address_list'].cleaned_data['address']
-            address_book.address.id = None
-            self.address = address_book.address
-            return True
+        address_list = self.forms['address_list']
+        address_form = self.forms['address']
+        if address_list.is_valid():
+            if address_list.cleaned_data['address']:
+                address_book = address_list.cleaned_data['address']
+                address_book.address.id = None
+                self.address = address_book.address
+                return True
+            if address_form.is_valid():
+                return True
         return False
 
     def validate(self):
