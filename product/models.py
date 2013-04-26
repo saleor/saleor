@@ -1,5 +1,6 @@
 from decimal import Decimal
 from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.fields.related import SingleRelatedObjectDescriptor
 from django.db.models.query import QuerySet
@@ -97,6 +98,9 @@ class Category(MPTTModel):
 
     def __unicode__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse('product:category', kwargs={'slug': self.slug})
 
 
 class Product(Subtyped, Item):
