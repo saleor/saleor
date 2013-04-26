@@ -40,7 +40,7 @@ class DigitalDeliveryForm(forms.ModelForm):
 
     class Meta:
         model = DigitalDeliveryGroup
-        exclude = ['order', 'price']
+        fields = ['email']
 
     def __init__(self, *args, **kwargs):
         super(DigitalDeliveryForm, self).__init__(*args, **kwargs)

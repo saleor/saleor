@@ -89,7 +89,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
-    'django.contrib.sites',
 
     # External apps
     'south',
@@ -184,6 +183,8 @@ FACEBOOK_SECRET = "YOUR_FACEBOOK_APP_SECRET"
 GOOGLE_CLIENT_ID = "YOUR_GOOGLE_APP_ID"
 
 GOOGLE_SECRET = "YOUR_GOOGLE_APP_SECRET"
+
+PAYMENT_BASE_URL = 'http://%s/' % CANONICAL_HOSTNAME
 
 PAYMENT_MODEL = "payment.Payment"
 

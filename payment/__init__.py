@@ -6,6 +6,5 @@ from django.dispatch import receiver
 def order_status_change(sender, instance, **kwargs):
     order = instance.order
     if order.is_full_paid():
-        order.status = 'complete'
+        order.change_status('fully-paid')
         instance.send_confirmation_email()
-        order.save()
