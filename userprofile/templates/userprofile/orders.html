@@ -2,6 +2,15 @@
 {% load i18n %}
 {% load gross from prices %}
 
+{% block breadcrumb %}
+    {{ block.super }}
+<li>
+    <a href="{% url 'profile:details' %}">{% trans "Your profile" %}</a> <span class="divider">/</span>
+</li>
+<li>
+    <a href="{% url 'profile:orders' %}">{% trans "Your orders" %}</a> <span class="divider">/</span>
+</li>
+{% endblock breadcrumb %}
 
 {% block content %}
     <table class="table">
