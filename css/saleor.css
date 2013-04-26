@@ -8,7 +8,7 @@ p {
   color: #5c5c5c;
 }
 .navbar .brand {
-  color: #1774b3;
+  color: #135790;
   font-weight: 700;
   -webkit-transition-duration: 0.4s;
   -moz-transition-duration: 0.4s;
@@ -16,11 +16,11 @@ p {
   transition-duration: 0.4s;
 }
 .navbar .brand:hover {
-  color: #1d91e0;
+  color: #1665a7;
 }
 .navbar-fixed-top .navbar-inner {
   background-image: none;
-  background-color: #fbfbfb;
+  background-color: rgba(251, 251, 251, 0.97);
   box-shadow: rgba(0, 0, 0, 0.062) 0px 1px 4px 0px;
   -moz-box-shadow: rgba(0, 0, 0, 0.062) 0px 1px 4px 0px;
   -webkit-box-shadow: rgba(0, 0, 0, 0.062) 0px 1px 4px 0px;
