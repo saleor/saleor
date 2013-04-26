@@ -30,7 +30,7 @@ class UniqueTokenManager(models.Manager):  # this might end up in `utils`
 
     def create(self, **kwargs):
         assert self.token_field not in kwargs, u'Token field already filled.'
-        for x in xrange(100):
+        for _x in xrange(100):
             token = get_random_string(self.token_length)
             conflict_filter = {self.token_field: token}
             conflict = self.get_query_set().filter(**conflict_filter)
@@ -42,16 +42,17 @@ class UniqueTokenManager(models.Manager):  # this might end up in `utils`
 
 class AbstractToken(models.Model):
 
-    class Meta:
-        abstract = True
-
     TOKEN_LENGTH = 32
 
     token = models.CharField(max_length=TOKEN_LENGTH, unique=True)
     valid_until = models.DateTimeField(
         default=lambda: now() + timedelta(settings.ACCOUNT_ACTIVATION_DAYS))
 
-    objects = UniqueTokenManager(token_field='token', token_length=TOKEN_LENGTH)
+    objects = UniqueTokenManager(token_field='token',
+                                 token_length=TOKEN_LENGTH)
+
+    class Meta:
+        abstract = True
 
 
 class EmailConfirmationRequest(AbstractToken):

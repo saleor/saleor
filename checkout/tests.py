@@ -1,5 +1,6 @@
-from ..steps import BaseShippingStep, BillingAddressStep, ShippingStep
+from . import BillingAddressStep, ShippingStep
 from checkout import Checkout
+from checkout.steps import BaseShippingStep
 from delivery import DummyShipping
 from django.test import TestCase
 from mock import MagicMock, patch

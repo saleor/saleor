@@ -31,7 +31,7 @@ class LoginUrlsTestCase(TestCase):
         facebook_login_url = URL(facebook_client.get_login_uri())
         query = facebook_login_url.query_params()
         callback_url = URL(query['redirect_uri'][0])
-        func, args, kwargs = resolve(callback_url.path())
+        func, _args, kwargs = resolve(callback_url.path())
         self.assertEquals(func, oauth_callback)
         self.assertEquals(kwargs['service'], FACEBOOK)
         self.assertEqual(query['scope'][0], FacebookClient.scope)
@@ -43,7 +43,7 @@ class LoginUrlsTestCase(TestCase):
         google_login_url = URL(google_client.get_login_uri())
         params = google_login_url.query_params()
         callback_url = URL(params['redirect_uri'][0])
-        func, args, kwargs = resolve(callback_url.path())
+        func, _args, kwargs = resolve(callback_url.path())
         self.assertEquals(func, oauth_callback)
         self.assertEquals(kwargs['service'], GOOGLE)
         self.assertIn(params['scope'][0], GoogleClient.scope)
@@ -115,7 +115,7 @@ class AccessTokenTestCase(BaseCommunicationTestCase):
         self.requests_mock.post.return_value = self.access_token_response
 
     def test_token_is_obtained_on_construction(self):
-        """OAuth2 client asks for access token if temporary code is available"""
+        """OAuth2 client asks for access token if interim code is available"""
         self.access_token_response.status_code = sentinel.ok
         TestClient(local_host='http://localhost', code=sentinel.code)
         self.requests_mock.post.assert_called_once()
@@ -219,8 +219,9 @@ class CallbackTestCase(TestCase):
         user = self.form.get_authenticated_user()
 
         self.assertEquals(self.authenticate_mock.mock_calls,
-                          [call(service=sentinel.service, username=sentinel.id),
-                           call(user=sentinel.user)])
+                          [call(service=sentinel.service,
+                                username=sentinel.id),
+                                call(user=sentinel.user)])
         external_data_mock.objects.create.assert_called_once_with(
             service=sentinel.service, username=sentinel.id, user=sentinel.user)
         self.assertEquals(user, sentinel.authed_user)

@@ -20,7 +20,8 @@ class DummyShipping(BaseDelivery):
     def get_price_per_item(self, **kwargs):
         weight = sum(line.product.weight for line in self.group)
         qty = sum(line.quantity for line in self.group)
-        return Price(qty*weight, currency=settings.SATCHLESS_DEFAULT_CURRENCY)
+        return Price(qty * weight,
+                     currency=settings.SATCHLESS_DEFAULT_CURRENCY)
 
 
 class DigitalDelivery(BaseDelivery):

@@ -69,6 +69,11 @@ class Order(models.Model, ItemSet):
         total = self.get_total()
         return total_paid >= total.gross
 
+    def get_user_email(self):
+        if self.user:
+            return self.user.email
+        return self.anonymous_user_email
+
     def __iter__(self):
         return iter(self.groups.all())
 
@@ -77,11 +82,6 @@ class Order(models.Model, ItemSet):
 
     def __unicode__(self):
         return u'#%d' % (self.id, )
-
-    def get_user_email(self):
-        if self.user:
-            return self.user.email
-        return self.anonymous_user_email
 
     @property
     def billing_full_name(self):
@@ -187,8 +187,8 @@ class OrderedItem(models.Model, ItemLine):
         return Price(net=self.unit_price_net, gross=self.unit_price_gross,
                      currency=settings.SATCHLESS_DEFAULT_CURRENCY)
 
-    def get_quantity(self):
-        return self.quantity
-
     def __unicode__(self):
         return self.product_name
+
+    def get_quantity(self):
+        return self.quantity

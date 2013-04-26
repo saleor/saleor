@@ -6,4 +6,3 @@ urlpatterns = patterns('product.views',
     url(r'^(?P<slug>[a-z0-9-]+?)-(?P<product_id>[0-9]+)/$', 'details',
         name='details'),
 )
-
