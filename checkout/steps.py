@@ -38,7 +38,11 @@ class BaseShippingStep(BaseCheckoutStep):
 
     def __init__(self, checkout, request, address):
         super(BaseShippingStep, self).__init__(checkout, request)
-        self.address = address
+        if address:
+            address_dict = model_to_dict(address, exclude=['id', 'user'])
+            self.address = Address(**address_dict)
+        else:
+            self.address = Address()
         self.forms = {
             'management': ManagementForm(request.user.is_authenticated(),
                                          request.POST or None),
@@ -78,7 +82,7 @@ class BillingAddressStep(BaseShippingStep):
     anonymous_user_email = ''
 
     def __init__(self, checkout, request):
-        address = checkout.billing_address or Address()
+        address = checkout.billing_address
         super(BillingAddressStep, self).__init__(checkout, request, address)
         if not request.user.is_authenticated():
             self.anonymous_user_email = self.checkout.anonymous_user_email
@@ -131,9 +135,7 @@ class ShippingStep(BaseShippingStep):
         if 'address' in self.group:
             address = self.group['address']
         else:
-            address = (Address(model_to_dict(checkout.billing_address))
-                       if checkout.billing_address
-                       else Address())
+            address = checkout.billing_address
         super(ShippingStep, self).__init__(checkout, request, address)
         self.forms['delivery'] = DeliveryForm(
             delivery_group.get_delivery_methods(), request.POST or None)

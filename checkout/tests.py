@@ -1,5 +1,5 @@
 from . import BillingAddressStep, ShippingStep
-from checkout import Checkout
+from checkout import Checkout, CheckoutStorage
 from checkout.steps import BaseShippingStep
 from delivery import DummyShipping
 from django.test import TestCase
@@ -95,6 +95,7 @@ class TestShippingStep(TestCase):
         self.request.user.is_authenticated.return_value = False
         self.request.session = {}
         self.checkout = MagicMock()
+        self.checkout.get_group.return_value = {}
         self.checkout.billing_address = None
 
     @patch.object(Address, 'save')
@@ -130,8 +131,9 @@ class TestShippingStep(TestCase):
         self.request.POST = NEW_ADDRESS_POST
         self.request.POST['method'] = 0
         original_billing_address_data = {'first_name': 'Change',
-                                         'last_name': 'Me'}
-        original_billing_address = Address(original_billing_address_data)
+                                         'last_name': 'Me',
+                                         'id': 10}
+        original_billing_address = Address(**original_billing_address_data)
         self.checkout.billing_address = original_billing_address
         group = MagicMock()
         group.address = None
@@ -141,4 +143,5 @@ class TestShippingStep(TestCase):
         step.save()
         self.assertEqual(mock_save.call_count, 0)
         self.assertEqual(self.checkout.billing_address,
-                         Address(original_billing_address_data))
+                         Address(**original_billing_address_data))
+        self.assertEqual(step.group['address'].id, None)
