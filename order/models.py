@@ -63,7 +63,7 @@ class Order(models.Model, ItemSet):
     def get_items(self):
         return OrderedItem.objects.filter(delivery_group__order=self)
 
-    def is_full_paid(self):
+    def is_fully_paid(self):
         total_paid = sum([payment.total for payment in
                           self.payments.filter(status='confirmed')], Decimal())
         total = self.get_total()
