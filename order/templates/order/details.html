@@ -4,6 +4,8 @@
 {% load gross from prices %}
 {% load i18n %}
 
+ {% block title %}{{ block.super }} » {% trans "Order details" %}{% endblock %} 
+
 {% block content %}
 {# This view is available by just knowing url,          #}
 {# so we don't show all details (like delivery address) #}
