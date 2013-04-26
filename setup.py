@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages, Command
 import os
 
-os.environ['DJANGO_SETTINGS_MODULE'] = 'saleor.settings'
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'saleor.settings')
 
 
 class Command(Command):
