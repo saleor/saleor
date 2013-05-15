@@ -35,7 +35,7 @@ def details(request, order, variant):
     waiting_payments = order.payments.filter(status='waiting').exists()
     billing = order.billing_address
     total = order.get_total()
-    defaults = {'order': order, 'variant': variant, 'total': total.gross,
+    defaults = {'total': total.gross,
                 'tax': total.tax, 'currency': total.currency,
                 'delivery': order.get_delivery_total().gross,
                 'billing_first_name': billing.first_name,
@@ -48,6 +48,7 @@ def details(request, order, variant):
                 'billing_country_area': billing.country_area}
     payment, _created = Payment.objects.get_or_create(variant=variant,
                                                       status='waiting',
+                                                      order=order,
                                                       defaults=defaults)
     if waiting_payments:
         return redirect('order:payment:index', token=order.token)
