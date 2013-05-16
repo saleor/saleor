@@ -1,6 +1,7 @@
 *.py[cod]
-!.gitignore
 .*
+!.gitignore
+!.travis*
 *.log
 *.pot
 *.pyc
