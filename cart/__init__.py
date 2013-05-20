@@ -68,6 +68,7 @@ class CartPartitioner(Partitioner):
         '''
         Change this method to provide custom delivery groups.
         '''
+        self.subject = sorted(self.subject, key=self.classify)
         for classifier, items in groupby(self.subject, self.classify):
             delivery_class = self.get_delivery_class(classifier)
             delivery = delivery_class(items)
