@@ -26,7 +26,7 @@ class ProductDiscount(ItemDiscount):
 
 class CartDiscount(ItemSetDiscount):
 
-    precent = Decimal(0.5)
+    precent = Decimal('0.5')
     name = 'Cart discount'
 
     def apply(self, price):
