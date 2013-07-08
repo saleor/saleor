@@ -18,7 +18,7 @@
 <div itemscope itemtype="http://schema.org/Product" class="row">
     <h1 itemprop="name">{{ product }}</h1>
     <p itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-        Price: <span itemprop="price">{% gross product.price %}</span>
+        Price: <span itemprop="price">{% gross product.get_price %}</span>
         {% if product.stock == 0 %}
         <link itemprop="availability" href="http://schema.org/OutOfStock" />
         Out of stock
@@ -26,6 +26,7 @@
         <link itemprop="availability" href="http://schema.org/InStock" />
         In stock
         {% endif %}
+        {% if product.price.modifier %}<br /><small class="label label-success">{{ product.price.modifier }} -{% gross product.price.modifier.discount %}</small>{% endif %}
     </p>
     <form class="form-horizontal" method="post" action=".">
         {% csrf_token %}
