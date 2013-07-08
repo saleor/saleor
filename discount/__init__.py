@@ -46,3 +46,12 @@ class DiscountManager(list):
     def filter(self, item, **kwargs):
         return [discount for discount in self
                 if discount.can_apply(item, **kwargs)]
+
+
+def get_discounts(request):
+    if hasattr(request, 'discounts'):
+        return request.discounts
+    from .models import SelectedProduct
+    selected_products = SelectedProduct.objects.all()
+    request.discounts = DiscountManager(selected_products)
+    return request.discounts

@@ -1,5 +1,6 @@
 from .forms import ProductForm
 from .models import Product, Category
+from discount import get_discounts
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
@@ -13,6 +14,8 @@ def product_details(request, slug, product_id):
                        data=request.POST or None)
     if form.is_valid():
         form.save()
+    discounts = get_discounts(request)
+    discounts.apply(product)
     return TemplateResponse(request, 'product/details.html', {
         'product': product,
         'form': form
