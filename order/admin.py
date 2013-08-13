@@ -2,7 +2,7 @@ from .models import Order, OrderedItem
 from django import forms
 from django.contrib import admin
 from django.contrib.admin.options import ModelAdmin
-from django.forms.models import model_to_dict
+from django.forms.models import model_to_dict, BaseInlineFormSet
 from payment.models import Payment
 
 
@@ -32,9 +32,17 @@ class PaymentInlineAdmin(admin.TabularInline):
     can_delete = False
 
 
+class DeliveryFormSet(BaseInlineFormSet):
+
+    def __init__(self, *args, **kwargs):
+        kwargs['instance'] = self.instance_obj
+        super(DeliveryFormSet, self).__init__(*args, **kwargs)
+
+
 class DeliveryInlineAdmin(admin.TabularInline):
 
     model = OrderedItem
+    formset = DeliveryFormSet
 
     def __init__(self, parent_model, admin_site, delivery):
         self.delivery = delivery
@@ -55,8 +63,10 @@ class DeliveryInlineAdmin(admin.TabularInline):
 
     def get_formset(self, request, obj=None, **kwargs):
         obj = obj if not self.delivery else self.delivery
-        return super(DeliveryInlineAdmin, self).get_formset(request, obj,
-                                                            **kwargs)
+        formset = super(DeliveryInlineAdmin, self).get_formset(request, obj,
+                                                               **kwargs)
+        formset.instance_obj = obj
+        return formset
 
 
 class OrderAdminForm(forms.ModelForm):
