@@ -105,7 +105,6 @@ INSTALLED_APPS = [
     'userprofile',
     'registration',
     'payment',
-    'discount',
 ]
 
 LOGGING = {

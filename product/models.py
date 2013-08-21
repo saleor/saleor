@@ -1,4 +1,6 @@
 from decimal import Decimal
+import re
+
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -8,9 +10,12 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from mptt.models import MPTTModel
+from prices import FixedDiscount
 from satchless.item import Item
 from unidecode import unidecode
-import re
+
+
+class NotApplicable(ValueError): pass
 
 
 class SubtypedQuerySet(QuerySet):
@@ -125,14 +130,55 @@ class Product(Subtyped, Item):
                 (),
                 {'slug': self.get_slug(), 'product_id': self.id})
 
-    def get_price_per_item(self, **kwargs):
-        return self.price
+    def get_price_per_item(self, discounted=True, **kwargs):
+        price = self.price
+        if discounted:
+            for modifier in get_product_discounts(self, **kwargs):
+                price += modifier
+        return price
 
     def get_slug(self):
         value = unidecode(self.name)
         value = re.sub(r'[^\w\s-]', '', value).strip().lower()
 
         return mark_safe(re.sub(r'[-\s]+', '-', value))
+
+
+class ProductDiscountManager(models.Manager):
+
+    def for_product(self, product):
+        # Add a caching layer here to reduce the number of queries
+        return self.get_queryset().filter(products=product)
+
+
+class FixedProductDiscount(models.Model):
+
+    name = models.CharField(max_length=255)
+    products = models.ManyToManyField(Product, blank=True)
+    discount = PriceField(pgettext_lazy(u'Discount field', u'discount value'),
+                          currency=settings.SATCHLESS_DEFAULT_CURRENCY,
+                          max_digits=12, decimal_places=4)
+
+    objects = ProductDiscountManager()
+
+    def modifier_for_product(self, product, **kwargs):
+        if not self.products.filter(pk=product.pk).exists():
+            raise NotApplicable('Discount not applicable for this product')
+        return FixedDiscount(self.discount, name=self.name)
+
+    def __unicode__(self):
+        return self.name
+
+    def __repr__(self):
+        return 'SelectedProduct(name=%r, discount=%r)' % (str(self.discount),
+                                                          self.name)
+
+def get_product_discounts(product, **kwargs):
+    for discount in FixedProductDiscount.objects.for_product(product):
+        try:
+            yield discount.modifier_for_product(product, **kwargs)
+        except NotApplicable:
+            pass
 
 
 class StockedProduct(models.Model):
