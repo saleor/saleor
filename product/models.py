@@ -133,8 +133,8 @@ class Product(Subtyped, Item):
     def get_price_per_item(self, discounted=True, **kwargs):
         price = self.price
         if discounted:
-            for modifier in get_product_discounts(self, **kwargs):
-                price += modifier
+            modifier = max(get_product_discounts(self, **kwargs))
+            price += modifier
         return price
 
     def get_slug(self):
@@ -148,7 +148,7 @@ class ProductDiscountManager(models.Manager):
 
     def for_product(self, product):
         # Add a caching layer here to reduce the number of queries
-        return self.get_queryset().filter(products=product)
+        return self.get_query_set().filter(products=product)
 
 
 class FixedProductDiscount(models.Model):
