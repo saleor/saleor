@@ -133,8 +133,10 @@ class Product(Subtyped, Item):
     def get_price_per_item(self, discounted=True, **kwargs):
         price = self.price
         if discounted:
-            modifier = max(get_product_discounts(self, **kwargs))
-            price += modifier
+            discounts = list(get_product_discounts(self, **kwargs))
+            if discounts:
+                modifier = max(discounts)
+                price += modifier
         return price
 
     def get_slug(self):
