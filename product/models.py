@@ -163,9 +163,11 @@ class FixedProductDiscount(models.Model):
 
     objects = ProductDiscountManager()
 
-    def modifier_for_product(self, product, **kwargs):
+    def modifier_for_product(self, product):
         if not self.products.filter(pk=product.pk).exists():
             raise NotApplicable('Discount not applicable for this product')
+        if self.discount > product.get_price(discounted=False):
+            raise NotApplicable('Discount too high for this product')
         return FixedDiscount(self.discount, name=self.name)
 
     def __unicode__(self):
