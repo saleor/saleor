@@ -1,24 +1,22 @@
 {% extends "base.html" %}
-{% load gross from prices %}
+
+{% load as_horizontal_form from bootstrap %}
 {% load undiscounted_price price_difference from discount %}
 {% load i18n %}
+{% load gross from prices %}
 
 {% block title %}{{ block.super }} » {% trans "Product" %} » {{ product.name }}{% endblock %}
 
 {% block breadcrumb %}
     {{ block.super }}
-<li>
-    <a href="{{ product.category.get_absolute_url }}">{{ product.category }}</a> <span class="divider">/</span>
-</li>
-<li>
-    <a href="{{ product.get_absolute_url }}">{{ product }}</a> <span class="divider">/</span>
-</li>
+    <li><a href="{{ product.category.get_absolute_url }}">{{ product.category }}</a></li>
+    <li><a href="{{ product.get_absolute_url }}">{{ product }}</a></li>
 {% endblock breadcrumb %}
 
 {% block outercontent %}
 {% with price=product.get_price undiscounted=product|undiscounted_price %}
 {% with discount=undiscounted|price_difference:price %}
-<div itemscope itemtype="http://schema.org/Product" class="row">
+<div itemscope itemtype="http://schema.org/Product">
     <h1 itemprop="name">{{ product }}</h1>
     <p itemprop="offers" itemscope itemtype="http://schema.org/Offer">
         {% trans "Price" %}:
@@ -33,23 +31,14 @@
         {% endif %}
         {% if undiscounted != price %}<br /><small class="label label-success">{% gross discount %} {% trans "OFF" %}!</small>{% endif %}
     </p>
-    <form class="form-horizontal" method="post" action=".">
+    <h2>{% trans "Add to cart" %}</h2>
+    <form role="form" class="form-horizontal" method="post" action=".">
         {% csrf_token %}
-        <div class="control-group  {{ form.quantity.html_name }}{{ form.quantity.html_name }}{{ form.quantity.html_name }}{% if form.quantity.errors %} error{% endif %}{% if form.quantity.field.required %} required{% endif %}">
-            <label class="control-label" for="inputEmail">{{ form.quantity.label }}</label>
-            <div class="controls">
-                {{ form.quantity }}
-                {% if form.quantity.errors %}
-                {% for error in form.quantity.errors %}
-                <span class="help-inline error">{{ error }}</span>
-                {% endfor %}
-                {% endif %}
-            </div>
-        </div>
+        {{ form.quantity|as_horizontal_form }}
 
-        <div class="control-group">
-            <div class="controls">
-                <button class="btn">
+        <div class="form-group">
+            <div class="col-lg-offset-2 col-lg-10">
+                <button class="btn btn-default">
                     {% trans "Add to cart" %}
                 </button>
             </div>

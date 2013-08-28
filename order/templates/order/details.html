@@ -1,25 +1,18 @@
 {% extends "base.html" %}
 
-{% load as_bootstrap from bootstrap %}
 {% load gross from prices %}
 {% load i18n %}
 
 {% block title %}{{ block.super }} » {% trans "Order details" %}{% endblock %}
 
 {% block outerbreadcrumb %}
-{% if order.user == user %}
-<ul class="breadcrumb" itemprop="breadcrumb">
-    <li>
-        <a href="/">{% trans "Home" %}</a> <span class="divider">/</span>
-    </li>
-    <li>
-        <a href="{% url 'profile:orders' %}">{% trans "Your orders" %}</a> <span class="divider">/</span>
-    </li>
-    <li>
-        <a href="{% url 'order:details' token=order.token %}">{{ order }}</a> <span class="divider">/</span>
-    </li>
-</ul>
-{% endif %}
+    {% if order.user == user %}
+    <ul class="breadcrumb" itemprop="breadcrumb">
+        <li><a href="/">{% trans "Home" %}</a></li>
+        <li><a href="{% url 'profile:orders' %}">{% trans "Your orders" %}</a></li>
+        <li><a href="{% url 'order:details' token=order.token %}">{{ order }}</a></li>
+    </ul>
+    {% endif %}
 {% endblock outerbreadcrumb %}
 
 {% block content %}

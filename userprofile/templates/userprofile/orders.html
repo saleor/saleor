@@ -4,9 +4,7 @@
 
 {% block breadcrumb %}
     {{ block.super }}
-<li>
-    <a href="{% url 'profile:orders' %}">{% trans "Your orders" %}</a> <span class="divider">/</span>
-</li>
+    <li><a href="{% url 'profile:orders' %}">{% trans "Your orders" %}</a></li>
 {% endblock breadcrumb %}
 
 {% block content %}

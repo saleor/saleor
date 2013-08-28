@@ -1,5 +1,5 @@
 {% extends "payment/details.html" %}
-{% load as_bootstrap from bootstrap %}
+{% load as_horizontal_form from bootstrap %}
 {% load i18n %}
 
 {% block title %}{{ block.super }} » {{ payment.variant|title }}{% endblock %}
@@ -7,7 +7,7 @@
 {% block forms %}
 <form method="{{ form.method }}" class="form-horizontal"{% if form.action %} action="{{ form.action }}"{% endif %}>
     {% csrf_token %}
-    {{ form|as_bootstrap }}
+    {{ form|as_horizontal_form }}
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">
             Save changes

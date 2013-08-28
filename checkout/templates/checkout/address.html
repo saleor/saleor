@@ -1,5 +1,5 @@
 {% extends "checkout/details.html" %}
-{% load as_bootstrap from bootstrap %}
+{% load as_horizontal_form from bootstrap %}
 {% load i18n %}
 
 {% block title %}{{ block.super }} » {% trans "Billing Address" %}{% endblock %}
@@ -10,11 +10,11 @@
     <fieldset>
     {% if user.is_authenticated %}
         <legend>Select address:</legend>
-        {{ step.forms.address_list|as_bootstrap }}
+        {{ step.forms.address_list|as_horizontal_form }}
     {% else %}
         <legend>Enter address:</legend>
     {% endif %}
-        {{ step.forms.address|as_bootstrap }}
+        {{ step.forms.address|as_horizontal_form }}
         {% block extra_forms %}{% endblock %}
     </fieldset>
 

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load as_bootstrap from bootstrap %}
+{% load as_horizontal_form from bootstrap %}
 {% load i18n %}
 
 {% block title %}{{ block.super }} » {% trans "Payment" %}{% endblock %}
@@ -11,7 +11,7 @@
 {% block forms %}
 {% if form %}
 <form method="post" action="{{ form.action }}" class="form-horizontal">
-    {{ form|as_bootstrap }}
+    {{ form|as_horizontal_form }}
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">
             Save changes

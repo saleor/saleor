@@ -1,9 +1,9 @@
 {% extends "checkout/address.html" %}
 
-{% load as_bootstrap from bootstrap %}
+{% load as_horizontal_form from bootstrap %}
 
 {% block extra_forms %}
 {% if not user.is_authenticated %}
-{{ step.forms.anonymous|as_bootstrap }}
+{{ step.forms.anonymous|as_horizontal_form }}
 {% endif %}
 {% endblock extra_forms %}

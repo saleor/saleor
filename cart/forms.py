@@ -18,7 +18,7 @@ class AddToCartForm(forms.Form):
     '''
     Class use product and cart instance.
     '''
-    quantity = QuantityField(label=pgettext('Form field', 'quantity'))
+    quantity = QuantityField(label=pgettext('Form field', 'Quantity'))
     error_messages = {
         'insufficient-stock': ugettext(
             'Only %(remaining)d remaining in stock.')}

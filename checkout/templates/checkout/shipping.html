@@ -1,5 +1,5 @@
 {% extends "checkout/address.html" %}
-{% load as_bootstrap from bootstrap %}
+{% load as_horizontal_form from bootstrap %}
 {% load i18n %}
 
 {% block title %}{% trans "Checkout" %} » {% trans "Shipping" %}{% endblock %}
@@ -9,6 +9,6 @@
     <legend>
         Delivery method:
     </legend>
-    {{ step.forms.delivery|as_bootstrap }}
+    {{ step.forms.delivery|as_horizontal_form }}
 </fieldset>
 {% endblock extra_forms %}

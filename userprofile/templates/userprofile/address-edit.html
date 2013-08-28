@@ -5,12 +5,8 @@
 
 {% block breadcrumb %}
     {{ block.super }}
-<li>
-    <a href="{% url 'profile:details' %}">{% trans "Your profile" %}</a> <span class="divider">/</span>
-</li>
-<li>
-    <a href=".">{% trans "Edit address" %}</a> <span class="divider">/</span>
-</li>
+    <li><a href="{% url 'profile:details' %}">{% trans "Your profile" %}</a></li>
+    <li><a href=".">{% trans "Edit address" %}</a></li>
 {% endblock breadcrumb %}
 
 {% block content %}

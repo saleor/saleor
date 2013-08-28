@@ -1,16 +1,17 @@
 {% if bound_field.is_hidden %}
 {{ bound_field }}
 {% else %}
-<div class="control-group {{ bound_field.html_name }}{% if bound_field.errors %} error{% endif %}{% if bound_field.field.required %} required{% endif %}">
+<div class="form-group {{ bound_field.html_name }}{% if bound_field.errors %} has-error{% endif %}{% if bound_field.field.required %} required{% endif %}">
     {% if show_label %}
     <label class="control-label" for="{{ bound_field.html_name }}_id">{{ bound_field.label }}</label>
     {% endif %}
-    <div class="controls">
+    <div>
         {% if input_type == "input" %}
             <input type="{{ bound_field.field.widget.input_type }}"
                    value="{{ bound_field.value|default_if_none:"" }}"
                    name="{{ bound_field.html_name }}"
                    id="id_{{ bound_field.html_name }}"
+                   class="form-control"
             />
         {% endif %}
         {% if input_type == "textarea" %}
@@ -18,6 +19,7 @@
                id="id_{{ bound_field.html_name }}"
                cols="40"
                rows="10"
+               class="form-control"
                >{{ bound_field.value|default_if_none:"" }}</textarea>
         {% endif %}
         {% if input_type == "checkbox" %}
@@ -28,6 +30,7 @@
                        {% endif %}
                        name="{{ bound_field.html_name }}"
                        id="id_{{ bound_field.html_name }}"
+                       class="form-control"
                 >
                 {{ bound_field.label }}
              </label>
@@ -40,6 +43,7 @@
                        value="{{ value }}"
                        name="{{ bound_field.html_name }}"
                        id="id_{{ bound_field.html_name }}_{{ forloop.counter0 }}"
+                       class="form-control"
                 >
                 {{ name }}
              </label>

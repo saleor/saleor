@@ -1,6 +1,6 @@
 {% extends "payment/details.html" %}
 
-{% load as_bootstrap from bootstrap %}
+{% load as_horizontal_form from bootstrap %}
 {% load gross from prices %}
 {% load i18n %}
 
@@ -9,9 +9,9 @@
 {% block forms %}
 <form method="post" class="form-horizontal">
     {% csrf_token %}
-    {{ form.non_field_errors|as_bootstrap }}
-    {{ form.name|as_bootstrap }}
-    {{ form.number|as_bootstrap }}
+    {{ form.non_field_errors|as_horizontal_form }}
+    {{ form.name|as_horizontal_form }}
+    {{ form.number|as_horizontal_form }}
     <div class="control-group name required{% if form.expiration.errors  %} error{% endif %}">
         <label class="control-label">Expiry date</label>
         <div class="controls controls-row">
@@ -24,7 +24,7 @@
             </span>{% endif %}
         </div>
     </div>
-    {{ form.cvv2|as_bootstrap }}
+    {{ form.cvv2|as_horizontal_form }}
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">
             Save changes

@@ -1,5 +1,5 @@
 {% extends "payment/details.html" %}
-{% load as_bootstrap from bootstrap %}
+{% load as_horizontal_form from bootstrap %}
 {% load gross from prices %}
 {% load i18n %}
 
@@ -15,7 +15,7 @@
 {% else %}
 <form method="post" class="form-horizontal">
     {% csrf_token %}
-    {{ form|as_bootstrap }}
+    {{ form|as_horizontal_form }}
     <div class="form-actions">
         <button type="submit" class="btn btn-primary">
             Save changes

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load as_bootstrap from bootstrap %}
+{% load as_vertical_form from bootstrap %}
 {% load gross from prices %}
 {% load i18n %}
 
@@ -7,20 +7,18 @@
 
 {% block breadcrumb %}
     {{ block.super }}
-<li>
-    <a href="{% url 'cart:index' %}">{% trans "Cart" %}</a> <span class="divider">/</span>
-</li>
+<li><a href="{% url 'cart:index' %}">{% trans "Cart" %}</a></li>
 {% endblock breadcrumb %}
 
 {% block content %}
 {% if cart %}
-<form action="." method="post">
+<form role="form" action="." method="post">
     {% csrf_token %}
     {{ formset.management_form }}
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th>#</th><th>name</th><th colspan="2">quantity</th><th>price</th>
+                <th>#</th><th>{% trans "Name" %}</th><th colspan="2">{% trans "Quantity" %}</th><th>{% trans "Price" %}</th>
             </tr>
         </thead>
         <tbody>
@@ -28,25 +26,27 @@
             <tr>
                 <td>{{ forloop.counter }}</td>
                 <td>{{ form.cart_line.product }}</td>
-                <td colspan="2"> {{ form.quantity|as_bootstrap:"False" }} </td>
+                <td colspan="2">{{ form.quantity|as_vertical_form:False }}</td>
                 <td>{% gross form.cart_line.get_price_per_item %}</td>
             </tr>
             {% endfor %}
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="2">Shipping: {% gross cart.get_delivery_total %}</td>
+                <td colspan="2">{% trans "Shipping" %}: {% gross cart.get_delivery_total %}</td>
                 <td>
                 <button class="btn" type="submit">
-                    Update
+                    {% trans "Update" %}
                 </button></td>
-                <td>Total:</td>
+                <td>{% trans "Total" %}:</td>
                 <td>{% gross cart.get_total %}</td>
             </tr>
         </tfoot>
     </table>
-    <div class="form-actions">
-        <a href="{% url "checkout:index" %}" class="btn btn-primary">Checkout</a>
+    <div class="form-group">
+        <div>
+            <a href="{% url "checkout:index" %}" class="btn btn-default btn-primary">Checkout</a>        
+        </div>
     </div>
 </form>
 {% else %}
