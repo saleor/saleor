@@ -29,12 +29,13 @@ setup(
     install_requires=[
         'Django>=1.5',
         'django-mptt>=0.5',
+        'django-payments>=0.3,<0.4a0',
         'django-prices>=0.2,<0.3a0',
+        'prices>=0.4.2,<0.5a0',
         'satchless>=1.0,<1.1a0',
         'South>=0.7.6',
-        'unidecode',
         'requests>=1.2.0',
-        'django-payments>=0.3,<0.4a0'],
+        'unidecode'],
     extras_require={
         'lint': ['pylint==0.26.0', 'django-lint==dev']},
     dependency_links=[

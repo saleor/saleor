@@ -1,8 +1,9 @@
-from .forms import ProductForm
-from .models import Product, Category
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
+
+from .forms import ProductForm
+from .models import Product, Category
 
 
 def product_details(request, slug, product_id):
