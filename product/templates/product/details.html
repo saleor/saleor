@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load gross from prices %}
+{% load undiscounted_price price_difference from discount %}
 {% load i18n %}
 
 {% block title %}{{ block.super }} » {% trans "Product" %} » {{ product.name }}{% endblock %}
@@ -15,18 +16,22 @@
 {% endblock breadcrumb %}
 
 {% block outercontent %}
+{% with price=product.get_price undiscounted=product|undiscounted_price %}
+{% with discount=undiscounted|price_difference:price %}
 <div itemscope itemtype="http://schema.org/Product" class="row">
     <h1 itemprop="name">{{ product }}</h1>
     <p itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-        Price: <span itemprop="price">{% gross product.get_price %}</span>
-        {% if product.stock == 0 %}
-        <link itemprop="availability" href="http://schema.org/OutOfStock" />
-        Out of stock
-        {% else %}
-        <link itemprop="availability" href="http://schema.org/InStock" />
-        In stock
+        {% trans "Price" %}:
+        {% if undiscounted != price %}
+        <span class="price undiscounted">{% gross undiscounted %}</span>
         {% endif %}
-        {% if product.price.modifier %}<br /><small class="label label-success">{{ product.price.modifier }} -{% gross product.price.modifier.discount %}</small>{% endif %}
+        <span class="price" itemprop="price">{% gross price %}</span>
+        {% if product.stock == 0 %}
+        <link itemprop="availability" href="http://schema.org/OutOfStock" /> {% trans "Out of stock" %}
+        {% else %}
+        <link itemprop="availability" href="http://schema.org/InStock" /> {% trans "In stock" %}
+        {% endif %}
+        {% if undiscounted != price %}<br /><small class="label label-success">{% gross discount %} {% trans "OFF" %}!</small>{% endif %}
     </p>
     <form class="form-horizontal" method="post" action=".">
         {% csrf_token %}
@@ -51,4 +56,6 @@
         </div>
     </form>
 </div>
+{% endwith %}
+{% endwith %}
 {% endblock outercontent %}
