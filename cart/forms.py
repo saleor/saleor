@@ -1,9 +1,11 @@
-from . import InsufficientStockException
 from decimal import Decimal
+
 from django import forms
 from django.forms.formsets import BaseFormSet
 from django.utils.translation import pgettext, ugettext
 from product.models import StockedProduct
+
+from . import InsufficientStockException
 
 
 class QuantityField(forms.DecimalField):

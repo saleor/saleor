@@ -1,3 +1,4 @@
+{% load render_widget from bootstrap %}
 {% if bound_field.is_hidden %}
 {{ bound_field }}
 {% else %}
@@ -6,52 +7,24 @@
     <label class="col-lg-2 control-label" for="{{ bound_field.html_name }}_id">{{ bound_field.label }}</label>
     {% endif %}
     <div class="col-lg-10{% if not show_label %} col-lg-offset-2{% endif %}">
-        {% if input_type == "input" %}
-            <input type="{{ bound_field.field.widget.input_type }}"
-                   value="{{ bound_field.value|default_if_none:"" }}"
-                   name="{{ bound_field.html_name }}"
-                   id="id_{{ bound_field.html_name }}"
-                   class="form-control"
-            />
-        {% endif %}
-        {% if input_type == "textarea" %}
-            <textarea  name="{{ bound_field.html_name }}"
-               id="id_{{ bound_field.html_name }}"
-               cols="40"
-               rows="10"
-               class="form-control"
-               >{{ bound_field.value|default_if_none:"" }}</textarea>
+        {% if input_type == "input" or input_type == "textarea" or input_type == "select" %}
+            {% render_widget bound_field class="form-control" %}
         {% endif %}
         {% if input_type == "checkbox" %}
             <label class="checkbox" for="id_{{ bound_field.html_name }}">
-                <input type="checkbox"
-                       {% if bound_field.value %}
-                       checked="checked"
-                       {% endif %}
-                       name="{{ bound_field.html_name }}"
-                       id="id_{{ bound_field.html_name }}"
-                       class="form-control"
-                >
+                {% render_widget bound_field class="form-control" %}
                 {{ bound_field.label }}
-             </label>
+            </label>
         {% endif %}
         {% if input_type == "radio" %}
             {% for value, name in bound_field.field.choices %}
                 {% if value %}
             <label class="radio" for="id_{{ bound_field.html_name }}_{{ forloop.counter0 }}">
-                <input type="radio"
-                       value="{{ value }}"
-                       name="{{ bound_field.html_name }}"
-                       id="id_{{ bound_field.html_name }}_{{ forloop.counter0 }}"
-                       class="form-control"
-                >
+                <input type="radio" value="{{ value }}" name="{{ bound_field.html_name }}" id="id_{{ bound_field.html_name }}_{{ forloop.counter0 }}" class="form-control">
                 {{ name }}
-             </label>
+            </label>
                 {% endif %}
-             {% endfor %}
-        {% endif %}
-        {% if input_type == "select" %}
-            {{ bound_field }}
+            {% endfor %}
         {% endif %}
 
         {% if bound_field.help_text %}
