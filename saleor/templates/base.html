@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load categories_list from category %}
+{% load lorem from webdesign %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -110,21 +111,7 @@
             <div class="row">
                 <div class="col-lg-12">
                     {% block content %}
-                    <p>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer tempor ornare neque et consequat. Vestibulum euismod, ante mollis luctus tincidunt, ligula lorem tempor libero, sed molestie nisi lectus id dolor. Sed pharetra tempor hendrerit. Duis condimentum hendrerit libero eget rutrum. Duis facilisis placerat purus ut tincidunt. Fusce sit amet diam eu ante posuere semper. Curabitur vehicula, mauris non volutpat gravida, urna mauris rutrum erat, convallis commodo arcu quam ac nunc. Pellentesque mattis rutrum ornare. Etiam sed suscipit nunc. Maecenas malesuada metus dapibus nibh lobortis non rutrum tellus facilisis. Fusce a urna in lacus ultricies adipiscing non ut leo.
-                    </p>
-                    <p>
-                        Sed a dolor diam, viverra vestibulum diam. Morbi scelerisque metus ut erat vehicula bibendum euismod lacus lacinia. Pellentesque risus nisi, dignissim nec rutrum id, vehicula ac libero. Vivamus pulvinar varius ante, ac sollicitudin sapien luctus vel. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla volutpat velit eu augue tincidunt id volutpat lectus ullamcorper. Cras interdum leo sed nisi tincidunt non mattis nulla facilisis.
-                    </p>
-                    <p>
-                        Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Sed mauris diam, fermentum vitae convallis eu, varius in magna. Aenean pretium aliquam sodales. Cras sapien augue, ornare sit amet consequat sit amet, viverra et mi. Integer id metus odio. Nunc in venenatis metus. Nullam porta aliquam diam, at imperdiet tellus pharetra a. Mauris dapibus tristique fringilla. Vestibulum ipsum arcu, rhoncus dictum adipiscing in, pretium a est.
-                    </p>
-                    <p>
-                        Integer cursus est a purus tristique nec porta erat condimentum. In ornare neque non dolor mollis elementum. Nunc eu lectus non dolor commodo porta ac vel urna. Quisque vel nibh non risus congue lobortis non at eros. Duis non leo magna. Nunc malesuada, quam ut dapibus aliquet, nisi justo eleifend lectus, ac venenatis ante tellus quis mauris. Integer tincidunt enim nec mi accumsan vitae ultricies purus vehicula. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
-                    </p>
-                    <p>
-                        Duis pellentesque dolor arcu, id cursus nisl. Praesent et congue purus. Cras pulvinar posuere libero, at molestie orci lobortis in. Pellentesque et tellus et magna faucibus laoreet. Integer tempor velit ac enim congue sit amet semper lorem sodales. Curabitur sed sem magna, id aliquet nisi. Curabitur eu magna metus. Duis pellentesque, libero quis fringilla tincidunt, magna mauris egestas nunc, eu iaculis augue enim at orci. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Maecenas sit amet suscipit odio. Phasellus ut sem a urna adipiscing lacinia. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin non dui a urna pharetra ullamcorper in eget turpis. Donec a dui sapien. In tristique condimentum arcu aliquet laoreet.
-                    </p>
+                    {% lorem 5 p %}
                     {% endblock content %}
                 </div>
             </div>
