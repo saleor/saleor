@@ -65,6 +65,7 @@ def as_vertical_form(obj, show_label=True):
     return as_bootstrap(obj=obj, show_label=show_label,
                         template=TEMPLATE_VERTICAL)
 
+
 @register.simple_tag
 def render_widget(obj, **attrs):
     return obj.as_widget(attrs=attrs)
