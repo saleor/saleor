@@ -4,12 +4,11 @@
 {% block title %}{{ block.super }} » {% trans "Delete Address" %}{% endblock %}
 
 {% block content %}
-    <div>
-        Are you sure?
-        <form action="." method="post">
-            {% csrf_token %}
-            <button type="submit" class="btn">Delete</button>
-            <a href="{% url 'profile:details' %}" class="btn">Cancel</a>
-        </form>
-    </div>
+    <h2>{% trans "Are you sure you want to delete the following address?" %}</h2>
+    <p>{{ object.address }}</p>
+    <form action="." method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">{% trans "Delete" %}</button>
+        <a href="{% url 'profile:details' %}" class="btn btn-link">{% trans "Cancel" %}</a>
+    </form>
 {% endblock content %}

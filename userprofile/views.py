@@ -93,7 +93,8 @@ def address_delete(request, slug, pk):
         messages.success(request, message % address_book)
         return HttpResponseRedirect(reverse("profile:details"))
 
-    return TemplateResponse(request, "userprofile/address-delete.html")
+    return TemplateResponse(request, "userprofile/address-delete.html",
+                            context={'object': address_book})
 
 
 @login_required

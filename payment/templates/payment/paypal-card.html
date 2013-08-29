@@ -25,10 +25,12 @@
         </div>
     </div>
     {{ form.cvv2|as_horizontal_form }}
-    <div class="form-actions">
-        <button type="submit" class="btn btn-primary">
-            Save changes
-        </button>
+    <div class="form-group">
+        <div class="col-lg-offset-2 col-lg-10">
+            <button type="submit" class="btn btn-primary">
+                {% trans "Save changes" %}
+            </button>
+        </div>
     </div>
 </form>
 {% endblock forms %}

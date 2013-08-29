@@ -7,13 +7,11 @@
 
 {% block content %}
 <h2>Your order has been received</h2>
-<p>
-    <strong>Thank you for your purchase!</strong>
-    <br />
-    Your order # is: <a href="{% url 'order:details' token=order.token %}">{{ order.id }}</a>.
-</p>
+<p>{% trans "Thank you for your purchase!" %}</p>
 
+<p>{% trans "Your order number is" %}: <a href="{% url 'order:details' token=order.token %}">{{ order }}</a></p>
 {% endblock content %}
+
 {% block google-analytics-script %}
     {{ block.super }}
     __ga('require', 'ecommerce', 'ecommerce.js');

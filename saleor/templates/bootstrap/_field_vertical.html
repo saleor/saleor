@@ -54,9 +54,13 @@
             {{ bound_field }}
         {% endif %}
 
+        {% if bound_field.help_text %}
+        <span class="help-block">{{ bound_field.help_text }}</span>
+        {% endif %}
+
         {% if bound_field.errors %}
             {% for error in bound_field.errors %}
-        <span class="help-inline error">{{ error }}</span>
+        <span class="label label-danger">{{ error }}</span>
             {% endfor %}
         {% endif %}
     </div>
