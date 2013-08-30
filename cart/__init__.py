@@ -30,12 +30,15 @@ class BaseGroup(list, ItemSet):
     def get_delivery_total(self, **kwargs):
         '''
         Method returns price from the self.delivery_method or lowest price
-        form delivery methods.
+        from delivery methods.
         '''
         if self.delivery_method:
             return self.delivery_method.get_price_per_item(**kwargs)
         methods = self.get_delivery_methods()
         return min(method.get_price_per_item(**kwargs) for method in methods)
+
+    def get_total_with_delivery(self, **kwargs):
+        return self.get_total() + self.get_delivery_total()
 
 
 class ShippedGroup(BaseGroup):

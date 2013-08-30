@@ -1,25 +1,18 @@
 {% extends "base.html" %}
 
-{% load as_bootstrap from bootstrap %}
 {% load gross from prices %}
 {% load i18n %}
 
 {% block title %}{{ block.super }} » {% trans "Order details" %}{% endblock %}
 
 {% block outerbreadcrumb %}
-{% if order.user == user %}
-<ul class="breadcrumb" itemprop="breadcrumb">
-    <li>
-        <a href="/">{% trans "Home" %}</a> <span class="divider">/</span>
-    </li>
-    <li>
-        <a href="{% url 'profile:orders' %}">{% trans "Your orders" %}</a> <span class="divider">/</span>
-    </li>
-    <li>
-        <a href="{% url 'order:details' token=order.token %}">{{ order }}</a> <span class="divider">/</span>
-    </li>
-</ul>
-{% endif %}
+    {% if order.user == user %}
+    <ul class="breadcrumb" itemprop="breadcrumb">
+        <li><a href="/">{% trans "Home" %}</a></li>
+        <li><a href="{% url 'profile:orders' %}">{% trans "Your orders" %}</a></li>
+        <li><a href="{% url 'order:details' token=order.token %}">{{ order }}</a></li>
+    </ul>
+    {% endif %}
 {% endblock outerbreadcrumb %}
 
 {% block content %}
@@ -29,7 +22,7 @@
 {% if order.user == user %}
     <h2>{% trans "Billing address" %}</h2>
     {% with address=order.billing_address %}
-    <p>
+    <address>
         {{ address.first_name }} {{ address.last_name }}
         <br />
         {{ address.street_address_1 }}{% if address.street_address_2 %}{{ address.street_address_2 }}{% endif %}
@@ -39,73 +32,76 @@
         {{ address.country_area }} {{ address.country }}
         <br />
         {{ address.phone }}
-    </p>
+    </address>
     {% endwith %}
 {% endif %}
 <h2>{% trans "Order details" %}</h2>
-<p>{% trans "Status" %}: {{ order.get_status_display }}</p>
-<table class="table table-bordered">
+<p>{% trans "Status" %}: <span class="label label-default">{{ order.get_status_display }}</span></p>
+<table class="table table-striped">
     <thead>
         <tr>
-            <th>{% trans "Name" %}</th>
-            <th>{% trans "Price per item" %}</th>
-            <th>{% trans "Quantity" %}</th>
-            <th>{% trans "Total" %}</th>
-            <th>{% trans "Delivery price" %}</th>
-            <th>{% trans "Status" %}</th>
-            {% if order.user == user %}
-            <th>{% trans "Delivery address" %}</th>
-            {% endif %}
+            <th class="col-lg-4">{% trans "Name" %}</th>
+            <th class="col-lg-2">{% trans "Price" %}</th>
+            <th class="col-lg-2">{% trans "Subotal" %}</th>
+            <th class="col-lg-2">{% trans "Shipping" %}</th>
+            <th class="col-lg-2">{% trans "Total" %}</th>
         </tr>
     </thead>
+    <tfoot>
+        <tr>
+            <td colspan="3" class="col-lg-8"></td>
+            <th class="col-lg-2">{% trans "Total" %}</th>
+            <td class="col-lg-2">{% gross order.get_total %}</td>
+        </tr>
+    </tfoot>
     <tbody>
 {% for group in groups %}
     {% for item in group %}
         <tr>
-            <td>{{ item.product }}</td>
-            <td>{% gross item.get_price_per_item %}</td>
-            <td>{{ item.quantity }}</td>
-            <td>{% gross item.get_price_per_item %}</td>
+            <td class="col-lg-4"><em>{{ item.quantity }}×</em> {{ item.product }}</td>
+            <td class="col-lg-2">{% gross item.get_price_per_item %}</td>
+            <td class="col-lg-2">{% gross item.get_total %}</td>
         {% if forloop.first %}
-            <td rowspan="{{ group.items.count }}">{% gross group.price %}</td>
-            <td rowspan="{{ group.items.count }}">{{ group.get_status_display }}</td>
-            {% if order.user == user %}
-            <td rowspan="{{ group.items.count }}">
-                {% if group.email %}
-                {{ group.email }}
-                {% elif  group.address %}
-                    {{ group.address }}
-                    <a class="address-details"  href="#"
-                       data-content="{% if group.address.company_name %}{{ group.address.company_name }}<br>{% endif %}
-                                     {{ group.address.street_address_1 }}<br>
-                                     {% if group.address.street_address_2 %}{{ group.address.street_address_2 }}<br>{% endif %}
-                                     {{ group.address.postal_code }} {{ group.address.city }}<br>
-                                     {{ group.address.country_area }}, {{ group.address.get_country_display }}<br>
-                                     {{ group.address.phone }}"
-                       data-html="true" title="{{ group.address.first_name }} {{ group.address.last_name }}"><small>{% trans "details" %}</small></a>
+            <td rowspan="{{ group.items.count }}" class="col-lg-2">
+                {% gross group.price %}
+                {% if order.user == user %}
+                    {% if group.email %}
+                    {{ group.email }}
+                    {% elif  group.address %}
+                        <p>
+                            {{ group.address }}
+                            <a class="address-details"  href="#"
+                               data-content="{% if group.address.company_name %}{{ group.address.company_name }}<br>{% endif %}
+                                             {{ group.address.street_address_1 }}<br>
+                                             {% if group.address.street_address_2 %}{{ group.address.street_address_2 }}<br>{% endif %}
+                                             {{ group.address.postal_code }} {{ group.address.city }}<br>
+                                             {{ group.address.country_area }}, {{ group.address.get_country_display }}<br>
+                                             {{ group.address.phone }}"
+                               data-html="true" title="{{ group.address.first_name }} {{ group.address.last_name }}"><small>{% trans "details" %}</small></a>
+                        </p>
+                    {% endif %}
+                    <p>{% trans "Status" %}: <span class="label label-default">{{ group.get_status_display }}</span></p>
                 {% endif %}
             </td>
-            {% endif %}
+            <td rowspan="{{ group.items.count }}" class="col-lg-2">
+                {% gross group.get_total %}
+            </td>
         {% endif %}
         </tr>
     {% endfor %}
 {% endfor %}
     </tbody>
-    <tfoot>
-        <tr>
-            <td>{% trans "Total" %}</td>
-        <td colspan="{% if user == order.user %}6{% else %}5{% endif %}">{% gross order.get_total %}</td>
-        </tr>
-    </tfoot>
 </table>
-<h2>{% trans "Payments" %}</h2>
+{% if order.user == user %}
+<h2>{% trans "Payment history" %}</h2>
 <ul>
 {% for payment in payments %}
-    <li>{{ payment }} - {{ payment.status }}</li>
+    <li>{{ payment.created|date }} — <span class="label label-default">{{ payment.get_status_display }}</span></li>
 {% endfor %}
 </ul>
 {% if not order.is_fully_paid %}
-    <a href="{% url 'order:payment:index' token=order.token %}">{% trans "Pay again" %}</a>
+    <a href="{% url 'order:payment:index' token=order.token %}" class="btn btn-primary">{% trans "Make a payment" %}</a>
+{% endif %}
 {% endif %}
 {% endblock content %}
 

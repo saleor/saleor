@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load as_bootstrap from bootstrap %}
+{% load as_vertical_form from bootstrap %}
 {% load gross from prices %}
 {% load i18n %}
 
@@ -7,46 +7,56 @@
 
 {% block breadcrumb %}
     {{ block.super }}
-<li>
-    <a href="{% url 'cart:index' %}">{% trans "Cart" %}</a> <span class="divider">/</span>
-</li>
+<li><a href="{% url 'cart:index' %}">{% trans "Cart" %}</a></li>
 {% endblock breadcrumb %}
 
 {% block content %}
 {% if cart %}
-<form action="." method="post">
+<form role="form" action="." method="post">
     {% csrf_token %}
     {{ formset.management_form }}
-    <table class="table table-bordered">
+    <table class="table table-striped">
         <thead>
             <tr>
-                <th>#</th><th>name</th><th colspan="2">quantity</th><th>price</th>
+                <th class="col-lg-4">{% trans "Product" %}</th>
+                <th class="col-lg-2">{% trans "Quantity" %}</th>
+                <th class="col-lg-2">{% trans "Price" %}</th>
+                <th class="col-lg-2">{% trans "Subtotal" %}</th>
             </tr>
         </thead>
+        <tfoot>
+            <tr>
+                <td class="col-lg-4">{% trans "Shipping" %}</td>
+                <td class="col-lg-2"></td>
+                <td class="col-lg-2"></td>
+                <td class="col-lg-2">{% gross cart.get_delivery_total %}</td>
+            </tr>
+            <tr>
+                <td class="col-lg-4"></td>
+                <td class="col-lg-2">
+                    <button class="btn btn-default" type="submit">
+                        {% trans "Update quantities" %}
+                    </button>
+                </td>
+                <th class="col-lg-2">{% trans "Total" %}:</th>
+                <td class="col-lg-2">{% gross cart.get_total %}</td>
+            </tr>
+        </tfoot>
         <tbody>
             {% for form in formset %}
             <tr>
-                <td>{{ forloop.counter }}</td>
                 <td>{{ form.cart_line.product }}</td>
-                <td colspan="2"> {{ form.quantity|as_bootstrap:"False" }} </td>
+                <td>{{ form.quantity|as_vertical_form:False }}</td>
                 <td>{% gross form.cart_line.get_price_per_item %}</td>
+                <td>{% gross form.cart_line.get_total %}</td>
             </tr>
             {% endfor %}
         </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="2">Shipping: {% gross cart.get_delivery_total %}</td>
-                <td>
-                <button class="btn" type="submit">
-                    Update
-                </button></td>
-                <td>Total:</td>
-                <td>{% gross cart.get_total %}</td>
-            </tr>
-        </tfoot>
     </table>
-    <div class="form-actions">
-        <a href="{% url "checkout:index" %}" class="btn btn-primary">Checkout</a>
+    <div class="form-group">
+        <div>
+            <a href="{% url "checkout:index" %}" class="btn btn-primary">Checkout</a>        
+        </div>
     </div>
 </form>
 {% else %}

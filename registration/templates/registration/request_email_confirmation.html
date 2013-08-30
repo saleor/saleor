@@ -1,14 +1,12 @@
 {% extends "base.html" %}
-{% load bootstrap %}
+{% load as_horizontal_form from bootstrap %}
 {% load i18n %}
 
 {% block title %}{{ block.super }} » {% trans "Request email confirmation" %}{% endblock %}
 
 {% block breadcrumb %}
     {{ block.super }}
-<li>
-    <a href="#">{% trans "Request email confirmation" %}</a> <span class="divider">/</span>
-</li>
+    <li><a href="#">{% trans "Request email confirmation" %}</a></li>
 {% endblock breadcrumb %}
 
 {% block content %}
@@ -16,11 +14,15 @@
     {% csrf_token %}
     <fieldset>
         <legend>{% trans 'Request email confirmation' %}</legend>
-        {{ form|as_bootstrap }}
+        {{ form|as_horizontal_form }}
         <input type="hidden" name="next" value="{{ next }}" />
     </fieldset>
-    <div class="form-actions">
-        <button type="submit" class="btn btn-primary">{% trans 'Continue' %}</button>
+    <div class="form-group">
+        <div class="col-lg-offset-2 col-lg-10">
+            <button class="btn btn-primary">
+                {% trans "Continue" %}
+            </button>
+        </div>
     </div>
 </form>
 {% endblock %}

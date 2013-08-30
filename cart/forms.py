@@ -1,9 +1,11 @@
-from . import InsufficientStockException
 from decimal import Decimal
+
 from django import forms
 from django.forms.formsets import BaseFormSet
 from django.utils.translation import pgettext, ugettext
 from product.models import StockedProduct
+
+from . import InsufficientStockException
 
 
 class QuantityField(forms.DecimalField):
@@ -18,7 +20,7 @@ class AddToCartForm(forms.Form):
     '''
     Class use product and cart instance.
     '''
-    quantity = QuantityField(label=pgettext('Form field', 'quantity'))
+    quantity = QuantityField(label=pgettext('Form field', 'Quantity'))
     error_messages = {
         'insufficient-stock': ugettext(
             'Only %(remaining)d remaining in stock.')}

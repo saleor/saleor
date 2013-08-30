@@ -4,55 +4,47 @@
 
 {% block breadcrumb %}
     {{ block.super }}
-<li>
-    <a href="{% url 'profile:orders' %}">{% trans "Your orders" %}</a> <span class="divider">/</span>
-</li>
+    <li><a href="{% url 'profile:orders' %}">{% trans "Your orders" %}</a></li>
 {% endblock breadcrumb %}
 
 {% block content %}
-    <table class="table">
+    <table class="table table-striped">
         <thead>
             <tr>
-                <th>
-                    {% trans "Order" %}
+                <th class="col-lg-2">
+                    {% trans "Order #" %}
                 </th>
-                <th>
-                    {% trans "Price" %}
-                </th>
-                <th>
+                <th class="col-lg-2">
                     {% trans "Date" %}
                 </th>
-                <th>
-                    {% trans "Last status change" %}
+                <th class="col-lg-2">
+                    {% trans "Price" %}
                 </th>
-                <th>
+                <th class="col-lg-2">
                     {% trans "Status" %}
                 </th>
-                <th>
-                    <!-- details link -->
+                <th class="col-lg-2">
+                    {% trans "Last status change" %}
                 </th>
             </tr>
         </thead>
         <tbody>
             {% for order in orders %}
                 <tr>
-                    <td>
-                        {{ order }}
+                    <td class="col-lg-2">
+                        <a href="{{ order.get_absolute_url }}">{{ order }}</a>
                     </td>
-                    <td>
-                        {% gross order.get_total %}
-                    </td>
-                    <td>
+                    <td class="col-lg-2">
                         {{ order.created }}
                     </td>
-                    <td>
+                    <td class="col-lg-2">
+                        {% gross order.get_total %}
+                    </td>
+                    <td class="col-lg-2">
+                        <span class="label label-default">{{ order.get_status_display }}</span>
+                    </td>
+                    <td class="col-lg-2">
                         {{ order.last_status_change }}
-                    </td>
-                    <td>
-                        {{ order.get_status_display }}
-                    </td>
-                    <td>
-                        <a href="{{ order.get_absolute_url }}">{% trans "See details" %}</a>
                     </td>
                 </tr>
             {% endfor %}

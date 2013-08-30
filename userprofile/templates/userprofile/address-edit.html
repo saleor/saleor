@@ -1,35 +1,33 @@
 {% extends "base.html" %}
+
+{% load as_horizontal_form from bootstrap %}
 {% load i18n %}
 
 {% block title %}{{ block.super }} » {% trans "Edit Address" %}{% endblock %}
 
 {% block breadcrumb %}
     {{ block.super }}
-<li>
-    <a href="{% url 'profile:details' %}">{% trans "Your profile" %}</a> <span class="divider">/</span>
-</li>
-<li>
-    <a href=".">{% trans "Edit address" %}</a> <span class="divider">/</span>
-</li>
+    <li><a href="{% url 'profile:details' %}">{% trans "Your profile" %}</a></li>
+{% if address_form.instance.pk %}
+    <li><a href=".">{% trans "Edit address" %}</a></li>
+{% else %}
+    <li><a href=".">{% trans "New address" %}</a></li>
+{% endif %}
 {% endblock breadcrumb %}
 
 {% block content %}
-    <form action="." method="post">
+    <form class="form-horizontal" action="." method="post">
         {% csrf_token %}
-        {% if address_form.errors or address_book_form.errors %}
-            <div class="alert alert-error">
-                Please correct errors below.
-            </div>
-        {% endif %}
         <fieldset>
             <legend>Address</legend>
-            {% with form=address_book_form %}
-                {% include 'saleor/partials/form.html' %}
-            {% endwith %}
-            {% with form=address_form %}
-                {% include 'saleor/partials/form.html' %}
-            {% endwith %}
+            {{ address_book_form|as_horizontal_form }}
+            {{ address_form|as_horizontal_form }}
         </fieldset>
-        <button type="submit" class="btn">Save</button>
+        <div class="form-group">
+            <div class="col-lg-10 col-lg-offset-2">
+                <button type="submit" class="btn btn-default">Save</button>
+                <a href="{% url 'profile:details' %}" class="btn btn-link">Cancel</a>
+            </div>
+        </div>
     </form>
 {% endblock content %}

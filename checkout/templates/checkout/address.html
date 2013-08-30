@@ -1,5 +1,5 @@
 {% extends "checkout/details.html" %}
-{% load as_bootstrap from bootstrap %}
+{% load as_horizontal_form from bootstrap %}
 {% load i18n %}
 
 {% block title %}{{ block.super }} » {% trans "Billing Address" %}{% endblock %}
@@ -10,22 +10,18 @@
     <fieldset>
     {% if user.is_authenticated %}
         <legend>Select address:</legend>
-        {{ step.forms.address_list|as_bootstrap }}
+        {{ step.forms.address_list|as_horizontal_form }}
     {% else %}
         <legend>Enter address:</legend>
     {% endif %}
-        {{ step.forms.address|as_bootstrap }}
+        {{ step.forms.address|as_horizontal_form }}
         {% block extra_forms %}{% endblock %}
     </fieldset>
 
-    <div class="form-actions">
-        <button type="submit" class="btn btn-primary">
-            Save changes
-        </button>
-        <button type="button" class="btn">
-            Cancel
-        </button>
-    </div>
+    <button type="submit" class="btn btn-primary">
+        {% trans "Save changes" %}
+    </button>
+    <a href="{% url "cart:index" %}" class="btn btn-link">{% trans "Cancel" %}</a>
 </form>
 {% endblock forms %}
 
