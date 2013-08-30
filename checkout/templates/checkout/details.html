@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 
-{% load as_bootstrap from bootstrap %}
 {% load i18n %}
 
 {% block title %}{{ block.super }} » {% trans "Checkout" %}{% endblock %}
@@ -11,7 +10,7 @@
 <ul class="nav nav-tabs">
     {% for stepitem in checkout %}
     <li class="{% if stepitem == step %}active{% else %}disabled{% endif %}">
-        <a href="{{ stepitem.get_absolute_url }}"><i class="{% if stepitem %}icon-ok{% else %}icon-remove{% endif %}"></i> {{ stepitem }}</a>
+        <a href="{{ stepitem.get_absolute_url }}"><i class="glyphicon {% if stepitem %}glyphicon-ok{% else %}glyphicon-remove{% endif %}"></i> {{ stepitem }}</a>
     </li>
     {% endfor %}
     <li class="disabled">

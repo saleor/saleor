@@ -1,5 +1,5 @@
 {% extends "payment/details.html" %}
-{% load as_bootstrap from bootstrap %}
+{% load as_horizontal_form from bootstrap %}
 {% load gross from prices %}
 {% load i18n %}
 
@@ -7,19 +7,24 @@
 
 {% block forms %}
 {% if waiting_payment %}
-<form class="form-inline" method="post" action="{% url 'order:payment:delete' token=order.token %}">
+<form method="post" action="{% url 'order:payment:delete' token=order.token %}">
     {% csrf_token %}
-    {{ waiting_payment }} - {{ waiting_payment.status }} {{ waiting_payment_form }}
-    <button type="submit" class="btn">Delete</button>
+    <p>{% trans "You have already started the payment process for this order." %}</p>
+    <p>{% trans "Status" %}: <span class="label label-default">{{ waiting_payment.get_status_display }}</span></p>
+    {{ waiting_payment_form|as_horizontal_form }}
+    <button type="submit" class="btn btn-danger">{% trans "Delete this payment" %}</button>
 </form>
 {% else %}
 <form method="post" class="form-horizontal">
     {% csrf_token %}
-    {{ form|as_bootstrap }}
-    <div class="form-actions">
-        <button type="submit" class="btn btn-primary">
-            Save changes
-        </button>
+    {{ form|as_horizontal_form }}
+    <div class="form-group">
+        <div class="col-lg-offset-2 col-lg-10">
+            <button type="submit" class="btn btn-primary">
+                {% trans "Save changes" %}
+            </button>
+            <a href="{% url "cart:index" %}" class="btn btn-link">{% trans "Cancel" %}</a>
+        </div>
     </div>
 </form>
 {% endif %}

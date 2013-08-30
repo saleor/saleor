@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load bootstrap %}
+{% load as_horizontal_form from bootstrap %}
 {% load i18n %}
 
 {% block title %}{{ block.super }} » {% trans "Login" %}{% endblock %}
@@ -9,11 +9,16 @@
     {% csrf_token %}
     <fieldset>
         <legend>{% trans 'Log in' %}</legend>
-        {{ form|as_bootstrap }}
+        {{ form|as_horizontal_form }}
         <input type="hidden" name="next" value="{{ next }}" />
     </fieldset>
-    <div class="form-actions">
-        <button type="submit" class="btn btn-primary">{% trans 'Log in' %}</button>
+
+    <div class="form-group">
+        <div class="col-lg-offset-2 col-lg-10">
+            <button class="btn btn-primary">
+                {% trans "Log in" %}
+            </button>
+        </div>
     </div>
 </form>
 <ul>
