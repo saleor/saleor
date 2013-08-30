@@ -4,7 +4,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>{% block title %}{% trans "Sale or" %}...!{% endblock %}</title>
+        <title>{% block title %}Saleor{% endblock %}</title>
         {% block meta %}
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -70,7 +70,7 @@
                               </ul>
                         </li>
                         {% if user.is_authenticated %}
-                        <li class="dropdown"> {# TODO pull-right not working #}
+                        <li class="dropdown">
                             <a data-toggle="dropdown" class="dropdown-toggle" href="."><i class="glyphicon glyphicon-user"></i> {{ user }} <b class="caret"></b></a>
                             <ul class="dropdown-menu">
                                 <li><a href="{% url "profile:details" %}">{% trans "Your profile" %}</a></li>
