@@ -12,8 +12,13 @@
         {{ form|as_horizontal_form }}
         <input type="hidden" name="next" value="{{ next }}" />
     </fieldset>
-    <div class="form-actions">
-        <button type="submit" class="btn btn-primary">{% trans 'Log in' %}</button>
+
+    <div class="form-group">
+        <div class="col-lg-offset-2 col-lg-10">
+            <button class="btn btn-primary">
+                {% trans "Log in" %}
+            </button>
+        </div>
     </div>
 </form>
 <ul>

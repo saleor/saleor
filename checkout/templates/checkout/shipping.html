@@ -7,7 +7,7 @@
 {% block extra_forms %}
 <fieldset>
     <legend>
-        Delivery method:
+        {% trans "Shipping method" %}:
     </legend>
     {{ step.forms.delivery|as_horizontal_form }}
 </fieldset>
