@@ -30,21 +30,23 @@ class BaseCheckoutStep(BaseStep):
         return super(BaseCheckoutStep, self).process(extra_context=context)
 
 
-class BaseShippingStep(BaseCheckoutStep):
+class BaseAddressStep(BaseCheckoutStep):
 
     method = None
     address = None
     template = 'checkout/address.html'
+    address_purpose = None
 
     def __init__(self, checkout, request, address):
-        super(BaseShippingStep, self).__init__(checkout, request)
+        super(BaseAddressStep, self).__init__(checkout, request)
         if address:
             address_dict = model_to_dict(address, exclude=['id', 'user'])
             self.address = Address(**address_dict)
         else:
             self.address = Address()
         address_list = UserAddressesForm(request.POST or None,
-                                         user=request.user)
+                                         user=request.user,
+                                         purpose=self.address_purpose)
         if (address_list.is_valid() and
                 not address_list.cleaned_data['address']):
             address_form = AddressForm(request.POST, instance=self.address)
@@ -73,10 +75,11 @@ class BaseShippingStep(BaseCheckoutStep):
             raise InvalidData(e.messages)
 
 
-class BillingAddressStep(BaseShippingStep):
+class BillingAddressStep(BaseAddressStep):
 
     template = 'checkout/billing.html'
     anonymous_user_email = ''
+    address_purpose = 'billing'
 
     def __init__(self, checkout, request):
         address = checkout.billing_address
@@ -120,10 +123,11 @@ class BillingAddressStep(BaseShippingStep):
             raise InvalidData()
 
 
-class ShippingStep(BaseShippingStep):
+class ShippingStep(BaseAddressStep):
 
     template = 'checkout/shipping.html'
     delivery_method = None
+    address_purpose = 'shipping'
 
     def __init__(self, checkout, request, delivery_group, _id=None):
         self.id = _id

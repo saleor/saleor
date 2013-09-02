@@ -35,7 +35,9 @@ class UserAddressesForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', AnonymousUser()) or AnonymousUser()
+        purpose = kwargs.pop('purpose', None)
         super(UserAddressesForm, self).__init__(*args, **kwargs)
         address = self.fields['address']
         if user.is_authenticated():
             address.queryset = user.address_book.all()
+            address.initial = user.get_default_address_for_purpose(purpose)

@@ -187,3 +187,9 @@ class User(models.Model):
 
     def has_usable_password(self):
         return is_password_usable(self.password)
+
+    def get_default_address_for_purpose(self, purpose):
+        if purpose == 'billing' and self.default_billing_address_id:
+            return self.default_billing_address_id
+        elif purpose == 'shipping' and self.default_shipping_address_id:
+            return self.default_shipping_address_id
