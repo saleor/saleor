@@ -1,10 +1,11 @@
-from . import BillingAddressStep, ShippingStep
 from checkout import Checkout, CheckoutStorage
-from checkout.steps import BaseShippingStep
+from checkout.steps import BaseAddressStep
 from delivery import DummyShipping
 from django.test import TestCase
 from mock import MagicMock, patch
 from userprofile.models import Address
+
+from . import BillingAddressStep, ShippingStep
 
 NEW_ADDRESS = {
     'first_name': 'Test',
@@ -24,7 +25,7 @@ SELECT_ADDRESS_POST = {
     'address': '1'}
 
 
-class TestBaseShippingStep(TestCase):
+class TestBaseAddressStep(TestCase):
 
     def setUp(self):
         self.request = MagicMock()
@@ -34,33 +35,33 @@ class TestBaseShippingStep(TestCase):
 
     def test_new_method(self):
         '''
-        Test the BaseShippingStep managment form when method is set to 'new'
+        Test the BaseAddressStep managment form when method is set to 'new'
         and user isn't authenticated.
         '''
         self.request.POST = NEW_ADDRESS_POST
-        step = BaseShippingStep(self.checkout, self.request, self.address)
+        step = BaseAddressStep(self.checkout, self.request, self.address)
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
         self.assertEqual(step.address.first_name, 'Test')
 
     def test_select_method(self):
         '''
-        Test the BaseShippingStep managment form when method is set to 'select'
+        Test the BaseAddressStep managment form when method is set to 'select'
         and user isn't authenticated.
         '''
         self.request.POST = SELECT_ADDRESS_POST
-        step = BaseShippingStep(self.checkout, self.request, self.address)
+        step = BaseAddressStep(self.checkout, self.request, self.address)
         self.assertFalse(step.forms_are_valid(), 'Forms should not validate.')
 
     def test_select_with_user_method(self):
         '''
-        Test the BaseShippingStep managment form when method is set to 'select'
+        Test the BaseAddressStep managment form when method is set to 'select'
         and user is authenticated.
         '''
         user = self.request.user
         self.request.POST = SELECT_ADDRESS_POST
         user.is_authenticated.return_value = True
         user.address_book.all.__iter__.return_value = [self.address]
-        step = BaseShippingStep(self.checkout, self.request, self.address)
+        step = BaseAddressStep(self.checkout, self.request, self.address)
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
 
 

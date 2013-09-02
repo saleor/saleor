@@ -1,5 +1,4 @@
 from django.forms.models import model_to_dict
-from .forms import DigitalDeliveryForm, DeliveryForm
 from checkout.forms import AnonymousEmailForm
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -9,6 +8,8 @@ from saleor.utils import BaseStep
 from satchless.process import InvalidData
 from userprofile.forms import AddressForm, UserAddressesForm
 from userprofile.models import Address
+
+from .forms import DigitalDeliveryForm, DeliveryForm
 
 
 class BaseCheckoutStep(BaseStep):
