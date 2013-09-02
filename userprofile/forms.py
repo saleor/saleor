@@ -34,7 +34,7 @@ class UserAddressesForm(forms.Form):
                                      empty_label='Enter below')
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', AnonymousUser()) or AnonymousUser()
+        user = kwargs.pop('user', None) or AnonymousUser()
         purpose = kwargs.pop('purpose', None)
         super(UserAddressesForm, self).__init__(*args, **kwargs)
         address = self.fields['address']

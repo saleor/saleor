@@ -187,7 +187,8 @@ class DigitalDeliveryStep(BaseCheckoutStep):
         self.delivery_group = delivery_group
         self.group = checkout.get_group(str(self))
         self.forms['email'] = DigitalDeliveryForm(request.POST or None,
-                                                  initial=self.group)
+                                                  initial=self.group,
+                                                  user=request.user)
         delivery_methods = list(delivery_group.get_delivery_methods())
         self.group['delivery_method'] = delivery_methods[0]
 

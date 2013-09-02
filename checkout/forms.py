@@ -1,7 +1,8 @@
-from order.models import DigitalDeliveryGroup
 from django import forms
+from django.contrib.auth.models import AnonymousUser
 from django.core import validators
 from django.core.exceptions import ValidationError
+from order.models import DigitalDeliveryGroup
 from userprofile.forms import AddressForm
 
 
@@ -17,8 +18,13 @@ class DigitalDeliveryForm(forms.ModelForm):
         fields = ['email']
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None) or AnonymousUser()
         super(DigitalDeliveryForm, self).__init__(*args, **kwargs)
-        self.fields['email'].required = True
+        email = self.fields['email']
+        email.required = True
+        if user.is_authenticated():
+            print 'asd'
+            email.initial = user.email
 
 
 class DeliveryField(forms.ChoiceField):
