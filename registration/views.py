@@ -2,39 +2,33 @@ from urllib import urlencode
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import (login as auth_login, logout as auth_logout,
-                                 get_user_model)
+from django.contrib.auth import (
+    login as auth_login,
+    logout as auth_logout,
+    get_user_model)
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import (login as django_login_view,
-                                       password_change)
+from django.contrib.auth.views import (
+    login as django_login_view,
+    password_change)
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-from .forms import (
-    RegisterOrResetPasswordForm,
-    RequestEmailChangeForm,
-    RequestEmailConfirmationForm,
-    LoginForm,
-    OAuth2CallbackForm)
+from . import forms
 from .models import EmailConfirmationRequest, EmailChangeRequest
-from .utils import (
-    get_facebook_login_url,
-    get_google_login_url,
-    get_local_host,
-    url)
+from . import utils
 
 User = get_user_model()
 now = timezone.now
 
 
 def login(request):
-    local_host = get_local_host(request)
-    ctx = {'facebook_login_url': get_facebook_login_url(local_host),
-           'google_login_url': get_google_login_url(local_host)}
-    return django_login_view(request, authentication_form=LoginForm,
+    local_host = utils.get_local_host(request)
+    ctx = {'facebook_login_url': utils.get_facebook_login_url(local_host),
+           'google_login_url': utils.get_google_login_url(local_host)}
+    return django_login_view(request, authentication_form=forms.LoginForm,
                              extra_context=ctx)
 
 
@@ -45,9 +39,9 @@ def logout(request):
 
 
 def oauth_callback(request, service):
-    local_host = get_local_host(request)
-    form = OAuth2CallbackForm(service=service, local_host=local_host,
-                              data=request.GET)
+    local_host = utils.get_local_host(request)
+    form = forms.OAuth2CallbackForm(service=service, local_host=local_host,
+                                    data=request.GET)
     if form.is_valid():
         try:
             user = form.get_authenticated_user()
@@ -62,18 +56,15 @@ def oauth_callback(request, service):
 
 
 def request_email_confirmation(request):
-    local_host = get_local_host(request)
-    if request.method == 'POST':
-        form = RequestEmailConfirmationForm(local_host=local_host,
-                                            data=request.POST)
-        if form.is_valid():
-            form.send()
-            msg = _('Confirmation email has been sent. '
-                    'Please check your inbox.')
-            messages.success(request, msg)
-            return redirect(settings.LOGIN_REDIRECT_URL)
-    else:
-        form = RequestEmailConfirmationForm(local_host=local_host)
+    local_host = utils.get_local_host(request)
+    form = forms.RequestEmailConfirmationForm(local_host=local_host,
+                                              data=request.POST or None)
+    if form.is_valid():
+        form.send()
+        msg = _('Confirmation email has been sent. '
+                'Please check your inbox.')
+        messages.success(request, msg)
+        return redirect(settings.LOGIN_REDIRECT_URL)
 
     return TemplateResponse(request,
                             'registration/request_email_confirmation.html',
@@ -82,17 +73,15 @@ def request_email_confirmation(request):
 
 @login_required
 def request_email_change(request):
-    if request.method == 'POST':
-        form = RequestEmailChangeForm(local_host=get_local_host(request),
-                                      user=request.user, data=request.POST)
-        if form.is_valid():
-            form.send()
-            msg = _('Confirmation email has been sent. '
-                    'Please check your inbox.')
-            messages.success(request, msg)
-            return redirect(settings.LOGIN_REDIRECT_URL)
-    else:
-        form = RequestEmailChangeForm()
+    form = forms.RequestEmailChangeForm(
+        local_host=utils.get_local_host(request), user=request.user,
+        data=request.POST or None)
+    if form.is_valid():
+        form.send()
+        msg = _('Confirmation email has been sent. '
+                'Please check your inbox.')
+        messages.success(request, msg)
+        return redirect(settings.LOGIN_REDIRECT_URL)
 
     return TemplateResponse(request,
                             'registration/request_email_confirmation.html',
@@ -107,16 +96,12 @@ def confirm_email(request, token):
     except EmailConfirmationRequest.DoesNotExist:
         return TemplateResponse(request, 'registration/invalid_token.html')
 
-    if request.method == 'POST':
-        form = RegisterOrResetPasswordForm(
-            email_confirmation_request=email_confirmation_request,
-            data=request.POST)
-        if form.is_valid():
-            user = form.get_authenticated_user()
-            return _login_user(request, user)
-    else:
-        form = RegisterOrResetPasswordForm(
-            email_confirmation_request=email_confirmation_request)
+    form = forms.RegisterOrResetPasswordForm(
+        email_confirmation_request=email_confirmation_request,
+        data=request.POST or None)
+    if form.is_valid():
+        user = form.get_authenticated_user()
+        return _login_user(request, user)
 
     return TemplateResponse(
         request, 'registration/set_password.html', {'form': form})
@@ -138,7 +123,7 @@ def change_email(request, token):
         query = urlencode({
             'next': request.get_full_path(),
             'email': email_change_request.user.email})
-        login_url = url(path=settings.LOGIN_URL, query=query)
+        login_url = utils.url(path=settings.LOGIN_URL, query=query)
         return redirect(login_url)
 
     request.user.email = email_change_request.email
@@ -159,5 +144,4 @@ def _login_user(request, user):
 def change_password(request):
     return password_change(
         request, template_name='registration/change_password.html',
-        post_change_redirect=reverse('profile:details')
-    )
+        post_change_redirect=reverse('profile:details'))
