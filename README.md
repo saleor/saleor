@@ -9,28 +9,34 @@ Avast ye landlubbers! Saleor be a Satchless store ye can fork.
 Usage
 -----
 
-1. Fork the repo on GitHub (you can skip this step if you like)
-1. `git clone` your repository
-1. Install it in development mode:
+1. Use `django-admin.py` to start a new project using Saleor as template:
+
+   ```
+   $ django-admin.py startproject --template=https://github.com/mirumee/saleor/archive/master.zip myproject
+   ```
+2. Enter the directory:
+
+   ```
+   $ cd myproject/
+   ```
+3. Install it in development mode:
 
    ```
    $ python setup.py develop
    ```
    (For production use `python setup.py install` instead.)
-1. Add a `SECRET_KEY` to your `settings.py` (we did not want to include one out of fear that you'd forget to change it)
-1. Prepare the database:
+4. Prepare the database¹:
 
    ```
    $ saleor syncdb --all
    ```
-1. Run `saleor runserver`¹ to start the development server (on [localhost:8000](http://localhost:8000/))
-1. Edit the code to have it suite your requirements
-1. Run the tests to make sure everything works:
+5. Run `saleor runserver`¹ to start the development server
+6. Edit the code to have it suite your requirements
+7. Run the tests to make sure everything works:
 
    ```
    $ python setup.py test
    ```
-1. Deploy!
+8. Deploy!
 
 ¹ `saleor` is a shortcut for running `python manage.py` so you can use it to execute all management commands.
-
