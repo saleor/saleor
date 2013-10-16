@@ -1,4 +1,4 @@
-from checkout import Checkout, CheckoutStorage
+from checkout import Checkout
 from checkout.steps import BaseAddressStep
 from delivery import DummyShipping
 from django.test import TestCase
