@@ -11,19 +11,19 @@
     <table class="table table-striped">
         <thead>
             <tr>
-                <th class="col-lg-2">
+                <th class="col-sm-2">
                     {% trans "Order #" %}
                 </th>
-                <th class="col-lg-2">
+                <th class="col-sm-2">
                     {% trans "Date" %}
                 </th>
-                <th class="col-lg-2">
+                <th class="col-sm-2">
                     {% trans "Price" %}
                 </th>
-                <th class="col-lg-2">
+                <th class="col-sm-2">
                     {% trans "Status" %}
                 </th>
-                <th class="col-lg-2">
+                <th class="col-sm-2">
                     {% trans "Last status change" %}
                 </th>
             </tr>
@@ -31,19 +31,19 @@
         <tbody>
             {% for order in orders %}
                 <tr>
-                    <td class="col-lg-2">
+                    <td class="col-sm-2">
                         <a href="{{ order.get_absolute_url }}">{{ order }}</a>
                     </td>
-                    <td class="col-lg-2">
+                    <td class="col-sm-2">
                         {{ order.created }}
                     </td>
-                    <td class="col-lg-2">
+                    <td class="col-sm-2">
                         {% gross order.get_total %}
                     </td>
-                    <td class="col-lg-2">
+                    <td class="col-sm-2">
                         <span class="label label-default">{{ order.get_status_display }}</span>
                     </td>
-                    <td class="col-lg-2">
+                    <td class="col-sm-2">
                         {{ order.last_status_change }}
                     </td>
                 </tr>

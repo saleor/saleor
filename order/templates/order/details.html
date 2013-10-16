@@ -40,29 +40,29 @@
 <table class="table table-striped">
     <thead>
         <tr>
-            <th class="col-lg-4">{% trans "Name" %}</th>
-            <th class="col-lg-2">{% trans "Price" %}</th>
-            <th class="col-lg-2">{% trans "Subotal" %}</th>
-            <th class="col-lg-2">{% trans "Shipping" %}</th>
-            <th class="col-lg-2">{% trans "Total" %}</th>
+            <th class="col-sm-4">{% trans "Name" %}</th>
+            <th class="col-sm-2">{% trans "Price" %}</th>
+            <th class="col-sm-2">{% trans "Subotal" %}</th>
+            <th class="col-sm-2">{% trans "Shipping" %}</th>
+            <th class="col-sm-2">{% trans "Total" %}</th>
         </tr>
     </thead>
     <tfoot>
         <tr>
-            <td colspan="3" class="col-lg-8"></td>
-            <th class="col-lg-2">{% trans "Total" %}</th>
-            <td class="col-lg-2">{% gross order.get_total %}</td>
+            <td colspan="3" class="col-sm-8"></td>
+            <th class="col-sm-2">{% trans "Total" %}</th>
+            <td class="col-sm-2">{% gross order.get_total %}</td>
         </tr>
     </tfoot>
     <tbody>
 {% for group in groups %}
     {% for item in group %}
         <tr>
-            <td class="col-lg-4"><em>{{ item.quantity }}×</em> {{ item.product }}</td>
-            <td class="col-lg-2">{% gross item.get_price_per_item %}</td>
-            <td class="col-lg-2">{% gross item.get_total %}</td>
+            <td class="col-sm-4"><em>{{ item.quantity }}×</em> {{ item.product }}</td>
+            <td class="col-sm-2">{% gross item.get_price_per_item %}</td>
+            <td class="col-sm-2">{% gross item.get_total %}</td>
         {% if forloop.first %}
-            <td rowspan="{{ group.items.count }}" class="col-lg-2">
+            <td rowspan="{{ group.items.count }}" class="col-sm-2">
                 {% gross group.price %}
                 {% if order.user == user %}
                     {% if group.email %}
@@ -83,7 +83,7 @@
                     <p>{% trans "Status" %}: <span class="label label-default">{{ group.get_status_display }}</span></p>
                 {% endif %}
             </td>
-            <td rowspan="{{ group.items.count }}" class="col-lg-2">
+            <td rowspan="{{ group.items.count }}" class="col-sm-2">
                 {% gross group.get_total %}
             </td>
         {% endif %}

@@ -4,9 +4,9 @@
 {% else %}
 <div class="form-group {{ bound_field.html_name }}{% if bound_field.errors %} has-error{% endif %}{% if bound_field.field.required %} required{% endif %}">
     {% if show_label %}
-    <label class="col-lg-2 control-label" for="{{ bound_field.html_name }}_id">{{ bound_field.label }}</label>
+    <label class="col-sm-2 control-label" for="{{ bound_field.html_name }}_id">{{ bound_field.label }}</label>
     {% endif %}
-    <div class="col-lg-10{% if not show_label %} col-lg-offset-2{% endif %}">
+    <div class="col-sm-10{% if not show_label %} col-sm-offset-2{% endif %}">
         {% if input_type == "input" or input_type == "textarea" or input_type == "select" %}
             {% render_widget bound_field class="form-control" %}
         {% endif %}

@@ -20,23 +20,23 @@
     <table class="table table-striped">
         <thead>
             <tr>
-                <th class="col-lg-2">{% trans "Short alias" %}</th>
-                <th class="col-lg-4">{% trans "Addressee" %}</th>
-                <th class="col-lg-2">{% trans "Billing" %}</th>
-                <th class="col-lg-2">{% trans "Shipping" %}</th>
-                <th class="col-lg-2"></th>
+                <th class="col-sm-2">{% trans "Short alias" %}</th>
+                <th class="col-sm-4">{% trans "Addressee" %}</th>
+                <th class="col-sm-2">{% trans "Billing" %}</th>
+                <th class="col-sm-2">{% trans "Shipping" %}</th>
+                <th class="col-sm-2"></th>
             </tr>
         </thead>
         <tbody>
             {% for entry in address_book %}
             <tr>
-                <th class="col-lg-2">
+                <th class="col-sm-2">
                     {{ entry }}
                 </th>
-                <td class="col-lg-4">
+                <td class="col-sm-4">
                     {{ entry.address }}
                 </td>
-                <td class="col-lg-2">
+                <td class="col-sm-2">
                     {% if user.default_billing_address == entry %}
                     <span class="label label-default">{% trans "Default" %}</span>
                     {% else %}
@@ -46,7 +46,7 @@
                     </form>
                     {% endif %}
                 </td>
-                <td class="col-lg-2">
+                <td class="col-sm-2">
                     {% if user.default_shipping_address == entry %}
                     <span class="label label-default">{% trans "Default" %}</span>
                     {% else %}
@@ -56,7 +56,7 @@
                     </form>
                     {% endif %}
                 </td>
-                <td class="col-lg-2">
+                <td class="col-sm-2">
                     <a href="{% url 'profile:address-edit' pk=entry.pk slug=entry.get_slug %}" class="btn btn-default"><i class="glyphicon glyphicon-edit"></i> {% trans "Edit" %}</a>
                     <a href="{% url 'profile:address-delete' pk=entry.pk slug=entry.get_slug %}" class="btn btn-danger"><i class="glyphicon glyphicon-remove"></i> {% trans "Delete" %}</a>
                 </td>

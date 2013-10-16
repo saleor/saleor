@@ -18,28 +18,28 @@
     <table class="table table-striped">
         <thead>
             <tr>
-                <th class="col-lg-4">{% trans "Product" %}</th>
-                <th class="col-lg-2">{% trans "Quantity" %}</th>
-                <th class="col-lg-2">{% trans "Price" %}</th>
-                <th class="col-lg-2">{% trans "Subtotal" %}</th>
+                <th class="col-sm-4">{% trans "Product" %}</th>
+                <th class="col-sm-2">{% trans "Quantity" %}</th>
+                <th class="col-sm-2">{% trans "Price" %}</th>
+                <th class="col-sm-2">{% trans "Subtotal" %}</th>
             </tr>
         </thead>
         <tfoot>
             <tr>
-                <td class="col-lg-4">{% trans "Shipping" %}</td>
-                <td class="col-lg-2"></td>
-                <td class="col-lg-2"></td>
-                <td class="col-lg-2">{% gross cart.get_delivery_total %}</td>
+                <td class="col-sm-4">{% trans "Shipping" %}</td>
+                <td class="col-sm-2"></td>
+                <td class="col-sm-2"></td>
+                <td class="col-sm-2">{% gross cart.get_delivery_total %}</td>
             </tr>
             <tr>
-                <td class="col-lg-4"></td>
-                <td class="col-lg-2">
+                <td class="col-sm-4"></td>
+                <td class="col-sm-2">
                     <button class="btn btn-default" type="submit">
                         {% trans "Update quantities" %}
                     </button>
                 </td>
-                <th class="col-lg-2">{% trans "Total" %}:</th>
-                <td class="col-lg-2">{% gross cart.get_total %}</td>
+                <th class="col-sm-2">{% trans "Total" %}:</th>
+                <td class="col-sm-2">{% gross cart.get_total %}</td>
             </tr>
         </tfoot>
         <tbody>
