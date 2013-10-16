@@ -11,18 +11,13 @@ class Command(Command):
     finalize_options = lambda self: None
 
 
-class Lint(Command):
-    def run(self):
-        import lint
-        lint.run()
-
 setup(
     name='saleor',
     author='Mirumee Software',
     author_email='hello@mirumee.com',
     description="A fork'n'play e-commerence in Django",
     license='BSD',
-    version='0.1a0',
+    version='0.1.0a0',
     url='http://getsaleor.com/',
     packages=find_packages(),
     include_package_data=True,
@@ -36,14 +31,8 @@ setup(
         'South>=0.7.6',
         'requests>=1.2.0',
         'unidecode'],
-    extras_require={
-        'lint': ['pylint==0.26.0', 'django-lint==dev']},
-    dependency_links=[
-        'http://github.com/lamby/django-lint/tarball/master#egg=django-lint-dev'],
     entry_points={
         'console_scripts': ['saleor = saleor:manage']},
-    cmdclass={
-        'lint': Lint},
     tests_require=[
         'mock==1.0.1',
         'purl>=0.4.1',
