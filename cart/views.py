@@ -1,7 +1,8 @@
-from .forms import ReplaceCartLineFormSet
-from cart import CartPartitioner
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
+
+from . import CartPartitioner
+from .forms import ReplaceCartLineFormSet
 
 
 def index(request):

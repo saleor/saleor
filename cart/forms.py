@@ -3,9 +3,7 @@ from decimal import Decimal
 from django import forms
 from django.forms.formsets import BaseFormSet
 from django.utils.translation import pgettext, ugettext
-from product.models import StockedProduct
-
-from . import InsufficientStockException
+from satchless.item import InsufficientStock
 
 
 class QuantityField(forms.DecimalField):
@@ -22,6 +20,8 @@ class AddToCartForm(forms.Form):
     '''
     quantity = QuantityField(label=pgettext('Form field', 'Quantity'))
     error_messages = {
+        'empty-stock': ugettext(
+            'Out of stock.'),
         'insufficient-stock': ugettext(
             'Only %(remaining)d remaining in stock.')}
 
@@ -33,17 +33,16 @@ class AddToCartForm(forms.Form):
 
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
-        if not isinstance(self.product, StockedProduct):
-            return quantity
-        if self.cart_line:
-            new_quantity = quantity + self.cart_line.quantity
-        else:
-            new_quantity = quantity
+        used_quantity = self.cart_line.quantity if self.cart_line else 0
+        new_quantity = quantity + used_quantity
         try:
-            self.cart.check_quantity(self.product, new_quantity)
-        except InsufficientStockException as e:
-            remaining = e.product.stock - quantity
-            msg = self.error_messages['insufficient-stock']
+            self.cart.check_quantity(self.product, new_quantity, None)
+        except InsufficientStock as e:
+            remaining = e.item.stock - used_quantity
+            if remaining:
+                msg = self.error_messages['insufficient-stock']
+            else:
+                msg = self.error_messages['empty-stock']
             raise forms.ValidationError(msg % {'remaining': remaining})
         return quantity
 
@@ -60,13 +59,11 @@ class ReplaceCartLineForm(AddToCartForm):
     '''
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
-        if not isinstance(self.product, StockedProduct):
-            return quantity
         try:
-            self.cart.check_quantity(self.product, quantity)
-        except InsufficientStockException as e:
+            self.cart.check_quantity(self.product, quantity, None)
+        except InsufficientStock as e:
             msg = self.error_messages['insufficient-stock']
-            raise forms.ValidationError(msg % {'remaining': e.product.stock})
+            raise forms.ValidationError(msg % {'remaining': e.item.stock})
         return quantity
 
     def save(self):
