@@ -15,18 +15,6 @@ from unidecode import unidecode
 from utils.models import Subtyped
 
 
-class BaseProduct(Subtyped, Item):
-
-    class Meta:
-        abstract = True
-
-
-class BaseStockedProduct(BaseProduct, StockedItem):
-
-    class Meta:
-        abstract = True
-
-
 class NotApplicable(ValueError):
     pass
 
@@ -51,7 +39,7 @@ class Category(MPTTModel):
         return reverse('product:category', kwargs={'slug': self.slug})
 
 
-class Product(BaseProduct):
+class Product(Subtyped, Item):
 
     name = models.CharField(pgettext_lazy(u'Product field', u'name'),
                             max_length=128)
@@ -127,7 +115,7 @@ def get_product_discounts(product, **kwargs):
             pass
 
 
-class StockedProduct(BaseStockedProduct):
+class StockedProduct(models.Model, StockedItem):
 
     stock = models.DecimalField(pgettext_lazy(u'Product item field', u'stock'),
                                 max_digits=10, decimal_places=4,
