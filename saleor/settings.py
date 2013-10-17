@@ -169,6 +169,10 @@ CANONICAL_HOSTNAME = 'localhost:8000'
 IMAGE_SIZES = {
     'normal': {
         'size': (750, 0)
+    },
+    'admin': {
+        'size': (50, 50),
+        'crop': True
     }
 }
 

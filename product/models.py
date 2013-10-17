@@ -163,6 +163,11 @@ class ProductImage(Image):
     class Meta:
         ordering = ['id']
 
+    def __unicode__(self):
+        html = u'<img src="%s" alt="">' % (
+            self.get_absolute_url('admin'),)
+        return mark_safe(html)
+
 
 class ProductDiscountManager(models.Manager):
 
