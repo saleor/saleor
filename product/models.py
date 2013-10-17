@@ -4,88 +4,19 @@ import re
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.db.models.fields.related import SingleRelatedObjectDescriptor
-from django.db.models.query import QuerySet
 from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from mptt.models import MPTTModel
 from prices import FixedDiscount
-from satchless.item import Item
+from satchless.item import Item, StockedItem
 from unidecode import unidecode
 
-
-class NotApplicable(ValueError): pass
-
-
-class SubtypedQuerySet(QuerySet):
-
-    def find_subclasses(self, root):
-        for a in dir(root):
-            try:
-                attr = getattr(root, a)
-            except AttributeError:
-                continue
-            if isinstance(attr, SingleRelatedObjectDescriptor):
-                child = attr.related.model
-                if (issubclass(child, root) and
-                        child is not root):
-                    yield a
-                    for s in self.find_subclasses(child):
-                        yield '%s__%s' % (a, s)
-
-    def subcast(self, obj):
-        subtype = obj
-        while True:
-            root = type(subtype)
-            last_root = root
-            for a in dir(root):
-                try:
-                    attr = getattr(root, a)
-                except AttributeError:
-                    continue
-                if isinstance(attr, SingleRelatedObjectDescriptor):
-                    child = attr.related.model
-                    if (issubclass(child, root) and
-                            child is not root):
-                        try:
-                            next_type = getattr(subtype, a)
-                        except models.ObjectDoesNotExist:
-                            pass
-                        else:
-                            subtype = next_type
-                            break
-            if root == last_root:
-                break
-        return subtype
-
-    def iterator(self, subclass=True):
-        subclasses = list(self.find_subclasses(self.model))
-        if subclasses and subclass:
-            # https://code.djangoproject.com/ticket/16572
-            related = self.select_related(*subclasses)
-            for obj in related.iterator(subclass=False):
-                yield obj
-        else:
-            objs = super(SubtypedQuerySet, self).iterator()
-            for obj in objs:
-                yield self.subcast(obj)
+from utils.models import Subtyped
 
 
-class SubtypedManager(models.Manager):
-
-    use_for_related_fields = True
-
-    def get_query_set(self):
-        return SubtypedQuerySet(self.model)
-
-
-class Subtyped(models.Model):
-
-    objects = SubtypedManager()
-
-    class Meta:
-        abstract = True
+class NotApplicable(ValueError):
+    pass
 
 
 class Category(MPTTModel):
@@ -124,11 +55,9 @@ class Product(Subtyped, Item):
     def __unicode__(self):
         return self.name
 
-    @models.permalink
     def get_absolute_url(self):
-        return ('product:details',
-                (),
-                {'slug': self.get_slug(), 'product_id': self.id})
+        return reverse('product:details', kwargs={'slug': self.get_slug(),
+                                                  'product_id': self.id})
 
     def get_price_per_item(self, discounted=True, **kwargs):
         price = self.price
@@ -174,8 +103,9 @@ class FixedProductDiscount(models.Model):
         return self.name
 
     def __repr__(self):
-        return 'SelectedProduct(name=%r, discount=%r)' % (str(self.discount),
-                                                          self.name)
+        return 'FixedProductDiscount(name=%r, discount=%r)' % (
+            str(self.discount), self.name)
+
 
 def get_product_discounts(product, **kwargs):
     for discount in FixedProductDiscount.objects.for_product(product):
@@ -185,7 +115,7 @@ def get_product_discounts(product, **kwargs):
             pass
 
 
-class StockedProduct(models.Model):
+class StockedProduct(models.Model, StockedItem):
 
     stock = models.DecimalField(pgettext_lazy(u'Product item field', u'stock'),
                                 max_digits=10, decimal_places=4,
@@ -193,6 +123,9 @@ class StockedProduct(models.Model):
 
     class Meta:
         abstract = True
+
+    def get_stock(self):
+        return self.stock
 
 
 class PhysicalProduct(models.Model):
@@ -212,5 +145,4 @@ class DigitalShip(Product):
 
 
 class Ship(Product, StockedProduct, PhysicalProduct):
-
     pass

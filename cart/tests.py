@@ -1,10 +1,11 @@
-from cart import Cart, InsufficientStockException, BaseGroup
+from cart import Cart, BaseGroup
 from cart.forms import AddToCartForm, ReplaceCartLineForm, \
     ReplaceCartLineFormSet
 from delivery import BaseDelivery
 from django.test import TestCase
 from prices import Price
 from product.models import Product, StockedProduct, PhysicalProduct
+from satchless.item import InsufficientStock
 from satchless.cart import CartLine
 
 __all__ = ['CartTest', 'GroupTest', 'AddToCartFormTest']
@@ -27,7 +28,7 @@ class CartTest(TestCase):
         def illegal():
             cart.add(stock_product, 100)
 
-        self.assertRaises(InsufficientStockException, illegal)
+        self.assertRaises(InsufficientStock, illegal)
         self.assertFalse(cart)
 
 

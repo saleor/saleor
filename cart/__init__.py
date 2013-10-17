@@ -104,14 +104,6 @@ class CartPartitioner(Partitioner):
         return 'CartPartitioner(%r)' % (list(self),)
 
 
-class InsufficientStockException(Exception):
-    '''An error while validating product stock.'''
-    def __init__(self, product):
-        super(InsufficientStockException, self).__init__(
-            'Insufficient stock for %r' % (product,))
-        self.product = product
-
-
 class Cart(cart.Cart):
     '''
     Contains cart items. Serialized instance of cart is saved into django
@@ -124,15 +116,6 @@ class Cart(cart.Cart):
     def __unicode__(self):
         return pgettext(u'Shopping cart', u'Your cart (%(cart_count)s)') % {
             'cart_count': self.count()}
-
-    def check_quantity(self, product, quantity, data=None):
-        '''
-        Raises exception when product has stock and user insert too big
-        quantity.
-        '''
-        super(Cart, self).check_quantity(product, quantity, data)
-        if isinstance(product, StockedProduct) and quantity > product.stock:
-            raise InsufficientStockException(product)
 
 
 def remove_cart_from_request(request):
