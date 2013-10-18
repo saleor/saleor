@@ -8,6 +8,7 @@ def get_setting_as_dict(name, short_name=None):
     except AttributeError:
         return {}
 
+
 def googe_analytics(request):
     return get_setting_as_dict('GOOGLE_ANALYTICS_CODE')
 
