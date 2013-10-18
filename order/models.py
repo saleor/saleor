@@ -1,17 +1,20 @@
-from communication.mail import send_email
+import datetime
 from decimal import Decimal
+
+from communication.mail import send_email
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from prices import Price
-from product.models import Product, Subtyped
 from saleor.utils import build_absolute_uri
 from satchless.item import ItemSet, ItemLine
 from userprofile.models import Address
 from uuid import uuid4
-import datetime
+
+from product.models import Product
+from utils.models import Subtyped
 
 
 class Order(models.Model, ItemSet):
