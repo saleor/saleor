@@ -42,7 +42,7 @@
 {% for group in checkout.groups %}
     {% for item in group %}
         <tr>
-            <td class="col-sm-4"><em>{{ item.quantity }}×</em> {{ item.product }}</td>
+            <td class="col-sm-4">{{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}</td>
             <td class="col-sm-2">{% gross item.get_price_per_item %}</td>
             <td class="col-sm-2">{% gross item.get_total %}</td>
         {% if forloop.first %}

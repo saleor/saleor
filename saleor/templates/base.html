@@ -62,7 +62,7 @@
                                 {% if request.cart %}
                                 <li class="divider"></li>
                                 {% for cart_line in request.cart %}
-                                <li><a href="{{ cart_line.product.get_absolute_url }}">{{ cart_line.product }} <em>×{{ cart_line.quantity }}</em></a></li>
+                                <li><a href="{{ cart_line.product.get_absolute_url }}">{{ cart_line.product }}{% if cart_line.quantity != 1 %} <em>×{{ cart_line.quantity }}</em>{% endif %}</a></li>
                                 {% endfor %}
                                 <li class="divider"></li>
                                 <li><a href="{% url "checkout:index" %}">{% trans "Proceed to checkout" %}</a></li>

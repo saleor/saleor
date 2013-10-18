@@ -1,18 +1,29 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load at_size from images %}
+{% load slice from saleor %}
 
 {% block title %}{{ block.super }} » {% trans "Category" %} {{ category }}{% endblock %}
 
 {% block breadcrumb %}
     {{ block.super }}
-	<li><a href="{{ category.get_absolute_url }}">{{ category }}</a></li>
+    <li><a href="{{ category.get_absolute_url }}">{{ category }}</a></li>
 {% endblock breadcrumb %}
 
 {% block content %}
-<h2>{% trans "Category" %} {{ category }}</h2>
-<ul>
-    {% for product in products %}
-    <li><a href="{{ product.get_absolute_url }}">{{ product }}</a></li>
+    <h2>{{ category }}</h2>
+    {% for row in products|slice:2 %}
+        <div class="row">
+            {% for product in row %}
+                <div class="col-sm-6">
+                    <h3><a href="{{ product.get_absolute_url }}">{{ product }}</a></h3>
+                    {% if product.images.exists %}
+                        <a href="{{ product.get_absolute_url }}">
+                            <img class="img-responsive" src="{{ product.images.first|at_size:"normal" }}" alt="">
+                        </a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
     {% endfor %}
-</ul>
 {% endblock content %}

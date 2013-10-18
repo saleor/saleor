@@ -92,20 +92,21 @@ INSTALLED_APPS = [
     'django.contrib.webdesign',
 
     # External apps
-    'south',
+    'django_images',
     'django_prices',
     'mptt',
     'payments',
+    'south',
 
     # Local apps
-    'saleor',
-    'product',
     'cart',
     'checkout',
     'order',
-    'userprofile',
-    'registration',
     'payment',
+    'product',
+    'registration',
+    'saleor',
+    'userprofile',
 ]
 
 LOGGING = {
@@ -164,6 +165,16 @@ AUTHENTICATION_BACKENDS = (
 AUTH_USER_MODEL = 'userprofile.User'
 
 CANONICAL_HOSTNAME = 'localhost:8000'
+
+IMAGE_SIZES = {
+    'normal': {
+        'size': (750, 0)
+    },
+    'admin': {
+        'size': (50, 50),
+        'crop': True
+    }
+}
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 

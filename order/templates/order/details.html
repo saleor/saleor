@@ -16,9 +16,11 @@
 {% endblock outerbreadcrumb %}
 
 {% block content %}
+
 {# This view is available by just knowing url,          #}
 {# so we don't show all details (like delivery address) #}
 {# unless current user is owner of the order.           #}
+
 {% if order.user == user %}
     <h2>{% trans "Billing address" %}</h2>
     {% with address=order.billing_address %}
@@ -58,7 +60,7 @@
 {% for group in groups %}
     {% for item in group %}
         <tr>
-            <td class="col-sm-4"><em>{{ item.quantity }}×</em> {{ item.product }}</td>
+            <td class="col-sm-4">{{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}</td>
             <td class="col-sm-2">{% gross item.get_price_per_item %}</td>
             <td class="col-sm-2">{% gross item.get_total %}</td>
         {% if forloop.first %}
@@ -69,15 +71,14 @@
                     {{ group.email }}
                     {% elif  group.address %}
                         <p>
-                            {{ group.address }}
-                            <a class="address-details"  href="#"
+                            <a class="address-details" href="#"
                                data-content="{% if group.address.company_name %}{{ group.address.company_name }}<br>{% endif %}
                                              {{ group.address.street_address_1 }}<br>
                                              {% if group.address.street_address_2 %}{{ group.address.street_address_2 }}<br>{% endif %}
                                              {{ group.address.postal_code }} {{ group.address.city }}<br>
-                                             {{ group.address.country_area }}, {{ group.address.get_country_display }}<br>
+                                             {% if group.address.country_area %}{{ group.address.country_area }}, {% endif %}{{ group.address.get_country_display }}<br>
                                              {{ group.address.phone }}"
-                               data-html="true" title="{{ group.address.first_name }} {{ group.address.last_name }}"><small>{% trans "details" %}</small></a>
+                               data-html="true" title="{{ group.address.first_name }} {{ group.address.last_name }}">{{ group.address }}</a>
                         </p>
                     {% endif %}
                     <p>{% trans "Status" %}: <span class="label label-default">{{ group.get_status_display }}</span></p>

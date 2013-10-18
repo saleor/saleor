@@ -8,6 +8,7 @@ from django.db.models.fields.related import SingleRelatedObjectDescriptor
 from django.db.models.query import QuerySet
 from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
+from django_images.models import Image
 from django_prices.models import PriceField
 from mptt.models import MPTTModel
 from prices import FixedDiscount
@@ -15,7 +16,8 @@ from satchless.item import Item
 from unidecode import unidecode
 
 
-class NotApplicable(ValueError): pass
+class NotApplicable(ValueError):
+    pass
 
 
 class SubtypedQuerySet(QuerySet):
@@ -146,6 +148,27 @@ class Product(Subtyped, Item):
         return mark_safe(re.sub(r'[-\s]+', '-', value))
 
 
+class ImageManager(models.Manager):
+
+    def first(self):
+        return self.get_query_set()[0]
+
+
+class ProductImage(Image):
+
+    product = models.ForeignKey(Product, related_name='images')
+
+    objects = ImageManager()
+
+    class Meta:
+        ordering = ['id']
+
+    def __unicode__(self):
+        html = u'<img src="%s" alt="">' % (
+            self.get_absolute_url('admin'),)
+        return mark_safe(html)
+
+
 class ProductDiscountManager(models.Manager):
 
     def for_product(self, product):
@@ -176,6 +199,7 @@ class FixedProductDiscount(models.Model):
     def __repr__(self):
         return 'SelectedProduct(name=%r, discount=%r)' % (str(self.discount),
                                                           self.name)
+
 
 def get_product_discounts(product, **kwargs):
     for discount in FixedProductDiscount.objects.for_product(product):
