@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.forms.models import model_to_dict
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -95,7 +97,7 @@ class BillingAddressStep(BaseAddressStep):
         return 'billing-address'
 
     def __unicode__(self):
-        return u'Billing Address'
+        return 'Billing Address'
 
     def forms_are_valid(self):
         forms_are_valid = super(BillingAddressStep, self).forms_are_valid()
@@ -148,7 +150,7 @@ class ShippingStep(BaseAddressStep):
         return 'delivery'
 
     def __unicode__(self):
-        return u'Shipping'
+        return 'Shipping'
 
     def save(self):
         delivery_form = self.forms['delivery']
@@ -198,7 +200,7 @@ class DigitalDeliveryStep(BaseCheckoutStep):
         return 'delivery'
 
     def __unicode__(self):
-        return u'Digital delivery'
+        return 'Digital delivery'
 
     def validate(self):
         if not 'email' in self.group:
@@ -224,7 +226,7 @@ class SummaryStep(BaseCheckoutStep):
         return 'summary'
 
     def __unicode__(self):
-        return u'Summary'
+        return 'Summary'
 
     def process(self, extra_context=None):
         response = super(SummaryStep, self).process(extra_context)

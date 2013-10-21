@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.test import TestCase
 from prices import Price
 from satchless.item import InsufficientStock
@@ -36,7 +38,7 @@ class CartTest(TestCase):
 class Shipping(BaseDelivery):
 
     def __unicode__(self):
-        return u'Dummy shipping'
+        return 'Dummy shipping'
 
     def get_price_per_item(self, **_kwargs):
         weight = sum(line.product.weight for line in self.group)

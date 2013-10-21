@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from decimal import Decimal
 import re
 
@@ -22,15 +23,15 @@ class NotApplicable(ValueError):
 
 class Category(MPTTModel):
 
-    name = models.CharField(pgettext_lazy(u'Category field', u'name'),
+    name = models.CharField(pgettext_lazy('Category field', 'name'),
                             max_length=128)
-    slug = models.SlugField(pgettext_lazy(u'Category field', u'slug'),
+    slug = models.SlugField(pgettext_lazy('Category field', 'slug'),
                             max_length=50, unique=True)
-    description = models.TextField(pgettext_lazy(u'Category field',
-                                                 u'description'), blank=True)
+    description = models.TextField(pgettext_lazy('Category field',
+                                                 'description'), blank=True)
     parent = models.ForeignKey('self', null=True, related_name='children',
-                               verbose_name=pgettext_lazy(u'Category field',
-                                                          u'parent'),
+                               verbose_name=pgettext_lazy('Category field',
+                                                          'parent'),
                                blank=True)
 
     def __unicode__(self):
@@ -42,16 +43,16 @@ class Category(MPTTModel):
 
 class Product(Subtyped, Item):
 
-    name = models.CharField(pgettext_lazy(u'Product field', u'name'),
+    name = models.CharField(pgettext_lazy('Product field', 'name'),
                             max_length=128)
-    price = PriceField(pgettext_lazy(u'Product field', u'price'),
+    price = PriceField(pgettext_lazy('Product field', 'price'),
                        currency=settings.SATCHLESS_DEFAULT_CURRENCY,
                        max_digits=12, decimal_places=4)
-    sku = models.CharField(pgettext_lazy(u'Product field', u'sku'),
+    sku = models.CharField(pgettext_lazy('Product field', 'sku'),
                            max_length=32, unique=True)
     category = models.ForeignKey(Category, related_name='products',
-                                 verbose_name=pgettext_lazy(u'Product field',
-                                                            u'category'))
+                                 verbose_name=pgettext_lazy('Product field',
+                                                            'category'))
 
     def __unicode__(self):
         return self.name
@@ -92,7 +93,7 @@ class ProductImage(Image):
         ordering = ['id']
 
     def __unicode__(self):
-        html = u'<img src="%s" alt="">' % (
+        html = '<img src="%s" alt="">' % (
             self.get_absolute_url('admin'),)
         return mark_safe(html)
 
@@ -108,7 +109,7 @@ class FixedProductDiscount(models.Model):
 
     name = models.CharField(max_length=255)
     products = models.ManyToManyField(Product, blank=True)
-    discount = PriceField(pgettext_lazy(u'Discount field', u'discount value'),
+    discount = PriceField(pgettext_lazy('Discount field', 'discount value'),
                           currency=settings.SATCHLESS_DEFAULT_CURRENCY,
                           max_digits=12, decimal_places=4)
 
@@ -139,7 +140,7 @@ def get_product_discounts(product, **kwargs):
 
 class StockedProduct(models.Model, StockedItem):
 
-    stock = models.DecimalField(pgettext_lazy(u'Product item field', u'stock'),
+    stock = models.DecimalField(pgettext_lazy('Product item field', 'stock'),
                                 max_digits=10, decimal_places=4,
                                 default=Decimal(1))
 

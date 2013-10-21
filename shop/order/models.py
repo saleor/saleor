@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import datetime
 from decimal import Decimal
 
@@ -20,31 +21,31 @@ from ..userprofile.models import Address
 class Order(models.Model, ItemSet):
 
     STATUS_CHOICES = (
-        ('new', pgettext_lazy(u'Order status field value', u'New')),
-        ('cancelled', pgettext_lazy(u'Order status field value',
-                                    u'Cancelled')),
-        ('payment-pending', pgettext_lazy(u'Order status field value',
-                                          u'Waiting for payment')),
-        ('fully-paid', pgettext_lazy(u'Order status field value',
-                                     u'Fully paid')),
-        ('shipped', pgettext_lazy(u'Order status field value',
-                                  u'Shipped')))
+        ('new', pgettext_lazy('Order status field value', 'New')),
+        ('cancelled', pgettext_lazy('Order status field value',
+                                    'Cancelled')),
+        ('payment-pending', pgettext_lazy('Order status field value',
+                                          'Waiting for payment')),
+        ('fully-paid', pgettext_lazy('Order status field value',
+                                     'Fully paid')),
+        ('shipped', pgettext_lazy('Order status field value',
+                                  'Shipped')))
     status = models.CharField(
-        pgettext_lazy(u'Order field', u'order status'),
+        pgettext_lazy('Order field', 'order status'),
         max_length=32, choices=STATUS_CHOICES, default='new')
     created = models.DateTimeField(
-        pgettext_lazy(u'Order field', u'created'),
+        pgettext_lazy('Order field', 'created'),
         default=datetime.datetime.now, editable=False)
     last_status_change = models.DateTimeField(
-        pgettext_lazy(u'Order field', u'last status change'),
+        pgettext_lazy('Order field', 'last status change'),
         default=datetime.datetime.now, editable=False)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='orders',
-        verbose_name=pgettext_lazy(u'Order field', u'user'))
+        verbose_name=pgettext_lazy('Order field', 'user'))
     billing_address = models.ForeignKey(Address, related_name='+')
     anonymous_user_email = models.EmailField(blank=True, default='')
     token = models.CharField(
-        pgettext_lazy(u'Order field', u'token'),
+        pgettext_lazy('Order field', 'token'),
         max_length=36, blank=True, default='')
 
     class Meta:
@@ -84,11 +85,11 @@ class Order(models.Model, ItemSet):
         return '<Order #%r>' % (self.id,)
 
     def __unicode__(self):
-        return u'#%d' % (self.id, )
+        return '#%d' % (self.id, )
 
     @property
     def billing_full_name(self):
-        return u'%s %s' % (self.billing_first_name, self.billing_last_name)
+        return '%s %s' % (self.billing_first_name, self.billing_last_name)
 
     def get_absolute_url(self):
         return reverse('order:details', kwargs={'token': self.token})
@@ -107,17 +108,17 @@ class Order(models.Model, ItemSet):
 
 class DeliveryGroup(Subtyped, ItemSet):
     STATUS_CHOICES = (
-        ('new', pgettext_lazy(u'Delivery group status field value', u'New')),
-        ('cancelled', pgettext_lazy(u'Delivery group status field value',
-                                    u'Cancelled')),
-        ('shipped', pgettext_lazy(u'Delivery group status field value',
-                                  u'Shipped')))
+        ('new', pgettext_lazy('Delivery group status field value', 'New')),
+        ('cancelled', pgettext_lazy('Delivery group status field value',
+                                    'Cancelled')),
+        ('shipped', pgettext_lazy('Delivery group status field value',
+                                  'Shipped')))
     status = models.CharField(
-        pgettext_lazy(u'Delivery group field', u'Delivery status'),
+        pgettext_lazy('Delivery group field', 'Delivery status'),
         max_length=32, default='new', choices=STATUS_CHOICES)
     order = models.ForeignKey(Order, related_name='groups', editable=False)
     price = PriceField(
-        pgettext_lazy(u'Delivery group field', u'unit price'),
+        pgettext_lazy('Delivery group field', 'unit price'),
         currency=settings.SATCHLESS_DEFAULT_CURRENCY, max_digits=12,
         decimal_places=4,
         default=0,
@@ -155,7 +156,7 @@ class ShippedDeliveryGroup(DeliveryGroup):
     address = models.ForeignKey(Address, related_name='+')
 
     def __unicode__(self):
-        return u'Shipped delivery'
+        return 'Shipped delivery'
 
 
 class DigitalDeliveryGroup(DeliveryGroup):
@@ -163,7 +164,7 @@ class DigitalDeliveryGroup(DeliveryGroup):
     email = models.EmailField()
 
     def __unicode__(self):
-        return u'Digital delivery'
+        return 'Digital delivery'
 
 
 class OrderedItem(models.Model, ItemLine):
@@ -173,17 +174,17 @@ class OrderedItem(models.Model, ItemLine):
     product = models.ForeignKey(
         Product, blank=True, null=True, related_name='+',
         on_delete=models.SET_NULL,
-        verbose_name=pgettext_lazy(u'OrderedItem field', u'product'))
+        verbose_name=pgettext_lazy('OrderedItem field', 'product'))
     product_name = models.CharField(
-        pgettext_lazy(u'OrderedItem field', u'product name'), max_length=128)
+        pgettext_lazy('OrderedItem field', 'product name'), max_length=128)
     quantity = models.DecimalField(
-        pgettext_lazy(u'OrderedItem field', u'quantity'),
+        pgettext_lazy('OrderedItem field', 'quantity'),
         max_digits=10, decimal_places=4)
     unit_price_net = models.DecimalField(
-        pgettext_lazy(u'OrderedItem field', u'unit price (net)'),
+        pgettext_lazy('OrderedItem field', 'unit price (net)'),
         max_digits=12, decimal_places=4)
     unit_price_gross = models.DecimalField(
-        pgettext_lazy(u'OrderedItem field', u'unit price (gross)'),
+        pgettext_lazy('OrderedItem field', 'unit price (gross)'),
         max_digits=12, decimal_places=4)
 
     def get_price_per_item(self, **kwargs):

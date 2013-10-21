@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from datetime import timedelta
 
 from django.db import models
@@ -29,7 +30,7 @@ class UniqueTokenManager(models.Manager):  # this might end up in `utils`
         super(UniqueTokenManager, self).__init__()
 
     def create(self, **kwargs):
-        assert self.token_field not in kwargs, u'Token field already filled.'
+        assert self.token_field not in kwargs, 'Token field already filled.'
         for _x in xrange(100):
             token = get_random_string(self.token_length)
             conflict_filter = {self.token_field: token}

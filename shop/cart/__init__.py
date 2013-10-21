@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.utils.translation import pgettext
 from satchless import cart
 from satchless.item import ItemSet, ClassifyingPartitioner

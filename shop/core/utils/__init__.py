@@ -1,4 +1,5 @@
 # coding: utf-8
+from __future__ import unicode_literals
 
 from django import forms
 from django.conf import settings
@@ -20,15 +21,15 @@ class CategoryChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         # pylint: disable=W0212
         level = getattr(obj, obj._mptt_meta.level_attr)
-        indent = max(0, level - 1) * u'│'
+        indent = max(0, level - 1) * '│'
         if obj.parent:
             last = ((obj.parent.rght - obj.rght == 1)
                     and (obj.rght - obj.lft == 1))
             if last:
-                indent += u'└ '
+                indent += '└ '
             else:
-                indent += u'├ '
-        return u'%s%s' % (indent, unicode(obj))
+                indent += '├ '
+        return '%s%s' % (indent, unicode(obj))
 
 
 class BaseStep(Step):

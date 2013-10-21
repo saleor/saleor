@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.conf import settings
 from prices import Price
 from satchless.item import Item
@@ -15,7 +17,7 @@ class BaseDelivery(Item):
 class DummyShipping(BaseDelivery):
 
     def __unicode__(self):
-        return u'Dummy shipping'
+        return 'Dummy shipping'
 
     def get_price_per_item(self, **kwargs):
         weight = sum(line.product.weight for line in self.group)

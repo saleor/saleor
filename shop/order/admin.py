@@ -52,14 +52,14 @@ class DeliveryInlineAdmin(admin.TabularInline):
             model_dict = model_to_dict(delivery.address, exclude='id')
             address = ', '.join(model_dict.values())
             self.verbose_name_plural = (
-                u'ShippedDelivery (%s%s): %s' % (delivery.price.gross,
-                                                 delivery.price.currency,
-                                                 address))
+                'ShippedDelivery (%s%s): %s' % (delivery.price.gross,
+                                                delivery.price.currency,
+                                                address))
         if hasattr(delivery, 'email'):
             self.verbose_name_plural = (
-                u'Digital delivery (%s%s): %s' % (delivery.price.gross,
-                                                  delivery.price.currency,
-                                                  delivery.email))
+                'Digital delivery (%s%s): %s' % (delivery.price.gross,
+                                                 delivery.price.currency,
+                                                 delivery.email))
         super(DeliveryInlineAdmin, self).__init__(delivery_class, admin_site)
 
     def get_formset(self, request, obj=None, **kwargs):
@@ -94,7 +94,7 @@ class OrderAdmin(OrderModelAdmin):
 
     def total(self, obj):
         return obj.get_total().gross
-    total.short_description = u'Total'
+    total.short_description = 'Total'
 
     def has_add_permission(self, request, obj=None):
         return False
