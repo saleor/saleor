@@ -20,7 +20,7 @@ INTERNAL_IPS = ['127.0.0.1']
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'dev.sqlite',
+        'NAME': 'dev.sqlite'
     }
 }
 
@@ -36,21 +36,21 @@ MEDIA_URL = '/media/'
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(PROJECT_ROOT, 'saleor', 'static'),
+    os.path.join(PROJECT_ROOT, 'saleor', 'static')
 ]
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    # 'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder'
 ]
 
 TEMPLATE_DIRS = [
-    os.path.join(PROJECT_ROOT, 'saleor', 'templates'),
+    os.path.join(PROJECT_ROOT, 'templates')
 ]
 TEMPLATE_LOADERS = [
+    'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
     # TODO: this one is slow, but for now need for mptt?
-    'django.template.loaders.eggs.Loader',
+    'django.template.loaders.eggs.Loader'
 ]
 
 # Make this unique, and don't share it with anybody.
@@ -62,8 +62,8 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'cart.middleware.CartMiddleware',
-    'saleor.middleware.CheckHTML',
+    'saleor.cart.middleware.CartMiddleware',
+    'saleor.core.middleware.CheckHTML'
 ]
 
 TEMPLATE_CONTEXT_PROCESSORS = [
@@ -75,9 +75,9 @@ TEMPLATE_CONTEXT_PROCESSORS = [
     'django.core.context_processors.tz',
     'django.contrib.messages.context_processors.messages',
     'django.core.context_processors.request',
-    'saleor.context_processors.googe_analytics',
-    'saleor.context_processors.canonical_hostname',
-    'saleor.context_processors.default_currency',
+    'saleor.core.context_processors.googe_analytics',
+    'saleor.core.context_processors.canonical_hostname',
+    'saleor.core.context_processors.default_currency'
 ]
 
 INSTALLED_APPS = [
@@ -99,14 +99,14 @@ INSTALLED_APPS = [
     'south',
 
     # Local apps
-    'cart',
-    'checkout',
-    'order',
-    'payment',
-    'product',
-    'registration',
-    'saleor',
-    'userprofile',
+    'saleor.cart',
+    'saleor.checkout',
+    'saleor.core',
+    'saleor.order',
+    'saleor.payment',
+    'saleor.product',
+    'saleor.registration',
+    'saleor.userprofile'
 ]
 
 LOGGING = {
@@ -146,20 +146,20 @@ LOGGING = {
         'django.request': {
             'handlers': ['mail_admins'],
             'level': 'ERROR',
-            'propagate': True,
+            'propagate': True
         },
         'saleor': {
             'handlers': ['console'],
             'level': 'DEBUG',
-            'propagate': True,
-        },
+            'propagate': True
+        }
     }
 }
 
 AUTHENTICATION_BACKENDS = (
-    'registration.backends.EmailPasswordBackend',
-    'registration.backends.ExternalLoginBackend',
-    'registration.backends.TrivialBackend',
+    'saleor.registration.backends.EmailPasswordBackend',
+    'saleor.registration.backends.ExternalLoginBackend',
+    'saleor.registration.backends.TrivialBackend'
 )
 
 AUTH_USER_MODEL = 'userprofile.User'
@@ -201,7 +201,7 @@ PAYMENT_BASE_URL = 'http://%s/' % CANONICAL_HOSTNAME
 PAYMENT_MODEL = "payment.Payment"
 
 PAYMENT_VARIANTS = {
-    'default': ('payments.dummy.DummyProvider', {'url': 'http://google.pl/'}),
+    'default': ('payments.dummy.DummyProvider', {'url': 'http://google.pl/'})
 }
 
 CHECKOUT_PAYMENT_CHOICES = [
