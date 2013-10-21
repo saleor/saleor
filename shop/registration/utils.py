@@ -1,12 +1,16 @@
+import logging
+try:
+    from urllib.parse import parse_qs, urlencode, urljoin, urlunparse
+except ImportError:
+    from urllib import urlencode
+    from urlparse import parse_qs, urljoin, urlunparse
+
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
-
-import logging
 import requests
-import urllib
-import urlparse
+
 
 GOOGLE, FACEBOOK = 'google', 'facebook'
 JSON_MIME_TYPE = 'application/json'
@@ -20,7 +24,7 @@ def get_local_host(request):
 
 
 def url(scheme='', host='', path='', params='', query='', fragment=''):
-    return urlparse.urlunparse((scheme, host, path, params, query, fragment))
+    return urlunparse((scheme, host, path, params, query, fragment))
 
 
 def get_client_class_for_service(service):
@@ -39,9 +43,9 @@ def parse_response(response):
     if JSON_MIME_TYPE in response.headers['Content-Type']:
         return response.json()
     else:
-        content = urlparse.parse_qs(response.text)
+        content = parse_qs(response.text)
         content = dict((x, y[0] if len(y) == 1 else y)
-                       for x, y in content.iteritems())
+                       for x, y in content.items())
         return content
 
 
@@ -80,15 +84,15 @@ class OAuth2Client(object):
     def get_redirect_uri(self):
         kwargs = {'service': self.service}
         path = reverse('registration:oauth_callback', kwargs=kwargs)
-        return urlparse.urljoin(self.local_host, path)
+        return urljoin(self.local_host, path)
 
     def get_login_uri(self):
         data = {'response_type': 'code',
                 'scope': self.scope,
                 'redirect_uri': self.get_redirect_uri(),
                 'client_id': self.client_id}
-        query = urllib.urlencode(data)
-        return urlparse.urljoin(self.auth_uri, url(query=query))
+        query = urlencode(data)
+        return urljoin(self.auth_uri, url(query=query))
 
     def get_access_token(self, code):
         data = {'grant_type': 'authorization_code',

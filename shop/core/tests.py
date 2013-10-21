@@ -1,8 +1,9 @@
-from ..utils import BaseStep
 from django.template.response import TemplateResponse
 from django.test import TestCase
 from mock import MagicMock
 from satchless.process import InvalidData
+
+from .utils import BaseStep
 
 
 class SimpleStep(BaseStep):

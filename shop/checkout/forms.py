@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.models import AnonymousUser
 from django.core import validators
 from django.core.exceptions import ValidationError
+from django.utils.encoding import smart_text
 
 from ..order.models import DigitalDeliveryGroup
 from ..userprofile.forms import AddressForm
@@ -24,7 +25,6 @@ class DigitalDeliveryForm(forms.ModelForm):
         email = self.fields['email']
         email.required = True
         if user.is_authenticated():
-            print 'asd'
             email.initial = user.email
 
 
@@ -32,7 +32,7 @@ class DeliveryField(forms.ChoiceField):
 
     def __init__(self, methods, *args, **kwargs):
         self.methods = list(methods)
-        choices = [(index, unicode(method)) for index, method in
+        choices = [(index, smart_text(method)) for index, method in
                    enumerate(self.methods)]
         super(DeliveryField, self).__init__(choices, *args, **kwargs)
 

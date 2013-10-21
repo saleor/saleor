@@ -1,9 +1,9 @@
+from unittest import TestCase
+
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import resolve
-
 from mock import call, Mock, MagicMock, patch, sentinel
 from purl import URL
-from unittest2 import TestCase
 
 from .forms import RegisterOrResetPasswordForm, OAuth2CallbackForm
 from .utils import (

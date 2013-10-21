@@ -7,7 +7,10 @@ from django.http.request import absolute_http_url_re
 from django.template.response import TemplateResponse
 from django.utils.encoding import iri_to_uri
 from satchless.process import InvalidData, Step
-from urlparse import urljoin
+try:
+    from urllib.parse import urljoin
+except ImportError:
+    from urlparse import urljoin
 
 
 __all__ = ['BaseStep', 'CategoryChoiceField', 'build_absolute_uri']
