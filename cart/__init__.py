@@ -1,11 +1,9 @@
-from itertools import groupby
-
 from django.utils.translation import pgettext
 from satchless import cart
-from satchless.item import ItemSet, Partitioner
+from satchless.item import ItemSet, ClassifyingPartitioner
 
 from delivery import DummyShipping, DigitalDelivery
-from product.models import StockedProduct, DigitalShip
+from product.models import DigitalShip
 
 
 class BaseGroup(list, ItemSet):
@@ -63,27 +61,19 @@ class DigitalGroup(BaseGroup):
         yield DigitalDelivery(self)
 
 
-class CartPartitioner(Partitioner):
+class CartPartitioner(ClassifyingPartitioner):
     '''
     Dividing cart into groups.
     '''
-    def __iter__(self):
-        '''
-        Change this method to provide custom delivery groups.
-        '''
-        self.subject = sorted(self.subject, key=self.classify)
-        for classifier, items in groupby(self.subject, self.classify):
-            delivery_class = self.get_delivery_class(classifier)
-            delivery = delivery_class(items)
-            yield delivery
-
     def classify(self, item):
-        return item.product.__class__
+        if isinstance(item.product, DigitalShip):
+            return 'digital'
+        return 'shippable'
 
-    def get_delivery_class(self, classifier):
-        if issubclass(classifier, DigitalShip):
-            return DigitalGroup
-        return ShippedGroup
+    def get_partition(self, classifier, items):
+        if classifier == 'digital':
+            return DigitalGroup(items)
+        return ShippedGroup(items)
 
     def get_delivery_subtotal(self, partion, **kwargs):
         return partion.get_delivery_total(**kwargs)
@@ -99,9 +89,6 @@ class CartPartitioner(Partitioner):
     def get_total(self):
         total = super(CartPartitioner, self).get_total()
         return total + self.get_delivery_total()
-
-    def __repr__(self):
-        return 'CartPartitioner(%r)' % (list(self),)
 
 
 class Cart(cart.Cart):
