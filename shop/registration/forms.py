@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django import forms
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
@@ -15,7 +17,7 @@ User = get_user_model()
 
 class LoginForm(AuthenticationForm):
 
-    username = forms.EmailField(label=pgettext_lazy(u"Form field", u"Email"),
+    username = forms.EmailField(label=pgettext_lazy('Form field', 'Email'),
                                 max_length=75)
 
     def __init__(self, request=None, *args, **kwargs):
