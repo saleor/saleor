@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages, Command
 import os
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'saleor.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'shop.settings')
 
 
 class Command(Command):
@@ -33,7 +33,7 @@ setup(
         'requests>=1.2.0',
         'unidecode'],
     entry_points={
-        'console_scripts': ['saleor = saleor:manage']},
+        'console_scripts': ['saleor = shop:manage']},
     tests_require=[
         'mock==1.0.1',
         'purl>=0.4.1',
