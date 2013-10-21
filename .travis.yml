@@ -5,5 +5,5 @@ python:
 install:
   - python setup.py install
 script:
-  - export DJANGO_SETTINGS_MODULE=saleor.test_settings
+  - export DJANGO_SETTINGS_MODULE=shop.test_settings
   - python setup.py test
