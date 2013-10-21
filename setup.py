@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages, Command
 import os
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'shop.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'saleor.settings')
 
 
 class Command(Command):
@@ -23,18 +23,18 @@ setup(
     include_package_data=True,
     install_requires=[
         'Django>=1.5',
-        'django-images>=0.3.2,<-0.4a0',
+        'django-images>=0.3.2.1,<-0.4a0',
         'django-mptt>=0.5',
-        'django-payments>=0.3.4.1,<0.4a0',
-        'django-prices>=0.2.5,<0.3a0',
+        'django-payments>=0.3.4.3,<0.4a0',
+        'django-prices>=0.2.6,<0.3a0',
         'prices>=0.4.2,<0.5a0',
         'satchless>=1.0.4,<1.1a0',
         'South>=0.7.6',
         'requests>=1.2.0',
         'unidecode'],
     entry_points={
-        'console_scripts': ['saleor = shop:manage']},
+        'console_scripts': ['saleor = saleor:manage']},
     tests_require=[
         'mock==1.0.1',
         'purl>=0.4.1'],
-    test_suite='shop.tests.suite')
+    test_suite='saleor.tests.suite')

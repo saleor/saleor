@@ -9,11 +9,11 @@ from .mail import SUBJECT, TEXT, HTML, send_email, render_blocks
 class SendEmailTestCase(TestCase):
 
     def setUp(self):
-        patcher = patch('shop.communication.mail.settings')
+        patcher = patch('saleor.communication.mail.settings')
         self.settings_mock = patcher.start()
-        patcher = patch('shop.communication.mail.render_blocks')
+        patcher = patch('saleor.communication.mail.render_blocks')
         self.render_mock = patcher.start()
-        patcher = patch('shop.communication.mail.EmailMultiAlternatives')
+        patcher = patch('saleor.communication.mail.EmailMultiAlternatives')
         self.email_mock = patcher.start()
 
         self.settings_mock.DEFAULT_FROM_EMAIL = sentinel.from_email
@@ -54,8 +54,8 @@ class SendEmailTestCase(TestCase):
 
 class RenderBlocksTestCase(TestCase):
 
-    @patch('shop.communication.mail.get_template')
-    @patch('shop.communication.mail.Context')
+    @patch('saleor.communication.mail.get_template')
+    @patch('saleor.communication.mail.Context')
     def test_block_rendering(self, context_mock, get_template_mock):
         """Template blocks are rendered with proper context"""
         html_block = Mock(spec=BlockNode)

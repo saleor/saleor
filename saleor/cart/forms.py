@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 from django import forms
-from django.forms.formsets import BaseFormSet
+from django.forms.formsets import BaseFormSet, DEFAULT_MAX_NUM
 from django.utils.translation import pgettext, ugettext
 from satchless.item import InsufficientStock
 
@@ -83,7 +83,7 @@ class ReplaceCartLineFormSet(BaseFormSet):
     can_order = False
     extra = 0
     form = ReplaceCartLineForm
-    max_num = None
+    max_num = DEFAULT_MAX_NUM
 
     def __init__(self, *args, **kwargs):
         self.cart = kwargs.pop('cart')

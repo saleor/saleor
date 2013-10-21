@@ -14,7 +14,7 @@ import requests
 
 GOOGLE, FACEBOOK = 'google', 'facebook'
 JSON_MIME_TYPE = 'application/json'
-logger = logging.getLogger('shop.registration')
+logger = logging.getLogger('saleor.registration')
 User = get_user_model()
 
 

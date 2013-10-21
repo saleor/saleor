@@ -7,9 +7,9 @@ SITE_ID = 1
 
 PROJECT_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
 
-ROOT_URLCONF = 'shop.urls'
+ROOT_URLCONF = 'saleor.urls'
 
-WSGI_APPLICATION = 'shop.wsgi.application'
+WSGI_APPLICATION = 'saleor.wsgi.application'
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
@@ -36,7 +36,7 @@ MEDIA_URL = '/media/'
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(PROJECT_ROOT, 'shop', 'static')
+    os.path.join(PROJECT_ROOT, 'saleor', 'static')
 ]
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -62,8 +62,8 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'shop.cart.middleware.CartMiddleware',
-    'shop.core.middleware.CheckHTML'
+    'saleor.cart.middleware.CartMiddleware',
+    'saleor.core.middleware.CheckHTML'
 ]
 
 TEMPLATE_CONTEXT_PROCESSORS = [
@@ -75,9 +75,9 @@ TEMPLATE_CONTEXT_PROCESSORS = [
     'django.core.context_processors.tz',
     'django.contrib.messages.context_processors.messages',
     'django.core.context_processors.request',
-    'shop.core.context_processors.googe_analytics',
-    'shop.core.context_processors.canonical_hostname',
-    'shop.core.context_processors.default_currency'
+    'saleor.core.context_processors.googe_analytics',
+    'saleor.core.context_processors.canonical_hostname',
+    'saleor.core.context_processors.default_currency'
 ]
 
 INSTALLED_APPS = [
@@ -99,14 +99,14 @@ INSTALLED_APPS = [
     'south',
 
     # Local apps
-    'shop.cart',
-    'shop.checkout',
-    'shop.core',
-    'shop.order',
-    'shop.payment',
-    'shop.product',
-    'shop.registration',
-    'shop.userprofile'
+    'saleor.cart',
+    'saleor.checkout',
+    'saleor.core',
+    'saleor.order',
+    'saleor.payment',
+    'saleor.product',
+    'saleor.registration',
+    'saleor.userprofile'
 ]
 
 LOGGING = {
@@ -148,7 +148,7 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True
         },
-        'shop': {
+        'saleor': {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True
@@ -157,9 +157,9 @@ LOGGING = {
 }
 
 AUTHENTICATION_BACKENDS = (
-    'shop.registration.backends.EmailPasswordBackend',
-    'shop.registration.backends.ExternalLoginBackend',
-    'shop.registration.backends.TrivialBackend'
+    'saleor.registration.backends.EmailPasswordBackend',
+    'saleor.registration.backends.ExternalLoginBackend',
+    'saleor.registration.backends.TrivialBackend'
 )
 
 AUTH_USER_MODEL = 'userprofile.User'

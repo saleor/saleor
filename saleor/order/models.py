@@ -5,6 +5,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from prices import Price
@@ -53,7 +54,7 @@ class Order(models.Model, ItemSet):
 
     def save(self, *args, **kwargs):
         if not self.token:
-            for _i in xrange(100):
+            for _i in range(100):
                 token = str(uuid4())
                 if not type(self).objects.filter(token=token).exists():
                     self.token = token
@@ -141,7 +142,7 @@ class DeliveryGroup(Subtyped, ItemSet):
 
     def add_items_from_partition(self, partition):
         for item_line in partition:
-            product_name = unicode(item_line.product)
+            product_name = smart_text(item_line.product)
             price = item_line.get_price_per_item()
             self.items.create(
                 product=item_line.product,

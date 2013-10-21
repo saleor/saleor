@@ -95,8 +95,9 @@ class BaseCommunicationTestCase(TestCase):
 
     def setUp(self):
         self.parse_mock = patch(
-            'shop.registration.utils.parse_response').start()
-        self.requests_mock = patch('shop.registration.utils.requests').start()
+            'saleor.registration.utils.parse_response').start()
+        self.requests_mock = patch(
+            'saleor.registration.utils.requests').start()
         self.requests_mock.codes.ok = sentinel.ok
 
     def tearDown(self):
@@ -194,9 +195,10 @@ class AuthorizerTestCase(TestCase):
 class CallbackTestCase(TestCase):
 
     def setUp(self):
-        patcher = patch('shop.registration.forms.get_client_class_for_service')
+        patcher = patch(
+            'saleor.registration.forms.get_client_class_for_service')
         self.getter_mock = patcher.start()
-        patcher = patch('shop.registration.forms.authenticate')
+        patcher = patch('saleor.registration.forms.authenticate')
         self.authenticate_mock = patcher.start()
 
         self.client_class = self.getter_mock()
@@ -209,8 +211,8 @@ class CallbackTestCase(TestCase):
                                        data={'code': 'test_code'})
         self.assertTrue(self.form.is_valid(), self.form.errors)
 
-    @patch('shop.registration.forms.ExternalUserData')
-    @patch('shop.registration.forms.User')
+    @patch('saleor.registration.forms.ExternalUserData')
+    @patch('saleor.registration.forms.User')
     def test_new_user(self, user_mock, external_data_mock):
         """OAuth2 callback creates a new user with proper external data"""
         user_mock.objects.get_or_create.return_value = sentinel.user, None
@@ -242,7 +244,7 @@ class CallbackTestCase(TestCase):
 
 class EmailConfirmationTestCase(TestCase):
 
-    @patch('shop.registration.forms.authenticate')
+    @patch('saleor.registration.forms.authenticate')
     def test_password_set(self, authenticate_mock):
         """Email confirmation sets new password and logs the user"""
         user = Mock()
@@ -258,7 +260,7 @@ class EmailConfirmationTestCase(TestCase):
         user.set_password.assert_called_once_with('pass')
         authenticate_mock.assert_called_once_with(user=user)
 
-    @patch('shop.registration.forms.authenticate')
+    @patch('saleor.registration.forms.authenticate')
     def test_password_unset(self, authenticate_mock):
         """Email confirmation unsets a password and logs the user"""
         user = Mock()
@@ -277,8 +279,8 @@ class EmailConfirmationTestCase(TestCase):
 
 class EmailChangeTestCase(TestCase):
 
-    @patch('shop.registration.views.now')
-    @patch('shop.registration.views.EmailChangeRequest.objects.get')
+    @patch('saleor.registration.views.now')
+    @patch('saleor.registration.views.EmailChangeRequest.objects.get')
     def test_another_user_logged_out(self, get, now):
 
         # user requests email change
@@ -301,8 +303,8 @@ class EmailChangeTestCase(TestCase):
         self.assertFalse(request.user.is_authenticated())
         token_object.delete.assert_not_called()
 
-    @patch('shop.registration.views.now')
-    @patch('shop.registration.views.EmailChangeRequest.objects.get')
+    @patch('saleor.registration.views.now')
+    @patch('saleor.registration.views.EmailChangeRequest.objects.get')
     def test_user_logged_in(self, get, now):
 
         # user requests email change
