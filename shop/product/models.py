@@ -13,7 +13,7 @@ from prices import FixedDiscount
 from satchless.item import Item, StockedItem
 from unidecode import unidecode
 
-from utils.models import Subtyped
+from ..core.utils.models import Subtyped
 
 
 class NotApplicable(ValueError):
