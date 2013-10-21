@@ -101,7 +101,7 @@ class Cart(cart.Cart):
     billing_address = None
 
     def __unicode__(self):
-        return pgettext(u'Shopping cart', u'Your cart (%(cart_count)s)') % {
+        return pgettext('Shopping cart', 'Your cart (%(cart_count)s)') % {
             'cart_count': self.count()}
 
 

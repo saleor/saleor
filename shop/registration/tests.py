@@ -46,7 +46,7 @@ class LoginUrlsTestCase(TestCase):
         func, _args, kwargs = resolve(callback_url.path())
         self.assertEquals(func, oauth_callback)
         self.assertEquals(kwargs['service'], GOOGLE)
-        self.assertIn(params['scope'][0], GoogleClient.scope)
+        self.assertTrue(params['scope'][0] in GoogleClient.scope)
         self.assertEqual(params['client_id'][0], GoogleClient.client_id)
 
 
