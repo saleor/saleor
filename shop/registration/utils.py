@@ -10,7 +10,7 @@ import urlparse
 
 GOOGLE, FACEBOOK = 'google', 'facebook'
 JSON_MIME_TYPE = 'application/json'
-logger = logging.getLogger('saleor.registration')
+logger = logging.getLogger('shop.registration')
 User = get_user_model()
 
 

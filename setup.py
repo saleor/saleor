@@ -36,6 +36,5 @@ setup(
         'console_scripts': ['saleor = shop:manage']},
     tests_require=[
         'mock==1.0.1',
-        'purl>=0.4.1',
-        'unittest2'],
-    test_suite='unittest2.collector')
+        'purl>=0.4.1'],
+    test_suite='shop.tests.suite')
