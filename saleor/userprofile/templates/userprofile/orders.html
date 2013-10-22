@@ -2,6 +2,8 @@
 {% load i18n %}
 {% load gross from prices %}
 
+{% block title %}{% trans "Your orders" %} — {{ block.super }}{% endblock %}
+
 {% block breadcrumb %}
     {{ block.super }}
     <li><a href="{% url 'profile:orders' %}">{% trans "Your orders" %}</a></li>
