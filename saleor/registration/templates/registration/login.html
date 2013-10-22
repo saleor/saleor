@@ -2,7 +2,7 @@
 {% load as_horizontal_form from bootstrap %}
 {% load i18n %}
 
-{% block title %}{{ block.super }} » {% trans "Login" %}{% endblock %}
+{% block title %}{% trans "Login" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
 <form method="post" action="{% url 'registration:login' %}" class="form-horizontal">
@@ -18,16 +18,24 @@
             <button class="btn btn-primary">
                 {% trans "Log in" %}
             </button>
+            <a class="btn btn-secondary" href="{% url 'registration:request_email_confirmation' %}">{% trans "I don't know my password" %}</a>
+        </div>
+    </div>
+    <hr>
+    <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+            <p>{% trans "Want to use your social profile?" %}</p>
+            <p>
+                <a class="btn btn-default zocial-facebook" href="{{ facebook_login_url }}"> Login using Facebook</a>
+                <a class="btn btn-default zocial-google" href="{{ google_login_url }}"> Login using Google</a>
+            </p>
+        </div>
+    </div>
+    <hr>
+    <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+            <p>{% trans "Don't have an account yet?" %} <a class="btn btn-secondary" href="{% url 'registration:request_email_confirmation' %}">{% trans "Register" %}</a></p>
         </div>
     </div>
 </form>
-<ul>
-    <li>
-        <a href="{{ facebook_login_url }}">Login via Facebook</a>
-    </li>
-    <li>
-        <a href="{{ google_login_url }}">Login via Google</a>
-    </li>
-    <li><a href="{% url 'registration:request_email_confirmation' %}">Create an account or reset password</a></li>
-</ul>
 {% endblock %}

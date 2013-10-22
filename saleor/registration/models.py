@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 from datetime import timedelta
 
 from django.db import models
-from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate, get_user_model
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.utils import timezone
@@ -60,10 +60,10 @@ class EmailConfirmationRequest(AbstractToken):
 
     email = models.EmailField()
 
-    def get_or_create_user(self):
+    def get_authenticated_user(self):
         user, _created = User.objects.get_or_create(email=self.email)
         EmailConfirmationRequest.objects.filter(email=self.email).delete()
-        return user
+        return authenticate(user=user)
 
     def get_confirmation_url(self):
         return reverse('registration:confirm_email',

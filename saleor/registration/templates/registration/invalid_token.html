@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{{ block.super }} » {% trans "Invalid token" %}{% endblock %}
+{% block title %}{% trans "Invalid token" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
     <p>Sorry, this link is invalid. Probably it has already been used or has expired.</p>

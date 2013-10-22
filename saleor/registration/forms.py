@@ -72,22 +72,6 @@ class RequestEmailChangeForm(RequestEmailConfirmationForm):
             email=self.cleaned_data['email'], user=self.user)
 
 
-class RegisterOrResetPasswordForm(SetPasswordForm):
-
-    def __init__(self, email_confirmation_request, data=None):
-        self.email_confirmation_request = email_confirmation_request
-        super(RegisterOrResetPasswordForm, self).__init__(
-            user=None, data=data, empty_permitted=True)
-
-    def get_authenticated_user(self):
-        self.user = self.email_confirmation_request.get_or_create_user()
-        if self.cleaned_data.get('new_password1'):
-            self.save()
-        else:
-            self.user.set_unusable_password()
-        return authenticate(user=self.user)
-
-
 class OAuth2CallbackForm(forms.Form):
 
     code = forms.CharField()

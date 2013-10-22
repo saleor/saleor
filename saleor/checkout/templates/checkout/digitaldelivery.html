@@ -2,8 +2,6 @@
 {% load i18n %}
 {% load as_horizontal_form from bootstrap %}
 
-{% block title %}{{ block.super }} » {% trans "Digital delivery" %}{% endblock %}
-
 {% block forms %}
 <form method="post" class="form-horizontal">
     {% csrf_token %}

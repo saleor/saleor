@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{{ block.super }} » {% trans "Logged out" %}{% endblock %}
+{% block title %}{% trans "Logged out" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
 <p>Successfully logged out!</p>

@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{{ block.super }} » {% trans "Order received!" %}{% endblock %}
+{% block title %}{% trans "Order complete!" %} — {{ block.super }}{% endblock %}
 
 {% load gross from prices %}
 
 {% block content %}
-<h2>Your order has been received</h2>
+<h2>{% trans "Your order is now complete" %}</h2>
 <p>{% trans "Thank you for your purchase!" %}</p>
 
 <p>{% trans "Your order number is" %}: <a href="{% url 'order:details' token=order.token %}">{{ order }}</a></p>

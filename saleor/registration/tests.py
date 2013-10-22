@@ -5,7 +5,7 @@ from django.core.urlresolvers import resolve
 from mock import call, Mock, MagicMock, patch, sentinel
 from purl import URL
 
-from .forms import RegisterOrResetPasswordForm, OAuth2CallbackForm
+from .forms import OAuth2CallbackForm
 from .utils import (
     FACEBOOK,
     FacebookClient,
@@ -240,41 +240,6 @@ class CallbackTestCase(TestCase):
 
     def tearDown(self):
         patch.stopall()
-
-
-class EmailConfirmationTestCase(TestCase):
-
-    @patch('saleor.registration.forms.authenticate')
-    def test_password_set(self, authenticate_mock):
-        """Email confirmation sets new password and logs the user"""
-        user = Mock()
-        authenticate_mock.return_value = sentinel.authed_user
-        email_confirmation_request = Mock()
-        email_confirmation_request.get_or_create_user.return_value = user
-        form = RegisterOrResetPasswordForm(
-            email_confirmation_request=email_confirmation_request,
-            data={'new_password1': 'pass', 'new_password2': 'pass'})
-        self.assertTrue(form.is_valid(), form.errors)
-        authed_user = form.get_authenticated_user()
-        self.assertEquals(authed_user, sentinel.authed_user)
-        user.set_password.assert_called_once_with('pass')
-        authenticate_mock.assert_called_once_with(user=user)
-
-    @patch('saleor.registration.forms.authenticate')
-    def test_password_unset(self, authenticate_mock):
-        """Email confirmation unsets a password and logs the user"""
-        user = Mock()
-        authenticate_mock.return_value = sentinel.authed_user
-        email_confirmation_request = Mock()
-        email_confirmation_request.get_or_create_user.return_value = user
-        form = RegisterOrResetPasswordForm(
-            email_confirmation_request=email_confirmation_request,
-            data={})
-        self.assertTrue(form.is_valid(), form.errors)
-        authed_user = form.get_authenticated_user()
-        self.assertEquals(authed_user, sentinel.authed_user)
-        user.set_unusable_password.assert_called_once()
-        authenticate_mock.assert_called_once_with(user=user)
 
 
 class EmailChangeTestCase(TestCase):

@@ -3,8 +3,6 @@
 {% load gross from prices %}
 {% load i18n %}
 
-{% block title %}{{ block.super }} » {% trans "Select method" %}{% endblock %}
-
 {% block forms %}
 {% if waiting_payment %}
 <form method="post" action="{% url 'order:payment:delete' token=order.token %}">
