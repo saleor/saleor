@@ -6,7 +6,7 @@
 {% load at_size from images %}
 {% load gross from prices %}
 
-{% block title %}{{ block.super }} » {% trans "Product" %} » {{ product.name }}{% endblock %}
+{% block title %}{{ product }} — {{ block.super }}{% endblock %}
 
 {% block breadcrumb %}
     {{ block.super }}

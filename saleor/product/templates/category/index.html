@@ -3,7 +3,7 @@
 {% load at_size from images %}
 {% load slice from shop %}
 
-{% block title %}{{ block.super }} » {% trans "Category" %} {{ category }}{% endblock %}
+{% block title %}{{ category }} — {{ block.super }}{% endblock %}
 
 {% block breadcrumb %}
     {{ block.super }}

@@ -3,7 +3,7 @@
 {% load gross from prices %}
 {% load i18n %}
 
-{% block title %}{{ block.super }} » {% trans "Order details" %}{% endblock %}
+{% block title %}{% trans "Order" %} {{ order }} — {{ block.super }}{% endblock %}
 
 {% block outerbreadcrumb %}
     {% if order.user == user %}

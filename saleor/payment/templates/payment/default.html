@@ -2,8 +2,6 @@
 {% load as_horizontal_form from bootstrap %}
 {% load i18n %}
 
-{% block title %}{{ block.super }} » {{ payment.variant|title }}{% endblock %}
-
 {% block forms %}
 <form method="{{ form.method }}" class="form-horizontal"{% if form.action %} action="{{ form.action }}"{% endif %}>
     {% csrf_token %}

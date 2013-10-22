@@ -5,10 +5,10 @@ except ImportError:
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import (login as auth_login,
-                                 logout as auth_logout,
-                                 get_user_model)
+from django.contrib.auth import (get_user_model, login as auth_login,
+                                 logout as auth_logout)
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.views import (login as django_login_view,
                                        password_change)
 from django.core.urlresolvers import reverse
@@ -46,9 +46,12 @@ def oauth_callback(request, service):
     if form.is_valid():
         try:
             user = form.get_authenticated_user()
-            return _login_user(request, user)
         except ValueError as e:
             messages.error(request, unicode(e))
+        else:
+            auth_login(request, user=user)
+            messages.success(request, _('You are now logged in.'))
+            return redirect(settings.LOGIN_REDIRECT_URL)
     else:
         for _field, errors in form.errors.items():
             for error in errors:
@@ -84,9 +87,9 @@ def request_email_change(request):
         messages.success(request, msg)
         return redirect(settings.LOGIN_REDIRECT_URL)
 
-    return TemplateResponse(request,
-                            'registration/request_email_confirmation.html',
-                            {'form': form})
+    return TemplateResponse(
+        request, 'registration/request_email_confirmation.html',
+        {'form': form})
 
 
 def confirm_email(request, token):
@@ -96,13 +99,15 @@ def confirm_email(request, token):
         # TODO: cronjob (celery task) to delete stale tokens
     except EmailConfirmationRequest.DoesNotExist:
         return TemplateResponse(request, 'registration/invalid_token.html')
+    user = email_confirmation_request.get_authenticated_user()
+    email_confirmation_request.delete()
+    auth_login(request, user)
+    messages.success(request, _('You are now logged in.'))
 
-    form = forms.RegisterOrResetPasswordForm(
-        email_confirmation_request=email_confirmation_request,
-        data=request.POST or None)
+    form = SetPasswordForm(user=user, data=request.POST or None)
     if form.is_valid():
-        user = form.get_authenticated_user()
-        return _login_user(request, user)
+        form.save()
+        return redirect(settings.LOGIN_REDIRECT_URL)
 
     return TemplateResponse(
         request, 'registration/set_password.html', {'form': form})
@@ -118,7 +123,8 @@ def change_email(request, token):
 
     # if another user is logged in, we need to log him out, to allow the email
     # owner confirm his identity
-    if request.user != email_change_request.user:
+    if (request.user.is_authenticated() and
+            request.user != email_change_request.user):
         auth_logout(request)
     if not request.user.is_authenticated():
         query = urlencode({
@@ -132,13 +138,6 @@ def change_email(request, token):
     email_change_request.delete()
 
     messages.success(request, _('Your email has been successfully changed'))
-    return redirect(settings.LOGIN_REDIRECT_URL)
-
-
-def _login_user(request, user):
-    auth_login(request, user)
-    msg = _('You have been successfully logged in.')
-    messages.success(request, msg)
     return redirect(settings.LOGIN_REDIRECT_URL)
 
 

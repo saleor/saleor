@@ -1,6 +1,10 @@
+from __future__ import unicode_literals
+
 from django.http import HttpResponsePermanentRedirect
+from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
+from django.utils.translation import ugettext as _
 
 from .forms import ProductForm
 from .models import Product, Category
@@ -13,6 +17,10 @@ def product_details(request, slug, product_id):
     form = ProductForm(cart=request.cart, product=product,
                        data=request.POST or None)
     if form.is_valid():
+        if form.cleaned_data['quantity']:
+            msg = _('Added %(product)s to your cart.') % {
+                'product': product}
+            messages.success(request, msg)
         form.save()
     return TemplateResponse(request, 'product/details.html', {
         'product': product,

@@ -2,7 +2,7 @@
 {% load as_horizontal_form from bootstrap %}
 {% load i18n %}
 
-{% block title %}{{ block.super }} » {% trans "Request email confirmation" %}{% endblock %}
+{% block title %}{% trans "Request email confirmation" %} — {{ block.super }}{% endblock %}
 
 {% block breadcrumb %}
     {{ block.super }}

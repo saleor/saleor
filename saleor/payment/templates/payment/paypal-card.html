@@ -4,8 +4,6 @@
 {% load gross from prices %}
 {% load i18n %}
 
-{% block title %}{{ block.super }} » {% trans "Paypal card" %}{% endblock %}
-
 {% block forms %}
 <form method="post" class="form-horizontal">
     {% csrf_token %}
