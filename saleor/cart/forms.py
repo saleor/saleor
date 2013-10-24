@@ -84,6 +84,7 @@ class ReplaceCartLineFormSet(BaseFormSet):
     extra = 0
     form = ReplaceCartLineForm
     max_num = DEFAULT_MAX_NUM
+    validate_max = False
 
     def __init__(self, *args, **kwargs):
         self.cart = kwargs.pop('cart')
