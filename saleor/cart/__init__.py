@@ -98,7 +98,6 @@ class Cart(cart.Cart):
     Contains cart items. Serialized instance of cart is saved into django
     session.
     '''
-    SESSION_KEY = 'cart'
     timestamp = None
     billing_address = None
 
@@ -106,9 +105,5 @@ class Cart(cart.Cart):
         return pgettext('Shopping cart', 'Your cart (%(cart_count)s)') % {
             'cart_count': self.count()}
 
-
-def remove_cart_from_request(request):
-    '''
-    Method removes cart instance from django session.
-    '''
-    del request.session[Cart.SESSION_KEY]
+    def clear(self):
+        self._state = []

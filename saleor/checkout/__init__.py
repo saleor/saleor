@@ -4,7 +4,7 @@ from satchless.process import ProcessManager
 
 from .steps import (BillingAddressStep, ShippingStep, DigitalDeliveryStep,
                     SummaryStep)
-from ..cart import CartPartitioner, DigitalGroup, remove_cart_from_request
+from ..cart import CartPartitioner, DigitalGroup
 from ..order.models import Order
 
 STORAGE_SESSION_KEY = 'checkout_storage'
@@ -84,7 +84,7 @@ class Checkout(ProcessManager):
 
     def clear_storage(self):
         del self.request.session[STORAGE_SESSION_KEY]
-        remove_cart_from_request(self.request)
+        self.request.cart.clear()
 
     def __iter__(self):
         return iter(self.steps)
