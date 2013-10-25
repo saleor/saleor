@@ -23,7 +23,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'Django>=1.5',
-        'django-images>=0.3.2.1,<-0.4a0',
+        'django-images>=0.4,<0.5a0',
         'django-mptt>=0.5',
         'django-payments>=0.3.4.3,<0.4a0',
         'django-prices>=0.3,<0.4a0',
