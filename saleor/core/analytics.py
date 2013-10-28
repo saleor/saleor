@@ -19,15 +19,23 @@ def get_client_id(request):
     return uuid.uuid5(UUID_NAMESPACE, '_'.join(parts))
 
 
-def _report(client_id, what):
+def _report(client_id, what, extra_info=None, extra_headers=None):
     tracking_id = getattr(settings, 'GOOGLE_ANALYTICS_TRACKING_ID', None)
     if tracking_id and client_id:
-        ga.report(tracking_id, client_id, what)
+        ga.report(tracking_id, client_id, what, extra_info=extra_info,
+                  extra_headers=extra_headers)
 
 
-def report_view(client_id, path, host_name=None, referrer=None):
+def report_view(client_id, path, language, headers):
+    host_name = headers.get('HTTP_HOST', None)
+    referrer = headers.get('HTTP_REFERER', None)
     pv = ga.PageView(path, host_name=host_name, referrer=referrer)
-    _report(client_id, pv)
+    extra_info = ga.SystemInfo(language=language)
+    extra_headers = {}
+    user_agent = headers.get('HTTP_USER_AGENT', None)
+    if user_agent:
+        extra_headers['user-agent'] = user_agent
+    _report(client_id, pv, extra_info=extra_info, extra_headers=extra_headers)
 
 
 def report_order(client_id, order):
@@ -39,4 +47,4 @@ def report_order(client_id, order):
                  for oi in group]
         trans = ga.Transaction('%s-%s' % (order.id, group.id), items,
                                revenue=group.get_total(), shipping=group.price)
-        _report(client_id, trans)
+        _report(client_id, trans, {})

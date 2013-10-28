@@ -2,6 +2,7 @@ import logging
 from subprocess import Popen, PIPE
 
 from django.conf import settings
+from django.utils.translation import get_language
 
 from . import analytics
 
@@ -26,8 +27,8 @@ class GoogleAnalytics(object):
     def process_request(self, request):
         client_id = analytics.get_client_id(request)
         path = request.path
-        host_name = request.META.get('HTTP_HOST', None)
-        referrer = request.META.get('HTTP_REFERER', None)
+        language = get_language()
+        headers = request.META
         # FIXME: on production you might want to run this in background
-        analytics.report_view(client_id, path=path, host_name=host_name,
-                              referrer=referrer)
+        analytics.report_view(client_id, path=path, language=language,
+                              headers=headers)
