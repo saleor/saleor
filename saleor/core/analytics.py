@@ -25,8 +25,8 @@ def _report(client_id, what):
         ga.report(tracking_id, client_id, what)
 
 
-def report_view(client_id, path):
-    pv = ga.PageView(path)
+def report_view(client_id, path, host_name=None, referrer=None):
+    pv = ga.PageView(path, host_name=host_name, referrer=referrer)
     _report(client_id, pv)
 
 
