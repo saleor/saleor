@@ -63,6 +63,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'saleor.cart.middleware.CartMiddleware',
+    'saleor.core.middleware.GoogleAnalytics',
     'saleor.core.middleware.CheckHTML'
 ]
 
@@ -75,7 +76,6 @@ TEMPLATE_CONTEXT_PROCESSORS = [
     'django.core.context_processors.tz',
     'django.contrib.messages.context_processors.messages',
     'django.core.context_processors.request',
-    'saleor.core.context_processors.googe_analytics',
     'saleor.core.context_processors.canonical_hostname',
     'saleor.core.context_processors.default_currency'
 ]
@@ -188,13 +188,12 @@ ACCOUNT_ACTIVATION_DAYS = 3
 
 LOGIN_REDIRECT_URL = 'home'
 
-FACEBOOK_APP_ID = 'YOUR_FACEBOOK_APP_ID'
+FACEBOOK_APP_ID = None
+FACEBOOK_SECRET = None
 
-FACEBOOK_SECRET = 'YOUR_FACEBOOK_APP_SECRET'
-
-GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_APP_ID'
-
-GOOGLE_SECRET = 'YOUR_GOOGLE_APP_SECRET'
+GOOGLE_ANALYTICS_TRACKING_ID = None
+GOOGLE_CLIENT_ID = None
+GOOGLE_SECRET = None
 
 PAYMENT_BASE_URL = 'http://%s/' % CANONICAL_HOSTNAME
 

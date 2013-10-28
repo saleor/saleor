@@ -35,7 +35,7 @@ class LoginUrlsTestCase(TestCase):
         self.assertEquals(func, oauth_callback)
         self.assertEquals(kwargs['service'], FACEBOOK)
         self.assertEqual(query['scope'][0], FacebookClient.scope)
-        self.assertEqual(query['client_id'][0], FacebookClient.client_id)
+        self.assertEqual(query['client_id'][0], str(FacebookClient.client_id))
 
     def test_google_login_url(self):
         """Google login url is properly generated"""
@@ -47,7 +47,7 @@ class LoginUrlsTestCase(TestCase):
         self.assertEquals(func, oauth_callback)
         self.assertEquals(kwargs['service'], GOOGLE)
         self.assertTrue(params['scope'][0] in GoogleClient.scope)
-        self.assertEqual(params['client_id'][0], GoogleClient.client_id)
+        self.assertEqual(params['client_id'][0], str(GoogleClient.client_id))
 
 
 class ResponseParsingTestCase(TestCase):

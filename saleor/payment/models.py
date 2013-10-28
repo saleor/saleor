@@ -30,7 +30,8 @@ class Payment(BasePayment):
 
     def get_purchased_items(self):
         items = [PurchasedItem(name=item.product_name, quantity=item.quantity,
-                             price=item.unit_price_gross, sku=item.product.sku,
-                             currency=settings.SATCHLESS_DEFAULT_CURRENCY)
+                               price=item.unit_price_gross,
+                               sku=item.product.sku,
+                               currency=settings.SATCHLESS_DEFAULT_CURRENCY)
                  for item in self.order.get_items()]
         return items

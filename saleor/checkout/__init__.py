@@ -5,6 +5,7 @@ from satchless.process import ProcessManager
 from .steps import (BillingAddressStep, ShippingStep, DigitalDeliveryStep,
                     SummaryStep)
 from ..cart import CartPartitioner, DigitalGroup
+from ..core import analytics
 from ..order.models import Order
 
 STORAGE_SESSION_KEY = 'checkout_storage'
@@ -96,5 +97,6 @@ class Checkout(ProcessManager):
         if self.request.user.is_authenticated():
             order.user = self.request.user
             order.anonymous_user_email = ''
+        order.tracking_client_id = analytics.get_client_id(self.request)
         order.save()
         return order
