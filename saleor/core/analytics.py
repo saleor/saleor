@@ -4,7 +4,6 @@ from django.conf import settings
 import google_measurement_protocol as ga
 
 FINGERPRINT_PARTS = [
-    'HTTP_ACCEPT',
     'HTTP_ACCEPT_ENCODING',
     'HTTP_ACCEPT_LANGUAGE',
     'HTTP_USER_AGENT',
