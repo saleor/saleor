@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
-import datetime
 from decimal import Decimal
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.encoding import smart_text
+from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from prices import Price
@@ -36,13 +36,14 @@ class Order(models.Model, ItemSet):
         max_length=32, choices=STATUS_CHOICES, default='new')
     created = models.DateTimeField(
         pgettext_lazy('Order field', 'created'),
-        default=datetime.datetime.now, editable=False)
+        default=now, editable=False)
     last_status_change = models.DateTimeField(
         pgettext_lazy('Order field', 'last status change'),
-        default=datetime.datetime.now, editable=False)
+        default=now, editable=False)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='orders',
         verbose_name=pgettext_lazy('Order field', 'user'))
+    tracking_client_id = models.CharField(max_length=36, blank=True)
     billing_address = models.ForeignKey(Address, related_name='+')
     anonymous_user_email = models.EmailField(blank=True, default='')
     token = models.CharField(

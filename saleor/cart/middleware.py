@@ -12,7 +12,6 @@ class CartMiddleware(object):
             cart = request.session[self.SESSION_KEY]
         except KeyError:
             cart = Cart()
-            request.session[self.SESSION_KEY] = cart
         setattr(request, 'cart', cart)
 
     def process_response(self, request, response):

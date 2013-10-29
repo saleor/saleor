@@ -27,6 +27,7 @@ setup(
         'django-mptt>=0.5',
         'django-payments>=0.3.4.3,<0.4a0',
         'django-prices>=0.3,<0.4a0',
+        'google-measurement-protocol>=0.1.2,<0.2a0',
         'prices>=0.5,<0.6a0',
         'satchless>=1.1,<1.2a0',
         'South>=0.7.6',

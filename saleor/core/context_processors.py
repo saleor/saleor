@@ -9,10 +9,6 @@ def get_setting_as_dict(name, short_name=None):
         return {}
 
 
-def googe_analytics(request):
-    return get_setting_as_dict('GOOGLE_ANALYTICS_CODE')
-
-
 def canonical_hostname(request):
     return get_setting_as_dict('CANONICAL_HOSTNAME')
 
