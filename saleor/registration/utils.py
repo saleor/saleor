@@ -8,7 +8,6 @@ except ImportError:
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.utils.translation import ugettext_lazy as _
 import requests
 
 
@@ -135,7 +134,7 @@ class GoogleClient(OAuth2Client):
     service = GOOGLE
 
     client_id = settings.GOOGLE_CLIENT_ID
-    client_secret = settings.GOOGLE_SECRET
+    client_secret = settings.GOOGLE_CLIENT_SECRET
 
     auth_uri = 'https://accounts.google.com/o/oauth2/auth'
     token_uri = 'https://accounts.google.com/o/oauth2/token'
@@ -149,7 +148,7 @@ class GoogleClient(OAuth2Client):
         if response['verified_email']:
             return response
         else:
-            raise ValueError(_('Google account not verified.'))
+            raise ValueError('Google account not verified.')
 
     def extract_error_from_response(self, response_content):
         return response_content['error']
@@ -173,7 +172,7 @@ class FacebookClient(OAuth2Client):
         if response['verified']:
             return response
         else:
-            raise ValueError(_('Facebook account not verified.'))
+            raise ValueError('Facebook account not verified.')
 
     def extract_error_from_response(self, response_content):
         return response_content['error']['message']
