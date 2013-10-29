@@ -7,7 +7,7 @@ from django.contrib.auth.models import BaseUserManager
 from django.db import models
 from django.utils import timezone
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy, pgettext_lazy
+from django.utils.translation import pgettext_lazy
 from unidecode import unidecode
 
 from ..core.countries import COUNTRY_CHOICES
@@ -18,11 +18,11 @@ class AddressBook(models.Model):
     user = models.ForeignKey('User', related_name='address_book')
     address = models.ForeignKey('Address', related_name='+', unique=True)
     alias = models.CharField(
-        ugettext_lazy('short alias'),
+        pgettext_lazy('Address book entry', 'short alias'),
         max_length=30,
-        default=pgettext_lazy('Default value for alias field', 'Home'),
+        default=pgettext_lazy('Address book entry', 'Home'),
         help_text=pgettext_lazy(
-            'help text',
+            'Address book entry',
             'User-defined alias which identifies this address'))
 
     class Meta:
@@ -56,14 +56,17 @@ class Address(models.Model):
         pgettext_lazy('Address field', 'company name'),
         max_length=256, blank=True)
     street_address_1 = models.CharField(
-        pgettext_lazy('Address field', 'street address 1'), max_length=256)
+        pgettext_lazy('Address field', 'street address 1'),
+        max_length=256)
     street_address_2 = models.CharField(
         pgettext_lazy('Address field', 'street address 2'),
         max_length=256, blank=True)
-    city = models.CharField(pgettext_lazy('Address field', 'city'),
-                            max_length=256)
+    city = models.CharField(
+        pgettext_lazy('Address field', 'city'),
+        max_length=256)
     postal_code = models.CharField(
-        pgettext_lazy('Address field', 'postal code'), max_length=20)
+        pgettext_lazy('Address field', 'postal code'),
+        max_length=20)
     country = models.CharField(
         pgettext_lazy('Address field', 'country'),
         choices=COUNTRY_CHOICES, max_length=2)
@@ -119,10 +122,14 @@ class User(models.Model):
     addresses = models.ManyToManyField(Address, through=AddressBook)
 
     is_staff = models.BooleanField(
-        pgettext_lazy('User field', 'staff status'), default=False)
-    is_active = models.BooleanField(pgettext_lazy('active'), default=False)
-    password = models.CharField(pgettext_lazy('User field', 'password'),
-                                max_length=128, editable=False)
+        pgettext_lazy('User field', 'staff status'),
+        default=False)
+    is_active = models.BooleanField(
+        pgettext_lazy('User field', 'active'),
+        default=False)
+    password = models.CharField(
+        pgettext_lazy('User field', 'password'),
+        max_length=128, editable=False)
     date_joined = models.DateTimeField(
         pgettext_lazy('User field', 'date joined'),
         default=timezone.now, editable=False)
