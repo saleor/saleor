@@ -35,6 +35,17 @@ Usage
    `saleor` is a shortcut for running `python manage.py` so you can use it to execute all management commands.
 
 
+Google Analytics
+----------------
+
+Because of EU law regulations, Saleor will not use any tracking cookies by default. We do support server-side Google Analytics out of the box using [Google Analytics Measurement Protocol](https://developers.google.com/analytics/devguides/collection/protocol/v1/). This is implemented using [google-measurement-protocol](https://pypi.python.org/pypi/google-measurement-protocol) and does not use cookies for the cost of not reporting things like geolocation and screen resolution. To get it working you will need to set the `GOOGLE_ANALYTICS_TRACKING_ID` in your settings file:
+
+```python
+# settings.py
+GOOGLE_ANALYTICS_TRACKING_ID = 'UA-123456-78'
+```
+
+
 Testing changes
 ---------------
 
