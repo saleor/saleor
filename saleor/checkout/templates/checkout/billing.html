@@ -1,9 +1,18 @@
 {% extends "checkout/address.html" %}
 
 {% load as_horizontal_form from bootstrap %}
+{% load i18n %}
+
+{% block introduction %}
+    <h2>{% trans "Billing address" %}</h2>
+{% endblock %}
+
+{% block use_this_address %}
+    <button type="submit" class="btn {% if entry.is_default %}btn-primary{% else %}btn-default{% endif %} btn-lg col-sm-12">{% trans "Bill to this address" %}</button>
+{% endblock %}
 
 {% block extra_forms %}
-{% if not user.is_authenticated %}
-{{ step.forms.anonymous|as_horizontal_form }}
-{% endif %}
+    {% if not user.is_authenticated %}
+        {{ step.forms.anonymous|as_horizontal_form }}
+    {% endif %}
 {% endblock extra_forms %}

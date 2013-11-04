@@ -22,7 +22,7 @@ from ..userprofile.models import Address
 class Order(models.Model, ItemSet):
 
     STATUS_CHOICES = (
-        ('new', pgettext_lazy('Order status field value', 'New')),
+        ('new', pgettext_lazy('Order status field value', 'Processing')),
         ('cancelled', pgettext_lazy('Order status field value',
                                     'Cancelled')),
         ('payment-pending', pgettext_lazy('Order status field value',
@@ -110,7 +110,8 @@ class Order(models.Model, ItemSet):
 
 class DeliveryGroup(Subtyped, ItemSet):
     STATUS_CHOICES = (
-        ('new', pgettext_lazy('Delivery group status field value', 'New')),
+        ('new',
+         pgettext_lazy('Delivery group status field value', 'Processing')),
         ('cancelled', pgettext_lazy('Delivery group status field value',
                                     'Cancelled')),
         ('shipped', pgettext_lazy('Delivery group status field value',

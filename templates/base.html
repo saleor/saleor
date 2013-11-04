@@ -32,63 +32,65 @@
     </head>
 
     <body itemscope itemtype="http://schema.org/WebPage">
-        <header class="navbar navbar-default navbar-inverse navbar-static-top">
-            <nav class="container">
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="/">Saleor</a>
-                </div>
-                <div class="collapse navbar-collapse navbar-ex1-collapse">
-                    <ul class="nav navbar-nav">
-                        <li class="active">
-                            <a href="/">Home</a>
-                        </li>
-                        <li class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown" href="#">{% trans "Categories" %} <b class="caret"></b></a>
-                            <ul class="dropdown-menu">
-                                {% categories_list %}
-                            </ul>
-                        </li>
-                    </ul>
-                    <ul class="nav navbar-nav navbar-right">
-                        <li class="dropdown">
-                            <a data-toggle="dropdown" class="dropdown-toggle" href="{% url "cart:index" %}"><i class="glyphicon glyphicon-shopping-cart"></i> {{ request.cart }} <b class="caret"></b></a>
-                            <ul class="dropdown-menu">
-                                <li><a href="{% url "cart:index" %}">{% trans "View cart contents" %}</a></li>
-                                {% if request.cart %}
-                                <li class="divider"></li>
-                                {% for cart_line in request.cart %}
-                                <li><a href="{{ cart_line.product.get_absolute_url }}">{{ cart_line.product }}{% if cart_line.quantity != 1 %} <em>×{{ cart_line.quantity }}</em>{% endif %}</a></li>
-                                {% endfor %}
-                                <li class="divider"></li>
-                                <li><a href="{% url "checkout:index" %}">{% trans "Proceed to checkout" %}</a></li>
-                                {% endif %}
-                              </ul>
-                        </li>
-                        {% if user.is_authenticated %}
-                        <li class="dropdown">
-                            <a data-toggle="dropdown" class="dropdown-toggle" href="."><i class="glyphicon glyphicon-user"></i> {{ user }} <b class="caret"></b></a>
-                            <ul class="dropdown-menu">
-                                <li><a href="{% url "profile:details" %}">{% trans "Your profile" %}</a></li>
-                                <li><a href="{% url "profile:orders" %}">{% trans "Your orders" %}</a></li>
-                                <li class="divider"></li>
-                                <li><a href="{% url "registration:logout" %}">{% trans "Log out" %}</a></li>
-                              </ul>
-                        </li>
-                        {% else %}
-                        <li>
-                            <a href="{% url "registration:login" %}">Log in</a>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </div>
-            </nav>
-        </header>
+        {% block header %}
+            <header class="navbar navbar-default navbar-inverse navbar-static-top">
+                <nav class="container">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="/">Saleor</a>
+                    </div>
+                    <div class="collapse navbar-collapse navbar-ex1-collapse">
+                        <ul class="nav navbar-nav">
+                            <li class="active">
+                                <a href="/">Home</a>
+                            </li>
+                            <li class="dropdown">
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#">{% trans "Categories" %} <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    {% categories_list %}
+                                </ul>
+                            </li>
+                        </ul>
+                        <ul class="nav navbar-nav navbar-right">
+                            <li class="dropdown">
+                                <a data-toggle="dropdown" class="dropdown-toggle" href="{% url "cart:index" %}"><i class="glyphicon glyphicon-shopping-cart"></i> {{ request.cart }} <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="{% url "cart:index" %}">{% trans "View cart contents" %}</a></li>
+                                    {% if request.cart %}
+                                    <li class="divider"></li>
+                                    {% for cart_line in request.cart %}
+                                    <li><a href="{{ cart_line.product.get_absolute_url }}">{{ cart_line.product }}{% if cart_line.quantity != 1 %} <em>×{{ cart_line.quantity }}</em>{% endif %}</a></li>
+                                    {% endfor %}
+                                    <li class="divider"></li>
+                                    <li><a href="{% url "checkout:index" %}">{% trans "Proceed to checkout" %}</a></li>
+                                    {% endif %}
+                                  </ul>
+                            </li>
+                            {% if user.is_authenticated %}
+                            <li class="dropdown">
+                                <a data-toggle="dropdown" class="dropdown-toggle" href="."><i class="glyphicon glyphicon-user"></i> {{ user }} <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="{% url "profile:details" %}">{% trans "Your profile" %}</a></li>
+                                    <li><a href="{% url "profile:orders" %}">{% trans "Your orders" %}</a></li>
+                                    <li class="divider"></li>
+                                    <li><a href="{% url "registration:logout" %}">{% trans "Log out" %}</a></li>
+                                  </ul>
+                            </li>
+                            {% else %}
+                            <li>
+                                <a href="{% url "registration:login" %}">Log in</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </nav>
+            </header>
+        {% endblock %}
         {% if messages %}
         <div class="container">
             {% for message in messages %}
@@ -117,13 +119,16 @@
                 </div>
             </div>
             {% endblock outercontent %}
-
-            <footer>
-                <p class="pull-right">
-                    &copy; Mirumee Labs 2013
-                </p>
-            </footer>
         </div>
+        {% block footer %}
+            <footer>
+                <div class="container">
+                    <p class="pull-right">
+                        &copy; Mirumee Labs 2013
+                    </p>
+                </div>
+            </footer>
+        {% endblock %}
         {% block third-party-js %}{% endblock third-party-js %}
         {% block footer_scripts %}
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>

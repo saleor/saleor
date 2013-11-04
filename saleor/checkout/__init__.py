@@ -38,17 +38,22 @@ class Checkout(ProcessManager):
 
     def generate_steps(self):
         self.steps = [BillingAddressStep(self, self.request)]
-        for index, delivery_group in enumerate(self.groups):
-            step_class = ShippingStep
-            if isinstance(delivery_group, DigitalGroup):
-                step_class = DigitalDeliveryStep
-            step = step_class(self, self.request,
-                              delivery_group, index)
-            step_group = self.get_group(str(step))
+        for step, step_group, delivery_group in self.enumerate_steps():
             if 'delivery_method' in step_group:
                 delivery_group.delivery_method = step_group['delivery_method']
             self.steps.append(step)
         self.steps.append(SummaryStep(self, self.request))
+
+    def enumerate_steps(self):
+        for index, delivery_group in enumerate(self.groups):
+            if isinstance(delivery_group, DigitalGroup):
+                step_class = DigitalDeliveryStep
+            else:
+                step_class = ShippingStep
+            step = step_class(self, self.request,
+                              delivery_group, index)
+            step_group = self.get_group(str(step))
+            yield step, step_group, delivery_group
 
     @property
     def anonymous_user_email(self):
