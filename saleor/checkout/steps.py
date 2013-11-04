@@ -92,7 +92,7 @@ class BillingAddressStep(BaseAddressStep):
         skip = False
         if not address and request.user.is_authenticated():
             if request.user.default_billing_address:
-                address = request.user.default_billing_address
+                address = request.user.default_billing_address.address
                 skip = True
             elif request.user.address_book.count() == 1:
                 address = request.user.address_book.all()[0].address
