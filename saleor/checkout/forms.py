@@ -7,12 +7,6 @@ from django.utils.translation import ugettext_lazy as _
 
 from ..order.models import DigitalDeliveryGroup
 from ..userprofile.forms import AddressForm
-from ..userprofile.models import AddressBook
-
-
-class ExistingAddressForm(forms.Form):
-
-    address = forms.ModelChoiceField(AddressBook)
 
 
 class ShippingForm(AddressForm):
