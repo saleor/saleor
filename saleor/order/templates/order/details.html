@@ -21,11 +21,11 @@
     {# unless current user is owner of the order.           #}
 
     {% if order.user == user %}
-        <h2>{% trans "Billing address" %}</h2>
+        <h3>{% trans "Billing address" %}</h3>
 
         {% include "userprofile/snippets/address-details.html" with address=order.billing_address %}
     {% endif %}
-    <h2>{% trans "Order details" %}</h2>
+    <h3>{% trans "Order details" %}</h3>
     <p>{% trans "Status" %}: <span class="label label-default">{{ order.get_status_display }}</span></p>
     <table class="table table-striped">
         <thead>
@@ -75,7 +75,7 @@
         </tbody>
     </table>
     {% if order.user == user %}
-    <h2>{% trans "Payment history" %}</h2>
+    <h3>{% trans "Payment history" %}</h3>
     <ul>
     {% for payment in payments %}
         <li>{{ payment.created|date }} — <span class="label label-default">{{ payment.get_status_display }}</span></li>

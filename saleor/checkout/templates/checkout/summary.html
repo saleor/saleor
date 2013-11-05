@@ -6,10 +6,12 @@
     <h3>{% trans "Billing address" %}</h3>
     {% include "userprofile/snippets/address-details.html" with address=checkout.billing_address %}
 
+    <h3>{% trans "Order details" %}</h3>
+
     <table class="table table-striped">
         <thead>
             <tr>
-                <th class="col-sm-4">{% trans "Product" %}</th>
+                <th class="col-sm-4">{% trans "Name" %}</th>
                 <th class="col-sm-2">{% trans "Price" %}</th>
                 <th class="col-sm-2">{% trans "Subtotal" %}</th>
                 <th class="col-sm-2">{% trans "Shipping" %}</th>
