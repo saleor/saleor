@@ -16,7 +16,7 @@
                         <div class="panel-body">
                             <form method="post">
                                 {% csrf_token %}
-                                {% include "userprofile/snippets/address-details.html" with address=entry.address %}
+                                <address>{% include "userprofile/snippets/address-details.html" with address=entry.address %}</address>
                                 {% for field in entry.form %}{{ field.as_hidden }}{% endfor %}
                                 {% block extra_address_fields %}{% endblock %}
                                 <div class="form-group">

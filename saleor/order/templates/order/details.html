@@ -23,7 +23,7 @@
     {% if order.user == user %}
         <h3>{% trans "Billing address" %}</h3>
 
-        {% include "userprofile/snippets/address-details.html" with address=order.billing_address %}
+        <address>{% include "userprofile/snippets/address-details.html" with address=order.billing_address %}</address>
     {% endif %}
     <h3>{% trans "Order details" %}</h3>
     <p>{% trans "Status" %}: <span class="label label-default">{{ order.get_status_display }}</span></p>
