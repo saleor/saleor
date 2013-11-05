@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 
 from satchless.process import ProcessManager
 
@@ -21,31 +21,36 @@ class CheckoutStorage(dict):
                      'groups': defaultdict(dict), 'summary': False})
 
 
+class CheckoutGroup(namedtuple('CheckoutGroup', 'group, items')):
+
+    def __iter__(self):
+        return iter(self.items)
+
+    def __len__(self):
+        return len(self.items)
+
+    def __getattr__(self, name):
+        if name in self.group:
+            return self.group[name]
+        return getattr(self.items, name)
+
+
 class Checkout(ProcessManager):
 
-    storage = None
-    steps = None
-    groups = None
-
     def __init__(self, request):
-        self.groups = CartPartitioner(request.cart)
         self.request = request
+        self.cart = request.cart
         try:
             self.storage = request.session[STORAGE_SESSION_KEY]
         except KeyError:
             self.storage = CheckoutStorage()
-        self.generate_steps()
+        self.generate_groups()
 
-    def generate_steps(self):
+    def generate_groups(self):
+        self.items = CartPartitioner(self.cart)
+        self.groups = []
         self.steps = [BillingAddressStep(self, self.request)]
-        for step, step_group, delivery_group in self.enumerate_steps():
-            if 'delivery_method' in step_group:
-                delivery_group.delivery_method = step_group['delivery_method']
-            self.steps.append(step)
-        self.steps.append(SummaryStep(self, self.request))
-
-    def enumerate_steps(self):
-        for index, delivery_group in enumerate(self.groups):
+        for index, delivery_group in enumerate(self.items):
             if isinstance(delivery_group, DigitalGroup):
                 step_class = DigitalDeliveryStep
             else:
@@ -53,7 +58,12 @@ class Checkout(ProcessManager):
             step = step_class(self, self.request,
                               delivery_group, index)
             step_group = self.get_group(str(step))
-            yield step, step_group, delivery_group
+            if 'delivery_method' in step_group:
+                delivery_group.delivery_method = step_group['delivery_method']
+            group = CheckoutGroup(step_group, delivery_group)
+            self.groups.append(group)
+            self.steps.append(step)
+        self.steps.append(SummaryStep(self, self.request))
 
     @property
     def anonymous_user_email(self):
@@ -85,12 +95,15 @@ class Checkout(ProcessManager):
     def set_group(self, name, group):
         self['groups'][name] = group
 
+    def get_total(self, **kwargs):
+        return self.items.get_total(**kwargs)
+
     def save(self):
         self.request.session[STORAGE_SESSION_KEY] = self.storage
 
     def clear_storage(self):
         del self.request.session[STORAGE_SESSION_KEY]
-        self.request.cart.clear()
+        self.cart.clear()
 
     def __iter__(self):
         return iter(self.steps)
