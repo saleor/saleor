@@ -20,13 +20,16 @@
 {% endblock %}
 
 {% block content %}
-<ul class="nav nav-tabs">
+<ul class="nav nav-pills nav-justified">
     {% for stepitem in checkout %}
-    <li class="{% if stepitem == step %}active{% else %}disabled{% endif %}">
+    <li class="{% if stepitem == step %}active{% endif %}">
         <a href="{{ stepitem.get_absolute_url }}">{% if stepitem %}<i class="glyphicon glyphicon-ok-sign"></i> {% endif %}{{ stepitem }}</a>
     </li>
     {% endfor %}
 </ul>
+
+<hr>
+
 {% block forms %}{% endblock %}
 
 {% endblock content %}

@@ -3,8 +3,7 @@
 {% load i18n %}
 
 {% block forms %}
-    <h2>{% trans "Summary" %}</h2>
-
+    <h3>{% trans "Billing address" %}</h3>
     {% include "userprofile/snippets/address-details.html" with address=checkout.billing_address %}
 
     <table class="table table-striped">
