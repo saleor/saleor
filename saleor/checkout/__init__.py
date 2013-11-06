@@ -5,7 +5,7 @@ from satchless.process import ProcessManager
 from .steps import (BillingAddressStep, ShippingStep, DigitalDeliveryStep,
                     SummaryStep)
 from ..cart import CartPartitioner, DigitalGroup
-import analytics
+from ..core import analytics
 from ..order.models import Order
 
 STORAGE_SESSION_KEY = 'checkout_storage'
