@@ -4,6 +4,7 @@ from django.forms.models import model_to_dict
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.shortcuts import redirect
+from django.utils.encoding import smart_text
 from satchless.process import InvalidData
 
 from .forms import DigitalDeliveryForm, DeliveryForm
@@ -190,7 +191,8 @@ class ShippingStep(BaseAddressStep):
         delivery_method = self.group['delivery_method']
         group = ShippedDeliveryGroup.objects.create(
             order=order, address=self.address,
-            price=delivery_method.get_price())
+            price=delivery_method.get_price(),
+            method=smart_text(delivery_method))
         group.add_items_from_partition(self.delivery_group)
 
     def is_default_address(self, entry, user):
@@ -236,7 +238,8 @@ class DigitalDeliveryStep(BaseCheckoutStep):
         delivery_method = self.group['delivery_method']
         group = DigitalDeliveryGroup.objects.create(
             order=order, email=self.group['email'],
-            price=delivery_method.get_price())
+            price=delivery_method.get_price(),
+            method=smart_text(delivery_method))
         group.add_items_from_partition(self.delivery_group)
 
     def process(self, extra_context=None):
