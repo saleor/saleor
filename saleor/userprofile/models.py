@@ -23,7 +23,7 @@ class AddressBook(models.Model):
         default=pgettext_lazy('Address book entry', 'Home'),
         help_text=pgettext_lazy(
             'Address book entry',
-            'User-defined alias which identifies this address'))
+            'A short, descriptive name for this address'))
 
     class Meta:
         unique_together = ('user', 'alias')

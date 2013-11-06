@@ -6,17 +6,30 @@
 
 {% block outerbreadcrumb %}{% endblock %}
 
+{% block header %}
+    <header class="navbar navbar-default navbar-static-top" role="navigation">
+        <nav class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/">Saleor</a>
+            </div>
+        </nav>
+    </header>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
+
 {% block content %}
-<ul class="nav nav-tabs">
+<ul class="nav nav-pills nav-justified">
     {% for stepitem in checkout %}
-    <li class="{% if stepitem == step %}active{% else %}disabled{% endif %}">
-        <a href="{{ stepitem.get_absolute_url }}"><i class="glyphicon {% if stepitem %}glyphicon-ok{% else %}glyphicon-remove{% endif %}"></i> {{ stepitem }}</a>
+    <li class="{% if stepitem == step %}active{% endif %}">
+        <a href="{{ stepitem.get_absolute_url }}">{% if stepitem %}<i class="glyphicon glyphicon-ok-sign"></i> {% endif %}{{ stepitem }}</a>
     </li>
     {% endfor %}
-    <li class="disabled">
-        <a href="#"><i class="icon-remove"></i>{% trans "Payment" %}</a>
-    </li>
 </ul>
+
+<hr>
+
 {% block forms %}{% endblock %}
 
 {% endblock content %}

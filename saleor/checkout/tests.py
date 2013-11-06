@@ -16,15 +16,6 @@ NEW_ADDRESS = {
     'country': 'PL'}
 
 
-NEW_ADDRESS_POST = NEW_ADDRESS.copy()
-NEW_ADDRESS_POST['choice_method'] = 'new'
-
-
-SELECT_ADDRESS_POST = {
-    'choice_method': 'select',
-    'address': '1'}
-
-
 class TestBaseAddressStep(TestCase):
 
     def setUp(self):
@@ -38,31 +29,10 @@ class TestBaseAddressStep(TestCase):
         Test the BaseAddressStep managment form when method is set to 'new'
         and user isn't authenticated.
         '''
-        self.request.POST = NEW_ADDRESS_POST
+        self.request.POST = NEW_ADDRESS
         step = BaseAddressStep(self.checkout, self.request, self.address)
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
         self.assertEqual(step.address.first_name, 'Test')
-
-    def test_select_method(self):
-        '''
-        Test the BaseAddressStep managment form when method is set to 'select'
-        and user isn't authenticated.
-        '''
-        self.request.POST = SELECT_ADDRESS_POST
-        step = BaseAddressStep(self.checkout, self.request, self.address)
-        self.assertFalse(step.forms_are_valid(), 'Forms should not validate.')
-
-    def test_select_with_user_method(self):
-        '''
-        Test the BaseAddressStep managment form when method is set to 'select'
-        and user is authenticated.
-        '''
-        user = self.request.user
-        self.request.POST = SELECT_ADDRESS_POST
-        user.is_authenticated.return_value = True
-        user.address_book.all.__iter__.return_value = [self.address]
-        step = BaseAddressStep(self.checkout, self.request, self.address)
-        self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
 
 
 class TestBillingAddressStep(TestCase):
@@ -74,7 +44,7 @@ class TestBillingAddressStep(TestCase):
 
     def test_address_save_without_address(self):
         self.checkout.billing_address = None
-        self.request.POST = NEW_ADDRESS_POST
+        self.request.POST = NEW_ADDRESS
         step = BillingAddressStep(self.checkout, self.request)
         self.assertEquals(step.process(), None)
         self.checkout.save.assert_called_once_with()
@@ -82,7 +52,7 @@ class TestBillingAddressStep(TestCase):
         self.assertEqual(self.checkout.billing_address.first_name, 'Test')
 
     def test_address_save_with_address_in_checkout(self):
-        self.request.POST = NEW_ADDRESS_POST
+        self.request.POST = NEW_ADDRESS
         self.request.POST['email'] = 'test@gmail.com'
         self.checkout.billing_address = Address()
         step = BillingAddressStep(self.checkout, self.request)
@@ -101,7 +71,7 @@ class TestShippingStep(TestCase):
 
     @patch.object(Address, 'save')
     def test_address_save_without_address(self, mock_save):
-        self.request.POST = NEW_ADDRESS_POST
+        self.request.POST = NEW_ADDRESS
         self.request.POST['method'] = 0
         group = MagicMock()
         group.address = None
@@ -117,7 +87,7 @@ class TestShippingStep(TestCase):
 
     @patch.object(Address, 'save')
     def test_address_save_with_address_in_group(self, mock_save):
-        self.request.POST = NEW_ADDRESS_POST
+        self.request.POST = NEW_ADDRESS
         self.request.POST['method'] = 0
         group = MagicMock()
         group.address = Address()
@@ -129,7 +99,7 @@ class TestShippingStep(TestCase):
 
     @patch.object(Address, 'save')
     def test_address_save_with_address_in_checkout(self, mock_save):
-        self.request.POST = NEW_ADDRESS_POST
+        self.request.POST = NEW_ADDRESS
         self.request.POST['method'] = 0
         original_billing_address_data = {'first_name': 'Change',
                                          'last_name': 'Me',

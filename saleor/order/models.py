@@ -22,7 +22,7 @@ from ..userprofile.models import Address
 class Order(models.Model, ItemSet):
 
     STATUS_CHOICES = (
-        ('new', pgettext_lazy('Order status field value', 'New')),
+        ('new', pgettext_lazy('Order status field value', 'Processing')),
         ('cancelled', pgettext_lazy('Order status field value',
                                     'Cancelled')),
         ('payment-pending', pgettext_lazy('Order status field value',
@@ -43,9 +43,12 @@ class Order(models.Model, ItemSet):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='orders',
         verbose_name=pgettext_lazy('Order field', 'user'))
-    tracking_client_id = models.CharField(max_length=36, blank=True)
-    billing_address = models.ForeignKey(Address, related_name='+')
-    anonymous_user_email = models.EmailField(blank=True, default='')
+    tracking_client_id = models.CharField(max_length=36, blank=True,
+                                          editable=False)
+    billing_address = models.ForeignKey(Address, related_name='+',
+                                        editable=False)
+    anonymous_user_email = models.EmailField(blank=True, default='',
+                                             editable=False)
     token = models.CharField(
         pgettext_lazy('Order field', 'token'),
         max_length=36, blank=True, default='')
@@ -110,7 +113,8 @@ class Order(models.Model, ItemSet):
 
 class DeliveryGroup(Subtyped, ItemSet):
     STATUS_CHOICES = (
-        ('new', pgettext_lazy('Delivery group status field value', 'New')),
+        ('new',
+         pgettext_lazy('Delivery group status field value', 'Processing')),
         ('cancelled', pgettext_lazy('Delivery group status field value',
                                     'Cancelled')),
         ('shipped', pgettext_lazy('Delivery group status field value',

@@ -3,6 +3,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core import validators
 from django.core.exceptions import ValidationError
 from django.utils.encoding import smart_text
+from django.utils.translation import ugettext_lazy as _
 
 from ..order.models import DigitalDeliveryGroup
 from ..userprofile.forms import AddressForm
@@ -34,6 +35,9 @@ class DeliveryField(forms.ChoiceField):
         self.methods = list(methods)
         choices = [(index, smart_text(method)) for index, method in
                    enumerate(self.methods)]
+        if len(choices) == 1:
+            kwargs['initial'] = choices[0][0]
+            kwargs['widget'] = forms.HiddenInput()
         super(DeliveryField, self).__init__(choices, *args, **kwargs)
 
     def to_python(self, value):
@@ -53,7 +57,8 @@ class DeliveryForm(forms.Form):
 
     def __init__(self, delivery_methods, *args, **kwargs):
         super(DeliveryForm, self).__init__(*args, **kwargs)
-        self.fields['method'] = DeliveryField(delivery_methods)
+        self.fields['method'] = DeliveryField(
+            delivery_methods, label=_('Shipping method'))
 
 
 class AnonymousEmailForm(forms.Form):

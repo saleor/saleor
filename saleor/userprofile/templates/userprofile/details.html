@@ -16,7 +16,7 @@
     </p>
 
 
-    <h2>{% trans "Address book" %}</h2>
+    <h3>{% trans "Your address book" %}</h3>
     <table class="table table-striped">
         <thead>
             <tr>
@@ -42,7 +42,7 @@
                     {% else %}
                     <form method="post" action="{% url "profile:address-make-default" pk=entry.pk purpose="billing" %}" class="form-inline form-horizontal">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-default">{% trans "Make default" %}</button>
+                        <button type="submit" class="btn btn-default btn-sm">{% trans "Make default" %}</button>
                     </form>
                     {% endif %}
                 </td>
@@ -52,13 +52,13 @@
                     {% else %}
                     <form method="post" action="{% url "profile:address-make-default" pk=entry.pk purpose="shipping" %}" class="form-inline form-horizontal">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-default">{% trans "Make default" %}</button>
+                        <button type="submit" class="btn btn-default btn-sm">{% trans "Make default" %}</button>
                     </form>
                     {% endif %}
                 </td>
                 <td class="col-sm-2">
-                    <a href="{% url 'profile:address-edit' pk=entry.pk slug=entry.get_slug %}" class="btn btn-default"><i class="glyphicon glyphicon-edit"></i> {% trans "Edit" %}</a>
-                    <a href="{% url 'profile:address-delete' pk=entry.pk slug=entry.get_slug %}" class="btn btn-danger"><i class="glyphicon glyphicon-remove"></i> {% trans "Delete" %}</a>
+                    <a href="{% url 'profile:address-edit' pk=entry.pk slug=entry.get_slug %}" class="btn btn-default btn-sm"><i class="glyphicon glyphicon-edit"></i> {% trans "Edit" %}</a>
+                    <a href="{% url 'profile:address-delete' pk=entry.pk slug=entry.get_slug %}" class="btn btn-danger btn-sm"><i class="glyphicon glyphicon-remove"></i> {% trans "Delete" %}</a>
                 </td>
             </tr>
             {% endfor %}

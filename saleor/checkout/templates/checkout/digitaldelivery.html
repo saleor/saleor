@@ -5,13 +5,15 @@
 {% block forms %}
 <form method="post" class="form-horizontal">
     {% csrf_token %}
-    {{ step.forms.email|as_horizontal_form }}
+    <fieldset>
+        <legend>{% trans "Enter address" %}</legend>
+        {{ form|as_horizontal_form }}
+    </fieldset>
     <div class="form-group">
         <div class="col-sm-offset-2 col-sm-10">
             <button type="submit" class="btn btn-primary">
-                {% trans "Save changes" %}
+                {% trans "Save address" %}
             </button>
-            <a href="{% url "cart:index" %}" class="btn btn-link">{% trans "Cancel" %}</a>
         </div>
     </div>
 </form>

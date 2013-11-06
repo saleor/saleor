@@ -10,7 +10,7 @@ from .forms import DigitalDeliveryForm, DeliveryForm
 from ..checkout.forms import AnonymousEmailForm
 from ..core.utils import BaseStep
 from ..order.models import DigitalDeliveryGroup, ShippedDeliveryGroup
-from ..userprofile.forms import AddressForm, UserAddressesForm
+from ..userprofile.forms import AddressForm
 from ..userprofile.models import Address
 
 
@@ -47,35 +47,38 @@ class BaseAddressStep(BaseCheckoutStep):
             self.address = Address(**address_dict)
         else:
             self.address = Address()
-        address_list = UserAddressesForm(request.POST or None,
-                                         user=request.user,
-                                         purpose=self.address_purpose)
-        if (address_list.is_valid() and
-                not address_list.cleaned_data['address']):
-            address_form = AddressForm(request.POST, instance=self.address)
+        address_form = AddressForm(request.POST or None, instance=self.address)
+        if request.user.is_authenticated():
+            address_book = list(request.user.address_book.all())
+            for entry in address_book:
+                data = model_to_dict(entry.address, exclude=['id', 'user'])
+                instance = Address(**data)
+                entry.form = AddressForm(instance=instance)
+                entry.is_default = self.is_default_address(entry, request.user)
         else:
-            address_form = AddressForm(instance=self.address)
-        self.forms = {'address_list': address_list, 'address': address_form}
+            address_book = []
+        self.forms = {'address': address_form}
+        self.address_book = address_book
+
+    def is_default_address(self, entry, user):
+        raise NotImplementedError()
 
     def forms_are_valid(self):
         self.cleaned_data = {}
-        address_list = self.forms['address_list']
         address_form = self.forms['address']
-        if address_list.is_valid():
-            if address_list.cleaned_data['address']:
-                address_book = address_list.cleaned_data['address']
-                address_book.address.id = None
-                self.address = address_book.address
-                return True
-            if address_form.is_valid():
-                return True
-        return False
+        return address_form.is_valid()
 
     def validate(self):
         try:
             self.address.clean_fields()
         except ValidationError as e:
             raise InvalidData(e.messages)
+
+    def process(self, extra_context=None):
+        context = extra_context or {}
+        context['form'] = self.forms['address']
+        context['address_book'] = self.address_book
+        return super(BaseAddressStep, self).process(extra_context=context)
 
 
 class BillingAddressStep(BaseAddressStep):
@@ -86,12 +89,22 @@ class BillingAddressStep(BaseAddressStep):
 
     def __init__(self, checkout, request):
         address = checkout.billing_address
+        skip = False
+        if not address and request.user.is_authenticated():
+            if request.user.default_billing_address:
+                address = request.user.default_billing_address.address
+                skip = True
+            elif request.user.address_book.count() == 1:
+                address = request.user.address_book.all()[0].address
+                skip = True
         super(BillingAddressStep, self).__init__(checkout, request, address)
         if not request.user.is_authenticated():
             self.anonymous_user_email = self.checkout.anonymous_user_email
             initial = {'email': self.anonymous_user_email}
             self.forms['anonymous'] = AnonymousEmailForm(request.POST or None,
                                                          initial=initial)
+        if skip:
+            self.save()
 
     def __str__(self):
         return 'billing-address'
@@ -125,6 +138,10 @@ class BillingAddressStep(BaseAddressStep):
         if 'anonymous' in self.forms and not self.anonymous_user_email:
             raise InvalidData()
 
+    def is_default_address(self, entry, user):
+        return (user.is_authenticated() and
+                user.default_billing_address_id == entry.id)
+
 
 class ShippingStep(BaseAddressStep):
 
@@ -145,9 +162,7 @@ class ShippingStep(BaseAddressStep):
             delivery_group.get_delivery_methods(), request.POST or None)
 
     def __str__(self):
-        if self.id:
-            return 'delivery-%s' % (self.id,)
-        return 'delivery'
+        return 'delivery-%s' % (self.id,)
 
     def __unicode__(self):
         return 'Shipping'
@@ -178,6 +193,15 @@ class ShippingStep(BaseAddressStep):
             price=delivery_method.get_price())
         group.add_items_from_partition(self.delivery_group)
 
+    def is_default_address(self, entry, user):
+        return (user.is_authenticated() and
+                user.default_shipping_address_id == entry.id)
+
+    def process(self, extra_context=None):
+        context = extra_context or {}
+        context['delivery_form'] = self.forms['delivery']
+        return super(ShippingStep, self).process(extra_context=context)
+
 
 class DigitalDeliveryStep(BaseCheckoutStep):
 
@@ -195,9 +219,7 @@ class DigitalDeliveryStep(BaseCheckoutStep):
         self.group['delivery_method'] = delivery_methods[0]
 
     def __str__(self):
-        if self.id:
-            return 'digital-delivery-%s' % (self.id,)
-        return 'delivery'
+        return 'digital-delivery-%s' % (self.id,)
 
     def __unicode__(self):
         return 'Digital delivery'
@@ -216,6 +238,11 @@ class DigitalDeliveryStep(BaseCheckoutStep):
             order=order, email=self.group['email'],
             price=delivery_method.get_price())
         group.add_items_from_partition(self.delivery_group)
+
+    def process(self, extra_context=None):
+        context = extra_context or {}
+        context['form'] = self.forms['email']
+        return super(DigitalDeliveryStep, self).process(extra_context=context)
 
 
 class SummaryStep(BaseCheckoutStep):

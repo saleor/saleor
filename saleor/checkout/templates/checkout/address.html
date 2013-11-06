@@ -3,23 +3,53 @@
 {% load i18n %}
 
 {% block forms %}
-<form method="post" class="form-horizontal">
-    {% csrf_token %}
-    <fieldset>
-    {% if user.is_authenticated %}
-        <legend>Select address:</legend>
-        {{ step.forms.address_list|as_horizontal_form }}
-    {% else %}
-        <legend>Enter address:</legend>
-    {% endif %}
-        {{ step.forms.address|as_horizontal_form }}
-        {% block extra_forms %}{% endblock %}
-    </fieldset>
+    {% if address_book %}
+        <p>{% trans "Use one of your existing addresses or enter a new address below." %}</p>
 
-    <button type="submit" class="btn btn-primary">
-        {% trans "Save changes" %}
-    </button>
-    <a href="{% url "cart:index" %}" class="btn btn-link">{% trans "Cancel" %}</a>
-</form>
+        <div class="row">
+            {% for entry in address_book %}
+                <div class="col-sm-4">
+                    <div class="panel {% if entry.is_default %}panel-primary{% else %}panel-default{% endif %}">
+                        <div class="panel-heading">
+                            {{ entry }}
+                        </div>
+                        <div class="panel-body">
+                            <form method="post">
+                                {% csrf_token %}
+                                <address>{% include "userprofile/snippets/address-details.html" with address=entry.address %}</address>
+                                {% for field in entry.form %}{{ field.as_hidden }}{% endfor %}
+                                {% block extra_address_fields %}{% endblock %}
+                                <div class="form-group">
+                                    {% block use_this_address %}
+                                        <button type="submit" class="btn btn-default btn-lg col-sm-12">Use</button>
+                                    {% endblock %}
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <hr>
+    {% endif %}
+
+    <form method="post" class="form-horizontal">
+        {% csrf_token %}
+        <fieldset>
+            <legend>{% trans "Enter address" %}</legend>
+            {{ step.forms.address|as_horizontal_form }}
+            {% block extra_forms %}{% endblock %}
+        </fieldset>
+
+        <div class="form-group">
+            <label class="col-sm-2"></label>
+            <div class="col-sm-10">
+                <button type="submit" class="btn btn-primary">
+                    {% trans "Save address" %}
+                </button>
+            </div>
+        </div>
+    </form>
 {% endblock forms %}
 

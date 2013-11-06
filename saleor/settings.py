@@ -208,3 +208,5 @@ SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 CHECKOUT_PAYMENT_CHOICES = [
     ('default', 'Dummy provider')
 ]
+
+TEMPLATE_STRING_IF_INVALID = '<< MISSING VARIABLE >>'

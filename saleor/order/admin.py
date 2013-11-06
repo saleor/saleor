@@ -1,10 +1,18 @@
-from django import forms
 from django.contrib import admin
 from django.contrib.admin.options import ModelAdmin
-from django.forms.models import model_to_dict, BaseInlineFormSet
+from django.forms.models import BaseInlineFormSet
+from django.template.loader import render_to_string
+from django.utils.safestring import mark_safe
 
 from .models import Order, OrderedItem
 from ..payment.models import Payment
+
+
+def format_address(address):
+    address = render_to_string('userprofile/snippets/address-details.html',
+                               {'address': address})
+    # avoid django's linebreaks breaking the result
+    return address.replace('\n', '')
 
 
 class OrderModelAdmin(ModelAdmin):
@@ -49,17 +57,22 @@ class DeliveryInlineAdmin(admin.TabularInline):
         self.delivery = delivery
         delivery_class = delivery.__class__
         if hasattr(delivery, 'address'):
-            model_dict = model_to_dict(delivery.address, exclude='id')
-            address = ', '.join(model_dict.values())
+            address = format_address(delivery.address)
             self.verbose_name_plural = (
-                'ShippedDelivery (%s%s): %s' % (delivery.price.gross,
-                                                delivery.price.currency,
-                                                address))
+                mark_safe(
+                    '%s: %s %s<br>%s' % (
+                        delivery,
+                        delivery.price.gross,
+                        delivery.price.currency,
+                        address)))
         if hasattr(delivery, 'email'):
             self.verbose_name_plural = (
-                'Digital delivery (%s%s): %s' % (delivery.price.gross,
-                                                 delivery.price.currency,
-                                                 delivery.email))
+                mark_safe(
+                    '%s: %s %s<br>%s' % (
+                        delivery,
+                        delivery.price.gross,
+                        delivery.price.currency,
+                        delivery.email)))
         super(DeliveryInlineAdmin, self).__init__(delivery_class, admin_site)
 
     def get_formset(self, request, obj=None, **kwargs):
@@ -70,30 +83,20 @@ class DeliveryInlineAdmin(admin.TabularInline):
         return formset
 
 
-class OrderAdminForm(forms.ModelForm):
-
-    class Meta:
-        model = Order
-
-    total = forms.CharField(required=False)
-
-    def __init__(self, *args, **kwargs):
-        super(OrderAdminForm, self).__init__(*args, **kwargs)
-        order = kwargs.get('instance')
-        if order:
-            self.fields['total'].initial = order.get_total().gross
-
-
 class OrderAdmin(OrderModelAdmin):
 
     inlines = [PaymentInlineAdmin]
     exclude = ['token']
-    readonly_fields = ['user', 'billing_address', 'total']
-    form = OrderAdminForm
+    readonly_fields = ['customer', 'total']
     list_display = ['__unicode__', 'status', 'created', 'user']
 
+    def customer(self, obj):
+        return format_address(obj.billing_address)
+    customer.allow_tags = True
+
     def total(self, obj):
-        return obj.get_total().gross
+        total = obj.get_total()
+        return '%s %s' % (total.gross, total.currency)
     total.short_description = 'Total'
 
     def has_add_permission(self, request, obj=None):
