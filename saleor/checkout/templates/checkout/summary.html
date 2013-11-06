@@ -4,7 +4,11 @@
 
 {% block forms %}
     <h3>{% trans "Billing address" %}</h3>
-    <address>{% include "userprofile/snippets/address-details.html" with address=checkout.billing_address %}</address>
+    {% if checkout.billing_address %}
+        <address>{% include "userprofile/snippets/address-details.html" with address=checkout.billing_address %}</address>
+    {% else %}
+        <p>{% trans "No address given yet." %}</p>
+    {% endif %}
 
     <h3>{% trans "Order details" %}</h3>
 
