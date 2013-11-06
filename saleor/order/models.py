@@ -122,6 +122,9 @@ class DeliveryGroup(Subtyped, ItemSet):
     status = models.CharField(
         pgettext_lazy('Delivery group field', 'Delivery status'),
         max_length=32, default='new', choices=STATUS_CHOICES)
+    method = models.CharField(
+        pgettext_lazy('Delivery group field', 'Delivery method'),
+        max_length=255)
     order = models.ForeignKey(Order, related_name='groups', editable=False)
     price = PriceField(
         pgettext_lazy('Delivery group field', 'unit price'),
