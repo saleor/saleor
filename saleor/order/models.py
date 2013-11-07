@@ -150,13 +150,14 @@ class DeliveryGroup(Subtyped, ItemSet):
 
     def add_items_from_partition(self, partition):
         for item_line in partition:
-            product_name = smart_text(item_line.product)
+            product = item_line.product
             price = item_line.get_price_per_item()
             self.items.create(
-                product=item_line.product,
+                product=product,
                 quantity=item_line.get_quantity(),
                 unit_price_net=price.net,
-                product_name=product_name,
+                product_name=smart_text(product),
+                product_sku=product.sku,
                 unit_price_gross=price.gross)
 
 
@@ -186,6 +187,8 @@ class OrderedItem(models.Model, ItemLine):
         verbose_name=pgettext_lazy('OrderedItem field', 'product'))
     product_name = models.CharField(
         pgettext_lazy('OrderedItem field', 'product name'), max_length=128)
+    product_sku = models.CharField(pgettext_lazy('OrderedItem field', 'sku'),
+                                   max_length=32, unique=True)
     quantity = models.DecimalField(
         pgettext_lazy('OrderedItem field', 'quantity'),
         max_digits=10, decimal_places=4)
