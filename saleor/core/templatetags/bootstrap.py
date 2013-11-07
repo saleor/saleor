@@ -30,6 +30,8 @@ def render_field(bound_field, show_label, template):
         input_type = 'textarea'
     elif isinstance(widget, forms.CheckboxInput):
         input_type = 'checkbox'
+    elif issubclass(type(widget), forms.MultiWidget):
+        input_type = 'multi_widget'
     else:
         input_type = 'input'
 

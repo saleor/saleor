@@ -26,6 +26,11 @@
                 {% endif %}
             {% endfor %}
         {% endif %}
+        {% if input_type == "multi_widget" %}
+            <div class="row">
+                {% render_widget bound_field class="form-control" %}
+            </div>
+        {% endif %}
 
         {% if bound_field.help_text %}
         <span class="help-block">{{ bound_field.help_text }}</span>
