@@ -25,7 +25,7 @@ setup(
         'Django>=1.5',
         'django-images>=0.4,<0.5a0',
         'django-mptt>=0.5',
-        'django-payments>=0.3.4.3,<0.4a0',
+        'django-payments>=0.4,<0.5a0',
         'django-prices>=0.3,<0.4a0',
         'google-measurement-protocol>=0.1.2,<0.2a0',
         'prices>=0.5,<0.6a0',
