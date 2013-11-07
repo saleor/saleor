@@ -28,4 +28,5 @@ class DummyShipping(BaseDelivery):
 
 class DigitalDelivery(BaseDelivery):
 
-    pass
+    def __unicode__(self):
+        return 'Digital delivery'
