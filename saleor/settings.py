@@ -91,13 +91,6 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.webdesign',
 
-    # External apps
-    'django_images',
-    'django_prices',
-    'mptt',
-    'payments',
-    'south',
-
     # Local apps
     'saleor.cart',
     'saleor.checkout',
@@ -106,7 +99,14 @@ INSTALLED_APPS = [
     'saleor.payment',
     'saleor.product',
     'saleor.registration',
-    'saleor.userprofile'
+    'saleor.userprofile',
+
+    # External apps
+    'django_images',
+    'django_prices',
+    'mptt',
+    'payments',
+    'south'
 ]
 
 LOGGING = {
