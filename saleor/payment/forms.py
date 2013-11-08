@@ -11,16 +11,16 @@ class PaymentMethodsForm(forms.Form):
     method = forms.ChoiceField(choices=settings.CHECKOUT_PAYMENT_CHOICES)
 
 
-class PaymentDeledeForm(forms.Form):
+class PaymentDeleteForm(forms.Form):
 
     payment_id = forms.IntegerField(widget=forms.HiddenInput())
 
     def __init__(self, *args, **kwargs):
         self.order = kwargs.pop('order')
-        super(PaymentDeledeForm, self).__init__(*args, **kwargs)
+        super(PaymentDeleteForm, self).__init__(*args, **kwargs)
 
     def clean(self):
-        cleaned_data = super(PaymentDeledeForm, self).clean()
+        cleaned_data = super(PaymentDeleteForm, self).clean()
         payment_id = cleaned_data.get('payment_id')
         waiting_payments = self.order.payments.filter(status='waiting')
         try:
