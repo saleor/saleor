@@ -3,7 +3,7 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from payments import RedirectNeeded, get_payment_model
 
-from .forms import PaymentMethodsForm, PaymentDeledeForm
+from .forms import PaymentMethodsForm, PaymentDeleteForm
 from ..order import check_order_status
 
 Payment = get_payment_model()
@@ -18,7 +18,7 @@ def index(request, order):
         waiting_payment = None
         waiting_payment_form = None
     else:
-        waiting_payment_form = PaymentDeledeForm(
+        waiting_payment_form = PaymentDeleteForm(
             None, order=order, initial={'payment_id': waiting_payment.id})
     if form.is_valid() and not waiting_payment:
         payment_method = form.cleaned_data['method']
@@ -66,7 +66,7 @@ def details(request, order, variant):
 
 @check_order_status
 def delete(request, order):
-    form = PaymentDeledeForm(request.POST or None, order=order)
+    form = PaymentDeleteForm(request.POST or None, order=order)
     if form.is_valid():
         form.save()
         return redirect('order:payment:index', token=order.token)
