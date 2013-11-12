@@ -188,7 +188,7 @@ class OrderedItem(models.Model, ItemLine):
     product_name = models.CharField(
         pgettext_lazy('OrderedItem field', 'product name'), max_length=128)
     product_sku = models.CharField(pgettext_lazy('OrderedItem field', 'sku'),
-                                   max_length=32, unique=True)
+                                   max_length=32)
     quantity = models.DecimalField(
         pgettext_lazy('OrderedItem field', 'quantity'),
         max_digits=10, decimal_places=4)
