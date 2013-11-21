@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.http.response import Http404, HttpResponseForbidden
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
@@ -47,18 +48,19 @@ def details(request, order, variant):
                 'billing_postcode': billing.postal_code,
                 'billing_country_code': billing.country,
                 'billing_country_area': billing.country_area}
-    payment, _created = Payment.objects.get_or_create(variant=variant,
-                                                      status='waiting',
-                                                      order=order,
-                                                      defaults=defaults)
-    if waiting_payments:
-        return redirect('order:payment:index', token=order.token)
-    try:
-        form = payment.get_form(data=request.POST or None)
-    except ValueError as e:
-        raise Http404(e)
-    except RedirectNeeded as redirect_to:
-        return redirect(str(redirect_to))
+    with transaction.atomic():
+        payment, _created = Payment.objects.get_or_create(variant=variant,
+                                                          status='waiting',
+                                                          order=order,
+                                                          defaults=defaults)
+        if waiting_payments:
+            return redirect('order:payment:index', token=order.token)
+        try:
+            form = payment.get_form(data=request.POST or None)
+        except ValueError as e:
+            raise Http404(e)
+        except RedirectNeeded as redirect_to:
+            return redirect(str(redirect_to))
     template = 'payment/%s.html' % variant
     return TemplateResponse(request, [template, 'payment/default.html'],
                             {'form': form, 'payment': payment})
@@ -68,6 +70,7 @@ def details(request, order, variant):
 def delete(request, order):
     form = PaymentDeleteForm(request.POST or None, order=order)
     if form.is_valid():
-        form.save()
+        with transaction.atomic():
+            form.save()
         return redirect('order:payment:index', token=order.token)
     return HttpResponseForbidden()

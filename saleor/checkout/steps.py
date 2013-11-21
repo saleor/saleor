@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.forms.models import model_to_dict
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db import transaction
 from django.shortcuts import redirect
 from django.utils.encoding import smart_text
 from satchless.process import InvalidData
@@ -261,8 +262,9 @@ class SummaryStep(BaseCheckoutStep):
     def process(self, extra_context=None):
         response = super(SummaryStep, self).process(extra_context)
         if not response:
-            order = self.checkout.create_order()
-            order.send_confirmation_email()
+            with transaction.atomic():
+                order = self.checkout.create_order()
+                order.send_confirmation_email()
             return redirect('order:payment:index', token=order.token)
         return response
 
