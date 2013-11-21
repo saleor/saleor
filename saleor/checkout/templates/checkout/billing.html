@@ -12,3 +12,9 @@
         {{ step.forms.anonymous|as_horizontal_form }}
     {% endif %}
 {% endblock extra_forms %}
+
+{% block form_submit %}
+    <button type="submit" class="btn btn-primary">
+        {% trans "Bill to this address" %}
+    </button>
+{% endblock %}
