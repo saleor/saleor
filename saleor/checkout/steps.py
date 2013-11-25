@@ -202,6 +202,7 @@ class ShippingStep(BaseAddressStep):
 
     def process(self, extra_context=None):
         context = extra_context or {}
+        context['items'] = self.delivery_group
         context['delivery_form'] = self.forms['delivery']
         return super(ShippingStep, self).process(extra_context=context)
 
@@ -246,6 +247,7 @@ class DigitalDeliveryStep(BaseCheckoutStep):
     def process(self, extra_context=None):
         context = extra_context or {}
         context['form'] = self.forms['email']
+        context['items'] = self.delivery_group
         return super(DigitalDeliveryStep, self).process(extra_context=context)
 
 

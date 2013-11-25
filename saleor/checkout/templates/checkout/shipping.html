@@ -1,7 +1,27 @@
 {% extends "checkout/address.html" %}
 {% load as_horizontal_form from bootstrap %}
 {% load as_vertical_form from bootstrap %}
+{% load gross from prices %}
 {% load i18n %}
+
+{% block step_info %}
+    <h3>{% trans "Please provide shipping information for the following items:" %}</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th class="col-sm-12">{% trans "Name" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+                <tr>
+                    <td class="col-sm-12">{{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <hr>
+{% endblock %}
 
 {% block use_this_address %}
     <button type="submit" class="btn {% if entry.is_default %}btn-primary{% else %}btn-default{% endif %} btn-lg col-sm-12">{% trans "Ship to this address" %}</button>

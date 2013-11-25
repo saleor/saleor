@@ -2,6 +2,25 @@
 {% load i18n %}
 {% load as_horizontal_form from bootstrap %}
 
+{% block step_info %}
+    <h3>{% trans "Please provide an address for the following items:" %}</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th class="col-sm-12">{% trans "Name" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+                <tr>
+                    <td class="col-sm-12">{{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <hr>
+{% endblock %}
+
 {% block forms %}
 <form method="post" class="form-horizontal">
     {% csrf_token %}
