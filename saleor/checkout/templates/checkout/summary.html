@@ -1,65 +1,114 @@
 {% extends "checkout/details.html" %}
 {% load gross from prices %}
+{% load tax from prices %}
 {% load i18n %}
 
 {% block forms %}
-    <h3>{% trans "Billing address" %}</h3>
-    {% if checkout.billing_address %}
-        <address>{% include "userprofile/snippets/address-details.html" with address=checkout.billing_address %}</address>
-    {% else %}
-        <p>{% trans "No address given yet." %}</p>
-    {% endif %}
+    <div class="row">
+        <div class="col-sm-6">
+            <h3>{% trans "Order details" %}</h3>
 
-    <h3>{% trans "Order details" %}</h3>
+            {% with total=checkout.get_total %}
+                <p>
+                    {% trans "Order total" %}:
+                    <strong>{% gross checkout.get_total %}</strong>
+                    {% if total.gross %}
+                        ({% blocktrans with tax=total.tax|floatformat:2 currency=total.currency %}includes {{ tax }} <span class="currency">{{ currency }}</span> tax{% endblocktrans %})
+                    {% endif %}
+                </p>
+            {% endwith %}
+        </div>
+        <div class="col-sm-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    {% trans "Billing address" %}
+                </div>
+                <div class="panel-body">
+                    {% if checkout.billing_address %}
+                        <address>{% include "userprofile/snippets/address-details.html" with address=checkout.billing_address %}</address>
+                    {% else %}
+                        <p class="text-danger">{% trans "No address given yet." %}</p>
+                    {% endif %}
+                    <p><a href="{{ checkout.billing.get_absolute_url }}">{% trans "Edit billing details" %}</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th class="col-sm-4">{% trans "Name" %}</th>
-                <th class="col-sm-2">{% trans "Price" %}</th>
-                <th class="col-sm-2">{% trans "Subtotal" %}</th>
-                <th class="col-sm-2">{% trans "Shipping" %}</th>
-                <th class="col-sm-2">{% trans "Total" %}</th>
-            </tr>
-        </thead>
-        <tfoot>
-            <tr>
-                <td colspan="3" class="col-sm-8"></td>
-                <th class="col-sm-2">{% trans "Total" %}:</th>
-                <td class="col-sm-2">{% gross checkout.get_total %}</td>
-            </tr>
-        </tfoot>
-        <tbody>
-            {% for group in checkout.groups %}
-                {% for item in group %}
-                    <tr>
-                        <td class="col-sm-4">{{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}</td>
-                        <td class="col-sm-2">{% gross item.get_price_per_item %}</td>
-                        <td class="col-sm-2">{% gross item.get_total %}</td>
-                        {% if forloop.first %}
-                            <td rowspan="{{ group|length }}" class="col-sm-2">
-                                {% gross group.get_delivery_total %}
-                                {% if group.email %}
-                                    <p>{{ group.email }}</p>
-                                {% elif group.address %}
-                                    <p>
-                                        {% include "userprofile/snippets/address-short.html" with address=group.address %}
-                                    </p>
-                                {% endif %}
-                            </td>
-                            <td rowspan="{{ group|length }}" class="col-sm-2">{% gross group.get_total_with_delivery %}</td>
+    {% for group in checkout.groups %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                {% blocktrans with number=forloop.counter %}Delivery group #{{ number }}{% endblocktrans %}
+            </div>
+            <div class="panel-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th class="col-sm-4">{% trans "Name" %}</th>
+                            <th class="col-sm-2">{% trans "Price" %}</th>
+                            <th class="col-sm-2">{% trans "Subtotal" %}</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th class="col-sm-4"></th>
+                            <th class="col-sm-2">{% trans "Total" %}</th>
+                            <th class="col-sm-2">{% gross group.get_total_with_delivery %}</th>
+                        </tr>
+                    </tfoot>
+                    <tbody>
+                        {% for item in group %}
+                            <tr>
+                                <td class="col-sm-4">{{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}</td>
+                                <td class="col-sm-2">{% gross item.get_price_per_item %}</td>
+                                <td class="col-sm-2">{% gross item.get_total %}</td>
+                            </tr>
+                        {% endfor %}
+                        {% if group.get_delivery_total.gross %}
+                            <tr>
+                                <td class="col-sm-4">
+                                    {% trans "Shipping" %} ({{ group.get_delivery_method }})
+                                </td>
+                                <td class="col-sm-2">{% gross group.get_delivery_total %}</td>
+                                <td class="col-sm-2">{% gross group.get_delivery_total %}</td>
+                            </tr>
                         {% endif %}
-                    </tr>
-                {% endfor %}
-            {% endfor %}
-        </tbody>
-    </table>
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-primary">
-            {% trans "Place order" %}
-        </button>
-    </form>
+                    </tbody>
+                </table>
+                {% if group.email %}
+                    <p>{% trans "Will be sent to" %} {{ group.email }}</p>
+                {% elif group.address %}
+                    <p>{% trans "Will be shipped to" %} {% include "userprofile/snippets/address-short.html" with address=group.address %}</p>
+                {% else %}
+                    <p class="text-danger">{% trans "No address given yet." %}</p>
+                {% endif %}
+                <p><a href="{{ group.step.get_absolute_url }}">{% trans "Edit delivery details" %}</a></p>
+            </div>
+        </div>
+    {% endfor %}
+
+    {% with total=checkout.get_total %}
+        <p>
+            {% trans "Order total" %}:
+            <strong>{% gross checkout.get_total %}</strong>
+            {% if total.gross %}
+                ({% blocktrans with tax=total.tax|floatformat:2 currency=total.currency %}includes {{ tax }} <span class="currency">{{ currency }}</span> tax{% endblocktrans %})
+            {% endif %}
+        </p>
+    {% endwith %}
+
+    {% if all_steps_valid %}
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">
+                {% trans "Place order" %}
+            </button>
+        </form>
+    {% else %}
+        <div class="alert alert-danger">
+            <p>{% trans "Before continuing please make sure that you've provided all of the information required." %}</p>
+        </div>
+    {% endif %}
 {% endblock forms %}
 
 {% block footer_scripts %}

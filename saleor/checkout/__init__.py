@@ -21,7 +21,7 @@ class CheckoutStorage(dict):
                      'groups': defaultdict(dict), 'summary': False})
 
 
-class CheckoutGroup(namedtuple('CheckoutGroup', 'group, items')):
+class CheckoutGroup(namedtuple('CheckoutGroup', 'step, group, items')):
 
     def __iter__(self):
         return iter(self.items)
@@ -48,7 +48,8 @@ class Checkout(ProcessManager):
     def generate_groups(self, cart):
         self.items = CartPartitioner(cart)
         self.groups = []
-        self.steps = [BillingAddressStep(self, self.request)]
+        self.billing = BillingAddressStep(self, self.request)
+        self.steps = [self.billing]
         for index, delivery_group in enumerate(self.items):
             if isinstance(delivery_group, DigitalGroup):
                 step_class = DigitalDeliveryStep
@@ -59,7 +60,7 @@ class Checkout(ProcessManager):
             step_group = self.get_group(str(step))
             if 'delivery_method' in step_group:
                 delivery_group.delivery_method = step_group['delivery_method']
-            group = CheckoutGroup(step_group, delivery_group)
+            group = CheckoutGroup(step, step_group, delivery_group)
             self.groups.append(group)
             self.steps.append(step)
         self.steps.append(SummaryStep(self, self.request))

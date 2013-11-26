@@ -27,15 +27,31 @@ class BaseGroup(list, ItemSet):
         '''
         raise NotImplementedError()
 
+    def _get_cheapest_delivery_method(self, **kwargs):
+        if self.delivery_method:
+            return (self.delivery_method,
+                    self.delivery_method.get_price_per_item(**kwargs))
+        methods = self.get_delivery_methods()
+        prices = ((method.get_price_per_item(**kwargs), method)
+                  for method in methods)
+        cheapest_price, cheapest_method = min(prices)
+        return cheapest_method, cheapest_price
+
     def get_delivery_total(self, **kwargs):
         '''
         Method returns price from the self.delivery_method or lowest price
         from delivery methods.
         '''
-        if self.delivery_method:
-            return self.delivery_method.get_price_per_item(**kwargs)
-        methods = self.get_delivery_methods()
-        return min(method.get_price_per_item(**kwargs) for method in methods)
+        method, price = self._get_cheapest_delivery_method(**kwargs)
+        return price
+
+    def get_delivery_method(self, **kwargs):
+        '''
+        Method returns price from the self.delivery_method or lowest price
+        from delivery methods.
+        '''
+        method, price = self._get_cheapest_delivery_method(**kwargs)
+        return method
 
     def get_total_with_delivery(self, **kwargs):
         return self.get_total() + self.get_delivery_total()
