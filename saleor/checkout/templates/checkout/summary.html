@@ -12,7 +12,7 @@
                 <p>
                     {% trans "Order total" %}:
                     <strong>{% gross checkout.get_total %}</strong>
-                    {% if total.gross %}
+                    {% if total.tax %}
                         ({% blocktrans with tax=total.tax|floatformat:2 currency=total.currency %}includes {{ tax }} <span class="currency">{{ currency }}</span> tax{% endblocktrans %})
                     {% endif %}
                 </p>
@@ -91,7 +91,7 @@
         <p>
             {% trans "Order total" %}:
             <strong>{% gross checkout.get_total %}</strong>
-            {% if total.gross %}
+            {% if total.tax %}
                 ({% blocktrans with tax=total.tax|floatformat:2 currency=total.currency %}includes {{ tax }} <span class="currency">{{ currency }}</span> tax{% endblocktrans %})
             {% endif %}
         </p>
@@ -100,9 +100,11 @@
     {% if all_steps_valid %}
         <form method="post">
             {% csrf_token %}
-            <button type="submit" class="btn btn-primary">
-                {% trans "Place order" %}
-            </button>
+            <p>
+                <button type="submit" class="btn btn-primary btn-lg">
+                    {% trans "Place order" %}
+                </button>
+            </p>
         </form>
     {% else %}
         <div class="alert alert-danger">
