@@ -89,7 +89,7 @@
 
     {% with total=checkout.get_total %}
         <p>
-            {% trans "Order total" %}:
+            {% trans "Your total will be" %}:
             <strong>{% gross checkout.get_total %}</strong>
             {% if total.tax %}
                 ({% blocktrans with tax=total.tax|floatformat:2 currency=total.currency %}includes {{ tax }} <span class="currency">{{ currency }}</span> tax{% endblocktrans %})
