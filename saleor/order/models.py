@@ -108,7 +108,7 @@ class Order(models.Model, ItemSet):
     def send_confirmation_email(self):
         email = self.get_user_email()
         payment_url = build_absolute_uri(
-            reverse('order:payment:index', kwargs={'token': self.token}))
+            reverse('order:details', kwargs={'token': self.token}))
         context = {'payment_url': payment_url}
         send_email(email, 'order/emails/confirm_email.txt', context)
 

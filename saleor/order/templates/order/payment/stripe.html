@@ -8,7 +8,7 @@
     {{ form.media }}
     {{ form|as_horizontal_form }}
     {% if form.errors %}
-    <a class="btn" href="{% url "order:payment:index" token=payment.order.token %}">{% trans "Change payment method" %}</a>
+    <a class="btn" href="{% url "order:details" token=payment.order.token %}">{% trans "Change payment method" %}</a>
     {% endif %}
 </form>
 {% endblock forms %}
