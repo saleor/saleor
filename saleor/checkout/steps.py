@@ -30,7 +30,7 @@ class BaseCheckoutStep(BaseStep):
         raise NotImplementedError()
 
     def process(self, extra_context=None):
-        context = extra_context or {}
+        context = dict(extra_context or {})
         context['checkout'] = self.checkout
         return super(BaseCheckoutStep, self).process(extra_context=context)
 
@@ -77,7 +77,7 @@ class BaseAddressStep(BaseCheckoutStep):
             raise InvalidData(e.messages)
 
     def process(self, extra_context=None):
-        context = extra_context or {}
+        context = dict(extra_context or {})
         context['form'] = self.forms['address']
         context['address_book'] = self.address_book
         return super(BaseAddressStep, self).process(extra_context=context)
@@ -201,7 +201,8 @@ class ShippingStep(BaseAddressStep):
                 user.default_shipping_address_id == entry.id)
 
     def process(self, extra_context=None):
-        context = extra_context or {}
+        context = dict(extra_context or {})
+        context['items'] = self.delivery_group
         context['delivery_form'] = self.forms['delivery']
         return super(ShippingStep, self).process(extra_context=context)
 
@@ -244,8 +245,9 @@ class DigitalDeliveryStep(BaseCheckoutStep):
         group.add_items_from_partition(self.delivery_group)
 
     def process(self, extra_context=None):
-        context = extra_context or {}
+        context = dict(extra_context or {})
         context['form'] = self.forms['email']
+        context['items'] = self.delivery_group
         return super(DigitalDeliveryStep, self).process(extra_context=context)
 
 
@@ -260,7 +262,9 @@ class SummaryStep(BaseCheckoutStep):
         return 'Summary'
 
     def process(self, extra_context=None):
-        response = super(SummaryStep, self).process(extra_context)
+        context = dict(extra_context or {})
+        context['all_steps_valid'] = self.forms_are_valid()
+        response = super(SummaryStep, self).process(context)
         if not response:
             with transaction.atomic():
                 order = self.checkout.create_order()
