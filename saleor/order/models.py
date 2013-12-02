@@ -8,6 +8,8 @@ from django.utils.encoding import smart_text
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
+from payments import PurchasedItem
+from payments.models import BasePayment
 from prices import Price
 from satchless.item import ItemSet, ItemLine
 from uuid import uuid4
@@ -208,3 +210,31 @@ class OrderedItem(models.Model, ItemLine):
 
     def get_quantity(self):
         return self.quantity
+
+
+class Payment(BasePayment):
+
+    order = models.ForeignKey(Order, related_name='payments')
+
+    def get_failure_url(self):
+        return build_absolute_uri(
+            reverse('order:details', kwargs={'token': self.order.token}))
+
+    def get_success_url(self):
+        return build_absolute_uri(
+            reverse('order:details', kwargs={'token': self.order.token}))
+
+    def send_confirmation_email(self):
+        email = self.order.get_user_email()
+        order_url = build_absolute_uri(
+            reverse('order:details', kwargs={'token': self.order.token}))
+        context = {'order_url': order_url}
+        send_email(email, 'order/payment/emails/confirm_email.txt', context)
+
+    def get_purchased_items(self):
+        items = [PurchasedItem(name=item.product_name, quantity=item.quantity,
+                               price=item.unit_price_gross,
+                               sku=item.product.sku,
+                               currency=settings.SATCHLESS_DEFAULT_CURRENCY)
+                 for item in self.order.get_items()]
+        return items

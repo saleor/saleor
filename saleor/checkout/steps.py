@@ -269,7 +269,7 @@ class SummaryStep(BaseCheckoutStep):
             with transaction.atomic():
                 order = self.checkout.create_order()
                 order.send_confirmation_email()
-            return redirect('order:payment:index', token=order.token)
+            return redirect('order:details', token=order.token)
         return response
 
     def validate(self):
