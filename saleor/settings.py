@@ -96,7 +96,6 @@ INSTALLED_APPS = [
     'saleor.checkout',
     'saleor.core',
     'saleor.order',
-    'saleor.payment',
     'saleor.product',
     'saleor.registration',
     'saleor.userprofile',
@@ -197,10 +196,10 @@ GOOGLE_CLIENT_SECRET = None
 
 PAYMENT_BASE_URL = 'http://%s/' % CANONICAL_HOSTNAME
 
-PAYMENT_MODEL = 'payment.Payment'
+PAYMENT_MODEL = 'order.Payment'
 
 PAYMENT_VARIANTS = {
-    'default': ('payments.dummy.DummyProvider', {'url': 'http://google.pl/'})
+    'default': ('payments.dummy.DummyProvider', {})
 }
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
