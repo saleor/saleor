@@ -110,10 +110,11 @@ class Checkout(ProcessManager):
 
     def create_order(self):
         order = Order()
+        if self.request.user.is_authenticated():
+            order.user = self.request.user
         for step in self.steps:
             step.add_to_order(order)
         if self.request.user.is_authenticated():
-            order.user = self.request.user
             order.anonymous_user_email = ''
         order.tracking_client_id = analytics.get_client_id(self.request)
         order.save()

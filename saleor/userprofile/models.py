@@ -5,12 +5,29 @@ from django.contrib.auth.hashers import (check_password, make_password,
                                          is_password_usable)
 from django.contrib.auth.models import BaseUserManager
 from django.db import models
+from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
 from unidecode import unidecode
 
 from ..core.countries import COUNTRY_CHOICES
+
+
+class AddressBookManager(models.Manager):
+
+    def store_address(self, user, address):
+        data = model_to_dict(address, exclude=['id'])
+        query = dict(('address__%s' % (key,), value)
+                     for key, value in data.items())
+        candidates = self.get_queryset().filter(user=user, **query)
+        candidates = candidates.select_for_update()
+        try:
+            entry = candidates[0]
+        except IndexError:
+            address = Address.objects.create(**data)
+            entry = AddressBook.objects.create(user=user, address=address)
+        return entry
 
 
 class AddressBook(models.Model):
@@ -24,6 +41,8 @@ class AddressBook(models.Model):
         help_text=pgettext_lazy(
             'Address book entry',
             'A short, descriptive name for this address'))
+
+    objects = AddressBookManager()
 
     class Meta:
         unique_together = ('user', 'alias')
@@ -114,6 +133,18 @@ class UserManager(BaseUserManager):
 
     def create_superuser(self, email, password=None, **extra_fields):
         return self.create_user(email, password, is_staff=True, **extra_fields)
+
+    def store_address(self, user, address, billing=False, shipping=False):
+        entry = AddressBook.objects.store_address(user, address)
+        changed = False
+        if billing and not user.default_billing_address_id:
+            user.default_billing_address = entry
+            changed = True
+        if shipping and not user.default_shipping_address_id:
+            user.default_shipping_address = entry
+            changed = True
+        if changed:
+            user.save()
 
 
 class User(models.Model):

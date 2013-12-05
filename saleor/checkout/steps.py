@@ -13,7 +13,7 @@ from ..checkout.forms import AnonymousEmailForm
 from ..core.utils import BaseStep
 from ..order.models import DigitalDeliveryGroup, ShippedDeliveryGroup
 from ..userprofile.forms import AddressForm
-from ..userprofile.models import Address
+from ..userprofile.models import Address, User
 
 
 class BaseCheckoutStep(BaseStep):
@@ -131,6 +131,8 @@ class BillingAddressStep(BaseAddressStep):
 
     def add_to_order(self, order):
         self.address.save()
+        if order.user:
+            User.objects.store_address(order.user, self.address, billing=True)
         order.anonymous_user_email = self.anonymous_user_email
         order.billing_address = self.address
         order.save()
@@ -189,6 +191,8 @@ class ShippingStep(BaseAddressStep):
 
     def add_to_order(self, order):
         self.address.save()
+        if order.user:
+            User.objects.store_address(order.user, self.address, shipping=True)
         delivery_method = self.group['delivery_method']
         group = ShippedDeliveryGroup.objects.create(
             order=order, address=self.address,
