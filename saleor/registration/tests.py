@@ -22,6 +22,12 @@ JSON_MIME_TYPE = 'application/json; charset=UTF-8'
 URLENCODED_MIME_TYPE = 'application/x-www-form-urlencoded; charset=UTF-8'
 
 
+class SessionMock(Mock):
+
+    def __setitem__(self, key, value):
+        pass
+
+
 class LoginUrlsTestCase(TestCase):
     """Tests login url generation."""
 
@@ -259,6 +265,7 @@ class EmailChangeTestCase(TestCase):
         another_user = Mock()
         request = Mock()
         request.user = another_user
+        request.session = SessionMock()
 
         # first user clicks link in his email
         result = change_email(request, token_object.token)
