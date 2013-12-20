@@ -4,7 +4,7 @@
 {% load i18n %}
 
 {% block use_this_address %}
-    <button type="submit" class="btn {% if entry.is_default %}btn-primary{% else %}btn-default{% endif %} btn-lg col-sm-12">{% trans "Bill to this address" %}</button>
+    <button type="submit" class="btn {% if entry.is_selected %}btn-primary{% else %}btn-default{% endif %} btn-lg col-sm-12">{% trans "Bill to this address" %}</button>
 {% endblock %}
 
 {% block extra_forms %}

@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-from django.forms.models import model_to_dict
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db import transaction
@@ -45,25 +44,27 @@ class BaseAddressStep(BaseCheckoutStep):
     def __init__(self, checkout, request, address):
         super(BaseAddressStep, self).__init__(checkout, request)
         if address:
-            address_dict = model_to_dict(address, exclude=['id', 'user'])
+            address_dict = Address.objects.as_data(address)
             self.address = Address(**address_dict)
         else:
             self.address = Address()
+        existing_selected = False
         address_form = AddressForm(request.POST or None, instance=self.address)
         if request.user.is_authenticated():
             address_book = list(request.user.address_book.all())
             for entry in address_book:
-                data = model_to_dict(entry.address, exclude=['id', 'user'])
+                data = Address.objects.as_data(entry.address)
                 instance = Address(**data)
                 entry.form = AddressForm(instance=instance)
-                entry.is_default = self.is_default_address(entry, request.user)
+                entry.is_selected = Address.objects.are_identical(
+                    entry.address, self.address)
+                if entry.is_selected:
+                    existing_selected = True
         else:
             address_book = []
+        self.existing_selected = existing_selected
         self.forms = {'address': address_form}
         self.address_book = address_book
-
-    def is_default_address(self, entry, user):
-        raise NotImplementedError()
 
     def forms_are_valid(self):
         self.cleaned_data = {}
@@ -80,6 +81,7 @@ class BaseAddressStep(BaseCheckoutStep):
         context = dict(extra_context or {})
         context['form'] = self.forms['address']
         context['address_book'] = self.address_book
+        context['existing_address_selected'] = self.existing_selected
         return super(BaseAddressStep, self).process(extra_context=context)
 
 
@@ -131,20 +133,18 @@ class BillingAddressStep(BaseAddressStep):
 
     def add_to_order(self, order):
         self.address.save()
-        if order.user:
-            User.objects.store_address(order.user, self.address, billing=True)
         order.anonymous_user_email = self.anonymous_user_email
         order.billing_address = self.address
         order.save()
+        if order.user:
+            alias = '%s, %s' % (order, self)
+            User.objects.store_address(order.user, self.address, alias,
+                                       billing=True)
 
     def validate(self):
         super(BillingAddressStep, self).validate()
         if 'anonymous' in self.forms and not self.anonymous_user_email:
             raise InvalidData()
-
-    def is_default_address(self, entry, user):
-        return (user.is_authenticated() and
-                user.default_billing_address_id == entry.id)
 
 
 class ShippingStep(BaseAddressStep):
@@ -191,18 +191,16 @@ class ShippingStep(BaseAddressStep):
 
     def add_to_order(self, order):
         self.address.save()
-        if order.user:
-            User.objects.store_address(order.user, self.address, shipping=True)
         delivery_method = self.group['delivery_method']
         group = ShippedDeliveryGroup.objects.create(
             order=order, address=self.address,
             price=delivery_method.get_price(),
             method=smart_text(delivery_method))
         group.add_items_from_partition(self.delivery_group)
-
-    def is_default_address(self, entry, user):
-        return (user.is_authenticated() and
-                user.default_shipping_address_id == entry.id)
+        if order.user:
+            alias = '%s, %s' % (order, self)
+            User.objects.store_address(order.user, self.address, alias,
+                                       shipping=True)
 
     def process(self, extra_context=None):
         context = dict(extra_context or {})

@@ -9,7 +9,7 @@
         <div class="row">
             {% for entry in address_book %}
                 <div class="col-sm-4">
-                    <div class="panel {% if entry.is_default %}panel-primary{% else %}panel-default{% endif %}">
+                    <div class="panel {% if entry.is_selected %}panel-primary{% else %}panel-default{% endif %}">
                         <div class="panel-heading">
                             {{ entry }}
                         </div>
@@ -32,9 +32,15 @@
         </div>
 
         <hr>
+
+        {% if existing_address_selected %}
+            <p>
+                <a href="#address-form" class="btn btn-default" data-toggle="collapse" data-target="#address-form">{% trans "Enter a new address" %}</a>
+            </p>
+        {% endif %}
     {% endif %}
 
-    <form method="post" class="form-horizontal">
+    <form method="post" class="form-horizontal collapse{% if not address_book or not existing_address_selected %} in{% endif %}" id="address-form">
         {% csrf_token %}
         <fieldset>
             <legend>{% trans "Enter address" %}</legend>

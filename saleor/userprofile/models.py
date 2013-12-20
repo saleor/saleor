@@ -16,8 +16,8 @@ from ..core.countries import COUNTRY_CHOICES
 
 class AddressBookManager(models.Manager):
 
-    def store_address(self, user, address):
-        data = model_to_dict(address, exclude=['id'])
+    def store_address(self, user, address, alias):
+        data = Address.objects.as_data(address)
         query = dict(('address__%s' % (key,), value)
                      for key, value in data.items())
         candidates = self.get_queryset().filter(user=user, **query)
@@ -26,7 +26,8 @@ class AddressBookManager(models.Manager):
             entry = candidates[0]
         except IndexError:
             address = Address.objects.create(**data)
-            entry = AddressBook.objects.create(user=user, address=address)
+            entry = AddressBook.objects.create(user=user, address=address,
+                                               alias=alias)
         return entry
 
 
@@ -63,6 +64,17 @@ class AddressBook(models.Model):
         return mark_safe(re.sub(r'[-\s]+', '-', value))
 
 
+class AddressManager(models.Manager):
+
+    def as_data(self, addr):
+        return model_to_dict(addr, exclude=['id', 'user'])
+
+    def are_identical(self, addr1, addr2):
+        data1 = self.as_data(addr1)
+        data2 = self.as_data(addr2)
+        return data1 == data2
+
+
 class Address(models.Model):
 
     first_name = models.CharField(
@@ -95,6 +107,8 @@ class Address(models.Model):
     phone = models.CharField(
         pgettext_lazy('Address field', 'phone number'),
         max_length=30, blank=True)
+
+    objects = AddressManager()
 
     def __unicode__(self):
         return '%s %s' % (self.first_name, self.last_name)
@@ -134,8 +148,9 @@ class UserManager(BaseUserManager):
     def create_superuser(self, email, password=None, **extra_fields):
         return self.create_user(email, password, is_staff=True, **extra_fields)
 
-    def store_address(self, user, address, billing=False, shipping=False):
-        entry = AddressBook.objects.store_address(user, address)
+    def store_address(self, user, address, alias,
+                      billing=False, shipping=False):
+        entry = AddressBook.objects.store_address(user, address, alias)
         changed = False
         if billing and not user.default_billing_address_id:
             user.default_billing_address = entry
