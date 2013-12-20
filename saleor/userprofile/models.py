@@ -16,8 +16,8 @@ from ..core.countries import COUNTRY_CHOICES
 
 class AddressBookManager(models.Manager):
 
-    def store_address(self, user, address):
-        data = model_to_dict(address, exclude=['id'])
+    def store_address(self, user, address, alias):
+        data = Address.objects.as_data(address)
         query = dict(('address__%s' % (key,), value)
                      for key, value in data.items())
         candidates = self.get_queryset().filter(user=user, **query)
@@ -26,7 +26,8 @@ class AddressBookManager(models.Manager):
             entry = candidates[0]
         except IndexError:
             address = Address.objects.create(**data)
-            entry = AddressBook.objects.create(user=user, address=address)
+            entry = AddressBook.objects.create(user=user, address=address,
+                                               alias=alias)
         return entry
 
 
@@ -147,8 +148,9 @@ class UserManager(BaseUserManager):
     def create_superuser(self, email, password=None, **extra_fields):
         return self.create_user(email, password, is_staff=True, **extra_fields)
 
-    def store_address(self, user, address, billing=False, shipping=False):
-        entry = AddressBook.objects.store_address(user, address)
+    def store_address(self, user, address, alias,
+                      billing=False, shipping=False):
+        entry = AddressBook.objects.store_address(user, address, alias)
         changed = False
         if billing and not user.default_billing_address_id:
             user.default_billing_address = entry

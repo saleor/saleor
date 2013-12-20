@@ -134,7 +134,9 @@ class BillingAddressStep(BaseAddressStep):
     def add_to_order(self, order):
         self.address.save()
         if order.user:
-            User.objects.store_address(order.user, self.address, billing=True)
+            alias = u'%s, %s' % (order, self)
+            User.objects.store_address(order.user, self.address, alias,
+                                       billing=True)
         order.anonymous_user_email = self.anonymous_user_email
         order.billing_address = self.address
         order.save()
@@ -190,7 +192,9 @@ class ShippingStep(BaseAddressStep):
     def add_to_order(self, order):
         self.address.save()
         if order.user:
-            User.objects.store_address(order.user, self.address, shipping=True)
+            alias = u'%s, %s' % (order, self)
+            User.objects.store_address(order.user, self.address, alias,
+                                       shipping=True)
         delivery_method = self.group['delivery_method']
         group = ShippedDeliveryGroup.objects.create(
             order=order, address=self.address,
