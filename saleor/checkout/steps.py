@@ -133,13 +133,13 @@ class BillingAddressStep(BaseAddressStep):
 
     def add_to_order(self, order):
         self.address.save()
+        order.anonymous_user_email = self.anonymous_user_email
+        order.billing_address = self.address
+        order.save()
         if order.user:
             alias = u'%s, %s' % (order, self)
             User.objects.store_address(order.user, self.address, alias,
                                        billing=True)
-        order.anonymous_user_email = self.anonymous_user_email
-        order.billing_address = self.address
-        order.save()
 
     def validate(self):
         super(BillingAddressStep, self).validate()
@@ -191,16 +191,16 @@ class ShippingStep(BaseAddressStep):
 
     def add_to_order(self, order):
         self.address.save()
-        if order.user:
-            alias = u'%s, %s' % (order, self)
-            User.objects.store_address(order.user, self.address, alias,
-                                       shipping=True)
         delivery_method = self.group['delivery_method']
         group = ShippedDeliveryGroup.objects.create(
             order=order, address=self.address,
             price=delivery_method.get_price(),
             method=smart_text(delivery_method))
         group.add_items_from_partition(self.delivery_group)
+        if order.user:
+            alias = u'%s, %s' % (order, self)
+            User.objects.store_address(order.user, self.address, alias,
+                                       shipping=True)
 
     def process(self, extra_context=None):
         context = dict(extra_context or {})
