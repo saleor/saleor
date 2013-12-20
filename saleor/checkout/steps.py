@@ -137,7 +137,7 @@ class BillingAddressStep(BaseAddressStep):
         order.billing_address = self.address
         order.save()
         if order.user:
-            alias = u'%s, %s' % (order, self)
+            alias = '%s, %s' % (order, self)
             User.objects.store_address(order.user, self.address, alias,
                                        billing=True)
 
@@ -198,7 +198,7 @@ class ShippingStep(BaseAddressStep):
             method=smart_text(delivery_method))
         group.add_items_from_partition(self.delivery_group)
         if order.user:
-            alias = u'%s, %s' % (order, self)
+            alias = '%s, %s' % (order, self)
             User.objects.store_address(order.user, self.address, alias,
                                        shipping=True)
 
