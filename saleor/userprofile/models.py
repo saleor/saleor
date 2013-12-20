@@ -63,6 +63,17 @@ class AddressBook(models.Model):
         return mark_safe(re.sub(r'[-\s]+', '-', value))
 
 
+class AddressManager(models.Manager):
+
+    def as_data(self, addr):
+        return model_to_dict(addr, exclude=['id', 'user'])
+
+    def are_identical(self, addr1, addr2):
+        data1 = self.as_data(addr1)
+        data2 = self.as_data(addr2)
+        return data1 == data2
+
+
 class Address(models.Model):
 
     first_name = models.CharField(
@@ -95,6 +106,8 @@ class Address(models.Model):
     phone = models.CharField(
         pgettext_lazy('Address field', 'phone number'),
         max_length=30, blank=True)
+
+    objects = AddressManager()
 
     def __unicode__(self):
         return '%s %s' % (self.first_name, self.last_name)
