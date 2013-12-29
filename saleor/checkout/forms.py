@@ -35,6 +35,11 @@ class DeliveryField(forms.ChoiceField):
         self.methods = list(methods)
         choices = [(index, smart_text(method)) for index, method in
                    enumerate(self.methods)]
+
+        for index, method in enumerate(self.methods):
+            if isinstance(kwargs['initial'], type(method)):
+                kwargs['initial'] = index
+
         if len(choices) == 1:
             kwargs['initial'] = choices[0][0]
             kwargs['widget'] = forms.HiddenInput()
@@ -55,10 +60,12 @@ class DeliveryField(forms.ChoiceField):
 
 class DeliveryForm(forms.Form):
 
-    def __init__(self, delivery_methods, *args, **kwargs):
+    def __init__(self, delivery_methods, current_delivery_method=None,
+                 *args, **kwargs):
         super(DeliveryForm, self).__init__(*args, **kwargs)
-        self.fields['method'] = DeliveryField(
-            delivery_methods, label=_('Shipping method'))
+        self.fields['method'] = DeliveryField(delivery_methods,
+                                              label=_('Shipping method'),
+                                              initial=current_delivery_method)
 
 
 class AnonymousEmailForm(forms.Form):

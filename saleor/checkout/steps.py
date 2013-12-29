@@ -163,7 +163,9 @@ class ShippingStep(BaseAddressStep):
             address = checkout.billing_address
         super(ShippingStep, self).__init__(checkout, request, address)
         self.forms['delivery'] = DeliveryForm(
-            delivery_group.get_delivery_methods(), request.POST or None)
+            delivery_group.get_delivery_methods(),
+            data=request.POST or None,
+            current_delivery_method=self.group.get('delivery_method'))
 
     def __str__(self):
         return 'delivery-%s' % (self.id,)
