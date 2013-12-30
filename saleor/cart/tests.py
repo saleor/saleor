@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.test import TestCase
+from mock import MagicMock, patch
 from prices import Price
 from satchless.item import InsufficientStock
 from satchless.cart import CartLine
@@ -9,7 +10,8 @@ from . import Cart, BaseGroup, CartPartitioner
 from .forms import AddToCartForm, ReplaceCartLineForm, \
     ReplaceCartLineFormSet
 from ..delivery import BaseDelivery
-from ..product.models import Product, StockedProduct, PhysicalProduct
+from ..product.models import (Product, StockedProduct, PhysicalProduct,
+                              FixedProductDiscount)
 
 __all__ = ['CartTest', 'GroupTest', 'AddToCartFormTest']
 
@@ -78,7 +80,8 @@ class CartPartitionerTest(TestCase):
     def setUp(self):
         self.cart = Cart()
 
-    def test_total_price_including_custom_delivery_method(self):
+    @patch.object(FixedProductDiscount, 'objects')
+    def test_total_price_including_custom_delivery_method(self, mock_manager):
         self.cart.add(stock_product, 1)
         items = CartPartitioner(self.cart)
         for group in items:
