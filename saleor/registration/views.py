@@ -27,11 +27,9 @@ now = timezone.now
 
 def login(request):
     local_host = utils.get_local_host(request)
-    ctx = {}
-    if settings.FACEBOOK_APP_ID:
-        ctx['facebook_login_url'] = utils.get_facebook_login_url(local_host)
-    if settings.GOOGLE_CLIENT_ID:
-        ctx['google_login_url'] = utils.get_google_login_url(local_host)
+    ctx = {
+        'facebook_login_url': utils.get_facebook_login_url(local_host),
+        'google_login_url': utils.get_google_login_url(local_host)}
     return django_login_view(request, authentication_form=forms.LoginForm,
                              extra_context=ctx)
 
