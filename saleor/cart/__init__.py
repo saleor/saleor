@@ -83,6 +83,14 @@ class CartPartitioner(ClassifyingPartitioner):
     '''
     Dividing cart into groups.
     '''
+    def __iter__(self):
+        items_attr = 'partitioner_groups'
+        if not hasattr(self, items_attr):
+            groups = super(CartPartitioner, self).__iter__()
+            setattr(self, items_attr, list(groups))
+        for group in getattr(self, items_attr):
+            yield group
+
     def classify(self, item):
         if isinstance(item.product, DigitalShip):
             return 'digital'
