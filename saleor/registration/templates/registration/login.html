@@ -22,16 +22,22 @@
         </div>
     </div>
     <hr>
-    <div class="form-group">
-        <div class="col-sm-offset-2 col-sm-10">
-            <p>{% trans "Want to use your social profile?" %}</p>
-            <p>
-                <a class="btn btn-default zocial-facebook" href="{{ facebook_login_url }}"> {% trans "Log in using Facebook" %}</a>
-                <a class="btn btn-default zocial-google" href="{{ google_login_url }}"> {% trans "Log in using Google" %}</a>
-            </p>
+    {% if facebook_login_url or google_login_url %}
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <p>{% trans "Want to use your social profile?" %}</p>
+                <p>
+                    {% if facebook_login_url %}
+                        <a class="btn btn-default zocial-facebook" href="{{ facebook_login_url }}"> {% trans "Log in using Facebook" %}</a>
+                    {% endif %}
+                    {% if google_login_url %}
+                        <a class="btn btn-default zocial-google" href="{{ google_login_url }}"> {% trans "Log in using Google" %}</a>
+                    {% endif %}
+                </p>
+            </div>
         </div>
-    </div>
-    <hr>
+        <hr>
+    {% endif %}
     <div class="form-group">
         <div class="col-sm-offset-2 col-sm-10">
             <p>{% trans "Don't have an account yet?" %} <a class="btn btn-secondary" href="{% url 'registration:request_email_confirmation' %}">{% trans "Register" %}</a></p>

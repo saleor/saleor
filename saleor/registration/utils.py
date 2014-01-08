@@ -31,11 +31,15 @@ def get_client_class_for_service(service):
 
 
 def get_google_login_url(local_host):
-    return get_client_class_for_service(GOOGLE)(local_host).get_login_uri()
+    if settings.GOOGLE_CLIENT_ID:
+        client_class = get_client_class_for_service(GOOGLE)(local_host)
+        return client_class.get_login_uri()
 
 
 def get_facebook_login_url(local_host):
-    return get_client_class_for_service(FACEBOOK)(local_host).get_login_uri()
+    if settings.FACEBOOK_APP_ID:
+        client_class = get_client_class_for_service(FACEBOOK)(local_host)
+        return client_class.get_login_uri()
 
 
 def parse_response(response):
