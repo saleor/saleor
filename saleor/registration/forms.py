@@ -28,6 +28,22 @@ class LoginForm(AuthenticationForm):
                 self.fields['username'].initial = email
 
 
+class SetOrRemovePasswordForm(SetPasswordForm):
+
+    def __init__(self, *args, **kwargs):
+        super(SetOrRemovePasswordForm, self).__init__(*args, **kwargs)
+        if not 'new_password1' in self.data.keys():
+            self.fields['new_password1'].required = False
+            self.fields['new_password2'].required = False
+
+    def save(self, commit=True):
+        if self.cleaned_data.get('new_password1'):
+            return super(SetOrRemovePasswordForm, self).save(commit)
+        else:
+            self.user.set_unusable_password()
+        return self.user
+
+
 class RequestEmailConfirmationForm(forms.Form):
 
     email = forms.EmailField()

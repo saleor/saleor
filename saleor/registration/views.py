@@ -8,7 +8,6 @@ from django.contrib import messages
 from django.contrib.auth import (get_user_model, login as auth_login,
                                  logout as auth_logout)
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.views import (login as django_login_view,
                                        password_change)
 from django.core.urlresolvers import reverse
@@ -94,20 +93,23 @@ def request_email_change(request):
 
 
 def confirm_email(request, token):
-    try:
-        email_confirmation_request = EmailConfirmationRequest.objects.get(
-            token=token, valid_until__gte=now())
-        # TODO: cronjob (celery task) to delete stale tokens
-    except EmailConfirmationRequest.DoesNotExist:
-        return TemplateResponse(request, 'registration/invalid_token.html')
-    user = email_confirmation_request.get_authenticated_user()
-    email_confirmation_request.delete()
-    auth_login(request, user)
-    messages.success(request, _('You are now logged in.'))
+    if not request.POST:
+        try:
+            email_confirmation_request = EmailConfirmationRequest.objects.get(
+                token=token, valid_until__gte=now())
+            # TODO: cronjob (celery task) to delete stale tokens
+        except EmailConfirmationRequest.DoesNotExist:
+            return TemplateResponse(request, 'registration/invalid_token.html')
+        user = email_confirmation_request.get_authenticated_user()
+        email_confirmation_request.delete()
+        auth_login(request, user)
+        messages.success(request, _('You are now logged in.'))
 
-    form = SetPasswordForm(user=user, data=request.POST or None)
+    form = forms.SetOrRemovePasswordForm(user=request.user,
+                                         data=request.POST or None)
     if form.is_valid():
         form.save()
+        messages.success(request, _('Password has been successfully changed.'))
         return redirect(settings.LOGIN_REDIRECT_URL)
 
     return TemplateResponse(
