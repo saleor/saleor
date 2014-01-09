@@ -26,12 +26,6 @@
         </thead>
         <tfoot>
             <tr>
-                <td class="col-sm-4">{% trans "Shipping" %}</td>
-                <td class="col-sm-2"></td>
-                <td class="col-sm-2"></td>
-                <td class="col-sm-2">{% gross cart.get_delivery_total %}</td>
-            </tr>
-            <tr>
                 <td class="col-sm-4"></td>
                 <td class="col-sm-2">
                     <button class="btn btn-default" type="submit">
@@ -55,7 +49,7 @@
     </table>
     <div class="form-group">
         <div>
-            <a href="{% url "checkout:index" %}" class="btn btn-primary">Checkout</a>        
+            <a href="{% url "checkout:index" %}" class="btn btn-primary">Checkout</a>
         </div>
     </div>
 </form>
