@@ -21,21 +21,12 @@ class CheckoutStorage(dict):
                      'groups': defaultdict(dict), 'summary': False})
 
 
-class CheckoutGroup(namedtuple('CheckoutGroup', 'step, group, items')):
-
-    def __iter__(self):
-        return iter(self.items)
-
-    def __len__(self):
-        return len(self.items)
-
-    def __getattr__(self, name):
-        if name in self.group:
-            return self.group[name]
-        return getattr(self.items, name)
-
-
 class Checkout(ProcessManager):
+
+    items = None
+    groups = None
+    billing = None
+    steps = None
 
     def __init__(self, request):
         self.request = request
@@ -57,10 +48,7 @@ class Checkout(ProcessManager):
                 step_class = ShippingStep
             step = step_class(self, self.request,
                               delivery_group, index)
-            step_group = self.get_group(str(step))
-            if 'delivery_method' in step_group:
-                delivery_group.delivery_method = step_group['delivery_method']
-            group = CheckoutGroup(step, step_group, delivery_group)
+            group = step.get_delivery_group()
             self.groups.append(group)
             self.steps.append(step)
         self.steps.append(SummaryStep(self, self.request))
