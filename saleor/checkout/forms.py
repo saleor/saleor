@@ -31,34 +31,42 @@ class DigitalDeliveryForm(forms.ModelForm):
 
 class DeliveryField(forms.ChoiceField):
 
-    def __init__(self, methods, *args, **kwargs):
-        self.methods = list(methods)
-        choices = [(index, smart_text(method)) for index, method in
-                   enumerate(self.methods)]
-        if len(choices) == 1:
-            kwargs['initial'] = choices[0][0]
-            kwargs['widget'] = forms.HiddenInput()
-        super(DeliveryField, self).__init__(choices, *args, **kwargs)
+    _methods = None
 
     def to_python(self, value):
         if value in validators.EMPTY_VALUES:
             return None
-        try:
-            return self.methods[int(value)]
-        except (IndexError, ValueError):
-            raise ValidationError(
-                self.error_messages['invalid_choice'] % {'value': value})
+        for method in self._methods:
+            if method.name == value:
+                return method
+        error_message = self.error_messages['invalid_choice']
+        raise ValidationError(error_message % {'value': value})
 
     def valid_value(self, value):
-        return value in self.methods
+        return value in self._methods
+
+    @property
+    def methods(self):
+        return self._methods
+
+    @methods.setter
+    def methods(self, value):
+        self._methods = value
+        self.choices = [(method.name, smart_text(method))
+                        for method in self._methods]
 
 
 class DeliveryForm(forms.Form):
 
+    method = DeliveryField(label=_('Shipping method'))
+
     def __init__(self, delivery_methods, *args, **kwargs):
         super(DeliveryForm, self).__init__(*args, **kwargs)
-        self.fields['method'] = DeliveryField(
-            delivery_methods, label=_('Shipping method'))
+        method_field = self.fields['method']
+        method_field.methods = delivery_methods
+        if len(delivery_methods) == 1:
+            method_field.initial = delivery_methods[0]
+            method_field.widget = forms.HiddenInput()
 
 
 class AnonymousEmailForm(forms.Form):
