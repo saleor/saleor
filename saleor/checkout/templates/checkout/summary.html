@@ -67,7 +67,7 @@
                         {% if group.get_delivery_total.gross %}
                             <tr>
                                 <td class="col-sm-4">
-                                    {% trans "Shipping" %} ({{ group.get_delivery_method }})
+                                    {% trans "Shipping" %} ({{ group }})
                                 </td>
                                 <td class="col-sm-2">{% gross group.get_delivery_total %}</td>
                                 <td class="col-sm-2">{% gross group.get_delivery_total %}</td>
