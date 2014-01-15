@@ -41,9 +41,6 @@ class BaseStep(Step):
         self.request = request
         self.forms = {}
 
-    def __unicode__(self):
-        raise NotImplementedError()
-
     def __nonzero__(self):
         try:
             self.validate()

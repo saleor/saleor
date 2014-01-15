@@ -5,6 +5,7 @@ from django.db import models
 from django.db import transaction
 from django.shortcuts import redirect
 from django.utils.encoding import smart_text
+from django.utils.translation import ugettext_lazy as _
 from satchless.process import InvalidData
 
 from .forms import DigitalDeliveryForm, DeliveryForm
@@ -89,6 +90,7 @@ class BaseAddressStep(BaseCheckoutStep):
 class BillingAddressStep(BaseAddressStep):
 
     template = 'checkout/billing.html'
+    title = _('Billing Address')
     anonymous_user_email = ''
     address_purpose = 'billing'
 
@@ -113,9 +115,6 @@ class BillingAddressStep(BaseAddressStep):
 
     def __str__(self):
         return 'billing-address'
-
-    def __unicode__(self):
-        return 'Billing Address'
 
     def forms_are_valid(self):
         forms_are_valid = super(BillingAddressStep, self).forms_are_valid()
@@ -151,6 +150,7 @@ class BillingAddressStep(BaseAddressStep):
 class ShippingStep(BaseAddressStep):
 
     template = 'checkout/shipping.html'
+    title = _('Shipping Details')
     delivery_method = None
     address_purpose = 'shipping'
     delivery_group_data = None
@@ -179,9 +179,6 @@ class ShippingStep(BaseAddressStep):
 
     def __str__(self):
         return 'delivery-%s' % (self.id,)
-
-    def __unicode__(self):
-        return 'Shipping'
 
     def save(self):
         delivery_form = self.forms['delivery']
@@ -228,6 +225,7 @@ class ShippingStep(BaseAddressStep):
 class DigitalDeliveryStep(BaseCheckoutStep):
 
     template = 'checkout/digitaldelivery.html'
+    title = _('Digital Delivery')
 
     def __init__(self, checkout, request, items_group=None, _id=None):
         super(DigitalDeliveryStep, self).__init__(checkout, request)
@@ -245,9 +243,6 @@ class DigitalDeliveryStep(BaseCheckoutStep):
 
     def __str__(self):
         return 'digital-delivery-%s' % (self.id,)
-
-    def __unicode__(self):
-        return 'Digital delivery'
 
     def validate(self):
         if not 'email' in self.group:
@@ -278,12 +273,10 @@ class DigitalDeliveryStep(BaseCheckoutStep):
 class SummaryStep(BaseCheckoutStep):
 
     template = 'checkout/summary.html'
+    title = _('Summary')
 
     def __str__(self):
         return 'summary'
-
-    def __unicode__(self):
-        return 'Summary'
 
     def process(self, extra_context=None):
         context = dict(extra_context or {})
