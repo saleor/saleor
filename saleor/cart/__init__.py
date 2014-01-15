@@ -2,19 +2,19 @@ from __future__ import unicode_literals
 
 from django.utils.translation import pgettext
 from satchless import cart
-from satchless.item import ItemSet, ClassifyingPartitioner
+from satchless.item import ItemList, ClassifyingPartitioner
 
 from ..product.models import DigitalShip
 
 
-class ShippedGroup(list, ItemSet):
+class ShippedGroup(ItemList):
     '''
     Group for shippable products.
     '''
     pass
 
 
-class DigitalGroup(list, ItemSet):
+class DigitalGroup(ItemList):
     '''
     Group for digital products.
     '''
@@ -45,5 +45,6 @@ class Cart(cart.Cart):
     billing_address = None
 
     def __unicode__(self):
-        return pgettext('Shopping cart', 'Your cart (%(cart_count)s)') % {
-            'cart_count': self.count()}
+        return pgettext(
+            'Shopping cart',
+            'Your cart (%(cart_count)s)') % {'cart_count': self.count()}

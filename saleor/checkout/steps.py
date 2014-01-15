@@ -156,7 +156,7 @@ class ShippingStep(BaseAddressStep):
     delivery_group_data = None
     delivery_group = None
 
-    def __init__(self, checkout, request, items_group, _id=None):
+    def __init__(self, checkout, request, purchased_items, _id=None):
         self.id = _id
         self.delivery_group_data = checkout.get_group(str(self))
         if 'address' in self.delivery_group_data:
@@ -165,7 +165,7 @@ class ShippingStep(BaseAddressStep):
             address = checkout.billing_address
         super(ShippingStep, self).__init__(checkout, request, address)
         delivery_methods = list(
-            get_delivery_methods_for_group(items_group, address=address))
+            get_delivery_methods_for_group(purchased_items, address=address))
         delivery_name = self.delivery_group_data.get('delivery_method')
         # TODO: find cheapest not first
         selected_delivery_group = delivery_methods[0]

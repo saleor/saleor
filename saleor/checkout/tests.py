@@ -4,7 +4,6 @@ from mock import MagicMock, patch
 from . import BillingAddressStep, ShippingStep
 from ..checkout import Checkout
 from ..checkout.steps import BaseAddressStep
-from ..delivery import DummyShipping
 from ..userprofile.models import Address
 
 NEW_ADDRESS = {
@@ -72,26 +71,24 @@ class TestShippingStep(TestCase):
     @patch.object(Address, 'save')
     def test_address_save_without_address(self, mock_save):
         self.request.POST = NEW_ADDRESS
-        self.request.POST['method'] = 0
+        self.request.POST['method'] = 'dummy_shipping'
         group = MagicMock()
         group.address = None
         checkout = Checkout(self.request)
-        group.get_delivery_methods.return_value = [DummyShipping(group)]
         step = ShippingStep(checkout, self.request, group)
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
         step.save()
         self.assertEqual(mock_save.call_count, 0)
-        grup_storage = checkout.get_group(str(step))
-        self.assertEqual(type(grup_storage['address']), Address,
+        group_storage = checkout.get_group(str(step))
+        self.assertEqual(type(group_storage['address']), Address,
                          'Address instance expected')
 
     @patch.object(Address, 'save')
     def test_address_save_with_address_in_group(self, mock_save):
         self.request.POST = NEW_ADDRESS
-        self.request.POST['method'] = 0
+        self.request.POST['method'] = 'dummy_shipping'
         group = MagicMock()
         group.address = Address()
-        group.get_delivery_methods.return_value = [DummyShipping(group)]
         step = ShippingStep(self.checkout, self.request, group)
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
         step.save()
@@ -100,7 +97,7 @@ class TestShippingStep(TestCase):
     @patch.object(Address, 'save')
     def test_address_save_with_address_in_checkout(self, mock_save):
         self.request.POST = NEW_ADDRESS
-        self.request.POST['method'] = 0
+        self.request.POST['method'] = 'dummy_shipping'
         original_billing_address_data = {'first_name': 'Change',
                                          'last_name': 'Me',
                                          'id': 10}
@@ -108,11 +105,10 @@ class TestShippingStep(TestCase):
         self.checkout.billing_address = original_billing_address
         group = MagicMock()
         group.address = None
-        group.get_delivery_methods.return_value = [DummyShipping(group)]
         step = ShippingStep(self.checkout, self.request, group)
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
         step.save()
         self.assertEqual(mock_save.call_count, 0)
         self.assertEqual(self.checkout.billing_address,
                          Address(**original_billing_address_data))
-        self.assertEqual(step.group['address'].id, None)
+        self.assertEqual(step.delivery_group_data['address'].id, None)

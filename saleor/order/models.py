@@ -103,7 +103,7 @@ class Order(models.Model, ItemSet):
 
     def get_delivery_total(self):
         return sum([group.price for group in self.groups.all()],
-                   Price(0, currency=settings.SATCHLESS_DEFAULT_CURRENCY))
+                   Price(0, currency=settings.DEFAULT_CURRENCY))
 
     def send_confirmation_email(self):
         email = self.get_user_email()
@@ -130,7 +130,7 @@ class DeliveryGroup(Subtyped, ItemSet):
     order = models.ForeignKey(Order, related_name='groups', editable=False)
     price = PriceField(
         pgettext_lazy('Delivery group field', 'unit price'),
-        currency=settings.SATCHLESS_DEFAULT_CURRENCY, max_digits=12,
+        currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=4,
         default=0,
         editable=False)
@@ -203,7 +203,7 @@ class OrderedItem(models.Model, ItemLine):
 
     def get_price_per_item(self, **kwargs):
         return Price(net=self.unit_price_net, gross=self.unit_price_gross,
-                     currency=settings.SATCHLESS_DEFAULT_CURRENCY)
+                     currency=settings.DEFAULT_CURRENCY)
 
     def __unicode__(self):
         return self.product_name
@@ -235,6 +235,6 @@ class Payment(BasePayment):
         items = [PurchasedItem(name=item.product_name, quantity=item.quantity,
                                price=item.unit_price_gross,
                                sku=item.product.sku,
-                               currency=settings.SATCHLESS_DEFAULT_CURRENCY)
+                               currency=settings.DEFAULT_CURRENCY)
                  for item in self.order.get_items()]
         return items
