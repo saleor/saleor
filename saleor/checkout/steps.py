@@ -19,9 +19,13 @@ from ..userprofile.models import Address, User
 
 class BaseCheckoutStep(BaseStep):
 
-    def __init__(self, checkout, request):
+    checkout = None
+    storage = None
+
+    def __init__(self, checkout, request, storage):
         super(BaseCheckoutStep, self).__init__(request)
         self.checkout = checkout
+        self.storage = storage
 
     @models.permalink
     def get_absolute_url(self):
@@ -41,10 +45,9 @@ class BaseAddressStep(BaseCheckoutStep):
     method = None
     address = None
     template = 'checkout/address.html'
-    address_purpose = None
 
-    def __init__(self, checkout, request, address):
-        super(BaseAddressStep, self).__init__(checkout, request)
+    def __init__(self, checkout, request, storage, address):
+        super(BaseAddressStep, self).__init__(checkout, request, storage)
         if address:
             address_dict = Address.objects.as_data(address)
             self.address = Address(**address_dict)
@@ -69,7 +72,6 @@ class BaseAddressStep(BaseCheckoutStep):
         self.address_book = address_book
 
     def forms_are_valid(self):
-        self.cleaned_data = {}
         address_form = self.forms['address']
         return address_form.is_valid()
 
@@ -92,10 +94,9 @@ class BillingAddressStep(BaseAddressStep):
     template = 'checkout/billing.html'
     title = _('Billing Address')
     anonymous_user_email = ''
-    address_purpose = 'billing'
 
-    def __init__(self, checkout, request):
-        address = checkout.billing_address
+    def __init__(self, checkout, request, storage):
+        address = storage['address']
         skip = False
         if not address and request.user.is_authenticated():
             if request.user.default_billing_address:
@@ -104,9 +105,10 @@ class BillingAddressStep(BaseAddressStep):
             elif request.user.address_book.count() == 1:
                 address = request.user.address_book.all()[0].address
                 skip = True
-        super(BillingAddressStep, self).__init__(checkout, request, address)
+        super(BillingAddressStep, self).__init__(
+            checkout, request, storage, address)
         if not request.user.is_authenticated():
-            self.anonymous_user_email = self.checkout.anonymous_user_email
+            self.anonymous_user_email = self.storage['anonymous_user_email']
             initial = {'email': self.anonymous_user_email}
             self.forms['anonymous'] = AnonymousEmailForm(request.POST or None,
                                                          initial=initial)
@@ -127,8 +129,8 @@ class BillingAddressStep(BaseAddressStep):
         return False
 
     def save(self):
-        self.checkout.anonymous_user_email = self.anonymous_user_email
-        self.checkout.billing_address = self.address
+        self.storage['anonymous_user_email'] = self.anonymous_user_email
+        self.storage['address'] = self.address
         self.checkout.save()
 
     def add_to_order(self, order):
@@ -152,27 +154,21 @@ class ShippingStep(BaseAddressStep):
     template = 'checkout/shipping.html'
     title = _('Shipping Details')
     delivery_method = None
-    address_purpose = 'shipping'
-    delivery_group_data = None
-    delivery_group = None
 
-    def __init__(self, checkout, request, purchased_items, _id=None):
+    def __init__(self, checkout, request, storage, purchased_items, _id=None):
         self.id = _id
-        self.delivery_group_data = checkout.get_group(str(self))
-        if 'address' in self.delivery_group_data:
-            address = self.delivery_group_data['address']
-        else:
-            address = checkout.billing_address
-        super(ShippingStep, self).__init__(checkout, request, address)
+        address = storage.get('address', checkout.billing_address)
+        super(ShippingStep, self).__init__(checkout, request, storage, address)
         delivery_methods = list(
             get_delivery_methods_for_group(purchased_items, address=address))
-        delivery_name = self.delivery_group_data.get('delivery_method')
+        delivery_name = storage.get('delivery_method')
         # TODO: find cheapest not first
         selected_delivery_group = delivery_methods[0]
         for delivery in delivery_methods:
             if delivery.name == delivery_name:
                 selected_delivery_group = delivery
-        self.delivery_group = selected_delivery_group
+                break
+        self.group = selected_delivery_group
         self.forms['delivery'] = DeliveryForm(
             delivery_methods, request.POST or None,
             initial={'method': selected_delivery_group.name})
@@ -182,14 +178,14 @@ class ShippingStep(BaseAddressStep):
 
     def save(self):
         delivery_form = self.forms['delivery']
-        self.delivery_group_data['address'] = self.address
+        self.storage['address'] = self.address
         delivery_method = delivery_form.cleaned_data['method']
-        self.delivery_group_data['delivery_method'] = delivery_method.name
+        self.storage['delivery_method'] = delivery_method.name
         self.checkout.save()
 
     def validate(self):
         super(ShippingStep, self).validate()
-        if 'delivery_method' not in self.delivery_group_data:
+        if 'delivery_method' not in self.storage:
             raise InvalidData()
 
     def forms_are_valid(self):
@@ -201,12 +197,12 @@ class ShippingStep(BaseAddressStep):
 
     def add_to_order(self, order):
         self.address.save()
-        delivery_method = self.delivery_group_data['delivery_method']
+        delivery_method = self.storage['delivery_method']
         group = ShippedDeliveryGroup.objects.create(
             order=order, address=self.address,
             price=delivery_method.get_price(),
             method=smart_text(delivery_method))
-        group.add_items_from_partition(self.delivery_group)
+        group.add_items_from_partition(self.group)
         if order.user:
             alias = '%s, %s' % (order, self)
             User.objects.store_address(order.user, self.address, alias,
@@ -214,12 +210,9 @@ class ShippingStep(BaseAddressStep):
 
     def process(self, extra_context=None):
         context = dict(extra_context or {})
-        context['items'] = self.delivery_group
+        context['items'] = self.group
         context['delivery_form'] = self.forms['delivery']
         return super(ShippingStep, self).process(extra_context=context)
-
-    def get_delivery_group(self):
-        return self.delivery_group
 
 
 class DigitalDeliveryStep(BaseCheckoutStep):
@@ -227,47 +220,43 @@ class DigitalDeliveryStep(BaseCheckoutStep):
     template = 'checkout/digitaldelivery.html'
     title = _('Digital Delivery')
 
-    def __init__(self, checkout, request, items_group=None, _id=None):
-        super(DigitalDeliveryStep, self).__init__(checkout, request)
+    def __init__(self, checkout, request, storage, items_group=None, _id=None):
+        super(DigitalDeliveryStep, self).__init__(checkout, request, storage)
         self.id = _id
-        self.group = checkout.get_group(str(self))
         self.forms['email'] = DigitalDeliveryForm(request.POST or None,
-                                                  initial=self.group,
+                                                  initial=self.storage,
                                                   user=request.user)
-        email = self.group.get('email')
+        email = self.storage.get('email')
         delivery_methods = list(
             get_delivery_methods_for_group(items_group, email=email))
         selected_delivery_group = delivery_methods[0]
-        self.group['delivery_method'] = selected_delivery_group
-        self.delivery_group = selected_delivery_group
+        self.storage['delivery_method'] = selected_delivery_group
+        self.group = selected_delivery_group
 
     def __str__(self):
         return 'digital-delivery-%s' % (self.id,)
 
     def validate(self):
-        if not 'email' in self.group:
+        if not 'email' in self.storage:
             raise InvalidData()
 
     def save(self):
-        self.group.update(self.forms['email'].cleaned_data)
+        self.storage.update(self.forms['email'].cleaned_data)
         self.checkout.save()
 
     def add_to_order(self, order):
-        delivery_method = self.group['delivery_method']
+        delivery_method = self.storage['delivery_method']
         group = DigitalDeliveryGroup.objects.create(
-            order=order, email=self.group['email'],
+            order=order, email=self.storage['email'],
             price=delivery_method.get_price(),
             method=smart_text(delivery_method))
-        group.add_items_from_partition(self.delivery_group)
+        group.add_items_from_partition(self.group)
 
     def process(self, extra_context=None):
         context = dict(extra_context or {})
         context['form'] = self.forms['email']
-        context['items'] = self.delivery_group
+        context['items'] = self.group
         return super(DigitalDeliveryStep, self).process(extra_context=context)
-
-    def get_delivery_group(self):
-        return self.delivery_group
 
 
 class SummaryStep(BaseCheckoutStep):

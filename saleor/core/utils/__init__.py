@@ -36,6 +36,7 @@ class BaseStep(Step):
 
     forms = None
     template = ''
+    group = None
 
     def __init__(self, request):
         self.request = request
