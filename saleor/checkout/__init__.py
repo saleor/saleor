@@ -17,8 +17,6 @@ class CheckoutStorage(defaultdict):
 
     def __init__(self, *args, **kwargs):
         super(CheckoutStorage, self).__init__(dict, * args, **kwargs)
-        if not 'billing' in self:
-            self['billing'] = {'address': None, 'anonymous_user_email': None}
 
 
 class Checkout(ProcessManager):
@@ -43,49 +41,55 @@ class Checkout(ProcessManager):
     def generate_steps(self, cart):
         self.items = CartPartitioner(cart)
         self.billing = BillingAddressStep(
-            self, self.request, self.storage['billing'])
+            self, self.request, self.get_storage('billing'))
         self.steps.append(self.billing)
         for index, delivery_group in enumerate(self.items):
             if isinstance(delivery_group, DigitalGroup):
-                step_class = DigitalDeliveryStep
+                storage = self.get_storage('digital_%s' % (index,))
+                step = DigitalDeliveryStep(
+                    self, self.request, storage, delivery_group, _id=index)
             else:
-                step_class = ShippingStep
-            storage_key = 'shipping_%s' % (index,)
-            step = step_class(self, self.request, self.storage[storage_key],
-                              delivery_group, index)
+                storage = self.get_storage('shipping_%s' % (index,))
+                step = ShippingStep(
+                    self, self.request, storage, delivery_group, _id=index,
+                    default_address=self.billing_address)
             self.steps.append(step)
-        summary_step = SummaryStep(self, self.request, self.storage['summary'])
+        summary_step = SummaryStep(
+            self, self.request, self.get_storage('summary'))
         self.steps.append(summary_step)
 
     @property
     def anonymous_user_email(self):
-        return self.storage['billing']['anonymous_user_email']
+        storage = self.get_storage('billing')
+        return storage.get('anonymous_user_email')
 
     @anonymous_user_email.setter
     def anonymous_user_email(self, email):
-        self.storage['billing']['anonymous_user_email'] = email
+        storage = self.get_storage('billing')
+        storage['anonymous_user_email'] = email
 
     @anonymous_user_email.deleter
     def anonymous_user_email(self, email):
-        self.storage['billing']['anonymous_user_email'] = ''
+        storage = self.get_storage('billing')
+        storage['anonymous_user_email'] = ''
 
     @property
     def billing_address(self):
-        return self.storage['billing']['address']
+        storage = self.get_storage('billing')
+        return storage.get('address')
 
     @billing_address.setter
     def billing_address(self, address):
-        self.storage['billing']['address'] = address
+        storage = self.get_storage('billing')
+        storage['address'] = address
 
     @billing_address.deleter
     def billing_address(self, address):
-        self.storage['billing']['address'] = None
+        storage = self.get_storage('billing')
+        storage['address'] = None
 
-    def get_step_data(self, name):
+    def get_storage(self, name):
         return self.storage[name]
-
-    def set_step_data(self, name, group):
-        self[name] = group
 
     def get_total(self, **kwargs):
         return self.items.get_total(**kwargs)

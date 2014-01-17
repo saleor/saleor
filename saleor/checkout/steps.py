@@ -96,7 +96,7 @@ class BillingAddressStep(BaseAddressStep):
     anonymous_user_email = ''
 
     def __init__(self, checkout, request, storage):
-        address = storage['address']
+        address = storage.get('address')
         skip = False
         if not address and request.user.is_authenticated():
             if request.user.default_billing_address:
@@ -108,7 +108,8 @@ class BillingAddressStep(BaseAddressStep):
         super(BillingAddressStep, self).__init__(
             checkout, request, storage, address)
         if not request.user.is_authenticated():
-            self.anonymous_user_email = self.storage['anonymous_user_email']
+            self.anonymous_user_email = self.storage.get(
+                'anonymous_user_email')
             initial = {'email': self.anonymous_user_email}
             self.forms['anonymous'] = AnonymousEmailForm(request.POST or None,
                                                          initial=initial)
@@ -155,9 +156,10 @@ class ShippingStep(BaseAddressStep):
     title = _('Shipping Details')
     delivery_method = None
 
-    def __init__(self, checkout, request, storage, purchased_items, _id=None):
+    def __init__(self, checkout, request, storage, purchased_items, _id=None,
+                 default_address=None):
         self.id = _id
-        address = storage.get('address', checkout.billing_address)
+        address = storage.get('address', default_address)
         super(ShippingStep, self).__init__(checkout, request, storage, address)
         delivery_choices = list(
             get_delivery_choices_for_group(purchased_items, address=address))
