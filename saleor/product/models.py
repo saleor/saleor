@@ -46,7 +46,7 @@ class Product(Subtyped, Item):
     name = models.CharField(pgettext_lazy('Product field', 'name'),
                             max_length=128)
     price = PriceField(pgettext_lazy('Product field', 'price'),
-                       currency=settings.SATCHLESS_DEFAULT_CURRENCY,
+                       currency=settings.DEFAULT_CURRENCY,
                        max_digits=12, decimal_places=4)
     sku = models.CharField(pgettext_lazy('Product field', 'sku'),
                            max_length=32, unique=True)
@@ -110,7 +110,7 @@ class FixedProductDiscount(models.Model):
     name = models.CharField(max_length=255)
     products = models.ManyToManyField(Product, blank=True)
     discount = PriceField(pgettext_lazy('Discount field', 'discount value'),
-                          currency=settings.SATCHLESS_DEFAULT_CURRENCY,
+                          currency=settings.DEFAULT_CURRENCY,
                           max_digits=12, decimal_places=4)
 
     objects = ProductDiscountManager()

@@ -1,4 +1,4 @@
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 
 from satchless.process import ProcessManager
 
@@ -11,95 +11,91 @@ from ..order.models import Order
 STORAGE_SESSION_KEY = 'checkout_storage'
 
 
-class CheckoutStorage(dict):
+class CheckoutStorage(defaultdict):
 
     modified = False
 
     def __init__(self, *args, **kwargs):
-        super(CheckoutStorage, self).__init__(*args, **kwargs)
-        self.update({'anonymous_user_email': '', 'billing_address': None,
-                     'groups': defaultdict(dict), 'summary': False})
-
-
-class CheckoutGroup(namedtuple('CheckoutGroup', 'step, group, items')):
-
-    def __iter__(self):
-        return iter(self.items)
-
-    def __len__(self):
-        return len(self.items)
-
-    def __getattr__(self, name):
-        if name in self.group:
-            return self.group[name]
-        return getattr(self.items, name)
+        super(CheckoutStorage, self).__init__(dict, * args, **kwargs)
 
 
 class Checkout(ProcessManager):
 
+    items = None
+    groups = None
+    billing = None
+    steps = None
+
     def __init__(self, request):
         self.request = request
+        self.groups = []
+        self.steps = []
+        self.items = []
         try:
-            self.storage = request.session[STORAGE_SESSION_KEY]
+            self.storage = CheckoutStorage(
+                request.session[STORAGE_SESSION_KEY])
         except KeyError:
             self.storage = CheckoutStorage()
-        self.generate_groups(request.cart)
+        self.generate_steps(request.cart)
 
-    def generate_groups(self, cart):
+    def generate_steps(self, cart):
         self.items = CartPartitioner(cart)
-        self.groups = []
-        self.billing = BillingAddressStep(self, self.request)
-        self.steps = [self.billing]
+        self.billing = BillingAddressStep(
+            self.request, self.get_storage('billing'))
+        self.steps.append(self.billing)
         for index, delivery_group in enumerate(self.items):
             if isinstance(delivery_group, DigitalGroup):
-                step_class = DigitalDeliveryStep
+                storage = self.get_storage('digital_%s' % (index,))
+                step = DigitalDeliveryStep(
+                    self.request, storage, delivery_group, _id=index)
             else:
-                step_class = ShippingStep
-            step = step_class(self, self.request,
-                              delivery_group, index)
-            step_group = self.get_group(str(step))
-            if 'delivery_method' in step_group:
-                delivery_group.delivery_method = step_group['delivery_method']
-            group = CheckoutGroup(step, step_group, delivery_group)
-            self.groups.append(group)
+                storage = self.get_storage('shipping_%s' % (index,))
+                step = ShippingStep(
+                    self.request, storage, delivery_group, _id=index,
+                    default_address=self.billing_address)
             self.steps.append(step)
-        self.steps.append(SummaryStep(self, self.request))
+        summary_step = SummaryStep(
+            self.request, self.get_storage('summary'), checkout=self)
+        self.steps.append(summary_step)
 
     @property
     def anonymous_user_email(self):
-        return self.storage['anonymous_user_email']
+        storage = self.get_storage('billing')
+        return storage.get('anonymous_user_email')
 
     @anonymous_user_email.setter
     def anonymous_user_email(self, email):
-        self.storage['anonymous_user_email'] = email
+        storage = self.get_storage('billing')
+        storage['anonymous_user_email'] = email
 
     @anonymous_user_email.deleter
     def anonymous_user_email(self, email):
-        self.storage['anonymous_user_email'] = ''
+        storage = self.get_storage('billing')
+        storage['anonymous_user_email'] = ''
 
     @property
     def billing_address(self):
-        return self.storage['billing_address']
+        storage = self.get_storage('billing')
+        return storage.get('address')
 
     @billing_address.setter
     def billing_address(self, address):
-        self.storage['billing_address'] = address
+        storage = self.get_storage('billing')
+        storage['address'] = address
 
     @billing_address.deleter
     def billing_address(self, address):
-        self.storage['billing_address'] = None
+        storage = self.get_storage('billing')
+        storage['address'] = None
 
-    def get_group(self, name):
-        return self.storage['groups'][name]
-
-    def set_group(self, name, group):
-        self['groups'][name] = group
+    def get_storage(self, name):
+        return self.storage[name]
 
     def get_total(self, **kwargs):
         return self.items.get_total(**kwargs)
 
     def save(self):
-        self.request.session[STORAGE_SESSION_KEY] = self.storage
+        self.request.session[STORAGE_SESSION_KEY] = dict(self.storage)
 
     def clear_storage(self):
         del self.request.session[STORAGE_SESSION_KEY]

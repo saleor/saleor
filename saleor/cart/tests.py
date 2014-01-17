@@ -1,17 +1,17 @@
 from __future__ import unicode_literals
 
 from django.test import TestCase
+from mock import patch
 from prices import Price
 from satchless.item import InsufficientStock
-from satchless.cart import CartLine
 
-from . import Cart, BaseGroup
+from . import Cart, CartPartitioner
 from .forms import AddToCartForm, ReplaceCartLineForm, \
     ReplaceCartLineFormSet
-from ..delivery import BaseDelivery
-from ..product.models import Product, StockedProduct, PhysicalProduct
+from ..product.models import (Product, StockedProduct, PhysicalProduct,
+                              FixedProductDiscount)
 
-__all__ = ['CartTest', 'GroupTest', 'AddToCartFormTest']
+__all__ = ['CartTest', 'AddToCartFormTest']
 
 
 class BigShip(Product, StockedProduct, PhysicalProduct):
@@ -35,33 +35,17 @@ class CartTest(TestCase):
         self.assertFalse(cart)
 
 
-class Shipping(BaseDelivery):
+class CartPartitionerTest(TestCase):
 
-    def __unicode__(self):
-        return 'Dummy shipping'
+    def setUp(self):
+        self.cart = Cart()
 
-    def get_price_per_item(self, **_kwargs):
-        weight = sum(line.product.weight for line in self.group)
-        qty = sum(line.quantity for line in self.group)
-        return Price(qty * weight, currency='USD')
-
-
-class Group(BaseGroup):
-
-    def get_delivery_methods(self):
-        yield Shipping(self)
-
-
-class GroupTest(TestCase):
-
-    def test_get_delivery_total(self):
-        'Shipped group works'
-        group = Group([])
-        self.assertEqual(group.get_delivery_total(),
-                         Price(0, currency='USD'), 0)
-        group.append(CartLine(stock_product, 2))
-        self.assertEqual(group.get_delivery_total(),
-                         Price(246, currency='USD'), 246)
+    @patch.object(FixedProductDiscount, 'objects')
+    def test_total_price_including_custom_delivery_method(self, mock_manager):
+        self.cart.add(stock_product, 1)
+        items = CartPartitioner(self.cart)
+        self.assertEqual(items.get_total(),
+                         Price(10, currency='USD'))
 
 
 class AddToCartFormTest(TestCase):

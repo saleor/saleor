@@ -14,5 +14,4 @@ def canonical_hostname(request):
 
 
 def default_currency(request):
-    return get_setting_as_dict('SATCHLESS_DEFAULT_CURRENCY',
-                               'DEFAULT_CURRENCY')
+    return get_setting_as_dict('DEFAULT_CURRENCY')

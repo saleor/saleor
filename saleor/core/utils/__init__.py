@@ -36,13 +36,11 @@ class BaseStep(Step):
 
     forms = None
     template = ''
+    group = None
 
     def __init__(self, request):
         self.request = request
         self.forms = {}
-
-    def __unicode__(self):
-        raise NotImplementedError()
 
     def __nonzero__(self):
         try:
