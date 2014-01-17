@@ -2,7 +2,7 @@ from django.test import TestCase
 from mock import MagicMock, patch
 
 from . import BillingAddressStep, ShippingStep
-from ..checkout import Checkout
+from ..checkout import Checkout, STORAGE_SESSION_KEY
 from ..checkout.steps import BaseAddressStep
 from ..userprofile.models import Address
 
@@ -29,7 +29,7 @@ class TestBaseAddressStep(TestCase):
         and user isn't authenticated.
         '''
         self.request.POST = NEW_ADDRESS
-        step = BaseAddressStep(self.checkout, self.request, self.address)
+        step = BaseAddressStep(self.checkout, self.request, {}, self.address)
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
         self.assertEqual(step.address.first_name, 'Test')
 
@@ -44,17 +44,19 @@ class TestBillingAddressStep(TestCase):
     def test_address_save_without_address(self):
         self.checkout.billing_address = None
         self.request.POST = NEW_ADDRESS
-        step = BillingAddressStep(self.checkout, self.request)
+        storage = {}
+        step = BillingAddressStep(self.checkout, self.request, storage)
         self.assertEquals(step.process(), None)
         self.checkout.save.assert_called_once_with()
-        self.assertEqual(type(self.checkout.billing_address), Address)
-        self.assertEqual(self.checkout.billing_address.first_name, 'Test')
+        self.assertEqual(type(storage['address']), Address)
+        self.assertEqual(storage['address'].first_name, 'Test')
 
     def test_address_save_with_address_in_checkout(self):
         self.request.POST = NEW_ADDRESS
         self.request.POST['email'] = 'test@gmail.com'
         self.checkout.billing_address = Address()
-        step = BillingAddressStep(self.checkout, self.request)
+        storage = MagicMock()
+        step = BillingAddressStep(self.checkout, self.request, storage)
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
 
 
@@ -72,15 +74,15 @@ class TestShippingStep(TestCase):
     def test_address_save_without_address(self, mock_save):
         self.request.POST = NEW_ADDRESS
         self.request.POST['method'] = 'dummy_shipping'
+        self.request.session = {STORAGE_SESSION_KEY: {}}
         group = MagicMock()
         group.address = None
-        checkout = Checkout(self.request)
-        step = ShippingStep(checkout, self.request, group)
+        storage = {}
+        step = ShippingStep(self.checkout, self.request, storage, group)
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
         step.save()
         self.assertEqual(mock_save.call_count, 0)
-        group_storage = checkout.get_group(str(step))
-        self.assertEqual(type(group_storage['address']), Address,
+        self.assertEqual(type(storage['address']), Address,
                          'Address instance expected')
 
     @patch.object(Address, 'save')
@@ -89,7 +91,8 @@ class TestShippingStep(TestCase):
         self.request.POST['method'] = 'dummy_shipping'
         group = MagicMock()
         group.address = Address()
-        step = ShippingStep(self.checkout, self.request, group)
+        storage = MagicMock()
+        step = ShippingStep(self.checkout, self.request, storage, group)
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
         step.save()
         self.assertEqual(mock_save.call_count, 0)
@@ -105,10 +108,11 @@ class TestShippingStep(TestCase):
         self.checkout.billing_address = original_billing_address
         group = MagicMock()
         group.address = None
-        step = ShippingStep(self.checkout, self.request, group)
+        storage = {}
+        step = ShippingStep(self.checkout, self.request, storage, group)
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
         step.save()
         self.assertEqual(mock_save.call_count, 0)
         self.assertEqual(self.checkout.billing_address,
                          Address(**original_billing_address_data))
-        self.assertEqual(step.delivery_group_data['address'].id, None)
+        self.assertEqual(storage['address'].id, None)
