@@ -41,21 +41,21 @@ class Checkout(ProcessManager):
     def generate_steps(self, cart):
         self.items = CartPartitioner(cart)
         self.billing = BillingAddressStep(
-            self, self.request, self.get_storage('billing'))
+            self.request, self.get_storage('billing'))
         self.steps.append(self.billing)
         for index, delivery_group in enumerate(self.items):
             if isinstance(delivery_group, DigitalGroup):
                 storage = self.get_storage('digital_%s' % (index,))
                 step = DigitalDeliveryStep(
-                    self, self.request, storage, delivery_group, _id=index)
+                    self.request, storage, delivery_group, _id=index)
             else:
                 storage = self.get_storage('shipping_%s' % (index,))
                 step = ShippingStep(
-                    self, self.request, storage, delivery_group, _id=index,
+                    self.request, storage, delivery_group, _id=index,
                     default_address=self.billing_address)
             self.steps.append(step)
         summary_step = SummaryStep(
-            self, self.request, self.get_storage('summary'))
+            self.request, self.get_storage('summary'), checkout=self)
         self.steps.append(summary_step)
 
     @property

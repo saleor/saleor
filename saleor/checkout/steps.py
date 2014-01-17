@@ -19,12 +19,10 @@ from ..userprofile.models import Address, User
 
 class BaseCheckoutStep(BaseStep):
 
-    checkout = None
     storage = None
 
-    def __init__(self, checkout, request, storage):
+    def __init__(self, request, storage):
         super(BaseCheckoutStep, self).__init__(request)
-        self.checkout = checkout
         self.storage = storage
 
     @models.permalink
@@ -34,11 +32,6 @@ class BaseCheckoutStep(BaseStep):
     def add_to_order(self, order):
         raise NotImplementedError()
 
-    def process(self, extra_context=None):
-        context = dict(extra_context or {})
-        context['checkout'] = self.checkout
-        return super(BaseCheckoutStep, self).process(extra_context=context)
-
 
 class BaseAddressStep(BaseCheckoutStep):
 
@@ -46,8 +39,8 @@ class BaseAddressStep(BaseCheckoutStep):
     address = None
     template = 'checkout/address.html'
 
-    def __init__(self, checkout, request, storage, address):
-        super(BaseAddressStep, self).__init__(checkout, request, storage)
+    def __init__(self, request, storage, address):
+        super(BaseAddressStep, self).__init__(request, storage)
         if address:
             address_dict = Address.objects.as_data(address)
             self.address = Address(**address_dict)
@@ -95,7 +88,7 @@ class BillingAddressStep(BaseAddressStep):
     title = _('Billing Address')
     anonymous_user_email = ''
 
-    def __init__(self, checkout, request, storage):
+    def __init__(self, request, storage):
         address = storage.get('address')
         skip = False
         if not address and request.user.is_authenticated():
@@ -105,8 +98,7 @@ class BillingAddressStep(BaseAddressStep):
             elif request.user.address_book.count() == 1:
                 address = request.user.address_book.all()[0].address
                 skip = True
-        super(BillingAddressStep, self).__init__(
-            checkout, request, storage, address)
+        super(BillingAddressStep, self).__init__(request, storage, address)
         if not request.user.is_authenticated():
             self.anonymous_user_email = self.storage.get(
                 'anonymous_user_email')
@@ -132,7 +124,6 @@ class BillingAddressStep(BaseAddressStep):
     def save(self):
         self.storage['anonymous_user_email'] = self.anonymous_user_email
         self.storage['address'] = self.address
-        self.checkout.save()
 
     def add_to_order(self, order):
         self.address.save()
@@ -156,11 +147,11 @@ class ShippingStep(BaseAddressStep):
     title = _('Shipping Details')
     delivery_method = None
 
-    def __init__(self, checkout, request, storage, purchased_items, _id=None,
+    def __init__(self, request, storage, purchased_items, _id=None,
                  default_address=None):
         self.id = _id
         address = storage.get('address', default_address)
-        super(ShippingStep, self).__init__(checkout, request, storage, address)
+        super(ShippingStep, self).__init__(request, storage, address)
         delivery_choices = list(
             get_delivery_choices_for_group(purchased_items, address=address))
         selected_delivery_name = storage.get('delivery_method')
@@ -185,7 +176,6 @@ class ShippingStep(BaseAddressStep):
         self.storage['address'] = self.address
         delivery_method = delivery_form.cleaned_data['method']
         self.storage['delivery_method'] = delivery_method
-        self.checkout.save()
 
     def validate(self):
         super(ShippingStep, self).validate()
@@ -224,8 +214,8 @@ class DigitalDeliveryStep(BaseCheckoutStep):
     template = 'checkout/digitaldelivery.html'
     title = _('Digital Delivery')
 
-    def __init__(self, checkout, request, storage, items_group=None, _id=None):
-        super(DigitalDeliveryStep, self).__init__(checkout, request, storage)
+    def __init__(self, request, storage, items_group=None, _id=None):
+        super(DigitalDeliveryStep, self).__init__(request, storage)
         self.id = _id
         self.forms['email'] = DigitalDeliveryForm(request.POST or None,
                                                   initial=self.storage,
@@ -246,7 +236,6 @@ class DigitalDeliveryStep(BaseCheckoutStep):
 
     def save(self):
         self.storage.update(self.forms['email'].cleaned_data)
-        self.checkout.save()
 
     def add_to_order(self, order):
         delivery_method = self.storage['delivery_method']
@@ -267,6 +256,11 @@ class SummaryStep(BaseCheckoutStep):
 
     template = 'checkout/summary.html'
     title = _('Summary')
+    checkout = None
+
+    def __init__(self, request, storage, checkout):
+        self.checkout = checkout
+        super(SummaryStep, self).__init__(request, storage)
 
     def __str__(self):
         return 'summary'
