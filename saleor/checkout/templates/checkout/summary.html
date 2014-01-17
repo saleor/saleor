@@ -35,56 +35,58 @@
         </div>
     </div>
 
-    {% for group in checkout.groups %}
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                {% blocktrans with number=forloop.counter %}Delivery group #{{ number }}{% endblocktrans %}
-            </div>
-            <div class="panel-body">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th class="col-sm-4">{% trans "Name" %}</th>
-                            <th class="col-sm-2">{% trans "Price" %}</th>
-                            <th class="col-sm-2">{% trans "Subtotal" %}</th>
-                        </tr>
-                    </thead>
-                    <tfoot>
-                        <tr>
-                            <th class="col-sm-4"></th>
-                            <th class="col-sm-2">{% trans "Total" %}</th>
-                            <th class="col-sm-2">{% gross group.get_total_with_delivery %}</th>
-                        </tr>
-                    </tfoot>
-                    <tbody>
-                        {% for item in group %}
+    {% for step in checkout %}
+        {% if step.group %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    {% blocktrans with number=forloop.counter %}Delivery group #{{ number }}{% endblocktrans %}
+                </div>
+                <div class="panel-body">
+                    <table class="table table-striped">
+                        <thead>
                             <tr>
-                                <td class="col-sm-4">{{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}</td>
-                                <td class="col-sm-2">{% gross item.get_price_per_item %}</td>
-                                <td class="col-sm-2">{% gross item.get_total %}</td>
+                                <th class="col-sm-4">{% trans "Name" %}</th>
+                                <th class="col-sm-2">{% trans "Price" %}</th>
+                                <th class="col-sm-2">{% trans "Subtotal" %}</th>
                             </tr>
-                        {% endfor %}
-                        {% if group.get_delivery_total.gross %}
+                        </thead>
+                        <tfoot>
                             <tr>
-                                <td class="col-sm-4">
-                                    {% trans "Shipping" %} ({{ group }})
-                                </td>
-                                <td class="col-sm-2">{% gross group.get_delivery_total %}</td>
-                                <td class="col-sm-2">{% gross group.get_delivery_total %}</td>
+                                <th class="col-sm-4"></th>
+                                <th class="col-sm-2">{% trans "Total" %}</th>
+                                <th class="col-sm-2">{% gross step.group.get_total_with_delivery %}</th>
                             </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-                {% if group.email %}
-                    <p>{% trans "Will be sent to" %} {{ group.email }}</p>
-                {% elif group.address %}
-                    <p>{% trans "Will be shipped to" %} {% include "userprofile/snippets/address-short.html" with address=group.address %}</p>
-                {% else %}
-                    <p class="text-danger">{% trans "No address given yet." %}</p>
-                {% endif %}
-                <p><a href="{{ group.step.get_absolute_url }}">{% trans "Edit delivery details" %}</a></p>
+                        </tfoot>
+                        <tbody>
+                            {% for item in step.group %}
+                                <tr>
+                                    <td class="col-sm-4">{{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}</td>
+                                    <td class="col-sm-2">{% gross item.get_price_per_item %}</td>
+                                    <td class="col-sm-2">{% gross item.get_total %}</td>
+                                </tr>
+                            {% endfor %}
+                            {% if step.group.get_delivery_total.gross %}
+                                <tr>
+                                    <td class="col-sm-4">
+                                        {% trans "Shipping" %} ({{ step.group }})
+                                    </td>
+                                    <td class="col-sm-2">{% gross step.group.get_delivery_total %}</td>
+                                    <td class="col-sm-2">{% gross step.group.get_delivery_total %}</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                    {% if step.group.email %}
+                        <p>{% trans "Will be sent to" %} {{ step.group.email }}</p>
+                    {% elif step.group.address %}
+                        <p>{% trans "Will be shipped to" %} {% include "userprofile/snippets/address-short.html" with address=step.group.address %}</p>
+                    {% else %}
+                        <p class="text-danger">{% trans "No address given yet." %}</p>
+                    {% endif %}
+                    <p><a href="{{ step.group.step.get_absolute_url }}">{% trans "Edit delivery details" %}</a></p>
+                </div>
             </div>
-        </div>
+        {% endif %}
     {% endfor %}
 
     {% with total=checkout.get_total %}

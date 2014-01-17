@@ -1,4 +1,4 @@
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 
 from satchless.process import ProcessManager
 
@@ -11,14 +11,14 @@ from ..order.models import Order
 STORAGE_SESSION_KEY = 'checkout_storage'
 
 
-class CheckoutStorage(dict):
+class CheckoutStorage(defaultdict):
 
     modified = False
 
     def __init__(self, *args, **kwargs):
-        super(CheckoutStorage, self).__init__(*args, **kwargs)
-        self.update({'anonymous_user_email': '', 'billing_address': None,
-                     'groups': defaultdict(dict), 'summary': False})
+        super(CheckoutStorage, self).__init__(dict, * args, **kwargs)
+        if not 'billing' in self:
+            self['billing'] = {'address': None, 'anonymous_user_email': None}
 
 
 class Checkout(ProcessManager):
@@ -30,64 +30,68 @@ class Checkout(ProcessManager):
 
     def __init__(self, request):
         self.request = request
+        self.groups = []
+        self.steps = []
+        self.items = []
         try:
-            self.storage = request.session[STORAGE_SESSION_KEY]
+            self.storage = CheckoutStorage(
+                request.session[STORAGE_SESSION_KEY])
         except KeyError:
             self.storage = CheckoutStorage()
-        self.generate_groups(request.cart)
+        self.generate_steps(request.cart)
 
-    def generate_groups(self, cart):
+    def generate_steps(self, cart):
         self.items = CartPartitioner(cart)
-        self.groups = []
-        self.billing = BillingAddressStep(self, self.request)
-        self.steps = [self.billing]
+        self.billing = BillingAddressStep(
+            self, self.request, self.storage['billing'])
+        self.steps.append(self.billing)
         for index, delivery_group in enumerate(self.items):
             if isinstance(delivery_group, DigitalGroup):
                 step_class = DigitalDeliveryStep
             else:
                 step_class = ShippingStep
-            step = step_class(self, self.request,
+            storage_key = 'shipping_%s' % (index,)
+            step = step_class(self, self.request, self.storage[storage_key],
                               delivery_group, index)
-            group = step.get_delivery_group()
-            self.groups.append(group)
             self.steps.append(step)
-        self.steps.append(SummaryStep(self, self.request))
+        summary_step = SummaryStep(self, self.request, self.storage['summary'])
+        self.steps.append(summary_step)
 
     @property
     def anonymous_user_email(self):
-        return self.storage['anonymous_user_email']
+        return self.storage['billing']['anonymous_user_email']
 
     @anonymous_user_email.setter
     def anonymous_user_email(self, email):
-        self.storage['anonymous_user_email'] = email
+        self.storage['billing']['anonymous_user_email'] = email
 
     @anonymous_user_email.deleter
     def anonymous_user_email(self, email):
-        self.storage['anonymous_user_email'] = ''
+        self.storage['billing']['anonymous_user_email'] = ''
 
     @property
     def billing_address(self):
-        return self.storage['billing_address']
+        return self.storage['billing']['address']
 
     @billing_address.setter
     def billing_address(self, address):
-        self.storage['billing_address'] = address
+        self.storage['billing']['address'] = address
 
     @billing_address.deleter
     def billing_address(self, address):
-        self.storage['billing_address'] = None
+        self.storage['billing']['address'] = None
 
-    def get_group(self, name):
-        return self.storage['groups'][name]
+    def get_step_data(self, name):
+        return self.storage[name]
 
-    def set_group(self, name, group):
-        self['groups'][name] = group
+    def set_step_data(self, name, group):
+        self[name] = group
 
     def get_total(self, **kwargs):
         return self.items.get_total(**kwargs)
 
     def save(self):
-        self.request.session[STORAGE_SESSION_KEY] = self.storage
+        self.request.session[STORAGE_SESSION_KEY] = dict(self.storage)
 
     def clear_storage(self):
         del self.request.session[STORAGE_SESSION_KEY]
