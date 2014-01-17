@@ -11,7 +11,7 @@ from satchless.process import InvalidData
 from .forms import DigitalDeliveryForm, DeliveryForm
 from ..checkout.forms import AnonymousEmailForm
 from ..core.utils import BaseStep
-from ..delivery import get_delivery_methods_for_group
+from ..delivery import get_delivery_choices_for_group
 from ..order.models import DigitalDeliveryGroup, ShippedDeliveryGroup
 from ..userprofile.forms import AddressForm
 from ..userprofile.models import Address, User
@@ -159,19 +159,21 @@ class ShippingStep(BaseAddressStep):
         self.id = _id
         address = storage.get('address', checkout.billing_address)
         super(ShippingStep, self).__init__(checkout, request, storage, address)
-        delivery_methods = list(
-            get_delivery_methods_for_group(purchased_items, address=address))
-        delivery_name = storage.get('delivery_method')
+        delivery_choices = list(
+            get_delivery_choices_for_group(purchased_items, address=address))
+        selected_delivery_name = storage.get('delivery_method')
         # TODO: find cheapest not first
-        selected_delivery_group = delivery_methods[0]
-        for delivery in delivery_methods:
-            if delivery.name == delivery_name:
+        selected_delivery_group = delivery_choices[0][1]
+        selected_delivery_group_name = delivery_choices[0][0]
+        for delivery_name, delivery in delivery_choices:
+            if delivery_name == selected_delivery_name:
                 selected_delivery_group = delivery
+                selected_delivery_group_name = delivery_name
                 break
         self.group = selected_delivery_group
         self.forms['delivery'] = DeliveryForm(
-            delivery_methods, request.POST or None,
-            initial={'method': selected_delivery_group.name})
+            delivery_choices, request.POST or None,
+            initial={'method': selected_delivery_group_name})
 
     def __str__(self):
         return 'delivery-%s' % (self.id,)
@@ -180,7 +182,7 @@ class ShippingStep(BaseAddressStep):
         delivery_form = self.forms['delivery']
         self.storage['address'] = self.address
         delivery_method = delivery_form.cleaned_data['method']
-        self.storage['delivery_method'] = delivery_method.name
+        self.storage['delivery_method'] = delivery_method
         self.checkout.save()
 
     def validate(self):
@@ -227,9 +229,9 @@ class DigitalDeliveryStep(BaseCheckoutStep):
                                                   initial=self.storage,
                                                   user=request.user)
         email = self.storage.get('email')
-        delivery_methods = list(
-            get_delivery_methods_for_group(items_group, email=email))
-        selected_delivery_group = delivery_methods[0]
+        delivery_choices = list(
+            get_delivery_choices_for_group(items_group, email=email))
+        selected_delivery_group = delivery_choices[0][1]
         self.storage['delivery_method'] = selected_delivery_group
         self.group = selected_delivery_group
 

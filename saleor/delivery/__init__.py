@@ -24,15 +24,6 @@ class BaseDelivery(ItemSet):
     def get_total_with_delivery(self):
         return self.group.get_total() + self.get_delivery_total()
 
-    @property
-    def name(self):
-        '''
-        Returns undescored version of class name
-        '''
-        name = type(self).__name__
-        name = sub('(((?<=[a-z])[A-Z])|([A-Z](?![A-Z]|$)))', '_\\1', name)
-        return name.lower().strip('_')
-
 
 class DummyShipping(BaseDelivery):
 
@@ -60,10 +51,10 @@ class DigitalDelivery(BaseDelivery):
         return 'Digital delivery'
 
 
-def get_delivery_methods_for_group(group, **kwargs):
+def get_delivery_choices_for_group(group, **kwargs):
     if 'address' in kwargs:
-        yield DummyShipping(group, kwargs['address'])
+        yield ('dummy_shipping', DummyShipping(group, kwargs['address']))
     elif 'email' in kwargs:
-        yield DigitalDelivery(group, kwargs['email'])
+        yield ('digital_delivery', DigitalDelivery(group, kwargs['email']))
     else:
         raise ValueError('Unknown delivery type')
