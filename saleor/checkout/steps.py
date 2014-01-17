@@ -19,8 +19,6 @@ from ..userprofile.models import Address, User
 
 class BaseCheckoutStep(BaseStep):
 
-    storage = None
-
     def __init__(self, request, storage):
         super(BaseCheckoutStep, self).__init__(request)
         self.storage = storage
@@ -35,8 +33,6 @@ class BaseCheckoutStep(BaseStep):
 
 class BaseAddressStep(BaseCheckoutStep):
 
-    method = None
-    address = None
     template = 'checkout/address.html'
 
     def __init__(self, request, storage, address):
@@ -86,7 +82,6 @@ class BillingAddressStep(BaseAddressStep):
 
     template = 'checkout/billing.html'
     title = _('Billing Address')
-    anonymous_user_email = ''
 
     def __init__(self, request, storage):
         address = storage.get('address')
@@ -105,6 +100,8 @@ class BillingAddressStep(BaseAddressStep):
             initial = {'email': self.anonymous_user_email}
             self.forms['anonymous'] = AnonymousEmailForm(request.POST or None,
                                                          initial=initial)
+        else:
+            self.anonymous_user_email = ''
         if skip:
             self.save()
 
@@ -145,7 +142,6 @@ class ShippingStep(BaseAddressStep):
 
     template = 'checkout/shipping.html'
     title = _('Shipping Details')
-    delivery_method = None
 
     def __init__(self, request, storage, purchased_items, _id=None,
                  default_address=None):
@@ -156,8 +152,8 @@ class ShippingStep(BaseAddressStep):
             get_delivery_choices_for_group(purchased_items, address=address))
         selected_delivery_name = storage.get('delivery_method')
         # TODO: find cheapest not first
-        selected_delivery_group = delivery_choices[0][1]
-        selected_delivery_group_name = delivery_choices[0][0]
+        (selected_delivery_group_name,
+         selected_delivery_group) = delivery_choices[0]
         for delivery_name, delivery in delivery_choices:
             if delivery_name == selected_delivery_name:
                 selected_delivery_group = delivery
@@ -191,11 +187,10 @@ class ShippingStep(BaseAddressStep):
 
     def add_to_order(self, order):
         self.address.save()
-        delivery_method = self.storage['delivery_method']
         group = ShippedDeliveryGroup.objects.create(
             order=order, address=self.address,
-            price=delivery_method.get_price(),
-            method=smart_text(delivery_method))
+            price=self.group.get_delivery_total(),
+            method=smart_text(self.group))
         group.add_items_from_partition(self.group)
         if order.user:
             alias = '%s, %s' % (order, self)
@@ -238,11 +233,10 @@ class DigitalDeliveryStep(BaseCheckoutStep):
         self.storage.update(self.forms['email'].cleaned_data)
 
     def add_to_order(self, order):
-        delivery_method = self.storage['delivery_method']
         group = DigitalDeliveryGroup.objects.create(
             order=order, email=self.storage['email'],
-            price=delivery_method.get_price(),
-            method=smart_text(delivery_method))
+            price=self.group.get_delivery_total(),
+            method=smart_text(self.group))
         group.add_items_from_partition(self.group)
 
     def process(self, extra_context=None):
@@ -256,7 +250,6 @@ class SummaryStep(BaseCheckoutStep):
 
     template = 'checkout/summary.html'
     title = _('Summary')
-    checkout = None
 
     def __init__(self, request, storage, checkout):
         self.checkout = checkout
