@@ -11,7 +11,7 @@ from django_images.models import Image
 from django_prices.models import PriceField
 from mptt.models import MPTTModel
 from prices import FixedDiscount
-from satchless.item import Item, StockedItem
+from satchless.item import Item, ItemRange, StockedItem
 from unidecode import unidecode
 
 from ..core.utils.models import Subtyped
@@ -40,15 +40,10 @@ class Category(MPTTModel):
         return reverse('product:category', kwargs={'slug': self.slug})
 
 
-class Product(Subtyped, Item):
+class Product(Subtyped, ItemRange):
 
     name = models.CharField(
         pgettext_lazy('Product field', 'name'), max_length=128)
-    price = PriceField(pgettext_lazy('Product field', 'price'),
-                       currency=settings.DEFAULT_CURRENCY,
-                       max_digits=12, decimal_places=4)
-    sku = models.CharField(
-        pgettext_lazy('Product field', 'sku'), max_length=32, unique=True)
     category = models.ForeignKey(
         Category, verbose_name=pgettext_lazy('Product field', 'category'),
         related_name='products')
@@ -60,6 +55,30 @@ class Product(Subtyped, Item):
         return reverse('product:details', kwargs={'slug': self.get_slug(),
                                                   'product_id': self.id})
 
+    def get_slug(self):
+        value = unidecode(self.name)
+        value = re.sub(r'[^\w\s-]', '', value).strip().lower()
+
+        return mark_safe(re.sub(r'[-\s]+', '-', value))
+
+    def __iter__(self):
+        return iter(self.variants.all())
+
+
+class ProductVariant(models.Model, Item):
+
+    product = models.ForeignKey(Product, related_name='variants')
+    name = models.CharField(pgettext_lazy('Product field', 'name'),
+                            max_length=128, blank=True, default='')
+    price = PriceField(pgettext_lazy('Product field', 'price'),
+                       currency=settings.DEFAULT_CURRENCY,
+                       max_digits=12, decimal_places=4)
+    sku = models.CharField(
+        pgettext_lazy('Product field', 'sku'), max_length=32, unique=True)
+
+    def __unicode__(self):
+        return self.name or self.product.name
+
     def get_price_per_item(self, discounted=True, **kwargs):
         price = self.price
         if discounted:
@@ -69,12 +88,6 @@ class Product(Subtyped, Item):
                 price += modifier
         return price
 
-    def get_slug(self):
-        value = unidecode(self.name)
-        value = re.sub(r'[^\w\s-]', '', value).strip().lower()
-
-        return mark_safe(re.sub(r'[-\s]+', '-', value))
-
 
 class ImageManager(models.Manager):
 
@@ -82,9 +95,9 @@ class ImageManager(models.Manager):
         return self.get_query_set()[0]
 
 
-class ProductImage(Image):
+class ProductVariantImage(Image):
 
-    product = models.ForeignKey(Product, related_name='images')
+    product = models.ForeignKey(ProductVariant, related_name='images')
 
     objects = ImageManager()
 
@@ -152,19 +165,33 @@ class StockedProduct(models.Model, StockedItem):
 
 class PhysicalProduct(models.Model):
 
-    weight = models.PositiveIntegerField()
-    length = models.PositiveIntegerField(blank=True, default=0)
-    width = models.PositiveIntegerField(blank=True, default=0)
-    depth = models.PositiveIntegerField(blank=True, default=0)
+    weight = models.DecimalField(max_digits=6, decimal_places=2)
+    length = models.DecimalField(
+        max_digits=6, decimal_places=2, blank=True, default=0)
+    width = models.DecimalField(
+        max_digits=6, decimal_places=2, blank=True, default=0)
+    depth = models.DecimalField(
+        max_digits=6, decimal_places=2, blank=True, default=0)
 
     class Meta:
         abstract = True
 
 
-class DigitalShip(Product):
+class Bag(Product, PhysicalProduct):
 
-    url = models.URLField()
+    pass
 
 
-class Ship(Product, StockedProduct, PhysicalProduct):
+class Shirt(Product, PhysicalProduct):
+
+    pass
+
+
+class BagVariant(ProductVariant, StockedProduct):
+
+    pass
+
+
+class ShirtVariant(Product, StockedProduct):
+
     pass
