@@ -23,16 +23,15 @@ class NotApplicable(ValueError):
 
 class Category(MPTTModel):
 
-    name = models.CharField(pgettext_lazy('Category field', 'name'),
-                            max_length=128)
-    slug = models.SlugField(pgettext_lazy('Category field', 'slug'),
-                            max_length=50, unique=True)
-    description = models.TextField(pgettext_lazy('Category field',
-                                                 'description'), blank=True)
-    parent = models.ForeignKey('self', null=True, related_name='children',
-                               verbose_name=pgettext_lazy('Category field',
-                                                          'parent'),
-                               blank=True)
+    name = models.CharField(
+        pgettext_lazy('Category field', 'name'), max_length=128)
+    slug = models.SlugField(
+        pgettext_lazy('Category field', 'slug'), max_length=50, unique=True)
+    description = models.TextField(
+        pgettext_lazy('Category field', 'description'), blank=True)
+    parent = models.ForeignKey(
+        'self', null=True, blank=True, related_name='children',
+        verbose_name=pgettext_lazy('Category field', 'parent'))
 
     def __unicode__(self):
         return self.name
@@ -43,16 +42,16 @@ class Category(MPTTModel):
 
 class Product(Subtyped, Item):
 
-    name = models.CharField(pgettext_lazy('Product field', 'name'),
-                            max_length=128)
+    name = models.CharField(
+        pgettext_lazy('Product field', 'name'), max_length=128)
     price = PriceField(pgettext_lazy('Product field', 'price'),
                        currency=settings.DEFAULT_CURRENCY,
                        max_digits=12, decimal_places=4)
-    sku = models.CharField(pgettext_lazy('Product field', 'sku'),
-                           max_length=32, unique=True)
-    category = models.ForeignKey(Category, related_name='products',
-                                 verbose_name=pgettext_lazy('Product field',
-                                                            'category'))
+    sku = models.CharField(
+        pgettext_lazy('Product field', 'sku'), max_length=32, unique=True)
+    category = models.ForeignKey(
+        Category, verbose_name=pgettext_lazy('Product field', 'category'),
+        related_name='products')
 
     def __unicode__(self):
         return self.name
