@@ -67,7 +67,6 @@ class Product(Subtyped, ItemRange):
 
 class ProductVariant(models.Model, Item):
 
-    product = models.ForeignKey(Product, related_name='variants')
     name = models.CharField(pgettext_lazy('Product field', 'name'),
                             max_length=128, blank=True, default='')
     price = PriceField(pgettext_lazy('Product field', 'price'),
@@ -75,6 +74,9 @@ class ProductVariant(models.Model, Item):
                        max_digits=12, decimal_places=4)
     sku = models.CharField(
         pgettext_lazy('Product field', 'sku'), max_length=32, unique=True)
+
+    class Meta:
+        abstract = True
 
     def __unicode__(self):
         return self.name or self.product.name
@@ -97,7 +99,7 @@ class ImageManager(models.Manager):
 
 class ProductVariantImage(Image):
 
-    product = models.ForeignKey(ProductVariant, related_name='images')
+    product = models.ForeignKey(Product, related_name='images')
 
     objects = ImageManager()
 
@@ -189,9 +191,30 @@ class Shirt(Product, PhysicalProduct):
 
 class BagVariant(ProductVariant, StockedProduct):
 
-    pass
+    COLOR_CHOICES = (
+        ('#ff0000', pgettext_lazy('Variant color', 'red')),
+        ('#00ff00', pgettext_lazy('Variant color', 'green')),
+        ('#ff00ff', pgettext_lazy('Variant color', 'blue')),
+    )
+
+    product = models.ForeignKey(Bag, related_name='variants')
+    color = models.CharField(choices=COLOR_CHOICES, max_length=7, unique=True)
 
 
-class ShirtVariant(Product, StockedProduct):
+class ShirtVariant(ProductVariant, StockedProduct):
 
-    pass
+    COLOR_CHOICES = BagVariant.COLOR_CHOICES
+    SIZE_CHOICES = (
+        ('xs', pgettext_lazy('Variant size', 'xs')),
+        ('s', pgettext_lazy('Variant size', 's')),
+        ('m', pgettext_lazy('Variant size', 'm')),
+        ('l', pgettext_lazy('Variant size', 'l')),
+        ('xl', pgettext_lazy('Variant size', 'xl')),
+        ('xxl', pgettext_lazy('Variant size', 'xll')))
+
+    product = models.ForeignKey(Shirt, related_name='variants')
+    color = models.CharField(choices=COLOR_CHOICES, max_length=7)
+    size = models.CharField(choices=SIZE_CHOICES, max_length=3)
+
+    class Meta:
+        unique_together = ('color', 'size')
