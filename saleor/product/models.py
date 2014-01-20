@@ -97,7 +97,7 @@ class ImageManager(models.Manager):
         return self.get_query_set()[0]
 
 
-class ProductVariantImage(Image):
+class ProductImage(Image):
 
     product = models.ForeignKey(Product, related_name='images')
 

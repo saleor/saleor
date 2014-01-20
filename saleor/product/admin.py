@@ -1,20 +1,36 @@
 from django.contrib import admin
 from mptt.admin import MPTTModelAdmin
 
-from . import models
+from .models import (ProductImage, BagVariant, Bag, ShirtVariant, Shirt,
+                     Category, FixedProductDiscount)
 
 
 class ImageAdminInline(admin.StackedInline):
 
-    model = models.ProductImage
+    model = ProductImage
 
 
-class ProductAdmin(admin.ModelAdmin):
+class BagVariantInline(admin.StackedInline):
 
-    inlines = [ImageAdminInline]
+    model = BagVariant
 
 
-admin.site.register(models.DigitalShip, ProductAdmin)
-admin.site.register(models.Ship, ProductAdmin)
-admin.site.register(models.Category, MPTTModelAdmin)
-admin.site.register(models.FixedProductDiscount)
+class BagAdmin(admin.ModelAdmin):
+
+    inlines = [BagVariantInline, ImageAdminInline]
+
+
+class ShirtVariant(admin.StackedInline):
+
+    model = ShirtVariant
+
+
+class ShirtAdmin(admin.ModelAdmin):
+
+    inlines = [ShirtVariant, ImageAdminInline]
+
+
+admin.site.register(Bag, BagAdmin)
+admin.site.register(Shirt, ShirtAdmin)
+admin.site.register(Category, MPTTModelAdmin)
+admin.site.register(FixedProductDiscount)
