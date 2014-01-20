@@ -4,8 +4,6 @@ from django.utils.translation import pgettext
 from satchless import cart
 from satchless.item import ItemList, ClassifyingPartitioner
 
-from ..product.models import DigitalShip
-
 
 class ShippedGroup(ItemList):
     '''
@@ -26,13 +24,9 @@ class CartPartitioner(ClassifyingPartitioner):
     Dividing cart into groups.
     '''
     def classify(self, item):
-        if isinstance(item.product, DigitalShip):
-            return 'digital'
         return 'shippable'
 
     def get_partition(self, classifier, items):
-        if classifier == 'digital':
-            return DigitalGroup(items)
         return ShippedGroup(items)
 
 
