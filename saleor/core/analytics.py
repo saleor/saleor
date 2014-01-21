@@ -42,7 +42,7 @@ def report_order(client_id, order):
         items = [ga.Item(oi.product_name,
                          oi.get_price_per_item(),
                          quantity=oi.quantity,
-                         item_id=oi.product.sku)
+                         item_id=oi.product_sku)
                  for oi in group]
         trans = ga.Transaction('%s-%s' % (order.id, group.id), items,
                                revenue=group.get_total(), shipping=group.price)
