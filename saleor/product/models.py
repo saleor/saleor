@@ -90,6 +90,12 @@ class ProductVariant(models.Model, Item):
                 price += modifier
         return price
 
+    def get_absolute_url(self):
+        slug = self.product.get_slug()
+        product_id = self.product.id
+        return reverse(
+            'product:details', kwargs={'slug': slug, 'product_id': product_id})
+
 
 class ImageManager(models.Manager):
 
