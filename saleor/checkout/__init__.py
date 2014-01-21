@@ -1,5 +1,7 @@
 from collections import defaultdict
 
+from django.conf import settings
+from prices import Price
 from satchless.process import ProcessManager
 
 from .steps import (BillingAddressStep, ShippingStep, DigitalDeliveryStep,
@@ -92,7 +94,10 @@ class Checkout(ProcessManager):
         return self.storage[name]
 
     def get_total(self, **kwargs):
-        return self.items.get_total(**kwargs)
+        zero = Price(0, currency=settings.DEFAULT_CURRENCY)
+        total = sum((step.group.get_total_with_delivery() for step in self
+                    if step.group), zero)
+        return total
 
     def save(self):
         self.request.session[STORAGE_SESSION_KEY] = dict(self.storage)
