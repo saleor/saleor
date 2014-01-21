@@ -144,7 +144,6 @@ class ReplaceCartLineFormSetTest(TestCase):
         cart = Cart()
         cart.add(stock_product, 5)
         cart.add(digital_product, 100)
-        print 'TETS'
         form = ReplaceCartLineFormSet(post, cart=cart)
         self.assertTrue(form.is_valid())
         form.save()
