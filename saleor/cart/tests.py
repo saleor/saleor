@@ -70,7 +70,8 @@ class BigShipCartFormTest(TestCase):
 
     def test_quantity(self):
         'Is BigShipCartForm works with correct quantity value on empty cart'
-        form = BigShipCartForm(self.post, cart=self.cart, product=stock_product)
+        form = BigShipCartForm(
+            self.post, cart=self.cart, product=stock_product)
         self.assertTrue(form.is_valid())
         self.assertFalse(self.cart)
         form.save()
@@ -79,10 +80,12 @@ class BigShipCartFormTest(TestCase):
 
     def test_max_quantity(self):
         'Is BigShipCartForm works with correct product stock value'
-        form = BigShipCartForm(self.post, cart=self.cart, product=stock_product)
+        form = BigShipCartForm(
+            self.post, cart=self.cart, product=stock_product)
         self.assertTrue(form.is_valid())
         form.save()
-        form = BigShipCartForm(self.post, cart=self.cart, product=stock_product)
+        form = BigShipCartForm(
+            self.post, cart=self.cart, product=stock_product)
         self.assertTrue(form.is_valid())
         form.save()
         product_quantity = self.cart.get_line(stock_product).quantity
