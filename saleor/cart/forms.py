@@ -29,21 +29,21 @@ class AddToCartForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.cart = kwargs.pop('cart')
         self.product = kwargs.pop('product')
-        self.cart_line = self.cart.get_line(self.product)
         super(AddToCartForm, self).__init__(*args, **kwargs)
 
     def clean(self):
         cleaned_data = super(AddToCartForm, self).clean()
         quantity = cleaned_data.get('quantity')
         if quantity is not None:
-            used_quantity = self.cart_line.quantity if self.cart_line else 0
-            new_quantity = quantity + used_quantity
             try:
                 product_variant = self.get_variant(cleaned_data)
             except ObjectDoesNotExist:
                 msg = self.error_messages['variant-does-not-exists']
                 self.add_error(NON_FIELD_ERRORS, msg)
             else:
+                cart_line = self.cart.get_line(product_variant)
+                used_quantity = cart_line.quantity if cart_line else 0
+                new_quantity = quantity + used_quantity
                 try:
                     self.cart.check_quantity(
                         product_variant, new_quantity, None)
@@ -63,7 +63,7 @@ class AddToCartForm(forms.Form):
         product_variant = self.get_variant(self.cleaned_data)
         return self.cart.add(product_variant, self.cleaned_data['quantity'])
 
-    def get_variant(self):
+    def get_variant(self, cleaned_data):
         raise NotImplementedError()
 
     def add_error(self, name, value):
@@ -75,6 +75,10 @@ class ReplaceCartLineForm(AddToCartForm):
     '''
     Replaces quantity in CartLine.
     '''
+    def __init__(self, *args, **kwargs):
+        super(ReplaceCartLineForm, self).__init__(*args, **kwargs)
+        self.cart_line = self.cart.get_line(self.product)
+
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
         try:
@@ -83,6 +87,10 @@ class ReplaceCartLineForm(AddToCartForm):
             msg = self.error_messages['insufficient-stock']
             raise forms.ValidationError(msg % {'remaining': e.item.stock})
         return quantity
+
+    def get_variant(self, cleaned_data):
+        'In cart formset product is already variant'
+        return self.product
 
     def save(self):
         '''
