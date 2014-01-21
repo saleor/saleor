@@ -48,6 +48,3 @@ class Cart(cart.Cart):
         return pgettext(
             'Shopping cart',
             'Your cart (%(cart_count)s)') % {'cart_count': self.count()}
-
-    def clear(self):
-        self._state = []
