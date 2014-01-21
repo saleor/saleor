@@ -83,7 +83,7 @@
                     {% else %}
                         <p class="text-danger">{% trans "No address given yet." %}</p>
                     {% endif %}
-                    <p><a href="{{ step.group.step.get_absolute_url }}">{% trans "Edit delivery details" %}</a></p>
+                    <p><a href="{{ step.get_absolute_url }}">{% trans "Edit delivery details" %}</a></p>
                 </div>
             </div>
         {% endif %}
@@ -92,7 +92,7 @@
     {% with total=checkout.get_total %}
         <p>
             {% trans "Your total will be" %}:
-            <strong>{% gross checkout.get_total %}</strong>
+            <strong>{% gross total %}</strong>
             {% if total.tax %}
                 ({% blocktrans with tax=total.tax|floatformat:2 currency=total.currency %}includes {{ tax }} <span class="currency">{{ currency }}</span> tax{% endblocktrans %})
             {% endif %}
