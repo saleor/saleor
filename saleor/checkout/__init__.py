@@ -109,6 +109,9 @@ class Checkout(ProcessManager):
     def __iter__(self):
         return iter(self.steps)
 
+    def delivery_steps(self):
+        return [step for step in self.steps if step.group]
+
     def create_order(self):
         order = Order()
         if self.request.user.is_authenticated():
