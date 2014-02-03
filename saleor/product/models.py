@@ -11,7 +11,7 @@ from django_images.models import Image
 from django_prices.models import PriceField
 from mptt.models import MPTTModel
 from prices import FixedDiscount
-from satchless.item import Item, StockedItem
+from satchless.item import Item, ItemRange, StockedItem
 from unidecode import unidecode
 
 from ..core.utils.models import Subtyped
@@ -43,15 +43,10 @@ class Category(MPTTModel):
         verbose_name_plural = 'categories'
 
 
-class Product(Subtyped, Item):
+class Product(Subtyped, ItemRange):
 
     name = models.CharField(
         pgettext_lazy('Product field', 'name'), max_length=128)
-    price = PriceField(pgettext_lazy('Product field', 'price'),
-                       currency=settings.DEFAULT_CURRENCY,
-                       max_digits=12, decimal_places=4)
-    sku = models.CharField(
-        pgettext_lazy('Product field', 'sku'), max_length=32, unique=True)
     category = models.ForeignKey(
         Category, verbose_name=pgettext_lazy('Product field', 'category'),
         related_name='products')
@@ -63,6 +58,32 @@ class Product(Subtyped, Item):
         return reverse('product:details', kwargs={'slug': self.get_slug(),
                                                   'product_id': self.id})
 
+    def get_slug(self):
+        value = unidecode(self.name)
+        value = re.sub(r'[^\w\s-]', '', value).strip().lower()
+
+        return mark_safe(re.sub(r'[-\s]+', '-', value))
+
+    def __iter__(self):
+        return iter(self.variants.all())
+
+
+class ProductVariant(models.Model, Item):
+
+    name = models.CharField(pgettext_lazy('Product field', 'name'),
+                            max_length=128, blank=True, default='')
+    price = PriceField(pgettext_lazy('Product field', 'price'),
+                       currency=settings.DEFAULT_CURRENCY,
+                       max_digits=12, decimal_places=4)
+    sku = models.CharField(
+        pgettext_lazy('Product field', 'sku'), max_length=32, unique=True)
+
+    class Meta:
+        abstract = True
+
+    def __unicode__(self):
+        return self.name or self.product.name
+
     def get_price_per_item(self, discounted=True, **kwargs):
         price = self.price
         if discounted:
@@ -72,11 +93,11 @@ class Product(Subtyped, Item):
                 price += modifier
         return price
 
-    def get_slug(self):
-        value = unidecode(self.name)
-        value = re.sub(r'[^\w\s-]', '', value).strip().lower()
-
-        return mark_safe(re.sub(r'[-\s]+', '-', value))
+    def get_absolute_url(self):
+        slug = self.product.get_slug()
+        product_id = self.product.id
+        return reverse(
+            'product:details', kwargs={'slug': slug, 'product_id': product_id})
 
 
 class ImageManager(models.Manager):
@@ -155,19 +176,54 @@ class StockedProduct(models.Model, StockedItem):
 
 class PhysicalProduct(models.Model):
 
-    weight = models.PositiveIntegerField()
-    length = models.PositiveIntegerField(blank=True, default=0)
-    width = models.PositiveIntegerField(blank=True, default=0)
-    depth = models.PositiveIntegerField(blank=True, default=0)
+    weight = models.DecimalField(max_digits=6, decimal_places=2)
+    length = models.DecimalField(
+        max_digits=6, decimal_places=2, blank=True, default=0)
+    width = models.DecimalField(
+        max_digits=6, decimal_places=2, blank=True, default=0)
+    depth = models.DecimalField(
+        max_digits=6, decimal_places=2, blank=True, default=0)
 
     class Meta:
         abstract = True
 
 
-class DigitalShip(Product):
+class Bag(Product, PhysicalProduct):
 
-    url = models.URLField()
-
-
-class Ship(Product, StockedProduct, PhysicalProduct):
     pass
+
+
+class Shirt(Product, PhysicalProduct):
+
+    pass
+
+
+class BagVariant(ProductVariant, StockedProduct):
+
+    COLOR_CHOICES = (
+        ('#ff0000', pgettext_lazy('Variant color', 'red')),
+        ('#00ff00', pgettext_lazy('Variant color', 'green')),
+        ('#ff00ff', pgettext_lazy('Variant color', 'blue')),
+    )
+
+    product = models.ForeignKey(Bag, related_name='variants')
+    color = models.CharField(choices=COLOR_CHOICES, max_length=7, unique=True)
+
+
+class ShirtVariant(ProductVariant, StockedProduct):
+
+    COLOR_CHOICES = BagVariant.COLOR_CHOICES
+    SIZE_CHOICES = (
+        ('xs', pgettext_lazy('Variant size', 'xs')),
+        ('s', pgettext_lazy('Variant size', 's')),
+        ('m', pgettext_lazy('Variant size', 'm')),
+        ('l', pgettext_lazy('Variant size', 'l')),
+        ('xl', pgettext_lazy('Variant size', 'xl')),
+        ('xxl', pgettext_lazy('Variant size', 'xll')))
+
+    product = models.ForeignKey(Shirt, related_name='variants')
+    color = models.CharField(choices=COLOR_CHOICES, max_length=7)
+    size = models.CharField(choices=SIZE_CHOICES, max_length=3)
+
+    class Meta:
+        unique_together = ('color', 'size')
