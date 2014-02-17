@@ -2,7 +2,7 @@ from django.contrib import admin
 from mptt.admin import MPTTModelAdmin
 
 from .models import (ProductImage, BagVariant, Bag, ShirtVariant, Shirt,
-                     Category, FixedProductDiscount)
+                     Category, FixedProductDiscount, Color)
 
 
 class ImageAdminInline(admin.StackedInline):
@@ -34,3 +34,4 @@ admin.site.register(Bag, BagAdmin)
 admin.site.register(Shirt, ShirtAdmin)
 admin.site.register(Category, MPTTModelAdmin)
 admin.site.register(FixedProductDiscount)
+admin.site.register(Color)

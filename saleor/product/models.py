@@ -188,41 +188,51 @@ class PhysicalProduct(models.Model):
         abstract = True
 
 
+class Color(models.Model):
+
+    name = models.CharField(max_length=100)
+    color = models.CharField(max_length=6)
+
+    def __str__(self):
+        return str(self.name)
+
+
+class ColoredVariants(models.Model):
+
+    color = models.ForeignKey(Color)
+
+    class Meta:
+        abstract = True
+
+
 class Bag(Product, PhysicalProduct):
 
-    pass
+    def get_available_colors(self):
+        return Color.objects.filter(bagvariant__in=self.variants.all())
 
 
 class Shirt(Product, PhysicalProduct):
 
-    pass
+    def get_available_colors(self):
+        return Color.objects.filter(shirtvariant__in=self.variants.all())
 
 
-class BagVariant(ProductVariant, StockedProduct):
-
-    COLOR_CHOICES = (
-        ('#ff0000', pgettext_lazy('Variant color', 'red')),
-        ('#00ff00', pgettext_lazy('Variant color', 'green')),
-        ('#ff00ff', pgettext_lazy('Variant color', 'blue')),
-    )
+class BagVariant(ProductVariant, StockedProduct, ColoredVariants):
 
     product = models.ForeignKey(Bag, related_name='variants')
-    color = models.CharField(choices=COLOR_CHOICES, max_length=7, unique=True)
 
 
-class ShirtVariant(ProductVariant, StockedProduct):
+class ShirtVariant(ProductVariant, StockedProduct, ColoredVariants):
 
-    COLOR_CHOICES = BagVariant.COLOR_CHOICES
     SIZE_CHOICES = (
-        ('xs', pgettext_lazy('Variant size', 'xs')),
-        ('s', pgettext_lazy('Variant size', 's')),
-        ('m', pgettext_lazy('Variant size', 'm')),
-        ('l', pgettext_lazy('Variant size', 'l')),
-        ('xl', pgettext_lazy('Variant size', 'xl')),
-        ('xxl', pgettext_lazy('Variant size', 'xll')))
+        ('xs', pgettext_lazy('Variant size', 'XS')),
+        ('s', pgettext_lazy('Variant size', 'S')),
+        ('m', pgettext_lazy('Variant size', 'M')),
+        ('l', pgettext_lazy('Variant size', 'L')),
+        ('xl', pgettext_lazy('Variant size', 'XL')),
+        ('xxl', pgettext_lazy('Variant size', 'XXL')))
 
     product = models.ForeignKey(Shirt, related_name='variants')
-    color = models.CharField(choices=COLOR_CHOICES, max_length=7)
     size = models.CharField(choices=SIZE_CHOICES, max_length=3)
 
     class Meta:
