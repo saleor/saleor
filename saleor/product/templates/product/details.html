@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% load as_vertical_form from bootstrap %}
-{% load undiscounted_price price_difference from discount %}
+{% load undiscounted_price undiscounted_price_range price_difference from discount %}
 {% load i18n %}
 {% load at_size from images %}
 {% load gross from prices %}
@@ -15,8 +15,10 @@
 {% endblock breadcrumb %}
 
 {% block outercontent %}
-{% with price=product.get_price undiscounted=product|undiscounted_price %}
-{% with discount=undiscounted|price_difference:price %}
+
+{% with price=product.get_price_range.min_price undiscounted=product|undiscounted_price_range %}
+{% with discount=undiscounted.min_price|price_difference:price %}
+
 <div itemscope itemtype="http://schema.org/Product">
     <h1 itemprop="name">
         {{ product }}
@@ -30,9 +32,9 @@
         <div class="col-sm-4">
             <p itemprop="offers" itemscope itemtype="http://schema.org/Offer">
                 <span class="price" itemprop="price">{% gross price %}</span>
-                {% if undiscounted != price %}
+                {% if undiscounted.min_price != price %}
                     <br>
-                    <span class="price undiscounted">{% gross undiscounted %}</span>
+                    <span class="price undiscounted">{% gross undiscounted.min_price %}</span>
                     <br>
                     <small class="label label-success">{% trans "You save" %} {% gross discount %}</small>
                 {% endif %}
@@ -45,9 +47,15 @@
                 {% endif %}
             </p>
             <hr>
+        <h3>{% trans "Available Colors" %}</h3>
+            {% for color in product.get_available_colors %}
+                <span class="label" style="background-color: #{{ color.color }}">{{ color.name }}</span>
+            {% endfor %}
+        <hr>
+        <h3>{% trans "Order" %}</h3>
             <form role="form" class="form-vertical" method="post" action=".">
                 {% csrf_token %}
-                {{ form.quantity|as_vertical_form }}
+                {{ form|as_vertical_form }}
 
                 <div class="form-group">
                     <button class="btn btn-default">
