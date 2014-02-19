@@ -15,6 +15,13 @@ class ShirtForm(AddToCartForm):
     size = forms.ChoiceField(choices=ShirtVariant.SIZE_CHOICES,
                              widget=forms.RadioSelect())
 
+    def __init__(self, *args, **kwargs):
+        super(ShirtForm, self).__init__(*args, **kwargs)
+        available_sizes = [
+            (p.size, p.get_size_display) for p in self.product.variants.all()
+        ]
+        self.fields['size'].choices = available_sizes
+
     def get_variant(self, clean_data):
         size = clean_data.get('size')
         return ShirtVariant.objects.get(size=size,
