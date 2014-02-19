@@ -5,6 +5,7 @@
 {% load i18n %}
 {% load at_size from images %}
 {% load gross from prices %}
+{% load price_range from price_ranges %}
 
 {% block title %}{{ product }} — {{ block.super }}{% endblock %}
 
@@ -31,6 +32,7 @@
         </div>
         <div class="col-sm-4">
             <p itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                <span class="price">{% price_range product %}</span>
                 <span class="price" itemprop="price">{% gross price %}</span>
                 {% if undiscounted.min_price != price %}
                     <br>
@@ -40,20 +42,28 @@
                 {% endif %}
             </p>
             <p>
+            {% for variant in product.variants.all %}
+                {{ variant.get_size_display }}
                 {% if product.stock == 0 %}
                 <link itemprop="availability" href="http://schema.org/OutOfStock" /> <span class="label label-danger">{% trans "Out of stock" %}</span>
                 {% else %}
                 <link itemprop="availability" href="http://schema.org/InStock" /> <span class="label label-default">{% trans "In stock" %}</span>
                 {% endif %}
+            {% endfor %}
             </p>
             <hr>
-        <h3>{% trans "Available Colors" %}</h3>
-            {% for collection_product in product.get_products_from_collection %}
-                <a href="{{ collection_product.get_absolute_url }}">
-                    <span class="label" style="background-color: #{{ collection_product.color.color }}">{{ collection_product.color.name }}</span>
-                </a>
-            {% endfor %}
-        <hr>
+        {% with collection=product.get_products_from_collection %}
+            {% if collection %}
+            <h3>{% trans "Available Colors" %}</h3>
+                {% for product in collection %}
+                    <a href="{{ product.get_absolute_url }}">
+                        <span class="label" style="background-color: #{{ product.color.color }}">{{ product.color.name }}</span>
+                    </a>
+                {% endfor %}
+                <hr>
+            {% endif %}
+        {% endwith %}
+
         <h3>{% trans "Order" %}</h3>
             <form role="form" class="form-vertical" method="post" action=".">
                 {% csrf_token %}
