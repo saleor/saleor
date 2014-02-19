@@ -16,7 +16,7 @@ class BagVariantInline(admin.StackedInline):
 
 
 class BagAdmin(admin.ModelAdmin):
-
+    raw_id_fields = ('collection',)
     inlines = [BagVariantInline, ImageAdminInline]
 
 
@@ -26,13 +26,16 @@ class ShirtVariant(admin.StackedInline):
 
 
 class ShirtAdmin(admin.ModelAdmin):
-
+    raw_id_fields = ('collection',)
     inlines = [ShirtVariant, ImageAdminInline]
 
+
+class ProductCollectionAdmin(admin.ModelAdmin):
+    search_fields = ['name']
 
 admin.site.register(Bag, BagAdmin)
 admin.site.register(Shirt, ShirtAdmin)
 admin.site.register(Category, MPTTModelAdmin)
 admin.site.register(FixedProductDiscount)
 admin.site.register(Color)
-admin.site.register(ProductCollection)
+admin.site.register(ProductCollection, ProductCollectionAdmin)
