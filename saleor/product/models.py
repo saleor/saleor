@@ -58,7 +58,7 @@ class Product(Subtyped, ItemRange):
         Category, verbose_name=pgettext_lazy('Product field', 'category'),
         related_name='products')
 
-    collection = models.ForeignKey(ProductCollection)
+    collection = models.ForeignKey(ProductCollection, null=True, blank=True)
 
     def __unicode__(self):
         return self.name
@@ -74,7 +74,8 @@ class Product(Subtyped, ItemRange):
         return mark_safe(re.sub(r'[-\s]+', '-', value))
 
     def get_products_from_collection(self):
-        return Product.objects.filter(collection=self.collection)
+        return Product.objects.filter(collection=self.collection,
+                                      collection__isnull=False)
 
     def __iter__(self):
         return iter(self.variants.all())
