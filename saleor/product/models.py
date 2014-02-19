@@ -43,6 +43,13 @@ class Category(MPTTModel):
         verbose_name_plural = 'categories'
 
 
+class ProductCollection(models.Model):
+    name = models.CharField(max_length=100, db_index=True, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Product(Subtyped, ItemRange):
 
     name = models.CharField(
@@ -50,6 +57,8 @@ class Product(Subtyped, ItemRange):
     category = models.ForeignKey(
         Category, verbose_name=pgettext_lazy('Product field', 'category'),
         related_name='products')
+
+    collection = models.ForeignKey(ProductCollection)
 
     def __unicode__(self):
         return self.name
@@ -63,6 +72,9 @@ class Product(Subtyped, ItemRange):
         value = re.sub(r'[^\w\s-]', '', value).strip().lower()
 
         return mark_safe(re.sub(r'[-\s]+', '-', value))
+
+    def get_products_from_collection(self):
+        return Product.objects.filter(collection=self.collection)
 
     def __iter__(self):
         return iter(self.variants.all())
@@ -205,24 +217,20 @@ class ColoredVariants(models.Model):
         abstract = True
 
 
-class Bag(Product, PhysicalProduct):
-
-    def get_available_colors(self):
-        return Color.objects.filter(bagvariant__in=self.variants.all())
+class Bag(Product, PhysicalProduct, ColoredVariants):
+    pass
 
 
-class Shirt(Product, PhysicalProduct):
-
-    def get_available_colors(self):
-        return Color.objects.filter(shirtvariant__in=self.variants.all())
+class Shirt(Product, PhysicalProduct, ColoredVariants):
+    pass
 
 
-class BagVariant(ProductVariant, StockedProduct, ColoredVariants):
+class BagVariant(ProductVariant, StockedProduct):
 
     product = models.ForeignKey(Bag, related_name='variants')
 
 
-class ShirtVariant(ProductVariant, StockedProduct, ColoredVariants):
+class ShirtVariant(ProductVariant, StockedProduct):
 
     SIZE_CHOICES = (
         ('xs', pgettext_lazy('Variant size', 'XS')),
@@ -234,6 +242,3 @@ class ShirtVariant(ProductVariant, StockedProduct, ColoredVariants):
 
     product = models.ForeignKey(Shirt, related_name='variants')
     size = models.CharField(choices=SIZE_CHOICES, max_length=3)
-
-    class Meta:
-        unique_together = ('color', 'size')
