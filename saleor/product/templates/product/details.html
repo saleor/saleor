@@ -43,7 +43,9 @@
             </p>
             <p>
             {% for variant in product.variants.all %}
-                {{ variant.get_size_display }}
+                {% if variant.size %}
+                    {{ variant.get_size_display }}
+                {% endif %}
                 {% if product.stock == 0 %}
                 <link itemprop="availability" href="http://schema.org/OutOfStock" /> <span class="label label-danger">{% trans "Out of stock" %}</span>
                 {% else %}
