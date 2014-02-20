@@ -6,7 +6,7 @@ from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from prices import FixedDiscount
 
-from base_products import Product
+from .base_products import Product
 
 
 class NotApplicable(ValueError):

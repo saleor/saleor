@@ -3,9 +3,9 @@ from __future__ import unicode_literals
 from django.utils.translation import pgettext_lazy
 from django.db import models
 
-from base_products import Product
-from variants import (ProductVariant, PhysicalProduct, ColoredVariants,
-                      StockedProduct)
+from .base_products import Product
+from .variants import (ProductVariant, PhysicalProduct, ColoredVariants,
+                       StockedProduct)
 
 
 class Bag(Product, PhysicalProduct, ColoredVariants):

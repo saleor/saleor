@@ -4,7 +4,7 @@ from django.db import models
 from django_images.models import Image
 from django.utils.safestring import mark_safe
 
-from base_products import Product
+from .base_products import Product
 
 
 class ImageManager(models.Manager):

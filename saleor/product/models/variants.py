@@ -8,7 +8,7 @@ from django_prices.models import PriceField
 from django.conf import settings
 from django.core.urlresolvers import reverse
 
-from discounts import get_product_discounts
+from .discounts import get_product_discounts
 
 
 class Color(models.Model):
