@@ -32,26 +32,25 @@
         </div>
         <div class="col-sm-4">
             <p itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-                <span class="price">{% price_range product %}</span>
-                <span class="price" itemprop="price">{% gross price %}</span>
                 {% if undiscounted.min_price != price %}
                     <br>
-                    <span class="price undiscounted">{% gross undiscounted.min_price %}</span>
+                    <span class="price undiscounted">{% price_range product %}</span>
                     <br>
                     <small class="label label-success">{% trans "You save" %} {% gross discount %}</small>
+                {% else %}
+                    <span class="price">{% price_range product %}</span>
                 {% endif %}
             </p>
             <p>
+            {% block stockinfo %}
             {% for variant in product.variants.all %}
-                {% if variant.size %}
-                    {{ variant.get_size_display }}
-                {% endif %}
                 {% if product.stock == 0 %}
                 <link itemprop="availability" href="http://schema.org/OutOfStock" /> <span class="label label-danger">{% trans "Out of stock" %}</span>
                 {% else %}
                 <link itemprop="availability" href="http://schema.org/InStock" /> <span class="label label-default">{% trans "In stock" %}</span>
                 {% endif %}
             {% endfor %}
+            {% endblock %}
             </p>
             <hr>
         {% with collection=product.get_products_from_collection %}
@@ -67,16 +66,19 @@
         {% endwith %}
 
         <h3>{% trans "Order" %}</h3>
+            {% block orderform %}
             <form role="form" class="form-vertical" method="post" action=".">
                 {% csrf_token %}
                 {{ form|as_vertical_form }}
 
                 <div class="form-group">
+                    <p>{% trans "Final price" %} <span id="final-price">0.00</span> {{ price.currency }}</p>
                     <button class="btn btn-default">
                         {% trans "Add to cart" %}
                     </button>
                 </div>
             </form>
+            {% endblock %}
         </div>
     </div>
 </div>

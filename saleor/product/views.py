@@ -25,7 +25,9 @@ def product_details(request, slug, product_id):
         form.save()
         return redirect('product:details', slug=slug, product_id=product_id)
 
-    template_name = 'product/details_%s' % (product.__class__.__name__.lower())
+    template_name = 'product/details_%s.html' % (
+        product.__class__.__name__.lower()
+    )
 
     return TemplateResponse(request, [template_name, 'product/details.html'], {
         'product': product, 'form': form})
