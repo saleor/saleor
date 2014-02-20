@@ -1,7 +1,7 @@
 from django import forms
 
 from ..cart.forms import AddToCartForm
-from .models import Bag, BagVariant, Shirt, ShirtVariant, Color
+from .models import Bag, BagVariant, Shirt, ShirtVariant
 
 
 class BagForm(AddToCartForm):
