@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 import re
 
 from django.core.urlresolvers import reverse
+from django.utils.encoding import python_2_unicode_compatible
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
@@ -12,6 +13,7 @@ from unidecode import unidecode
 from ...core.utils.models import Subtyped
 
 
+@python_2_unicode_compatible
 class Category(MPTTModel):
     name = models.CharField(
         pgettext_lazy('Category field', 'name'), max_length=128)
@@ -23,7 +25,7 @@ class Category(MPTTModel):
         'self', null=True, blank=True, related_name='children',
         verbose_name=pgettext_lazy('Category field', 'parent'))
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def get_absolute_url(self):
@@ -34,6 +36,7 @@ class Category(MPTTModel):
         app_label = 'product'
 
 
+@python_2_unicode_compatible
 class ProductCollection(models.Model):
     name = models.CharField(pgettext_lazy('Product Collection name', 'name'),
                             max_length=100, db_index=True, unique=True)
@@ -41,10 +44,11 @@ class ProductCollection(models.Model):
     class Meta:
         app_label = 'product'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
+@python_2_unicode_compatible
 class Product(Subtyped, ItemRange):
     name = models.CharField(
         pgettext_lazy('Product field', 'name'), max_length=128)
@@ -57,7 +61,7 @@ class Product(Subtyped, ItemRange):
     class Meta:
         app_label = 'product'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def get_absolute_url(self):

@@ -7,10 +7,12 @@ from satchless.item import Item, StockedItem
 from django_prices.models import PriceField
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.utils.encoding import python_2_unicode_compatible
 
 from .discounts import get_product_discounts
 
 
+@python_2_unicode_compatible
 class Color(models.Model):
     name = models.CharField(pgettext_lazy('Color name field', 'name'),
                             max_length=100)
@@ -20,7 +22,7 @@ class Color(models.Model):
     class Meta:
         app_label = 'product'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -59,6 +61,7 @@ class ColoredVariants(models.Model):
         app_label = 'product'
 
 
+@python_2_unicode_compatible
 class ProductVariant(models.Model, Item):
     name = models.CharField(pgettext_lazy('Product field', 'name'),
                             max_length=128, blank=True, default='')
@@ -72,7 +75,7 @@ class ProductVariant(models.Model, Item):
         abstract = True
         app_label = 'product'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name or self.product.name
 
     def get_price_per_item(self, discounted=True, **kwargs):
