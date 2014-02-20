@@ -4,8 +4,8 @@ from django.utils.translation import pgettext_lazy
 from django.db import models
 
 from base_products import Product
-from variants import ProductVariant, PhysicalProduct, ColoredVariants
-from variants import StockedProduct
+from variants import (ProductVariant, PhysicalProduct, ColoredVariants,
+                      StockedProduct)
 
 
 class Bag(Product, PhysicalProduct, ColoredVariants):

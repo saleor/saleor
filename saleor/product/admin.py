@@ -6,12 +6,10 @@ from .models import (ProductImage, BagVariant, Bag, ShirtVariant, Shirt,
 
 
 class ImageAdminInline(admin.StackedInline):
-
     model = ProductImage
 
 
 class BagVariantInline(admin.StackedInline):
-
     model = BagVariant
 
 
@@ -21,7 +19,6 @@ class BagAdmin(admin.ModelAdmin):
 
 
 class ShirtVariant(admin.StackedInline):
-
     model = ShirtVariant
 
 
@@ -32,6 +29,7 @@ class ShirtAdmin(admin.ModelAdmin):
 
 class ProductCollectionAdmin(admin.ModelAdmin):
     search_fields = ['name']
+
 
 admin.site.register(Bag, BagAdmin)
 admin.site.register(Shirt, ShirtAdmin)
