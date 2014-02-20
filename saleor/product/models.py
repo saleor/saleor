@@ -136,9 +136,9 @@ class ProductImage(Image):
 
 class ProductDiscountManager(models.Manager):
 
-    def for_product(self, product):
+    def for_product(self, variant):
         # Add a caching layer here to reduce the number of queries
-        return self.get_query_set().filter(products=product)
+        return self.get_query_set().filter(products=variant.product)
 
 
 class FixedProductDiscount(models.Model):
@@ -151,10 +151,10 @@ class FixedProductDiscount(models.Model):
 
     objects = ProductDiscountManager()
 
-    def modifier_for_product(self, product):
-        if not self.products.filter(pk=product.pk).exists():
+    def modifier_for_product(self, variant):
+        if not self.products.filter(pk=variant.product.pk).exists():
             raise NotApplicable('Discount not applicable for this product')
-        if self.discount > product.get_price(discounted=False):
+        if self.discount > variant.get_price(discounted=False):
             raise NotApplicable('Discount too high for this product')
         return FixedDiscount(self.discount, name=self.name)
 
@@ -166,10 +166,10 @@ class FixedProductDiscount(models.Model):
             str(self.discount), self.name)
 
 
-def get_product_discounts(product, **kwargs):
-    for discount in FixedProductDiscount.objects.for_product(product):
+def get_product_discounts(variant, **kwargs):
+    for discount in FixedProductDiscount.objects.for_product(variant):
         try:
-            yield discount.modifier_for_product(product, **kwargs)
+            yield discount.modifier_for_product(variant, **kwargs)
         except NotApplicable:
             pass
 

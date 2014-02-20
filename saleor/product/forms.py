@@ -18,7 +18,7 @@ class ShirtForm(AddToCartForm):
     def __init__(self, *args, **kwargs):
         super(ShirtForm, self).__init__(*args, **kwargs)
         available_sizes = [
-            (p.size, p.get_size_display) for p in self.product.variants.all()
+            (p.size, p.get_size_display()) for p in self.product.variants.all()
         ]
         self.fields['size'].choices = available_sizes
 
