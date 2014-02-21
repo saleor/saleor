@@ -103,16 +103,17 @@ def create_items(placeholder_dir, how_many=10):
         shirt = create_shirt(category=shirt_category)
         create_product_image(shirt, placeholder_dir)
         # Bag
-        bag = create_bag(category=bag_category)
+        bag = create_bag(category=bag_category, collection=None)
         create_product_image(bag, placeholder_dir)
         # chance to generate couple of sizes
         for size in ShirtVariant.SIZE_CHOICES:
             if random.choice([True, False]):
                 create_variant(shirt, size=size[0])
+
         create_variant(bag)
 
         print("Shirt - %s %s Variants" % (shirt, shirt.variants.count()))
-        print("Bag - %s %s Variants" % (bag, shirt.variants.count()))
+        print("Bag - %s %s Variants" % (bag, bag.variants.count()))
 
 
 
