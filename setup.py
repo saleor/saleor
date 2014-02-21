@@ -18,7 +18,7 @@ class PopulateDatabase(Command):
         from django.core.management import call_command
         from utils.create_random_data import create_items
         call_command('syncdb', interactive=True, migrate_all=True)
-        create_items('/home/artur/placeholders/', 10)
+        create_items('saleor/static/placeholders/', 10)
 
 
 setup(
