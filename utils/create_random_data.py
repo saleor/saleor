@@ -54,7 +54,7 @@ def create_variant(product, **kwargs):
         'stock': fake.random_int(),
         'name': fake.word(),
         'price': fake.pyfloat(2, 2, positive=True),
-        'sku': fake.random_number(),
+        'sku': fake.random_int(1, 100000),
         'product': product
     }
     if isinstance(product, Shirt):
@@ -91,26 +91,27 @@ def create_bag(**kwargs):
 def create_items(placeholder_dir, how_many=10):
     if Color.objects.count() < 2:
         create_color()
-    if Category.objects.count() < 2:
-        create_category()
+    shirt_category = create_category(name='Shirts')
+    bag_category = create_category(name='Grocery bags')
+
     if ProductCollection.objects.count() < 2:
         ProductCollection.objects.create(name="Test")
 
     for i in range(how_many):
         # Shirt
-        shirt = create_shirt()
+        shirt = create_shirt(category=shirt_category)
         create_product_image(shirt, placeholder_dir)
         # Bag
-        bag = create_bag()
+        bag = create_bag(category=bag_category)
         create_product_image(bag, placeholder_dir)
         # chance to generate couple of sizes
         shirt_variant = create_variant(shirt)
-        print "Shirt Variant - %s" % shirt_variant
+        print("Shirt Variant - %s" % shirt_variant)
         bag_variant = create_variant(bag)
-        print "Bag variant %s" % bag_variant
+        print("Bag variant %s" % bag_variant)
 
-        print "Shirt - %s" % shirt
-        print "Bag - %s" % bag
+        print("Shirt - %s" % shirt)
+        print("Bag - %s" % bag)
 
 
 
