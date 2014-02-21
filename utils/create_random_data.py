@@ -58,7 +58,8 @@ def create_variant(product, **kwargs):
         'product': product
     }
     if isinstance(product, Shirt):
-        defaults['size'] = random.choice(ShirtVariant.SIZE_CHOICES)[0]
+        if not 'size' in kwargs:
+            defaults['size'] = random.choice(ShirtVariant.SIZE_CHOICES)[0]
         variant_class = ShirtVariant
     elif isinstance(product, Bag):
         variant_class = BagVariant
@@ -105,13 +106,13 @@ def create_items(placeholder_dir, how_many=10):
         bag = create_bag(category=bag_category)
         create_product_image(bag, placeholder_dir)
         # chance to generate couple of sizes
-        shirt_variant = create_variant(shirt)
-        print("Shirt Variant - %s" % shirt_variant)
-        bag_variant = create_variant(bag)
-        print("Bag variant %s" % bag_variant)
+        for size in ShirtVariant.SIZE_CHOICES:
+            if random.choice([True, False]):
+                create_variant(shirt, size=size[0])
+        create_variant(bag)
 
-        print("Shirt - %s" % shirt)
-        print("Bag - %s" % bag)
+        print("Shirt - %s %s Variants" % (shirt, shirt.variants.count()))
+        print("Bag - %s %s Variants" % (bag, shirt.variants.count()))
 
 
 
