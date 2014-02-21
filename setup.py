@@ -47,7 +47,8 @@ setup(
         'console_scripts': ['saleor = saleor:manage']},
     tests_require=[
         'mock==1.0.1',
-        'purl>=0.4.1'],
+        'purl>=0.4.1',
+        'fake-factory>=0.3.2'],
     test_suite='saleor.tests.suite',
     cmdclass={
         'populatedb': PopulateDatabase
