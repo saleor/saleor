@@ -2,6 +2,7 @@ from unittest import TestCase
 
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import resolve
+from django.conf import settings
 from mock import call, Mock, MagicMock, patch, sentinel
 from purl import URL
 
@@ -302,3 +303,33 @@ class EmailChangeTestCase(TestCase):
         user.save.assert_called_once_with()
         # user email gets changed
         self.assertEqual(user.email, token_object.email)
+
+
+class OAuthClientTestCase(TestCase):
+    def setUp(self):
+        self.fake_client_id = 'test'
+        self.fake_client_secret = 'testsecret'
+
+    def test_google_secrets_override(self):
+        client = GoogleClient(local_host='http://localhost',
+                              client_id=self.fake_client_id,
+                              client_secret=self.fake_client_secret)
+        self.assertEqual(client.client_id, self.fake_client_id)
+        self.assertEqual(client.client_secret, self.fake_client_secret)
+
+    def test_google_secrets_fallback(self):
+        client = GoogleClient(local_host='http://localhost')
+        self.assertEqual(client.client_id, settings.GOOGLE_CLIENT_ID)
+        self.assertEqual(client.client_secret, settings.GOOGLE_CLIENT_SECRET)
+
+    def test_facebook_secrets_override(self):
+        client = FacebookClient(local_host='http://localhost',
+                                client_id=self.fake_client_id,
+                                client_secret=self.fake_client_secret)
+        self.assertEqual(client.client_id, self.fake_client_id)
+        self.assertEqual(client.client_secret, self.fake_client_secret)
+
+    def test_facebook_secrets_fallback(self):
+        client = FacebookClient(local_host='http://localhost')
+        self.assertEqual(client.client_id, settings.FACEBOOK_APP_ID)
+        self.assertEqual(client.client_secret, settings.FACEBOOK_SECRET)

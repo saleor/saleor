@@ -75,8 +75,14 @@ class OAuth2Client(object):
 
     scope = None
 
-    def __init__(self, local_host, code=None):
+    def __init__(self, local_host, code=None,
+                 client_id=None, client_secret=None):
         self.local_host = local_host
+
+        if client_id and client_secret:
+            self.client_id = client_id
+            self.client_secret = client_secret
+
         if code:
             access_token = self.get_access_token(code)
             self.authorizer = OAuth2RequestAuthorizer(
@@ -137,15 +143,18 @@ class GoogleClient(OAuth2Client):
 
     service = GOOGLE
 
-    client_id = settings.GOOGLE_CLIENT_ID
-    client_secret = settings.GOOGLE_CLIENT_SECRET
-
     auth_uri = 'https://accounts.google.com/o/oauth2/auth'
     token_uri = 'https://accounts.google.com/o/oauth2/token'
     user_info_uri = 'https://www.googleapis.com/oauth2/v1/userinfo'
 
     scope = ' '.join(['https://www.googleapis.com/auth/userinfo.email',
                       'https://www.googleapis.com/auth/plus.me'])
+
+    def __init__(self, *args, **kwargs):
+        super(GoogleClient, self).__init__(*args, **kwargs)
+        if not self.client_id and self.client_secret:
+            self.client_id = settings.GOOGLE_CLIENT_ID
+            self.client_secret = settings.GOOGLE_CLIENT_SECRET
 
     def get_user_info(self):
         response = super(GoogleClient, self).get_user_info()
@@ -162,14 +171,17 @@ class FacebookClient(OAuth2Client):
 
     service = FACEBOOK
 
-    client_id = settings.FACEBOOK_APP_ID
-    client_secret = settings.FACEBOOK_SECRET
-
     auth_uri = 'https://www.facebook.com/dialog/oauth'
     token_uri = 'https://graph.facebook.com/oauth/access_token'
     user_info_uri = 'https://graph.facebook.com/me'
 
     scope = ','.join(['email'])
+
+    def __init__(self, *args, **kwargs):
+        super(FacebookClient, self).__init__(*args, **kwargs)
+        if not self.client_id and self.client_secret:
+            self.client_id = settings.FACEBOOK_APP_ID
+            self.client_secret = settings.FACEBOOK_SECRET
 
     def get_user_info(self):
         response = super(FacebookClient, self).get_user_info()
