@@ -53,7 +53,7 @@ class PhysicalProduct(models.Model):
         app_label = 'product'
 
 
-class ColoredVariants(models.Model):
+class ColoredVariant(models.Model):
     color = models.ForeignKey(Color)
 
     class Meta:

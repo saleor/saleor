@@ -4,16 +4,16 @@ from django.utils.translation import pgettext_lazy
 from django.db import models
 
 from .base_products import Product
-from .variants import (ProductVariant, PhysicalProduct, ColoredVariants,
+from .variants import (ProductVariant, PhysicalProduct, ColoredVariant,
                        StockedProduct)
 
 
-class Bag(Product, PhysicalProduct, ColoredVariants):
+class Bag(Product, PhysicalProduct, ColoredVariant):
     class Meta:
         app_label = 'product'
 
 
-class Shirt(Product, PhysicalProduct, ColoredVariants):
+class Shirt(Product, PhysicalProduct, ColoredVariant):
     class Meta:
         app_label = 'product'
 
