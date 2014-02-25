@@ -57,6 +57,10 @@ def get_rate_source():
     """Get the default Rate Source and return it."""
     backend = get_default_backend()
     try:
+        source = RateSource.objects.filter(name=backend.get_source_name())
+        if not source.exists():
+            backend.update_rates()
+            # We have to hit DB again (RateSource was created now)
         return RateSource.objects.get(name=backend.get_source_name())
     except RateSource.DoesNotExist:
         raise CurrencyConversionException(
