@@ -114,6 +114,3 @@ def create_items(placeholder_dir, how_many=10):
 
         print("Shirt - %s %s Variants" % (shirt, shirt.variants.count()))
         print("Bag - %s %s Variants" % (bag, bag.variants.count()))
-
-
-
