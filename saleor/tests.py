@@ -10,7 +10,8 @@ TEST_MODULES = [
     #'saleor.payment.tests',
     #'saleor.product.tests',
     'saleor.registration.tests',
-    'saleor.userprofile.tests']
+    'saleor.userprofile.tests',
+    'saleor.currency_converter.tests']
 
 suite = TestSuite()
 loader = TestLoader()
