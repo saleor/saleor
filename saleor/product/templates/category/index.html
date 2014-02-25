@@ -2,6 +2,10 @@
 {% load i18n %}
 {% load at_size from images %}
 {% load slice from shop %}
+{% load price_range from price_ranges %}
+{% load undiscounted_price undiscounted_price_range price_difference from discount %}
+
+
 
 {% block title %}{{ category }} — {{ block.super }}{% endblock %}
 
@@ -16,7 +20,18 @@
         <div class="row">
             {% for product in row %}
                 <div class="col-sm-6">
-                    <h3><a href="{{ product.get_absolute_url }}">{{ product }}</a></h3>
+                    {% with price=product.get_price_range.min_price undiscounted=product|undiscounted_price_range %}
+                    {% with discount=undiscounted.min_price|price_difference:price %}
+                    <h3><a href="{{ product.get_absolute_url }}">{{ product }}</a>
+                    {% if undiscounted.min_price != price %}
+                        <span class="label label-success">{% trans "Discount!" %}</span>
+                    </h3>
+                    {% endif %}
+                    <h4>{% price_range product %}</h4>
+                    {% endwith %}
+                    {% endwith %}
+
+
                     {% if product.images.exists %}
                         <a href="{{ product.get_absolute_url }}">
                             <img class="img-responsive" src="{{ product.images.first|at_size:"normal" }}" alt="">

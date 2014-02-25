@@ -152,14 +152,14 @@ class DeliveryGroup(Subtyped, ItemSet):
 
     def add_items_from_partition(self, partition):
         for item_line in partition:
-            product = item_line.product
+            product_variant = item_line.product
             price = item_line.get_price_per_item()
             self.items.create(
-                product=product,
+                product=product_variant.product,
                 quantity=item_line.get_quantity(),
                 unit_price_net=price.net,
-                product_name=smart_text(product),
-                product_sku=product.sku,
+                product_name=smart_text(product_variant),
+                product_sku=product_variant.sku,
                 unit_price_gross=price.gross)
 
 
