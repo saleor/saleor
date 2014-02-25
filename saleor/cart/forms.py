@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from decimal import Decimal
 
 from django import forms
@@ -8,7 +9,6 @@ from satchless.item import InsufficientStock
 
 
 class QuantityField(forms.DecimalField):
-
     def __init__(self, *args, **kwargs):
         super(QuantityField, self).__init__(
             *args, max_value=None, min_value=Decimal(0), max_digits=10,
@@ -21,8 +21,9 @@ class AddToCartForm(forms.Form):
     '''
     quantity = QuantityField(label=pgettext('Form field', 'Quantity'))
     error_messages = {
-        'empty-stock': ugettext('Out of stock.'),
-        'variant-does-not-exists': ugettext('Variant does not exists.'),
+        'empty-stock': ugettext('Sorry. This product is unavailable'),
+        'variant-does-not-exists': ugettext(
+            'Oops. We could not find that product.'),
         'insufficient-stock': ugettext(
             'Only %(remaining)d remaining in stock.')}
 
@@ -75,6 +76,7 @@ class ReplaceCartLineForm(AddToCartForm):
     '''
     Replaces quantity in CartLine.
     '''
+
     def __init__(self, *args, **kwargs):
         super(ReplaceCartLineForm, self).__init__(*args, **kwargs)
         self.cart_line = self.cart.get_line(self.product)
