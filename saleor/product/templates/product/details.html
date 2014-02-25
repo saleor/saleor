@@ -6,6 +6,7 @@
 {% load at_size from images %}
 {% load gross from prices %}
 {% load price_range from price_ranges %}
+{% load convert_currency from currency_converter_tags %}
 
 {% block title %}{{ product }} — {{ block.super }}{% endblock %}
 
@@ -39,6 +40,8 @@
                     <small class="label label-success">{% trans "You save" %} {% gross discount %}</small>
                 {% else %}
                     <span class="price">{% price_range product %}</span>
+                    <span id="price-eur" data-toggle="tooltip" data-placement="bottom" title="{% trans "This is approximated price converted to EUR with average rates" %}">
+                        (~{% convert_currency price 'EUR' %} EUR)</span>
                 {% endif %}
             </p>
             <p>
@@ -85,3 +88,10 @@
 {% endwith %}
 {% endwith %}
 {% endblock outercontent %}
+
+{% block footer_scripts %}
+{{ block.super }}
+    <script type="text/javascript">
+        $('#price-eur').tooltip()
+    </script>
+{% endblock %}
