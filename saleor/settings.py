@@ -99,13 +99,14 @@ INSTALLED_APPS = [
     'saleor.product',
     'saleor.registration',
     'saleor.userprofile',
+    'saleor.currency_converter',
 
     # External apps
     'django_images',
     'django_prices',
     'mptt',
     'payments',
-    'south'
+    'south',
 ]
 
 LOGGING = {
@@ -209,3 +210,11 @@ CHECKOUT_PAYMENT_CHOICES = [
 ]
 
 TEMPLATE_STRING_IF_INVALID = '<< MISSING VARIABLE >>'
+
+
+CURRENCY_CONVERTER = {
+    'DEFAULT_BACKEND': 'saleor.currency_converter.backends.OpenExchangeBackend',
+    'OPENEXCHANGE_URL': 'http://openexchangerates.org/api/latest.json',
+    'OPENEXCHANGE_APP_ID': 'APP_ID',
+    'OPENEXCHANGE_BASE_CURRENCY': 'USD',
+}
