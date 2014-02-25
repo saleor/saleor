@@ -18,7 +18,7 @@ def create_color(**kwargs):
 
     defaults = {
         'name': fake.word(),
-        'color': '#%02X%02X%02X' % (r(), r(), r())
+        'color': '%02X%02X%02X' % (r(), r(), r())
     }
     defaults.update(kwargs)
 
