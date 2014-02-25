@@ -30,8 +30,8 @@ class ShirtForm(AddToCartForm):
 
 
 def get_form_class_for_product(product):
-    if type(product) is Shirt:
+    if isinstance(product, Shirt):
         return ShirtForm
-    if type(product) is Bag:
+    if isinstance(product, Bag):
         return BagForm
-    raise NotImplemented()
+    raise NotImplementedError
