@@ -42,7 +42,7 @@ def get_rate(currency):
     source = get_rate_source()
 
     try:
-        if not Rate.objects.today_rates().exists():
+        if not Rate.objects.today_rates.filter(source=source).exists():
             # Refresh rates
             source.update_rates()
         return Rate.objects.today_rates().get(
