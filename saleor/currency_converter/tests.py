@@ -40,14 +40,16 @@ class CurrencyConverterTestCase(TestCase):
         self.assertTrue(converted.gross == self.price.gross * 3)
 
     @patch('saleor.currency_converter.utils.get_rate',
-           return_value=Decimal(0.51))
+           return_value=Decimal('0.51'))
     def test_convert_price_rate_as_decimal(self, *mocks):
         converted = convert_price(self.price, self.target_currency)
-        expected_value = (self.price * Decimal(0.51)).quantize(Decimal('1.00'))
+        expected_value = (self.price * Decimal('0.51')).quantize(
+            Decimal('1.00')
+        )
         self.assertEqual(converted.gross, expected_value.gross)
 
     @patch('saleor.currency_converter.utils.get_rate',
-           return_value=Decimal(1))
+           return_value=Decimal('1'))
     def test_convert_price_the_same_currencies(self, *mocks):
         converted = convert_price(self.price, self.price.currency)
         self.assertEqual(converted.gross, converted.gross)
