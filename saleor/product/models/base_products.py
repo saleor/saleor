@@ -69,3 +69,20 @@ class Product(Subtyped, ItemRange):
 
     def __iter__(self):
         return iter(self.variants.all())
+
+    def get_formatted_price(self, price):
+        return "{0} {1}".format(price.gross, price.currency)
+
+    def admin_get_price_min(self):
+        price = self.get_price_range().min_price
+        return self.get_formatted_price(price)
+    admin_get_price_min.short_description = pgettext_lazy(
+        'Product admin page', 'Minimal price'
+    )
+
+    def admin_get_price_max(self):
+        price = self.get_price_range().max_price
+        return self.get_formatted_price(price)
+    admin_get_price_max.short_description = pgettext_lazy(
+        'Product admin page', 'Maximal price'
+    )
