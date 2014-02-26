@@ -37,18 +37,6 @@ class Category(MPTTModel):
 
 
 @python_2_unicode_compatible
-class ProductCollection(models.Model):
-    name = models.CharField(pgettext_lazy('Product Collection name', 'name'),
-                            max_length=100, db_index=True, unique=True)
-
-    class Meta:
-        app_label = 'product'
-
-    def __str__(self):
-        return self.name
-
-
-@python_2_unicode_compatible
 class Product(Subtyped, ItemRange):
     name = models.CharField(
         pgettext_lazy('Product field', 'name'), max_length=128)
@@ -56,7 +44,8 @@ class Product(Subtyped, ItemRange):
         Category, verbose_name=pgettext_lazy('Product field', 'category'),
         related_name='products')
 
-    collection = models.ForeignKey(ProductCollection, null=True, blank=True)
+    collection = models.CharField(db_index=True, max_length=100,
+                                  null=True, blank=True)
 
     class Meta:
         app_label = 'product'

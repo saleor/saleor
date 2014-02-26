@@ -2,7 +2,7 @@ from django.contrib import admin
 from mptt.admin import MPTTModelAdmin
 
 from .models import (ProductImage, BagVariant, Bag, ShirtVariant, Shirt,
-                     Category, FixedProductDiscount, Color, ProductCollection)
+                     Category, FixedProductDiscount, Color)
 
 
 class ImageAdminInline(admin.StackedInline):
@@ -14,7 +14,6 @@ class BagVariantInline(admin.StackedInline):
 
 
 class BagAdmin(admin.ModelAdmin):
-    raw_id_fields = ('collection',)
     inlines = [BagVariantInline, ImageAdminInline]
 
 
@@ -23,7 +22,6 @@ class ShirtVariant(admin.StackedInline):
 
 
 class ShirtAdmin(admin.ModelAdmin):
-    raw_id_fields = ('collection',)
     inlines = [ShirtVariant, ImageAdminInline]
 
 
@@ -36,4 +34,3 @@ admin.site.register(Shirt, ShirtAdmin)
 admin.site.register(Category, MPTTModelAdmin)
 admin.site.register(FixedProductDiscount)
 admin.site.register(Color)
-admin.site.register(ProductCollection, ProductCollectionAdmin)
