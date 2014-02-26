@@ -3,6 +3,7 @@ from mptt.admin import MPTTModelAdmin
 
 from .models import (ProductImage, BagVariant, Bag, ShirtVariant, Shirt,
                      Category, FixedProductDiscount, Color)
+from .forms import ShirtAdminForm
 
 
 class ImageAdminInline(admin.StackedInline):
@@ -22,6 +23,9 @@ class ShirtVariant(admin.StackedInline):
 
 
 class ShirtAdmin(admin.ModelAdmin):
+    form = ShirtAdminForm
+    list_display = ['name', 'collection', 'admin_get_price_min',
+                    'admin_get_price_max']
     inlines = [ShirtVariant, ImageAdminInline]
 
 

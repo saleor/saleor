@@ -12,7 +12,7 @@ from saleor.product.models import Category, Color
 
 fake = Factory.create()
 
-PRODUCT_COLLECTIONS = fake.words(2)
+PRODUCT_COLLECTIONS = fake.words(10)
 
 
 def create_color(**kwargs):
@@ -112,6 +112,10 @@ def create_items(placeholder_dir, how_many=10):
         create_product_image(bag, placeholder_dir)
         # chance to generate couple of sizes
         for size in ShirtVariant.SIZE_CHOICES:
+            # Create min. one size
+            if shirt.variants.count() == 0:
+                create_variant(shirt, size=size[0])
+                continue
             if random.choice([True, False]):
                 create_variant(shirt, size=size[0])
 

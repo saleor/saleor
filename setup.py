@@ -42,7 +42,9 @@ setup(
         'satchless>=1.1.1,<1.2a0',
         'South>=0.7.6',
         'requests>=1.2.0',
-        'unidecode'],
+        'unidecode',
+        'django-selectable==0.8.0'
+    ],
     entry_points={
         'console_scripts': ['saleor = saleor:manage']},
     tests_require=[
