@@ -6,7 +6,7 @@ from mock import patch
 from prices import Price
 from satchless.item import InsufficientStock
 
-from . import Cart, CartPartitioner
+from . import Cart
 from .forms import AddToCartForm, ReplaceCartLineForm, ReplaceCartLineFormSet
 from ..product.models import (ProductVariant, StockedProduct, PhysicalProduct,
                               FixedProductDiscount)
@@ -39,7 +39,9 @@ digital_product.product = digital_product
 class CartTest(TestCase):
 
     def test_check_quantity(self):
-        'Stock limit works'
+        """
+        Stock limit works
+        """
         cart = Cart()
 
         def illegal():
@@ -49,19 +51,6 @@ class CartTest(TestCase):
         self.assertFalse(cart)
 
 
-class CartPartitionerTest(TestCase):
-
-    def setUp(self):
-        self.cart = Cart()
-
-    @patch.object(FixedProductDiscount, 'objects')
-    def test_total_price_including_custom_delivery_method(self, mock_manager):
-        self.cart.add(stock_product, 1)
-        items = CartPartitioner(self.cart)
-        self.assertEqual(items.get_total(),
-                         Price(10, currency='USD'))
-
-
 class BigShipCartFormTest(TestCase):
 
     def setUp(self):
@@ -69,7 +58,9 @@ class BigShipCartFormTest(TestCase):
         self.post = {'quantity': 5}
 
     def test_quantity(self):
-        'Is BigShipCartForm works with correct quantity value on empty cart'
+        """
+        BigShipCartForm works with correct quantity value on empty cart
+        """
         form = BigShipCartForm(
             self.post, cart=self.cart, product=stock_product)
         self.assertTrue(form.is_valid())
@@ -79,7 +70,9 @@ class BigShipCartFormTest(TestCase):
         self.assertEqual(product_quantity, 5, 'Bad quantity')
 
     def test_max_quantity(self):
-        'Is BigShipCartForm works with correct product stock value'
+        """
+        BigShipCartForm works with correct product stock value
+        """
         form = BigShipCartForm(
             self.post, cart=self.cart, product=stock_product)
         self.assertTrue(form.is_valid())
@@ -93,14 +86,18 @@ class BigShipCartFormTest(TestCase):
                          '%s is the bad quantity value' % (product_quantity,))
 
     def test_too_big_quantity(self):
-        'Is BigShipCartForm works with not correct quantity value'
+        """
+        BigShipCartForm works with not correct quantity value'
+        """
         form = BigShipCartForm({'quantity': 15}, cart=self.cart,
                                product=stock_product)
         self.assertFalse(form.is_valid())
         self.assertFalse(self.cart)
 
     def test_clean_quantity_product(self):
-        'Is BigShipCartForm works with not stocked product'
+        """
+        Is BigShipCartForm works with not stocked product
+        """
         cart = Cart()
         self.post['quantity'] = 10000
         form = BigShipCartForm(self.post, cart=cart, product=digital_product)
@@ -116,7 +113,9 @@ class ReplaceCartLineFormTest(TestCase):
         self.cart = Cart()
 
     def test_quantity(self):
-        'Is ReplaceCartLineForm works with correct quantity value'
+        """
+        ReplaceCartLineForm works with correct quantity value
+        """
         form = ReplaceCartLineForm({'quantity': 5}, cart=self.cart,
                                    product=stock_product)
         self.assertTrue(form.is_valid())
@@ -130,7 +129,9 @@ class ReplaceCartLineFormTest(TestCase):
                          '%s is the bad quantity value' % (product_quantity,))
 
     def test_too_big_quantity(self):
-        'Is ReplaceCartLineForm works with to big quantity value'
+        """
+        Is ReplaceCartLineForm works with to big quantity value
+        """
         form = ReplaceCartLineForm({'quantity': 15}, cart=self.cart,
                                    product=stock_product)
         self.assertFalse(form.is_valid())

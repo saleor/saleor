@@ -6,7 +6,7 @@ from satchless.process import ProcessManager
 
 from .steps import (BillingAddressStep, ShippingStep, DigitalDeliveryStep,
                     SummaryStep)
-from ..cart import CartPartitioner, DigitalGroup
+from ..cart import DigitalGroup, partitioner
 from ..core import analytics
 from ..order.models import Order
 
@@ -41,7 +41,7 @@ class Checkout(ProcessManager):
         self.generate_steps(request.cart)
 
     def generate_steps(self, cart):
-        self.items = CartPartitioner(cart)
+        self.items = partitioner(cart)
         self.billing = BillingAddressStep(
             self.request, self.get_storage('billing'))
         self.steps.append(self.billing)

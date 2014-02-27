@@ -2,14 +2,7 @@ from __future__ import unicode_literals
 
 from django.utils.translation import pgettext
 from satchless import cart
-from satchless.item import ItemList, ClassifyingPartitioner
-
-
-class ShippedGroup(ItemList):
-    '''
-    Group for shippable products.
-    '''
-    pass
+from satchless.item import ItemList, partition
 
 
 class DigitalGroup(ItemList):
@@ -17,17 +10,6 @@ class DigitalGroup(ItemList):
     Group for digital products.
     '''
     pass
-
-
-class CartPartitioner(ClassifyingPartitioner):
-    '''
-    Dividing cart into groups.
-    '''
-    def classify(self, item):
-        return 'shippable'
-
-    def get_partition(self, classifier, items):
-        return ShippedGroup(items)
 
 
 class Cart(cart.Cart):
@@ -42,3 +24,7 @@ class Cart(cart.Cart):
         return pgettext(
             'Shopping cart',
             'Your cart (%(cart_count)s)') % {'cart_count': self.count()}
+
+
+def partitioner(subject):
+    return partition(subject, lambda product: 'shippable')
