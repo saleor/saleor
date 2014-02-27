@@ -87,7 +87,7 @@ class OrderAdmin(OrderModelAdmin):
     inlines = [PaymentInlineAdmin]
     exclude = ['token']
     readonly_fields = ['customer', 'total']
-    list_display = ['__unicode__', 'status', 'created', 'user']
+    list_display = ['__str__', 'status', 'created', 'user']
 
     def customer(self, obj):
         return format_address(obj.billing_address)
