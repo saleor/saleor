@@ -22,7 +22,7 @@ class AddToCartForm(forms.Form):
     quantity = QuantityField(label=pgettext('Form field', 'Quantity'))
     error_messages = {
         'empty-stock': ugettext(
-            'Sorry. This product is currently out of stock'
+            'Sorry. This product is currently out of stock.'
         ),
         'variant-does-not-exists': ugettext(
             'Oops. We could not find that product.'
