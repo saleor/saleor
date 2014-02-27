@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django.utils.translation import pgettext
 from django.utils.encoding import python_2_unicode_compatible
 from satchless import cart
-from satchless.item import ItemList, partition
+from satchless.item import ItemList
 
 
 class DigitalGroup(ItemList):
@@ -26,7 +26,3 @@ class Cart(cart.Cart):
         return pgettext(
             'Shopping cart',
             'Your cart (%(cart_count)s)') % {'cart_count': self.count()}
-
-
-def partitioner(subject):
-    return partition(subject, lambda product: 'shippable')

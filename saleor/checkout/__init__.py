@@ -3,10 +3,11 @@ from collections import defaultdict
 from django.conf import settings
 from prices import Price
 from satchless.process import ProcessManager
+from satchless.item import Partitioner
 
 from .steps import (BillingAddressStep, ShippingStep, DigitalDeliveryStep,
                     SummaryStep)
-from ..cart import DigitalGroup, partitioner
+from ..cart import DigitalGroup
 from ..core import analytics
 from ..order.models import Order
 
@@ -41,7 +42,7 @@ class Checkout(ProcessManager):
         self.generate_steps(request.cart)
 
     def generate_steps(self, cart):
-        self.items = partitioner(cart)
+        self.items = Partitioner(cart)
         self.billing = BillingAddressStep(
             self.request, self.get_storage('billing'))
         self.steps.append(self.billing)
