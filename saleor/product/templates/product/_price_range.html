@@ -1,8 +1,8 @@
 {% load i18n %}
+{% load gross from prices %}
 {% if price_range.min_price == price_range.max_price %}
-    {{ price_range.min_price.gross|floatformat:2 }} {{ price_range.min_price.currency }}
+    {% gross price_range.min_price %}
 {% else %}
     {% trans "Starting from" %}
-    {{ price_range.min_price.gross|floatformat:2 }}
-    {{ price_range.min_price.currency }}
+    {% gross price_range.min_price %}
 {% endif %}
