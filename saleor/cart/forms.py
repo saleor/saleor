@@ -8,12 +8,11 @@ from django.utils.translation import pgettext, ugettext
 from satchless.item import InsufficientStock
 
 
-class QuantityField(forms.DecimalField):
+class QuantityField(forms.IntegerField):
 
     def __init__(self, *args, **kwargs):
         super(QuantityField, self).__init__(
-            *args, max_value=None, min_value=Decimal(0), max_digits=10,
-            decimal_places=4, initial=Decimal(1), **kwargs)
+            *args, max_value=None, initial=1, **kwargs)
 
 
 class AddToCartForm(forms.Form):
