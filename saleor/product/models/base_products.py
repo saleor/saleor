@@ -76,6 +76,7 @@ class Product(Subtyped, ItemRange):
     def admin_get_price_min(self):
         price = self.get_price_range().min_price
         return self.get_formatted_price(price)
+
     admin_get_price_min.short_description = pgettext_lazy(
         'Product admin page', 'Minimal price'
     )
@@ -83,6 +84,7 @@ class Product(Subtyped, ItemRange):
     def admin_get_price_max(self):
         price = self.get_price_range().max_price
         return self.get_formatted_price(price)
+
     admin_get_price_max.short_description = pgettext_lazy(
         'Product admin page', 'Maximal price'
     )
