@@ -4,6 +4,5 @@
 {% else %}
     {% trans "Starting from" %}
     {{ price_range.min_price.gross|floatformat:2 }}
-    {% trans "to" %} {{ price_range.max_price.gross|floatformat:2 }}
     {{ price_range.min_price.currency }}
 {% endif %}
