@@ -43,14 +43,15 @@ setup(
         'South>=0.7.6',
         'requests>=1.2.0',
         'unidecode',
-        'django-selectable==0.8.0'
+        'django-selectable==0.8.0',
+        'fake-factory>=0.3.2'
     ],
     entry_points={
         'console_scripts': ['saleor = saleor:manage']},
     tests_require=[
         'mock==1.0.1',
         'purl>=0.4.1',
-        'fake-factory>=0.3.2'],
+    ],
     test_suite='saleor.tests.suite',
     cmdclass={
         'populatedb': PopulateDatabase
