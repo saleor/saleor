@@ -1,9 +1,10 @@
 from django.contrib import admin
+
 from mptt.admin import MPTTModelAdmin
 
 from .models import (ProductImage, BagVariant, Bag, ShirtVariant, Shirt,
                      Category, FixedProductDiscount, Color)
-from .forms import ShirtAdminForm
+from .forms import ShirtAdminForm, ProductVariantInline
 
 
 class ImageAdminInline(admin.StackedInline):
@@ -12,6 +13,7 @@ class ImageAdminInline(admin.StackedInline):
 
 class BagVariantInline(admin.StackedInline):
     model = BagVariant
+    formset = ProductVariantInline
 
 
 class BagAdmin(admin.ModelAdmin):
@@ -20,6 +22,7 @@ class BagAdmin(admin.ModelAdmin):
 
 class ShirtVariant(admin.StackedInline):
     model = ShirtVariant
+    formset = ProductVariantInline
 
 
 class ShirtAdmin(admin.ModelAdmin):
@@ -31,7 +34,6 @@ class ShirtAdmin(admin.ModelAdmin):
 
 class ProductCollectionAdmin(admin.ModelAdmin):
     search_fields = ['name']
-
 
 admin.site.register(Bag, BagAdmin)
 admin.site.register(Shirt, ShirtAdmin)

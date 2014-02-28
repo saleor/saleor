@@ -43,6 +43,8 @@ class Product(Subtyped, ItemRange):
     category = models.ForeignKey(
         Category, verbose_name=pgettext_lazy('Product field', 'category'),
         related_name='products')
+    description = models.TextField(
+        verbose_name=pgettext_lazy('Product field', 'description'))
 
     collection = models.CharField(db_index=True, max_length=100,
                                   null=True, blank=True)
