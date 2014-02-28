@@ -102,7 +102,7 @@
             </div>
         </div>
     {% endfor %}
-    {% if order.user == user %}
+    {% if order.user == user or not order.is_fully_paid %}
         {% if not order.is_fully_paid %}
             {% if waiting_payment %}
                 <form method="post" action="{% url 'order:cancel-payment' token=order.token %}">
