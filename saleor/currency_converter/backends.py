@@ -2,6 +2,8 @@ from __future__ import unicode_literals
 
 import logging
 import json
+import urllib
+import urlparse
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import six
@@ -24,7 +26,7 @@ class BaseRateBackend(object):
     source_name = None
     base_currency = None
 
-    def get_source_name(self):
+    def get_name(self):
         """
         Return the name that identifies the ratings source
         """
@@ -55,7 +57,7 @@ class BaseRateBackend(object):
         Creates or updates rates for a source
         """
         source, created = RateSource.objects.get_or_create(
-            name=self.get_source_name())
+            name=self.get_name())
         source.base_currency = self.get_base_currency()
         source.save()
 
@@ -80,14 +82,15 @@ class OpenExchangeBackend(BaseRateBackend):
             raise ImproperlyConfigured("OPENEXCHANGE_APP_ID setting is empty")
 
         # Build the base api url
-        base_url = "%s?app_id=%s" % (
-            settings.CURRENCY_CONVERTER["OPENEXCHANGE_URL"],
-            settings.CURRENCY_CONVERTER["OPENEXCHANGE_APP_ID"]
-        )
-
-        # Change the base currency whether it is specified in settings
-        base_url += "&base=%s" % self.get_base_currency()
-
+        url_parts = list(urlparse.urlparse(
+            settings.CURRENCY_CONVERTER['OPENEXCHANGE_URL']
+        ))
+        parameters = {
+            'app_id': settings.CURRENCY_CONVERTER["OPENEXCHANGE_APP_ID"],
+            'base': self.get_base_currency()
+        }
+        url_parts[4] = urllib.urlencode(parameters)
+        base_url = urlparse.urlunparse(url_parts)
         self.url = base_url
 
     def get_rates(self):
