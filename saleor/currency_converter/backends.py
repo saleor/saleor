@@ -4,15 +4,12 @@ import logging
 import json
 
 try:
-    from urllib import parse as urlparse
-    from urllib.parse import urlencode, urlunparse
+    from urllib.parse import urlencode, urlparse, urlunparse
 except ImportError:
-    import urlparse
-    from urlparse import urlunparse
+    from urlparse import urlparse, urlunparse
     from urllib import urlencode
 
 from django.core.exceptions import ImproperlyConfigured
-from django.utils import six
 from django.conf import settings
 import requests
 
@@ -67,7 +64,7 @@ class BaseRateBackend(object):
         source.base_currency = self.get_base_currency()
         source.save()
 
-        for currency, value in six.iteritems(self.get_rates()):
+        for currency, value in self.get_rates().items():
             try:
                 rate = Rate.objects.get(source=source, currency=currency)
             except Rate.DoesNotExist:
@@ -88,7 +85,7 @@ class OpenExchangeBackend(BaseRateBackend):
             raise ImproperlyConfigured("OPENEXCHANGE_APP_ID setting is empty")
 
         # Build the base api url
-        url_parts = list(urlparse.urlparse(
+        url_parts = list(urlparse(
             settings.CURRENCY_CONVERTER['OPENEXCHANGE_URL']
         ))
         parameters = {
