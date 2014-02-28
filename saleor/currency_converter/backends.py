@@ -2,8 +2,14 @@ from __future__ import unicode_literals
 
 import logging
 import json
-import urllib
-import urlparse
+
+try:
+    from urllib import parse as urlparse
+    from urllib.parse import urlencode, urlunparse
+except ImportError:
+    import urlparse
+    from urlparse import urlunparse
+    from urllib import urlencode
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import six
@@ -89,8 +95,8 @@ class OpenExchangeBackend(BaseRateBackend):
             'app_id': settings.CURRENCY_CONVERTER["OPENEXCHANGE_APP_ID"],
             'base': self.get_base_currency()
         }
-        url_parts[4] = urllib.urlencode(parameters)
-        base_url = urlparse.urlunparse(url_parts)
+        url_parts[4] = urlencode(parameters)
+        base_url = urlunparse(url_parts)
         self.url = base_url
 
     def get_rates(self):

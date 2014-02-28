@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-
 from decimal import Decimal
 
 from mock import patch
@@ -7,28 +6,20 @@ from django.test import TestCase
 from prices import Price
 
 from .utils import convert_price
-from .backends import BaseRateBackend
-from .models import RateSource
+from.backends import BaseRateBackend
 
 
 class FakeBackend(BaseRateBackend):
     source_name = 'fake'
-    base_currency = 'USD'
 
     def get_rates(self):
         pass
 
-    def update_rates(self):
+    def get_base_currency(self):
         pass
 
 
-fake_rate_source = RateSource(name='fake', base_currency='USD')
-
-
-@patch('saleor.currency_converter.utils.get_default_backend',
-       return_value=FakeBackend())
-@patch('saleor.currency_converter.utils.get_rate_source',
-       return_value=fake_rate_source)
+@patch('saleor.currency_converter.backends.OpenExchangeBackend')
 class CurrencyConverterTestCase(TestCase):
     def setUp(self):
         self.price = Price(10, currency='USD')
@@ -37,7 +28,7 @@ class CurrencyConverterTestCase(TestCase):
     @patch('saleor.currency_converter.utils.get_rate', return_value=3)
     def test_convert_price_rate_as_int(self, *mocks):
         converted = convert_price(self.price, self.target_currency)
-        self.assertTrue(converted.gross == self.price.gross * 3)
+        self.assertEqual(converted.gross, self.price.gross * 3)
 
     @patch('saleor.currency_converter.utils.get_rate',
            return_value=Decimal('0.51'))

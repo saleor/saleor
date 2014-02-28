@@ -1,10 +1,9 @@
 from __future__ import unicode_literals
-
 from decimal import Decimal
 
 from prices import Price
 
-from .models import Rate, RateSource
+from .models import Rate
 from .backends import OpenExchangeBackend
 
 
@@ -12,7 +11,6 @@ class CurrencyConversionException(Exception):
     """
     Raised by conversion utility function when problems arise
     """
-
 
 
 def get_rate(currency):
@@ -33,7 +31,6 @@ def get_rate(currency):
                                                    backend.get_name()))
 
 
-
 def base_convert_money(amount, currency_from, currency_to):
     """
     Convert 'amount' from 'currency_from' to 'currency_to'
@@ -41,7 +38,7 @@ def base_convert_money(amount, currency_from, currency_to):
     source = OpenExchangeBackend()
 
     # Get rate for currency_from.
-    if source.base_currency != currency_from:
+    if source.get_base_currency() != currency_from:
         rate_from = get_rate(currency_from)
     else:
         # If currency from is the same as base currency its rate is 1.
