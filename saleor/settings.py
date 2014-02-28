@@ -218,7 +218,6 @@ TEMPLATE_STRING_IF_INVALID = '<< MISSING VARIABLE >>'
 
 
 CURRENCY_CONVERTER = {
-    'DEFAULT_BACKEND': 'saleor.currency_converter.backends.OpenExchangeBackend',
     'OPENEXCHANGE_URL': 'http://openexchangerates.org/api/latest.json',
     'OPENEXCHANGE_APP_ID': '',
     'OPENEXCHANGE_BASE_CURRENCY': 'USD',

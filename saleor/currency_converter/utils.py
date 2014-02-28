@@ -2,11 +2,10 @@ from __future__ import unicode_literals
 
 from decimal import Decimal
 
-from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 from prices import Price
 
 from .models import Rate, RateSource
+from .backends import OpenExchangeBackend
 
 
 class CurrencyConversionException(Exception):
@@ -15,65 +14,31 @@ class CurrencyConversionException(Exception):
     """
 
 
-def get_default_backend():
-    """
-    Return default currency converter backend instance
-    """
-
-    try:
-        default_backend = settings.CURRENCY_CONVERTER['DEFAULT_BACKEND']
-    except AttributeError:
-        raise ImproperlyConfigured(
-            'Currency converter backend is not configured'
-        )
-
-    path = default_backend.split('.')
-
-    module_path = '.'.join(path[:-1])
-    klass_name = path[-1]
-    module = __import__(module_path, globals(), locals(), [klass_name])
-    klass = getattr(module, klass_name)
-
-    return klass()
-
 
 def get_rate(currency):
     """Returns the rate from the default currency to `currency`."""
-    source = get_rate_source()
+    backend = OpenExchangeBackend()
 
     try:
-        if not Rate.objects.today_rates().filter(source=source).exists():
+        if not Rate.objects.today_rates().filter(
+                source__name=backend.get_name()).exists():
             # Refresh rates
-            backend = get_default_backend()
             backend.update_rates()
         return Rate.objects.today_rates().get(
-            source=source, currency=currency
+            source__name=backend.get_name(), currency=currency
         ).value
     except Rate.DoesNotExist:
         raise CurrencyConversionException(
-            "Rate for %s in %s do not exists. " % (currency, source.name))
+            "Rate for %s in %s do not exists. " % (currency,
+                                                   backend.get_name()))
 
-
-def get_rate_source():
-    """Get the default Rate Source and return it."""
-    backend = get_default_backend()
-    try:
-        source = RateSource.objects.filter(name=backend.get_source_name())
-        if not source.exists():
-            backend.update_rates()
-            # We have to hit DB again (RateSource was created now)
-        return RateSource.objects.get(name=backend.get_source_name())
-    except RateSource.DoesNotExist:
-        raise CurrencyConversionException(
-            "Rate for %s source do not exists. " % backend.get_source_name()
-        )
 
 
 def base_convert_money(amount, currency_from, currency_to):
     """
     Convert 'amount' from 'currency_from' to 'currency_to'
     """
-    source = get_rate_source()
+    source = OpenExchangeBackend()
 
     # Get rate for currency_from.
     if source.base_currency != currency_from:
