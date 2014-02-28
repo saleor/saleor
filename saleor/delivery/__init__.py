@@ -40,21 +40,8 @@ class DummyShipping(BaseDelivery):
                      currency=settings.DEFAULT_CURRENCY)
 
 
-@python_2_unicode_compatible
-class DigitalDelivery(BaseDelivery):
-
-    def __init__(self, delivery_group, email):
-        self.email = email
-        super(DigitalDelivery, self).__init__(delivery_group)
-
-    def __str__(self):
-        return 'Digital delivery'
-
-
 def get_delivery_choices_for_group(group, **kwargs):
     if 'address' in kwargs:
         yield ('dummy_shipping', DummyShipping(group, kwargs['address']))
-    elif 'email' in kwargs:
-        yield ('digital_delivery', DigitalDelivery(group, kwargs['email']))
     else:
         raise ValueError('Unknown delivery type')
