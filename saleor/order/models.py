@@ -6,6 +6,7 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.encoding import smart_text
 from django.utils.timezone import now
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from payments import PurchasedItem
@@ -21,6 +22,7 @@ from ..product.models import Product
 from ..userprofile.models import Address
 
 
+@python_2_unicode_compatible
 class Order(models.Model, ItemSet):
 
     STATUS_CHOICES = (
@@ -91,7 +93,7 @@ class Order(models.Model, ItemSet):
     def __repr__(self):
         return '<Order #%r>' % (self.id,)
 
-    def __unicode__(self):
+    def __str__(self):
         return '#%d' % (self.id, )
 
     @property
@@ -148,37 +150,40 @@ class DeliveryGroup(Subtyped, ItemSet):
         self.save()
 
     def get_total(self, **kwargs):
-        return (super(DeliveryGroup, self).get_total(**kwargs) + self.price)
+        return super(DeliveryGroup, self).get_total(**kwargs) + self.price
 
     def add_items_from_partition(self, partition):
         for item_line in partition:
-            product = item_line.product
+            product_variant = item_line.product
             price = item_line.get_price_per_item()
             self.items.create(
-                product=product,
+                product=product_variant.product,
                 quantity=item_line.get_quantity(),
                 unit_price_net=price.net,
-                product_name=smart_text(product),
-                product_sku=product.sku,
+                product_name=smart_text(product_variant),
+                product_sku=product_variant.sku,
                 unit_price_gross=price.gross)
 
 
+@python_2_unicode_compatible
 class ShippedDeliveryGroup(DeliveryGroup):
 
     address = models.ForeignKey(Address, related_name='+')
 
-    def __unicode__(self):
+    def __str__(self):
         return 'Shipped delivery'
 
 
+@python_2_unicode_compatible
 class DigitalDeliveryGroup(DeliveryGroup):
 
     email = models.EmailField()
 
-    def __unicode__(self):
+    def __str__(self):
         return 'Digital delivery'
 
 
+@python_2_unicode_compatible
 class OrderedItem(models.Model, ItemLine):
 
     delivery_group = models.ForeignKey(
@@ -205,7 +210,7 @@ class OrderedItem(models.Model, ItemLine):
         return Price(net=self.unit_price_net, gross=self.unit_price_gross,
                      currency=settings.DEFAULT_CURRENCY)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.product_name
 
     def get_quantity(self):

@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 
 {% load as_vertical_form from bootstrap %}
-{% load undiscounted_price price_difference from discount %}
+{% load undiscounted_price undiscounted_price_range price_difference from discount %}
 {% load i18n %}
 {% load at_size from images %}
 {% load gross from prices %}
+{% load price_range from price_ranges %}
 
 {% block title %}{{ product }} — {{ block.super }}{% endblock %}
 
@@ -15,8 +16,10 @@
 {% endblock breadcrumb %}
 
 {% block outercontent %}
-{% with price=product.get_price undiscounted=product|undiscounted_price %}
-{% with discount=undiscounted|price_difference:price %}
+
+{% with price=product.get_price_range.min_price undiscounted=product|undiscounted_price_range %}
+{% with discount=undiscounted.min_price|price_difference:price %}
+
 <div itemscope itemtype="http://schema.org/Product">
     <h1 itemprop="name">
         {{ product }}
@@ -29,32 +32,53 @@
         </div>
         <div class="col-sm-4">
             <p itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-                <span class="price" itemprop="price">{% gross price %}</span>
-                {% if undiscounted != price %}
+                {% if undiscounted.min_price != price %}
                     <br>
-                    <span class="price undiscounted">{% gross undiscounted %}</span>
+                    <span class="price undiscounted">{% price_range product %}</span>
                     <br>
                     <small class="label label-success">{% trans "You save" %} {% gross discount %}</small>
+                {% else %}
+                    <span class="price">{% price_range product %}</span>
                 {% endif %}
             </p>
             <p>
+            {% block stockinfo %}
+            {% for variant in product.variants.all %}
                 {% if product.stock == 0 %}
                 <link itemprop="availability" href="http://schema.org/OutOfStock" /> <span class="label label-danger">{% trans "Out of stock" %}</span>
                 {% else %}
                 <link itemprop="availability" href="http://schema.org/InStock" /> <span class="label label-default">{% trans "In stock" %}</span>
                 {% endif %}
+            {% endfor %}
+            {% endblock %}
             </p>
             <hr>
+        {% with collection=product.get_products_from_collection %}
+            {% if collection %}
+            <h3>{% trans "Available Colors" %}</h3>
+                {% for product in collection %}
+                    <a href="{{ product.get_absolute_url }}">
+                        <span class="label" style="background-color: #{{ product.color.color }}">{{ product.color.name }}</span>
+                    </a>
+                {% endfor %}
+                <hr>
+            {% endif %}
+        {% endwith %}
+
+        <h3>{% trans "Order" %}</h3>
+            {% block orderform %}
             <form role="form" class="form-vertical" method="post" action=".">
                 {% csrf_token %}
-                {{ form.quantity|as_vertical_form }}
+                {{ form|as_vertical_form }}
 
                 <div class="form-group">
+                    <p>{% trans "Final price" %} <span id="final-price">0.00</span> {{ price.currency }}</p>
                     <button class="btn btn-default">
                         {% trans "Add to cart" %}
                     </button>
                 </div>
             </form>
+            {% endblock %}
         </div>
     </div>
 </div>

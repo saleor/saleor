@@ -1,20 +1,40 @@
 from django.contrib import admin
 from mptt.admin import MPTTModelAdmin
 
-from . import models
+from .models import (ProductImage, BagVariant, Bag, ShirtVariant, Shirt,
+                     Category, FixedProductDiscount, Color)
+from .forms import ShirtAdminForm
 
 
 class ImageAdminInline(admin.StackedInline):
-
-    model = models.ProductImage
-
-
-class ProductAdmin(admin.ModelAdmin):
-
-    inlines = [ImageAdminInline]
+    model = ProductImage
 
 
-admin.site.register(models.DigitalShip, ProductAdmin)
-admin.site.register(models.Ship, ProductAdmin)
-admin.site.register(models.Category, MPTTModelAdmin)
-admin.site.register(models.FixedProductDiscount)
+class BagVariantInline(admin.StackedInline):
+    model = BagVariant
+
+
+class BagAdmin(admin.ModelAdmin):
+    inlines = [BagVariantInline, ImageAdminInline]
+
+
+class ShirtVariant(admin.StackedInline):
+    model = ShirtVariant
+
+
+class ShirtAdmin(admin.ModelAdmin):
+    form = ShirtAdminForm
+    list_display = ['name', 'collection', 'admin_get_price_min',
+                    'admin_get_price_max']
+    inlines = [ShirtVariant, ImageAdminInline]
+
+
+class ProductCollectionAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+
+
+admin.site.register(Bag, BagAdmin)
+admin.site.register(Shirt, ShirtAdmin)
+admin.site.register(Category, MPTTModelAdmin)
+admin.site.register(FixedProductDiscount)
+admin.site.register(Color)

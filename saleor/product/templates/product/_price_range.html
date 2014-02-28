@@ -1,0 +1,8 @@
+{% load i18n %}
+{% load gross from prices %}
+{% if price_range.min_price == price_range.max_price %}
+    {% gross price_range.min_price %}
+{% else %}
+    {% trans "Starting from" %}
+    {% gross price_range.min_price %}
+{% endif %}

@@ -1,17 +1,9 @@
 from __future__ import unicode_literals
 
 from django.utils.translation import pgettext
+from django.utils.encoding import python_2_unicode_compatible
 from satchless import cart
-from satchless.item import ItemList, ClassifyingPartitioner
-
-from ..product.models import DigitalShip
-
-
-class ShippedGroup(ItemList):
-    '''
-    Group for shippable products.
-    '''
-    pass
+from satchless.item import ItemList
 
 
 class DigitalGroup(ItemList):
@@ -21,21 +13,7 @@ class DigitalGroup(ItemList):
     pass
 
 
-class CartPartitioner(ClassifyingPartitioner):
-    '''
-    Dividing cart into groups.
-    '''
-    def classify(self, item):
-        if isinstance(item.product, DigitalShip):
-            return 'digital'
-        return 'shippable'
-
-    def get_partition(self, classifier, items):
-        if classifier == 'digital':
-            return DigitalGroup(items)
-        return ShippedGroup(items)
-
-
+@python_2_unicode_compatible
 class Cart(cart.Cart):
     '''
     Contains cart items. Serialized instance of cart is saved into django
@@ -44,7 +22,7 @@ class Cart(cart.Cart):
     timestamp = None
     billing_address = None
 
-    def __unicode__(self):
+    def __str__(self):
         return pgettext(
             'Shopping cart',
             'Your cart (%(cart_count)s)') % {'cart_count': self.count()}

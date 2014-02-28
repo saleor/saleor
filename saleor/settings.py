@@ -105,7 +105,8 @@ INSTALLED_APPS = [
     'django_prices',
     'mptt',
     'payments',
-    'south'
+    'south',
+    'selectable'
 ]
 
 LOGGING = {
