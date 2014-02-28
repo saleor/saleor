@@ -217,8 +217,8 @@ CHECKOUT_PAYMENT_CHOICES = [
 TEMPLATE_STRING_IF_INVALID = '<< MISSING VARIABLE >>'
 
 
-CURRENCY_CONVERTER = {
-    'OPENEXCHANGE_URL': 'http://openexchangerates.org/api/latest.json',
-    'OPENEXCHANGE_APP_ID': '',
-    'OPENEXCHANGE_BASE_CURRENCY': 'USD',
+OPENEXCHANGE = {
+    'URL': 'http://openexchangerates.org/api/latest.json',
+    'APP_ID': 'Put your APP_ID here',
+    'BASE_CURRENCY': DEFAULT_CURRENCY
 }
