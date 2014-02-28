@@ -7,6 +7,9 @@ register = template.Library()
 def undiscounted_price(item):
     return item.get_price(discounted=False)
 
+@register.filter
+def undiscounted_price_range(item):
+    return item.get_price_range(discounted=False)
 
 @register.filter
 def price_difference(price1, price2):

@@ -11,6 +11,16 @@ class Command(Command):
     finalize_options = lambda self: None
 
 
+class PopulateDatabase(Command):
+    description = "Populate database with test objects"
+
+    def run(self):
+        from django.core.management import call_command
+        from utils.create_random_data import create_items
+        call_command('syncdb', interactive=True, migrate_all=True)
+        create_items('saleor/static/placeholders/', 10)
+
+
 setup(
     name='saleor',
     author='Mirumee Software',
@@ -32,10 +42,18 @@ setup(
         'satchless>=1.1.1,<1.2a0',
         'South>=0.7.6',
         'requests>=1.2.0',
-        'unidecode'],
+        'unidecode',
+        'django-selectable==0.8.0',
+        'fake-factory>=0.3.2'
+    ],
     entry_points={
         'console_scripts': ['saleor = saleor:manage']},
     tests_require=[
         'mock==1.0.1',
-        'purl>=0.4.1'],
-    test_suite='saleor.tests.suite')
+        'purl>=0.4.1',
+    ],
+    test_suite='saleor.tests.suite',
+    cmdclass={
+        'populatedb': PopulateDatabase
+    }
+)
