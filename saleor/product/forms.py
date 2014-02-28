@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import pgettext_lazy
 from selectable.forms import AutoCompleteWidget
 
 from ..cart.forms import AddToCartForm
@@ -37,6 +38,17 @@ class ShirtAdminForm(forms.ModelForm):
             'collection': AutoCompleteWidget(CollectionLookup)
         }
 
+
+class ProductVariantInline(forms.models.BaseInlineFormSet):
+    def clean(self):
+        count = 0
+        for form in self.forms:
+            if form.cleaned_data:
+                count += 1
+        if count < 1:
+            raise forms.ValidationError(
+                pgettext_lazy('Product admin error',
+                              'You have to create at least one variant'))
 
 def get_form_class_for_product(product):
     if isinstance(product, Shirt):
