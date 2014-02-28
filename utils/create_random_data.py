@@ -5,12 +5,14 @@ import os
 from faker import Factory
 from django.core.files import File
 
-from saleor.product.models import (Shirt, ShirtVariant, ProductCollection,
+from saleor.product.models import (Shirt, ShirtVariant,
                                    Bag, BagVariant, ProductImage)
 from saleor.product.models import Category, Color
 
 
 fake = Factory.create()
+
+PRODUCT_COLLECTIONS = fake.words(10)
 
 
 def create_color(**kwargs):
@@ -18,7 +20,7 @@ def create_color(**kwargs):
 
     defaults = {
         'name': fake.word(),
-        'color': '#%02X%02X%02X' % (r(), r(), r())
+        'color': '%02X%02X%02X' % (r(), r(), r())
     }
     defaults.update(kwargs)
 
@@ -37,10 +39,15 @@ def create_category(**kwargs):
 
 
 def create_product(product_type, **kwargs):
+    if random.choice([True, False]):
+        collection = random.choice(PRODUCT_COLLECTIONS)
+    else:
+        collection = None
+
     defaults = {
         'name': fake.company(),
         'category': Category.objects.order_by('?')[0],
-        'collection': ProductCollection.objects.order_by('?')[0],
+        'collection': collection,
         'color': Color.objects.order_by('?')[0],
         'weight': fake.random_digit(),
     }
@@ -90,13 +97,11 @@ def create_bag(**kwargs):
 
 
 def create_items(placeholder_dir, how_many=10):
-    if Color.objects.count() < 2:
-        create_color()
+    # Create few colors
+    [create_color() for i in range(5)]
+
     shirt_category = create_category(name='Shirts')
     bag_category = create_category(name='Grocery bags')
-
-    if ProductCollection.objects.count() < 2:
-        ProductCollection.objects.create(name="Test")
 
     for i in range(how_many):
         # Shirt
@@ -107,6 +112,10 @@ def create_items(placeholder_dir, how_many=10):
         create_product_image(bag, placeholder_dir)
         # chance to generate couple of sizes
         for size in ShirtVariant.SIZE_CHOICES:
+            # Create min. one size
+            if shirt.variants.count() == 0:
+                create_variant(shirt, size=size[0])
+                continue
             if random.choice([True, False]):
                 create_variant(shirt, size=size[0])
 
@@ -114,6 +123,3 @@ def create_items(placeholder_dir, how_many=10):
 
         print("Shirt - %s %s Variants" % (shirt, shirt.variants.count()))
         print("Bag - %s %s Variants" % (bag, bag.variants.count()))
-
-
-

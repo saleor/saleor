@@ -4,21 +4,24 @@ from django.utils.translation import pgettext_lazy
 from django.db import models
 
 from .base_products import Product
-from .variants import (ProductVariant, PhysicalProduct, ColoredVariants,
+from .variants import (ProductVariant, PhysicalProduct, ColoredVariant,
                        StockedProduct)
 
 
-class Bag(Product, PhysicalProduct, ColoredVariants):
+class Bag(Product, PhysicalProduct, ColoredVariant):
+
     class Meta:
         app_label = 'product'
 
 
-class Shirt(Product, PhysicalProduct, ColoredVariants):
+class Shirt(Product, PhysicalProduct, ColoredVariant):
+
     class Meta:
         app_label = 'product'
 
 
 class BagVariant(ProductVariant, StockedProduct):
+
     product = models.ForeignKey(Bag, related_name='variants')
 
     class Meta:
@@ -26,6 +29,7 @@ class BagVariant(ProductVariant, StockedProduct):
 
 
 class ShirtVariant(ProductVariant, StockedProduct):
+    
     SIZE_CHOICES = (
         ('xs', pgettext_lazy('Variant size', 'XS')),
         ('s', pgettext_lazy('Variant size', 'S')),

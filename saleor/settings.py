@@ -107,6 +107,7 @@ INSTALLED_APPS = [
     'mptt',
     'payments',
     'south',
+    'selectable'
 ]
 
 LOGGING = {

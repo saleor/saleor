@@ -7,6 +7,7 @@ from django.contrib.auth.models import BaseUserManager
 from django.db import models
 from django.forms.models import model_to_dict
 from django.utils import timezone
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
 from unidecode import unidecode
@@ -31,6 +32,7 @@ class AddressBookManager(models.Manager):
         return entry
 
 
+@python_2_unicode_compatible
 class AddressBook(models.Model):
 
     user = models.ForeignKey('User', related_name='address_book')
@@ -48,7 +50,7 @@ class AddressBook(models.Model):
     class Meta:
         unique_together = ('user', 'alias')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.alias
 
     @models.permalink
@@ -75,6 +77,7 @@ class AddressManager(models.Manager):
         return data1 == data2
 
 
+@python_2_unicode_compatible
 class Address(models.Model):
 
     first_name = models.CharField(
@@ -110,7 +113,7 @@ class Address(models.Model):
 
     objects = AddressManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s %s' % (self.first_name, self.last_name)
 
     def __repr__(self):
@@ -162,6 +165,7 @@ class UserManager(BaseUserManager):
             user.save()
 
 
+@python_2_unicode_compatible
 class User(models.Model):
     email = models.EmailField(unique=True)
 
@@ -197,7 +201,7 @@ class User(models.Model):
 
     objects = UserManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return self.get_username()
 
     def natural_key(self):
