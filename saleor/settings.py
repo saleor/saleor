@@ -170,6 +170,10 @@ IMAGE_SIZES = {
     'normal': {
         'size': (750, 0)
     },
+    'small': {
+        'size': (750, 400),
+        'crop': True
+    },
     'admin': {
         'size': (50, 50),
         'crop': True
