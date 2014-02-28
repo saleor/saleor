@@ -50,6 +50,7 @@ def create_product(product_type, **kwargs):
         'collection': collection,
         'color': Color.objects.order_by('?')[0],
         'weight': fake.random_digit(),
+        'description': ''.join(fake.paragraphs())
     }
     defaults.update(kwargs)
 
