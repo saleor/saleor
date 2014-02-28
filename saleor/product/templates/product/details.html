@@ -21,16 +21,53 @@
 {% with discount=undiscounted.min_price|price_difference:price %}
 
 <div itemscope itemtype="http://schema.org/Product">
-    <h1 itemprop="name">
-        {{ product }}
-    </h1>
     <div class="row">
-        <div class="col-sm-8">
-            {% for image in product.images.all %}
-                <img class="img-responsive" src="{{ image|at_size:"normal" }}" alt="">
-            {% endfor %}
+        <div class="col-sm-6 col-sm-push-4">
+            <h1 itemprop="name">
+                {{ product }}
+            </h1>
+
+            <p class="lead" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                Price:
+                <span itemprop="price">
+                    {% gross product.get_price_range.min_price %} - {% gross product.get_price_range.max_price %}
+                </span>
+            </p>
+
+            <hr/>
+
+            <p itemprop="description">
+                {{ product.description|linebreaks }}
+            </p>
         </div>
-        <div class="col-sm-4">
+
+        <div class="col-sm-4 col-sm-pull-6">
+            <div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+                <ol class="carousel-indicators">
+                    {% for image in product.images.all %}
+                        <li data-target="#carousel-example-generic" data-slide-to="{{ forloop.counter0 }}"
+                            {% if forloop.first %} class="active"{% endif %}></li>
+                    {% endfor %}
+                </ol>
+
+                <div class="carousel-inner">
+                    {% for image in product.images.all %}
+                    <div class="item{% if forloop.first %} active{% endif %}">
+                        <img class="img-responsive" src="{{ image|at_size:"small" }}" alt="">
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <a class="left carousel-control" href="#carousel-example-generic" data-slide="prev">
+                    <span class="glyphicon glyphicon-chevron-left"></span>
+                </a>
+                <a class="right carousel-control" href="#carousel-example-generic" data-slide="next">
+                    <span class="glyphicon glyphicon-chevron-right"></span>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-sm-2">
             <p itemprop="offers" itemscope itemtype="http://schema.org/Offer">
                 {% if undiscounted.min_price != price %}
                     <br>
@@ -53,19 +90,19 @@
             {% endblock %}
             </p>
             <hr>
-        {% with collection=product.get_products_from_collection %}
-            {% if collection %}
-            <h3>{% trans "Available Colors" %}</h3>
-                {% for product in collection %}
-                    <a href="{{ product.get_absolute_url }}">
-                        <span class="label" style="background-color: #{{ product.color.color }}">{{ product.color.name }}</span>
-                    </a>
-                {% endfor %}
-                <hr>
-            {% endif %}
-        {% endwith %}
+            {% with collection=product.get_products_from_collection %}
+                {% if collection %}
+                <h3>{% trans "Available Colors" %}</h3>
+                    {% for product in collection %}
+                        <a href="{{ product.get_absolute_url }}">
+                            <span class="label" style="background-color: #{{ product.color.color }}">{{ product.color.name }}</span>
+                        </a>
+                    {% endfor %}
+                    <hr>
+                {% endif %}
+            {% endwith %}
 
-        <h3>{% trans "Order" %}</h3>
+            <h3>{% trans "Order" %}</h3>
             {% block orderform %}
             <form role="form" class="form-vertical" method="post" action=".">
                 {% csrf_token %}
@@ -73,7 +110,7 @@
 
                 <div class="form-group">
                     <p>{% trans "Final price" %} <span id="final-price">0.00</span> {{ price.currency }}</p>
-                    <button class="btn btn-default">
+                    <button class="btn btn-lg btn-block btn-primary">
                         {% trans "Add to cart" %}
                     </button>
                 </div>
