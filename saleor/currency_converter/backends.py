@@ -78,18 +78,18 @@ class OpenExchangeBackend(BaseRateBackend):
     source_name = "openexchange.org"
 
     def __init__(self):
-        if not settings.CURRENCY_CONVERTER["OPENEXCHANGE_URL"]:
-            raise ImproperlyConfigured("OPENEXCHANGE_URL setting is empty")
+        if not settings.OPENEXCHANGE["URL"]:
+            raise ImproperlyConfigured("URL setting is empty")
 
-        if not settings.CURRENCY_CONVERTER["OPENEXCHANGE_APP_ID"]:
-            raise ImproperlyConfigured("OPENEXCHANGE_APP_ID setting is empty")
+        if not settings.OPENEXCHANGE["APP_ID"]:
+            raise ImproperlyConfigured("APP_ID setting is empty")
 
         # Build the base api url
         url_parts = list(urlparse(
-            settings.CURRENCY_CONVERTER['OPENEXCHANGE_URL']
+            settings.OPENEXCHANGE['URL']
         ))
         parameters = {
-            'app_id': settings.CURRENCY_CONVERTER["OPENEXCHANGE_APP_ID"],
+            'app_id': settings.OPENEXCHANGE["APP_ID"],
             'base': self.get_base_currency()
         }
         url_parts[4] = urlencode(parameters)
@@ -107,4 +107,4 @@ class OpenExchangeBackend(BaseRateBackend):
             raise RateBackendError("Error retrieving rates: %s" % e)
 
     def get_base_currency(self):
-        return settings.CURRENCY_CONVERTER["OPENEXCHANGE_BASE_CURRENCY"]
+        return settings.OPENEXCHANGE["BASE_CURRENCY"]
