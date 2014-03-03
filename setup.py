@@ -41,7 +41,7 @@ setup(
         'fake-factory>=0.3.2',
         'google-measurement-protocol>=0.1.2,<0.2a0',
         'prices>=0.5,<0.6a0',
-        'purl>=0.4.1'
+        'purl>=0.4.1',
         'requests>=1.2.0',
         'satchless>=1.1.1,<1.2a0',
         'South>=0.7.6',
@@ -50,8 +50,7 @@ setup(
     entry_points={
         'console_scripts': ['saleor = saleor:manage']},
     tests_require=[
-        'mock==1.0.1',
-        ,
+        'mock==1.0.1'
     ],
     test_suite='saleor.tests.suite',
     cmdclass={
