@@ -3,15 +3,10 @@ from __future__ import unicode_literals
 import logging
 import json
 
-try:
-    from urllib.parse import urlencode, urlparse, urlunparse
-except ImportError:
-    from urlparse import urlparse, urlunparse
-    from urllib import urlencode
-
 from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
 import requests
+from purl import URL
 
 from .models import RateSource, Rate
 
@@ -84,17 +79,13 @@ class OpenExchangeBackend(BaseRateBackend):
         if not settings.OPENEXCHANGE["APP_ID"]:
             raise ImproperlyConfigured("APP_ID setting is empty")
 
-        # Build the base api url
-        url_parts = list(urlparse(
-            settings.OPENEXCHANGE['URL']
-        ))
-        parameters = {
-            'app_id': settings.OPENEXCHANGE["APP_ID"],
-            'base': self.get_base_currency()
-        }
-        url_parts[4] = urlencode(parameters)
-        base_url = urlunparse(url_parts)
-        self.url = base_url
+        base_url = URL(settings.OPENEXCHANGE['URL'])
+        parametrized_url = base_url.query_params({
+             'app_id': settings.OPENEXCHANGE["APP_ID"],
+             'base': self.get_base_currency()
+        })
+
+        self.url = parametrized_url.as_string()
 
     def get_rates(self):
         try:
