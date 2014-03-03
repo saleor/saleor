@@ -6,17 +6,6 @@ from django.test import TestCase
 from prices import Price
 
 from .utils import convert_price
-from.backends import BaseRateBackend
-
-
-class FakeBackend(BaseRateBackend):
-    source_name = 'fake'
-
-    def get_rates(self):
-        pass
-
-    def get_base_currency(self):
-        pass
 
 
 @patch('saleor.currency_converter.backends.OpenExchangeBackend')

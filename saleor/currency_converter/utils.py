@@ -4,7 +4,7 @@ import operator
 
 from prices import Price, PriceModifier, History
 
-from .models import Rate
+from .models import OpenExchangeRate
 from .backends import OpenExchangeBackend
 
 
@@ -46,17 +46,15 @@ def get_rate(currency):
     backend = OpenExchangeBackend()
 
     try:
-        if not Rate.objects.today_rates().filter(
-                source__name=backend.get_name()).exists():
+        if not OpenExchangeRate.objects.today_rates().exists():
             # Refresh rates
             backend.update_rates()
-        return Rate.objects.today_rates().get(
-            source__name=backend.get_name(), currency=currency
-        ).value
-    except Rate.DoesNotExist:
-        raise CurrencyConversionException(
-            "Rate for %s in %s do not exists. " % (currency,
-                                                   backend.get_name()))
+        return OpenExchangeRate.objects.today_rates().get(
+            target_currency=currency
+        ).exchange_rate
+    except OpenExchangeRate.DoesNotExist:
+        raise ValueError("Rate for %s in %s do not exists. " % (
+            currency, backend.source_name))
 
 
 def base_convert_money(amount, currency_from, currency_to):
@@ -77,7 +75,7 @@ def base_convert_money(amount, currency_from, currency_to):
 
     # After finishing the operation, quantize down final amount to two points.
     return {
-        'value': ((amount / rate_from) * rate_to).quantize(Decimal("1.00")),
+        'value': ((amount / rate_from) * rate_to),
         'rate_from': rate_from,
         'rate_to': rate_to}
 
