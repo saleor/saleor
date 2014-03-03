@@ -11,7 +11,6 @@ from saleor.product.models import Category, Color
 
 
 fake = Factory.create()
-
 PRODUCT_COLLECTIONS = fake.words(10)
 
 
@@ -32,8 +31,8 @@ def create_category(**kwargs):
         'name': fake.word(),
         'description': fake.text()
     }
-    defaults['slug'] = fake.slug(defaults['name'])
     defaults.update(kwargs)
+    defaults['slug'] = fake.slug(defaults['name'])
 
     return Category.objects.create(**defaults)
 
@@ -89,6 +88,11 @@ def create_product_image(product, placeholder_dir):
     return image
 
 
+def create_product_images(product, how_many, placeholder_dir):
+    for i in range(how_many):
+        create_product_image(product, placeholder_dir)
+
+
 def create_shirt(**kwargs):
     return create_product(Shirt, **kwargs)
 
@@ -107,10 +111,12 @@ def create_items(placeholder_dir, how_many=10):
     for i in range(how_many):
         # Shirt
         shirt = create_shirt(category=shirt_category)
-        create_product_image(shirt, placeholder_dir)
+        create_product_images(shirt, random.randrange(1, 5),
+                              placeholder_dir + "shirts")
         # Bag
         bag = create_bag(category=bag_category, collection=None)
-        create_product_image(bag, placeholder_dir)
+        create_product_images(bag, random.randrange(1, 5),
+                              placeholder_dir + "bags")
         # chance to generate couple of sizes
         for size in ShirtVariant.SIZE_CHOICES:
             # Create min. one size
