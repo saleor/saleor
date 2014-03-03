@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 from decimal import Decimal
+import operator
 
-from prices import Price
+from prices import Price, PriceModifier, History
 
 from .models import Rate
 from .backends import OpenExchangeBackend
@@ -11,6 +12,33 @@ class CurrencyConversionException(Exception):
     """
     Raised by conversion utility function when problems arise
     """
+
+
+class CurrencyConversion(PriceModifier):
+    """
+    Converts Price from one currency to another using PriceModifier
+    """
+    def __init__(self, target_currency):
+        self.target_currency = target_currency
+        self.rate_to = None
+
+    def __repr__(self):
+        return 'CurrencyConversion(to_currency=%s, exchange_rate=%r)' % (
+            str(self.target_currency), self.rate_to)
+
+    def apply(self, price):
+        net_conversion = base_convert_money(price.net, price.currency,
+                                            self.target_currency)
+        net_amount = net_conversion['value']
+        self.rate_to = net_conversion['rate_to']
+
+        gross_amount = base_convert_money(price.gross, price.currency,
+                                          self.target_currency)['value']
+
+        history = History(price, operator.__mul__, self)
+
+        return Price(net=net_amount, gross=gross_amount,
+                     currency=self.target_currency, history=history)
 
 
 def get_rate(currency):
@@ -33,7 +61,7 @@ def get_rate(currency):
 
 def base_convert_money(amount, currency_from, currency_to):
     """
-    Convert 'amount' from 'currency_from' to 'currency_to'
+    Converts 'amount' from 'currency_from' to 'currency_to'
     """
     source = OpenExchangeBackend()
 
@@ -48,14 +76,18 @@ def base_convert_money(amount, currency_from, currency_to):
     rate_to = get_rate(currency_to)
 
     # After finishing the operation, quantize down final amount to two points.
-    return ((amount / rate_from) * rate_to).quantize(Decimal("1.00"))
+    return {
+        'value': ((amount / rate_from) * rate_to).quantize(Decimal("1.00")),
+        'rate_from': rate_from,
+        'rate_to': rate_to}
 
 
 def convert_price(price, currency_to):
     """
     Convert 'price' (Price object) from it's currency to 'currency_to' a
-    d return new Price instance.
+    d return Price instance with applied CurrencyConversion modifier.
     """
-    new_amount = base_convert_money(price.gross, price.currency, currency_to)
+    conversion = CurrencyConversion(target_currency=currency_to)
 
-    return Price(new_amount, currency=currency_to)
+    return conversion.apply(price)
+
