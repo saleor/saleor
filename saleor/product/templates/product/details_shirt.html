@@ -23,8 +23,7 @@
 {% block orderform %}
     <form role="form" class="form-vertical" method="post" action=".">
         {% csrf_token %}
-        {{ form.quantity|as_vertical_form }}
-        {{ form.size }}
+        {{ form|as_vertical_form }}
 
         <div class="form-group">
             <p>{% trans "Final price" %} <span
