@@ -38,8 +38,7 @@ class BaseAddressStep(BaseCheckoutStep):
     def __init__(self, request, storage, address):
         super(BaseAddressStep, self).__init__(request, storage)
         if address:
-            address_dict = Address.objects.as_data(address)
-            self.address = Address(**address_dict)
+            self.address = Address(**address)
         else:
             self.address = Address()
         existing_selected = False
@@ -120,7 +119,7 @@ class BillingAddressStep(BaseAddressStep):
 
     def save(self):
         self.storage['anonymous_user_email'] = self.anonymous_user_email
-        self.storage['address'] = self.address
+        self.storage['address'] = Address.objects.as_data(self.address)
 
     def add_to_order(self, order):
         self.address.save()
@@ -146,8 +145,9 @@ class ShippingStep(BaseAddressStep):
     def __init__(self, request, storage, purchased_items, _id=None,
                  default_address=None):
         self.id = _id
-        address = storage.get('address', default_address)
-        super(ShippingStep, self).__init__(request, storage, address)
+        address_dict = storage.get('address', default_address)
+        address = Address(**address_dict)
+        super(ShippingStep, self).__init__(request, storage, address_dict)
         delivery_choices = list(
             get_delivery_choices_for_group(purchased_items, address=address))
         selected_delivery_name = storage.get('delivery_method')
@@ -169,7 +169,7 @@ class ShippingStep(BaseAddressStep):
 
     def save(self):
         delivery_form = self.forms['delivery']
-        self.storage['address'] = self.address
+        self.storage['address'] = Address.objects.as_data(self.address)
         delivery_method = delivery_form.cleaned_data['method']
         self.storage['delivery_method'] = delivery_method
 
