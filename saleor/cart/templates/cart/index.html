@@ -38,11 +38,17 @@
         </tfoot>
         <tbody>
             {% for form in formset %}
+                {% if form.cart_line.error %}
+            <tr class="danger">
+                {% else %}
             <tr>
+            {% endif %}
                 <td>
                     <a href="{{ form.cart_line.product.get_absolute_url }}">{{ form.cart_line.product }}</a>
-                    {% if form.cart_line.product.size %}
-                        ({{ form.cart_line.product.get_size_display }})
+                    {% if form.cart_line.error %}
+                        <p>
+                            <span class="label label-danger">{{ form.cart_line.error }}</span>
+                        </p>
                     {% endif %}
                 </td>
                 <td>{{ form.quantity|as_vertical_form:False }}</td>
@@ -53,9 +59,15 @@
         </tbody>
     </table>
     <div class="form-group">
-        <div>
-            <a href="{% url "checkout:index" %}" class="btn btn-primary">Checkout</a>
-        </div>
+        {% if checkout_possible %}
+            <div>
+                <a href="{% url "checkout:index" %}" class="btn btn-primary">Checkout</a>
+            </div>
+        {% else %}
+            <div>
+                <p>{% trans "Sorry, you can't proceed to checkout. Please check for errors above." %}</p>
+            </div>
+        {% endif %}
     </div>
 </form>
 {% else %}
