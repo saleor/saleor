@@ -68,7 +68,11 @@ class AddToCartForm(forms.Form):
         Adds CartLine into the Cart instance.
         """
         product_variant = self.get_variant(self.cleaned_data)
-        return self.cart.add(product_variant, self.cleaned_data['quantity'])
+        return self.cart.add(product_variant.as_data(),
+                             self.cleaned_data['quantity'])
+
+    def get_cart(self):
+        return self.cart
 
     def get_variant(self, cleaned_data):
         raise NotImplementedError()
@@ -134,3 +138,6 @@ class ReplaceCartLineFormSet(BaseFormSet):
     def save(self):
         for form in self.forms:
             form.save()
+
+    def get_cart(self):
+        return self.cart

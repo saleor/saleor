@@ -7,7 +7,7 @@ from satchless.item import Partitioner
 
 from .steps import (BillingAddressStep, ShippingStep, DigitalDeliveryStep,
                     SummaryStep)
-from ..cart import DigitalGroup
+from ..cart import DigitalGroup, Cart
 from ..core import analytics
 from ..order.models import Order
 
@@ -39,7 +39,8 @@ class Checkout(ProcessManager):
                 request.session[STORAGE_SESSION_KEY])
         except KeyError:
             self.storage = CheckoutStorage()
-        self.generate_steps(request.cart)
+        self.cart = Cart.from_data(request.cart)
+        self.generate_steps(self.cart)
 
     def generate_steps(self, cart):
         self.items = Partitioner(cart)
@@ -105,7 +106,8 @@ class Checkout(ProcessManager):
 
     def clear_storage(self):
         del self.request.session[STORAGE_SESSION_KEY]
-        self.request.cart.clear()
+        self.cart.clear()
+        self.request.cart = self.cart.as_data()
 
     def __iter__(self):
         return iter(self.steps)

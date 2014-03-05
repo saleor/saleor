@@ -207,7 +207,7 @@ PAYMENT_VARIANTS = {
     'default': ('payments.dummy.DummyProvider', {})
 }
 
-SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 
 CHECKOUT_PAYMENT_CHOICES = [
     ('default', 'Dummy provider')

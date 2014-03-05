@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from . import Cart
 
 
@@ -12,10 +14,11 @@ class CartMiddleware(object):
             cart = request.session[self.SESSION_KEY]
         except KeyError:
             cart = Cart()
+            cart = cart.as_data()
         setattr(request, 'cart', cart)
 
     def process_response(self, request, response):
-        if hasattr(request, 'cart') and request.cart.modified:
-            request.cart.modified = False
+        if hasattr(request, 'cart') and request.cart['modified']:
+            request.cart['modified'] = False
             request.session[self.SESSION_KEY] = request.cart
         return response
