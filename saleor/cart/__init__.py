@@ -29,24 +29,24 @@ class Cart(cart.Cart):
             'Shopping cart',
             'Your cart (%(cart_count)s)') % {'cart_count': self.count()}
 
-    def to_json(self):
+    def as_data(self):
         items = []
         for cartline in self:
-            items.append({
-                'product_id': cartline.product.product.pk,
-                'variant_id': cartline.product.pk,
-                'quantity': cartline.quantity,
-            })
+            if isinstance(cartline.product, dict):
+                data = cartline.product
+            else:
+                data = cartline.product.as_data()
+            data['quantity'] = cartline.quantity
+            items.append(data)
         cart_data = {
             'items': items,
             'modified': self.modified
         }
-        return json.dumps(cart_data)
+        return cart_data
 
     @classmethod
-    def from_json(cls, cart_json):
+    def from_data(cls, cart_data):
         cart = Cart()
-        cart_data = json.loads(cart_json)
         for item in cart_data['items']:
             product = Product.objects.get(pk=item['product_id'])
             variant = product.variants.get(pk=item['variant_id'])
