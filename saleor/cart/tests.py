@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 from decimal import Decimal
 
 from django.test import TestCase
-from mock import patch
+from mock import patch, MagicMock
 from prices import Price
 from satchless.item import InsufficientStock
 
@@ -20,10 +20,11 @@ class BigShip(ProductVariant, StockedProduct, PhysicalProduct):
         return self.price
 
 
-
 class ShipPhoto(ProductVariant):
 
-    pass
+    def get_price_per_item(self, discounted=True, **kwargs):
+        return self.price
+
 
 class BigShipCartForm(AddToCartForm):
 
@@ -43,7 +44,7 @@ class CartTest(TestCase):
         """
         Stock limit works
         """
-        cart = Cart()
+        cart = Cart(session_cart=MagicMock())
 
         def illegal():
             cart.add(stock_product, 100)
@@ -55,7 +56,7 @@ class CartTest(TestCase):
 class BigShipCartFormTest(TestCase):
 
     def setUp(self):
-        self.cart = Cart()
+        self.cart = Cart(MagicMock())
         self.post = {'quantity': 5}
 
     def test_quantity(self):
@@ -99,7 +100,7 @@ class BigShipCartFormTest(TestCase):
         """
         Is BigShipCartForm works with not stocked product
         """
-        cart = Cart()
+        cart = Cart(session_cart=MagicMock())
         self.post['quantity'] = 10000
         form = BigShipCartForm(self.post, cart=cart, product=digital_product)
         self.assertTrue(form.is_valid(), 'Form doesn\'t valitate')
@@ -111,7 +112,7 @@ class BigShipCartFormTest(TestCase):
 class ReplaceCartLineFormTest(TestCase):
 
     def setUp(self):
-        self.cart = Cart()
+        self.cart = Cart(session_cart=MagicMock())
 
     def test_quantity(self):
         """
@@ -146,7 +147,7 @@ class ReplaceCartLineFormSetTest(TestCase):
             'form-INITIAL_FORMS': 2,
             'form-0-quantity': 5,
             'form-1-quantity': 5}
-        cart = Cart()
+        cart = Cart(session_cart=MagicMock())
         cart.add(stock_product, 5)
         cart.add(digital_product, 100)
         form = ReplaceCartLineFormSet(post, cart=cart)
@@ -186,6 +187,6 @@ class SessionCartTest(TestCase):
         self.cart.add(stock_product, quantity=5)
         expected = {
             'items': self.cart._state,
-            'modified': False
+            'modified': True
         }
         self.assertEqual(self.cart.as_data(), expected)
