@@ -7,6 +7,7 @@ from satchless import cart
 from satchless.item import ItemList, InsufficientStock
 from saleor.product.models import Product
 
+CART_SESSION_KEY = 'cart'
 
 class DigitalGroup(ItemList):
     '''
@@ -25,7 +26,8 @@ class Cart(cart.Cart):
     billing_address = None
 
     def __init__(self, session_cart):
-        self.session_cart = session_cart
+        super(Cart, self).__init__()
+        self.session_cart = SessionCart.from_data(session_cart)
 
     @classmethod
     def from_cart(cls, session_cart):
@@ -50,6 +52,9 @@ class Cart(cart.Cart):
         if modify_session_cart:
             self.session_cart.add(product, quantity, data, replace)
 
+    def clear(self):
+        super(Cart, self).clear()
+        self.session_cart.clear()
 
 
 @python_2_unicode_compatible
@@ -62,6 +67,13 @@ class SessionCart(cart.Cart):
 
     def __str__(self):
         return 'SessionCart'
+
+    @classmethod
+    def from_data(cls, cart_data):
+        cart = SessionCart()
+        cart.modified = cart_data['modified']
+        cart._state = cart_data['items']
+        return cart
 
     def add(self, variant, quantity=1, data=None, replace=False):
         product_data = {
@@ -79,9 +91,7 @@ class SessionCart(cart.Cart):
                     self._state.remove(item)
 
         self._state.append(product_data)
-
-    def clear(self):
-        self._state = []
+        self.modified = True
 
     def get_line(self, variant, data=None):
         for item in self._state:

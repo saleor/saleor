@@ -11,7 +11,7 @@ from . import Cart
 
 
 def index(request):
-    cart = Cart.from_data(request.cart)
+    cart = Cart.from_cart(request.cart)
     cart_partitioner = Partitioner(cart)
 
     formset = ReplaceCartLineFormSet(request.POST or None,
@@ -20,7 +20,6 @@ def index(request):
         msg = _('Successfully updated product quantities.')
         messages.success(request, msg)
         formset.save()
-        request.cart = formset.get_cart().as_data()
         return redirect('cart:index')
     return TemplateResponse(
         request, 'cart/index.html', {
