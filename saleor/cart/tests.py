@@ -189,4 +189,4 @@ class SessionCartTest(TestCase):
             'items': self.cart._state,
             'modified': True
         }
-        self.assertEqual(self.cart.as_data(), expected)
+        self.assertEqual(self.cart.for_storage(), expected)

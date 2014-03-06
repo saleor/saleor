@@ -39,7 +39,7 @@ class Checkout(ProcessManager):
                 request.session[STORAGE_SESSION_KEY])
         except KeyError:
             self.storage = CheckoutStorage()
-        self.cart = Cart.from_cart(request.cart)
+        self.cart = Cart.for_session_cart(request.cart)
         self.generate_steps(self.cart)
 
     def generate_steps(self, cart):

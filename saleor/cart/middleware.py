@@ -10,13 +10,13 @@ class CartMiddleware(object):
 
     def process_request(self, request):
         try:
-            cart = request.session[CART_SESSION_KEY]
+            cart_data = request.session[CART_SESSION_KEY]
+            cart = SessionCart.from_storage(cart_data)
         except KeyError:
             cart = SessionCart()
-            cart = cart.as_data()
         setattr(request, 'cart', cart)
 
     def process_response(self, request, response):
-        if hasattr(request, 'cart'):
-            request.session[CART_SESSION_KEY] = request.cart
+        if hasattr(request, 'cart') and request.cart.modified:
+            request.session[CART_SESSION_KEY] = request.cart.for_storage()
         return response

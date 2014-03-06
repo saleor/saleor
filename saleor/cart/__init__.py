@@ -27,12 +27,12 @@ class Cart(cart.Cart):
 
     def __init__(self, session_cart):
         super(Cart, self).__init__()
-        self.session_cart = SessionCart.from_data(session_cart)
+        self.session_cart = session_cart
 
     @classmethod
-    def from_cart(cls, session_cart):
+    def for_session_cart(cls, session_cart):
         cart = Cart(session_cart)
-        for item in session_cart['items']:
+        for item in session_cart:
             product = Product.objects.get(pk=item['product_id'])
             variant = product.variants.get(pk=item['variant_id'])
             quantity = item['quantity']
@@ -69,9 +69,8 @@ class SessionCart(cart.Cart):
         return 'SessionCart'
 
     @classmethod
-    def from_data(cls, cart_data):
+    def from_storage(cls, cart_data):
         cart = SessionCart()
-        cart.modified = cart_data['modified']
         cart._state = cart_data['items']
         return cart
 
@@ -102,7 +101,7 @@ class SessionCart(cart.Cart):
     def count(self):
         return sum([item['quantity'] for item in self._state])
 
-    def as_data(self):
+    def for_storage(self):
         cart_data = {
             'items': self._state,
             'modified': self.modified

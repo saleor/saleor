@@ -11,7 +11,7 @@ from . import Cart
 
 
 def index(request):
-    cart = Cart.from_cart(request.cart)
+    cart = Cart.for_session_cart(request.cart)
     cart_partitioner = Partitioner(cart)
 
     formset = ReplaceCartLineFormSet(request.POST or None,
