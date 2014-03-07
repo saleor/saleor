@@ -99,7 +99,7 @@ class BigShipCartFormTest(TestCase):
         Is BigShipCartForm works with not stocked product
         """
         cart = Cart()
-        self.post['quantity'] = 10000
+        self.post['quantity'] = 999
         form = BigShipCartForm(self.post, cart=cart, product=digital_product)
         self.assertTrue(form.is_valid(), 'Form doesn\'t valitate')
         self.assertFalse(cart, 'Cart isn\'t empty')
