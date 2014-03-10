@@ -61,6 +61,8 @@ class Cart(cart.Cart):
 class SessionCart(cart.Cart):
     '''
     Serializable representation of cart.
+    Parameters:
+    variant - Instance of ProductVariant
     '''
 
     def __str__(self):
@@ -98,3 +100,10 @@ class SessionCart(cart.Cart):
 
     def count(self):
         return sum([item['quantity'] for item in self._state])
+
+    def for_storage(self):
+        cart_data = {
+            'items': self._state,
+            'modified': self.modified
+        }
+        return cart_data

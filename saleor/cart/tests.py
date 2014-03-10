@@ -182,3 +182,11 @@ class SessionCartTest(TestCase):
     def test_count(self):
         self.cart.add(stock_product, quantity=5)
         self.assertEqual(self.cart.count(), 5)
+
+    def test_as_data(self):
+        self.cart.add(stock_product, quantity=5)
+        expected = {
+            'items': self.cart._state,
+            'modified': True
+        }
+        self.assertEqual(self.cart.for_storage(), expected)
