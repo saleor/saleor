@@ -10,9 +10,13 @@ NEW_ADDRESS = {
     'first_name': 'Test',
     'last_name': 'Test',
     'street_address_1': 'Test',
+    'street_address_2': 'Test',
     'city': 'Test',
+    'phone': '12345678',
     'postal_code': '987654',
-    'country': 'PL'}
+    'country': 'PL',
+    'country_area': '',
+    'company_name': 'Test'}
 
 
 class TestBaseAddressStep(TestCase):
@@ -21,7 +25,7 @@ class TestBaseAddressStep(TestCase):
         self.request = MagicMock()
         self.request.user.is_authenticated.return_value = False
         self.checkout = MagicMock()
-        self.address = Address()
+        self.address = NEW_ADDRESS
 
     def test_new_method(self):
         '''
@@ -47,11 +51,11 @@ class TestBillingAddressStep(TestCase):
         storage = {}
         step = BillingAddressStep(self.request, storage)
         self.assertEquals(step.process(), None)
-        self.assertEqual(type(storage['address']), Address)
-        self.assertEqual(storage['address'].first_name, 'Test')
+        self.assertEqual(type(storage['address']), dict)
+        self.assertEqual(storage['address']['first_name'], 'Test')
 
     def test_address_save_with_address_in_checkout(self):
-        storage = {'address': Address()}
+        storage = {'address': {}}
         step = BillingAddressStep(self.request, storage)
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
 
@@ -73,21 +77,21 @@ class TestShippingStep(TestCase):
         self.request.session = {STORAGE_SESSION_KEY: {}}
         group = MagicMock()
         group.address = None
-        storage = {}
+        storage = {'address': NEW_ADDRESS}
         step = ShippingStep(self.request, storage, group)
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
         step.save()
         self.assertEqual(mock_save.call_count, 0)
-        self.assertEqual(type(storage['address']), Address,
-                         'Address instance expected')
+        self.assertEqual(type(storage['address']), dict,
+                         'Serialized JSON expected')
 
     @patch.object(Address, 'save')
     def test_address_save_with_address_in_group(self, mock_save):
         self.request.POST = NEW_ADDRESS.copy()
         self.request.POST['method'] = 'dummy_shipping'
         group = MagicMock()
-        group.address = Address()
-        storage = {}
+        group.address = NEW_ADDRESS
+        storage = {'address': NEW_ADDRESS}
         step = ShippingStep(self.request, storage, group)
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
         step.save()
@@ -100,7 +104,7 @@ class TestShippingStep(TestCase):
         original_billing_address_data = {'first_name': 'Change',
                                          'last_name': 'Me',
                                          'id': 10}
-        original_billing_address = Address(**original_billing_address_data)
+        original_billing_address = original_billing_address_data
         group = MagicMock()
         group.address = None
         storage = {'address': original_billing_address}
@@ -108,6 +112,4 @@ class TestShippingStep(TestCase):
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
         step.save()
         self.assertEqual(mock_save.call_count, 0)
-        self.assertEqual(storage['address'],
-                         Address(**NEW_ADDRESS))
-        self.assertEqual(storage['address'].id, None)
+        self.assertEqual(storage['address'], NEW_ADDRESS)

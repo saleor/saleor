@@ -58,16 +58,20 @@
                         </ul>
                         <ul class="nav navbar-nav navbar-right">
                             <li class="dropdown">
-                                <a data-toggle="dropdown" class="dropdown-toggle" href="{% url "cart:index" %}"><i class="glyphicon glyphicon-shopping-cart"></i> Shopping cart {% if request.cart.count %}<span class="badge">{{ request.cart.count }}</span>{% endif %} <b class="caret"></b></a>
+                                <a data-toggle="dropdown" class="dropdown-toggle" href="{% url "cart:index" %}"><i class="glyphicon glyphicon-shopping-cart"></i> {% trans "Shopping cart" %} {% if request.cart %}<span class="badge">{{ request.cart.count }}</span>{% endif %} <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     <li><a href="{% url "cart:index" %}">{% trans "View cart contents" %}</a></li>
                                     {% if request.cart %}
                                     <li class="divider"></li>
-                                    {% for cart_line in request.cart %}
-                                    <li><a href="{{ cart_line.product.get_absolute_url }}">{{ cart_line.product }}{% if cart_line.quantity != 1 %} <em>×{{ cart_line.quantity }}</em>{% endif %}</a></li>
+                                    {% for item in request.cart %}
+                                    <li>
+                                        <a href="{% url 'product:details' slug=item.product_name product_id=item.product_id %}">
+                                            {{ item.product_name }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}
+                                        </a>
+                                    </li>
                                     {% endfor %}
                                     <li class="divider"></li>
-                                    <li><a href="{% url "checkout:index" %}">{% trans "Proceed to checkout" %}</a></li>
+                                    <li><a href="{% url "cart:index" %}">{% trans "Proceed to checkout" %}</a></li>
                                     {% endif %}
                                   </ul>
                             </li>
