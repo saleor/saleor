@@ -59,11 +59,6 @@ class Cart(cart.Cart):
 
 @python_2_unicode_compatible
 class SessionCart(cart.Cart):
-    '''
-    Serializable representation of cart.
-    Parameters:
-    variant - Instance of ProductVariant
-    '''
 
     def __str__(self):
         return 'SessionCart'
