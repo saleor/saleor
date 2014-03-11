@@ -65,8 +65,8 @@
                                     <li class="divider"></li>
                                     {% for item in request.cart %}
                                     <li>
-                                        <a href="{% url 'product:details' slug=item.product_name product_id=item.product_id %}">
-                                            {{ item.product_name }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}
+                                        <a href="{% url 'product:details' slug=item.product product_id=item.data.product_id %}">
+                                            {{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}
                                         </a>
                                     </li>
                                     {% endfor %}
