@@ -13,7 +13,6 @@ class CartMiddleware(object):
             cart_data = request.session[CART_SESSION_KEY]
             cart = SessionCart.from_storage(cart_data)
         except KeyError:
-            print 'no cart'
             cart = SessionCart()
         setattr(request, 'cart', cart)
 
