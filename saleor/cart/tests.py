@@ -161,18 +161,24 @@ class ReplaceCartLineFormSetTest(TestCase):
 class SessionCartTest(TestCase):
     def setUp(self):
         self.cart = SessionCart()
+        self.product_data = {
+            'product_id': stock_product.product.pk,
+            'variant_id': stock_product.pk,
+            'unit_price': str(stock_product.get_price_per_item().gross)
+        }
 
     def test_add_product(self):
         self.cart.add(stock_product, quantity=5)
-        product = self.cart.get_line(stock_product)
-        self.assertEqual(product['quantity'], 5)
+        product = self.cart.get_line(stock_product, data=self.product_data)
+        self.assertEqual(product.quantity, 5)
 
     def test_replace_product(self):
         self.cart.add(stock_product, quantity=5)
         # Replace
-        self.cart.add(stock_product, quantity=10, replace=True)
-        product = self.cart.get_line(stock_product)
-        self.assertEqual(product['quantity'], 10)
+        self.cart.add(stock_product, quantity=10, data=self.product_data,
+                      replace=True)
+        product = self.cart.get_line(stock_product, data=self.product_data)
+        self.assertEqual(product.quantity, 10)
 
     def test_clear(self):
         self.cart.add(stock_product, quantity=5)
