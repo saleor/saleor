@@ -108,8 +108,5 @@ class SessionCart(cart.Cart):
         }
         return cart_data
 
-    def get_line(self, product, data=None):
-        return super(SessionCart, self).get_line(product, data)
-
     def create_line(self, product, quantity, data):
         return SessionCartLine(product, quantity, data)
