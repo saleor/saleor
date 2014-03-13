@@ -32,7 +32,8 @@ class Cart(cart.Cart):
     def for_session_cart(cls, session_cart):
         cart = Cart(session_cart)
         for item in session_cart:
-            product = Product.objects.get(pk=item.data['product_id'])
+            product = Product.objects.select_related().get(
+                pk=item.data['product_id'])
             variant = product.variants.get(pk=item.data['variant_id'])
             quantity = item.quantity
             cart.add(variant, quantity=quantity, check_quantity=False,
@@ -45,10 +46,12 @@ class Cart(cart.Cart):
             'Your cart (%(cart_count)s)') % {'cart_count': self.count()}
 
     def get_data_for_product(self, variant):
+        variant_price = variant.get_price_per_item()
         variant_data = {
             'product_id': variant.product.pk,
             'variant_id': variant.pk,
-            'unit_price': str(variant.get_price_per_item().gross)
+            'unit_price_gross': str(variant_price.gross),
+            'unit_price_net': str(variant_price.net),
         }
         return variant_data
 
@@ -58,7 +61,7 @@ class Cart(cart.Cart):
 
         if modify_session_cart:
             data = self.get_data_for_product(product)
-            self.session_cart.add(product, quantity, data, replace)
+            self.session_cart.add(smart_text(product), quantity, data, replace)
 
     def clear(self):
         super(Cart, self).clear()
@@ -69,20 +72,18 @@ class SessionCartLine(cart.CartLine):
     def get_price_per_item(self, **kwargs):
         return self.data.get('unit_price')
 
-    def as_data(self):
-        all_data = {
+    def for_storage(self):
+        return {
             'product': self.product,
-            'quantity': self.quantity
+            'quantity': self.quantity,
+            'data': self.data
         }
-        all_data.update(self.data)
-        return all_data
 
     @classmethod
-    def from_data(self, data_dict):
+    def from_storage(cls, data_dict):
         product = data_dict.pop('product')
         quantity = data_dict.pop('quantity')
-        data = data_dict
-
+        data = data_dict['data']
         instance = SessionCartLine(product, quantity, data)
         return instance
 
@@ -97,27 +98,18 @@ class SessionCart(cart.Cart):
     def from_storage(cls, cart_data):
         cart = SessionCart()
         for line_data in cart_data['items']:
-            cart._state.append(SessionCartLine.from_data(line_data))
+            cart._state.append(SessionCartLine.from_storage(line_data))
         return cart
 
     def for_storage(self):
         cart_data = {
-            'items': [i.as_data() for i in self._state],
-            'modified': self.modified
+            'items': [i.for_storage() for i in self._state],
+            'modified': False
         }
         return cart_data
 
     def get_line(self, product, data=None):
-        return super(SessionCart, self).get_line(smart_text(product), data)
+        return super(SessionCart, self).get_line(product, data)
 
     def create_line(self, product, quantity, data):
-        # In this place product attribute is ProductVariant instance
-        variant = product
-        variant_data = {
-            'product_id': variant.product.pk,
-            'variant_id': variant.pk,
-            'unit_price': str(variant.get_price_per_item().gross)
-        }
-        if isinstance(data, dict):
-            variant_data.update(data)
-        return SessionCartLine(smart_text(product), quantity, variant_data)
+        return SessionCartLine(product, quantity, data)
