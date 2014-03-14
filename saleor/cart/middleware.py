@@ -1,21 +1,22 @@
-from . import Cart
+from __future__ import unicode_literals
+
+from . import SessionCart, CART_SESSION_KEY
 
 
 class CartMiddleware(object):
     '''
     Saves the cart instance into the django session.
     '''
-    SESSION_KEY = 'cart'
 
     def process_request(self, request):
         try:
-            cart = request.session[self.SESSION_KEY]
+            cart_data = request.session[CART_SESSION_KEY]
+            cart = SessionCart.from_storage(cart_data)
         except KeyError:
-            cart = Cart()
+            cart = SessionCart()
         setattr(request, 'cart', cart)
 
     def process_response(self, request, response):
         if hasattr(request, 'cart') and request.cart.modified:
-            request.cart.modified = False
-            request.session[self.SESSION_KEY] = request.cart
+            request.session[CART_SESSION_KEY] = request.cart.for_storage()
         return response
