@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from decimal import Decimal
 
 from django.test import TestCase
+from django.utils.encoding import smart_text
 from mock import patch, MagicMock
 from prices import Price
 from satchless.item import InsufficientStock
@@ -38,7 +39,10 @@ digital_product = ShipPhoto(price=Price(10, currency='USD'))
 digital_product.product = digital_product
 
 
+
 class CartTest(TestCase):
+    def setUp(self):
+        self.session_cart = SessionCart()
 
     def test_check_quantity(self):
         """
@@ -51,6 +55,14 @@ class CartTest(TestCase):
 
         self.assertRaises(InsufficientStock, illegal)
         self.assertFalse(cart)
+
+    def test_add_adds_to_session_cart(self):
+        cart = Cart(session_cart=self.session_cart)
+        cart.add(stock_product, 10)
+        self.assertEqual(cart.session_cart.count(), 10)
+        self.assertTrue(cart.session_cart.modified)
+        self.assertEqual(cart.session_cart[0].product,
+                         smart_text(stock_product))
 
 
 class BigShipCartFormTest(TestCase):
