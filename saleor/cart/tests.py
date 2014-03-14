@@ -3,14 +3,13 @@ from decimal import Decimal
 
 from django.test import TestCase
 from django.utils.encoding import smart_text
-from mock import patch, MagicMock
+from mock import MagicMock
 from prices import Price
 from satchless.item import InsufficientStock
 
 from . import Cart, SessionCart
 from .forms import AddToCartForm, ReplaceCartLineForm, ReplaceCartLineFormSet
-from ..product.models import (ProductVariant, StockedProduct, PhysicalProduct,
-                              FixedProductDiscount)
+from ..product.models import (ProductVariant, StockedProduct, PhysicalProduct)
 
 __all__ = ['CartTest', 'BigShipCartFormTest']
 
@@ -37,7 +36,6 @@ stock_product = BigShip(name='BigShip',
 stock_product.product = stock_product
 digital_product = ShipPhoto(price=Price(10, currency='USD'))
 digital_product.product = digital_product
-
 
 
 class CartTest(TestCase):
