@@ -11,8 +11,8 @@ from satchless.item import InsufficientStock
 class QuantityField(forms.IntegerField):
 
     def __init__(self, *args, **kwargs):
-        super(QuantityField, self).__init__(
-            *args, max_value=None, initial=1, **kwargs)
+        super(QuantityField, self).__init__(min_value=0, max_value=999,
+                                            initial=1)
 
 
 class AddToCartForm(forms.Form):
