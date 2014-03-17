@@ -47,7 +47,11 @@ class PhysicalProduct(models.Model):
         max_digits=6, decimal_places=2, blank=True, default=0)
     depth = models.DecimalField(
         max_digits=6, decimal_places=2, blank=True, default=0)
-
+    def get_weight(self):
+        try:
+            return self.weight
+        except AttributeError:
+            return self.product.weight
     class Meta:
         abstract = True
         app_label = 'product'
