@@ -47,7 +47,13 @@ class PhysicalProduct(models.Model):
         max_digits=6, decimal_places=2, blank=True, default=0)
     depth = models.DecimalField(
         max_digits=6, decimal_places=2, blank=True, default=0)
-
+            
+    def get_weight(self):
+        try:
+            return self.weight
+        except AttributeError:
+            return self.product.weight
+    
     class Meta:
         abstract = True
         app_label = 'product'
@@ -86,7 +92,13 @@ class ProductVariant(models.Model, Item):
                 modifier = max(discounts)
                 price += modifier
         return price
-
+        
+    def get_weight(self):
+        try:
+            return self.weight
+        except AttributeError:
+            return self.product.weight
+    
     def get_absolute_url(self):
         slug = self.product.get_slug()
         product_id = self.product.id
