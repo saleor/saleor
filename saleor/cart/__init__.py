@@ -1,8 +1,8 @@
 from __future__ import unicode_literals
 
+from django.conf import settings
 from django.utils.translation import pgettext
 from django.utils.encoding import python_2_unicode_compatible, smart_text
-from django.conf import settings
 from satchless import cart
 from satchless.item import ItemList
 from saleor.product.models import Product
@@ -39,10 +39,11 @@ class Cart(cart.Cart):
         for item in session_cart:
             try:
                 product = product_map[item.data['product_id']]
-                variant = product.variants.get(pk=item.data['variant_id'])
             except KeyError:
                 # TODO: Provide error message
                 continue
+            else:
+                variant = product.variants.get(pk=item.data['variant_id'])
             quantity = item.quantity
             cart.add(variant, quantity=quantity, check_quantity=False)
         return cart
@@ -77,16 +78,15 @@ class Cart(cart.Cart):
 class SessionCartLine(cart.CartLine):
 
     def get_price_per_item(self, **kwargs):
-        gross = self.data.get('unit_price_gross')
-        net = self.data.get('unit_price_net')
+        gross = self.data['unit_price_gross']
+        net = self.data['unit_price_net']
         return Price(net=net, gross=gross, currency=settings.DEFAULT_CURRENCY)
 
     def for_storage(self):
         return {
             'product': self.product,
             'quantity': self.quantity,
-            'data': self.data
-        }
+            'data': self.data}
 
     @classmethod
     def from_storage(cls, data_dict):
@@ -113,8 +113,7 @@ class SessionCart(cart.Cart):
     def for_storage(self):
         cart_data = {
             'items': [i.for_storage() for i in self],
-            'modified': False
-        }
+            'modified': False}
         return cart_data
 
     def create_line(self, product, quantity, data):

@@ -145,12 +145,11 @@ class ShippingStep(BaseAddressStep):
     def __init__(self, request, storage, purchased_items, _id=None,
                  default_address=None):
         self.id = _id
-        address_dict = storage.get('address', default_address)
-        if not address_dict:
-            address = Address()
-        else:
-            address = Address(**address_dict)
-        super(ShippingStep, self).__init__(request, storage, address_dict)
+        address_data = storage.get('address', default_address)
+        if address_data is None:
+            address_data = {}
+        address = Address(**address_data)
+        super(ShippingStep, self).__init__(request, storage, address_data)
         delivery_choices = list(
             get_delivery_choices_for_group(purchased_items, address=address))
         selected_delivery_name = storage.get('delivery_method')
