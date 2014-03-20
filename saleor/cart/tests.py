@@ -32,15 +32,14 @@ class BigShipCartForm(AddToCartForm):
         return self.product
 
 stock_product = BigShip(name='BigShip',
-    stock=10, price=Price(10, currency='USD'), weight=Decimal(123))
+                        stock=10, price=Price(10, currency='USD'),
+                        weight=Decimal(123))
 stock_product.product = stock_product
 digital_product = ShipPhoto(price=Price(10, currency='USD'))
 digital_product.product = digital_product
 
 
 class CartTest(TestCase):
-    def setUp(self):
-        self.session_cart = SessionCart()
 
     def test_check_quantity(self):
         """
@@ -55,7 +54,7 @@ class CartTest(TestCase):
         self.assertFalse(cart)
 
     def test_add_adds_to_session_cart(self):
-        cart = Cart(session_cart=self.session_cart)
+        cart = Cart(session_cart=SessionCart())
         cart.add(stock_product, 10)
         self.assertEqual(cart.session_cart.count(), 10)
         self.assertTrue(cart.session_cart.modified)
@@ -166,3 +165,14 @@ class ReplaceCartLineFormSetTest(TestCase):
         product_quantity = cart.get_line(stock_product).quantity
         self.assertEqual(product_quantity, 5,
                          '%s is the bad quantity value' % (product_quantity,))
+
+
+class SessionCartTest(TestCase):
+
+    def test_sessioncart_get_price_per_item(self):
+        cart = Cart(SessionCart())
+        cart.add(stock_product, quantity=10)
+        cart_price = cart[0].get_price_per_item()
+        sessioncart_price = cart.session_cart[0].get_price_per_item()
+        self.assertTrue(isinstance(sessioncart_price, Price))
+        self.assertEqual(cart_price, sessioncart_price)

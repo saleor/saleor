@@ -2,9 +2,11 @@ from __future__ import unicode_literals
 
 from django.utils.translation import pgettext
 from django.utils.encoding import python_2_unicode_compatible, smart_text
+from django.conf import settings
 from satchless import cart
 from satchless.item import ItemList
 from saleor.product.models import Product
+from prices import Price
 
 CART_SESSION_KEY = 'cart'
 
@@ -50,8 +52,7 @@ class Cart(cart.Cart):
             'product_id': variant.product.pk,
             'variant_id': variant.pk,
             'unit_price_gross': str(variant_price.gross),
-            'unit_price_net': str(variant_price.net),
-        }
+            'unit_price_net': str(variant_price.net)}
         return variant_data
 
     def add(self, product, quantity=1, data=None, replace=False,
@@ -68,8 +69,11 @@ class Cart(cart.Cart):
 
 
 class SessionCartLine(cart.CartLine):
+
     def get_price_per_item(self, **kwargs):
-        return self.data.get('unit_price')
+        gross = self.data.get('unit_price_gross')
+        net = self.data.get('unit_price_net')
+        return Price(net=net, gross=gross, currency=settings.DEFAULT_CURRENCY)
 
     def for_storage(self):
         return {
