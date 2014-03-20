@@ -33,10 +33,16 @@ class Cart(cart.Cart):
     @classmethod
     def for_session_cart(cls, session_cart):
         cart = Cart(session_cart)
+        product_ids = [item.data['product_id'] for item in session_cart]
+        products = Product.objects.filter(id__in=product_ids)
+        product_map = dict((p.id, p) for p in products)
         for item in session_cart:
-            product = Product.objects.select_related().get(
-                pk=item.data['product_id'])
-            variant = product.variants.get(pk=item.data['variant_id'])
+            try:
+                product = product_map[item.data['product_id']]
+                variant = product.variants.get(pk=item.data['variant_id'])
+            except KeyError:
+                # TODO: Provide error message
+                continue
             quantity = item.quantity
             cart.add(variant, quantity=quantity, check_quantity=False)
         return cart
