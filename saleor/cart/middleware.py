@@ -18,5 +18,7 @@ class CartMiddleware(object):
 
     def process_response(self, request, response):
         if hasattr(request, 'cart') and request.cart.modified:
-            request.session[CART_SESSION_KEY] = request.cart.for_storage()
+            request.cart.modified = False
+            to_session = request.cart.for_storage()
+            request.session[CART_SESSION_KEY] = to_session
         return response
