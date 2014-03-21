@@ -82,8 +82,8 @@ class TestShippingStep(TestCase):
         self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
         step.save()
         self.assertEqual(mock_save.call_count, 0)
-        self.assertEqual(type(storage['address']), dict,
-                         'dict expected')
+        self.assertTrue(isinstance(storage['address'], dict),
+                        'dict expected')
 
     @patch.object(Address, 'save')
     def test_address_save_with_address_in_group(self, mock_save):
