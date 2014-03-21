@@ -41,9 +41,6 @@
             <tr>
                 <td>
                     <a href="{{ form.cart_line.product.get_absolute_url }}">{{ form.cart_line.product }}</a>
-                    {% if form.cart_line.product.size %}
-                        ({{ form.cart_line.product.get_size_display }})
-                    {% endif %}
                 </td>
                 <td>{{ form.quantity|as_vertical_form:False }}</td>
                 <td>{% gross form.cart_line.get_price_per_item %}</td>

@@ -2,26 +2,28 @@ from __future__ import unicode_literals
 from decimal import Decimal
 
 from django.test import TestCase
-from mock import patch
+from django.utils.encoding import smart_text
+from mock import MagicMock
 from prices import Price
 from satchless.item import InsufficientStock
 
-from . import Cart
+from . import Cart, SessionCart
 from .forms import AddToCartForm, ReplaceCartLineForm, ReplaceCartLineFormSet
-from ..product.models import (ProductVariant, StockedProduct, PhysicalProduct,
-                              FixedProductDiscount)
+from ..product.models import (ProductVariant, StockedProduct, PhysicalProduct)
 
 __all__ = ['CartTest', 'BigShipCartFormTest']
 
 
 class BigShip(ProductVariant, StockedProduct, PhysicalProduct):
 
-    pass
+    def get_price_per_item(self, discounted=True, **kwargs):
+        return self.price
 
 
 class ShipPhoto(ProductVariant):
 
-    pass
+    def get_price_per_item(self, discounted=True, **kwargs):
+        return self.price
 
 
 class BigShipCartForm(AddToCartForm):
@@ -29,8 +31,9 @@ class BigShipCartForm(AddToCartForm):
     def get_variant(self, cleaned_data):
         return self.product
 
-stock_product = BigShip(
-    stock=10, price=Price(10, currency='USD'), weight=Decimal(123))
+stock_product = BigShip(name='BigShip',
+                        stock=10, price=Price(10, currency='USD'),
+                        weight=Decimal(123))
 stock_product.product = stock_product
 digital_product = ShipPhoto(price=Price(10, currency='USD'))
 digital_product.product = digital_product
@@ -42,7 +45,7 @@ class CartTest(TestCase):
         """
         Stock limit works
         """
-        cart = Cart()
+        cart = Cart(session_cart=MagicMock())
 
         def illegal():
             cart.add(stock_product, 100)
@@ -50,11 +53,19 @@ class CartTest(TestCase):
         self.assertRaises(InsufficientStock, illegal)
         self.assertFalse(cart)
 
+    def test_add_adds_to_session_cart(self):
+        cart = Cart(session_cart=SessionCart())
+        cart.add(stock_product, 10)
+        self.assertEqual(cart.session_cart.count(), 10)
+        self.assertTrue(cart.session_cart.modified)
+        self.assertEqual(cart.session_cart[0].product,
+                         smart_text(stock_product))
+
 
 class BigShipCartFormTest(TestCase):
 
     def setUp(self):
-        self.cart = Cart()
+        self.cart = Cart(MagicMock())
         self.post = {'quantity': 5}
 
     def test_quantity(self):
@@ -98,7 +109,7 @@ class BigShipCartFormTest(TestCase):
         """
         Is BigShipCartForm works with not stocked product
         """
-        cart = Cart()
+        cart = Cart(session_cart=MagicMock())
         self.post['quantity'] = 999
         form = BigShipCartForm(self.post, cart=cart, product=digital_product)
         self.assertTrue(form.is_valid(), 'Form doesn\'t valitate')
@@ -110,7 +121,7 @@ class BigShipCartFormTest(TestCase):
 class ReplaceCartLineFormTest(TestCase):
 
     def setUp(self):
-        self.cart = Cart()
+        self.cart = Cart(session_cart=MagicMock())
 
     def test_quantity(self):
         """
@@ -145,7 +156,7 @@ class ReplaceCartLineFormSetTest(TestCase):
             'form-INITIAL_FORMS': 2,
             'form-0-quantity': 5,
             'form-1-quantity': 5}
-        cart = Cart()
+        cart = Cart(session_cart=MagicMock())
         cart.add(stock_product, 5)
         cart.add(digital_product, 100)
         form = ReplaceCartLineFormSet(post, cart=cart)
@@ -154,3 +165,15 @@ class ReplaceCartLineFormSetTest(TestCase):
         product_quantity = cart.get_line(stock_product).quantity
         self.assertEqual(product_quantity, 5,
                          '%s is the bad quantity value' % (product_quantity,))
+
+
+class SessionCartTest(TestCase):
+
+    def test_sessioncart_get_price_per_item(self):
+        cart = Cart(SessionCart())
+        cart.add(stock_product, quantity=10)
+        cart_price = cart[0].get_price_per_item()
+        sessioncart_price = cart.session_cart[0].get_price_per_item()
+        self.assertTrue(isinstance(sessioncart_price, Price))
+        self.assertEqual(cart_price, sessioncart_price)
+

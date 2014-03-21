@@ -7,11 +7,14 @@ from django.utils.translation import ugettext as _
 from satchless.item import Partitioner
 
 from .forms import ReplaceCartLineFormSet
+from . import Cart
 
 
 def index(request):
-    cart_partitioner = Partitioner(request.cart)
-    formset = ReplaceCartLineFormSet(request.POST or None, cart=request.cart)
+    cart = Cart.for_session_cart(request.cart)
+    cart_partitioner = Partitioner(cart)
+    formset = ReplaceCartLineFormSet(request.POST or None,
+                                     cart=cart)
     if formset.is_valid():
         msg = _('Successfully updated product quantities.')
         messages.success(request, msg)
