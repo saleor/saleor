@@ -106,8 +106,6 @@ class Checkout(ProcessManager):
 
     def clear_storage(self):
         del self.request.session[STORAGE_SESSION_KEY]
-        del self.request.session[CART_SESSION_KEY]
-        del self.request.cart
         self.cart.clear()
 
     def __iter__(self):
