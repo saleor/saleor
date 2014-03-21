@@ -99,6 +99,7 @@ INSTALLED_APPS = [
     'saleor.order',
     'saleor.registration',
     'saleor.userprofile',
+    'saleor.currency_converter',
 
     # External apps
     'django_images',
@@ -214,3 +215,10 @@ CHECKOUT_PAYMENT_CHOICES = [
 ]
 
 TEMPLATE_STRING_IF_INVALID = '<< MISSING VARIABLE >>'
+
+
+OPENEXCHANGE = {
+    'URL': 'http://openexchangerates.org/api/latest.json',
+    'APP_ID': 'Put your APP_ID here',
+    'BASE_CURRENCY': DEFAULT_CURRENCY
+}
