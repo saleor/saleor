@@ -4,7 +4,6 @@ import json
 
 from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
-from purl import URL
 import requests
 
 from .models import OpenExchangeRate
@@ -20,16 +19,15 @@ class OpenExchangeBackend(object):
         if not settings.OPENEXCHANGE["APP_ID"]:
             raise ImproperlyConfigured("APP_ID setting is empty")
 
-        base_url = URL(settings.OPENEXCHANGE['URL'])
-        parametrized_url = base_url.query_params({
+        self.url = settings.OPENEXCHANGE['URL']
+        self.url_params = {
              'app_id': settings.OPENEXCHANGE["APP_ID"],
              'base': self.get_base_currency()
-        })
+        }
 
-        self.url = parametrized_url.as_string()
 
     def get_rates(self):
-        request = requests.get(self.url)
+        request = requests.get(self.url, params=self.url_params)
         return json.loads(request.content)['rates']
 
     def get_base_currency(self):
