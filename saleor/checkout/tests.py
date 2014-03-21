@@ -101,10 +101,9 @@ class TestShippingStep(TestCase):
     def test_address_save_with_address_in_checkout(self, mock_save):
         self.request.POST = NEW_ADDRESS.copy()
         self.request.POST['method'] = 'dummy_shipping'
-        original_billing_address_data = {'first_name': 'Change',
-                                         'last_name': 'Me',
-                                         'id': 10}
-        original_billing_address = original_billing_address_data
+        original_billing_address = {'first_name': 'Change',
+                                    'last_name': 'Me',
+                                    'id': 10}
         group = MagicMock()
         group.address = None
         storage = {'address': original_billing_address}
