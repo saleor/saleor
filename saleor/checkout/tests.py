@@ -112,3 +112,4 @@ class TestShippingStep(TestCase):
         step.save()
         self.assertEqual(mock_save.call_count, 0)
         self.assertEqual(storage['address'], NEW_ADDRESS)
+

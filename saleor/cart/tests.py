@@ -176,3 +176,4 @@ class SessionCartTest(TestCase):
         sessioncart_price = cart.session_cart[0].get_price_per_item()
         self.assertTrue(isinstance(sessioncart_price, Price))
         self.assertEqual(cart_price, sessioncart_price)
+
