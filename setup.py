@@ -45,7 +45,7 @@ setup(
         'satchless>=1.1.1,<1.2a0',
         'South>=0.7.6',
         'unidecode',
-    ],gs
+    ],
     entry_points={
         'console_scripts': ['saleor = saleor:manage']},
     tests_require=[
