@@ -56,3 +56,15 @@ Run the tests to make sure everything works:
 ```
 $ python setup.py test
 ```
+
+
+Commercial support
+------------------
+
+Disclaimer: everything you see here is open and free to use as long as you comply with the [license](LICENSE). It is not a bait to force you to pay us later and we promise to do our bests to fix bugs and improve the code.
+
+Some situations however call for extra code being written. Whether you need us to cover an exotic use case or build you a custom e-commerce appliance, our team can help.
+
+> Mirumee Software  
+> http://mirumee.com/  
+> hello@mirumee.com
