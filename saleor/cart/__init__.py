@@ -3,10 +3,11 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.utils.translation import pgettext
 from django.utils.encoding import python_2_unicode_compatible, smart_text
+from prices import Price
 from satchless import cart
 from satchless.item import ItemList
 from saleor.product.models import Product
-from prices import Price
+
 
 CART_SESSION_KEY = 'cart'
 
@@ -65,7 +66,6 @@ class Cart(cart.Cart):
     def add(self, product, quantity=1, data=None, replace=False,
             check_quantity=True):
         super(Cart, self).add(product, quantity, data, replace, check_quantity)
-
         data = self.get_data_for_product(product)
         self.session_cart.add(smart_text(product), quantity, data,
                               replace=True)
@@ -112,8 +112,7 @@ class SessionCart(cart.Cart):
 
     def for_storage(self):
         cart_data = {
-            'items': [i.for_storage() for i in self],
-            'modified': False}
+            'items': [i.for_storage() for i in self]}
         return cart_data
 
     def create_line(self, product, quantity, data):
