@@ -8,13 +8,7 @@ from .models import OpenExchangeRate
 from .backends import OpenExchangeBackend
 
 
-class CurrencyConversionException(Exception):
-    """
-    Raised by conversion utility function when problems arise
-    """
-
-
-class CurrencyConversion(PriceModifier):
+class CurrencyConverter(PriceModifier):
     """
     Converts Price from one currency to another using PriceModifier
     """
@@ -44,14 +38,13 @@ class CurrencyConversion(PriceModifier):
 def get_rate(currency):
     """Returns the rate from the default currency to `currency`."""
     backend = OpenExchangeBackend()
-
+    if not OpenExchangeRate.objects.today_rates().exists():
+        # Refresh rates
+        backend.update_rates()
+    today_rates = OpenExchangeRate.objects.today_rates()
     try:
-        if not OpenExchangeRate.objects.today_rates().exists():
-            # Refresh rates
-            backend.update_rates()
-        return OpenExchangeRate.objects.today_rates().get(
-            target_currency=currency
-        ).exchange_rate
+        target_rate = today_rates.get(target_currency=currency)
+        return target_rate.exchange_rate
     except OpenExchangeRate.DoesNotExist:
         raise ValueError("Rate for %s in %s do not exists. " % (
             currency, backend.source_name))
@@ -76,7 +69,7 @@ def base_convert_money(amount, currency_from, currency_to):
     # After finishing the operation, quantize down final amount to two points.
     return {
         'value': ((amount / rate_from) * rate_to),
-        'rate_from': rate_from,
+        'rate_from': rate_from, 
         'rate_to': rate_to}
 
 
@@ -85,7 +78,7 @@ def convert_price(price, currency_to):
     Convert 'price' (Price object) from it's currency to 'currency_to' a
     d return Price instance with applied CurrencyConversion modifier.
     """
-    conversion = CurrencyConversion(target_currency=currency_to)
+    conversion = CurrencyConverter(target_currency=currency_to)
 
     return conversion.apply(price)
 
