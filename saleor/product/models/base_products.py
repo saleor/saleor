@@ -66,9 +66,7 @@ class Product(Subtyped, ItemRange):
 
     def get_products_from_collection(self):
         return Product.objects.filter(
-            collection=self.collection,
-            collection__isnull=False
-        ).exclude(collection__iexact='') if self.collection else None
+            collection=self.collection) if self.collection else None
 
     def __iter__(self):
         return iter(self.variants.all())
