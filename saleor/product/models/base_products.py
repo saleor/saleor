@@ -46,8 +46,7 @@ class Product(Subtyped, ItemRange):
     description = models.TextField(
         verbose_name=pgettext_lazy('Product field', 'description'))
 
-    collection = models.CharField(db_index=True, max_length=100,
-                                  null=True, blank=True)
+    collection = models.CharField(db_index=True, max_length=100, blank=True)
 
     class Meta:
         app_label = 'product'
@@ -67,7 +66,7 @@ class Product(Subtyped, ItemRange):
 
     def get_products_from_collection(self):
         return Product.objects.filter(collection=self.collection,
-                                      collection__isnull=False)
+                                      collection__isnull=False).exclude(collection__iexact='')
 
     def __iter__(self):
         return iter(self.variants.all())
