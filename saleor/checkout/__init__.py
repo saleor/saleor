@@ -7,9 +7,10 @@ from satchless.item import Partitioner
 
 from .steps import (BillingAddressStep, ShippingStep, DigitalDeliveryStep,
                     SummaryStep)
-from ..cart import DigitalGroup, Cart, CART_SESSION_KEY
+from ..cart import DigitalGroup, Cart
 from ..core import analytics
 from ..order.models import Order
+from ..userprofile.models import Address
 
 STORAGE_SESSION_KEY = 'checkout_storage'
 
@@ -73,22 +74,23 @@ class Checkout(ProcessManager):
         storage['anonymous_user_email'] = email
 
     @anonymous_user_email.deleter
-    def anonymous_user_email(self, email):
+    def anonymous_user_email(self):
         storage = self.get_storage('billing')
         storage['anonymous_user_email'] = ''
 
     @property
     def billing_address(self):
         storage = self.get_storage('billing')
-        return storage.get('address')
+        address_data = storage.get('address', {})
+        return Address(**address_data)
 
     @billing_address.setter
     def billing_address(self, address):
         storage = self.get_storage('billing')
-        storage['address'] = address
+        storage['address'] = address.as_data()
 
     @billing_address.deleter
-    def billing_address(self, address):
+    def billing_address(self):
         storage = self.get_storage('billing')
         storage['address'] = None
 
@@ -97,8 +99,9 @@ class Checkout(ProcessManager):
 
     def get_total(self, **kwargs):
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)
-        total = sum((step.group.get_total_with_delivery() for step in self
-                    if step.group), zero)
+        total = sum((step.group.get_total_with_delivery(**kwargs)
+                     for step in self if step.group),
+                    zero)
         return total
 
     def save(self):

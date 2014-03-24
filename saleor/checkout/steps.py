@@ -37,10 +37,7 @@ class BaseAddressStep(BaseCheckoutStep):
 
     def __init__(self, request, storage, address):
         super(BaseAddressStep, self).__init__(request, storage)
-        if address:
-            self.address = Address(**address)
-        else:
-            self.address = Address()
+        self.address = address
         existing_selected = False
         address_form = AddressForm(request.POST or None, instance=self.address)
         if request.user.is_authenticated():
@@ -83,9 +80,10 @@ class BillingAddressStep(BaseAddressStep):
     title = _('Billing Address')
 
     def __init__(self, request, storage):
-        address = storage.get('address')
+        address_data = storage.get('address', {})
+        address = Address(**address_data)
         skip = False
-        if not address and request.user.is_authenticated():
+        if not address_data and request.user.is_authenticated():
             if request.user.default_billing_address:
                 address = request.user.default_billing_address.address
                 skip = True
@@ -145,11 +143,12 @@ class ShippingStep(BaseAddressStep):
     def __init__(self, request, storage, purchased_items, _id=None,
                  default_address=None):
         self.id = _id
-        address_data = storage.get('address', default_address)
-        if address_data is None:
-            address_data = {}
-        address = Address(**address_data)
-        super(ShippingStep, self).__init__(request, storage, address_data)
+        address_data = storage.get('address', {})
+        if not address_data and default_address:
+            address = default_address
+        else:
+            address = Address(**address_data)
+        super(ShippingStep, self).__init__(request, storage, address)
         delivery_choices = list(
             get_delivery_choices_for_group(purchased_items, address=address))
         selected_delivery_name = storage.get('delivery_method')
