@@ -37,7 +37,9 @@ class BaseAddressStep(BaseCheckoutStep):
 
     def __init__(self, request, storage, address):
         super(BaseAddressStep, self).__init__(request, storage)
-        if address:
+        if isinstance(address, Address):
+            self.address = address
+        elif isinstance(address, dict):
             self.address = Address(**address)
         else:
             self.address = Address()
