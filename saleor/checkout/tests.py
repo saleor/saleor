@@ -21,65 +21,54 @@ NEW_ADDRESS = {
 
 class TestBaseAddressStep(TestCase):
 
-    def setUp(self):
-        self.request = MagicMock()
-        self.request.user.is_authenticated.return_value = False
-        self.checkout = MagicMock()
-        self.address = NEW_ADDRESS
-
     def test_new_method(self):
         '''
         Test the BaseAddressStep managment form when method is set to 'new'
         and user isn't authenticated.
         '''
-        self.request.POST = NEW_ADDRESS.copy()
-        step = BaseAddressStep(self.request, {}, self.address)
-        self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
+        request = MagicMock()
+        request.user.is_authenticated.return_value = False
+        request.POST = NEW_ADDRESS.copy()
+        step = BaseAddressStep(request, {}, Address(**NEW_ADDRESS))
+        self.assertTrue(step.forms_are_valid(), "Forms don't validate.")
         self.assertEqual(step.address.first_name, 'Test')
 
 
 class TestBillingAddressStep(TestCase):
 
-    def setUp(self):
-        self.request = MagicMock()
-        self.request.user.is_authenticated.return_value = False
-        self.request.POST = NEW_ADDRESS.copy()
-        self.request.POST['email'] = 'test@example.com'
-        self.checkout = MagicMock()
-
     def test_address_save_without_address(self):
+        request = MagicMock()
+        request.user.is_authenticated.return_value = False
+        request.POST = dict(NEW_ADDRESS, email='test@example.com')
         storage = {}
-        step = BillingAddressStep(self.request, storage)
+        step = BillingAddressStep(request, storage)
         self.assertEquals(step.process(), None)
         self.assertEqual(type(storage['address']), dict)
         self.assertEqual(storage['address']['first_name'], 'Test')
 
     def test_address_save_with_address_in_checkout(self):
+        request = MagicMock()
+        request.user.is_authenticated.return_value = False
+        request.POST = dict(NEW_ADDRESS, email='test@example.com')
         storage = {'address': {}}
-        step = BillingAddressStep(self.request, storage)
-        self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
+        step = BillingAddressStep(request, storage)
+        self.assertTrue(step.forms_are_valid(), "Forms don't validate.")
 
 
 class TestShippingStep(TestCase):
 
-    def setUp(self):
-        self.request = MagicMock()
-        self.request.user.is_authenticated.return_value = False
-        self.request.session = {}
-        self.checkout = MagicMock()
-        self.checkout.get_group.return_value = {}
-        self.checkout.billing_address = None
-
     @patch.object(Address, 'save')
     def test_address_save_without_address(self, mock_save):
-        self.request.POST = NEW_ADDRESS.copy()
-        self.request.POST['method'] = 'dummy_shipping'
-        self.request.session = {STORAGE_SESSION_KEY: {}}
+        request = MagicMock()
+        request.user.is_authenticated.return_value = False
+        request.session = {}
+        request.POST = dict(NEW_ADDRESS, method='dummy_shipping')
+        request.session = {STORAGE_SESSION_KEY: {}}
         group = MagicMock()
         group.address = None
         storage = {'address': NEW_ADDRESS}
-        step = ShippingStep(self.request, storage, group)
-        self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
+        step = ShippingStep(request, storage, group)
+        self.assertTrue(step.forms_are_valid(), "Forms don't validate.")
         step.save()
         self.assertEqual(mock_save.call_count, 0)
         self.assertTrue(isinstance(storage['address'], dict),
@@ -87,29 +76,32 @@ class TestShippingStep(TestCase):
 
     @patch.object(Address, 'save')
     def test_address_save_with_address_in_group(self, mock_save):
-        self.request.POST = NEW_ADDRESS.copy()
-        self.request.POST['method'] = 'dummy_shipping'
+        request = MagicMock()
+        request.user.is_authenticated.return_value = False
+        request.session = {}
+        request.POST = dict(NEW_ADDRESS, method='dummy_shipping')
         group = MagicMock()
         group.address = NEW_ADDRESS
         storage = {'address': NEW_ADDRESS}
-        step = ShippingStep(self.request, storage, group)
-        self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
+        step = ShippingStep(request, storage, group)
+        self.assertTrue(step.forms_are_valid(), "Forms don't validate.")
         step.save()
         self.assertEqual(mock_save.call_count, 0)
 
     @patch.object(Address, 'save')
     def test_address_save_with_address_in_checkout(self, mock_save):
-        self.request.POST = NEW_ADDRESS.copy()
-        self.request.POST['method'] = 'dummy_shipping'
+        request = MagicMock()
+        request.user.is_authenticated.return_value = False
+        request.session = {}
+        request.POST = dict(NEW_ADDRESS, method='dummy_shipping')
         original_billing_address = {'first_name': 'Change',
                                     'last_name': 'Me',
                                     'id': 10}
         group = MagicMock()
         group.address = None
         storage = {'address': original_billing_address}
-        step = ShippingStep(self.request, storage, group)
-        self.assertTrue(step.forms_are_valid(), 'Forms don\'t validate.')
+        step = ShippingStep(request, storage, group)
+        self.assertTrue(step.forms_are_valid(), "Forms don't validate.")
         step.save()
         self.assertEqual(mock_save.call_count, 0)
         self.assertEqual(storage['address'], NEW_ADDRESS)
-
