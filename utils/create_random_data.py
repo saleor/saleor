@@ -41,7 +41,7 @@ def create_product(product_type, **kwargs):
     if random.choice([True, False]):
         collection = random.choice(PRODUCT_COLLECTIONS)
     else:
-        collection = None
+        collection = ''
 
     defaults = {
         'name': fake.company(),
@@ -114,7 +114,7 @@ def create_items(placeholder_dir, how_many=10):
         create_product_images(shirt, random.randrange(1, 5),
                               placeholder_dir + "shirts")
         # Bag
-        bag = create_bag(category=bag_category, collection=None)
+        bag = create_bag(category=bag_category, collection='')
         create_product_images(bag, random.randrange(1, 5),
                               placeholder_dir + "bags")
         # chance to generate couple of sizes
