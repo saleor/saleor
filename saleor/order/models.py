@@ -72,6 +72,13 @@ class Order(models.Model, ItemSet):
     def change_status(self, status):
         self.status = status
         self.save()
+        if self.status == 'fully-paid':
+            # Change stock status of items
+            items = self.get_items()
+            for item in items:
+                variant = item.product.variants.get(sku=item.product_sku)
+                variant.stock -= item.quantity
+                variant.save()
 
     def get_items(self):
         return OrderedItem.objects.filter(delivery_group__order=self)
