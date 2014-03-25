@@ -6,16 +6,18 @@ from django.template.response import TemplateResponse
 from django.utils.translation import ugettext as _
 from satchless.item import Partitioner
 
+from . import Cart
 from .forms import ReplaceCartLineFormSet
 from .utils import cart_is_ready_to_checkout
 
 
 def index(request):
-    cart_partitioner = Partitioner(request.cart)
-    formset = ReplaceCartLineFormSet(request.POST or None, cart=request.cart)
+    cart = Cart.for_session_cart(request.cart)
+    cart_partitioner = Partitioner(cart)
+    formset = ReplaceCartLineFormSet(request.POST or None, cart=cart)
 
     # Cart check
-    checkout_possible = cart_is_ready_to_checkout(request.cart)
+    checkout_possible = cart_is_ready_to_checkout(cart)
 
     if formset.is_valid():
         msg = _('Successfully updated product quantities.')

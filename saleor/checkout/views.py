@@ -3,6 +3,7 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from django.utils.translation import ugettext as _
 
+from ..cart import Cart
 from ..cart.utils import cart_is_ready_to_checkout
 from . import Checkout
 
@@ -11,10 +12,11 @@ def details(request, step):
     if not request.cart:
         return redirect('cart:index')
     # Check cart
-    checkout_possible = cart_is_ready_to_checkout(request.cart)
+    cart = Cart.for_session_cart(request.cart)
+    checkout_possible = cart_is_ready_to_checkout(cart)
     if not checkout_possible:
-        messages.warning(request, _('Sorry, checkout is impossible. '
-                                  'You have to change your order'))
+        messages.warning(request, _('Oops, looks like there is a '
+                                    'problem with your shopping cart.'))
         return redirect('cart:index')
     checkout = Checkout(request)
     if not step:
