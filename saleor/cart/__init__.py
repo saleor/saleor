@@ -90,8 +90,8 @@ class SessionCartLine(cart.CartLine):
 
     @classmethod
     def from_storage(cls, data_dict):
-        product = data_dict.pop('product')
-        quantity = data_dict.pop('quantity')
+        product = data_dict['product']
+        quantity = data_dict['quantity']
         data = data_dict['data']
         instance = SessionCartLine(product, quantity, data)
         return instance
