@@ -11,8 +11,7 @@ def cart_is_ready_to_checkout(cart):
             cart.check_quantity(
                 product=variant,
                 quantity=cartline.quantity,
-                data=None
-            )
+                data=None)
         except InsufficientStock as e:
             cartline.error = _(
                 "Sorry, only %d remaining in stock." % e.item.stock)
