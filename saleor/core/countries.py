@@ -3,10 +3,8 @@
 from __future__ import unicode_literals
 
 from django.utils.translation import pgettext_lazy
-from django.utils.importlib import import_module
-from django.conf import settings
 
-DEFAULT_COUNTRY_CHOICES = (
+COUNTRY_CHOICES = [
     ('AF', pgettext_lazy('Country', 'Afghanistan')),
     ('AX', pgettext_lazy('Country', 'Åland Islands')),
     ('AL', pgettext_lazy('Country', 'Albania')),
@@ -254,27 +252,4 @@ DEFAULT_COUNTRY_CHOICES = (
     ('EH', pgettext_lazy('Country', 'Western Sahara')),
     ('YE', pgettext_lazy('Country', 'Yemen')),
     ('ZM', pgettext_lazy('Country', 'Zambia')),
-    ('ZW', pgettext_lazy('Country', 'Zimbabwe')),
-)
-
-
-def build_country_choices():
-    country_list = getattr(
-        settings, 'SATCHLESS_COUNTRY_CHOICES', DEFAULT_COUNTRY_CHOICES)
-    if isinstance(country_list, str):
-        mod_name, han_name = country_list.rsplit('.', 1)
-        module = import_module(mod_name)
-        country_list = getattr(module, han_name)
-    if hasattr(country_list, '__call__'):
-        country_list = country_list()
-    country_keys = dict(DEFAULT_COUNTRY_CHOICES)
-    countries = []
-    for country in country_list:
-        if country is None:
-            country = ('', '---------')
-        if isinstance(country, str):
-            country = (country, country_keys[country])
-        countries.append(country)
-    return countries
-
-COUNTRY_CHOICES = build_country_choices()
+    ('ZW', pgettext_lazy('Country', 'Zimbabwe'))]
