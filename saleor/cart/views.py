@@ -4,9 +4,10 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext as _
-from satchless.item import Partitioner, InsufficientStock
+from satchless.item import Partitioner
 
 from .forms import ReplaceCartLineFormSet
+from .utils import cart_is_ready_to_checkout
 
 
 def index(request):
@@ -14,20 +15,7 @@ def index(request):
     formset = ReplaceCartLineFormSet(request.POST or None, cart=request.cart)
 
     # Cart check
-    checkout_possible = True
-    for cartline in request.cart:
-        variant_class = cartline.product.__class__
-        variant = variant_class.objects.get(pk=cartline.product.pk)
-        try:
-            request.cart.check_quantity(
-                product=variant,
-                quantity=cartline.quantity,
-                data=None
-            )
-        except InsufficientStock as e:
-            cartline.error = _(
-                "Sorry, only %d remaining in stock." % e.item.stock)
-            checkout_possible = False
+    checkout_possible = cart_is_ready_to_checkout(request.cart)
 
     if formset.is_valid():
         msg = _('Successfully updated product quantities.')
