@@ -80,11 +80,9 @@ class Cart(cart.Cart):
     def adjust_quantities(self):
         cart_modified = False
         for cartline in self:
-            variant_class = cartline.product.__class__
-            variant = variant_class.objects.get(pk=cartline.product.pk)
             try:
                 self.check_quantity(
-                    product=variant,
+                    product=cartline.product,
                     quantity=cartline.quantity,
                     data=None)
             except InsufficientStock as e:
