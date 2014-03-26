@@ -18,6 +18,7 @@ class BagVariantInline(admin.StackedInline):
 
 class BagAdmin(admin.ModelAdmin):
     inlines = [BagVariantInline, ImageAdminInline]
+    save_on_top = True
 
 
 class ShirtVariant(admin.StackedInline):
@@ -30,6 +31,7 @@ class ShirtAdmin(admin.ModelAdmin):
     list_display = ['name', 'collection', 'admin_get_price_min',
                     'admin_get_price_max']
     inlines = [ShirtVariant, ImageAdminInline]
+    save_on_top = True
 
 
 class ProductCollectionAdmin(admin.ModelAdmin):
