@@ -3,13 +3,15 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.utils.translation import pgettext
 from django.utils.encoding import python_2_unicode_compatible, smart_text
+from django.utils.translation import ugettext as _
 from prices import Price
 from satchless import cart
-from satchless.item import ItemList
+from satchless.item import ItemList, InsufficientStock
 from saleor.product.models import Product
 
 
 CART_SESSION_KEY = 'cart'
+
 
 class DigitalGroup(ItemList):
     '''
@@ -74,6 +76,25 @@ class Cart(cart.Cart):
     def clear(self):
         super(Cart, self).clear()
         self.session_cart.clear()
+
+    def adjust_quantities(self):
+        cart_modified = False
+        for cartline in self:
+            variant_class = cartline.product.__class__
+            variant = variant_class.objects.get(pk=cartline.product.pk)
+            try:
+                self.check_quantity(
+                    product=variant,
+                    quantity=cartline.quantity,
+                    data=None)
+            except InsufficientStock as e:
+                cartline.warning = _(
+                    "Sorry, only %d remaining in stock. "
+                    "Your order was changed" % e.item.stock)
+                self.add(cartline.product, quantity=int(e.item.stock),
+                         replace=True)
+                cart_modified = True
+        return cart_modified
 
 
 class SessionCartLine(cart.CartLine):
