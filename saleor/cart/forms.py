@@ -110,7 +110,6 @@ class ReplaceCartLineForm(AddToCartForm):
                              replace=True)
 
 
-
 class ReplaceCartLineFormSet(BaseFormSet):
     """
     Formset for all CartLines in the cart instance.
