@@ -30,7 +30,9 @@ class BagVariant(ProductVariant, StockedProduct):
         app_label = 'product'
 
     def __str__(self):
-        return 'Bag {0} (color {1})'.format(self.name, self.product.color.name)
+        return '{}r {} (color {})'.format(self.product,
+                                          self.name,
+                                          self.product.color.name)
 
 
 @python_2_unicode_compatible
@@ -51,5 +53,6 @@ class ShirtVariant(ProductVariant, StockedProduct):
         app_label = 'product'
 
     def __str__(self):
-        return 'Shirt {0} (color {1}, size {2})'.format(
-            self.name, self.product.color.name, self.get_size_display())
+        return '{}r {} (color {}, size {})'.format(
+            self.product, self.name, self.product.color.name,
+            self.get_size_display())
