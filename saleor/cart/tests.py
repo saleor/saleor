@@ -19,11 +19,17 @@ class BigShip(ProductVariant, StockedProduct, PhysicalProduct):
     def get_price_per_item(self, discounted=True, **kwargs):
         return self.price
 
+    def get_slug(self):
+        return 'bigship'
+
 
 class ShipPhoto(ProductVariant):
 
     def get_price_per_item(self, discounted=True, **kwargs):
         return self.price
+
+    def get_slug(self):
+        return 'bigship-photo'
 
 
 class BigShipCartForm(AddToCartForm):
