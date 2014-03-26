@@ -57,6 +57,7 @@ class Cart(cart.Cart):
     def get_data_for_product(self, variant):
         variant_price = variant.get_price_per_item()
         variant_data = {
+            'product_slug': variant.product.get_slug(),
             'product_id': variant.product.pk,
             'variant_id': variant.pk,
             'unit_price_gross': str(variant_price.gross),
