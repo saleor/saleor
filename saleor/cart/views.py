@@ -14,7 +14,7 @@ def index(request):
     cart = Cart.for_session_cart(request.cart)
     cart_partitioner = Partitioner(cart)
     # Cart check
-    adjust_quantities(request, cart)
+    adjust_quantities(cart, request)
     formset = ReplaceCartLineFormSet(request.POST or None, cart=cart)
 
     if formset.is_valid():

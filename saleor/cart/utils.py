@@ -3,7 +3,7 @@ from django.utils.translation import ugettext as _
 from satchless.item import InsufficientStock
 
 
-def adjust_quantities(request, cart):
+def adjust_quantities(cart, request):
     cart_modified = False
     for cart_line in cart:
         try:

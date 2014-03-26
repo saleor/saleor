@@ -11,7 +11,7 @@ def details(request, step):
         return redirect('cart:index')
     # Check cart
     cart = Cart.for_session_cart(request.cart)
-    cart_modified = adjust_quantities(request, cart)
+    cart_modified = adjust_quantities(cart, request)
     if cart_modified:
         return redirect('cart:index')
     checkout = Checkout(request)
