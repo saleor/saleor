@@ -46,6 +46,11 @@
                             <span class="label label-danger">{{ form.cart_line.error }}</span>
                         </p>
                     {% endif %}
+                    {% if form.cart_line.warning %}
+                        <p>
+                            <span class="label label-warning">{{ form.cart_line.warning }}</span>
+                        </p>
+                    {% endif %}
                 </td>
                 <td>{{ form.quantity|as_vertical_form:False }}</td>
                 <td>{% gross form.cart_line.get_price_per_item %}</td>
