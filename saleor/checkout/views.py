@@ -4,7 +4,6 @@ from django.contrib import messages
 from django.utils.translation import ugettext as _
 
 from ..cart import Cart
-from ..cart.utils import cart_is_ready_to_checkout
 from . import Checkout
 
 
@@ -13,8 +12,8 @@ def details(request, step):
         return redirect('cart:index')
     # Check cart
     cart = Cart.for_session_cart(request.cart)
-    checkout_possible = cart_is_ready_to_checkout(cart)
-    if not checkout_possible:
+    cart_modified = cart.adjust_quantities()
+    if cart_modified:
         messages.warning(request, _('Oops, looks like there is a '
                                     'problem with your shopping cart.'))
         return redirect('cart:index')

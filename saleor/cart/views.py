@@ -8,16 +8,14 @@ from satchless.item import Partitioner
 
 from . import Cart
 from .forms import ReplaceCartLineFormSet
-from .utils import cart_is_ready_to_checkout
 
 
 def index(request):
     cart = Cart.for_session_cart(request.cart)
     cart_partitioner = Partitioner(cart)
-    formset = ReplaceCartLineFormSet(request.POST or None, cart=cart)
-
     # Cart check
-    checkout_possible = cart_is_ready_to_checkout(cart)
+    cart.adjust_quantities()
+    formset = ReplaceCartLineFormSet(request.POST or None, cart=cart)
 
     if formset.is_valid():
         msg = _('Successfully updated product quantities.')
@@ -29,4 +27,4 @@ def index(request):
         request, 'cart/index.html', {
             'cart': cart_partitioner,
             'formset': formset,
-            'checkout_possible': checkout_possible})
+            'checkout_possible': True})
