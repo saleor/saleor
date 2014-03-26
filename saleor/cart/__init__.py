@@ -46,7 +46,8 @@ class Cart(cart.Cart):
             else:
                 variant = product.variants.get(pk=item.data['variant_id'])
             quantity = item.quantity
-            cart.add(variant, quantity=quantity, check_quantity=False)
+            cart.add(variant, quantity=quantity, check_quantity=False,
+                     skip_session_cart=True)
         return cart
 
     def __str__(self):
@@ -64,11 +65,12 @@ class Cart(cart.Cart):
         return variant_data
 
     def add(self, product, quantity=1, data=None, replace=False,
-            check_quantity=True):
+            check_quantity=True, skip_session_cart=False):
         super(Cart, self).add(product, quantity, data, replace, check_quantity)
         data = self.get_data_for_product(product)
-        self.session_cart.add(smart_text(product), quantity, data,
-                              replace=True)
+        if not skip_session_cart:
+            self.session_cart.add(smart_text(product), quantity, data,
+                                  replace=replace)
 
     def clear(self):
         super(Cart, self).clear()

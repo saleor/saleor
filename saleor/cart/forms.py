@@ -95,6 +95,9 @@ class ReplaceCartLineForm(AddToCartForm):
             raise forms.ValidationError(msg % {'remaining': e.item.stock})
         return quantity
 
+    def clean(self):
+        return super(AddToCartForm, self).clean()
+
     def get_variant(self, cleaned_data):
         """In cart formset product is already variant"""
         return self.product
