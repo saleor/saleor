@@ -77,23 +77,6 @@ class Cart(cart.Cart):
         super(Cart, self).clear()
         self.session_cart.clear()
 
-    def adjust_quantities(self):
-        cart_modified = False
-        for cartline in self:
-            try:
-                self.check_quantity(
-                    product=cartline.product,
-                    quantity=cartline.quantity,
-                    data=None)
-            except InsufficientStock as e:
-                cartline.warning = _(
-                    "Sorry, only %d remaining in stock. "
-                    "Your order was changed" % e.item.stock)
-                self.add(cartline.product, quantity=int(e.item.stock),
-                         replace=True)
-                cart_modified = True
-        return cart_modified
-
 
 class SessionCartLine(cart.CartLine):
 

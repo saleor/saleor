@@ -1,9 +1,8 @@
 from django.http.response import Http404
 from django.shortcuts import redirect
-from django.contrib import messages
-from django.utils.translation import ugettext as _
 
 from ..cart import Cart
+from ..cart.utils import adjust_quantities
 from . import Checkout
 
 
@@ -12,10 +11,8 @@ def details(request, step):
         return redirect('cart:index')
     # Check cart
     cart = Cart.for_session_cart(request.cart)
-    cart_modified = cart.adjust_quantities()
+    cart_modified = adjust_quantities(request, cart)
     if cart_modified:
-        messages.warning(request, _('Oops, looks like there is a '
-                                    'problem with your shopping cart.'))
         return redirect('cart:index')
     checkout = Checkout(request)
     if not step:
