@@ -50,9 +50,10 @@ class AddToCartForm(forms.Form):
         else:
             cart_line = self.cart.get_line(product_variant)
             used_quantity = cart_line.quantity if cart_line else 0
+            new_quantity = quantity + used_quantity
             try:
                 self.cart.check_quantity(
-                    product_variant, quantity, None)
+                    product_variant, new_quantity, None)
             except InsufficientStock as e:
                 remaining = e.item.stock - used_quantity
                 if remaining:
