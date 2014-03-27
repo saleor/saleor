@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django.utils.translation import pgettext_lazy
 from django.db import models
 
-from .base_products import Product
+from .base import Product
 from .variants import (ProductVariant, PhysicalProduct, ColoredVariant,
                        StockedProduct)
 

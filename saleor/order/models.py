@@ -10,6 +10,7 @@ from django.utils.timezone import now
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
+from model_utils.managers import InheritanceManager
 from payments import PurchasedItem
 from payments.models import BasePayment
 from prices import Price
@@ -18,7 +19,6 @@ from uuid import uuid4
 
 from ..communication.mail import send_email
 from ..core.utils import build_absolute_uri
-from ..core.utils.models import Subtyped
 from ..product.models import Product
 from ..userprofile.models import Address
 
@@ -89,7 +89,7 @@ class Order(models.Model, ItemSet):
         return self.anonymous_user_email
 
     def __iter__(self):
-        return iter(self.groups.all())
+        return iter(self.groups.all().select_subclasses())
 
     def __repr__(self):
         return '<Order #%r>' % (self.id,)
@@ -116,7 +116,7 @@ class Order(models.Model, ItemSet):
         send_email(email, 'order/emails/confirm_email.txt', context)
 
 
-class DeliveryGroup(Subtyped, ItemSet):
+class DeliveryGroup(models.Model, ItemSet):
     STATUS_CHOICES = (
         ('new',
          pgettext_lazy('Delivery group status field value', 'Processing')),
@@ -137,6 +137,8 @@ class DeliveryGroup(Subtyped, ItemSet):
         decimal_places=4,
         default=0,
         editable=False)
+
+    objects = InheritanceManager()
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, list(self))

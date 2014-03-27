@@ -7,7 +7,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from django_prices.models import PriceField
 from prices import FixedDiscount
 
-from .base_products import Product
+from .base import Product
 
 
 class NotApplicable(ValueError):

@@ -12,11 +12,10 @@ class CollectionLookup(LookupBase):
     def get_query(self, request, term):
         products = Product.objects.filter(collection__isnull=False,
                                           collection__istartswith=term)
-
+        products = products.select_subclasses()
         qs = products.values('collection').annotate(
             products=Count('collection')
         ).order_by('-products')
-
         return qs
 
     def get_item_value(self, item):
