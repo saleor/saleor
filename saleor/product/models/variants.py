@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from decimal import Decimal
 
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import pgettext_lazy
 from satchless.item import Item, StockedItem
@@ -27,8 +28,8 @@ class Color(models.Model):
 
 
 class StockedProduct(models.Model, StockedItem):
-    stock = models.DecimalField(pgettext_lazy('Product item field', 'stock'),
-                                max_digits=10, decimal_places=4,
+    stock = models.IntegerField(pgettext_lazy('Product item field', 'stock'),
+                                validators=[MinValueValidator(0)],
                                 default=Decimal(1))
 
     class Meta:

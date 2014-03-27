@@ -1,12 +1,19 @@
+import logging
+
+from django.conf import settings
+from django.contrib import messages
 from django.db import transaction
 from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
+from django.utils.translation import ugettext as _
 from django.template.response import TemplateResponse
 from payments import RedirectNeeded
 
 from . import check_order_status
 from .forms import PaymentDeleteForm, PaymentMethodsForm
 from .models import Order, Payment
+
+logger = logging.getLogger(__name__)
 
 
 def details(request, token):
@@ -56,6 +63,8 @@ def start_payment(request, order, variant):
                 'billing_postcode': billing.postal_code,
                 'billing_country_code': billing.country,
                 'billing_country_area': billing.country_area}
+    if not variant in [v for v, n in settings.CHECKOUT_PAYMENT_CHOICES]:
+        raise Http404('%r is not a valid payment variant' % (variant,))
     with transaction.atomic():
         order.change_status('payment-pending')
         payment, _created = Payment.objects.get_or_create(variant=variant,
@@ -64,10 +73,16 @@ def start_payment(request, order, variant):
                                                           defaults=defaults)
         try:
             form = payment.get_form(data=request.POST or None)
-        except ValueError as e:
-            raise Http404(e)
         except RedirectNeeded as redirect_to:
             return redirect(str(redirect_to))
+        except Exception:
+            logger.exception('Error communicating with the payment gateway')
+            messages.error(
+                request,
+                _('Oops, it looks like we were unable to contact the selected'
+                  ' payment service'))
+            payment.change_status('error')
+            return redirect('order:details', token=order.token)
     template = 'order/payment/%s.html' % variant
     return TemplateResponse(request, [template, 'order/payment/default.html'],
                             {'form': form, 'payment': payment})

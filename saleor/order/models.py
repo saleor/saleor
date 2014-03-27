@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils.encoding import smart_text
 from django.utils.timezone import now
@@ -196,9 +197,9 @@ class OrderedItem(models.Model, ItemLine):
         pgettext_lazy('OrderedItem field', 'product name'), max_length=128)
     product_sku = models.CharField(pgettext_lazy('OrderedItem field', 'sku'),
                                    max_length=32)
-    quantity = models.DecimalField(
+    quantity = models.IntegerField(
         pgettext_lazy('OrderedItem field', 'quantity'),
-        max_digits=10, decimal_places=4)
+        validators=[MinValueValidator(0), MaxValueValidator(999)])
     unit_price_net = models.DecimalField(
         pgettext_lazy('OrderedItem field', 'unit price (net)'),
         max_digits=12, decimal_places=4)
@@ -237,9 +238,10 @@ class Payment(BasePayment):
         send_email(email, 'order/payment/emails/confirm_email.txt', context)
 
     def get_purchased_items(self):
-        items = [PurchasedItem(name=item.product_name, quantity=item.quantity,
-                               price=item.unit_price_gross,
-                               sku=item.product_sku,
-                               currency=settings.DEFAULT_CURRENCY)
+        items = [PurchasedItem(
+            name=item.product_name, sku=item.product_sku,
+            quantity=item.quantity,
+            price=item.unit_price_gross.quantize(Decimal('0.01')),
+            currency=settings.DEFAULT_CURRENCY)
                  for item in self.order.get_items()]
         return items
