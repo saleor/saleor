@@ -36,6 +36,7 @@ class Cart(cart.Cart):
         cart = Cart(session_cart)
         product_ids = [item.data['product_id'] for item in session_cart]
         products = Product.objects.filter(id__in=product_ids)
+        products = products.select_subclasses()
         product_map = dict((p.id, p) for p in products)
         for item in session_cart:
             try:

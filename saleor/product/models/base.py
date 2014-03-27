@@ -6,11 +6,10 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
+from model_utils.managers import InheritanceManager
 from mptt.models import MPTTModel
 from satchless.item import ItemRange
 from unidecode import unidecode
-
-from ...core.utils.models import Subtyped
 
 
 @python_2_unicode_compatible
@@ -37,7 +36,7 @@ class Category(MPTTModel):
 
 
 @python_2_unicode_compatible
-class Product(Subtyped, ItemRange):
+class Product(models.Model, ItemRange):
     name = models.CharField(
         pgettext_lazy('Product field', 'name'), max_length=128)
     category = models.ForeignKey(
@@ -45,11 +44,20 @@ class Product(Subtyped, ItemRange):
         related_name='products')
     description = models.TextField(
         verbose_name=pgettext_lazy('Product field', 'description'))
-
     collection = models.CharField(db_index=True, max_length=100, blank=True)
+
+    objects = InheritanceManager()
 
     class Meta:
         app_label = 'product'
+
+    def __iter__(self):
+        return iter(self.variants.all())
+
+    def __repr__(self):
+        class_ = type(self)
+        return '<%s.%s(pk=%r, name=%r)>' % (
+            class_.__module__, class_.__name__, self.pk, self.name)
 
     def __str__(self):
         return self.name
@@ -61,15 +69,13 @@ class Product(Subtyped, ItemRange):
     def get_slug(self):
         value = unidecode(self.name)
         value = re.sub(r'[^\w\s-]', '', value).strip().lower()
-
         return mark_safe(re.sub(r'[-\s]+', '-', value))
 
     def get_products_from_collection(self):
+        if not self.collection:
+            return
         return Product.objects.filter(
-            collection=self.collection) if self.collection else None
-
-    def __iter__(self):
-        return iter(self.variants.all())
+            collection=self.collection).select_subclasses()
 
     def get_formatted_price(self, price):
         return "{0} {1}".format(price.gross, price.currency)
@@ -77,15 +83,11 @@ class Product(Subtyped, ItemRange):
     def admin_get_price_min(self):
         price = self.get_price_range().min_price
         return self.get_formatted_price(price)
-
     admin_get_price_min.short_description = pgettext_lazy(
-        'Product admin page', 'Minimal price'
-    )
+        'Product admin page', 'Minimum price')
 
     def admin_get_price_max(self):
         price = self.get_price_range().max_price
         return self.get_formatted_price(price)
-
     admin_get_price_max.short_description = pgettext_lazy(
-        'Product admin page', 'Maximal price'
-    )
+        'Product admin page', 'Maximum price')

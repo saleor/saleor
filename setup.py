@@ -34,6 +34,7 @@ setup(
     install_requires=[
         'Django>=1.6',
         'django-images>=0.4,<0.5a0',
+        'django-model-utils>=2.0.0,<2.1a0',
         'django-mptt>=0.5',
         'django-payments>=0.4,<0.5a0',
         'django-prices>=0.3,<0.4a0',
