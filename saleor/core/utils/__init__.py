@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.http.request import absolute_http_url_re
 from django.template.response import TemplateResponse
-from django.utils.encoding import iri_to_uri
+from django.utils.encoding import iri_to_uri, smart_text
 from satchless.process import InvalidData, Step
 try:
     from urllib.parse import urljoin
@@ -29,7 +29,7 @@ class CategoryChoiceField(forms.ModelChoiceField):
                 indent += '└ '
             else:
                 indent += '├ '
-        return '%s%s' % (indent, unicode(obj))
+        return '%s%s' % (indent, smart_text(obj))
 
 
 class BaseStep(Step):

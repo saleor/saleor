@@ -14,6 +14,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils import timezone
+from django.utils.encoding import smart_text
 from django.utils.translation import ugettext_lazy as _
 
 from . import forms
@@ -47,7 +48,7 @@ def oauth_callback(request, service):
         try:
             user = form.get_authenticated_user()
         except ValueError as e:
-            messages.error(request, unicode(e))
+            messages.error(request, smart_text(e))
         else:
             auth_login(request, user=user)
             messages.success(request, _('You are now logged in.'))
