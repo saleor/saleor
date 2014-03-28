@@ -62,6 +62,8 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'babeldjango.middleware.LocaleMiddleware',
     'saleor.cart.middleware.CartMiddleware',
     'saleor.core.middleware.GoogleAnalytics',
     'saleor.core.middleware.CheckHTML'
@@ -101,6 +103,7 @@ INSTALLED_APPS = [
     'saleor.userprofile',
 
     # External apps
+    'babeldjango',
     'django_images',
     'django_prices',
     'mptt',

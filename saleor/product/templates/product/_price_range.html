@@ -1,5 +1,5 @@
 {% load i18n %}
-{% load gross from prices %}
+{% load gross from prices_i18n %}
 {% if price_range.min_price == price_range.max_price %}
     {% gross price_range.min_price %}
 {% else %}
