@@ -5,6 +5,7 @@ from django.conf import settings
 from django.utils.translation import get_language
 
 from . import analytics
+from ..product.models import FixedProductDiscount
 
 logger = logging.getLogger('saleor')
 
@@ -32,3 +33,11 @@ class GoogleAnalytics(object):
         # FIXME: on production you might want to run this in background
         analytics.report_view(client_id, path=path, language=language,
                               headers=headers)
+
+
+class DiscountMiddleware(object):
+
+    def process_request(self, request):
+        discounts = FixedProductDiscount.objects.all()
+        discounts = discounts.prefetch_related('products')
+        request.discounts = discounts

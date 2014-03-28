@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% load as_vertical_form from bootstrap %}
-{% load undiscounted_price undiscounted_price_range price_difference from discount %}
+{% load discounted_price_range price_difference from discount %}
 {% load i18n %}
 {% load at_size from images %}
 {% load gross from prices %}
@@ -17,43 +17,72 @@
 
 {% block outercontent %}
 
-{% with price=product.get_price_range.min_price undiscounted=product|undiscounted_price_range %}
-{% with discount=undiscounted.min_price|price_difference:price %}
+{% with price_range=product|discounted_price_range:request.discounts undiscounted=product.get_price_range %}
+{% with discount=undiscounted.min_price|price_difference:price_range.min_price %}
 
 <div itemscope itemtype="http://schema.org/Product">
     <div class="row">
-        <div class="col-sm-6 col-sm-push-4">
+        <div class="col-sm-6 col-sm-push-6">
             <h1 itemprop="name">
                 {{ product }}
             </h1>
 
             <p class="lead" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-                Price:
-                <span itemprop="price">
-                    {% gross product.get_price_range.min_price %} - {% gross product.get_price_range.max_price %}
-                </span>
+                {% if undiscounted.min_price != price_range.min_price %}
+                    <span class="price undiscounted">{% price_range undiscounted %}</span>
+                    <br>
+                    <span class="price">{% price_range price_range %}</span>
+                    <br>
+                    <small class="label label-success">{% trans "You save" %} {% gross discount %}</small>
+                {% else %}
+                    <span class="price">{% price_range price_range %}</span>
+                {% endif %}
             </p>
 
-            <hr/>
+            <hr>
+
+            {% block orderform %}
+            <form role="form" class="form-vertical" method="post" action=".">
+                {% csrf_token %}
+                {{ form|as_vertical_form }}
+
+                <div class="form-group">
+                    <button class="btn btn-lg btn-block btn-primary">
+                        {% trans "Add to cart" %}
+                    </button>
+                </div>
+            </form>
+            {% endblock %}
+
+            <hr>
+
+            {% if related_products %}
+            <h3>{% trans "Also in this collection" %}</h3>
+                {% for related in related_products %}
+                    <a href="{{ related.get_absolute_url }}"><img src="{{ related.images.first|at_size:"small" }}"></a>
+                {% endfor %}
+                <hr>
+            {% endif %}
 
             <p itemprop="description">
                 {{ product.description|linebreaks }}
             </p>
         </div>
 
-        <div class="col-sm-4 col-sm-pull-6">
+        {% with images=product.images.all %}
+        <div class="col-sm-6 col-sm-pull-6">
             <div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
                 <ol class="carousel-indicators">
-                    {% for image in product.images.all %}
+                    {% for image in images %}
                         <li data-target="#carousel-example-generic" data-slide-to="{{ forloop.counter0 }}"
                             {% if forloop.first %} class="active"{% endif %}></li>
                     {% endfor %}
                 </ol>
 
                 <div class="carousel-inner">
-                    {% for image in product.images.all %}
+                    {% for image in images %}
                     <div class="item{% if forloop.first %} active{% endif %}">
-                        <img class="img-responsive" src="{{ image|at_size:"small" }}" alt="">
+                        <img class="img-responsive" src="{{ image|at_size:"normal" }}" alt="">
                     </div>
                     {% endfor %}
                 </div>
@@ -66,57 +95,7 @@
                 </a>
             </div>
         </div>
-
-        <div class="col-sm-2">
-            <p itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-                {% if undiscounted.min_price != price %}
-                    <br>
-                    <span class="price undiscounted">{% price_range product %}</span>
-                    <br>
-                    <small class="label label-success">{% trans "You save" %} {% gross discount %}</small>
-                {% else %}
-                    <span class="price">{% price_range product %}</span>
-                {% endif %}
-            </p>
-            <p>
-            {% block stockinfo %}
-            {% for variant in product.variants.all %}
-                {% if product.stock == 0 %}
-                <link itemprop="availability" href="http://schema.org/OutOfStock" /> <span class="label label-danger">{% trans "Out of stock" %}</span>
-                {% else %}
-                <link itemprop="availability" href="http://schema.org/InStock" /> <span class="label label-default">{% trans "In stock" %}</span>
-                {% endif %}
-            {% endfor %}
-            {% endblock %}
-            </p>
-            <hr>
-            {% with collection=product.get_products_from_collection %}
-                {% if collection %}
-                <h3>{% trans "Available Colors" %}</h3>
-                    {% for product in collection %}
-                        <a href="{{ product.get_absolute_url }}">
-                            <span class="label" style="background-color: #{{ product.color.color }}">{{ product.color.name }}</span>
-                        </a>
-                    {% endfor %}
-                    <hr>
-                {% endif %}
-            {% endwith %}
-
-            <h3>{% trans "Order" %}</h3>
-            {% block orderform %}
-            <form role="form" class="form-vertical" method="post" action=".">
-                {% csrf_token %}
-                {{ form|as_vertical_form }}
-
-                <div class="form-group">
-                    <p>{% trans "Final price" %} <span id="final-price">0.00</span> {{ price.currency }}</p>
-                    <button class="btn btn-lg btn-block btn-primary">
-                        {% trans "Add to cart" %}
-                    </button>
-                </div>
-            </form>
-            {% endblock %}
-        </div>
+        {% endwith %}
     </div>
 </div>
 {% endwith %}
