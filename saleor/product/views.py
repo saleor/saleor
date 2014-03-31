@@ -12,7 +12,8 @@ from saleor.cart import Cart
 
 
 def product_details(request, slug, product_id):
-    product = get_object_or_404(Product, id=product_id)
+    product = get_object_or_404(Product.objects.select_subclasses(),
+                                id=product_id)
     if product.get_slug() != slug:
         return HttpResponsePermanentRedirect(product.get_absolute_url())
     form_class = get_form_class_for_product(product)
@@ -37,6 +38,6 @@ def product_details(request, slug, product_id):
 
 def category_index(request, slug):
     category = get_object_or_404(Category, slug=slug)
-    products = category.products.all()
+    products = category.products.all().select_subclasses()
     return TemplateResponse(request, 'category/index.html', {
         'products': products, 'category': category})

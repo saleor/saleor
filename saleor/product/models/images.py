@@ -5,7 +5,7 @@ from django_images.models import Image
 from django.utils.safestring import mark_safe
 from django.utils.encoding import python_2_unicode_compatible
 
-from .base_products import Product
+from .base import Product
 
 
 class ImageManager(models.Manager):
