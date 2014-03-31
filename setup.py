@@ -32,19 +32,21 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
+        'Babel>=1.3,<1.4a0',
+        'BabelDjango>=0.2,<0.3a0',
         'Django>=1.6',
         'django-images>=0.4,<0.5a0',
+        'google-measurement-protocol>=0.1.2,<0.2a0',
         'django-mptt>=0.5',
         'django-payments>=0.4,<0.5a0',
-        'django-prices>=0.3,<0.4a0',
-        'google-measurement-protocol>=0.1.2,<0.2a0',
+        'django-prices>=0.3.3,<0.4a0',
+        'django-selectable==0.8.0',
+        'fake-factory>=0.3.2',
         'prices>=0.5,<0.6a0',
         'satchless>=1.1.2,<1.2a0',
         'South>=0.7.6',
         'requests>=1.2.0',
-        'unidecode',
-        'django-selectable==0.8.0',
-        'fake-factory>=0.3.2'
+        'unidecode'
     ],
     entry_points={
         'console_scripts': ['saleor = saleor:manage']},
