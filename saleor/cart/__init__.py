@@ -3,13 +3,15 @@ from __future__ import unicode_literals
 from django.conf import settings
 from django.utils.translation import pgettext
 from django.utils.encoding import python_2_unicode_compatible, smart_text
+from django.utils.translation import ugettext as _
 from prices import Price
 from satchless import cart
-from satchless.item import ItemList
+from satchless.item import ItemList, InsufficientStock
 from saleor.product.models import Product
 
 
 CART_SESSION_KEY = 'cart'
+
 
 class DigitalGroup(ItemList):
     '''

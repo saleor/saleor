@@ -1,11 +1,18 @@
 from django.http.response import Http404
 from django.shortcuts import redirect
 
+from ..cart import Cart
+from ..cart.utils import adjust_quantities
 from . import Checkout
 
 
 def details(request, step):
     if not request.cart:
+        return redirect('cart:index')
+    # Check cart
+    cart = Cart.for_session_cart(request.cart)
+    cart_modified = adjust_quantities(cart, request)
+    if cart_modified:
         return redirect('cart:index')
     checkout = Checkout(request)
     if not step:

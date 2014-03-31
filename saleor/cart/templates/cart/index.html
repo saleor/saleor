@@ -50,9 +50,15 @@
         </tbody>
     </table>
     <div class="form-group">
-        <div>
-            <a href="{% url "checkout:index" %}" class="btn btn-primary">Checkout</a>
-        </div>
+        {% if checkout_possible %}
+            <div>
+                <a href="{% url "checkout:index" %}" class="btn btn-primary">Checkout</a>
+            </div>
+        {% else %}
+            <div>
+                <p>{% trans "Before continuing please resolve problems indicated above." %}</p>
+            </div>
+        {% endif %}
     </div>
 </form>
 {% else %}
