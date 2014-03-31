@@ -48,7 +48,10 @@ class PhysicalProduct(models.Model):
         max_digits=6, decimal_places=2, blank=True, default=0)
     depth = models.DecimalField(
         max_digits=6, decimal_places=2, blank=True, default=0)
-            
+    price = PriceField(
+        pgettext_lazy('Product field', 'price'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4)
+
     def get_weight(self):
         try:
             return self.weight
@@ -72,9 +75,6 @@ class ColoredVariant(models.Model):
 class ProductVariant(models.Model, Item):
     name = models.CharField(pgettext_lazy('Product field', 'name'),
                             max_length=128, blank=True, default='')
-    price = PriceField(pgettext_lazy('Product field', 'price'),
-                       currency=settings.DEFAULT_CURRENCY,
-                       max_digits=12, decimal_places=4)
     sku = models.CharField(
         pgettext_lazy('Product field', 'sku'), max_length=32, unique=True)
 
@@ -85,10 +85,10 @@ class ProductVariant(models.Model, Item):
     def __str__(self):
         return self.name or self.product.name
 
-    def get_price_per_item(self, discounted=True, **kwargs):
-        price = self.price
-        if discounted:
-            discounts = list(get_product_discounts(self, **kwargs))
+    def get_price_per_item(self, discounts=None, **kwargs):
+        price = self.product.price
+        if discounts:
+            discounts = list(get_product_discounts(self, discounts, **kwargs))
             if discounts:
                 modifier = max(discounts)
                 price += modifier

@@ -18,6 +18,17 @@ class DigitalGroup(ItemList):
     pass
 
 
+class CartLine(cart.CartLine):
+
+    def __init__(self, product, quantity, data=None, discounts=None):
+        super(CartLine, self).__init__(product, quantity, data=data)
+        self.discounts = discounts
+
+    def get_price_per_item(self, **kwargs):
+        kwargs.setdefault('discounts', self.discounts)
+        return super(CartLine, self).get_price_per_item(**kwargs)
+
+
 @python_2_unicode_compatible
 class Cart(cart.Cart):
     '''
@@ -27,13 +38,14 @@ class Cart(cart.Cart):
     timestamp = None
     billing_address = None
 
-    def __init__(self, session_cart):
+    def __init__(self, session_cart, discounts=None):
         super(Cart, self).__init__()
         self.session_cart = session_cart
+        self.discounts = discounts
 
     @classmethod
-    def for_session_cart(cls, session_cart):
-        cart = Cart(session_cart)
+    def for_session_cart(cls, session_cart, discounts=None):
+        cart = Cart(session_cart, discounts=discounts)
         product_ids = [item.data['product_id'] for item in session_cart]
         products = Product.objects.filter(id__in=product_ids)
         products = products.select_subclasses()
@@ -77,6 +89,10 @@ class Cart(cart.Cart):
     def clear(self):
         super(Cart, self).clear()
         self.session_cart.clear()
+
+    def create_line(self, product, quantity, data):
+        return CartLine(product, quantity, data=data, discounts=self.discounts)
+
 
 
 class SessionCartLine(cart.CartLine):

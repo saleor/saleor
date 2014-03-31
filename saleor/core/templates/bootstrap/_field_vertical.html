@@ -19,10 +19,12 @@
         {% if input_type == "radio" %}
             {% for value, name in bound_field.field.choices %}
                 {% if value %}
-            <label class="radio" for="id_{{ bound_field.html_name }}_{{ forloop.counter0 }}">
-                <input type="radio" value="{{ value }}" name="{{ bound_field.html_name }}" id="id_{{ bound_field.html_name }}_{{ forloop.counter0 }}" class="form-control">
-                {{ name }}
-            </label>
+            <div class="radio">
+                <label for="id_{{ bound_field.html_name }}_{{ forloop.counter0 }}">
+                    <input type="radio" value="{{ value }}" name="{{ bound_field.html_name }}" id="id_{{ bound_field.html_name }}_{{ forloop.counter0 }}">
+                    {{ name }}
+                </label>
+            </div>
                 {% endif %}
             {% endfor %}
         {% endif %}

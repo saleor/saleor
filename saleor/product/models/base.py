@@ -52,7 +52,9 @@ class Product(models.Model, ItemRange):
         app_label = 'product'
 
     def __iter__(self):
-        return iter(self.variants.all())
+        if not hasattr(self, '__variants'):
+            setattr(self, '__variants', self.variants.all())
+        return iter(getattr(self, '__variants'))
 
     def __repr__(self):
         class_ = type(self)
@@ -70,12 +72,6 @@ class Product(models.Model, ItemRange):
         value = unidecode(self.name)
         value = re.sub(r'[^\w\s-]', '', value).strip().lower()
         return mark_safe(re.sub(r'[-\s]+', '-', value))
-
-    def get_products_from_collection(self):
-        if not self.collection:
-            return
-        return Product.objects.filter(
-            collection=self.collection).select_subclasses()
 
     def get_formatted_price(self, price):
         return "{0} {1}".format(price.gross, price.currency)

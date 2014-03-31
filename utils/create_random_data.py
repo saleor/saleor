@@ -45,6 +45,7 @@ def create_product(product_type, **kwargs):
 
     defaults = {
         'name': fake.company(),
+        'price': fake.pyfloat(2, 2, positive=True),
         'category': Category.objects.order_by('?')[0],
         'collection': collection,
         'color': Color.objects.order_by('?')[0],
@@ -60,7 +61,6 @@ def create_variant(product, **kwargs):
     defaults = {
         'stock': fake.random_int(),
         'name': fake.word(),
-        'price': fake.pyfloat(2, 2, positive=True),
         'sku': fake.random_int(1, 100000),
         'product': product
     }

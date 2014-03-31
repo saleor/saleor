@@ -23,10 +23,7 @@ class BigShip(ProductVariant, StockedProduct, PhysicalProduct):
         return 'bigship'
 
 
-class ShipPhoto(ProductVariant):
-
-    def get_price_per_item(self, discounted=True, **kwargs):
-        return self.price
+class ShipPhoto(ProductVariant, PhysicalProduct):
 
     def get_slug(self):
         return 'bigship-photo'

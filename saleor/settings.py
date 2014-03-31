@@ -65,6 +65,7 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.locale.LocaleMiddleware',
     'babeldjango.middleware.LocaleMiddleware',
     'saleor.cart.middleware.CartMiddleware',
+    'saleor.core.middleware.DiscountMiddleware',
     'saleor.core.middleware.GoogleAnalytics',
     'saleor.core.middleware.CheckHTML'
 ]
@@ -174,7 +175,7 @@ IMAGE_SIZES = {
         'size': (750, 0)
     },
     'small': {
-        'size': (750, 400),
+        'size': (50, 50),
         'crop': True
     },
     'admin': {
