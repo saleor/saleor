@@ -77,6 +77,8 @@ class ProductVariant(models.Model, Item):
                             max_length=128, blank=True, default='')
     sku = models.CharField(
         pgettext_lazy('Product field', 'sku'), max_length=32, unique=True)
+    # override the price attribute to implement per-variant pricing
+    price = None
 
     class Meta:
         abstract = True
@@ -86,7 +88,10 @@ class ProductVariant(models.Model, Item):
         return self.name or self.product.name
 
     def get_price_per_item(self, discounts=None, **kwargs):
-        price = self.product.price
+        if self.price is not None:
+            price = self.price
+        else:
+            price = self.product.price
         if discounts:
             discounts = list(get_product_discounts(self, discounts, **kwargs))
             if discounts:
@@ -113,4 +118,3 @@ class ProductVariant(models.Model, Item):
             'variant_id': self.pk,
             'unit_price': str(self.get_price_per_item().gross)
         }
-
