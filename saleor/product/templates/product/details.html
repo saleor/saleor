@@ -5,6 +5,7 @@
 {% load i18n %}
 {% load at_size from images %}
 {% load gross from prices_i18n %}
+{% load markdown from markdown %}
 {% load price_range from price_ranges %}
 
 {% block title %}{{ product }} — {{ block.super }}{% endblock %}
@@ -64,9 +65,9 @@
                 <hr>
             {% endif %}
 
-            <p itemprop="description">
-                {{ product.description|linebreaks }}
-            </p>
+            <div itemprop="description">
+                {{ product.description|markdown }}
+            </div>
         </div>
 
         {% with images=product.images.all %}
