@@ -99,7 +99,8 @@
         <div class="container">
             {% for message in messages %}
             <div class="alert{% if message.tags %} alert-{{ message.tags }}{% endif %}">
-            {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                {{ message }}
             </div>
             {% endfor %}
         </div>
