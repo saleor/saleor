@@ -88,10 +88,30 @@
                 <div class="carousel-inner">
                     {% for image in images %}
                     <div class="item{% if forloop.first %} active{% endif %}">
-                        <img class="img-responsive" src="{{ image|at_size:"normal" }}" alt="">
+                        <a href="#" data-toggle="modal" data-target="#modal-{{ forloop.counter }}">
+                            <img class="img-responsive" src="{{ image|at_size:"normal" }}" alt="">
+                        </a>
                     </div>
                     {% endfor %}
                 </div>
+
+                {% for image in images %}
+                <div class="modal fade bs-example-modal-lg" id="modal-{{ forloop.counter }}"
+                     tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                <h4 class="modal-title" id="myModalLabel">{{ product }}</h4>
+                            </div>
+
+                            <div class="modal-body">
+                                <img class="img-responsive" src="{{ MEDIA_URL }}{{ image.image }}" alt="">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
 
                 <a class="left carousel-control" href="#carousel-example-generic" data-slide="prev">
                     <span class="glyphicon glyphicon-chevron-left"></span>
