@@ -17,16 +17,18 @@
             </label>
         {% endif %}
         {% if input_type == "radio" %}
+            <div class="btn-group" data-toggle="buttons">
             {% for value, name in bound_field.field.choices %}
                 {% if value %}
-            <div class="radio">
-                <label for="id_{{ bound_field.html_name }}_{{ forloop.counter0 }}">
-                    <input type="radio" value="{{ value }}" name="{{ bound_field.html_name }}" id="id_{{ bound_field.html_name }}_{{ forloop.counter0 }}">
+                <label for="id_{{ bound_field.html_name }}_{{ forloop.counter0 }}"
+                       class="btn btn-default{% if forloop.first %} active{% endif %}">
+                    <input type="radio" value="{{ value }}" id="id_{{ bound_field.html_name }}_{{ forloop.counter0 }}"
+                           name="{{ bound_field.html_name }}"{% if forloop.first %} checked{% endif %}>
                     {{ name }}
                 </label>
-            </div>
                 {% endif %}
             {% endfor %}
+            </div>
         {% endif %}
         {% if input_type == "multi_widget" %}
             <div class="row">
