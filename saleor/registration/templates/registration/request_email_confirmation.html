@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load as_horizontal_form from bootstrap %}
+{% load as_vertical_form from bootstrap %}
 {% load i18n %}
 
 {% block title %}{% trans "Request email confirmation" %} — {{ block.super }}{% endblock %}
@@ -10,19 +10,25 @@
 {% endblock breadcrumb %}
 
 {% block content %}
-<form method="post" class="form-horizontal">
-    {% csrf_token %}
-    <fieldset>
-        <legend>{% trans 'Request email confirmation' %}</legend>
-        {{ form|as_horizontal_form }}
-        <input type="hidden" name="next" value="{{ next }}" />
-    </fieldset>
-    <div class="form-group">
-        <div class="col-sm-offset-2 col-sm-10">
-            <button class="btn btn-primary">
-                {% trans "Continue" %}
-            </button>
+<div class="row">
+    <div class="col-sm-6">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <fieldset>
+                        <legend>{% trans 'Request email confirmation' %}</legend>
+                        {{ form|as_vertical_form }}
+                        <input type="hidden" name="next" value="{{ next }}" />
+                    </fieldset>
+                    <div class="form-group">
+                        <button class="btn btn-primary">
+                            {% trans "Continue" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</form>
+</div>
 {% endblock %}
