@@ -11,7 +11,20 @@
 
 {% block content %}
     <h2>{% trans "Are you sure you want to delete the following address?" %}</h2>
-    <address>{% include "userprofile/snippets/address-details.html" with address=object.address %}</address>
+
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    {{ object }}
+                </div>
+                <div class="panel-body">
+                    <address>{% include "userprofile/snippets/address-details.html" with address=object.address %}</address>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <form action="." method="post">
         {% csrf_token %}
         <button type="submit" class="btn btn-danger">{% trans "Delete" %}</button>
