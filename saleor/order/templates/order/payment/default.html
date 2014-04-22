@@ -1,18 +1,24 @@
 {% extends "order/payment/details.html" %}
-{% load as_horizontal_form from bootstrap %}
+{% load as_vertical_form from bootstrap %}
 {% load i18n %}
 
 {% block forms %}
-<form method="{{ form.method }}" class="form-horizontal"{% if form.action %} action="{{ form.action }}"{% endif %}>
-    {% csrf_token %}
-    {{ form.media }}
-    {{ form|as_horizontal_form }}
-    <div class="form-group">
-        <div class="col-sm-offset-2 col-sm-10">
-            <button type="submit" class="btn btn-primary">
-                {% trans "Save changes" %}
-            </button>
+<div class="row">
+    <div class="col-sm-6">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form method="{{ form.method }}"{% if form.action %} action="{{ form.action }}"{% endif %}>
+                    {% csrf_token %}
+                    {{ form.media }}
+                    {{ form|as_vertical_form }}
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">
+                            {% trans "Save changes" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</form>
+</div>
 {% endblock forms %}

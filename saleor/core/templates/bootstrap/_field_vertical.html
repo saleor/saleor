@@ -2,7 +2,7 @@
 {% if bound_field.is_hidden %}
 {{ bound_field }}
 {% else %}
-<div class="form-group {{ bound_field.html_name }}{% if bound_field.errors %} has-error{% endif %}{% if bound_field.field.required %} required{% endif %}">
+<div class="form-group {{ bound_field.html_name }}{% if bound_field.errors %} has-error{% endif %}{% if input_type == "input" %} has-feedback{% endif %}{% if bound_field.field.required %} required{% endif %}">
     {% if show_label %}
     <label class="control-label" for="{{ bound_field.html_name }}_id">{{ bound_field.label }}</label>
     {% endif %}
@@ -42,7 +42,10 @@
 
         {% if bound_field.errors %}
             {% for error in bound_field.errors %}
-        <span class="label label-danger">{{ error }}</span>
+                {% if input_type == "input" %}
+                    <span class="glyphicon glyphicon-remove form-control-feedback"></span>
+                {% endif %}
+                <span class="text-danger">{{ error }}</span>
             {% endfor %}
         {% endif %}
     </div>

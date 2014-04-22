@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% load as_horizontal_form from bootstrap %}
+{% load as_vertical_form from bootstrap %}
 {% load i18n %}
 
 {% block title %}{% trans "Edit Address" %} — {{ block.super }}{% endblock %}
@@ -16,18 +16,24 @@
 {% endblock breadcrumb %}
 
 {% block content %}
-    <form class="form-horizontal" action="." method="post">
-        {% csrf_token %}
-        <fieldset>
-            <legend>Address</legend>
-            {{ address_book_form|as_horizontal_form }}
-            {{ address_form|as_horizontal_form }}
-        </fieldset>
-        <div class="form-group">
-            <div class="col-sm-10 col-sm-offset-2">
-                <button type="submit" class="btn btn-primary">Save</button>
-                <a href="{% url 'profile:details' %}" class="btn btn-link">Cancel</a>
+<div class="row">
+    <div class="col-sm-6">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form action="." method="post">
+                    {% csrf_token %}
+                    <fieldset>
+                        <legend>Address</legend>
+                        {{ address_book_form|as_vertical_form }}
+                        {{ address_form|as_vertical_form }}
+                    </fieldset>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <a href="{% url 'profile:details' %}" class="btn btn-link">Cancel</a>
+                    </div>
+                </form>
             </div>
         </div>
-    </form>
+    </div>
+</div>
 {% endblock content %}
