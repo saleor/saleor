@@ -4,7 +4,7 @@
 {% else %}
 <div class="form-group {{ bound_field.html_name }}{% if bound_field.errors %} has-error{% endif %}{% if input_type == "input" %} has-feedback{% endif %}{% if bound_field.field.required %} required{% endif %}">
     {% if show_label %}
-    <label class="control-label" for="{{ bound_field.html_name }}_id">{{ bound_field.label }}</label>
+    <label class="control-label" for="id_{{ bound_field.html_name }}">{{ bound_field.label }}</label>
     {% endif %}
     <div>
         {% if input_type == "input" or input_type == "textarea" or input_type == "select" %}
