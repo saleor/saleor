@@ -1,5 +1,8 @@
+@import "./vendor/bootstrap/bootstrap";
+@icon-font-path: "/static/fonts/";
+
 .navbar {
-  margin-bottom: 50px;
+	margin-bottom: 50px;
 }
 
 .price {
@@ -16,4 +19,26 @@
 
 .popover {
 	min-width: 200px;
+}
+
+.product-gallery {
+	margin-top: @grid-gutter-width;
+}
+
+.product-related {
+	.active {
+		border: 1px solid @btn-primary-border;
+		box-shadow: 0 0 5px @btn-primary-border;
+	}
+}
+
+.product-form {
+	.btn-group {
+		display: block;
+		overflow: hidden;
+
+		.btn-default.active {
+			.btn-primary;
+		}
+	}
 }

@@ -42,8 +42,21 @@
 
             <hr>
 
+            {% if related_products %}
+                <label>{% trans "This collection" %}</label>
+
+                <div class="row product-related">
+                    {% for related in related_products %}
+                        <a href="{{ related.get_absolute_url }}" class="col-xs-3">
+                            <img src="{{ related.images.first|at_size:"small" }}" alt=""
+                                 class="thumbnail img-responsive{% if related.id == product.id %} active{% endif %}">
+                        </a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
             {% block orderform %}
-            <form role="form" class="form-vertical" method="post" action=".">
+            <form role="form" class="product-form form-vertical" method="post" action=".">
                 {% csrf_token %}
                 {{ form|as_vertical_form }}
 
@@ -56,14 +69,6 @@
             {% endblock %}
 
             <hr>
-
-            {% if related_products %}
-            <h3>{% trans "Also in this collection" %}</h3>
-                {% for related in related_products %}
-                    <a href="{{ related.get_absolute_url }}"><img src="{{ related.images.first|at_size:"small" }}"></a>
-                {% endfor %}
-                <hr>
-            {% endif %}
 
             <div itemprop="description">
                 {{ product.description|markdown }}
@@ -83,10 +88,30 @@
                 <div class="carousel-inner">
                     {% for image in images %}
                     <div class="item{% if forloop.first %} active{% endif %}">
-                        <img class="img-responsive" src="{{ image|at_size:"normal" }}" alt="">
+                        <a href="#" data-toggle="modal" data-target="#modal-{{ forloop.counter }}">
+                            <img class="img-responsive" src="{{ image|at_size:"normal" }}" alt="">
+                        </a>
                     </div>
                     {% endfor %}
                 </div>
+
+                {% for image in images %}
+                <div class="modal fade bs-example-modal-lg" id="modal-{{ forloop.counter }}"
+                     tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                <h4 class="modal-title" id="myModalLabel">{{ product }}</h4>
+                            </div>
+
+                            <div class="modal-body">
+                                <img class="img-responsive" src="{{ MEDIA_URL }}{{ image.image }}" alt="">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
 
                 <a class="left carousel-control" href="#carousel-example-generic" data-slide="prev">
                     <span class="glyphicon glyphicon-chevron-left"></span>
@@ -95,6 +120,14 @@
                     <span class="glyphicon glyphicon-chevron-right"></span>
                 </a>
             </div>
+
+            <div class="product-gallery row">
+                {% for image in images %}
+                <a href="#" class="product-gallery-item col-xs-2">
+                    <img class="thumbnail img-responsive" src="{{ image|at_size:"small" }}" alt="">
+                </a>
+                {% endfor %}
+            </div>
         </div>
         {% endwith %}
     </div>
@@ -102,3 +135,19 @@
 {% endwith %}
 {% endwith %}
 {% endblock outercontent %}
+
+{% block footer_scripts %}
+    {{ block.super }}
+    <script>
+    $(function() {
+        var $carousel = $('.carousel'),
+            $items = $('.product-gallery-item');
+
+        $items.on('click', function() {
+            var index = $(this).index();
+
+            $carousel.carousel(index);
+        })
+    });
+    </script>
+{% endblock %}

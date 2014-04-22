@@ -20,7 +20,7 @@ INTERNAL_IPS = ['127.0.0.1']
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'dev.sqlite'
+        'NAME': os.path.join(PROJECT_ROOT, 'dev.sqlite')
     }
 }
 
@@ -175,7 +175,7 @@ IMAGE_SIZES = {
         'size': (750, 0)
     },
     'small': {
-        'size': (50, 50),
+        'size': (100, 100),
         'crop': True
     },
     'admin': {
