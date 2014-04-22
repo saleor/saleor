@@ -129,7 +129,7 @@
 
             <div class="product-gallery row">
                 {% for image in images %}
-                <a href="#" class="product-gallery-item col-xs-2">
+                <a href="{{ MEDIA_URL }}{{ image.image }}" target="_blank" class="product-gallery-item col-xs-6 col-md-3">
                     <img class="thumbnail img-responsive" src="{{ image|at_size:"small" }}" alt="">
                 </a>
                 {% endfor %}
@@ -149,11 +149,14 @@
         var $carousel = $('.carousel'),
             $items = $('.product-gallery-item');
 
-        $items.on('click', function() {
+        $items.on('click', function(e) {
+            if ($('.carousel').is(':visible')) {
+                e.preventDefault();
+            }
             var index = $(this).index();
 
             $carousel.carousel(index);
-        })
+        });
     });
     </script>
 {% endblock %}
