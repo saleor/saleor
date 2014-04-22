@@ -175,7 +175,7 @@ IMAGE_SIZES = {
         'size': (750, 0)
     },
     'small': {
-        'size': (100, 100),
+        'size': (280, 280),
         'crop': True
     },
     'admin': {
