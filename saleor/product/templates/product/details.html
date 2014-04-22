@@ -77,10 +77,10 @@
 
         {% with images=product.images.all %}
         <div class="col-sm-6 col-sm-pull-6">
-            <div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+            <div id="product-carousel" class="carousel slide hidden-xs" data-ride="carousel">
                 <ol class="carousel-indicators">
                     {% for image in images %}
-                        <li data-target="#carousel-example-generic" data-slide-to="{{ forloop.counter0 }}"
+                        <li data-target="#product-carousel" data-slide-to="{{ forloop.counter0 }}"
                             {% if forloop.first %} class="active"{% endif %}></li>
                     {% endfor %}
                 </ol>
@@ -113,10 +113,10 @@
                 </div>
                 {% endfor %}
 
-                <a class="left carousel-control" href="#carousel-example-generic" data-slide="prev">
+                <a class="left carousel-control" href="#product-carousel" data-slide="prev">
                     <span class="glyphicon glyphicon-chevron-left"></span>
                 </a>
-                <a class="right carousel-control" href="#carousel-example-generic" data-slide="next">
+                <a class="right carousel-control" href="#product-carousel" data-slide="next">
                     <span class="glyphicon glyphicon-chevron-right"></span>
                 </a>
             </div>
