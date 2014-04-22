@@ -103,16 +103,16 @@
 
                 {% for image in images %}
                 <div class="modal fade" id="modal-{{ forloop.counter }}"
-                     tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                     tabindex="-1" role="dialog" aria-labelledby="myModalLabel{{ forloop.counter }}" aria-hidden="true">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                <h4 class="modal-title" id="myModalLabel">{{ product }}</h4>
+                                <h4 class="modal-title" id="myModalLabel{{ forloop.counter }}">{{ product }}</h4>
                             </div>
 
                             <div class="modal-body">
-                                <img class="img-responsive" src="{{ MEDIA_URL }}{{ image.image }}" alt="">
+                                <img class="img-responsive" src="" data-src="{{ MEDIA_URL }}{{ image.image }}" alt="">
                             </div>
                         </div>
                     </div>
@@ -147,7 +147,8 @@
     <script>
     $(function() {
         var $carousel = $('.carousel'),
-            $items = $('.product-gallery-item');
+            $items = $('.product-gallery-item'),
+            $modal = $('.modal');
 
         $items.on('click', function(e) {
             if ($('.carousel').is(':visible')) {
@@ -156,6 +157,13 @@
             var index = $(this).index();
 
             $carousel.carousel(index);
+        });
+
+        $modal.on('show.bs.modal', function() {
+            var $img = $(this).find('.modal-body img'),
+                dataSrc = $img.attr('data-src');
+
+            $img.attr('src', dataSrc);
         });
     });
     </script>
