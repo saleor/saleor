@@ -42,6 +42,12 @@
 
             <hr>
 
+            <div class="visible-xs">
+                <img class="img-responsive" src="{{ product.images.first|at_size:"normal" }}" alt="">
+
+                <hr>
+            </div>
+
             {% if related_products %}
                 <label>{% trans "This collection" %}</label>
 
