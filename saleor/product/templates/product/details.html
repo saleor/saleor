@@ -42,6 +42,12 @@
 
             <hr>
 
+            <div class="visible-xs">
+                <img class="img-responsive" src="{{ product.images.first|at_size:"normal" }}" alt="">
+
+                <hr>
+            </div>
+
             {% if related_products %}
                 <label>{% trans "This collection" %}</label>
 
@@ -77,10 +83,10 @@
 
         {% with images=product.images.all %}
         <div class="col-sm-6 col-sm-pull-6">
-            <div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+            <div id="product-carousel" class="carousel slide hidden-xs" data-ride="carousel">
                 <ol class="carousel-indicators">
                     {% for image in images %}
-                        <li data-target="#carousel-example-generic" data-slide-to="{{ forloop.counter0 }}"
+                        <li data-target="#product-carousel" data-slide-to="{{ forloop.counter0 }}"
                             {% if forloop.first %} class="active"{% endif %}></li>
                     {% endfor %}
                 </ol>
@@ -96,34 +102,34 @@
                 </div>
 
                 {% for image in images %}
-                <div class="modal fade bs-example-modal-lg" id="modal-{{ forloop.counter }}"
-                     tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal fade" id="modal-{{ forloop.counter }}"
+                     tabindex="-1" role="dialog" aria-labelledby="myModalLabel{{ forloop.counter }}" aria-hidden="true">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                <h4 class="modal-title" id="myModalLabel">{{ product }}</h4>
+                                <h4 class="modal-title" id="myModalLabel{{ forloop.counter }}">{{ product }}</h4>
                             </div>
 
                             <div class="modal-body">
-                                <img class="img-responsive" src="{{ MEDIA_URL }}{{ image.image }}" alt="">
+                                <img class="img-responsive" src="" data-src="{{ image.image.url }}" alt="">
                             </div>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
 
-                <a class="left carousel-control" href="#carousel-example-generic" data-slide="prev">
+                <a class="left carousel-control" href="#product-carousel" data-slide="prev">
                     <span class="glyphicon glyphicon-chevron-left"></span>
                 </a>
-                <a class="right carousel-control" href="#carousel-example-generic" data-slide="next">
+                <a class="right carousel-control" href="#product-carousel" data-slide="next">
                     <span class="glyphicon glyphicon-chevron-right"></span>
                 </a>
             </div>
 
             <div class="product-gallery row">
                 {% for image in images %}
-                <a href="#" class="product-gallery-item col-xs-2">
+                <a href="{{ image.image.url }}" target="_blank" class="product-gallery-item col-xs-6 col-md-3">
                     <img class="thumbnail img-responsive" src="{{ image|at_size:"small" }}" alt="">
                 </a>
                 {% endfor %}
@@ -141,13 +147,24 @@
     <script>
     $(function() {
         var $carousel = $('.carousel'),
-            $items = $('.product-gallery-item');
+            $items = $('.product-gallery-item'),
+            $modal = $('.modal');
 
-        $items.on('click', function() {
+        $items.on('click', function(e) {
+            if ($('.carousel').is(':visible')) {
+                e.preventDefault();
+            }
             var index = $(this).index();
 
             $carousel.carousel(index);
-        })
+        });
+
+        $modal.on('show.bs.modal', function() {
+            var $img = $(this).find('.modal-body img'),
+                dataSrc = $img.attr('data-src');
+
+            $img.attr('src', dataSrc);
+        });
     });
     </script>
 {% endblock %}
