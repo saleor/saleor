@@ -30,9 +30,10 @@ class BagVariant(ProductVariant, StockedProduct):
         app_label = 'product'
 
     def __str__(self):
-        return '{} {} (color {})'.format(self.product,
-                                         self.name,
-                                         self.product.color.name)
+        return '%s %s (%s %s)' % (self.product,
+                                  self.name,
+                                  pgettext_lazy('Product attribute', 'color'),
+                                  self.product.color.name)
 
 
 @python_2_unicode_compatible
@@ -53,6 +54,9 @@ class ShirtVariant(ProductVariant, StockedProduct):
         app_label = 'product'
 
     def __str__(self):
-        return '{} {} (color {}, size {})'.format(
-            self.product, self.name, self.product.color.name,
+        return '%s %s (%s %s, %s %s)' % (
+            self.product, self.name,
+            pgettext_lazy('Product attribute', 'color'),
+            self.product.color.name,
+            pgettext_lazy('Product attribute', 'size'),
             self.get_size_display())
