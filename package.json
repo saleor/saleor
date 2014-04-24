@@ -1,0 +1,19 @@
+{
+  "name": "saleor",
+  "version": "0.0.0",
+  "main": "Gruntfile.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mirumee/saleor.git"
+  },
+  "author": "Mirumee Software",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mirumee/saleor/issues"
+  },
+  "homepage": "https://github.com/mirumee/saleor",
+  "devDependencies": {
+      "grunt": "~0.4.4",
+      "grunt-contrib-less": "~0.11.0"
+  }
+}
