@@ -2,11 +2,11 @@
 {% load as_vertical_form from bootstrap %}
 {% load i18n %}
 
-{% block title %}{% trans "Request email confirmation" %} — {{ block.super }}{% endblock %}
+{% block title %}{% trans "Register or reset your password" %} — {{ block.super }}{% endblock %}
 
 {% block breadcrumb %}
     {{ block.super }}
-    <li><a href="#">{% trans "Request email confirmation" %}</a></li>
+    <li><a href="#">{% trans "Register or reset your password" %}</a></li>
 {% endblock breadcrumb %}
 
 {% block content %}
@@ -17,7 +17,7 @@
                 <form method="post">
                     {% csrf_token %}
                     <fieldset>
-                        <legend>{% trans 'Request email confirmation' %}</legend>
+                        <legend>{% trans 'Register or reset your password' %}</legend>
                         {{ form|as_vertical_form }}
                         <input type="hidden" name="next" value="{{ next }}" />
                     </fieldset>
