@@ -1,11 +1,13 @@
 language: python
 python:
-  - 2.6
-  - 2.7
-  - 3.2
-  - 3.3
+- 2.6
+- 2.7
+- 3.2
+- 3.3
 install:
-  - python setup.py install
+- python setup.py install
 script:
-  - export DJANGO_SETTINGS_MODULE=saleor.test_settings
-  - python setup.py test
+- export DJANGO_SETTINGS_MODULE=saleor.test_settings
+- python setup.py test
+notifications:
+  webhooks: https://webhooks.gitter.im/e/af18bf2decb40329066b
