@@ -15,5 +15,5 @@ quote_type = single
 [*.js]
 indent_size = 4
 
-[.travis.yml]
+[*.yml]
 indent_size = 2
