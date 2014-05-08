@@ -1,0 +1,19 @@
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+trim_trailing_whitespace = true
+charset = utf-8
+
+[*.py]
+indent_size = 4
+max_line_length = 79
+quote_type = single
+
+[*.js]
+indent_size = 4
+
+[.travis.yml]
+indent_size = 2
