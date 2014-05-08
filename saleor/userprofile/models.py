@@ -80,33 +80,17 @@ class AddressManager(models.Manager):
 @python_2_unicode_compatible
 class Address(models.Model):
 
-    first_name = models.CharField(
-        pgettext_lazy('Address field', 'first name'),
-        max_length=256, blank=True)
-    last_name = models.CharField(
-        pgettext_lazy('Address field', 'last name'),
-        max_length=256, blank=True)
-    company_name = models.CharField(
-        pgettext_lazy('Address field', 'company name'),
-        max_length=256, blank=True)
-    street_address_1 = models.CharField(
-        pgettext_lazy('Address field', 'street address 1'),
-        max_length=256)
-    street_address_2 = models.CharField(
-        pgettext_lazy('Address field', 'street address 2'),
-        max_length=256, blank=True)
+    name = models.CharField(
+        pgettext_lazy('Address field', 'name'), max_length=256)
     city = models.CharField(
-        pgettext_lazy('Address field', 'city'),
-        max_length=256)
+        pgettext_lazy('Address field', 'city'), max_length=256)
+    street_address = models.CharField(
+        pgettext_lazy('Address field', 'street address'), max_length=256)
     postal_code = models.CharField(
-        pgettext_lazy('Address field', 'postal code'),
-        max_length=20)
+        pgettext_lazy('Address field', 'postal code'), max_length=20)
     country = models.CharField(
         pgettext_lazy('Address field', 'country'),
         choices=COUNTRY_CHOICES, max_length=2)
-    country_area = models.CharField(
-        pgettext_lazy('Address field', 'country administrative area'),
-        max_length=128, blank=True)
     phone = models.CharField(
         pgettext_lazy('Address field', 'phone number'),
         max_length=30, blank=True)
@@ -114,17 +98,14 @@ class Address(models.Model):
     objects = AddressManager()
 
     def __str__(self):
-        return '%s %s' % (self.first_name, self.last_name)
+        return self.name
 
     def __repr__(self):
         return (
-            'Address(first_name=%r, last_name=%r, company_name=%r, '
-            'street_address_1=%r, street_address_2=%r, city=%r, '
-            'postal_code=%r, country=%r, country_area=%r, phone=%r)' % (
-                self.first_name, self.last_name, self.company_name,
-                self.street_address_1, self.street_address_2, self.city,
-                self.postal_code, self.country, self.country_area,
-                self.phone))
+            'Address(name=%r, street_address=%r, city=%r, postal_code=%r,'
+            ' country=%r, phone=%r)' % (
+                self.name, self.street_address, self.city, self.postal_code,
+                self.country, self.phone))
 
 
 class UserManager(BaseUserManager):
