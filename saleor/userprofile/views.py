@@ -7,7 +7,7 @@ from django.template.response import TemplateResponse
 from django.views.decorators.http import require_POST
 from django.utils.translation import ugettext as _
 
-from .models import AddressBook
+from .models import AddressBook, Address
 from .forms import AddressBookForm, AddressForm
 
 
@@ -58,7 +58,6 @@ def address_edit(request, slug, pk):
     return validate_address_and_render(
         request, address_form, address_book_form, success_message=message)
 
-
 @login_required
 def address_create(request):
 
@@ -68,8 +67,17 @@ def address_create(request):
 
     message = _('Address successfully created.')
 
-    return validate_address_and_render(
+    is_first_address = not Address.objects.exists()
+    response = validate_address_and_render(
         request, address_form, address_book_form, success_message=message)
+    address_book = address_book_form.instance
+    if address_book.pk and is_first_address:
+        user = request.user
+        user.default_shipping_address = address_book
+        user.default_billing_address = address_book
+        user.save(update_fields=[
+            'default_shipping_address', 'default_billing_address'])
+    return response
 
 
 @login_required
@@ -95,15 +103,14 @@ def address_make_default(request, pk, purpose):
     user = request.user
 
     address_book = get_object_or_404(AddressBook, pk=pk, user=user)
-
     if purpose == 'shipping':
         user.default_shipping_address = address_book
+        user.save(update_fields=['default_shipping_address'])
     elif purpose == 'billing':
         user.default_billing_address = address_book
+        user.save(update_fields=['default_billing_address'])
     else:
         raise AssertionError(
             '``purpose`` should be ``billing`` or ``shipping``')
-
-    user.save()
 
     return redirect('profile:details')
