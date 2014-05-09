@@ -1,10 +1,6 @@
 <span class="address-details"
-   data-content="{% if address.company_name %}{{ address.company_name }}<br>{% endif %}
-                 {{ address.street_address_1 }}<br>
-                 {% if address.street_address_2 %}
-                 	{{ address.street_address_2 }}<br>
-                 {% endif %}
+   data-content="{{ address.street_address }}<br>
                  {{ address.postal_code }} {{ address.city }}<br>
-                 {% if address.country_area %}{{ address.country_area }}, {% endif %}{{ address.get_country_display }}<br>
+                 {{ address.get_country_display }}<br>
                  {{ address.phone }}"
-   data-html="true" title="{{ address.first_name }} {{ address.last_name }}">{{ address }}</span>
+   data-html="true" title="{{ address.name }}">{{ address }}</span>

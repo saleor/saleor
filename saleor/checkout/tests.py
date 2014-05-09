@@ -7,16 +7,13 @@ from ..checkout.steps import BaseAddressStep
 from ..userprofile.models import Address
 
 NEW_ADDRESS = {
-    'first_name': 'Test',
-    'last_name': 'Test',
-    'street_address_1': 'Test',
-    'street_address_2': 'Test',
+    'name': 'Test',
+    'street_address': 'Test',
     'city': 'Test',
     'phone': '12345678',
     'postal_code': '987654',
-    'country': 'PL',
-    'country_area': '',
-    'company_name': 'Test'}
+    'country': 'PL'
+}
 
 
 class TestBaseAddressStep(TestCase):
@@ -31,7 +28,7 @@ class TestBaseAddressStep(TestCase):
         request.POST = NEW_ADDRESS.copy()
         step = BaseAddressStep(request, {}, Address(**NEW_ADDRESS))
         self.assertTrue(step.forms_are_valid(), "Forms don't validate.")
-        self.assertEqual(step.address.first_name, 'Test')
+        self.assertEqual(step.address.name, 'Test')
 
 
 class TestBillingAddressStep(TestCase):
@@ -44,7 +41,7 @@ class TestBillingAddressStep(TestCase):
         step = BillingAddressStep(request, storage)
         self.assertEquals(step.process(), None)
         self.assertEqual(type(storage['address']), dict)
-        self.assertEqual(storage['address']['first_name'], 'Test')
+        self.assertEqual(storage['address']['name'], 'Test')
 
     def test_address_save_with_address_in_checkout(self):
         request = MagicMock()
@@ -94,9 +91,7 @@ class TestShippingStep(TestCase):
         request.user.is_authenticated.return_value = False
         request.session = {}
         request.POST = dict(NEW_ADDRESS, method='dummy_shipping')
-        original_billing_address = {'first_name': 'Change',
-                                    'last_name': 'Me',
-                                    'id': 10}
+        original_billing_address = {'name': 'Change Me', 'id': 10}
         group = MagicMock()
         group.address = None
         storage = {'address': original_billing_address}
