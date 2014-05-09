@@ -11,7 +11,7 @@
   "bugs": {
     "url": "https://github.com/mirumee/saleor/issues"
   },
-  "homepage": "https://github.com/mirumee/saleor",
+  "homepage": "http://getsaleor.com/",
   "devDependencies": {
       "grunt": "~0.4.4",
       "grunt-contrib-less": "~0.11.0"
