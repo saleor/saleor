@@ -58,6 +58,7 @@ def address_edit(request, slug, pk):
     return validate_address_and_render(
         request, address_form, address_book_form, success_message=message)
 
+
 @login_required
 def address_create(request):
 
