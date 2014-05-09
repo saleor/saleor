@@ -1,10 +1,9 @@
 from __future__ import unicode_literals
-from decimal import Decimal
 
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, NON_FIELD_ERRORS
 from django.forms.formsets import BaseFormSet, DEFAULT_MAX_NUM
-from django.utils.translation import pgettext, ugettext
+from django.utils.translation import pgettext_lazy, ugettext_lazy
 from satchless.item import InsufficientStock
 
 
@@ -19,15 +18,15 @@ class AddToCartForm(forms.Form):
     """
     Class use product and cart instance.
     """
-    quantity = QuantityField(label=pgettext('Form field', 'Quantity'))
+    quantity = QuantityField(label=pgettext_lazy('Form field', 'Quantity'))
     error_messages = {
-        'empty-stock': ugettext(
+        'empty-stock': ugettext_lazy(
             'Sorry. This product is currently out of stock.'
         ),
-        'variant-does-not-exists': ugettext(
+        'variant-does-not-exists': ugettext_lazy(
             'Oops. We could not find that product.'
         ),
-        'insufficient-stock': ugettext(
+        'insufficient-stock': ugettext_lazy(
             'Only %(remaining)d remaining in stock.'
         )
     }
@@ -121,6 +120,8 @@ class ReplaceCartLineFormSet(BaseFormSet):
     form = ReplaceCartLineForm
     max_num = DEFAULT_MAX_NUM
     validate_max = False
+    min_num = None
+    validate_min = False
 
     def __init__(self, *args, **kwargs):
         self.cart = kwargs.pop('cart')

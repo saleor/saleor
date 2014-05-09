@@ -1,8 +1,8 @@
 from unittest import TestCase
 
-from django.contrib.auth import get_user_model
 from django.core.urlresolvers import resolve
 from django.conf import settings
+from django.http import HttpRequest
 from mock import call, Mock, MagicMock, patch, sentinel
 from purl import URL
 
@@ -17,7 +17,6 @@ from .utils import (
     parse_response)
 from .views import oauth_callback, change_email
 
-User = get_user_model()
 
 JSON_MIME_TYPE = 'application/json; charset=UTF-8'
 URLENCODED_MIME_TYPE = 'application/x-www-form-urlencoded; charset=UTF-8'
@@ -288,7 +287,8 @@ class EmailChangeTestCase(TestCase):
         get.return_value = token_object
 
         # user is logged in
-        request = Mock()
+        request = MagicMock(HttpRequest)
+        request._messages = Mock()
         request.user = user
 
         # user clicks link in his email
