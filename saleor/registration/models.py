@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from ..userprofile.models import User
+
 now = timezone.now
 
 
