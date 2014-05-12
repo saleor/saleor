@@ -7,14 +7,12 @@ except ImportError:
 
 from django.core.urlresolvers import reverse
 from django.conf import settings
-from django.contrib.auth import get_user_model
 import requests
 
 
 GOOGLE, FACEBOOK = 'google', 'facebook'
 JSON_MIME_TYPE = 'application/json'
 logger = logging.getLogger('saleor.registration')
-User = get_user_model()
 
 
 def get_local_host(request):

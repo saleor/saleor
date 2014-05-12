@@ -92,6 +92,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
+    'django.contrib.auth',
     'django.contrib.webdesign',
 
     # Local apps
@@ -109,7 +110,6 @@ INSTALLED_APPS = [
     'django_prices',
     'mptt',
     'payments',
-    'south',
     'selectable'
 ]
 

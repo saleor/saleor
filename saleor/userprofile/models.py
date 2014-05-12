@@ -40,7 +40,7 @@ class AddressBook(models.Model):
     alias = models.CharField(
         pgettext_lazy('Address book entry', 'short alias'),
         max_length=30,
-        default=pgettext_lazy('Address book entry', 'Home'),
+        default='Home',
         help_text=pgettext_lazy(
             'Address book entry',
             'A short, descriptive name for this address'))

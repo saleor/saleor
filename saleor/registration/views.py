@@ -5,11 +5,10 @@ except ImportError:
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import (get_user_model, login as auth_login,
-                                 logout as auth_logout)
+from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import (login as django_login_view,
-                                       password_change)
+from django.contrib.auth.views import (
+    login as django_login_view, password_change)
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
@@ -21,7 +20,6 @@ from . import forms
 from .models import EmailConfirmationRequest, EmailChangeRequest
 from . import utils
 
-User = get_user_model()
 now = timezone.now
 
 

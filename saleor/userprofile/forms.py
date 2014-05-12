@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.translation import ugettext as _
 
 from .models import Address, AddressBook
 
@@ -21,6 +22,6 @@ class AddressBookForm(forms.ModelForm):
             user_id=self.instance.user_id, alias=self.cleaned_data.get('alias')
         ).exclude(address=self.instance.address_id).exists():
             self._errors['alias'] = self.error_class(
-                ['You are already using such alias for another address'])
+                [_('You are already using such alias for another address')])
 
         return self.cleaned_data

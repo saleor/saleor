@@ -26,15 +26,14 @@ def create_color(**kwargs):
     return Color.objects.create(**defaults)
 
 
-def create_category(**kwargs):
+def get_or_create_category(name, **kwargs):
     defaults = {
-        'name': fake.word(),
         'description': fake.text()
     }
     defaults.update(kwargs)
-    defaults['slug'] = fake.slug(defaults['name'])
+    defaults['slug'] = fake.slug(name)
 
-    return Category.objects.create(**defaults)
+    return Category.objects.get_or_create(name=name, defaults=defaults)[0]
 
 
 def create_product(product_type, **kwargs):
@@ -105,8 +104,8 @@ def create_items(placeholder_dir, how_many=10):
     # Create few colors
     [create_color() for i in range(5)]
 
-    shirt_category = create_category(name='Shirts')
-    bag_category = create_category(name='Grocery bags')
+    shirt_category = get_or_create_category('Shirts')
+    bag_category = get_or_create_category('Grocery bags')
 
     for i in range(how_many):
         # Shirt
@@ -128,5 +127,5 @@ def create_items(placeholder_dir, how_many=10):
 
         create_variant(bag)
 
-        print("Shirt - %s %s Variants" % (shirt, shirt.variants.count()))
-        print("Bag - %s %s Variants" % (bag, bag.variants.count()))
+        yield "Shirt - %s %s Variants" % (shirt, shirt.variants.count())
+        yield "Bag - %s %s Variants" % (bag, bag.variants.count())

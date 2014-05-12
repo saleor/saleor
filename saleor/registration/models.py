@@ -2,13 +2,14 @@ from __future__ import unicode_literals
 from datetime import timedelta
 
 from django.db import models
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import authenticate
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
-User = get_user_model()
+from ..userprofile.models import User
+
 now = timezone.now
 
 

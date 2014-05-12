@@ -5,14 +5,14 @@ from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
 from django.utils.translation import pgettext_lazy, ugettext
 
+from ..userprofile.models import User
+
 from .models import (
     EmailConfirmationRequest,
     EmailChangeRequest,
     ExternalUserData)
 from .utils import get_client_class_for_service
 from ..communication.mail import send_email
-
-User = get_user_model()
 
 
 class LoginForm(AuthenticationForm):
@@ -77,7 +77,8 @@ class RequestEmailChangeForm(RequestEmailConfirmationForm):
         super(RequestEmailChangeForm, self).__init__(*args, **kwargs)
 
     def clean_email(self):
-        if User.objects.filter(email=self.cleaned_data['email']).exists():
+        email = self.cleaned_data['email']
+        if User.objects.filter(email=email).exists():
             raise forms.ValidationError(
                 ugettext('Account with this email already exists'))
         return self.cleaned_data['email']
@@ -111,7 +112,8 @@ class OAuth2CallbackForm(forms.Form):
         user_info = client.get_user_info()
         user = authenticate(service=self.service, username=user_info['id'])
         if not user:
-            user, _ = User.objects.get_or_create(email=user_info['email'])
+            user, _ = User.objects.get_or_create(
+                email=user_info['email'])
             ExternalUserData.objects.create(
                 service=self.service, username=user_info['id'], user=user)
             user = authenticate(user=user)
