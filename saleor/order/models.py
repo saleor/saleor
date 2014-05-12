@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 from decimal import Decimal
+from uuid import uuid4
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -15,12 +16,11 @@ from payments import PurchasedItem
 from payments.models import BasePayment
 from prices import Price
 from satchless.item import ItemSet, ItemLine
-from uuid import uuid4
 
 from ..communication.mail import send_email
 from ..core.utils import build_absolute_uri
 from ..product.models import Product
-from ..userprofile.models import Address
+from ..userprofile.models import Address, User
 
 
 @python_2_unicode_compatible
@@ -46,7 +46,7 @@ class Order(models.Model, ItemSet):
         pgettext_lazy('Order field', 'last status change'),
         default=now, editable=False)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, blank=True, null=True, related_name='orders',
+        User, blank=True, null=True, related_name='orders',
         verbose_name=pgettext_lazy('Order field', 'user'))
     tracking_client_id = models.CharField(max_length=36, blank=True,
                                           editable=False)
