@@ -128,5 +128,5 @@ def create_items(placeholder_dir, how_many=10):
 
         create_variant(bag)
 
-        print("Shirt - %s %s Variants" % (shirt, shirt.variants.count()))
-        print("Bag - %s %s Variants" % (bag, bag.variants.count()))
+        yield "Shirt - %s %s Variants" % (shirt, shirt.variants.count())
+        yield "Bag - %s %s Variants" % (bag, bag.variants.count())

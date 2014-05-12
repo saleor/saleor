@@ -4,23 +4,6 @@ import os
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'saleor.settings')
 
-
-class Command(Command):
-    user_options = []
-    initialize_options = lambda self: None
-    finalize_options = lambda self: None
-
-
-class PopulateDatabase(Command):
-    description = "Populate database with test objects"
-
-    def run(self):
-        from django.core.management import call_command
-        from utils.create_random_data import create_items
-        call_command('syncdb', interactive=True, migrate_all=True)
-        create_items('saleor/static/placeholders/', 10)
-
-
 setup(
     name='saleor',
     author='Mirumee Software',
@@ -56,8 +39,5 @@ setup(
         'mock==1.0.1',
         'purl>=0.4.1',
     ],
-    test_suite='saleor.tests.suite',
-    cmdclass={
-        'populatedb': PopulateDatabase
-    }
+    test_suite='saleor.tests.suite'
 )
