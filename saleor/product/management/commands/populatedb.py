@@ -16,6 +16,5 @@ class Command(BaseCommand):
             msg = 'Directories %s with images are required.' % ', '.join(
                 self.required_dirs)
             raise CommandError(msg)
-        call_command('syncdb', interactive=False)
         for msg in create_items(self.BASE_DIR, 10):
             self.stdout.write(msg)
