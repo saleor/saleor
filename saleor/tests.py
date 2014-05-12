@@ -5,7 +5,6 @@ import django
 if hasattr(django, 'setup'):
     django.setup()
 
-
 TEST_MODULES = [
     'saleor.cart.tests',
     'saleor.checkout.tests',
