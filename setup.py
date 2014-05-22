@@ -30,7 +30,6 @@ setup(
         'prices>=0.5,<0.6a0',
         'requests>=1.2.0',
         'satchless>=1.1.2,<1.2a0',
-        'South>=0.7.6',
         'unidecode'
     ],
     entry_points={

@@ -29,7 +29,7 @@ Usage
 4. Prepare the database:
 
    ```
-   $ saleor syncdb --all
+   $ saleor syncdb
    ```
 
    `saleor` is a shortcut for running `python manage.py` so you can use it to execute all management commands.
