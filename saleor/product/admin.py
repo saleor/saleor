@@ -20,7 +20,7 @@ class BagAdmin(admin.ModelAdmin):
     inlines = [BagVariantInline, ImageAdminInline]
 
 
-class ShirtVariant(admin.StackedInline):
+class ShirtVariantInline(admin.StackedInline):
     model = ShirtVariant
     formset = ProductVariantInline
 
@@ -29,7 +29,7 @@ class ShirtAdmin(admin.ModelAdmin):
     form = ShirtAdminForm
     list_display = ['name', 'collection', 'admin_get_price_min',
                     'admin_get_price_max']
-    inlines = [ShirtVariant, ImageAdminInline]
+    inlines = [ShirtVariantInline, ImageAdminInline]
 
 
 class ProductCollectionAdmin(admin.ModelAdmin):
