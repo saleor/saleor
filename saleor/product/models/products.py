@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.utils.translation import pgettext_lazy
+from django.utils.encoding import python_2_unicode_compatible
 from django.db import models
 
 from .base import Product
@@ -20,6 +21,7 @@ class Shirt(Product, PhysicalProduct, ColoredVariant):
         app_label = 'product'
 
 
+@python_2_unicode_compatible
 class BagVariant(ProductVariant, StockedProduct):
 
     product = models.ForeignKey(Bag, related_name='variants')
@@ -27,7 +29,13 @@ class BagVariant(ProductVariant, StockedProduct):
     class Meta:
         app_label = 'product'
 
+    def __str__(self):
+        return '{0} {2} {3} {4}'.format(self.product.name,
+                                        pgettext_lazy('Color:'),
+                                        self.product.color)
 
+
+@python_2_unicode_compatible
 class ShirtVariant(ProductVariant, StockedProduct):
     
     SIZE_CHOICES = (
@@ -43,3 +51,12 @@ class ShirtVariant(ProductVariant, StockedProduct):
 
     class Meta:
         app_label = 'product'
+
+    def __str__(self):
+        return '{0} {1} {2} {3} {4}'.format(self.product.name,
+                                            pgettext_lazy('variant attribute',
+                                                          'Size:'),
+                                            self.get_size_display(),
+                                            pgettext_lazy('variant attribute',
+                                                          'Color:'),
+                                            self.product.color)
