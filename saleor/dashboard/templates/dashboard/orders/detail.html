@@ -1,7 +1,9 @@
 {% extends "dashboard/base.html" %}
 {% load prices_i18n %}
-{% block content %}
 
+{% block title %}Order details{% endblock %}
+
+{% block content %}
 <div class="row">
     <div class="col-lg-12">
         <h1 class="page-header">Order #{{ order.id }}</h1>
@@ -10,7 +12,7 @@
             <tbody>
                <tr>
                    <td>Customer</td>
-                   <td>{{ order.user }}</td>
+                   <td>{{ order.user|default:"Anonymous" }} ({{ order.get_user_email }})</td>
                </tr>
                 <tr>
                     <td>Created</td>
@@ -20,21 +22,16 @@
                 <td>Billing address</td>
                 {% with order.billing_address as address %}
                 <td>
-                    <dl>
-                        <dd>{{ address.name }}</dd>
-                        <dd>{{ address.street_address }}</dd>
-                        <dd>{{ address.postal_code }}</dd>
-                        <dd>{{ address.city }}</dd>
-                        <dd>{{ address.phone }}</dd>
-                        <dd>{{ address.get_country_display }}</dd>
-                     </dl>
+                    {% include 'dashboard/includes/_address.html' with address=address only %}
                 </td>
                 {% endwith %}
             </tr>
             <tr>
                 <td>Shipping address</td>
                 <td>
-                    Shipping address
+                    {% with view.get_delivery_info as delivery %}
+                        {% include 'dashboard/includes/_address.html' with address=delivery.address only %}
+                    {% endwith %}
                 </td>
             </tr>
 
@@ -45,9 +42,11 @@
             <tr>
                 <td>Order contents</td>
                 <td>
-                {% for item in order.get_items %}
-                    {{ item.product }} - Quantity: {{ item.quantity }}
-                {% endfor %}
+                    <ul>
+                    {% for item in order.get_items %}
+                        <li><a href="{{ item.product.get_absolute_url }}">{{ item.product_name }}</a> - Quantity: {{ item.quantity }} SKU: {{ item.product_sku }}</li>
+                    {% endfor %}
+                    </ul>
                 </td>
             </tr>
             <tr>
