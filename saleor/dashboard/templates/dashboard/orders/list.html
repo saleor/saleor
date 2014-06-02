@@ -1,23 +1,32 @@
 {% extends "dashboard/base.html" %}
 {% load prices_i18n %}
+{% block title %}All orders{% endblock %}
+
 {% block content %}
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">Orders</h1>
 
-<div class="row">
-    <div class="col-lg-12">
-        <h1 class="page-header">Orders</h1>
+            <ul class="nav nav-tabs">
+                <li {% if not status_filter %}class="active"{% endif %}><a href="{% url 'dashboard:orders' %}">All orders</a></li>
+                <li {% if status_filter == 'new' %}class="active"{% endif %}><a href="?status=new">New orders</a></li>
+                <li {% if status_filter == 'fully-paid' %}class="active"{% endif %}><a href="?status=fully-paid">Fully paid</a></li>
+            </ul>
 
-        <table class="table table-bordered">
-            <thead>
+            <table class="table table-bordered">
+                <thead>
                 <th>Order number</th>
                 <th>Customer</th>
                 <th>Amount</th>
                 <th>Status</th>
                 <th>Actions</th>
-            </thead>
-            <tbody>
+                </thead>
+                <tbody>
                 {% for order in object_list %}
                     <tr>
-                        <td><a href="{% url 'dashboard:order-details' pk=order.pk %}">{{ order.id }}</a></td>
+                        <td>
+                            <a href="{% url 'dashboard:order-details' pk=order.pk %}">{{ order.id }}</a>
+                        </td>
                         <td>{{ order.user|default:"Anonymous" }}</td>
                         <td>{% gross order.get_total %}</td>
                         <td>{{ order.status }}</td>
@@ -26,8 +35,8 @@
                         </td>
                     </tr>
                 {% endfor %}
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
 {% endblock %}
