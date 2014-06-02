@@ -1,25 +1,30 @@
 {% extends "dashboard/base.html" %}
+{% load i18n %}
 {% load prices_i18n %}
-{% block title %}All orders{% endblock %}
+
+{% block title %}{% trans "All orders" %}{% endblock %}
 
 {% block content %}
     <div class="row">
         <div class="col-lg-12">
-            <h1 class="page-header">Orders</h1>
+            <h1 class="page-header">{% trans "Orders" %}</h1>
 
             <ul class="nav nav-tabs">
-                <li {% if not status_filter %}class="active"{% endif %}><a href="{% url 'dashboard:orders' %}">All orders</a></li>
-                <li {% if status_filter == 'new' %}class="active"{% endif %}><a href="?status=new">New orders</a></li>
-                <li {% if status_filter == 'fully-paid' %}class="active"{% endif %}><a href="?status=fully-paid">Fully paid</a></li>
+                <li {% if not status_filter %}class="active"{% endif %}><a href="{% url 'dashboard:orders' %}">{% trans "All orders" %}</a></li>
+                <li {% if status_filter == 'new' %}class="active"{% endif %}><a href="?status=new">{% trans "New orders" %}</a></li>
+                <li {% if status_filter == 'fully-paid' %}class="active"{% endif %}><a href="?status=fully-paid">{% trans "Fully paid" %}</a></li>
+                <li {% if status_filter == 'payment-pending' %}class="active"{% endif %}><a href="?status=payment-pending">{% trans "Payment pending" %}</a></li>
+                <li {% if status_filter == 'shipped' %}class="active"{% endif %}><a href="?status=shipped">{% trans "Shipped" %}</a></li>
+                <li {% if status_filter == 'cancelled' %}class="active"{% endif %}><a href="?status=cancelled">{% trans "Cancelled" %}</a></li>
             </ul>
 
             <table class="table table-bordered">
                 <thead>
-                <th>Order number</th>
-                <th>Customer</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Actions</th>
+                    <th>{% trans "Order number" %}</th>
+                    <th>{% trans "Customer" %}</th>
+                    <th>{% trans "Amount" %}</th>
+                    <th>{% trans "Status" %}</th>
+                    <th>{% trans "Actions" %}</th>
                 </thead>
                 <tbody>
                 {% for order in object_list %}
@@ -31,7 +36,7 @@
                         <td>{% gross order.get_total %}</td>
                         <td>{{ order.status }}</td>
                         <td>
-                            <a href="#">Prepare shipping</a>
+                            <a href="#">{% trans "Prepare shipping" %}</a>
                         </td>
                     </tr>
                 {% endfor %}
