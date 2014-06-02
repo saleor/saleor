@@ -10,12 +10,24 @@
             <h1 class="page-header">{% trans "Orders" %}</h1>
 
             <ul class="nav nav-tabs">
-                <li {% if not status_filter %}class="active"{% endif %}><a href="{% url 'dashboard:orders' %}">{% trans "All orders" %}</a></li>
-                <li {% if status_filter == 'new' %}class="active"{% endif %}><a href="?status=new">{% trans "New orders" %}</a></li>
-                <li {% if status_filter == 'fully-paid' %}class="active"{% endif %}><a href="?status=fully-paid">{% trans "Fully paid" %}</a></li>
-                <li {% if status_filter == 'payment-pending' %}class="active"{% endif %}><a href="?status=payment-pending">{% trans "Payment pending" %}</a></li>
-                <li {% if status_filter == 'shipped' %}class="active"{% endif %}><a href="?status=shipped">{% trans "Shipped" %}</a></li>
-                <li {% if status_filter == 'cancelled' %}class="active"{% endif %}><a href="?status=cancelled">{% trans "Cancelled" %}</a></li>
+                <li {% if not status_filter %}class="active"{% endif %}>
+                    <a href="{% url 'dashboard:orders' %}">{% trans "All orders" %}</a>
+                </li>
+                <li {% if status_filter == 'new' %}class="active"{% endif %}>
+                    <a href="?status=new">{% trans "New orders" %}</a>
+                </li>
+                <li {% if status_filter == 'fully-paid' %}class="active"{% endif %}>
+                    <a href="?status=fully-paid">{% trans "Fully paid" %}</a>
+                </li>
+                <li {% if status_filter == 'payment-pending' %}class="active"{% endif %}>
+                    <a href="?status=payment-pending">{% trans "Payment pending" %}</a>
+                </li>
+                <li {% if status_filter == 'shipped' %}class="active"{% endif %}>
+                    <a href="?status=shipped">{% trans "Shipped" %}</a>
+                </li>
+                <li {% if status_filter == 'cancelled' %}class="active"{% endif %}>
+                    <a href="?status=cancelled">{% trans "Cancelled" %}</a>
+                </li>
             </ul>
 
             <table class="table table-bordered">

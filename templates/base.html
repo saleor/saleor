@@ -80,6 +80,10 @@
                                 <ul class="dropdown-menu">
                                     <li><a href="{% url "profile:details" %}">{% trans "Your profile" %}</a></li>
                                     <li><a href="{% url "profile:orders" %}">{% trans "Your orders" %}</a></li>
+                                    {% if user.is_staff %}
+                                        <li class="divider"></li>
+                                        <li><a href="{% url "dashboard:index" %}">{% trans "Staff dashboard" %}</a></li>
+                                    {% endif %}
                                     <li class="divider"></li>
                                     <li><a href="{% url "registration:logout" %}">{% trans "Log out" %}</a></li>
                                   </ul>
