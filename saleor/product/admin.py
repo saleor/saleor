@@ -4,11 +4,12 @@ from mptt.admin import MPTTModelAdmin
 
 from .models import (ProductImage, BagVariant, Bag, ShirtVariant, Shirt,
                      Category, FixedProductDiscount, Color)
-from .forms import ShirtAdminForm, ProductVariantInline
+from .forms import ShirtAdminForm, ProductVariantInline, ImageInline
 
 
 class ImageAdminInline(admin.StackedInline):
     model = ProductImage
+    formset = ImageInline
 
 
 class BagVariantInline(admin.StackedInline):
