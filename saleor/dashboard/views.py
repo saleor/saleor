@@ -3,6 +3,7 @@ from django.views.generic import ListView, DetailView
 from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
 from ..order.models import Order
+from menu import Menu, MenuItem
 
 
 def index(request):
@@ -47,3 +48,8 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
 
 orders = OrderListView.as_view()
 order_details = OrderDetails.as_view()
+
+dashboard = Menu([
+    MenuItem('Index', r'^$', index, url_name='index'),
+    MenuItem('Orders', r'^orders/$', orders, url_name='orders')
+])
