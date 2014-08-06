@@ -11,7 +11,7 @@ class QuantityField(forms.IntegerField):
 
     def __init__(self, *args, **kwargs):
         super(QuantityField, self).__init__(min_value=0, max_value=999,
-                                            initial=1)
+                                            initial=1, *args, **kwargs)
 
 
 class AddToCartForm(forms.Form):
