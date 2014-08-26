@@ -58,7 +58,8 @@ def start_payment(request, order, variant):
                 'billing_address_1': billing.street_address,
                 'billing_city': billing.city,
                 'billing_postcode': billing.postal_code,
-                'billing_country_code': billing.country}
+                'billing_country_code': billing.country,
+                'description': _('Order %(order_number)s' % {'order_number': order})}
     if not variant in [v for v, n in settings.CHECKOUT_PAYMENT_CHOICES]:
         raise Http404('%r is not a valid payment variant' % (variant,))
     with transaction.atomic():
