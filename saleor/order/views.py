@@ -16,6 +16,15 @@ from .models import Order, Payment
 logger = logging.getLogger(__name__)
 
 
+def get_ip(request):
+    ip = request.META.get("HTTP_X_FORWARDED_FOR", None)
+    if ip:
+        ip = ip.split(", ")[0]
+    else:
+        ip = request.META.get("REMOTE_ADDR", "")
+    return ip
+
+
 def details(request, token):
     order = get_object_or_404(Order, token=token)
     groups = order.groups.all()
@@ -59,7 +68,8 @@ def start_payment(request, order, variant):
                 'billing_city': billing.city,
                 'billing_postcode': billing.postal_code,
                 'billing_country_code': billing.country,
-                'description': _('Order %(order_number)s' % {'order_number': order})}
+                'description': _('Order %(order_number)s' % {'order_number': order}),
+                'customer_ip_address': get_ip(request)}
     if not variant in [v for v, n in settings.CHECKOUT_PAYMENT_CHOICES]:
         raise Http404('%r is not a valid payment variant' % (variant,))
     with transaction.atomic():
