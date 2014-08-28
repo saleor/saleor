@@ -80,8 +80,10 @@ class AddressManager(models.Manager):
 @python_2_unicode_compatible
 class Address(models.Model):
 
-    name = models.CharField(
-        pgettext_lazy('Address field', 'name'), max_length=256)
+    first_name = models.CharField(
+        pgettext_lazy('Address field', 'first name'), max_length=256)
+    last_name = models.CharField(
+        pgettext_lazy('Address field', 'last name'), max_length=256)
     city = models.CharField(
         pgettext_lazy('Address field', 'city'), max_length=256)
     street_address = models.CharField(
@@ -106,6 +108,10 @@ class Address(models.Model):
             ' country=%r, phone=%r)' % (
                 self.name, self.street_address, self.city, self.postal_code,
                 self.country, self.phone))
+
+    @property
+    def name(self):
+        return '%s %s' % (self.first_name, self.last_name)
 
 
 class UserManager(BaseUserManager):

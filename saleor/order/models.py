@@ -99,7 +99,7 @@ class Order(models.Model, ItemSet):
 
     @property
     def billing_full_name(self):
-        return '%s %s' % (self.billing_first_name, self.billing_last_name)
+        return self.billing_address.name
 
     def get_absolute_url(self):
         return reverse('order:details', kwargs={'token': self.token})
