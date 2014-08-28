@@ -46,6 +46,7 @@ class PaymentInlineForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(PaymentInlineForm, self).clean()
         action = cleaned_data.get('action')
+        amount = cleaned_data.get('amount')
         if action:
             if self.instance.status != 'preauth':
                 if action == 'capture':
@@ -58,6 +59,11 @@ class PaymentInlineForm(forms.ModelForm):
             if self.instance.status != 'confirmed' and action == 'refund':
                 raise forms.ValidationError(
                     _('Only confirmed payments can be refunded'))
+
+            if action == 'refund' and amount > self.instance.captured_amount:
+                raise forms.ValidationError(
+                    _('Refund amount can not be greater then captured amount'))
+
         return cleaned_data
 
     def save(self, commit):
