@@ -68,6 +68,9 @@ def start_payment(request, order, variant):
                 'billing_city': billing.city,
                 'billing_postcode': billing.postal_code,
                 'billing_country_code': billing.country,
+                'billing_email': order.get_user_email(),
+                'billing_first_name': billing.first_name,
+                'billing_last_name': billing.last_name,
                 'description': _('Order %(order_number)s' % {'order_number': order}),
                 'customer_ip_address': get_ip(request)}
     if not variant in [v for v, n in settings.CHECKOUT_PAYMENT_CHOICES]:
