@@ -1,13 +1,10 @@
 from django import forms
-from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.options import ModelAdmin
-from django.core.validators import MinValueValidator
 from django.forms.models import BaseInlineFormSet
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-from django_prices.forms import PriceField
 
 from .models import Order, OrderedItem, Payment
 
@@ -37,8 +34,8 @@ class PaymentInlineForm(forms.ModelForm):
         choices=((None, '---------'), ('capture', _('Capture')),
                  ('release', _('Release')), ('refund', _('Refund'))),
         required=False)
-    amount = PriceField(label=_('Amount'), currency=settings.DEFAULT_CURRENCY,
-        max_digits=12, decimal_places=4, required=False)
+    amount = forms.DecimalField(label=_('Amount'), max_digits=12,
+        decimal_places=4, required=False)
 
     class Meta:
         model = Payment
