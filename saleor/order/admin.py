@@ -2,6 +2,7 @@ from django import forms
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.options import ModelAdmin
+from django.core.validators import MinValueValidator
 from django.forms.models import BaseInlineFormSet
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
@@ -32,11 +33,12 @@ class OrderModelAdmin(ModelAdmin):
 
 class PaymentInlineForm(forms.ModelForm):
 
-    capture = forms.BooleanField(label=_('Capture'), required=False)
-    refund = forms.BooleanField(label=_('Refund'), required=False)
-    release = forms.BooleanField(label=_('Release'), required=False)
+    action = forms.ChoiceField(label=_('Action'),
+        choices=((None, '---------'), ('capture', _('Capture')),
+                 ('release', _('Release')), ('refund', _('Refund'))),
+        required=False)
     amount = PriceField(label=_('Amount'), currency=settings.DEFAULT_CURRENCY,
-                        max_digits=12, decimal_places=4, required=False)
+        max_digits=12, decimal_places=4, required=False)
 
     class Meta:
         model = Payment
@@ -46,37 +48,30 @@ class PaymentInlineForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(PaymentInlineForm, self).clean()
+        action = cleaned_data.get('action')
+        if action:
+            if self.instance.status != 'preauth':
+                if action == 'capture':
+                    raise forms.ValidationError(
+                        _('Only pre-authorized payments can be captured'))
+                if action == 'release':
+                    raise forms.ValidationError(
+                        _('Only pre-authorized payments can be released'))
 
-        capture = cleaned_data.get('capture')
-        refund = cleaned_data.get('refund')
-        release = cleaned_data.get('release')
-
-        if [capture, refund, release].count(True) > 1:
-            raise forms.ValidationError(
-                _('Only one action can be performed at once'))
-
-        if self.instance.status != 'preauth':
-            if capture:
+            if self.instance.status != 'confirmed' and action == 'refund':
                 raise forms.ValidationError(
-                    _('Only pre-authorized payments can be captured'))
-            if release:
-                raise forms.ValidationError(
-                    _('Only pre-authorized payments can be released'))
-
-        if self.instance.status != 'confirmed' and refund:
-            raise forms.ValidationError(
-                _('Only confirmed payments can be refunded'))
-
+                    _('Only confirmed payments can be refunded'))
         return cleaned_data
 
     def save(self, commit):
         payment = super(PaymentInlineForm, self).save(commit)
+        action = self.cleaned_data.get('action')
         amount = self.cleaned_data.get('amount')
-        if self.cleaned_data.get('capture'):
+        if action == 'capture':
             payment.capture(amount)
-        if self.cleaned_data.get('refund'):
+        if action == 'refund':
             payment.refund(amount)
-        if self.cleaned_data.get('release'):
+        if action == 'release':
             payment.release()
         return payment
 
