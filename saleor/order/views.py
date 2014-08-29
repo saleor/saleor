@@ -55,11 +55,15 @@ def start_payment(request, order, variant):
     defaults = {'total': total.gross,
                 'tax': total.tax, 'currency': total.currency,
                 'delivery': order.get_delivery_total().gross,
-                'billing_address_1': billing.street_address,
+                'billing_first_name': billing.first_name,
+                'billing_last_name': billing.last_name,
+                'billing_address_1': billing.street_address_1,
+                'billing_address_2': billing.street_address_2,
                 'billing_city': billing.city,
                 'billing_postcode': billing.postal_code,
                 'billing_country_code': billing.country,
-                'description': _('Order %(order_number)s' % {'order_number': order})}
+                'description': _('Order %(order_number)s' % {'order_number': order}),
+                'billing_country_area': billing.country_area}
     if not variant in [v for v, n in settings.CHECKOUT_PAYMENT_CHOICES]:
         raise Http404('%r is not a valid payment variant' % (variant,))
     with transaction.atomic():
