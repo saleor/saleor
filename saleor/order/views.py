@@ -9,7 +9,7 @@ from django.utils.translation import ugettext as _
 from django.template.response import TemplateResponse
 from payments import RedirectNeeded
 
-from . import check_order_status
+from . import check_order_status, get_ip
 from .forms import PaymentDeleteForm, PaymentMethodsForm
 from .models import Order, Payment
 
@@ -59,7 +59,8 @@ def start_payment(request, order, variant):
                 'billing_city': billing.city,
                 'billing_postcode': billing.postal_code,
                 'billing_country_code': billing.country,
-                'description': _('Order %(order_number)s' % {'order_number': order})}
+                'description': _('Order %(order_number)s' % {'order_number': order}),
+                'customer_ip_address': get_ip(request)}
     if not variant in [v for v, n in settings.CHECKOUT_PAYMENT_CHOICES]:
         raise Http404('%r is not a valid payment variant' % (variant,))
     with transaction.atomic():
