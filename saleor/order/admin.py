@@ -22,7 +22,7 @@ class OrderModelAdmin(ModelAdmin):
         if order:
             inlines.extend([
                 DeliveryInlineAdmin(self.model, self.admin_site, group)
-                for group in order.groups.all()])
+                for group in order])
         return inlines
 
 
