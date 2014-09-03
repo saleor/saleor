@@ -9,7 +9,7 @@ from satchless.item import InsufficientStock
 
 class QuantityField(forms.IntegerField):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         super(QuantityField, self).__init__(min_value=0, max_value=999,
                                             initial=1, **kwargs)
 
