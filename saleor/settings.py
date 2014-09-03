@@ -67,7 +67,8 @@ MIDDLEWARE_CLASSES = [
     'saleor.cart.middleware.CartMiddleware',
     'saleor.core.middleware.DiscountMiddleware',
     'saleor.core.middleware.GoogleAnalytics',
-    'saleor.core.middleware.CheckHTML'
+    'saleor.core.middleware.CheckHTML',
+    'saleor.dashboard.middleware.DashboardMiddleware'
 ]
 
 TEMPLATE_CONTEXT_PROCESSORS = [
@@ -103,6 +104,7 @@ INSTALLED_APPS = [
     'saleor.order',
     'saleor.registration',
     'saleor.userprofile',
+    'saleor.dashboard',
 
     # External apps
     'babeldjango',

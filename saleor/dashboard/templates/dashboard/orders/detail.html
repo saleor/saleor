@@ -1,0 +1,71 @@
+{% extends "dashboard/base.html" %}
+{% load prices_i18n %}
+
+{% block title %}Order details{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <h1 class="page-header">Order #{{ order.id }}</h1>
+
+        <table class="table table-bordered">
+            <tbody>
+               <tr>
+                   <td>Customer</td>
+                   <td>{{ order.user|default:"Anonymous" }} ({{ order.get_user_email }})</td>
+               </tr>
+                <tr>
+                    <td>Created</td>
+                    <td>{{ order.created }}</td>
+                </tr>
+            <tr>
+                <td>Billing address</td>
+                {% with order.billing_address as address %}
+                <td>
+                    {% include 'dashboard/includes/_address.html' with address=address only %}
+                </td>
+                {% endwith %}
+            </tr>
+            <tr>
+                <td>Shipping address</td>
+                <td>
+                    {% with view.get_delivery_info as delivery %}
+                        {% include 'dashboard/includes/_address.html' with address=delivery.address only %}
+                    {% endwith %}
+                </td>
+            </tr>
+
+            <tr>
+                <td>Status</td>
+                <td>{{ order.get_status_display }}</td>
+            </tr>
+            <tr>
+                <td>Order contents</td>
+                <td>
+                    <ul>
+                    {% for item in order.get_items %}
+                        <li><a href="{{ item.product.get_absolute_url }}">{{ item.product_name }}</a> - Quantity: {{ item.quantity }} SKU: {{ item.product_sku }}</li>
+                    {% endfor %}
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2"><strong>Payments</strong></td>
+            </tr>
+               <tr>
+                <td>Delivery</td>
+                <td>
+                    {% gross order.get_delivery_total %}
+                </td>
+            </tr>
+            <tr>
+                <td>Total</td>
+                <td>
+                    {% gross order.get_total %}
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
