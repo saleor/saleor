@@ -27,12 +27,3 @@ def order_status_change(sender, instance, **kwargs):
         order.change_status('fully-paid')
         instance.send_confirmation_email()
         analytics.report_order(order.tracking_client_id, order)
-
-
-def get_ip(request):
-    ip = request.META.get("HTTP_X_FORWARDED_FOR", None)
-    if ip:
-        ip = ip.split(", ")[0]
-    else:
-        ip = request.META.get("REMOTE_ADDR", "")
-    return ip

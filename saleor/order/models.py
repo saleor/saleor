@@ -68,11 +68,15 @@ class Order(models.Model, ItemSet):
                 if not type(self).objects.filter(token=token).exists():
                     self.token = token
                     break
-        return super(Order, self).save(*args, **kwargs)
+        super(Order, self).save(*args, **kwargs)
+        if not self.status_history.exists():
+            self.status_history.create(status=self.status)
 
     def change_status(self, status):
-        self.status = status
-        self.save()
+        if status != self.status:
+            self.status = status
+            self.save()
+            self.status_history.create(status=status)
 
     def get_items(self):
         return OrderedItem.objects.filter(delivery_group__order=self)
@@ -114,6 +118,15 @@ class Order(models.Model, ItemSet):
             reverse('order:details', kwargs={'token': self.token}))
         context = {'payment_url': payment_url}
         send_email(email, 'order/emails/confirm_email.txt', context)
+
+    def get_last_payment_status(self):
+        last_payment = self.payments.last()
+        if last_payment:
+            return last_payment.get_status_display()
+        return None
+
+    def is_pre_authorized(self):
+        return self.payments.filter(status='preauth').exists()
 
 
 class DeliveryGroup(models.Model, ItemSet):
@@ -157,14 +170,14 @@ class DeliveryGroup(models.Model, ItemSet):
 
     def add_items_from_partition(self, partition):
         for item_line in partition:
-            product_variant = item_line.product
             price = item_line.get_price_per_item()
+            product = item_line.product
             self.items.create(
-                product=product_variant.product,
+                product=product,
                 quantity=item_line.get_quantity(),
                 unit_price_net=price.net,
-                product_name=smart_text(product_variant),
-                product_sku=product_variant.sku,
+                product_name=smart_text(product),
+                product_sku=product.sku,
                 unit_price_gross=price.gross)
 
 
@@ -247,3 +260,34 @@ class Payment(BasePayment):
             currency=settings.DEFAULT_CURRENCY)
                  for item in self.order.get_items()]
         return items
+
+
+@python_2_unicode_compatible
+class OrderStatusChange(models.Model):
+    date = models.DateTimeField(
+        pgettext_lazy('Order field', 'last status change'),
+        default=now, editable=False)
+    order = models.ForeignKey(Order, related_name='status_history')
+    status = models.CharField(
+        pgettext_lazy('Order field', 'order status'),
+        max_length=32, choices=Order.STATUS_CHOICES)
+    comment = models.CharField(max_length=100, null=True, blank=True)
+
+    def __str__(self):
+        return 'Order #{0} status changed: {1}'.format(
+            self.order.pk, self.status
+        )
+
+    class Meta:
+        ordering = ['date']
+
+
+@python_2_unicode_compatible
+class OrderNote(models.Model):
+    user = models.ForeignKey(User)
+    date = models.DateTimeField(auto_now_add=True)
+    order = models.ForeignKey(Order, related_name='notes')
+    content = models.CharField(max_length=250)
+
+    def __str__(self):
+        return 'OrderNote for Order {0}'.format(self.order.pk)
