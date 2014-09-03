@@ -1,0 +1,133 @@
+{% extends "dashboard/base.html" %}
+{% load prices_i18n %}
+{% load i18n %}
+{% load bootstrap %}
+
+{% block title %}Order details{% endblock %}
+
+{% block content %}
+<div class="row">
+    <h1 class="page-header">Order #{{ order.id }}</h1>
+
+    <div class="col-lg-8">
+        <div class="box">
+            <div class="box-header">Payment details</div>
+            <p>
+            Payment: <span class="label label-success">{{ order.get_last_payment_status }}</span>
+                {% if order.payments.last %}
+                    <a href="{% url "dashboard:payment-details" pk=order.payments.last.pk %}">Manage payments</a>
+                {% endif %}
+            </p>
+
+            <div>
+                Delivery: Scheduled for 09.07.14 2 p.m
+                <a href="#">Accept</a>
+            </div>
+            <p>
+                Order status: <span class="label label-success">{{ order.get_status_display }}</span>
+            </p>
+        </div>
+        <div class="box">
+            <div class="box-header">Order contents</div>
+            <table class="table">
+                {% for item in order.get_items %}
+                    <tr>
+                        <td>
+                            <a href="{{ item.product.get_absolute_url }}">{{ item.product_name }}</a>
+                            SKU: {{ item.product_sku }}
+                            </td>
+                        <td>
+                            {{ item.quantity }} x {% gross item.get_price_per_item %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                <tr><td colspan="2">
+                    <strong>{% trans "Order totals" %}</strong></td>
+                </tr>
+                <tr>
+                    <td>{% trans "Delivery" %}</td>
+                    <td>{% gross order.get_delivery_total %}</td>
+                </tr>
+                <tr>
+                    <td>
+                        {% trans "Total" %}
+                    </td>
+                    <td>
+                        {% gross order.get_total %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="box" id="order-notes">
+            <div class="box-header">Order notes</div>
+            {% for note in notes %}
+                <li>
+                    {{ note.user }} @ {{ note.date }}
+                    <p>{{ note.content }}</p>
+                </li>
+            {% endfor %}
+            <form class="form-horizontal" role="form" method="post">
+                {% csrf_token %}
+                {{ notes_form|as_vertical_form }}
+              <div class="form-group">
+                  <button type="submit" class="btn btn-default">Save</button>
+              </div>
+            </form>
+
+        </div>
+
+        <div class="box">
+            <div class="box-header">Order history</div>
+            {% for status_change in order.status_history.all %}
+                <li>{{ status_change.date }} {{ status_change.get_status_display }}</li>
+            {% endfor %}
+        </div>
+        <div class="box">
+            <div class="box-header">{% trans "Payment history" %}</div>
+            {% for payment in order.payments.all %}
+                <li>{{ payment.created }} - <a href="{% url "dashboard:payment-details" pk=payment.pk %}">{{ payment.get_status_display }}</a></li>
+            {% endfor %}
+        </div>
+
+    </div>
+    <div class="col-lg-4">
+        <h3>Customer</h3>
+        <div class="box">
+            <div class="box-header">Customer account
+                <span class="glyphicon glyphicon-user pull-right"></span>
+            </div>
+            <div class="address">
+                <div>Account: {{ order.user|default:"Anonymous" }}</div>
+                <div>
+                    <span class="glyphicon glyphicon-envelope"></span>
+                    {{ order.get_user_email }}</div>
+                <div>IP Address: {{ request.META.REMOTE_ADDR }}</div>
+                <div>Order date: {{ order.created }}</div>
+            </div>
+        </div>
+        <div class="box">
+             <div class="box-header">
+                 {% if addresses_equal %}
+                     <span>Billing & Delivery address</span>
+                 {% else %}
+                    <span>Billing address</span>
+                 {% endif %}
+            </div>
+            {% with order.billing_address as address %}
+                {% include 'dashboard/includes/_address.html' with address=address only %}
+            {% endwith %}
+        </div>
+        {% if not addresses_equal %}
+            <div class="box">
+                <div class="box-header">
+                    <span>Shipping address</span>
+                </div>
+                {% with view.get_delivery_info as delivery %}
+                    {% include 'dashboard/includes/_address.html' with address=delivery.address only %}
+                {% endwith %}
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

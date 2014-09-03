@@ -1,0 +1,72 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}{% endblock %}</title>
+
+    <!-- Core CSS - Include with every page -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'dashboard/font-awesome/css/font-awesome.css' %}" rel="stylesheet">
+
+    <!-- Page-Level Plugin CSS - Blank -->
+
+    <!-- SB Admin CSS - Include with every page -->
+   {% if debug %}
+        <link rel="stylesheet/less" type="text/css" href="{{ STATIC_URL }}less/dashboard.less">
+        <script type="text/javascript" src="{{ STATIC_URL }}js/lib/less.js"></script>
+    {% else %}
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/dashboard.css">
+    {% endif %}
+    {% block custom_css %}
+    {% endblock %}
+</head>
+
+<body>
+
+<div id="wrapper">
+
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation"
+         style="margin-bottom: 0">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse"
+                    data-target=".sidebar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="{% url 'dashboard:index' %}">Saleor dashboard</a>
+        </div>
+        <!-- /.navbar-header -->
+
+        {% include "dashboard/includes/header.html" %}
+        <!-- /.navbar-top-links -->
+
+        {% include "dashboard/includes/sidebar.html" %}
+        <!-- /.navbar-static-side -->
+    </nav>
+
+    <div id="page-wrapper">
+        <div class="row">
+            {% include "dashboard/includes/_messages.html" %}
+        </div>
+
+        {% block content %}
+        {% endblock %}
+    </div>
+
+</div>
+<!-- /#wrapper -->
+
+<!-- Core Scripts - Include with every page -->
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="{% static 'js/lib/bootstrap.min.js' %}"></script>
+
+{% block custom_js %}{% endblock %}
+</body>
+
+</html>

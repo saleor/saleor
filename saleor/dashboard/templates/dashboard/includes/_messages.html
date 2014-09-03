@@ -1,0 +1,29 @@
+<div id="messages">
+{% if messages %}
+    {% for message in messages %}
+            <div class="alert alert-dismissable fade in alert-{{ message.tags }}">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                {# Include an icon by default #}
+                {% if 'success' in message.tags %}
+                    <span class="glyphicon glyphicon-ok-sign"></span>
+                {% endif %}
+                {% if 'info' in message.tags %}
+                    <span class="glyphicon glyphicon-info-sign"></span>
+                {% endif %}
+                {% if 'warning' in message.tags %}
+                    <span class="glyphicon glyphicon-warning-sign"></span>
+                {% endif %}
+                {% if 'danger' in message.tags %}
+                    <span class="glyphicon glyphicon-exclamation-sign"></span>
+                {% endif %}
+
+                {# Allow HTML to be embedded in messages #}
+                {% if 'safe' in message.tags %}
+                    {{ message|safe }}
+                {% else %}
+                    {{ message }}
+                {% endif %}
+            </div>
+    {% endfor %}
+{% endif %}
+</div>

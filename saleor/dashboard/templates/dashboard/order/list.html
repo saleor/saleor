@@ -1,0 +1,39 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load prices_i18n %}
+
+{% block title %}{% trans "All orders" %}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        {% include "dashboard/includes/_pagination.html" %}
+        <div class="col-lg-12">
+            <h1 class="page-header">{% trans "Orders" %}</h1>
+            {% include "dashboard/includes/_status_filters.html" %}
+            <table class="table table-bordered">
+                <thead>
+                    <th>{% trans "Order number" %}</th>
+                    <th>{% trans "Customer" %}</th>
+                    <th>{% trans "Amount" %}</th>
+                    <th>{% trans "Status" %}</th>
+                    <th>{% trans "Actions" %}</th>
+                </thead>
+                <tbody>
+                {% for order in object_list %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'dashboard:order-details' pk=order.pk %}">{{ order.id }}</a>
+                        </td>
+                        <td>{{ order.user|default:"Anonymous" }}</td>
+                        <td>{% gross order.get_total %}</td>
+                        <td>{{ order.status }}</td>
+                        <td>
+                            <a href="#">{% trans "Prepare shipping" %}</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "dashboard/base.html" %}
+{% load prices_i18n %}
+{% load i18n %}
+{% load bootstrap %}
+
+{% block title %}Order details{% endblock %}
+
+{% block content %}
+<div class="row">
+    <h1 class="page-header"><span class="glyphicon glyphicon-user"></span> {{ customer.get_address_name }}</h1>
+
+    <div class="col-lg-8">
+        <div class="box">
+            <div class="box-header">Order history</div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>{% trans "Order" %}</th>
+                        <th>{% trans "Date" %}</th>
+                        <th>{% trans "Payment" %}</th>
+                        <th>{% trans "Order status" %}</th>
+                        <th>{% trans "Total" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in customer.orders.all %}
+                        <tr>
+                            <td><a href="{% url 'dashboard:order-details' pk=order.pk %}">{{ order }}</a></td>
+                            <td>{{ order.created }}</td>
+                            <td>{{ order.get_last_payment_status }}</td>
+                            <td>{{ order.get_status_display }}</td>
+                            <td>{% gross order.get_total %}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="box">
+            <div class="box-header">{% trans "Customer notes" %}</div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="box">
+            <div class="box-header">{% trans "Address" %}
+                <span class="glyphicon glyphicon-user pull-right"></span>
+            </div>
+            <small>Default billing address</small>
+            {% with customer.default_billing_address.address as address %}
+                {% include 'dashboard/includes/_address.html' with address=address only %}
+                <span class="glyphicon glyphicon-envelope"></span>
+                {{ customer.email }}
+            {% endwith %}
+
+        </div>
+        <div class="box">
+            <div class="box-header">Details</div>
+            <li>
+                {% gross customer.get_total_spent %} {% trans "from completed orders" %}
+            </li>
+        </div>
+    </div>
+</div>
+{% endblock %}
