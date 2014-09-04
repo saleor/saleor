@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
 from django.utils.translation import pgettext_lazy, ugettext
 
-from ..userprofile.models import User
+User = get_user_model()
 
 from .models import (
     EmailConfirmationRequest,
