@@ -32,11 +32,15 @@ def details(request, token):
             None, order=order, initial={'payment_id': waiting_payment.id})
     if order.is_fully_paid():
         form_data = None
-    payment_form = PaymentMethodsForm(form_data)
-    if payment_form.is_valid():
-        payment_method = payment_form.cleaned_data['method']
-        return redirect('order:payment', token=order.token,
-                        variant=payment_method)
+    if order.is_pre_authorized():
+        payment_form = None
+    else:
+        payment_form = PaymentMethodsForm(form_data)
+
+        if payment_form.is_valid():
+            payment_method = payment_form.cleaned_data['method']
+            return redirect('order:payment', token=order.token,
+                            variant=payment_method)
     return TemplateResponse(request, 'order/details.html',
                             {'order': order, 'groups': groups,
                              'payment_form': payment_form,
