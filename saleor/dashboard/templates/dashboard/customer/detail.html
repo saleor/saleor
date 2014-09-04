@@ -7,7 +7,7 @@
 
 {% block content %}
 <div class="row">
-    <h1 class="page-header"><span class="glyphicon glyphicon-user"></span> {{ customer.get_address_name }}</h1>
+    <h1 class="page-header"><span class="glyphicon glyphicon-user"></span> {{ customer }}</h1>
 
     <div class="col-lg-8">
         <div class="box">
@@ -47,8 +47,7 @@
             <small>Default billing address</small>
             {% with customer.default_billing_address.address as address %}
                 {% include 'dashboard/includes/_address.html' with address=address only %}
-                <span class="glyphicon glyphicon-envelope"></span>
-                {{ customer.email }}
+                <span class="glyphicon glyphicon-envelope"></span>{{ customer.email }}
             {% endwith %}
 
         </div>

@@ -1,8 +1,12 @@
 <div class="address">
-    <strong>{{ address.name }}</strong>
-    <div>{{ address.street_address }}</div>
+    <strong>{{ address }}</strong>
+    <div>{{ address.street_address_1 }}</div>
+    {% if address.street_address_2 %}
+        <div>{{ address.street_address_2 }}</div>
+    {% endif %}
     <div>{{ address.postal_code }}</div>
     <div>{{ address.city }}, {{ address.get_country_display }}</div>
-    <div><span class="glyphicon glyphicon-earphone"></span>
-        {{ address.phone }}</div>
+    {% if address.phone %}
+        <div><span class="glyphicon glyphicon-earphone"></span>{{ address.phone }}</div>
+    {% endif %}
 </div>

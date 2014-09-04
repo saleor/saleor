@@ -23,7 +23,7 @@
                     <tr>
                         {% with user.default_billing_address as default_address %}
                         <td>
-                            <a href="{% url "dashboard:customer-details" pk=customer.pk %}">{{ default_address.address.name }}</a>
+                            <a href="{% url "dashboard:customer-details" pk=customer.pk %}">{{ default_address.address }}</a>
                         </td>
                         <td>
                             {{ default_address.address.city }}, {{ default_address.address.get_country_display }}
