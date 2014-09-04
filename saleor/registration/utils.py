@@ -149,10 +149,10 @@ class GoogleClient(OAuth2Client):
                       'https://www.googleapis.com/auth/plus.me'])
 
     def __init__(self, *args, **kwargs):
-        super(GoogleClient, self).__init__(*args, **kwargs)
-        if not self.client_id and self.client_secret:
+        if not self.client_id and not self.client_secret:
             self.client_id = settings.GOOGLE_CLIENT_ID
             self.client_secret = settings.GOOGLE_CLIENT_SECRET
+        super(GoogleClient, self).__init__(*args, **kwargs)
 
     def get_user_info(self):
         response = super(GoogleClient, self).get_user_info()
@@ -176,10 +176,10 @@ class FacebookClient(OAuth2Client):
     scope = ','.join(['email'])
 
     def __init__(self, *args, **kwargs):
-        super(FacebookClient, self).__init__(*args, **kwargs)
-        if not self.client_id and self.client_secret:
+        if not self.client_id and not self.client_secret:
             self.client_id = settings.FACEBOOK_APP_ID
             self.client_secret = settings.FACEBOOK_SECRET
+        super(FacebookClient, self).__init__(*args, **kwargs)
 
     def get_user_info(self):
         response = super(FacebookClient, self).get_user_info()
