@@ -16,7 +16,6 @@
                     <th>{% trans "Customer" %}</th>
                     <th>{% trans "Amount" %}</th>
                     <th>{% trans "Status" %}</th>
-                    <th>{% trans "Actions" %}</th>
                 </thead>
                 <tbody>
                 {% for order in object_list %}
@@ -27,9 +26,6 @@
                         <td>{{ order.user|default:"Anonymous" }}</td>
                         <td>{% gross order.get_total %}</td>
                         <td>{{ order.status }}</td>
-                        <td>
-                            <a href="#">{% trans "Prepare shipping" %}</a>
-                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>
