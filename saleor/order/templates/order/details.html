@@ -118,7 +118,7 @@
                                     {{ waiting_payment_form|as_vertical_form }}
                                     <button type="submit" class="btn btn-danger">{% trans "I understand, allow me to pay again" %}</button>
                                 </form>
-                            {% elif payment_form %}
+                            {% else %}
                                 <form method="post" action="{% url "order:details" token=order.token %}">
                                     {% csrf_token %}
                                     <legend>{% trans "Pay for your order" %}</legend>
@@ -131,8 +131,6 @@
                                         {% endblock %}
                                     </div>
                                 </form>
-                            {% else %}
-                                <p>{% trans "You've authorized transaction. Order is in processing" %}</p>
                             {% endif %}
                         </div>
                     </div>

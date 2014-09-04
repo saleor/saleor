@@ -9,7 +9,7 @@ from django.utils.translation import ugettext as _
 from django.template.response import TemplateResponse
 from payments import RedirectNeeded
 
-from . import check_order_status
+from . import check_order_status, get_ip
 from .forms import PaymentDeleteForm, PaymentMethodsForm
 from .models import Order, Payment
 
@@ -32,16 +32,11 @@ def details(request, token):
             None, order=order, initial={'payment_id': waiting_payment.id})
     if order.is_fully_paid():
         form_data = None
-    if order.is_pre_authorized():
-        payment_form = None
-    else:
-        payment_form = PaymentMethodsForm(form_data)
-
-        if payment_form.is_valid():
-            payment_method = payment_form.cleaned_data['method']
-            return redirect('order:payment', token=order.token,
-                            variant=payment_method)
-
+    payment_form = PaymentMethodsForm(form_data)
+    if payment_form.is_valid():
+        payment_method = payment_form.cleaned_data['method']
+        return redirect('order:payment', token=order.token,
+                        variant=payment_method)
     return TemplateResponse(request, 'order/details.html',
                             {'order': order, 'groups': groups,
                              'payment_form': payment_form,
@@ -57,24 +52,19 @@ def start_payment(request, order, variant):
         return redirect('order:details', token=order.token)
     billing = order.billing_address
     total = order.get_total()
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        customer_ip = x_forwarded_for.split(',')[0]
-    else:
-        customer_ip = request.META.get('REMOTE_ADDR')
-
     defaults = {'total': total.gross,
-                'tax': total.tax,
-                'currency': total.currency,
+                'tax': total.tax, 'currency': total.currency,
                 'delivery': order.get_delivery_total().gross,
-                'billing_first_name': billing.name,
-                'billing_last_name': billing.name,
-                'billing_address_1': billing.street_address,
+                'billing_first_name': billing.first_name,
+                'billing_last_name': billing.last_name,
+                'billing_address_1': billing.street_address_1,
+                'billing_address_2': billing.street_address_2,
                 'billing_city': billing.city,
                 'billing_postcode': billing.postal_code,
                 'billing_country_code': billing.country,
-                'billing_email': order.user.email,
-                'customer_ip_address': customer_ip}
+                'description': _('Order %(order_number)s' % {'order_number': order}),
+                'billing_country_area': billing.country_area,
+                'customer_ip_address': get_ip(request)}
     if not variant in [v for v, n in settings.CHECKOUT_PAYMENT_CHOICES]:
         raise Http404('%r is not a valid payment variant' % (variant,))
     with transaction.atomic():
