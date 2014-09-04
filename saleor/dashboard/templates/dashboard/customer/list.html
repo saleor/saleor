@@ -17,7 +17,6 @@
                     <th>{% trans "Location" %}</th>
                     <th>{% trans "Number of orders" %}</th>
                     <th>{% trans "Last order" %}</th>
-                    <th>{% trans "Total spent" %}</th>
                 </thead>
                 <tbody>
                 {% for customer in object_list %}
@@ -39,9 +38,6 @@
                             {% else %}
                                 -
                             {% endif %}
-                        </td>
-                        <td>
-                            {% gross customer.get_total_spent %}
                         </td>
                     </tr>
                 {% endfor %}
