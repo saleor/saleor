@@ -14,9 +14,7 @@
             <div class="box-header">Order details</div>
                 <p>Order status: <span class="label label-success">{{ order.get_status_display }}</span></p>
                 <p>Payment status: <span class="label label-success">{{ order.get_last_payment_status }}</span>
-                {% if order.payments.last %}
-                    <a href="{% url "dashboard:payment-details" pk=order.payments.last.pk %}">Manage payments</a>
-                {% endif %}
+                <a href="#payment-history">Manage payments</a>
                 </p>
                 <p>Delivery: Scheduled for 09.07.14 2 p.m <a href="#">Accept</a></p>
         </div>
@@ -73,7 +71,7 @@
                 <li>{{ status_change.get_status_display }} - {{ status_change.date }}</li>
             {% endfor %}
         </div>
-        <div class="box">
+        <div id='payment-history' class="box">
             <div class="box-header">{% trans "Payment history" %}</div>
             {% for payment in order.payments.all %}
                 <li>{{ payment.created }} - <a href="{% url "dashboard:payment-details" pk=payment.pk %}">{{ payment.get_status_display }}</a></li>
