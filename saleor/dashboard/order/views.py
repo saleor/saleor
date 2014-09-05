@@ -1,7 +1,9 @@
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import ListView, DetailView
-from ...order.models import Order
+from django.views.generic import ListView, DetailView, UpdateView
+from django.shortcuts import redirect
+from ...order.models import Order, Address
+from ...userprofile.forms import AddressForm
 from ..views import StaffMemberOnlyMixin, FilterByStatusMixin
 from .forms import OrderNoteForm
 
@@ -59,3 +61,14 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
             messages.error(self.request, _('Form has errors'))
         self.form_instance = form
         return self.get(*args, **kwargs)
+
+
+class AddressView(StaffMemberOnlyMixin, UpdateView):
+    model = Address
+    template_name = 'dashboard/customer/address-edit.html'
+    form_class = AddressForm
+
+    def form_valid(self, form):
+        self.object = form.save()
+        order_pk = self.kwargs.get('order_pk')
+        return redirect('dashboard:order-details', pk=order_pk)

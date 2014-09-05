@@ -96,23 +96,25 @@
             </div>
         </div>
         <div class="box">
+            {% with order.billing_address as address %}
              <div class="box-header">
                  {% if addresses_equal %}
                      <span>Billing & Delivery address</span>
                  {% else %}
                     <span>Billing address</span>
                  {% endif %}
+                 <span class="pull-right"><a href="{% url "dashboard:address-edit" pk=address.pk order_pk=order.pk %}"><i class="glyphicon glyphicon-cog"></i> Edit</a></span>
             </div>
-            {% with order.billing_address as address %}
-                {% include 'dashboard/includes/_address.html' with address=address only %}
+            {% include 'dashboard/includes/_address.html' with address=address only %}
             {% endwith %}
         </div>
         {% if not addresses_equal %}
             <div class="box">
-                <div class="box-header">
-                    <span>Shipping address</span>
-                </div>
                 {% with view.get_delivery_info as delivery %}
+                    <div class="box-header">
+                        <span>Shipping address</span>
+                        <span class="pull-right"><a href="{% url "dashboard:address-edit" pk=delivery.address.pk order_pk=order.pk %}"><i class="glyphicon glyphicon-cog"></i> Edit</a></span>
+                    </div>
                     {% include 'dashboard/includes/_address.html' with address=delivery.address only %}
                 {% endwith %}
             </div>

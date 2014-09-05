@@ -6,5 +6,8 @@ urlpatterns = patterns('',
                            name='orders'),
                        url(r'^(?P<pk>[0-9]+)$',
                            views.OrderDetails.as_view(),
-                           name='order-details')
-)
+                           name='order-details'),
+                       url(r'^(?P<order_pk>[0-9]+)/address/(?P<pk>[0-9]+)$',
+                           views.AddressView.as_view(),
+                           name='address-edit')
+                       )
