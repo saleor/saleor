@@ -65,7 +65,7 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
 
 class AddressView(StaffMemberOnlyMixin, UpdateView):
     model = Address
-    template_name = 'dashboard/customer/address-edit.html'
+    template_name = 'dashboard/order/address-edit.html'
     form_class = AddressForm
 
     def form_valid(self, form):
