@@ -25,7 +25,7 @@
                         </td>
                         <td>{{ order.user|default:"Anonymous" }}</td>
                         <td>{% gross order.get_total %}</td>
-                        <td>{{ order.status }}</td>
+                        <td>{% include 'dashboard/includes/_status_label.html' with status=order.status status_display=order.get_status_display %}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

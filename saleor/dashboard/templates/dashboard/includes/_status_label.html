@@ -1,0 +1,9 @@
+{% with errors='error reject rejected' successes='accept confirmed fully-paid shipped refunded' %}
+    {% if status in errors.split %}
+        <span class="label label-danger">{{ status_display }}</span>
+    {% elif status in successes.split %}
+        <span class="label label-success">{{ status_display }}</span>
+    {% else %}
+        <span class="label label-default">{{ status_display }}</span>
+    {% endif %}
+{% endwith %}

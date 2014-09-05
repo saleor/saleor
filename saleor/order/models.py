@@ -122,6 +122,12 @@ class Order(models.Model, ItemSet):
     def get_last_payment_status(self):
         last_payment = self.payments.last()
         if last_payment:
+            return last_payment.status
+        return None
+
+    def get_last_payment_status_display(self):
+        last_payment = self.payments.last()
+        if last_payment:
             return last_payment.get_status_display()
         return None
 

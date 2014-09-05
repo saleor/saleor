@@ -32,7 +32,7 @@
                         <th>{{ payment.created }}</th>
                         <td>{{ payment.order.user|default:"Anonymous" }}</td>
                         <td>{{ payment.total }}</td>
-                        <td>{{ payment.get_status_display }}</td>
+                        <td>{% include 'dashboard/includes/_status_label.html' with status=payment.status status_display=payment.get_status_display %}</td>
                         <td>
                             {{ payment.captured_amount }}
                         </td>
