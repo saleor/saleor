@@ -18,7 +18,6 @@
                 <p>Order date: {{ order.created }}</p>
                 <p>Order status: {% include 'dashboard/includes/_status_label.html' with status=order.status status_display=order.get_status_display %}</p>
                 <p>Payment status: {% include 'dashboard/includes/_status_label.html' with status=order.get_last_payment_status status_display=order.get_last_payment_status_display %}<a href="#payment-history">Manage payments</a></p>
-                <p>Delivery: Scheduled for 09.07.14 2 p.m <a href="#">Accept</a></p>
             </div>
         </div>
 
