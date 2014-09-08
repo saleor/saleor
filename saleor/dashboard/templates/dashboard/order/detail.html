@@ -17,7 +17,7 @@
             <div class="panel-body">
                 <p>Order date: {{ order.created }}</p>
                 <p>Order status: {% include 'dashboard/includes/_status_label.html' with status=order.status status_display=order.get_status_display %}</p>
-                <p>Payment status: {% include 'dashboard/includes/_status_label.html' with status=order.get_last_payment_status status_display=order.get_last_payment_status_display %}<a href="#payment-history">Manage payments</a></p>
+                <p>Payment status: {% include 'dashboard/includes/_status_label.html' with status=order.get_last_payment_status status_display=order.get_last_payment_status_display %}</p>
             </div>
         </div>
 
@@ -89,22 +89,6 @@
 
         <div class="panel panel-default">
             <div class="panel-heading">
-                <span class="panel-title">Order history</span>
-            </div>
-            <div class="panel-body">
-                <ul class="list-unstyled">
-                {% for status_change in order.status_history.all %}
-                    <li>
-                        <span>{{ status_change.date }}</span>
-                        {% include 'dashboard/includes/_status_label.html' with status=status_change.status status_display=status_change.get_status_display %}
-                    </li>
-                {% endfor %}
-                </ul>
-            </div>
-        </div>
-
-        <div id='payment-history' class="panel panel-default">
-            <div class="panel-heading">
                 <span class="panel-title">{% trans "Payment history" %}</span>
             </div>
             <div class="panel-body">
@@ -122,7 +106,21 @@
     </div>
 
     <div class="col-lg-4">
-        <h3 class="page-header">Customer</h3>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">Order history</span>
+            </div>
+            <div class="panel-body">
+                <ul class="list-unstyled">
+                {% for status_change in order.status_history.all %}
+                    <li>
+                        <span>{{ status_change.date }}</span>
+                        {% include 'dashboard/includes/_status_label.html' with status=status_change.status status_display=status_change.get_status_display %}
+                    </li>
+                {% endfor %}
+                </ul>
+            </div>
+        </div>
         <div class="panel panel-default">
             <div class="panel-heading">
                 <span class="panel-title">Customer details <i class="glyphicon glyphicon-user pull-right"></i></span>
