@@ -34,7 +34,7 @@
                         <td><a href="{% url 'dashboard:product-update' pk=product.pk %}">{{ product.name }}</a></td>
                         <td><a href="#" title="Filter by this brand">{{ product.brand.name }}</a></td>
                         <td>{{ product.get_stock }}</td>
-                        <td>{% gross product.get_price %}</td>
+                        {# <td>{% gross product.get_price %}</td> #}
                     </tr>
                 {% endfor %}
                 </tbody>
