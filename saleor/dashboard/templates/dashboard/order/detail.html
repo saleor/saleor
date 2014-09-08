@@ -30,7 +30,7 @@
                     {% for item in order.get_items %}
                         <tr>
                             <td>
-                                <a href="{{ item.product.get_absolute_url }}">{{ item.product_name }}</a>
+                                <a href="{% url "dashboard:product-update" pk=item.pk %}">{{ item.product_name }}</a>
                                 SKU: {{ item.product_sku }}
                             </td>
                             <td>
