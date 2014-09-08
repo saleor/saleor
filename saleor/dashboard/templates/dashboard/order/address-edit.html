@@ -6,7 +6,7 @@
 
 {% block content %}
 <div class="row">
-    <h1 class="page-header">Edit address</h1>
+    <h1 class="page-header">Edit {{ address_type }} address</h1>
 
     <div class="col-md-6">
         <form method="post">
@@ -16,6 +16,7 @@
             </fieldset>
             <div class="form-group">
                 <button type="submit" class="btn btn-primary">Save</button>
+                <a href="{% url 'dashboard:order-details' pk=order.pk %}" class="btn btn-link">Cancel</a>
             </div>
         </form>
     </div>

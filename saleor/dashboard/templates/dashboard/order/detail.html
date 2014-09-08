@@ -143,14 +143,8 @@
         <div class="panel panel-default">
             {% with order.billing_address as address %}
             <div class="panel-heading">
-                <span class="panel-title">
-                {% if addresses_equal %}
-                    Billing & Delivery address
-                {% else %}
-                    Billing address
-                {% endif %}
-                </span>
-                <span class="pull-right"><a href="{% url "dashboard:address-edit" pk=address.pk order_pk=order.pk %}"><i class="glyphicon glyphicon-cog"></i> Edit</a></span>
+                <span class="panel-title">Billing address</span>
+                <span class="pull-right"><a href="{% url "dashboard:address-edit" order_pk=order.pk address_type='billing' %}"><i class="glyphicon glyphicon-cog"></i> Edit</a></span>
             </div>
             <div class="panel-body">
                 {% include 'dashboard/includes/_address.html' with address=address only %}
@@ -158,19 +152,21 @@
             {% endwith %}
         </div>
 
-        {% if not addresses_equal %}
-            <div class="panel panel-default">
-                {% with view.get_delivery_info as delivery %}
-                    <div class="panel-heading">
-                        <span class="panel-title">Shipping address</span>
-                        <span class="pull-right"><a href="{% url "dashboard:address-edit" pk=delivery.address.pk order_pk=order.pk %}"><i class="glyphicon glyphicon-cog"></i> Edit</a></span>
-                    </div>
-                    <div class="panel-body">
+        <div class="panel panel-default">
+            {% with view.get_delivery_info as delivery %}
+                <div class="panel-heading">
+                    <span class="panel-title">Shipping address</span>
+                    <span class="pull-right"><a href="{% url "dashboard:address-edit" order_pk=order.pk address_type='shipping' %}"><i class="glyphicon glyphicon-cog"></i> Edit</a></span>
+                </div>
+                <div class="panel-body">
+                    {% if delivery %}
                         {% include 'dashboard/includes/_address.html' with address=delivery.address only %}
-                    </div>
-                {% endwith %}
-            </div>
-        {% endif %}
+                    {% else %}
+                        <span>No shipping address</span>
+                    {% endif %}
+                </div>
+            {% endwith %}
+        </div>
 
     </div>
 </div>

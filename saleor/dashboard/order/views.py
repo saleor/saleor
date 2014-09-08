@@ -1,7 +1,8 @@
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, DetailView, UpdateView
-from django.shortcuts import redirect
+from django.core.urlresolvers import reverse
+from django.shortcuts import get_object_or_404
 from ...order.models import Order, Address
 from ...userprofile.forms import AddressForm
 from ..views import StaffMemberOnlyMixin, FilterByStatusMixin
@@ -68,7 +69,25 @@ class AddressView(StaffMemberOnlyMixin, UpdateView):
     template_name = 'dashboard/order/address-edit.html'
     form_class = AddressForm
 
-    def form_valid(self, form):
-        self.object = form.save()
-        order_pk = self.kwargs.get('order_pk')
-        return redirect('dashboard:order-details', pk=order_pk)
+    def get_object(self, queryset=None):
+        self.order = get_object_or_404(Order, pk=self.kwargs['order_pk'])
+        address_type = self.kwargs['address_type']
+        if address_type == 'billing':
+            return self.order.billing_address
+        elif address_type == 'shipping':
+            delivery = self.order.groups.select_subclasses().get()
+            return delivery.address
+
+    def get_context_data(self, **kwargs):
+        ctx = super(AddressView, self).get_context_data(**kwargs)
+        ctx['order'] = self.order
+        ctx['address_type'] = self.kwargs['address_type']
+        return ctx
+
+    def get_success_url(self):
+        _type_str = self.kwargs['address_type'].capitalize()
+        messages.success(
+            self.request,
+            _('%(address_type)s address updated' % {'address_type': _type_str})
+        )
+        return reverse('dashboard:order-details', kwargs={'pk': self.order.pk})
