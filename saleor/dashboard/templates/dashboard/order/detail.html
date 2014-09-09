@@ -148,7 +148,11 @@
             </div>
             <div class="panel-body">
                 <div class="address">
-                    <div>Account: {{ order.user|default:"Anonymous" }}</div>
+                    {% if order.user %}
+                        <div>Account: <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a></div>
+                    {% else %}
+                        <div>Account: Anonymous</div>
+                    {% endif %}
                     <div>
                         <span class="glyphicon glyphicon-envelope"></span>
                         {{ order.get_user_email }}
