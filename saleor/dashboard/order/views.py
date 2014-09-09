@@ -31,13 +31,6 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         ctx = super(OrderDetails, self).get_context_data(**kwargs)
-        billing_address = self.object.billing_address
-        delivery_info = self.get_delivery_info()
-        if delivery_info:
-            delivery_address = delivery_info.address
-        else:
-            delivery_address = None
-        ctx['addresses_equal'] = delivery_address == billing_address
         if not self.form_instance:
             self.form_instance = self.form_class()
         ctx['notes_form'] = self.form_instance
