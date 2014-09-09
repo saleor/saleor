@@ -27,31 +27,35 @@
             </div>
             <div class="panel-body">
                 <table class="table">
-                    {% for item in order.get_items %}
+                    <thead>
                         <tr>
-                            <td>
-                                <a href="{% url "dashboard:product-update" pk=item.pk %}">{{ item.product_name }}</a>
-                                SKU: {{ item.product_sku }}
-                            </td>
-                            <td>
-                                {{ item.quantity }} x {% gross item.get_price_per_item %}
-                            </td>
+                            <th class="col-sm-3">{% trans "Name" %}</th>
+                            <th class="col-sm-3">{% trans "Variant" %}</th>
+                            <th class="col-sm-3">{% trans "SKU" %}</th>
+                            <th class="col-sm-3">{% trans "Price" %}</th>
                         </tr>
-                    {% endfor %}
+                    </thead>
+                    <tbody>
+                        {% for item in order.get_items %}
+                            <tr>
+                                <td class="col-sm-3"><a href="{% url "dashboard:product-update" pk=item.product_id %}">{{ item.product }}</a></td>
+                                <td class="col-sm-3">{{ item.product_name }}</td>
+                                <td class="col-sm-3">{{ item.product_sku }}</td>
+                                <td class="col-sm-3">{{ item.quantity }} x {% gross item.get_price_per_item %}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+
                     <tr>
-                        <td colspan="2"><strong>{% trans "Order totals" %}</strong></td>
+                        <td colspan="4"><strong>{% trans "Order totals" %}</strong></td>
                     </tr>
                     <tr>
-                        <td>{% trans "Delivery" %}</td>
+                        <td colspan="3">{% trans "Delivery" %}</td>
                         <td>{% gross order.get_delivery_total %}</td>
                     </tr>
                     <tr>
-                        <td>
-                            {% trans "Total" %}
-                        </td>
-                        <td>
-                            {% gross order.get_total %}
-                        </td>
+                        <td colspan="3">{% trans "Total" %}</td>
+                        <td>{% gross order.get_total %}</td>
                     </tr>
                 </table>
             </div>
