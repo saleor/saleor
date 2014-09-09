@@ -3,10 +3,12 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, DetailView, UpdateView
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
+from payments import PaymentError
+
 from ...order.models import Order, Address
 from ...userprofile.forms import AddressForm
 from ..views import StaffMemberOnlyMixin, FilterByStatusMixin
-from .forms import OrderNoteForm
+from .forms import OrderNoteForm, ManagePaymentForm
 
 
 class OrderListView(StaffMemberOnlyMixin, FilterByStatusMixin, ListView):
@@ -20,21 +22,29 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
     model = Order
     template_name = 'dashboard/order/detail.html'
     context_object_name = 'order'
-    form_class = OrderNoteForm
-    form_instance = None
+    payment_form_class = ManagePaymentForm
+    note_form_class = OrderNoteForm
 
     def get_queryset(self):
         qs = super(OrderDetails, self).get_queryset()
         qs = qs.prefetch_related('notes')
-
         return qs
 
     def get_context_data(self, **kwargs):
         ctx = super(OrderDetails, self).get_context_data(**kwargs)
-        if not self.form_instance:
-            self.form_instance = self.form_class()
-        ctx['notes_form'] = self.form_instance
+        if 'payment_form' not in ctx:
+            ctx['payment_form'] = self.payment_form_class(
+                initial={'amount': self.object.get_total().gross})
+        if 'note_form' not in ctx:
+            ctx['note_form'] = self.note_form_class()
+
+        last_payment_status = self.object.get_last_payment_status()
+        ctx['can_capture'] = last_payment_status == 'preauth'
+        ctx['can_release'] = last_payment_status == 'preauth'
+        ctx['can_refund'] = last_payment_status == 'confirmed'
+
         ctx['notes'] = self.object.notes.all()
+        ctx['payment'] = self.object.payments.last()
         return ctx
 
     def get_delivery_info(self):
@@ -43,8 +53,46 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
         except self.model.DoesNotExist:
             return None
 
-    def post(self, *args, **kwargs):
-        form = self.form_class(self.request.POST)
+    def post(self, request, *args, **kwargs):
+        if 'payment_form' in request.POST:
+            form = self.payment_form_class(request.POST)
+            self.handle_payment_form(form, request.POST['payment_form'])
+        else:
+            form = self.note_form_class(request.POST)
+            self.handle_note_form(form)
+        return self.get(request, *args, **kwargs)
+
+    def handle_payment_form(self, form, action):
+        payment = self.get_object().payments.last()
+        error_msg = None
+        if form.is_valid():
+            if action == 'capture' and payment.status == 'preauth':
+                try:
+                    payment.capture(amount=form.cleaned_data['amount'])
+                except PaymentError, e:
+                    error_msg = _('Payment gateway error: ') + e.message
+                else:
+                    messages.success(self.request, _('Funds captured'))
+
+            elif action == 'refund' and payment.status == 'confirmed':
+                try:
+                    payment.refund(amount=payment.captured_amount)
+                except PaymentError, e:
+                    error_msg = _('Payment gateway error: ') + e.message
+                else:
+                    messages.success(self.request, _('Refund successful'))
+
+            elif action == 'release' and payment.status == 'preauth':
+                try:
+                    payment.release()
+                except PaymentError, e:
+                    error_msg = _('Payment gateway error: ') + e.message
+                else:
+                    messages.success(self.request, _('Release successful'))
+        if error_msg:
+            messages.error(self.request, error_msg)
+
+    def handle_note_form(self, form):
         if form.is_valid():
             note = form.save(commit=False)
             note.order = self.get_object()
@@ -53,8 +101,6 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
             messages.success(self.request, _('Note saved'))
         else:
             messages.error(self.request, _('Form has errors'))
-        self.form_instance = form
-        return self.get(*args, **kwargs)
 
 
 class AddressView(StaffMemberOnlyMixin, UpdateView):

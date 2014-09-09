@@ -16,3 +16,7 @@ class OrderNoteForm(forms.ModelForm):
         widgets = {
             'content': forms.Textarea({'rows': 5, 'placeholder': _('Note')})
         }
+
+
+class ManagePaymentForm(forms.Form):
+    amount = forms.DecimalField(min_value=0, decimal_places=2)

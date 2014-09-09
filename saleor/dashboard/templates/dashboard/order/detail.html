@@ -57,6 +57,39 @@
             </div>
         </div>
 
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">{% trans "Manage payment" %}</span>
+            </div>
+            <div class="panel-body">
+                <div>
+                    {% if payment_form %}
+                        <form method="post">
+                            {% csrf_token %}
+                            {{ payment_form|as_vertical_form }}
+                            <div class="form-group">
+                                <input type="submit" class="btn btn-default" name='payment_form' value="capture" {% if not can_capture %} disabled {% endif %}/>
+                                <input type="submit" class="btn btn-default" name='payment_form' value="release" {% if not can_release %} disabled {% endif %}/>
+                                <input type="submit" class="btn btn-default" name='payment_form' value="refund" {% if not can_refund %} disabled {% endif %}/>
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+                <div>
+                    <h4>Payment history</h4>
+                    <ul class="list-unstyled">
+                    {% for payment in order.payments.all %}
+                        <li>
+                            <span>{{ payment.created }}</span>
+                            {% include 'dashboard/includes/_status_label.html' with status=payment.status status_display=payment.get_status_display %}
+                            <a href="{% url "dashboard:payment-details" pk=payment.pk %}">Details</a>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
         <div class="panel panel-default" id="order-notes">
             <div class="panel-heading">
                 <span class="panel-title">Order notes</span>
@@ -78,31 +111,15 @@
                 <div id="add-order-note" class="collapse">
                     <form class="form-horizontal" role="form" method="post">
                         {% csrf_token %}
-                        {{ notes_form|as_vertical_form }}
-                      <div class="form-group">
-                          <button type="submit" class="btn btn-default">Save</button>
-                      </div>
+                        {{ note_form|as_vertical_form }}
+                        <div class="form-group">
+                            <button name='note_form' type="submit" class="btn btn-default">Save</button>
+                        </div>
                     </form>
                 </div>
             </div>
         </div>
 
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <span class="panel-title">{% trans "Payment history" %}</span>
-            </div>
-            <div class="panel-body">
-                <ul class="list-unstyled">
-                {% for payment in order.payments.all %}
-                    <li>
-                        <span>{{ payment.created }}</span>
-                        {% include 'dashboard/includes/_status_label.html' with status=payment.status status_display=payment.get_status_display %}
-                        <a href="{% url "dashboard:payment-details" pk=payment.pk %}">Details</a>
-                    </li>
-                {% endfor %}
-                </ul>
-            </div>
-        </div>
     </div>
 
     <div class="col-lg-4">
