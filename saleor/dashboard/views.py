@@ -1,12 +1,10 @@
-import json
 from django.contrib.auth.decorators import user_passes_test
-from django.http import HttpResponse
-from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
+from django.views.generic import TemplateView
 
 
-def index(request):
-    return TemplateResponse(request, 'dashboard/index.html')
+class IndexView(TemplateView):
+    template_name = 'dashboard/index.html'
 
 
 class StaffMemberOnlyMixin(object):
