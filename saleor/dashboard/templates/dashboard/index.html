@@ -1,11 +1,68 @@
 {% extends "dashboard/base.html" %}
+{% load prices_i18n %}
 
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
 <div class="row">
+    <h1 class="page-header">Dashboard</h1>
     <div class="col-lg-12">
-        <h1 class="page-header">Dashboard</h1>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">Orders ready for shipment</span>
+            </div>
+            <div class="panel-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <td>Order</td>
+                            <td>Customer</td>
+                            <td>Total</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders_to_ship %}
+                            <tr>
+                                <td><a href="{% url "dashboard:order-details" pk=order.pk %}">{{ order }}</a></td>
+                                <td>{{ order.user|default:"Anonymous" }}</td>
+                                <td>{% gross order.get_total %}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">Preauthorized payments</span>
+            </div>
+            <div class="panel-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <td>Order</td>
+                            <td>Gateway</td>
+                            <td>Date</td>
+                            <td>Customer</td>
+                            <td>Amount</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in preauthorized_payments %}
+                            <tr>
+                                <td><a href="{% url "dashboard:order-details" pk=payment.order.pk %}">{{ payment.order }}</a></td>
+                                <td>{{ payment.variant }}</td>
+                                <td>{{ payment.created }}</td>
+                                <td>{{ payment.order.user|default:"Anonymous" }}</td>
+                                <td>{{ payment.total }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
