@@ -7,84 +7,107 @@
 
 {% block content %}
 <div class="row">
-    <h1 class="page-header">Payment event details</h1>
+    <h1 class="page-header">Payment details</h1>
 
     <div class="col-lg-8">
-        <div class="box">
-            <div class="box-header">Payment details</div>
-            <li>Amount: {{ payment.total }} {{ payment.currency }}</li>
-            <li>Customer IP: {{ payment.customer_ip_address }}</li>
-            <li>Status: {{ payment.get_status_display }}</li>
-            <li>Transaction id: {{ payment.transaction_id }}</li>
-            <li>Captured amount: {{ payment.captured_amount }}</li>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">Payment details</span>
+            </div>
+            <div class="panel-body">
+                <p>Status: {% include 'dashboard/includes/_status_label.html' with status=payment.status status_display=payment.get_status_display %}</p>
+                <p>Fraud status: {% include 'dashboard/includes/_status_label.html' with status=payment.fraud_status status_display=payment.get_fraud_status_display %}</p>
+                <p>Amount: {{ payment.total }} {{ payment.currency }}</p>
+                <p>Captured amount: {{ payment.captured_amount }} {{ payment.currency }}</p>
+                <p>Gateway: {{ payment.variant }}</p>
+                <p>Transaction id: {{ payment.transaction_id }}</p>
+                <p>Payment date: {{ payment.created }}</p>
+            </div>
         </div>
-        <div class="box">
-            <div class="box-header">Gateway communication</div>
-            <pre>
-                <code class="json">
-                    {{ payment.extra_data }}
-                </code>
-            </pre>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">Gateway communication</span>
+            </div>
+            <div class="panel-body">
+                {% if payment.extra_data %}
+                    <pre>{{ payment.extra_data }}</pre>
+                {% else %}
+                    <span>-</span>
+                {% endif %}
+            </div>
         </div>
-        <div class="box">
-            <div class="box-header">Gateway message</div>
-            <p>{{ payment.message }}</p>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">Gateway message</span>
+            </div>
+            <div class="panel-body">
+                <span>{{ payment.message|default:"-" }}</span>
+            </div>
         </div>
-
-
     </div>
     <div class="col-lg-4">
-
-        <div class="box">
-            <div class="box-header">
-                {% trans "Transaction management" %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="payment-title">{% trans "Transaction management" %}</span>
             </div>
-            {% if capture_form %}
-                <p>{% trans "Capture funds to continue transaction" %}</p>
-                <form action="." method="post">
-                    {% csrf_token %}
-                    {{ capture_form|as_vertical_form }}
-                    <input type="submit" class="btn btn-success" value="Capture"/>
-                </form>
-            {% endif %}
-            {% if release_available %}
-                <p>{% trans "Release funds to abort transaction" %}</p>
-                <form action="." method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="release" value="true"/>
-                    <input type="submit" class="btn btn-primary" value="Release"/>
-                </form>
-            {% endif %}
-            {% if refund_available %}
-                <p>{% trans "Refund funds to customer" %}</p>
-                <form action="." method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="refund" value="true"/>
-                    <input type="submit" class="btn btn-primary" value="Refund"/>
-                </form>
-            {% endif %}
-        </div>
-        <div class="box">
-            <div class="box-header">Customer account
-                <span class="glyphicon glyphicon-user pull-right"></span>
-            </div>
-            <div class="address">
-                <div>Account: <a href="{% url "dashboard:customer-details" pk=payment.order.user.pk %}">{{ payment.order.user.get_address_name }}</a></div>
-                <div>
-                    <span class="glyphicon glyphicon-envelope"></span>
-                    {{ payment.order.get_user_email }}</div>
-                <div>Payment date: {{ payment.created }}</div>
+            <div class="panel-body">
+                {% if capture_form %}
+                    <p>{% trans "Capture funds to continue transaction" %}</p>
+                    <form action="." method="post">
+                        {% csrf_token %}
+                        {{ capture_form|as_vertical_form }}
+                        <input type="submit" class="btn btn-success" value="Capture"/>
+                    </form>
+                {% endif %}
+                {% if release_available %}
+                    <p>{% trans "Release funds to abort transaction" %}</p>
+                    <form action="." method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="release" value="true"/>
+                        <input type="submit" class="btn btn-primary" value="Release"/>
+                    </form>
+                {% endif %}
+                {% if refund_available %}
+                    <p>{% trans "Refund funds to customer" %}</p>
+                    <form action="." method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="refund" value="true"/>
+                        <input type="submit" class="btn btn-primary" value="Refund"/>
+                    </form>
+                {% endif %}
             </div>
         </div>
-        <div class="box">
-             <div class="box-header">Billing address sent to gateway</div>
-                <li>{% trans "First name" %} - {{ payment.billing_first_name }}</li>
-                <li>{% trans "Last name" %} - {{ payment.billing_last_name }}</li>
-                <li>{% trans "Address 1" %} - {{ payment.billing_address_1 }}</li>
-                <li>{% trans "Address 2" %} - {{ payment.billing_address_2 }}</li>
-                <li>{% trans "City" %} - {{ payment.billing_city }}</li>
-                <li>{% trans "Post code" %} - {{ payment.billing_postcode }}</li>
-                <li>{% trans "Country code" %} - {{ payment.billing_country_code }}</li>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">Customer account<i class="glyphicon glyphicon-user pull-right"></i></span>
+            </div>
+            <div class="panel-body">
+                <div class="address">
+                    {% if payment.order.user %}
+                        <div>Account: <a href="{% url "dashboard:customer-details" pk=payment.order.user.pk %}">{{ payment.order.user }}</a></div>
+                    {% else %}
+                        <div>Account: Anonymous</div>
+                    {% endif %}
+                    <div><i class="glyphicon glyphicon-envelope"></i> {{ payment.order.get_user_email }}</span></div>
+                    <div>Customer IP: {{ payment.customer_ip_address }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">Billing address sent to gateway</span>
+            </div>
+            <div class="panel-body">
+                <div class="address">
+                    <strong>{{ payment.billing_first_name }} {{ payment.billing_last_name }}</strong>
+                    <div>{{ payment.billing_address_1 }}</div>
+                    {% if payment.payment.billing_address_2 %}
+                        <div>{{ payment.payment.billing_address_2 }}</div>
+                    {% endif %}
+                    <div>{{ payment.billing_postcode }}</div>
+                    <div>{{ payment.billing_city }}, {{ payment.billing_country_code }}</div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
