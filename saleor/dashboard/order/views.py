@@ -16,6 +16,8 @@ class OrderListView(StaffMemberOnlyMixin, FilterByStatusMixin, ListView):
     paginate_by = 20
     model = Order
     status_choices = Order.STATUS_CHOICES
+    status_order = ['new', 'payment-pending', 'fully-paid', 'shipped',
+                    'cancelled']
 
 
 class OrderDetails(StaffMemberOnlyMixin, DetailView):

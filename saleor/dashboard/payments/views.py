@@ -16,6 +16,8 @@ class PaymentList(FilterByStatusMixin, ListView):
     context_object_name = 'payments'
     paginate_by = 30
     status_choices = PAYMENT_STATUS_CHOICES
+    status_order = ['waiting', 'input', 'preauth', 'confirmed', 'refunded',
+                    'rejected', 'error']
 
     def get_queryset(self):
         qs = super(PaymentList, self).get_queryset()
@@ -30,11 +32,9 @@ class PaymentDetails(DetailView):
 
     def get_context_data(self, **kwargs):
         ctx = super(PaymentDetails, self).get_context_data(**kwargs)
-
         ctx['capture_form'] = self.get_capture_form()
         ctx['refund_available'] = self.object.status == 'confirmed'
         ctx['release_available'] = self.object.status == 'preauth'
-
         return ctx
 
     def get_capture_form(self):

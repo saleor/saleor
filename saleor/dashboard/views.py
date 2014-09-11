@@ -32,6 +32,7 @@ class FilterByStatusMixin(object):
         super(FilterByStatusMixin, self).__init__(*args, **kwargs)
         status_choices = getattr(self, 'status_choices')
         self.statuses = {status[0]: status[1] for status in status_choices}
+        self.status_order = getattr(self, 'status_order', [])
 
     def get_queryset(self):
         qs = super(FilterByStatusMixin, self).get_queryset()
@@ -47,5 +48,13 @@ class FilterByStatusMixin(object):
     def get_context_data(self):
         ctx = super(FilterByStatusMixin, self).get_context_data()
         ctx['active_filter'] = self.active_filter
-        ctx['available_filters'] = self.statuses
+        ctx['available_filters'] = self.get_filters()
         return ctx
+
+    def get_filters(self):
+        filters = [(name, self.statuses[name]) for name in self.status_order
+                   if name in self.statuses]
+        remain = [(name, verbose) for name, verbose in self.statuses.items()
+                  if (name, verbose) not in filters]
+        filters.extend(remain)
+        return filters
