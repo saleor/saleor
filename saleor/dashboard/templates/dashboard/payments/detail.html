@@ -26,14 +26,16 @@
         </div>
         <div class="panel panel-default">
             <div class="panel-heading">
-                <span class="panel-title">Gateway communication</span>
+                <span class="panel-title">Gateway communication</span><a class="pull-right" data-toggle="collapse" href="#gateway-output">Show</a>
             </div>
             <div class="panel-body">
-                {% if payment.extra_data %}
-                    <pre>{{ payment.extra_data }}</pre>
-                {% else %}
-                    <span>-</span>
-                {% endif %}
+                <div id='gateway-output' class="collapse">
+                    {% if payment.extra_data %}
+                        <pre>{{ payment.extra_data }}</pre>
+                    {% else %}
+                        <span>-</span>
+                    {% endif %}
+                </div>
             </div>
         </div>
         <div class="panel panel-default">
