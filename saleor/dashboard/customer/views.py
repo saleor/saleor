@@ -11,9 +11,11 @@ class CustomerList(StaffMemberOnlyMixin, ListView):
 
     def get_queryset(self):
         qs = super(CustomerList, self).get_queryset()
-        qs = qs.prefetch_related('orders').annotate(
-            num_orders=Count('orders'), last_order=Max('orders'))
-
+        open_order = ['new', 'payment-pending', 'fully-paid']
+        qs = qs.prefetch_related('orders').filter(
+            orders__status__in=open_order)
+        qs = qs.annotate(num_orders=Count('orders', distinct=True),
+                         last_order=Max('orders', distinct=True))
         return qs
 
 
@@ -26,5 +28,4 @@ class CustomerDetails(StaffMemberOnlyMixin, DetailView):
         qs = super(CustomerDetails, self).get_queryset()
         qs = qs.prefetch_related('orders', 'addresses').select_related(
             'default_billing_address')
-
         return qs
