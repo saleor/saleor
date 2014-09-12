@@ -5,6 +5,7 @@
     <table class="table">
         <thead>
             <th>{% trans "Email" %}</th>
+            <th>{% trans "Name" %}</th>
             <th>{% trans "Location" %}</th>
             <th>{% trans "Number of orders" %}</th>
             <th>{% trans "Last order" %}</th>
@@ -12,12 +13,15 @@
         <tbody>
         {% for customer in customers %}
             <tr>
-                {% with customer.default_billing_address as default_address %}
+                {% with customer.default_billing_address.address as default_address %}
                 <td>
                     <a href="{% url "dashboard:customer-details" pk=customer.pk %}">{{ customer.email }}</a>
                 </td>
                 <td>
-                    {{ default_address.address.city }}, {{ default_address.address.get_country_display }}
+                    {{ default_address.first_name }} {{ default_address.last_name }}
+                </td>
+                <td>
+                    {{ default_address.city }}, {{ default_address.get_country_display }}
                 </td>
                 {% endwith %}
                 <td>
