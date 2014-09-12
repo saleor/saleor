@@ -43,6 +43,7 @@ class CustomerList(StaffMemberOnlyMixin, ListView, FormMixin):
             return queryset
 
     def apply_search_filters(self, queryset, data):
+        data = self._normalize_form_data(data)
         if data['email']:
             queryset = queryset.filter(email__icontains=data['email'])
         if data['name']:
@@ -65,6 +66,11 @@ class CustomerList(StaffMemberOnlyMixin, ListView, FormMixin):
         return queryset.prefetch_related('orders', 'addresses').annotate(
             num_orders=Count('orders', distinct=True),
             last_order=Max('orders', distinct=True))
+
+    def _normalize_form_data(self, data):
+        for k in data.keys():
+            data[k] = data[k].strip()
+        return data
 
 
 class CustomerDetails(StaffMemberOnlyMixin, DetailView):
