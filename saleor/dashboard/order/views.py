@@ -70,7 +70,9 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
         if form.is_valid():
             if action == 'capture' and payment.status == 'preauth':
                 try:
-                    payment.capture(amount=form.cleaned_data['amount'])
+                    payment.capture(
+                        amount=form.cleaned_data['amount'],
+                        user=self.request.user)
                 except PaymentError, e:
                     error_msg = _('Payment gateway error: ') + e.message
                 else:
@@ -78,7 +80,9 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
 
             elif action == 'refund' and payment.status == 'confirmed':
                 try:
-                    payment.refund(amount=payment.captured_amount)
+                    payment.refund(
+                        amount=payment.captured_amount,
+                        user=self.request.user)
                 except PaymentError, e:
                     error_msg = _('Payment gateway error: ') + e.message
                 else:
@@ -86,7 +90,7 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
 
             elif action == 'release' and payment.status == 'preauth':
                 try:
-                    payment.release()
+                    payment.release(user=self.request.user)
                 except PaymentError, e:
                     error_msg = _('Payment gateway error: ') + e.message
                 else:

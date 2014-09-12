@@ -69,14 +69,14 @@ class Order(models.Model, ItemSet):
                     self.token = token
                     break
         super(Order, self).save(*args, **kwargs)
-        if not self.status_history.exists():
-            self.status_history.create(status=self.status)
+        if not self.history.exists():
+            self.history.create(status=self.status)
 
     def change_status(self, status):
         if status != self.status:
             self.status = status
             self.save()
-            self.status_history.create(status=status)
+            self.history.create(status=status)
 
     def get_items(self):
         return OrderedItem.objects.filter(delivery_group__order=self)
@@ -267,17 +267,53 @@ class Payment(BasePayment):
                  for item in self.order.get_items()]
         return items
 
+    def capture(self, user=None, **kwargs):
+        result = super(Payment, self).capture(**kwargs)
+        amount = kwargs.get('amount', self.total)
+        comment = pgettext_lazy(
+            'Order history',
+            'Captured %(amount)s %(currency)s'
+            % {'amount': amount, 'currency': self.currency})
+        self.order.history.create(
+            status=self.order.status,
+            comment=comment,
+            user=user)
+        return result
+
+    def release(self, user=None, **kwargs):
+        result = super(Payment, self).release(**kwargs)
+        comment = pgettext_lazy('Order history', 'Released funds')
+        self.order.history.create(
+            status=self.order.status,
+            comment=comment,
+            user=user)
+        return result
+
+    def refund(self, user=None, **kwargs):
+        result = super(Payment, self).refund(**kwargs)
+        amount = kwargs.get('amount', self.total)
+        comment = pgettext_lazy(
+            'Order history',
+            'Refunded %(amount)s %(currency)s'
+            % {'amount': amount, 'currency': self.currency})
+        self.order.history.create(
+            status=self.order.status,
+            comment=comment,
+            user=user)
+        return result
+
 
 @python_2_unicode_compatible
-class OrderStatusChange(models.Model):
+class OrderHistoryEntry(models.Model):
     date = models.DateTimeField(
-        pgettext_lazy('Order field', 'last status change'),
+        pgettext_lazy('Order field', 'last history change'),
         default=now, editable=False)
-    order = models.ForeignKey(Order, related_name='status_history')
+    order = models.ForeignKey(Order, related_name='history')
     status = models.CharField(
         pgettext_lazy('Order field', 'order status'),
         max_length=32, choices=Order.STATUS_CHOICES)
     comment = models.CharField(max_length=100, null=True, blank=True)
+    user = models.ForeignKey(User, blank=True, null=True)
 
     def __str__(self):
         return 'Order #{0} status changed: {1}'.format(
@@ -297,3 +333,10 @@ class OrderNote(models.Model):
 
     def __str__(self):
         return 'OrderNote for Order {0}'.format(self.order.pk)
+
+    def save(self, *args, **kwargs):
+        super(OrderNote, self).save(*args, **kwargs)
+        self.order.history.create(
+            status=self.order.status,
+            comment=pgettext_lazy('Order history', 'Added note'),
+            user=self.user)

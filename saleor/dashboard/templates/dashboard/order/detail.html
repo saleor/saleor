@@ -133,10 +133,18 @@
             </div>
             <div class="panel-body">
                 <ul class="list-unstyled">
-                {% for status_change in order.status_history.all %}
+                {% for event in order.history.all %}
                     <li>
-                        <span>{{ status_change.date }}</span>
-                        {% include 'dashboard/includes/_status_label.html' with status=status_change.status status_display=status_change.get_status_display %}
+                        {{ event.date }}
+                        {% include 'dashboard/includes/_status_label.html' with status=event.status status_display=event.get_status_display %}
+                        <small>
+                        {% if event.user %}
+                            <span>{{ event.user }}</span>
+                        {% endif %}
+                        {% if event.comment %}
+                            <span>{{ event.comment }}</span>
+                        {% endif %}
+                        </small>
                     </li>
                 {% endfor %}
                 </ul>
