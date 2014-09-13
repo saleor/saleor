@@ -7,6 +7,15 @@
     {% csrf_token %}
     {{ form.media }}
     {{ form|as_horizontal_form }}
+    <script
+        src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+        data-key="{{ form.stripeToken.field.widget.attrs.data_key }}"
+        data-image="{{ STATIC_URL }}img/logo.png"
+        data-name="Ambiti in Bamboo"
+        data-description="{{ form.stripeToken.field.widget.attrs.data_description }}"
+        data-amount="{{ form.stripeToken.field.widget.attrs.data_amount }}"
+        data-currency="{{ form.stripeToken.field.widget.attrs.data_currency }}">
+    </script>
     {% if form.errors %}
     <a class="btn" href="{% url "order:details" token=payment.order.token %}">{% trans "Change payment method" %}</a>
     {% endif %}
