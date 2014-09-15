@@ -95,7 +95,7 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
             elif action == 'refund' and payment.status == 'confirmed':
                 try:
                     payment.refund(
-                        amount=payment.captured_amount,
+                        amount=form.cleaned_data['amount'],
                         user=self.request.user)
                 except PaymentError, e:
                     error_msg = _('Payment gateway error: ') + e.message
