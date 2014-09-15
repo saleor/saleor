@@ -12,17 +12,6 @@
     <div class="col-lg-8">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <span class="panel-title">Order details</span>
-            </div>
-            <div class="panel-body">
-                <p>Order date: {{ order.created }}</p>
-                <p>Order status: {% include 'dashboard/includes/_status_label.html' with status=order.status status_display=order.get_status_display %}</p>
-                <p>Payment status: {% include 'dashboard/includes/_status_label.html' with status=order.get_last_payment_status status_display=order.get_last_payment_status_display %}</p>
-            </div>
-        </div>
-
-        <div class="panel panel-default">
-            <div class="panel-heading">
                 <span class="panel-title">Order contents</span>
             </div>
             <div class="panel-body">
@@ -60,7 +49,6 @@
                 </table>
             </div>
         </div>
-
         <div class="panel panel-default">
             <div class="panel-heading">
                 <span class="panel-title">{% trans "Manage payment" %}</span>
@@ -79,21 +67,63 @@
                         </form>
                     {% endif %}
                 </div>
-                <div>
-                    <h4>Payment history</h4>
-                    <ul class="list-unstyled">
-                    {% for payment in order.payments.all %}
-                        <li>
-                            <span>{{ payment.created }}</span>
-                            {% include 'dashboard/includes/_status_label.html' with status=payment.status status_display=payment.get_status_display %}
-                            <a href="{% url "dashboard:payment-details" pk=payment.pk %}">Details</a>
-                        </li>
-                    {% endfor %}
-                    </ul>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">History</span>
+            </div>
+            <div class="panel-body">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="active"><a href="#order-history" role="tab" data-toggle="tab">Order history</a></li>
+                    <li><a href="#payment-history" role="tab" data-toggle="tab">Payment history</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane active" id="order-history">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Order status</th>
+                                    <th>User</th>
+                                    <th>Comment</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in order.history.all %}
+                                <tr>
+                                    <td>{{ event.date }}</td>
+                                    <td>{% include 'dashboard/includes/_status_label.html' with status=event.status status_display=event.get_status_display %}</td>
+                                    <td>{{ event.user|default:"-" }}</td>
+                                    <td>{{ event.comment|default:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="tab-pane" id="payment-history">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Payment status</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in order.payments.all %}
+                                <tr>
+                                    <td>{{ payment.created }}</td>
+                                    <td>{% include 'dashboard/includes/_status_label.html' with status=payment.status status_display=payment.get_status_display %}</td>
+                                    <td><a href="{% url "dashboard:payment-details" pk=payment.pk %}">Details</a></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-
         <div class="panel panel-default" id="order-notes">
             <div class="panel-heading">
                 <span class="panel-title">Order notes</span>
@@ -123,31 +153,20 @@
                 </div>
             </div>
         </div>
-
     </div>
-
     <div class="col-lg-4">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <span class="panel-title">Order history</span>
+                <span class="panel-title">Order summary</span>
             </div>
             <div class="panel-body">
-                <ul class="list-unstyled">
-                {% for event in order.history.all %}
-                    <li>
-                        {{ event.date }}
-                        {% include 'dashboard/includes/_status_label.html' with status=event.status status_display=event.get_status_display %}
-                        <small>
-                        {% if event.user %}
-                            <span>{{ event.user }}</span>
-                        {% endif %}
-                        {% if event.comment %}
-                            <span>{{ event.comment }}</span>
-                        {% endif %}
-                        </small>
-                    </li>
-                {% endfor %}
-                </ul>
+                <p>Order date: {{ order.created }}</p>
+                <p>Order status: {% include 'dashboard/includes/_status_label.html' with status=order.status status_display=order.get_status_display %}</p>
+                <p>Payment status: {% include 'dashboard/includes/_status_label.html' with status=order.get_last_payment_status status_display=order.get_last_payment_status_display %}</p>
+                <p>Total: {% gross order.get_total %}</p>
+                {% with order.payments.last as payment %}
+                    <p>Captured: {{ payment.captured_amount }} {{ payment.currency }}</p>
+                {% endwith %}
             </div>
         </div>
         <div class="panel panel-default">
@@ -169,7 +188,6 @@
                 </div>
             </div>
         </div>
-
         <div class="panel panel-default">
             {% with order.billing_address as address %}
             <div class="panel-heading">
@@ -181,7 +199,6 @@
             </div>
             {% endwith %}
         </div>
-
         <div class="panel panel-default">
             {% with view.get_delivery_info as delivery %}
                 <div class="panel-heading">
@@ -197,7 +214,6 @@
                 </div>
             {% endwith %}
         </div>
-
     </div>
 </div>
 {% endblock %}
