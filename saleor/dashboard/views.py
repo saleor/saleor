@@ -5,22 +5,6 @@ from django.views.generic import TemplateView
 from ..order.models import Order, Payment
 
 
-class IndexView(TemplateView):
-    template_name = 'dashboard/index.html'
-
-    def get_context_data(self, **kwargs):
-        ctx = super(IndexView, self).get_context_data(**kwargs)
-        ctx['preauthorized_payments'] = self.get_preauthorized_payments()
-        ctx['orders_to_ship'] = self.get_orders_to_ship()
-        return ctx
-
-    def get_preauthorized_payments(self):
-        return Payment.objects.filter(status='preauth')
-
-    def get_orders_to_ship(self):
-        return Order.objects.filter(status='fully-paid')
-
-
 class StaffMemberOnlyMixin(object):
     @method_decorator(user_passes_test(lambda u: u.is_staff))
     def dispatch(self, *args, **kwargs):
@@ -58,3 +42,19 @@ class FilterByStatusMixin(object):
                   if (name, verbose) not in filters]
         filters.extend(remain)
         return filters
+
+
+class IndexView(StaffMemberOnlyMixin, TemplateView):
+    template_name = 'dashboard/index.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super(IndexView, self).get_context_data(**kwargs)
+        ctx['preauthorized_payments'] = self.get_preauthorized_payments()
+        ctx['orders_to_ship'] = self.get_orders_to_ship()
+        return ctx
+
+    def get_preauthorized_payments(self):
+        return Payment.objects.filter(status='preauth')
+
+    def get_orders_to_ship(self):
+        return Order.objects.filter(status='fully-paid')
