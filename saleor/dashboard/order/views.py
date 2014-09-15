@@ -34,16 +34,17 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         ctx = super(OrderDetails, self).get_context_data(**kwargs)
-        payment = self.get_object().payments.last()
 
+        ctx['notes'] = self.object.notes.all()
         if 'note_form' not in ctx:
             ctx['note_form'] = self.note_form_class()
 
-        ctx['can_capture'] = payment.status == 'preauth'
-        ctx['can_release'] = payment.status == 'preauth'
-        ctx['can_refund'] = payment.status == 'confirmed'
-
-        if 'payment_form' not in ctx:
+        payment = self.get_object().payments.last()
+        ctx['payment'] = payment
+        if payment:
+            ctx['can_capture'] = payment.status == 'preauth'
+            ctx['can_release'] = payment.status == 'preauth'
+            ctx['can_refund'] = payment.status == 'confirmed'
             if payment.status == 'confirmed':
                 amount = payment.captured_amount
             elif payment.status == 'preauth':
@@ -52,9 +53,9 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
                 amount = None
             ctx['payment_form'] = self.payment_form_class(
                 initial={'amount': amount})
-
-        ctx['notes'] = self.object.notes.all()
-        ctx['payment'] = self.object.payments.last()
+        else:
+            ctx['can_capture'] = ctx['can_release'] = ctx['can_refund'] = False
+            ctx['payment_form'] = self.payment_form_class()
         return ctx
 
     def get_delivery_info(self):
