@@ -56,6 +56,8 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
             return None
 
     def post(self, request, *args, **kwargs):
+        if 'release' in request.POST:
+            self.handle_release_action()
         if 'payment_form' in request.POST:
             form = self.payment_form_class(request.POST)
             self.handle_payment_form(form, request.POST['payment_form'])
@@ -63,6 +65,18 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
             form = self.note_form_class(request.POST)
             self.handle_note_form(form)
         return self.get(request, *args, **kwargs)
+
+    def handle_release_action(self):
+        payment = self.get_object().payments.last()
+        error_msg = None
+        if payment.status == 'preauth':
+            try:
+                payment.release(user=self.request.user)
+            except PaymentError, e:
+                error_msg = _('Payment gateway error: ') + e.message
+                messages.error(self.request, error_msg)
+            else:
+                messages.success(self.request, _('Release successful'))
 
     def handle_payment_form(self, form, action):
         payment = self.get_object().payments.last()
@@ -88,13 +102,6 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
                 else:
                     messages.success(self.request, _('Refund successful'))
 
-            elif action == 'release' and payment.status == 'preauth':
-                try:
-                    payment.release(user=self.request.user)
-                except PaymentError, e:
-                    error_msg = _('Payment gateway error: ') + e.message
-                else:
-                    messages.success(self.request, _('Release successful'))
         if error_msg:
             messages.error(self.request, error_msg)
 
