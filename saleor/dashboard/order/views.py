@@ -34,16 +34,24 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         ctx = super(OrderDetails, self).get_context_data(**kwargs)
-        if 'payment_form' not in ctx:
-            ctx['payment_form'] = self.payment_form_class(
-                initial={'amount': self.object.get_total().gross})
+        payment = self.get_object().payments.last()
+
         if 'note_form' not in ctx:
             ctx['note_form'] = self.note_form_class()
 
-        last_payment_status = self.object.get_last_payment_status()
-        ctx['can_capture'] = last_payment_status == 'preauth'
-        ctx['can_release'] = last_payment_status == 'preauth'
-        ctx['can_refund'] = last_payment_status == 'confirmed'
+        ctx['can_capture'] = payment.status == 'preauth'
+        ctx['can_release'] = payment.status == 'preauth'
+        ctx['can_refund'] = payment.status == 'confirmed'
+
+        if 'payment_form' not in ctx:
+            if payment.status == 'confirmed':
+                amount = payment.captured_amount
+            elif payment.status == 'preauth':
+                amount = self.object.get_total().gross
+            else:
+                amount = None
+            ctx['payment_form'] = self.payment_form_class(
+                initial={'amount': amount})
 
         ctx['notes'] = self.object.notes.all()
         ctx['payment'] = self.object.payments.last()
@@ -58,10 +66,10 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
     def post(self, request, *args, **kwargs):
         if 'release' in request.POST:
             self.handle_release_action()
-        if 'payment_form' in request.POST:
+        elif 'payment_form' in request.POST:
             form = self.payment_form_class(request.POST)
             self.handle_payment_form(form, request.POST['payment_form'])
-        else:
+        elif 'note_form' in request.POST:
             form = self.note_form_class(request.POST)
             self.handle_note_form(form)
         return self.get(request, *args, **kwargs)
