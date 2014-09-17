@@ -176,7 +176,7 @@
                 {% endif %}
                 <form method="post">
                     {% csrf_token %}
-                    <input type="submit" class="btn btn-warning" name='payment_form' value="Release" {% if not can_release %} disabled {% endif %}/>
+                    <input type="submit" class="btn btn-warning" name='release_action' value="Release" {% if not can_release %} disabled {% endif %}/>
                 </form>
             </div>
         </div>

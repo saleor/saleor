@@ -71,7 +71,7 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
             return None
 
     def post(self, request, *args, **kwargs):
-        if 'release' in request.POST:
+        if 'release_action' in request.POST:
             self.handle_release_action()
         elif 'payment_form' in request.POST:
             form = self.payment_form_class(request.POST)
