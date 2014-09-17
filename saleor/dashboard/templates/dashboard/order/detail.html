@@ -8,45 +8,57 @@
 {% block content %}
 <div class="row">
     <h1 class="page-header">Order #{{ order.id }}</h1>
-
     <div class="col-lg-8">
         <div class="panel panel-default">
             <div class="panel-heading">
                 <span class="panel-title">Order contents</span>
             </div>
             <div class="panel-body">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th class="col-sm-3">{% trans "Name" %}</th>
-                            <th class="col-sm-3">{% trans "Variant" %}</th>
-                            <th class="col-sm-3">{% trans "SKU" %}</th>
-                            <th class="col-sm-3">{% trans "Price" %}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in order.get_items %}
+                <form method="post" action="">
+                    {{ order_formset.management_form }}
+                    <table class="table">
+                        <thead>
                             <tr>
-                                <td class="col-sm-3"><a href="{% url "dashboard:product-update" pk=item.product_id %}">{{ item.product }}</a></td>
-                                <td class="col-sm-3">{{ item.product_name }}</td>
-                                <td class="col-sm-3">{{ item.product_sku }}</td>
-                                <td class="col-sm-3">{{ item.quantity }} x {% gross item.get_price_per_item %}</td>
+                                <th class="col-sm-3">{% trans "Name" %}</th>
+                                <th class="col-sm-3">{% trans "Variant" %}</th>
+                                <th class="col-sm-3">{% trans "SKU" %}</th>
+                                <th class="col-sm-3">{% trans "Price" %}</th>
+                                <th class="col-sm-3">{% trans "Quantity" %}</th>
                             </tr>
-                        {% endfor %}
-                    </tbody>
-
-                    <tr>
-                        <td colspan="4"><strong>{% trans "Order totals" %}</strong></td>
-                    </tr>
-                    <tr>
-                        <td colspan="3">{% trans "Delivery" %}</td>
-                        <td>{% gross order.get_delivery_total %}</td>
-                    </tr>
-                    <tr>
-                        <td colspan="3">{% trans "Total" %}</td>
-                        <td>{% gross order.get_total %}</td>
-                    </tr>
-                </table>
+                        </thead>
+                        <tbody>
+                            {% for form in order_formset %}
+                                <tr>
+                                    <td class="col-sm-3"><a href="{% url "dashboard:product-update" pk=form.item.product_id %}">{{ form.item.product }}</a></td>
+                                    <td>{{ form.item.product_name }}</td>
+                                    <td>{{ form.item.product_sku }}</td>
+                                    <td>{% gross form.item.get_price_per_item %}</td>
+                                    <td>{{ form.quantity }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tr>
+                            <td colspan="4"></td>
+                            <td>
+                                <button class="btn btn-default" type="submit" name="order_formset">
+                                    {% csrf_token %}
+                                    {% trans "Update quantities" %}
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="5"><strong>{% trans "Order totals" %}</strong></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">{% trans "Delivery" %}</td>
+                            <td>{% gross order.get_delivery_total %}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">{% trans "Total" %}</td>
+                            <td>{% gross order.get_total %}</td>
+                        </tr>
+                    </table>
+                </form>
             </div>
         </div>
         <div class="panel panel-default">

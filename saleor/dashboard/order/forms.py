@@ -1,7 +1,11 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
+from django.forms.formsets import BaseFormSet, DEFAULT_MAX_NUM
+from satchless.item import InsufficientStock
 
+from ...cart.forms import QuantityField
 from ...order.models import OrderNote
+from ...product.models import Product
 
 
 class OrderNoteForm(forms.ModelForm):
@@ -20,3 +24,60 @@ class OrderNoteForm(forms.ModelForm):
 
 class ManagePaymentForm(forms.Form):
     amount = forms.DecimalField(min_value=0, decimal_places=2)
+
+
+class OrderLineForm(forms.Form):
+    quantity = QuantityField()
+
+    def __init__(self, *args, **kwargs):
+        self.item = kwargs.pop('item')
+        super(OrderLineForm, self).__init__(*args, **kwargs)
+
+    def get_variant(self):
+        p = Product.objects.select_subclasses().get(pk=self.item.product.pk)
+        return p.variants.get(name=self.item.product_name)
+
+    def clean_quantity(self):
+        quantity = self.cleaned_data['quantity']
+        variant = self.get_variant()
+        try:
+            variant.check_quantity(quantity)
+        except InsufficientStock as e:
+            msg = _('Only %(remaining)d remaining in stock.')
+            raise forms.ValidationError(msg % {'remaining': e.item.stock})
+        return quantity
+
+    def save(self):
+        quantity = self.cleaned_data['quantity']
+        if quantity > 0:
+            self.item.quantity = quantity
+            self.item.save()
+        else:
+            self.item.delete()
+
+
+class OrderContentFormset(BaseFormSet):
+    absolute_max = 9999
+    can_delete = False
+    can_order = False
+    extra = 0
+    form = OrderLineForm
+    max_num = DEFAULT_MAX_NUM
+    validate_max = False
+    min_num = None
+    validate_min = False
+
+    def __init__(self, *args, **kwargs):
+        self.order = kwargs.pop('order')
+        kwargs['initial'] = [{'quantity': item.quantity}
+                             for item in self.order.get_items()]
+        super(OrderContentFormset, self).__init__(*args, **kwargs)
+
+    def _construct_form(self, i, **kwargs):
+        kwargs['item'] = self.order.get_items()[i]
+        return super(OrderContentFormset, self)._construct_form(i, **kwargs)
+
+    def save(self):
+        for form in self.forms:
+            if form.is_valid():
+                form.save()

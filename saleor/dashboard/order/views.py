@@ -3,12 +3,13 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, DetailView, UpdateView
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import ValidationError
 from payments import PaymentError
 
 from ...order.models import Order, Address
 from ...userprofile.forms import AddressForm
 from ..views import StaffMemberOnlyMixin, FilterByStatusMixin
-from .forms import OrderNoteForm, ManagePaymentForm
+from .forms import OrderNoteForm, ManagePaymentForm, OrderContentFormset
 
 
 class OrderListView(StaffMemberOnlyMixin, FilterByStatusMixin, ListView):
@@ -26,6 +27,7 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
     context_object_name = 'order'
     payment_form_class = ManagePaymentForm
     note_form_class = OrderNoteForm
+    order_formset_class = OrderContentFormset
 
     def get_queryset(self):
         qs = super(OrderDetails, self).get_queryset()
@@ -56,6 +58,10 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
         else:
             ctx['can_capture'] = ctx['can_release'] = ctx['can_refund'] = False
             ctx['payment_form'] = self.payment_form_class()
+
+        ctx['order_formset'] = self.order_formset_class(
+            order=self.object)
+
         return ctx
 
     def get_delivery_info(self):
@@ -73,6 +79,11 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
         elif 'note_form' in request.POST:
             form = self.note_form_class(request.POST)
             self.handle_note_form(form)
+        elif 'order_formset' in request.POST:
+            formset = self.order_formset_class(
+                request.POST or None,
+                order=self.get_object())
+            self.handle_order_formset(formset)
         return self.get(request, *args, **kwargs)
 
     def handle_release_action(self):
@@ -123,6 +134,13 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
             messages.success(self.request, _('Note saved'))
         else:
             messages.error(self.request, _('Form has errors'))
+
+    def handle_order_formset(self, formset):
+        if formset.is_valid():
+            formset.save()
+            messages.success(self.request, _('Quantities updated'))
+        else:
+            messages.error(self.request, _('Problem with updating quantities'))
 
 
 class AddressView(StaffMemberOnlyMixin, UpdateView):
