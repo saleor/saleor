@@ -1,10 +1,10 @@
 from django.conf.urls import patterns, url, include
 from . import views as core_views
 
-from order.urls import urlpatterns as order_urls
-from product.urls import urlpatterns as product_urls
-from payments.urls import urlpatterns as payments_urls
-from customer.urls import urlpatterns as customer_urls
+from .order.urls import urlpatterns as order_urls
+from .product.urls import urlpatterns as product_urls
+from .payments.urls import urlpatterns as payments_urls
+from .customer.urls import urlpatterns as customer_urls
 
 
 urlpatterns = patterns('',

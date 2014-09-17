@@ -92,7 +92,7 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
         if payment.status == 'preauth':
             try:
                 payment.release(user=self.request.user)
-            except PaymentError, e:
+            except PaymentError as e:
                 error_msg = _('Payment gateway error: ') + e.message
                 messages.error(self.request, error_msg)
             else:
@@ -107,7 +107,7 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
                     payment.capture(
                         amount=form.cleaned_data['amount'],
                         user=self.request.user)
-                except PaymentError, e:
+                except PaymentError as e:
                     error_msg = _('Payment gateway error: ') + e.message
                 else:
                     messages.success(self.request, _('Funds captured'))
@@ -117,7 +117,7 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
                     payment.refund(
                         amount=form.cleaned_data['amount'],
                         user=self.request.user)
-                except PaymentError, e:
+                except PaymentError as e:
                     error_msg = _('Payment gateway error: ') + e.message
                 else:
                     messages.success(self.request, _('Refund successful'))

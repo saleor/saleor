@@ -51,7 +51,7 @@ class PaymentDetails(DetailView):
         if form.is_valid():
             try:
                 payment.capture(amount=form.cleaned_data['amount'])
-            except PaymentError, e:
+            except PaymentError as e:
                 error_msg = _('Payment gateway error: ') + e.message
             else:
                 messages.success(self.request, _('Funds captured'))
@@ -59,7 +59,7 @@ class PaymentDetails(DetailView):
         if 'refund' in self.request.POST and payment.status == 'confirmed':
             try:
                 payment.refund(amount=payment.captured_amount)
-            except PaymentError, e:
+            except PaymentError as e:
                 error_msg = _('Payment gateway error: ') + e.message
             else:
                 messages.success(self.request, _('Refund successful'))
@@ -67,7 +67,7 @@ class PaymentDetails(DetailView):
         if 'release' in self.request.POST and payment.status == 'preauth':
             try:
                 payment.release()
-            except PaymentError, e:
+            except PaymentError as e:
                 error_msg = _('Payment gateway error: ') + e.message
             else:
                 messages.success(self.request, _('Release successful'))
