@@ -214,6 +214,8 @@ PAYMENT_VARIANTS = {
     'default': ('payments.dummy.DummyProvider', {})
 }
 
+PAYMENT_HOST = 'localhost:8000'
+
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 
 CHECKOUT_PAYMENT_CHOICES = [

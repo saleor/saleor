@@ -2,20 +2,18 @@ from __future__ import unicode_literals
 from datetime import timedelta
 
 from django.db import models
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, get_user_model
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
-
-from ..userprofile.models import User
 
 now = timezone.now
 
 
 class ExternalUserData(models.Model):
 
-    user = models.ForeignKey(User, related_name='external_ids')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='external_ids')
     service = models.TextField(db_index=True)
     username = models.TextField(db_index=True)
 
@@ -62,7 +60,7 @@ class EmailConfirmationRequest(AbstractToken):
     email = models.EmailField()
 
     def get_authenticated_user(self):
-        user, _created = User.objects.get_or_create(email=self.email)
+        user, _created = get_user_model().objects.get_or_create(email=self.email)
         return authenticate(user=user)
 
     def get_confirmation_url(self):
@@ -72,7 +70,7 @@ class EmailConfirmationRequest(AbstractToken):
 
 class EmailChangeRequest(AbstractToken):
 
-    user = models.ForeignKey(User, related_name="email_change_requests")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="email_change_requests")
     email = models.EmailField()  # email address that user is switching to
 
     def get_confirmation_url(self):
