@@ -1,8 +1,10 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.admin.options import ModelAdmin
 from django.forms.models import BaseInlineFormSet
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
 
 from .models import Order, OrderedItem, Payment
 
@@ -26,17 +28,70 @@ class OrderModelAdmin(ModelAdmin):
         return inlines
 
 
+class PaymentInlineForm(forms.ModelForm):
+
+    action = forms.ChoiceField(label=_('Action'),
+        choices=((None, '---------'), ('capture', _('Capture')),
+                 ('release', _('Release')), ('refund', _('Refund'))),
+        required=False)
+    amount = forms.DecimalField(label=_('Amount'), max_digits=12,
+        decimal_places=4, required=False)
+
+    class Meta:
+        model = Payment
+
+    def __init__(self, *args, **kwargs):
+        super(PaymentInlineForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super(PaymentInlineForm, self).clean()
+        action = cleaned_data.get('action')
+        amount = cleaned_data.get('amount')
+        if action:
+            if self.instance.status != 'preauth':
+                if action == 'capture':
+                    raise forms.ValidationError(
+                        _('Only pre-authorized payments can be captured'))
+                if action == 'release':
+                    raise forms.ValidationError(
+                        _('Only pre-authorized payments can be released'))
+
+            if self.instance.status != 'confirmed' and action == 'refund':
+                raise forms.ValidationError(
+                    _('Only confirmed payments can be refunded'))
+
+            if action == 'refund' and amount > self.instance.captured_amount:
+                raise forms.ValidationError(
+                    _('Refund amount can not be greater then captured amount'))
+
+        return cleaned_data
+
+    def save(self, commit):
+        payment = super(PaymentInlineForm, self).save(commit)
+        action = self.cleaned_data.get('action')
+        amount = self.cleaned_data.get('amount')
+        if action == 'capture':
+            payment.capture(amount)
+        if action == 'refund':
+            payment.refund(amount)
+        if action == 'release':
+            payment.release()
+        return payment
+
+
 class PaymentInlineAdmin(admin.TabularInline):
 
     model = Payment
+    form = PaymentInlineForm
     extra = 0
     readonly_fields = ['variant', 'status', 'transaction_id', 'currency',
                        'total', 'delivery', 'description', 'tax',
-                       'billing_first_name', 'billing_last_name',
-                       'billing_address_1', 'billing_address_2',
-                       'billing_city', 'billing_country_code',
-                       'billing_country_area', 'billing_postcode']
-    exclude = ['token', 'extra_data']
+                       'captured_amount', 'message', 'customer_ip_address',
+                       'fraud_status', 'fraud_message']
+    exclude = ['token', 'extra_data', 'billing_first_name', 'billing_last_name',
+               'billing_address_1', 'billing_address_2', 'billing_city',
+               'billing_country_code', 'billing_country_area', 'billing_email',
+               'billing_postcode']
     can_delete = False
 
 
