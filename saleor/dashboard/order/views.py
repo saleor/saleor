@@ -3,7 +3,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, DetailView, UpdateView
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
-from django.core.exceptions import ValidationError
 from payments import PaymentError
 
 from ...order.models import Order, Address
