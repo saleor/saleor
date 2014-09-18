@@ -43,7 +43,8 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
         payment = self.get_object().payments.last()
         ctx['payment'] = payment
         if payment:
-            ctx['can_capture'] = payment.status == 'preauth'
+            ctx['can_capture'] = payment.status == 'preauth' \
+                and self.object.status != 'cancelled'
             ctx['can_release'] = payment.status == 'preauth'
             ctx['can_refund'] = payment.status == 'confirmed'
             if payment.status == 'confirmed':
