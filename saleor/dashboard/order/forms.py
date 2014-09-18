@@ -50,7 +50,7 @@ class OrderLineForm(forms.Form):
 
     def save(self, user=None):
         new_quantity = self.cleaned_data['quantity']
-        if new_quantity != self.item.quantity and new_quantity > 0:
+        if new_quantity != self.item.quantity:
             self.item.change_quantity(new_quantity, user)
 
 

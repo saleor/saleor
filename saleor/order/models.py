@@ -238,18 +238,17 @@ class OrderedItem(models.Model, ItemLine):
     def get_quantity(self):
         return self.quantity
 
-    def change_quantity(self, quantity, user=None):
+    def change_quantity(self, new_quantity, user=None):
         order = self.delivery_group.order
-        product = self.product
-        if quantity > 0:
-            self.quantity = quantity
-            self.save()
-        elif quantity == 0:
-            self.delete()
+        old_quantity = self.quantity
+        self.quantity = new_quantity
+        self.save()
         comment = pgettext_lazy(
             'Order history',
-            'Changed quantity for product %(product)s: %(quantity)s' % {
-                'quantity': quantity, 'product': product})
+            'Changed quantity for product %(product)s from %(old_quantity)s \
+                to %(new_quantity)s' % {'new_quantity': new_quantity,
+                                        'old_quantity': old_quantity,
+                                        'product': self.product})
         order.history.create(status=order.status, comment=comment, user=user)
 
 
