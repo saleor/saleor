@@ -136,7 +136,7 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
 
     def handle_order_formset(self, formset):
         if formset.is_valid():
-            formset.save()
+            formset.save(user=self.request.user)
             messages.success(self.request, _('Quantities updated'))
         else:
             messages.error(self.request, _('Problem with updating quantities'))

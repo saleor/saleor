@@ -47,13 +47,10 @@ class OrderLineForm(forms.Form):
             raise forms.ValidationError(msg % {'remaining': e.item.stock})
         return quantity
 
-    def save(self):
-        quantity = self.cleaned_data['quantity']
-        if quantity > 0:
-            self.item.quantity = quantity
-            self.item.save()
-        else:
-            self.item.delete()
+    def save(self, user=None):
+        new_quantity = self.cleaned_data['quantity']
+        if new_quantity != self.item.quantity and new_quantity > 0:
+            self.item.change_quantity(new_quantity, user)
 
 
 class OrderContentFormset(BaseFormSet):
@@ -77,7 +74,7 @@ class OrderContentFormset(BaseFormSet):
         kwargs['item'] = self.order.get_items()[i]
         return super(OrderContentFormset, self)._construct_form(i, **kwargs)
 
-    def save(self):
+    def save(self, user=None):
         for form in self.forms:
             if form.is_valid():
-                form.save()
+                form.save(user)
