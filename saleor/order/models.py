@@ -251,6 +251,9 @@ class OrderedItem(models.Model, ItemLine):
                                         'product': self.product})
         order.history.create(status=order.status, comment=comment, user=user)
 
+        if not any([item.quantity for item in order.get_items()]):
+            order.change_status('cancelled')
+
 
 class Payment(BasePayment):
 
