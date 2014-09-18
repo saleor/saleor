@@ -32,6 +32,7 @@ class OrderLineForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.item = kwargs.pop('item')
         super(OrderLineForm, self).__init__(*args, **kwargs)
+        self.fields['quantity'].widget.attrs['max'] = self.item.quantity
 
     def get_variant(self):
         p = Product.objects.select_subclasses().get(pk=self.item.product.pk)
