@@ -54,7 +54,7 @@ class IndexView(StaffMemberOnlyMixin, TemplateView):
         return ctx
 
     def get_preauthorized_payments(self):
-        return Payment.objects.filter(status='preauth')
+        return Payment.objects.filter(status='preauth').order_by('-created')
 
     def get_orders_to_ship(self):
         return Order.objects.filter(status='fully-paid')
