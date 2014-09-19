@@ -2,18 +2,20 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.views.generic import ListView, UpdateView
+from django.views.generic.edit import FormMixin
 from django.utils.translation import ugettext_lazy as _
-from ..stock.forms import StockRecordFormSet
 from ..views import StaffMemberOnlyMixin
 from ...product.models import Product
-from .forms import ProductImageFormSet
+from .forms import (ProductImageFormSet, ProductForm, ProductCategory,
+                    get_product_form_class, get_variant_formset_class)
 
 
-class ProductListView(StaffMemberOnlyMixin, ListView):
+class ProductListView(StaffMemberOnlyMixin, ListView, FormMixin):
     model = Product
     paginate_by = 30
     template_name = 'dashboard/product/list.html'
     context_object_name = 'products'
+    form_class = ProductCategory
 
     def get_queryset(self):
         qs = super(ProductListView, self).get_queryset()
@@ -22,32 +24,50 @@ class ProductListView(StaffMemberOnlyMixin, ListView):
         qs = qs.select_subclasses()
         return qs
 
+    def get_context_data(self, **kwargs):
+        ctx = super(ProductListView, self).get_context_data(**kwargs)
+        ctx['form'] = self.form_class()
+        return ctx
+
+    def post(self, request, **kwargs):
+        form = self.form_class(request.POST)
+        if form.is_valid:
+            return HttpResponseRedirect(reverse('dashboard:product-add'))
+        return self.get(request, **kwargs)
+
 
 class ProductView(StaffMemberOnlyMixin, UpdateView):
     model = Product
     template_name = 'dashboard/product/product_form.html'
     image_formset = ProductImageFormSet
-    stock_formset = StockRecordFormSet
+    variant_formset = None
+    form_class = ProductForm
+    context_object_name = 'product'
 
     def __init__(self, *args, **kwargs):
         super(ProductView, self).__init__(*args, **kwargs)
-        self.formsets = {'image_formset': self.image_formset,
-                         'stock_formset': self.stock_formset}
+        self.formsets = {'image_formset': self.image_formset}
+
+    def get_queryset(self):
+        qs = super(UpdateView, self).get_queryset()
+        qs = qs.select_subclasses()
+        return qs
 
     def get_object(self, queryset=None):
-        """
-        This parts allows generic.UpdateView to handle creating products as
-        well. The only distinction between an UpdateView and a CreateView
-        is that self.object is None. We emulate this behavior.
-        Additionally, self.product_class is set.
-        """
         self.creating = 'pk' not in self.kwargs
-
         if self.creating:
-            return None  # success
+            return None
         else:
             product = super(ProductView, self).get_object(queryset)
+            if not self.variant_formset:
+                variant_formset_cls = get_variant_formset_class(product)
+                self.formsets['variant_formset'] = variant_formset_cls
+                self.variant_formset = variant_formset_cls
             return product
+
+    def get_form_class(self):
+        product = self.get_object()
+        return get_product_form_class(product)
 
     def get_context_data(self, **kwargs):
         ctx = super(ProductView, self).get_context_data(**kwargs)
@@ -63,10 +83,6 @@ class ProductView(StaffMemberOnlyMixin, UpdateView):
         return ctx
 
     def process_all_forms(self, form):
-        """
-        Short-circuits the regular logic to have one place to have our
-        logic to check all forms
-        """
         if self.creating and form.is_valid():
             self.object = form.save()
 
@@ -75,39 +91,27 @@ class ProductView(StaffMemberOnlyMixin, UpdateView):
             formsets[ctx_name] = formset_class(self.request.POST,
                                                self.request.FILES,
                                                instance=self.object)
+        for formset in formsets.values():
+            formset.is_valid()
 
-        is_valid = form.is_valid() and all([formset.is_valid()
-                                            for formset in formsets.values()])
+        is_valid = form.is_valid() \
+            and all([formset.is_valid() for formset in formsets.values()])
 
         if is_valid:
             return self.forms_valid(form, formsets)
         else:
             return self.forms_invalid(form, formsets)
 
-    # form_valid and form_invalid are called depending on the validation result
-    # of just the product form and redisplay the form respectively return a
-    # redirect to the success URL. In both cases we need to check our formsets
-    # as well, so both methods do the same. process_all_forms then calls
-    # forms_valid or forms_invalid respectively, which do the redisplay or
-    # redirect.
     form_valid = form_invalid = process_all_forms
 
     def forms_valid(self, form, formsets):
-        """
-        Save all changes and display a success url.
-        """
         if not self.creating:
-            # a just created product was already saved in process_all_forms()
             self.object = form.save()
-
-        # Save formsets
         for formset in formsets.values():
             formset.save()
-
         return HttpResponseRedirect(self.get_success_url())
 
     def forms_invalid(self, form, formsets):
-        # delete the temporary product again
         if self.creating and self.object and self.object.pk is not None:
             self.object.delete()
             self.object = None
@@ -121,4 +125,3 @@ class ProductView(StaffMemberOnlyMixin, UpdateView):
     def get_success_url(self):
         return reverse('dashboard:product-update',
                        kwargs={'pk': self.object.pk})
-

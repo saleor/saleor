@@ -17,32 +17,62 @@
             <span class="glyphicon glyphicon-ok-sign"></span>
             <span class="message-content">{% trans "Data saved" %}</span>
         </div>
-        <form method="post" action="." id="product-form" enctype="multipart/form-data">
+        <form class="form form-horizontal" method="post" action="." id="product-form" enctype="multipart/form-data">
+            {{ variant_formset.management_form }}
+            {{ image_formset.management_form }}
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <span class="panel-title">{% trans "Product data" %}</span>
+                    <span class="panel-title">{% trans "Details" %}</span>
                 </div>
                 <div class="panel-body">
                     {% csrf_token %}
-                    {{ form|as_vertical_form }}
+                    {{ form|as_horizontal_form }}
                 </div>
             </div>
 
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <span class="panel-title">Inventory</span>
+                    <span class="panel-title">{% trans "Variants" %}</span>
+                    <span class="pull-right"><a data-toggle="collapse" href="#add-variant"><i class="glyphicon glyphicon-plus"></i> Add variant</a></span>
                 </div>
                 <div class="panel-body">
-                    {{ stock_formset.as_p }}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                {% for field in variant_formset.0 %}
+                                <th>{{ field.label }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for form in variant_formset.initial_forms %}
+                            <tr>
+                                {% for field in form %}
+                                <td>{{ field }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <span class="panel-title">Images</span>
+                    <span class="panel-title">{% trans "Images" %}</span>
+                    <span class="pull-right"><a data-toggle="collapse" href="#add-image"><i class="glyphicon glyphicon-plus"></i> Add image</a></span>
                 </div>
                 <div class="panel-body">
-                    {{ image_formset.as_p }}
+                    <table class="table">
+                        <tbody>
+                        {% for form in image_formset %}
+                            <tr>
+                                {{ form }}
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+
                 </div>
             </div>
 
