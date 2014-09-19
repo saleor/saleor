@@ -328,7 +328,7 @@ class OrderHistoryEntry(models.Model):
     status = models.CharField(
         pgettext_lazy('Order field', 'order status'),
         max_length=32, choices=Order.STATUS_CHOICES)
-    comment = models.CharField(max_length=100, null=True, blank=True)
+    comment = models.CharField(max_length=100, default='', blank=True)
     user = models.ForeignKey(User, blank=True, null=True)
 
     def __str__(self):
