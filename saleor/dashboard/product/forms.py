@@ -26,11 +26,13 @@ class ProductForm(forms.ModelForm):
 class ShirtForm(ProductForm):
     class Meta:
         model = Shirt
+        exclude = ProductForm.Meta.exclude
 
 
 class BagForm(ProductForm):
     class Meta:
         model = Bag
+        exclude = ProductForm.Meta.exclude
 
 
 ProductImageFormSet = inlineformset_factory(Product, ProductImage, extra=1)
