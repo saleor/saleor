@@ -15,7 +15,7 @@
         </tr>
     {% endfor %}
     {% for form in formset.extra_forms %}
-        <tr {% if collapse_id %}id="{{ collapse_id }}" class="collapse"{% endif %}>
+        <tr {% if formset.initial_forms and collapse_id %}id="{{ collapse_id }}" class="collapse"{% endif %}>
             {% for field in form %}
             <td>{{ field }}</td>
             {% endfor %}
