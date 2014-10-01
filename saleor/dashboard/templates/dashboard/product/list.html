@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load prices_i18n %}
 {% load images %}
+{% load bootstrap %}
 
 {% block title %}{% trans "All products" %}{% endblock %}
 
@@ -11,11 +12,22 @@
 
         <div class="col-lg-12">
             <h1 class="page-header">{% trans "Products" %}</h1>
-            <form method="post" action=".">
-                {% csrf_token %}
-                {{ form }}
-                <button class="btn btn-primary" type="submit">Add new product</button>
-            </form>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <form method="post" action=".">
+                        <fieldset>
+                            <legend>{% trans "Add new product" %}</legend>
+                            {% csrf_token %}
+                            {{ form|as_vertical_form }}
+                        </fieldset>
+                        <div class="form-group">
+                            <button class="btn btn-primary" type="submit">
+                                {% trans "Add product" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
             <table class="table">
                 <thead>
                     <th>{% trans "Image" %}</th>

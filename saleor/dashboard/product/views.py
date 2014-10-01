@@ -6,8 +6,8 @@ from django.views.generic.edit import FormMixin
 from django.utils.translation import ugettext_lazy as _
 from ..views import StaffMemberOnlyMixin
 from ...product.models import Product
-from .forms import (ProductImageFormSet, ProductForm, ProductCategory,
-                    get_product_form_class, get_variant_formset_class)
+from .forms import (ProductImageFormSet, ProductForm, ProductCategoryForm,
+                    get_product_form, get_variant_formset)
 
 
 class ProductListView(StaffMemberOnlyMixin, ListView, FormMixin):
@@ -15,7 +15,7 @@ class ProductListView(StaffMemberOnlyMixin, ListView, FormMixin):
     paginate_by = 30
     template_name = 'dashboard/product/list.html'
     context_object_name = 'products'
-    form_class = ProductCategory
+    form_class = ProductCategoryForm
 
     def get_queryset(self):
         qs = super(ProductListView, self).get_queryset()
@@ -31,8 +31,10 @@ class ProductListView(StaffMemberOnlyMixin, ListView, FormMixin):
 
     def post(self, request, **kwargs):
         form = self.form_class(request.POST)
-        if form.is_valid:
-            return HttpResponseRedirect(reverse('dashboard:product-add'))
+        if form.is_valid():
+            return HttpResponseRedirect(reverse(
+                'dashboard:product-add',
+                kwargs={'category': form.cleaned_data['category']}))
         return self.get(request, **kwargs)
 
 
@@ -58,16 +60,15 @@ class ProductView(StaffMemberOnlyMixin, UpdateView):
         if self.creating:
             return None
         else:
-            product = super(ProductView, self).get_object(queryset)
-            if not self.variant_formset:
-                variant_formset_cls = get_variant_formset_class(product)
-                self.formsets['variant_formset'] = variant_formset_cls
-                self.variant_formset = variant_formset_cls
-            return product
+            return super(ProductView, self).get_object(queryset)
 
     def get_form_class(self):
-        product = self.get_object()
-        return get_product_form_class(product)
+        if not self.variant_formset:
+            variant_formset_cls = get_variant_formset(
+                self.object, self.kwargs.get('category'))
+            self.formsets['variant_formset'] = variant_formset_cls
+            self.variant_formset = variant_formset_cls
+        return get_product_form(self.object, self.kwargs.get('category'))
 
     def get_context_data(self, **kwargs):
         ctx = super(ProductView, self).get_context_data(**kwargs)
@@ -123,5 +124,8 @@ class ProductView(StaffMemberOnlyMixin, UpdateView):
         return self.render_to_response(ctx)
 
     def get_success_url(self):
-        return reverse('dashboard:product-update',
-                       kwargs={'pk': self.object.pk})
+        if self.creating:
+            return reverse('dashboard:products')
+        else:
+            return reverse('dashboard:product-update',
+                           kwargs={'pk': self.object.pk})

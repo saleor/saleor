@@ -1,0 +1,25 @@
+<table class="table">
+    <thead>
+        <tr>
+            {% for field in formset.0 %}
+            <th>{{ field.label }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+    {% for form in formset.initial_forms %}
+        <tr>
+            {% for field in form %}
+            <td>{{ field }}</td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+    {% for form in formset.extra_forms %}
+        <tr {% if collapse_id %}id="{{ collapse_id }}" class="collapse"{% endif %}>
+            {% for field in form %}
+            <td>{{ field }}</td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

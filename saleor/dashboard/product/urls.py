@@ -7,7 +7,6 @@ urlpatterns = patterns('',
                        url(r'^(?P<pk>[0-9]+)/update/$',
                            views.ProductView.as_view(),
                            name='product-update'),
-                       url(r'^add/$', views.ProductView.as_view(),
-                           name='product-add'),
-
-)
+                       url(r'^add/(?P<category>[-\w]+)$',
+                           views.ProductView.as_view(),
+                           name='product-add'),)

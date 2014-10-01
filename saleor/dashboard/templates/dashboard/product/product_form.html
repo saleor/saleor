@@ -7,6 +7,17 @@
 
 {% block title %}Product details{% endblock %}
 
+{% block custom_css %}
+<style type="text/css">
+    tr#add-variant.collapse.in {
+        display: table-row;
+    }
+    tr#add-image.collapse.in {
+        display: table-row;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <h1 class="page-header">{{ title }}</h1>
@@ -17,7 +28,7 @@
             <span class="glyphicon glyphicon-ok-sign"></span>
             <span class="message-content">{% trans "Data saved" %}</span>
         </div>
-        <form class="form form-horizontal" method="post" action="." id="product-form" enctype="multipart/form-data">
+        <form class="form form-horizontal" method="post" id="product-form" enctype="multipart/form-data">
             {{ variant_formset.management_form }}
             {{ image_formset.management_form }}
             <div class="panel panel-default">
@@ -36,24 +47,7 @@
                     <span class="pull-right"><a data-toggle="collapse" href="#add-variant"><i class="glyphicon glyphicon-plus"></i> Add variant</a></span>
                 </div>
                 <div class="panel-body">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                {% for field in variant_formset.0 %}
-                                <th>{{ field.label }}</th>
-                                {% endfor %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {% for form in variant_formset.initial_forms %}
-                            <tr>
-                                {% for field in form %}
-                                <td>{{ field }}</td>
-                                {% endfor %}
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+                    {% include "dashboard/includes/_formset_table.html" with formset=variant_formset collapse_id="add-variant" %}
                 </div>
             </div>
 
@@ -63,16 +57,7 @@
                     <span class="pull-right"><a data-toggle="collapse" href="#add-image"><i class="glyphicon glyphicon-plus"></i> Add image</a></span>
                 </div>
                 <div class="panel-body">
-                    <table class="table">
-                        <tbody>
-                        {% for form in image_formset %}
-                            <tr>
-                                {{ form }}
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-
+                    {% include "dashboard/includes/_formset_table.html" with formset=image_formset collapse_id="add-image" %}
                 </div>
             </div>
 
