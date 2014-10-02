@@ -8,8 +8,6 @@
 
 {% block content %}
     <div class="row">
-        {% include "dashboard/includes/_pagination.html" %}
-
         <div class="col-lg-12">
             <h1 class="page-header">{% trans "Products" %}</h1>
             <div class="panel panel-default">
@@ -52,6 +50,7 @@
                 {% endfor %}
                 </tbody>
             </table>
+            {% include "dashboard/includes/_pagination.html" %}
         </div>
     </div>
 {% endblock %}

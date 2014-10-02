@@ -6,7 +6,6 @@
 
 {% block content %}
     <div class="row">
-        {% include "dashboard/includes/_pagination.html" %}
         <div class="col-lg-12">
             <h1 class="page-header">{% trans "Orders" %}</h1>
             {% include "dashboard/includes/_status_filters.html" %}
@@ -30,6 +29,7 @@
                 {% endfor %}
                 </tbody>
             </table>
+            {% include "dashboard/includes/_pagination.html" %}
         </div>
     </div>
 {% endblock %}
