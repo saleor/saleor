@@ -11,13 +11,11 @@
         <div class="col-lg-12">
             <h1 class="page-header">{% trans "Products" %}</h1>
             <div class="panel panel-default">
+                <div class="panel-heading">{% trans "Add new product" %}</div>
                 <div class="panel-body">
                     <form method="post" action=".">
-                        <fieldset>
-                            <legend>{% trans "Add new product" %}</legend>
-                            {% csrf_token %}
-                            {{ form|as_vertical_form }}
-                        </fieldset>
+                        {% csrf_token %}
+                        {{ form|as_vertical_form }}
                         <div class="form-group">
                             <button class="btn btn-primary" type="submit">
                                 {% trans "Add product" %}
