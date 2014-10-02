@@ -13,10 +13,11 @@
             <div class="panel panel-default">
                 <div class="panel-heading">{% trans "Add new product" %}</div>
                 <div class="panel-body">
-                    <form method="post" action=".">
+                    <form class="form-inline" method="post" action=".">
                         {% csrf_token %}
-                        {{ form|as_vertical_form }}
                         <div class="form-group">
+                            <label class="control-label"for="amount">{% trans "Category" %}</label>
+                            {% render_widget form.category class="form-control" %}
                             <button class="btn btn-primary" type="submit">
                                 {% trans "Add product" %}
                             </button>
