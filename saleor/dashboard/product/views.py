@@ -1,7 +1,7 @@
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponseRedirect
-from django.views.generic import ListView, UpdateView
+from django.views.generic import ListView, UpdateView, DeleteView
 from django.views.generic.edit import FormMixin
 from django.utils.translation import ugettext_lazy as _
 from ..views import StaffMemberOnlyMixin
@@ -129,3 +129,14 @@ class ProductView(StaffMemberOnlyMixin, UpdateView):
         else:
             return reverse('dashboard:product-update',
                            kwargs={'pk': self.object.pk})
+
+
+class ProductDeleteView(StaffMemberOnlyMixin, DeleteView):
+    model = Product
+    template_name = 'dashboard/product/product_confirm_delete.html'
+    success_url = reverse_lazy('dashboard:products')
+
+    def post(self, request, *args, **kwargs):
+        result = self.delete(request, *args, **kwargs)
+        messages.success(request, _('Product was sucessfully deleted'))
+        return result
