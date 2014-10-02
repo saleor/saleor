@@ -55,6 +55,8 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
                 amount = None
             ctx['payment_form'] = self.payment_form_class(
                 initial={'amount': amount})
+            if payment.status == 'refunded':
+                ctx['refunded_amount'] = payment.total - payment.captured_amount
         else:
             ctx['can_capture'] = ctx['can_release'] = ctx['can_refund'] = False
             ctx['payment_form'] = self.payment_form_class()
@@ -119,6 +121,8 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
                         user=self.request.user)
                 except PaymentError as e:
                     error_msg = _('Payment gateway error: ') + e.message
+                except ValueError as e:
+                    error_msg = e.message
                 else:
                     messages.success(self.request, _('Refund successful'))
 

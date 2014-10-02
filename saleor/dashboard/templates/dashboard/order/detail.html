@@ -62,18 +62,39 @@
             </div>
         </div>
         <div class="panel panel-default">
-            <div class="panel-heading">
-                <span class="panel-title">{% trans "Manage payment" %}</span>
-            </div>
+            <div class="panel-heading"><span class="panel-title">{% trans "Manage payment" %}</span></div>
             <div class="panel-body">
-                <form method="post" class="form-inline">
-                    {% csrf_token %}
-                    {{ payment_form }}
-                    <div class="form-group">
-                        <button class="btn btn-success" type="submit" name='payment_form' value='capture' {% if not can_capture %} disabled {% endif %}>Capture</button>
-                        <button class="btn btn-default" type="submit" name='payment_form' value='refund' {% if not can_refund %} disabled {% endif %}>Refund</button>
-                    </div>
-                </form>
+                {% if payment %}
+                    <p>{% trans "Total amount:" %} {{ payment.total }} {{ payment.currency }}</p>
+                    <p>{% trans "Captured amount:" %} {{ payment.captured_amount }} {{ payment.currency }}</p>
+                    {% if refunded_amount %}
+                        <p>{% trans "Refunded amount:" %} {{ refunded_amount }} {{ payment.currency }}</p>
+                    {% endif %}
+                        {% if can_capture or can_refund %}
+                        <form class="form-inline" role="form" method="post">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label class="control-label"for="amount">{% trans "Amount" %}</label>
+                                {% render_widget payment_form.amount class="form-control" %}
+                                {% if can_capture %}
+                                    <button class="btn btn-success" type="submit" name='payment_form' value='capture'>{% trans "Capture" %}</button>
+                                {% elif can_refund %}
+                                    <button class="btn btn-danger" type="submit" name='payment_form' value='refund'>{% trans "Refund" %}</button>
+                                {% endif %}
+                            </div>
+                        </form>
+                        {% endif %}
+
+                        {% if can_release %}
+                        <form class="form-inline" method="post" role="form">
+                            {% csrf_token %}
+                            <label class="control-label">{% trans "Release payment" %}</label>
+                            <input type="submit" class="btn btn-danger" name='release_action' value="Release"/>
+                        </form>
+                        {% endif %}
+                {% else %}
+                    <span>{% trans "No payment for this order" %}</span>
+                {% endif %}
             </div>
         </div>
         <div class="panel panel-default">
@@ -174,10 +195,6 @@
                 {% if payment %}
                     <p>Captured: {{ payment.captured_amount }} {{ payment.currency }}</p>
                 {% endif %}
-                <form method="post">
-                    {% csrf_token %}
-                    <input type="submit" class="btn btn-warning" name='release_action' value="Release" {% if not can_release %} disabled {% endif %}/>
-                </form>
             </div>
         </div>
         <div class="panel panel-default">
