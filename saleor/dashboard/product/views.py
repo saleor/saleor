@@ -62,6 +62,10 @@ class ProductView(StaffMemberOnlyMixin, UpdateView):
         else:
             return super(ProductView, self).get_object(queryset)
 
+    def get_initial(self):
+        self.initial.update({'category': self.kwargs.get('category')})
+        return self.initial.copy()
+
     def get_form_class(self):
         if not self.variant_formset:
             variant_formset_cls = get_variant_formset(

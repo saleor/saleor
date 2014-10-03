@@ -16,23 +16,22 @@ class ProductCategoryForm(forms.Form):
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        exclude = ['category']
         fields = ['name', 'description', 'collection']
 
     def __init__(self, *args, **kwargs):
         super(ProductForm, self).__init__(*args, **kwargs)
+        categories = Category.objects.all()
+        self.fields['category'].choices = [(c.slug, c.name) for c in categories]
 
 
 class ShirtForm(ProductForm):
     class Meta:
         model = Shirt
-        exclude = ProductForm.Meta.exclude
 
 
 class BagForm(ProductForm):
     class Meta:
         model = Bag
-        exclude = ProductForm.Meta.exclude
 
 
 ProductImageFormSet = inlineformset_factory(Product, ProductImage, extra=1)
