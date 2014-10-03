@@ -1,22 +1,28 @@
 <table class="table">
     <thead>
         <tr>
-            {% for field in formset.0 %}
+            {% for field in formset.0.visible_fields %}
             <th>{{ field.label }}</th>
             {% endfor %}
         </tr>
     </thead>
     <tbody>
     {% for form in formset.initial_forms %}
+        {% for field in form.hidden_fields %}
+            {{ field }}
+        {% endfor %}
         <tr>
-            {% for field in form %}
+            {% for field in form.visible_fields %}
                 <td>{{ field }}</td>
             {% endfor %}
         </tr>
     {% endfor %}
     {% for form in formset.extra_forms %}
+        {% for field in form.hidden_fields %}
+            {{ field }}
+        {% endfor %}
         <tr>
-            {% for field in form %}
+            {% for field in form.visible_fields %}
                 <td>
                     <div class="{% if field.errors %} has-error{% endif %}{% if field.required %} required{% endif %}">
                         {{ field }}
