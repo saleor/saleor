@@ -44,7 +44,6 @@
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <span class="panel-title">{% trans "Variants" %}</span>
-                    <span class="pull-right"><a data-toggle="collapse" href="#add-variant"><i class="glyphicon glyphicon-plus"></i> Add variant</a></span>
                 </div>
                 <div class="panel-body">
                     {% include "dashboard/includes/_formset_table.html" with formset=variant_formset collapse_id="add-variant" %}
@@ -54,7 +53,6 @@
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <span class="panel-title">{% trans "Images" %}</span>
-                    <span class="pull-right"><a data-toggle="collapse" href="#add-image"><i class="glyphicon glyphicon-plus"></i> Add image</a></span>
                 </div>
                 <div class="panel-body">
                     {% include "dashboard/includes/_formset_table.html" with formset=image_formset collapse_id="add-image" %}

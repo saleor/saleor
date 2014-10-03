@@ -15,7 +15,7 @@
         </tr>
     {% endfor %}
     {% for form in formset.extra_forms %}
-        <tr {% if formset.initial_forms and collapse_id %}id="{{ collapse_id }}" class="collapse"{% endif %}>
+        <tr>
             {% for field in form %}
                 <td>
                     <div class="{% if field.errors %} has-error{% endif %}{% if field.required %} required{% endif %}">
