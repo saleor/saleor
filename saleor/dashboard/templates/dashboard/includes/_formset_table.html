@@ -10,14 +10,23 @@
     {% for form in formset.initial_forms %}
         <tr>
             {% for field in form %}
-            <td>{{ field }}</td>
+                <td>{{ field }}</td>
             {% endfor %}
         </tr>
     {% endfor %}
     {% for form in formset.extra_forms %}
         <tr {% if formset.initial_forms and collapse_id %}id="{{ collapse_id }}" class="collapse"{% endif %}>
             {% for field in form %}
-            <td>{{ field }}</td>
+                <td>
+                    <div class="{% if field.errors %} has-error{% endif %}{% if field.required %} required{% endif %}">
+                        {{ field }}
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <span class="label label-danger">{{ error }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </td>
             {% endfor %}
         </tr>
     {% endfor %}
