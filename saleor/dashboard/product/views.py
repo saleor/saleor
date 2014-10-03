@@ -106,10 +106,14 @@ class ProductView(StaffMemberOnlyMixin, UpdateView):
     form_valid = form_invalid = process_all_forms
 
     def forms_valid(self, form, formsets):
-        if not self.creating:
-            self.object = form.save()
         for formset in formsets.values():
             formset.save()
+        if self.creating:
+            msg = _('Created product %s' % self.object)
+        else:
+            self.object = form.save()
+            msg = _('Updated product %s' % self.object)
+        messages.success(self.request, msg)
         return HttpResponseRedirect(self.get_success_url())
 
     def forms_invalid(self, form, formsets):
@@ -138,5 +142,5 @@ class ProductDeleteView(StaffMemberOnlyMixin, DeleteView):
 
     def post(self, request, *args, **kwargs):
         result = self.delete(request, *args, **kwargs)
-        messages.success(request, _('Product was sucessfully deleted'))
+        messages.success(request, _('Deleted product %s' % self.object))
         return result
