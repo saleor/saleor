@@ -20,8 +20,6 @@ class ProductForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ProductForm, self).__init__(*args, **kwargs)
-        categories = Category.objects.all()
-        self.fields['category'].choices = [(c.slug, c.name) for c in categories]
 
 
 class ShirtForm(ProductForm):
