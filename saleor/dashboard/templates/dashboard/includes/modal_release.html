@@ -1,0 +1,18 @@
+{% load i18n %}
+{% load bootstrap %}
+
+<div class="modal-header">
+    <a href="#" data-dismiss="modal" aria-hidden="true" class="close">×</a>
+    <h3>{% trans "Release payment" %}</h3>
+</div>
+<div class="modal-body">
+    <p>{% trans "Do you want to release the payment?" %}</p>
+</div>
+<div class="modal-footer">
+    <form id="release-form" class="form-inline" method="post" role="form">
+        {% csrf_token %}
+        <input type="hidden" name='release_action' value="release"/>
+        <button type="submit" class="btn btn-danger">{% trans "Release" %}</button>
+        <button data-dismiss="modal" aria-hidden="true" class="btn btn-default">{% trans "Cancel" %}</button>
+    </form>
+</div>

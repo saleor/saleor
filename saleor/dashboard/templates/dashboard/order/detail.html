@@ -67,31 +67,14 @@
                 {% if payment %}
                     <p>{% trans "Total amount:" %} {{ payment.total }} {{ payment.currency }}</p>
                     <p>{% trans "Captured amount:" %} {{ payment.captured_amount }} {{ payment.currency }}</p>
-                    {% if refunded_amount %}
-                        <p>{% trans "Refunded amount:" %} {{ refunded_amount }} {{ payment.currency }}</p>
+                    {% if can_capture %}
+                    <a class="btn btn-success" data-target="#payment-action-modal" href="{% url 'dashboard:order-details' pk=order.pk %}?action=capture" data-toggle="modal">{% trans "Capture" %}</a>
+                    {% elif can_refund %}
+                    <a class="btn btn-danger" data-target="#payment-action-modal" href="{% url 'dashboard:order-details' pk=order.pk %}?action=refund" data-toggle="modal">{% trans "Refund" %}</a>
                     {% endif %}
-                        {% if can_capture or can_refund %}
-                        <form class="form-inline" role="form" method="post">
-                            {% csrf_token %}
-                            <div class="form-group">
-                                <label class="control-label"for="amount">{% trans "Amount" %}</label>
-                                {% render_widget payment_form.amount class="form-control" %}
-                                {% if can_capture %}
-                                    <button class="btn btn-success" type="submit" name='payment_form' value='capture'>{% trans "Capture" %}</button>
-                                {% elif can_refund %}
-                                    <button class="btn btn-danger" type="submit" name='payment_form' value='refund'>{% trans "Refund" %}</button>
-                                {% endif %}
-                            </div>
-                        </form>
-                        {% endif %}
-
-                        {% if can_release %}
-                        <form class="form-inline" method="post" role="form">
-                            {% csrf_token %}
-                            <label class="control-label">{% trans "Release payment" %}</label>
-                            <input type="submit" class="btn btn-danger" name='release_action' value="Release"/>
-                        </form>
-                        {% endif %}
+                    {% if can_release %}
+                    <a class="btn btn-danger" data-target="#payment-action-modal" href="{% url 'dashboard:order-details' pk=order.pk %}?action=release" data-toggle="modal">{% trans "Release" %}</a>
+                    {% endif %}
                 {% else %}
                     <span>{% trans "No payment for this order" %}</span>
                 {% endif %}
@@ -244,4 +227,20 @@
         </div>
     </div>
 </div>
+
+<div id="payment-action-modal" class="modal">
+    <div class="modal-dialog">
+      <div class="modal-content"></div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block custom_js %}
+{{ block.super }}
+<script>
+    $('#payment-action-modal').on('hide.bs.modal', function(e) {
+        $(this).removeData();
+    });
+</script>
 {% endblock %}

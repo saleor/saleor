@@ -3,6 +3,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView, DetailView, UpdateView
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
+from django.http import HttpResponse
+from django.core.context_processors import csrf
 from payments import PaymentError
 
 from ...order.models import Order, Address
@@ -55,6 +58,7 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
                 amount = None
             ctx['payment_form'] = self.payment_form_class(
                 initial={'amount': amount})
+            ctx['amount'] = amount
             if payment.status == 'refunded':
                 ctx['refunded_amount'] = payment.total - payment.captured_amount
         else:
@@ -71,6 +75,25 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
             return self.object.groups.select_subclasses().get()
         except self.model.DoesNotExist:
             return None
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        ctx = self.get_context_data()
+        payment = ctx['payment']
+        if request.is_ajax() and 'action' in request.GET:
+            action = request.GET['action']
+            ctx.update({'action': action, 'currency': payment.currency,
+                        'captured': payment.captured_amount})
+            if action == 'release':
+                template = 'dashboard/includes/modal_release.html'
+            else:
+                template = 'dashboard/includes/modal_capture_refund.html'
+            ctx.update(csrf(request))
+            rendered = render_to_string(template, ctx)
+            return HttpResponse(rendered)
+        else:
+            context = self.get_context_data(object=self.object)
+            return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
         if 'release_action' in request.POST:
