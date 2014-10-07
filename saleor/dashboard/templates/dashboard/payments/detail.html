@@ -50,37 +50,6 @@
     <div class="col-lg-4">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <span class="payment-title">{% trans "Transaction management" %}</span>
-            </div>
-            <div class="panel-body">
-                {% if capture_form %}
-                    <p>{% trans "Capture funds to continue transaction" %}</p>
-                    <form action="." method="post">
-                        {% csrf_token %}
-                        {{ capture_form|as_vertical_form }}
-                        <input type="submit" class="btn btn-success" value="Capture"/>
-                    </form>
-                {% endif %}
-                {% if release_available %}
-                    <p>{% trans "Release funds to abort transaction" %}</p>
-                    <form action="." method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="release" value="true"/>
-                        <input type="submit" class="btn btn-primary" value="Release"/>
-                    </form>
-                {% endif %}
-                {% if refund_available %}
-                    <p>{% trans "Refund funds to customer" %}</p>
-                    <form action="." method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="refund" value="true"/>
-                        <input type="submit" class="btn btn-primary" value="Refund"/>
-                    </form>
-                {% endif %}
-            </div>
-        </div>
-        <div class="panel panel-default">
-            <div class="panel-heading">
                 <span class="panel-title">Customer account<i class="glyphicon glyphicon-user pull-right"></i></span>
             </div>
             <div class="panel-body">
