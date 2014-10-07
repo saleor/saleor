@@ -51,7 +51,7 @@ class ProductView(StaffMemberOnlyMixin, UpdateView):
         self.formsets = {'image_formset': self.image_formset}
 
     def get_queryset(self):
-        qs = super(UpdateView, self).get_queryset()
+        qs = super(ProductView, self).get_queryset()
         qs = qs.select_subclasses()
         return qs
 
