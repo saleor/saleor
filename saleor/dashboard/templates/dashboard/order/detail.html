@@ -174,7 +174,7 @@
                 <p>Order date: {{ order.created }}</p>
                 <p>Order status: {% include 'dashboard/includes/_status_label.html' with status=order.status status_display=order.get_status_display %}</p>
                 <p>Payment status: {% include 'dashboard/includes/_status_label.html' with status=order.get_last_payment_status status_display=order.get_last_payment_status_display %}</p>
-                <p>Total: {% gross order.get_total %}</p>
+                <p>Total: {{ payment.total }} {{ payment.currency }}</p>
                 {% if payment %}
                     <p>Captured: {{ payment.captured_amount }} {{ payment.currency }}</p>
                 {% endif %}
