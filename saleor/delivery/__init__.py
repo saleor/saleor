@@ -33,8 +33,9 @@ class DummyShipping(BaseDelivery):
     def __str__(self):
         return 'Dummy shipping'
 
-    def get_delivery_total(self, **kwargs):
-        weight = sum(line.product.get_weight() for line in self.group)
+    def get_delivery_total(self, weight=None, **kwargs):
+        if not weight:
+            weight = sum(line.product.get_weight() for line in self.group)
         qty = sum(line.quantity for line in self.group)
         return Price(qty * weight,
                      currency=settings.DEFAULT_CURRENCY)
@@ -45,3 +46,10 @@ def get_delivery_choices_for_group(group, **kwargs):
         yield ('dummy_shipping', DummyShipping(group, kwargs['address']))
     else:
         raise ValueError('Unknown delivery type')
+
+
+def get_delivery(group):
+    if group.method == 'Dummy shipping':
+        return DummyShipping(group, group.shippeddeliverygroup.address)
+    else:
+        raise ValueError('Unknown delivery method')

@@ -22,6 +22,7 @@ from ..communication.mail import send_email
 from ..core.utils import build_absolute_uri
 from ..product.models import Product
 from ..userprofile.models import Address, User
+from ..delivery import get_delivery
 
 
 @python_2_unicode_compatible
@@ -187,6 +188,14 @@ class DeliveryGroup(models.Model, ItemSet):
                 product_sku=product_variant.sku,
                 unit_price_gross=price.gross)
 
+    def update_delivery_cost(self):
+        delivery = get_delivery(self)
+        ids = [item.product_id for item in self]
+        products = Product.objects.select_subclasses().filter(pk__in=ids)
+        weight = sum(product.get_weight() for product in products)
+        self.price = delivery.get_delivery_total(weight=weight)
+        self.save()
+
 
 @python_2_unicode_compatible
 class ShippedDeliveryGroup(DeliveryGroup):
@@ -251,6 +260,9 @@ class OrderedItem(models.Model, ItemLine):
                                         'old_quantity': old_quantity,
                                         'product': self.product})
         order.history.create(status=order.status, comment=comment, user=user)
+
+        self.delivery_group.update_delivery_cost()
+
         if not any([item.quantity for item in order.get_items()]):
             order.change_status('cancelled')
 
@@ -274,6 +286,9 @@ class OrderedItem(models.Model, ItemLine):
 
         self.quantity -= quantity
         self.save()
+
+        self.delivery_group.update_delivery_cost()
+        group.update_delivery_cost()
 
         comment = pgettext_lazy(
             'Order history',
