@@ -91,11 +91,9 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
         if 'release_action' in request.POST:
             self.handle_release_action()
         elif 'payment_form' in request.POST:
-            form = self.payment_form_class(request.POST)
-            self.handle_payment_form(form, request.POST['payment_form'])
+            self.handle_payment_form()
         elif 'note_form' in request.POST:
-            form = self.note_form_class(request.POST)
-            self.handle_note_form(form)
+            self.handle_note_form()
         elif 'line_action' in request.POST:
             self.handle_line_action()
         return self.get(request, *args, **kwargs)
@@ -112,7 +110,9 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
             else:
                 messages.success(self.request, _('Release successful'))
 
-    def handle_payment_form(self, form, action):
+    def handle_payment_form(self):
+        action = self.request.POST['payment_form']
+        form = self.payment_form_class(self.request.POST)
         payment = self.get_object().payments.last()
         error_msg = None
         if form.is_valid():
@@ -137,11 +137,11 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
                     error_msg = e.message
                 else:
                     messages.success(self.request, _('Refund successful'))
-
         if error_msg:
             messages.error(self.request, error_msg)
 
-    def handle_note_form(self, form):
+    def handle_note_form(self):
+        form = self.note_form_class(self.request.POST)
         if form.is_valid():
             note = form.save(commit=False)
             note.order = self.get_object()
