@@ -14,51 +14,48 @@
                 <span class="panel-title">Order contents</span>
             </div>
             <div class="panel-body">
-                <form method="post" action="">
-                    {{ order_formset.management_form }}
-                    <table class="table">
+                {% for group in delivery_groups %}
+                    {% csrf_token %}
+                    <table class="table table-condensed">
                         <thead>
                             <tr>
-                                <th class="col-sm-3">{% trans "Name" %}</th>
-                                <th class="col-sm-3">{% trans "Variant" %}</th>
-                                <th class="col-sm-3">{% trans "SKU" %}</th>
-                                <th class="col-sm-3">{% trans "Price" %}</th>
-                                <th class="col-sm-3">{% trans "Quantity" %}</th>
+                                <th class="col-sm-1">Delivery group #{{ group.pk }}</th>
+                                <th>{% include 'dashboard/includes/_status_label.html' with status=group.status status_display=group.status %}</th>
+                            </tr>
+                            <tr>
+                                <th class="col-sm-2">{% trans "Name" %}</th>
+                                <th class="col-sm-2">{% trans "Variant" %}</th>
+                                <th class="col-sm-2">{% trans "SKU" %}</th>
+                                <th class="col-sm-2">{% trans "Price" %}</th>
+                                <th class="col-sm-2">{% trans "Quantity" %}</th>
+                                <th class="col-sm-2">{% trans "Actions" %}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for form in order_formset %}
+                            {% for item in group.items.all %}
                                 <tr>
-                                    <td class="col-sm-3"><a href="{% url "dashboard:product-update" pk=form.item.product_id %}">{{ form.item.product }}</a></td>
-                                    <td>{{ form.item.product_name }}</td>
-                                    <td>{{ form.item.product_sku }}</td>
-                                    <td>{% gross form.item.get_price_per_item %}</td>
-                                    <td>{{ form.quantity }}</td>
+                                    <td><a href="{% url "dashboard:product-update" pk=item.product_id %}">{{ item.product }}</a></td>
+                                    <td>{{ item.product_name }}</td>
+                                    <td>{{ item.product_sku }}</td>
+                                    <td>{% gross item.get_price_per_item %}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td><a class="btn btn-link" data-target="#base-modal" href="{% url 'dashboard:order-line-edit' pk=item.pk %}" data-toggle="modal">Edit</a></td>
                                 </tr>
                             {% endfor %}
                         </tbody>
-                        <tr>
-                            <td colspan="4"></td>
-                            <td>
-                                <button class="btn btn-default" type="submit" name="order_formset">
-                                    {% csrf_token %}
-                                    {% trans "Update quantities" %}
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="5"><strong>{% trans "Order totals" %}</strong></td>
-                        </tr>
-                        <tr>
-                            <td colspan="4">{% trans "Delivery" %}</td>
-                            <td>{% gross order.get_delivery_total %}</td>
-                        </tr>
-                        <tr>
-                            <td colspan="4">{% trans "Total" %}</td>
-                            <td>{% gross order.get_total %}</td>
-                        </tr>
+                        <tfoot>
+                            <tr>
+                                <td colspan=5>
+                                    <p>{% trans "Total: " %}{% gross group.get_total %}</p>
+                                    <p>{% trans "Delivery cost: " %}{% gross group.price %}</p>
+                                </td>
+                                <td>
+                                    <a class="btn btn-default btn-sm">Ship</a>
+                                </td>
+                            </tr>
+                        </tfoot>
                     </table>
-                </form>
+                {% endfor %}
             </div>
         </div>
         <div class="panel panel-default">
@@ -68,12 +65,12 @@
                     <p>{% trans "Total amount:" %} {{ payment.total }} {{ payment.currency }}</p>
                     <p>{% trans "Captured amount:" %} {{ payment.captured_amount }} {{ payment.currency }}</p>
                     {% if can_capture %}
-                    <a class="btn btn-success" data-target="#payment-action-modal" href="{% url 'dashboard:order-details' pk=order.pk %}?action=capture" data-toggle="modal">{% trans "Capture" %}</a>
+                    <a class="btn btn-success" data-target="#base-modal" href="{% url 'dashboard:order-details' pk=order.pk %}?action=capture" data-toggle="modal">{% trans "Capture" %}</a>
                     {% elif can_refund %}
-                    <a class="btn btn-danger" data-target="#payment-action-modal" href="{% url 'dashboard:order-details' pk=order.pk %}?action=refund" data-toggle="modal">{% trans "Refund" %}</a>
+                    <a class="btn btn-danger" data-target="#base-modal" href="{% url 'dashboard:order-details' pk=order.pk %}?action=refund" data-toggle="modal">{% trans "Refund" %}</a>
                     {% endif %}
                     {% if can_release %}
-                    <a class="btn btn-danger" data-target="#payment-action-modal" href="{% url 'dashboard:order-details' pk=order.pk %}?action=release" data-toggle="modal">{% trans "Release" %}</a>
+                    <a class="btn btn-danger" data-target="#base-modal" href="{% url 'dashboard:order-details' pk=order.pk %}?action=release" data-toggle="modal">{% trans "Release" %}</a>
                     {% endif %}
                 {% else %}
                     <span>{% trans "No payment for this order" %}</span>
@@ -211,24 +208,24 @@
             {% endwith %}
         </div>
         <div class="panel panel-default">
-            {% with view.get_delivery_info as delivery %}
+            {% for delivery in delivery_groups %}
                 <div class="panel-heading">
-                    <span class="panel-title">Shipping address</span>
+                    <span class="panel-title">Shipping address - Delivery group #{{ delivery.pk }}</span>
                     <span class="pull-right"><a href="{% url "dashboard:address-edit" order_pk=order.pk address_type='shipping' %}"><i class="glyphicon glyphicon-cog"></i> Edit</a></span>
                 </div>
                 <div class="panel-body">
-                    {% if delivery %}
+                    {% if delivery and delivery.address %}
                         {% include 'dashboard/includes/_address.html' with address=delivery.address only %}
                     {% else %}
                         <span>No shipping address</span>
                     {% endif %}
                 </div>
-            {% endwith %}
+            {% endfor %}
         </div>
     </div>
 </div>
 
-<div id="payment-action-modal" class="modal">
+<div id="base-modal" class="modal">
     <div class="modal-dialog">
       <div class="modal-content"></div>
     </div>
@@ -239,7 +236,7 @@
 {% block custom_js %}
 {{ block.super }}
 <script>
-    $('#payment-action-modal').on('hide.bs.modal', function(e) {
+    $('#base-modal').on('hide.bs.modal', function(e) {
         $(this).removeData();
     });
 </script>

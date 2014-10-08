@@ -10,5 +10,8 @@ urlpatterns = patterns(
         name='order-details'),
     url(r'^(?P<order_pk>[0-9]+)/address/(?P<address_type>billing|shipping)$',
         views.AddressView.as_view(),
-        name='address-edit')
+        name='address-edit'),
+    url(r'^line/(?P<pk>[0-9]+)$',
+        views.OrderLineEdit.as_view(),
+        name='order-line-edit')
 )

@@ -8,10 +8,11 @@ from django.http import HttpResponse
 from django.core.context_processors import csrf
 from payments import PaymentError
 
-from ...order.models import Order, Address
+from ...order.models import Order, OrderedItem, Address
 from ...userprofile.forms import AddressForm
 from ..views import StaffMemberOnlyMixin, FilterByStatusMixin
-from .forms import OrderNoteForm, ManagePaymentForm, OrderContentFormset
+from .forms import (OrderNoteForm, ManagePaymentForm, MoveItemsForm,
+                    ChangeQuantityForm)
 
 
 class OrderListView(StaffMemberOnlyMixin, FilterByStatusMixin, ListView):
@@ -29,7 +30,6 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
     context_object_name = 'order'
     payment_form_class = ManagePaymentForm
     note_form_class = OrderNoteForm
-    order_formset_class = OrderContentFormset
 
     def get_queryset(self):
         qs = super(OrderDetails, self).get_queryset()
@@ -65,16 +65,8 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
             ctx['can_capture'] = ctx['can_release'] = ctx['can_refund'] = False
             ctx['payment_form'] = self.payment_form_class()
 
-        ctx['order_formset'] = self.order_formset_class(
-            order=self.object)
-
+        ctx['delivery_groups'] = self.object.groups.select_subclasses().all()
         return ctx
-
-    def get_delivery_info(self):
-        try:
-            return self.object.groups.select_subclasses().get()
-        except self.model.DoesNotExist:
-            return None
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -104,11 +96,8 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
         elif 'note_form' in request.POST:
             form = self.note_form_class(request.POST)
             self.handle_note_form(form)
-        elif 'order_formset' in request.POST:
-            formset = self.order_formset_class(
-                request.POST or None,
-                order=self.get_object())
-            self.handle_order_formset(formset)
+        elif 'line_action' in request.POST:
+            self.handle_line_action()
         return self.get(request, *args, **kwargs)
 
     def handle_release_action(self):
@@ -162,13 +151,18 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
         else:
             messages.error(self.request, _('Form has errors'))
 
-    def handle_order_formset(self, formset):
-        if formset.is_valid():
-            if formset.has_changed():
-                formset.save(user=self.request.user)
-                messages.success(self.request, _('Quantities updated'))
+    def handle_line_action(self):
+        action = self.request.POST['line_action']
+        item = OrderedItem.objects.get(pk=self.request.POST['item_pk'])
+        if action == 'move_items':
+            form = MoveItemsForm(self.request.POST, item=item)
+        elif action == 'change_quantity':
+            form = ChangeQuantityForm(self.request.POST, item=item)
+        if form.is_valid():
+            form.save(user=self.request.user)
+            messages.success(self.request, _('Order line updated'))
         else:
-            messages.error(self.request, _('Problem with updating quantities'))
+            messages.error(self.request, _('Cannot update order line'))
 
 
 class AddressView(StaffMemberOnlyMixin, UpdateView):
@@ -198,3 +192,26 @@ class AddressView(StaffMemberOnlyMixin, UpdateView):
             _('%(address_type)s address updated' % {'address_type': _type_str})
         )
         return reverse('dashboard:order-details', kwargs={'pk': self.order.pk})
+
+
+class OrderLineEdit(StaffMemberOnlyMixin, UpdateView):
+    model = OrderedItem
+    quantity_form = ChangeQuantityForm
+    move_items_form = MoveItemsForm
+
+    def get_context_data(self, **kwargs):
+        ctx = super(OrderLineEdit, self).get_context_data(**kwargs)
+        ctx['quantity_form'] = self.quantity_form(item=self.get_object())
+        ctx['move_items_form'] = self.move_items_form(item=self.get_object())
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        ctx = self.get_context_data(*args, **kwargs)
+        ctx.update(csrf(request))
+        if request.is_ajax():
+            template = 'dashboard/includes/modal_order_line_edit.html'
+            rendered = render_to_string(template, ctx)
+            return HttpResponse(rendered)
+        else:
+            return self.render_to_response(ctx)

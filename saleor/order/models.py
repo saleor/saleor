@@ -5,6 +5,7 @@ from uuid import uuid4
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.utils.encoding import smart_text
 from django.utils.timezone import now
@@ -250,9 +251,40 @@ class OrderedItem(models.Model, ItemLine):
                                         'old_quantity': old_quantity,
                                         'product': self.product})
         order.history.create(status=order.status, comment=comment, user=user)
-
         if not any([item.quantity for item in order.get_items()]):
             order.change_status('cancelled')
+
+    def move_to_group(self, group, quantity, user=None):
+        try:
+            item = group.items.get(product=self.product,
+                                   product_name=self.product_name,
+                                   product_sku=self.product_sku)
+        except ObjectDoesNotExist:
+            new_item = OrderedItem(delivery_group=group,
+                                   product=self.product,
+                                   product_name=self.product_name,
+                                   product_sku=self.product_sku,
+                                   quantity=quantity,
+                                   unit_price_net=self.unit_price_net,
+                                   unit_price_gross=self.unit_price_gross)
+            new_item.save()
+        else:
+            item.quantity += quantity
+            item.save()
+
+        self.quantity -= quantity
+        self.save()
+
+        comment = pgettext_lazy(
+            'Order history',
+            'Moved %(quantity)s items %(item)s from group #%(old_group)s \
+                to group #%(new_group)s' % {'quantity': quantity,
+                                            'item': self,
+                                            'old_group': self.delivery_group.pk,
+                                            'new_group': group.pk})
+
+        order = self.delivery_group.order
+        order.history.create(status=order.status, comment=comment, user=user)
 
 
 class Payment(BasePayment):
