@@ -52,6 +52,12 @@ class MoveItemsForm(forms.Form):
             new_group.pk = None
             new_group.id = None
             new_group.status = 'new'
+
+            address = group.address
+            address.pk = None
+            address.save()
+            new_group.address = address
+
             new_group.save()
             self.item.move_to_group(new_group, quantity, user)
         else:

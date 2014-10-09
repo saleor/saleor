@@ -177,23 +177,30 @@ class AddressView(StaffMemberOnlyMixin, UpdateView):
     template_name = 'dashboard/order/address-edit.html'
     form_class = AddressForm
 
+    def dispatch(self, *args, **kwargs):
+        if 'group_pk' in self.kwargs:
+            self.address_type = 'shipping'
+        else:
+            self.address_type = 'billing'
+        return super(AddressView, self).dispatch(*args, **kwargs)
+
     def get_object(self, queryset=None):
         self.order = get_object_or_404(Order, pk=self.kwargs['order_pk'])
-        address_type = self.kwargs['address_type']
-        if address_type == 'billing':
+        if self.address_type == 'billing':
             return self.order.billing_address
-        elif address_type == 'shipping':
-            delivery = self.order.groups.select_subclasses().get()
+        else:
+            delivery = self.order.groups.select_subclasses().get(
+                pk=self.kwargs['group_pk'])
             return delivery.address
 
     def get_context_data(self, **kwargs):
         ctx = super(AddressView, self).get_context_data(**kwargs)
         ctx['order'] = self.order
-        ctx['address_type'] = self.kwargs['address_type']
+        ctx['address_type'] = self.address_type
         return ctx
 
     def get_success_url(self):
-        _type_str = self.kwargs['address_type'].capitalize()
+        _type_str = self.address_type.capitalize()
         messages.success(
             self.request,
             _('%(address_type)s address updated' % {'address_type': _type_str})
