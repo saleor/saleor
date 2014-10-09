@@ -103,9 +103,7 @@ INSTALLED_APPS = [
     'saleor.order',
     'saleor.registration',
     'saleor.userprofile',
-    'saleor.stock',
     'saleor.dashboard',
-	
 
     # External apps
     'babeldjango',
