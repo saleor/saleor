@@ -196,6 +196,9 @@ class DeliveryGroup(models.Model, ItemSet):
         self.price = delivery.get_delivery_total(weight=weight)
         self.save()
 
+    def get_total_quantity(self):
+        return sum([item.get_quantity() for item in self])
+
 
 @python_2_unicode_compatible
 class ShippedDeliveryGroup(DeliveryGroup):
@@ -260,8 +263,10 @@ class OrderedItem(models.Model, ItemLine):
                                         'old_quantity': old_quantity,
                                         'product': self.product})
         order.history.create(status=order.status, comment=comment, user=user)
-
         self.delivery_group.update_delivery_cost()
+
+        if not self.delivery_group.get_total_quantity():
+            self.delivery_group.change_status('cancelled')
 
         if not any([item.quantity for item in order.get_items()]):
             order.change_status('cancelled')
@@ -289,6 +294,9 @@ class OrderedItem(models.Model, ItemLine):
 
         self.delivery_group.update_delivery_cost()
         group.update_delivery_cost()
+
+        if not self.delivery_group.get_total_quantity():
+            self.delivery_group.change_status('cancelled')
 
         comment = pgettext_lazy(
             'Order history',
