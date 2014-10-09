@@ -1,6 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load prices_i18n %}
+{% load status %}
 
 {% block title %}{% trans "All orders" %}{% endblock %}
 
@@ -24,7 +25,7 @@
                         </td>
                         <td>{{ order.user|default:"Anonymous" }}</td>
                         <td>{% gross order.get_total %}</td>
-                        <td>{% include 'dashboard/includes/_status_label.html' with status=order.status status_display=order.get_status_display %}</td>
+                        <td>{% render_status order.status order.get_status_display %}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

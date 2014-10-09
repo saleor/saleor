@@ -2,6 +2,7 @@
 {% load prices_i18n %}
 {% load i18n %}
 {% load bootstrap %}
+{% load status %}
 
 {% block title %}Order details{% endblock %}
 
@@ -19,8 +20,9 @@
                     <table class="table table-condensed">
                         <thead>
                             <tr>
-                                <th class="col-sm-1">Delivery group #{{ group.pk }}</th>
-                                <th>{% include 'dashboard/includes/_status_label.html' with status=group.status status_display=group.status %}</th>
+                                <th colspan=6>
+                                    <span>Delivery group #{{ group.pk }} {% render_status group.status %}</span>
+                                </th>
                             </tr>
                             <tr>
                                 <th class="col-sm-2">{% trans "Name" %}</th>
@@ -101,7 +103,7 @@
                                 {% for event in order.history.all %}
                                 <tr>
                                     <td>{{ event.date }}</td>
-                                    <td>{% include 'dashboard/includes/_status_label.html' with status=event.status status_display=event.get_status_display %}</td>
+                                    <td>{% render_status event.status event.get_status_display %}</td>
                                     <td>{{ event.user|default:"-" }}</td>
                                     <td>{{ event.comment|default:"-" }}</td>
                                 </tr>
@@ -122,7 +124,7 @@
                                 {% for payment in order.payments.all %}
                                 <tr>
                                     <td>{{ payment.created }}</td>
-                                    <td>{% include 'dashboard/includes/_status_label.html' with status=payment.status status_display=payment.get_status_display %}</td>
+                                    <td>{% render_status payment.status payment.get_status_display %}</td>
                                     <td><a href="{% url "dashboard:payment-details" pk=payment.pk %}">Details</a></td>
                                 </tr>
                                 {% endfor %}
@@ -169,8 +171,8 @@
             </div>
             <div class="panel-body">
                 <p>Order date: {{ order.created }}</p>
-                <p>Order status: {% include 'dashboard/includes/_status_label.html' with status=order.status status_display=order.get_status_display %}</p>
-                <p>Payment status: {% include 'dashboard/includes/_status_label.html' with status=order.get_last_payment_status status_display=order.get_last_payment_status_display %}</p>
+                <p>Order status: {% render_status order.status order.get_status_display %}</p>
+                <p>Payment status: {% render_status payment.status payment.get_status_display %}</p>
                 <p>Total: {{ payment.total }} {{ payment.currency }}</p>
                 {% if payment %}
                     <p>Captured: {{ payment.captured_amount }} {{ payment.currency }}</p>

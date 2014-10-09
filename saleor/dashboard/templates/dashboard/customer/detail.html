@@ -2,6 +2,7 @@
 {% load prices_i18n %}
 {% load i18n %}
 {% load bootstrap %}
+{% load status %}
 
 {% block title %}Order details{% endblock %}
 
@@ -32,8 +33,8 @@
                                     <tr>
                                         <td><a href="{% url 'dashboard:order-details' pk=order.pk %}">{{ order }}</a></td>
                                         <td>{{ order.created }}</td>
-                                        <td>{% include 'dashboard/includes/_status_label.html' with status=order.get_last_payment_status status_display=order.get_last_payment_status_display %}</td>
-                                        <td>{% include 'dashboard/includes/_status_label.html' with status=order.status status_display=order.get_status_display %}</td>
+                                        <td>{% render_status order.get_last_payment_status order.get_last_payment_status_display %}</td>
+                                        <td>{% render_status order.status order.get_status_display %}</td>
                                         <td>{% gross order.get_total %}</td>
                                     </tr>
                                 {% endfor %}
