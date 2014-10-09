@@ -16,7 +16,6 @@
             </div>
             <div class="panel-body">
                 {% for group in delivery_groups %}
-                    {% csrf_token %}
                     <table class="table table-condensed">
                         <thead>
                             <tr>
@@ -25,12 +24,12 @@
                                 </th>
                             </tr>
                             <tr>
-                                <th class="col-sm-2">{% trans "Name" %}</th>
+                                <th class="col-sm-3">{% trans "Name" %}</th>
                                 <th class="col-sm-2">{% trans "Variant" %}</th>
                                 <th class="col-sm-2">{% trans "SKU" %}</th>
                                 <th class="col-sm-2">{% trans "Price" %}</th>
                                 <th class="col-sm-2">{% trans "Quantity" %}</th>
-                                <th class="col-sm-2">{% trans "Actions" %}</th>
+                                <th class="col-sm-1">{% trans "Actions" %}</th>
                             </tr>
                         </thead>
                         <tbody>
