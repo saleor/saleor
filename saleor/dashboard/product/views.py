@@ -19,8 +19,7 @@ class ProductListView(StaffMemberOnlyMixin, ListView, FormMixin):
 
     def get_queryset(self):
         qs = super(ProductListView, self).get_queryset()
-        qs = qs.prefetch_related(
-            'stockrecords', 'images').select_related('brand')
+        qs = qs.prefetch_related('images').select_related('brand')
         qs = qs.select_subclasses()
         return qs
 
