@@ -20,7 +20,7 @@
                         <thead>
                             <tr>
                                 <th colspan=6>
-                                    <span>Delivery group #{{ group.pk }} {% render_status group.status %}</span>
+                                    <span>Delivery group #{{ group.pk }} {% render_status group.status group.get_status_display %}</span>
                                 </th>
                             </tr>
                             <tr>
@@ -47,8 +47,8 @@
                         <tfoot>
                             <tr>
                                 <td colspan=5>
-                                    <p>{% trans "Total: " %}{% gross group.get_total %}</p>
                                     <p>{% trans "Delivery cost: " %}{% gross group.price %}</p>
+                                    <p><strong>{% trans "Total: " %}{% gross group.get_total %}</strong></p>
                                 </td>
                                 <td>
                                     <a class="btn btn-default btn-sm">Ship</a>
@@ -63,7 +63,7 @@
             <div class="panel-heading"><span class="panel-title">{% trans "Manage payment" %}</span></div>
             <div class="panel-body">
                 {% if payment %}
-                    <p>{% trans "Total amount:" %} {{ payment.total }} {{ payment.currency }}</p>
+                    <p>{% trans "Preauthorized amount:" %} {{ payment.total }} {{ payment.currency }}</p>
                     <p>{% trans "Captured amount:" %} {{ payment.captured_amount }} {{ payment.currency }}</p>
                     {% if can_capture %}
                     <a class="btn btn-success" data-target="#base-modal" href="{% url 'dashboard:order-details' pk=order.pk %}?action=capture" data-toggle="modal">{% trans "Capture" %}</a>
@@ -172,9 +172,9 @@
                 <p>Order date: {{ order.created }}</p>
                 <p>Order status: {% render_status order.status order.get_status_display %}</p>
                 <p>Payment status: {% render_status payment.status payment.get_status_display %}</p>
-                <p>Total: {{ payment.total }} {{ payment.currency }}</p>
+                <p>Order total: {% gross order.get_total %}</p>
                 {% if payment %}
-                    <p>Captured: {{ payment.captured_amount }} {{ payment.currency }}</p>
+                    <p>Captured amount: {{ payment.captured_amount }} {{ payment.currency }}</p>
                 {% endif %}
             </div>
         </div>
