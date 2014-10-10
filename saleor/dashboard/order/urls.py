@@ -16,5 +16,8 @@ urlpatterns = patterns(
         name='address-shipping-edit'),
     url(r'^line/(?P<pk>[0-9]+)$',
         views.OrderLineEdit.as_view(),
-        name='order-line-edit')
+        name='order-line-edit'),
+    url(r'^ship/(?P<pk>[0-9]+)$',
+        views.ShipDeliveryGroupModal.as_view(),
+        name='ship-delivery-group')
 )

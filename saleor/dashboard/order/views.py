@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from django.core.context_processors import csrf
 from payments import PaymentError
 
-from ...order.models import Order, OrderedItem, Address
+from ...order.models import Order, OrderedItem, Address, DeliveryGroup
 from ...userprofile.forms import AddressForm
 from ..views import StaffMemberOnlyMixin, FilterByStatusMixin
 from .forms import (OrderNoteForm, ManagePaymentForm, MoveItemsForm,
@@ -103,6 +103,8 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
             self.handle_note_form()
         elif 'line_action' in request.POST:
             self.handle_line_action()
+        elif 'shipping_action' in request.POST:
+            self.handle_shipping_action()
         return self.get(request, *args, **kwargs)
 
     def handle_release_action(self):
@@ -171,6 +173,22 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
         else:
             messages.error(self.request, _('Cannot update order line'))
 
+    def handle_shipping_action(self):
+        group_pk = self.request.POST['shipping_action']
+        order = self.get_object()
+        group = order.groups.get(pk=group_pk)
+        if group.status == 'new':
+            group.change_status('shipped')
+            msg = _('Shipped delivery group #%s' % group.pk)
+            messages.success(self.request, msg)
+            order.history.create(status=order.status,
+                                 comment=msg,
+                                 user=self.request.user)
+
+            statuses = [g.status for g in order.groups.all()]
+            if 'shipped' in statuses and 'new' not in statuses:
+                order.change_status('shipped')
+
 
 class AddressView(StaffMemberOnlyMixin, UpdateView):
     model = Address
@@ -225,6 +243,25 @@ class OrderLineEdit(StaffMemberOnlyMixin, UpdateView):
         ctx.update(csrf(request))
         if request.is_ajax():
             template = 'dashboard/includes/modal_order_line_edit.html'
+            rendered = render_to_string(template, ctx)
+            return HttpResponse(rendered)
+        else:
+            return self.render_to_response(ctx)
+
+
+class ShipDeliveryGroupModal(StaffMemberOnlyMixin, UpdateView):
+    model = DeliveryGroup
+    context_object_name = 'group'
+
+    def get_queryset(self):
+        return DeliveryGroup.objects.select_subclasses()
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        ctx = self.get_context_data(*args, **kwargs)
+        ctx.update(csrf(request))
+        if request.is_ajax():
+            template = 'dashboard/includes/modal_ship_delivery_group.html'
             rendered = render_to_string(template, ctx)
             return HttpResponse(rendered)
         else:
