@@ -40,7 +40,9 @@
                                     <td>{{ item.product_sku }}</td>
                                     <td>{% gross item.get_price_per_item %}</td>
                                     <td>{{ item.quantity }}</td>
-                                    <td><a class="btn btn-link" data-target="#base-modal" href="{% url 'dashboard:order-line-edit' pk=item.pk %}" data-toggle="modal">Edit</a></td>
+                                    <td>
+                                        <a class="btn btn-link" data-target="#base-modal" href="{% url 'dashboard:order-line-edit' pk=item.pk %}" data-toggle="modal" {% if group.status != 'new' %}disabled{% endif %}>Edit</a>
+                                    </td>
                                 </tr>
                             {% endfor %}
                         </tbody>
