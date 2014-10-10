@@ -1,8 +1,8 @@
-<ul class="nav navbar-top-links navbar-right">
+<ul class="nav navbar-nav navbar-top-links navbar-right">
     <!-- /.dropdown -->
     <li class="dropdown">
         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-            <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
+            <i class="fa fa-user fa-fw"></i>{{ request.user }} <i class="fa fa-caret-down"></i>
         </a>
         <ul class="dropdown-menu dropdown-user">
             <li><a href="{% url 'registration:logout' %}"><i

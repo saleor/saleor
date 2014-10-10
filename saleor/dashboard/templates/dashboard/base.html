@@ -29,22 +29,20 @@
 
 <div id="wrapper">
 
-    <nav class="navbar navbar-default navbar-fixed-top" role="navigation"
-         style="margin-bottom: 0">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse"
-                    data-target=".sidebar-collapse">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="{% url 'dashboard:index' %}">Saleor dashboard</a>
+    <nav class="navbar navbar-default navbar-inverse navbar-fixed-top" role="navigation" style="margin-bottom: 0">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse"
+                        data-target=".sidebar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="{% url 'dashboard:index' %}">Saleor dashboard</a>
+            </div>
+            {% include "dashboard/includes/header.html" %}
         </div>
-        <!-- /.navbar-header -->
-
-        {% include "dashboard/includes/header.html" %}
-        <!-- /.navbar-top-links -->
 
         {% include "dashboard/includes/sidebar.html" %}
         <!-- /.navbar-static-side -->
