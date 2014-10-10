@@ -34,7 +34,7 @@ class DummyShipping(BaseDelivery):
         return 'Dummy shipping'
 
     def get_delivery_total(self, weight=None, **kwargs):
-        if not weight:
+        if weight is None:
             weight = sum(line.product.get_weight() for line in self.group)
         qty = sum(line.quantity for line in self.group)
         return Price(qty * weight,
