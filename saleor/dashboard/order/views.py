@@ -212,9 +212,9 @@ class AddressView(StaffMemberOnlyMixin, UpdateView):
         if self.address_type == 'billing':
             return self.order.billing_address
         else:
-            delivery = self.order.groups.select_subclasses().get(
+            group = self.order.groups.select_subclasses().get(
                 pk=self.kwargs['group_pk'])
-            return delivery.address
+            return group.address
 
     def get_context_data(self, **kwargs):
         ctx = super(AddressView, self).get_context_data(**kwargs)
@@ -223,11 +223,14 @@ class AddressView(StaffMemberOnlyMixin, UpdateView):
         return ctx
 
     def get_success_url(self):
-        _type_str = self.address_type.capitalize()
-        messages.success(
-            self.request,
-            _('%(address_type)s address updated' % {'address_type': _type_str})
-        )
+        if self.address_type == 'shipping':
+            msg = _('Updated shipping address for group #%s' %
+                    self.kwargs['group_pk'])
+        else:
+            msg = _('Updated billing address')
+        self.order.history.create(comment=msg, status=self.order.status,
+                                  user=self.request.user)
+        messages.success(self.request, msg)
         return reverse('dashboard:order-details', kwargs={'pk': self.order.pk})
 
 
