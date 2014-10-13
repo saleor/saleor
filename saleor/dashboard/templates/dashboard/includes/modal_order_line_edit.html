@@ -10,20 +10,20 @@
         <form class="form-inline" method="post" role="form">
             {% csrf_token %}
             <div class="form-group">
-                <p>{% trans "Change quantity: " %}
-                {% render_widget quantity_form.quantity class="form-control input-sm" %}
+                <span>{% trans "Change quantity: " %}{% render_widget quantity_form.quantity class="form-control input-sm" %}
                 <input type="hidden" name="line_action" value="change_quantity" />
                 <input type="hidden" name="item_pk" value={{ object.pk }} />
-                <button type="submit" class="btn btn-default btn-sm">OK</button></p>
+                <button type="submit" class="btn btn-default btn-sm">OK</button></span>
             </div>
         </form>
+        <hr />
         <form class="form-inline" method="post" role="form">
             {% csrf_token %}
             <div class="form-group">
-                <p>Move {% render_widget move_items_form.quantity class="form-control input-sm" %} items to delivery group: {% render_widget move_items_form.groups class="form-control input-sm" %}
+                <span>Move {% render_widget move_items_form.quantity class="form-control input-sm" %} items to delivery group: {% render_widget move_items_form.groups class="form-control input-sm" %}
                 <input type="hidden" name="line_action" value="move_items" />
                 <input type="hidden" name="item_pk" value={{ object.pk }} />
-                <button type="submit" class="btn btn-default btn-sm">OK</button></p>
+                <button type="submit" class="btn btn-default btn-sm">OK</button></span>
             </div>
         </form>
     </div>
