@@ -1,11 +1,12 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.backends import ModelBackend
 
 from .models import ExternalUserData
 
 User = get_user_model()
 
 
-class Backend(object):
+class Backend(ModelBackend):
 
     def get_user(self, user_id):
         try:

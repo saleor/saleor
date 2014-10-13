@@ -3,7 +3,7 @@ import re
 
 from django.contrib.auth.hashers import (check_password, make_password,
                                          is_password_usable)
-from django.contrib.auth.models import BaseUserManager
+from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.db import models
 from django.forms.models import model_to_dict
 from django.utils import timezone
@@ -149,7 +149,8 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
-        return self.create_user(email, password, is_staff=True, **extra_fields)
+        return self.create_user(email, password, is_staff=True,
+                                is_superuser=True, **extra_fields)
 
     def store_address(self, user, address, alias,
                       billing=False, shipping=False):
@@ -166,7 +167,7 @@ class UserManager(BaseUserManager):
 
 
 @python_2_unicode_compatible
-class User(models.Model):
+class User(PermissionsMixin, models.Model):
     email = models.EmailField(unique=True)
 
     addresses = models.ManyToManyField(Address, through=AddressBook)
@@ -212,15 +213,6 @@ class User(models.Model):
 
     def get_short_name(self):
         return self.email
-
-    def has_perm(self, *_args, **_kwargs):
-        return True
-
-    def has_perms(self, *_args, **_kwargs):
-        return True
-
-    def has_module_perms(self, _app_label):
-        return True
 
     def get_username(self):
         'Return the identifying username for this User'
