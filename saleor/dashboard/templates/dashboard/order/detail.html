@@ -48,9 +48,12 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan=5>
+                                <td>
                                     <p>{% trans "Delivery cost: " %}{% gross group.price %}</p>
                                     <p><strong>{% trans "Total: " %}{% gross group.get_total %}</strong></p>
+                                </td>
+                                <td colspan=4>
+                                    <p>{% trans "Shipping address" %}: {% include "dashboard/includes/address_short.html" with address=group.address order_pk=order.pk group_pk=group.pk %}</p>
                                 </td>
                                 <td>
                                     <a class="btn btn-default btn-sm" data-target="#base-modal" href="{% url 'dashboard:ship-delivery-group' pk=group.pk %}" data-toggle="modal" {% if not group.can_ship %}disabled{% endif %}>Ship</a>
@@ -210,21 +213,6 @@
             </div>
             {% endwith %}
         </div>
-        <div class="panel panel-default">
-            {% for delivery in delivery_groups %}
-                <div class="panel-heading">
-                    <span class="panel-title">Shipping address - Delivery group #{{ delivery.pk }}</span>
-                    <span class="pull-right"><a href="{% url "dashboard:address-shipping-edit" order_pk=order.pk group_pk=delivery.pk %}"><i class="glyphicon glyphicon-cog"></i> Edit</a></span>
-                </div>
-                <div class="panel-body">
-                    {% if delivery and delivery.address %}
-                        {% include 'dashboard/includes/_address.html' with address=delivery.address only %}
-                    {% else %}
-                        <span>No shipping address</span>
-                    {% endif %}
-                </div>
-            {% endfor %}
-        </div>
     </div>
 </div>
 
@@ -241,6 +229,9 @@
 <script>
     $('#base-modal').on('hide.bs.modal', function(e) {
         $(this).removeData();
+    });
+    $(function() {
+        $(".address-details").popover();
     });
 </script>
 {% endblock %}
