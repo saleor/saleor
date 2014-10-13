@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import user_passes_test
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
+from prices import Price
 
 from ..order.models import Order, Payment
 
@@ -54,7 +55,10 @@ class IndexView(StaffMemberOnlyMixin, TemplateView):
         return ctx
 
     def get_preauthorized_payments(self):
-        return Payment.objects.filter(status='preauth').order_by('-created')
+        payments = Payment.objects.filter(status='preauth').order_by('-created')
+        for payment in payments:
+            payment.total = Price(payment.total, currency=payment.currency)
+        return payments
 
     def get_orders_to_ship(self):
         return Order.objects.filter(status='fully-paid')

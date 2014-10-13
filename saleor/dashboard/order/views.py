@@ -7,6 +7,7 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.core.context_processors import csrf
 from payments import PaymentError
+from prices import Price
 
 from ...order.models import Order, OrderedItem, Address, DeliveryGroup
 from ...userprofile.forms import AddressForm
@@ -38,39 +39,46 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         ctx = super(OrderDetails, self).get_context_data(**kwargs)
-
-        ctx['notes'] = self.object.notes.all()
-        if 'note_form' not in ctx:
-            ctx['note_form'] = self.note_form_class()
-
         payment = self.get_object().payments.last()
-        ctx['payment'] = payment
+        captured = refunded = preauthorized = None
+        payment_form_initial = {'amount': self.object.get_total().gross}
+
         if payment:
             ctx['can_capture'] = payment.status == 'preauth' \
                 and self.object.status != 'cancelled'
             ctx['can_release'] = payment.status == 'preauth'
             ctx['can_refund'] = payment.status == 'confirmed'
+
+            preauthorized = Price(payment.total, currency=payment.currency)
+
             if payment.status == 'confirmed':
-                amount = payment.captured_amount
-            elif payment.status == 'preauth':
-                amount = self.object.get_total().gross
-            else:
-                amount = None
-            ctx['payment_form'] = self.payment_form_class(
-                initial={'amount': amount})
-            ctx['amount'] = amount
+                captured = Price(payment.captured_amount,
+                                 currency=payment.currency)
+                payment_form_initial = {'amount': captured.gross}
+
             if payment.status == 'refunded':
-                ctx['refunded_amount'] = payment.total - payment.captured_amount
+                refunded = Price(payment.total - payment.captured_amount,
+                                 currency=payment.currency)
         else:
             ctx['can_capture'] = ctx['can_release'] = ctx['can_refund'] = False
-            ctx['payment_form'] = self.payment_form_class()
 
+        ctx['note_form'] = self.note_form_class()
+        ctx['payment_form'] = self.payment_form_class(payment_form_initial)
+
+        ctx['delivery_groups'] = self.get_delivery_groups(payment)
+        ctx['notes'] = self.object.notes.all()
+        ctx['payment'] = payment
+        ctx['captured'] = captured
+        ctx['preauthorized'] = preauthorized
+        ctx['refunded'] = refunded
+        return ctx
+
+    def get_delivery_groups(self, payment):
         groups = self.object.groups.select_subclasses().all()
         for group in groups:
             group.can_ship = payment and payment.status == 'confirmed' and \
                 group.status == 'new'
-        ctx['delivery_groups'] = groups
-        return ctx
+        return groups
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()

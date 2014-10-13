@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load babel %}
 {% load bootstrap %}
 
 <div class="modal-header">
@@ -9,7 +10,7 @@
     <form id="modal-form" class="form-inline" role="form" method="post">
         {% csrf_token %}
         <div class="form-group">
-            <label class="control-label"for="amount">{% blocktrans %}Amount to {{ action }}:{% endblocktrans %}</label>
+            <label class="control-label" for="amount">{% blocktrans %}Amount to {{ action }}:{% endblocktrans %}</label>
             {% render_widget payment_form.amount class="form-control" %} {{ currency }}
             <input id='id_action' type="hidden" name='payment_form' value={{ action }} />
             <input id='id_captured' type="hidden" value={{ captured }} />
@@ -21,7 +22,7 @@
       </ul>
       <p>{% trans "After this action" %}</p>
       <ul>
-        <li>{% trans "Captured amount: " %}<span id="id_new_captured">{{ amount }}</span> {{ currency }}</li>
+        <li>{% trans "Captured amount: " %}{{ captured|currencyfmt:currency }} </li>
       </ul>
 </div>
 <div class="modal-footer">

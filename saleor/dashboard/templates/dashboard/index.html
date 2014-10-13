@@ -30,7 +30,7 @@
                                     <td>{{ payment.variant }}</td>
                                     <td>{{ payment.created }}</td>
                                     <td>{{ payment.order.user|default:"Anonymous" }}</td>
-                                    <td>{{ payment.total }}</td>
+                                    <td>{% gross payment.total %}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
