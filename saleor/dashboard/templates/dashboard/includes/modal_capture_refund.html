@@ -18,10 +18,6 @@
     </form>
     <p>{% trans "Before this action" %}</p>
       <ul>
-        <li>{% trans "Captured amount: " %}{{ captured }} {{ currency }}</li>
-      </ul>
-      <p>{% trans "After this action" %}</p>
-      <ul>
         <li>{% trans "Captured amount: " %}{{ captured|currencyfmt:currency }} </li>
       </ul>
 </div>
@@ -34,22 +30,5 @@
 <script>
 $('#id_btn_yes').click(function() {
     $('#modal-form').submit();
-});
-$('#id_amount').change(function() {
-  var action = $('#id_action').val();
-  var amount = $('#id_amount').val();
-  var captured = parseFloat(($('#id_captured').val()).replace(',', '.'));
-
-  var new_captured = 0;
-  if (action == 'capture') {
-    new_captured = amount - captured;
-  } else {
-    new_captured = captured - amount;
-    if (new_captured < 0) {
-      new_captured = 0;
-    }
-  }
-
-  $('#id_new_captured').text(new_captured.toFixed(2));
 });
 </script>
