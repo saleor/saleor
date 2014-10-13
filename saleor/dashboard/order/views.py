@@ -65,15 +65,8 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
             ctx['can_capture'] = ctx['can_release'] = ctx['can_refund'] = False
             ctx['payment_form'] = self.payment_form_class()
 
-        ctx['delivery_groups'] = self.get_delivery_groups()
+        ctx['delivery_groups'] = self.object.groups.select_subclasses().all()
         return ctx
-
-    def get_delivery_groups(self):
-        def _cmp_status(x, y):
-            _map = {'new': 1, 'shipped': 2, 'cancelled': 3}
-            return cmp(_map[x.status], _map[y.status])
-        groups = self.object.groups.select_subclasses().all()
-        return sorted(groups, cmp=lambda x, y: _cmp_status(x, y))
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
