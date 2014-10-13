@@ -53,7 +53,7 @@
                                     <p><strong>{% trans "Total: " %}{% gross group.get_total %}</strong></p>
                                 </td>
                                 <td>
-                                    <a class="btn btn-default btn-sm" data-target="#base-modal" href="{% url 'dashboard:ship-delivery-group' pk=group.pk %}" data-toggle="modal" {% if group.status != 'new' and payment.status == 'confirmed' %}disabled="disabled"{% endif %}>Ship</a>
+                                    <a class="btn btn-default btn-sm" data-target="#base-modal" href="{% url 'dashboard:ship-delivery-group' pk=group.pk %}" data-toggle="modal" {% if not group.can_ship %}disabled{% endif %}>Ship</a>
                                 </td>
                             </tr>
                         </tfoot>

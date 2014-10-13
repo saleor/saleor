@@ -65,7 +65,10 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
             ctx['can_capture'] = ctx['can_release'] = ctx['can_refund'] = False
             ctx['payment_form'] = self.payment_form_class()
 
-        ctx['delivery_groups'] = self.object.groups.select_subclasses().all()
+        groups = self.object.groups.select_subclasses().all()
+        for group in groups:
+            group.can_ship = payment.status == 'confirmed' and group.status == 'new'
+        ctx['delivery_groups'] = groups
         return ctx
 
     def get(self, request, *args, **kwargs):
