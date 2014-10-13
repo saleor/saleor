@@ -67,7 +67,8 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
 
         groups = self.object.groups.select_subclasses().all()
         for group in groups:
-            group.can_ship = payment.status == 'confirmed' and group.status == 'new'
+            group.can_ship = payment.status == 'confirmed' and \
+                group.status == 'new'
         ctx['delivery_groups'] = groups
         return ctx
 
