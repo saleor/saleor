@@ -1,5 +1,6 @@
 from django import forms
 from django.forms.models import inlineformset_factory
+from django.forms.widgets import ClearableFileInput
 from ...product.models import (ProductImage, Product, Category, ShirtVariant,
                                BagVariant, Shirt, Bag)
 
@@ -32,7 +33,12 @@ class BagForm(ProductForm):
         model = Bag
 
 
-ProductImageFormSet = inlineformset_factory(Product, ProductImage, extra=1)
+class ImageInputWidget(ClearableFileInput):
+    url_markup_template = '<a href="{0}"><img src="{0}" width=50 /></a>'
+
+
+ProductImageFormSet = inlineformset_factory(Product, ProductImage, extra=1,
+                                            widgets={'image': ImageInputWidget})
 ShirtVariantFormset = inlineformset_factory(Shirt, ShirtVariant, extra=1)
 BagVariantFormset = inlineformset_factory(Bag, BagVariant, extra=1)
 
