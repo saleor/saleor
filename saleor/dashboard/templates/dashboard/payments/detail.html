@@ -18,8 +18,8 @@
             <div class="panel-body">
                 <p>Status: {% render_status payment.status payment.get_status_display %}</p>
                 <p>Fraud status: {% render_status payment.fraud_status payment.get_fraud_status_display %}</p>
-                <p>Amount: {{ payment.total }} {{ payment.currency }}</p>
-                <p>Captured amount: {{ payment.captured_amount }} {{ payment.currency }}</p>
+                <p>Amount: {% gross payment.total %}</p>
+                <p>Captured amount: {% gross payment.captured_amount %}</p>
                 <p>Gateway: {{ payment.variant }}</p>
                 <p>Transaction id: {{ payment.transaction_id }}</p>
                 <p>Payment date: {{ payment.created }}</p>
