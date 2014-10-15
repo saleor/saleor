@@ -1,15 +1,15 @@
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import ListView, DetailView, UpdateView
-from django.core.urlresolvers import reverse
-from django.shortcuts import get_object_or_404
+from django.views.generic import ListView, DetailView
+from django.shortcuts import redirect
 from django.template.loader import render_to_string
+from django.template.response import TemplateResponse
 from django.http import HttpResponse
 from django.core.context_processors import csrf
 from payments import PaymentError
 from prices import Price
 
-from ...order.models import Order, OrderedItem, Address, DeliveryGroup
+from ...order.models import Order, OrderedItem, DeliveryGroup
 from ...userprofile.forms import AddressForm
 from ..views import StaffMemberOnlyMixin, FilterByStatusMixin
 from .forms import (OrderNoteForm, ManagePaymentForm, MoveItemsForm,
@@ -195,82 +195,47 @@ class OrderDetails(StaffMemberOnlyMixin, DetailView):
                 order.change_status('shipped')
 
 
-class AddressView(StaffMemberOnlyMixin, UpdateView):
-    model = Address
-    template_name = 'dashboard/order/address-edit.html'
-    form_class = AddressForm
-
-    def dispatch(self, *args, **kwargs):
-        if 'group_pk' in self.kwargs:
-            self.address_type = 'shipping'
-        else:
-            self.address_type = 'billing'
-        return super(AddressView, self).dispatch(*args, **kwargs)
-
-    def get_object(self, queryset=None):
-        self.order = get_object_or_404(Order, pk=self.kwargs['order_pk'])
-        if self.address_type == 'billing':
-            return self.order.billing_address
-        else:
-            group = self.order.groups.select_subclasses().get(
-                pk=self.kwargs['group_pk'])
-            return group.address
-
-    def get_context_data(self, **kwargs):
-        ctx = super(AddressView, self).get_context_data(**kwargs)
-        ctx['order'] = self.order
-        ctx['address_type'] = self.address_type
-        return ctx
-
-    def get_success_url(self):
-        if self.address_type == 'shipping':
-            msg = _('Updated shipping address for group #%s' %
-                    self.kwargs['group_pk'])
-        else:
-            msg = _('Updated billing address')
-        self.order.history.create(comment=msg, status=self.order.status,
-                                  user=self.request.user)
-        messages.success(self.request, msg)
-        return reverse('dashboard:order-details', kwargs={'pk': self.order.pk})
+def address_view(request, order_pk, group_pk=None):
+    address_type = 'shipping' if group_pk else 'billing'
+    order = Order.objects.get(pk=order_pk)
+    if address_type == 'shipping':
+        address = order.groups.select_subclasses().get(pk=group_pk).address
+    else:
+        address = order.billing_address
+    form = AddressForm(request.POST or None, instance=address)
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            if address_type == 'shipping':
+                msg = _('Updated shipping address for group #%s' % group_pk)
+            else:
+                msg = _('Updated billing address')
+            order.history.create(comment=msg, status=order.status,
+                                 user=request.user)
+            messages.success(request, msg)
+            return redirect('dashboard:order-details', pk=order.pk)
+    ctx = {'order': order, 'address_type': address_type, 'form': form}
+    return TemplateResponse(request, 'dashboard/order/address-edit.html', ctx)
 
 
-class OrderLineEdit(StaffMemberOnlyMixin, UpdateView):
-    model = OrderedItem
-    quantity_form = ChangeQuantityForm
-    move_items_form = MoveItemsForm
-
-    def get_context_data(self, **kwargs):
-        ctx = super(OrderLineEdit, self).get_context_data(**kwargs)
-        ctx['quantity_form'] = self.quantity_form(item=self.get_object())
-        ctx['move_items_form'] = self.move_items_form(item=self.get_object())
-        return ctx
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        ctx = self.get_context_data(*args, **kwargs)
-        ctx.update(csrf(request))
-        if request.is_ajax():
-            template = 'dashboard/includes/modal_order_line_edit.html'
-            rendered = render_to_string(template, ctx)
-            return HttpResponse(rendered)
-        else:
-            return self.render_to_response(ctx)
+def order_line_edit(request, pk):
+    item = OrderedItem.objects.get(pk=pk)
+    quantity_form = ChangeQuantityForm(item=item)
+    move_items_form = MoveItemsForm(item=item)
+    ctx = {'object': item, 'quantity_form': quantity_form,
+           'move_items_form': move_items_form}
+    ctx.update(csrf(request))
+    if request.is_ajax():
+        template = 'dashboard/includes/modal_order_line_edit.html'
+        rendered = render_to_string(template, ctx)
+        return HttpResponse(rendered)
 
 
-class ShipDeliveryGroupModal(StaffMemberOnlyMixin, UpdateView):
-    model = DeliveryGroup
-    context_object_name = 'group'
-
-    def get_queryset(self):
-        return DeliveryGroup.objects.select_subclasses()
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        ctx = self.get_context_data(*args, **kwargs)
-        ctx.update(csrf(request))
-        if request.is_ajax():
-            template = 'dashboard/includes/modal_ship_delivery_group.html'
-            rendered = render_to_string(template, ctx)
-            return HttpResponse(rendered)
-        else:
-            return self.render_to_response(ctx)
+def ship_delivery_group_modal(request, pk):
+    group = DeliveryGroup.objects.select_subclasses().get(pk=pk)
+    ctx = {'group': group}
+    ctx.update(csrf(request))
+    if request.is_ajax():
+        template = 'dashboard/includes/modal_ship_delivery_group.html'
+        rendered = render_to_string(template, ctx)
+        return HttpResponse(rendered)
