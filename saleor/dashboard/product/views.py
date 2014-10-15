@@ -1,5 +1,6 @@
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
@@ -39,6 +40,7 @@ class ProductListView(StaffMemberOnlyMixin, ListView, FormMixin):
         return self.get(request, **kwargs)
 
 
+@staff_member_required
 def product_details(request, pk=None, category=None):
     product = Product.objects.select_subclasses().get(pk=pk) if pk else None
     form_cls = get_product_form(product, category)
