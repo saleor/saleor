@@ -1,13 +1,15 @@
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.contrib import messages
 from django.http import HttpResponseRedirect
-from django.views.generic import ListView, UpdateView, DeleteView
+from django.shortcuts import redirect
+from django.template.response import TemplateResponse
+from django.views.generic import ListView, DeleteView
 from django.views.generic.edit import FormMixin
 from django.utils.translation import ugettext_lazy as _
 from ..views import StaffMemberOnlyMixin
 from ...product.models import Product
-from .forms import (ProductImageFormSet, ProductForm, ProductCategoryForm,
-                    get_product_form, get_variant_formset)
+from .forms import (ProductImageFormSet, ProductCategoryForm, get_product_form,
+                    get_variant_formset)
 
 
 class ProductListView(StaffMemberOnlyMixin, ListView, FormMixin):
@@ -37,101 +39,41 @@ class ProductListView(StaffMemberOnlyMixin, ListView, FormMixin):
         return self.get(request, **kwargs)
 
 
-class ProductView(StaffMemberOnlyMixin, UpdateView):
-    model = Product
-    template_name = 'dashboard/product/product_form.html'
-    image_formset = ProductImageFormSet
-    variant_formset = None
-    form_class = ProductForm
-    context_object_name = 'product'
-
-    def __init__(self, *args, **kwargs):
-        super(ProductView, self).__init__(*args, **kwargs)
-        self.formsets = {'image_formset': self.image_formset}
-
-    def get_queryset(self):
-        qs = super(ProductView, self).get_queryset()
-        qs = qs.select_subclasses()
-        return qs
-
-    def get_object(self, queryset=None):
-        self.creating = 'pk' not in self.kwargs
-        if self.creating:
-            return None
+def product_details(request, pk=None, category=None):
+    product = Product.objects.select_subclasses().get(pk=pk) if pk else None
+    form_cls = get_product_form(product, category)
+    variant_formset_cls = get_variant_formset(product, category)
+    form = form_cls(request.POST or None, instance=product)
+    if request.method == 'POST':
+        if form.is_valid():
+            product = form.save()
+            variant_formset = variant_formset_cls(request.POST,
+                                                  instance=product)
+            image_formset = ProductImageFormSet(request.POST, request.FILES,
+                                                instance=product)
+            if variant_formset.is_valid() and image_formset.is_valid():
+                variant_formset.save()
+                image_formset.save()
+                if pk:
+                    messages.success(request, _('Product %s updated' % product))
+                    return redirect('dashboard:product-update', pk=product.pk)
+                else:
+                    messages.success(request, _('Product %s added' % product))
+                    return redirect('dashboard:products')
+            else:
+                error = True
         else:
-            return super(ProductView, self).get_object(queryset)
-
-    def get_form_class(self):
-        if not self.variant_formset:
-            variant_formset_cls = get_variant_formset(
-                self.object, self.kwargs.get('category'))
-            self.formsets['variant_formset'] = variant_formset_cls
-            self.variant_formset = variant_formset_cls
-        return get_product_form(self.object, self.kwargs.get('category'))
-
-    def get_context_data(self, **kwargs):
-        ctx = super(ProductView, self).get_context_data(**kwargs)
-
-        for ctx_name, formset_class in self.formsets.items():
-            if ctx_name not in ctx:
-                ctx[ctx_name] = formset_class(instance=self.object)
-
-        if self.object is None:
-            ctx['title'] = 'Add new product'
-        else:
-            ctx['title'] = ctx['product'].name
-        return ctx
-
-    def process_all_forms(self, form):
-        if self.creating and form.is_valid():
-            self.object = form.save()
-
-        formsets = {}
-        for ctx_name, formset_class in self.formsets.items():
-            formsets[ctx_name] = formset_class(self.request.POST,
-                                               self.request.FILES,
-                                               instance=self.object)
-        for formset in formsets.values():
-            formset.is_valid()
-
-        is_valid = form.is_valid() \
-            and all([formset.is_valid() for formset in formsets.values()])
-
-        if is_valid:
-            return self.forms_valid(form, formsets)
-        else:
-            return self.forms_invalid(form, formsets)
-
-    form_valid = form_invalid = process_all_forms
-
-    def forms_valid(self, form, formsets):
-        for formset in formsets.values():
-            formset.save()
-        if self.creating:
-            msg = _('Created product %s' % self.object)
-        else:
-            self.object = form.save()
-            msg = _('Updated product %s' % self.object)
-        messages.success(self.request, msg)
-        return HttpResponseRedirect(self.get_success_url())
-
-    def forms_invalid(self, form, formsets):
-        if self.creating and self.object and self.object.pk is not None:
-            self.object.delete()
-            self.object = None
-
-        messages.error(self.request,
-                       _("Your submitted data was not valid - please "
-                         "correct the errors below"))
-        ctx = self.get_context_data(form=form, **formsets)
-        return self.render_to_response(ctx)
-
-    def get_success_url(self):
-        if self.creating:
-            return reverse('dashboard:products')
-        else:
-            return reverse('dashboard:product-update',
-                           kwargs={'pk': self.object.pk})
+            error = True
+        if error:
+            messages.error(request, _('Your submitted data was not valid'
+                                      ' - please correct the errors below'))
+    else:
+        variant_formset = variant_formset_cls(instance=product)
+        image_formset = ProductImageFormSet(instance=product)
+    title = product.name if product else _('Add new product')
+    ctx = {'title': title, 'product': product, 'form': form,
+           'variant_formset': variant_formset, 'image_formset': image_formset}
+    return TemplateResponse(request, 'dashboard/product/product_form.html', ctx)
 
 
 class ProductDeleteView(StaffMemberOnlyMixin, DeleteView):
