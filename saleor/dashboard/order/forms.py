@@ -1,6 +1,7 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 from satchless.item import InsufficientStock
+from payments import PaymentError
 
 from ...cart.forms import QuantityField
 from ...order.models import OrderNote, DeliveryGroup
@@ -9,20 +10,60 @@ from ...product.models import Product
 
 class OrderNoteForm(forms.ModelForm):
 
+    class Meta:
+        model = OrderNote
+        fields = ['content']
+        widgets = {'content': forms.Textarea({
+            'rows': 5, 'placeholder': _('Note')})}
+
     def __init__(self, *args, **kwargs):
         super(OrderNoteForm, self).__init__(*args, **kwargs)
         self.fields['content'].label = ''
 
-    class Meta:
-        model = OrderNote
-        fields = ['content']
-        widgets = {
-            'content': forms.Textarea({'rows': 5, 'placeholder': _('Note')})
-        }
+    def save(self, order, user, **kwargs):
+        note = super(OrderNoteForm, self).save(commit=False)
+        note.order = order
+        note.user = user
+        note.save()
 
 
 class ManagePaymentForm(forms.Form):
-    amount = forms.DecimalField(min_value=0, decimal_places=2)
+    action = forms.CharField(widget=forms.HiddenInput())
+    amount = forms.DecimalField(min_value=0, decimal_places=2, required=False)
+
+    def __init__(self, *args, **kwargs):
+        self.payment = kwargs.pop('payment')
+        super(ManagePaymentForm, self).__init__(*args, **kwargs)
+
+    def save(self, action, user):
+        success_msg = None
+        error_msg = _('Payment gateway error: ')
+        if action == 'capture' and self.payment.status == 'preauth':
+            try:
+                self.payment.capture(
+                    amount=self.cleaned_data['amount'], user=user)
+            except PaymentError as e:
+                error_msg += e.message
+            else:
+                success_msg = _('Funds captured')
+        elif action == 'refund' and self.payment.status == 'confirmed':
+            try:
+                self.payment.refund(
+                    amount=self.cleaned_data['amount'], user=user)
+            except PaymentError as e:
+                error_msg += e.message
+            except ValueError as e:
+                error_msg = e.message
+            else:
+                success_msg = _('Refund successful')
+        elif action == 'release' and self.payment.status == 'preauth':
+            try:
+                self.payment.release(user=user)
+            except PaymentError as e:
+                error_msg += e.message
+            else:
+                success_msg = _('Release successful')
+        return success_msg, error_msg
 
 
 class MoveItemsForm(forms.Form):
@@ -92,3 +133,24 @@ class ChangeQuantityForm(forms.Form):
         new_quantity = self.cleaned_data['quantity']
         if new_quantity != self.item.quantity:
             self.item.change_quantity(new_quantity, user)
+
+
+class ShipGroupForm(forms.Form):
+
+    def __init__(self, *args, **kwargs):
+        self.group = kwargs.pop('group')
+        super(ShipGroupForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        if self.group.status != 'new':
+            raise forms.ValidationError(_('Cannot ship this group'),
+                                        code='invalid')
+
+    def save(self, user):
+        order = self.group.order
+        self.group.change_status('shipped')
+        comment = _('Shipped delivery group #%s' % self.group.pk)
+        order.history.create(status=order.status, comment=comment, user=user)
+        statuses = [g.status for g in order.groups.all()]
+        if 'shipped' in statuses and 'new' not in statuses:
+            order.change_status('shipped')

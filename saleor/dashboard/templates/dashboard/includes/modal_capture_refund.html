@@ -7,13 +7,12 @@
     <h3>{{ action|capfirst }} {% trans "payment" %}</h3>
 </div>
 <div class="modal-body">
-    <form id="modal-form" class="form-inline" role="form" method="post">
+    <form id="modal-form" class="form-inline" role="form" method="post" action={% url 'dashboard:manage-payment' pk=payment.pk %}>
         {% csrf_token %}
         <div class="form-group">
             <label class="control-label" for="amount">{% blocktrans %}Amount to {{ action }}:{% endblocktrans %}</label>
-            {% render_widget payment_form.amount class="form-control" %} {{ currency }}
-            <input id='id_action' type="hidden" name='payment_form' value={{ action }} />
-            <input id='id_captured' type="hidden" value={{ captured }} />
+            {% render_widget form.amount class="form-control" %} {{ currency }}
+            {{ form.action }}
         </div>
     </form>
     <p>{% trans "Before this action" %}</p>

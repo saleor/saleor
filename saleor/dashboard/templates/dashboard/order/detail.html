@@ -15,7 +15,7 @@
                 <span class="panel-title">Order contents</span>
             </div>
             <div class="panel-body">
-                {% for group in delivery_groups %}
+                {% for group in groups %}
                     <table class="table table-condensed">
                         <thead>
                             <tr>
@@ -76,12 +76,12 @@
                         <p>Refunded amount: {% gross refunded %}</p>
                     {% endif %}
                     {% if can_capture %}
-                    <a class="btn btn-success" data-target="#base-modal" href="{% url 'dashboard:order-details' pk=order.pk %}?action=capture" data-toggle="modal">{% trans "Capture" %}</a>
+                    <a class="btn btn-success" data-target="#base-modal" href="{% url 'dashboard:manage-payment' pk=payment.pk %}?action=capture" data-toggle="modal">{% trans "Capture" %}</a>
                     {% elif can_refund %}
-                    <a class="btn btn-danger" data-target="#base-modal" href="{% url 'dashboard:order-details' pk=order.pk %}?action=refund" data-toggle="modal">{% trans "Refund" %}</a>
+                    <a class="btn btn-danger" data-target="#base-modal" href="{% url 'dashboard:manage-payment' pk=payment.pk %}?action=refund" data-toggle="modal">{% trans "Refund" %}</a>
                     {% endif %}
                     {% if can_release %}
-                    <a class="btn btn-danger" data-target="#base-modal" href="{% url 'dashboard:order-details' pk=order.pk %}?action=release" data-toggle="modal">{% trans "Release" %}</a>
+                    <a class="btn btn-danger" data-target="#base-modal" href="{% url 'dashboard:manage-payment' pk=payment.pk %}?action=release" data-toggle="modal">{% trans "Release" %}</a>
                     {% endif %}
                 {% else %}
                     <span>{% trans "No payment for this order" %}</span>
