@@ -51,20 +51,11 @@ class FilterByStatusMixin(object):
         return filters
 
 
-class IndexView(StaffMemberOnlyMixin, TemplateView):
-    template_name = 'dashboard/index.html'
-
-    def get_context_data(self, **kwargs):
-        ctx = super(IndexView, self).get_context_data(**kwargs)
-        ctx['preauthorized_payments'] = self.get_preauthorized_payments()
-        ctx['orders_to_ship'] = self.get_orders_to_ship()
-        return ctx
-
-    def get_preauthorized_payments(self):
-        payments = Payment.objects.filter(status='preauth').order_by('-created')
-        for payment in payments:
-            payment.total = Price(payment.total, currency=payment.currency)
-        return payments
-
-    def get_orders_to_ship(self):
-        return Order.objects.filter(status='fully-paid')
+@staff_member_required
+def index(request):
+    orders_to_ship = Order.objects.filter(status='fully-paid')
+    payments = Payment.objects.filter(status='preauth').order_by('-created')
+    for payment in payments:
+        payment.total = Price(payment.total, currency=payment.currency)
+    ctx = {'preauthorized_payments': payments, 'orders_to_ship': orders_to_ship}
+    return TemplateResponse(request, 'dashboard/index.html', ctx)
