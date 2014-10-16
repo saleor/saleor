@@ -31,8 +31,8 @@
             </div>
             <div class="panel-body">
                 <div id='gateway-output' class="collapse">
-                    {% if extra_data %}
-                        <pre>{{ extra_data }}</pre>
+                    {% if payment.extra_data %}
+                        <pre>{{ payment.extra_data }}</pre>
                     {% else %}
                         <span>-</span>
                     {% endif %}

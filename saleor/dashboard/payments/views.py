@@ -1,5 +1,7 @@
 import json
-from django.views.generic import ListView, DetailView
+from django.shortcuts import get_object_or_404
+from django.template.response import TemplateResponse
+from django.views.generic import ListView
 from payments.models import PAYMENT_STATUS_CHOICES
 from prices import Price
 
@@ -29,23 +31,13 @@ class PaymentList(FilterByStatusMixin, ListView):
         return qs.order_by('-created')
 
 
-class PaymentDetails(DetailView):
-    model = Payment
-    template_name = 'dashboard/payments/detail.html'
-    context_object_name = 'payment'
-
-    def get_object(self, queryset=None):
-        obj = super(PaymentDetails, self).get_object(queryset)
-        currency = obj.currency
-        obj.total = Price(obj.total, currency=currency)
-        obj.captured_amount = Price(obj.captured_amount, currency=currency)
-        return obj
-
-    def get_context_data(self, **kwargs):
-        ctx = super(PaymentDetails, self).get_context_data(**kwargs)
-        extra_data = self.get_object().extra_data
-        if extra_data:
-            extra_data = json.dumps(
-                json.loads(self.get_object().extra_data), indent=2)
-        ctx['extra_data'] = extra_data
-        return ctx
+def payment_details(request, pk):
+    payment = get_object_or_404(Payment.objects.all(), pk=pk)
+    currency = payment.currency
+    payment.total = Price(payment.total, currency=currency)
+    payment.captured_amount = Price(payment.captured_amount, currency=currency)
+    ctx = {'payment': payment}
+    if payment.extra_data:
+        payment.extra_data = json.dumps(json.loads(payment.extra_data),
+                                        indent=2)
+    return TemplateResponse(request, 'dashboard/payments/detail.html', ctx)
