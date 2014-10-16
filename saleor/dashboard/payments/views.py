@@ -1,4 +1,5 @@
 import json
+from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.views.generic import ListView
@@ -31,6 +32,7 @@ class PaymentList(FilterByStatusMixin, ListView):
         return qs.order_by('-created')
 
 
+@staff_member_required
 def payment_details(request, pk):
     payment = get_object_or_404(Payment.objects.all(), pk=pk)
     currency = payment.currency
