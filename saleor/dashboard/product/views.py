@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.urlresolvers import reverse_lazy
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DeleteView
@@ -32,7 +32,8 @@ def product_list(request):
 
 @staff_member_required
 def product_details(request, pk=None, category=None):
-    product = Product.objects.select_subclasses().get(pk=pk) if pk else None
+    product = get_object_or_404(
+        Product.objects.select_subclasses(), pk=pk) if pk else None
     form_cls = get_product_form(product, category)
     variant_formset_cls = get_variant_formset(product, category)
     form = form_cls(request.POST or None, instance=product)

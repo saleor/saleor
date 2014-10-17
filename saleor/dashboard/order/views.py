@@ -69,7 +69,7 @@ def order_details(request, pk):
 
 @staff_member_required
 def manage_payment(request, pk):
-    payment = get_object_or_404(Payment.objects.all(), pk=pk)
+    payment = get_object_or_404(Payment, pk=pk)
     form = ManagePaymentForm(request.POST or None, payment=payment)
     if form.is_valid():
         action = form.cleaned_data['action']

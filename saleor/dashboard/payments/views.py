@@ -35,7 +35,7 @@ class PaymentList(StaffMemberOnlyMixin, FilterByStatusMixin, ListView):
 
 @staff_member_required
 def payment_details(request, pk):
-    payment = get_object_or_404(Payment.objects.all(), pk=pk)
+    payment = get_object_or_404(Payment, pk=pk)
     currency = payment.currency
     payment.total = Price(payment.total, currency=currency)
     payment.captured_amount = Price(payment.captured_amount, currency=currency)
