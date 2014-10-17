@@ -59,8 +59,8 @@ def customer_list(request):
 
 @staff_member_required
 def customer_details(request, pk):
-    qs = User.objects.prefetch_related('orders', 'addresses').select_related(
-        'default_billing_address')
-    customer = get_object_or_404(qs, pk=pk)
+    queryset = User.objects.prefetch_related(
+        'orders', 'addresses').select_related('default_billing_address')
+    customer = get_object_or_404(queryset, pk=pk)
     ctx = {'customer': customer}
     return TemplateResponse(request, 'dashboard/customer/detail.html', ctx)

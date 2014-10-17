@@ -11,6 +11,6 @@ class CustomerSearchForm(forms.Form):
         if not any(data.values()):
             raise forms.ValidationError(
                 _('At least one field must be specified'), code='invalid')
-        for k in data.keys():
-            data[k] = data[k].strip()
+        for field in data.keys():
+            data[field] = data[field].strip()
         return data

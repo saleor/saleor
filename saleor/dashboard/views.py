@@ -26,15 +26,15 @@ class FilterByStatusMixin(object):
         self.status_order = getattr(self, 'status_order', [])
 
     def get_queryset(self):
-        qs = super(FilterByStatusMixin, self).get_queryset()
+        queryset = super(FilterByStatusMixin, self).get_queryset()
         if self.statuses:
             active_filter = self.request.GET.get('status')
             if active_filter in self.statuses:
-                qs = qs.filter(status=active_filter)
+                queryset = queryset.filter(status=active_filter)
                 self.active_filter = active_filter
             else:
                 self.active_filter = None
-        return qs
+        return queryset
 
     def get_context_data(self):
         ctx = super(FilterByStatusMixin, self).get_context_data()
