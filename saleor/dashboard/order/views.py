@@ -150,16 +150,15 @@ def address_view(request, order_pk, group_pk=None):
     else:
         address = order.billing_address
     form = AddressForm(request.POST or None, instance=address)
-    if request.method == 'POST':
-        if form.is_valid():
-            form.save()
-            if address_type == 'shipping':
-                msg = _('Updated shipping address for group #%s' % group_pk)
-            else:
-                msg = _('Updated billing address')
-            order.history.create(comment=msg, status=order.status,
-                                 user=request.user)
-            messages.success(request, msg)
-            return redirect('dashboard:order-details', pk=order.pk)
+    if form.is_valid():
+        form.save()
+        if address_type == 'shipping':
+            msg = _('Updated shipping address for group #%s' % group_pk)
+        else:
+            msg = _('Updated billing address')
+        order.history.create(comment=msg, status=order.status,
+                             user=request.user)
+        messages.success(request, msg)
+        return redirect('dashboard:order-details', pk=order.pk)
     ctx = {'order': order, 'address_type': address_type, 'form': form}
     return TemplateResponse(request, 'dashboard/order/address-edit.html', ctx)
