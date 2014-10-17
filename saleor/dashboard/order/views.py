@@ -68,11 +68,10 @@ def order_details(request, pk):
 
 
 @staff_member_required
-def manage_payment(request, pk):
+def manage_payment(request, pk, action):
     payment = get_object_or_404(Payment, pk=pk)
     form = ManagePaymentForm(request.POST or None, payment=payment)
     if form.is_valid():
-        action = form.cleaned_data['action']
         try:
             form.handle_action(action, request.user)
         except PaymentError as e:
@@ -83,7 +82,6 @@ def manage_payment(request, pk):
             messages.success(request, _('Success'))
         return redirect('dashboard:order-details', pk=payment.order.pk)
     if request.is_ajax():
-        action = request.GET['action']
         amount = 0
         if action == 'release':
             template = 'dashboard/includes/modal_release.html'

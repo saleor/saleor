@@ -27,7 +27,6 @@ class OrderNoteForm(forms.ModelForm):
 
 
 class ManagePaymentForm(forms.Form):
-    action = forms.CharField(widget=forms.HiddenInput())
     amount = forms.DecimalField(min_value=0, decimal_places=2, required=False)
 
     def __init__(self, *args, **kwargs):
