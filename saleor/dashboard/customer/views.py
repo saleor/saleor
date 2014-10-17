@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Count, Max, Q
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
@@ -34,14 +35,24 @@ def customer_list(request):
     customers = User.objects.prefetch_related('orders', 'addresses').annotate(
         num_orders=Count('orders', distinct=True),
         last_order=Max('orders', distinct=True))
-    form = CustomerSearchForm(request.POST or request.GET or None)
+    form = CustomerSearchForm(request.GET or None)
     if form.is_valid():
         customers = _search_customers(customers, form.cleaned_data)
         title = _('Search results')
     else:
         customers = _get_users_with_open_orders(customers)
         title = _('Customers with open orders')
-    ctx = {'customers': customers, 'form': form, 'title': title}
+
+    paginator = Paginator(customers, 5)
+    try:
+        customers = paginator.page(request.GET.get('page'))
+    except PageNotAnInteger:
+        customers = paginator.page(1)
+    except EmptyPage:
+        customers = paginator.page(paginator.num_pages)
+
+    ctx = {'customers': customers, 'form': form, 'title': title,
+           'paginator': paginator}
     return TemplateResponse(request, 'dashboard/customer/list.html', ctx)
 
 

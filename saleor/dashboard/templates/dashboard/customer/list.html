@@ -16,8 +16,7 @@
             <div class="panel panel-default">
                 <div class="panel-heading">{% trans "Search customers" %}</div>
                 <div class="panel-body">
-                    <form method="post" class="form-inline">
-                        {% csrf_token %}
+                    <form method="get" class="form-inline">
                         <div class="form-group">
                             <label class="control-label"for="amount">{% trans "Email" %}</label>
                             {% render_widget form.email class="form-control" %}
@@ -26,7 +25,7 @@
                             <label class="control-label"for="amount">{% trans "Name" %}</label>
                             {% render_widget form.name class="form-control" %}
                         </div>
-                        <button type="submit" class="btn btn-default" name='search'><i class="glyphicon glyphicon-search"></i> Search</button>
+                        <button type="submit" class="btn btn-default"><i class="glyphicon glyphicon-search"></i> Search</button>
                         <a href="{% url 'dashboard:customers' %}">Clear</a>
                     </form>
                 </div>
@@ -74,6 +73,7 @@
                             {% endfor %}
                             </tbody>
                         </table>
+                        {% include "dashboard/includes/_pagination.html" with page_obj=customers %}
                     {% else %}
                         <span>No customers found</span>
                     {% endif %}
