@@ -1,8 +1,9 @@
 {% load i18n %}
+{% load utils %}
 <div class="pagination">
     <span class="step-links">
         {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}">{% trans "previous" %}</a>
+            <a href="{% construct_get_query page=page_obj.previous_page_number %}">{% trans "previous" %}</a>
         {% endif %}
 
         <span class="current">
@@ -10,7 +11,7 @@
         </span>
 
         {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}">{% trans "next" %}</a>
+            <a href="{% construct_get_query page=page_obj.next_page_number %}">{% trans "next" %}</a>
         {% endif %}
     </span>
 </div>
