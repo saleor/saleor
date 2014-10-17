@@ -6,11 +6,12 @@ from django.views.generic import ListView
 from payments.models import PAYMENT_STATUS_CHOICES
 from prices import Price
 
-from ..views import FilterByStatusMixin, staff_member_required
+from ..views import (FilterByStatusMixin, StaffMemberOnlyMixin,
+                     staff_member_required)
 from ...order.models import Payment
 
 
-class PaymentList(FilterByStatusMixin, ListView):
+class PaymentList(StaffMemberOnlyMixin, FilterByStatusMixin, ListView):
     model = Payment
     template_name = 'dashboard/payments/list.html'
     context_object_name = 'payments'
