@@ -1,6 +1,6 @@
-from django.contrib.auth.decorators import user_passes_test
 from django.contrib.admin.views.decorators import staff_member_required \
     as _staff_member_required
+from django.contrib.auth.decorators import user_passes_test
 from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
 from prices import Price

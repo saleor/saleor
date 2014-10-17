@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
-from satchless.item import InsufficientStock
 from payments import PaymentError
+from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
 from ...order.models import OrderNote, DeliveryGroup

@@ -1,10 +1,11 @@
-from django.core.urlresolvers import reverse_lazy
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib import messages
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
-from django.views.generic import DeleteView
 from django.utils.translation import ugettext_lazy as _
+from django.views.generic import DeleteView
+
 from ...product.models import Product
 from ..views import StaffMemberOnlyMixin, staff_member_required
 from .forms import (ProductImageFormSet, ProductCategoryForm, get_product_form,

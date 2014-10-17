@@ -1,4 +1,5 @@
 import json
+
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.views.generic import ListView

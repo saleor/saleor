@@ -1,10 +1,10 @@
 from django.contrib import messages
-from django.utils.translation import ugettext_lazy as _
-from django.views.generic import ListView
+from django.core.context_processors import csrf
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.http import HttpResponseForbidden
-from django.core.context_processors import csrf
+from django.utils.translation import ugettext_lazy as _
+from django.views.generic import ListView
 from prices import Price
 
 from ...order.models import Order, OrderedItem, DeliveryGroup, Payment
