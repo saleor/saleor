@@ -1,6 +1,5 @@
 from django.contrib.admin.views.decorators import staff_member_required \
     as _staff_member_required
-from django.contrib.auth.decorators import user_passes_test
 from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
 from prices import Price
@@ -13,7 +12,7 @@ def staff_member_required(f):
 
 
 class StaffMemberOnlyMixin(object):
-    @method_decorator(user_passes_test(lambda u: u.is_staff))
+    @method_decorator(staff_member_required)
     def dispatch(self, *args, **kwargs):
         return super(StaffMemberOnlyMixin, self).dispatch(*args, **kwargs)
 
