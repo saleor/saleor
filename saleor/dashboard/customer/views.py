@@ -8,8 +8,6 @@ from ...userprofile.models import User
 
 
 def _search_customers(queryset, data):
-    for k in data.keys():
-        data[k] = data[k].strip()
     if data['email']:
         queryset = queryset.filter(email__icontains=data['email'])
     if data['name']:
