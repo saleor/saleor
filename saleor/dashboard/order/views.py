@@ -45,7 +45,8 @@ def order_details(request, pk):
     ctx = {'order': order, 'payment': payment, 'notes': notes, 'groups': groups,
            'note_form': note_form}
 
-    captured = preauthorized = refunded = 0
+    captured = preauthorized = refunded = Price(
+        0, currency=order.get_total().currency)
     if payment:
         ctx['can_capture'] = (payment.status == 'preauth' and
                               order.status != 'cancelled')
