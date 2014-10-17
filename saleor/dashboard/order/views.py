@@ -33,8 +33,8 @@ def order_details(request, pk):
     payment = order.payments.last()
     groups = order.groups.select_subclasses().all()
     for group in groups:
-        group.can_ship = payment and payment.status == 'confirmed' and \
-            group.status == 'new'
+        group.can_ship = (payment and payment.status == 'confirmed' and
+                          group.status == 'new')
 
     note_form = OrderNoteForm(request.POST or None)
     if note_form.is_valid():
@@ -47,8 +47,8 @@ def order_details(request, pk):
 
     captured = preauthorized = refunded = 0
     if payment:
-        ctx['can_capture'] = payment.status == 'preauth' \
-            and order.status != 'cancelled'
+        ctx['can_capture'] = (payment.status == 'preauth' and
+                              order.status != 'cancelled')
         ctx['can_release'] = payment.status == 'preauth'
         ctx['can_refund'] = payment.status == 'confirmed'
         preauthorized = Price(payment.total, currency=payment.currency)

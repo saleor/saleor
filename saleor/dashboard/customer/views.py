@@ -15,13 +15,13 @@ def _search_customers(queryset, data):
     if data['name']:
         parts = data['name'].split()
         if len(parts) == 2:
-            query = (Q(addresses__first_name__icontains=parts[0])
-                     | Q(addresses__last_name__icontains=parts[1])) \
-                | (Q(addresses__first_name__icontains=parts[1])
-                    | Q(addresses__last_name__icontains=parts[0]))
+            query = ((Q(addresses__first_name__icontains=parts[0]) |
+                      Q(addresses__last_name__icontains=parts[1])) |
+                     (Q(addresses__first_name__icontains=parts[1]) |
+                      Q(addresses__last_name__icontains=parts[0])))
         else:
-            query = Q(addresses__first_name__icontains=data['name']) \
-                | Q(addresses__last_name__istartswith=data['name'])
+            query = (Q(addresses__first_name__icontains=data['name']) |
+                     Q(addresses__last_name__istartswith=data['name']))
         queryset = queryset.filter(query).distinct()
     return queryset
 

@@ -258,10 +258,10 @@ class OrderedItem(models.Model, ItemLine):
         self.save()
         comment = pgettext_lazy(
             'Order history',
-            'Changed quantity for product %(product)s from %(old_quantity)s \
-                to %(new_quantity)s' % {'new_quantity': new_quantity,
-                                        'old_quantity': old_quantity,
-                                        'product': self.product})
+            'Changed quantity for product %(product)s from %(old_quantity)s '
+            'to %(new_quantity)s' % {'new_quantity': new_quantity,
+                                     'old_quantity': old_quantity,
+                                     'product': self.product})
         order.history.create(status=order.status, comment=comment, user=user)
         self.delivery_group.update_delivery_cost()
 
@@ -300,11 +300,11 @@ class OrderedItem(models.Model, ItemLine):
 
         comment = pgettext_lazy(
             'Order history',
-            'Moved %(quantity)s items %(item)s from group #%(old_group)s \
-                to group #%(new_group)s' % {'quantity': quantity,
-                                            'item': self,
-                                            'old_group': self.delivery_group.pk,
-                                            'new_group': group.pk})
+            'Moved %(quantity)s items %(item)s from group #%(old_group)s '
+            'to group #%(new_group)s' % {'quantity': quantity,
+                                         'item': self,
+                                         'old_group': self.delivery_group.pk,
+                                         'new_group': group.pk})
 
         order = self.delivery_group.order
         order.history.create(status=order.status, comment=comment, user=user)
