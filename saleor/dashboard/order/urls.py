@@ -12,7 +12,7 @@ urlpatterns = patterns(
         views.address_view, name='address-billing-edit'),
     url(r'^(?P<order_pk>[0-9]+)/address-shipping/(?P<group_pk>[0-9]+)/$',
         views.address_view, name='address-shipping-edit'),
-    url(r'^(?P<pk>[0-9]+)/payment/$',
+    url(r'^(?P<pk>[0-9]+)/payment$',
         views.manage_payment, name='manage-payment'),
     url(r'^line/(?P<pk>[0-9]+)/$', views.edit_order_line,
         name='order-line-edit'),

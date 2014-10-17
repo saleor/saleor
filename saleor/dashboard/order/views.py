@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
+from payments import PaymentError
 from prices import Price
 
 from ...order.models import Order, OrderedItem, DeliveryGroup, Payment
@@ -71,11 +72,14 @@ def manage_payment(request, pk):
     form = ManagePaymentForm(request.POST or None, payment=payment)
     if form.is_valid():
         action = form.cleaned_data['action']
-        success, error = form.save(action, request.user)
-        if success:
-            messages.success(request, success)
-        elif error:
-            messages.error(request, error)
+        try:
+            form.handle_action(action, request.user)
+        except PaymentError as e:
+            messages.error(request, _('Payment gateway error: ') + e.message)
+        except ValueError as e:
+            messages.error(request, _('Payment gateway error: ') + e.message)
+        else:
+            messages.success(request, _('Success'))
         return redirect('dashboard:order-details', pk=payment.order.pk)
     if request.is_ajax():
         action = request.GET['action']

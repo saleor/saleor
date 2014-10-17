@@ -1,6 +1,5 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
-from payments import PaymentError
 from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
@@ -35,35 +34,13 @@ class ManagePaymentForm(forms.Form):
         self.payment = kwargs.pop('payment')
         super(ManagePaymentForm, self).__init__(*args, **kwargs)
 
-    def save(self, action, user):
-        success_msg = None
-        error_msg = _('Payment gateway error: ')
+    def handle_action(self, action, user):
         if action == 'capture' and self.payment.status == 'preauth':
-            try:
-                self.payment.capture(
-                    amount=self.cleaned_data['amount'], user=user)
-            except PaymentError as e:
-                error_msg += e.message
-            else:
-                success_msg = _('Funds captured')
+            self.payment.capture(amount=self.cleaned_data['amount'], user=user)
         elif action == 'refund' and self.payment.status == 'confirmed':
-            try:
-                self.payment.refund(
-                    amount=self.cleaned_data['amount'], user=user)
-            except PaymentError as e:
-                error_msg += e.message
-            except ValueError as e:
-                error_msg = e.message
-            else:
-                success_msg = _('Refund successful')
+            self.payment.refund(amount=self.cleaned_data['amount'], user=user)
         elif action == 'release' and self.payment.status == 'preauth':
-            try:
-                self.payment.release(user=user)
-            except PaymentError as e:
-                error_msg += e.message
-            else:
-                success_msg = _('Release successful')
-        return success_msg, error_msg
+            self.payment.release(user=user)
 
 
 class MoveItemsForm(forms.Form):
