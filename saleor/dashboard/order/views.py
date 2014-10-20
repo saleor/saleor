@@ -165,8 +165,7 @@ def address_view(request, order_pk, group_pk=None):
             msg = _('Updated shipping address for group #%s' % group_pk)
         else:
             msg = _('Updated billing address')
-        order.history.create(comment=msg, status=order.status,
-                             user=request.user)
+        order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', pk=order.pk)
     ctx = {'order': order, 'address_type': address_type, 'form': form}
