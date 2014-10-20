@@ -266,6 +266,7 @@ class SummaryStep(BaseCheckoutStep):
         if not response:
             with transaction.atomic():
                 order = self.checkout.create_order()
+                order.create_history_entry()
                 order.send_confirmation_email()
             return redirect('order:details', token=order.token)
         return response

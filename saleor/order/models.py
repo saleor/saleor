@@ -70,9 +70,7 @@ class Order(models.Model, ItemSet):
                 if not type(self).objects.filter(token=token).exists():
                     self.token = token
                     break
-        super(Order, self).save(*args, **kwargs)
-        if not self.history.exists():
-            self.history.create(status=self.status)
+        return super(Order, self).save(*args, **kwargs)
 
     def change_status(self, status):
         if status != self.status:
@@ -133,6 +131,11 @@ class Order(models.Model, ItemSet):
 
     def is_pre_authorized(self):
         return self.payments.filter(status='preauth').exists()
+
+    def create_history_entry(self, comment, status=None, user=None):
+        if not status:
+            status = self.status
+        self.history.create(status=status, comment=comment, user=user)
 
 
 class DeliveryGroup(models.Model, ItemSet):
