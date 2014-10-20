@@ -132,7 +132,7 @@ class Order(models.Model, ItemSet):
     def is_pre_authorized(self):
         return self.payments.filter(status='preauth').exists()
 
-    def create_history_entry(self, comment, status=None, user=None):
+    def create_history_entry(self, comment='', status=None, user=None):
         if not status:
             status = self.status
         self.history.create(status=status, comment=comment, user=user)
