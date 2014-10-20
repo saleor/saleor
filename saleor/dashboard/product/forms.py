@@ -20,9 +20,6 @@ class ProductForm(forms.ModelForm):
         model = Product
         fields = ['name', 'description', 'collection']
 
-    def __init__(self, *args, **kwargs):
-        super(ProductForm, self).__init__(*args, **kwargs)
-
 
 class ShirtForm(ProductForm):
     class Meta:
