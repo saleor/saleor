@@ -105,8 +105,8 @@ def manage_payment(request, pk, action):
 @staff_member_required
 def edit_order_line(request, pk):
     item = OrderedItem.objects.get(pk=pk)
-    quantity_form = ChangeQuantityForm(request.POST or None, item=item)
-    move_items_form = MoveItemsForm(request.POST or None, item=item)
+    quantity_form = ChangeQuantityForm(request.POST or None, instance=item)
+    move_items_form = MoveItemsForm(request.POST or None, instance=item)
 
     if request.is_ajax():
         ctx = {'object': item, 'quantity_form': quantity_form,
@@ -115,18 +115,13 @@ def edit_order_line(request, pk):
         template = 'dashboard/includes/modal_order_line_edit.html'
         return TemplateResponse(request, template, ctx)
 
-    success = None
     action = request.GET.get('action', None)
     if action == 'quantity_form' and quantity_form.is_valid():
         quantity_form.save(user=request.user)
-        success = _('Quantity updated')
+        messages.success(request, _('Quantity updated'))
     if action == 'move_items_form' and move_items_form.is_valid():
         move_items_form.save(user=request.user)
-        success = _('Moved items')
-    if success:
-        messages.success(request, success)
-    else:
-        messages.error(request, _('Failed to update order line'))
+        messages.success(request, _('Moved items'))
     return redirect('dashboard:order-details',
                     pk=item.delivery_group.order.pk)
 
@@ -134,7 +129,7 @@ def edit_order_line(request, pk):
 @staff_member_required
 def ship_delivery_group(request, pk):
     group = get_object_or_404(DeliveryGroup.objects.select_subclasses(), pk=pk)
-    form = ShipGroupForm(request.POST or None, group=group)
+    form = ShipGroupForm(request.POST or None, instance=group)
     if form.is_valid():
         form.save(request.user)
         messages.success(request, _('Shipped delivery group #%s' % group.pk))

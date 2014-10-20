@@ -10,9 +10,8 @@
     {% include 'dashboard/includes/_address.html' with address=group.address only %}
 </div>
 <div class="modal-footer">
-    <form id="ship-delivery-group-form" class="form-inline" method="post" role="form" action={% url 'dashboard:ship-delivery-group' pk=group.pk %}>
+    <form id="ship-delivery-group-form" class="form-inline" method="post" role="form" action="{% url 'dashboard:ship-delivery-group' pk=group.pk %}">
         {% csrf_token %}
-        <input type="hidden" name="shipping_action" value="{{ group.pk }}"/>
         <button type="submit" class="btn btn-success">{% trans "Ship" %}</button>
         <button data-dismiss="modal" aria-hidden="true" class="btn btn-default">{% trans "Cancel" %}</button>
     </form>
