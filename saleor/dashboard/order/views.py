@@ -77,12 +77,20 @@ def manage_payment(request, pk, action):
     if form.is_valid():
         try:
             form.handle_action(action, request.user)
-        except PaymentError as e:
-            messages.error(request, _('Payment gateway error: ') + e.message)
-        except ValueError as e:
+        except (PaymentError, ValueError) as e:
             messages.error(request, _('Payment gateway error: ') + e.message)
         else:
-            messages.success(request, _('Success'))
+            amount = form.cleaned_data['amount']
+            currency = payment.currency
+            if action in ['capture', 'refund']:
+                comment = _('%(action)sed %(amount)s %(currency)s' % {
+                    'action': action.capitalize(), 'amount': amount,
+                    'currency': currency})
+            elif action == 'release':
+                comment = _('Released payment')
+            payment.order.create_history_entry(comment=comment,
+                                               user=request.user)
+            messages.success(request, comment)
         return redirect('dashboard:order-details', pk=payment.order.pk)
     if request.is_ajax():
         amount = 0

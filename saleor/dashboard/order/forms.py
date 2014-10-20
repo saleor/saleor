@@ -28,12 +28,13 @@ class ManagePaymentForm(forms.Form):
         super(ManagePaymentForm, self).__init__(*args, **kwargs)
 
     def handle_action(self, action, user):
+        amount = self.cleaned_data['amount']
         if action == 'capture' and self.payment.status == 'preauth':
-            self.payment.capture(amount=self.cleaned_data['amount'], user=user)
+            self.payment.capture(amount)
         elif action == 'refund' and self.payment.status == 'confirmed':
-            self.payment.refund(amount=self.cleaned_data['amount'], user=user)
+            self.payment.refund(amount)
         elif action == 'release' and self.payment.status == 'preauth':
-            self.payment.release(user=user)
+            self.payment.release()
 
 
 class MoveItemsForm(forms.ModelForm):

@@ -320,41 +320,6 @@ class Payment(BasePayment):
                  for item in self.order.get_items()]
         return items
 
-    def capture(self, user=None, **kwargs):
-        result = super(Payment, self).capture(**kwargs)
-        amount = kwargs.get('amount', self.total)
-        comment = pgettext_lazy(
-            'Order history',
-            'Captured %(amount)s %(currency)s'
-            % {'amount': amount, 'currency': self.currency})
-        self.order.history.create(
-            status=self.order.status,
-            comment=comment,
-            user=user)
-        return result
-
-    def release(self, user=None, **kwargs):
-        result = super(Payment, self).release(**kwargs)
-        comment = pgettext_lazy('Order history', 'Released funds')
-        self.order.history.create(
-            status=self.order.status,
-            comment=comment,
-            user=user)
-        return result
-
-    def refund(self, user=None, **kwargs):
-        result = super(Payment, self).refund(**kwargs)
-        amount = kwargs.get('amount', self.total)
-        comment = pgettext_lazy(
-            'Order history',
-            'Refunded %(amount)s %(currency)s'
-            % {'amount': amount, 'currency': self.currency})
-        self.order.history.create(
-            status=self.order.status,
-            comment=comment,
-            user=user)
-        return result
-
 
 @python_2_unicode_compatible
 class OrderHistoryEntry(models.Model):
