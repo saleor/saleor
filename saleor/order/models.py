@@ -385,9 +385,7 @@ class OrderHistoryEntry(models.Model):
     user = models.ForeignKey(User, blank=True, null=True)
 
     def __str__(self):
-        return 'Order #{0} status changed: {1}'.format(
-            self.order.pk, self.status
-        )
+        return 'OrderHistoryEntry for Order #%d' % self.order.pk
 
     class Meta:
         ordering = ['date']
@@ -401,7 +399,7 @@ class OrderNote(models.Model):
     content = models.CharField(max_length=250)
 
     def __str__(self):
-        return 'OrderNote for Order {0}'.format(self.order.pk)
+        return 'OrderNote for Order #%d' % self.order.pk
 
     def save(self, *args, **kwargs):
         super(OrderNote, self).save(*args, **kwargs)
