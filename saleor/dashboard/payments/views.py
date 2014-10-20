@@ -1,5 +1,3 @@
-import json
-
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.views.generic import ListView
@@ -39,8 +37,5 @@ def payment_details(request, pk):
     currency = payment.currency
     payment.total = Price(payment.total, currency=currency)
     payment.captured_amount = Price(payment.captured_amount, currency=currency)
-    ctx = {'payment': payment}
-    if payment.extra_data:
-        payment.extra_data = json.dumps(json.loads(payment.extra_data),
-                                        indent=2)
-    return TemplateResponse(request, 'dashboard/payments/detail.html', ctx)
+    return TemplateResponse(request, 'dashboard/payments/detail.html',
+                            {'payment': payment})

@@ -3,6 +3,7 @@
 {% load i18n %}
 {% load bootstrap %}
 {% load status %}
+{% load utils %}
 
 {% block title %}Payment details{% endblock %}
 
@@ -32,7 +33,7 @@
             <div class="panel-body">
                 <div id='gateway-output' class="collapse">
                     {% if payment.extra_data %}
-                        <pre>{{ payment.extra_data }}</pre>
+                        <pre>{{ payment.extra_data|format_json }}</pre>
                     {% else %}
                         <span>-</span>
                     {% endif %}
