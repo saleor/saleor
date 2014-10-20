@@ -8,7 +8,8 @@ from django.views.generic import ListView
 from payments import PaymentError
 from prices import Price
 
-from ...order.models import Order, OrderedItem, DeliveryGroup, Payment
+from ...order.models import (Order, OrderedItem, DeliveryGroup, Payment,
+                             OrderNote)
 from ...userprofile.forms import AddressForm
 from ..views import (StaffMemberOnlyMixin, FilterByStatusMixin,
                      staff_member_required)
@@ -36,9 +37,11 @@ def order_details(request, pk):
         group.can_ship = (payment and payment.status == 'confirmed' and
                           group.status == 'new')
 
-    note_form = OrderNoteForm(request.POST or None)
+    note = OrderNote(order=order, user=request.user)
+    note_form = OrderNoteForm(request.POST or None, instance=note)
     if note_form.is_valid():
-        note_form.save(order=order, user=request.user)
+        note_form.save()
+        order.create_history_entry(comment=_('Added note'), user=request.user)
         messages.success(request, _('Note added'))
         return redirect('dashboard:order-details', pk=pk)
 

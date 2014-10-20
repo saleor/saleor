@@ -19,12 +19,6 @@ class OrderNoteForm(forms.ModelForm):
         super(OrderNoteForm, self).__init__(*args, **kwargs)
         self.fields['content'].label = ''
 
-    def save(self, order, user, **kwargs):
-        note = super(OrderNoteForm, self).save(commit=False)
-        note.order = order
-        note.user = user
-        note.save()
-
 
 class ManagePaymentForm(forms.Form):
     amount = forms.DecimalField(min_value=0, decimal_places=2, required=False)

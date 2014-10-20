@@ -403,10 +403,3 @@ class OrderNote(models.Model):
 
     def __str__(self):
         return 'OrderNote for Order #%d' % self.order.pk
-
-    def save(self, *args, **kwargs):
-        super(OrderNote, self).save(*args, **kwargs)
-        self.order.history.create(
-            status=self.order.status,
-            comment=pgettext_lazy('Order history', 'Added note'),
-            user=self.user)
