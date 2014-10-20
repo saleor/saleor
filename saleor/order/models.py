@@ -219,6 +219,33 @@ class DigitalDeliveryGroup(DeliveryGroup):
         return 'Digital delivery'
 
 
+class OrderedItemManager(InheritanceManager):
+
+    def move_to_group(self, item, target_group, quantity):
+        try:
+            target_item = target_group.items.get(
+                product=item.product, product_name=item.product_name,
+                product_sku=item.product_sku)
+        except ObjectDoesNotExist:
+            target_group.items.create(
+                delivery_group=target_group, product=item.product,
+                product_name=item.product_name, product_sku=item.product_sku,
+                quantity=quantity, unit_price_net=item.unit_price_net,
+                unit_price_gross=item.unit_price_gross)
+        else:
+            target_item.quantity += quantity
+            target_item.save()
+
+        item.quantity -= quantity
+        item.save()
+
+        item.delivery_group.update_delivery_cost()
+        target_group.update_delivery_cost()
+
+        if not item.delivery_group.get_total_quantity():
+            item.delivery_group.change_status('cancelled')
+
+
 @python_2_unicode_compatible
 class OrderedItem(models.Model, ItemLine):
 
@@ -242,6 +269,8 @@ class OrderedItem(models.Model, ItemLine):
         pgettext_lazy('OrderedItem field', 'unit price (gross)'),
         max_digits=12, decimal_places=4)
 
+    objects = OrderedItemManager()
+
     def get_price_per_item(self, **kwargs):
         return Price(net=self.unit_price_net, gross=self.unit_price_gross,
                      currency=settings.DEFAULT_CURRENCY)
@@ -252,44 +281,15 @@ class OrderedItem(models.Model, ItemLine):
     def get_quantity(self):
         return self.quantity
 
-    def change_quantity(self, new_quantity, user=None):
+    def change_quantity(self, new_quantity):
         order = self.delivery_group.order
         self.quantity = new_quantity
         self.save()
         self.delivery_group.update_delivery_cost()
-
         if not self.delivery_group.get_total_quantity():
             self.delivery_group.change_status('cancelled')
-
         if not any([item.quantity for item in order.get_items()]):
             order.change_status('cancelled')
-
-    def move_to_group(self, group, quantity, user=None):
-        try:
-            item = group.items.get(product=self.product,
-                                   product_name=self.product_name,
-                                   product_sku=self.product_sku)
-        except ObjectDoesNotExist:
-            new_item = OrderedItem(delivery_group=group,
-                                   product=self.product,
-                                   product_name=self.product_name,
-                                   product_sku=self.product_sku,
-                                   quantity=quantity,
-                                   unit_price_net=self.unit_price_net,
-                                   unit_price_gross=self.unit_price_gross)
-            new_item.save()
-        else:
-            item.quantity += quantity
-            item.save()
-
-        self.quantity -= quantity
-        self.save()
-
-        self.delivery_group.update_delivery_cost()
-        group.update_delivery_cost()
-
-        if not self.delivery_group.get_total_quantity():
-            self.delivery_group.change_status('cancelled')
 
 
 class Payment(BasePayment):

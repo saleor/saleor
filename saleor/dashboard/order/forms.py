@@ -61,21 +61,20 @@ class MoveItemsForm(forms.ModelForm):
     def save(self, user=None):
         quantity = self.cleaned_data['quantity']
         choice = self.cleaned_data['groups']
-        origin_group = DeliveryGroup.objects.select_subclasses().get(
+        group = DeliveryGroup.objects.select_subclasses().get(
             pk=self.instance.delivery_group.pk)
         if choice == 'new':
-            group = origin_group
             group.pk = None
             group.id = None
             group.status = 'new'
-            address = origin_group.address
+            address = group.address
             address.pk = None
             address.save()
             group.address = address
             group.save()
         else:
             group = DeliveryGroup.objects.get(pk=choice)
-        self.instance.move_to_group(group, quantity, user)
+        OrderedItem.objects.move_to_group(self.instance, group, quantity)
         comment = _('Moved %(quantity)s items %(item)s from group '
                     '#%(old_group)s to group #%(new_group)s' % {
                     'quantity': quantity, 'item': self.instance,
