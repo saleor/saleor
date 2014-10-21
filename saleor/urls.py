@@ -22,11 +22,11 @@ urlpatterns = patterns(
     url(r'^admin/', include(admin.site.urls)),
     url(r'^cart/', include(cart_urls, namespace='cart')),
     url(r'^checkout/', include(checkout_urls, namespace='checkout')),
+    url(r'^dashboard/', include(dashboard_urls, namespace='dashboard')),
     url(r'^images/', include('django_images.urls')),
     url(r'^order/', include(order_urls, namespace='order')),
     url(r'^products/', include(product_urls, namespace='product')),
     url(r'^profile/', include(userprofile_urls, namespace='profile')),
-    url(r'^dashboard/', include(dashboard_urls, namespace='dashboard')),
     url(r'', include('payments.urls'))
 )
 
