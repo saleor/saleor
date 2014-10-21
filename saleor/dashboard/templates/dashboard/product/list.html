@@ -16,8 +16,8 @@
                     <form class="form-inline" method="post" action=".">
                         {% csrf_token %}
                         <div class="form-group">
-                            <label class="control-label"for="amount">{% trans "Category" %}</label>
-                            {% render_widget form.category class="form-control" %}
+                            <label class="control-label"for="amount">{% trans "Product class" %}</label>
+                            {% render_widget form.cls_name class="form-control" %}
                             <button class="btn btn-primary" type="submit">
                                 {% trans "Add product" %}
                             </button>

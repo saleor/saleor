@@ -2,17 +2,19 @@ from django import forms
 from django.forms.models import inlineformset_factory
 from django.forms.widgets import ClearableFileInput
 
-from ...product.models import (ProductImage, Product, Category, ShirtVariant,
-                               BagVariant, Shirt, Bag)
+from ...product.models import (ProductImage, Product, ShirtVariant, BagVariant,
+                               Shirt, Bag)
 
 
-class ProductCategoryForm(forms.Form):
-    category = forms.ChoiceField()
+PRODUCT_CLASSES = {
+    'shirt': Shirt,
+    'bag': Bag
+}
 
-    def __init__(self, *args, **kwargs):
-        super(ProductCategoryForm, self).__init__(*args, **kwargs)
-        categories = Category.objects.all()
-        self.fields['category'].choices = [(c.slug, c.name) for c in categories]
+
+class ProductClassForm(forms.Form):
+    cls_name = forms.ChoiceField(
+        choices=[(name, name.capitalize()) for name in PRODUCT_CLASSES.keys()])
 
 
 class ProductForm(forms.ModelForm):
@@ -41,39 +43,25 @@ ShirtVariantFormset = inlineformset_factory(Shirt, ShirtVariant, extra=1)
 BagVariantFormset = inlineformset_factory(Bag, BagVariant, extra=1)
 
 
-def get_product_form(product, category=None):
-    if product:
-        if isinstance(product, Shirt):
-            return ShirtForm
-        elif isinstance(product, Bag):
-            return BagForm
-        else:
-            return ProductForm
-    elif category:
-        if category == 'shirts':
-            return ShirtForm
-        elif category == 'grocery-bags':
-            return BagForm
-        else:
-            return ValueError('Unknown category')
+def get_product_form(product):
+    if isinstance(product, Shirt):
+        return ShirtForm
+    elif isinstance(product, Bag):
+        return BagForm
     else:
-        raise ValueError('No product and category were given')
+        raise ValueError('Unknown product')
 
 
-def get_variant_formset(product, category=None):
-    if product:
-        if isinstance(product, Shirt):
-            return ShirtVariantFormset
-        elif isinstance(product, Bag):
-            return BagVariantFormset
-        else:
-            raise ValueError('Unknown product')
-    elif category:
-        if category == 'shirts':
-            return ShirtVariantFormset
-        elif category == 'grocery-bags':
-            return BagVariantFormset
-        else:
-            raise ValueError('Unknown category')
+def get_product_cls_by_name(cls_name):
+    if not cls_name in PRODUCT_CLASSES:
+        raise ValueError('Unknown product class')
+    return PRODUCT_CLASSES[cls_name]
+
+
+def get_variant_formset(product):
+    if isinstance(product, Shirt):
+        return ShirtVariantFormset
+    elif isinstance(product, Bag):
+        return BagVariantFormset
     else:
-        raise ValueError('No product and category were given')
+        raise ValueError('Unknown product')

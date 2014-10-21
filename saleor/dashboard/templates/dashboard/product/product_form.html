@@ -50,7 +50,7 @@
 
             <div class="form-group">
                 <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
-                {% if product %}
+                {% if product.pk %}
                     <a href="{% url 'dashboard:product-delete' pk=product.pk %}" class="btn btn-danger">{% trans "Delete" %}</button>
                 {% endif %}
                 <a href="{% url 'dashboard:products' %}" class="btn btn-link">{% trans "Cancel" %}</a>
