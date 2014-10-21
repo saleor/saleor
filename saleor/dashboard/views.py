@@ -21,7 +21,7 @@ class FilterByStatusMixin(object):
     def __init__(self, *args, **kwargs):
         super(FilterByStatusMixin, self).__init__(*args, **kwargs)
         status_choices = getattr(self, 'status_choices')
-        self.statuses = {status[0]: status[1] for status in status_choices}
+        self.statuses = dict(status_choices)
         self.status_order = getattr(self, 'status_order', [])
 
     def get_queryset(self):
