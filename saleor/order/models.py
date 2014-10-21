@@ -138,6 +138,22 @@ class Order(models.Model, ItemSet):
         self.history.create(status=status, comment=comment, user=user)
 
 
+class DeliveryGroupManager(InheritanceManager):
+
+    def duplicate_group(self, pk):
+        group = self.select_subclasses().get(pk=pk)
+        group.pk = None
+        group.id = None
+        group.status = 'new'
+        if isinstance(group, ShippedDeliveryGroup):
+            address = group.address
+            address.pk = None
+            address.save()
+            group.address = address
+        group.save()
+        return group
+
+
 class DeliveryGroup(models.Model, ItemSet):
     STATUS_CHOICES = (
         ('new',
@@ -160,7 +176,7 @@ class DeliveryGroup(models.Model, ItemSet):
         default=0,
         editable=False)
 
-    objects = InheritanceManager()
+    objects = DeliveryGroupManager()
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, list(self))
