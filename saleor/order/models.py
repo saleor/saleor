@@ -189,6 +189,9 @@ class DeliveryGroup(models.Model, ItemSet):
             return iter(self.items.select_related('product').all())
         return super(DeliveryGroup, self).__iter__()
 
+    def get_method(self):
+        return smart_text(get_delivery(self))
+
     def change_status(self, status):
         self.status = status
         self.save()

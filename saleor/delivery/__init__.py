@@ -30,6 +30,9 @@ class DummyShipping(BaseDelivery):
         self.address = address
         super(DummyShipping, self).__init__(delivery_group)
 
+    def __repr__(self):
+        return 'dummy_shipping'
+
     def __str__(self):
         return 'Dummy shipping'
 
@@ -43,13 +46,14 @@ class DummyShipping(BaseDelivery):
 
 def get_delivery_choices_for_group(group, **kwargs):
     if 'address' in kwargs:
-        yield ('dummy_shipping', DummyShipping(group, kwargs['address']))
+        shipping = DummyShipping(group, kwargs['address'])
+        yield (repr(shipping), shipping)
     else:
         raise ValueError('Unknown delivery type')
 
 
 def get_delivery(group):
-    if group.method == 'Dummy shipping':
+    if group.method == 'dummy_shipping':
         return DummyShipping(group, group.shippeddeliverygroup.address)
     else:
         raise ValueError('Unknown delivery method')
