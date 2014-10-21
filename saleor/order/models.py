@@ -199,6 +199,11 @@ class DeliveryGroup(models.Model, ItemSet):
     def get_total(self, **kwargs):
         return super(DeliveryGroup, self).get_total(**kwargs) + self.price
 
+    def get_weight(self):
+        ids = [item.product_id for item in self]
+        products = Product.objects.select_subclasses().filter(pk__in=ids)
+        return sum(product.get_weight() for product in products)
+
     def add_items_from_partition(self, partition):
         for item_line in partition:
             product_variant = item_line.product
@@ -213,10 +218,7 @@ class DeliveryGroup(models.Model, ItemSet):
 
     def update_delivery_cost(self):
         delivery = get_delivery(self)
-        ids = [item.product_id for item in self]
-        products = Product.objects.select_subclasses().filter(pk__in=ids)
-        weight = sum(product.get_weight() for product in products)
-        self.price = delivery.get_delivery_total(weight=weight)
+        self.price = delivery.get_delivery_total(weight=self.get_weight())
         self.save()
 
     def get_total_quantity(self):
