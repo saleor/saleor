@@ -38,7 +38,7 @@ class ManagePaymentForm(forms.Form):
 
 
 class MoveItemsForm(forms.ModelForm):
-    quantity = QuantityField()
+    how_many = QuantityField()
     groups = forms.ChoiceField()
 
     class Meta:
@@ -47,7 +47,7 @@ class MoveItemsForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(MoveItemsForm, self).__init__(*args, **kwargs)
-        self.fields['quantity'].widget.attrs['max'] = self.instance.quantity
+        self.fields['how_many'].widget.attrs['max'] = self.instance.quantity
         self.fields['groups'].choices = self.get_delivery_group_choices()
 
     def get_delivery_group_choices(self):
@@ -59,17 +59,17 @@ class MoveItemsForm(forms.ModelForm):
         return choices
 
     def save(self, user=None):
-        quantity = self.cleaned_data['quantity']
+        how_many = self.cleaned_data['how_many']
         choice = self.cleaned_data['groups']
         if choice == 'new':
             target_group = DeliveryGroup.objects.duplicate_group(
                 self.instance.delivery_group.pk)
         else:
             target_group = DeliveryGroup.objects.get(pk=choice)
-        OrderedItem.objects.move_to_group(self.instance, target_group, quantity)
-        comment = _('Moved %(quantity)s items %(item)s from group '
+        OrderedItem.objects.move_to_group(self.instance, target_group, how_many)
+        comment = _('Moved %(how_many)s items %(item)s from group '
                     '#%(old_group)s to group #%(new_group)s' % {
-                    'quantity': quantity, 'item': self.instance,
+                    'how_many': how_many, 'item': self.instance,
                     'old_group': self.instance.delivery_group.pk,
                     'new_group': target_group.pk})
         order = self.instance.delivery_group.order
