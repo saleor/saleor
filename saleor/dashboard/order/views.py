@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.contrib import messages
 from django.core.context_processors import csrf
 from django.shortcuts import get_object_or_404, redirect

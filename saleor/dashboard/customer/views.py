@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404
