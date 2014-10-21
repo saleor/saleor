@@ -1,6 +1,5 @@
 from django.contrib import messages
 from django.core.context_processors import csrf
-from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
@@ -92,7 +91,7 @@ def manage_payment(request, pk, action):
                                                user=request.user)
             messages.success(request, comment)
         return redirect('dashboard:order-details', pk=payment.order.pk)
-    if request.is_ajax():
+    else:
         amount = 0
         if action == 'release':
             template = 'dashboard/includes/modal_release.html'
@@ -107,7 +106,6 @@ def manage_payment(request, pk, action):
         ctx = {'form': form, 'action': action, 'currency': payment.currency,
                'captured': payment.captured_amount, 'payment': payment}
         return TemplateResponse(request, template, ctx)
-    return HttpResponseForbidden()
 
 
 @staff_member_required
@@ -116,22 +114,23 @@ def edit_order_line(request, pk):
     quantity_form = ChangeQuantityForm(request.POST or None, instance=item)
     move_items_form = MoveItemsForm(request.POST or None, instance=item)
 
-    if request.is_ajax():
+    action = request.GET.get('action', None)
+    if action == 'quantity_form' and quantity_form.is_valid():
+        quantity_form.save(user=request.user)
+        messages.success(request, _('Quantity updated'))
+        return redirect('dashboard:order-details',
+                        pk=item.delivery_group.order.pk)
+    elif action == 'move_items_form' and move_items_form.is_valid():
+        move_items_form.save(user=request.user)
+        messages.success(request, _('Moved items'))
+        return redirect('dashboard:order-details',
+                        pk=item.delivery_group.order.pk)
+    else:
         ctx = {'object': item, 'quantity_form': quantity_form,
                'move_items_form': move_items_form}
         ctx.update(csrf(request))
         template = 'dashboard/includes/modal_order_line_edit.html'
         return TemplateResponse(request, template, ctx)
-
-    action = request.GET.get('action', None)
-    if action == 'quantity_form' and quantity_form.is_valid():
-        quantity_form.save(user=request.user)
-        messages.success(request, _('Quantity updated'))
-    if action == 'move_items_form' and move_items_form.is_valid():
-        move_items_form.save(user=request.user)
-        messages.success(request, _('Moved items'))
-    return redirect('dashboard:order-details',
-                    pk=item.delivery_group.order.pk)
 
 
 @staff_member_required
@@ -142,12 +141,11 @@ def ship_delivery_group(request, pk):
         form.save(request.user)
         messages.success(request, _('Shipped delivery group #%s' % group.pk))
         return redirect('dashboard:order-details', pk=group.order.pk)
-    if request.is_ajax():
+    else:
         ctx = {'group': group}
         ctx.update(csrf(request))
         template = 'dashboard/includes/modal_ship_delivery_group.html'
         return TemplateResponse(request, template, ctx)
-    return HttpResponseForbidden()
 
 
 @staff_member_required
