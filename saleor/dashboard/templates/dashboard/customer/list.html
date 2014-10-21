@@ -39,11 +39,13 @@
                     {% if customers %}
                         <table class="table">
                             <thead>
-                                <th>{% trans "Email" %}</th>
-                                <th>{% trans "Name" %}</th>
-                                <th>{% trans "Location" %}</th>
-                                <th>{% trans "Number of orders" %}</th>
-                                <th>{% trans "Last order" %}</th>
+                                <tr>
+                                    <th>{% trans "Email" %}</th>
+                                    <th>{% trans "Name" %}</th>
+                                    <th>{% trans "Location" %}</th>
+                                    <th>{% trans "Number of orders" %}</th>
+                                    <th>{% trans "Last order" %}</th>
+                                </tr>
                             </thead>
                             <tbody>
                             {% for customer in customers %}

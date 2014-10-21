@@ -27,10 +27,12 @@
             </div>
             <table class="table">
                 <thead>
-                    <th>{% trans "Image" %}</th>
-                    <th>{% trans "Name" %}</th>
-                    <th>{% trans "Collection" %}</th>
-                    <th>{% trans "Price" %}</th>
+                    <tr>
+                        <th>{% trans "Image" %}</th>
+                        <th>{% trans "Name" %}</th>
+                        <th>{% trans "Collection" %}</th>
+                        <th>{% trans "Price" %}</th>
+                    </tr>
                 </thead>
                 <tbody>
                 {% for product in products %}

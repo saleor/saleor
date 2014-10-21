@@ -7,17 +7,6 @@
 
 {% block title %}Product details{% endblock %}
 
-{% block custom_css %}
-<style type="text/css">
-    tr#add-variant.collapse.in {
-        display: table-row;
-    }
-    tr#add-image.collapse.in {
-        display: table-row;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="row">
     <h1 class="page-header">{{ title }}</h1>
@@ -46,7 +35,7 @@
                     <span class="panel-title">{% trans "Variants" %}</span>
                 </div>
                 <div class="panel-body">
-                    {% include "dashboard/includes/_formset_table.html" with formset=variant_formset collapse_id="add-variant" %}
+                    {% include "dashboard/includes/_formset_table.html" with formset=variant_formset %}
                 </div>
             </div>
 
@@ -55,7 +44,7 @@
                     <span class="panel-title">{% trans "Images" %}</span>
                 </div>
                 <div class="panel-body">
-                    {% include "dashboard/includes/_formset_table.html" with formset=image_formset collapse_id="add-image" %}
+                    {% include "dashboard/includes/_formset_table.html" with formset=image_formset %}
                 </div>
             </div>
 

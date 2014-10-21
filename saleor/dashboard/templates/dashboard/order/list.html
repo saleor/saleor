@@ -12,10 +12,12 @@
             {% include "dashboard/includes/_status_filters.html" %}
             <table class="table table-bordered">
                 <thead>
-                    <th>{% trans "Order number" %}</th>
-                    <th>{% trans "Customer" %}</th>
-                    <th>{% trans "Amount" %}</th>
-                    <th>{% trans "Status" %}</th>
+                    <tr>
+                        <th>{% trans "Order number" %}</th>
+                        <th>{% trans "Customer" %}</th>
+                        <th>{% trans "Amount" %}</th>
+                        <th>{% trans "Status" %}</th>
+                    </tr>
                 </thead>
                 <tbody>
                 {% for order in object_list %}

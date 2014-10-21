@@ -13,13 +13,15 @@
 
             <table class="table table-bordered">
                 <thead>
-                    <th>{% trans "Order number" %}</th>
-                    <th>{% trans "Gateway" %}</th>
-                    <th>{% trans "Date" %}</th>
-                    <th>{% trans "Customer" %}</th>
-                    <th>{% trans "Amount" %}</th>
-                    <th>{% trans "Status" %}</th>
-                    <th>{% trans "Captured amount" %}</th>
+                    <tr>
+                        <th>{% trans "Order number" %}</th>
+                        <th>{% trans "Gateway" %}</th>
+                        <th>{% trans "Date" %}</th>
+                        <th>{% trans "Customer" %}</th>
+                        <th>{% trans "Amount" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Captured amount" %}</th>
+                    </tr>
                 </thead>
                 <tbody>
                 {% for payment in payments %}
