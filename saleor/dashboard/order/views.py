@@ -31,7 +31,7 @@ def order_details(request, pk):
         'notes', 'payments', 'history', 'groups'), pk=pk)
     notes = order.notes.all()
     payment = order.payments.last()
-    groups = order.groups.select_subclasses().all()
+    groups = list(order)
     for group in groups:
         group.can_ship = (payment and payment.status == 'confirmed' and
                           group.status == 'new')
@@ -153,7 +153,7 @@ def address_view(request, order_pk, group_pk=None):
     address_type = 'shipping' if group_pk else 'billing'
     order = Order.objects.get(pk=order_pk)
     if address_type == 'shipping':
-        address = order.groups.select_subclasses().get(pk=group_pk).address
+        address = order.get_groups().get(pk=group_pk).address
     else:
         address = order.billing_address
     form = AddressForm(request.POST or None, instance=address)
