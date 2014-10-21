@@ -83,10 +83,12 @@ def manage_payment(request, pk, action):
         else:
             amount = form.cleaned_data['amount']
             currency = payment.currency
-            if action in ['capture', 'refund']:
-                comment = _('%(action)sed %(amount)s %(currency)s' % {
-                    'action': action.capitalize(), 'amount': amount,
-                    'currency': currency})
+            if action == 'capture':
+                comment = _('Captured %(amount)s %(currency)s' % {
+                    'amount': amount, 'currency': currency})
+            elif action == 'refund':
+                comment = _('Refunded %(amount)s %(currency)s' % {
+                    'amount': amount, 'currency': currency})
             elif action == 'release':
                 comment = _('Released payment')
             payment.order.create_history_entry(comment=comment,
