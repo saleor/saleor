@@ -3,7 +3,7 @@ from os.path import exists, join
 from django.core.management.base import BaseCommand, CommandError
 from django.core.management import call_command
 
-from utils.create_random_data import create_items
+from utils.create_random_data import create_items, create_users
 
 
 class Command(BaseCommand):
@@ -17,4 +17,6 @@ class Command(BaseCommand):
                 self.required_dirs)
             raise CommandError(msg)
         for msg in create_items(self.BASE_DIR, 10):
+            self.stdout.write(msg)
+        for msg in create_users(10):
             self.stdout.write(msg)
