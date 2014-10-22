@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load babel %}
 {% load bootstrap %}
+{% load prices_i18n %}
 
 <div class="modal-header">
     <a href="#" data-dismiss="modal" aria-hidden="true" class="close">×</a>
@@ -16,6 +17,7 @@
     </form>
     <p>{% trans "Before this action" %}</p>
       <ul>
+        <li>{% trans "Order total: " %}{% gross payment.order.get_total %}</li>
         <li>{% trans "Captured amount: " %}{{ captured|currencyfmt:currency }} </li>
       </ul>
 </div>
