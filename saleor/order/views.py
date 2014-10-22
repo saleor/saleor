@@ -32,9 +32,9 @@ def details(request, token):
             None, order=order, initial={'payment_id': waiting_payment.id})
     if order.is_fully_paid():
         form_data = None
-    if order.is_pre_authorized():
-        payment_form = None
-    else:
+
+    payment_form = None
+    if not order.is_pre_authorized():
         payment_form = PaymentMethodsForm(form_data)
 
         if payment_form.is_valid():
