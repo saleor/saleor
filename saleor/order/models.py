@@ -344,6 +344,13 @@ class Payment(BasePayment):
                  for item in self.order.get_items()]
         return items
 
+    def get_total_price(self):
+        net = self.total - self.tax
+        return Price(net, gross=self.total, currency=self.currency)
+
+    def get_captured_price(self):
+        return Price(self.captured_amount, currency=self.currency)
+
 
 @python_2_unicode_compatible
 class OrderHistoryEntry(models.Model):

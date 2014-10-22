@@ -33,9 +33,9 @@
                         <td>{{ payment.variant }}</td>
                         <th>{{ payment.created }}</th>
                         <td>{{ payment.order.user|default:"Anonymous" }}</td>
-                        <td>{% gross payment.total %}</td>
+                        <td>{% gross payment.get_total_price %}</td>
                         <td>{% render_status payment.status payment.get_status_display %}</td>
-                        <td>{% gross payment.captured_amount %}</td>
+                        <td>{% gross payment.get_captured_price %}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

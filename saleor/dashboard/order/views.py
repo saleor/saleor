@@ -56,10 +56,10 @@ def order_details(request, pk):
                               order.status != 'cancelled')
         ctx['can_release'] = payment.status == 'preauth'
         ctx['can_refund'] = payment.status == 'confirmed'
-        preauthorized = Price(payment.total, currency=payment.currency)
+
+        preauthorized = payment.get_total_price()
         if payment.status == 'confirmed':
-            captured = Price(payment.captured_amount,
-                             currency=payment.currency)
+            captured = payment.get_captured_price()
         if payment.status == 'refunded':
             refunded = Price(payment.total - payment.captured_amount,
                              currency=payment.currency)
