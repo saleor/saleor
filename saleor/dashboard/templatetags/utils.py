@@ -1,4 +1,8 @@
 import json
+try:
+    from urllib.parse import urlencode
+except ImportError:
+    from urllib import urlencode
 
 from django.template import Library
 
@@ -15,17 +19,7 @@ def construct_get_query(context, **params):
     request_get = context['request'].GET.dict()
     if not (request_get or params):
         return ''
-
-    for param in params.keys():
-        if param in request_get:
-            del request_get[param]
-
-    query = '?' + _format_params(params)
-    if request_get:
-        query += '&' + _format_params(request_get)
-    return query
-
-
-def _format_params(params):
-    return '&'.join(['%s=%s' % (param, value)
-                    for param, value in params.items()])
+    all_params = {}
+    all_params.update(request_get)
+    all_params.update(params)
+    return '?' + urlencode(all_params)
