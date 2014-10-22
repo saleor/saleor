@@ -104,6 +104,12 @@ class Order(models.Model, ItemSet):
     def __str__(self):
         return '#%d' % (self.id, )
 
+    def get_total(self):
+        try:
+            return super(Order, self).get_total()
+        except AttributeError:
+            return Price(0, currency=settings.DEFAULT_CURRENCY)
+
     @property
     def billing_full_name(self):
         return '%s %s' % (self.billing_first_name, self.billing_last_name)
@@ -267,7 +273,7 @@ class OrderedItemManager(InheritanceManager):
         target_group.update_delivery_cost()
 
         if not item.delivery_group.get_total_quantity():
-            item.delivery_group.change_status('cancelled')
+            item.delivery_group.delete()
 
 
 @python_2_unicode_compatible
@@ -306,14 +312,11 @@ class OrderedItem(models.Model, ItemLine):
         return self.quantity
 
     def change_quantity(self, new_quantity):
-        order = self.delivery_group.order
         self.quantity = new_quantity
         self.save()
         self.delivery_group.update_delivery_cost()
         if not self.delivery_group.get_total_quantity():
-            self.delivery_group.change_status('cancelled')
-        if not any([item.quantity for item in order.get_items()]):
-            order.change_status('cancelled')
+            self.delivery_group.delete()
 
 
 class Payment(BasePayment):
