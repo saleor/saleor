@@ -275,6 +275,10 @@ class OrderedItemManager(InheritanceManager):
         if not item.delivery_group.get_total_quantity():
             item.delivery_group.delete()
 
+        order = target_group.order
+        if not order.get_items():
+            order.change_status('cancelled')
+
 
 @python_2_unicode_compatible
 class OrderedItem(models.Model, ItemLine):
@@ -312,11 +316,14 @@ class OrderedItem(models.Model, ItemLine):
         return self.quantity
 
     def change_quantity(self, new_quantity):
+        order = self.delivery_group.order
         self.quantity = new_quantity
         self.save()
         self.delivery_group.update_delivery_cost()
         if not self.delivery_group.get_total_quantity():
             self.delivery_group.delete()
+        if not order.get_items():
+            order.change_status('cancelled')
 
 
 class Payment(BasePayment):
