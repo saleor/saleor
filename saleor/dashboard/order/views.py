@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.contrib import messages
 from django.core.context_processors import csrf
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
@@ -120,12 +121,14 @@ def edit_order_line(request, pk):
 
     action = request.GET.get('action', None)
     if action == 'quantity_form' and quantity_form.is_valid():
-        quantity_form.save(user=request.user)
+        with transaction.atomic():
+            quantity_form.save(user=request.user)
         messages.success(request, _('Quantity updated'))
         return redirect('dashboard:order-details',
                         pk=item.delivery_group.order.pk)
     elif action == 'move_items_form' and move_items_form.is_valid():
-        move_items_form.save(user=request.user)
+        with transaction.atomic():
+            move_items_form.save(user=request.user)
         messages.success(request, _('Moved items'))
         return redirect('dashboard:order-details',
                         pk=item.delivery_group.order.pk)
@@ -142,7 +145,8 @@ def ship_delivery_group(request, pk):
     group = get_object_or_404(DeliveryGroup.objects.select_subclasses(), pk=pk)
     form = ShipGroupForm(request.POST or None, instance=group)
     if form.is_valid():
-        form.save(request.user)
+        with transaction.atomic():
+            form.save(request.user)
         messages.success(request, _('Shipped delivery group #%s' % group.pk))
         return redirect('dashboard:order-details', pk=group.order.pk)
     else:

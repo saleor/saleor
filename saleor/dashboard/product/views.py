@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.urlresolvers import reverse_lazy
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
@@ -52,9 +53,10 @@ def product_details(request, pk=None, cls_name=None):
              'image_formset': image_formset}
 
     if all([f.is_valid() for f in forms.values()]):
-        product = form.save()
-        variant_formset.save()
-        image_formset.save()
+        with transaction.atomic():
+            product = form.save()
+            variant_formset.save()
+            image_formset.save()
         if pk:
             msg = _('Product %s updated' % product)
         else:
