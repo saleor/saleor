@@ -7,15 +7,15 @@
         <h3>{% trans "Edit order line " %}{{ object.product }} ({{ object }})</h3>
     </div>
     <div class="modal-body">
-        <form class="form-inline" method="post" role="form" action={% url 'dashboard:order-line-edit' pk=object.pk %}?action=quantity_form>
+        <form class="form-inline" method="post" role="form" action="{% url 'dashboard:order-line-edit' pk=object.pk action='change_quantity' %}">
             {% csrf_token %}
             <div class="form-group">
-                <span>{% trans "Change quantity: " %}{% render_widget quantity_form.quantity class="form-control input-sm" %}
+                <span>{% trans "Change quantity: " %}{% render_widget change_quantity_form.quantity class="form-control input-sm" %}
                 <button type="submit" class="btn btn-default btn-sm">OK</button></span>
             </div>
         </form>
         <hr />
-        <form class="form-inline" method="post" role="form" action={% url 'dashboard:order-line-edit' pk=object.pk %}?action=move_items_form>
+        <form class="form-inline" method="post" role="form" action="{% url 'dashboard:order-line-edit' pk=object.pk action='move_items' %}">
             {% csrf_token %}
             <div class="form-group">
                 <span>Move {% render_widget move_items_form.how_many class="form-control input-sm" %} items to delivery group: {% render_widget move_items_form.groups class="form-control input-sm" %}

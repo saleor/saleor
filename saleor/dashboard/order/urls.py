@@ -16,6 +16,8 @@ urlpatterns = patterns(
         views.manage_payment, name='manage-payment'),
     url(r'^line/(?P<pk>[0-9]+)/$', views.edit_order_line,
         name='order-line-edit'),
+    url(r'^line/(?P<pk>[0-9]+)/(?P<action>change_quantity|move_items)$',
+        views.edit_order_line, name='order-line-edit'),
     url(r'^ship/(?P<pk>[0-9]+)/$', views.ship_delivery_group,
         name='ship-delivery-group')
 )

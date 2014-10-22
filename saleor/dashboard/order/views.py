@@ -114,30 +114,38 @@ def manage_payment(request, pk, action):
 
 
 @staff_member_required
-def edit_order_line(request, pk):
+def edit_order_line(request, pk, action=None):
     item = OrderedItem.objects.get(pk=pk)
+    order = item.delivery_group.order
     quantity_form = ChangeQuantityForm(request.POST or None, instance=item)
     move_items_form = MoveItemsForm(request.POST or None, instance=item)
 
-    action = request.GET.get('action', None)
-    if action == 'quantity_form' and quantity_form.is_valid():
-        with transaction.atomic():
-            quantity_form.save(user=request.user)
-        messages.success(request, _('Quantity updated'))
-        return redirect('dashboard:order-details',
-                        pk=item.delivery_group.order.pk)
-    elif action == 'move_items_form' and move_items_form.is_valid():
-        with transaction.atomic():
-            move_items_form.save(user=request.user)
-        messages.success(request, _('Moved items'))
-        return redirect('dashboard:order-details',
-                        pk=item.delivery_group.order.pk)
-    else:
-        ctx = {'object': item, 'quantity_form': quantity_form,
+    if not action:
+        ctx = {'object': item, 'change_quantity_form': quantity_form,
                'move_items_form': move_items_form}
         ctx.update(csrf(request))
         template = 'dashboard/includes/modal_order_line_edit.html'
         return TemplateResponse(request, template, ctx)
+
+    if action == 'change_quantity':
+        if quantity_form.is_valid():
+            with transaction.atomic():
+                quantity_form.save(user=request.user)
+            messages.success(request, _('Quantity updated'))
+        else:
+            errors = quantity_form.errors.as_text()
+            msg = _('Failed to change quantity: %s' % errors)
+            messages.error(request, msg)
+    elif action == 'move_items':
+        if move_items_form.is_valid():
+            with transaction.atomic():
+                move_items_form.save(user=request.user)
+            messages.success(request, _('Moved items'))
+        else:
+            errors = move_items_form.errors.as_text()
+            msg = _('Failed to move items: %s' % errors)
+            messages.error(request, msg)
+    return redirect('dashboard:order-details', pk=order.pk)
 
 
 @staff_member_required

@@ -63,6 +63,7 @@ class MoveItemsForm(forms.ModelForm):
     def save(self, user=None):
         how_many = self.cleaned_data['how_many']
         choice = self.cleaned_data['groups']
+        old_group_pk = self.instance.delivery_group.pk
         if choice == 'new':
             target_group = DeliveryGroup.objects.duplicate_group(
                 self.instance.delivery_group.pk)
@@ -72,7 +73,7 @@ class MoveItemsForm(forms.ModelForm):
         comment = _('Moved %(how_many)s items %(item)s from group '
                     '#%(old_group)s to group #%(new_group)s' % {
                     'how_many': how_many, 'item': self.instance,
-                    'old_group': self.instance.delivery_group.pk,
+                    'old_group': old_group_pk,
                     'new_group': target_group.pk})
         order = self.instance.delivery_group.order
         order.create_history_entry(comment=comment, user=user)
