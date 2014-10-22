@@ -1,5 +1,8 @@
 import os.path
 
+from django.contrib.messages import constants as messages
+
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -221,3 +224,7 @@ CHECKOUT_PAYMENT_CHOICES = [
 ]
 
 TEMPLATE_STRING_IF_INVALID = '<< MISSING VARIABLE >>'
+
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger',
+}
