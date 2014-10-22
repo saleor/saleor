@@ -72,9 +72,6 @@
                     {% if captured %}
                         <p>Captured amount: {% gross captured %}</p>
                     {% endif %}
-                    {% if refunded %}
-                        <p>Refunded amount: {% gross refunded %}</p>
-                    {% endif %}
                     {% if can_capture %}
                     <a class="btn btn-success" data-target="#base-modal" href="{% url 'dashboard:manage-payment' pk=payment.pk action='capture' %}" data-toggle="modal">{% trans "Capture" %}</a>
                     {% elif can_refund %}

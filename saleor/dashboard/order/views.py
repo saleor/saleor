@@ -47,8 +47,7 @@ def order_details(request, pk):
         messages.success(request, _('Note added'))
         return redirect('dashboard:order-details', pk=pk)
 
-    captured = preauthorized = refunded = Price(
-        0, currency=order.get_total().currency)
+    captured = preauthorized = Price(0, currency=order.get_total().currency)
     if payment:
         can_capture = (payment.status == 'preauth' and
                        order.status != 'cancelled')
@@ -57,17 +56,13 @@ def order_details(request, pk):
         preauthorized = payment.get_total_price()
         if payment.status == 'confirmed':
             captured = payment.get_captured_price()
-        if payment.status == 'refunded':
-            refunded = Price(payment.total - payment.captured_amount,
-                             currency=payment.currency)
     else:
         can_capture = can_release = can_refund = False
 
     ctx = {'order': order, 'payment': payment, 'notes': notes, 'groups': groups,
            'note_form': note_form, 'captured': captured,
-           'preauthorized': preauthorized, 'refunded': refunded,
-           'can_capture': can_capture, 'can_release': can_release,
-           'can_refund': can_refund}
+           'preauthorized': preauthorized, 'can_capture': can_capture,
+           'can_release': can_release, 'can_refund': can_refund}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
 
 
