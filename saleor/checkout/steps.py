@@ -191,7 +191,7 @@ class ShippingStep(BaseAddressStep):
         group = ShippedDeliveryGroup.objects.create(
             order=order, address=self.address,
             price=self.group.get_delivery_total(),
-            method=repr(self.group))
+            method=self.group.name)
         group.add_items_from_partition(self.group)
         if order.user:
             alias = '%s, %s' % (order, self)
@@ -237,7 +237,7 @@ class DigitalDeliveryStep(BaseCheckoutStep):
         group = DigitalDeliveryGroup.objects.create(
             order=order, email=self.storage['email'],
             price=self.group.get_delivery_total(),
-            method=repr(self.group))
+            method=self.group.name)
         group.add_items_from_partition(self.group)
 
     def process(self, extra_context=None):

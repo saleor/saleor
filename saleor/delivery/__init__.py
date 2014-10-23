@@ -9,6 +9,7 @@ from satchless.item import ItemSet
 class BaseDelivery(ItemSet):
 
     group = None
+    name = ''
 
     def __init__(self, delivery_group):
         self.group = delivery_group
@@ -25,13 +26,11 @@ class BaseDelivery(ItemSet):
 
 @python_2_unicode_compatible
 class DummyShipping(BaseDelivery):
+    name = 'dummy_shipping'
 
     def __init__(self, delivery_group, address):
         self.address = address
         super(DummyShipping, self).__init__(delivery_group)
-
-    def __repr__(self):
-        return 'dummy_shipping'
 
     def __str__(self):
         return 'Dummy shipping'
@@ -47,7 +46,7 @@ class DummyShipping(BaseDelivery):
 def get_delivery_choices_for_group(group, **kwargs):
     if 'address' in kwargs:
         shipping = DummyShipping(group, kwargs['address'])
-        yield (repr(shipping), shipping)
+        yield (shipping.name, shipping)
     else:
         raise ValueError('Unknown delivery type')
 
