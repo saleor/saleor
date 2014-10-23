@@ -39,43 +39,40 @@ class ManagePaymentForm(forms.Form):
             self.payment.release()
 
 
-class MoveItemsForm(forms.ModelForm):
+class MoveItemsForm(forms.Form):
     how_many = QuantityField()
     groups = forms.ChoiceField()
 
-    class Meta:
-        model = OrderedItem
-        fields = []
-
     def __init__(self, *args, **kwargs):
+        self.item = kwargs.pop('item')
         super(MoveItemsForm, self).__init__(*args, **kwargs)
-        self.fields['how_many'].widget.attrs['max'] = self.instance.quantity
+        self.fields['how_many'].widget.attrs['max'] = self.item.quantity
         self.fields['groups'].choices = self.get_delivery_group_choices()
 
     def get_delivery_group_choices(self):
-        group = self.instance.delivery_group
+        group = self.item.delivery_group
         groups = group.order.groups.exclude(pk=group.pk).exclude(
             status='cancelled')
         choices = [('new', _('New'))]
         choices.extend([(g.pk, 'Delivery group #%s' % g.pk) for g in groups])
         return choices
 
-    def save(self, user=None):
+    def move_items(self, user=None):
         how_many = self.cleaned_data['how_many']
         choice = self.cleaned_data['groups']
-        old_group_pk = self.instance.delivery_group.pk
+        old_group_pk = self.item.delivery_group.pk
         if choice == 'new':
             target_group = DeliveryGroup.objects.duplicate_group(
-                self.instance.delivery_group.pk)
+                self.item.delivery_group.pk)
         else:
             target_group = DeliveryGroup.objects.get(pk=choice)
-        OrderedItem.objects.move_to_group(self.instance, target_group, how_many)
+        OrderedItem.objects.move_to_group(self.item, target_group, how_many)
         comment = _('Moved %(how_many)s items %(item)s from group '
                     '#%(old_group)s to group #%(new_group)s' % {
-                    'how_many': how_many, 'item': self.instance,
+                    'how_many': how_many, 'item': self.item,
                     'old_group': old_group_pk,
                     'new_group': target_group.pk})
-        order = self.instance.delivery_group.order
+        order = self.item.delivery_group.order
         order.create_history_entry(comment=comment, user=user)
 
 

@@ -112,7 +112,7 @@ def edit_order_line(request, pk, action=None):
     item = OrderedItem.objects.get(pk=pk)
     order = item.delivery_group.order
     quantity_form = ChangeQuantityForm(request.POST or None, instance=item)
-    move_items_form = MoveItemsForm(request.POST or None, instance=item)
+    move_items_form = MoveItemsForm(request.POST or None, item=item)
 
     if not action:
         ctx = {'object': item, 'change_quantity_form': quantity_form,
@@ -133,7 +133,7 @@ def edit_order_line(request, pk, action=None):
     elif action == 'move_items':
         if move_items_form.is_valid():
             with transaction.atomic():
-                move_items_form.save(user=request.user)
+                move_items_form.move_items(user=request.user)
             messages.success(request, _('Moved items'))
         else:
             errors = move_items_form.errors.as_text()
