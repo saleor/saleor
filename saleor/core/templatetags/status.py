@@ -3,15 +3,15 @@ from django.template import Library
 register = Library()
 
 
-ERROR = ['error', 'reject', 'rejected']
-SUCCESS = ['accept', 'confirmed', 'fully-paid', 'shipped', 'refunded']
+ERRORS = ['error', 'reject', 'rejected']
+SUCCESSES = ['accept', 'confirmed', 'fully-paid', 'shipped', 'refunded']
 
 
 @register.inclusion_tag('status_label.html')
 def render_status(status, status_display=None):
-    if status in ERROR:
+    if status in ERRORS:
         label_cls = 'danger'
-    elif status in SUCCESS:
+    elif status in SUCCESSES:
         label_cls = 'success'
     else:
         label_cls = 'default'
