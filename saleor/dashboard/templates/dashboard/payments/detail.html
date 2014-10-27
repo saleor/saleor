@@ -28,10 +28,10 @@
         </div>
         <div class="panel panel-default">
             <div class="panel-heading">
-                <span class="panel-title">Gateway communication</span><a class="pull-right" data-toggle="collapse" href="#gateway-output">Show</a>
+                <span class="panel-title">Gateway communication</span>{% if payment.extra_data %}<a class="pull-right" data-toggle="collapse" href="#gateway-output">Show</a>{% endif %}
             </div>
             <div class="panel-body">
-                <div id='gateway-output' class="collapse">
+                <div id='gateway-output' class="{% if payment.extra_data %}collapse{% endif %}">
                     {% if payment.extra_data %}
                         <pre>{{ payment.extra_data|format_json }}</pre>
                     {% else %}
