@@ -31,38 +31,34 @@ def product_list(request):
 def product_details(request, pk=None, cls_name=None):
     if pk:
         product = get_object_or_404(Product.objects.select_subclasses(), pk=pk)
+        title = product.name
     else:
         product = get_product_cls_by_name(cls_name)()
-
+        title = _('Add new %s') % cls_name
     form_cls = get_product_form(product)
     variant_formset_cls = get_variant_formset(product)
-
     form = form_cls(request.POST or None, instance=product)
     variant_formset = variant_formset_cls(
         request.POST or None, instance=product)
     image_formset = ProductImageFormSet(
         request.POST or None, request.FILES or None, instance=product)
-
     forms = {'form': form, 'variant_formset': variant_formset,
              'image_formset': image_formset}
-
     if all([f.is_valid() for f in forms.values()]):
         with transaction.atomic():
             product = form.save()
             variant_formset.save()
             image_formset.save()
         if pk:
-            msg = _('Product %s updated') % product
+            msg = _('Updated product %s') % product
         else:
-            msg = _('Product %s added') % product
+            msg = _('Added product %s') % product
         messages.success(request, msg)
         return redirect('dashboard:products')
     else:
         if any([f.errors for f in forms.values()]):
             messages.error(request, _('Your submitted data was not valid - '
                            'please correct the errors below'))
-
-    title = product.name if product else _('Add new product')
     ctx = {'title': title, 'product': product}
     ctx.update(forms)
     return TemplateResponse(request, 'dashboard/product/product_form.html', ctx)
