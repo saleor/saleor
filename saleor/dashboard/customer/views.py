@@ -1,12 +1,12 @@
 from __future__ import unicode_literals
 
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
 
 from .forms import CustomerSearchForm
+from ..utils import paginate
 from ..views import staff_member_required
 from ...userprofile.models import User
 
@@ -30,14 +30,7 @@ def customer_list(request):
         customers = _get_users_with_open_orders(customers)
         title = _('Customers with open orders (%s)' % len(customers))
 
-    paginator = Paginator(customers, 30)
-    try:
-        customers = paginator.page(request.GET.get('page'))
-    except PageNotAnInteger:
-        customers = paginator.page(1)
-    except EmptyPage:
-        customers = paginator.page(paginator.num_pages)
-
+    customers, paginator = paginate(customers, 30, request.GET.get('page'))
     ctx = {'customers': customers, 'form': form, 'title': title,
            'paginator': paginator}
     return TemplateResponse(request, 'dashboard/customer/list.html', ctx)

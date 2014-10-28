@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 from django.contrib import messages
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.urlresolvers import reverse_lazy
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
@@ -10,6 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DeleteView
 
 from ...product.models import Product
+from ..utils import paginate
 from ..views import StaffMemberOnlyMixin, staff_member_required
 from .forms import (ProductImageFormSet, ProductClassForm, get_product_form,
                     get_product_cls_by_name, get_variant_formset)
@@ -18,17 +18,11 @@ from .forms import (ProductImageFormSet, ProductClassForm, get_product_form,
 @staff_member_required
 def product_list(request):
     products = Product.objects.prefetch_related('images').select_subclasses()
-    paginator = Paginator(products, 30)
-    try:
-        products = paginator.page(request.GET.get('page'))
-    except PageNotAnInteger:
-        products = paginator.page(1)
-    except EmptyPage:
-        products = paginator.page(paginator.num_pages)
     form = ProductClassForm(request.POST or None)
     if form.is_valid():
         cls_name = form.cleaned_data['cls_name']
         return redirect('dashboard:product-add', cls_name=cls_name)
+    products, paginator = paginate(products, 30, request.GET.get('page'))
     ctx = {'products': products, 'form': form, 'paginator': paginator}
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
 
