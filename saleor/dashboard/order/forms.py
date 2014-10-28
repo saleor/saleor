@@ -37,6 +37,8 @@ class ManagePaymentForm(forms.Form):
             self.payment.refund(amount)
         elif action == 'release' and self.payment.status == 'preauth':
             self.payment.release()
+        else:
+            raise ValueError(_('Invalid payment action'))
 
 
 class MoveItemsForm(forms.Form):
