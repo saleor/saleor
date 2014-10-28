@@ -94,8 +94,9 @@ class ChangeQuantityForm(forms.ModelForm):
         try:
             variant.check_quantity(quantity)
         except InsufficientStock as e:
-            msg = _('Only %(remaining)d remaining in stock.')
-            raise forms.ValidationError(msg % {'remaining': e.item.stock})
+            raise forms.ValidationError(
+                _('Only %(remaining)d remaining in stock.') % {
+                    'remaining': e.item.stock})
         return quantity
 
     def save(self):
