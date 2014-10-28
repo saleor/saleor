@@ -49,8 +49,7 @@ class MoveItemsForm(forms.Form):
         self.item = kwargs.pop('item')
         super(MoveItemsForm, self).__init__(*args, **kwargs)
         self.fields['how_many'].widget.attrs.update({
-            'max': self.item.quantity,
-            'min': 1})
+            'max': self.item.quantity, 'min': 1})
         self.fields['groups'].choices = self.get_delivery_group_choices()
 
     def get_delivery_group_choices(self):
@@ -82,9 +81,8 @@ class ChangeQuantityForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ChangeQuantityForm, self).__init__(*args, **kwargs)
         self.fields['quantity'].widget.attrs.update({
-            'max': self.instance.quantity,
-            'min': 1})
-        self.fields['quantity'].initial = self.initial_quantity
+            'max': self.instance.quantity, 'min': 1})
+        self.fields['quantity'].initial = self.instance.quantity
 
     def get_variant(self):
         p = Product.objects.select_subclasses().get(pk=self.instance.product.pk)
