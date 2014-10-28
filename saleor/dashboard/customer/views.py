@@ -25,10 +25,10 @@ def customer_list(request):
     form = CustomerSearchForm(request.GET or None, queryset=customers)
     if form.is_valid():
         customers = form.search()
-        title = _('Search results (%s)' % len(customers))
+        title = _('Search results (%s)') % len(customers)
     else:
         customers = _get_users_with_open_orders(customers)
-        title = _('Customers with open orders (%s)' % len(customers))
+        title = _('Customers with open orders (%s)') % len(customers)
 
     customers, paginator = paginate(customers, 30, request.GET.get('page'))
     ctx = {'customers': customers, 'form': form, 'title': title,

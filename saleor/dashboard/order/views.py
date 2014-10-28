@@ -75,16 +75,16 @@ def manage_payment(request, pk, action):
         try:
             form.handle_action(action, request.user)
         except (PaymentError, ValueError) as e:
-            messages.error(request, _('Payment gateway error: ') + e.message)
+            messages.error(request, _('Payment gateway error: %s') % e.message)
         else:
             amount = form.cleaned_data['amount']
             currency = payment.currency
             if action == 'capture':
-                comment = _('Captured %(amount)s %(currency)s' % {
-                    'amount': amount, 'currency': currency})
+                comment = _('Captured %(amount)s %(currency)s') % {
+                    'amount': amount, 'currency': currency}
             elif action == 'refund':
-                comment = _('Refunded %(amount)s %(currency)s' % {
-                    'amount': amount, 'currency': currency})
+                comment = _('Refunded %(amount)s %(currency)s') % {
+                    'amount': amount, 'currency': currency}
             elif action == 'release':
                 comment = _('Released payment')
             payment.order.create_history_entry(comment=comment,
@@ -136,8 +136,7 @@ def edit_order_line(request, pk, action=None):
             order.create_history_entry(comment=msg, user=request.user)
         else:
             errors = quantity_form.errors.as_text()
-            msg = _('Failed to change quantity: %s' % errors)
-            messages.error(request, msg)
+            messages.error(request, _('Failed to change quantity: %s') % errors)
     elif action == 'move_items':
         if move_items_form.is_valid():
             old_group = item.delivery_group
@@ -153,8 +152,7 @@ def edit_order_line(request, pk, action=None):
             order.create_history_entry(comment=msg, user=request.user)
         else:
             errors = move_items_form.errors.as_text()
-            msg = _('Failed to move items: %s' % errors)
-            messages.error(request, msg)
+            messages.error(request, _('Failed to move items: %s') % errors)
     return redirect('dashboard:order-details', pk=order.pk)
 
 

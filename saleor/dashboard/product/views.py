@@ -52,9 +52,9 @@ def product_details(request, pk=None, cls_name=None):
             variant_formset.save()
             image_formset.save()
         if pk:
-            msg = _('Product %s updated' % product)
+            msg = _('Product %s updated') % product
         else:
-            msg = _('Product %s added' % product)
+            msg = _('Product %s added') % product
         messages.success(request, msg)
         return redirect('dashboard:products')
     else:
@@ -75,5 +75,5 @@ class ProductDeleteView(StaffMemberOnlyMixin, DeleteView):
 
     def post(self, request, *args, **kwargs):
         result = self.delete(request, *args, **kwargs)
-        messages.success(request, _('Deleted product %s' % self.object))
+        messages.success(request, _('Deleted product %s') % self.object)
         return result
