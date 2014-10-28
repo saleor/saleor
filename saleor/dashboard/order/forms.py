@@ -85,7 +85,7 @@ class ChangeQuantityForm(forms.ModelForm):
         self.fields['quantity'].initial = self.instance.quantity
 
     def get_variant(self):
-        p = Product.objects.select_subclasses().get(pk=self.instance.product.pk)
+        p = Product.objects.get_subclass(pk=self.instance.product.pk)
         return p.variants.get(sku=self.instance.product_sku)
 
     def clean_quantity(self):
