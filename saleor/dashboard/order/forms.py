@@ -58,25 +58,24 @@ class MoveItemsForm(forms.Form):
         groups = group.order.groups.exclude(pk=group.pk).exclude(
             status='cancelled')
         choices = [('new', _('New'))]
-        choices.extend([(g.pk, 'Delivery group #%s' % g.pk) for g in groups])
+        choices.extend([(g.pk, str(g) % g) for g in groups])
         return choices
 
     def move_items(self, user=None):
         how_many = self.cleaned_data['how_many']
         choice = self.cleaned_data['groups']
-        old_group_pk = self.item.delivery_group.pk
+        old_group = self.item.delivery_group
+        order = old_group.order
         if choice == 'new':
-            target_group = DeliveryGroup.objects.duplicate_group(
-                self.item.delivery_group.pk)
+            target_group = DeliveryGroup.objects.duplicate_group(old_group.pk)
         else:
             target_group = DeliveryGroup.objects.get(pk=choice)
+        comment = _(
+            'Moved %(how_many)s items %(item)s from %(old_group)s'
+            ' to %(new_group)s') % {
+                'how_many': how_many, 'item': self.item,
+                'old_group': old_group, 'new_group': target_group}
         OrderedItem.objects.move_to_group(self.item, target_group, how_many)
-        comment = _('Moved %(how_many)s items %(item)s from group '
-                    '#%(old_group)s to group #%(new_group)s' % {
-                    'how_many': how_many, 'item': self.item,
-                    'old_group': old_group_pk,
-                    'new_group': target_group.pk})
-        order = self.item.delivery_group.order
         order.create_history_entry(comment=comment, user=user)
 
 
@@ -134,8 +133,8 @@ class ShipGroupForm(forms.ModelForm):
     def save(self, user):
         order = self.instance.order
         self.instance.change_status('shipped')
-        comment = _('Shipped delivery group #%s' % self.instance.pk)
-        order.history.create(status=order.status, comment=comment, user=user)
+        comment = _('Shipped %s') % self.instance
+        order.create_history_entry(comment=comment, user=user)
         statuses = [g.status for g in order.groups.all()]
         if 'shipped' in statuses and 'new' not in statuses:
             order.change_status('shipped')

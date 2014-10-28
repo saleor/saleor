@@ -187,6 +187,10 @@ class DeliveryGroup(models.Model, ItemSet):
 
     objects = DeliveryGroupManager()
 
+    def __str__(self):
+        return pgettext_lazy(
+            'Delivery group str', 'Delivery group #%d') % self.pk
+
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, list(self))
 

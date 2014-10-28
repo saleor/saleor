@@ -149,7 +149,7 @@ def ship_delivery_group(request, pk):
     if form.is_valid():
         with transaction.atomic():
             form.save(request.user)
-        messages.success(request, _('Shipped delivery group #%s' % group.pk))
+        messages.success(request, _('Shipped %s') % group)
         return redirect('dashboard:order-details', pk=group.order.pk)
     else:
         ctx = {'group': group}
@@ -162,15 +162,16 @@ def ship_delivery_group(request, pk):
 def address_view(request, order_pk, group_pk=None):
     address_type = 'shipping' if group_pk else 'billing'
     order = Order.objects.get(pk=order_pk)
+    group = order.get_groups().get(pk=group_pk)
     if address_type == 'shipping':
-        address = order.get_groups().get(pk=group_pk).address
+        address = group.address
     else:
         address = order.billing_address
     form = AddressForm(request.POST or None, instance=address)
     if form.is_valid():
         form.save()
         if address_type == 'shipping':
-            msg = _('Updated shipping address for group #%s' % group_pk)
+            msg = _('Updated shipping address for %s') % group
         else:
             msg = _('Updated billing address')
         order.create_history_entry(comment=msg, user=request.user)
