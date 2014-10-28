@@ -189,7 +189,7 @@ class DeliveryGroup(models.Model, ItemSet):
 
     def __str__(self):
         return pgettext_lazy(
-            'Delivery group str', 'Delivery group #%d') % self.pk
+            'Delivery group str', 'Delivery group #%s') % self.pk
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, list(self))
@@ -241,7 +241,8 @@ class ShippedDeliveryGroup(DeliveryGroup):
     address = models.ForeignKey(Address, related_name='+')
 
     def __str__(self):
-        return 'Shipped delivery'
+        return pgettext_lazy(
+            'Delivery group str', 'Shipped delivery #%s') % self.pk
 
 
 @python_2_unicode_compatible
@@ -250,7 +251,8 @@ class DigitalDeliveryGroup(DeliveryGroup):
     email = models.EmailField()
 
     def __str__(self):
-        return 'Digital delivery'
+        return pgettext_lazy(
+            'Delivery group str', 'Digital delivery #%s') % self.pk
 
 
 class OrderedItemManager(InheritanceManager):
