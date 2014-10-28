@@ -149,8 +149,8 @@ class Order(models.Model, ItemSet):
 
 class DeliveryGroupManager(InheritanceManager):
 
-    def duplicate_group(self, pk):
-        group = self.select_subclasses().get(pk=pk)
+    def duplicate_group(self, group):
+        group = self.get_subclass(pk=group.pk)
         group.pk = None
         group.id = None
         group.status = 'new'
@@ -160,7 +160,7 @@ class DeliveryGroupManager(InheritanceManager):
             address.save()
             group.address = address
         group.save()
-        return group
+        return group.deliverygroup_ptr
 
 
 class DeliveryGroup(models.Model, ItemSet):

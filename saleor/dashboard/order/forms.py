@@ -67,7 +67,7 @@ class MoveItemsForm(forms.Form):
         old_group = self.item.delivery_group
         order = old_group.order
         if choice == 'new':
-            target_group = DeliveryGroup.objects.duplicate_group(old_group.pk)
+            target_group = DeliveryGroup.objects.duplicate_group(old_group)
         else:
             target_group = DeliveryGroup.objects.get(pk=choice)
         comment = _(
