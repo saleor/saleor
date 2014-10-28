@@ -110,7 +110,7 @@ def manage_payment(request, pk, action):
 
 @staff_member_required
 def edit_order_line(request, pk, action=None):
-    item = OrderedItem.objects.get(pk=pk)
+    item = get_object_or_404(OrderedItem, pk=pk)
     order = item.delivery_group.order
     quantity_form = ChangeQuantityForm(request.POST or None, instance=item)
     move_items_form = MoveItemsForm(request.POST or None, item=item)
@@ -143,6 +143,8 @@ def edit_order_line(request, pk, action=None):
             how_many = move_items_form.cleaned_data['how_many']
             with transaction.atomic():
                 target_group = move_items_form.move_items()
+            if not old_group.pk:
+                old_group = _('removed group')
             msg = _(
                 'Moved %(how_many)s items %(item)s from %(old_group)s'
                 ' to %(new_group)s') % {
