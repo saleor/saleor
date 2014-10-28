@@ -61,22 +61,16 @@ class MoveItemsForm(forms.Form):
         choices.extend([(g.pk, str(g)) for g in groups])
         return choices
 
-    def move_items(self, user=None):
+    def move_items(self):
         how_many = self.cleaned_data['how_many']
         choice = self.cleaned_data['groups']
         old_group = self.item.delivery_group
-        order = old_group.order
         if choice == 'new':
             target_group = DeliveryGroup.objects.duplicate_group(old_group)
         else:
             target_group = DeliveryGroup.objects.get(pk=choice)
-        comment = _(
-            'Moved %(how_many)s items %(item)s from %(old_group)s'
-            ' to %(new_group)s') % {
-                'how_many': how_many, 'item': self.item,
-                'old_group': old_group, 'new_group': target_group}
         OrderedItem.objects.move_to_group(self.item, target_group, how_many)
-        order.create_history_entry(comment=comment, user=user)
+        return target_group
 
 
 class ChangeQuantityForm(forms.ModelForm):
@@ -87,7 +81,6 @@ class ChangeQuantityForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ChangeQuantityForm, self).__init__(*args, **kwargs)
-        self.initial_quantity = self.instance.quantity
         self.fields['quantity'].widget.attrs.update({
             'max': self.instance.quantity,
             'min': 1})
@@ -107,16 +100,9 @@ class ChangeQuantityForm(forms.ModelForm):
             raise forms.ValidationError(msg % {'remaining': e.item.stock})
         return quantity
 
-    def save(self, user):
-        order = self.instance.delivery_group.order
+    def save(self):
         quantity = self.cleaned_data['quantity']
         self.instance.change_quantity(quantity)
-        comment = _('Changed quantity for product %(product)s from '
-                    '%(old_quantity)s to %(new_quantity)s' % {
-                        'new_quantity': quantity,
-                        'old_quantity': self.initial_quantity,
-                        'product': self.instance.product})
-        order.create_history_entry(comment=comment, user=user)
 
 
 class ShipGroupForm(forms.ModelForm):
@@ -130,11 +116,9 @@ class ShipGroupForm(forms.ModelForm):
             raise forms.ValidationError(_('Cannot ship this group'),
                                         code='invalid')
 
-    def save(self, user):
+    def save(self):
         order = self.instance.order
         self.instance.change_status('shipped')
-        comment = _('Shipped %s') % self.instance
-        order.create_history_entry(comment=comment, user=user)
         statuses = [g.status for g in order.groups.all()]
         if 'shipped' in statuses and 'new' not in statuses:
             order.change_status('shipped')

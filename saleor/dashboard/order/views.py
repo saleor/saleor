@@ -43,8 +43,9 @@ def order_details(request, pk):
     note_form = OrderNoteForm(request.POST or None, instance=note)
     if note_form.is_valid():
         note_form.save()
-        order.create_history_entry(comment=_('Added note'), user=request.user)
-        messages.success(request, _('Note added'))
+        msg = _('Added note')
+        order.create_history_entry(comment=msg, user=request.user)
+        messages.success(request, msg)
         return redirect('dashboard:order-details', pk=pk)
 
     captured = preauthorized = Price(0, currency=order.get_total().currency)
@@ -122,19 +123,34 @@ def edit_order_line(request, pk, action=None):
         return TemplateResponse(request, template, ctx)
 
     if action == 'change_quantity':
+        old_quantity = item.quantity
         if quantity_form.is_valid():
             with transaction.atomic():
-                quantity_form.save(user=request.user)
-            messages.success(request, _('Quantity updated'))
+                quantity_form.save()
+            msg = _(
+                'Changed quantity for product %(product)s from'
+                ' %(old_quantity)s to %(new_quantity)s') % {
+                    'product': item.product, 'old_quantity': old_quantity,
+                    'new_quantity': item.quantity}
+            messages.success(request, msg)
+            order.create_history_entry(comment=msg, user=request.user)
         else:
             errors = quantity_form.errors.as_text()
             msg = _('Failed to change quantity: %s' % errors)
             messages.error(request, msg)
     elif action == 'move_items':
         if move_items_form.is_valid():
+            old_group = item.delivery_group
+            how_many = move_items_form.cleaned_data['how_many']
             with transaction.atomic():
-                move_items_form.move_items(user=request.user)
-            messages.success(request, _('Moved items'))
+                target_group = move_items_form.move_items()
+            msg = _(
+                'Moved %(how_many)s items %(item)s from %(old_group)s'
+                ' to %(new_group)s') % {
+                    'how_many': how_many, 'item': item, 'old_group': old_group,
+                    'new_group': target_group}
+            messages.success(request, msg)
+            order.create_history_entry(comment=msg, user=request.user)
         else:
             errors = move_items_form.errors.as_text()
             msg = _('Failed to move items: %s' % errors)
@@ -148,8 +164,10 @@ def ship_delivery_group(request, pk):
     form = ShipGroupForm(request.POST or None, instance=group)
     if form.is_valid():
         with transaction.atomic():
-            form.save(request.user)
-        messages.success(request, _('Shipped %s') % group)
+            form.save()
+        msg = _('Shipped %s') % group
+        messages.success(request, msg)
+        group.order.create_history_entry(comment=msg, user=request.user)
         return redirect('dashboard:order-details', pk=group.order.pk)
     else:
         ctx = {'group': group}
