@@ -39,10 +39,19 @@ class ImageInputWidget(ClearableFileInput):
     url_markup_template = '<a href="{0}"><img src="{0}" width=50 /></a>'
 
 
-ProductImageFormSet = inlineformset_factory(Product, ProductImage, extra=1,
-                                            widgets={'image': ImageInputWidget})
-ShirtVariantFormset = inlineformset_factory(Shirt, ShirtVariant, extra=1)
-BagVariantFormset = inlineformset_factory(Bag, BagVariant, extra=1)
+formset_defaults = {
+    'extra': 1,
+    'min_num': 1,
+    'validate_min': True
+}
+
+ProductImageFormSet = inlineformset_factory(
+    Product, ProductImage, widgets={'image': ImageInputWidget},
+    **formset_defaults)
+ShirtVariantFormset = inlineformset_factory(
+    Shirt, ShirtVariant, **formset_defaults)
+BagVariantFormset = inlineformset_factory(
+    Bag, BagVariant, **formset_defaults)
 
 
 def get_product_form(product):
