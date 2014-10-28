@@ -58,7 +58,7 @@ class MoveItemsForm(forms.Form):
         groups = group.order.groups.exclude(pk=group.pk).exclude(
             status='cancelled')
         choices = [('new', _('New'))]
-        choices.extend([(g.pk, str(g) % g) for g in groups])
+        choices.extend([(g.pk, str(g)) for g in groups])
         return choices
 
     def move_items(self, user=None):
