@@ -46,24 +46,7 @@
             </div>
             <div class="panel-body">
                 {% if orders_to_ship %}
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Order</th>
-                                <th>Customer</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for order in orders_to_ship %}
-                                <tr>
-                                    <td><a href="{% url "dashboard:order-details" pk=order.pk %}">{{ order }}</a></td>
-                                    <td>{{ order.user|default:"Anonymous" }}</td>
-                                    <td>{% gross order.get_total %}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    {% include "dashboard/includes/_orders_table.html" with orders=orders_to_ship %}
                 {% else %}
                     <span>No orders</span>
                 {% endif %}
