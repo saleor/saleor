@@ -1,0 +1,46 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load prices_i18n %}
+{% load status %}
+
+{% block title %}{% trans "Payments" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">{% trans "Payment events" %}</h1>
+            {% include "dashboard/includes/_status_filters.html" %}
+
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>{% trans "Order number" %}</th>
+                        <th>{% trans "Gateway" %}</th>
+                        <th>{% trans "Date" %}</th>
+                        <th>{% trans "Customer" %}</th>
+                        <th>{% trans "Amount" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Captured amount" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for payment in payments %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'dashboard:order-details' pk=payment.order.pk %}">{{ payment.order }}</a>
+                            (<a href="{% url "dashboard:payment-details" pk=payment.pk %}">Transaction Details</a>)
+                        </td>
+                        <td>{{ payment.variant }}</td>
+                        <th>{{ payment.created }}</th>
+                        <td>{{ payment.order.user|default:"Anonymous" }}</td>
+                        <td>{% gross payment.get_total_price %}</td>
+                        <td>{% render_status payment.status payment.get_status_display %}</td>
+                        <td>{% gross payment.get_captured_price %}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% include "dashboard/includes/_pagination.html" %}
+        </div>
+    </div>
+{% endblock %}

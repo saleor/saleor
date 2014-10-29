@@ -1,0 +1,31 @@
+{% extends "dashboard/base.html" %}
+
+{% load i18n %}
+
+{% block title %}{% blocktrans %}Edit {{ address_type }} address{% endblocktrans %} - {{ block.super }}{% endblock %}
+
+{% load as_vertical_form from bootstrap %}
+
+{% block content %}
+<div class="row">
+    <h1 class="page-header">Edit {{ address_type }} address</h1>
+
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <fieldset>
+                        {{ form|as_vertical_form }}
+                    </fieldset>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <a href="{% url 'dashboard:order-details' pk=order.pk %}" class="btn btn-link">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock content %}

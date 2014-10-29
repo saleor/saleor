@@ -1,0 +1,18 @@
+{% load i18n %}
+{% load bootstrap %}
+
+<div class="modal-header">
+    <a href="#" data-dismiss="modal" aria-hidden="true" class="close">×</a>
+    <h3>{% trans "Ship delivery group " %}#{{ group.pk }}</h3>
+</div>
+<div class="modal-body">
+	<span>{% trans "Ship selected delivery group to the following address:" %}</span>
+    {% include 'dashboard/includes/_address.html' with address=group.address only %}
+</div>
+<div class="modal-footer">
+    <form id="ship-delivery-group-form" class="form-inline" method="post" role="form" action="{% url 'dashboard:ship-delivery-group' pk=group.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">{% trans "Ship" %}</button>
+        <button data-dismiss="modal" aria-hidden="true" class="btn btn-default">{% trans "Cancel" %}</button>
+    </form>
+</div>

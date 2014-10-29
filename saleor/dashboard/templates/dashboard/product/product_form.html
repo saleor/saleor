@@ -1,0 +1,77 @@
+{% extends "dashboard/base.html" %}
+{% load prices_i18n %}
+{% load i18n %}
+{% load bootstrap %}
+{% load images %}
+{% load static %}
+
+{% block title %}{{ title }} - {% trans "Products" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <h1 class="page-header">{{ title }}</h1>
+
+    <div class="col-lg-8">
+        <div class="form-message alert alert-success" hidden="hidden">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+            <span class="glyphicon glyphicon-ok-sign"></span>
+            <span class="message-content">{% trans "Data saved" %}</span>
+        </div>
+        <form class="form form-horizontal" method="post" id="product-form" enctype="multipart/form-data">
+            {{ variant_formset.management_form }}
+            {{ image_formset.management_form }}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <span class="panel-title">{% trans "Details" %}</span>
+                </div>
+                <div class="panel-body">
+                    {% csrf_token %}
+                    {{ form|as_horizontal_form }}
+                </div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <span class="panel-title">{% trans "Variants" %}</span>
+                </div>
+                <div class="panel-body">
+                    {% include "dashboard/includes/_formset_table.html" with formset=variant_formset %}
+                </div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <span class="panel-title">{% trans "Images" %}</span>
+                </div>
+                <div class="panel-body">
+                    {% include "dashboard/includes/_formset_table.html" with formset=image_formset %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+                {% if product.pk %}
+                    <a href="{% url 'dashboard:product-delete' pk=product.pk %}" class="btn btn-danger">{% trans "Delete" %}</button>
+                {% endif %}
+                <a href="{% url 'dashboard:products' %}" class="btn btn-link">{% trans "Cancel" %}</a>
+            </div>
+
+        </form>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">Product image</span>
+            </div>
+            <div class="panel-body">
+                {% if product.images.exists %}
+                    <img class="img-responsive" src="{{ product.images.first|at_size:"small" }}" alt="">
+                {% else %}
+                    <img class="img-responsive" src="http://placehold.it/300x300/&text=Product Image" alt="">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

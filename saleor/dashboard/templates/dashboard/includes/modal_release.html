@@ -1,0 +1,17 @@
+{% load i18n %}
+{% load bootstrap %}
+
+<div class="modal-header">
+    <a href="#" data-dismiss="modal" aria-hidden="true" class="close">×</a>
+    <h3>{% trans "Release payment" %}</h3>
+</div>
+<div class="modal-body">
+    <p>{% trans "Do you want to release the payment?" %}</p>
+</div>
+<div class="modal-footer">
+    <form id="release-form" class="form-inline" method="post" role="form" action="{% url 'dashboard:manage-payment' pk=payment.pk action=action %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">{% trans "Release" %}</button>
+        <button data-dismiss="modal" aria-hidden="true" class="btn btn-default">{% trans "Cancel" %}</button>
+    </form>
+</div>

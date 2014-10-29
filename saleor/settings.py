@@ -1,5 +1,8 @@
 import os.path
 
+from django.contrib.messages import constants as messages
+
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -103,6 +106,7 @@ INSTALLED_APPS = [
     'saleor.order',
     'saleor.registration',
     'saleor.userprofile',
+    'saleor.dashboard',
 
     # External apps
     'babeldjango',
@@ -220,3 +224,7 @@ CHECKOUT_PAYMENT_CHOICES = [
 ]
 
 TEMPLATE_STRING_IF_INVALID = '<< MISSING VARIABLE >>'
+
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger',
+}

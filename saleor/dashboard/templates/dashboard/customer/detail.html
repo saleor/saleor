@@ -1,0 +1,91 @@
+{% extends "dashboard/base.html" %}
+{% load prices_i18n %}
+{% load i18n %}
+{% load bootstrap %}
+{% load status %}
+
+{% block title %}{{ customer }} - {% trans "Customers" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <h1 class="page-header"><span class="glyphicon glyphicon-user"></span> {{ customer }}</h1>
+
+    <div class="col-lg-8">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">Order history</span>
+            </div>
+            <div class="panel-body">
+                {% with customer.orders.all as orders %}
+                    {% if orders %}
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Order" %}</th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Payment" %}</th>
+                                    <th>{% trans "Order status" %}</th>
+                                    <th>{% trans "Total" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                    <tr>
+                                        <td><a href="{% url 'dashboard:order-details' pk=order.pk %}">{{ order }}</a></td>
+                                        <td>{{ order.created }}</td>
+                                        <td>{% render_status order.get_last_payment_status order.get_last_payment_status_display %}</td>
+                                        <td>{% render_status order.status order.get_status_display %}</td>
+                                        <td>{% gross order.get_total %}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <span>-</span>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">{% trans "Customer notes" %}</span>
+            </div>
+            <div class="panel-body">
+                <span>-</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">{% trans "Address" %}</span>
+            </div>
+            <div class="panel-body">
+                <small>Default billing address</small>
+                <div>
+                    {% if customer.default_billing_address %}
+                        {% with customer.default_billing_address.address as address %}
+                            {% include 'dashboard/includes/_address.html' with address=address only %}
+                        {% endwith %}
+                    {% else %}
+                        <span>No default billing address</span>
+                    {% endif %}
+                </div>
+                <small>Default shipping address</small>
+                <div>
+                    {% if customer.default_shipping_address %}
+                        {% with customer.default_shipping_address.address as address %}
+                            {% include 'dashboard/includes/_address.html' with address=address only %}
+                        {% endwith %}
+                    {% else %}
+                        <span>No default shipping address</span>
+                    {% endif %}
+                </div>
+                <div>
+                    <i class="glyphicon glyphicon-envelope"></i> {{ customer.email }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -7,7 +7,7 @@
     <div class="col-sm-6">
         <div class="panel panel-default">
             <div class="panel-body">
-                <form method="{{ form.method }}"{% if form.action %} action="{{ form.action }}"{% endif %}>
+                <form id="payment-form" method="{{ form.method }}"{% if form.action %} action="{{ form.action }}"{% endif %}>
                     {% csrf_token %}
                     {{ form.media }}
                     {{ form|as_vertical_form }}

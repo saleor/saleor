@@ -1,0 +1,242 @@
+{% extends "dashboard/base.html" %}
+{% load prices_i18n %}
+{% load i18n %}
+{% load bootstrap %}
+{% load status %}
+
+{% block title %}{% trans "Order" %} #{{ order.id }} - {% trans "Orders" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <h1 class="page-header">Order #{{ order.id }}</h1>
+    <div class="col-lg-8">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">Order contents</span>
+            </div>
+            <div class="panel-body">
+                {% for group in groups %}
+                    <table class="table table-condensed">
+                        <thead>
+                            <tr>
+                                <th colspan=6>
+                                    <span>Delivery group #{{ group.pk }} {% render_status group.status group.get_status_display %}</span>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th class="col-sm-3">{% trans "Name" %}</th>
+                                <th class="col-sm-2">{% trans "Variant" %}</th>
+                                <th class="col-sm-2">{% trans "SKU" %}</th>
+                                <th class="col-sm-2">{% trans "Price" %}</th>
+                                <th class="col-sm-2">{% trans "Quantity" %}</th>
+                                <th class="col-sm-1">{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr>
+                                <td>
+                                    <p>{% trans "Delivery cost: " %}{% gross group.price %}</p>
+                                    <p><strong>{% trans "Total: " %}{% gross group.get_total %}</strong></p>
+                                </td>
+                                <td colspan=4>
+                                    <p>{% trans "Shipping address" %}: {% include "dashboard/includes/address_short.html" with address=group.address order_pk=order.pk group_pk=group.pk %}</p>
+                                </td>
+                                <td>
+                                    <a class="btn btn-default btn-sm" data-target="#base-modal" href="{% url 'dashboard:ship-delivery-group' pk=group.pk %}" data-toggle="modal" {% if not group.can_ship %}disabled{% endif %}>Ship</a>
+                                </td>
+                            </tr>
+                        </tfoot>
+                        <tbody>
+                            {% for item in group.items.all %}
+                                <tr>
+                                    <td><a href="{% url "dashboard:product-update" pk=item.product_id %}">{{ item.product }}</a></td>
+                                    <td>{{ item.product_name }}</td>
+                                    <td>{{ item.product_sku }}</td>
+                                    <td>{% gross item.get_price_per_item %}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>
+                                        <a class="btn btn-link" data-target="#base-modal" href="{% url 'dashboard:order-line-edit' pk=item.pk %}" data-toggle="modal" {% if group.status != 'new' %}disabled{% endif %}>Edit</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading"><span class="panel-title">{% trans "Manage payment" %}</span></div>
+            <div class="panel-body">
+                {% if payment %}
+                    <p>{% trans "Preauthorized amount:" %} {% if preauthorized %}{% gross preauthorized %}{% else %}-{% endif %}</p>
+                    {% if captured %}
+                        <p>Captured amount: {% gross captured %}</p>
+                    {% endif %}
+                    {% if can_capture %}
+                    <a class="btn btn-success" data-target="#base-modal" href="{% url 'dashboard:manage-payment' pk=payment.pk action='capture' %}" data-toggle="modal">{% trans "Capture" %}</a>
+                    {% elif can_refund %}
+                    <a class="btn btn-danger" data-target="#base-modal" href="{% url 'dashboard:manage-payment' pk=payment.pk action='refund' %}" data-toggle="modal">{% trans "Refund" %}</a>
+                    {% endif %}
+                    {% if can_release %}
+                    <a class="btn btn-danger" data-target="#base-modal" href="{% url 'dashboard:manage-payment' pk=payment.pk action='release' %}" data-toggle="modal">{% trans "Release" %}</a>
+                    {% endif %}
+                {% else %}
+                    <span>{% trans "No payment for this order" %}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">History</span>
+            </div>
+            <div class="panel-body">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="active"><a href="#order-history" role="tab" data-toggle="tab">Order history</a></li>
+                    <li><a href="#payment-history" role="tab" data-toggle="tab">Payment history</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane active" id="order-history">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Order status</th>
+                                    <th>User</th>
+                                    <th>Comment</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in order.history.all %}
+                                <tr>
+                                    <td>{{ event.date }}</td>
+                                    <td>{% render_status event.status event.get_status_display %}</td>
+                                    <td>{{ event.user|default:"-" }}</td>
+                                    <td>{{ event.comment|default:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="tab-pane" id="payment-history">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Payment status</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in order.payments.all %}
+                                <tr>
+                                    <td>{{ payment.created }}</td>
+                                    <td>{% render_status payment.status payment.get_status_display %}</td>
+                                    <td><a href="{% url "dashboard:payment-details" pk=payment.pk %}">Details</a></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default" id="order-notes">
+            <div class="panel-heading">
+                <span class="panel-title">Order notes</span>
+                <span class="pull-right"><a data-toggle="collapse" href="#add-order-note"><i class="glyphicon glyphicon-plus"></i> Add note</a></span>
+            </div>
+            <div class="panel-body">
+                {% if notes %}
+                    <ul class="list-unstyled">
+                    {% for note in notes %}
+                        <li>
+                            <small>{{ note.user }} - {{ note.date }}</small>
+                            <p>{{ note.content }}</p>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <span>-</span>
+                {% endif %}
+                <div id="add-order-note" class="collapse">
+                    <form class="form-horizontal" role="form" method="post">
+                        {% csrf_token %}
+                        {{ note_form|as_vertical_form }}
+                        <div class="form-group">
+                            <button name='note_form' type="submit" class="btn btn-default">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">Order summary</span>
+            </div>
+            <div class="panel-body">
+                <p>Order date: {{ order.created }}</p>
+                <p>Order total: {% gross order.get_total %}</p>
+                <p>Order status: {% render_status order.status order.get_status_display %}</p>
+                <p>Payment status: {% if payment %}{% render_status payment.status payment.get_status_display %}{% else %}-{% endif %}</p>
+                {% if captured %}
+                    <p>Captured amount: {% gross captured %}</p>
+                {% endif %}
+                {% if refunded %}
+                    <p>Refunded amount: {% gross refunded %}</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">Customer details <i class="glyphicon glyphicon-user pull-right"></i></span>
+            </div>
+            <div class="panel-body">
+                <div class="address">
+                    {% if order.user %}
+                        <div>Account: <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a></div>
+                    {% else %}
+                        <div>Account: Anonymous</div>
+                    {% endif %}
+                    <div>
+                        <span class="glyphicon glyphicon-envelope"></span>
+                        {{ order.get_user_email }}
+                    </div>
+                    <div>IP Address: {{ request.META.REMOTE_ADDR }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            {% with order.billing_address as address %}
+            <div class="panel-heading">
+                <span class="panel-title">Billing address</span>
+                <span class="pull-right"><a href="{% url "dashboard:address-billing-edit" order_pk=order.pk %}"><i class="glyphicon glyphicon-cog"></i> Edit</a></span>
+            </div>
+            <div class="panel-body">
+                {% include 'dashboard/includes/_address.html' with address=address only %}
+            </div>
+            {% endwith %}
+        </div>
+    </div>
+</div>
+
+<div id="base-modal" class="modal">
+    <div class="modal-dialog">
+      <div class="modal-content"></div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block custom_js %}
+{{ block.super }}
+<script>
+    $('#base-modal').on('hide.bs.modal', function(e) {
+        $(this).removeData();
+    });
+    $(function() {
+        $(".address-details").popover();
+    });
+</script>
+{% endblock %}

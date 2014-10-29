@@ -1,0 +1,57 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load prices_i18n %}
+{% load images %}
+{% load bootstrap %}
+
+{% block title %}{% trans "Products" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">{% trans "Products" %}</h1>
+            <div class="panel panel-default">
+                <div class="panel-heading">{% trans "Add new product" %}</div>
+                <div class="panel-body">
+                    <form class="form-inline" method="post" action=".">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label class="control-label"for="amount">{% trans "Product class" %}</label>
+                            {% render_widget form.cls_name class="form-control" %}
+                            <button class="btn btn-primary" type="submit">
+                                {% trans "Add product" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>{% trans "Image" %}</th>
+                        <th>{% trans "Name" %}</th>
+                        <th>{% trans "Collection" %}</th>
+                        <th>{% trans "Price" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for product in products %}
+                    <tr>
+                        <td>
+                            {% if product.images.exists %}
+                                <img class="img-responsive" src="{{ product.images.first|at_size:"admin" }}" alt="">
+                            {% else %}
+                                <img class="img-responsive" src="http://placehold.it/50x50/&text=Product Image" alt="">
+                            {% endif %}
+                        </td>
+                        <td><a href="{% url 'dashboard:product-update' pk=product.pk %}">{{ product.name }}</a></td>
+                        <td>{{ product.collection }}</td>
+                        <td>{% gross product.price %}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% include "dashboard/includes/_pagination.html" with page_obj=products %}
+        </div>
+    </div>
+{% endblock %}

@@ -83,7 +83,7 @@
                         {% if group.price.gross %}
                             <tr>
                                 <td class="col-sm-4">
-                                    {% trans "Shipping" %} ({{ group.method }})
+                                    {% trans "Shipping" %} ({{ group.get_method }})
                                 </td>
                                 <td class="col-sm-2">{% gross group.price %}</td>
                                 <td class="col-sm-2">{% gross group.price %}</td>
@@ -118,7 +118,7 @@
                                     {{ waiting_payment_form|as_vertical_form }}
                                     <button type="submit" class="btn btn-danger">{% trans "I understand, allow me to pay again" %}</button>
                                 </form>
-                            {% else %}
+                            {% elif payment_form %}
                                 <form method="post" action="{% url "order:details" token=order.token %}">
                                     {% csrf_token %}
                                     <legend>{% trans "Pay for your order" %}</legend>
@@ -131,6 +131,8 @@
                                         {% endblock %}
                                     </div>
                                 </form>
+                            {% else %}
+                                <p>{% trans "You've authorized transaction. Order is in processing" %}</p>
                             {% endif %}
                         </div>
                     </div>

@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 import random
 import os
+import unicodedata
 
 from faker import Factory
 from django.core.files import File
@@ -8,6 +9,7 @@ from django.core.files import File
 from saleor.product.models import (Shirt, ShirtVariant,
                                    Bag, BagVariant, ProductImage)
 from saleor.product.models import Category, Color
+from saleor.userprofile.models import User, Address, AddressBook
 
 
 fake = Factory.create()
@@ -129,3 +131,39 @@ def create_items(placeholder_dir, how_many=10):
 
         yield "Shirt - %s %s Variants" % (shirt, shirt.variants.count())
         yield "Bag - %s %s Variants" % (bag, bag.variants.count())
+
+
+def create_fake_user():
+    first_name = fake.first_name()
+    last_name = fake.last_name()
+
+    _first = unicodedata.normalize('NFD', first_name).encode('ascii', 'ignore')
+    _last = unicodedata.normalize('NFD', last_name).encode('ascii', 'ignore')
+
+    email = u'%s.%s@example.com' % (_first.lower(), _last.lower())
+
+    user = User.objects.create_user(email=email, password='password')
+
+    address = Address.objects.create(
+        first_name=first_name,
+        last_name=last_name,
+        street_address_1=fake.street_address(),
+        city=fake.city(),
+        postal_code=fake.postcode(),
+        country=fake.country_code())
+
+    addr_book = AddressBook.objects.create(
+        user=user,
+        address=address)
+
+    user.address_book.add(addr_book)
+    user.default_billing_address = addr_book
+    user.is_active = True
+    user.save()
+    return user
+
+
+def create_users(how_many=10):
+    for i in range(how_many):
+        user = create_fake_user()
+        yield "User - %s" % user.email

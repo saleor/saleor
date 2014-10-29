@@ -1,0 +1,11 @@
+{% load i18n %}
+<ul class="nav nav-tabs">
+    <li {% if not active_filter %}class="active"{% endif %}>
+        <a href="{{ request.path }}">{% trans "All" %}</a>
+    </li>
+    {% for status, verbose_status in available_filters %}
+        <li {% if active_filter == status %}class="active"{% endif %}>
+            <a href="?status={{ status }}">{{ verbose_status }}</a>
+        </li>
+    {% endfor %}
+</ul>

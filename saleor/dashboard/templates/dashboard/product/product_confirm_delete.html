@@ -1,0 +1,36 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load images %}
+{% load prices_i18n %}
+
+{% block title %}{% trans "Delete product" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+
+<h2>{% trans "Are you sure you want to delete the following product?" %}</h2>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">{{ object }}</div>
+            <div class="panel-body">
+                {% if object.images.exists %}
+                    <img src="{{ product.images.first|at_size:"admin" }}" alt="">
+                {% else %}
+                    <img src="http://placehold.it/50x50/&text=Product Image" alt="">
+                {% endif %}
+                <strong>{{ object.name }}</strong>
+                <span>{{ object.collection }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<form class="form form-horizontal" action="" method="post">
+    {% csrf_token %}
+    <button class="btn btn-danger" type="submit">Delete</button>
+    <a class="btn btn-link" href="{% url 'dashboard:products' %}">{% trans "Cancel" %}</a>
+</form>
+
+{% endblock %}
