@@ -5,7 +5,7 @@
 {% load bootstrap %}
 
 
-{% block title %}{% trans "Customers" %}{% endblock %}
+{% block title %}{% trans "Customers" %} - {{ block.super }}{% endblock %}
 
 {% block content %}
     <h1 class="page-header">{% trans "Customers" %}</h1>

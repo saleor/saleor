@@ -5,12 +5,12 @@
 {% load status %}
 {% load utils %}
 
-{% block title %}Payment details{% endblock %}
+{% block title %}{% trans "Payment" %} #{{ payment.id }} - {% trans "Payments" %} - {{ block.super }}{% endblock %}
+
 
 {% block content %}
 <div class="row">
-    <h1 class="page-header">Payment details</h1>
-
+    <h1 class="page-header">{% trans "Payment" %} #{{ payment.id }}</h1>
     <div class="col-lg-8">
         <div class="panel panel-default">
             <div class="panel-heading">

@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html>
 
@@ -6,7 +7,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>{% block title %}{% endblock %}</title>
+    <title>{% block title %}{% trans "Dashboard - Saleor" %}{% endblock %}</title>
 
     <!-- Core CSS - Include with every page -->
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
@@ -39,7 +40,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="{% url 'dashboard:index' %}">Saleor dashboard</a>
+                <a class="navbar-brand" href="{% url 'dashboard:index' %}">Saleor Dashboard</a>
             </div>
             {% include "dashboard/includes/header.html" %}
         </div>

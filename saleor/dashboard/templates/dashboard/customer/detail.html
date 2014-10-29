@@ -4,7 +4,7 @@
 {% load bootstrap %}
 {% load status %}
 
-{% block title %}Order details{% endblock %}
+{% block title %}{{ customer }} - {% trans "Customers" %} - {{ block.super }}{% endblock %}
 
 {% block content %}
 <div class="row">

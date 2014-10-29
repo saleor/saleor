@@ -1,6 +1,8 @@
 {% extends "dashboard/base.html" %}
 
-{% block title %}Edit address{% endblock %}
+{% load i18n %}
+
+{% block title %}{% blocktrans %}Edit {{ address_type }} address{% endblocktrans %} - {{ block.super }}{% endblock %}
 
 {% load as_vertical_form from bootstrap %}
 

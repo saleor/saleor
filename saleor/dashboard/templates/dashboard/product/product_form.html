@@ -5,7 +5,7 @@
 {% load images %}
 {% load static %}
 
-{% block title %}Product details{% endblock %}
+{% block title %}{{ title }} - {% trans "Products" %} - {{ block.super }}{% endblock %}
 
 {% block content %}
 <div class="row">
