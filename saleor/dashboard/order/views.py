@@ -94,13 +94,13 @@ def manage_payment(request, pk, action):
     else:
         amount = 0
         if action == 'release':
-            template = 'dashboard/includes/modal_release.html'
+            template = 'dashboard/order/modal_release.html'
         else:
             if action == 'refund':
                 amount = payment.captured_amount
             elif action == 'capture':
                 amount = payment.order.get_total().gross
-            template = 'dashboard/includes/modal_capture_refund.html'
+            template = 'dashboard/order/modal_capture_refund.html'
         initial = {'amount': amount, 'action': action}
         form = ManagePaymentForm(payment=payment, initial=initial)
         ctx = {'form': form, 'action': action, 'currency': payment.currency,
@@ -119,7 +119,7 @@ def edit_order_line(request, pk, action=None):
         ctx = {'object': item, 'change_quantity_form': quantity_form,
                'move_items_form': move_items_form}
         ctx.update(csrf(request))
-        template = 'dashboard/includes/modal_order_line_edit.html'
+        template = 'dashboard/order/modal_order_line_edit.html'
         return TemplateResponse(request, template, ctx)
 
     if action == 'change_quantity':
@@ -172,7 +172,7 @@ def ship_delivery_group(request, pk):
     else:
         ctx = {'group': group}
         ctx.update(csrf(request))
-        template = 'dashboard/includes/modal_ship_delivery_group.html'
+        template = 'dashboard/order/modal_ship_delivery_group.html'
         return TemplateResponse(request, template, ctx)
 
 
