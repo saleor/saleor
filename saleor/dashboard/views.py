@@ -56,15 +56,15 @@ def index(request):
     orders_to_ship = Order.objects.filter(status='fully-paid')
     payments = Payment.objects.filter(status='preauth').order_by('-created')
 
-    show_running_out = hasattr(settings, 'STOCKABLE_PRODUCTS')
-    running_out = products_running_out() if show_running_out else []
+    show_low_stock = hasattr(settings, 'STOCKABLE_PRODUCTS')
+    low_stock = get_low_stock_products() if show_low_stock else []
 
     ctx = {'preauthorized_payments': payments, 'orders_to_ship': orders_to_ship,
-           'show_running_out': show_running_out, 'running_out': running_out}
+           'show_low_stock': show_low_stock, 'low_stock': low_stock}
     return TemplateResponse(request, 'dashboard/index.html', ctx)
 
 
-def products_running_out():
+def get_low_stock_products():
     product_classes = settings.STOCKABLE_PRODUCTS
     try:
         threshold = settings.STOCK_THRESHOLD

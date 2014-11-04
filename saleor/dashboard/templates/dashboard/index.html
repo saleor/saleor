@@ -53,13 +53,13 @@
                 {% endif %}
             </div>
         </div>
-        {% if show_running_out %}
+        {% if show_low_stock %}
         <div class="panel panel-default">
             <div class="panel-heading">
-                <span class="panel-title">{% trans "Running out products" %}</span>
+                <span class="panel-title">{% trans "Low stock" %}</span>
             </div>
             <div class="panel-body">
-                {% if running_out %}
+                {% if low_stock %}
                     <table class="table">
                         <thead>
                             <tr>
@@ -69,7 +69,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for variant in running_out %}
+                            {% for variant in low_stock %}
                                 <tr>
                                     <td><a href="{% url "dashboard:product-update" pk=variant.product.pk %}">{{ variant.product }}</a></td>
                                     <td>{{ variant.name }}</td>
