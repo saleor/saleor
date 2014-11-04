@@ -14,7 +14,7 @@ class BagForm(AddToCartForm):
 
 
 class ShirtForm(AddToCartForm):
-    
+
     size = forms.ChoiceField(choices=ShirtVariant.SIZE_CHOICES,
                              widget=forms.RadioSelect())
 
@@ -34,6 +34,7 @@ class ShirtForm(AddToCartForm):
 class ShirtAdminForm(forms.ModelForm):
     class Meta:
         model = Shirt
+        exclude = []
         widgets = {
             'collection': AutoCompleteWidget(CollectionLookup)
         }

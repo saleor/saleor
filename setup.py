@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-from setuptools import setup, find_packages, Command
+from setuptools import setup, find_packages
 import os
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'saleor.settings')
@@ -17,11 +17,11 @@ setup(
     install_requires=[
         'Babel>=1.3,<1.4a0',
         'BabelDjango>=0.2,<0.3a0',
-        'Django>=1.6',
+        'Django>=1.7',
         'django-images>=0.4,<0.5a0',
         'django-model-utils>=2.0.0,<2.1a0',
-        'django-mptt>=0.5',
-        'django-payments>=0.6.0,<0.7a0',
+        'django-mptt>=0.6.1,<0.7a0',
+        'django-payments>=0.6.1,<0.7a0',
         'django-prices>=0.3.3,<0.4a0',
         'django-selectable==0.8.0',
         'fake-factory>=0.3.2',

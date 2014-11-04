@@ -56,8 +56,6 @@ class FilterByStatusMixin(object):
 def index(request):
     orders_to_ship = Order.objects.filter(status='fully-paid')
     payments = Payment.objects.filter(status='preauth').order_by('-created')
-    for payment in payments:
-        payment.total = Price(payment.total, currency=payment.currency)
 
     show_running_out = hasattr(settings, 'STOCKABLE_PRODUCTS')
     running_out = products_running_out() if show_running_out else []

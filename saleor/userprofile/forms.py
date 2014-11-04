@@ -8,6 +8,7 @@ class AddressForm(forms.ModelForm):
 
     class Meta:
         model = Address
+        exclude = []
 
 
 class AddressBookForm(forms.ModelForm):
