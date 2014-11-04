@@ -1,7 +1,9 @@
+from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required \
     as _staff_member_required
 from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
+from django.utils.module_loading import import_string
 from prices import Price
 
 from ..order.models import Order, Payment
@@ -56,5 +58,23 @@ def index(request):
     payments = Payment.objects.filter(status='preauth').order_by('-created')
     for payment in payments:
         payment.total = Price(payment.total, currency=payment.currency)
-    ctx = {'preauthorized_payments': payments, 'orders_to_ship': orders_to_ship}
+
+    show_running_out = hasattr(settings, 'STOCKABLE_PRODUCTS')
+    running_out = products_running_out() if show_running_out else []
+
+    ctx = {'preauthorized_payments': payments, 'orders_to_ship': orders_to_ship,
+           'show_running_out': show_running_out, 'running_out': running_out}
     return TemplateResponse(request, 'dashboard/index.html', ctx)
+
+
+def products_running_out():
+    product_classes = settings.STOCKABLE_PRODUCTS
+    try:
+        threshold = settings.STOCK_THRESHOLD
+    except AttributeError:
+        threshold = 10
+    products = []
+    for cls in product_classes:
+        Product = import_string(cls)
+        products.extend(Product.objects.filter(stock__lte=threshold))
+    return products

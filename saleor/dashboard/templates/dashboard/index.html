@@ -1,4 +1,5 @@
 {% extends "dashboard/base.html" %}
+{% load i18n %}
 {% load prices_i18n %}
 
 {% block title %}{{ block.super }}{% endblock %}
@@ -52,6 +53,37 @@
                 {% endif %}
             </div>
         </div>
+        {% if show_running_out %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">{% trans "Running out products" %}</span>
+            </div>
+            <div class="panel-body">
+                {% if running_out %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Product" %}</th>
+                                <th>{% trans "Variant" %}</th>
+                                <th>{% trans "Stock" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for variant in running_out %}
+                                <tr>
+                                    <td><a href="{% url "dashboard:product-update" pk=variant.product.pk %}">{{ variant.product }}</a></td>
+                                    <td>{{ variant.name }}</td>
+                                    <td>{{ variant.stock }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <span>{% trans "No products" %}</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

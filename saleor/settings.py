@@ -228,3 +228,10 @@ TEMPLATE_STRING_IF_INVALID = '<< MISSING VARIABLE >>'
 MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
+
+STOCKABLE_PRODUCTS = [
+    'saleor.product.models.BagVariant',
+    'saleor.product.models.ShirtVariant'
+]
+
+STOCK_THRESHOLD = 10
