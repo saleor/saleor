@@ -228,3 +228,5 @@ TEMPLATE_STRING_IF_INVALID = '<< MISSING VARIABLE >>'
 MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
+
+TEST_RUNNER = ''

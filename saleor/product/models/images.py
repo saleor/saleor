@@ -10,7 +10,7 @@ from .base import Product
 
 class ImageManager(models.Manager):
     def first(self):
-        return self.get_query_set()[0]
+        return self.get_queryset()[0]
 
 
 @python_2_unicode_compatible

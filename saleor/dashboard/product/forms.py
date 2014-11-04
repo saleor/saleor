@@ -28,11 +28,13 @@ class ProductForm(forms.ModelForm):
 class ShirtForm(ProductForm):
     class Meta:
         model = Shirt
+        exclude = []
 
 
 class BagForm(ProductForm):
     class Meta:
         model = Bag
+        exclude = []
 
 
 class ImageInputWidget(ClearableFileInput):
@@ -47,11 +49,11 @@ formset_defaults = {
 
 ProductImageFormSet = inlineformset_factory(
     Product, ProductImage, widgets={'image': ImageInputWidget},
-    **formset_defaults)
+    exclude=[], **formset_defaults)
 ShirtVariantFormset = inlineformset_factory(
-    Shirt, ShirtVariant, **formset_defaults)
+    Shirt, ShirtVariant, exclude=[], **formset_defaults)
 BagVariantFormset = inlineformset_factory(
-    Bag, BagVariant, **formset_defaults)
+    Bag, BagVariant, exclude=[], **formset_defaults)
 
 
 def get_product_form(product):
