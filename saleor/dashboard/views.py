@@ -54,7 +54,5 @@ class FilterByStatusMixin(object):
 def index(request):
     orders_to_ship = Order.objects.filter(status='fully-paid')
     payments = Payment.objects.filter(status='preauth').order_by('-created')
-    for payment in payments:
-        payment.total = Price(payment.total, currency=payment.currency)
     ctx = {'preauthorized_payments': payments, 'orders_to_ship': orders_to_ship}
     return TemplateResponse(request, 'dashboard/index.html', ctx)
