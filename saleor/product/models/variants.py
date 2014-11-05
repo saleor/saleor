@@ -57,7 +57,7 @@ class PhysicalProduct(models.Model):
             return self.weight
         except AttributeError:
             return self.product.weight
-    
+
     class Meta:
         abstract = True
         app_label = 'product'
@@ -98,13 +98,13 @@ class ProductVariant(models.Model, Item):
                 modifier = max(discounts)
                 price += modifier
         return price
-        
+
     def get_weight(self):
         try:
             return self.weight
         except AttributeError:
             return self.product.weight
-    
+
     def get_absolute_url(self):
         slug = self.product.get_slug()
         product_id = self.product.id
