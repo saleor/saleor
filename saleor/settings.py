@@ -229,11 +229,6 @@ MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
 
-STOCKABLE_PRODUCTS = [
-    'saleor.product.models.BagVariant',
-    'saleor.product.models.ShirtVariant'
-]
-
-STOCK_THRESHOLD = 10
+LOW_STOCK_THRESHOLD = 10
 
 TEST_RUNNER = ''

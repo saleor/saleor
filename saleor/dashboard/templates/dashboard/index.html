@@ -53,7 +53,6 @@
                 {% endif %}
             </div>
         </div>
-        {% if show_low_stock %}
         <div class="panel panel-default">
             <div class="panel-heading">
                 <span class="panel-title">{% trans "Low stock" %}</span>
@@ -64,16 +63,12 @@
                         <thead>
                             <tr>
                                 <th>{% trans "Product" %}</th>
-                                <th>{% trans "Variant" %}</th>
-                                <th>{% trans "Stock" %}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for variant in low_stock %}
+                            {% for product in low_stock %}
                                 <tr>
-                                    <td><a href="{% url "dashboard:product-update" pk=variant.product.pk %}">{{ variant.product }}</a></td>
-                                    <td>{{ variant.name }}</td>
-                                    <td>{{ variant.stock }}</td>
+                                    <td><a href="{% url "dashboard:product-update" pk=product.pk %}">{{ product }}</a></td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -83,7 +78,6 @@
                 {% endif %}
             </div>
         </div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}
