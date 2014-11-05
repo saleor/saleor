@@ -229,4 +229,6 @@ MESSAGE_TAGS = {
     messages.ERROR: 'danger',
 }
 
+LOW_STOCK_THRESHOLD = 10
+
 TEST_RUNNER = ''

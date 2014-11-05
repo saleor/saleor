@@ -1,10 +1,12 @@
+from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required \
     as _staff_member_required
+from django.db.models import Q
 from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
-from prices import Price
 
 from ..order.models import Order, Payment
+from ..product.models import Product
 
 
 def staff_member_required(f):
@@ -54,5 +56,18 @@ class FilterByStatusMixin(object):
 def index(request):
     orders_to_ship = Order.objects.filter(status='fully-paid')
     payments = Payment.objects.filter(status='preauth').order_by('-created')
-    ctx = {'preauthorized_payments': payments, 'orders_to_ship': orders_to_ship}
+    low_stock = get_low_stock_products()
+    ctx = {'preauthorized_payments': payments, 'orders_to_ship': orders_to_ship,
+           'low_stock': low_stock}
     return TemplateResponse(request, 'dashboard/index.html', ctx)
+
+
+def get_low_stock_products():
+    try:
+        threshold = settings.LOW_STOCK_THRESHOLD
+    except AttributeError:
+        threshold = 10
+    products = Product.objects.filter(
+        Q(shirt__variants__stock__lte=threshold) |
+        Q(bag__variants__stock__lte=threshold)).distinct()
+    return products

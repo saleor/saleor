@@ -1,4 +1,5 @@
 {% extends "dashboard/base.html" %}
+{% load i18n %}
 {% load prices_i18n %}
 
 {% block title %}{{ block.super }}{% endblock %}
@@ -49,6 +50,31 @@
                     {% include "dashboard/includes/_orders_table.html" with orders=orders_to_ship %}
                 {% else %}
                     <span>No orders</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">{% trans "Low stock" %}</span>
+            </div>
+            <div class="panel-body">
+                {% if low_stock %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Product" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in low_stock %}
+                                <tr>
+                                    <td><a href="{% url "dashboard:product-update" pk=product.pk %}">{{ product }}</a></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <span>{% trans "No products" %}</span>
                 {% endif %}
             </div>
         </div>
