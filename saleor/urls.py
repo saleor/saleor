@@ -27,6 +27,7 @@ urlpatterns = patterns(
     url(r'^order/', include(order_urls, namespace='order')),
     url(r'^products/', include(product_urls, namespace='product')),
     url(r'^profile/', include(userprofile_urls, namespace='profile')),
+    url(r'^selectable/', include('selectable.urls')),
     url(r'', include('payments.urls'))
 )
 

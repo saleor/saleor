@@ -69,7 +69,7 @@ class Cart(cart.Cart):
             'Your cart (%(cart_count)s)') % {'cart_count': self.count()}
 
     def get_data_for_product(self, variant):
-        variant_price = variant.get_price_per_item()
+        variant_price = variant.get_price_per_item(discounts=self.discounts)
         variant_data = {
             'product_slug': variant.product.get_slug(),
             'product_id': variant.product.pk,
