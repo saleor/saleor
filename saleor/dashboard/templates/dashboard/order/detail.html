@@ -49,7 +49,7 @@
                         <tbody>
                             {% for item in group.items.all %}
                                 <tr>
-                                    <td><a href="{% url "dashboard:product-update" pk=item.product_id %}">{{ item.product }}</a></td>
+                                    <td>{% if item.product %}<a href="{% url "dashboard:product-update" pk=item.product.id %}">{{ item.product }}</a>{% else %}{{ item.product_name }}{% endif %}</td>
                                     <td>{{ item.product_name }}</td>
                                     <td>{{ item.product_sku }}</td>
                                     <td>{% gross item.get_price_per_item %}</td>
