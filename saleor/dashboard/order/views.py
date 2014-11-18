@@ -180,20 +180,18 @@ def ship_delivery_group(request, pk):
 def address_view(request, order_pk, group_pk=None):
     address_type = 'shipping' if group_pk else 'billing'
     order = Order.objects.get(pk=order_pk)
-    group = order.get_groups().get(pk=group_pk)
     if address_type == 'shipping':
+        group = order.get_groups().get(pk=group_pk)
         address = group.address
+        success_msg = _('Updated shipping address for %s') % group
     else:
         address = order.billing_address
+        success_msg = _('Updated billing address')
     form = AddressForm(request.POST or None, instance=address)
     if form.is_valid():
         form.save()
-        if address_type == 'shipping':
-            msg = _('Updated shipping address for %s') % group
-        else:
-            msg = _('Updated billing address')
-        order.create_history_entry(comment=msg, user=request.user)
-        messages.success(request, msg)
+        order.create_history_entry(comment=success_msg, user=request.user)
+        messages.success(request, success_msg)
         return redirect('dashboard:order-details', pk=order.pk)
     ctx = {'order': order, 'address_type': address_type, 'form': form}
     return TemplateResponse(request, 'dashboard/order/address-edit.html', ctx)
