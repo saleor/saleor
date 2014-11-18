@@ -63,10 +63,7 @@ def index(request):
 
 
 def get_low_stock_products():
-    try:
-        threshold = settings.LOW_STOCK_THRESHOLD
-    except AttributeError:
-        threshold = 10
+    threshold = getattr(settings, 'LOW_STOCK_THRESHOLD', 10)
     products = Product.objects.filter(
         Q(shirt__variants__stock__lte=threshold) |
         Q(bag__variants__stock__lte=threshold)).distinct()
