@@ -1,10 +1,9 @@
 from __future__ import unicode_literals
-import re
 
 from django.core.urlresolvers import reverse
-from django.utils.encoding import python_2_unicode_compatible
+from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.db import models
-from django.utils.safestring import mark_safe
+from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from model_utils.managers import InheritanceManager
 from mptt.models import MPTTModel
@@ -69,9 +68,7 @@ class Product(models.Model, ItemRange):
                                                   'product_id': self.id})
 
     def get_slug(self):
-        value = unidecode(self.name)
-        value = re.sub(r'[^\w\s-]', '', value).strip().lower()
-        return mark_safe(re.sub(r'[-\s]+', '-', value))
+        return slugify(smart_text(unidecode(self.name)))
 
     def get_formatted_price(self, price):
         return "{0} {1}".format(price.gross, price.currency)
