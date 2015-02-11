@@ -1,10 +1,12 @@
 from django.conf import settings
 from django.conf.urls import patterns, url, include
 from django.contrib import admin
+from django.contrib.sitemaps.views import sitemap
 
 
 from .cart.urls import urlpatterns as cart_urls
 from .checkout.urls import urlpatterns as checkout_urls
+from .core.sitemaps import sitemaps
 from .core.urls import urlpatterns as core_urls
 from .order.urls import urlpatterns as order_urls
 from .product.urls import urlpatterns as product_urls
@@ -28,6 +30,8 @@ urlpatterns = patterns(
     url(r'^products/', include(product_urls, namespace='product')),
     url(r'^profile/', include(userprofile_urls, namespace='profile')),
     url(r'^selectable/', include('selectable.urls')),
+    url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
+        name='django.contrib.sitemaps.views.sitemap'),
     url(r'', include('payments.urls'))
 )
 
