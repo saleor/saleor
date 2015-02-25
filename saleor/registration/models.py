@@ -1,12 +1,12 @@
 from __future__ import unicode_literals
 from datetime import timedelta
+from uuid import uuid4
 
 from django.db import models
 from django.contrib.auth import authenticate, get_user_model
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.utils import timezone
-from django.utils.crypto import get_random_string
 
 now = timezone.now
 
@@ -23,33 +23,25 @@ class ExternalUserData(models.Model):
 
 class UniqueTokenManager(models.Manager):  # this might end up in `utils`
 
-    def __init__(self, token_field, token_length):
+    def __init__(self, token_field):
         self.token_field = token_field
-        self.token_length = token_length
         super(UniqueTokenManager, self).__init__()
 
     def create(self, **kwargs):
         assert self.token_field not in kwargs, 'Token field already filled.'
-        for _x in xrange(100):
-            token = get_random_string(self.token_length)
-            conflict_filter = {self.token_field: token}
-            conflict = self.get_query_set().filter(**conflict_filter)
-            if not conflict.exists():
-                kwargs[self.token_field] = token
-                return super(UniqueTokenManager, self).create(**kwargs)
-        raise RuntimeError('Could not create unique token.')
+        kwargs[self.token_field] = str(uuid4())
+        return super(UniqueTokenManager, self).create(**kwargs)
 
 
 class AbstractToken(models.Model):
 
-    TOKEN_LENGTH = 32
+    def default_valid_date():
+        return now() + timedelta(settings.ACCOUNT_ACTIVATION_DAYS)
 
-    token = models.CharField(max_length=TOKEN_LENGTH, unique=True)
-    valid_until = models.DateTimeField(
-        default=lambda: now() + timedelta(settings.ACCOUNT_ACTIVATION_DAYS))
+    token = models.CharField(max_length=36, unique=True)
+    valid_until = models.DateTimeField(default=default_valid_date)
 
-    objects = UniqueTokenManager(token_field='token',
-                                 token_length=TOKEN_LENGTH)
+    objects = UniqueTokenManager(token_field='token')
 
     class Meta:
         abstract = True

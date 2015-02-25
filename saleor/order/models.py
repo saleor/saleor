@@ -57,19 +57,14 @@ class Order(models.Model, ItemSet):
     anonymous_user_email = models.EmailField(blank=True, default='',
                                              editable=False)
     token = models.CharField(
-        pgettext_lazy('Order field', 'token'),
-        max_length=36, blank=True, default='')
+        pgettext_lazy('Order field', 'token'), max_length=36, unique=True)
 
     class Meta:
         ordering = ('-last_status_change',)
 
     def save(self, *args, **kwargs):
         if not self.token:
-            for _i in range(100):
-                token = str(uuid4())
-                if not type(self).objects.filter(token=token).exists():
-                    self.token = token
-                    break
+            self.token = str(uuid4())
         return super(Order, self).save(*args, **kwargs)
 
     def change_status(self, status):
