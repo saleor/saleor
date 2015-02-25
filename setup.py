@@ -18,6 +18,7 @@ setup(
         'Babel>=1.3,<1.4a0',
         'BabelDjango>=0.2,<0.3a0',
         'Django>=1.7',
+        'dj_database_url>=0.3.0',
         'django-images>=0.4,<0.5a0',
         'django-model-utils>=2.0.0,<2.1a0',
         'django-mptt>=0.6.1,<0.7a0',
