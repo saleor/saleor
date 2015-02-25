@@ -65,11 +65,11 @@ class Order(models.Model, ItemSet):
 
     def save(self, *args, **kwargs):
         if not self.token:
-            for _i in range(100):
-                token = str(uuid4())
-                if not type(self).objects.filter(token=token).exists():
-                    self.token = token
-                    break
+            token = str(uuid4())
+            if not type(self).objects.filter(token=token).exists():
+                self.token = token
+            else:
+                raise RuntimeError('Could not create unique token.')
         return super(Order, self).save(*args, **kwargs)
 
     def change_status(self, status):

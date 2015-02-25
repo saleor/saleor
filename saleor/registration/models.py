@@ -29,12 +29,11 @@ class UniqueTokenManager(models.Manager):  # this might end up in `utils`
 
     def create(self, **kwargs):
         assert self.token_field not in kwargs, 'Token field already filled.'
-        for _i in range(100):
-            token = str(uuid4())
-            conflict_filter = {self.token_field: token}
-            if not self.get_query_set().filter(**conflict_filter).exists():
-                kwargs[self.token_field] = token
-                return super(UniqueTokenManager, self).create(**kwargs)
+        token = str(uuid4())
+        conflict_filter = {self.token_field: token}
+        if not self.get_query_set().filter(**conflict_filter).exists():
+            kwargs[self.token_field] = token
+            return super(UniqueTokenManager, self).create(**kwargs)
         raise RuntimeError('Could not create unique token.')
 
 
