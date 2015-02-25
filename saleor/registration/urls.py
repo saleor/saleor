@@ -1,5 +1,6 @@
 from django.conf.urls import patterns, url
 
+from ..core import TOKEN_PATTERN
 from . import views
 
 
@@ -13,9 +14,9 @@ urlpatterns = patterns(
         name='change_password'),
     url(r'^request_email_confirmation/$', views.request_email_confirmation,
         name='request_email_confirmation'),
-    url(r'^confirm_email/(?P<token>\w+)/$', views.confirm_email,
+    url(r'^confirm_email/%s/$' % (TOKEN_PATTERN,), views.confirm_email,
         name='confirm_email'),
     url(r'^request_email_change/$', views.request_email_change,
         name='request_email_change'),
-    url(r'^change_email/(?P<token>\w+)/$', views.change_email,
+    url(r'^change_email/%s/$' % (TOKEN_PATTERN,), views.change_email,
         name='change_email'))

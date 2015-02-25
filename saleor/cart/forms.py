@@ -120,7 +120,7 @@ class ReplaceCartLineFormSet(BaseFormSet):
     form = ReplaceCartLineForm
     max_num = DEFAULT_MAX_NUM
     validate_max = False
-    min_num = None
+    min_num = 0
     validate_min = False
 
     def __init__(self, *args, **kwargs):
