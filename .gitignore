@@ -1,5 +1,5 @@
 *.py[cod]
-.*
+.env
 !.gitignore
 !.travis*
 *.log
@@ -13,3 +13,7 @@ dist/
 #data
 /media/
 /static/
+/node_modules/
+.idea
+saleor/static/css/dashboard.css
+saleor/static/css/style.css
