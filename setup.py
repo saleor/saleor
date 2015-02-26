@@ -33,6 +33,13 @@ setup(
         'satchless>=1.1.2,<1.2a0',
         'unidecode'
     ],
+    extras_require={
+        'PaaS': [
+            'whitenoise==1.0.6',
+            'gunicorn==19.2.1',
+            'psycopg2==2.6',
+        ]
+    },
     entry_points={
         'console_scripts': ['saleor = saleor:manage']},
     tests_require=[
