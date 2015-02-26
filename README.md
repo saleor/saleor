@@ -35,6 +35,25 @@ Usage
    `saleor` is a shortcut for running `python manage.py` so you can use it to execute all management commands.
 
 
+## Deploy to Heroku
+
+### First steps
+
+    $ heroku create --buildpack https://github.com/ddollar/heroku-buildpack-multi.git
+    $ heroku addons:add heroku-postgresql
+    $ heroku config:set SECRET_KEY='<your secret key here>'
+    $ heroku config:set ALLOWED_HOSTS='<your hosts here>'
+
+### Deploy
+
+    $ git push heroku master
+    
+### Prepare the database
+    
+    $ heroku run python manage.py migrate
+    
+
+
 Google Analytics
 ----------------
 

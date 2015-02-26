@@ -1,0 +1,1 @@
+web: gunicorn saleor.wsgi.static --log-file -
