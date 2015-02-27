@@ -97,6 +97,7 @@ TEMPLATE_CONTEXT_PROCESSORS = [
 
 INSTALLED_APPS = [
     # External apps that need to go before django's
+    'offsite_storage',
 
     # Django modules
     'django.contrib.contenttypes',
@@ -123,7 +124,6 @@ INSTALLED_APPS = [
     'django_images',
     'django_prices',
     'mptt',
-    'offsite_storage',
     'payments',
     'selectable'
 ]
