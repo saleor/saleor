@@ -1,4 +1,3 @@
-
 $.fn.addDeleteButtons = function() {
     this.find('input[type="number"]').each(function(){
         var icon = $('<i>').addClass('glyphicon glyphicon-trash');
