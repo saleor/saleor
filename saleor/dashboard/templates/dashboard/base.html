@@ -1,4 +1,4 @@
-{% load static %}
+{% load staticfiles %}
 {% load i18n %}
 <!DOCTYPE html>
 <html>
@@ -20,7 +20,7 @@
         <link rel="stylesheet/less" type="text/css" href="{{ STATIC_URL }}less/dashboard.less">
         <script type="text/javascript" src="{{ STATIC_URL }}js/lib/less.js"></script>
     {% else %}
-        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/dashboard.css">
+        <link rel="stylesheet" type="text/css" href="{% static "css/dashboard.css" %}">
     {% endif %}
     {% block custom_css %}
     {% endblock %}

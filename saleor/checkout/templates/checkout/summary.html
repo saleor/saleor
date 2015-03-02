@@ -2,6 +2,7 @@
 {% load gross from prices_i18n %}
 {% load tax from prices_i18n %}
 {% load i18n %}
+{% load staticfiles %}
 
 {% block forms %}
     <div class="row">
@@ -115,5 +116,5 @@
 
 {% block footer_scripts %}
     {{ block.super }}
-    <script type="text/javascript" src="{{ STATIC_URL }}js/order_details.js"></script>
+    <script type="text/javascript" src="{% static "js/order_details.js" %}"></script>
 {% endblock footer_scripts %}
