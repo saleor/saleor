@@ -2,6 +2,7 @@
 {% load as_vertical_form from bootstrap %}
 {% load gross from prices_i18n %}
 {% load i18n %}
+{% load staticfiles %}
 
 {% block title %}{% trans "Your cart" %} — {{ block.super }}{% endblock %}
 
@@ -15,7 +16,7 @@
 <form role="form" action="." method="post">
     {% csrf_token %}
     {{ formset.management_form }}
-    <table class="table table-striped">
+    <table class="table table-striped" id="cart-items">
         <thead>
             <tr>
                 <th class="col-sm-4">{% trans "Product" %}</th>
@@ -61,3 +62,11 @@
 </p>
 {% endif %}
 {% endblock content %}
+
+{% block footer_scripts %}
+    {{ block.super }}
+    <script type="text/javascript" src="{% static "js/delete_buttons.js" %}"></script>
+    <script>
+        $('#cart-items').addDeleteButtons();
+    </script>
+{% endblock footer_scripts %}
