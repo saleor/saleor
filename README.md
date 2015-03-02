@@ -52,7 +52,12 @@ Usage
     
     $ heroku run python manage.py migrate
     
+### Configure Amazon S3
 
+    $ heroku config:set  AWS_ACCESS_KEY_ID='<your key id>'
+    $ heroku config:set  AWS_SECRET_ACCESS_KEY='<your access key>'
+    $ heroku config:set  AWS_MEDIA_BUCKET_NAME='<your bucket name>'
+    
 
 Google Analytics
 ----------------
