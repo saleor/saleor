@@ -9,7 +9,8 @@ module.exports = function(grunt) {
           optimization: 2
         },
         files: {
-          "saleor/static/css/style.css": "saleor/static/less/style.less"
+          "saleor/static/css/style.css": "saleor/static/less/style.less",
+          "saleor/static/css/dashboard.css": "saleor/static/less/dashboard.less"
         }
       }
     }
@@ -18,4 +19,5 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-less');
 
   grunt.registerTask('default', ['less']);
+  grunt.registerTask('heroku', ['less']);
 };

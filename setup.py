@@ -18,9 +18,11 @@ setup(
         'Babel>=1.3,<1.4a0',
         'BabelDjango>=0.2,<0.3a0',
         'Django>=1.7',
+        'dj_database_url>=0.3.0',
         'django-images>=0.4,<0.5a0',
         'django-model-utils>=2.0.0,<2.1a0',
         'django-mptt>=0.6.1,<0.7a0',
+        'django-offsite-storage>=0.0.1',
         'django-payments>=0.6.1,<0.7a0',
         'django-prices>=0.3.3,<0.4a0',
         'django-selectable==0.8.0',
@@ -32,6 +34,13 @@ setup(
         'satchless>=1.1.2,<1.2a0',
         'unidecode'
     ],
+    extras_require={
+        'PaaS': [
+            'whitenoise==1.0.6',
+            'gunicorn==19.2.1',
+            'psycopg2==2.6',
+        ]
+    },
     entry_points={
         'console_scripts': ['saleor = saleor:manage']},
     tests_require=[

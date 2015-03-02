@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load categories_list from category %}
 {% load lorem from webdesign %}
+{% load staticfiles %}
 <html lang="en">
     <head>
         <title>{% block title %}Saleor{% endblock %}</title>
@@ -13,16 +14,16 @@
         {% endblock meta %}
 
         {% if debug %}
-        <link rel="stylesheet/less" type="text/css" href="{{ STATIC_URL }}less/style.less">
+        <link rel="stylesheet/less" type="text/css" href="{% static "less/style.less" %}">
         {% else %}
-        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/style.css">
+        <link rel="stylesheet" type="text/css" href="{% static "css/style.css" %}">
         {% endif %}
-        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/zocial.css">
+        <link rel="stylesheet" type="text/css" href="{% static "css/zocial.css" %}">
 
         {% block stylesheet %}{% endblock stylesheet %}
 
         {% if debug %}
-        <script type="text/javascript" src="{{ STATIC_URL }}js/lib/less.js"></script>
+        <script type="text/javascript" src="{% static "js/lib/less.js" %}"></script>
         {% endif %}
         <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
         <!--[if lt IE 9]>
@@ -136,7 +137,7 @@
         {% block third-party-js %}{% endblock third-party-js %}
         {% block footer_scripts %}
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-        <script src="{{ STATIC_URL }}js/lib/bootstrap.min.js"></script>
+        <script src="{% static "js/lib/bootstrap.min.js" %}"></script>
         {% endblock footer_scripts %}
     </body>
 </html>

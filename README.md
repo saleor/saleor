@@ -35,6 +35,39 @@ Usage
    `saleor` is a shortcut for running `python manage.py` so you can use it to execute all management commands.
 
 
+## Deploy to Heroku
+
+### First steps
+
+    $ heroku create --buildpack https://github.com/ddollar/heroku-buildpack-multi.git
+    $ heroku addons:add heroku-postgresql
+    $ heroku config:set SECRET_KEY='<your secret key here>'
+    $ heroku config:set ALLOWED_HOSTS='<your hosts here>'
+
+### Amazon S3
+
+Configure S3 for serving media files:
+
+    $ heroku config:set AWS_ACCESS_KEY_ID='<your key id>'
+    $ heroku config:set AWS_SECRET_ACCESS_KEY='<your access key>'
+    $ heroku config:set AWS_MEDIA_BUCKET_NAME='<your bucket name>'
+
+`saleor` supports serving static files through [WhiteNoise](https://warehouse.python.org/project/whitenoise/) by default. 
+If you intend to use S3 for your static files as well, set the following config variable:
+    
+    $ heroku config:set AWS_STATIC_BUCKET_NAME='<your bucket name>'
+
+
+### Deploy
+
+    $ git push heroku master
+    
+### Prepare the database
+    
+    $ heroku run python manage.py migrate
+  
+    
+
 Google Analytics
 ----------------
 

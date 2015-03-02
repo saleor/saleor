@@ -1,7 +1,9 @@
 *.py[cod]
 .*
+!.buildpacks
 !.gitignore
 !.travis*
+*.css
 *.log
 *.pot
 *.pyc
@@ -13,3 +15,4 @@ dist/
 #data
 /media/
 /static/
+/node_modules/

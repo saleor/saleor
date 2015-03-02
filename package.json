@@ -12,8 +12,12 @@
     "url": "https://github.com/mirumee/saleor/issues"
   },
   "homepage": "http://getsaleor.com/",
+  "engines": {
+    "node": "0.10.x"
+  },
   "devDependencies": {
       "grunt": "~0.4.4",
+      "grunt-cli": "^0.1.13",
       "grunt-contrib-less": "~0.11.0"
   }
 }

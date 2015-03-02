@@ -1,9 +1,10 @@
 import os.path
 
+import dj_database_url
 from django.contrib.messages import constants as messages
 
 
-DEBUG = True
+DEBUG = bool(os.environ.get('DEBUG', False))
 TEMPLATE_DEBUG = DEBUG
 
 SITE_ID = 1
@@ -18,20 +19,28 @@ ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
 MANAGERS = ADMINS
-INTERNAL_IPS = ['127.0.0.1']
+INTERNAL_IPS = os.environ.get('INTERNAL_IPS', '127.0.0.1').split()
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(PROJECT_ROOT, 'dev.sqlite')
-    }
-}
+SQLITE_DB_URL = 'sqlite:///' + os.path.join(PROJECT_ROOT, 'dev.sqlite')
+
+DATABASES = {'default': dj_database_url.config(default=SQLITE_DB_URL)}
+
 
 TIME_ZONE = 'America/Chicago'
 LANGUAGE_CODE = 'en-us'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
+
+EMAIL_BACKEND = ('django.core.mail.backends.%s.EmailBackend' %
+                 os.environ.get('EMAIL_BACKEND_MODULE', 'console'))
+EMAIL_HOST = os.environ.get('EMAIL_HOST')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_PORT = os.environ.get('EMAIL_PORT')
+EMAIL_USE_TLS = bool(os.environ.get('EMAIL_USE_TLS', False))
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
+
 
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media')
 MEDIA_URL = '/media/'
@@ -57,7 +66,7 @@ TEMPLATE_LOADERS = [
 ]
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = '{{ secret_key }}'
+SECRET_KEY = os.environ.get('SECRET_KEY', '{{ secret_key }}')
 
 MIDDLEWARE_CLASSES = [
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -88,6 +97,7 @@ TEMPLATE_CONTEXT_PROCESSORS = [
 
 INSTALLED_APPS = [
     # External apps that need to go before django's
+    'offsite_storage',
 
     # Django modules
     'django.contrib.contenttypes',
@@ -173,7 +183,7 @@ AUTHENTICATION_BACKENDS = (
 
 AUTH_USER_MODEL = 'userprofile.User'
 
-CANONICAL_HOSTNAME = 'localhost:8000'
+CANONICAL_HOSTNAME = os.environ.get('CANONICAL_HOSTNAME', 'localhost:8000')
 
 IMAGE_SIZES = {
     'normal': {
@@ -189,8 +199,6 @@ IMAGE_SIZES = {
     }
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
 LOGIN_URL = '/account/login'
 
 WARN_ABOUT_INVALID_HTML5_OUTPUT = False
@@ -201,12 +209,12 @@ ACCOUNT_ACTIVATION_DAYS = 3
 
 LOGIN_REDIRECT_URL = 'home'
 
-FACEBOOK_APP_ID = None
-FACEBOOK_SECRET = None
+FACEBOOK_APP_ID = os.environ.get('FACEBOOK_APP_ID')
+FACEBOOK_SECRET = os.environ.get('FACEBOOK_SECRET')
 
-GOOGLE_ANALYTICS_TRACKING_ID = None
-GOOGLE_CLIENT_ID = None
-GOOGLE_CLIENT_SECRET = None
+GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get('GOOGLE_ANALYTICS_TRACKING_ID')
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
 
 PAYMENT_BASE_URL = 'http://%s/' % CANONICAL_HOSTNAME
 
@@ -216,7 +224,7 @@ PAYMENT_VARIANTS = {
     'default': ('payments.dummy.DummyProvider', {})
 }
 
-PAYMENT_HOST = 'localhost:8000'
+PAYMENT_HOST = os.environ.get('PAYMENT_HOST', 'localhost:8000')
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 
@@ -233,3 +241,23 @@ MESSAGE_TAGS = {
 LOW_STOCK_THRESHOLD = 10
 
 TEST_RUNNER = ''
+
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split()
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Amazon S3 configuration
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+AWS_STATIC_BUCKET_NAME = os.environ.get('AWS_STATIC_BUCKET_NAME')
+
+AWS_MEDIA_ACCESS_KEY_ID = os.environ.get('AWS_MEDIA_ACCESS_KEY_ID')
+AWS_MEDIA_SECRET_ACCESS_KEY = os.environ.get('AWS_MEDIA_SECRET_ACCESS_KEY')
+AWS_MEDIA_BUCKET_NAME = os.environ.get('AWS_MEDIA_BUCKET_NAME')
+
+if AWS_STATIC_BUCKET_NAME:
+    STATICFILES_STORAGE = 'offsite_storage.storages.CachedS3FilesStorage'
+
+if AWS_MEDIA_BUCKET_NAME:
+    DEFAULT_FILE_STORAGE = 'offsite_storage.storages.S3MediaStorage'
+    THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
