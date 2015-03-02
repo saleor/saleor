@@ -1,7 +1,9 @@
 *.py[cod]
-.env
+.*
+!.buildpacks
 !.gitignore
 !.travis*
+*.css
 *.log
 *.pot
 *.pyc
@@ -14,6 +16,3 @@ dist/
 /media/
 /static/
 /node_modules/
-.idea
-saleor/static/css/dashboard.css
-saleor/static/css/style.css
