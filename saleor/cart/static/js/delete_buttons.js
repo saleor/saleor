@@ -6,7 +6,6 @@ $.fn.addDeleteButtons = function() {
         $(this).after(container);
         $(this).parent().addClass('input-group');
     });
-
     this.find('.delete-button').click(function(){
         $(this).parents('tr').find('input[type="number"]').val('0');
     })
