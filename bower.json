@@ -7,7 +7,9 @@
   ],
   "license": "BSD",
   "devDependencies": {
+    "less": "~2.4.0",
     "bootstrap": "~3.3.1",
+    "components-font-awesome": "~4.2.0",
     "zocial-less": "~1.0.0"
   }
 }

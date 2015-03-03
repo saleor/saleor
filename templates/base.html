@@ -18,12 +18,12 @@
         {% else %}
         <link rel="stylesheet" type="text/css" href="{% static "css/style.css" %}">
         {% endif %}
-        <link rel="stylesheet" type="text/css" href="{% static "css/zocial.css" %}">
+
 
         {% block stylesheet %}{% endblock stylesheet %}
 
         {% if debug %}
-        <script type="text/javascript" src="{% static "js/lib/less.js" %}"></script>
+        <script type="text/javascript" src="{% static "dist/js/less.min.js" %}"></script>
         {% endif %}
         <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
         <!--[if lt IE 9]>
@@ -136,8 +136,8 @@
         {% endblock %}
         {% block third-party-js %}{% endblock third-party-js %}
         {% block footer_scripts %}
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-        <script src="{% static "js/lib/bootstrap.min.js" %}"></script>
+        <script src="{% static "dist/js/jquery.min.js" %}"></script>
+        <script src="{% static "dist/js/bootstrap.min.js" %}"></script>
         {% endblock footer_scripts %}
     </body>
 </html>
