@@ -1,0 +1,13 @@
+{
+  "name": "saleor",
+  "version": "0.0.0",
+  "homepage": "https://github.com/mirumee/saleor",
+  "authors": [
+    "Mirumee Software"
+  ],
+  "license": "BSD",
+  "devDependencies": {
+    "bootstrap": "~3.3.1",
+    "zocial-less": "~1.0.0"
+  }
+}

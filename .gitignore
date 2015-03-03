@@ -1,5 +1,6 @@
 *.py[cod]
 .*
+!.bowerrc
 !.buildpacks
 !.gitignore
 !.travis*
@@ -7,6 +8,7 @@
 *.log
 *.pot
 *.pyc
+*/static/components
 local_settings.py
 dev.sqlite
 build/
