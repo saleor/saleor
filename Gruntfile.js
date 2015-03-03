@@ -33,6 +33,15 @@ module.exports = function(grunt) {
           {
             expand: true,
             dot: true,
+            cwd: "saleor/static/components/zocial-less/css",
+            dest: "saleor/static/dist/fonts/",
+            src: [
+              "zocial-regular-*"
+            ]
+          },
+          {
+            expand: true,
+            dot: true,
             cwd: "saleor/static/components/less/dist/",
             dest: "saleor/static/dist/js/",
             src: [
