@@ -22,7 +22,7 @@ setup(
         'django-images>=0.4,<0.5a0',
         'django-model-utils>=2.0.0,<2.1a0',
         'django-mptt>=0.6.1,<0.7a0',
-        'django-offsite-storage>=0.0.2',
+        'django-offsite-storage>=0.0.3',
         'django-payments>=0.6.1,<0.7a0',
         'django-prices>=0.3.3,<0.4a0',
         'django-selectable==0.8.0',
