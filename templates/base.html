@@ -50,7 +50,7 @@
                                 <a href="/">Home</a>
                             </li>
                             <li class="dropdown">
-                                <a class="dropdown-toggle" data-toggle="dropdown" href="#">{% trans "Categories" %} <b class="caret"></b></a>
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#">{% trans "Categories" %} <strong class="caret"></strong></a>
                                 <ul class="dropdown-menu">
                                     {% categories_list %}
                                 </ul>
@@ -58,7 +58,7 @@
                         </ul>
                         <ul class="nav navbar-nav navbar-right">
                             <li class="dropdown">
-                                <a data-toggle="dropdown" class="dropdown-toggle" href="{% url "cart:index" %}"><i class="glyphicon glyphicon-shopping-cart"></i> {% trans "Shopping cart" %} {% if request.cart %}<span class="badge">{{ request.cart.count }}</span>{% endif %} <b class="caret"></b></a>
+                                <a data-toggle="dropdown" class="dropdown-toggle" href="{% url "cart:index" %}"><em class="glyphicon glyphicon-shopping-cart"></em> {% trans "Shopping cart" %} {% if request.cart %}<span class="badge">{{ request.cart.count }}</span>{% endif %} <strong class="caret"></strong></a>
                                 <ul class="dropdown-menu">
                                     <li><a href="{% url "cart:index" %}">{% trans "View cart contents" %}</a></li>
                                     {% if request.cart %}
@@ -77,7 +77,7 @@
                             </li>
                             {% if user.is_authenticated %}
                             <li class="dropdown">
-                                <a data-toggle="dropdown" class="dropdown-toggle" href="."><i class="glyphicon glyphicon-user"></i> {{ user }} <b class="caret"></b></a>
+                                <a data-toggle="dropdown" class="dropdown-toggle" href="."><em class="glyphicon glyphicon-user"></em> {{ user }} <strong class="caret"></strong></a>
                                 <ul class="dropdown-menu">
                                     <li><a href="{% url "profile:details" %}">{% trans "Your profile" %}</a></li>
                                     <li><a href="{% url "profile:orders" %}">{% trans "Your orders" %}</a></li>
