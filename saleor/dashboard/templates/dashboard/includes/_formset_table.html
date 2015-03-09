@@ -13,7 +13,16 @@
         {% endfor %}
         <tr>
             {% for field in form.visible_fields %}
-                <td>{{ field }}</td>
+                <td>
+                    <div class="{% if field.errors %} has-error{% endif %}{% if field.required %} required{% endif %}">
+                        {{ field }}
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <span class="label label-danger">{{ error }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </td>
             {% endfor %}
         </tr>
     {% endfor %}
