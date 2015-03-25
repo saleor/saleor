@@ -1,0 +1,17 @@
+{
+  "name": "saleor",
+  "description": "A fork'n'play e-commerce in Django",
+  "repository": "https://github.com/mirumee/saleor",
+  "website": "http://getsaleor.com/",
+  "logo": "https://mirumee.com/img/opensource-saleor.png",
+  "keywords": ["saleor", "e-commerce", "django"],
+  "env": {
+    "DJANGO_SETTINGS_MODULE": "saleor.settings"
+  },
+  "scripts": {
+    "postdeploy": "saleor migrate && saleor populatedb"
+  },
+  "addons": [
+    "heroku-postgresql:hobby-dev"
+  ]
+}
