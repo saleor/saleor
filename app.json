@@ -7,6 +7,7 @@
   "keywords": ["saleor", "e-commerce", "django"],
   "env": {
     "BUILDPACK_URL": "https://github.com/ddollar/heroku-buildpack-multi.git",
+    "DEBUG": "on",
     "DJANGO_SETTINGS_MODULE": "saleor.settings"
   },
   "scripts": {
