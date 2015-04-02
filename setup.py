@@ -17,7 +17,7 @@ setup(
     install_requires=[
         'Babel>=1.3,<1.4a0',
         'BabelDjango>=0.2,<0.3a0',
-        'Django>=1.7',
+        'Django>=1.7,<1.8',
         'dj_database_url>=0.3.0',
         'django-images>=0.4,<0.5a0',
         'django-model-utils>=2.0.0,<2.1a0',
