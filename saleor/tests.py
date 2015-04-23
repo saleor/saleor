@@ -8,7 +8,6 @@ if hasattr(django, 'setup'):
 TEST_MODULES = [
     'saleor.cart.tests',
     'saleor.checkout.tests',
-    'saleor.communication.tests',
     'saleor.core.tests',
     #'saleor.delivery.tests',
     'saleor.order.tests',
