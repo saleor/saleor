@@ -19,7 +19,7 @@ setup(
         'BabelDjango>=0.2,<0.3a0',
         'Django>=1.7',
         'dj_database_url>=0.3.0',
-        'django-emailit>=0.2.1',
+        'django-emailit>=0.2.2',
         'django-images>=0.4.2,<0.5a0',
         'django-model-utils>=2.0.0,<2.1a0',
         'django-mptt>=0.7.1',
