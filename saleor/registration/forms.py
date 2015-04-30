@@ -59,7 +59,7 @@ class RequestEmailConfirmationForm(forms.Form):
         request = self.create_request_instance()
         confirmation_url = self.local_host + request.get_confirmation_url()
         context = {'confirmation_url': confirmation_url}
-        emailit.api.send_mail([email], context, self.template)
+        emailit.api.send_mail(email, context, self.template)
 
     def create_request_instance(self):
         email = self.cleaned_data['email']
