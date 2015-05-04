@@ -30,6 +30,7 @@ setup(
         'fake-factory>=0.3.2',
         'google-measurement-protocol>=0.1.2,<0.2a0',
         'Markdown>=2.4',
+        'premailer>=2.8.4',
         'prices>=0.5,<0.6a0',
         'requests>=1.2.0',
         'satchless>=1.1.2,<1.2a0',
