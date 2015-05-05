@@ -16,6 +16,8 @@ except ImportError:
 
 __all__ = ['BaseStep', 'CategoryChoiceField', 'build_absolute_uri']
 
+absolute_http_url_re = re.compile(r"^https?://", re.I)
+
 
 class CategoryChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
@@ -79,7 +81,7 @@ def build_absolute_uri(location, is_secure=False):
     except AttributeError:
         raise ImproperlyConfigured('You need to specify CANONICAL_HOSTNAME in '
                                    'your Django settings file')
-    if not re.compile(r"^https?://", re.I).match(location):
+    if not absolute_http_url_re.match(location):
         current_uri = '%s://%s' % ('https' if is_secure else 'http', host)
         location = urljoin(current_uri, location)
     return iri_to_uri(location)
