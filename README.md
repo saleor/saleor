@@ -34,6 +34,19 @@ Usage
 
    `saleor` is a shortcut for running `python manage.py` so you can use it to execute all management commands.
 
+5. Install frontend dependencies:
+
+   ```
+   $ npm install
+   $ ./node_modules/.bin/bower install 
+   ```
+   
+6. Prepare assets:
+
+  ```
+  $ ./node_modules/.bin/grunt
+  ```
+ 
 
 ## Deploy to Heroku
 
