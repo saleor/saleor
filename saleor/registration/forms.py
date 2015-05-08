@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import emailit.api
 from django import forms
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
@@ -12,7 +13,6 @@ from .models import (
     EmailChangeRequest,
     ExternalUserData)
 from .utils import get_client_class_for_service
-from ..communication.mail import send_email
 
 
 class LoginForm(AuthenticationForm):
@@ -48,7 +48,7 @@ class RequestEmailConfirmationForm(forms.Form):
 
     email = forms.EmailField()
 
-    template = 'registration/emails/confirm_email.txt'
+    template = 'registration/emails/confirm_email'
 
     def __init__(self, local_host=None, data=None):
         self.local_host = local_host
@@ -59,7 +59,7 @@ class RequestEmailConfirmationForm(forms.Form):
         request = self.create_request_instance()
         confirmation_url = self.local_host + request.get_confirmation_url()
         context = {'confirmation_url': confirmation_url}
-        send_email(email, self.template, context)
+        emailit.api.send_mail(email, context, self.template)
 
     def create_request_instance(self):
         email = self.cleaned_data['email']
@@ -70,7 +70,7 @@ class RequestEmailConfirmationForm(forms.Form):
 
 class RequestEmailChangeForm(RequestEmailConfirmationForm):
 
-    template = 'registration/emails/change_email.txt'
+    template = 'registration/emails/change_email'
 
     def __init__(self, user=None, *args, **kwargs):
         self.user = user

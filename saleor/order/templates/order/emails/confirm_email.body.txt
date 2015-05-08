@@ -1,8 +1,6 @@
 {% load i18n %}
 
-{% block subject %}{% trans "Order details" %}{% endblock %}
-
-{% block text %}{% blocktrans %}Hi!
+{% block content %}{% blocktrans %}Hi!
 
 Thank you for your order. To see your payment details please visit:
 {{ payment_url }}

@@ -1,8 +1,6 @@
 {% load i18n %}
 
-{% block subject %}{% trans "Confirm your email address" %}{% endblock %}
-
-{% block text %}{% blocktrans %}Hi!
+{% block content %}{% blocktrans %}Hi!
 
 You have requested email change in saleor project. To continue visit the link below.
 

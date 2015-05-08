@@ -104,6 +104,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.sitemaps',
+    'django.contrib.sites',
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -123,6 +124,7 @@ INSTALLED_APPS = [
     'babeldjango',
     'django_images',
     'django_prices',
+    'emailit',
     'mptt',
     'payments',
     'selectable'

@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from decimal import Decimal
 from uuid import uuid4
 
+import emailit.api
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -18,7 +19,6 @@ from payments.models import BasePayment
 from prices import Price
 from satchless.item import ItemSet, ItemLine
 
-from ..communication.mail import send_email
 from ..core.utils import build_absolute_uri
 from ..product.models import Product
 from ..userprofile.models import Address, User
@@ -121,7 +121,8 @@ class Order(models.Model, ItemSet):
         payment_url = build_absolute_uri(
             reverse('order:details', kwargs={'token': self.token}))
         context = {'payment_url': payment_url}
-        send_email(email, 'order/emails/confirm_email.txt', context)
+
+        emailit.api.send_mail(email, context, 'order/emails/confirm_email')
 
     def get_last_payment_status(self):
         last_payment = self.payments.last()
@@ -344,7 +345,8 @@ class Payment(BasePayment):
         order_url = build_absolute_uri(
             reverse('order:details', kwargs={'token': self.order.token}))
         context = {'order_url': order_url}
-        send_email(email, 'order/payment/emails/confirm_email.txt', context)
+        emailit.api.send_mail(
+            email, context, 'order/payment/emails/confirm_email')
 
     def get_purchased_items(self):
         items = [PurchasedItem(

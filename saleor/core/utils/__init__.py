@@ -1,10 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals
+import re
 
 from django import forms
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.http.request import absolute_http_url_re
 from django.template.response import TemplateResponse
 from django.utils.encoding import iri_to_uri, smart_text
 from satchless.process import InvalidData, Step
@@ -15,6 +15,8 @@ except ImportError:
 
 
 __all__ = ['BaseStep', 'CategoryChoiceField', 'build_absolute_uri']
+
+absolute_http_url_re = re.compile(r"^https?://", re.I)
 
 
 class CategoryChoiceField(forms.ModelChoiceField):
