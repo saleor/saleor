@@ -16,10 +16,10 @@
                     <form class="form-inline" method="post" action=".">
                         {% csrf_token %}
                         <div class="form-group">
-                            <label class="control-label"for="amount">{% trans "Product class" %}</label>
+                            <label class="control-label"for="amount">{% trans "Product type" %}</label>
                             {% render_widget form.cls_name class="form-control" %}
-                            <button class="btn btn-primary" type="submit">
-                                {% trans "Add product" %}
+                            <button class="btn btn-success" type="submit">
+                                <i class="glyphicon glyphicon-plus"></i> {% trans "New product" %}
                             </button>
                         </div>
                     </form>

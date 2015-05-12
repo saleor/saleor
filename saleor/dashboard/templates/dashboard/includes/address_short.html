@@ -1,3 +1,4 @@
+{% load i18n %}
 <span class="address-details"
    data-content="{% if address.company_name %}{{ address.company_name }}<br>{% endif %}
                  {{ address.street_address_1 }}<br>
@@ -6,6 +7,5 @@
                  {% endif %}
                  {{ address.postal_code }} {{ address.city }}<br>
                  {% if address.country_area %}{{ address.country_area }}, {% endif %}{{ address.get_country_display }}<br>
-                 {{ address.phone }}
-                 <a href='{% url "dashboard:address-shipping-edit" order_pk=order.pk group_pk=group.pk %}'>Edit</a>"
-   data-html="true" title="{{ address.first_name }} {{ address.last_name }}">{{ address }}</span>
+                 {{ address.phone }}"
+   data-html="true" title="{{ address.first_name }} {{ address.last_name }}<span class='pull-right'><a href='{% url "dashboard:address-shipping-edit" order_pk=order.pk group_pk=group.pk %}'><i class='glyphicon glyphicon-pencil'></i> {% trans "Edit" %}</a></span>">{{ address }}</span>

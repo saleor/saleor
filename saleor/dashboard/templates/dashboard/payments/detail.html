@@ -10,65 +10,73 @@
 
 {% block content %}
 <div class="row">
-    <h1 class="page-header">{% trans "Payment" %} #{{ payment.id }}</h1>
+    <div class="col-lg-12">
+        <h1 class="page-header">{% trans "Payment" %} #{{ payment.id }}</h1>
+    </div>
+</div>
+<div class="row">
     <div class="col-lg-8">
         <div class="panel panel-default">
             <div class="panel-heading">
                 <span class="panel-title">Payment details</span>
             </div>
             <div class="panel-body">
-                <p>Status: {% render_status payment.status payment.get_status_display %}</p>
-                <p>Fraud status: {% render_status payment.fraud_status payment.get_fraud_status_display %}</p>
-                <p>Amount: {% gross payment.get_total_price %}</p>
-                <p>Captured amount: {% gross payment.get_captured_price %}</p>
-                <p>Gateway: {{ payment.variant }}</p>
-                <p>Transaction id: {{ payment.transaction_id }}</p>
-                <p>Payment date: {{ payment.created }}</p>
+                <p>{% trans "Payment status" %}: {% render_status payment.status payment.get_status_display %}</p>
+                <p>{% trans "Fraud status" %}: {% render_status payment.fraud_status payment.get_fraud_status_display %}</p>
+                <p>{% trans "Amount" %}: {% gross payment.get_total_price %}</p>
+                <p>{% trans "Captured amount" %}: {% gross payment.get_captured_price %}</p>
+                <p>{% trans "Gateway" %}: {{ payment.variant }}</p>
+                <p>{% trans "Transaction ID" %}: {{ payment.transaction_id }}</p>
+                <p>{% trans "Payment date" %}: {{ payment.created }}</p>
             </div>
         </div>
         <div class="panel panel-default">
             <div class="panel-heading">
-                <span class="panel-title">Gateway communication</span>{% if payment.extra_data %}<a class="pull-right" data-toggle="collapse" href="#gateway-output">Show</a>{% endif %}
+                <span class="panel-title">{% trans "Gateway communication" %}</span>{% if payment.extra_data %}<a class="pull-right" data-toggle="collapse" href="#gateway-output">{% trans "Show" %}</a>{% endif %}
             </div>
             <div class="panel-body">
                 <div id='gateway-output' class="{% if payment.extra_data %}collapse{% endif %}">
                     {% if payment.extra_data %}
                         <pre>{{ payment.extra_data|format_json }}</pre>
                     {% else %}
-                        <span>-</span>
+                        <small>{% trans "No communication recorded yet." %}</small>
                     {% endif %}
                 </div>
             </div>
         </div>
         <div class="panel panel-default">
             <div class="panel-heading">
-                <span class="panel-title">Gateway message</span>
+                <span class="panel-title">{% trans "Gateway response" %}</span>
             </div>
             <div class="panel-body">
-                <span>{{ payment.message|default:"-" }}</span>
+                {% if payment.message %}
+                    {{ payment.message }}
+                {% else %}
+                    <small>{% trans "No response available." %}</small>
+                {% endif %}
             </div>
         </div>
     </div>
     <div class="col-lg-4">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <span class="panel-title">Customer account<i class="glyphicon glyphicon-user pull-right"></i></span>
+                <span class="panel-title">{% trans "Customer" %}</span>
             </div>
             <div class="panel-body">
                 <div class="address">
                     {% if payment.order.user %}
-                        <div>Account: <a href="{% url "dashboard:customer-details" pk=payment.order.user.pk %}">{{ payment.order.user }}</a></div>
+                        <div>{% trans "Account" %}: <a href="{% url "dashboard:customer-details" pk=payment.order.user.pk %}">{{ payment.order.user }}</a></div>
                     {% else %}
-                        <div>Account: Anonymous</div>
+                        <div>{% trans "Account" %}: {% trans "Guest" %}</div>
                     {% endif %}
-                    <div><i class="glyphicon glyphicon-envelope"></i> {{ payment.order.get_user_email }}</span></div>
+                    <div><i class="glyphicon glyphicon-envelope"></i> <a href="mailto:{{ payment.order.get_user_email }}">{{ payment.order.get_user_email }}</a></div>
                     <div>Customer IP: {{ payment.customer_ip_address }}</div>
                 </div>
             </div>
         </div>
         <div class="panel panel-default">
             <div class="panel-heading">
-                <span class="panel-title">Billing address sent to gateway</span>
+                <span class="panel-title">{% trans "Billing address" %}</span>
             </div>
             <div class="panel-body">
                 <div class="address">

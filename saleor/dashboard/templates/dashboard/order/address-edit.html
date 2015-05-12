@@ -8,24 +8,31 @@
 
 {% block content %}
 <div class="row">
-    <h1 class="page-header">Edit {{ address_type }} address</h1>
+    <div class="col-lg-12">
+        {% if address_type == "shipping" %}
+            <h1 class="page-header">{% trans "Edit shipping address" %}</h1>
+        {% else %}
+            <h1 class="page-header">{% trans "Edit billing address" %}</h1>
+        {% endif %}
+    </div>
+</div>
 
-    <div class="col-md-6">
-        <div class="panel panel-default">
-            <div class="panel-body">
-                <form method="post">
-                    {% csrf_token %}
-                    <fieldset>
-                        {{ form|as_vertical_form }}
-                    </fieldset>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary">Save</button>
-                        <a href="{% url 'dashboard:order-details' pk=order.pk %}" class="btn btn-link">Cancel</a>
-                    </div>
-                </form>
-            </div>
+<form class="form form-vertical" method="post">
+    <div class="row">
+        <div class="col-md-6">
+            {% csrf_token %}
+            <fieldset>
+                {{ form|as_vertical_form }}
+            </fieldset>
         </div>
     </div>
-
-</div>
+    <div class="row">
+        <div class="col-lg-12">
+            <p>
+                <button type="submit" class="btn btn-primary"><i class="glyphicon glyphicon-refresh"></i> {% trans "Update" %}</button>
+                <a href="{% url 'dashboard:order-details' pk=order.pk %}" class="btn btn-default"><i class="glyphicon glyphicon-remove"></i> {% trans "Cancel" %}</a>
+            </p>
+        </div>
+    </div>
+</form>
 {% endblock content %}
