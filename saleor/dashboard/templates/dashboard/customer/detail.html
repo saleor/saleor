@@ -21,8 +21,8 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>{% trans "Order" %}</th>
-                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Number" %}</th>
+                                    <th>{% trans "Placed on" %}</th>
                                     <th>{% trans "Payment" %}</th>
                                     <th>{% trans "Order status" %}</th>
                                     <th>{% trans "Total" %}</th>
@@ -50,10 +50,9 @@
     <div class="col-lg-4">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <span class="panel-title">{% trans "Address" %}</span>
+                <span class="panel-title">{% trans "Default billing address" %}</span>
             </div>
             <div class="panel-body">
-                <small>Default billing address</small>
                 <div>
                     {% if customer.default_billing_address %}
                         {% with customer.default_billing_address.address as address %}
@@ -63,7 +62,13 @@
                         <span>No default billing address</span>
                     {% endif %}
                 </div>
-                <small>Default shipping address</small>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <span class="panel-title">{% trans "Default shipping address" %}</span>
+            </div>
+            <div class="panel-body">
                 <div>
                     {% if customer.default_shipping_address %}
                         {% with customer.default_shipping_address.address as address %}
@@ -74,7 +79,7 @@
                     {% endif %}
                 </div>
                 <div>
-                    <i class="glyphicon glyphicon-envelope"></i> {{ customer.email }}
+                    <i class="glyphicon glyphicon-envelope"></i> <a href="mailto:{{ customer.email }}">{{ customer.email }}</a>
                 </div>
             </div>
         </div>

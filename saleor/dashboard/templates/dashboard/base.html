@@ -46,9 +46,11 @@
     </nav>
 
     <div id="page-wrapper">
-        <div class="row">
-            {% include "dashboard/includes/_messages.html" %}
-        </div>
+        {% if messages %}
+            <div class="row">
+                {% include "dashboard/includes/_messages.html" %}
+            </div>
+        {% endif %}
 
         {% block content %}
         {% endblock %}
