@@ -69,6 +69,11 @@
                 </table>
             </div>
         {% endfor %}
+
+        <div class="alert alert-success">
+            <p>{% trans "Order total" %}: <strong>{% gross order.get_total %}</strong></p>
+        </div>
+
         <div class="panel panel-default">
             <div class="panel-heading"><span class="panel-title">{% trans "Manage payment" %}</span></div>
             <div class="panel-body">
@@ -184,7 +189,6 @@
             </div>
             <div class="panel-body">
                 <p>Order date: {{ order.created }}</p>
-                <p>Order total: {% gross order.get_total %}</p>
                 <p>Order status: {% render_status order.status order.get_status_display %}</p>
                 <p>Payment status: {% if payment %}{% render_status payment.status payment.get_status_display %}{% else %}-{% endif %}</p>
                 {% if captured %}
