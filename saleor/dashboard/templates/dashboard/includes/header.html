@@ -1,3 +1,4 @@
+{% load i18n %}
 <ul class="nav navbar-nav navbar-top-links navbar-right">
     <!-- /.dropdown -->
     <li class="dropdown">
@@ -5,8 +6,9 @@
             <i class="fa fa-user fa-fw"></i>{{ request.user }} <i class="fa fa-caret-down"></i>
         </a>
         <ul class="dropdown-menu dropdown-user">
-            <li><a href="{% url 'registration:logout' %}"><i
-                    class="fa fa-sign-out fa-fw"></i> Logout</a>
+            <li><a href="/">{% trans "Visit storefront" %}</a></li>
+            <li class="divider"></li>
+            <li><a href="{% url 'registration:logout' %}">{% trans "Log out" %}</a>
             </li>
         </ul>
         <!-- /.dropdown-user -->
