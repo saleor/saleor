@@ -12,224 +12,222 @@
         <h1 class="page-header">Order {{ order }}</h1>
     </div>
 </div>
-<div class="row">
-    <div class="col-lg-8">
-        {% for group in groups %}
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <span class="panel-title">Delivery group #{{ group.pk }} <span class="pull-right">{% render_status group.status group.get_status_display %}</span></span>
-                </div>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th class="col-sm-5">{% trans "Item" %}</th>
-                            <th class="col-sm-2 text-right">{% trans "Price" %}</th>
-                            <th class="col-sm-2 text-right">{% trans "Quantity" %}</th>
-                            <th class="col-sm-2 text-right">{% trans "Total" %}</th>
-                            <th class="col-sm-1"></th>
-                        </tr>
-                    </thead>
-                    <tfoot>
-                        <tr>
-                            <td colspan="3">
-                                <strong>{{ group.get_method }}</strong><br>
-                                {% trans "Shipping address" %}: {% include "dashboard/includes/address_short.html" with address=group.address order_pk=order.pk group_pk=group.pk %}
-                            </td>
-                            <td class="text-right">
-                                {% gross group.price %}
-                            </td>
-                            <td class="text-right">
-                                <a class="btn btn-default btn-sm" data-target="#base-modal" href="{% url 'dashboard:ship-delivery-group' pk=group.pk %}" data-toggle="modal" {% if not group.can_ship %}disabled{% endif %}><i class="glyphicon glyphicon-plane"></i> {% trans "Ship" %}</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th colspan="3">{% trans "Total" %}</th>
-                            <td class="text-right">
-                                <strong>{% gross group.get_total %}</strong>
-                            </td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                    <tbody>
-                        {% for item in group.items.all %}
-                            <tr>
-                                <td>
-                                    {% if item.product %}<a href="{% url "dashboard:product-update" pk=item.product.id %}">{{ item.product_name }}</a>{% else %}{{ item.product_name }}{% endif %}<br>
-                                    <strong>SKU:</strong> {{ item.product_sku }}
-                                </td>
-                                <td class="text-right">{% gross item.get_price_per_item %}</td>
-                                <td class="text-right">{{ item.quantity }}</td>
-                                <td class="text-right">{% gross item.get_total %}</td>
-                                <td class="text-right">
-                                    <a class="btn btn-primary btn-sm" data-target="#base-modal" href="{% url 'dashboard:order-line-edit' pk=item.pk %}" data-toggle="modal" {% if group.status != 'new' %}disabled{% endif %} title="{% trans "Edit" %}"><i class="glyphicon glyphicon-pencil"></i></a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% endfor %}
-
-        <div class="alert alert-success">
-            <p>{% trans "Order total" %}: <strong>{% gross order.get_total %}</strong></p>
-        </div>
-
-        <div class="panel panel-default">
-            <div class="panel-heading"><span class="panel-title">{% trans "Manage payment" %}</span></div>
-            <div class="panel-body">
-                {% if payment %}
-                    <p>{% trans "Preauthorized amount:" %} {% if preauthorized %}{% gross preauthorized %}{% else %}{% trans "N/A" %}{% endif %}</p>
-                    {% if captured %}
-                        <p>{% trans "Captured amount" %}: {% gross captured %}</p>
-                    {% endif %}
-                    {% if can_capture %}
-                    <a class="btn btn-success" data-target="#base-modal" href="{% url 'dashboard:manage-payment' pk=payment.pk action='capture' %}" data-toggle="modal">{% trans "Capture" %}</a>
-                    {% elif can_refund %}
-                    <a class="btn btn-danger" data-target="#base-modal" href="{% url 'dashboard:manage-payment' pk=payment.pk action='refund' %}" data-toggle="modal">{% trans "Refund" %}</a>
-                    {% endif %}
-                    {% if can_release %}
-                    <a class="btn btn-danger" data-target="#base-modal" href="{% url 'dashboard:manage-payment' pk=payment.pk action='release' %}" data-toggle="modal">{% trans "Release" %}</a>
-                    {% endif %}
-                {% else %}
-                    <small>{% trans "There are no payments assigned with this order." %}</small>
-                {% endif %}
-            </div>
-        </div>
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <span class="panel-title">History</span>
-            </div>
-            <ul class="nav nav-tabs" role="tablist">
-                <li class="active"><a href="#order-history" role="tab" data-toggle="tab">{% trans "Order history" %}</a></li>
-                <li><a href="#payment-history" role="tab" data-toggle="tab">{% trans "Payment history" %}</a></li>
-            </ul>
-            <div class="tab-content">
-                <div class="tab-pane active" id="order-history">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th class="col-sm-3">Date</th>
-                                <th class="col-sm-3">Order status</th>
-                                <th class="col-sm-2">User</th>
-                                <th class="col-sm-4">Comment</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for event in order.history.all %}
-                            <tr>
-                                <td>{{ event.date }}</td>
-                                <td>{% render_status event.status event.get_status_display %}</td>
-                                <td>
-                                    {% if event.user %}
-                                        {{ event.user }}
-                                    {% endif %}
-                                </td>
-                                <td>{{ event.comment|default:"" }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="tab-pane" id="payment-history">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th class="col-sm-2">{% trans "Number" %}</th>
-                                <th class="col-sm-3">{% trans "Date" %}</th>
-                                <th class="col-sm-7">{% trans "Payment status" %}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for payment in order.payments.all %}
-                            <tr>
-                                <td><a href="{% url "dashboard:payment-details" pk=payment.pk %}">#{{ payment.id }}</a></td>
-                                <td>{{ payment.created }}</td>
-                                <td>{% render_status payment.status payment.get_status_display %}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div class="panel panel-default" id="order-notes">
-            <div class="panel-heading">
-                <span class="panel-title">Order notes</span>
-                <span class="pull-right"><a data-toggle="collapse" href="#add-order-note"><i class="glyphicon glyphicon-plus"></i> Add note</a></span>
-            </div>
-            <div class="panel-body">
-                {% if notes %}
-                    <ul class="list-unstyled">
-                    {% for note in notes %}
-                        <li>
-                            <small>{{ note.user }} - {{ note.date }}</small>
-                            <p>{{ note.content }}</p>
-                        </li>
-                    {% endfor %}
-                    </ul>
-                {% else %}
-                    <small>{% trans "There are no notes associated with this order." %}</small>
-                {% endif %}
-                <div id="add-order-note" class="collapse">
-                    <form class="form-horizontal" role="form" method="post">
-                        {% csrf_token %}
-                        {{ note_form|as_vertical_form }}
-                        <div class="form-group">
-                            <button name='note_form' type="submit" class="btn btn-success"><i class="glyphicon glyphicon-plus"></i> {% trans "Save note" %}</button>
+<ul class="nav nav-tabs" role="tablist">
+    <li role="presentation" class="active"><a href="#order-details" role="tab" data-toggle="tab">{% trans "Contents" %}</a></li>
+    <li role="presentation"><a href="#payment-history" role="tab" data-toggle="tab">{% trans "Payments" %}</a></li>
+    <li role="presentation"><a href="#order-history" role="tab" data-toggle="tab">{% trans "History" %}</a></li>
+</ul>
+<div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="order-details">
+        <br>{# workaround to avoid the first panel sticking to the tabs #}
+        <div class="row">
+            <div class="col-lg-8">
+                {% for group in groups %}
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <span class="panel-title">Delivery group #{{ group.pk }} <span class="pull-right">{% render_status group.status group.get_status_display %}</span></span>
                         </div>
-                    </form>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th class="col-sm-5">{% trans "Item" %}</th>
+                                    <th class="col-sm-2 text-right">{% trans "Price" %}</th>
+                                    <th class="col-sm-2 text-right">{% trans "Quantity" %}</th>
+                                    <th class="col-sm-2 text-right">{% trans "Total" %}</th>
+                                    <th class="col-sm-1"></th>
+                                </tr>
+                            </thead>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3">
+                                        <strong>{{ group.get_method }}</strong><br>
+                                        {% trans "Shipping address" %}: {% include "dashboard/includes/address_short.html" with address=group.address order_pk=order.pk group_pk=group.pk %}
+                                    </td>
+                                    <td class="text-right">
+                                        {% gross group.price %}
+                                    </td>
+                                    <td class="text-right">
+                                        <a class="btn btn-default btn-sm" data-target="#base-modal" href="{% url 'dashboard:ship-delivery-group' pk=group.pk %}" data-toggle="modal" {% if not group.can_ship %}disabled{% endif %}><i class="glyphicon glyphicon-plane"></i> {% trans "Ship" %}</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th colspan="3">{% trans "Total" %}</th>
+                                    <td class="text-right">
+                                        <strong>{% gross group.get_total %}</strong>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                            <tbody>
+                                {% for item in group.items.all %}
+                                    <tr>
+                                        <td>
+                                            {% if item.product %}<a href="{% url "dashboard:product-update" pk=item.product.id %}">{{ item.product_name }}</a>{% else %}{{ item.product_name }}{% endif %}<br>
+                                            <strong>SKU:</strong> {{ item.product_sku }}
+                                        </td>
+                                        <td class="text-right">{% gross item.get_price_per_item %}</td>
+                                        <td class="text-right">{{ item.quantity }}</td>
+                                        <td class="text-right">{% gross item.get_total %}</td>
+                                        <td class="text-right">
+                                            <a class="btn btn-primary btn-sm" data-target="#base-modal" href="{% url 'dashboard:order-line-edit' pk=item.pk %}" data-toggle="modal" {% if group.status != 'new' %}disabled{% endif %} title="{% trans "Edit" %}"><i class="glyphicon glyphicon-pencil"></i></a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endfor %}
+
+                <div class="alert alert-success">
+                    <p>{% trans "Order total" %}: <strong>{% gross order.get_total %}</strong></p>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading"><span class="panel-title">{% trans "Manage payment" %}</span></div>
+                    <div class="panel-body">
+                        {% if payment %}
+                            <p>{% trans "Preauthorized amount:" %} {% if preauthorized %}{% gross preauthorized %}{% else %}{% trans "N/A" %}{% endif %}</p>
+                            {% if captured %}
+                                <p>{% trans "Captured amount" %}: {% gross captured %}</p>
+                            {% endif %}
+                            {% if can_capture %}
+                            <a class="btn btn-success" data-target="#base-modal" href="{% url 'dashboard:manage-payment' pk=payment.pk action='capture' %}" data-toggle="modal">{% trans "Capture" %}</a>
+                            {% elif can_refund %}
+                            <a class="btn btn-danger" data-target="#base-modal" href="{% url 'dashboard:manage-payment' pk=payment.pk action='refund' %}" data-toggle="modal">{% trans "Refund" %}</a>
+                            {% endif %}
+                            {% if can_release %}
+                            <a class="btn btn-danger" data-target="#base-modal" href="{% url 'dashboard:manage-payment' pk=payment.pk action='release' %}" data-toggle="modal">{% trans "Release" %}</a>
+                            {% endif %}
+                        {% else %}
+                            <small>{% trans "There are no payments assigned with this order." %}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="panel panel-default" id="order-notes">
+                    <div class="panel-heading">
+                        <span class="panel-title">Order notes</span>
+                        <span class="pull-right"><a data-toggle="collapse" href="#add-order-note"><i class="glyphicon glyphicon-plus"></i> Add note</a></span>
+                    </div>
+                    <div class="panel-body">
+                        {% if notes %}
+                            <ul class="list-unstyled">
+                            {% for note in notes %}
+                                <li>
+                                    <small>{{ note.user }} - {{ note.date }}</small>
+                                    <p>{{ note.content }}</p>
+                                </li>
+                            {% endfor %}
+                            </ul>
+                        {% else %}
+                            <small>{% trans "There are no notes associated with this order." %}</small>
+                        {% endif %}
+                        <div id="add-order-note" class="collapse">
+                            <form class="form-horizontal" role="form" method="post">
+                                {% csrf_token %}
+                                {{ note_form|as_vertical_form }}
+                                <div class="form-group">
+                                    <button name='note_form' type="submit" class="btn btn-success"><i class="glyphicon glyphicon-plus"></i> {% trans "Save note" %}</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <span class="panel-title">Order summary</span>
+                    </div>
+                    <div class="panel-body">
+                        <p>Order date: {{ order.created }}</p>
+                        <p>Order status: {% render_status order.status order.get_status_display %}</p>
+                        <p>Payment status: {% if payment %}{% render_status payment.status payment.get_status_display %}{% else %}-{% endif %}</p>
+                        {% if captured %}
+                            <p>Captured amount: {% gross captured %}</p>
+                        {% endif %}
+                        {% if refunded %}
+                            <p>Refunded amount: {% gross refunded %}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <span class="panel-title">{% trans "Customer" %}</span>
+                    </div>
+                    <div class="panel-body">
+                        <div class="address">
+                            {% if order.user %}
+                                <div>{% trans "Account" %}: <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a></div>
+                            {% else %}
+                                <div>{% trans "Account" %}: {% trans "Guest" %}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    {% with order.billing_address as address %}
+                    <div class="panel-heading">
+                        <span class="panel-title">{% trans "Billing address" %}</span>
+                        <span class="pull-right"><a href="{% url "dashboard:address-billing-edit" order_pk=order.pk %}"><i class="glyphicon glyphicon-pencil"></i> Edit</a></span>
+                    </div>
+                    <div class="panel-body">
+                        {% include 'dashboard/includes/_address.html' with address=address only %}
+                        <div>
+                            <i class="glyphicon glyphicon-envelope"></i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
+                        </div>
+                    </div>
+                    {% endwith %}
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-lg-4">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <span class="panel-title">Order summary</span>
-            </div>
-            <div class="panel-body">
-                <p>Order date: {{ order.created }}</p>
-                <p>Order status: {% render_status order.status order.get_status_display %}</p>
-                <p>Payment status: {% if payment %}{% render_status payment.status payment.get_status_display %}{% else %}-{% endif %}</p>
-                {% if captured %}
-                    <p>Captured amount: {% gross captured %}</p>
-                {% endif %}
-                {% if refunded %}
-                    <p>Refunded amount: {% gross refunded %}</p>
-                {% endif %}
-            </div>
-        </div>
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <span class="panel-title">{% trans "Customer" %}</span>
-            </div>
-            <div class="panel-body">
-                <div class="address">
-                    {% if order.user %}
-                        <div>{% trans "Account" %}: <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a></div>
-                    {% else %}
-                        <div>{% trans "Account" %}: {% trans "Guest" %}</div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        <div class="panel panel-default">
-            {% with order.billing_address as address %}
-            <div class="panel-heading">
-                <span class="panel-title">{% trans "Billing address" %}</span>
-                <span class="pull-right"><a href="{% url "dashboard:address-billing-edit" order_pk=order.pk %}"><i class="glyphicon glyphicon-pencil"></i> Edit</a></span>
-            </div>
-            <div class="panel-body">
-                {% include 'dashboard/includes/_address.html' with address=address only %}
-                <div>
-                    <i class="glyphicon glyphicon-envelope"></i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
-                </div>
-            </div>
-            {% endwith %}
-        </div>
+    <div role="tabpanel" class="tab-pane" id="payment-history">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th class="col-sm-2">{% trans "Number" %}</th>
+                    <th class="col-sm-3">{% trans "Date" %}</th>
+                    <th class="col-sm-7">{% trans "Payment status" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payment in order.payments.all %}
+                <tr>
+                    <td><a href="{% url "dashboard:payment-details" pk=payment.pk %}">#{{ payment.id }}</a></td>
+                    <td>{{ payment.created }}</td>
+                    <td>{% render_status payment.status payment.get_status_display %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="order-history">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th class="col-sm-3">Date</th>
+                    <th class="col-sm-3">Order status</th>
+                    <th class="col-sm-2">User</th>
+                    <th class="col-sm-4">Comment</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in order.history.all %}
+                <tr>
+                    <td>{{ event.date }}</td>
+                    <td>{% render_status event.status event.get_status_display %}</td>
+                    <td>
+                        {% if event.user %}
+                            {{ event.user }}
+                        {% endif %}
+                    </td>
+                    <td>{{ event.comment|default:"" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
-
 <div id="base-modal" class="modal">
     <div class="modal-dialog">
       <div class="modal-content"></div>
