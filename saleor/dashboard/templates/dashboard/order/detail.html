@@ -25,7 +25,7 @@
                 {% for group in groups %}
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <span class="panel-title">Delivery group #{{ group.pk }} <span class="pull-right">{% render_status group.status group.get_status_display %}</span></span>
+                            <span class="panel-title">{% blocktrans with shipment=group.id %}Shipment #{{ shipment }}{% endblocktrans %} <span class="pull-right">{% render_status group.status group.get_status_display %}</span></span>
                         </div>
                         <table class="table">
                             <thead>
@@ -40,8 +40,7 @@
                             <tfoot>
                                 <tr>
                                     <td colspan="3">
-                                        <strong>{{ group.get_method }}</strong><br>
-                                        {% trans "Shipping address" %}: {% include "dashboard/includes/address_short.html" with address=group.address order_pk=order.pk group_pk=group.pk %}
+                                        {% trans "Shipping" %} ({{ order.shipping_method }})
                                     </td>
                                     <td class="text-right">
                                         {% gross group.price %}
@@ -89,6 +88,9 @@
                             <p>{% trans "Preauthorized amount:" %} {% if preauthorized %}{% gross preauthorized %}{% else %}{% trans "N/A" %}{% endif %}</p>
                             {% if captured %}
                                 <p>{% trans "Captured amount" %}: {% gross captured %}</p>
+                            {% endif %}
+                            {% if refunded %}
+                                <p>{% trans "Refunded amount" %}: {% gross refunded %}</p>
                             {% endif %}
                             {% if can_capture %}
                             <a class="btn btn-success" data-target="#base-modal" href="{% url 'dashboard:manage-payment' pk=payment.pk action='capture' %}" data-toggle="modal">{% trans "Capture" %}</a>
@@ -141,13 +143,7 @@
                     <div class="panel-body">
                         <p>Order date: {{ order.created }}</p>
                         <p>Order status: {% render_status order.status order.get_status_display %}</p>
-                        <p>Payment status: {% if payment %}{% render_status payment.status payment.get_status_display %}{% else %}-{% endif %}</p>
-                        {% if captured %}
-                            <p>Captured amount: {% gross captured %}</p>
-                        {% endif %}
-                        {% if refunded %}
-                            <p>Refunded amount: {% gross refunded %}</p>
-                        {% endif %}
+                        <p>Payment status: {% if payment %}{% render_status payment.status payment.get_status_display %}{% else %}{% trans "N/A" %}{% endif %}</p>
                     </div>
                 </div>
                 <div class="panel panel-default">
@@ -168,7 +164,21 @@
                     {% with order.billing_address as address %}
                     <div class="panel-heading">
                         <span class="panel-title">{% trans "Billing address" %}</span>
-                        <span class="pull-right"><a href="{% url "dashboard:address-billing-edit" order_pk=order.pk %}"><i class="glyphicon glyphicon-pencil"></i> Edit</a></span>
+                        <span class="pull-right"><a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}"><i class="glyphicon glyphicon-pencil"></i> Edit</a></span>
+                    </div>
+                    <div class="panel-body">
+                        {% include 'dashboard/includes/_address.html' with address=address only %}
+                        <div>
+                            <i class="glyphicon glyphicon-envelope"></i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
+                        </div>
+                    </div>
+                    {% endwith %}
+                </div>
+                <div class="panel panel-default">
+                    {% with order.shipping_address as address %}
+                    <div class="panel-heading">
+                        <span class="panel-title">{% trans "Shipping address" %}</span>
+                        <span class="pull-right"><a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}"><i class="glyphicon glyphicon-pencil"></i> Edit</a></span>
                     </div>
                     <div class="panel-body">
                         {% include 'dashboard/includes/_address.html' with address=address only %}

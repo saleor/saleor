@@ -23,20 +23,16 @@
     {# unless current user is owner of the order.           #}
 
     <div class="row">
-        <div class="col-sm-6">
-            <h3>{% trans "Order details" %}</h3>
-            <p>{% trans "Order number" %}: {{ order }}</p>
-            {% with total=order.get_total %}
-                <p>
-                    {% trans "Order total" %}:
-                    <strong>{% gross total %}</strong>
-                    {% if total.tax %}
-                        ({% blocktrans with tax=total.tax|floatformat:2 currency=total.currency %}includes {{ tax }} <span class="currency">{{ currency }}</span> tax{% endblocktrans %})
-                    {% endif %}
-                </p>
-            {% endwith %}
-            <p>{% trans "Status" %}: <span class="label label-default">{{ order.get_status_display }}</span></p>
+        <div class="col-sm-12">
+            <h1 class="page-header">
+                {% blocktrans %}Order {{ order }}{% endblocktrans %}
+                <span class="pull-right">
+                    <span class="label label-default">{{ order.get_status_display }}</span>
+                </span>
+            </h1>
         </div>
+    </div>
+    <div class="row">
         {% if order.user == user %}
             <div class="col-sm-6">
                 <div class="panel panel-default">
@@ -48,59 +44,60 @@
                     </div>
                 </div>
             </div>
-            <h3></h3>
+            <div class="col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        {% trans "Shipping address" %}
+                    </div>
+                    <div class="panel-body">
+                        <address>{% include "userprofile/snippets/address-details.html" with address=order.shipping_address %}</address>
+                    </div>
+                </div>
+            </div>
         {% endif %}
     </div>
 
     {% for group in groups %}
         <div class="panel panel-default">
             <div class="panel-heading">
-                {% blocktrans with number=forloop.counter %}Delivery group #{{ number }}{% endblocktrans %}
+                {% blocktrans with number=forloop.counter %}Shipment #{{ number }}{% endblocktrans %}
+                <span class="pull-right">
+                    <span class="label label-default">{{ group.get_status_display }}</span>
+                </span>
             </div>
-            <div class="panel-body">
-                <table class="table table-striped">
-                    <thead>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th class="col-sm-6">{% trans "Name" %}</th>
+                        <th class="col-sm-3 text-right">{% trans "Price" %}</th>
+                        <th class="col-sm-3 text-right">{% trans "Subtotal" %}</th>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <th colspan="2">{% trans "Total" %}</th>
+                        <th class="text-right">{% gross group.get_total %}</th>
+                    </tr>
+                </tfoot>
+                <tbody>
+                    {% for item in group %}
                         <tr>
-                            <th class="col-sm-4">{% trans "Name" %}</th>
-                            <th class="col-sm-2">{% trans "Price" %}</th>
-                            <th class="col-sm-2">{% trans "Subtotal" %}</th>
+                            <td>{{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}</td>
+                            <td class="text-right">{% gross item.get_price_per_item %}</td>
+                            <td class="text-right">{% gross item.get_total %}</td>
                         </tr>
-                    </thead>
-                    <tfoot>
+                    {% endfor %}
+                    {% if group.price.gross %}
                         <tr>
-                            <th class="col-sm-4"></th>
-                            <th class="col-sm-2">{% trans "Total" %}</th>
-                            <th class="col-sm-2">{% gross group.get_total %}</th>
+                            <td class="col-sm-4">
+                                {% trans "Shipping" %}
+                            </td>
+                            <td class="text-right">{% gross group.price %}</td>
+                            <td class="text-right">{% gross group.price %}</td>
                         </tr>
-                    </tfoot>
-                    <tbody>
-                        {% for item in group %}
-                            <tr>
-                                <td class="col-sm-4">{{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}</td>
-                                <td class="col-sm-2">{% gross item.get_price_per_item %}</td>
-                                <td class="col-sm-2">{% gross item.get_total %}</td>
-                            </tr>
-                        {% endfor %}
-                        {% if group.price.gross %}
-                            <tr>
-                                <td class="col-sm-4">
-                                    {% trans "Shipping" %} ({{ group.get_method }})
-                                </td>
-                                <td class="col-sm-2">{% gross group.price %}</td>
-                                <td class="col-sm-2">{% gross group.price %}</td>
-                            </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-                {% if order.user == user %}
-                    {% if group.email %}
-                        <p>{% trans "Addressee" %}: {{ group.email }}</p>
-                    {% elif group.address %}
-                        <p>{% trans "Addressee" %}: {% include "userprofile/snippets/address-short.html" with address=group.address %}</p>
                     {% endif %}
-                    <p>{% trans "Status" %}: <span class="label label-default">{{ group.get_status_display }}</span></p>
-                {% endif %}
-            </div>
+                </tbody>
+            </table>
         </div>
     {% endfor %}
     {% if order.user == user or not order.is_fully_paid %}

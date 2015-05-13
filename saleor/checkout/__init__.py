@@ -3,11 +3,9 @@ from collections import defaultdict
 from django.conf import settings
 from prices import Price
 from satchless.process import ProcessManager
-from satchless.item import Partitioner
 
-from .steps import (BillingAddressStep, ShippingStep, DigitalDeliveryStep,
-                    SummaryStep)
-from ..cart import DigitalGroup, Cart
+from .steps import BillingAddressStep, ShippingStep, SummaryStep
+from ..cart import Cart
 from ..core import analytics
 from ..order.models import Order
 from ..userprofile.models import Address
@@ -45,21 +43,14 @@ class Checkout(ProcessManager):
         self.generate_steps(self.cart)
 
     def generate_steps(self, cart):
-        self.items = Partitioner(cart)
+        self.cart = cart
         self.billing = BillingAddressStep(
             self.request, self.get_storage('billing'))
         self.steps.append(self.billing)
-        for index, delivery_group in enumerate(self.items):
-            if isinstance(delivery_group, DigitalGroup):
-                storage = self.get_storage('digital_%s' % (index,))
-                step = DigitalDeliveryStep(
-                    self.request, storage, delivery_group, _id=index)
-            else:
-                storage = self.get_storage('shipping_%s' % (index,))
-                step = ShippingStep(
-                    self.request, storage, delivery_group, _id=index,
-                    default_address=self.billing_address)
-            self.steps.append(step)
+        self.shipping = ShippingStep(
+            self.request, self.get_storage('shipping'),
+            self.cart, default_address=self.billing_address)
+        self.steps.append(self.shipping)
         summary_step = SummaryStep(
             self.request, self.get_storage('summary'), checkout=self)
         self.steps.append(summary_step)
@@ -95,14 +86,32 @@ class Checkout(ProcessManager):
         storage = self.get_storage('billing')
         storage['address'] = None
 
+    @property
+    def shipping_address(self):
+        storage = self.get_storage('shipping')
+        address_data = storage.get('address', {})
+        return Address(**address_data)
+
+    @shipping_address.setter
+    def shipping_address(self, address):
+        storage = self.get_storage('shipping')
+        storage['address'] = address.as_data()
+
+    @shipping_address.deleter
+    def shipping_address(self):
+        storage = self.get_storage('shipping')
+        storage['address'] = None
+
     def get_storage(self, name):
         return self.storage[name]
 
     def get_total(self, **kwargs):
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)
-        total = sum((step.group.get_total_with_delivery(**kwargs)
-                     for step in self if step.group),
-                    zero)
+        total = sum(
+            (total_with_delivery
+             for delivery, delivery_cost, total_with_delivery
+             in self.deliveries(**kwargs)),
+            zero)
         return total
 
     def save(self):
@@ -115,8 +124,12 @@ class Checkout(ProcessManager):
     def __iter__(self):
         return iter(self.steps)
 
-    def delivery_steps(self):
-        return [step for step in self.steps if step.group]
+    def deliveries(self, **kwargs):
+        for partition in self.cart.partition():
+            delivery_cost = self.shipping.delivery_method.get_delivery_total(
+                partition)
+            total_with_delivery = partition.get_total(**kwargs) + delivery_cost
+            yield partition, delivery_cost, total_with_delivery
 
     def create_order(self):
         order = Order()

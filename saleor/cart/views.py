@@ -4,7 +4,6 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext as _
-from satchless.item import Partitioner
 
 from .forms import ReplaceCartLineFormSet
 from . import Cart
@@ -12,7 +11,7 @@ from . import Cart
 
 def index(request):
     cart = Cart.for_session_cart(request.cart, discounts=request.discounts)
-    cart_partitioner = Partitioner(cart)
+    cart_partitioner = cart.partition()
     formset = ReplaceCartLineFormSet(request.POST or None,
                                      cart=cart)
     if formset.is_valid():

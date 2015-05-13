@@ -16,69 +16,69 @@
             <div class="panel-heading">
                 <span class="panel-title">{% trans "Preauthorized payments" %}</span>
             </div>
-            <div class="panel-body">
-                {% if preauthorized_payments %}
-                    <table class="table">
-                        <thead>
+            {% if preauthorized_payments %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Order number" %}</th>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Customer" %}</th>
+                            <th class="text-right">{% trans "Amount" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in preauthorized_payments %}
                             <tr>
-                                <th>{% trans "Order number" %}</th>
-                                <th>{% trans "Date" %}</th>
-                                <th>{% trans "Customer" %}</th>
-                                <th class="text-right">{% trans "Amount" %}</th>
+                                <td><a href="{% url "dashboard:order-details" pk=payment.order.pk %}">{{ payment.order }}</a></td>
+                                <td>{{ payment.created }}</td>
+                                <td>{{ payment.order.user|default:_("Guest") }}</td>
+                                <td class="text-right">{% gross payment.get_total_price %}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {% for payment in preauthorized_payments %}
-                                <tr>
-                                    <td><a href="{% url "dashboard:order-details" pk=payment.order.pk %}">{{ payment.order }}</a></td>
-                                    <td>{{ payment.created }}</td>
-                                    <td>{{ payment.order.user|default:_("Guest") }}</td>
-                                    <td class="text-right">{% gross payment.get_total_price %}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                {% else %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="panel-body">
                     <small>{% trans "No preauthorized payments." %}</small>
-                {% endif %}
-            </div>
+                </div>
+            {% endif %}
         </div>
         <div class="panel panel-default">
             <div class="panel-heading">
                 <span class="panel-title">{% trans "Orders ready for shipment" %}</span>
             </div>
-            <div class="panel-body">
-                {% if orders_to_ship %}
-                    {% include "dashboard/includes/_orders_table.html" with orders=orders_to_ship %}
-                {% else %}
+            {% if orders_to_ship %}
+                {% include "dashboard/includes/_orders_table.html" with orders=orders_to_ship %}
+            {% else %}
+                <div class="panel-body">
                     <small>{% trans "No orders are ready for shipment." %}</small>
-                {% endif %}
-            </div>
+                </div>
+            {% endif %}
         </div>
         <div class="panel panel-default">
             <div class="panel-heading">
                 <span class="panel-title">{% trans "Low stock" %}</span>
             </div>
-            <div class="panel-body">
-                {% if low_stock %}
-                    <table class="table">
-                        <thead>
+            {% if low_stock %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Product" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in low_stock %}
                             <tr>
-                                <th>{% trans "Product" %}</th>
+                                <td><a href="{% url "dashboard:product-update" pk=product.pk %}">{{ product }}</a></td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {% for product in low_stock %}
-                                <tr>
-                                    <td><a href="{% url "dashboard:product-update" pk=product.pk %}">{{ product }}</a></td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                {% else %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="panel-body">
                     <small>{% trans "No products are low in stock." %}</small>
-                {% endif %}
-            </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

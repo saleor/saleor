@@ -27,6 +27,10 @@ class OrderListView(StaffMemberOnlyMixin, FilterByStatusMixin, ListView):
     status_order = ['new', 'payment-pending', 'fully-paid', 'shipped',
                     'cancelled']
 
+    def get_queryset(self):
+        qs = super(OrderListView, self).get_queryset()
+        return qs.prefetch_related('groups')
+
 
 @staff_member_required
 def order_details(request, pk):
@@ -160,7 +164,7 @@ def edit_order_line(request, pk, action=None):
 
 @staff_member_required
 def ship_delivery_group(request, pk):
-    group = get_object_or_404(DeliveryGroup.objects.select_subclasses(), pk=pk)
+    group = get_object_or_404(DeliveryGroup, pk=pk)
     form = ShipGroupForm(request.POST or None, instance=group)
     if form.is_valid():
         with transaction.atomic():
@@ -177,13 +181,11 @@ def ship_delivery_group(request, pk):
 
 
 @staff_member_required
-def address_view(request, order_pk, group_pk=None):
-    address_type = 'shipping' if group_pk else 'billing'
+def address_view(request, order_pk, address_type):
     order = Order.objects.get(pk=order_pk)
     if address_type == 'shipping':
-        group = order.get_groups().get(pk=group_pk)
-        address = group.address
-        success_msg = _('Updated shipping address for %s') % group
+        address = order.shipping_address
+        success_msg = _('Updated shipping address')
     else:
         address = order.billing_address
         success_msg = _('Updated billing address')

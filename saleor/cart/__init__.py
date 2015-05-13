@@ -5,7 +5,7 @@ from django.utils.translation import pgettext
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from prices import Price
 from satchless import cart
-from satchless.item import ItemList
+from satchless.item import ItemList, Partitioner
 from saleor.product.models import Product
 
 
@@ -93,6 +93,8 @@ class Cart(cart.Cart):
     def create_line(self, product, quantity, data):
         return CartLine(product, quantity, data=data, discounts=self.discounts)
 
+    def partition(self):
+        return Partitioner(self)
 
 
 class SessionCartLine(cart.CartLine):

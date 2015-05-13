@@ -7,7 +7,7 @@
 </div>
 <div class="modal-body">
 	<span>{% trans "Ship selected delivery group to the following address:" %}</span>
-    {% include 'dashboard/includes/_address.html' with address=group.address only %}
+    {% include 'dashboard/includes/_address.html' with address=group.order.shipping_address only %}
 </div>
 <div class="modal-footer">
     <form id="ship-delivery-group-form" class="form-inline" method="post" role="form" action="{% url 'dashboard:ship-delivery-group' pk=group.pk %}">

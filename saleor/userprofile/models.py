@@ -36,7 +36,7 @@ class AddressBookManager(models.Manager):
 class AddressBook(models.Model):
 
     user = models.ForeignKey('User', related_name='address_book')
-    address = models.ForeignKey('Address', related_name='+', unique=True)
+    address = models.OneToOneField('Address', related_name='+')
     alias = models.CharField(
         pgettext_lazy('Address book entry', 'short alias'),
         max_length=30,

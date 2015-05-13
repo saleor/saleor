@@ -21,8 +21,10 @@ def get_related_products(product):
 
 
 def product_details(request, slug, product_id):
-    product = get_object_or_404(Product.objects.select_subclasses(),
-                                id=product_id)
+    products = Product.objects.select_subclasses()
+    products = products.select_related('category')
+    products = products.prefetch_related('images')
+    product = get_object_or_404(products, id=product_id)
     if product.get_slug() != slug:
         return HttpResponsePermanentRedirect(product.get_absolute_url())
     form_class = get_form_class_for_product(product)

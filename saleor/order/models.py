@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 from decimal import Decimal
+from itertools import chain
 from uuid import uuid4
 
 import emailit.api
@@ -13,7 +14,6 @@ from django.utils.timezone import now
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
-from model_utils.managers import InheritanceManager
 from payments import PurchasedItem
 from payments.models import BasePayment
 from prices import Price
@@ -22,7 +22,7 @@ from satchless.item import ItemSet, ItemLine
 from ..core.utils import build_absolute_uri
 from ..product.models import Product
 from ..userprofile.models import Address, User
-from ..delivery import get_delivery
+from ..delivery import get_delivery_options_for_items
 
 
 @python_2_unicode_compatible
@@ -54,6 +54,11 @@ class Order(models.Model, ItemSet):
                                           editable=False)
     billing_address = models.ForeignKey(Address, related_name='+',
                                         editable=False)
+    shipping_address = models.ForeignKey(Address, related_name='+',
+                                         editable=False)
+    shipping_method = models.CharField(
+        pgettext_lazy('Order field', 'Delivery method'),
+        max_length=255)
     anonymous_user_email = models.EmailField(blank=True, default='',
                                              editable=False)
     token = models.CharField(
@@ -76,9 +81,6 @@ class Order(models.Model, ItemSet):
     def get_items(self):
         return OrderedItem.objects.filter(delivery_group__order=self)
 
-    def get_groups(self):
-        return self.groups.select_subclasses()
-
     def is_fully_paid(self):
         total_paid = sum([payment.total for payment in
                           self.payments.filter(status='confirmed')], Decimal())
@@ -91,7 +93,7 @@ class Order(models.Model, ItemSet):
         return self.anonymous_user_email
 
     def __iter__(self):
-        return iter(self.groups.all().select_subclasses())
+        return iter(self.groups.all())
 
     def __repr__(self):
         return '<Order #%r>' % (self.id,)
@@ -143,20 +145,13 @@ class Order(models.Model, ItemSet):
         self.history.create(status=status, comment=comment, user=user)
 
 
-class DeliveryGroupManager(InheritanceManager):
+class DeliveryGroupManager(models.Manager):
 
     def duplicate_group(self, group):
-        group = self.get_subclass(pk=group.pk)
-        group.pk = None
         group.id = None
         group.status = 'new'
-        if isinstance(group, ShippedDeliveryGroup):
-            address = group.address
-            address.pk = None
-            address.save()
-            group.address = address
         group.save()
-        return group.deliverygroup_ptr
+        return group
 
 
 class DeliveryGroup(models.Model, ItemSet):
@@ -170,9 +165,6 @@ class DeliveryGroup(models.Model, ItemSet):
     status = models.CharField(
         pgettext_lazy('Delivery group field', 'Delivery status'),
         max_length=32, default='new', choices=STATUS_CHOICES)
-    method = models.CharField(
-        pgettext_lazy('Delivery group field', 'Delivery method'),
-        max_length=255)
     order = models.ForeignKey(Order, related_name='groups', editable=False)
     price = PriceField(
         pgettext_lazy('Delivery group field', 'unit price'),
@@ -185,7 +177,7 @@ class DeliveryGroup(models.Model, ItemSet):
 
     def __str__(self):
         return pgettext_lazy(
-            'Delivery group str', 'Delivery group #%s') % self.pk
+            'Delivery group str', 'Shipment #%s') % self.pk
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, list(self))
@@ -194,9 +186,6 @@ class DeliveryGroup(models.Model, ItemSet):
         if self.id:
             return iter(self.items.select_related('product').all())
         return super(DeliveryGroup, self).__iter__()
-
-    def get_method(self):
-        return smart_text(get_delivery(self))
 
     def change_status(self, status):
         self.status = status
@@ -231,27 +220,7 @@ class DeliveryGroup(models.Model, ItemSet):
         return sum([item.get_quantity() for item in self])
 
 
-@python_2_unicode_compatible
-class ShippedDeliveryGroup(DeliveryGroup):
-
-    address = models.ForeignKey(Address, related_name='+')
-
-    def __str__(self):
-        return pgettext_lazy(
-            'Delivery group str', 'Shipped delivery #%s') % self.pk
-
-
-@python_2_unicode_compatible
-class DigitalDeliveryGroup(DeliveryGroup):
-
-    email = models.EmailField()
-
-    def __str__(self):
-        return pgettext_lazy(
-            'Delivery group str', 'Digital delivery #%s') % self.pk
-
-
-class OrderedItemManager(InheritanceManager):
+class OrderedItemManager(models.Manager):
 
     def move_to_group(self, item, target_group, quantity):
         try:
