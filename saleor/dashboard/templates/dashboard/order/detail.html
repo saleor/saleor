@@ -38,17 +38,21 @@
                                 </tr>
                             </thead>
                             <tfoot>
-                                <tr>
-                                    <td colspan="3">
-                                        {% trans "Shipping" %} ({{ order.shipping_method }})
-                                    </td>
-                                    <td class="text-right">
-                                        {% gross group.price %}
-                                    </td>
-                                    <td class="text-right">
-                                        <a class="btn btn-default btn-sm" data-target="#base-modal" href="{% url 'dashboard:ship-delivery-group' pk=group.pk %}" data-toggle="modal" {% if not group.can_ship %}disabled{% endif %}><i class="glyphicon glyphicon-plane"></i> {% trans "Ship" %}</a>
-                                    </td>
-                                </tr>
+                                {% if group.shipping_price.gross or group.is_shipping_required %}
+                                    <tr>
+                                        <td colspan="3">
+                                            {% trans "Shipping" %} ({{ order.shipping_method }})
+                                        </td>
+                                        <td class="text-right">
+                                            {% gross group.shipping_price %}
+                                        </td>
+                                        <td class="text-right">
+                                            {% if group.is_shipping_required %}
+                                                <a class="btn btn-default btn-sm" data-target="#base-modal" href="{% url 'dashboard:ship-delivery-group' pk=group.pk %}" data-toggle="modal" {% if not group.can_ship %}disabled{% endif %}><i class="glyphicon glyphicon-plane"></i> {% trans "Ship" %}</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endif %}
                                 <tr>
                                     <th colspan="3">{% trans "Total" %}</th>
                                     <td class="text-right">
@@ -174,20 +178,22 @@
                     </div>
                     {% endwith %}
                 </div>
-                <div class="panel panel-default">
-                    {% with order.shipping_address as address %}
-                    <div class="panel-heading">
-                        <span class="panel-title">{% trans "Shipping address" %}</span>
-                        <span class="pull-right"><a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}"><i class="glyphicon glyphicon-pencil"></i> Edit</a></span>
-                    </div>
-                    <div class="panel-body">
-                        {% include 'dashboard/includes/_address.html' with address=address only %}
-                        <div>
-                            <i class="glyphicon glyphicon-envelope"></i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
+                {% with order.shipping_address as address %}
+                    {% if address %}
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <span class="panel-title">{% trans "Shipping address" %}</span>
+                                <span class="pull-right"><a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}"><i class="glyphicon glyphicon-pencil"></i> Edit</a></span>
+                            </div>
+                            <div class="panel-body">
+                                {% include 'dashboard/includes/_address.html' with address=address only %}
+                                <div>
+                                    <i class="glyphicon glyphicon-envelope"></i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    {% endwith %}
-                </div>
+                    {% endif %}
+                {% endwith %}
             </div>
         </div>
     </div>
