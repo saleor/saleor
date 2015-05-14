@@ -22,12 +22,11 @@ from satchless.item import ItemSet, ItemLine
 from ..core.utils import build_absolute_uri
 from ..product.models import Product
 from ..userprofile.models import Address, User
-from ..delivery import get_delivery_options_for_items
+from ..delivery import get_delivery
 
 
 @python_2_unicode_compatible
 class Order(models.Model, ItemSet):
-
     STATUS_CHOICES = (
         ('new', pgettext_lazy('Order status field value', 'Processing')),
         ('cancelled', pgettext_lazy('Order status field value',
@@ -55,10 +54,10 @@ class Order(models.Model, ItemSet):
     billing_address = models.ForeignKey(Address, related_name='+',
                                         editable=False)
     shipping_address = models.ForeignKey(Address, related_name='+',
-                                         editable=False)
+                                         editable=False, null=True)
     shipping_method = models.CharField(
         pgettext_lazy('Order field', 'Delivery method'),
-        max_length=255)
+        max_length=255, blank=True)
     anonymous_user_email = models.EmailField(blank=True, default='',
                                              editable=False)
     token = models.CharField(
@@ -115,7 +114,7 @@ class Order(models.Model, ItemSet):
         return reverse('order:details', kwargs={'token': self.token})
 
     def get_delivery_total(self):
-        return sum([group.price for group in self.groups.all()],
+        return sum([group.shipping_price for group in self.groups.all()],
                    Price(0, currency=settings.DEFAULT_CURRENCY))
 
     def send_confirmation_email(self):
@@ -144,6 +143,9 @@ class Order(models.Model, ItemSet):
             status = self.status
         self.history.create(status=status, comment=comment, user=user)
 
+    def is_shipping_required(self):
+        return any(group.is_shipping_required() for group in self.groups.all())
+
 
 class DeliveryGroupManager(models.Manager):
 
@@ -163,11 +165,14 @@ class DeliveryGroup(models.Model, ItemSet):
         ('shipped', pgettext_lazy('Delivery group status field value',
                                   'Shipped')))
     status = models.CharField(
-        pgettext_lazy('Delivery group field', 'Delivery status'),
+        pgettext_lazy('Delivery group field', 'delivery status'),
         max_length=32, default='new', choices=STATUS_CHOICES)
     order = models.ForeignKey(Order, related_name='groups', editable=False)
-    price = PriceField(
-        pgettext_lazy('Delivery group field', 'unit price'),
+    shipping_required = models.BooleanField(
+        pgettext_lazy('Delivery group field', 'shipping required'),
+        default=True)
+    shipping_price = PriceField(
+        pgettext_lazy('Delivery group field', 'shipping price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12,
         decimal_places=4,
         default=0,
@@ -184,7 +189,7 @@ class DeliveryGroup(models.Model, ItemSet):
 
     def __iter__(self):
         if self.id:
-            return iter(self.items.select_related('product').all())
+            return iter(self.items.all())
         return super(DeliveryGroup, self).__iter__()
 
     def change_status(self, status):
@@ -192,12 +197,8 @@ class DeliveryGroup(models.Model, ItemSet):
         self.save()
 
     def get_total(self, **kwargs):
-        return super(DeliveryGroup, self).get_total(**kwargs) + self.price
-
-    def get_weight(self):
-        ids = [item.product_id for item in self]
-        products = Product.objects.select_subclasses().filter(pk__in=ids)
-        return sum(product.get_weight() for product in products)
+        subtotal = super(DeliveryGroup, self).get_total(**kwargs)
+        return subtotal + self.shipping_price
 
     def add_items_from_partition(self, partition):
         for item_line in partition:
@@ -212,12 +213,16 @@ class DeliveryGroup(models.Model, ItemSet):
                 unit_price_gross=price.gross)
 
     def update_delivery_cost(self):
-        delivery = get_delivery(self)
-        self.price = delivery.get_delivery_total(weight=self.get_weight())
-        self.save()
+        if self.order.is_shipping_required():
+            delivery = get_delivery(self.order.shipping_method)
+            self.shipping_price = delivery.get_delivery_total(self)
+            self.save()
 
     def get_total_quantity(self):
         return sum([item.get_quantity() for item in self])
+
+    def is_shipping_required(self):
+        return self.shipping_required
 
 
 class OrderedItemManager(models.Manager):
@@ -253,7 +258,6 @@ class OrderedItemManager(models.Manager):
 
 @python_2_unicode_compatible
 class OrderedItem(models.Model, ItemLine):
-
     delivery_group = models.ForeignKey(
         DeliveryGroup, related_name='items', editable=False)
     product = models.ForeignKey(
@@ -298,7 +302,6 @@ class OrderedItem(models.Model, ItemLine):
 
 
 class Payment(BasePayment):
-
     order = models.ForeignKey(Order, related_name='payments')
 
     def get_failure_url(self):

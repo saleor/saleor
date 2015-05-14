@@ -23,8 +23,7 @@
                 <form action="." method="post">
                     {% csrf_token %}
                     <fieldset>
-                        <legend>Address</legend>
-                        {{ address_book_form|as_vertical_form }}
+                        <legend>{% trans "Address" %}</legend>
                         {{ address_form|as_vertical_form }}
                     </fieldset>
                     <div class="form-group">

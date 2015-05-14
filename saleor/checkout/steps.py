@@ -30,7 +30,6 @@ class BaseCheckoutStep(BaseStep):
 
 
 class BaseAddressStep(BaseCheckoutStep):
-
     template = 'checkout/address.html'
 
     def __init__(self, request, storage, address):
@@ -39,20 +38,20 @@ class BaseAddressStep(BaseCheckoutStep):
         existing_selected = False
         address_form = AddressForm(request.POST or None, instance=self.address)
         if request.user.is_authenticated():
-            address_book = list(request.user.address_book.all())
-            for entry in address_book:
-                data = Address.objects.as_data(entry.address)
+            addresses = list(request.user.addresses.all())
+            for address in addresses:
+                data = Address.objects.as_data(address)
                 instance = Address(**data)
-                entry.form = AddressForm(instance=instance)
-                entry.is_selected = Address.objects.are_identical(
-                    entry.address, self.address)
-                if entry.is_selected:
+                address.form = AddressForm(instance=instance)
+                address.is_selected = Address.objects.are_identical(
+                    address, self.address)
+                if address.is_selected:
                     existing_selected = True
         else:
-            address_book = []
+            addresses = []
         self.existing_selected = existing_selected
         self.forms = {'address': address_form}
-        self.address_book = address_book
+        self.addresses = addresses
 
     def forms_are_valid(self):
         address_form = self.forms['address']
@@ -67,13 +66,12 @@ class BaseAddressStep(BaseCheckoutStep):
     def process(self, extra_context=None):
         context = dict(extra_context or {})
         context['form'] = self.forms['address']
-        context['address_book'] = self.address_book
+        context['addresses'] = self.addresses
         context['existing_address_selected'] = self.existing_selected
         return super(BaseAddressStep, self).process(extra_context=context)
 
 
 class BillingAddressStep(BaseAddressStep):
-
     template = 'checkout/billing.html'
     title = _('Billing Address')
 
@@ -83,10 +81,10 @@ class BillingAddressStep(BaseAddressStep):
         skip = False
         if not address_data and request.user.is_authenticated():
             if request.user.default_billing_address:
-                address = request.user.default_billing_address.address
+                address = request.user.default_billing_address
                 skip = True
-            elif request.user.address_book.count() == 1:
-                address = request.user.address_book.all()[0].address
+            elif request.user.addresses.count() == 1:
+                address = request.user.addresses.all()[0].address
                 skip = True
         super(BillingAddressStep, self).__init__(request, storage, address)
         if not request.user.is_authenticated():
@@ -122,9 +120,7 @@ class BillingAddressStep(BaseAddressStep):
         order.anonymous_user_email = self.anonymous_user_email
         order.billing_address = self.address
         if order.user:
-            alias = '%s, %s' % (order, self)
-            User.objects.store_address(order.user, self.address, alias,
-                                       billing=True)
+            User.objects.store_address(order.user, self.address, billing=True)
 
     def validate(self):
         super(BillingAddressStep, self).validate()
@@ -133,7 +129,6 @@ class BillingAddressStep(BaseAddressStep):
 
 
 class ShippingStep(BaseAddressStep):
-
     template = 'checkout/shipping.html'
     title = _('Shipping Address')
 
@@ -188,15 +183,8 @@ class ShippingStep(BaseAddressStep):
         self.address.save()
         order.shipping_method = self.delivery_method.name
         order.shipping_address = self.address
-        order.save()
-        for partition in self.cart.partition():
-            group = order.groups.create(
-                price=self.delivery_method.get_delivery_total(partition))
-            group.add_items_from_partition(partition)
         if order.user:
-            alias = '%s, %s' % (order, self)
-            User.objects.store_address(order.user, self.address, alias,
-                                       shipping=True)
+            User.objects.store_address(order.user, self.address, shipping=True)
 
     def process(self, extra_context=None):
         context = dict(extra_context or {})
@@ -205,7 +193,6 @@ class ShippingStep(BaseAddressStep):
 
 
 class SummaryStep(BaseCheckoutStep):
-
     template = 'checkout/summary.html'
     title = _('Summary')
 
@@ -238,5 +225,20 @@ class SummaryStep(BaseCheckoutStep):
     def save(self):
         pass
 
-    def add_to_order(self, _order):
+    def add_to_order(self, order):
+        order.save()
+        if self.checkout.is_shipping_required():
+            method = self.checkout.shipping.delivery_method
+        else:
+            method = None
+        for partition in self.checkout.cart.partition():
+            shipping_required = partition.is_shipping_required()
+            if shipping_required and method:
+                shipping_price = method.get_delivery_total(partition)
+            else:
+                shipping_price = 0
+            group = order.groups.create(
+                shipping_required=shipping_required,
+                shipping_price=shipping_price)
+            group.add_items_from_partition(partition)
         self.checkout.clear_storage()

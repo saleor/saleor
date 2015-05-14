@@ -7,8 +7,7 @@ from django.template.response import TemplateResponse
 from django.views.decorators.http import require_POST
 from django.utils.translation import ugettext as _
 
-from .models import AddressBook, Address
-from .forms import AddressBookForm, AddressForm
+from .forms import AddressForm
 
 
 @login_required
@@ -25,92 +24,61 @@ def orders(request):
     return TemplateResponse(request, 'userprofile/orders.html', ctx)
 
 
-def validate_address_and_render(request, address_form, address_book_form,
-                                success_message):
-    if address_form.is_valid() and address_book_form.is_valid():
-        address = address_form.save()
-        address_book_form.instance.address = address
-        address_book_form.save()
-        messages.success(request, success_message)
-        return HttpResponseRedirect(reverse('profile:details'))
-
-    return TemplateResponse(
-        request,
-        'userprofile/address-edit.html',
-        {'address_form': address_form, 'address_book_form': address_book_form})
-
-
 @login_required
 def address_edit(request, slug, pk):
-
-    address_book = get_object_or_404(AddressBook, pk=pk, user=request.user)
-    address = address_book.address
-
-    if not address_book.get_slug() == slug and request.method == 'GET':
-        return HttpResponseRedirect(address_book.get_absolute_url())
-
+    address = get_object_or_404(request.user.addresses, pk=pk)
     address_form = AddressForm(request.POST or None, instance=address)
-    address_book_form = AddressBookForm(
-        request.POST or None, instance=address_book)
-
-    message = _('Address successfully updated.')
-
-    return validate_address_and_render(
-        request, address_form, address_book_form, success_message=message)
+    if address_form.is_valid():
+        address_form.save()
+        message = _('Address successfully updated.')
+        messages.success(request, message)
+        return HttpResponseRedirect(reverse('profile:details'))
+    return TemplateResponse(
+        request, 'userprofile/address-edit.html',
+        {'address_form': address_form})
 
 @login_required
 def address_create(request):
-
+    user = request.user
+    is_first_address = not user.addresses.exists()
     address_form = AddressForm(request.POST or None)
-    address_book_form = AddressBookForm(
-        request.POST or None, instance=AddressBook(user=request.user))
-
-    message = _('Address successfully created.')
-
-    is_first_address = not Address.objects.exists()
-    response = validate_address_and_render(
-        request, address_form, address_book_form, success_message=message)
-    address_book = address_book_form.instance
-    if address_book.pk and is_first_address:
-        user = request.user
-        user.default_shipping_address = address_book
-        user.default_billing_address = address_book
+    if address_form.is_valid():
+        address = address_form.save()
+        user.addresses.add(address)
+        user.default_shipping_address = address
+        user.default_billing_address = address
         user.save(update_fields=[
             'default_shipping_address', 'default_billing_address'])
-    return response
+        message = _('Address successfully created.')
+        messages.success(request, message)
+        return HttpResponseRedirect(reverse('profile:details'))
+    return TemplateResponse(
+        request, 'userprofile/address-edit.html',
+        {'address_form': address_form})
 
 
 @login_required
 def address_delete(request, slug, pk):
-
-    address_book = get_object_or_404(AddressBook, pk=pk, user=request.user)
-
-    if not address_book.get_slug() == slug:
-        raise Http404
-
+    address = get_object_or_404(request.user.addresses, pk=pk)
     if request.method == 'POST':
-        address_book.address.delete()
+        address.delete()
         messages.success(request, _('Address successfully deleted.'))
         return HttpResponseRedirect(reverse('profile:details'))
-
-    return TemplateResponse(request, 'userprofile/address-delete.html',
-                            context={'object': address_book})
+    return TemplateResponse(
+        request, 'userprofile/address-delete.html', {'object': address})
 
 
 @login_required
 @require_POST
 def address_make_default(request, pk, purpose):
     user = request.user
-
-    address_book = get_object_or_404(AddressBook, pk=pk, user=user)
+    address = get_object_or_404(user.addresses, pk=pk)
     if purpose == 'shipping':
-        user.default_shipping_address = address_book
+        user.default_shipping_address = address
         user.save(update_fields=['default_shipping_address'])
     elif purpose == 'billing':
-        user.default_billing_address = address_book
+        user.default_billing_address = address
         user.save(update_fields=['default_billing_address'])
     else:
-        raise AssertionError(
-            '``purpose`` should be ``billing`` or ``shipping``')
-
+        raise Http404('Unknown purpose')
     return redirect('profile:details')

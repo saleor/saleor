@@ -5,17 +5,16 @@ from django.utils.translation import pgettext
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from prices import Price
 from satchless import cart
-from satchless.item import ItemList, Partitioner
+from satchless.item import ItemList, partition
 from saleor.product.models import Product
 
 
 CART_SESSION_KEY = 'cart'
 
-class DigitalGroup(ItemList):
-    '''
-    Group for digital products.
-    '''
-    pass
+class ProductGroup(ItemList):
+
+    def is_shipping_required(self):
+        return any(p.is_shipping_required() for p in self)
 
 
 class CartLine(cart.CartLine):
@@ -27,6 +26,9 @@ class CartLine(cart.CartLine):
     def get_price_per_item(self, **kwargs):
         kwargs.setdefault('discounts', self.discounts)
         return super(CartLine, self).get_price_per_item(**kwargs)
+
+    def is_shipping_required(self):
+        return self.product.is_shipping_required()
 
 
 @python_2_unicode_compatible
@@ -42,6 +44,11 @@ class Cart(cart.Cart):
         super(Cart, self).__init__()
         self.session_cart = session_cart
         self.discounts = discounts
+
+    def __str__(self):
+        return pgettext(
+            'Shopping cart',
+            'Your cart (%(cart_count)s)') % {'cart_count': self.count()}
 
     @classmethod
     def for_session_cart(cls, session_cart, discounts=None):
@@ -62,11 +69,6 @@ class Cart(cart.Cart):
             cart.add(variant, quantity=quantity, check_quantity=False,
                      skip_session_cart=True)
         return cart
-
-    def __str__(self):
-        return pgettext(
-            'Shopping cart',
-            'Your cart (%(cart_count)s)') % {'cart_count': self.count()}
 
     def get_data_for_product(self, variant):
         variant_price = variant.get_price_per_item(discounts=self.discounts)
@@ -93,8 +95,13 @@ class Cart(cart.Cart):
     def create_line(self, product, quantity, data):
         return CartLine(product, quantity, data=data, discounts=self.discounts)
 
+    def is_shipping_required(self):
+        return any(line.is_shipping_required() for line in self)
+
     def partition(self):
-        return Partitioner(self)
+        return partition(
+            self, lambda p: 'physical' if p.is_shipping_required() else 'digital',
+            ProductGroup)
 
 
 class SessionCartLine(cart.CartLine):

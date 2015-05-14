@@ -9,7 +9,7 @@ from django.core.files import File
 from saleor.product.models import (Shirt, ShirtVariant,
                                    Bag, BagVariant, ProductImage)
 from saleor.product.models import Category, Color
-from saleor.userprofile.models import User, Address, AddressBook
+from saleor.userprofile.models import User, Address
 
 
 fake = Factory.create()
@@ -152,12 +152,9 @@ def create_fake_user():
         postal_code=fake.postcode(),
         country=fake.country_code())
 
-    addr_book = AddressBook.objects.create(
-        user=user,
-        address=address)
-
-    user.address_book.add(addr_book)
-    user.default_billing_address = addr_book
+    user.addresses.add(address)
+    user.default_billing_address = address
+    user.default_shipping_address = address
     user.is_active = True
     user.save()
     return user

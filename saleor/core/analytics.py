@@ -45,5 +45,6 @@ def report_order(client_id, order):
                          item_id=oi.product_sku)
                  for oi in group]
         trans = ga.Transaction('%s-%s' % (order.id, group.id), items,
-                               revenue=group.get_total(), shipping=group.price)
+                               revenue=group.get_total(),
+                               shipping=group.shipping_price)
         _report(client_id, trans, {})

@@ -44,16 +44,18 @@
                     </div>
                 </div>
             </div>
-            <div class="col-sm-6">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        {% trans "Shipping address" %}
-                    </div>
-                    <div class="panel-body">
-                        <address>{% include "userprofile/snippets/address-details.html" with address=order.shipping_address %}</address>
+            {% if order.is_shipping_required %}
+                <div class="col-sm-6">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            {% trans "Shipping address" %}
+                        </div>
+                        <div class="panel-body">
+                            <address>{% include "userprofile/snippets/address-details.html" with address=order.shipping_address %}</address>
+                        </div>
                     </div>
                 </div>
-            </div>
+            {% endif %}
         {% endif %}
     </div>
 
@@ -87,13 +89,13 @@
                             <td class="text-right">{% gross item.get_total %}</td>
                         </tr>
                     {% endfor %}
-                    {% if group.price.gross %}
+                    {% if group.shipping_price.gross %}
                         <tr>
                             <td class="col-sm-4">
                                 {% trans "Shipping" %}
                             </td>
-                            <td class="text-right">{% gross group.price %}</td>
-                            <td class="text-right">{% gross group.price %}</td>
+                            <td class="text-right">{% gross group.shipping_price %}</td>
+                            <td class="text-right">{% gross group.shipping_price %}</td>
                         </tr>
                     {% endif %}
                 </tbody>

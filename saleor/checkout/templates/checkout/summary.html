@@ -6,11 +6,6 @@
 
 {% block forms %}
     <div class="row">
-        <div class="col-sm-12">
-            <h1 class="page-header">{% trans "Order details" %}</h1>
-        </div>
-    </div>
-    <div class="row">
         <div class="col-sm-6">
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -26,24 +21,26 @@
                 </div>
             </div>
         </div>
-        <div class="col-sm-6">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    {% trans "Shipping address" %}
-                </div>
-                <div class="panel-body">
-                    {% if checkout.shipping_address %}
-                        <address>{% include "userprofile/snippets/address-details.html" with address=checkout.shipping_address %}</address>
-                    {% else %}
-                        <p class="text-danger">{% trans "No address given yet." %}</p>
-                    {% endif %}
-                    <p><a href="{{ checkout.shipping.get_absolute_url }}">{% trans "Edit shipping details" %}</a></p>
+        {% if checkout.is_shipping_required %}
+            <div class="col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        {% trans "Shipping address" %}
+                    </div>
+                    <div class="panel-body">
+                        {% if checkout.shipping_address %}
+                            <address>{% include "userprofile/snippets/address-details.html" with address=checkout.shipping_address %}</address>
+                        {% else %}
+                            <p class="text-danger">{% trans "No address given yet." %}</p>
+                        {% endif %}
+                        <p><a href="{{ checkout.shipping.get_absolute_url }}">{% trans "Edit shipping details" %}</a></p>
+                    </div>
                 </div>
             </div>
-        </div>
+        {% endif %}
     </div>
 
-    {% for delivery, delivery_cost, total_with_delivery in checkout.deliveries %}
+    {% for delivery, delivery_cost, total_with_delivery in checkout.get_deliveries %}
         <div class="panel panel-default">
             <div class="panel-heading">
                 {% blocktrans with number=forloop.counter %}Shipment #{{ number }}{% endblocktrans %}

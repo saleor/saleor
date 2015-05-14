@@ -24,9 +24,6 @@ class BaseDelivery(ItemSet):
 class DummyShipping(BaseDelivery):
     name = 'dummy_shipping'
 
-    def __init__(self, address):
-        self.address = address
-
     def __str__(self):
         return 'Dummy shipping'
 
@@ -38,7 +35,10 @@ class DummyShipping(BaseDelivery):
 
 def get_delivery_options_for_items(items, **kwargs):
     if 'address' in kwargs:
-        shipping = DummyShipping(kwargs['address'])
-        yield shipping
+        yield DummyShipping()
     else:
         raise ValueError('Unknown delivery type')
+
+
+def get_delivery(name):
+    return DummyShipping()
