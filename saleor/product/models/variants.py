@@ -118,3 +118,6 @@ class ProductVariant(models.Model, Item):
             'variant_id': self.pk,
             'unit_price': str(self.get_price_per_item().gross)
         }
+
+    def is_shipping_required(self):
+        return True

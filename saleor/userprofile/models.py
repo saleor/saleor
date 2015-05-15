@@ -15,71 +15,24 @@ from unidecode import unidecode
 from ..core.countries import COUNTRY_CHOICES
 
 
-class AddressBookManager(models.Manager):
-
-    def store_address(self, user, address, alias):
-        data = Address.objects.as_data(address)
-        query = dict(('address__%s' % (key,), value)
-                     for key, value in data.items())
-        candidates = self.get_queryset().filter(user=user, **query)
-        candidates = candidates.select_for_update()
-        try:
-            entry = candidates[0]
-        except IndexError:
-            address = Address.objects.create(**data)
-            entry = AddressBook.objects.create(user=user, address=address,
-                                               alias=alias)
-        return entry
-
-
-@python_2_unicode_compatible
-class AddressBook(models.Model):
-
-    user = models.ForeignKey('User', related_name='address_book')
-    address = models.ForeignKey('Address', related_name='+', unique=True)
-    alias = models.CharField(
-        pgettext_lazy('Address book entry', 'short alias'),
-        max_length=30,
-        default='Home',
-        help_text=pgettext_lazy(
-            'Address book entry',
-            'A short, descriptive name for this address'))
-
-    objects = AddressBookManager()
-
-    class Meta:
-        unique_together = ('user', 'alias')
-
-    def __str__(self):
-        return self.alias
-
-    @models.permalink
-    def get_absolute_url(self):
-        return ('profile:address-edit',
-                (),
-                {'slug': self.get_slug(), 'pk': self.id})
-
-    def get_slug(self):
-        value = unidecode(self.alias)
-        value = re.sub(r'[^\w\s-]', '', value).strip().lower()
-
-        return mark_safe(re.sub(r'[-\s]+', '-', value))
-
-
 class AddressManager(models.Manager):
 
-    def as_data(self, addr):
-        return model_to_dict(addr, exclude=['id', 'user'])
+    def as_data(self, address):
+        return model_to_dict(address, exclude=['id', 'user'])
 
     def are_identical(self, addr1, addr2):
         data1 = self.as_data(addr1)
         data2 = self.as_data(addr2)
         return data1 == data2
 
+    def store_address(self, user, address):
+        data = self.as_data(address)
+        address, created = user.addresses.get_or_create(**data)
+        return address
+
 
 @python_2_unicode_compatible
 class Address(models.Model):
-
     first_name = models.CharField(
         pgettext_lazy('Address field', 'first name'),
         max_length=256)
@@ -152,9 +105,8 @@ class UserManager(BaseUserManager):
         return self.create_user(email, password, is_staff=True,
                                 is_superuser=True, **extra_fields)
 
-    def store_address(self, user, address, alias,
-                      billing=False, shipping=False):
-        entry = AddressBook.objects.store_address(user, address, alias)
+    def store_address(self, user, address, billing=False, shipping=False):
+        entry = Address.objects.store_address(user, address)
         changed = False
         if billing and not user.default_billing_address_id:
             user.default_billing_address = entry
@@ -169,9 +121,7 @@ class UserManager(BaseUserManager):
 @python_2_unicode_compatible
 class User(PermissionsMixin, models.Model):
     email = models.EmailField(unique=True)
-
-    addresses = models.ManyToManyField(Address, through=AddressBook)
-
+    addresses = models.ManyToManyField(Address)
     is_staff = models.BooleanField(
         pgettext_lazy('User field', 'staff status'),
         default=False)
@@ -188,11 +138,11 @@ class User(PermissionsMixin, models.Model):
         pgettext_lazy('User field', 'last login'),
         default=timezone.now, editable=False)
     default_shipping_address = models.ForeignKey(
-        AddressBook, related_name='+', null=True, blank=True,
+        Address, related_name='+', null=True, blank=True,
         on_delete=models.SET_NULL,
         verbose_name=pgettext_lazy('User field', 'default shipping address'))
     default_billing_address = models.ForeignKey(
-        AddressBook, related_name='+', null=True, blank=True,
+        Address, related_name='+', null=True, blank=True,
         on_delete=models.SET_NULL,
         verbose_name=pgettext_lazy('User field', 'default billing address'))
 

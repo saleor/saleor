@@ -17,8 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 def details(request, token):
-    order = get_object_or_404(Order, token=token)
-    groups = order.groups.select_subclasses().all()
+    orders = Order.objects.prefetch_related('groups__items')
+    order = get_object_or_404(orders, token=token)
+    groups = order.groups.all()
     payments = order.payments.all()
     form_data = request.POST or None
     try:
