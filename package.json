@@ -1,0 +1,34 @@
+{
+  "name": "saleor-gh-pages",
+  "version": "1.0.0",
+  "description": "Saleor site",
+  "main": "index.html",
+  "scripts": {
+    "build": "npm run copy && npm run jade && npm run scss",
+    "copy": "cp node_modules/bootstrap-sass/assets/javascripts/bootstrap.min.js .;cp node_modules/jquery/dist/jquery.min.js .",
+    "jade": "node_modules/jade/bin/jade.js src/index.jade -o ./",
+    "reload": "node_modules/browser-sync/bin/browser-sync.js reload --port 3004",
+    "scss": "node_modules/node-sass/bin/node-sass src/style.scss style.css --source-map style.css.map",
+    "sync": "node_modules/browser-sync/bin/browser-sync.js start --server --port 3004 --files='index.html, style.css'",
+    "watch": "node_modules/watch/cli.js 'npm run jade && npm run scss' src"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mirumee/saleor.git"
+  },
+  "author": "Mirumee Software",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mirumee/saleor/issues"
+  },
+  "devDependencies": {
+    "jade": "~1.9.2",
+    "watch": "~0.16.0",
+    "browser-sync": "~2.7.1",
+    "node-sass": "~3.1.0",
+    "bootstrap-sass": "~3.3.4",
+    "font-awesome": "~4.3.0",
+    "sass-flex-mixin": "~1.0.0",
+    "jquery": "~2.1.4"
+  }
+}
