@@ -1,0 +1,274 @@
+// Bootstrap variables
+$border-radius-base: 0;
+$border-radius-large: 0;
+
+$brand-primary: #304C58;
+$brand-info: #379AD5;
+$brand-warning: #FF9900;
+$gray-light: #A6A6A6;
+$gray-lighter: #DADADA;
+
+$btn-font-weight: 700;
+$btn-primary-color: $brand-primary;
+$btn-primary-bg: transparent;
+$btn-primary-border: $brand-primary;
+
+$font-family-sans-serif: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+$font-size-base: 14px;
+$font-size-h1: 7vmin;
+$font-size-h2: 5vmin;
+$font-size-h3: 3.5vmin;
+
+$jumbotron-padding: 0;
+$jumbotron-color: $brand-warning;
+$jumbotron-heading-color: white;
+$jumbotron-bg: $brand-primary;
+
+$navbar-height: 50px;
+$navbar-margin-bottom: 0;
+$navbar-border-radius: 0;
+$navbar-padding-horizontal: 0;
+$navbar-padding-vertical: 0;
+$navbar-default-color: white;
+$navbar-default-bg: transparent;
+$navbar-default-link-color: white;
+$navbar-default-link-hover-color: darken(white, 15%);
+$navbar-default-link-active-color: darken(white, 15%);
+$navbar-default-brand-color: $navbar-default-link-color !default;
+$navbar-default-brand-hover-color: $navbar-default-link-hover-color;
+$navbar-default-toggle-hover-bg: #ddd !default;
+$navbar-default-toggle-icon-bar-bg: #888 !default;
+$navbar-default-toggle-border-color: #ddd !default;
+
+$padding-base-vertical:     10px !default;
+$padding-base-horizontal:   16px !default;
+
+$padding-large-vertical:    15px !default;
+$padding-large-horizontal:  24px !default;
+
+$text-color: $gray-light;
+
+// Font awesome variables
+$fa-font-path: "//netdna.bootstrapcdn.com/font-awesome/4.3.0/fonts";
+
+// Custom variables
+$transition-duration: .2s;
+
+@import "../node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
+@import "../node_modules/font-awesome/scss/font-awesome";
+@import "../node_modules/sass-flex-mixin/flex";
+
+.btn {
+  text-transform: uppercase;
+}
+
+.navbar {
+  position: absolute;
+  top: $grid-gutter-width/2;
+  width: 100%;
+
+  @media (min-width: $grid-float-breakpoint) {
+    top: 4em;
+  }
+
+  &-right {
+    text-transform: uppercase;
+
+    > li {
+      > a {
+        @media (max-width: $grid-float-breakpoint-max) {
+          background: white;
+          color: $brand-primary !important;
+        }
+      }
+
+      @media (min-width: $grid-float-breakpoint) {
+        display: inline-block;
+        float: none;
+        vertical-align: middle;
+
+        a.btn-white {
+          display: block;
+          float: none;
+
+          &:hover, &:focus {
+            background-color: white;
+            border-color: $brand-primary;
+            color: $brand-primary;
+          }
+        }
+      }
+    }
+  }
+
+  &-toggle {
+    margin: 0 0 0 $grid-gutter-width;
+    padding: $padding-base-vertical $padding-base-vertical*1.2;
+  }
+
+  .btn-white {
+    @extend .btn;
+    @include button-variant(white, transparent, white);
+    float: right;
+    font-size: $font-size-base;
+
+    @media (min-width: $grid-float-breakpoint) {
+      display: none;
+    }
+  }
+}
+
+.jumbotron {
+  @include flexbox;
+  @include justify-content(center);
+  @include align-items(center);
+  height: 100vh;
+
+  .container {
+    margin: 0;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  &-header {
+    font-weight: 300;
+    line-height: 1.2;
+    margin: 2em 0 1em;
+
+    b {
+      display: block;
+      font-weight: 900;
+    }
+  }
+
+  & &-intro {
+    font-size: $font-size-h3;
+    font-weight: 200;
+
+    span {
+      display: block;
+    }
+  }
+}
+
+.section {
+  padding: 4em 0;
+  text-align: center;
+
+  & &-header {
+    color: $brand-info;
+    font-size: $font-size-h2;
+    font-weight: 200;
+    margin: {
+      top: 0;
+      bottom: 1em;
+    }
+    text-transform: uppercase;
+  }
+
+  &-image {
+    margin-bottom: 1.5em;
+  }
+
+  &-text {
+    margin-bottom: 0;
+  }
+
+  &-header, &-image, &-text {
+    margin: {
+      left: auto;
+      right: auto;
+    }
+    max-width: 800px;
+    width: 80vmin;
+  }
+
+  &-button {
+    @extend .btn, .btn-primary;
+    font-size: $font-size-large;
+    margin-top: 1.5em;
+
+    &:hover, &:focus {
+      background-color: $brand-primary;
+      color: white;
+    }
+
+    &--lg {
+      font-size: $font-size-large;
+      margin: {
+        left: 8vmin;
+        right: 8vmin;
+      }
+
+      &-additional {
+        display: block;
+        font-size: $font-size-small;
+      }
+    }
+
+    &--strong {
+      background-color: $brand-warning;
+      color: white;
+    }
+  }
+
+  &--get {
+    background-color: $gray-lighter;
+
+    & &-header {
+      color: $brand-primary;
+      font-size: $font-size-h1;
+      font-weight: 900;
+    }
+  }
+}
+
+.social-links {
+  &-item {
+    display: inline-block;
+    list-style: none;
+    margin: 0 3vmin;
+  }
+
+  &-link {
+    background-color: $brand-info;
+    border-radius: 50%;
+    color: white;
+    display: inline-block;
+    font-size: 5vmin;
+    text-align: center;
+    vertical-align: middle;
+    width: 7vmin;
+
+    &:hover, &:focus {
+      color: $gray-lighter;
+    }
+  }
+
+  @each $social-media in (twitter, facebook) {
+    &-#{$social-media} {
+      @extend .fa;
+      @extend .fa-#{$social-media};
+    }
+  }
+}
+
+.footer {
+  text-align: center;
+  padding-bottom: 3em;
+
+  &-link {
+    color: $text-color;
+    display: block;
+    font-weight: 400;
+  }
+}
+
+a, .btn {
+  @include transition(background-color $transition-duration, border-color $transition-duration, color $transition-duration);
+  text-decoration: none;
+
+  &:hover, &:focus {
+    text-decoration: none;
+  }
+}
