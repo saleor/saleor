@@ -1,14 +1,4 @@
 !.gitignore
 .*
+bower_components
 node_modules
-*.log
-*.pot
-*.pyc
-local_settings.py
-dev.sqlite
-build/
-dist/
-*\.egg*
-#data
-/media/
-/static/

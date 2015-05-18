@@ -4,13 +4,13 @@
   "description": "Saleor site",
   "main": "index.html",
   "scripts": {
-    "build": "npm run copy && npm run jade && npm run scss",
-    "copy": "cp node_modules/bootstrap-sass/assets/javascripts/bootstrap.min.js .;cp node_modules/jquery/dist/jquery.min.js .",
-    "jade": "node_modules/jade/bin/jade.js src/index.jade -o ./",
+    "build": "npm run jade && npm run scss && npm run uglify",
+    "jade": "node_modules/jade/bin/jade.js src/*.jade -o ./",
     "reload": "node_modules/browser-sync/bin/browser-sync.js reload --port 3004",
-    "scss": "node_modules/node-sass/bin/node-sass src/style.scss style.css --source-map style.css.map",
-    "sync": "node_modules/browser-sync/bin/browser-sync.js start --server --port 3004 --files='index.html, style.css'",
-    "watch": "node_modules/watch/cli.js 'npm run jade && npm run scss' src"
+    "scss": "node_modules/node-sass/bin/node-sass src/style.scss static/style.css --source-map static/style.css.map",
+    "sync": "node_modules/browser-sync/bin/browser-sync.js start --server --port 3004",
+    "uglify": "node_modules/uglify-js/bin/uglifyjs node_modules/jquery/dist/jquery.js node_modules/bootstrap-sass/assets/javascripts/bootstrap.js bower_components/typed.js/js/typed.js src/site.js --output static/site.js --compress --mangle --source-map site.js.map",
+    "watch": "node_modules/watch/cli.js 'npm run jade && npm run scss && npm run uglify && npm run reload' src"
   },
   "repository": {
     "type": "git",
@@ -29,6 +29,7 @@
     "bootstrap-sass": "~3.3.4",
     "font-awesome": "~4.3.0",
     "sass-flex-mixin": "~1.0.0",
-    "jquery": "~2.1.4"
+    "jquery": "~2.1.4",
+    "uglify-js": "~2.4.22"
   }
 }
