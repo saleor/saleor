@@ -7,7 +7,7 @@ from django.utils.translation import get_language
 from . import analytics
 from ..product.models import FixedProductDiscount
 
-logger = logging.getLogger('saleor')
+logger = logging.getLogger(__name__)
 
 
 class CheckHTML(object):
@@ -31,8 +31,11 @@ class GoogleAnalytics(object):
         language = get_language()
         headers = request.META
         # FIXME: on production you might want to run this in background
-        analytics.report_view(client_id, path=path, language=language,
-                              headers=headers)
+        try:
+            analytics.report_view(client_id, path=path, language=language,
+                                  headers=headers)
+        except Exception:
+            logger.exception('Unable to update analytics')
 
 
 class DiscountMiddleware(object):
