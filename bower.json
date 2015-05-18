@@ -1,0 +1,12 @@
+{
+  "name": "saleor-gh-pages",
+  "version": "1.0.0",
+  "authors": [
+    "Mirumee Software"
+  ],
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "typed.js": "*"
+  }
+}
