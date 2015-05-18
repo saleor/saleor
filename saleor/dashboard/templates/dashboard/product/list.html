@@ -1,7 +1,6 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load prices_i18n %}
-{% load images %}
 {% load bootstrap %}
 
 {% block title %}{% trans "Products" %} - {{ block.super }}{% endblock %}
@@ -28,25 +27,24 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>{% trans "Image" %}</th>
-                        <th>{% trans "Name" %}</th>
-                        <th>{% trans "Collection" %}</th>
-                        <th>{% trans "Price" %}</th>
+                        <th colspan="2" class="col-sm-6">{% trans "Name" %}</th>
+                        <th class="col-sm-4">{% trans "Collection" %}</th>
+                        <th class="col-sm-2 text-right">{% trans "Price" %}</th>
                     </tr>
                 </thead>
                 <tbody>
                 {% for product in products %}
                     <tr>
-                        <td>
+                        <td class="col-sm-1">
                             {% if product.images.exists %}
-                                <img class="img-responsive" src="{{ product.images.first|at_size:"admin" }}" alt="">
+                                <img class="img-responsive" src="{{ product.images.first.image.crop.50x50 }}" alt="">
                             {% else %}
                                 <img class="img-responsive" src="http://placehold.it/50x50/&text=Product Image" alt="">
                             {% endif %}
                         </td>
-                        <td><a href="{% url 'dashboard:product-update' pk=product.pk %}">{{ product.name }}</a></td>
+                        <td class="col-sm-5"><a href="{% url 'dashboard:product-update' pk=product.pk %}">{{ product.name }}</a></td>
                         <td>{{ product.collection }}</td>
-                        <td>{% gross product.price %}</td>
+                        <td class="text-right">{% gross product.price %}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

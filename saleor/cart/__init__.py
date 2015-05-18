@@ -6,7 +6,6 @@ from django.utils.encoding import python_2_unicode_compatible, smart_text
 from prices import Price
 from satchless import cart
 from satchless.item import ItemList, partition
-from saleor.product.models import Product
 
 
 CART_SESSION_KEY = 'cart'
@@ -52,6 +51,8 @@ class Cart(cart.Cart):
 
     @classmethod
     def for_session_cart(cls, session_cart, discounts=None):
+        from saleor.product.models import Product
+
         cart = Cart(session_cart, discounts=discounts)
         product_ids = [item.data['product_id'] for item in session_cart]
         products = Product.objects.filter(id__in=product_ids)

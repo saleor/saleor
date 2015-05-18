@@ -15,7 +15,7 @@ def get_related_products(product):
     if not product.collection:
         return []
     related_products = Product.objects.filter(
-        collection=product.collection)
+        collection=product.collection).exclude(id=product.id)
     related_products = related_products.prefetch_related('images')
     return related_products
 

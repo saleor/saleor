@@ -84,3 +84,6 @@ class Product(models.Model, ItemRange):
         return self.get_formatted_price(price)
     admin_get_price_max.short_description = pgettext_lazy(
         'Product admin page', 'Maximum price')
+
+    def is_available(self):
+        return False

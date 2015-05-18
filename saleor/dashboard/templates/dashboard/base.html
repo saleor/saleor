@@ -9,15 +9,13 @@
 
     <title>{% block title %}{% trans "Dashboard - Saleor" %}{% endblock %}</title>
 
-    <!-- Page-Level Plugin CSS - Blank -->
-
-    <!-- SB Admin CSS - Include with every page -->
-   {% if debug %}
+    {% if debug %}
         <link rel="stylesheet/less" type="text/css" href="{% static "less/dashboard.less" %}">
         <script type="text/javascript" src="{% static "dist/js/less.min.js" %}"></script>
     {% else %}
         <link rel="stylesheet" type="text/css" href="{% static "css/dashboard.css" %}">
     {% endif %}
+    <link rel="stylesheet" type="text/css" href="{% static "versatileimagefield/css/versatileimagefield.css" %}">
     {% block custom_css %}
     {% endblock %}
 </head>
@@ -62,6 +60,7 @@
 <!-- Core Scripts - Include with every page -->
 <script src="{% static "dist/js/jquery.min.js" %}"></script>
 <script src="{% static "dist/js/bootstrap.min.js" %}"></script>
+<script src="{% static "versatileimagefield/js/versatileimagefield.js" %}"></script>
 
 {% block custom_js %}{% endblock %}
 </body>

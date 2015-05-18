@@ -21,8 +21,7 @@ class ShirtForm(AddToCartForm):
     def __init__(self, *args, **kwargs):
         super(ShirtForm, self).__init__(*args, **kwargs)
         available_sizes = [
-            (p.size, p.get_size_display()) for p in self.product.variants.all()
-        ]
+            (p.size, p.get_size_display()) for p in self.product.variants.all()]
         self.fields['size'].choices = available_sizes
 
     def get_variant(self, clean_data):
@@ -36,8 +35,7 @@ class ShirtAdminForm(forms.ModelForm):
         model = Shirt
         exclude = []
         widgets = {
-            'collection': AutoCompleteWidget(CollectionLookup)
-        }
+            'collection': AutoCompleteWidget(CollectionLookup)}
 
 
 class ProductVariantInline(forms.models.BaseInlineFormSet):
