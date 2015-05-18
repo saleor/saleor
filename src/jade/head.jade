@@ -1,0 +1,28 @@
+doctype html
+html(lang="en")
+    head
+        meta(charset="utf-8")
+        title Saleor
+        meta(name="viewport", content="width=device-width,initial-scale=1")
+        link(href="static/style.css", rel="stylesheet")
+    body
+        header.header
+            nav(class=["navbar", "navbar-default"])
+                div.container
+                    div.navbar-header
+                        button(type="button", class=["navbar-toggle", "collapsed"], data-toggle="collapse", data-target="#navbar")
+                            span.sr-only Toggle navigation
+                            i(class=["fa", "fa-bars"])
+                        a(class=["btn-white"], href="#") Get Saleor
+                        a.navbar-brand(href="/") Saleor
+                    div#navbar(class=["collapse", "navbar-collapse"])
+                        ul(class=["nav", "navbar-nav", "navbar-right"])
+                            li
+                                a(href="#") Demo
+                            li
+                                a(href="/developers.html") Developers
+                            li
+                                a(href="#") Business
+                            li
+                                a(class=["btn-white"], href="#") Get Saleor
+        main

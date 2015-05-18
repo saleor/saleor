@@ -8,14 +8,15 @@ $brand-warning: #FF9900;
 $gray-light: #A6A6A6;
 $gray-lighter: #DADADA;
 
-$btn-font-weight: 700;
 $btn-primary-color: $brand-primary;
 $btn-primary-bg: transparent;
 $btn-primary-border: $brand-primary;
 
-$font-family-sans-serif: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
-$font-size-base: 14px;
-$font-size-h1: 7vmin;
+$font-family-sans-serif: "HurmeGeometricSans4-Regular", "Helvetica Neue", Helvetica, Arial, sans-serif;
+$font-family-sans-serif-black: "HurmeGeometricSans4-Black", "Helvetica Neue", Helvetica, Arial, sans-serif;
+$font-family-sans-serif-light: "HurmeGeometricSans4-Light", "Helvetica Neue", Helvetica, Arial, sans-serif;
+$font-size-base: 16px;
+$font-size-h1: 6.5vmin;
 $font-size-h2: 5vmin;
 $font-size-h3: 3.5vmin;
 
@@ -40,11 +41,11 @@ $navbar-default-toggle-hover-bg: #ddd !default;
 $navbar-default-toggle-icon-bar-bg: #888 !default;
 $navbar-default-toggle-border-color: #ddd !default;
 
-$padding-base-vertical:     10px !default;
-$padding-base-horizontal:   16px !default;
+$padding-base-vertical: 10px;
+$padding-base-horizontal: 16px;
 
-$padding-large-vertical:    15px !default;
-$padding-large-horizontal:  24px !default;
+$padding-large-vertical: 15px;
+$padding-large-horizontal: 36px;
 
 $text-color: $gray-light;
 
@@ -57,9 +58,11 @@ $transition-duration: .2s;
 @import "../node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
 @import "../node_modules/font-awesome/scss/font-awesome";
 @import "../node_modules/sass-flex-mixin/flex";
+@import "scss/webfont";
 
 .btn {
   text-transform: uppercase;
+  font-family: $font-family-sans-serif-black;
 }
 
 .navbar {
@@ -71,6 +74,17 @@ $transition-duration: .2s;
     top: 4em;
   }
 
+  &-brand {
+    font-size: 10vmin;
+    letter-spacing: -.5vmin;
+    line-height: 12vmin;
+
+    @media (min-width: $grid-float-breakpoint) {
+      font-size: 6vmin;
+      line-height: 6vmin;
+    }
+  }
+
   &-right {
     text-transform: uppercase;
 
@@ -80,6 +94,10 @@ $transition-duration: .2s;
           background: white;
           color: $brand-primary !important;
         }
+      }
+
+      a.btn-white {
+        display: none;
       }
 
       @media (min-width: $grid-float-breakpoint) {
@@ -123,6 +141,8 @@ $transition-duration: .2s;
   @include justify-content(center);
   @include align-items(center);
   height: 100vh;
+  background-repeat: no-repeat;
+  background-size: cover;
 
   .container {
     margin: 0;
@@ -130,23 +150,76 @@ $transition-duration: .2s;
     text-transform: uppercase;
   }
 
-  &-header {
-    font-weight: 300;
+  & &-header {
+    font-family: $font-family-sans-serif-light;
+    font-size: $font-size-h1;
     line-height: 1.2;
     margin: 2em 0 1em;
 
     b {
+      font-family: $font-family-sans-serif-black;
+      font-weight: normal;
+    }
+
+    span:not(.typed-cursor) {
       display: block;
-      font-weight: 900;
+    }
+
+    @keyframes blink {
+      0% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+    @-webkit-keyframes blink {
+      0% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+    @-moz-keyframes blink {
+      0% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
+    .typed-cursor {
+      @include animation(blink .7s infinite);
     }
   }
 
   & &-intro {
+    font-family: $font-family-sans-serif-light;
     font-size: $font-size-h3;
-    font-weight: 200;
 
     span {
       display: block;
+    }
+
+    &--subpage {
+      color: $brand-info;
+    }
+  }
+
+  @each $jumbotron in (home, developers, business) {
+    &--#{$jumbotron} {
+      background-image: url("images/hero-#{$jumbotron}.jpg");
     }
   }
 }
@@ -157,8 +230,8 @@ $transition-duration: .2s;
 
   & &-header {
     color: $brand-info;
+    font-family: $font-family-sans-serif-light;
     font-size: $font-size-h2;
-    font-weight: 200;
     margin: {
       top: 0;
       bottom: 1em;
@@ -185,7 +258,7 @@ $transition-duration: .2s;
 
   &-button {
     @extend .btn, .btn-primary;
-    font-size: $font-size-large;
+    font-size: $font-size-base;
     margin-top: 1.5em;
 
     &:hover, &:focus {
@@ -199,10 +272,12 @@ $transition-duration: .2s;
         left: 8vmin;
         right: 8vmin;
       }
+      padding: $padding-large-vertical $padding-large-horizontal;
 
       &-additional {
         display: block;
         font-size: $font-size-small;
+        line-height: .8;
       }
     }
 
@@ -217,8 +292,8 @@ $transition-duration: .2s;
 
     & &-header {
       color: $brand-primary;
+      font-family: $font-family-sans-serif-black;
       font-size: $font-size-h1;
-      font-weight: 900;
     }
   }
 }
@@ -237,11 +312,14 @@ $transition-duration: .2s;
     display: inline-block;
     font-size: 5vmin;
     text-align: center;
-    vertical-align: middle;
     width: 7vmin;
 
     &:hover, &:focus {
       color: $gray-lighter;
+    }
+
+    .fa {
+      vertical-align: middle;
     }
   }
 
@@ -256,11 +334,16 @@ $transition-duration: .2s;
 .footer {
   text-align: center;
   padding-bottom: 3em;
+  font-size: 13px;
+
+  small {
+    font-size: 100%;
+  }
 
   &-link {
     color: $text-color;
     display: block;
-    font-weight: 400;
+    font-weight: normal;
   }
 }
 
