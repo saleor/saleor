@@ -61,7 +61,6 @@ def create_product(product_type, **kwargs):
 def create_variant(product, **kwargs):
     defaults = {
         'stock': fake.random_int(),
-        'name': fake.word(),
         'sku': fake.random_int(1, 100000),
         'product': product
     }

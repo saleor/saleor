@@ -2,7 +2,6 @@
 {% load prices_i18n %}
 {% load i18n %}
 {% load bootstrap %}
-{% load images %}
 {% load static %}
 
 {% block title %}{{ title }} - {% trans "Products" %} - {{ block.super }}{% endblock %}
@@ -38,9 +37,73 @@
                 <div class="panel-heading">
                     <span class="panel-title">{% trans "Variants" %}</span>
                 </div>
-                <div class="panel-body">
-                    {% include "dashboard/includes/_formset_table.html" with formset=variant_formset %}
-                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "SKU" %}</th>
+                            {% for field in variant_formset.0.visible_fields %}
+                                {% if field.name != 'sku' and field.name != 'DELETE' %}
+                                    <th>{{ field.label }}</th>
+                                {% endif %}
+                            {% endfor %}
+                            <th class="text-right"><i class="glyphicon glyphicon-trash"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for form in variant_formset.initial_forms %}
+                        <tr>
+                            <td>
+                                {% for field in form.hidden_fields %}
+                                    {{ field }}
+                                {% endfor %}
+                                {{ form.sku|as_vertical_form:False }}
+                            </td>
+                            {% for field in form.visible_fields %}
+                                {% if field.name != 'sku' and field.name != 'DELETE' %}
+                                    <td>
+                                        <div class="{% if field.errors %} has-error{% endif %}{% if field.required %} required{% endif %}">
+                                            {{ field|as_vertical_form:False }}
+                                            {% if field.errors %}
+                                                {% for error in field.errors %}
+                                                    <span class="label label-danger">{{ error }}</span>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                {% endif %}
+                            {% endfor %}
+                            <td class="text-right">
+                                {{ form.DELETE }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    {% for form in variant_formset.extra_forms %}
+                        <tr>
+                            <td>
+                                {% for field in form.hidden_fields %}
+                                    {{ field }}
+                                {% endfor %}
+                                {{ form.sku|as_vertical_form:False }}
+                            </td>
+                            {% for field in form.visible_fields %}
+                                {% if field.name != 'sku' and field.name != 'DELETE' %}
+                                    <td>
+                                        <div class="{% if field.errors %} has-error{% endif %}{% if field.required %} required{% endif %}">
+                                            {{ field|as_vertical_form:False }}
+                                            {% if field.errors %}
+                                                {% for error in field.errors %}
+                                                    <span class="label label-danger">{{ error }}</span>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                {% endif %}
+                            {% endfor %}
+                            <td></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
             </div>
 
             {{ image_formset.management_form }}
@@ -48,9 +111,38 @@
                 <div class="panel-heading">
                     <span class="panel-title">{% trans "Images" %}</span>
                 </div>
-                <div class="panel-body">
-                    {% include "dashboard/includes/_formset_table.html" with formset=image_formset %}
-                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th colspan="1" class="col-sm-11">{% trans "Image" %}</th>
+                            <th class="text-right"><i class="glyphicon glyphicon-trash"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for form in image_formset.initial_forms %}
+                        <tr>
+                            <td>
+                                {% for field in form.hidden_fields %}
+                                    {{ field }}
+                                {% endfor %}
+                                {{ form.image }}
+                            </td>
+                            <td class="text-right">
+                                {{ form.DELETE }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    {% for form in image_formset.extra_forms %}
+                        <tr>
+                            <td>
+                                {{ form.image }}
+                            </td>
+                            <td></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+
             </div>
         </div>
 
@@ -61,7 +153,7 @@
                 </div>
                 <div class="panel-body">
                     {% if product.images.exists %}
-                        <img class="img-responsive" src="{{ product.images.first|at_size:"small" }}" alt="">
+                        <img class="img-responsive" src="{{ product.images.first.image.thumbnail.300x300 }}" alt="">
                     {% else %}
                         <img class="img-responsive" src="http://placehold.it/300x300/&text=Product Image" alt="">
                     {% endif %}

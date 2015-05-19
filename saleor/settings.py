@@ -121,8 +121,8 @@ INSTALLED_APPS = [
     'saleor.dashboard',
 
     # External apps
+    'versatileimagefield',
     'babeldjango',
-    'django_images',
     'django_prices',
     'emailit',
     'mptt',

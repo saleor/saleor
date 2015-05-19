@@ -1,11 +1,8 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% load at_size from images %}
 {% load slice from shop %}
 {% load price_range from price_ranges %}
 {% load discounted_price_range price_difference from discount %}
-
-
 
 {% block title %}{{ category }} — {{ block.super }}{% endblock %}
 
@@ -20,22 +17,23 @@
         <div class="row">
             {% for product in row %}
                 <div class="col-sm-6">
-                    {% with price_range=product|discounted_price_range:request.discounts undiscounted=product.get_price_range %}
-                        {% with discount=undiscounted.min_price|price_difference:price_range.min_price %}
-                            <h3><a href="{{ product.get_absolute_url }}">{{ product }}</a>
-                            {% if undiscounted.min_price != price_range.min_price %}
-                                <span class="label label-success">{% trans "Discount!" %}</span>
-                            </h3>
-                            {% endif %}
-                            <h4>{% price_range price_range %}</h4>
-                        {% endwith %}
-                    {% endwith %}
-
-
                     {% if product.images.exists %}
                         <a href="{{ product.get_absolute_url }}">
-                            <img class="img-responsive" src="{{ product.images.first|at_size:"normal" }}" alt="">
+                            <img class="img-responsive" src="{{ product.images.first.image.thumbnail.750x750 }}" alt="">
                         </a>
+                    {% endif %}
+                    <h3><a href="{{ product.get_absolute_url }}">{{ product }}</a></h3>
+                    {% if product.is_available %}
+                        {% with price_range=product|discounted_price_range:request.discounts undiscounted=product.get_price_range %}
+                            {% with discount=undiscounted.min_price|price_difference:price_range.min_price %}
+                                <h4>
+                                    {% price_range price_range %}
+                                    {% if undiscounted.min_price != price_range.min_price %}
+                                        <span class="label label-success">{% trans "Discount!" %}</span>
+                                    {% endif %}
+                                </h4>
+                            {% endwith %}
+                        {% endwith %}
                     {% endif %}
                 </div>
             {% endfor %}

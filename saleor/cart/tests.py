@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from decimal import Decimal
 
+from django.db import models
 from django.test import TestCase
 from django.utils.encoding import smart_text
 from mock import MagicMock
@@ -15,6 +16,7 @@ __all__ = ['CartTest', 'BigShipCartFormTest']
 
 
 class BigShip(ProductVariant, StockedProduct, PhysicalProduct):
+    name = models.CharField()
 
     def get_price_per_item(self, discounted=True, **kwargs):
         return self.price
@@ -24,6 +26,7 @@ class BigShip(ProductVariant, StockedProduct, PhysicalProduct):
 
 
 class ShipPhoto(ProductVariant, PhysicalProduct):
+    name = models.CharField()
 
     def get_slug(self):
         return 'bigship-photo'
@@ -34,9 +37,8 @@ class BigShipCartForm(AddToCartForm):
     def get_variant(self, cleaned_data):
         return self.product
 
-stock_product = BigShip(name='BigShip',
-                        stock=10, price=Price(10, currency='USD'),
-                        weight=Decimal(123))
+stock_product = BigShip(name='BigShip', stock=10,
+                        price=Price(10, currency='USD'), weight=Decimal(123))
 stock_product.product = stock_product
 digital_product = ShipPhoto(price=Price(10, currency='USD'))
 digital_product.product = digital_product

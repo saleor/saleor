@@ -7,11 +7,9 @@ from django.forms.widgets import ClearableFileInput
 from ...product.models import (ProductImage, Product, ShirtVariant, BagVariant,
                                Shirt, Bag)
 
-
 PRODUCT_CLASSES = {
     'shirt': Shirt,
-    'bag': Bag
-}
+    'bag': Bag}
 
 
 class ProductClassForm(forms.Form):

@@ -39,6 +39,9 @@ class StockedProduct(models.Model, StockedItem):
     def get_stock(self):
         return self.stock
 
+    def is_available(self):
+        return self.get_stock() > 0
+
 
 class PhysicalProduct(models.Model):
     weight = models.DecimalField(max_digits=6, decimal_places=2)
@@ -52,17 +55,21 @@ class PhysicalProduct(models.Model):
         pgettext_lazy('Product field', 'price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4)
 
+    class Meta:
+        abstract = True
+        app_label = 'product'
+
     def get_weight(self):
         try:
             return self.weight
         except AttributeError:
             return self.product.weight
 
-    class Meta:
-        abstract = True
-        app_label = 'product'
+    def is_available(self):
+        return any(variant.is_available() for variant in self)
 
 
+@python_2_unicode_compatible
 class ColoredVariant(models.Model):
     color = models.ForeignKey(Color)
 
@@ -70,13 +77,14 @@ class ColoredVariant(models.Model):
         abstract = True
         app_label = 'product'
 
+    def __str__(self):
+        return '%s (%s)' % (self.product.name, self.color)
+
 
 @python_2_unicode_compatible
 class ProductVariant(models.Model, Item):
-    name = models.CharField(pgettext_lazy('Product field', 'name'),
-                            max_length=128, blank=True, default='')
     sku = models.CharField(
-        pgettext_lazy('Product field', 'sku'), max_length=32, unique=True)
+        pgettext_lazy('Product field', 'SKU'), max_length=32, unique=True)
     # override the price attribute to implement per-variant pricing
     price = None
 
@@ -85,7 +93,7 @@ class ProductVariant(models.Model, Item):
         app_label = 'product'
 
     def __str__(self):
-        return self.name or self.product.name
+        return self.product.name
 
     def get_price_per_item(self, discounts=None, **kwargs):
         if self.price is not None:
@@ -116,8 +124,7 @@ class ProductVariant(models.Model, Item):
             'product_name': str(self),
             'product_id': self.product.pk,
             'variant_id': self.pk,
-            'unit_price': str(self.get_price_per_item().gross)
-        }
+            'unit_price': str(self.get_price_per_item().gross)}
 
     def is_shipping_required(self):
         return True
