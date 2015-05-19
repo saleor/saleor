@@ -26,7 +26,7 @@ setup(
         'django-payments>=0.6.1,<0.7a0',
         'django-prices>=0.3.3,<0.4a0',
         'django-selectable==0.8.0',
-        'django-versatileimagefield>=1.0.1,<1.1a0'
+        'django-versatileimagefield>=1.0.1,<1.1a0',
         'fake-factory>=0.3.2',
         'google-measurement-protocol>=0.1.2,<0.2a0',
         'Markdown>=2.4',
