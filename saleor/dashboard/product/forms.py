@@ -4,7 +4,6 @@ from django import forms
 from django.forms.models import inlineformset_factory
 from django.forms.widgets import ClearableFileInput
 
-from ...core.widgets import PriceInput
 from ...product.models import (ProductImage, Product, ShirtVariant, BagVariant,
                                Shirt, Bag)
 
@@ -28,14 +27,12 @@ class ShirtForm(ProductForm):
     class Meta:
         model = Shirt
         exclude = []
-        widgets = {'price': PriceInput}
 
 
 class BagForm(ProductForm):
     class Meta:
         model = Bag
         exclude = []
-        widgets = {'price': PriceInput}
 
 
 class ImageInputWidget(ClearableFileInput):
