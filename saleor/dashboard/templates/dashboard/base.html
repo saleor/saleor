@@ -45,9 +45,7 @@
 
     <div id="page-wrapper">
         {% if messages %}
-            <div class="row">
-                {% include "dashboard/includes/_messages.html" %}
-            </div>
+            {% include "dashboard/includes/_messages.html" %}
         {% endif %}
 
         {% block content %}
