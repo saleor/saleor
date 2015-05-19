@@ -187,20 +187,6 @@ AUTH_USER_MODEL = 'userprofile.User'
 
 CANONICAL_HOSTNAME = os.environ.get('CANONICAL_HOSTNAME', 'localhost:8000')
 
-IMAGE_SIZES = {
-    'normal': {
-        'size': (750, 0)
-    },
-    'small': {
-        'size': (280, 280),
-        'crop': True
-    },
-    'admin': {
-        'size': (50, 50),
-        'crop': True
-    }
-}
-
 LOGIN_URL = '/account/login'
 
 WARN_ABOUT_INVALID_HTML5_OUTPUT = False
