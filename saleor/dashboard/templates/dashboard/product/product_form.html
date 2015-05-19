@@ -122,6 +122,9 @@
                     {% for form in image_formset.initial_forms %}
                         <tr>
                             <td>
+                                {% for field in form.hidden_fields %}
+                                    {{ field }}
+                                {% endfor %}
                                 {{ form.image }}
                             </td>
                             <td class="text-right">
