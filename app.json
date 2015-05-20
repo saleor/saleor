@@ -7,8 +7,10 @@
   "keywords": ["saleor", "e-commerce", "django"],
   "env": {
     "BUILDPACK_URL": "https://github.com/ddollar/heroku-buildpack-multi.git",
-    "DEBUG": "on",
-    "DJANGO_SETTINGS_MODULE": "saleor.settings"
+    "DJANGO_SETTINGS_MODULE": "saleor.settings",
+    "AWS_ACCESS_KEY_ID": "",
+    "AWS_SECRET_ACCESS_KEY": "",
+    "AWS_STATIC_BUCKET_NAME": ""
   },
   "scripts": {
     "postdeploy": "saleor migrate && saleor populatedb"
