@@ -23,7 +23,7 @@ $font-size-h3: 3.5vmin;
 $jumbotron-padding: 0;
 $jumbotron-color: $brand-warning;
 $jumbotron-heading-color: white;
-$jumbotron-bg: $brand-primary;
+$jumbotron-bg: white;
 
 $navbar-height: 50px;
 $navbar-margin-bottom: 0;
@@ -53,6 +53,24 @@ $text-color: $gray-light;
 $fa-font-path: "//netdna.bootstrapcdn.com/font-awesome/4.3.0/fonts";
 
 // Custom variables
+$blueish: #267377;
+$yellow: #ffe169;
+$whiteish: #fffff0;
+$header-colors: (
+  home: (
+    brand: $yellow,
+    header: $whiteish,
+    intro: $brand-primary,
+    intro-bg: $yellow
+  ),
+  developers: (
+    brand: $blueish,
+    header: $brand-info,
+    intro: $whiteish,
+    intro-bg: $brand-info
+  ),
+  business: ()
+);
 $transition-duration: .2s;
 
 @import "../node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
@@ -76,12 +94,20 @@ $transition-duration: .2s;
 
   &-brand {
     font-size: 10vmin;
+    font-family: $font-family-sans-serif-black;
     letter-spacing: -.5vmin;
     line-height: 12vmin;
+    text-transform: uppercase;
 
     @media (min-width: $grid-float-breakpoint) {
       font-size: 6vmin;
       line-height: 6vmin;
+    }
+
+    @each $page, $header-color in $header-colors {
+      &.navbar-brand--#{$page} {
+        color: map_get($header-color, brand);
+      }
     }
   }
 
@@ -120,8 +146,9 @@ $transition-duration: .2s;
   }
 
   &-toggle {
-    margin: 0 0 0 $grid-gutter-width;
-    padding: $padding-base-vertical $padding-base-vertical*1.2;
+    border: none;
+    margin: 0;
+    padding: $padding-base-vertical 0 $padding-base-vertical $grid-gutter-width/2;
   }
 
   .btn-white {
@@ -207,6 +234,11 @@ $transition-duration: .2s;
   & &-intro {
     font-family: $font-family-sans-serif-light;
     font-size: $font-size-h3;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: $font-size-h3 0;
 
     span {
       display: block;
@@ -220,6 +252,15 @@ $transition-duration: .2s;
   @each $jumbotron in (home, developers, business) {
     &--#{$jumbotron} {
       background-image: url("images/hero-#{$jumbotron}.jpg");
+
+      .jumbotron-header {
+        color: map_get(map_get($header-colors, $jumbotron), header);
+      }
+
+      .jumbotron-intro {
+        background: map_get(map_get($header-colors, $jumbotron), intro-bg);
+        color: map_get(map_get($header-colors, $jumbotron), intro);
+      }
     }
   }
 }
@@ -299,6 +340,8 @@ $transition-duration: .2s;
 }
 
 .social-links {
+  padding: 0;
+
   &-item {
     display: inline-block;
     list-style: none;

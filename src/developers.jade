@@ -1,28 +1,30 @@
-include jade/head
-section.jumbotron
-    div.container
-        h1.jumbotron-header
-            span Increase efficiency
-            b  selling things
-            span  with Saleor
-        p(class=["jumbotron-intro", "jumbotron-intro--subpage"])
-            | Saleor is an opensource storefront.
-            span  Written in python.
-section.section
-    h2.section-header Satisfied<br>customers
-    p.section-text
-        img.section-image(src="https://placekitten.com/g/1000/600", alt="")
-        | We had two bags of grass, seventy-five pellets of mescaline, five sheets of hogh-powered blotter acid, a saltshaker half-full of cocaine and a whole galaxy of multi-colored uppers, downers, screamers, laughers...
-section.section
-    h2.section-header Satisfied<br>developers
-    p.section-text
-        img.section-image(src="https://placekitten.com/g/1000/600", alt="")
-        | We had two bags of grass, seventy-five pellets of mescaline, five sheets of hogh-powered blotter acid, a saltshaker half-full of cocaine and a whole galaxy of multi-colored uppers, downers, screamers, laughers...
-    a.section-button Find out more
-section.section
-    h2.section-header Satisfied<br>team
-    p.section-text
-        img.section-image(src="https://placekitten.com/g/1000/600", alt="")
-        | We had two bags of grass, seventy-five pellets of mescaline, five sheets of hogh-powered blotter acid, a saltshaker half-full of cocaine and a whole galaxy of multi-colored uppers, downers, screamers, laughers...
-    a.section-button Find out more
-include jade/foot
+extends  jade/base
+block prepend navbar-brand
+    - var additionalClass = "navbar-brand--developers"
+block main
+    section(class=["jumbotron", "jumbotron--developers"])
+        div.container
+            h1.jumbotron-header
+                span Increase efficiency
+                b  selling things
+                span  with Saleor
+            p(class=["jumbotron-intro", "jumbotron-intro--subpage"])
+                | Saleor is an opensource storefront.
+                span  Written in python.
+    section.section
+        h2.section-header Satisfied<br>customers
+        p.section-text
+            img.section-image(src="https://placekitten.com/g/1000/600", alt="")
+            | We had two bags of grass, seventy-five pellets of mescaline, five sheets of hogh-powered blotter acid, a saltshaker half-full of cocaine and a whole galaxy of multi-colored uppers, downers, screamers, laughers...
+    section.section
+        h2.section-header Satisfied<br>developers
+        p.section-text
+            img.section-image(src="https://placekitten.com/g/1000/600", alt="")
+            | We had two bags of grass, seventy-five pellets of mescaline, five sheets of hogh-powered blotter acid, a saltshaker half-full of cocaine and a whole galaxy of multi-colored uppers, downers, screamers, laughers...
+        a.section-button Find out more
+    section.section
+        h2.section-header Satisfied<br>team
+        p.section-text
+            img.section-image(src="https://placekitten.com/g/1000/600", alt="")
+            | We had two bags of grass, seventy-five pellets of mescaline, five sheets of hogh-powered blotter acid, a saltshaker half-full of cocaine and a whole galaxy of multi-colored uppers, downers, screamers, laughers...
+        a.section-button Find out more
