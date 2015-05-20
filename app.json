@@ -8,9 +8,21 @@
   "env": {
     "BUILDPACK_URL": "https://github.com/ddollar/heroku-buildpack-multi.git",
     "DJANGO_SETTINGS_MODULE": "saleor.settings",
-    "AWS_ACCESS_KEY_ID": "",
-    "AWS_SECRET_ACCESS_KEY": "",
-    "AWS_STATIC_BUCKET_NAME": ""
+    "AWS_ACCESS_KEY_ID": {
+      "description": "",
+      "value": "",
+      "required": false
+    },
+    "AWS_SECRET_ACCESS_KEY": {
+      "description": "",
+      "value": "",
+      "required": false
+    },
+    "AWS_MEDIA_BUCKET_NAME": {
+      "description": "",
+      "value": "",
+      "required": false
+    }
   },
   "scripts": {
     "postdeploy": "saleor migrate && saleor populatedb"
