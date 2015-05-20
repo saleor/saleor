@@ -11,11 +11,7 @@
 
 {% block breadcrumb %}
     {{ block.super }}
-    {% with product.get_first_category as category %}
-        {% if category %}
-            <li><a href="{{ category.get_absolute_url }}">{{ category }}</a></li>
-        {% endif %}
-    {% endwith %}
+    <li><a href="{{ product.category.get_absolute_url }}">{{ product.category }}</a></li>
     <li><a href="{{ product.get_absolute_url }}">{{ product }}</a></li>
 {% endblock breadcrumb %}
 
@@ -27,7 +23,7 @@
                 {{ product }}
             </h1>
 
-            {% if product.is_in_stock %}
+            {% if product.is_available %}
                 {% with price_range=product|discounted_price_range:request.discounts undiscounted=product.get_price_range %}
                     {% with discount=undiscounted.min_price|price_difference:price_range.min_price %}
                         <p class="lead" itemprop="offers" itemscope itemtype="http://schema.org/Offer"
@@ -57,7 +53,7 @@
                 <hr>
             </div>
 
-            {% if product.is_in_stock %}
+            {% if product.is_available %}
                 {% block orderform %}
                 <form role="form" class="product-form form-vertical" method="post" action=".">
                     {% csrf_token %}
@@ -79,6 +75,28 @@
             <div itemprop="description">
                 {{ product.description|markdown }}
             </div>
+
+            {% if related_products %}
+                <hr>
+
+                <h4>{% trans "Also in this collection" %}</h4>
+
+                <div class="row product-related">
+                    {% for related in related_products %}
+                        {% if related.id != product.id %}
+                            <a href="{{ related.get_absolute_url }}" class="col-xs-3">
+                                {% if related.images.first %}
+                                    <img src="{{ related.images.first.image.crop.280x280 }}" alt=""
+                                         class="thumbnail img-responsive">
+                                {% else %}
+                                    <img src="http://placehold.it/280x280/&text=Product Image" alt=""
+                                         class="thumbnail img-responsive">
+                                {% endif %}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
 
         </div>
 
