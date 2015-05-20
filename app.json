@@ -25,7 +25,7 @@
     }
   },
   "scripts": {
-    "postdeploy": "saleor migrate && saleor populatedb"
+    "postdeploy": "saleor makemigrations userprofile && saleor migrate && saleor populatedb"
   },
   "addons": [
     "heroku-postgresql:hobby-dev"
