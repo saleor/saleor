@@ -4471,7 +4471,7 @@ a.badge:focus {
   padding: 0 0;
   margin-bottom: 0;
   color: #FF9900;
-  background-color: #304C58; }
+  background-color: white; }
   .jumbotron h1,
   .jumbotron .h1 {
     color: white; }
@@ -4480,7 +4480,7 @@ a.badge:focus {
     font-size: 24px;
     font-weight: 200; }
   .jumbotron > hr {
-    border-top-color: #1e3037; }
+    border-top-color: #e6e6e6; }
   .container .jumbotron,
   .container-fluid .jumbotron {
     border-radius: 0; }
@@ -7807,12 +7807,18 @@ button.close {
       top: 4em; } }
   .navbar-brand {
     font-size: 10vmin;
+    font-family: "HurmeGeometricSans4-Black", "Helvetica Neue", Helvetica, Arial, sans-serif;
     letter-spacing: -.5vmin;
-    line-height: 12vmin; }
+    line-height: 12vmin;
+    text-transform: uppercase; }
     @media (min-width: 768px) {
       .navbar-brand {
         font-size: 6vmin;
         line-height: 6vmin; } }
+    .navbar-brand.navbar-brand--home {
+      color: #ffe169; }
+    .navbar-brand.navbar-brand--developers {
+      color: #267377; }
   .navbar-right {
     text-transform: uppercase; }
     @media (max-width: 767px) {
@@ -7834,8 +7840,9 @@ button.close {
             border-color: #304C58;
             color: #304C58; } }
   .navbar-toggle {
-    margin: 0 0 0 30px;
-    padding: 10px 12px; }
+    border: none;
+    margin: 0;
+    padding: 10px 0 10px 15px; }
   .navbar .btn-white {
     color: white;
     background-color: transparent;
@@ -7945,15 +7952,30 @@ button.close {
       animation: blink 0.7s infinite; }
   .jumbotron .jumbotron-intro {
     font-family: "HurmeGeometricSans4-Light", "Helvetica Neue", Helvetica, Arial, sans-serif;
-    font-size: 3.5vmin; }
+    font-size: 3.5vmin;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 3.5vmin 0; }
     .jumbotron .jumbotron-intro span {
       display: block; }
     .jumbotron .jumbotron-intro--subpage {
       color: #379AD5; }
   .jumbotron--home {
     background-image: url("images/hero-home.jpg"); }
+    .jumbotron--home .jumbotron-header {
+      color: #fffff0; }
+    .jumbotron--home .jumbotron-intro {
+      background: #ffe169;
+      color: #304C58; }
   .jumbotron--developers {
     background-image: url("images/hero-developers.jpg"); }
+    .jumbotron--developers .jumbotron-header {
+      color: #379AD5; }
+    .jumbotron--developers .jumbotron-intro {
+      background: #379AD5;
+      color: #fffff0; }
   .jumbotron--business {
     background-image: url("images/hero-business.jpg"); }
 
@@ -8001,23 +8023,24 @@ button.close {
       font-family: "HurmeGeometricSans4-Black", "Helvetica Neue", Helvetica, Arial, sans-serif;
       font-size: 6.5vmin; }
 
-.social-links-item {
-  display: inline-block;
-  list-style: none;
-  margin: 0 3vmin; }
-
-.social-links-link {
-  background-color: #379AD5;
-  border-radius: 50%;
-  color: white;
-  display: inline-block;
-  font-size: 5vmin;
-  text-align: center;
-  width: 7vmin; }
-  .social-links-link:hover, .social-links-link:focus {
-    color: #DADADA; }
-  .social-links-link .fa, .social-links-link .social-links-twitter, .social-links-link .social-links-facebook {
-    vertical-align: middle; }
+.social-links {
+  padding: 0; }
+  .social-links-item {
+    display: inline-block;
+    list-style: none;
+    margin: 0 3vmin; }
+  .social-links-link {
+    background-color: #379AD5;
+    border-radius: 50%;
+    color: white;
+    display: inline-block;
+    font-size: 5vmin;
+    text-align: center;
+    width: 7vmin; }
+    .social-links-link:hover, .social-links-link:focus {
+      color: #DADADA; }
+    .social-links-link .fa, .social-links-link .social-links-twitter, .social-links-link .social-links-facebook {
+      vertical-align: middle; }
 
 .footer {
   text-align: center;
