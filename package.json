@@ -8,9 +8,9 @@
     "jade": "node_modules/jade/bin/jade.js src/*.jade -o ./",
     "reload": "node_modules/browser-sync/bin/browser-sync.js reload --port 3004",
     "scss": "node_modules/node-sass/bin/node-sass src/style.scss static/style.css --source-map static/style.css.map",
-    "sync": "node_modules/browser-sync/bin/browser-sync.js start --server --port 3004",
+    "sync": "node_modules/browser-sync/bin/browser-sync.js start --server --port 3004 watch --files *.html static/*.css static/*.js --reload-delay 1000",
     "uglify": "node_modules/uglify-js/bin/uglifyjs node_modules/jquery/dist/jquery.js node_modules/bootstrap-sass/assets/javascripts/bootstrap.js bower_components/typed.js/js/typed.js src/site.js --output static/site.js --compress --mangle --source-map site.js.map",
-    "watch": "node_modules/watch/cli.js 'npm run jade && npm run scss && npm run uglify && npm run reload' src"
+    "watch": "node_modules/watch/cli.js 'npm run jade && npm run scss && npm run uglify' src"
   },
   "repository": {
     "type": "git",
