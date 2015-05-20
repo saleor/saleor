@@ -17,11 +17,13 @@
         <div class="row">
             {% for product in row %}
                 <div class="col-sm-6">
-                    {% if product.images.exists %}
-                        <a href="{{ product.get_absolute_url }}">
+                    <a href="{{ product.get_absolute_url }}">
+                        {% if product.images.first %}
                             <img class="img-responsive" src="{{ product.images.first.image.thumbnail.750x750 }}" alt="">
-                        </a>
-                    {% endif %}
+                        {% else %}
+                            <img class="img-responsive" src="http://placehold.it/750x500/&text=Product Image" alt="">
+                        {% endif %}
+                    </a>
                     <h3><a href="{{ product.get_absolute_url }}">{{ product }}</a></h3>
                     {% if product.is_in_stock %}
                         {% with price_range=product|discounted_price_range:request.discounts undiscounted=product.get_price_range %}

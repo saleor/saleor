@@ -48,7 +48,11 @@
             <hr>
 
             <div class="visible-xs">
-                <img class="img-responsive" src="{{ product.images.first.image.thumbnail.750x750 }}" alt="">
+                {% if product.images.first %}
+                    <img class="img-responsive" src="{{ product.images.first.image.thumbnail.750x750 }}" alt="">
+                {% else %}
+                    <img class="img-responsive" src="http://placehold.it/750x750/&text=Product Image" alt="">
+                {% endif %}
 
                 <hr>
             </div>
@@ -95,6 +99,10 @@
                             <img class="img-responsive" src="{{ image.image.thumbnail.750x750 }}" alt="">
                         </a>
                     </div>
+                    {% empty %}
+                        <div class="item active">
+                            <img class="img-responsive" src="http://placehold.it/750x750/&text=Product Image" alt="">
+                        </div>
                     {% endfor %}
                 </div>
 
