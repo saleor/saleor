@@ -17,8 +17,11 @@ $font-family-sans-serif-black: "HurmeGeometricSans4-Black", "Helvetica Neue", He
 $font-family-sans-serif-light: "HurmeGeometricSans4-Light", "Helvetica Neue", Helvetica, Arial, sans-serif;
 $font-size-base: 16px;
 $font-size-h1: 6.5vmin;
+$font-size-h1-px: 50px;
 $font-size-h2: 5vmin;
+$font-size-h2-px: 38px;
 $font-size-h3: 3.5vmin;
+$font-size-h3-px: 26px;
 
 $jumbotron-padding: 0;
 $jumbotron-color: $brand-warning;
@@ -30,16 +33,14 @@ $navbar-margin-bottom: 0;
 $navbar-border-radius: 0;
 $navbar-padding-horizontal: 0;
 $navbar-padding-vertical: 0;
-$navbar-default-color: white;
+$navbar-default-color: $brand-primary;
 $navbar-default-bg: transparent;
-$navbar-default-link-color: white;
-$navbar-default-link-hover-color: darken(white, 15%);
-$navbar-default-link-active-color: darken(white, 15%);
-$navbar-default-brand-color: $navbar-default-link-color !default;
+$navbar-default-link-color: $brand-primary;
+$navbar-default-link-hover-color: darken($brand-primary, 15%);
+$navbar-default-link-active-color: darken($brand-primary, 15%);
+$navbar-default-brand-color: $brand-primary;
 $navbar-default-brand-hover-color: $navbar-default-link-hover-color;
-$navbar-default-toggle-hover-bg: #ddd !default;
-$navbar-default-toggle-icon-bar-bg: #888 !default;
-$navbar-default-toggle-border-color: #ddd !default;
+$navbar-default-toggle-border-color: transparent;
 
 $padding-base-vertical: 10px;
 $padding-base-horizontal: 16px;
@@ -56,58 +57,67 @@ $fa-font-path: "//netdna.bootstrapcdn.com/font-awesome/4.3.0/fonts";
 $blueish: #267377;
 $yellow: #ffe169;
 $whiteish: #fffff0;
-$header-colors: (
+$pages-colors: (
   home: (
     brand: $yellow,
+    menu: $yellow,
     header: $whiteish,
     intro: $brand-primary,
     intro-bg: $yellow
   ),
   developers: (
     brand: $blueish,
+    menu: $blueish,
     header: $brand-info,
     intro: $whiteish,
     intro-bg: $brand-info
-  ),
-  business: ()
+  )
 );
 $transition-duration: .2s;
 
-@import "../node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
-@import "../node_modules/font-awesome/scss/font-awesome";
-@import "../node_modules/sass-flex-mixin/flex";
-@import "scss/webfont";
+@import "../../node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
+@import "../../node_modules/font-awesome/scss/font-awesome";
+@import "../../node_modules/sass-flex-mixin/flex";
+@import "webfont";
 
 .btn {
   text-transform: uppercase;
   font-family: $font-family-sans-serif-black;
 }
 
+.btn-primary {
+  &:hover, &:focus {
+    border-color: $brand-primary;
+    background-color: $brand-primary;
+    color: white;
+  }
+}
+
 .navbar {
   position: absolute;
   top: $grid-gutter-width/2;
   width: 100%;
+  z-index: $zindex-navbar;
 
   @media (min-width: $grid-float-breakpoint) {
     top: 4em;
   }
 
   &-brand {
-    font-size: 10vmin;
+    font-size: 28px;
+    font-size: 9vmin;
     font-family: $font-family-sans-serif-black;
+    letter-spacing: -4px;
     letter-spacing: -.5vmin;
-    line-height: 12vmin;
+    line-height: 43px;
+    line-height: 13.5vmin;
     text-transform: uppercase;
 
     @media (min-width: $grid-float-breakpoint) {
+      font-size: 46px;
       font-size: 6vmin;
+      line-height: 46px;
       line-height: 6vmin;
-    }
-
-    @each $page, $header-color in $header-colors {
-      &.navbar-brand--#{$page} {
-        color: map_get($header-color, brand);
-      }
     }
   }
 
@@ -115,14 +125,13 @@ $transition-duration: .2s;
     text-transform: uppercase;
 
     > li {
-      > a {
-        @media (max-width: $grid-float-breakpoint-max) {
-          background: white;
-          color: $brand-primary !important;
+      a {
+        &:hover, &:focus {
+          color: $whiteish;
         }
       }
 
-      a.btn-white {
+      a.btn-menu {
         display: none;
       }
 
@@ -131,14 +140,14 @@ $transition-duration: .2s;
         float: none;
         vertical-align: middle;
 
-        a.btn-white {
+        a.btn-menu {
           display: block;
           float: none;
 
           &:hover, &:focus {
-            background-color: white;
-            border-color: $brand-primary;
-            color: $brand-primary;
+            background-color: $brand-primary;
+            border-color: $whiteish;
+            color: $whiteish;
           }
         }
       }
@@ -146,14 +155,22 @@ $transition-duration: .2s;
   }
 
   &-toggle {
-    border: none;
-    margin: 0;
-    padding: $padding-base-vertical 0 $padding-base-vertical $grid-gutter-width/2;
+    color: $brand-primary;
+    margin: 0 $grid-gutter-width/-2 0 0;
+    padding: $padding-base-vertical $grid-gutter-width/2;
   }
 
-  .btn-white {
-    @extend .btn;
-    @include button-variant(white, transparent, white);
+  & &-collapse {
+    @media (max-width: $grid-float-breakpoint-max) {
+      margin: {
+        left: $grid-gutter-width/-2;
+        right: $grid-gutter-width/-2;
+      }
+    }
+  }
+
+  .btn-menu {
+    @extend .btn, .btn-primary;
     float: right;
     font-size: $font-size-base;
 
@@ -167,9 +184,17 @@ $transition-duration: .2s;
   @include flexbox;
   @include justify-content(center);
   @include align-items(center);
-  height: 100vh;
   background-repeat: no-repeat;
   background-size: cover;
+  position: relative;
+
+  @media (device-width: 768px) and (device-height: 1024px) {
+    height: 928px;
+  }
+  @media (device-width: 768px) and (device-height: 1024px) and (orientation: landscape) {
+    height: 672px;
+  }
+  height: 100vh !important;
 
   .container {
     margin: 0;
@@ -178,7 +203,9 @@ $transition-duration: .2s;
   }
 
   & &-header {
+    color: $brand-info;
     font-family: $font-family-sans-serif-light;
+    font-size: $font-size-h1-px;
     font-size: $font-size-h1;
     line-height: 1.2;
     margin: 2em 0 1em;
@@ -232,12 +259,16 @@ $transition-duration: .2s;
   }
 
   & &-intro {
+    background: $brand-info;
+    color: $whiteish;
     font-family: $font-family-sans-serif-light;
+    font-size: $font-size-h3-px;
     font-size: $font-size-h3;
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
+    padding: $font-size-h3-px 0;
     padding: $font-size-h3 0;
 
     span {
@@ -248,18 +279,76 @@ $transition-duration: .2s;
       color: $brand-info;
     }
   }
+}
 
-  @each $jumbotron in (home, developers, business) {
-    &--#{$jumbotron} {
-      background-image: url("images/hero-#{$jumbotron}.jpg");
+@each $page, $colors in $pages-colors {
+  .body--#{$page} {
+    .navbar-brand {
+      color: map-get($colors, brand);
+
+      &:hover, &:focus {
+        color: $whiteish;
+      }
+    }
+
+    .navbar-right > li > a {
+      border-color: map-get($colors, menu);
+      color: map-get($colors, menu);
+
+      &:hover, &:focus {
+        color: $whiteish;
+      }
+
+      @media (max-width: $grid-float-breakpoint-max) {
+        background: map-get($colors, menu);
+        @if lightness(map-get($colors, menu)) > 50% {
+          color: $brand-primary;
+        } @else {
+          color: $whiteish;
+        }
+
+        &:hover, &:focus {
+          @if lightness(map-get($colors, menu)) > 50% {
+            color: $brand-primary;
+          } @else {
+            color: $whiteish;
+          }
+          background: darken(map-get($colors, menu), 10%);
+        }
+      }
+
+      &.btn-menu {
+        &:hover, &:focus {
+          background-color: map-get($colors, menu);
+          border-color: map-get($colors, menu);
+          color: $whiteish;
+        }
+      }
+    }
+
+    .navbar-toggle {
+      color: map-get($colors, menu);
+
+      &:hover, &:focus {
+        background-color: map-get($colors, menu);
+        color: white;
+      }
+    }
+
+    .btn-menu {
+      @include button-variant(map-get($colors, menu), transparent, map-get($colors, menu));
+    }
+
+    .jumbotron {
+      background-image: url("images/hero-#{$page}.jpg");
 
       .jumbotron-header {
-        color: map_get(map_get($header-colors, $jumbotron), header);
+        color: map_get($colors, header);
       }
 
       .jumbotron-intro {
-        background: map_get(map_get($header-colors, $jumbotron), intro-bg);
-        color: map_get(map_get($header-colors, $jumbotron), intro);
+        background: map_get($colors, intro-bg);
+        color: map_get($colors, intro);
       }
     }
   }
@@ -273,6 +362,7 @@ $transition-duration: .2s;
     color: $brand-info;
     font-family: $font-family-sans-serif-light;
     font-size: $font-size-h2;
+    font-size: $font-size-h2-px;
     margin: {
       top: 0;
       bottom: 1em;
@@ -294,6 +384,7 @@ $transition-duration: .2s;
       right: auto;
     }
     max-width: 800px;
+    width: 614px;
     width: 80vmin;
   }
 
@@ -302,13 +393,12 @@ $transition-duration: .2s;
     font-size: $font-size-base;
     margin-top: 1.5em;
 
-    &:hover, &:focus {
-      background-color: $brand-primary;
-      color: white;
-    }
-
     &--lg {
       font-size: $font-size-large;
+      margin: {
+        left: 60px;
+        right: 60px;
+      }
       margin: {
         left: 8vmin;
         right: 8vmin;
@@ -334,32 +424,32 @@ $transition-duration: .2s;
     & &-header {
       color: $brand-primary;
       font-family: $font-family-sans-serif-black;
+      font-size: $font-size-h1-px;
       font-size: $font-size-h1;
     }
   }
 }
 
 .social-links {
+  background: $brand-info;
+  margin-bottom: 2em;
   padding: 0;
 
   &-item {
     display: inline-block;
     list-style: none;
-    margin: 0 3vmin;
+    margin: 0 38px;
+    margin: 0 5vmin;
   }
 
   &-link {
-    background-color: $brand-info;
-    border-radius: 50%;
     color: white;
     display: inline-block;
+    font-size: 38px;
     font-size: 5vmin;
+    padding: 27px;
+    padding: 3.5vmin;
     text-align: center;
-    width: 7vmin;
-
-    &:hover, &:focus {
-      color: $gray-lighter;
-    }
 
     .fa {
       vertical-align: middle;
@@ -376,11 +466,16 @@ $transition-duration: .2s;
 
 .footer {
   text-align: center;
-  padding-bottom: 3em;
-  font-size: 13px;
+  padding-bottom: 2em;
+
+  .section-image {
+    margin-bottom: 0;
+  }
 
   small {
-    font-size: 100%;
+    display: block;
+    font-size: 13px;
+    line-height: 2;
   }
 
   &-link {

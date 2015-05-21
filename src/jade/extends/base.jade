@@ -1,0 +1,43 @@
+doctype html
+html(lang="en")
+    head
+        meta(charset="utf-8")
+        block title
+            title Saleor
+        meta(name="viewport", content="width=device-width,initial-scale=1")
+        link(href="static/style.css", rel="stylesheet")
+    block bodyClass
+    body(class=bodyClass)
+        header.header
+            nav(class=["navbar", "navbar-default"])
+                div.container
+                    div.navbar-header
+                        button(type="button", class=["navbar-toggle", "collapsed"], data-toggle="collapse", data-target="#navbar")
+                            span.sr-only Toggle navigation
+                            i(class=["fa", "fa-bars"])
+                        a(class=["btn-menu"], href="#") Get Saleor
+                        a.navbar-brand(href="./") Saleor
+                    div#navbar(class=["collapse", "navbar-collapse"])
+                        ul(class=["nav", "navbar-nav", "navbar-right"])
+                            li
+                                a(href="./business.html") Business
+                            li
+                                a(href="./developers.html") Developers
+                            li
+                                a(class=["btn-menu"], href="#") Get Saleor
+        main
+            block main
+        footer(class=["footer", "section"])
+            h2.section-header Keep an eye<br>on us
+            img.section-image(src="https://placekitten.com/g/1000/600", alt="")
+            ul.social-links
+                li.social-links-item
+                    a.social-links-link(href="#")
+                        i.social-links-twitter
+                li.social-links-item
+                    a.social-links-link(href="#")
+                        i.social-links-facebook
+            small &copy; 2015 Mirumee Software. All rights reserved.
+                a.footer-link(href="#") Terms of use
+        script(src="static/site.js")
+                       
