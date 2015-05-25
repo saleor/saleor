@@ -2,30 +2,64 @@ extends extends/base
 block bodyClass
     - var bodyClass = "body--home"
 block main
-    section(class=["jumbotron", "jumbotron--home"])
+    section(class=["section", "section--home"])
         div.container
-            h1.jumbotron-header
-                span Increase your
-                b.typed(data-words=["customers", "developers", "girlfriend", "momma"])  customers
-                span  satisfaction with saleor.
+            h1.section-header
+                span Sell
+                    =" "
+                    b.typed(data-words=["thing", "everything", "yo momma"])  online
+                span  with Saleor.
                 b  For free
-            p.jumbotron-intro
-                | Saleor is an opensource storefront.
-                span  Written in python.
-    section.section
-        h2.section-header Satisfied<br>customers
+                span.section-header-sub Saleor is an opensource storefront.
+                    span  Written in python.
+            div.section-stripe
+                a(href="#business") Find out more
+    section#business(class=["section", "section--customers"])
+        h2.section-header Happy
+            b customers
+            span They buy. You're rich.
         p.section-text
-            img.section-image(src="https://placekitten.com/g/1000/600", alt="")
-            | We had two bags of grass, seventy-five pellets of mescaline, five sheets of hogh-powered blotter acid, a saltshaker half-full of cocaine and a whole galaxy of multi-colored uppers, downers, screamers, laughers...
-    section.section
-        h2.section-header Satisfied<br>developers
-        p.section-text
-            img.section-image(src="https://placekitten.com/g/1000/600", alt="")
-            | We had two bags of grass, seventy-five pellets of mescaline, five sheets of hogh-powered blotter acid, a saltshaker half-full of cocaine and a whole galaxy of multi-colored uppers, downers, screamers, laughers...
-        a.section-button Find out more
-    section.section
-        h2.section-header Satisfied<br>team
-        p.section-text
-            img.section-image(src="https://placekitten.com/g/1000/600", alt="")
-            | We had two bags of grass, seventy-five pellets of mescaline, five sheets of hogh-powered blotter acid, a saltshaker half-full of cocaine and a whole galaxy of multi-colored uppers, downers, screamers, laughers...
-        a.section-button Find out more
+        div.section-stripe
+            span Tres importante una mija tortilla la kukurydza farting for sell to seller and brocolli.
+    section(class=["section", "section--dashboard"])
+        h2.section-header Powerfull
+            b dashboard?
+            span to rule them all
+        div.container
+            div.row
+                div.col-sm-4
+                    h3.section-subheader Your store at a glance
+                    p Lorem ipsum
+                    h3.section-subheader Sell one product or millions
+                    p Lorem ipsum
+                    h3.section-subheader Customize your store
+                    p Lorem ipsum
+                div.col-sm-8
+                    img(src="", alt="")
+        div.section-stripe
+            span See how SALEOR helps your business
+            a.section-button Learn more
+    section(class=["section", "section--home-developers"])
+        h2.section-header Awesome badass
+            b  code
+            span  for nerdy developers
+        div.container
+            div.row
+                div(class=["col-sm-6", "col-sm-offset-6"])
+                    p Lorem ipsum
+                    img.img-responsive(src="https://placekitten.com/g/1000/600", alt="")
+        div.section-stripe
+            span See how SALEOR makes your developers happy
+            a.section-button Learn more
+    section(class=["section", "section--try-it-now"])
+        h2.section-header Try it now.<br>
+            | It's totally
+            b  free
+        div.container
+            div.row
+                div.col-sm-6
+                    h3.section-subheader Some small talk about bug issues<br>installing marchewka.
+                    p Lorem ipsum
+                    a(class=["section-button", "section-button-strong"]) Get now
+                div.col-sm-6
+                    img.img-responsive(src="https://placekitten.com/g/1000/600", alt="")

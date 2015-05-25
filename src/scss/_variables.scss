@@ -1,0 +1,107 @@
+// Bootstrap variables
+$border-radius-base: 0;
+$border-radius-large: 0;
+
+$brand-primary: #304C58;
+$brand-info: #006599;
+$brand-warning: #FF9900;
+$gray-dark: #323232;
+$gray-light: #E6E2D9;
+$gray-lighter: #DADADA;
+
+$btn-primary-color: $brand-primary;
+$btn-primary-bg: transparent;
+$btn-primary-border: $brand-primary;
+
+$font-family-sans-serif: "HurmeGeometricSans4-Regular", "Helvetica Neue", Helvetica, Arial, sans-serif;
+$font-family-sans-serif-black: "HurmeGeometricSans4-Black", "Helvetica Neue", Helvetica, Arial, sans-serif;
+$font-family-sans-serif-light: "HurmeGeometricSans4-Light", "Helvetica Neue", Helvetica, Arial, sans-serif;
+$font-size-base: 16px;
+$font-size-h1: 6.5vmin;
+$font-size-h1-px: 50px;
+$font-size-h2: 4vmin;
+$font-size-h2-px: 30px;
+$font-size-h3: 2.5vmin;
+$font-size-h3-px: 26px;
+
+$jumbotron-padding: 0;
+$jumbotron-color: $brand-warning;
+$jumbotron-heading-color: white;
+$jumbotron-bg: white;
+
+$navbar-height: 50px;
+$navbar-margin-bottom: 0;
+$navbar-border-radius: 0;
+$navbar-padding-horizontal: 0;
+$navbar-padding-vertical: 0;
+$navbar-default-color: $brand-primary;
+$navbar-default-bg: transparent;
+$navbar-default-link-color: $brand-primary;
+$navbar-default-link-hover-color: darken($brand-primary, 15%);
+$navbar-default-link-active-color: darken($brand-primary, 15%);
+$navbar-default-brand-color: $brand-primary;
+$navbar-default-brand-hover-color: $navbar-default-link-hover-color;
+$navbar-default-toggle-border-color: transparent;
+
+$padding-base-vertical: 10px;
+$padding-base-horizontal: 16px;
+
+$padding-large-vertical: 15px;
+$padding-large-horizontal: 36px;
+
+$text-color: $gray-dark;
+
+// Font awesome variables
+$fa-font-path: "//netdna.bootstrapcdn.com/font-awesome/4.3.0/fonts";
+
+// Custom variables
+$blueish: #267377;
+$yellow: #ffe169;
+$whiteish: #fffff0;
+$pages-colors: (
+  home: (
+    brand: $yellow,
+    menu: $yellow,
+  ),
+  developers: (
+    brand: $blueish,
+    menu: $blueish,
+  )
+);
+$sections-colors: (
+  home: (
+    header: $whiteish,
+    intro: $brand-primary,
+    intro-bg: $yellow
+  ),
+  customers: (
+    intro: white,
+    intro-bg: rgba($yellow, .5)
+  ),
+  dashboard: (
+    background: $gray-light,
+    intro: $text-color,
+    intro-bg: white
+  ),
+  home-developers: (
+    intro: $text-color,
+    intro-bg: white
+  ),
+  try-it-now: (
+    header: white,
+    background: $brand-info,
+    header: white,
+  ),
+  developers: (
+    header: $brand-info,
+    intro: $whiteish,
+    intro-bg: $brand-info
+  )
+);
+$sections-flex: (
+  home, developers
+);
+$sections-image: (
+  home, customers, home-developers
+);
+$transition-duration: .2s;

@@ -2,7 +2,7 @@ $(document).ready(function() {
   'use strict';
 
   (function() {
-    var placeholder = $('.jumbotron .typed');
+    var placeholder = $('.typed');
     var names = placeholder.data("words");
 
     function animateTeam() {

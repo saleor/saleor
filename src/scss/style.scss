@@ -1,95 +1,82 @@
-// Bootstrap variables
-$border-radius-base: 0;
-$border-radius-large: 0;
-
-$brand-primary: #304C58;
-$brand-info: #379AD5;
-$brand-warning: #FF9900;
-$gray-light: #A6A6A6;
-$gray-lighter: #DADADA;
-
-$btn-primary-color: $brand-primary;
-$btn-primary-bg: transparent;
-$btn-primary-border: $brand-primary;
-
-$font-family-sans-serif: "HurmeGeometricSans4-Regular", "Helvetica Neue", Helvetica, Arial, sans-serif;
-$font-family-sans-serif-black: "HurmeGeometricSans4-Black", "Helvetica Neue", Helvetica, Arial, sans-serif;
-$font-family-sans-serif-light: "HurmeGeometricSans4-Light", "Helvetica Neue", Helvetica, Arial, sans-serif;
-$font-size-base: 16px;
-$font-size-h1: 6.5vmin;
-$font-size-h1-px: 50px;
-$font-size-h2: 5vmin;
-$font-size-h2-px: 38px;
-$font-size-h3: 3.5vmin;
-$font-size-h3-px: 26px;
-
-$jumbotron-padding: 0;
-$jumbotron-color: $brand-warning;
-$jumbotron-heading-color: white;
-$jumbotron-bg: white;
-
-$navbar-height: 50px;
-$navbar-margin-bottom: 0;
-$navbar-border-radius: 0;
-$navbar-padding-horizontal: 0;
-$navbar-padding-vertical: 0;
-$navbar-default-color: $brand-primary;
-$navbar-default-bg: transparent;
-$navbar-default-link-color: $brand-primary;
-$navbar-default-link-hover-color: darken($brand-primary, 15%);
-$navbar-default-link-active-color: darken($brand-primary, 15%);
-$navbar-default-brand-color: $brand-primary;
-$navbar-default-brand-hover-color: $navbar-default-link-hover-color;
-$navbar-default-toggle-border-color: transparent;
-
-$padding-base-vertical: 10px;
-$padding-base-horizontal: 16px;
-
-$padding-large-vertical: 15px;
-$padding-large-horizontal: 36px;
-
-$text-color: $gray-light;
-
-// Font awesome variables
-$fa-font-path: "//netdna.bootstrapcdn.com/font-awesome/4.3.0/fonts";
-
-// Custom variables
-$blueish: #267377;
-$yellow: #ffe169;
-$whiteish: #fffff0;
-$pages-colors: (
-  home: (
-    brand: $yellow,
-    menu: $yellow,
-    header: $whiteish,
-    intro: $brand-primary,
-    intro-bg: $yellow
-  ),
-  developers: (
-    brand: $blueish,
-    menu: $blueish,
-    header: $brand-info,
-    intro: $whiteish,
-    intro-bg: $brand-info
-  )
-);
-$transition-duration: .2s;
-
+@import "variables";
 @import "../../node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
 @import "../../node_modules/font-awesome/scss/font-awesome";
-@import "../../node_modules/sass-flex-mixin/flex";
 @import "webfont";
+
+h3 {
+  color: $brand-info;
+}
 
 .btn {
   text-transform: uppercase;
   font-family: $font-family-sans-serif-black;
 }
 
-.btn-primary {
+.btn-warning {
   &:hover, &:focus {
-    border-color: $brand-primary;
-    background-color: $brand-primary;
-    color: white;
+    border-color: $whiteish;
+    background-color: $whiteish;
+    color: $brand-warning;
+  }
+}
+
+@each $page, $colors in $pages-colors {
+  .body--#{$page} {
+    .navbar-brand {
+      color: map-get($colors, brand);
+
+      &:hover, &:focus {
+        color: $whiteish;
+      }
+    }
+
+    .navbar-right > li > a {
+      border-color: map-get($colors, menu);
+      color: map-get($colors, menu);
+
+      &:hover, &:focus {
+        color: $whiteish;
+      }
+
+      @media (max-width: $grid-float-breakpoint-max) {
+        background: map-get($colors, menu);
+        @if lightness(map-get($colors, menu)) > 50% {
+          color: $brand-primary;
+        } @else {
+          color: $whiteish;
+        }
+
+        &:hover, &:focus {
+          @if lightness(map-get($colors, menu)) > 50% {
+            color: $brand-primary;
+          } @else {
+            color: $whiteish;
+          }
+          background: darken(map-get($colors, menu), 10%);
+        }
+      }
+
+      &.btn-menu {
+        &:hover, &:focus {
+          background-color: map-get($colors, menu);
+          border-color: map-get($colors, menu);
+          color: $whiteish;
+        }
+      }
+    }
+
+    .navbar-toggle {
+      color: map-get($colors, menu);
+
+      &:hover, &:focus {
+        background-color: map-get($colors, menu);
+        color: white;
+      }
+    }
+
+    .btn-menu {
+      @include button-variant(map-get($colors, menu), transparent, map-get($colors, menu));
+    }
   }
 }
 
@@ -180,35 +167,47 @@ $transition-duration: .2s;
   }
 }
 
-.jumbotron {
-  @include flexbox;
-  @include justify-content(center);
-  @include align-items(center);
+.section {
   background-repeat: no-repeat;
   background-size: cover;
+  padding: 4em 0;
   position: relative;
+  text-align: center;
+
+  .row {
+    text-align: left;
+  }
 
   @media (device-width: 768px) and (device-height: 1024px) {
-    height: 928px;
+    min-height: 928px;
   }
   @media (device-width: 768px) and (device-height: 1024px) and (orientation: landscape) {
-    height: 672px;
+    min-height: 672px;
   }
-  height: 100vh !important;
+  min-height: 100vh !important;
 
-  .container {
-    margin: 0;
-    text-align: center;
-    text-transform: uppercase;
-  }
-
-  & &-header {
+  &-header {
     color: $brand-info;
     font-family: $font-family-sans-serif-light;
-    font-size: $font-size-h1-px;
-    font-size: $font-size-h1;
-    line-height: 1.2;
-    margin: 2em 0 1em;
+    font-size: $font-size-h2-px;
+    font-size: $font-size-h2;
+    margin-bottom: $font-size-h2-px;
+    margin-bottom: $font-size-h2;
+    padding-bottom: $font-size-h2-px;
+    padding-bottom: $font-size-h2;
+    position: relative;
+    text-transform: uppercase;
+
+    &:after {
+      border-bottom: .8vmin solid $brand-info;
+      bottom: 0;
+      content: "";
+      display: block;
+      left: 50%;
+      margin-left: -2.1vmin;
+      position: absolute;
+      width: 4.2vmin;
+    }
 
     b {
       font-family: $font-family-sans-serif-black;
@@ -230,166 +229,38 @@ $transition-duration: .2s;
         opacity: 1;
       }
     }
-    @-webkit-keyframes blink {
-      0% {
-        opacity: 1;
-      }
-      50% {
-        opacity: 0;
-      }
-      100% {
-        opacity: 1;
-      }
-    }
-    @-moz-keyframes blink {
-      0% {
-        opacity: 1;
-      }
-      50% {
-        opacity: 0;
-      }
-      100% {
-        opacity: 1;
-      }
-    }
 
     .typed-cursor {
-      @include animation(blink .7s infinite);
+      animation: blink .7s infinite;
+    }
+
+    &-sub {
+      font-size: $font-size-h2-px;
+      font-size: $font-size-h2;
     }
   }
 
-  & &-intro {
+  &-stripe {
+    align-items: center;
     background: $brand-info;
+    bottom: 0;
     color: $whiteish;
+    display: flex;
+    flex-direction: column;
     font-family: $font-family-sans-serif-light;
     font-size: $font-size-h3-px;
     font-size: $font-size-h3;
-    position: absolute;
-    bottom: 0;
+    height: 17vmin;
+    justify-content: center;
     left: 0;
+    margin: 0;
+    padding: 0 8vmin;
+    position: absolute;
     width: 100%;
-    padding: $font-size-h3-px 0;
-    padding: $font-size-h3 0;
-
-    span {
-      display: block;
-    }
-
-    &--subpage {
-      color: $brand-info;
-    }
-  }
-}
-
-@each $page, $colors in $pages-colors {
-  .body--#{$page} {
-    .navbar-brand {
-      color: map-get($colors, brand);
-
-      &:hover, &:focus {
-        color: $whiteish;
-      }
-    }
-
-    .navbar-right > li > a {
-      border-color: map-get($colors, menu);
-      color: map-get($colors, menu);
-
-      &:hover, &:focus {
-        color: $whiteish;
-      }
-
-      @media (max-width: $grid-float-breakpoint-max) {
-        background: map-get($colors, menu);
-        @if lightness(map-get($colors, menu)) > 50% {
-          color: $brand-primary;
-        } @else {
-          color: $whiteish;
-        }
-
-        &:hover, &:focus {
-          @if lightness(map-get($colors, menu)) > 50% {
-            color: $brand-primary;
-          } @else {
-            color: $whiteish;
-          }
-          background: darken(map-get($colors, menu), 10%);
-        }
-      }
-
-      &.btn-menu {
-        &:hover, &:focus {
-          background-color: map-get($colors, menu);
-          border-color: map-get($colors, menu);
-          color: $whiteish;
-        }
-      }
-    }
-
-    .navbar-toggle {
-      color: map-get($colors, menu);
-
-      &:hover, &:focus {
-        background-color: map-get($colors, menu);
-        color: white;
-      }
-    }
-
-    .btn-menu {
-      @include button-variant(map-get($colors, menu), transparent, map-get($colors, menu));
-    }
-
-    .jumbotron {
-      background-image: url("images/hero-#{$page}.jpg");
-
-      .jumbotron-header {
-        color: map_get($colors, header);
-      }
-
-      .jumbotron-intro {
-        background: map_get($colors, intro-bg);
-        color: map_get($colors, intro);
-      }
-    }
-  }
-}
-
-.section {
-  padding: 4em 0;
-  text-align: center;
-
-  & &-header {
-    color: $brand-info;
-    font-family: $font-family-sans-serif-light;
-    font-size: $font-size-h2;
-    font-size: $font-size-h2-px;
-    margin: {
-      top: 0;
-      bottom: 1em;
-    }
-    text-transform: uppercase;
-  }
-
-  &-image {
-    margin-bottom: 1.5em;
-  }
-
-  &-text {
-    margin-bottom: 0;
-  }
-
-  &-header, &-image, &-text {
-    margin: {
-      left: auto;
-      right: auto;
-    }
-    max-width: 800px;
-    width: 614px;
-    width: 80vmin;
   }
 
   &-button {
-    @extend .btn, .btn-primary;
+    @extend .btn, .btn-warning;
     font-size: $font-size-base;
     margin-top: 1.5em;
 
@@ -418,38 +289,139 @@ $transition-duration: .2s;
     }
   }
 
-  &--get {
-    background-color: $gray-lighter;
+  @each $section in $sections-flex {
+    &.section--#{$section} {
+      align-items: center;
+      display: flex;
+      justify-content: center;
+      padding: 0;
 
-    & &-header {
-      color: $brand-primary;
-      font-family: $font-family-sans-serif-black;
-      font-size: $font-size-h1-px;
-      font-size: $font-size-h1;
+      .section-header {
+        font-size: $font-size-h1-px;
+        font-size: $font-size-h1;
+        line-height: 1.2;
+
+        &:after {
+          content: none;
+        }
+
+        &-sub {
+          margin-top: $font-size-h2-px*.5;
+          margin-top: $font-size-h2*.5;
+          padding-top: $font-size-h2-px;
+          padding-top: $font-size-h2;
+          position: relative;
+
+          &:before {
+            border-bottom: .9vmin solid;
+            top: 0;
+            content: "";
+            display: block;
+            left: 50%;
+            margin-left: -2.3vmin;
+            position: absolute;
+            width: 4.6vmin;
+          }
+        }
+      }
+
+      .section-stripe {
+        text-transform: uppercase;
+      }
+    }
+  }
+
+  @each $section in $sections-image {
+    &.section--#{$section} {
+      background-image: url("images/hero-#{$section}.jpg");
+    }
+  }
+
+  @each $section, $colors in $sections-colors {
+    &.section--#{$section} {
+      background-color: map_get($colors, background);
+      .section-header {
+        color: map_get($colors, header);
+
+        &:after {
+          border-color: map_get($colors, header);
+        }
+      }
+
+      .section-stripe {
+        background: map_get($colors, intro-bg);
+        color: map_get($colors, intro);
+      }
+    }
+  }
+
+  &--home {
+    .section-header {
+      &-sub {
+        color: map-get(map-get($sections-colors, home), intro-bg);
+        border-color: map-get(map-get($sections-colors, home), intro-bg);
+      }
+    }
+  }
+
+  &--try-it-now {
+    color: white;
+    min-height: 83vmin !important;
+
+    h3 {
+      color: white;
     }
   }
 }
 
+.footer {
+  background: $gray-light;
+
+  &-in {
+    @extend .container;
+    align-items: center;
+    background: $gray-light;
+    display: flex;
+    height: 17vmin;
+    justify-content: space-between;
+
+    &:before, &:after {
+      content: none;
+    }
+  }
+
+  &-menu {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+}
+
 .social-links {
-  background: $brand-info;
-  margin-bottom: 2em;
   padding: 0;
 
   &-item {
     display: inline-block;
     list-style: none;
     margin: 0 38px;
-    margin: 0 5vmin;
+    margin: 0 2vmin;
   }
 
   &-link {
-    color: white;
+    background-color: $brand-info;
+    border-radius: 50%;
+    color: $gray-light;
     display: inline-block;
     font-size: 38px;
-    font-size: 5vmin;
-    padding: 27px;
-    padding: 3.5vmin;
+    font-size: 3.5vmin;
+    height: 5vmin;
     text-align: center;
+    width: 5vmin;
+
+    &:hover, &:focus {
+      background-color: $brand-primary;
+      color: $gray-light;
+    }
 
     .fa {
       vertical-align: middle;
@@ -464,29 +436,8 @@ $transition-duration: .2s;
   }
 }
 
-.footer {
-  text-align: center;
-  padding-bottom: 2em;
-
-  .section-image {
-    margin-bottom: 0;
-  }
-
-  small {
-    display: block;
-    font-size: 13px;
-    line-height: 2;
-  }
-
-  &-link {
-    color: $text-color;
-    display: block;
-    font-weight: normal;
-  }
-}
-
 a, .btn {
-  @include transition(background-color $transition-duration, border-color $transition-duration, color $transition-duration);
+  transition: background-color $transition-duration, border-color $transition-duration, color $transition-duration;
   text-decoration: none;
 
   &:hover, &:focus {

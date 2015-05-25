@@ -27,17 +27,23 @@ html(lang="en")
                                 a(class=["btn-menu"], href="#") Get Saleor
         main
             block main
-        footer(class=["footer", "section"])
-            h2.section-header Keep an eye<br>on us
-            img.section-image(src="https://placekitten.com/g/1000/600", alt="")
-            ul.social-links
-                li.social-links-item
-                    a.social-links-link(href="#")
-                        i.social-links-twitter
-                li.social-links-item
-                    a.social-links-link(href="#")
-                        i.social-links-facebook
-            small &copy; 2015 Mirumee Software. All rights reserved.
-                a.footer-link(href="#") Terms of use
+        footer.footer
+            div.footer-in
+                ul.footer-menu
+                    li
+                        a.footer-brand(href="/") Saleor
+                    li
+                        a(href="#") About us
+                    li
+                        a(href="#") Terms of use
+                    li
+                        a(href="#") Contact
+                ul.social-links
+                    li.social-links-item
+                        a.social-links-link(href="#")
+                            i.social-links-twitter
+                    li.social-links-item
+                        a.social-links-link(href="#")
+                            i.social-links-facebook
         script(src="static/site.js")
-                       
+
