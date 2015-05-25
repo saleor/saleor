@@ -7,10 +7,10 @@
     "build": "npm run jade && npm run scss && npm run uglify",
     "jade": "node_modules/jade/bin/jade.js src/jade/*.jade -o ./",
     "reload": "node_modules/browser-sync/bin/browser-sync.js reload --port 3004",
-    "scss": "node_modules/node-sass/bin/node-sass src/scss/style.scss static/style.css --source-map static/style.css.map",
+    "scss": "node_modules/node-sass/bin/node-sass src/scss/style.scss static/style.css --source-map static/style.css.map && node_modules/autoprefixer/autoprefixer static/style.css",
     "sync": "node_modules/browser-sync/bin/browser-sync.js start --server --port 3004 watch --files *.html --files static/*.css --files static/*.js --no-open",
     "sync-n-watch": "npm run watch & npm run sync",
-    "uglify": "node_modules/uglify-js/bin/uglifyjs node_modules/jquery/dist/jquery.js node_modules/bootstrap-sass/assets/javascripts/bootstrap.js bower_components/typed.js/js/typed.js src/js/site.js --output static/site.js --compress --mangle --source-map site.js.map",
+    "uglify": "node_modules/uglify-js/bin/uglifyjs node_modules/jquery/dist/jquery.js node_modules/bootstrap-sass/assets/javascripts/bootstrap.js bower_components/typed.js/js/typed.js src/js/site.js --output static/site.js --compress --mangle --source-map static/site.js.map",
     "watch": "node_modules/watch/cli.js 'npm run jade' src/jade & node_modules/watch/cli.js 'npm run scss' src/scss & node_modules/watch/cli.js 'npm run uglify' src/js"
   },
   "repository": {
@@ -29,8 +29,8 @@
     "node-sass": "~3.1.0",
     "bootstrap-sass": "~3.3.4",
     "font-awesome": "~4.3.0",
-    "sass-flex-mixin": "~1.0.0",
     "jquery": "~2.1.4",
-    "uglify-js": "~2.4.22"
+    "uglify-js": "~2.4.22",
+    "autoprefixer": "~5.1.1"
   }
 }
