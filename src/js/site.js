@@ -3,7 +3,7 @@ $(document).ready(function() {
 
   (function() {
     var placeholder = $('.typed');
-    var names = placeholder.data("words");
+    var names = placeholder.data('words');
 
     function animateTeam() {
       placeholder.typed({
@@ -15,5 +15,9 @@ $(document).ready(function() {
     }
 
     animateTeam();
+  })();
+
+  (function() {
+    $('a').smoothScroll();
   })();
 });

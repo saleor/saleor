@@ -5,6 +5,11 @@
 
 h3 {
   color: $brand-info;
+
+  @media (max-width: $grid-float-breakpoint-max) {
+    font-size: $font-size-h1-px;
+    font-size: $font-size-h1;
+  }
 }
 
 .btn {
@@ -13,10 +18,13 @@ h3 {
 }
 
 .btn-warning {
+  border-color: $brand-warning;
+  border-top-color: darken($brand-warning, 3%);
+
   &:hover, &:focus {
-    border-color: $whiteish;
-    background-color: $whiteish;
-    color: $brand-warning;
+    border-color: $brand-primary;
+    background-color: $brand-primary;
+    color: white;
   }
 }
 
@@ -96,15 +104,16 @@ h3 {
     font-family: $font-family-sans-serif-black;
     letter-spacing: -4px;
     letter-spacing: -.5vmin;
-    line-height: 43px;
-    line-height: 13.5vmin;
+    height: 43px;
+    height: 13.5vmin;
+    line-height: 1;
     text-transform: uppercase;
 
     @media (min-width: $grid-float-breakpoint) {
       font-size: 46px;
-      font-size: 6vmin;
-      line-height: 46px;
-      line-height: 6vmin;
+      font-size: 4vmin;
+      height: 46px;
+      height: 4vmin;
     }
   }
 
@@ -198,14 +207,22 @@ h3 {
     position: relative;
     text-transform: uppercase;
 
+    @media (max-width: $grid-float-breakpoint-max) {
+      font-size: $font-size-h1-px;
+      font-size: $font-size-h1;
+    }
+
     &:after {
-      border-bottom: .8vmin solid $brand-info;
+      border-bottom: solid $brand-info;
+      border-bottom-width: 6px;
+      border-bottom-width: .8vmin;
       bottom: 0;
       content: "";
       display: block;
       left: 50%;
       margin-left: -2.1vmin;
       position: absolute;
+      width: 32px;
       width: 4.2vmin;
     }
 
@@ -248,8 +265,9 @@ h3 {
     display: flex;
     flex-direction: column;
     font-family: $font-family-sans-serif-light;
-    font-size: $font-size-h3-px;
-    font-size: $font-size-h3;
+    font-size: $font-size-h2-px;
+    font-size: $font-size-h2;
+    height: 130px;
     height: 17vmin;
     justify-content: center;
     left: 0;
@@ -257,12 +275,32 @@ h3 {
     padding: 0 8vmin;
     position: absolute;
     width: 100%;
+
+    @media (min-width: $grid-float-breakpoint) {
+      font-size: $font-size-h3-px;
+      font-size: $font-size-h3;
+    }
+
+    span {
+      display: block;
+    }
   }
 
   &-button {
     @extend .btn, .btn-warning;
     font-size: $font-size-base;
     margin-top: 1.5em;
+
+    &--strong {
+      box-shadow: 3px 3px 0 0 $brand-primary;
+      font-size: $font-size-h2-px;
+      font-size: $font-size-h2;
+
+      @media (min-width: $grid-float-breakpoint) {
+        font-size: $font-size-h3-px;
+        font-size: $font-size-h3;
+      }
+    }
 
     &--lg {
       font-size: $font-size-large;
@@ -313,13 +351,16 @@ h3 {
           position: relative;
 
           &:before {
-            border-bottom: .9vmin solid;
+            border-bottom: solid;
+            border-bottom-width: 6px;
+            border-bottom-width: .9vmin;
             top: 0;
             content: "";
             display: block;
             left: 50%;
             margin-left: -2.3vmin;
             position: absolute;
+            width: 35px;
             width: 4.6vmin;
           }
         }
@@ -366,7 +407,37 @@ h3 {
 
   &--try-it-now {
     color: white;
-    min-height: 83vmin !important;
+
+    @media (min-width: $grid-float-breakpoint) {
+      min-height: 0 !important;
+      padding: 0;
+    }
+
+    .container {
+      padding-top: 4em;
+      position: relative;
+
+      @media (min-width: $grid-float-breakpoint) {
+        height: 849px;
+        height: 83vh;
+
+        img {
+          bottom: -23px;
+          bottom: -3vmin;
+          max-height: 490px;
+          max-height: 64vmin;
+          max-width: 50%;
+          position: absolute;
+          right: 46px;
+          right: 6vmin;
+        }
+      }
+
+      .col {
+        @include make-sm-column(6);
+        position: static;
+      }
+    }
 
     h3 {
       color: white;
@@ -382,6 +453,7 @@ h3 {
     align-items: center;
     background: $gray-light;
     display: flex;
+    height: 130px;
     height: 17vmin;
     justify-content: space-between;
 
@@ -394,16 +466,56 @@ h3 {
     margin: 0;
     padding: 0;
     list-style: none;
+    text-transform: uppercase;
+
+    @media (max-width: $grid-float-breakpoint-max) {
+      font-size: $font-size-h3-px;
+      font-size: $font-size-h3;
+    }
+
+    li {
+      display: inline-block;
+      vertical-align: middle;
+
+      &:nth-child(n+3):before {
+        color: $brand-info;
+        content: "|";
+      }
+
+      a {
+        color: $brand-info;
+        padding: 0 .5em;
+
+        &:hover, &:focus {
+          color: $brand-primary;
+        }
+      }
+    }
+  }
+
+  &-brand {
+    @extend .navbar-brand;
+    color: $brand-info !important;
+    display: none;
+
+    @media (min-width: $grid-float-breakpoint) {
+      display: inline;
+    }
+
+    &:hover, &:focus {
+      color: $brand-primary !important;
+    }
   }
 }
 
 .social-links {
+  margin: 0;
   padding: 0;
 
   &-item {
     display: inline-block;
     list-style: none;
-    margin: 0 38px;
+    margin: 0 15px;
     margin: 0 2vmin;
   }
 
@@ -412,11 +524,19 @@ h3 {
     border-radius: 50%;
     color: $gray-light;
     display: inline-block;
-    font-size: 38px;
+    font-size: 27px;
     font-size: 3.5vmin;
+    height: 38px;
     height: 5vmin;
     text-align: center;
+    width: 38px;
     width: 5vmin;
+
+    @media (max-width: $grid-float-breakpoint-max) {
+      font-size: 5vmin;
+      height: 7vmin;
+      width: 7vmin;
+    }
 
     &:hover, &:focus {
       background-color: $brand-primary;
