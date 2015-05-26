@@ -7805,22 +7805,24 @@ h3 {
   .body--home .navbar-brand:hover, .body--home .footer-brand:hover, .body--home .navbar-brand:focus, .body--home .footer-brand:focus {
     color: #fffff0; }
 
-.body--home .navbar-right > li > a {
-  border-color: #ffe169;
-  color: #ffe169; }
-  .body--home .navbar-right > li > a:hover, .body--home .navbar-right > li > a:focus {
-    color: #fffff0; }
-  @media (max-width: 767px) {
-    .body--home .navbar-right > li > a {
-      background: #ffe169;
-      color: #304C58; }
-      .body--home .navbar-right > li > a:hover, .body--home .navbar-right > li > a:focus {
-        color: #304C58;
-        background: #ffd736; } }
-  .body--home .navbar-right > li > a.btn-menu:hover, .body--home .navbar-right > li > a.btn-menu:focus {
-    background-color: #ffe169;
+.body--home .navbar-right {
+  font-family: "HurmeGeometricSans4-Black", "Helvetica Neue", Helvetica, Arial, sans-serif; }
+  .body--home .navbar-right > li > a {
     border-color: #ffe169;
-    color: #fffff0; }
+    color: #ffe169; }
+    .body--home .navbar-right > li > a:hover, .body--home .navbar-right > li > a:focus {
+      color: #fffff0; }
+    @media (max-width: 767px) {
+      .body--home .navbar-right > li > a {
+        background: #ffe169;
+        color: #304C58; }
+        .body--home .navbar-right > li > a:hover, .body--home .navbar-right > li > a:focus {
+          color: #304C58;
+          background: #ffd736; } }
+    .body--home .navbar-right > li > a.btn-menu:hover, .body--home .navbar-right > li > a.btn-menu:focus {
+      background-color: #ffe169;
+      border-color: #ffe169;
+      color: #fffff0; }
 
 .body--home .navbar-toggle {
   color: #ffe169; }
@@ -7874,22 +7876,24 @@ h3 {
   .body--developers .navbar-brand:hover, .body--developers .footer-brand:hover, .body--developers .navbar-brand:focus, .body--developers .footer-brand:focus {
     color: #fffff0; }
 
-.body--developers .navbar-right > li > a {
-  border-color: #267377;
-  color: #267377; }
-  .body--developers .navbar-right > li > a:hover, .body--developers .navbar-right > li > a:focus {
-    color: #fffff0; }
-  @media (max-width: 767px) {
-    .body--developers .navbar-right > li > a {
-      background: #267377;
-      color: #fffff0; }
-      .body--developers .navbar-right > li > a:hover, .body--developers .navbar-right > li > a:focus {
-        color: #fffff0;
-        background: #1a4e50; } }
-  .body--developers .navbar-right > li > a.btn-menu:hover, .body--developers .navbar-right > li > a.btn-menu:focus {
-    background-color: #267377;
+.body--developers .navbar-right {
+  font-family: "HurmeGeometricSans4-Black", "Helvetica Neue", Helvetica, Arial, sans-serif; }
+  .body--developers .navbar-right > li > a {
     border-color: #267377;
-    color: #fffff0; }
+    color: #267377; }
+    .body--developers .navbar-right > li > a:hover, .body--developers .navbar-right > li > a:focus {
+      color: #fffff0; }
+    @media (max-width: 767px) {
+      .body--developers .navbar-right > li > a {
+        background: #267377;
+        color: #fffff0; }
+        .body--developers .navbar-right > li > a:hover, .body--developers .navbar-right > li > a:focus {
+          color: #fffff0;
+          background: #1a4e50; } }
+    .body--developers .navbar-right > li > a.btn-menu:hover, .body--developers .navbar-right > li > a.btn-menu:focus {
+      background-color: #267377;
+      border-color: #267377;
+      color: #fffff0; }
 
 .body--developers .navbar-toggle {
   color: #267377; }
@@ -7954,7 +7958,7 @@ h3 {
     letter-spacing: -.5vmin;
     height: 43px;
     height: 13.5vmin;
-    line-height: 1;
+    line-height: 1.5;
     text-transform: uppercase; }
     @media (min-width: 768px) {
       .navbar-brand, .footer-brand {
@@ -8323,7 +8327,8 @@ h3 {
           color: #304C58; }
   .footer-brand {
     color: #006599 !important;
-    display: none; }
+    display: none;
+    line-height: 1; }
     @media (min-width: 768px) {
       .footer-brand {
         display: inline; } }

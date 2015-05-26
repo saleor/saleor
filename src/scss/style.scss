@@ -38,37 +38,41 @@ h3 {
       }
     }
 
-    .navbar-right > li > a {
-      border-color: map-get($colors, menu);
-      color: map-get($colors, menu);
+    .navbar-right {
+      font-family: $font-family-sans-serif-black;
 
-      &:hover, &:focus {
-        color: $whiteish;
-      }
+      > li > a {
+        border-color: map-get($colors, menu);
+        color: map-get($colors, menu);
 
-      @media (max-width: $grid-float-breakpoint-max) {
-        background: map-get($colors, menu);
-        @if lightness(map-get($colors, menu)) > 50% {
-          color: $brand-primary;
-        } @else {
+        &:hover, &:focus {
           color: $whiteish;
         }
 
-        &:hover, &:focus {
+        @media (max-width: $grid-float-breakpoint-max) {
+          background: map-get($colors, menu);
           @if lightness(map-get($colors, menu)) > 50% {
             color: $brand-primary;
           } @else {
             color: $whiteish;
           }
-          background: darken(map-get($colors, menu), 10%);
-        }
-      }
 
-      &.btn-menu {
-        &:hover, &:focus {
-          background-color: map-get($colors, menu);
-          border-color: map-get($colors, menu);
-          color: $whiteish;
+          &:hover, &:focus {
+            @if lightness(map-get($colors, menu)) > 50% {
+              color: $brand-primary;
+            } @else {
+              color: $whiteish;
+            }
+            background: darken(map-get($colors, menu), 10%);
+          }
+        }
+
+        &.btn-menu {
+          &:hover, &:focus {
+            background-color: map-get($colors, menu);
+            border-color: map-get($colors, menu);
+            color: $whiteish;
+          }
         }
       }
     }
@@ -106,7 +110,7 @@ h3 {
     letter-spacing: -.5vmin;
     height: 43px;
     height: 13.5vmin;
-    line-height: 1;
+    line-height: 1.5;
     text-transform: uppercase;
 
     @media (min-width: $grid-float-breakpoint) {
@@ -497,6 +501,7 @@ h3 {
     @extend .navbar-brand;
     color: $brand-info !important;
     display: none;
+    line-height: 1;
 
     @media (min-width: $grid-float-breakpoint) {
       display: inline;
