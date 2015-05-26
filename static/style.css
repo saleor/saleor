@@ -7781,6 +7781,9 @@ button.close {
   font-family: 'HurmeGeometricSans4-Light';
   src: url("webfonts/HurmeGeometricSans4-Light.eot?#iefix") format("embedded-opentype"), url("webfonts/HurmeGeometricSans4-Light.otf") format("opentype"), url("webfonts/HurmeGeometricSans4-Light.woff") format("woff"), url("webfonts/HurmeGeometricSans4-Light.ttf") format("truetype"), url("webfonts/HurmeGeometricSans4-Light.svg#HurmeGeometricSans4-Light") format("svg"); }
 
+body {
+  -webkit-font-smoothing: antialiased; }
+
 h3 {
   color: #006599; }
   @media (max-width: 767px) {

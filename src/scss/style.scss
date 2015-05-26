@@ -3,6 +3,10 @@
 @import "../../node_modules/font-awesome/scss/font-awesome";
 @import "webfont";
 
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
 h3 {
   color: $brand-info;
 
