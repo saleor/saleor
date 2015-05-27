@@ -57,11 +57,10 @@ $fa-font-path: "//netdna.bootstrapcdn.com/font-awesome/4.3.0/fonts";
 // Custom variables
 $blueish: #267377;
 $yellow: #ffe169;
-$whiteish: #fffff0;
 $pages-colors: (
   home: (
-    brand: $yellow,
-    menu: $yellow,
+    brand: white,
+    menu: white,
   ),
   developers: (
     brand: $blueish,
@@ -70,11 +69,12 @@ $pages-colors: (
 );
 $sections-colors: (
   home: (
-    header: $whiteish,
+    header: white,
     intro: $brand-primary,
     intro-bg: $yellow
   ),
   customers: (
+    header: white,
     intro: white,
     intro-bg: rgba($yellow, .5)
   ),
@@ -94,7 +94,7 @@ $sections-colors: (
   ),
   developers: (
     header: $brand-info,
-    intro: $whiteish,
+    intro: white,
     intro-bg: $brand-info
   )
 );

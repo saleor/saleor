@@ -4,8 +4,8 @@
 @import "webfont";
 
 body {
-  -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
 }
 
 h3 {
@@ -39,7 +39,7 @@ h3 {
       color: map-get($colors, brand);
 
       &:hover, &:focus {
-        color: $whiteish;
+        color: white;
       }
     }
 
@@ -51,7 +51,7 @@ h3 {
         color: map-get($colors, menu);
 
         &:hover, &:focus {
-          color: $whiteish;
+          color: white;
         }
 
         @media (max-width: $grid-float-breakpoint-max) {
@@ -59,14 +59,14 @@ h3 {
           @if lightness(map-get($colors, menu)) > 50% {
             color: $brand-primary;
           } @else {
-            color: $whiteish;
+            color: white;
           }
 
           &:hover, &:focus {
             @if lightness(map-get($colors, menu)) > 50% {
               color: $brand-primary;
             } @else {
-              color: $whiteish;
+              color: white;
             }
             background: darken(map-get($colors, menu), 10%);
           }
@@ -76,7 +76,7 @@ h3 {
           &:hover, &:focus {
             background-color: map-get($colors, menu);
             border-color: map-get($colors, menu);
-            color: $whiteish;
+            color: white;
           }
         }
       }
@@ -132,7 +132,7 @@ h3 {
     > li {
       a {
         &:hover, &:focus {
-          color: $whiteish;
+          color: white;
         }
       }
 
@@ -151,8 +151,8 @@ h3 {
 
           &:hover, &:focus {
             background-color: $brand-primary;
-            border-color: $whiteish;
-            color: $whiteish;
+            border-color: white;
+            color: white;
           }
         }
       }
@@ -186,9 +186,11 @@ h3 {
 }
 
 .section {
+  background-position: top;
   background-repeat: no-repeat;
   background-size: cover;
-  padding: 4em 0;
+  padding: 4em 0 130px;
+  padding-bottom: 17vmin;
   position: relative;
   text-align: center;
 
@@ -202,7 +204,7 @@ h3 {
   @media (device-width: 768px) and (device-height: 1024px) and (orientation: landscape) {
     min-height: 672px;
   }
-  min-height: 100vh !important;
+  min-height: 100vh;
 
   &-header {
     color: $brand-info;
@@ -270,18 +272,19 @@ h3 {
     align-items: center;
     background: $brand-info;
     bottom: 0;
-    color: $whiteish;
+    color: white;
     display: flex;
     flex-direction: column;
     font-family: $font-family-sans-serif-light;
     font-size: $font-size-h2-px;
     font-size: $font-size-h2;
-    height: 130px;
-    height: 17vmin;
+    min-height: 130px;
+    min-height: 17vmin;
     justify-content: center;
     left: 0;
     margin: 0;
-    padding: 0 8vmin;
+    padding: $font-size-h2-px;
+    padding: $font-size-h2;
     position: absolute;
     width: 100%;
 
@@ -414,6 +417,14 @@ h3 {
     }
   }
 
+  &--dashboard {
+    overflow-x: hidden;
+  }
+
+  &--home-developers {
+    background-position: bottom;
+  }
+
   &--try-it-now {
     color: white;
 
@@ -435,10 +446,10 @@ h3 {
           bottom: -3vmin;
           max-height: 490px;
           max-height: 64vmin;
-          max-width: 50%;
+          max-width: 56%;
           position: absolute;
-          right: 46px;
-          right: 6vmin;
+          right: 92px;
+          right: 12vmin;
         }
       }
 
