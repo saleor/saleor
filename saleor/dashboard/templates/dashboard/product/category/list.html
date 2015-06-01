@@ -1,0 +1,26 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load mptt_tags %}
+
+{% block title %}{% trans "Categories" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header">{% trans "Categories" %}</h1>
+            <a class="btn btn-default" href="{% url 'dashboard:category-add' %}">{% trans 'Add category' %}</a>
+            <ul class="list-unstyled">
+                {% recursetree categories %}
+                    <li>
+                        <a href="{% url 'dashboard:category-update' pk=node.pk %}">{{ node.name }}</a>
+                        {% if not node.is_leaf_node %}
+                            <ul class="children">
+                                {{ children }}
+                            </ul>
+                        {% endif %}
+                    </li>
+                {% endrecursetree %}
+            </ul>
+        </div>
+    </div>
+{% endblock %}
