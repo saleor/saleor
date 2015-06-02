@@ -1,9 +1,12 @@
 from django.contrib import messages
+from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
+from django.views.generic import DeleteView
 
 from ...product.models import Category
+from ..views import StaffMemberOnlyMixin, staff_member_required
 from .forms import CategoryForm
 
 
@@ -34,3 +37,19 @@ def category_details(request, pk=None):
             messages.error(request, _('Failed to save category'))
     ctx = {'category': category, 'form': form, 'title': title}
     return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
+
+
+class CategoryDeleteView(StaffMemberOnlyMixin, DeleteView):
+    model = Category
+    template_name = 'dashboard/category/category_confirm_delete.html'
+    success_url = reverse_lazy('dashboard:categories')
+
+    def get_context_data(self, **kwargs):
+        ctx = super(CategoryDeleteView, self).get_context_data(**kwargs)
+        ctx['descendants'] = list(self.get_object().get_descendants())
+        return ctx
+
+    def post(self, request, *args, **kwargs):
+        result = self.delete(request, *args, **kwargs)
+        messages.success(request, _('Deleted category %s') % self.object)
+        return result

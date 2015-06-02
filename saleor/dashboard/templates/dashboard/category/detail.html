@@ -29,7 +29,7 @@
                 <p>
                     {% if category.pk %}
                         <span class="pull-right">
-                        <a href="" class="btn btn-danger"><i class="glyphicon glyphicon-trash"></i> {% trans "Delete" %}</a>
+                        <a href="{% url 'dashboard:category-delete' pk=category.pk %}" class="btn btn-danger"><i class="glyphicon glyphicon-trash"></i> {% trans "Delete" %}</a>
                     </span>
                     {% endif %}
                     {% if category.pk %}
