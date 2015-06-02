@@ -8,7 +8,7 @@ from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DeleteView
 
-from ...product.models import Product, Category
+from ...product.models import Product
 from ..utils import paginate
 from ..views import StaffMemberOnlyMixin, staff_member_required
 from .forms import (ProductImageFormSet, ProductClassForm, get_product_form,
@@ -73,20 +73,3 @@ class ProductDeleteView(StaffMemberOnlyMixin, DeleteView):
         result = self.delete(request, *args, **kwargs)
         messages.success(request, _('Deleted product %s') % self.object)
         return result
-
-
-def category_list(request):
-    categories = Category.objects.all()
-    ctx = {'categories': categories}
-    return TemplateResponse(request, 'dashboard/product/category/list.html', ctx)
-
-
-def category_details(request, pk=None):
-    if pk:
-        category = get_object_or_404(Category.objects.all(), pk=pk)
-        title = category.name
-    else:
-        category = Category()
-        title = _('Add new category')
-    ctx = {'category': category, 'title': title}
-    return TemplateResponse(request, 'dashboard/product/category/detail.html', ctx)
