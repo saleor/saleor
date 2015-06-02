@@ -49,6 +49,7 @@ class CategoryDeleteView(StaffMemberOnlyMixin, DeleteView):
     def get_context_data(self, **kwargs):
         ctx = super(CategoryDeleteView, self).get_context_data(**kwargs)
         ctx['descendants'] = list(self.get_object().get_descendants())
+        ctx['products_count'] = len(self.get_object().products.all())
         return ctx
 
     def post(self, request, *args, **kwargs):
