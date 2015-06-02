@@ -2,12 +2,12 @@
 {% load i18n %}
 {% load mptt_tags %}
 
-{% block title %}{{ title }} - {{ block.super }}{% endblock %}
+{% block title %}{{ title }} - {% trans 'Categories' %} - {{ block.super }}{% endblock %}
 
 {% block content %}
     <div class="row">
         <div class="col-lg-12">
-            <h1 class="page-header">{% trans "Category" %} {{ category.name }}</h1>
+            <h1 class="page-header">{{ title }}</h1>
         </div>
     </div>
 {% endblock %}
