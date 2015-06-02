@@ -1,4 +1,5 @@
 {% extends "dashboard/base.html" %}
+{% load bootstrap %}
 {% load i18n %}
 {% load mptt_tags %}
 
@@ -10,4 +11,35 @@
             <h1 class="page-header">{{ title }}</h1>
         </div>
     </div>
+
+    <form class="form form-vertical" method="post" id="category-form" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="form-message alert alert-success" hidden="hidden">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                    <span class="glyphicon glyphicon-ok-sign"></span>
+                    <span class="message-content">{% trans "Data saved" %}</span>
+                </div>
+                {% csrf_token %}
+                {{ form|as_vertical_form }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-8">
+                <p>
+                    {% if category.pk %}
+                        <span class="pull-right">
+                        <a href="" class="btn btn-danger"><i class="glyphicon glyphicon-trash"></i> {% trans "Delete" %}</a>
+                    </span>
+                    {% endif %}
+                    {% if category.pk %}
+                        <button type="submit" class="btn btn-primary"><i class="glyphicon glyphicon-refresh"></i> {% trans "Update" %}</button>
+                    {% else %}
+                        <button type="submit" class="btn btn-primary"><i class="glyphicon glyphicon-upload"></i> {% trans "Create" %}</button>
+                    {% endif %}
+                    <a href="{% url 'dashboard:categories' %}" class="btn btn-default"><i class="glyphicon glyphicon-remove"></i> {% trans "Cancel" %}</a>
+                </p>
+            </div>
+        </div>
+    </form>
 {% endblock %}

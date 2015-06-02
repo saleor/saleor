@@ -1,8 +1,10 @@
-from django.shortcuts import get_object_or_404
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
 
 from ...product.models import Category
+from .forms import CategoryForm
 
 
 def category_list(request):
@@ -18,5 +20,17 @@ def category_details(request, pk=None):
     else:
         category = Category()
         title = _('Add new category')
-    ctx = {'category': category, 'title': title}
+    form = CategoryForm(request.POST or None, instance=category)
+    if form.is_valid():
+        form.save()
+        if pk:
+            msg = _('Updated category %s') % category
+        else:
+            msg = _('Added category %s') % category
+        messages.success(request, msg)
+        return redirect('dashboard:categories')
+    else:
+        if form.errors:
+            messages.error(request, _('Failed to save category'))
+    ctx = {'category': category, 'form': form, 'title': title}
     return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
