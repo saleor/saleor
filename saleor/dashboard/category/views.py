@@ -10,12 +10,14 @@ from ..views import StaffMemberOnlyMixin, staff_member_required
 from .forms import CategoryForm
 
 
+@staff_member_required
 def category_list(request):
     categories = Category.objects.all()
     ctx = {'categories': categories}
     return TemplateResponse(request, 'dashboard/category/list.html', ctx)
 
 
+@staff_member_required
 def category_details(request, pk=None):
     if pk:
         category = get_object_or_404(Category.objects.all(), pk=pk)
