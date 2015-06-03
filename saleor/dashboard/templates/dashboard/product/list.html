@@ -5,26 +5,23 @@
 
 {% block title %}{% trans "Products" %} - {{ block.super }}{% endblock %}
 
+{% block page_title %}{% trans "Products" %}{% endblock %}
+
 {% block content %}
     <div class="row">
-        <div class="col-lg-12">
-            <h1 class="page-header">{% trans "Products" %}</h1>
-            <div class="panel panel-default">
-                <div class="panel-heading">{% trans "Add new product" %}</div>
-                <div class="panel-body">
-                    <form class="form-inline" method="post" action=".">
-                        {% csrf_token %}
-                        <div class="form-group">
-                            <label class="control-label"for="amount">{% trans "Product type" %}</label>
-                            {% render_widget form.cls_name class="form-control" %}
-                            <button class="btn btn-success" type="submit">
-                                <i class="glyphicon glyphicon-plus"></i> {% trans "New product" %}
-                            </button>
-                        </div>
-                    </form>
+        <div class="col s12">
+            <h5>{% trans "Add new product" %}</h5>
+            <form class="row" method="post" action=".">
+                {% csrf_token %}
+                <div class="input-field col s4">
+                    {% render_widget form.cls_name %}
+                    <label for="amount">{% trans "Product type" %}</label>
+                    <button class="btn" type="submit">
+                        <i class="mdi-content-add left"></i> {% trans "New product" %}
+                    </button>
                 </div>
-            </div>
-            <table class="table">
+            </form>
+            <table class="striped">
                 <thead>
                     <tr>
                         <th colspan="2" class="col-sm-6">{% trans "Name" %}</th>
