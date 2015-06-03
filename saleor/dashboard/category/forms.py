@@ -18,4 +18,6 @@ class CategoryForm(forms.ModelForm):
         parent = self.cleaned_data['parent']
         if parent == self.instance:
             raise forms.ValidationError(_('A category may not be made a child of itself'))
+        if self.instance in parent.get_ancestors():
+            raise forms.ValidationError(_('A category may not be made a child of any of its descendants.'))
         return parent
