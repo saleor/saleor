@@ -6,11 +6,11 @@
 
 {% block title %}{{ customer }} - {% trans "Customers" %} - {{ block.super }}{% endblock %}
 
+{% block page_title %}<span class="mdi-action-account-circle"></span> {{ customer }}{% endblock %}
+
 {% block content %}
 <div class="row">
-    <h1 class="page-header"><span class="glyphicon glyphicon-user"></span> {{ customer }}</h1>
-
-    <div class="col-lg-8">
+    <div class="col l8">
         <div class="panel panel-default">
             <div class="panel-heading">
                 <span class="panel-title">Order history</span>
@@ -47,7 +47,7 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-4">
+    <div class="col l4">
         <div class="panel panel-default">
             <div class="panel-heading">
                 <span class="panel-title">{% trans "Default billing address" %}</span>
