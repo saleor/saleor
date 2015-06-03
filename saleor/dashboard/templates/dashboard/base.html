@@ -5,62 +5,68 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
     <title>{% block title %}{% trans "Dashboard - Saleor" %}{% endblock %}</title>
 
-    {% if debug %}
-        <link rel="stylesheet/less" type="text/css" href="{% static "less/dashboard.less" %}">
-        <script type="text/javascript" src="{% static "dist/js/less.min.js" %}"></script>
-    {% else %}
-        <link rel="stylesheet" type="text/css" href="{% static "css/dashboard.css" %}">
-    {% endif %}
+    <link rel="stylesheet" type="text/css" href="{% static "css/dashboard.css" %}">
     <link rel="stylesheet" type="text/css" href="{% static "versatileimagefield/css/versatileimagefield.css" %}">
     {% block custom_css %}
     {% endblock %}
 </head>
 
 <body>
-
-<div id="wrapper">
-
-    <nav class="navbar navbar-default navbar-inverse navbar-static-top" role="navigation" style="margin-bottom: 0">
-        <div class="container-fluid">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse"
-                        data-target=".sidebar-collapse">
-                    <span class="sr-only">{% trans "Toggle navigation" %}</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="{% url 'dashboard:index' %}">Saleor Dashboard</a>
+    <header class="header">
+        <nav class="top-nav">
+            <div class="container">
+                <div class="nav-wrapper">
+                    <span class="page-title">{% block page_title %}{% trans "Dashboard" %}{% endblock %}</span>
+                    <a href="#" data-activates="side-menu" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
+                </div>
             </div>
-            {% include "dashboard/includes/header.html" %}
+        </nav>
+        <ul class="side-nav fixed" id="side-menu">
+            <li class="brand-logo"><a href="{% url 'dashboard:index' %}">Saleor</a></li>
+            <li><a href="{% url 'dashboard:index' %}" class="waves-effect waves-teal">Home</a></li>
+            <li><a href="{% url 'dashboard:orders' %}" class="waves-effect waves-teal">Orders</a></li>
+            <li><a href="{% url 'dashboard:products' %}" class="waves-effect waves-teal">Products</a></li>
+            <li><a href="{% url 'dashboard:categories' %}" class="waves-effect waves-teal">Categories</a></li>
+            <li><a href="{% url 'dashboard:customers' %}" class="waves-effect waves-teal">Customers</a></li>
+            <li><a href="{% url 'dashboard:payments' %}" class="waves-effect waves-teal">Payments</a></li>
+            <li class="side-nav-user">
+                <ul class="collapsible collapsible-accordion">
+                    <li>
+                        <a class="waves-effect waves-teal collapsible-header">
+                            <i class="mdi-action-account-circle"></i>{{ request.user }} <i class="mdi-navigation-arrow-drop-down"></i>
+                        </a>
+                        <div class="collapsible-body">
+                            <ul>
+                                <li><a href="/" class="waves-effect waves-teal">{% trans "Visit storefront" %}</a></li>
+                                <li class="divider"></li>
+                                <li><a href="{% url 'registration:logout' %}" class="waves-effect waves-teal">{% trans "Log out" %}</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            {% if messages %}
+                {% include "dashboard/includes/_messages.html" %}
+            {% endif %}
+
+            {% block content %}
+            {% endblock %}
         </div>
+    </main>
 
-        {% include "dashboard/includes/sidebar.html" %}
-        <!-- /.navbar-static-side -->
-    </nav>
+    <!-- Core Scripts - Include with every page -->
+    <script src="{% static "js/dashboard.js" %}"></script>
+    <script src="{% static "versatileimagefield/js/versatileimagefield.js" %}"></script>
 
-    <div id="page-wrapper">
-        {% if messages %}
-            {% include "dashboard/includes/_messages.html" %}
-        {% endif %}
-
-        {% block content %}
-        {% endblock %}
-    </div>
-
-</div>
-<!-- /#wrapper -->
-
-<!-- Core Scripts - Include with every page -->
-<script src="{% static "dist/js/jquery.min.js" %}"></script>
-<script src="{% static "dist/js/bootstrap.min.js" %}"></script>
-<script src="{% static "versatileimagefield/js/versatileimagefield.js" %}"></script>
-
-{% block custom_js %}{% endblock %}
+    {% block custom_js %}{% endblock %}
 </body>
-
 </html>

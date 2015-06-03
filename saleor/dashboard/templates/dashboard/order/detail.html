@@ -6,22 +6,19 @@
 
 {% block title %}{{ order }} - {% trans "Orders" %} - {{ block.super }}{% endblock %}
 
+{% block page_title %}{% trans "Order" %} {{ order }}{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-lg-12">
-        <h1 class="page-header">Order {{ order }}</h1>
-    </div>
-</div>
-<ul class="nav nav-tabs" role="tablist">
-    <li role="presentation" class="active"><a href="#order-details" role="tab" data-toggle="tab">{% trans "Contents" %}</a></li>
-    <li role="presentation"><a href="#payment-history" role="tab" data-toggle="tab">{% trans "Payments" %}</a></li>
-    <li role="presentation"><a href="#order-history" role="tab" data-toggle="tab">{% trans "History" %}</a></li>
+<ul class="tabs" role="tablist">
+    <li role="presentation" class="tab"><a href="#order-details" role="tab" data-toggle="tab" class="active">{% trans "Contents" %}</a></li>
+    <li role="presentation" class="tab"><a href="#payment-history" role="tab" data-toggle="tab">{% trans "Payments" %}</a></li>
+    <li role="presentation" class="tab"><a href="#order-history" role="tab" data-toggle="tab">{% trans "History" %}</a></li>
 </ul>
 <div class="tab-content">
     <div role="tabpanel" class="tab-pane active" id="order-details">
         <br>{# workaround to avoid the first panel sticking to the tabs #}
         <div class="row">
-            <div class="col-lg-8">
+            <div class="col l8">
                 {% for group in groups %}
                     <div class="panel panel-default">
                         <div class="panel-heading">
@@ -139,7 +136,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-4">
+            <div class="col l4">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <span class="panel-title">Order summary</span>

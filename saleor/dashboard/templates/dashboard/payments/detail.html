@@ -7,15 +7,11 @@
 
 {% block title %}{% trans "Payment" %} #{{ payment.id }} - {% trans "Payments" %} - {{ block.super }}{% endblock %}
 
+{% block page_title %}{% trans "Payment" %} #{{ payment.id }}{% endblock %}
 
 {% block content %}
 <div class="row">
-    <div class="col-lg-12">
-        <h1 class="page-header">{% trans "Payment" %} #{{ payment.id }}</h1>
-    </div>
-</div>
-<div class="row">
-    <div class="col-lg-8">
+    <div class="col l8">
         <div class="panel panel-default">
             <div class="panel-heading">
                 <span class="panel-title">Payment details</span>
@@ -57,7 +53,7 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-4">
+    <div class="col l4">
         <div class="panel panel-default">
             <div class="panel-heading">
                 <span class="panel-title">{% trans "Customer" %}</span>
