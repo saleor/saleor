@@ -10,6 +10,8 @@
     "less": "~2.4.0",
     "bootstrap": "~3.3.2",
     "components-font-awesome": "~4.3.0",
-    "zocial-less": "~1.0.0"
+    "zocial-less": "~1.0.0",
+    "materialize": "~0.96.1",
+    "jquery": "~2.1.4"
   }
 }
