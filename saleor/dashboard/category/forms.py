@@ -12,12 +12,13 @@ class CategoryForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(CategoryForm, self).__init__(*args, **kwargs)
-        self.fields['parent'] = TreeNodeChoiceField(queryset=Category.objects.all())
+        self.fields['parent'] = TreeNodeChoiceField(queryset=Category.objects.all(), required=False)
 
     def clean_parent(self):
         parent = self.cleaned_data['parent']
-        if parent == self.instance:
-            raise forms.ValidationError(_('A category may not be made a child of itself'))
-        if self.instance in parent.get_ancestors():
-            raise forms.ValidationError(_('A category may not be made a child of any of its descendants.'))
+        if parent:
+            if parent == self.instance:
+                raise forms.ValidationError(_('A category may not be made a child of itself'))
+            if self.instance in parent.get_ancestors():
+                raise forms.ValidationError(_('A category may not be made a child of any of its descendants.'))
         return parent
