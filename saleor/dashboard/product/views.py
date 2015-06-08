@@ -76,7 +76,7 @@ class ProductDeleteView(StaffMemberOnlyMixin, DeleteView):
 def product_image_edit(request, product_pk, img_pk=None):
     product = get_object_or_404(Product, pk=product_pk)
     if img_pk:
-        product_image = get_object_or_404(ProductImage, pk=img_pk)
+        product_image = get_object_or_404(product.images, pk=img_pk)
         title = product_image.image.name
     else:
         product_image = ProductImage(product=product)
@@ -102,7 +102,7 @@ def product_image_edit(request, product_pk, img_pk=None):
 @staff_member_required
 def product_image_delete(request, product_pk, img_pk):
     product = get_object_or_404(Product, pk=product_pk)
-    product_image = get_object_or_404(ProductImage, pk=img_pk)
+    product_image = get_object_or_404(product.images, pk=img_pk)
     if request.method == 'POST':
         product_image.delete()
         messages.success(request, _('Deleted image %s') % product_image.image.name)
