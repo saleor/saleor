@@ -45,9 +45,7 @@ formset_defaults = {
     'validate_min': True
 }
 
-ProductImageFormSet = inlineformset_factory(
-    Product, ProductImage, widgets={'image': ImageInputWidget},
-    exclude=[], **formset_defaults)
+
 ShirtVariantFormset = inlineformset_factory(
     Shirt, ShirtVariant, exclude=[], **formset_defaults)
 BagVariantFormset = inlineformset_factory(

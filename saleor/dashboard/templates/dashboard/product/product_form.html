@@ -101,45 +101,6 @@
                     </tbody>
                 </table>
             </div>
-
-            {{ image_formset.management_form }}
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <span class="panel-title">{% trans "Images" %}</span>
-                </div>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th colspan="1" class="col-sm-11">{% trans "Image" %}</th>
-                            <th class="text-right"><i class="glyphicon glyphicon-trash"></i></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for form in image_formset.initial_forms %}
-                        <tr>
-                            <td>
-                                {% for field in form.hidden_fields %}
-                                    {{ field }}
-                                {% endfor %}
-                                {{ form.image }}
-                            </td>
-                            <td class="text-right">
-                                {{ form.DELETE }}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    {% for form in image_formset.extra_forms %}
-                        <tr>
-                            <td>
-                                {{ form.image }}
-                            </td>
-                            <td></td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-
-            </div>
         </div>
 
         <div class="col-lg-4">

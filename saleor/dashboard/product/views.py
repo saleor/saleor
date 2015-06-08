@@ -11,7 +11,7 @@ from django.views.generic import DeleteView
 from ...product.models import Product, ProductImage
 from ..utils import paginate
 from ..views import StaffMemberOnlyMixin, staff_member_required
-from .forms import (ProductImageFormSet, ProductClassForm, get_product_form,
+from .forms import (ProductClassForm, get_product_form,
                     get_product_cls_by_name, get_variant_formset, ProductImageForm)
 
 
@@ -35,20 +35,17 @@ def product_details(request, pk=None, cls_name=None):
     else:
         product = get_product_cls_by_name(cls_name)()
         title = _('Add new %s') % cls_name
+    images = product.images.all()
     form_cls = get_product_form(product)
     variant_formset_cls = get_variant_formset(product)
     form = form_cls(request.POST or None, instance=product)
     variant_formset = variant_formset_cls(
         request.POST or None, instance=product)
-    image_formset = ProductImageFormSet(
-        request.POST or None, request.FILES or None, instance=product)
-    forms = {'form': form, 'variant_formset': variant_formset,
-             'image_formset': image_formset}
+    forms = {'form': form, 'variant_formset': variant_formset}
     if all([f.is_valid() for f in forms.values()]):
         with transaction.atomic():
             product = form.save()
             variant_formset.save()
-            image_formset.save()
         if pk:
             msg = _('Updated product %s') % product
         else:
@@ -59,7 +56,7 @@ def product_details(request, pk=None, cls_name=None):
         if any([f.errors for f in forms.values()]):
             messages.error(request, _('Your submitted data was not valid - '
                            'please correct the errors below'))
-    ctx = {'title': title, 'product': product}
+    ctx = {'title': title, 'product': product, 'images': images}
     ctx.update(forms)
     return TemplateResponse(request, 'dashboard/product/product_form.html', ctx)
 
@@ -73,14 +70,6 @@ class ProductDeleteView(StaffMemberOnlyMixin, DeleteView):
         result = self.delete(request, *args, **kwargs)
         messages.success(request, _('Deleted product %s') % self.object)
         return result
-
-
-@staff_member_required
-def product_images_list(request, product_pk):
-    product = get_object_or_404(Product, pk=product_pk)
-    images = product.images.all()
-    ctx = {'product': product, 'images': images}
-    return TemplateResponse(request, 'dashboard/product/product_images_list.html', ctx)
 
 
 @staff_member_required
@@ -101,7 +90,7 @@ def product_image_edit(request, product_pk, img_pk=None):
         else:
             msg = _('Added image %s') % product_image.image.name
         messages.success(request, msg)
-        return redirect('dashboard:product-images', product_pk=product.pk)
+        return redirect('dashboard:product-update', pk=product.pk)
     else:
         if form.errors:
             messages.error(request, _('Your submitted data was not valid - '
@@ -117,6 +106,6 @@ def product_image_delete(request, product_pk, img_pk):
     if request.method == 'POST':
         product_image.delete()
         messages.success(request, _('Deleted image %s') % product_image.image.name)
-        return redirect('dashboard:product-images', product_pk=product.pk)
+        return redirect('dashboard:product-update', pk=product.pk)
     ctx = {'product': product, 'product_image': product_image}
     return TemplateResponse(request, 'dashboard/product/product_image_confirm_delete.html', ctx)
