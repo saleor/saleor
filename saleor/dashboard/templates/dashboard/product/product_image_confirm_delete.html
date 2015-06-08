@@ -1,0 +1,21 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete image" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <h3>{% trans "Are you sure you want to delete the following image?" %}</h3>
+    </div>
+    <form action="" method="post">
+        {% csrf_token %}
+        <div class="row">
+            <div>{{ product_image.image.name }}</div>
+            <div><img src="{{ product_image.image.crop.50x50}}" alt=""></div>
+        </div>
+        <div class="row">
+            <button class="btn waves-effect red" type="submit"><i class="glyphicon glyphicon-trash"></i> {% trans "Delete" %}</button>
+            <a class="btn waves-effect" href="{{ request.META.HTTP_REFERER }}"><i class="glyphicon glyphicon-remove"></i> {% trans "Cancel" %}</a>
+        </div>
+    </form>
+{% endblock %}

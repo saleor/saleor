@@ -76,3 +76,9 @@ def get_variant_formset(product):
         return BagVariantFormset
     else:
         raise ValueError('Unknown product')
+
+
+class ProductImageForm(forms.ModelForm):
+    class Meta:
+        model = ProductImage
+        exclude = ('product',)

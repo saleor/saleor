@@ -1,0 +1,33 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{{ title }} - {% trans "Images" %} - {{ block.super }}{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+    <form method="post" id="product-form" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col l8">
+                {% csrf_token %}
+                {{ form }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col l8">
+                {% if product_image.pk %}
+                    <span class="right">
+                        <a href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=product_image.pk %}" class="btn waves-effect red"><i class="glyphicon glyphicon-trash"></i> {% trans "Delete" %}</a>
+                    </span>
+                {% endif %}
+                {% if product_image.pk %}
+                    <button type="submit" class="btn waves-effect"><i class="glyphicon glyphicon-refresh"></i> {% trans "Update" %}</button>
+                {% else %}
+                    <button type="submit" class="btn waves-effect"><i class="glyphicon glyphicon-upload"></i> {% trans "Add" %}</button>
+                {% endif %}
+                <a href="{% url 'dashboard:product-images' product_pk=product.pk %}" class="btn waves-effect"><i class="glyphicon glyphicon-remove"></i> {% trans "Cancel" %}</a>
+            </div>
+        </div>
+    </form>
+{% endblock %}

@@ -8,11 +8,11 @@ from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DeleteView
 
-from ...product.models import Product
+from ...product.models import Product, ProductImage
 from ..utils import paginate
 from ..views import StaffMemberOnlyMixin, staff_member_required
 from .forms import (ProductImageFormSet, ProductClassForm, get_product_form,
-                    get_product_cls_by_name, get_variant_formset)
+                    get_product_cls_by_name, get_variant_formset, ProductImageForm)
 
 
 @staff_member_required
@@ -73,3 +73,50 @@ class ProductDeleteView(StaffMemberOnlyMixin, DeleteView):
         result = self.delete(request, *args, **kwargs)
         messages.success(request, _('Deleted product %s') % self.object)
         return result
+
+
+@staff_member_required
+def product_images_list(request, product_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    images = product.images.all()
+    ctx = {'product': product, 'images': images}
+    return TemplateResponse(request, 'dashboard/product/product_images_list.html', ctx)
+
+
+@staff_member_required
+def product_image_edit(request, product_pk, img_pk=None):
+    product = get_object_or_404(Product, pk=product_pk)
+    if img_pk:
+        product_image = get_object_or_404(ProductImage, pk=img_pk)
+        title = product_image.image.name
+    else:
+        product_image = ProductImage(product=product)
+        title = _('Add image')
+    form = ProductImageForm(request.POST or None, request.FILES or None,
+                            instance=product_image)
+    if form.is_valid():
+        product_image = form.save()
+        if img_pk:
+            msg = _('Updated image %s') % product_image.image.name
+        else:
+            msg = _('Added image %s') % product_image.image.name
+        messages.success(request, msg)
+        return redirect('dashboard:product-images', product_pk=product.pk)
+    else:
+        if form.errors:
+            messages.error(request, _('Your submitted data was not valid - '
+                                      'please correct the errors below'))
+    ctx = {'product': product, 'product_image': product_image, 'title': title, 'form': form}
+    return TemplateResponse(request, 'dashboard/product/product_image_form.html', ctx)
+
+
+@staff_member_required
+def product_image_delete(request, product_pk, img_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    product_image = get_object_or_404(ProductImage, pk=img_pk)
+    if request.method == 'POST':
+        product_image.delete()
+        messages.success(request, _('Deleted image %s') % product_image.image.name)
+        return redirect('dashboard:product-images', product_pk=product.pk)
+    ctx = {'product': product, 'product_image': product_image}
+    return TemplateResponse(request, 'dashboard/product/product_image_confirm_delete.html', ctx)

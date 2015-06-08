@@ -1,0 +1,24 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load bootstrap %}
+{% load static %}
+
+{% block title %}{% trans "Images" %} - {{ block.super }}{% endblock %}
+
+{% block page_title %}{% trans "Images" %}{% endblock %}
+
+{% block content %}
+    <a class="btn waves-effect" href="{% url 'dashboard:product-image-add' product_pk=product.pk %}">{% trans 'Add image' %}</a>
+    <ul class="collection">
+        {% for product_image in images %}
+            <li class="collection-item">
+                <img src="{{ product_image.image.crop.50x50 }}" alt="">
+                <span>{{ product_image.image.name }}</span>
+                <div class="right">
+                    <a href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=product_image.pk %}">{% trans 'Edit' %}</a>
+                    <a href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=product_image.pk %}">{% trans 'Delete' %}</a>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
