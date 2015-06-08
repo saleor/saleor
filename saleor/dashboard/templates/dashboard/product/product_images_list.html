@@ -12,7 +12,7 @@
     <ul class="collection">
         {% for product_image in images %}
             <li class="collection-item">
-                <img src="{{ product_image.image.crop.50x50 }}" alt="">
+                <img src="{{ product_image.image.crop.50x50 }}" alt="{{ product_image.alt }}">
                 <span>{{ product_image.image.name }}</span>
                 <div class="right">
                     <a href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=product_image.pk %}">{% trans 'Edit' %}</a>

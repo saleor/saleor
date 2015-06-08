@@ -11,7 +11,7 @@
         {% csrf_token %}
         <div class="row">
             <div>{{ product_image.image.name }}</div>
-            <div><img src="{{ product_image.image.crop.50x50}}" alt=""></div>
+            <div><img src="{{ product_image.image.crop.50x50}}" alt="{{ product_image.alt }}"></div>
         </div>
         <div class="row">
             <button class="btn waves-effect red" type="submit"><i class="glyphicon glyphicon-trash"></i> {% trans "Delete" %}</button>
