@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django import forms
+from django.forms.formsets import formset_factory
 from django.forms.models import inlineformset_factory
 from django.forms.widgets import ClearableFileInput
 
@@ -80,4 +81,4 @@ def get_variant_formset(product):
 class ProductImageForm(forms.ModelForm):
     class Meta:
         model = ProductImage
-        exclude = ('product',)
+        exclude = ('product', 'order')
