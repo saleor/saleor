@@ -142,6 +142,7 @@ module.exports = function(grunt) {
           "saleor/static/js/dashboard.js": [
             "saleor/static/components/jquery/dist/jquery.js",
             "saleor/static/components/materialize/dist/js/materialize.js",
+            "saleor/static/components/Sortable/Sortable.js",
             "saleor/static/js_src/dashboard.js"
           ]
         }
@@ -159,7 +160,7 @@ module.exports = function(grunt) {
         tasks: ["sass", "postcss"]
       },
       uglify: {
-        files: ["saleor/static/js/**/*.js"],
+        files: ["saleor/static/js_src/**/*.js"],
         tasks: ["uglify"]
       }
     }

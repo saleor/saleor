@@ -1,7 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load prices_i18n %}
 {% load i18n %}
-{% load bootstrap %}
+{% load materializecss %}
 {% load static %}
 
 {% block title %}{{ title }} - {% trans "Products" %} - {{ block.super }}{% endblock %}
@@ -9,31 +9,41 @@
 {% block page_title %}{{ title }}{% endblock %}
 
 {% block content %}
-<form class="form form-vertical" method="post" id="product-form" enctype="multipart/form-data">
+<form method="post" id="product-form" enctype="multipart/form-data">
+    <div class="row" hidden>
+        <div class="col s12">
+            <div class="card green">
+{#                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>#}
+{#                <span class="glyphicon glyphicon-ok-sign"></span>#}
+                <span class="card-content white-text">{% trans "Data saved" %}</span>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
-        <div class="col l8">
-            <div class="form-message alert alert-success" hidden="hidden">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                <span class="glyphicon glyphicon-ok-sign"></span>
-                <span class="message-content">{% trans "Data saved" %}</span>
-            </div>
+        <div class="col s12">
+            <ul class="tabs">
+                <li class="tab col s4"><a class="active" href="#details">{% trans "Details" %}</a></li>
+                <li class="tab col s4"><a href="#variants">{% trans "Variants" %}</a></li>
+                <li class="tab col s4"><a href="#images">{% trans "Images" %}</a></li>
+            </ul>
+        </div>
+    </div>
 
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <span class="panel-title">{% trans "Details" %}</span>
-                </div>
-                <div class="panel-body">
-                    {% csrf_token %}
-                    {{ form|as_vertical_form }}
-                </div>
+    <div class="row" id="details">
+        <div class="col l12">
+            <div class="row">
+                {% csrf_token %}
+                {{ form|materializecss }}
             </div>
+        </div>
+    </div>
 
-            {{ variant_formset.management_form }}
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <span class="panel-title">{% trans "Variants" %}</span>
-                </div>
-                <table class="table">
+    <div class="row" id="variants">
+        <div class="col l12">
+            <div class="row">
+                {{ variant_formset.management_form }}
+                <table class="striped">
                     <thead>
                         <tr>
                             <th>{% trans "SKU" %}</th>
@@ -52,13 +62,13 @@
                                 {% for field in form.hidden_fields %}
                                     {{ field }}
                                 {% endfor %}
-                                {{ form.sku|as_vertical_form:False }}
+                                {{ form.sku|materializecss }}
                             </td>
                             {% for field in form.visible_fields %}
                                 {% if field.name != 'sku' and field.name != 'DELETE' %}
                                     <td>
                                         <div class="{% if field.errors %} has-error{% endif %}{% if field.required %} required{% endif %}">
-                                            {{ field|as_vertical_form:False }}
+                                            {{ field|materializecss }}
                                             {% if field.errors %}
                                                 {% for error in field.errors %}
                                                     <span class="label label-danger">{{ error }}</span>
@@ -79,13 +89,13 @@
                                 {% for field in form.hidden_fields %}
                                     {{ field }}
                                 {% endfor %}
-                                {{ form.sku|as_vertical_form:False }}
+                                {{ form.sku|materializecss }}
                             </td>
                             {% for field in form.visible_fields %}
                                 {% if field.name != 'sku' and field.name != 'DELETE' %}
                                     <td>
                                         <div class="{% if field.errors %} has-error{% endif %}{% if field.required %} required{% endif %}">
-                                            {{ field|as_vertical_form:False }}
+                                            {{ field|materializecss }}
                                             {% if field.errors %}
                                                 {% for error in field.errors %}
                                                     <span class="label label-danger">{{ error }}</span>
@@ -102,36 +112,45 @@
                 </table>
             </div>
         </div>
+    </div>
 
-        <div class="col-lg-4">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <span class="panel-title">Product image</span>
-                </div>
-                <div class="panel-body">
-                    {% if product.images.exists %}
-                        <img class="img-responsive" src="{{ product.images.first.image.thumbnail.300x300 }}" alt="">
-                    {% else %}
-                        <img class="img-responsive" src="http://placehold.it/300x300/&text=Product Image" alt="">
-                    {% endif %}
-                </div>
-            </div>
+    <div class="row" id="images">
+        <div class="col l12">
+            <ul class="row product-gallery" id="product-gallery">
+                {% for image in images %}
+                    <li class="col s6 m4 product-gallery-item" data-id="{{ image.pk }}">
+                        <img class="responsive-img" src="{{ image.image.crop.300x300 }}" alt="">
+                        {% if image.alt %}
+                            <span class="product-gallery-item-text">{{ image.alt }}</span>
+                        {% endif %}
+                        <a class="product-gallery-item-create teal-text text-lighten-2"
+                                href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">
+                            <i class="mdi-content-create"></i>
+                        </a>
+                        <a class="product-gallery-item-remove red-text"
+                                href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}">
+                            <i class="mdi-content-remove"></i>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
         </div>
     </div>
+
     <div class="row">
-        <div class="col-lg-12">
+        <div class="col l12">
             <p>
                 {% if product.pk %}
-                    <span class="pull-right">
-                        <a href="{% url 'dashboard:product-delete' pk=product.pk %}" class="btn btn-danger"><i class="glyphicon glyphicon-trash"></i> {% trans "Delete" %}</a>
+                    <span class="right">
+                        <a href="{% url 'dashboard:product-delete' pk=product.pk %}" class="btn red"><i class="mdi-content-remove"></i> {% trans "Delete" %}</a>
                     </span>
                 {% endif %}
                 {% if product.pk %}
-                    <button type="submit" class="btn btn-primary"><i class="glyphicon glyphicon-refresh"></i> {% trans "Update" %}</button>
+                    <button type="submit" class="btn"><i class="mdi-content-save"></i> {% trans "Update" %}</button>
                 {% else %}
-                    <button type="submit" class="btn btn-primary"><i class="glyphicon glyphicon-upload"></i> {% trans "Create" %}</button>
+                    <button type="submit" class="btn"><i class="mdi-content-create"></i> {% trans "Create" %}</button>
                 {% endif %}
-                <a href="{% url 'dashboard:products' %}" class="btn btn-default"><i class="glyphicon glyphicon-remove"></i> {% trans "Cancel" %}</a>
+                <a href="{% url 'dashboard:products' %}" class="btn"><i class="mdi-content-remove"></i> {% trans "Cancel" %}</a>
             </p>
         </div>
     </div>

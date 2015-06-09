@@ -49,32 +49,6 @@
                     </li>
                 {% endfor %}
             </ul>
-
-            <table class="striped">
-                <thead>
-                    <tr>
-                        <th colspan="2" class="col-sm-6">{% trans "Name" %}</th>
-                        <th class="col-sm-4">{% trans "Collection" %}</th>
-                        <th class="col-sm-2 right-align">{% trans "Price" %}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for product in products %}
-                    <tr>
-                        <td class="col-sm-1">
-                            {% if product.images.exists %}
-                                <img class="img-responsive" src="{{ product.images.first.image.crop.50x50 }}" alt="">
-                            {% else %}
-                                <img class="img-responsive" src="http://placehold.it/50x50/&text=Product Image" alt="">
-                            {% endif %}
-                        </td>
-                        <td class="col-sm-5"><a href="{% url 'dashboard:product-update' pk=product.pk %}">{{ product.name }}</a></td>
-                        <td>{{ product.collection }}</td>
-                        <td class="text-right">{% gross product.price %}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
             {% include "dashboard/includes/_pagination.html" with page_obj=products %}
         </div>
     </div>
