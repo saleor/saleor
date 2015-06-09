@@ -12,6 +12,7 @@
             <div class="col l8">
                 {% csrf_token %}
                 {{ form }}
+                <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#images">
             </div>
         </div>
         <div class="row">
@@ -26,7 +27,7 @@
                 {% else %}
                     <button type="submit" class="btn waves-effect"><i class="glyphicon glyphicon-upload"></i> {% trans "Add" %}</button>
                 {% endif %}
-                <a href="{% url 'dashboard:product-update' pk=product.pk %}" class="btn waves-effect"><i class="glyphicon glyphicon-remove"></i> {% trans "Cancel" %}</a>
+                <a href="{% url 'dashboard:product-update' pk=product.pk %}#images" class="btn waves-effect"><i class="glyphicon glyphicon-remove"></i> {% trans "Cancel" %}</a>
             </div>
         </div>
     </form>

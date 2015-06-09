@@ -9,6 +9,7 @@
     </div>
     <form action="" method="post">
         {% csrf_token %}
+        <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#images">
         <div class="row">
             <div>{{ product_image.image.name }}</div>
             <div><img src="{{ product_image.image.crop.50x50}}" alt="{{ product_image.alt }}"></div>
