@@ -5,12 +5,29 @@
 
 {% block title %}{% trans "Products" %} - {{ block.super }}{% endblock %}
 
-{% block page_title %}{% trans "Products" %}{% endblock %}
+{% block page_header %}
+    <span class="page-title">{% block page_title %}{% trans "Products" %}{% endblock %}</span>
+    <a href="#" data-activates="side-menu" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
+    <a class="btn-fab btn-floating btn-large waves-effect waves-light teal dropdown-button"
+       data-activates="dropdown-type" data-constrainwidth="false">
+        <i class="mdi-content-add"></i>
+    </a>
+    <div id="dropdown-type" class="dropdown-content dropdown-type">
+        <form class="col s6 l4" method="post" action=".">
+            {% csrf_token %}
+            {% render_widget form.cls_name %}
+            <label for="cls_name">{% trans "Product type" %}</label>
+            <button class="btn" type="submit">
+                <i class="mdi-content-create left"></i> {% trans "Create new" %}
+            </button>
+        </form>
+    </div>
+{% endblock %}
 
 {% block content %}
     <div class="row">
         <div class="col s12">
-            <h5>{% trans "Add new product" %}</h5>
+            {% comment %}<h5>{% trans "Add new product" %}</h5>
             <form class="row" method="post" action=".">
                 {% csrf_token %}
                 <div class="input-field col s4">
@@ -20,13 +37,25 @@
                         <i class="mdi-content-add left"></i> {% trans "New product" %}
                     </button>
                 </div>
-            </form>
+            </form>{% endcomment %}
+
+            <ul class="collection">
+                {% for product in products %}
+                    <li class="collection-item avatar">
+                        <img src="{{ product.images.first.image.crop.50x50 }}" alt="" class="circle teal">
+                        <a class="title" href="{% url 'dashboard:product-update' pk=product.pk %}">{{ product.name }}</a>
+                        <p>{{ product.collection }}</p>
+                        <p class="secondary-content">{% gross product.price %}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+
             <table class="striped">
                 <thead>
                     <tr>
                         <th colspan="2" class="col-sm-6">{% trans "Name" %}</th>
                         <th class="col-sm-4">{% trans "Collection" %}</th>
-                        <th class="col-sm-2 text-right">{% trans "Price" %}</th>
+                        <th class="col-sm-2 right-align">{% trans "Price" %}</th>
                     </tr>
                 </thead>
                 <tbody>

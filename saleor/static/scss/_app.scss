@@ -1,5 +1,30 @@
-$roboto-font-path: "../dist/fonts/";
+$roboto-font-path: "../fonts/";
 $icons-font-path: $roboto-font-path;
+
+/**
+ * @license
+ * MyFonts Webfont Build ID 2917526, 2014-11-07T07:08:31-0500
+ *
+ * The fonts listed in this notice are subject to the End User License
+ * Agreement(s) entered into by the website owner. All other parties are
+ * explicitly restricted from using the Licensed Webfonts(s).
+ *
+ * You may obtain a valid license at the URLs below.
+ *
+ * Webfont: HurmeGeometricSans4-Black by Hurme Design
+ * URL: http://www.myfonts.com/fonts/hurme-design/hurme-geometric-sans-4/4-black/
+ *
+ *
+ * License: http://www.myfonts.com/viewlicense?type=web&buildid=2917526
+ * Licensed pageviews: 10,000
+ * Webfonts copyright: Copyright (c) 2012 by Toni Hurme. All rights reserved.
+ *
+ * © 2014 MyFonts Inc
+*/
+
+/* @import must be at top of file, otherwise CSS will not work */
+@import url("//hello.myfonts.net/count/2c8496");
+@font-face {font-family: "HurmeGeometricSans4-Black";src: url("#{$roboto-font-path}2C8496_1_0.eot");src: url("#{$roboto-font-path}2C8496_1_0.eot?#iefix") format("embedded-opentype"),url("#{$roboto-font-path}2C8496_1_0.woff2") format("woff2"),url("#{$roboto-font-path}2C8496_1_0.woff") format("woff"),url("#{$roboto-font-path}2C8496_1_0.ttf") format("truetype");}
 
 @import "materialize/sass/materialize";
 @each $mdi-icon-name, $mdi-icon-value in $mdi-list-icons {
@@ -29,6 +54,8 @@ $icons-font-path: $roboto-font-path;
   }
 
   .side-nav {
+    padding-top: 100px;
+
     li {
       display: block;
       padding: 0;
@@ -44,6 +71,9 @@ $icons-font-path: $roboto-font-path;
       }
 
       &.brand-logo {
+        top: 0;
+        width: 100%;
+
         &:hover {
           background: none;
         }
@@ -53,9 +83,22 @@ $icons-font-path: $roboto-font-path;
         }
 
         a {
+          font-family: "HurmeGeometricSans4-Black", sans-serif;
           font-size: 36px;
           height: 100px;
           line-height: 100px;
+          letter-spacing: -4px;
+          letter-spacing: -.5vmin;
+          margin-left: -4px;
+          margin-left: -.5vmin;
+          text-align: center;
+          text-transform: uppercase;
+
+          @media (min-width: $large-screen-up) {
+            font-size: 46px;
+            font-size: 4vmin;
+          }
+
         }
       }
 
@@ -100,6 +143,25 @@ $icons-font-path: $roboto-font-path;
 .page-title {
   font-size: 36px;
   line-height: 100px;
+}
+
+table {
+  .row {
+    .col {
+      float: none;
+      padding: $gutter-width/2;
+
+      .responsive-img {
+        display: block;
+      }
+    }
+  }
+}
+
+.btn-fab {
+  position: absolute;
+  bottom: -$button-floating-size*1.5/2;
+  right: 0;
 }
 
 /* Global Styles */

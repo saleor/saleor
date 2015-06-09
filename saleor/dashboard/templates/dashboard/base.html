@@ -20,36 +20,38 @@
         <nav class="top-nav">
             <div class="container">
                 <div class="nav-wrapper">
-                    <span class="page-title">{% block page_title %}{% trans "Dashboard" %}{% endblock %}</span>
-                    <a href="#" data-activates="side-menu" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
+                    {% block page_header %}
+                        <span class="page-title">{% block page_title %}{% trans "Dashboard" %}{% endblock %}</span>
+                        <a href="#" data-activates="side-menu" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
+                    {% endblock %}
                 </div>
             </div>
+            <ul class="side-nav fixed" id="side-menu">
+                <li class="side-nav-user">
+                    <ul class="collapsible collapsible-accordion">
+                        <li>
+                            <a class="waves-effect waves-teal collapsible-header">
+                                <i class="mdi-action-account-circle"></i>{{ request.user }} <i class="mdi-navigation-arrow-drop-down"></i>
+                            </a>
+                            <div class="collapsible-body">
+                                <ul>
+                                    <li><a href="/" class="waves-effect waves-teal">{% trans "Visit storefront" %}</a></li>
+                                    <li class="divider"></li>
+                                    <li><a href="{% url 'registration:logout' %}" class="waves-effect waves-teal">{% trans "Log out" %}</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
+                <li class="brand-logo"><a href="{% url 'dashboard:index' %}">Saleor</a></li>
+                <li><a href="{% url 'dashboard:index' %}" class="waves-effect waves-teal">Home</a></li>
+                <li><a href="{% url 'dashboard:orders' %}" class="waves-effect waves-teal">Orders</a></li>
+                <li><a href="{% url 'dashboard:products' %}" class="waves-effect waves-teal">Products</a></li>
+                <li><a href="{% url 'dashboard:categories' %}" class="waves-effect waves-teal">Categories</a></li>
+                <li><a href="{% url 'dashboard:customers' %}" class="waves-effect waves-teal">Customers</a></li>
+                <li><a href="{% url 'dashboard:payments' %}" class="waves-effect waves-teal">Payments</a></li>
+            </ul>
         </nav>
-        <ul class="side-nav fixed" id="side-menu">
-            <li class="brand-logo"><a href="{% url 'dashboard:index' %}">Saleor</a></li>
-            <li><a href="{% url 'dashboard:index' %}" class="waves-effect waves-teal">Home</a></li>
-            <li><a href="{% url 'dashboard:orders' %}" class="waves-effect waves-teal">Orders</a></li>
-            <li><a href="{% url 'dashboard:products' %}" class="waves-effect waves-teal">Products</a></li>
-            <li><a href="{% url 'dashboard:categories' %}" class="waves-effect waves-teal">Categories</a></li>
-            <li><a href="{% url 'dashboard:customers' %}" class="waves-effect waves-teal">Customers</a></li>
-            <li><a href="{% url 'dashboard:payments' %}" class="waves-effect waves-teal">Payments</a></li>
-            <li class="side-nav-user">
-                <ul class="collapsible collapsible-accordion">
-                    <li>
-                        <a class="waves-effect waves-teal collapsible-header">
-                            <i class="mdi-action-account-circle"></i>{{ request.user }} <i class="mdi-navigation-arrow-drop-down"></i>
-                        </a>
-                        <div class="collapsible-body">
-                            <ul>
-                                <li><a href="/" class="waves-effect waves-teal">{% trans "Visit storefront" %}</a></li>
-                                <li class="divider"></li>
-                                <li><a href="{% url 'registration:logout' %}" class="waves-effect waves-teal">{% trans "Log out" %}</a></li>
-                            </ul>
-                        </div>
-                    </li>
-                </ul>
-            </li>
-        </ul>
     </header>
 
     <main class="main">
