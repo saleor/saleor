@@ -1,8 +1,30 @@
 #! /usr/bin/env python
 from setuptools import setup, find_packages
+from setuptools.command.test import test as TestCommand
 import os
+import sys
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'saleor.settings')
+
+
+class PyTest(TestCommand):
+    user_options = [('pytest-args=', 'a', "Arguments to pass to py.test")]
+
+    def initialize_options(self):
+        TestCommand.initialize_options(self)
+        self.pytest_args = []
+
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
+
+    def run_tests(self):
+        #import here, cause outside the eggs aren't loaded
+        import pytest
+        errno = pytest.main(self.pytest_args)
+        sys.exit(errno)
+
 
 setup(
     name='saleor',
@@ -33,20 +55,18 @@ setup(
         'prices>=0.5,<0.6a0',
         'requests>=1.2.0',
         'satchless>=1.1.2,<1.2a0',
-        'unidecode'
-    ],
+        'unidecode'],
     extras_require={
         'PaaS': [
             'whitenoise==1.0.6',
             'gunicorn==19.2.1',
-            'psycopg2==2.6',
-        ]
-    },
+            'psycopg2==2.6']},
+    cmdclass={
+        'test': PyTest},
     entry_points={
         'console_scripts': ['saleor = saleor:manage']},
     tests_require=[
         'mock==1.0.1',
         'purl>=0.4.1',
-    ],
-    test_suite='saleor.tests.suite'
-)
+        'pytest',
+        'pytest-django'])

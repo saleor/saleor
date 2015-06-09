@@ -16,7 +16,7 @@ __all__ = ['CartTest', 'BigShipCartFormTest']
 
 
 class BigShip(ProductVariant, StockedProduct, PhysicalProduct):
-    name = models.CharField()
+    name = models.CharField(max_length=250)
 
     def get_price_per_item(self, discounted=True, **kwargs):
         return self.price
@@ -26,7 +26,7 @@ class BigShip(ProductVariant, StockedProduct, PhysicalProduct):
 
 
 class ShipPhoto(ProductVariant, PhysicalProduct):
-    name = models.CharField()
+    name = models.CharField(max_length=250)
 
     def get_slug(self):
         return 'bigship-photo'
