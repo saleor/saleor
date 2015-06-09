@@ -18,5 +18,7 @@ dist/
 /static/
 /saleor/static/components/
 /saleor/static/css/
+/saleor/static/fonts/*
+!saleor/static/fonts/2C8496_1_0.*
 /saleor/static/js/
 /node_modules/

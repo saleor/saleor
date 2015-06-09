@@ -33,7 +33,7 @@ module.exports = function(grunt) {
             expand: true,
             dot: true,
             cwd: "saleor/static/components/bootstrap/fonts",
-            dest: "saleor/static/dist/fonts/",
+            dest: "saleor/static/fonts/",
             src: [
               "*"
             ]
@@ -42,7 +42,7 @@ module.exports = function(grunt) {
             expand: true,
             dot: true,
             cwd: "saleor/static/components/components-font-awesome/fonts",
-            dest: "saleor/static/dist/fonts/",
+            dest: "saleor/static/fonts/",
             src: [
               "*"
             ]
@@ -51,7 +51,7 @@ module.exports = function(grunt) {
             expand: true,
             dot: true,
             cwd: "saleor/static/components/materialize/font/roboto",
-            dest: "saleor/static/dist/fonts/",
+            dest: "saleor/static/fonts/",
             src: [
               "*"
             ]
@@ -60,7 +60,7 @@ module.exports = function(grunt) {
             expand: true,
             dot: true,
             cwd: "saleor/static/components/materialize/font/material-design-icons",
-            dest: "saleor/static/dist/fonts/",
+            dest: "saleor/static/fonts/",
             src: [
               "*"
             ]
@@ -69,7 +69,7 @@ module.exports = function(grunt) {
             expand: true,
             dot: true,
             cwd: "saleor/static/components/zocial-less/css",
-            dest: "saleor/static/dist/fonts/",
+            dest: "saleor/static/fonts/",
             src: [
               "zocial-regular-*"
             ]
@@ -161,10 +161,6 @@ module.exports = function(grunt) {
       uglify: {
         files: ["saleor/static/js/**/*.js"],
         tasks: ["uglify"]
-      },
-      html: {
-        files: ["saleor/dashboard/**/*.html"],
-        tasks: []
       }
     }
   });
