@@ -25,7 +25,7 @@ class ProductImage(models.Model):
     objects = ImageManager()
 
     class Meta:
-        ordering = ['id']
+        ordering = ['order']
         app_label = 'product'
 
     def get_ordering_queryset(self):
