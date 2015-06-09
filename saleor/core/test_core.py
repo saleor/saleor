@@ -1,5 +1,6 @@
+from unittest import TestCase
+
 from django.template.response import TemplateResponse
-from django.test import TestCase
 from mock import MagicMock
 from satchless.process import InvalidData
 
