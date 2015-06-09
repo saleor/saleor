@@ -58,6 +58,10 @@ def product_details(request, pk=None, cls_name=None):
                            'please correct the errors below'))
     ctx = {'title': title, 'product': product, 'images': images}
     ctx.update(forms)
+    if pk:
+        images_reorder_url = reverse_lazy('dashboard:product-images-reorder',
+                                      kwargs={'product_pk': pk})
+        ctx['images_reorder_url'] = images_reorder_url
     return TemplateResponse(request, 'dashboard/product/product_form.html', ctx)
 
 
