@@ -14,6 +14,7 @@ PRODUCT_CLASSES = {
 
 class ProductClassForm(forms.Form):
     cls_name = forms.ChoiceField(
+        widget=forms.RadioSelect,
         choices=[(name, name.capitalize()) for name in PRODUCT_CLASSES.keys()])
 
 
