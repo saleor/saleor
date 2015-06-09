@@ -33,7 +33,8 @@ setup(
         'prices>=0.5,<0.6a0',
         'requests>=1.2.0',
         'satchless>=1.1.2,<1.2a0',
-        'unidecode'
+        'unidecode',
+        'django-materializecss-form==0.0.64',
     ],
     extras_require={
         'PaaS': [

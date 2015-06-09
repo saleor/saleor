@@ -2,7 +2,7 @@
 
 {% load i18n %}
 {% load prices_i18n %}
-{% load bootstrap %}
+{% load materializecss %}
 
 
 {% block title %}{% trans "Customers" %} - {{ block.super }}{% endblock %}
@@ -15,19 +15,16 @@
         <div class="panel panel-default">
             <div class="panel-heading">{% trans "Search customers" %}</div>
             <div class="panel-body">
-                <form method="get" class="form-inline">
-                    <div class="form-group">
-                        <label class="control-label"for="amount">{% trans "Email" %}</label>
-                        {% render_widget form.email class="form-control" %}
+                <form method="get" class="row">
+                    {{ form.email|materializecss:"m4" }}
+                    {{ form.name|materializecss:"m4" }}
+
+                    <div class="col s12">
+                        <button type="submit" class="btn btn-default"><i class="mdi-action-search"></i> Search</button>
+                        {% if form.is_bound %}
+                            <a class="btn btn-default" href="{% url 'dashboard:customers' %}"><i class="mdi-content-clear"></i> {% trans "Clear" %}</a>
+                        {% endif %}
                     </div>
-                    <div class="form-group">
-                        <label class="control-label"for="amount">{% trans "Name" %}</label>
-                        {% render_widget form.name class="form-control" %}
-                    </div>
-                    <button type="submit" class="btn btn-default"><i class="glyphicon glyphicon-search"></i> Search</button>
-                    {% if form.is_bound %}
-                        <a class="btn btn-default" href="{% url 'dashboard:customers' %}"><i class="glyphicon glyphicon-remove"></i> {% trans "Clear" %}</a>
-                    {% endif %}
                 </form>
             </div>
         </div>

@@ -1,11 +1,13 @@
 {% load i18n %}
-<ul class="tabs">
-    <li class="tab">
-        <a href="{{ request.path }}"{% if not active_filter %} class="active"{% endif %}>{% trans "All" %}</a>
-    </li>
-    {% for status, verbose_status in available_filters %}
-        <li class="tab">
-            <a href="?status={{ status }}"{% if active_filter == status %} class="active"{% endif %}>{{ verbose_status }}</a>
-        </li>
-    {% endfor %}
-</ul>
+<form method="get">
+    <div class="input-field row">
+        <select id="status-filter" class="col s6" name="status">
+            <option value=""{% if not active_filter %} selected{% endif %}>{% trans "All" %}</option>
+            {% for status, verbose_status in available_filters %}
+                <option value="{{ status }}"{% if active_filter == status %} selected{% endif %}>{{ verbose_status }}</option>
+            {% endfor %}
+        </select>
+        <label for="status-filter">{% trans "Shipment status" %}</label>
+    </div>
+    <button type="submit" class="btn">{% trans "Filter" %}</button>
+</form>

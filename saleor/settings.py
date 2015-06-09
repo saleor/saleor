@@ -127,7 +127,8 @@ INSTALLED_APPS = [
     'emailit',
     'mptt',
     'payments',
-    'selectable'
+    'selectable',
+    'materializecssform',
 ]
 
 LOGGING = {
