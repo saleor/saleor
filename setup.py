@@ -35,6 +35,7 @@ setup(
         'satchless>=1.1.2,<1.2a0',
         'unidecode',
         'django-materializecss-form==0.0.64',
+        'djangorestframework>3.1'
     ],
     extras_require={
         'PaaS': [

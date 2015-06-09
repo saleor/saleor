@@ -129,6 +129,7 @@ INSTALLED_APPS = [
     'payments',
     'selectable',
     'materializecssform',
+    'rest_framework',
 ]
 
 LOGGING = {
