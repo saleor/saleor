@@ -90,7 +90,7 @@ def product_image_edit(request, product_pk, img_pk=None):
         else:
             msg = _('Added image %s') % product_image.image.name
         messages.success(request, msg)
-        return redirect('dashboard:product-update', pk=product.pk)
+        return redirect(request.META['HTTP_REFERER'])
     else:
         if form.errors:
             messages.error(request, _('Your submitted data was not valid - '
@@ -106,6 +106,6 @@ def product_image_delete(request, product_pk, img_pk):
     if request.method == 'POST':
         product_image.delete()
         messages.success(request, _('Deleted image %s') % product_image.image.name)
-        return redirect('dashboard:product-update', pk=product.pk)
+        return redirect(request.META['HTTP_REFERER'])
     ctx = {'product': product, 'product_image': product_image}
     return TemplateResponse(request, 'dashboard/product/product_image_confirm_delete.html', ctx)
