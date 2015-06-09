@@ -116,7 +116,7 @@
 
     <div class="row" id="images">
         <div class="col l12">
-            <ul class="row product-gallery" id="product-gallery">
+            <ul class="row product-gallery" id="product-gallery" data-post-url="{{ images_reorder_url }}">
                 {% for image in images %}
                     <li class="col s6 m4 product-gallery-item" data-id="{{ image.pk }}">
                         <img class="responsive-img" src="{{ image.image.crop.300x300 }}" alt="">
