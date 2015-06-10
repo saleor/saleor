@@ -47,7 +47,6 @@ def create_product(product_type, **kwargs):
     defaults = {
         'name': fake.company(),
         'price': fake.pyfloat(2, 2, positive=True),
-        'category': Category.objects.order_by('?')[0],
         'collection': collection,
         'color': Color.objects.order_by('?')[0],
         'weight': fake.random_digit(),
@@ -110,11 +109,13 @@ def create_items(placeholder_dir, how_many=10):
 
     for i in range(how_many):
         # Shirt
-        shirt = create_shirt(category=shirt_category)
+        shirt = create_shirt()
+        shirt.categories.add(shirt_category)
         create_product_images(shirt, random.randrange(1, 5),
                               placeholder_dir + "shirts")
         # Bag
-        bag = create_bag(category=bag_category, collection='')
+        bag = create_bag(collection='')
+        bag.categories.add(bag_category)
         create_product_images(bag, random.randrange(1, 5),
                               placeholder_dir + "bags")
         # chance to generate couple of sizes
