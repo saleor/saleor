@@ -28,57 +28,48 @@ class SessionMock(Mock):
         pass
 
 
-class LoginUrlsTestCase(TestCase):
-    """Tests login url generation."""
-
-    def test_facebook_login_url(self):
-        """Facebook login url is properly generated"""
-        facebook_client = FacebookClient(local_host='localhost')
-        facebook_login_url = URL(facebook_client.get_login_uri())
-        query = facebook_login_url.query_params()
-        callback_url = URL(query['redirect_uri'][0])
-        func, _args, kwargs = resolve(callback_url.path())
-        self.assertEquals(func, oauth_callback)
-        self.assertEquals(kwargs['service'], FACEBOOK)
-        self.assertEqual(query['scope'][0], FacebookClient.scope)
-        self.assertEqual(query['client_id'][0], str(FacebookClient.client_id))
-
-    def test_google_login_url(self):
-        """Google login url is properly generated"""
-        google_client = GoogleClient(local_host='local_host')
-        google_login_url = URL(google_client.get_login_uri())
-        params = google_login_url.query_params()
-        callback_url = URL(params['redirect_uri'][0])
-        func, _args, kwargs = resolve(callback_url.path())
-        self.assertEquals(func, oauth_callback)
-        self.assertEquals(kwargs['service'], GOOGLE)
-        self.assertTrue(params['scope'][0] in GoogleClient.scope)
-        self.assertEqual(params['client_id'][0], str(GoogleClient.client_id))
+def test_facebook_login_url():
+    facebook_client = FacebookClient(local_host='localhost')
+    facebook_login_url = URL(facebook_client.get_login_uri())
+    query = facebook_login_url.query_params()
+    callback_url = URL(query['redirect_uri'][0])
+    func, _args, kwargs = resolve(callback_url.path())
+    assert func is oauth_callback
+    assert kwargs['service'] == FACEBOOK
+    assert query['scope'][0] == FacebookClient.scope
+    assert query['client_id'][0] == str(FacebookClient.client_id)
 
 
-class ResponseParsingTestCase(TestCase):
-
-    def setUp(self):
-        self.response = MagicMock()
-
-    def test_parse_json(self):
-        """OAuth2 client is able to parse json response"""
-        self.response.headers = {'Content-Type': JSON_MIME_TYPE}
-        self.response.json.return_value = sentinel.json_content
-        content = parse_response(self.response)
-        self.assertEquals(content, sentinel.json_content)
-
-    def test_parse_urlencoded(self):
-        """OAuth2 client is able to parse urlencoded response"""
-        self.response.headers = {'Content-Type': URLENCODED_MIME_TYPE}
-        self.response.text = 'key=value&multi=a&multi=b'
-        content = parse_response(self.response)
-        self.assertEquals(content, {'key': 'value', 'multi': ['a', 'b']})
+def test_google_login_url():
+    google_client = GoogleClient(local_host='local_host')
+    google_login_url = URL(google_client.get_login_uri())
+    params = google_login_url.query_params()
+    callback_url = URL(params['redirect_uri'][0])
+    func, _args, kwargs = resolve(callback_url.path())
+    assert func is oauth_callback
+    assert kwargs['service'] == GOOGLE
+    assert params['scope'][0] == GoogleClient.scope
+    assert params['client_id'][0] == str(GoogleClient.client_id)
 
 
-class TestClient(OAuth2Client):
+def test_parse_json():
+    response = MagicMock()
+    response.headers = {'Content-Type': JSON_MIME_TYPE}
+    response.json.return_value = sentinel.json_content
+    content = parse_response(response)
+    assert content == sentinel.json_content
+
+
+def test_parse_urlencoded():
+    response = MagicMock()
+    response.headers = {'Content-Type': URLENCODED_MIME_TYPE}
+    response.text = 'key=value&multi=a&multi=b'
+    content = parse_response(response)
+    assert content == {'key': 'value', 'multi': ['a', 'b']}
+
+
+class Client(OAuth2Client):
     """OAuth2Client configured for testing purposes."""
-
     service = sentinel.service
 
     client_id = sentinel.client_id
@@ -124,12 +115,12 @@ class AccessTokenTestCase(BaseCommunicationTestCase):
     def test_token_is_obtained_on_construction(self):
         """OAuth2 client asks for access token if interim code is available"""
         self.access_token_response.status_code = sentinel.ok
-        TestClient(local_host='http://localhost', code=sentinel.code)
+        Client(local_host='http://localhost', code=sentinel.code)
         self.requests_mock.post.assert_called_once()
 
     def test_token_success(self):
         """OAuth2 client properly obtains access token"""
-        client = TestClient(local_host='http://localhost')
+        client = Client(local_host='http://localhost')
         self.access_token_response.status_code = sentinel.ok
         access_token = client.get_access_token(code=sentinel.code)
         self.assertEquals(access_token, sentinel.access_token)
@@ -145,7 +136,7 @@ class AccessTokenTestCase(BaseCommunicationTestCase):
 
     def test_token_failure(self):
         """OAuth2 client properly reacts to access token fetch failure"""
-        client = TestClient(local_host='http://localhost')
+        client = Client(local_host='http://localhost')
         self.access_token_response.status_code = sentinel.fail
         self.assertRaises(ValueError, client.get_access_token,
                           code=sentinel.code)
@@ -162,7 +153,7 @@ class UserInfoTestCase(BaseCommunicationTestCase):
 
     def test_user_info_success(self):
         """OAuth2 client properly fetches user info"""
-        client = TestClient(local_host='http://localhost')
+        client = Client(local_host='http://localhost')
         self.parse_mock.return_value = sentinel.user_info
         self.user_info_response.status_code = sentinel.ok
         user_info = client.get_user_info()
@@ -170,7 +161,7 @@ class UserInfoTestCase(BaseCommunicationTestCase):
 
     def test_user_data_failure(self):
         """OAuth2 client reacts well to user info fetch failure"""
-        client = TestClient(local_host='http://localhost')
+        client = Client(local_host='http://localhost')
         self.assertRaises(ValueError, client.get_user_info)
 
     def test_google_user_data_email_not_verified(self):
