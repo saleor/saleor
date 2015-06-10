@@ -11,8 +11,7 @@ from ...product.models import Product
 
 
 class ReorderProductImagesSerializer(serializers.Serializer):
-    pk = serializers.IntegerField()
-    order = serializers.IntegerField()
+    order = serializers.ListField(child=serializers.IntegerField())
 
 
 @staff_member_required
@@ -20,10 +19,9 @@ class ReorderProductImagesSerializer(serializers.Serializer):
 @renderer_classes([renderers.JSONRenderer])
 def reorder_product_images(request, product_pk):
     product = get_object_or_404(Product, pk=product_pk)
-    serializer = ReorderProductImagesSerializer(data=request.data['data'], many=True)
+    serializer = ReorderProductImagesSerializer(data=request.data)
     if serializer.is_valid():
-        for item in serializer.data:
-            pk, order = item['pk'], item['order']
+        for order, pk in enumerate(serializer.data['order']):
             try:
                 img = product.images.get(pk=pk)
             except ObjectDoesNotExist:

@@ -9,18 +9,16 @@ var sortable = Sortable.create(el, {
   onUpdate: function() {
     $.ajax({
       dataType: 'json',
-      data: {
-        'data': (function () {
+      contentType: "application/json",
+      data: JSON.stringify({
+        'order': (function () {
           var postData = [];
           $(el).find('.product-gallery-item').each(function (i) {
-            postData.push({
-              pk: $(this).data('id'),
-              order: i
-            });
+            postData.push($(this).data('id'));
           });
-          return JSON.stringify(postData);
+          return postData;
         })()
-      },
+      }),
       headers: {
         'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
       },
