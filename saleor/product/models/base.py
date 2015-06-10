@@ -38,8 +38,8 @@ class Category(MPTTModel):
 class Product(models.Model, ItemRange):
     name = models.CharField(
         pgettext_lazy('Product field', 'name'), max_length=128)
-    category = models.ForeignKey(
-        Category, verbose_name=pgettext_lazy('Product field', 'category'),
+    categories = models.ManyToManyField(
+        Category, verbose_name=pgettext_lazy('Product field', 'categories'),
         related_name='products')
     description = models.TextField(
         verbose_name=pgettext_lazy('Product field', 'description'))

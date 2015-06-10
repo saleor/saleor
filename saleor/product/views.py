@@ -22,7 +22,7 @@ def get_related_products(product):
 
 def product_details(request, slug, product_id):
     products = Product.objects.select_subclasses()
-    products = products.select_related('category')
+    products = products.prefetch_related('categories')
     products = products.prefetch_related('images')
     product = get_object_or_404(products, id=product_id)
     if product.get_slug() != slug:
