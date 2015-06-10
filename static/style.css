@@ -8146,15 +8146,12 @@ h3 {
     display: -webkit-flex;
     display: -ms-flexbox;
     display: flex;
-    -webkit-box-pack: center;
-    -webkit-justify-content: center;
-        -ms-flex-pack: center;
-            justify-content: center;
     padding: 0; }
     .section.section--home .section-header {
       font-size: 50px;
       font-size: 6.5vmin;
-      line-height: 1.2; }
+      line-height: 1.2;
+      -ms-transform: translate(0, 30vh); }
       .section.section--home .section-header:after {
         content: none; }
       .section.section--home .section-header-sub {
@@ -8186,15 +8183,12 @@ h3 {
     display: -webkit-flex;
     display: -ms-flexbox;
     display: flex;
-    -webkit-box-pack: center;
-    -webkit-justify-content: center;
-        -ms-flex-pack: center;
-            justify-content: center;
     padding: 0; }
     .section.section--developers .section-header {
       font-size: 50px;
       font-size: 6.5vmin;
-      line-height: 1.2; }
+      line-height: 1.2;
+      -ms-transform: translate(0, 30vh); }
       .section.section--developers .section-header:after {
         content: none; }
       .section.section--developers .section-header-sub {

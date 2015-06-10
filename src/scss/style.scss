@@ -343,13 +343,13 @@ h3 {
     &.section--#{$section} {
       align-items: center;
       display: flex;
-      justify-content: center;
       padding: 0;
 
       .section-header {
         font-size: $font-size-h1-px;
         font-size: $font-size-h1;
         line-height: 1.2;
+        -ms-transform: translate(0, 30vh);
 
         &:after {
           content: none;
