@@ -14,11 +14,14 @@ PRODUCT_CLASSES = {
 
 
 class ProductClassForm(forms.Form):
-
     product_cls = forms.ChoiceField(
         label=pgettext_lazy('Product class form label', 'Product class'),
         widget=forms.RadioSelect,
         choices=[(name, name.capitalize()) for name in PRODUCT_CLASSES.keys()])
+
+    def __init__(self, *args, **kwargs):
+        super(ProductClassForm, self).__init__(*args, **kwargs)
+        self.fields['product_cls'].initial = PRODUCT_CLASSES.keys()[0]
 
 
 class ProductForm(forms.ModelForm):
@@ -66,7 +69,7 @@ def get_product_form(product):
 
 
 def get_product_cls_by_name(cls_name):
-    if not cls_name in PRODUCT_CLASSES:
+    if cls_name not in PRODUCT_CLASSES:
         raise ValueError('Unknown product class')
     return PRODUCT_CLASSES[cls_name]
 
