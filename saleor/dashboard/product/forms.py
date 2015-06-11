@@ -1,9 +1,9 @@
 from __future__ import unicode_literals
 
 from django import forms
-from django.forms.formsets import formset_factory
 from django.forms.models import inlineformset_factory
 from django.forms.widgets import ClearableFileInput
+from django.utils.translation import pgettext_lazy
 
 from ...product.models import (ProductImage, Product, ShirtVariant, BagVariant,
                                Shirt, Bag)
@@ -15,6 +15,7 @@ PRODUCT_CLASSES = {
 
 class ProductClassForm(forms.Form):
     cls_name = forms.ChoiceField(
+        label=pgettext_lazy('Product class form label', 'Product class'),
         widget=forms.RadioSelect,
         choices=[(name, name.capitalize()) for name in PRODUCT_CLASSES.keys()])
 
