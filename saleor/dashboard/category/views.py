@@ -11,9 +11,16 @@ from .forms import CategoryForm
 
 
 @staff_member_required
-def category_list(request):
+def category_list(request, pk=None):
+    ctx = {}
     categories = Category.objects.all()
-    ctx = {'categories': categories}
+    if pk:
+        current_node = get_object_or_404(Category, pk=pk)
+        categories = current_node.get_siblings(
+            include_self=True) | current_node.get_descendants()
+        ctx['current_node'] = current_node
+    ctx['categories'] = categories
+    ctx['root_level'] = categories[0].get_level() if categories else 0
     return TemplateResponse(request, 'dashboard/category/list.html', ctx)
 
 
