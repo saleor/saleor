@@ -24,12 +24,23 @@ class StaffMemberOnlyMixin(object):
 class FilterByStatusMixin(FormMixin):
     form_class = OrderFilterForm
 
+    def __init__(self):
+        super(FilterByStatusMixin, self).__init__()
+        self.active_filter = None
+
     def get_queryset(self):
         queryset = super(FilterByStatusMixin, self).get_queryset()
         active_filter = self.request.GET.get('status')
         if active_filter:
-            queryset = queryset.filter(status=active_filter)
+            self.active_filter = active_filter
+            queryset = queryset.filter(status=self.active_filter)
         return queryset
+
+    def get_initial(self):
+        initial = super(FilterByStatusMixin, self).get_initial()
+        if self.active_filter:
+            initial['status'] = self.active_filter
+        return initial
 
     def get_context_data(self):
         ctx = super(FilterByStatusMixin, self).get_context_data()
