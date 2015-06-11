@@ -1,16 +1,15 @@
 from __future__ import unicode_literals
 
 from django import forms
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as _, pgettext_lazy
 from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
-from ...order.models import DeliveryGroup, OrderedItem, OrderNote
+from ...order.models import DeliveryGroup, OrderedItem, OrderNote, Order
 from ...product.models import Product
 
 
 class OrderNoteForm(forms.ModelForm):
-
     class Meta:
         model = OrderNote
         fields = ['content']
@@ -73,7 +72,6 @@ class MoveItemsForm(forms.Form):
 
 
 class ChangeQuantityForm(forms.ModelForm):
-
     class Meta:
         model = OrderedItem
         fields = ['quantity']
@@ -105,7 +103,6 @@ class ChangeQuantityForm(forms.ModelForm):
 
 
 class ShipGroupForm(forms.ModelForm):
-
     class Meta:
         model = DeliveryGroup
         fields = []
@@ -121,3 +118,11 @@ class ShipGroupForm(forms.ModelForm):
         statuses = [g.status for g in order.groups.all()]
         if 'shipped' in statuses and 'new' not in statuses:
             order.change_status('shipped')
+
+
+ORDER_STATUS_CHOICES = (('', pgettext_lazy('Order status field value',
+                                           'All')),) + Order.STATUS_CHOICES
+
+
+class OrderFilterForm(forms.Form):
+    status = forms.ChoiceField(choices=ORDER_STATUS_CHOICES)

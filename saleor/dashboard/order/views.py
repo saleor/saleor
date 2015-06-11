@@ -23,9 +23,6 @@ class OrderListView(StaffMemberOnlyMixin, FilterByStatusMixin, ListView):
     template_name = 'dashboard/order/list.html'
     paginate_by = 20
     model = Order
-    status_choices = Order.STATUS_CHOICES
-    status_order = ['new', 'payment-pending', 'fully-paid', 'shipped',
-                    'cancelled']
 
     def get_queryset(self):
         qs = super(OrderListView, self).get_queryset()

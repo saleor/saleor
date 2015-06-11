@@ -1,13 +1,7 @@
 {% load i18n %}
+{% load materializecss %}
+
 <form method="get">
-    <div class="input-field row">
-        <select id="status-filter" class="col s6" name="status">
-            <option value=""{% if not active_filter %} selected{% endif %}>{% trans "All" %}</option>
-            {% for status, verbose_status in available_filters %}
-                <option value="{{ status }}"{% if active_filter == status %} selected{% endif %}>{{ verbose_status }}</option>
-            {% endfor %}
-        </select>
-        <label for="status-filter">{% trans "Shipment status" %}</label>
-    </div>
+    {{ form|materializecss }}
     <button type="submit" class="btn">{% trans "Filter" %}</button>
 </form>
