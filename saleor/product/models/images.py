@@ -22,7 +22,7 @@ class ProductImage(models.Model):
         upload_to='products', ppoi_field='ppoi', blank=False)
     ppoi = PPOIField()
     alt = models.CharField(
-        pgettext_lazy('Product image field', 'alternative text'), max_length=128, blank=True)
+        pgettext_lazy('Product image field', 'short description'), max_length=128, blank=True)
     order = models.PositiveIntegerField(editable=False)
 
     objects = ImageManager()
