@@ -20,21 +20,21 @@ def product_list(request):
     products = Product.objects.prefetch_related('images').select_subclasses()
     form = ProductClassForm(request.POST or None)
     if form.is_valid():
-        cls_name = form.cleaned_data['cls_name']
-        return redirect('dashboard:product-add', cls_name=cls_name)
+        product_cls = form.cleaned_data['product_cls']
+        return redirect('dashboard:product-add', product_cls=product_cls)
     products, paginator = paginate(products, 30, request.GET.get('page'))
     ctx = {'products': products, 'form': form, 'paginator': paginator}
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
 
 
 @staff_member_required
-def product_details(request, pk=None, cls_name=None):
+def product_details(request, pk=None, product_cls=None):
     if pk:
         product = get_object_or_404(Product.objects.select_subclasses(), pk=pk)
         title = product.name
     else:
-        product = get_product_cls_by_name(cls_name)()
-        title = _('Add new %s') % cls_name
+        product = get_product_cls_by_name(product_cls)()
+        title = _('Add new %s') % product_cls
     images = product.images.all()
     form_cls = get_product_form(product)
     variant_formset_cls = get_variant_formset(product)
