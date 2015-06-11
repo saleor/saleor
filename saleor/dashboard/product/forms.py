@@ -14,6 +14,7 @@ PRODUCT_CLASSES = {
 
 
 class ProductClassForm(forms.Form):
+
     product_cls = forms.ChoiceField(
         label=pgettext_lazy('Product class form label', 'Product class'),
         widget=forms.RadioSelect,

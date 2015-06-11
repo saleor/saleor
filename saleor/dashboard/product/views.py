@@ -12,13 +12,15 @@ from ...product.models import Product, ProductImage
 from ..utils import paginate
 from ..views import StaffMemberOnlyMixin, staff_member_required
 from .forms import (ProductClassForm, get_product_form,
-                    get_product_cls_by_name, get_variant_formset, ProductImageForm)
+                    get_product_cls_by_name, get_variant_formset, ProductImageForm,
+                    PRODUCT_CLASSES)
 
 
 @staff_member_required
 def product_list(request):
     products = Product.objects.prefetch_related('images').select_subclasses()
-    form = ProductClassForm(request.POST or None)
+    form = ProductClassForm(request.POST or None,
+                            initial={'product_cls': PRODUCT_CLASSES.keys()[0]})
     if form.is_valid():
         product_cls = form.cleaned_data['product_cls']
         return redirect('dashboard:product-add', product_cls=product_cls)
