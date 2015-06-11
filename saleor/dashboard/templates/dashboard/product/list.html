@@ -1,55 +1,60 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load prices_i18n %}
-{% load bootstrap %}
+{% load materializecss %}
+{% load staticfiles %}
 
 {% block title %}{% trans "Products" %} - {{ block.super }}{% endblock %}
 
 {% block page_header %}
     <span class="page-title">{% block page_title %}{% trans "Products" %}{% endblock %}</span>
     <a href="#" data-activates="side-menu" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
-    <a class="btn-fab btn-floating btn-large waves-effect waves-light teal dropdown-button"
-       data-activates="dropdown-type" data-constrainwidth="false">
+    <a class="btn-fab btn-floating btn-large waves-effect waves-light teal modal-trigger"
+       href="#modal-product-class">
         <i class="mdi-content-add"></i>
     </a>
-    <div id="dropdown-type" class="dropdown-content dropdown-type">
-        <form class="col s6 l4" method="post" action=".">
-            {% csrf_token %}
-            {% render_widget form.cls_name %}
-            <label for="cls_name">{% trans "Product type" %}</label>
-            <button class="btn" type="submit">
-                <i class="mdi-content-create left"></i> {% trans "Create new" %}
-            </button>
-        </form>
-    </div>
 {% endblock %}
 
 {% block content %}
     <div class="row">
         <div class="col s12">
-            {% comment %}<h5>{% trans "Add new product" %}</h5>
-            <form class="row" method="post" action=".">
-                {% csrf_token %}
-                <div class="input-field col s4">
-                    {% render_widget form.cls_name %}
-                    <label for="amount">{% trans "Product type" %}</label>
-                    <button class="btn" type="submit">
-                        <i class="mdi-content-add left"></i> {% trans "New product" %}
-                    </button>
-                </div>
-            </form>{% endcomment %}
-
-            <ul class="collection">
+            <ul class="collection product-list">
                 {% for product in products %}
-                    <li class="collection-item avatar">
-                        <img src="{{ product.images.first.image.crop.50x50 }}" alt="" class="circle teal">
-                        <a class="title" href="{% url 'dashboard:product-update' pk=product.pk %}">{{ product.name }}</a>
-                        <p>{{ product.collection }}</p>
-                        <p class="secondary-content">{% gross product.price %}</p>
+                    <li class="collection-item avatar product-list-item">
+                        {% if product.images.exists %}
+                            <img src="{{ product.images.first.image.crop.50x50 }}" alt="" class="circle teal">
+                        {% else %}
+                            <img src="{% static 'placeholders/product-image-placeholder.png' %}" alt="" class="circle teal">
+                        {% endif %}
+                        <a class="title" href="{% url 'dashboard:product-update' pk=product.pk %}">
+                            <span class="product-list-name">{{ product.name }}</span>
+                        </a>
+                        <p class="product-list-name">{{ product.collection }}</p>
+                        <p class="teal-text">{% gross product.price %}</p>
+                        <a href="{% url 'dashboard:product-delete' pk=product.pk %}"
+                           class="secondary-content materialize-red-text text-lighten-1 product-list-delete"><i class="mdi-action-delete"></i></a>
                     </li>
                 {% endfor %}
             </ul>
             {% include "dashboard/includes/_pagination.html" with page_obj=products %}
+        </div>
+    </div>
+    <div id="modal-product-class" class="modal">
+        <div class="modal-content">
+            <form method="post" action=".">
+                {% csrf_token %}
+                <div class="row">
+                    {{ form|materializecss }}
+                </div>
+
+                <div class="row">
+                    <div class="col s12">
+                        <button class="btn" type="submit">
+                            <i class="mdi-content-create left"></i> {% trans "Create new" %}
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 {% endblock %}

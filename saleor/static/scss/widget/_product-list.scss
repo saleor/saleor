@@ -1,0 +1,27 @@
+@mixin product-list {
+  & &-item {
+    padding-right: 40px;
+  }
+
+  &-name {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &-price {
+    @media (max-width: $small-screen) {
+      position: static !important;
+      float: left;
+    }
+  }
+
+  &-delete {
+    font-size: 18px;
+  }
+}
+
+.product-list {
+  @include product-list;
+}

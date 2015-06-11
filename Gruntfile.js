@@ -13,6 +13,7 @@ module.exports = function(grunt) {
           open: false,
           port: "3004",
           proxy: "localhost:8000",
+          reloadOnRestart: true,
           watchTask: true
         }
       }

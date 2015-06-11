@@ -10,7 +10,10 @@ from .base import Product
 
 class ImageManager(models.Manager):
     def first(self):
-        return self.get_queryset()[0]
+        try:
+            return self.get_queryset()[0]
+        except IndexError:
+            pass
 
 
 class ProductImage(models.Model):
