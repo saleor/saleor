@@ -1,9 +1,16 @@
 @mixin product-gallery {
-  &-item {
+  & &-item {
     cursor: move;
-    margin-bottom: $gutter-width;
+    margin: 0 $gutter-width/2 $gutter-width !important;
+    padding: 0;
+    display: block;
     position: relative;
     text-align: center;
+    width: calc(50% - 1.5rem) !important;
+
+    @media (min-width: $medium-screen-up) {
+      width: calc(25% - 1.5rem) !important;
+    }
 
     &-text {
       background: rgba(black, .5);
@@ -11,11 +18,11 @@
       color: white;
       height: 48px;
       line-height: 48px;
-      left: $gutter-width/2;
+      left: 0;
       overflow: hidden;
       padding: 0 calc(#{$gutter-width/2} + 48px) 0 $gutter-width/2;
       position: absolute;
-      right: $gutter-width/2;
+      right: 0;
       text-align: left;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -26,7 +33,7 @@
       font-size: 20px;
       line-height: 48px;
       position: absolute;
-      right: $gutter-width/2;
+      right: 0;
       width: 48px;
     }
 

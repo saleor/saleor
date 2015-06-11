@@ -6,9 +6,9 @@
 
 {% block title %}{% trans "Products" %} - {{ block.super }}{% endblock %}
 
-{% block page_header %}
-    <span class="page-title">{% block page_title %}{% trans "Products" %}{% endblock %}</span>
-    <a href="#" data-activates="side-menu" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
+{% block page_title %}{% trans "Products" %}{% endblock %}
+
+{% block header_extra %}
     <a class="btn-fab btn-floating btn-large waves-effect waves-light teal modal-trigger"
        href="#modal-product-class">
         <i class="mdi-content-add"></i>

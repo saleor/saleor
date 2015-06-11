@@ -20,10 +20,9 @@
         <nav class="top-nav">
             <div class="container">
                 <div class="nav-wrapper">
-                    {% block page_header %}
-                        <span class="page-title">{% block page_title %}{% trans "Dashboard" %}{% endblock %}</span>
-                        <a href="#" data-activates="side-menu" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
-                    {% endblock %}
+                    <span class="page-title">{% block page_title %}{% trans "Dashboard" %}{% endblock %}</span>
+                    <a href="#" data-activates="side-menu" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
+                    {% block header_extra %}{% endblock %}
                 </div>
             </div>
             <ul class="side-nav fixed" id="side-menu">
