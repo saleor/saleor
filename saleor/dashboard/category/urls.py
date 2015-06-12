@@ -7,7 +7,7 @@ urlpatterns = patterns(
     '',
     url(r'^$',
         views.category_list, name='categories'),
-    url(r'^(?P<pk>[0-9]+)/$',
+    url(r'^(?P<root>[0-9]+)/$',
         views.category_list, name='categories'),
     url(r'^add/$',
         views.category_details, name='category-add'),

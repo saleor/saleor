@@ -11,13 +11,12 @@ from .forms import CategoryForm
 
 
 @staff_member_required
-def category_list(request, pk=None):
+def category_list(request, root=None):
     ctx = {}
     categories = Category.objects.all()
-    if pk:
-        current_node = get_object_or_404(Category, pk=pk)
-        categories = current_node.get_siblings(
-            include_self=True) | current_node.get_descendants()
+    if root:
+        current_node = get_object_or_404(Category, pk=root)
+        categories = current_node.get_descendants()
         ctx['current_node'] = current_node
         ctx['category_breadcrumbs'] = current_node.get_ancestors(include_self=True)
     min_level = categories[0].get_level() if categories else 0
@@ -30,6 +29,7 @@ def category_list(request, pk=None):
 
 @staff_member_required
 def category_details(request, pk=None, parent_pk=None):
+    ctx = {}
     if pk:
         category = get_object_or_404(Category.objects.all(), pk=pk)
         title = category.name
@@ -39,6 +39,7 @@ def category_details(request, pk=None, parent_pk=None):
     initial = {}
     if parent_pk:
         initial['parent'] = parent_pk
+        ctx['parent_pk'] = parent_pk
     form = CategoryForm(request.POST or None, instance=category, initial=initial)
     if form.is_valid():
         form.save()
@@ -51,7 +52,7 @@ def category_details(request, pk=None, parent_pk=None):
     else:
         if form.errors:
             messages.error(request, _('Failed to save category'))
-    ctx = {'category': category, 'form': form, 'title': title}
+    ctx.update({'category': category, 'form': form, 'title': title})
     return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
 
 

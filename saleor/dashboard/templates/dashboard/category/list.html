@@ -9,8 +9,7 @@
 {% block page_title %}{% trans "Categories" %}{% endblock %}
 
 {% block header_extra %}
-    <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
-       href="{% url 'dashboard:category-add' %}">
+    <a class="btn-fab btn-floating btn-large waves-effect waves-light teal" href="{% url 'dashboard:category-add' %}">
         <i class="mdi-content-add"></i>
     </a>
 {% endblock %}
@@ -18,7 +17,7 @@
 {% block content %}
     <div class="row">
         <div class="col-lg-12">
-            <h1 class="page-header">{% trans "Categories" %}{% if current_node.parent %}: {{ current_node.parent }}{% endif %}</h1>
+            <h1 class="page-header">{% trans "Categories" %}{% if current_node %}: {{ current_node }}{% endif %}</h1>
 
             {% if current_node %}
                 <h6>
@@ -27,17 +26,17 @@
                         {% if forloop.last %}
                             <span> / {{ item.name }}</span>
                         {% else %}
-                            <span> / <a href="{% url 'dashboard:categories' pk=item.pk %}">{{ item.name }}</a></span>
+                            <span> / <a href="{% url 'dashboard:categories' root=item.pk %}">{{ item.name }}</a></span>
                         {% endif %}
                     {% endfor %}
                 </h6>
             {% endif %}
 
-            <a class="btn btn-default" href="{% if current_node.parent %}{% url 'dashboard:category-add' parent_pk=current_node.parent.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}">{% trans 'Add category' %}</a>
+            <a class="btn btn-default" href="{% if current_node %}{% url 'dashboard:category-add' parent_pk=current_node.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}">{% trans 'Add category' %}</a>
             <ul class="category-list">
                 {% recursetree categories %}
                     <li>
-                        {% if node.level > min_level %}<a href="{% url 'dashboard:categories' pk=node.pk %}">{{ node.name }}</a>{% else %}{{ node.name }}{% endif %}
+                        {% if node.level == min_level %}<a href="{% url 'dashboard:categories' root=node.pk %}">{{ node.name }}</a>{% else %}{{ node.name }}{% endif %}
                         <small><a href="{% url 'dashboard:category-update' pk=node.pk %}">Edit</a></small>
                         {% if not node.is_leaf_node %}
                             <ul class="children">
