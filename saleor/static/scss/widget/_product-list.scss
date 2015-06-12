@@ -4,7 +4,7 @@
 
     &-delete {
       background: white;
-      font-size: 18px;
+      font-size: $font-size-action-icon;
 
       @media (min-width: $medium-screen-up) {
         padding-left: 50px;
