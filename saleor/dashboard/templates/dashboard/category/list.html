@@ -12,7 +12,7 @@
             <ul class="category-list">
                 {% recursetree categories %}
                     <li>
-                        {% if node.level > root_level %}<a href="{% url 'dashboard:categories' pk=node.pk %}">{{ node.name }}</a>{% else %}{{ node.name }}{% endif %}
+                        {% if node.level > min_level %}<a href="{% url 'dashboard:categories' pk=node.pk %}">{{ node.name }}</a>{% else %}{{ node.name }}{% endif %}
                         <small><a href="{% url 'dashboard:category-update' pk=node.pk %}">Edit</a></small>
                         {% if not node.is_leaf_node %}
                             <ul class="children">

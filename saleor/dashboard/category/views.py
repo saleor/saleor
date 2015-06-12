@@ -18,9 +18,14 @@ def category_list(request, pk=None):
         current_node = get_object_or_404(Category, pk=pk)
         categories = current_node.get_siblings(
             include_self=True) | current_node.get_descendants()
+
         ctx['current_node'] = current_node
+
+    min_level = categories[0].get_level() if categories else 0
+    max_level = min_level + 1
+    categories = categories.filter(level__gte=min_level, level__lte=max_level)
     ctx['categories'] = categories
-    ctx['root_level'] = categories[0].get_level() if categories else 0
+    ctx['min_level'] = min_level
     return TemplateResponse(request, 'dashboard/category/list.html', ctx)
 
 
