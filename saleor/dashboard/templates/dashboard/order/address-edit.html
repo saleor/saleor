@@ -5,6 +5,8 @@
 
 {% block title %}{% blocktrans %}Edit {{ address_type }} address{% endblocktrans %} - {{ block.super }}{% endblock %}
 
+{% block body_class %}body-orders{% endblock %}
+
 {% block page_title %}
     {% if address_type == "shipping" %}
         {% trans "Edit shipping address" %}

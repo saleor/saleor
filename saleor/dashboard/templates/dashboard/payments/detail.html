@@ -7,6 +7,8 @@
 
 {% block title %}{% trans "Payment" %} #{{ payment.id }} - {% trans "Payments" %} - {{ block.super }}{% endblock %}
 
+{% block body_class %}body-payments{% endblock %}
+
 {% block page_title %}{% trans "Payment" %} #{{ payment.id }}{% endblock %}
 
 {% block content %}

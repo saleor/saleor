@@ -4,6 +4,17 @@
 
 {% block title %}{% trans "Categories" %} - {{ block.super }}{% endblock %}
 
+{% block body_class %}body-categories{% endblock %}
+
+{% block page_title %}{% trans "Categories" %}{% endblock %}
+
+{% block header_extra %}
+    <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
+       href="{% url 'dashboard:category-add' %}">
+        <i class="mdi-content-add"></i>
+    </a>
+{% endblock %}
+
 {% block content %}
     <div class="row">
         <div class="col-lg-12">

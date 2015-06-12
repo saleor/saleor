@@ -4,6 +4,8 @@
 
 {% block title %}{% trans "Delete category" %} - {{ block.super }}{% endblock %}
 
+{% block body_class %}body-categories{% endblock %}
+
 {% block content %}
     <form class="form form-horizontal" action="" method="post">
         {% csrf_token %}

@@ -72,6 +72,12 @@ $font-size-action-icon: 18px;
         content: none;
       }
 
+      @each $module in (home, orders, products, categories, customers, paymentss) {
+        .body-#{$module} &.nav-#{$module} {
+          @extend .active;
+        }
+      }
+
       &.brand-logo {
         top: 0;
         width: 100%;

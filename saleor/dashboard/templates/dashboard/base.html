@@ -15,7 +15,7 @@
     {% endblock %}
 </head>
 
-<body>
+<body class="{% block body_class %}body-home{% endblock %}">
     <header class="header">
         <nav class="top-nav">
             <div class="container">
@@ -43,12 +43,12 @@
                     </ul>
                 </li>
                 <li class="brand-logo"><a href="{% url 'dashboard:index' %}">Saleor</a></li>
-                <li><a href="{% url 'dashboard:index' %}" class="waves-effect waves-teal">Home</a></li>
-                <li><a href="{% url 'dashboard:orders' %}" class="waves-effect waves-teal">Orders</a></li>
-                <li><a href="{% url 'dashboard:products' %}" class="waves-effect waves-teal">Products</a></li>
-                <li><a href="{% url 'dashboard:categories' %}" class="waves-effect waves-teal">Categories</a></li>
-                <li><a href="{% url 'dashboard:customers' %}" class="waves-effect waves-teal">Customers</a></li>
-                <li><a href="{% url 'dashboard:payments' %}" class="waves-effect waves-teal">Payments</a></li>
+                <li class="nav-home"><a href="{% url 'dashboard:index' %}" class="waves-effect waves-teal">Home</a></li>
+                <li class="nav-orders"><a href="{% url 'dashboard:orders' %}" class="waves-effect waves-teal">Orders</a></li>
+                <li class="nav-products"><a href="{% url 'dashboard:products' %}" class="waves-effect waves-teal">Products</a></li>
+                <li class="nav-categories"><a href="{% url 'dashboard:categories' %}" class="waves-effect waves-teal">Categories</a></li>
+                <li class="nav-customers"><a href="{% url 'dashboard:customers' %}" class="waves-effect waves-teal">Customers</a></li>
+                <li class="nav-payments"><a href="{% url 'dashboard:payments' %}" class="waves-effect waves-teal">Payments</a></li>
             </ul>
         </nav>
     </header>
