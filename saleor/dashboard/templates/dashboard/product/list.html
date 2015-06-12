@@ -30,9 +30,9 @@
                             <span class="product-list-name">{{ product.name }}</span>
                         </a>
                         <p class="product-list-name">{{ product.collection }}</p>
-                        <p class="teal-text">{% gross product.price %}</p>
+                        <p class="secondary-content product-list-price">{% gross product.price %}</p>
                         <a href="{% url 'dashboard:product-delete' pk=product.pk %}"
-                           class="secondary-content materialize-red-text text-lighten-1 product-list-delete"><i class="mdi-action-delete"></i></a>
+                           class="secondary-content materialize-red-text text-lighten-2 product-list-item-delete"><i class="mdi-action-delete"></i></a>
                     </li>
                 {% endfor %}
             </ul>

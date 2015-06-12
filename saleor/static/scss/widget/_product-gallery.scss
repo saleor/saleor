@@ -10,6 +10,12 @@
 
     @media (min-width: $medium-screen-up) {
       width: calc(25% - 1.5rem) !important;
+
+      &:hover {
+        .product-gallery-item-create, .product-gallery-item-remove {
+          display: block;
+        }
+      }
     }
 
     &-text {
@@ -35,6 +41,10 @@
       position: absolute;
       right: 0;
       width: 48px;
+
+      @media (min-width: $medium-screen-up) {
+        display: none;
+      }
     }
 
     &-remove {

@@ -1,6 +1,24 @@
 @mixin product-list {
   & &-item {
     padding-right: 40px;
+
+    &-delete {
+      background: white;
+      font-size: 18px;
+
+      @media (min-width: $medium-screen-up) {
+        padding-left: 50px;
+        display: none;
+      }
+    }
+
+    @media (min-width: $medium-screen-up) {
+      &:hover {
+        .product-list-item-delete {
+          display: block;
+        }
+      }
+    }
   }
 
   &-name {
@@ -15,10 +33,6 @@
       position: static !important;
       float: left;
     }
-  }
-
-  &-delete {
-    font-size: 18px;
   }
 }
 

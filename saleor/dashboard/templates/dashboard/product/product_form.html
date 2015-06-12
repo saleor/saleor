@@ -39,11 +39,9 @@
                 {{ form|materializecss }}
             </div>
 
-            <div class="row right-align">
-                <div class="col s12">
-                    {% if product.pk %}
-                        <a href="{% url 'dashboard:product-delete' pk=product.pk %}" class="btn-flat btn-no-padding"><i class="mdi-action-delete"></i> {% trans "Delete" %}</a>
-                    {% endif %}
+            <div class="row">
+                <div class="col s12 right-align">
+                    <a href="{% url 'dashboard:products' %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
                     {% if product.pk %}
                         <button type="submit" class="btn"><i class="mdi-content-save"></i> {% trans "Update" %}</button>
                     {% else %}
@@ -131,6 +129,7 @@
         </div>
 
         <div id="images">
+            <div class="row">
                 <div class="col l12">
                     <ul class="row product-gallery" id="product-gallery" data-post-url="{{ images_reorder_url }}">
                         {% for image in images %}
@@ -161,6 +160,7 @@
                         <i class="mdi-content-add"></i> {% trans "Add new image" %}
                     </a>
                 </div>
+            </div>
         </div>
     {% endif %}
 </form>

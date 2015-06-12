@@ -118,6 +118,14 @@ $icons-font-path: $roboto-font-path;
             }
           }
         }
+
+        ul ul {
+          li {
+            a {
+              padding-left: 30px;
+            }
+          }
+        }
       }
 
       i {
@@ -164,7 +172,17 @@ table {
   right: 0;
 }
 
+#id_price {
+  float: left;
+  width: calc(100% - 40px);
+}
 
+.input-text-suffix {
+  float: right;
+  line-height: 45px;
+  text-align: right;
+  width: 40px;
+}
 
 #modal-product-class {
   max-width: 300px;
@@ -174,4 +192,5 @@ table {
   color: #999;
 }
 
+@import "widget/product-gallery";
 @import "widget/product-list";
