@@ -18,9 +18,8 @@ def category_list(request, pk=None):
         current_node = get_object_or_404(Category, pk=pk)
         categories = current_node.get_siblings(
             include_self=True) | current_node.get_descendants()
-
         ctx['current_node'] = current_node
-
+        ctx['category_breadcrumbs'] = current_node.get_ancestors(include_self=True)
     min_level = categories[0].get_level() if categories else 0
     max_level = min_level + 1
     categories = categories.filter(level__gte=min_level, level__lte=max_level)
@@ -30,14 +29,17 @@ def category_list(request, pk=None):
 
 
 @staff_member_required
-def category_details(request, pk=None):
+def category_details(request, pk=None, parent_pk=None):
     if pk:
         category = get_object_or_404(Category.objects.all(), pk=pk)
         title = category.name
     else:
         category = Category()
         title = _('Add new category')
-    form = CategoryForm(request.POST or None, instance=category)
+    initial = {}
+    if parent_pk:
+        initial['parent'] = parent_pk
+    form = CategoryForm(request.POST or None, instance=category, initial=initial)
     if form.is_valid():
         form.save()
         if pk:

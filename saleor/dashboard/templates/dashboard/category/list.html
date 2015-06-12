@@ -18,8 +18,22 @@
 {% block content %}
     <div class="row">
         <div class="col-lg-12">
-            <h1 class="page-header">{% trans "Categories" %}{% if current_node %}: {{ current_node }}{% endif %}</h1>
-            <a class="btn btn-default" href="{% url 'dashboard:category-add' %}">{% trans 'Add category' %}</a>
+            <h1 class="page-header">{% trans "Categories" %}{% if current_node.parent %}: {{ current_node.parent }}{% endif %}</h1>
+
+            {% if current_node %}
+                <h6>
+                    <a href="{% url 'dashboard:categories' %}">Root</a>
+                    {% for item in category_breadcrumbs %}
+                        {% if forloop.last %}
+                            <span> / {{ item.name }}</span>
+                        {% else %}
+                            <span> / <a href="{% url 'dashboard:categories' pk=item.pk %}">{{ item.name }}</a></span>
+                        {% endif %}
+                    {% endfor %}
+                </h6>
+            {% endif %}
+
+            <a class="btn btn-default" href="{% if current_node.parent %}{% url 'dashboard:category-add' parent_pk=current_node.parent.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}">{% trans 'Add category' %}</a>
             <ul class="category-list">
                 {% recursetree categories %}
                     <li>
