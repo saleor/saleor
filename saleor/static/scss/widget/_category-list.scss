@@ -1,0 +1,37 @@
+@mixin category-list {
+  &-item {
+    &-actions {
+      font-size: $font-size-action-icon;
+
+      @media (min-width: $medium-screen-up) {
+        display: none;
+      }
+    }
+
+    &:hover {
+      .category-list-item-actions {
+        @media (min-width: $medium-screen-up) {
+          display: block;
+        }
+      }
+    }
+  }
+
+  ul {
+    li {
+      .collapsible-header {
+        padding-left: 2rem;
+      }
+
+      &:last-child {
+        .collapsible-header {
+          border-bottom: none;
+        }
+      }
+    }
+  }
+}
+
+.category-list {
+  @include category-list;
+}

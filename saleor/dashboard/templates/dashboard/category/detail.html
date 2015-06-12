@@ -12,20 +12,21 @@
 {% block content %}
     <form method="post" id="category-form" enctype="multipart/form-data">
         <div class="row">
-            <div class="col l8">
-                <div class="form-message alert alert-success" hidden="hidden">
-                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                    <span class="glyphicon glyphicon-ok-sign"></span>
-                    <span class="message-content">{% trans "Data saved" %}</span>
+            <div class="col l8 offset-l2">
+                <div class="row">
+                    {% csrf_token %}
+                    {{ form|materializecss }}
                 </div>
-                {% csrf_token %}
-                {{ form|materializecss }}
             </div>
         </div>
         <div class="row">
-            <div class="col l8 right-align">
-                {% if category.pk %}
-                    <a href="{% url 'dashboard:category-delete' pk=category.pk %}" class="btn btn-flat"><i class="mdi-action-delete"></i> {% trans "Delete" %}</a>
+            <div class="col l8 offset-l2 right-align">
+                {% if parent_pk %}
+                    <a href="{% url 'dashboard:categories' root=parent_pk %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
+{#                {% elif category.pk %}#}
+{#                    <a href="{% url 'dashboard:categories' root=category.pk %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>#}
+                {% else %}
+                    <a href="{% url 'dashboard:categories' %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
                 {% endif %}
                 {% if category.pk %}
                     <button type="submit" class="btn"><i class="mdi-content-save"></i> {% trans "Update" %}</button>

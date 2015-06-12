@@ -12,7 +12,7 @@
 
 {% block header_extra %}
     <a class="btn-fab btn-floating btn-large waves-effect waves-light teal modal-trigger"
-       href="#modal-product-class">
+       href="#modal-product-class" title="{% trans "Add product" %}">
         <i class="mdi-content-add"></i>
     </a>
 {% endblock %}
@@ -33,7 +33,7 @@
                         </a>
                         <p class="product-list-name">{{ product.collection }}</p>
                         <p class="secondary-content product-list-price">{% gross product.price %}</p>
-                        <a href="{% url 'dashboard:product-delete' pk=product.pk %}"
+                        <a href="{% url 'dashboard:product-delete' pk=product.pk %}" title="{% trans "Delete product" %}"
                            class="secondary-content materialize-red-text text-lighten-2 product-list-item-delete"><i class="mdi-action-delete"></i></a>
                     </li>
                 {% endfor %}

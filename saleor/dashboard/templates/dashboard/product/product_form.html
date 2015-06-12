@@ -151,11 +151,11 @@
                                     {% if image.alt %}
                                         <span class="product-gallery-item-text">{{ image.alt }}</span>
                                     {% endif %}
-                                    <a class="product-gallery-item-create light-blue-text text-lighten-1"
+                                    <a class="product-gallery-item-create light-blue-text text-lighten-1" title="{% trans "Edit image" %}"
                                             href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">
                                         <i class="mdi-content-create"></i>
                                     </a>
-                                    <a class="product-gallery-item-remove materialize-red-text text-lighten-2"
+                                    <a class="product-gallery-item-remove materialize-red-text text-lighten-2" title="{% trans "Delete image" %}"
                                             href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}">
                                         <i class="mdi-action-delete"></i>
                                     </a>

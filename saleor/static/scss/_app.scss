@@ -45,6 +45,10 @@ $font-size-action-icon: 18px;
     height: 100px;
     margin-bottom: $gutter-width;
 
+    .container {
+      height: 100%;
+    }
+
     .button-collapse {
       margin-right: $gutter-width;
 
@@ -157,8 +161,17 @@ $font-size-action-icon: 18px;
 }
 
 .page-title {
+  display: block;
   font-size: 36px;
   line-height: 100px;
+
+  @media (max-width: $medium-screen) {
+    float: right;
+    width: calc(100% - 38px - 1.5rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 table {
@@ -200,6 +213,7 @@ table {
   color: #999;
 }
 
+@import "widget/category-list";
 @import "widget/form";
 @import "widget/product-gallery";
 @import "widget/product-list";
