@@ -1,0 +1,10 @@
+@mixin toast {
+  &--static {
+    display: inline-block;
+    float: none;
+  }
+}
+
+.toast {
+  @include toast;
+}

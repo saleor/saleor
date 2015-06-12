@@ -1,0 +1,22 @@
+@mixin form {
+  .select-wrapper {
+    &.invalid {
+      input {
+        @extend .invalid;
+      }
+    }
+  }
+
+  .price-wrapper {
+    overflow: hidden;
+  }
+
+  p.help-block {
+    margin: -7px 0 15px;
+    font-size: $label-font-size;
+  }
+}
+
+form {
+  @include form;
+}

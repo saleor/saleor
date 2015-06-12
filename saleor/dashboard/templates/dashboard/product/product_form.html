@@ -6,6 +6,8 @@
 
 {% block title %}{{ title }} - {% trans "Products" %} - {{ block.super }}{% endblock %}
 
+{% block body_class %}body-products{% endblock %}
+
 {% block page_title %}{{ title }}{% endblock %}
 
 {% block content %}
@@ -149,7 +151,7 @@
                                     {% if image.alt %}
                                         <span class="product-gallery-item-text">{{ image.alt }}</span>
                                     {% endif %}
-                                    <a class="product-gallery-item-create blue-text text-lighten-2"
+                                    <a class="product-gallery-item-create light-blue-text text-lighten-1"
                                             href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">
                                         <i class="mdi-content-create"></i>
                                     </a>

@@ -3,20 +3,30 @@
 
 {% block title %}{% trans "Delete image" %} - {{ block.super }}{% endblock %}
 
+{% block body_class %}body-products{% endblock %}
+
+{% block page_title %}{% trans "Are you sure you want to delete the following image?" %}{% endblock %}
+
 {% block content %}
-    <div class="row">
-        <h3>{% trans "Are you sure you want to delete the following image?" %}</h3>
-    </div>
-    <form action="" method="post">
+    <form method="post">
         {% csrf_token %}
         <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#images">
         <div class="row">
-            <div>{{ product_image.image.name }}</div>
-            <div><img src="{{ product_image.image.crop.50x50}}" alt="{{ product_image.alt }}"></div>
+            <div class="col m6 l4 offset-m3 offset-l4">
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-title black-text">{{ product_image.alt }}</div>
+                        <img src="{{ product_image.image.crop.350x350}}" alt="{{ product_image.alt }}" class="responsive-img">
+                    </div>
+                </div>
+            </div>
         </div>
+
         <div class="row">
-            <button class="btn waves-effect red" type="submit"><i class="glyphicon glyphicon-trash"></i> {% trans "Delete" %}</button>
-            <a class="btn waves-effect" href="{{ request.META.HTTP_REFERER }}"><i class="glyphicon glyphicon-remove"></i> {% trans "Cancel" %}</a>
+            <div class="col m6 l4 offset-m3 offset-l4 right-align">
+                <a href="{% url 'dashboard:product-update' pk=product.pk %}#images" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
+                <button type="submit" class="btn materialize-red"><i class="mdi-action-delete"></i> {% trans "Delete" %}</button>
+            </div>
         </div>
     </form>
 {% endblock %}

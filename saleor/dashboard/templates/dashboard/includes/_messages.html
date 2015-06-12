@@ -1,29 +1,23 @@
+{% load i18n %}
+
 <div id="messages">
 {% if messages %}
     {% for message in messages %}
-            <div class="alert alert-dismissable fade in alert-{{ message.tags }}">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                {# Include an icon by default #}
-                {% if 'success' in message.tags %}
-                    <span class="glyphicon glyphicon-ok-sign"></span>
-                {% endif %}
-                {% if 'info' in message.tags %}
-                    <span class="glyphicon glyphicon-info-sign"></span>
-                {% endif %}
-                {% if 'warning' in message.tags %}
-                    <span class="glyphicon glyphicon-warning-sign"></span>
-                {% endif %}
-                {% if 'danger' in message.tags %}
-                    <span class="glyphicon glyphicon-exclamation-sign"></span>
-                {% endif %}
+        <div class="row">
+            <div class="col s12 center-align">
+                <div class="toast toast--static">
+                    <span>
+                        {% if 'safe' in message.tags %}
+                            {{ message|safe }}
+                        {% else %}
+                            {{ message }}
+                        {% endif %}
+                    </span>
 
-                {# Allow HTML to be embedded in messages #}
-                {% if 'safe' in message.tags %}
-                    {{ message|safe }}
-                {% else %}
-                    {{ message }}
-                {% endif %}
+                    <a class="btn-flat teal-text">{% trans "Dismiss" %}</a>
+                </div>
             </div>
+        </div>
     {% endfor %}
 {% endif %}
 </div>

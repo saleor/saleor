@@ -5,6 +5,8 @@
 
 {% block title %}{% trans "Delete product" %} - {{ block.super }}{% endblock %}
 
+{% block body_class %}body-products{% endblock %}
+
 {% block page_title %}{% trans "Are you sure you want to delete the following product?" %}{% endblock %}
 
 {% block content %}
@@ -30,9 +32,6 @@
             <div class="col m6 l4 offset-m3 offset-l4 right-align">
                 <a href="{% url 'dashboard:products' %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
                 <button type="submit" class="btn materialize-red"><i class="mdi-action-delete"></i> {% trans "Delete" %}</button>
-
-{#                <button class="btn btn-danger" type="submit"><i class="glyphicon glyphicon-trash"></i> {% trans "Delete" %}</button>#}
-{#                <a class="btn btn-default" href="{% url 'dashboard:products' pk=product.pk %}"><i class="glyphicon glyphicon-remove"></i> {% trans "Cancel" %}</a>#}
             </div>
         </div>
     </form>

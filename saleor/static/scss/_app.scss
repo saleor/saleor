@@ -194,5 +194,7 @@ table {
   color: #999;
 }
 
+@import "widget/form";
 @import "widget/product-gallery";
 @import "widget/product-list";
+@import "widget/toast";
