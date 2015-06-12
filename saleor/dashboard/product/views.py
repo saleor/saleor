@@ -6,6 +6,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.http import require_POST
 from django.views.generic import DeleteView
 
 from ...product.models import Product, ProductImage
@@ -30,40 +31,62 @@ def product_list(request):
 
 @staff_member_required
 def product_details(request, pk=None, product_cls=None):
-    if pk:
-        product = get_object_or_404(Product.objects.select_subclasses(), pk=pk)
-        title = product.name
-    else:
+    creating = pk is None
+    if creating:
         product = get_product_cls_by_name(product_cls)()
         title = _('Add new %s') % product_cls
+    else:
+        product = get_object_or_404(Product.objects.select_subclasses(), pk=pk)
+        title = product.name
     images = product.images.all()
     form_cls = get_product_form(product)
+    form = form_cls(instance=product)
     variant_formset_cls = get_variant_formset(product)
-    form = form_cls(request.POST or None, instance=product)
-    variant_formset = variant_formset_cls(
-        request.POST or None, instance=product)
-    forms = {'form': form, 'variant_formset': variant_formset}
-    if all([f.is_valid() for f in forms.values()]):
-        with transaction.atomic():
-            product = form.save()
-            variant_formset.save()
-        if pk:
-            msg = _('Updated product %s') % product
-        else:
-            msg = _('Added product %s') % product
-        messages.success(request, msg)
-        return redirect('dashboard:products')
-    else:
-        if any([f.errors for f in forms.values()]):
-            messages.error(request, _('Your submitted data was not valid - '
-                           'please correct the errors below'))
-    ctx = {'title': title, 'product': product, 'images': images}
-    ctx.update(forms)
+    variant_formset = variant_formset_cls(instance=product)
+
+    if 'product-form' in request.POST:
+        form = form_cls(request.POST, instance=product)
+        product = save_product_form(request, form, creating)
+        if creating and product:
+            return redirect('dashboard:product-update', pk=product.pk)
+
+    if 'variants-formset' in request.POST:
+        variant_formset = variant_formset_cls(request.POST, instance=product)
+        save_variants_formset(request, variant_formset)
+
+    ctx = {'title': title, 'product': product, 'images': images,
+           'product_form': form, 'variant_formset': variant_formset}
     if pk:
         images_reorder_url = reverse_lazy('dashboard:product-images-reorder',
-                                      kwargs={'product_pk': pk})
+                                          kwargs={'product_pk': pk})
         ctx['images_reorder_url'] = images_reorder_url
     return TemplateResponse(request, 'dashboard/product/product_form.html', ctx)
+
+
+def save_product_form(request, form, creating):
+    product = None
+    if form.is_valid():
+        product = form.save()
+        if creating:
+            msg = _('Added product %s') % product
+        else:
+            msg = _('Updated product %s') % product
+        messages.success(request, msg)
+    else:
+        if form.errors:
+            messages.error(request, _('Your submitted data was not valid - '
+                                      'please correct the errors below'))
+    return product
+
+
+def save_variants_formset(request, formset):
+    if formset.is_valid():
+        formset.save()
+        messages.success(request, _('Variants has been saved'))
+    else:
+        if formset.errors:
+            messages.error(request, _('Your submitted data was not valid - '
+                                      'please correct the errors below'))
 
 
 class ProductDeleteView(StaffMemberOnlyMixin, DeleteView):

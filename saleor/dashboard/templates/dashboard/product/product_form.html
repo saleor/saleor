@@ -36,97 +36,107 @@
         <div class="col l8 offset-l2">
             <div class="row">
                 {% csrf_token %}
-                {{ form|materializecss }}
+                {{ product_form|materializecss }}
             </div>
 
             <div class="row">
                 <div class="col s12 right-align">
                     <a href="{% url 'dashboard:products' %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
                     {% if product.pk %}
-                        <button type="submit" class="btn"><i class="mdi-content-save"></i> {% trans "Update" %}</button>
+                        <button type="submit" name="product-form" class="btn"><i class="mdi-content-save"></i> {% trans "Update" %}</button>
                     {% else %}
-                        <button type="submit" class="btn"><i class="mdi-content-create"></i> {% trans "Create" %}</button>
+                        <button type="submit" name="product-form" class="btn"><i class="mdi-content-create"></i> {% trans "Create" %}</button>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
+</form>
 
     {% if product.pk %}
-        <div class="row" id="variants">
-            <div class="col l12">
-                <div class="row">
-                    {{ variant_formset.management_form }}
-                    <table class="striped">
-                        <thead>
-                            <tr>
-                                <th>{% trans "SKU" %}</th>
-                                {% for field in variant_formset.0.visible_fields %}
-                                    {% if field.name != 'sku' and field.name != 'DELETE' %}
-                                        <th>{{ field.label }}</th>
-                                    {% endif %}
-                                {% endfor %}
-                                <th class="text-right"><i class="glyphicon glyphicon-trash"></i></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {% for form in variant_formset.initial_forms %}
-                            <tr>
-                                <td>
-                                    {% for field in form.hidden_fields %}
-                                        {{ field }}
+        <form method="post">
+            <div class="row" id="variants">
+                <div class="col l12">
+                    <div class="row">
+                        {% csrf_token %}
+                        {{ variant_formset.management_form }}
+                        <table class="striped">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "SKU" %}</th>
+                                    {% for field in variant_formset.0.visible_fields %}
+                                        {% if field.name != 'sku' and field.name != 'DELETE' %}
+                                            <th>{{ field.label }}</th>
+                                        {% endif %}
                                     {% endfor %}
-                                    {{ form.sku|materializecss }}
-                                </td>
-                                {% for field in form.visible_fields %}
-                                    {% if field.name != 'sku' and field.name != 'DELETE' %}
-                                        <td>
-                                            <div class="{% if field.errors %} has-error{% endif %}{% if field.required %} required{% endif %}">
-                                                {{ field|materializecss }}
-                                                {% if field.errors %}
-                                                    {% for error in field.errors %}
-                                                        <span class="label label-danger">{{ error }}</span>
-                                                    {% endfor %}
-                                                {% endif %}
-                                            </div>
-                                        </td>
-                                    {% endif %}
-                                {% endfor %}
-                                <td class="text-right">
-                                    {{ form.DELETE }}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                        {% for form in variant_formset.extra_forms %}
-                            <tr>
-                                <td>
-                                    {% for field in form.hidden_fields %}
-                                        {{ field }}
+                                    <th class="text-right"><i class="glyphicon glyphicon-trash"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for form in variant_formset.initial_forms %}
+                                <tr>
+                                    <td>
+                                        {% for field in form.hidden_fields %}
+                                            {{ field }}
+                                        {% endfor %}
+                                        {{ form.sku|materializecss }}
+                                    </td>
+                                    {% for field in form.visible_fields %}
+                                        {% if field.name != 'sku' and field.name != 'DELETE' %}
+                                            <td>
+                                                <div class="{% if field.errors %} has-error{% endif %}{% if field.required %} required{% endif %}">
+                                                    {{ field|materializecss }}
+                                                    {% if field.errors %}
+                                                        {% for error in field.errors %}
+                                                            <span class="label label-danger">{{ error }}</span>
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        {% endif %}
                                     {% endfor %}
-                                    {{ form.sku|materializecss }}
-                                </td>
-                                {% for field in form.visible_fields %}
-                                    {% if field.name != 'sku' and field.name != 'DELETE' %}
-                                        <td>
-                                            <div class="{% if field.errors %} has-error{% endif %}{% if field.required %} required{% endif %}">
-                                                {{ field|materializecss }}
-                                                {% if field.errors %}
-                                                    {% for error in field.errors %}
-                                                        <span class="label label-danger">{{ error }}</span>
-                                                    {% endfor %}
-                                                {% endif %}
-                                            </div>
-                                        </td>
-                                    {% endif %}
-                                {% endfor %}
-                                <td></td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+                                    <td class="text-right">
+                                        {{ form.DELETE }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            {% for form in variant_formset.extra_forms %}
+                                <tr>
+                                    <td>
+                                        {% for field in form.hidden_fields %}
+                                            {{ field }}
+                                        {% endfor %}
+                                        {{ form.sku|materializecss }}
+                                    </td>
+                                    {% for field in form.visible_fields %}
+                                        {% if field.name != 'sku' and field.name != 'DELETE' %}
+                                            <td>
+                                                <div class="{% if field.errors %} has-error{% endif %}{% if field.required %} required{% endif %}">
+                                                    {{ field|materializecss }}
+                                                    {% if field.errors %}
+                                                        {% for error in field.errors %}
+                                                            <span class="label label-danger">{{ error }}</span>
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <td></td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row">
+                        <div class="col s12 right-align">
+                            <a href="{% url 'dashboard:products' %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
+                            <button type="submit" name="variants-formset" class="btn"><i class="mdi-content-save"></i> {% trans "Update" %}</button>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </form>
 
         <div id="images">
             <div class="row">
@@ -163,5 +173,5 @@
             </div>
         </div>
     {% endif %}
-</form>
+
 {% endblock %}
