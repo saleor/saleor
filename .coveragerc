@@ -1,0 +1,10 @@
+[run]
+branch = 1
+omit = */test_*.py
+source = saleor
+
+[report]
+exclude_lines =
+    pragma: no cover
+    raise NotImplementedError
+    return NotImplemented

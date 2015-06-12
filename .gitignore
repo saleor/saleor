@@ -2,6 +2,7 @@
 .*
 !.bowerrc
 !.buildpacks
+!.coveragerc
 !.gitignore
 !.travis*
 *.css
