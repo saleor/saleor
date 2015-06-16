@@ -33,6 +33,8 @@ def create_product(**kwargs):
     defaults = {
         'name': fake.company(),
         'price': fake.pyfloat(2, 2, positive=True),
+        'sku': fake.random_int(1, 100000),
+        'stock': fake.random_int(),
         'collection': collection,
         'weight': fake.random_digit(),
         'description': '\n\n'.join(fake.paragraphs(5))
@@ -47,6 +49,7 @@ def create_variant(product, **kwargs):
         'name': fake.word(),
         'stock': fake.random_int(),
         'sku': fake.random_int(1, 100000),
+        'price': fake.pyfloat(2, 2, positive=True),
         'product': product
     }
     defaults.update(kwargs)
@@ -78,8 +81,9 @@ def create_items(placeholder_dir, how_many=10):
         product.categories.add(default_category)
         create_product_images(product, random.randrange(1, 5), placeholder_dir)
 
-        if random.choice([True, False]):
-            create_variant(product)
+        for _ in range(random.randrange(1, 5)):
+            if random.choice([True, False]):
+                create_variant(product)
 
         yield "Product - %s %s Variants" % (product, product.variants.count())
 
