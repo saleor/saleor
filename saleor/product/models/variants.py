@@ -11,20 +11,6 @@ from django.utils.encoding import python_2_unicode_compatible
 from .discounts import get_product_discounts
 
 
-@python_2_unicode_compatible
-class Color(models.Model):
-    name = models.CharField(pgettext_lazy('Color name field', 'name'),
-                            max_length=100)
-    color = models.CharField(pgettext_lazy('Color hex value', 'HEX value'),
-                             max_length=6)
-
-    class Meta:
-        app_label = 'product'
-
-    def __str__(self):
-        return self.name
-
-
 class StockedProduct(models.Model, StockedItem):
     stock = models.IntegerField(pgettext_lazy('Product item field', 'stock'),
                                 validators=[MinValueValidator(0)],
@@ -39,18 +25,6 @@ class StockedProduct(models.Model, StockedItem):
 
     def is_available(self):
         return self.get_stock() > 0
-
-
-@python_2_unicode_compatible
-class ColoredVariant(models.Model):
-    color = models.ForeignKey(Color)
-
-    class Meta:
-        abstract = True
-        app_label = 'product'
-
-    def __str__(self):
-        return '%s (%s)' % (self.product.name, self.color)
 
 
 @python_2_unicode_compatible

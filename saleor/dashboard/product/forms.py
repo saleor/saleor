@@ -6,12 +6,9 @@ from django.forms.widgets import ClearableFileInput
 from django.utils.translation import pgettext_lazy
 
 from ...product.models import (ProductImage, Product, GenericProduct,
-                               GenericVariant, ShirtVariant, Shirt, Bag,
-                               BagVariant)
+                               GenericVariant)
 
 PRODUCT_CLASSES = {
-    'shirt': Shirt,
-    'bag': Bag,
     'generic_product': GenericProduct
 }
 
@@ -43,18 +40,6 @@ class GenericProductForm(ProductForm):
         exclude = []
 
 
-class ShirtForm(ProductForm):
-    class Meta:
-        model = Shirt
-        exclude = []
-
-
-class BagForm(ProductForm):
-    class Meta:
-        model = Bag
-        exclude = []
-
-
 class ImageInputWidget(ClearableFileInput):
     url_markup_template = '<a href="{0}"><img src="{0}" width=50 /></a>'
 
@@ -66,10 +51,6 @@ formset_defaults = {
 }
 
 
-ShirtVariantFormset = inlineformset_factory(
-    Shirt, ShirtVariant, exclude=[], **formset_defaults)
-BagVariantFormset = inlineformset_factory(
-    Bag, BagVariant, exclude=[], **formset_defaults)
 GenericVariantFormset = inlineformset_factory(
     GenericProduct, GenericVariant, exclude=[], **formset_defaults
 )
@@ -78,10 +59,6 @@ GenericVariantFormset = inlineformset_factory(
 def get_product_form(product):
     if isinstance(product, GenericProduct):
         return GenericProductForm
-    elif isinstance(product, Shirt):
-        return ShirtForm
-    elif isinstance(product, Bag):
-        return BagForm
     else:
         raise ValueError('Unknown product class')
 
@@ -93,11 +70,7 @@ def get_product_cls_by_name(cls_name):
 
 
 def get_variant_formset(product):
-    if isinstance(product, Shirt):
-        return ShirtVariantFormset
-    elif isinstance(product, Bag):
-        return BagVariantFormset
-    elif isinstance(product, GenericProduct):
+    if isinstance(product, GenericProduct):
         return GenericVariantFormset
     else:
         raise ValueError('Unknown product')
