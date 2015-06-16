@@ -51,9 +51,12 @@ class Product(models.Model, ItemRange):
         app_label = 'product'
 
     def __iter__(self):
-        if not hasattr(self, '__variants'):
-            setattr(self, '__variants', self.variants.all())
-        return iter(getattr(self, '__variants'))
+        if self.variants.exists():
+            if not hasattr(self, '__variants'):
+                setattr(self, '__variants', self.variants.all())
+            return iter(getattr(self, '__variants'))
+        else:
+            return iter([self])
 
     def __repr__(self):
         class_ = type(self)

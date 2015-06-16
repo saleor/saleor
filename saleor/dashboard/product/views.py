@@ -2,11 +2,9 @@ from __future__ import unicode_literals
 
 from django.contrib import messages
 from django.core.urlresolvers import reverse_lazy
-from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
-from django.views.decorators.http import require_POST
 from django.views.generic import DeleteView
 
 from ...product.models import Product, ProductImage
@@ -14,7 +12,7 @@ from ..utils import paginate
 from ..views import StaffMemberOnlyMixin, staff_member_required
 from .forms import (ProductClassForm, get_product_form,
                     get_product_cls_by_name, get_variant_formset,
-                    ProductImageForm, PRODUCT_CLASSES)
+                    ProductImageForm, get_verbose_name)
 
 
 @staff_member_required
@@ -34,7 +32,7 @@ def product_details(request, pk=None, product_cls=None):
     creating = pk is None
     if creating:
         product = get_product_cls_by_name(product_cls)()
-        title = _('Add new %s') % product_cls
+        title = _('Add new %s') % get_verbose_name(product)
     else:
         product = get_object_or_404(Product.objects.select_subclasses(), pk=pk)
         title = product.name

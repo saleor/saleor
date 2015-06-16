@@ -5,8 +5,6 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import pgettext_lazy
 from satchless.item import Item, StockedItem
-from django_prices.models import PriceField
-from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.utils.encoding import python_2_unicode_compatible
 
@@ -41,32 +39,6 @@ class StockedProduct(models.Model, StockedItem):
 
     def is_available(self):
         return self.get_stock() > 0
-
-
-class PhysicalProduct(models.Model):
-    weight = models.DecimalField(max_digits=6, decimal_places=2)
-    length = models.DecimalField(
-        max_digits=6, decimal_places=2, blank=True, default=0)
-    width = models.DecimalField(
-        max_digits=6, decimal_places=2, blank=True, default=0)
-    depth = models.DecimalField(
-        max_digits=6, decimal_places=2, blank=True, default=0)
-    price = PriceField(
-        pgettext_lazy('Product field', 'price'),
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4)
-
-    class Meta:
-        abstract = True
-        app_label = 'product'
-
-    def get_weight(self):
-        try:
-            return self.weight
-        except AttributeError:
-            return self.product.weight
-
-    def is_available(self):
-        return any(variant.is_available() for variant in self)
 
 
 @python_2_unicode_compatible

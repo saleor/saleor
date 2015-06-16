@@ -5,19 +5,26 @@ from django.forms.models import inlineformset_factory
 from django.forms.widgets import ClearableFileInput
 from django.utils.translation import pgettext_lazy
 
-from ...product.models import (ProductImage, Product, ShirtVariant, BagVariant,
-                               Shirt, Bag)
+from ...product.models import (ProductImage, Product, GenericProduct,
+                               GenericVariant, ShirtVariant, Shirt, Bag,
+                               BagVariant)
 
 PRODUCT_CLASSES = {
     'shirt': Shirt,
-    'bag': Bag}
+    'bag': Bag,
+    'generic_product': GenericProduct
+}
+
+def get_verbose_name(model):
+    return model._meta.verbose_name
 
 
 class ProductClassForm(forms.Form):
     product_cls = forms.ChoiceField(
         label=pgettext_lazy('Product class form label', 'Product class'),
         widget=forms.RadioSelect,
-        choices=[(name, name.capitalize()) for name in PRODUCT_CLASSES.keys()])
+        choices=[(name, get_verbose_name(cls).capitalize()) for name, cls in
+                 PRODUCT_CLASSES.iteritems()])
 
     def __init__(self, *args, **kwargs):
         super(ProductClassForm, self).__init__(*args, **kwargs)
@@ -28,6 +35,12 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = ['name', 'description', 'collection']
+
+
+class GenericProductForm(ProductForm):
+    class Meta:
+        model = GenericProduct
+        exclude = []
 
 
 class ShirtForm(ProductForm):
@@ -57,15 +70,20 @@ ShirtVariantFormset = inlineformset_factory(
     Shirt, ShirtVariant, exclude=[], **formset_defaults)
 BagVariantFormset = inlineformset_factory(
     Bag, BagVariant, exclude=[], **formset_defaults)
+GenericVariantFormset = inlineformset_factory(
+    GenericProduct, GenericVariant, exclude=[], **formset_defaults
+)
 
 
 def get_product_form(product):
-    if isinstance(product, Shirt):
+    if isinstance(product, GenericProduct):
+        return GenericProductForm
+    elif isinstance(product, Shirt):
         return ShirtForm
     elif isinstance(product, Bag):
         return BagForm
     else:
-        raise ValueError('Unknown product')
+        raise ValueError('Unknown product class')
 
 
 def get_product_cls_by_name(cls_name):
@@ -79,6 +97,8 @@ def get_variant_formset(product):
         return ShirtVariantFormset
     elif isinstance(product, Bag):
         return BagVariantFormset
+    elif isinstance(product, GenericProduct):
+        return GenericVariantFormset
     else:
         raise ValueError('Unknown product')
 
