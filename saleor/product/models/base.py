@@ -1,7 +1,9 @@
 from __future__ import unicode_literals
+from decimal import Decimal
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.core.validators import MinValueValidator
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.db import models
 from django.utils.text import slugify
@@ -168,3 +170,29 @@ class ProductVariant(models.Model, Item):
 
     def is_item_available(self):
         return False
+
+
+@python_2_unicode_compatible
+class Stock(models.Model):
+    product = models.ForeignKey(Product,
+                                verbose_name=pgettext_lazy('Stock item field',
+                                                           'product'))
+    variant = models.ForeignKey(ProductVariant,
+                                verbose_name=pgettext_lazy('Stock item field',
+                                                           'variant'),
+                                blank=True, null=True)
+    stock = models.IntegerField(pgettext_lazy('Stock item field', 'stock'),
+                                validators=[MinValueValidator(0)],
+                                default=Decimal(1))
+    location = models.CharField(pgettext_lazy('Stock item field', 'location'),
+                                max_length=100)
+    cost_price = PriceField(pgettext_lazy('Stock item field', 'cost price'),
+                       currency=settings.DEFAULT_CURRENCY, max_digits=12,
+                       decimal_places=4, blank=True, null=True)
+
+    class Meta:
+        app_label = 'product'
+        unique_together = ('product', 'variant', 'stock')
+
+    def __str__(self):
+        return self.product.name
