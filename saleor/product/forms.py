@@ -6,7 +6,17 @@ from ..product.models import GenericProduct
 
 
 class GenericProductForm(AddToCartForm):
-    pass
+    name = forms.ChoiceField()
+
+    def __init__(self, *args, **kwargs):
+        super(GenericProductForm, self).__init__(*args, **kwargs)
+        available_variants = [
+            (v.sku, v.name) for v in self.product.variants.all()]
+        self.fields['name'].choices = available_variants
+
+    def get_variant(self, cleaned_data):
+        name = cleaned_data['name']
+        self.product.variants.get(name=name)
 
 
 class ProductVariantInline(forms.models.BaseInlineFormSet):
