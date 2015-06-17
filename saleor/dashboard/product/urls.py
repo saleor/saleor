@@ -15,6 +15,13 @@ urlpatterns = patterns(
     url(r'^(?P<pk>[0-9]+)/delete/$',
         views.ProductDeleteView.as_view(), name='product-delete'),
 
+    url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/$',
+        views.variant_edit, name='variant-update'),
+    url(r'^(?P<product_pk>[0-9]+)/variants/add/$',
+        views.variant_edit, name='variant-add'),
+    url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/delete/$',
+        views.variant_delete, name='variant-delete'),
+
     url(r'^(?P<product_pk>[0-9]+)/stock/(?P<stock_pk>[0-9]+)/$',
         views.stock_edit, name='product-stock-update'),
     url(r'^(?P<product_pk>[0-9]+)/stock/add/$',
@@ -28,6 +35,5 @@ urlpatterns = patterns(
         views.product_image_edit, name='product-image-add'),
     url(r'^(?P<product_pk>[0-9]+)/images/(?P<img_pk>[0-9]+)/delete/$',
         views.product_image_delete, name='product-image-delete'),
-
     url('^(?P<product_pk>[0-9]+)/images/reorder/$',
         api.reorder_product_images, name='product-images-reorder'))

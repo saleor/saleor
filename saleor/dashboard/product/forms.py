@@ -1,12 +1,10 @@
 from __future__ import unicode_literals
 
 from django import forms
-from django.forms.models import inlineformset_factory
-from django.forms.widgets import ClearableFileInput
 from django.utils.translation import pgettext_lazy
 
-from ...product.models import (ProductImage, Product, GenericProduct,
-                               GenericVariant, Stock)
+from ...product.models import (ProductImage, GenericProduct,
+                               GenericVariant, Stock, ProductVariant)
 
 PRODUCT_CLASSES = {
     'generic_product': GenericProduct
@@ -47,32 +45,26 @@ class StockForm(forms.ModelForm):
             del self.fields['variant']
 
 
-class ProductForm(forms.ModelForm):
-    class Meta:
-        model = Product
-        fields = ['name', 'description', 'collection']
-
-
-class GenericProductForm(ProductForm):
+class GenericProductForm(forms.ModelForm):
     class Meta:
         model = GenericProduct
         exclude = []
 
 
-class ImageInputWidget(ClearableFileInput):
-    url_markup_template = '<a href="{0}"><img src="{0}" width=50 /></a>'
+class ProductVariantForm(forms.ModelForm):
+    class Meta:
+        model = ProductVariant
+        exclude = []
+        widgets = {
+            'product': forms.HiddenInput()
+        }
 
 
-formset_defaults = {
-    'extra': 1,
-    'min_num': 1,
-    'validate_min': True
-}
-
-
-GenericVariantFormset = inlineformset_factory(
-    GenericProduct, GenericVariant, exclude=[], **formset_defaults
-)
+class GenericVariantForm(ProductVariantForm):
+    class Meta:
+        model = GenericVariant
+        exclude = ProductVariantForm._meta.exclude
+        widgets = ProductVariantForm._meta.widgets
 
 
 def get_product_form(product):
@@ -88,11 +80,18 @@ def get_product_cls_by_name(cls_name):
     return PRODUCT_CLASSES[cls_name]
 
 
-def get_variant_formset(product):
+def get_variant_form(product):
     if isinstance(product, GenericProduct):
-        return GenericVariantFormset
+        return GenericVariantForm
     else:
-        raise ValueError('Unknown product')
+        raise ValueError('Unknown product class')
+
+
+def get_variant_cls(product):
+    if isinstance(product, GenericProduct):
+        return GenericVariant
+    else:
+        raise ValueError('Unknown product class')
 
 
 class ProductImageForm(forms.ModelForm):
