@@ -118,7 +118,7 @@ class Product(models.Model, ItemRange):
             return self.is_item_available()
 
     def is_item_available(self):
-        raise NotImplementedError()
+        return any([stock_item.is_available() for stock_item in self.stock.all()])
 
     def has_variants(self):
         return self.variants.exists()
@@ -173,16 +173,16 @@ class ProductVariant(models.Model, Item):
         return True
 
     def is_item_available(self):
-        return False
+        return any([stock_item.is_available() for stock_item in self.stock.all()])
 
 
 @python_2_unicode_compatible
 class Stock(models.Model):
     product = models.ForeignKey(
-        Product, verbose_name=pgettext_lazy('Stock item field', 'product'),
-        editable=False)
+        Product, related_name='stock',
+        verbose_name=pgettext_lazy('Stock item field', 'product'))
     variant = models.ForeignKey(
-        ProductVariant,
+        ProductVariant, related_name='stock',
         verbose_name=pgettext_lazy('Stock item field', 'variant'),
         blank=True, null=True)
     quantity = models.IntegerField(
@@ -200,4 +200,8 @@ class Stock(models.Model):
         unique_together = ('product', 'variant', 'location')
 
     def __str__(self):
-        return self.product.name
+        sku = self.variant.sku if self.variant else self.product.sku
+        return "%s - %s - %s" % (self.product.name, sku, self.location)
+
+    def is_available(self):
+        return self.quantity > 0
