@@ -192,7 +192,7 @@ class Stock(models.Model):
 
     class Meta:
         app_label = 'product'
-        unique_together = ('product', 'variant', 'stock')
+        unique_together = ('product', 'variant', 'location')
 
     def __str__(self):
         return self.product.name
