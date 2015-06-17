@@ -15,6 +15,13 @@ urlpatterns = patterns(
     url(r'^(?P<pk>[0-9]+)/delete/$',
         views.ProductDeleteView.as_view(), name='product-delete'),
 
+    url(r'^(?P<product_pk>[0-9]+)/stock/(?P<stock_pk>[0-9]+)/$',
+        views.stock_edit, name='product-stock-update'),
+    url(r'^(?P<product_pk>[0-9]+)/stock/add/$',
+        views.stock_edit, name='product-stock-add'),
+    url(r'^(?P<product_pk>[0-9]+)/stock/(?P<stock_pk>[0-9]+)/delete/$',
+        views.stock_delete, name='product-stock-delete'),
+
     url(r'^(?P<product_pk>[0-9]+)/images/(?P<img_pk>[0-9]+)/$',
         views.product_image_edit, name='product-image-update'),
     url(r'^(?P<product_pk>[0-9]+)/images/add/$',

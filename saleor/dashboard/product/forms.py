@@ -6,7 +6,7 @@ from django.forms.widgets import ClearableFileInput
 from django.utils.translation import pgettext_lazy
 
 from ...product.models import (ProductImage, Product, GenericProduct,
-                               GenericVariant)
+                               GenericVariant, Stock)
 
 PRODUCT_CLASSES = {
     'generic_product': GenericProduct
@@ -26,6 +26,25 @@ class ProductClassForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(ProductClassForm, self).__init__(*args, **kwargs)
         self.fields['product_cls'].initial = PRODUCT_CLASSES.keys()[0]
+
+
+class StockForm(forms.ModelForm):
+    class Meta:
+        model = Stock
+        fields = ['product', 'variant', 'location', 'quantity', 'cost_price']
+        widgets = {
+            'product': forms.HiddenInput()
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(StockForm, self).__init__(*args, **kwargs)
+        product = self.instance.product
+        self.fields['cost_price'].initial = product.price
+        if product.has_variants():
+            self.fields['variant'].choices = [(variant.pk, variant) for variant
+                                              in product.variants.all()]
+        else:
+            del self.fields['variant']
 
 
 class ProductForm(forms.ModelForm):

@@ -12,7 +12,7 @@ from ..utils import paginate
 from ..views import StaffMemberOnlyMixin, staff_member_required
 from .forms import (ProductClassForm, get_product_form,
                     get_product_cls_by_name, get_variant_formset,
-                    ProductImageForm, get_verbose_name)
+                    ProductImageForm, get_verbose_name, StockForm)
 
 
 @staff_member_required
@@ -101,6 +101,42 @@ class ProductDeleteView(StaffMemberOnlyMixin, DeleteView):
         result = self.delete(request, *args, **kwargs)
         messages.success(request, _('Deleted product %s') % self.object)
         return result
+
+
+@staff_member_required
+def stock_edit(request, product_pk, stock_pk=None):
+    product = get_object_or_404(Product, pk=product_pk)
+    if stock_pk:
+        stock = get_object_or_404(product.stock, pk=stock_pk)
+        title = stock.variant if stock.variant else product
+    else:
+        stock = Stock(product=product)
+        title = product
+    form = StockForm(request.POST or None, instance=stock)
+    if form.is_valid():
+        form.save()
+        messages.success(request, _('Saved stock'))
+        success_url = request.POST['success_url']
+        return redirect(success_url)
+    else:
+        if form.errors:
+            messages.error(request, _('Your submitted data was not valid - '
+                                      'please correct the errors below'))
+    ctx = {'product': product, 'stock': stock, 'form': form, 'title': title}
+    return TemplateResponse(request, 'dashboard/product/stock_form.html', ctx)
+
+
+@staff_member_required
+def stock_delete(request, product_pk, stock_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    stock = get_object_or_404(product.stock, pk=stock_pk)
+    if request.method == 'POST':
+        stock.delete()
+        messages.success(request, _('Deleted stock'))
+        success_url = request.POST['success_url']
+        return redirect(success_url)
+    ctx = {'product': product, 'stock': stock}
+    return TemplateResponse(request, 'dashboard/product/stock_confirm_delete.html', ctx)
 
 
 @staff_member_required

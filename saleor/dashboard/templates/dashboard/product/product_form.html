@@ -187,11 +187,26 @@
                                 {% else %}
                                     SKU: {{ item.product.sku }}, quantity: {{ item.quantity }}, location: {{ item.location }}
                                 {% endif %}
+                                <a class="light-blue-text text-lighten-1" title="{% trans "Edit stock" %}"
+                                        href="{% url 'dashboard:product-stock-update' product_pk=product.pk stock_pk=item.pk %}">
+                                    <i class="mdi-content-create"></i>
+                                </a>
+                                <a class="materialize-red-text text-lighten-2" title="{% trans "Delete stock" %}"
+                                        href="{% url 'dashboard:product-stock-delete' product_pk=product.pk stock_pk=item.pk %}">
+                                    <i class="mdi-action-delete"></i>
+                                </a>
                             </li>
                         {% empty %}
                             <span>{% trans "No stock items" %}</span>
                         {% endfor %}
                     </ul>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s12 right-align">
+                    <a href="{% url 'dashboard:product-stock-add' product_pk=product.pk %}" class="btn">
+                        <i class="mdi-content-add"></i> {% trans "Add stock" %}
+                    </a>
                 </div>
             </div>
         </div>
