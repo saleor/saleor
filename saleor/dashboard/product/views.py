@@ -173,7 +173,8 @@ def variant_edit(request, product_pk, variant_pk=None):
     variant_cls = get_variant_cls(product)
     form_initial = {}
     if variant_pk:
-        variant = get_object_or_404(product.variants, pk=variant_pk)
+        variant = get_object_or_404(product.variants.select_subclasses(),
+                                    pk=variant_pk)
         title = variant.name
     else:
         variant = variant_cls(product=product)

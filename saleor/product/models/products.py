@@ -25,7 +25,7 @@ class GenericProduct(PhysicalProduct, Product):
         app_label = 'product'
 
 
-class GenericVariant(ProductVariant):
+class GenericVariant(PhysicalProduct, ProductVariant):
 
     class Meta:
         app_label = 'product'
