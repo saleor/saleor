@@ -120,16 +120,20 @@ class Product(models.Model, ItemRange):
     def is_item_available(self):
         raise NotImplementedError()
 
+    def has_variants(self):
+        return self.variants.exists()
+
 
 @python_2_unicode_compatible
 class ProductVariant(models.Model, Item):
-    name = models.CharField(pgettext_lazy('Variant field', 'name'),
-                            max_length=100)
-    sku = models.CharField(pgettext_lazy('Product field', 'SKU'), max_length=32,
-                           unique=True)
-    price = PriceField(pgettext_lazy('Product field', 'price'),
-                       currency=settings.DEFAULT_CURRENCY, max_digits=12,
-                       decimal_places=4, blank=True, null=True)
+    name = models.CharField(
+        pgettext_lazy('Variant field', 'name'), max_length=100)
+    sku = models.CharField(
+        pgettext_lazy('Product field', 'SKU'), max_length=32, unique=True)
+    price = PriceField(
+        pgettext_lazy('Product field', 'price'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
+        blank=True, null=True)
     product = models.ForeignKey(Product, related_name='variants')
 
     objects = InheritanceManager()
@@ -138,7 +142,7 @@ class ProductVariant(models.Model, Item):
         app_label = 'product'
 
     def __str__(self):
-        return self.product.name
+        return '%s - %s - %s' % (self.product.name, self.name, self.sku)
 
     def get_price_per_item(self, discounts=None, **kwargs):
         if self.price is not None:
@@ -174,21 +178,22 @@ class ProductVariant(models.Model, Item):
 
 @python_2_unicode_compatible
 class Stock(models.Model):
-    product = models.ForeignKey(Product,
-                                verbose_name=pgettext_lazy('Stock item field',
-                                                           'product'))
-    variant = models.ForeignKey(ProductVariant,
-                                verbose_name=pgettext_lazy('Stock item field',
-                                                           'variant'),
-                                blank=True, null=True)
-    stock = models.IntegerField(pgettext_lazy('Stock item field', 'stock'),
-                                validators=[MinValueValidator(0)],
-                                default=Decimal(1))
-    location = models.CharField(pgettext_lazy('Stock item field', 'location'),
-                                max_length=100)
-    cost_price = PriceField(pgettext_lazy('Stock item field', 'cost price'),
-                       currency=settings.DEFAULT_CURRENCY, max_digits=12,
-                       decimal_places=4, blank=True, null=True)
+    product = models.ForeignKey(
+        Product, verbose_name=pgettext_lazy('Stock item field', 'product'),
+        editable=False)
+    variant = models.ForeignKey(
+        ProductVariant,
+        verbose_name=pgettext_lazy('Stock item field', 'variant'),
+        blank=True, null=True)
+    quantity = models.IntegerField(
+        pgettext_lazy('Stock item field', 'quantity'),
+        validators=[MinValueValidator(0)], default=Decimal(1))
+    location = models.CharField(
+        pgettext_lazy('Stock item field', 'location'), max_length=100)
+    cost_price = PriceField(
+        pgettext_lazy('Stock item field', 'cost price'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
+        blank=True, null=True)
 
     class Meta:
         app_label = 'product'
