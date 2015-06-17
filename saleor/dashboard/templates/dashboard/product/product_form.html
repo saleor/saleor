@@ -26,9 +26,10 @@
         <div class="row">
             <div class="col s12">
                 <ul class="tabs">
-                    <li class="tab col s4"><a class="active" href="#details">{% trans "Details" %}</a></li>
-                    <li class="tab col s4"><a href="#variants">{% trans "Variants" %}</a></li>
-                    <li class="tab col s4"><a href="#images">{% trans "Images" %}</a></li>
+                    <li class="tab col s3"><a class="active" href="#details">{% trans "Details" %}</a></li>
+                    <li class="tab col s3"><a href="#variants">{% trans "Variants" %}</a></li>
+                    <li class="tab col s3"><a href="#stock">{% trans "Stock" %}</a></li>
+                    <li class="tab col s3"><a href="#images">{% trans "Images" %}</a></li>
                 </ul>
             </div>
         </div>
@@ -171,6 +172,26 @@
                     <a href="{% url 'dashboard:product-image-add' product_pk=product.pk %}" class="btn">
                         <i class="mdi-content-add"></i> {% trans "Add new image" %}
                     </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="stock">
+            <div class="row">
+                <div class="col l12">
+                    <ul class="collection">
+                        {% for item in stock_items %}
+                            <li class="collection-item">
+                                {% if item.variant %}
+                                    SKU: {{ item.variant.sku }}, quantity: {{ item.quantity }}, location: {{ item.location }}
+                                {% else %}
+                                    SKU: {{ item.product.sku }}, quantity: {{ item.quantity }}, location: {{ item.location }}
+                                {% endif %}
+                            </li>
+                        {% empty %}
+                            <span>{% trans "No stock items" %}</span>
+                        {% endfor %}
+                    </ul>
                 </div>
             </div>
         </div>

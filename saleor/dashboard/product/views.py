@@ -7,7 +7,7 @@ from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DeleteView
 
-from ...product.models import Product, ProductImage
+from ...product.models import Product, ProductImage, Stock
 from ..utils import paginate
 from ..views import StaffMemberOnlyMixin, staff_member_required
 from .forms import (ProductClassForm, get_product_form,
@@ -34,13 +34,17 @@ def product_details(request, pk=None, product_cls=None):
         product = get_product_cls_by_name(product_cls)()
         title = _('Add new %s') % get_verbose_name(product)
     else:
-        product = get_object_or_404(Product.objects.select_subclasses(), pk=pk)
+        product = get_object_or_404(
+            Product.objects.select_subclasses().prefetch_related(
+                'images', 'variants',), pk=pk)
         title = product.name
     images = product.images.all()
     form_cls = get_product_form(product)
     form = form_cls(instance=product)
     variant_formset_cls = get_variant_formset(product)
     variant_formset = variant_formset_cls(instance=product)
+
+    stock_items = Stock.objects.filter(product=product)
 
     if 'product-form' in request.POST:
         form = form_cls(request.POST, instance=product)
@@ -53,7 +57,8 @@ def product_details(request, pk=None, product_cls=None):
         save_variants_formset(request, variant_formset)
 
     ctx = {'title': title, 'product': product, 'images': images,
-           'product_form': form, 'variant_formset': variant_formset}
+           'product_form': form, 'stock_items': stock_items,
+           'variant_formset': variant_formset}
     if pk:
         images_reorder_url = reverse_lazy('dashboard:product-images-reorder',
                                           kwargs={'product_pk': pk})
