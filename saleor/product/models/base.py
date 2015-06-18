@@ -44,17 +44,12 @@ class Category(MPTTModel):
 class Product(models.Model, ItemRange):
     name = models.CharField(
         pgettext_lazy('Product field', 'name'), max_length=128)
-    sku = models.CharField(
-        pgettext_lazy('Product field', 'SKU'), max_length=32, unique=True)
     description = models.TextField(
         verbose_name=pgettext_lazy('Product field', 'description'))
     collection = models.CharField(db_index=True, max_length=100, blank=True)
     categories = models.ManyToManyField(
         Category, verbose_name=pgettext_lazy('Product field', 'categories'),
         related_name='products')
-    price = PriceField(pgettext_lazy('Product field', 'price'),
-                       currency=settings.DEFAULT_CURRENCY, max_digits=12,
-                       decimal_places=4)
 
     objects = InheritanceManager()
 
@@ -62,13 +57,13 @@ class Product(models.Model, ItemRange):
         app_label = 'product'
 
     def __iter__(self):
-        if self.variants.exists():
+        if self.get_variants():
             if not hasattr(self, '__variants'):
-                setattr(self, '__variants',
-                        self.variants.select_subclasses().all())
+                setattr(self, '__variants', self.get_variants())
             return iter(getattr(self, '__variants'))
         else:
-            return iter([self])
+            variants = [self.base_variant] if self.base_variant else []
+            return iter(variants)
 
     def __repr__(self):
         class_ = type(self)
@@ -77,6 +72,17 @@ class Product(models.Model, ItemRange):
 
     def __str__(self):
         return self.name
+
+    def get_variants(self):
+        return self.variants.select_subclasses().exclude(pk=self.base_variant.pk)
+
+    @property
+    def base_variant(self):
+        return self.variants.first() if self.variants.exists() else None
+
+    @property
+    def price(self):
+        return self.base_variant.price if self.base_variant else None
 
     def get_absolute_url(self):
         return reverse('product:details', kwargs={'slug': self.get_slug(),
@@ -90,7 +96,7 @@ class Product(models.Model, ItemRange):
 
     def get_price_per_item(self, item, discounts=None, **kwargs):
         price = self.price
-        if discounts:
+        if price and discounts:
             discounts = list(get_product_discounts(self, discounts, **kwargs))
             if discounts:
                 modifier = max(discounts)
@@ -112,7 +118,7 @@ class Product(models.Model, ItemRange):
         'Product admin page', 'Maximum price')
 
     def is_available(self):
-        if self.variants.exists():
+        if self.get_variants():
             return any(variant.is_item_available() for variant in self)
         else:
             return self.is_item_available()
@@ -121,7 +127,7 @@ class Product(models.Model, ItemRange):
         return any([stock_item.is_available() for stock_item in self.stock.all()])
 
     def has_variants(self):
-        return self.variants.exists()
+        return bool(self.get_variants())
 
 
 @python_2_unicode_compatible
@@ -142,7 +148,7 @@ class ProductVariant(models.Model, Item):
         app_label = 'product'
 
     def __str__(self):
-        return '%s - %s - %s' % (self.product.name, self.name, self.sku)
+        return '%s - %s' % (self.name, self.sku)
 
     def get_price_per_item(self, discounts=None, **kwargs):
         if self.price is not None:
@@ -183,13 +189,12 @@ class Stock(models.Model):
         verbose_name=pgettext_lazy('Stock item field', 'product'))
     variant = models.ForeignKey(
         ProductVariant, related_name='stock',
-        verbose_name=pgettext_lazy('Stock item field', 'variant'),
-        blank=True, null=True)
+        verbose_name=pgettext_lazy('Stock item field', 'variant'))
+    location = models.CharField(
+        pgettext_lazy('Stock item field', 'location'), max_length=100)
     quantity = models.IntegerField(
         pgettext_lazy('Stock item field', 'quantity'),
         validators=[MinValueValidator(0)], default=Decimal(1))
-    location = models.CharField(
-        pgettext_lazy('Stock item field', 'location'), max_length=100)
     cost_price = PriceField(
         pgettext_lazy('Stock item field', 'cost price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
@@ -197,11 +202,10 @@ class Stock(models.Model):
 
     class Meta:
         app_label = 'product'
-        unique_together = ('product', 'variant', 'location')
+        unique_together = ('variant', 'location')
 
     def __str__(self):
-        sku = self.variant.sku if self.variant else self.product.sku
-        return "%s - %s - %s" % (self.product.name, sku, self.location)
+        return "%s - %s - %s" % (self.variant.name, self.variant.sku, self.location)
 
     def is_available(self):
         return self.quantity > 0

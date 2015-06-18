@@ -1,14 +1,17 @@
 from __future__ import unicode_literals
 
 from django import forms
+from django.conf import settings
 from django.utils.translation import pgettext_lazy
+from django_prices.forms import PriceField
 
 from ...product.models import (ProductImage, GenericProduct,
-                               GenericVariant, Stock, ProductVariant)
+                               GenericVariant, Stock, ProductVariant, Product)
 
 PRODUCT_CLASSES = {
     'generic_product': GenericProduct
 }
+
 
 def get_verbose_name(model):
     return model._meta.verbose_name
@@ -29,23 +32,44 @@ class ProductClassForm(forms.Form):
 class StockForm(forms.ModelForm):
     class Meta:
         model = Stock
-        fields = ['product', 'variant', 'location', 'quantity', 'cost_price']
+        exclude = []
         widgets = {
             'product': forms.HiddenInput()
         }
 
     def __init__(self, *args, **kwargs):
+        product = kwargs.pop('product')
         super(StockForm, self).__init__(*args, **kwargs)
-        product = self.instance.product
-        self.fields['cost_price'].initial = product.price
+        self.fields['cost_price'].initial = product.base_variant.price
+        variants = product.variants.all()
         if product.has_variants():
-            self.fields['variant'].choices = [(variant.pk, variant) for variant
-                                              in product.variants.all()]
-        else:
-            del self.fields['variant']
+            variants = variants.exclude(pk=product.base_variant.pk)
+        self.fields['variant'].choices = [(variant.pk, variant) for variant in variants]
 
 
-class GenericProductForm(forms.ModelForm):
+class ProductForm(forms.ModelForm):
+    price = PriceField(currency=settings.DEFAULT_CURRENCY,
+                       label=pgettext_lazy('Product field', 'Price'),
+                       max_digits=12, decimal_places=4)
+    sku = forms.CharField(label=pgettext_lazy('Product field', 'SKU'),
+                          max_length=32)
+
+    class Meta:
+        model = Product
+        exclude = []
+
+    def save(self, *args, **kwargs):
+        self.instance = super(ProductForm, self).save(*args, **kwargs)
+        if not self.instance.base_variant:
+            self.instance.variants.create(
+                name=self.instance.name,
+                sku=self.cleaned_data['sku'],
+                price=self.cleaned_data['price'],
+                product=self.instance)
+        return self.instance
+
+
+class GenericProductForm(ProductForm):
     class Meta:
         model = GenericProduct
         exclude = []

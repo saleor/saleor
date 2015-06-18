@@ -31,20 +31,25 @@ def product_list(request):
 @staff_member_required
 def product_details(request, pk=None, product_cls=None):
     creating = pk is None
+    initial = {}
     if creating:
         product = get_product_cls_by_name(product_cls)()
         title = _('Add new %s') % get_verbose_name(product)
+        variants = []
     else:
         product = get_object_or_404(
             Product.objects.select_subclasses().prefetch_related(
                 'images', 'variants',), pk=pk)
         title = product.name
+        variants = product.variants.select_subclasses().exclude(
+            pk=product.base_variant.pk)
+        initial = {'sku': product.base_variant.sku,
+                   'price': product.base_variant.price}
     images = product.images.all()
-    variants = product.variants.select_subclasses().all()
     stock_items = Stock.objects.filter(product=product)
 
     form_cls = get_product_form(product)
-    form = form_cls(instance=product)
+    form = form_cls(instance=product, initial=initial)
 
     if 'product-form' in request.POST:
         form = form_cls(request.POST, instance=product)
@@ -94,11 +99,11 @@ def stock_edit(request, product_pk, stock_pk=None):
     product = get_object_or_404(Product, pk=product_pk)
     if stock_pk:
         stock = get_object_or_404(product.stock, pk=stock_pk)
-        title = stock.variant if stock.variant else product
+        title = stock.variant
     else:
         stock = Stock(product=product)
         title = product
-    form = StockForm(request.POST or None, instance=stock)
+    form = StockForm(request.POST or None, instance=stock, product=product)
     if form.is_valid():
         form.save()
         messages.success(request, _('Saved stock'))
