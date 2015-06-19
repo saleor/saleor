@@ -7,7 +7,7 @@ from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DeleteView
 
-from ...product.models import Product, ProductImage, Stock, ProductVariant
+from ...product.models import Product, ProductImage, Stock
 from ..utils import paginate
 from ..views import StaffMemberOnlyMixin, staff_member_required
 from .forms import (ProductClassForm, get_product_form,
@@ -18,7 +18,7 @@ from .forms import (ProductClassForm, get_product_form,
 
 @staff_member_required
 def product_list(request):
-    products = Product.objects.prefetch_related('images').select_subclasses()
+    products = Product.objects.prefetch_related('images')
     form = ProductClassForm(request.POST or None)
     if form.is_valid():
         product_cls = form.cleaned_data['product_cls']
@@ -191,6 +191,7 @@ def variant_edit(request, product_pk, variant_pk=None):
         variant = variant_cls(product=product)
         title = _('Add variant')
         form_initial['price'] = product.price
+        form_initial['weight'] = product.weight
 
     form_cls = get_variant_form(product)
     form = form_cls(request.POST or None, instance=variant,

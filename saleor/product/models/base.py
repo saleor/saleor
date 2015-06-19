@@ -78,7 +78,7 @@ class Product(models.Model, ItemRange):
         return self.name
 
     def get_variants(self):
-        return self.variants.select_subclasses().exclude(pk=self.base_variant.pk)
+        return self.variants.exclude(pk=self.base_variant.pk)
 
     @property
     def base_variant(self):
@@ -129,9 +129,9 @@ class ProductVariant(models.Model, Item):
     name = models.CharField(
         pgettext_lazy('Variant field', 'name'), max_length=100)
     sku = models.CharField(
-        pgettext_lazy('Product field', 'SKU'), max_length=32, unique=True)
+        pgettext_lazy('Variant field', 'SKU'), max_length=32, unique=True)
     price = PriceField(
-        pgettext_lazy('Product field', 'price'),
+        pgettext_lazy('Variant field', 'price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
         blank=True, null=True)
     product = models.ForeignKey(Product, related_name='variants')
@@ -196,7 +196,7 @@ class Stock(models.Model):
         unique_together = ('variant', 'location')
 
     def __str__(self):
-        return "%s - %s - %s" % (self.variant.name, self.variant.sku, self.location)
+        return "%s - %s" % (self.variant.name, self.location)
 
     def is_available(self):
         return self.quantity > 0
