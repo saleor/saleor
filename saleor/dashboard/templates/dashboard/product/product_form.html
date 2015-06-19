@@ -129,11 +129,7 @@
                     <ul class="collection">
                         {% for item in stock_items %}
                             <li class="collection-item">
-                                {% if item.variant %}
-                                    SKU: {{ item.variant.sku }}, quantity: {{ item.quantity }}, location: {{ item.location }}
-                                {% else %}
-                                    SKU: {{ item.product.sku }}, quantity: {{ item.quantity }}, location: {{ item.location }}
-                                {% endif %}
+                                <span>SKU: {{ item.variant.sku }}, quantity: {{ item.quantity }}, location: {{ item.location }}</span>
                                 <a class="light-blue-text text-lighten-1" title="{% trans "Edit stock" %}"
                                         href="{% url 'dashboard:product-stock-update' product_pk=product.pk stock_pk=item.pk %}">
                                     <i class="mdi-content-create"></i>

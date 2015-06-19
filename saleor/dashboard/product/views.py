@@ -7,7 +7,7 @@ from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DeleteView
 
-from ...product.models import Product, ProductImage, Stock
+from ...product.models import Product, ProductImage, Stock, ProductVariant
 from ..utils import paginate
 from ..views import StaffMemberOnlyMixin, staff_member_required
 from .forms import (ProductClassForm, get_product_form,
@@ -39,14 +39,15 @@ def product_details(request, pk=None, product_cls=None):
     else:
         product = get_object_or_404(
             Product.objects.select_subclasses().prefetch_related(
-                'images', 'variants',), pk=pk)
+                'images', 'variants'), pk=pk)
         title = product.name
-        variants = product.variants.select_subclasses().exclude(
-            pk=product.base_variant.pk)
+        variants = product.variants.select_subclasses()
+        if product.has_variants():
+            variants = variants.exclude(pk=product.base_variant.pk)
         initial = {'sku': product.base_variant.sku,
                    'price': product.base_variant.price}
     images = product.images.all()
-    stock_items = Stock.objects.filter(product=product)
+    stock_items = Stock.objects.filter(variant__in=variants)
 
     form_cls = get_product_form(product)
     form = form_cls(instance=product, initial=initial)
@@ -98,10 +99,10 @@ class ProductDeleteView(StaffMemberOnlyMixin, DeleteView):
 def stock_edit(request, product_pk, stock_pk=None):
     product = get_object_or_404(Product, pk=product_pk)
     if stock_pk:
-        stock = get_object_or_404(product.stock, pk=stock_pk)
+        stock = get_object_or_404(Stock, pk=stock_pk)
         title = stock.variant
     else:
-        stock = Stock(product=product)
+        stock = Stock()
         title = product
     form = StockForm(request.POST or None, instance=stock, product=product)
     if form.is_valid():
@@ -120,14 +121,15 @@ def stock_edit(request, product_pk, stock_pk=None):
 @staff_member_required
 def stock_delete(request, product_pk, stock_pk):
     product = get_object_or_404(Product, pk=product_pk)
-    stock = get_object_or_404(product.stock, pk=stock_pk)
+    stock = get_object_or_404(Stock, pk=stock_pk)
     if request.method == 'POST':
         stock.delete()
         messages.success(request, _('Deleted stock'))
         success_url = request.POST['success_url']
         return redirect(success_url)
     ctx = {'product': product, 'stock': stock}
-    return TemplateResponse(request, 'dashboard/product/stock_confirm_delete.html', ctx)
+    return TemplateResponse(
+        request, 'dashboard/product/stock_confirm_delete.html', ctx)
 
 
 @staff_member_required
@@ -154,8 +156,10 @@ def product_image_edit(request, product_pk, img_pk=None):
         if form.errors:
             messages.error(request, _('Your submitted data was not valid - '
                                       'please correct the errors below'))
-    ctx = {'product': product, 'product_image': product_image, 'title': title, 'form': form}
-    return TemplateResponse(request, 'dashboard/product/product_image_form.html', ctx)
+    ctx = {'product': product, 'product_image': product_image, 'title': title,
+           'form': form}
+    return TemplateResponse(
+        request, 'dashboard/product/product_image_form.html', ctx)
 
 
 @staff_member_required
@@ -164,11 +168,13 @@ def product_image_delete(request, product_pk, img_pk):
     product_image = get_object_or_404(product.images, pk=img_pk)
     if request.method == 'POST':
         product_image.delete()
-        messages.success(request, _('Deleted image %s') % product_image.image.name)
+        messages.success(
+            request, _('Deleted image %s') % product_image.image.name)
         success_url = request.POST['success_url']
         return redirect(success_url)
     ctx = {'product': product, 'product_image': product_image}
-    return TemplateResponse(request, 'dashboard/product/product_image_confirm_delete.html', ctx)
+    return TemplateResponse(
+        request, 'dashboard/product/product_image_confirm_delete.html', ctx)
 
 
 @staff_member_required
@@ -218,4 +224,5 @@ def variant_delete(request, product_pk, variant_pk):
         success_url = request.POST['success_url']
         return redirect(success_url)
     ctx = {'product': product, 'variant': variant}
-    return TemplateResponse(request, 'dashboard/product/product_variant_confirm_delete.html', ctx)
+    return TemplateResponse(
+        request, 'dashboard/product/product_variant_confirm_delete.html', ctx)

@@ -178,9 +178,6 @@ class ProductVariant(models.Model, Item):
 
 @python_2_unicode_compatible
 class Stock(models.Model):
-    product = models.ForeignKey(
-        Product, related_name='stock',
-        verbose_name=pgettext_lazy('Stock item field', 'product'))
     variant = models.ForeignKey(
         ProductVariant, related_name='stock',
         verbose_name=pgettext_lazy('Stock item field', 'variant'))
