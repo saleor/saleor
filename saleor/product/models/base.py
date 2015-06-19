@@ -142,7 +142,10 @@ class ProductVariant(models.Model, Item):
         app_label = 'product'
 
     def __str__(self):
-        return '%s - %s' % (self.name, self.sku)
+        name = self.product.name
+        if self.name:
+            name += ' (%s)' % self.name
+        return name
 
     def get_price_per_item(self, discounts=None, **kwargs):
         if self.price is not None:
