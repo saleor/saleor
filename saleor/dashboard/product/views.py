@@ -35,7 +35,7 @@ def product_details(request, pk=None, product_cls=None):
     if creating:
         product = get_product_cls_by_name(product_cls)()
         title = _('Add new %s') % get_verbose_name(product)
-        variants = []
+        all_variants, ctx_variants = [], []
     else:
         product = get_object_or_404(
             Product.objects.select_subclasses().prefetch_related(
