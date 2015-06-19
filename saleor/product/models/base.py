@@ -118,13 +118,7 @@ class Product(models.Model, ItemRange):
         'Product admin page', 'Maximum price')
 
     def is_available(self):
-        if self.get_variants():
-            return any(variant.is_item_available() for variant in self)
-        else:
-            return self.is_item_available()
-
-    def is_item_available(self):
-        return any([stock_item.is_available() for stock_item in self.stock.all()])
+        return any(variant.is_available() for variant in self)
 
     def has_variants(self):
         return bool(self.get_variants())
@@ -178,7 +172,7 @@ class ProductVariant(models.Model, Item):
     def is_shipping_required(self):
         return True
 
-    def is_item_available(self):
+    def is_available(self):
         return any([stock_item.is_available() for stock_item in self.stock.all()])
 
 
