@@ -1,41 +1,28 @@
 from django import forms
 from django.utils.translation import pgettext_lazy
-from selectable.forms import AutoCompleteWidget
 
 from ..cart.forms import AddToCartForm
-from .models import Bag, Shirt, ShirtVariant
-from .lookups import CollectionLookup
+from ..product.models import GenericProduct
 
 
-class BagForm(AddToCartForm):
-
-    def get_variant(self, clean_data):
-        return self.product.variants.get(product__color=self.product.color)
-
-
-class ShirtForm(AddToCartForm):
-
-    size = forms.ChoiceField(choices=ShirtVariant.SIZE_CHOICES,
-                             widget=forms.RadioSelect())
+class GenericProductForm(AddToCartForm):
+    base_variant = forms.CharField(widget=forms.HiddenInput())
+    variant = forms.ChoiceField(required=False)
 
     def __init__(self, *args, **kwargs):
-        super(ShirtForm, self).__init__(*args, **kwargs)
-        available_sizes = [
-            (p.size, p.get_size_display()) for p in self.product.variants.all()]
-        self.fields['size'].choices = available_sizes
+        super(GenericProductForm, self).__init__(*args, **kwargs)
+        self.fields['base_variant'].initial = self.product.base_variant.pk
 
-    def get_variant(self, clean_data):
-        size = clean_data.get('size')
-        return self.product.variants.get(size=size,
-                                         product__color=self.product.color)
+        variants = self.product.variants.all().exclude(
+            pk=self.product.base_variant.pk)
+        self.fields['variant'].choices = [(v.pk, v) for v in variants]
+        if not self.product.has_variants():
+            self.fields['variant'].widget = forms.HiddenInput()
 
-
-class ShirtAdminForm(forms.ModelForm):
-    class Meta:
-        model = Shirt
-        exclude = []
-        widgets = {
-            'collection': AutoCompleteWidget(CollectionLookup)}
+    def get_variant(self, cleaned_data):
+        pk = cleaned_data.get('variant') or cleaned_data.get('base_variant')
+        variant = self.product.variants.get(pk=pk)
+        return variant
 
 
 class ProductVariantInline(forms.models.BaseInlineFormSet):
@@ -55,8 +42,6 @@ class ImageInline(ProductVariantInline):
 
 
 def get_form_class_for_product(product):
-    if isinstance(product, Shirt):
-        return ShirtForm
-    if isinstance(product, Bag):
-        return BagForm
+    if isinstance(product, GenericProduct):
+        return GenericProductForm
     raise NotImplementedError

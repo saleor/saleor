@@ -2,24 +2,23 @@ from __future__ import unicode_literals
 
 from django.contrib import messages
 from django.core.urlresolvers import reverse_lazy
-from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
-from django.views.decorators.http import require_POST
 from django.views.generic import DeleteView
 
-from ...product.models import Product, ProductImage
+from ...product.models import Product, ProductImage, Stock
 from ..utils import paginate
 from ..views import StaffMemberOnlyMixin, staff_member_required
 from .forms import (ProductClassForm, get_product_form,
-                    get_product_cls_by_name, get_variant_formset,
-                    ProductImageForm, PRODUCT_CLASSES)
+                    get_product_cls_by_name, get_variant_form,
+                    ProductImageForm, get_verbose_name, StockForm,
+                    get_variant_cls)
 
 
 @staff_member_required
 def product_list(request):
-    products = Product.objects.prefetch_related('images').select_subclasses()
+    products = Product.objects.prefetch_related('images')
     form = ProductClassForm(request.POST or None)
     if form.is_valid():
         product_cls = form.cleaned_data['product_cls']
@@ -32,17 +31,25 @@ def product_list(request):
 @staff_member_required
 def product_details(request, pk=None, product_cls=None):
     creating = pk is None
+    initial = {}
     if creating:
         product = get_product_cls_by_name(product_cls)()
-        title = _('Add new %s') % product_cls
+        title = _('Add new %s') % get_verbose_name(product)
+        all_variants, ctx_variants = [], []
     else:
-        product = get_object_or_404(Product.objects.select_subclasses(), pk=pk)
+        product = get_object_or_404(
+            Product.objects.select_subclasses().prefetch_related(
+                'images', 'variants'), pk=pk)
         title = product.name
+        all_variants = product.variants.select_subclasses()
+        ctx_variants = all_variants.exclude(pk=product.base_variant.pk)
+        initial = {'sku': product.base_variant.sku,
+                   'price': product.base_variant.price}
     images = product.images.all()
+    stock_items = Stock.objects.filter(variant__in=all_variants)
+
     form_cls = get_product_form(product)
-    form = form_cls(instance=product)
-    variant_formset_cls = get_variant_formset(product)
-    variant_formset = variant_formset_cls(instance=product)
+    form = form_cls(instance=product, initial=initial)
 
     if 'product-form' in request.POST:
         form = form_cls(request.POST, instance=product)
@@ -50,12 +57,9 @@ def product_details(request, pk=None, product_cls=None):
         if creating and product:
             return redirect('dashboard:product-update', pk=product.pk)
 
-    if 'variants-formset' in request.POST:
-        variant_formset = variant_formset_cls(request.POST, instance=product)
-        save_variants_formset(request, variant_formset)
-
     ctx = {'title': title, 'product': product, 'images': images,
-           'product_form': form, 'variant_formset': variant_formset}
+           'product_form': form, 'stock_items': stock_items,
+           'variants': ctx_variants}
     if pk:
         images_reorder_url = reverse_lazy('dashboard:product-images-reorder',
                                           kwargs={'product_pk': pk})
@@ -79,16 +83,6 @@ def save_product_form(request, form, creating):
     return product
 
 
-def save_variants_formset(request, formset):
-    if formset.is_valid():
-        formset.save()
-        messages.success(request, _('Variants has been saved'))
-    else:
-        if formset.errors:
-            messages.error(request, _('Your submitted data was not valid - '
-                                      'please correct the errors below'))
-
-
 class ProductDeleteView(StaffMemberOnlyMixin, DeleteView):
     model = Product
     template_name = 'dashboard/product/product_confirm_delete.html'
@@ -98,6 +92,43 @@ class ProductDeleteView(StaffMemberOnlyMixin, DeleteView):
         result = self.delete(request, *args, **kwargs)
         messages.success(request, _('Deleted product %s') % self.object)
         return result
+
+
+@staff_member_required
+def stock_edit(request, product_pk, stock_pk=None):
+    product = get_object_or_404(Product, pk=product_pk)
+    if stock_pk:
+        stock = get_object_or_404(Stock, pk=stock_pk)
+        title = stock.variant
+    else:
+        stock = Stock()
+        title = product
+    form = StockForm(request.POST or None, instance=stock, product=product)
+    if form.is_valid():
+        form.save()
+        messages.success(request, _('Saved stock'))
+        success_url = request.POST['success_url']
+        return redirect(success_url)
+    else:
+        if form.errors:
+            messages.error(request, _('Your submitted data was not valid - '
+                                      'please correct the errors below'))
+    ctx = {'product': product, 'stock': stock, 'form': form, 'title': title}
+    return TemplateResponse(request, 'dashboard/product/stock_form.html', ctx)
+
+
+@staff_member_required
+def stock_delete(request, product_pk, stock_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    stock = get_object_or_404(Stock, pk=stock_pk)
+    if request.method == 'POST':
+        stock.delete()
+        messages.success(request, _('Deleted stock'))
+        success_url = request.POST['success_url']
+        return redirect(success_url)
+    ctx = {'product': product, 'stock': stock}
+    return TemplateResponse(
+        request, 'dashboard/product/stock_confirm_delete.html', ctx)
 
 
 @staff_member_required
@@ -124,8 +155,10 @@ def product_image_edit(request, product_pk, img_pk=None):
         if form.errors:
             messages.error(request, _('Your submitted data was not valid - '
                                       'please correct the errors below'))
-    ctx = {'product': product, 'product_image': product_image, 'title': title, 'form': form}
-    return TemplateResponse(request, 'dashboard/product/product_image_form.html', ctx)
+    ctx = {'product': product, 'product_image': product_image, 'title': title,
+           'form': form}
+    return TemplateResponse(
+        request, 'dashboard/product/product_image_form.html', ctx)
 
 
 @staff_member_required
@@ -134,8 +167,62 @@ def product_image_delete(request, product_pk, img_pk):
     product_image = get_object_or_404(product.images, pk=img_pk)
     if request.method == 'POST':
         product_image.delete()
-        messages.success(request, _('Deleted image %s') % product_image.image.name)
+        messages.success(
+            request, _('Deleted image %s') % product_image.image.name)
         success_url = request.POST['success_url']
         return redirect(success_url)
     ctx = {'product': product, 'product_image': product_image}
-    return TemplateResponse(request, 'dashboard/product/product_image_confirm_delete.html', ctx)
+    return TemplateResponse(
+        request, 'dashboard/product/product_image_confirm_delete.html', ctx)
+
+
+@staff_member_required
+def variant_edit(request, product_pk, variant_pk=None):
+    product = get_object_or_404(Product.objects.select_subclasses(),
+                                pk=product_pk)
+    variant_cls = get_variant_cls(product)
+    form_initial = {}
+    if variant_pk:
+        variant = get_object_or_404(product.variants.select_subclasses(),
+                                    pk=variant_pk)
+        title = variant.name
+    else:
+        variant = variant_cls(product=product)
+        title = _('Add variant')
+        form_initial['price'] = product.price
+        form_initial['weight'] = product.weight
+
+    form_cls = get_variant_form(product)
+    form = form_cls(request.POST or None, instance=variant,
+                    initial=form_initial)
+
+    if form.is_valid():
+        form.save()
+        if variant_pk:
+            msg = _('Updated variant %s') % variant.name
+        else:
+            msg = _('Added variant %s') % variant.name
+        messages.success(request, msg)
+        success_url = request.POST['success_url']
+        return redirect(success_url)
+    else:
+        if form.errors:
+            messages.error(request, _('Your submitted data was not valid - '
+                                      'please correct the errors below'))
+    ctx = {'product': product, 'variant': variant, 'title': title, 'form': form}
+    return TemplateResponse(request, 'dashboard/product/variant_form.html', ctx)
+
+
+
+@staff_member_required
+def variant_delete(request, product_pk, variant_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    variant = get_object_or_404(product.variants, pk=variant_pk)
+    if request.method == 'POST':
+        variant.delete()
+        messages.success(request, _('Deleted variant %s') % variant.name)
+        success_url = request.POST['success_url']
+        return redirect(success_url)
+    ctx = {'product': product, 'variant': variant}
+    return TemplateResponse(
+        request, 'dashboard/product/product_variant_confirm_delete.html', ctx)

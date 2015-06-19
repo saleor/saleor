@@ -65,7 +65,7 @@ class Cart(cart.Cart):
                 # TODO: Provide error message
                 continue
             else:
-                variant = product.variants.get(pk=item.data['variant_id'])
+                variant = product.variants.get_subclass(pk=item.data['variant_id'])
             quantity = item.quantity
             cart.add(variant, quantity=quantity, check_quantity=False,
                      skip_session_cart=True)

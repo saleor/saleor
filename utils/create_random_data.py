@@ -1,31 +1,19 @@
 from __future__ import unicode_literals
-import random
 import os
+import random
 import unicodedata
 
 from faker import Factory
 from django.core.files import File
 
-from saleor.product.models import (Shirt, ShirtVariant,
-                                   Bag, BagVariant, ProductImage)
-from saleor.product.models import Category, Color
+from saleor.product.models import (GenericProduct, GenericVariant, ProductImage,
+                                   Stock)
+from saleor.product.models import Category
 from saleor.userprofile.models import User, Address
-
 
 fake = Factory.create()
 PRODUCT_COLLECTIONS = fake.words(10)
-
-
-def create_color(**kwargs):
-    r = lambda: random.randint(0, 255)
-
-    defaults = {
-        'name': fake.word(),
-        'color': '%02X%02X%02X' % (r(), r(), r())
-    }
-    defaults.update(kwargs)
-
-    return Color.objects.create(**defaults)
+STOCK_LOCATION = 'default'
 
 
 def get_or_create_category(name, **kwargs):
@@ -38,7 +26,7 @@ def get_or_create_category(name, **kwargs):
     return Category.objects.get_or_create(name=name, defaults=defaults)[0]
 
 
-def create_product(product_type, **kwargs):
+def create_product(**kwargs):
     if random.choice([True, False]):
         collection = random.choice(PRODUCT_COLLECTIONS)
     else:
@@ -48,33 +36,49 @@ def create_product(product_type, **kwargs):
         'name': fake.company(),
         'price': fake.pyfloat(2, 2, positive=True),
         'collection': collection,
-        'color': Color.objects.order_by('?')[0],
         'weight': fake.random_digit(),
         'description': '\n\n'.join(fake.paragraphs(5))
     }
     defaults.update(kwargs)
-
-    return product_type.objects.create(**defaults)
+    product = GenericProduct.objects.create(**defaults)
+    if not product.base_variant:
+        GenericVariant(
+            name='',
+            sku=fake.random_int(1, 100000),
+            price=product.price,
+            weight=product.weight,
+            product=product).save()
+    return product
 
 
 def create_variant(product, **kwargs):
     defaults = {
-        'stock': fake.random_int(),
+        'name': fake.word(),
         'sku': fake.random_int(1, 100000),
-        'product': product
+        'price': product.price,
+        'product': product,
+        'weight': product.weight,
     }
-    if isinstance(product, Shirt):
-        if not 'size' in kwargs:
-            defaults['size'] = random.choice(ShirtVariant.SIZE_CHOICES)[0]
-        variant_class = ShirtVariant
-    elif isinstance(product, Bag):
-        variant_class = BagVariant
-    else:
-        raise NotImplemented
     defaults.update(kwargs)
+    return GenericVariant.objects.create(**defaults)
 
-    return variant_class.objects.create(**defaults)
 
+def create_stock(product, **kwargs):
+    if product.has_variants():
+        for variant in product.get_variants():
+            _create_stock(variant, **kwargs)
+    else:
+        _create_stock(product.base_variant, **kwargs)
+
+
+def _create_stock(variant, **kwargs):
+    defaults = {
+        'variant': variant,
+        'location': STOCK_LOCATION,
+        'quantity': fake.random_int(1, 50)
+    }
+    defaults.update(kwargs)
+    return Stock.objects.create(**defaults)
 
 def create_product_image(product, placeholder_dir):
     img_path = "%s/%s" % (placeholder_dir,
@@ -92,45 +96,20 @@ def create_product_images(product, how_many, placeholder_dir):
         create_product_image(product, placeholder_dir)
 
 
-def create_shirt(**kwargs):
-    return create_product(Shirt, **kwargs)
-
-
-def create_bag(**kwargs):
-    return create_product(Bag, **kwargs)
-
-
 def create_items(placeholder_dir, how_many=10):
-    # Create few colors
-    [create_color() for i in range(5)]
-
-    shirt_category = get_or_create_category('Shirts')
-    bag_category = get_or_create_category('Grocery bags')
+    default_category = get_or_create_category('Default')
 
     for i in range(how_many):
-        # Shirt
-        shirt = create_shirt()
-        shirt.categories.add(shirt_category)
-        create_product_images(shirt, random.randrange(1, 5),
-                              placeholder_dir + "shirts")
-        # Bag
-        bag = create_bag(collection='')
-        bag.categories.add(bag_category)
-        create_product_images(bag, random.randrange(1, 5),
-                              placeholder_dir + "bags")
-        # chance to generate couple of sizes
-        for size in ShirtVariant.SIZE_CHOICES:
-            # Create min. one size
-            if shirt.variants.count() == 0:
-                create_variant(shirt, size=size[0])
-                continue
+        product = create_product(collection='')
+        product.categories.add(default_category)
+        create_product_images(product, random.randrange(1, 5), placeholder_dir)
+
+        for _ in range(random.randrange(0, 5)):
             if random.choice([True, False]):
-                create_variant(shirt, size=size[0])
+                create_variant(product)
 
-        create_variant(bag)
-
-        yield "Shirt - %s %s Variants" % (shirt, shirt.variants.count())
-        yield "Bag - %s %s Variants" % (bag, bag.variants.count())
+        create_stock(product)
+        yield "Product - %s %s Variants" % (product, product.variants.count())
 
 
 def create_fake_user():

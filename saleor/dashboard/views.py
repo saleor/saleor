@@ -61,6 +61,5 @@ def index(request):
 def get_low_stock_products():
     threshold = getattr(settings, 'LOW_STOCK_THRESHOLD', 10)
     products = Product.objects.filter(
-        Q(shirt__variants__stock__lte=threshold) |
-        Q(bag__variants__stock__lte=threshold)).distinct()
+        Q(variants__stock__quantity__lte=threshold)).distinct()
     return products
