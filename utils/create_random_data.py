@@ -6,12 +6,14 @@ import unicodedata
 from faker import Factory
 from django.core.files import File
 
-from saleor.product.models import (GenericProduct, GenericVariant, ProductImage)
+from saleor.product.models import (GenericProduct, GenericVariant, ProductImage,
+                                   Stock)
 from saleor.product.models import Category
 from saleor.userprofile.models import User, Address
 
 fake = Factory.create()
 PRODUCT_COLLECTIONS = fake.words(10)
+STOCK_LOCATION = 'default'
 
 
 def get_or_create_category(name, **kwargs):
@@ -60,6 +62,23 @@ def create_variant(product, **kwargs):
     return GenericVariant.objects.create(**defaults)
 
 
+def create_stock(product, **kwargs):
+    if product.has_variants():
+        for variant in product.get_variants():
+            _create_stock(variant, **kwargs)
+    else:
+        _create_stock(product.base_variant, **kwargs)
+
+
+def _create_stock(variant, **kwargs):
+    defaults = {
+        'variant': variant,
+        'location': STOCK_LOCATION,
+        'quantity': fake.random_int(1, 50)
+    }
+    defaults.update(kwargs)
+    return Stock.objects.create(**defaults)
+
 def create_product_image(product, placeholder_dir):
     img_path = "%s/%s" % (placeholder_dir,
                           random.choice(os.listdir(placeholder_dir)))
@@ -84,10 +103,11 @@ def create_items(placeholder_dir, how_many=10):
         product.categories.add(default_category)
         create_product_images(product, random.randrange(1, 5), placeholder_dir)
 
-        for _ in range(random.randrange(1, 5)):
+        for _ in range(random.randrange(0, 5)):
             if random.choice([True, False]):
                 create_variant(product)
 
+        create_stock(product)
         yield "Product - %s %s Variants" % (product, product.variants.count())
 
 
