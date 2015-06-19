@@ -88,6 +88,12 @@ class ProductVariantForm(forms.ModelForm):
             'product': forms.HiddenInput()
         }
 
+    def save(self, commit=True):
+        if not self.instance.product.has_variants():
+            Stock.objects.filter(
+                variant=self.instance.product.base_variant).delete()
+        super(ProductVariantForm, self).save(commit=commit)
+
 
 class GenericVariantForm(ProductVariantForm):
     class Meta:
