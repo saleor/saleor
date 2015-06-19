@@ -33,28 +33,31 @@ def create_product(**kwargs):
     defaults = {
         'name': fake.company(),
         'price': fake.pyfloat(2, 2, positive=True),
-        'sku': fake.random_int(1, 100000),
-        'stock': fake.random_int(),
         'collection': collection,
         'weight': fake.random_digit(),
         'description': '\n\n'.join(fake.paragraphs(5))
     }
     defaults.update(kwargs)
-
-    return GenericProduct.objects.create(**defaults)
+    product = GenericProduct.objects.create(**defaults)
+    if not product.base_variant:
+        product.variants.create(
+            name=product.name,
+            sku=fake.random_int(1, 100000),
+            price=product.price,
+            product=product)
+    return product
 
 
 def create_variant(product, **kwargs):
     defaults = {
         'name': fake.word(),
-        'stock': fake.random_int(),
         'sku': fake.random_int(1, 100000),
-        'price': fake.pyfloat(2, 2, positive=True),
-        'product': product
+        'price': product.price,
+        'product': product,
+        'weight': product.weight,
     }
     defaults.update(kwargs)
     return GenericVariant.objects.create(**defaults)
-
 
 
 def create_product_image(product, placeholder_dir):
