@@ -42,11 +42,12 @@ def create_product(**kwargs):
     defaults.update(kwargs)
     product = GenericProduct.objects.create(**defaults)
     if not product.base_variant:
-        product.variants.create(
-            name=product.name,
+        GenericVariant(
+            name='',
             sku=fake.random_int(1, 100000),
             price=product.price,
-            product=product)
+            weight=product.weight,
+            product=product).save()
     return product
 
 
