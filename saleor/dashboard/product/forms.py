@@ -55,18 +55,29 @@ class ProductForm(forms.ModelForm):
     def save(self, *args, **kwargs):
         self.instance = super(ProductForm, self).save(*args, **kwargs)
         if not self.instance.base_variant:
-            self.instance.variants.create(
-                name=self.instance.name,
-                sku=self.cleaned_data['sku'],
-                price=self.instance.price,
-                product=self.instance)
+            self.save_base_variant()
         return self.instance
+
+    def save_base_variant(self, **kwargs):
+        defaults = {
+            'name': '',
+            'sku': self.cleaned_data['sku'],
+            'price': self.instance.price,
+            'product': self.instance
+        }
+        defaults.update(kwargs)
+        variant_cls = get_variant_cls(self.instance)
+        return variant_cls(**defaults).save()
 
 
 class GenericProductForm(ProductForm):
     class Meta:
         model = GenericProduct
         exclude = []
+
+    def save_base_variant(self, **kwargs):
+        return super(GenericProductForm, self).save_base_variant(
+            weight=self.instance.weight)
 
 
 class ProductVariantForm(forms.ModelForm):
