@@ -41,13 +41,12 @@ def product_details(request, pk=None, product_cls=None):
             Product.objects.select_subclasses().prefetch_related(
                 'images', 'variants'), pk=pk)
         title = product.name
-        variants = product.variants.select_subclasses()
-        if product.has_variants():
-            variants = variants.exclude(pk=product.base_variant.pk)
+        all_variants = product.variants.select_subclasses()
+        ctx_variants = all_variants.exclude(pk=product.base_variant.pk)
         initial = {'sku': product.base_variant.sku,
                    'price': product.base_variant.price}
     images = product.images.all()
-    stock_items = Stock.objects.filter(variant__in=variants)
+    stock_items = Stock.objects.filter(variant__in=all_variants)
 
     form_cls = get_product_form(product)
     form = form_cls(instance=product, initial=initial)
@@ -60,7 +59,7 @@ def product_details(request, pk=None, product_cls=None):
 
     ctx = {'title': title, 'product': product, 'images': images,
            'product_form': form, 'stock_items': stock_items,
-           'variants': variants}
+           'variants': ctx_variants}
     if pk:
         images_reorder_url = reverse_lazy('dashboard:product-images-reorder',
                                           kwargs={'product_pk': pk})
