@@ -50,6 +50,10 @@ class Product(models.Model, ItemRange):
     categories = models.ManyToManyField(
         Category, verbose_name=pgettext_lazy('Product field', 'categories'),
         related_name='products')
+    price = PriceField(
+        pgettext_lazy('Product field', 'price'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
+        blank=True, null=True)
 
     objects = InheritanceManager()
 
@@ -79,10 +83,6 @@ class Product(models.Model, ItemRange):
     @property
     def base_variant(self):
         return self.variants.first() if self.variants.exists() else None
-
-    @property
-    def price(self):
-        return self.base_variant.price if self.base_variant else None
 
     def get_absolute_url(self):
         return reverse('product:details', kwargs={'slug': self.get_slug(),

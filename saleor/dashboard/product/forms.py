@@ -1,9 +1,7 @@
 from __future__ import unicode_literals
 
 from django import forms
-from django.conf import settings
 from django.utils.translation import pgettext_lazy
-from django_prices.forms import PriceField
 
 from ...product.models import (ProductImage, GenericProduct,
                                GenericVariant, Stock, ProductVariant, Product)
@@ -40,7 +38,6 @@ class StockForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         product = kwargs.pop('product')
         super(StockForm, self).__init__(*args, **kwargs)
-        self.fields['cost_price'].initial = product.base_variant.price
         variants = product.variants.all()
         if product.has_variants():
             variants = variants.exclude(pk=product.base_variant.pk)
@@ -48,9 +45,6 @@ class StockForm(forms.ModelForm):
 
 
 class ProductForm(forms.ModelForm):
-    price = PriceField(currency=settings.DEFAULT_CURRENCY,
-                       label=pgettext_lazy('Product field', 'Price'),
-                       max_digits=12, decimal_places=4)
     sku = forms.CharField(label=pgettext_lazy('Product field', 'SKU'),
                           max_length=32)
 
@@ -64,7 +58,7 @@ class ProductForm(forms.ModelForm):
             self.instance.variants.create(
                 name=self.instance.name,
                 sku=self.cleaned_data['sku'],
-                price=self.cleaned_data['price'],
+                price=self.instance.price,
                 product=self.instance)
         return self.instance
 
