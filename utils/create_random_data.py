@@ -40,35 +40,22 @@ def create_product(**kwargs):
         'description': '\n\n'.join(fake.paragraphs(5))
     }
     defaults.update(kwargs)
-    product = GenericProduct.objects.create(**defaults)
-    if not product.base_variant:
-        GenericVariant(
-            name='',
-            sku=fake.random_int(1, 100000),
-            price=product.price,
-            weight=product.weight,
-            product=product).save()
-    return product
+    return GenericProduct.objects.create(**defaults)
 
 
 def create_variant(product, **kwargs):
     defaults = {
         'name': fake.word(),
         'sku': fake.random_int(1, 100000),
-        'price': product.price,
         'product': product,
-        'weight': product.weight,
     }
     defaults.update(kwargs)
     return GenericVariant.objects.create(**defaults)
 
 
 def create_stock(product, **kwargs):
-    if product.has_variants():
-        for variant in product.get_variants():
-            _create_stock(variant, **kwargs)
-    else:
-        _create_stock(product.base_variant, **kwargs)
+    for variant in product.variants.all():
+        _create_stock(variant, **kwargs)
 
 
 def _create_stock(variant, **kwargs):
@@ -79,6 +66,7 @@ def _create_stock(variant, **kwargs):
     }
     defaults.update(kwargs)
     return Stock.objects.create(**defaults)
+
 
 def create_product_image(product, placeholder_dir):
     img_path = "%s/%s" % (placeholder_dir,
@@ -102,9 +90,11 @@ def create_items(placeholder_dir, how_many=10):
     for i in range(how_many):
         product = create_product(collection='')
         product.categories.add(default_category)
+
+        create_variant(product)  # ensure at least one variant
         create_product_images(product, random.randrange(1, 5), placeholder_dir)
 
-        for _ in range(random.randrange(0, 5)):
+        for _ in range(random.randrange(1, 5)):
             if random.choice([True, False]):
                 create_variant(product)
 
