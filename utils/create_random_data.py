@@ -6,8 +6,7 @@ import unicodedata
 from faker import Factory
 from django.core.files import File
 
-from saleor.product.models import (GenericProduct, GenericVariant, ProductImage,
-                                   Stock)
+from saleor.product.models import (Product, ProductVariant, ProductImage, Stock)
 from saleor.product.models import Category
 from saleor.userprofile.models import User, Address
 
@@ -40,7 +39,7 @@ def create_product(**kwargs):
         'description': '\n\n'.join(fake.paragraphs(5))
     }
     defaults.update(kwargs)
-    return GenericProduct.objects.create(**defaults)
+    return Product.objects.create(**defaults)
 
 
 def create_variant(product, **kwargs):
@@ -50,7 +49,7 @@ def create_variant(product, **kwargs):
         'product': product,
     }
     defaults.update(kwargs)
-    return GenericVariant.objects.create(**defaults)
+    return ProductVariant.objects.create(**defaults)
 
 
 def create_stock(product, **kwargs):
