@@ -2,14 +2,14 @@ from django import forms
 from django.utils.translation import pgettext_lazy
 
 from ..cart.forms import AddToCartForm
-from ..product.models import GenericProduct
+from ..product.models import Product
 
 
-class GenericProductForm(AddToCartForm):
+class ProductForm(AddToCartForm):
     variant = forms.ChoiceField(required=False)
 
     def __init__(self, *args, **kwargs):
-        super(GenericProductForm, self).__init__(*args, **kwargs)
+        super(ProductForm, self).__init__(*args, **kwargs)
         variants = self.product.variants.all()
         self.fields['variant'].choices = [(v.pk, v) for v in variants]
 
@@ -36,6 +36,6 @@ class ImageInline(ProductVariantInline):
 
 
 def get_form_class_for_product(product):
-    if isinstance(product, GenericProduct):
-        return GenericProductForm
+    if isinstance(product, Product):
+        return ProductForm
     raise NotImplementedError
