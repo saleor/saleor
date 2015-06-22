@@ -1,6 +1,6 @@
 $('.button-collapse').sideNav();
 $('select:not(.browser-default):not([multiple])').material_select();
-$('select[multiple]').addClass('browser-default');
+$('select[multiple]').addClass('browser-default').select2();
 $('.modal-trigger').leanModal();
 $('ul.tabs').find('.tab').on('click', function(e) {
   window.history.pushState(null, null, e.target.hash);

@@ -144,6 +144,7 @@ module.exports = function(grunt) {
             "saleor/static/components/jquery/dist/jquery.js",
             "saleor/static/components/materialize/dist/js/materialize.js",
             "saleor/static/components/Sortable/Sortable.js",
+            "saleor/static/components/select2/dist/js/select2.js",
             "saleor/static/js_src/dashboard.js"
           ]
         }

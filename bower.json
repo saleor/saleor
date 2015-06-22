@@ -13,6 +13,7 @@
     "zocial-less": "~1.0.0",
     "materialize": "~0.97.0",
     "jquery": "~2.1.4",
-    "Sortable": "git@github.com:RubaXa/Sortable.git#~1.2.0"
+    "Sortable": "git@github.com:RubaXa/Sortable.git#~1.2.0",
+    "select2": "~4.0.0"
   }
 }
