@@ -7,6 +7,14 @@
     }
   }
 
+  label {
+    @extend .active;
+  }
+
+  input[type=radio] {
+    @extend .with-gap;
+  }
+
   .price-wrapper {
     overflow: hidden;
   }

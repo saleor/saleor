@@ -37,7 +37,7 @@
 
     <div class="row" id="details">
         <div class="col l8 offset-l2">
-            <div class="row">
+            <div class="row" id="form-product">
                 {% csrf_token %}
                 {{ product_form|materializecss }}
             </div>
@@ -96,9 +96,7 @@
                             <li class="col s6 m3 card product-gallery-item" data-id="{{ image.pk }}">
                                 <div class="card-content">
                                     <img class="responsive-img" src="{{ image.image.crop.300x300 }}" alt="">
-                                    {% if image.alt %}
-                                        <span class="product-gallery-item-text">{{ image.alt }}</span>
-                                    {% endif %}
+                                    <span class="product-gallery-item-text">{{ image.alt|default:image.image.name }}</span>
                                     <a class="product-gallery-item-create light-blue-text text-lighten-1" title="{% trans "Edit image" %}"
                                             href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">
                                         <i class="mdi-content-create"></i>
