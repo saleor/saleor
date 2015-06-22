@@ -35,18 +35,14 @@ def product_details(request, pk=None, product_cls=None):
     if creating:
         product = get_product_cls_by_name(product_cls)()
         title = _('Add new %s') % get_verbose_name(product)
-        all_variants, ctx_variants = [], []
     else:
         product = get_object_or_404(
             Product.objects.select_subclasses().prefetch_related(
                 'images', 'variants'), pk=pk)
         title = product.name
-        all_variants = product.variants.select_subclasses()
-        ctx_variants = all_variants.exclude(pk=product.base_variant.pk)
-        initial = {'sku': product.base_variant.sku,
-                   'price': product.base_variant.price}
     images = product.images.all()
-    stock_items = Stock.objects.filter(variant__in=all_variants)
+    variants = product.variants.select_subclasses()
+    stock_items = Stock.objects.filter(variant__in=variants)
 
     form_cls = get_product_form(product)
     form = form_cls(instance=product, initial=initial)
@@ -59,7 +55,7 @@ def product_details(request, pk=None, product_cls=None):
 
     ctx = {'title': title, 'product': product, 'images': images,
            'product_form': form, 'stock_items': stock_items,
-           'variants': ctx_variants}
+           'variants': variants}
     if pk:
         images_reorder_url = reverse_lazy('dashboard:product-images-reorder',
                                           kwargs={'product_pk': pk})
@@ -104,15 +100,18 @@ def stock_edit(request, product_pk, stock_pk=None):
         stock = Stock()
         title = product
     form = StockForm(request.POST or None, instance=stock, product=product)
-    if form.is_valid():
-        form.save()
-        messages.success(request, _('Saved stock'))
-        success_url = request.POST['success_url']
-        return redirect(success_url)
+    if product.variants.exists():
+        if form.is_valid():
+            form.save()
+            messages.success(request, _('Saved stock'))
+            success_url = request.POST['success_url']
+            return redirect(success_url)
+        else:
+            if form.errors:
+                messages.error(request, _('Your submitted data was not valid - '
+                                          'please correct the errors below'))
     else:
-        if form.errors:
-            messages.error(request, _('Your submitted data was not valid - '
-                                      'please correct the errors below'))
+        messages.error(request, _('You have to add at least one variant before you can add stock'))
     ctx = {'product': product, 'stock': stock, 'form': form, 'title': title}
     return TemplateResponse(request, 'dashboard/product/stock_form.html', ctx)
 
@@ -189,8 +188,6 @@ def variant_edit(request, product_pk, variant_pk=None):
     else:
         variant = variant_cls(product=product)
         title = _('Add variant')
-        form_initial['price'] = product.price
-        form_initial['weight'] = product.weight
 
     form_cls = get_variant_form(product)
     form = form_cls(request.POST or None, instance=variant,
@@ -211,7 +208,6 @@ def variant_edit(request, product_pk, variant_pk=None):
                                       'please correct the errors below'))
     ctx = {'product': product, 'variant': variant, 'title': title, 'form': form}
     return TemplateResponse(request, 'dashboard/product/variant_form.html', ctx)
-
 
 
 @staff_member_required

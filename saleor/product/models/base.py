@@ -52,8 +52,10 @@ class Product(models.Model, ItemRange):
         related_name='products')
     price = PriceField(
         pgettext_lazy('Product field', 'price'),
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
-        blank=True, null=True)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4)
+    weight = models.DecimalField(
+        pgettext_lazy('Product field', 'weight'), max_digits=6,
+        decimal_places=2)
 
     objects = InheritanceManager()
 
@@ -61,13 +63,9 @@ class Product(models.Model, ItemRange):
         app_label = 'product'
 
     def __iter__(self):
-        if self.get_variants():
-            if not hasattr(self, '__variants'):
-                setattr(self, '__variants', self.get_variants())
-            return iter(getattr(self, '__variants'))
-        else:
-            variants = [self.base_variant] if self.base_variant else []
-            return iter(variants)
+        if not hasattr(self, '__variants'):
+            setattr(self, '__variants', self.variants.all())
+        return iter(getattr(self, '__variants'))
 
     def __repr__(self):
         class_ = type(self)
@@ -76,13 +74,6 @@ class Product(models.Model, ItemRange):
 
     def __str__(self):
         return self.name
-
-    def get_variants(self):
-        return self.variants.exclude(pk=self.base_variant.pk)
-
-    @property
-    def base_variant(self):
-        return self.variants.first() if self.variants.exists() else None
 
     def get_absolute_url(self):
         return reverse('product:details', kwargs={'slug': self.get_slug(),
@@ -120,9 +111,6 @@ class Product(models.Model, ItemRange):
     def is_available(self):
         return any(variant.is_available() for variant in self)
 
-    def has_variants(self):
-        return bool(self.get_variants())
-
 
 @python_2_unicode_compatible
 class ProductVariant(models.Model, Item):
@@ -130,10 +118,13 @@ class ProductVariant(models.Model, Item):
         pgettext_lazy('Variant field', 'name'), max_length=100)
     sku = models.CharField(
         pgettext_lazy('Variant field', 'SKU'), max_length=32, unique=True)
-    price = PriceField(
-        pgettext_lazy('Variant field', 'price'),
+    price_override = PriceField(
+        pgettext_lazy('Variant field', 'price override'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
         blank=True, null=True)
+    weight_override = models.DecimalField(
+        pgettext_lazy('Variant field', 'weight override'),
+        max_digits=6, decimal_places=2, blank=True, null=True)
     product = models.ForeignKey(Product, related_name='variants')
 
     objects = InheritanceManager()
@@ -147,11 +138,11 @@ class ProductVariant(models.Model, Item):
             name += ' (%s)' % self.name
         return name
 
+    def get_weight(self):
+        return self.weight_override or self.product.weight
+
     def get_price_per_item(self, discounts=None, **kwargs):
-        if self.price is not None:
-            price = self.price
-        else:
-            price = self.product.price
+        price = self.price_override or self.product.price
         if discounts:
             discounts = list(get_product_discounts(self, discounts, **kwargs))
             if discounts:

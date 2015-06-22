@@ -39,45 +39,23 @@ class StockForm(forms.ModelForm):
         product = kwargs.pop('product')
         super(StockForm, self).__init__(*args, **kwargs)
         variants = product.variants.all()
-        if product.has_variants():
-            variants = variants.exclude(pk=product.base_variant.pk)
-        self.fields['variant'].choices = [(variant.pk, variant) for variant in variants]
+        if variants:
+            self.fields['variant'].choices = [(variant.pk, variant) for variant in variants]
+        else:
+            self.fields['variant'].widget.attrs['disabled'] = True
 
 
 class ProductForm(forms.ModelForm):
-    sku = forms.CharField(label=pgettext_lazy('Product field', 'SKU'),
-                          max_length=32)
 
     class Meta:
         model = Product
         exclude = []
-
-    def save(self, *args, **kwargs):
-        self.instance = super(ProductForm, self).save(*args, **kwargs)
-        if not self.instance.base_variant:
-            self.save_base_variant()
-        return self.instance
-
-    def save_base_variant(self, **kwargs):
-        defaults = {
-            'name': '',
-            'sku': self.cleaned_data['sku'],
-            'price': self.instance.price,
-            'product': self.instance
-        }
-        defaults.update(kwargs)
-        variant_cls = get_variant_cls(self.instance)
-        return variant_cls(**defaults).save()
 
 
 class GenericProductForm(ProductForm):
     class Meta:
         model = GenericProduct
         exclude = []
-
-    def save_base_variant(self, **kwargs):
-        return super(GenericProductForm, self).save_base_variant(
-            weight=self.instance.weight)
 
 
 class ProductVariantForm(forms.ModelForm):
@@ -87,12 +65,6 @@ class ProductVariantForm(forms.ModelForm):
         widgets = {
             'product': forms.HiddenInput()
         }
-
-    def save(self, commit=True):
-        if not self.instance.product.has_variants():
-            Stock.objects.filter(
-                variant=self.instance.product.base_variant).delete()
-        super(ProductVariantForm, self).save(commit=commit)
 
 
 class GenericVariantForm(ProductVariantForm):
