@@ -71,14 +71,14 @@ class ProductVariantForm(forms.ModelForm):
         for attr in self.product_attributes:
             field_defaults = {
                 'label': attr.display,
-                'required': False
+                'required': True
             }
             if self.instance.attributes:
                 field_defaults['initial'] = self.instance.attributes.get(
                     attr.get_slug())
             if attr.values.exists():
-                choices = [(value.get_slug(), value.display) for value in
-                           attr.values.all()]
+                choices = [('', '')] + [(value.get_slug(), value.display)
+                                        for value in attr.values.all()]
                 self.fields[attr.get_slug()] = forms.ChoiceField(
                     choices=choices, **field_defaults)
             else:
