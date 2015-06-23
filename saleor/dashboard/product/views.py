@@ -244,6 +244,7 @@ def attribute_edit(request, pk=None):
         title = _('Add new attribute')
     form = ProductAttributeForm(request.POST or None, instance=attribute)
     formset = AttributeChoiceValueFormset(request.POST or None,
+                                          request.FILES or None,
                                           instance=attribute)
     if form.is_valid() and formset.is_valid():
         attribute = form.save()

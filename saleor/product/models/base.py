@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.db import models
 from django.utils.text import slugify
@@ -14,6 +14,7 @@ from model_utils.managers import InheritanceManager
 from mptt.models import MPTTModel
 from satchless.item import ItemRange, Item
 from unidecode import unidecode
+from versatileimagefield.fields import VersatileImageField
 
 from .discounts import get_product_discounts
 
@@ -215,6 +216,11 @@ class ProductAttribute(models.Model):
 @python_2_unicode_compatible
 class AttributeChoiceValue(models.Model):
     display = models.CharField(max_length=100)
+    color = models.CharField(
+        max_length=7,
+        validators=[RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')],
+        blank=True)
+    image = VersatileImageField(upload_to='attributes', blank=True, null=True)
     attribute = models.ForeignKey(ProductAttribute, related_name='values')
 
     def __str__(self):
