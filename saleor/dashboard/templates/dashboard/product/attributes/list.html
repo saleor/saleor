@@ -1,0 +1,32 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load materializecss %}
+
+{% block title %}{% trans "Attributes" %} - {{ block.super }}{% endblock %}
+
+{% block body_class %}body-attributes{% endblock %}
+
+{% block page_title %}{% trans "Attributes" %}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col s12">
+            <ul class="collection attributes-list">
+                {% for attribute in attributes %}
+                    <li class="collection-item">
+                        <a href="{% url 'dashboard:product-attribute-update' pk=attribute.pk %}">{{ attribute.display }}</a>
+                        <a href="{% url 'dashboard:product-attribute-delete' pk=attribute.pk %}" title="{% trans "Delete attribute" %}"
+                           class="secondary-content materialize-red-text text-lighten-2 product-list-item-delete"><i class="mdi-action-delete"></i></a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col s12 right-align">
+            <a href="{% url 'dashboard:product-attribute-add' %}" class="btn">
+                <i class="mdi-content-add"></i> {% trans "Add attribute" %}
+            </a>
+        </div>
+    </div>
+{% endblock %}

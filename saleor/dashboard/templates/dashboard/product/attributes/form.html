@@ -1,0 +1,32 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load materializecss %}
+{% load static %}
+
+{% block title %}{{ title }} - {% trans "Attributes" %} - {{ block.super }}{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+    <form method="post" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col l8 offset-l2">
+                <div class="row">
+                    {% csrf_token %}
+                    {{ form|materializecss }}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col l8 offset-l2 right-align">
+                <a href="{% url 'dashboard:product-attributes' %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
+                {% if attribute.pk %}
+                    <button type="submit" class="btn"><i class="mdi-content-save"></i> {% trans "Update" %}</button>
+                {% else %}
+                    <button type="submit" class="btn"><i class="mdi-content-create"></i> {% trans "Create" %}</button>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+{% endblock %}

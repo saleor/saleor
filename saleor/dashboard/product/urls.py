@@ -36,4 +36,14 @@ urlpatterns = patterns(
     url(r'^(?P<product_pk>[0-9]+)/images/(?P<img_pk>[0-9]+)/delete/$',
         views.product_image_delete, name='product-image-delete'),
     url('^(?P<product_pk>[0-9]+)/images/reorder/$',
-        api.reorder_product_images, name='product-images-reorder'))
+        api.reorder_product_images, name='product-images-reorder'),
+
+    url(r'attributes/$',
+        views.attribute_list, name='product-attributes'),
+    url(r'attributes/(?P<pk>[0-9]+)/$',
+        views.attribute_edit, name='product-attribute-update'),
+    url(r'attributes/add/$',
+        views.attribute_edit, name='product-attribute-add'),
+    url(r'attributes/(?P<pk>[0-9]+)/delete/$',
+        views.attribute_delete, name='product-attribute-delete'),
+)

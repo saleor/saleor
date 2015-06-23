@@ -9,6 +9,7 @@ from django.db import models
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
+from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
 from mptt.models import MPTTModel
 from satchless.item import ItemRange, Item
@@ -56,6 +57,8 @@ class Product(models.Model, ItemRange):
     weight = models.DecimalField(
         pgettext_lazy('Product field', 'weight'), max_digits=6,
         decimal_places=2)
+    attributes = models.ManyToManyField(
+        'ProductAttribute', related_name='products', blank=True, null=True)
 
     objects = InheritanceManager()
 
@@ -126,6 +129,8 @@ class ProductVariant(models.Model, Item):
         pgettext_lazy('Variant field', 'weight override'),
         max_digits=6, decimal_places=2, blank=True, null=True)
     product = models.ForeignKey(Product, related_name='variants')
+    attributes = JSONField(pgettext_lazy('Variant field', 'attributes'),
+                           blank=True)
 
     objects = InheritanceManager()
 
@@ -194,3 +199,22 @@ class Stock(models.Model):
 
     def is_available(self):
         return self.quantity > 0
+
+
+@python_2_unicode_compatible
+class ProductAttribute(models.Model):
+    name = models.CharField(max_length=100)
+    display = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
+@python_2_unicode_compatible
+class AttributeChoiceValue(models.Model):
+    name = models.CharField(max_length=100)
+    display = models.CharField(max_length=100)
+    attribute = models.ForeignKey(ProductAttribute, related_name='values')
+
+    def __str__(self):
+        return self.name

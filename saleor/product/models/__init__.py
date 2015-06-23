@@ -1,6 +1,8 @@
-from .base import Category, Product, ProductVariant, Stock
+from .base import (AttributeChoiceValue, Category, Product, ProductAttribute,
+                   ProductVariant, Stock)
 from .discounts import FixedProductDiscount, get_product_discounts
 from .images import ProductImage
 
-__all__ = ['Category', 'Product', 'FixedProductDiscount',
-           'get_product_discounts', 'ProductVariant', 'ProductImage', 'Stock']
+__all__ = ['AttributeChoiceValue', 'Category', 'Product', 'ProductAttribute',
+           'FixedProductDiscount', 'get_product_discounts', 'ProductVariant',
+           'ProductImage', 'Stock']

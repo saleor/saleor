@@ -7,13 +7,13 @@ from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DeleteView
 
-from ...product.models import Product, ProductImage, Stock
+from ...product.models import Product, ProductImage, Stock, ProductAttribute
 from ..utils import paginate
 from ..views import StaffMemberOnlyMixin, staff_member_required
 from .forms import (ProductClassForm, get_product_form,
                     get_product_cls_by_name, get_variant_form,
                     ProductImageForm, get_verbose_name, StockForm,
-                    get_variant_cls)
+                    get_variant_cls, ProductAttributeForm)
 
 
 @staff_member_required
@@ -111,7 +111,8 @@ def stock_edit(request, product_pk, stock_pk=None):
                 messages.error(request, _('Your submitted data was not valid - '
                                           'please correct the errors below'))
     else:
-        messages.error(request, _('You have to add at least one variant before you can add stock'))
+        messages.error(request, _(
+            'You have to add at least one variant before you can add stock'))
     ctx = {'product': product, 'stock': stock, 'form': form, 'title': title}
     return TemplateResponse(request, 'dashboard/product/stock_form.html', ctx)
 
@@ -222,3 +223,46 @@ def variant_delete(request, product_pk, variant_pk):
     ctx = {'product': product, 'variant': variant}
     return TemplateResponse(
         request, 'dashboard/product/product_variant_confirm_delete.html', ctx)
+
+
+@staff_member_required
+def attribute_list(request):
+    attributes = ProductAttribute.objects.all()
+    ctx = {'attributes': attributes}
+    return TemplateResponse(request, 'dashboard/product/attributes/list.html',
+                            ctx)
+
+
+@staff_member_required
+def attribute_edit(request, pk=None):
+    if pk:
+        attribute = get_object_or_404(ProductAttribute, pk=pk)
+        title = attribute.display
+    else:
+        attribute = ProductAttribute()
+        title = _('Add new attribute')
+    form = ProductAttributeForm(request.POST or None, instance=attribute)
+    if form.is_valid():
+        form.save()
+        msg = _('Updated attribute') if pk else _('Added attribute')
+        messages.success(request, msg)
+    else:
+        if form.errors:
+            messages.error(request, _('Your submitted data was not valid - '
+                                      'please correct the errors below'))
+    ctx = {'attribute': attribute, 'form': form, 'title': title}
+    return TemplateResponse(request, 'dashboard/product/attributes/form.html',
+                            ctx)
+
+
+@staff_member_required
+def attribute_delete(request, pk):
+    attribute = get_object_or_404(ProductAttribute, pk=pk)
+    if request.method == 'POST':
+        attribute.delete()
+        messages.success(request, _('Deleted attribute %s' % attribute.name))
+        return redirect('dashboard:product-attributes')
+    ctx = {'attribute': attribute}
+    return TemplateResponse(request,
+                            'dashboard/product/attributes/confirm_delete.html',
+                            ctx)

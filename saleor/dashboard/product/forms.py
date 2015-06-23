@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 from django import forms
 from django.utils.translation import pgettext_lazy
 
-from ...product.models import (ProductImage, Stock, ProductVariant, Product)
-
+from ...product.models import (ProductImage, Stock, ProductVariant, Product,
+                               ProductAttribute)
 
 PRODUCT_CLASSES = {
     Product: 'Default'
@@ -40,13 +40,13 @@ class StockForm(forms.ModelForm):
         super(StockForm, self).__init__(*args, **kwargs)
         variants = product.variants.all()
         if variants:
-            self.fields['variant'].choices = [(variant.pk, variant) for variant in variants]
+            self.fields['variant'].choices = [(variant.pk, variant) for variant
+                                              in variants]
         else:
             self.fields['variant'].widget.attrs['disabled'] = True
 
 
 class ProductForm(forms.ModelForm):
-
     class Meta:
         model = Product
         exclude = []
@@ -55,10 +55,38 @@ class ProductForm(forms.ModelForm):
 class ProductVariantForm(forms.ModelForm):
     class Meta:
         model = ProductVariant
-        exclude = []
+        exclude = ['attributes']
         widgets = {
-            'product': forms.HiddenInput()
+            'product': forms.HiddenInput(),
+            'attributes': forms.HiddenInput()
         }
+
+    def __init__(self, *args, **kwargs):
+        super(ProductVariantForm, self).__init__(*args, **kwargs)
+        self.json_fields = []
+        self.product_attributes = self.instance.product.attributes.prefetch_related(
+            'values').all()
+        for attr in self.product_attributes:
+            field_defaults = {
+                'label': attr.display,
+                'required': False
+            }
+            if self.instance.attributes:
+                field_defaults['initial'] = self.instance.attributes.get(
+                    attr.name)
+            if attr.values.exists():
+                choices = [(value.name, value.display) for value in
+                           attr.values.all()]
+                self.fields[attr.name] = forms.ChoiceField(choices=choices,
+                                                           **field_defaults)
+            else:
+                self.fields[attr.name] = forms.CharField(**field_defaults)
+
+    def save(self, commit=True):
+        attributes = {attr.name: self.cleaned_data.pop(attr.name) for attr in
+                      self.product_attributes}
+        self.instance.attributes = attributes
+        return super(ProductVariantForm, self).save(commit=commit)
 
 
 def get_product_form(product):
@@ -93,3 +121,9 @@ class ProductImageForm(forms.ModelForm):
     class Meta:
         model = ProductImage
         exclude = ('product', 'order')
+
+
+class ProductAttributeForm(forms.ModelForm):
+    class Meta:
+        model = ProductAttribute
+        exclude = []
