@@ -50,7 +50,7 @@
                         <tbody>
                         {% for customer in customers %}
                             <tr>
-                                {% with customer.default_billing_address.address as default_address %}
+                                {% with customer.default_billing_address as default_address %}
                                 <td>
                                     <a href="{% url "dashboard:customer-details" pk=customer.pk %}">{{ customer.email }}</a>
                                 </td>

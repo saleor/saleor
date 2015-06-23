@@ -57,7 +57,7 @@
             <div class="panel-body">
                 <div>
                     {% if customer.default_billing_address %}
-                        {% with customer.default_billing_address.address as address %}
+                        {% with customer.default_billing_address as address %}
                             {% include 'dashboard/includes/_address.html' with address=address only %}
                         {% endwith %}
                     {% else %}
@@ -73,7 +73,7 @@
             <div class="panel-body">
                 <div>
                     {% if customer.default_shipping_address %}
-                        {% with customer.default_shipping_address.address as address %}
+                        {% with customer.default_shipping_address as address %}
                             {% include 'dashboard/includes/_address.html' with address=address only %}
                         {% endwith %}
                     {% else %}

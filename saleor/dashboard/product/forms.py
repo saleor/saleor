@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 from django import forms
 from django.forms.models import inlineformset_factory
-from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 
 from ...product.models import (ProductImage, Stock, ProductVariant, Product,
@@ -52,6 +51,12 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         exclude = []
+
+    def __init__(self, *args, **kwargs):
+        super(ProductForm, self).__init__(*args, **kwargs)
+        self.fields['name'].widget.attrs['placeholder'] = pgettext_lazy('Product form labels', 'Give your awesome product a name')
+        self.fields['collection'].widget.attrs['placeholder'] = pgettext_lazy('Product form labels', 'e.g. Zombie apocalypse gear')
+        self.fields['categories'].widget.attrs['data-placeholder'] = pgettext_lazy('Product form labels', 'Search')
 
 
 class ProductVariantForm(forms.ModelForm):

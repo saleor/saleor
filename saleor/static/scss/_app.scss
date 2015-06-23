@@ -29,11 +29,7 @@ $font-size-action-icon: 18px;
 @font-face {font-family: "HurmeGeometricSans4-Black";src: url("#{$roboto-font-path}2C8496_1_0.eot");src: url("#{$roboto-font-path}2C8496_1_0.eot?#iefix") format("embedded-opentype"),url("#{$roboto-font-path}2C8496_1_0.woff2") format("woff2"),url("#{$roboto-font-path}2C8496_1_0.woff") format("woff"),url("#{$roboto-font-path}2C8496_1_0.ttf") format("truetype");}
 
 @import "materialize/sass/materialize";
-@each $mdi-icon-name, $mdi-icon-value in $mdi-list-icons {
-  .#{$mdi-prefix}#{$mdi-icon-name}:before {
-    content: "\"" + $mdi-icon-value + "\"";
-  }
-}
+@import "select2/src/scss/core";
 
 .header {
   @media (min-width: $large-screen-up) {
@@ -198,6 +194,17 @@ table {
   width: calc(100% - 40px);
 }
 
+%input-lg {
+  font-size: 2.2rem;
+  height: 3.5rem;
+}
+
+#form-product {
+  #id_name {
+    @extend %input-lg;
+  }
+}
+
 .input-text-suffix {
   float: right;
   line-height: 45px;
@@ -217,4 +224,5 @@ table {
 @import "widget/form";
 @import "widget/product-gallery";
 @import "widget/product-list";
+@import "widget/select2";
 @import "widget/toast";
