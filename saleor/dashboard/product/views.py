@@ -96,10 +96,10 @@ def stock_edit(request, product_pk, stock_pk=None):
     product = get_object_or_404(Product, pk=product_pk)
     if stock_pk:
         stock = get_object_or_404(Stock, pk=stock_pk)
-        title = stock.variant
+        title = stock.variant.name
     else:
         stock = Stock()
-        title = product
+        title = _('Add stock')
     form = StockForm(request.POST or None, instance=stock, product=product)
     if product.variants.exists():
         if form.is_valid():

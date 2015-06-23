@@ -9,6 +9,14 @@
 
 {% block page_title %}{{ title }}{% endblock %}
 
+{% block breadcrumbs %}
+    <ul class="breadcrumbs breadcrumbs--with-menu">
+        <li><a href="{% url "dashboard:products" %}">{% trans "Products" %}</a></li>
+        <li><a href="{% url "dashboard:product-update" pk=product.pk %}"><i class="mdi-navigation-chevron-right"></i>{{ product }}</a></li>
+        <li><i class="mdi-navigation-chevron-right"></i> {{ title }}</li>
+    </ul>
+{% endblock %}
+
 {% block content %}
     <form method="post" id="product-form" enctype="multipart/form-data">
         <div class="row">
