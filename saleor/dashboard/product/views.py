@@ -13,7 +13,8 @@ from ..views import StaffMemberOnlyMixin, staff_member_required
 from .forms import (ProductClassForm, get_product_form,
                     get_product_cls_by_name, get_variant_form,
                     ProductImageForm, get_verbose_name, StockForm,
-                    get_variant_cls, ProductAttributeForm)
+                    get_variant_cls, ProductAttributeForm,
+                    AttributeChoiceValueFormset)
 
 
 @staff_member_required
@@ -242,15 +243,19 @@ def attribute_edit(request, pk=None):
         attribute = ProductAttribute()
         title = _('Add new attribute')
     form = ProductAttributeForm(request.POST or None, instance=attribute)
-    if form.is_valid():
-        form.save()
+    formset = AttributeChoiceValueFormset(request.POST or None,
+                                          instance=attribute)
+    if form.is_valid() and formset.is_valid():
+        attribute = form.save()
+        formset.save()
+        formset = AttributeChoiceValueFormset(instance=attribute)
         msg = _('Updated attribute') if pk else _('Added attribute')
         messages.success(request, msg)
     else:
-        if form.errors:
+        if form.errors or formset.errors:
             messages.error(request, _('Your submitted data was not valid - '
                                       'please correct the errors below'))
-    ctx = {'attribute': attribute, 'form': form, 'title': title}
+    ctx = {'attribute': attribute, 'form': form, 'formset': formset, 'title': title}
     return TemplateResponse(request, 'dashboard/product/attributes/form.html',
                             ctx)
 

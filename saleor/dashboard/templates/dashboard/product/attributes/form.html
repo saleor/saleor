@@ -5,6 +5,14 @@
 
 {% block title %}{{ title }} - {% trans "Attributes" %} - {{ block.super }}{% endblock %}
 
+{% block custom_css %}
+    <style>
+    [type=checkbox]:not(:checked), [type=checkbox]:checked {
+      position: initial;
+    }
+    </style>
+{% endblock %}
+
 {% block page_title %}{{ title }}{% endblock %}
 
 {% block content %}
@@ -14,6 +22,37 @@
                 <div class="row">
                     {% csrf_token %}
                     {{ form|materializecss }}
+                </div>
+                <div class="row">
+                    <legend>Attribute values</legend>
+                    {{ formset.management_form }}
+                    {{ formset.non_form_errors.as_ul }}
+                    <table id="formset" class="form">
+                        {% for form in formset.forms %}
+                            {% if forloop.first %}
+                                <thead>
+                                <tr>
+                                    {% for field in form.visible_fields %}
+                                        <th>{{ field.label|capfirst }}</th>
+                                    {% endfor %}
+                                </tr>
+                                </thead>
+                            {% endif %}
+                            <tr class="{% cycle row1,row2 %}">
+                                {% for field in form.visible_fields %}
+                                    <td>
+                                        {% if forloop.first %}
+                                            {% for hidden in form.hidden_fields %}
+                                                {{ hidden }}
+                                            {% endfor %}
+                                        {% endif %}
+                                        {{ field.errors.as_ul }}
+                                        {{ field|materializecss }}
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </table>
                 </div>
             </div>
         </div>

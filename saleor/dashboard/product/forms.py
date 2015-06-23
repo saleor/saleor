@@ -1,10 +1,11 @@
 from __future__ import unicode_literals
 
 from django import forms
+from django.forms.models import inlineformset_factory
 from django.utils.translation import pgettext_lazy
 
 from ...product.models import (ProductImage, Stock, ProductVariant, Product,
-                               ProductAttribute)
+                               ProductAttribute, AttributeChoiceValue)
 
 PRODUCT_CLASSES = {
     Product: 'Default'
@@ -127,3 +128,6 @@ class ProductAttributeForm(forms.ModelForm):
     class Meta:
         model = ProductAttribute
         exclude = []
+
+AttributeChoiceValueFormset = inlineformset_factory(
+    ProductAttribute, AttributeChoiceValue, exclude=(), extra=1)
