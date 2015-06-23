@@ -2,31 +2,7 @@ $roboto-font-path: "../fonts/";
 $icons-font-path: $roboto-font-path;
 
 $font-size-action-icon: 18px;
-
-/**
- * @license
- * MyFonts Webfont Build ID 2917526, 2014-11-07T07:08:31-0500
- *
- * The fonts listed in this notice are subject to the End User License
- * Agreement(s) entered into by the website owner. All other parties are
- * explicitly restricted from using the Licensed Webfonts(s).
- *
- * You may obtain a valid license at the URLs below.
- *
- * Webfont: HurmeGeometricSans4-Black by Hurme Design
- * URL: http://www.myfonts.com/fonts/hurme-design/hurme-geometric-sans-4/4-black/
- *
- *
- * License: http://www.myfonts.com/viewlicense?type=web&buildid=2917526
- * Licensed pageviews: 10,000
- * Webfonts copyright: Copyright (c) 2012 by Toni Hurme. All rights reserved.
- *
- * © 2014 MyFonts Inc
-*/
-
-/* @import must be at top of file, otherwise CSS will not work */
-@import url("//hello.myfonts.net/count/2c8496");
-@font-face {font-family: "HurmeGeometricSans4-Black";src: url("#{$roboto-font-path}2C8496_1_0.eot");src: url("#{$roboto-font-path}2C8496_1_0.eot?#iefix") format("embedded-opentype"),url("#{$roboto-font-path}2C8496_1_0.woff2") format("woff2"),url("#{$roboto-font-path}2C8496_1_0.woff") format("woff"),url("#{$roboto-font-path}2C8496_1_0.ttf") format("truetype");}
+$header-height: 60px;
 
 @import "materialize/sass/materialize";
 @import "select2/src/scss/core";
@@ -38,25 +14,42 @@ $font-size-action-icon: 18px;
 
   .top-nav {
     box-shadow: none;
-    height: 100px;
+    height: $header-height;
     margin-bottom: $gutter-width;
 
     .container {
       height: 100%;
     }
 
-    .button-collapse {
+    .header-button {
+      float: left;
       margin-right: $gutter-width;
 
+      @media (min-width: $medium-screen-up) {
+        display: none;
+      }
+
       i {
-        height: 100px;
-        line-height: 100px;
+        font-size: 2.7rem;
+        height: $header-height;
+        line-height: $header-height;
+      }
+    }
+
+    .dropdown-button {
+      float: right;
+      line-height: $header-height/2;
+      position: relative;
+      top: $header-height/4;
+
+      i {
+        line-height: $header-height/2;
       }
     }
   }
 
   .side-nav {
-    padding-top: 100px;
+    padding-top: $header-height;
 
     li {
       display: block;
@@ -79,6 +72,7 @@ $font-size-action-icon: 18px;
       }
 
       &.brand-logo {
+        padding-top: 4px;
         top: 0;
         width: 100%;
 
@@ -93,8 +87,8 @@ $font-size-action-icon: 18px;
         a {
           font-family: "HurmeGeometricSans4-Black", sans-serif;
           font-size: 36px;
-          height: 100px;
-          line-height: 100px;
+          height: $header-height;
+          line-height: $header-height;
           letter-spacing: -4px;
           letter-spacing: -.5vmin;
           margin-left: -4px;
@@ -119,7 +113,7 @@ $font-size-action-icon: 18px;
           i {
             vertical-align: inherit;
             width: auto;
-            margin: 5px;
+            margin: 0 5px;
 
             &:last-child {
               margin-right: 0;
@@ -130,6 +124,9 @@ $font-size-action-icon: 18px;
         ul ul {
           li {
             a {
+              background: map-get($grey, lighten-5);
+              height: 52px;
+              line-height: 52px;
               padding-left: 30px;
             }
           }
@@ -158,8 +155,8 @@ $font-size-action-icon: 18px;
 
 .page-title {
   display: block;
-  font-size: 36px;
-  line-height: 100px;
+  font-size: $h5-fontsize;
+  line-height: $header-height;
 
   @media (max-width: $medium-screen) {
     float: right;
@@ -183,12 +180,6 @@ table {
   }
 }
 
-.btn-fab {
-  position: absolute;
-  bottom: -$button-floating-size*1.5/2;
-  right: 0;
-}
-
 #id_price {
   float: left;
   width: calc(100% - 40px);
@@ -201,6 +192,10 @@ table {
 
 #form-product {
   #id_name {
+    @extend %input-lg;
+  }
+
+  #id_price {
     @extend %input-lg;
   }
 }
@@ -220,6 +215,7 @@ table {
   color: #999;
 }
 
+@import "widget/breadcrumbs";
 @import "widget/category-list";
 @import "widget/form";
 @import "widget/product-gallery";
