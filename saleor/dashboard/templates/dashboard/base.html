@@ -20,8 +20,14 @@
         <nav class="top-nav">
             <div class="container">
                 <div class="nav-wrapper">
-                    <span class="page-title">{% block page_title %}{% trans "Dashboard" %}{% endblock %}</span>
-                    <a href="#" data-activates="side-menu" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
+                    {% block header_menu %}
+                        <a href="#" data-activates="side-menu" class="button-collapse header-button"><i class="mdi-navigation-menu"></i></a>
+                    {% endblock %}
+                    {% block breadcrumbs %}
+                        <ul class="breadcrumbs">
+                            <li>{% trans "Dashboard" %}</li>
+                        </ul>
+                    {% endblock %}
                     {% block header_extra %}{% endblock %}
                 </div>
             </div>

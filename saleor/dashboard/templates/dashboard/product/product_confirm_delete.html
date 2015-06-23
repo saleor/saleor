@@ -30,7 +30,7 @@
 
         <div class="row">
             <div class="col m6 l4 offset-m3 offset-l4 right-align">
-                <a href="{% url 'dashboard:products' %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
+                <a href="{% url 'dashboard:product-update' pk=object.pk %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
                 <button type="submit" class="btn materialize-red"><i class="mdi-action-delete"></i> {% trans "Delete" %}</button>
             </div>
         </div>

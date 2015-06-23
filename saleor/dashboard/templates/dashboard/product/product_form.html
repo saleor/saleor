@@ -10,6 +10,32 @@
 
 {% block page_title %}{{ title }}{% endblock %}
 
+{% block header_menu %}
+    <a href="{% url "dashboard:products" %}" class="header-button"><i class="mdi-navigation-arrow-back"></i></a>
+{% endblock %}
+
+{% block header_extra %}
+    {% if product.pk %}
+    <a class="dropdown-button" href="#" data-activates="product-delete">
+        <i class="mdi-navigation-more-vert"></i>
+    </a>
+    <ul id="product-delete" class="dropdown-content">
+        <li>
+            <a href="{% url "dashboard:product-delete" pk=product.pk %}">
+                {% trans "Remove" %}
+            </a>
+        </li>
+    </ul>
+    {% endif %}
+{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs breadcrumbs--with-menu">
+        <li><a href="{% url "dashboard:products" %}">{% trans "Products" %}</a></li>
+        <li><i class="mdi-navigation-chevron-right"></i> {{ title }}</li>
+    </ul>
+{% endblock %}
+
 {% block content %}
 <form method="post" id="product-form" enctype="multipart/form-data">
     <div class="row" hidden>
@@ -36,23 +62,36 @@
     {% endif %}
 
     <div class="row" id="details">
-        <div class="col l8 offset-l2">
-            <div class="row" id="form-product">
+    <div id="form-product">
+        <div class="col l8" >
+            <div class="row">
                 {% csrf_token %}
-                {{ product_form|materializecss }}
+                {{ product_form.name|materializecss }}
+                {{ product_form.description|materializecss }}
+            </div>
+            </div>
+
+    <div class="col l4"><div class="row">
+                {{ product_form.price|materializecss }}
+                {{ product_form.weight|materializecss }}
+                {{ product_form.collection|materializecss }}
+                {{ product_form.sku|materializecss:"s12 m6" }}
+                {{ product_form.categories|materializecss:"input-field s12" }}
+            </div>
             </div>
 
             <div class="row">
                 <div class="col s12 right-align">
-                    <a href="{% url 'dashboard:products' %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
+
                     {% if product.pk %}
-                        <button type="submit" name="product-form" class="btn"><i class="mdi-content-save"></i> {% trans "Update" %}</button>
+                        <button type="submit" name="product-form" class="btn">{% trans "Update" %}</button>
                     {% else %}
-                        <button type="submit" name="product-form" class="btn"><i class="mdi-content-create"></i> {% trans "Create" %}</button>
+                        <button type="submit" name="product-form" class="btn">{% trans "Create" %}</button>
                     {% endif %}
                 </div>
             </div>
         </div>
+    </div>
     </div>
 </form>
 

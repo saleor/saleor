@@ -8,13 +8,19 @@
 
 {% block body_class %}body-products{% endblock %}
 
-{% block page_title %}{% trans "Products" %}{% endblock %}
-
 {% block header_extra %}
-    <a class="btn-fab btn-floating btn-large waves-effect waves-light teal modal-trigger"
-       href="#modal-product-class" title="{% trans "Add product" %}">
-        <i class="mdi-content-add"></i>
-    </a>
+    <div class="fixed-action-btn">
+        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal modal-trigger"
+           href="#modal-product-class" title="{% trans "Add product" %}">
+            <i class="mdi-content-add"></i>
+        </a>
+    </div>
+{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs">
+        <li>{% trans "Products" %}</li>
+    </ul>
 {% endblock %}
 
 {% block content %}

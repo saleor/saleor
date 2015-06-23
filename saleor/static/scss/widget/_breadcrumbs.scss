@@ -1,0 +1,49 @@
+@mixin breadcrumbs {
+  color: map-get($materialize-red, lighten-3);
+  display: block;
+  float: left;
+  font-size: $h5-fontsize;
+  line-height: $header-height;
+  white-space: nowrap;
+
+  @media (max-width: $medium-screen) {
+    width: calc(100% - 38px - 1.5rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  li {
+    display: inline-block;
+    float: none;
+    line-height: $header-height/2;
+
+    &:hover {
+      background: none;
+    }
+
+    a {
+      font-size: $h5-fontsize;
+      padding: 0;
+    }
+
+    i {
+      display: inline-block;
+      height: auto;
+      line-height: 1;
+      vertical-align: bottom;
+    }
+  }
+
+  &--with-menu {
+    width: calc(100% - 38px - 1.5rem);
+
+    @media (max-width: $medium-screen) {
+      width: calc(100% - 76px - 3rem);
+    }
+  }
+}
+
+.breadcrumbs {
+  @include breadcrumbs;
+}
