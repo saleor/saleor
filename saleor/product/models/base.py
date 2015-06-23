@@ -203,18 +203,22 @@ class Stock(models.Model):
 
 @python_2_unicode_compatible
 class ProductAttribute(models.Model):
-    name = models.CharField(max_length=100)
-    display = models.CharField(max_length=100)
+    display = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
-        return self.name
+        return self.display
+
+    def get_slug(self):
+        return slugify(self.display)
 
 
 @python_2_unicode_compatible
 class AttributeChoiceValue(models.Model):
-    name = models.CharField(max_length=100)
     display = models.CharField(max_length=100)
     attribute = models.ForeignKey(ProductAttribute, related_name='values')
 
     def __str__(self):
-        return self.name
+        return self.display
+
+    def get_slug(self):
+        return slugify('%s %s' % (self.attribute.display, self.display))

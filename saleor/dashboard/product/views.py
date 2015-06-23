@@ -248,9 +248,9 @@ def attribute_edit(request, pk=None):
     if form.is_valid() and formset.is_valid():
         attribute = form.save()
         formset.save()
-        formset = AttributeChoiceValueFormset(instance=attribute)
         msg = _('Updated attribute') if pk else _('Added attribute')
         messages.success(request, msg)
+        return redirect('dashboard:product-attribute-update', pk=attribute.pk)
     else:
         if form.errors or formset.errors:
             messages.error(request, _('Your submitted data was not valid - '
@@ -265,7 +265,7 @@ def attribute_delete(request, pk):
     attribute = get_object_or_404(ProductAttribute, pk=pk)
     if request.method == 'POST':
         attribute.delete()
-        messages.success(request, _('Deleted attribute %s' % attribute.name))
+        messages.success(request, _('Deleted attribute %s' % attribute.display))
         return redirect('dashboard:product-attributes')
     ctx = {'attribute': attribute}
     return TemplateResponse(request,

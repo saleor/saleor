@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django import forms
 from django.forms.models import inlineformset_factory
+from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 
 from ...product.models import (ProductImage, Stock, ProductVariant, Product,
@@ -74,18 +75,18 @@ class ProductVariantForm(forms.ModelForm):
             }
             if self.instance.attributes:
                 field_defaults['initial'] = self.instance.attributes.get(
-                    attr.name)
+                    attr.get_slug())
             if attr.values.exists():
-                choices = [(value.name, value.display) for value in
+                choices = [(value.get_slug(), value.display) for value in
                            attr.values.all()]
-                self.fields[attr.name] = forms.ChoiceField(choices=choices,
-                                                           **field_defaults)
+                self.fields[attr.get_slug()] = forms.ChoiceField(
+                    choices=choices, **field_defaults)
             else:
-                self.fields[attr.name] = forms.CharField(**field_defaults)
+                self.fields[attr.get_slug()] = forms.CharField(**field_defaults)
 
     def save(self, commit=True):
-        attributes = {attr.name: self.cleaned_data.pop(attr.name) for attr in
-                      self.product_attributes}
+        attributes = {attr.get_slug(): self.cleaned_data.pop(attr.get_slug())
+                      for attr in self.product_attributes}
         self.instance.attributes = attributes
         return super(ProductVariantForm, self).save(commit=commit)
 
@@ -128,6 +129,7 @@ class ProductAttributeForm(forms.ModelForm):
     class Meta:
         model = ProductAttribute
         exclude = []
+
 
 AttributeChoiceValueFormset = inlineformset_factory(
     ProductAttribute, AttributeChoiceValue, exclude=(), extra=1)
