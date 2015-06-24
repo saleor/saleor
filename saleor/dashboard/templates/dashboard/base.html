@@ -48,7 +48,11 @@
                         </li>
                     </ul>
                 </li>
-                <li class="brand-logo"><a href="{% url 'dashboard:index' %}">Saleor</a></li>
+                <li class="brand-logo">
+                    <a href="{% url 'dashboard:index' %}">
+                        <img src="{% static "img/dashboard-logo.svg" %}" alt="Saleor">
+                    </a>
+                </li>
                 <li class="nav-home"><a href="{% url 'dashboard:index' %}" class="waves-effect waves-teal">Home</a></li>
                 <li class="nav-orders"><a href="{% url 'dashboard:orders' %}" class="waves-effect waves-teal">Orders</a></li>
                 <li class="nav-products"><a href="{% url 'dashboard:products' %}" class="waves-effect waves-teal">Products</a></li>
