@@ -79,18 +79,17 @@ class ProductVariantForm(forms.ModelForm):
                 'required': True
             }
             if self.instance.attributes:
-                field_defaults['initial'] = self.instance.attributes.get(
-                    attr.get_slug())
-            if attr.values.exists():
-                choices = [('', '')] + [(value.get_slug(), value.display)
+                field_defaults['initial'] = self.instance.attributes.get(attr.pk)
+            if attr.has_values():
+                choices = [('', '')] + [(value.pk, value.display)
                                         for value in attr.values.all()]
-                self.fields[attr.get_slug()] = forms.ChoiceField(
+                self.fields[attr.get_formfield_name()] = forms.ChoiceField(
                     choices=choices, **field_defaults)
             else:
-                self.fields[attr.get_slug()] = forms.CharField(**field_defaults)
+                self.fields[attr.get_formfield_name()] = forms.CharField(**field_defaults)
 
     def save(self, commit=True):
-        attributes = {attr.get_slug(): self.cleaned_data.pop(attr.get_slug())
+        attributes = {attr.pk: self.cleaned_data.pop(attr.get_formfield_name())
                       for attr in self.product_attributes}
         self.instance.attributes = attributes
         return super(ProductVariantForm, self).save(commit=commit)

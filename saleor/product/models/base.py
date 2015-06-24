@@ -174,6 +174,15 @@ class ProductVariant(models.Model, Item):
     def is_available(self):
         return any([stock_item.is_available() for stock_item in self.stock.all()])
 
+    def get_attributes_display(self):
+        display = {}
+        for attr_pk, value in self.attributes.iteritems():
+            attribute = ProductAttribute.objects.get(pk=attr_pk)
+            if attribute.has_values():
+                display[attribute.display] = attribute.values.get(pk=value).display
+            else:
+                display[attribute.display] = value
+        return display
 
 @python_2_unicode_compatible
 class Stock(models.Model):
@@ -208,8 +217,11 @@ class ProductAttribute(models.Model):
     def __str__(self):
         return self.display
 
-    def get_slug(self):
-        return slugify(self.display)
+    def get_formfield_name(self):
+        return slugify('attribute-%s' % self.display)
+
+    def has_values(self):
+        return self.values.exists()
 
 
 @python_2_unicode_compatible
