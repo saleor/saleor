@@ -4,9 +4,11 @@
 
 {% block title %}{% trans "Attributes" %} - {{ block.super }}{% endblock %}
 
-{% block body_class %}body-attributes{% endblock %}
-
-{% block page_title %}{% trans "Attributes" %}{% endblock %}
+{% block breadcrumbs %}
+    <ul class="breadcrumbs breadcrumbs--with-menu">
+        <li>{% trans "Attributes" %}</li>
+    </ul>
+{% endblock %}
 
 {% block content %}
     <div class="row">

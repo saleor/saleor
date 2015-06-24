@@ -3,9 +3,15 @@
 
 {% block title %}{% trans "Delete attribute" %} - {{ block.super }}{% endblock %}
 
-{% block page_title %}{% trans "Are you sure you want to delete the following attribute?" %}{% endblock %}
+{% block breadcrumbs %}
+    <ul class="breadcrumbs breadcrumbs--with-menu">
+        <li><a href="{% url 'dashboard:product-attributes' %}">{% trans "Attributes" %}</a></li>
+        <li><i class="mdi-navigation-chevron-right"></i> {% trans "Delete attribute" %}</li>
+    </ul>
+{% endblock %}
 
 {% block content %}
+    <p>{% trans "Are you sure you want to delete the following attribute?" %}</p>
     <form method="post">
         {% csrf_token %}
         <div class="row">
