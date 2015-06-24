@@ -216,12 +216,14 @@ def variant_edit(request, product_pk, variant_pk=None):
 def variant_delete(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
     variant = get_object_or_404(product.variants, pk=variant_pk)
+    is_only_variant = product.variants.count() == 1
     if request.method == 'POST':
         variant.delete()
         messages.success(request, _('Deleted variant %s') % variant.name)
         success_url = request.POST['success_url']
         return redirect(success_url)
-    ctx = {'product': product, 'variant': variant}
+    ctx = {'product': product, 'variant': variant,
+           'is_only_variant': is_only_variant}
     return TemplateResponse(
         request, 'dashboard/product/product_variant_confirm_delete.html', ctx)
 
