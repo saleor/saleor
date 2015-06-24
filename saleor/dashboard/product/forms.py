@@ -89,15 +89,10 @@ class ProductVariantForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ProductVariantForm, self).__init__(*args, **kwargs)
         self.json_fields = []
-        self.product_attributes = self.instance.product.attributes.prefetch_related(
-            'values').all()
-        for attr in self.product_attributes:
-            field_defaults = {
-                'label': attr.display,
-                'required': True
-            }
-            if self.instance.attributes:
-                field_defaults['initial'] = self.instance.attributes.get(attr.pk)
+        self.available_attrs = self.instance.product.attributes.prefetch_related('values').all()
+        for attr in self.available_attrs:
+            field_defaults = {'label': attr.display, 'required': True,
+                              'initial': self.instance.get_attribute(attr.pk)}
             if attr.has_values():
                 choices = [('', '')] + [(value.pk, value.display)
                                         for value in attr.values.all()]
@@ -108,7 +103,7 @@ class ProductVariantForm(forms.ModelForm):
 
     def save(self, commit=True):
         attributes = {attr.pk: self.cleaned_data.pop(attr.get_formfield_name())
-                      for attr in self.product_attributes}
+                      for attr in self.available_attrs}
         self.instance.attributes = attributes
         return super(ProductVariantForm, self).save(commit=commit)
 

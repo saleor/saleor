@@ -130,7 +130,7 @@ class ProductVariant(models.Model, Item):
         max_digits=6, decimal_places=2, blank=True, null=True)
     product = models.ForeignKey(Product, related_name='variants')
     attributes = JSONField(pgettext_lazy('Variant field', 'attributes'),
-                           blank=True)
+                           default={})
 
     objects = InheritanceManager()
 
@@ -176,14 +176,17 @@ class ProductVariant(models.Model, Item):
 
     def get_attributes_display(self):
         display = {}
-        if self.attributes:
-            for attr_pk, value in self.attributes.iteritems():
-                attribute = ProductAttribute.objects.get(pk=attr_pk)
-                if attribute.has_values():
-                    display[attribute.display] = attribute.values.get(pk=value).display
-                else:
-                    display[attribute.display] = value
+        for attr_pk, value in self.attributes.iteritems():
+            attribute = ProductAttribute.objects.get(pk=attr_pk)
+            if attribute.has_values():
+                display[attribute.display] = attribute.values.get(pk=value).display
+            else:
+                display[attribute.display] = value
         return display
+
+    def get_attribute(self, pk):
+        return self.attributes.get(str(pk))
+
 
 @python_2_unicode_compatible
 class Stock(models.Model):

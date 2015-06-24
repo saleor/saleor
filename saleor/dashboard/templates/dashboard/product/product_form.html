@@ -101,7 +101,7 @@
                     <ul class="collection">
                         {% for variant in variants %}
                             <li class="collection-item">
-                                {{ variant.name }}, SKU: {{ variant.sku }}, price: {% gross variant.get_price_per_item %}
+                                {{ variant.get_attributes_display }}, SKU: {{ variant.sku }}, price: {% gross variant.get_price_per_item %}
                                 <a class="light-blue-text text-lighten-1" title="{% trans "Edit variant" %}"
                                         href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}">
                                     <i class="mdi-content-create"></i>
