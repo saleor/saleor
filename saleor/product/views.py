@@ -11,15 +11,6 @@ from .models import Product, Category
 from saleor.cart import Cart
 
 
-def get_related_products(product):
-    if not product.collection:
-        return []
-    related_products = Product.objects.filter(
-        collection=product.collection).exclude(id=product.id)
-    related_products = related_products.prefetch_related('images')
-    return related_products
-
-
 def product_details(request, slug, product_id):
     products = Product.objects.select_subclasses()
     products = products.prefetch_related('categories')
@@ -41,11 +32,9 @@ def product_details(request, slug, product_id):
     template_name = 'product/details_%s.html' % (
         type(product).__name__.lower(),)
     templates = [template_name, 'product/details.html']
-    related_products = get_related_products(product)
     return TemplateResponse(
         request, templates,
-        {'product': product, 'form': form,
-         'related_products': related_products})
+        {'product': product, 'form': form})
 
 
 def category_index(request, slug):

@@ -72,23 +72,6 @@
                 {{ product.description|markdown }}
             </div>
 
-            {% if related_products %}
-                <hr>
-
-                <h4>{% trans "Also in this collection" %}</h4>
-
-                <div class="row product-related">
-                    {% for related in related_products %}
-                        {% if related.id != product.id %}
-                            <a href="{{ related.get_absolute_url }}" class="col-xs-3">
-                                <img src="{{ related.images.first.image.crop.280x280 }}" alt=""
-                                     class="thumbnail img-responsive">
-                            </a>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-            {% endif %}
-
         </div>
 
         {% with images=product.images.all %}

@@ -55,7 +55,6 @@ class ProductForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ProductForm, self).__init__(*args, **kwargs)
         self.fields['name'].widget.attrs['placeholder'] = pgettext_lazy('Product form labels', 'Give your awesome product a name')
-        self.fields['collection'].widget.attrs['placeholder'] = pgettext_lazy('Product form labels', 'e.g. Zombie apocalypse gear')
         self.fields['categories'].widget.attrs['data-placeholder'] = pgettext_lazy('Product form labels', 'Search')
         self.fields['attributes'].widget.attrs['data-placeholder'] = pgettext_lazy('Product form labels', 'Search')
 

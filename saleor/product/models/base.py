@@ -48,7 +48,6 @@ class Product(models.Model, ItemRange):
         pgettext_lazy('Product field', 'name'), max_length=128)
     description = models.TextField(
         verbose_name=pgettext_lazy('Product field', 'description'))
-    collection = models.CharField(db_index=True, max_length=100, blank=True)
     categories = models.ManyToManyField(
         Category, verbose_name=pgettext_lazy('Product field', 'categories'),
         related_name='products')

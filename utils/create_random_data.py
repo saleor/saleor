@@ -11,7 +11,6 @@ from saleor.product.models import Category
 from saleor.userprofile.models import User, Address
 
 fake = Factory.create()
-PRODUCT_COLLECTIONS = fake.words(10)
 STOCK_LOCATION = 'default'
 
 
@@ -26,15 +25,9 @@ def get_or_create_category(name, **kwargs):
 
 
 def create_product(**kwargs):
-    if random.choice([True, False]):
-        collection = random.choice(PRODUCT_COLLECTIONS)
-    else:
-        collection = ''
-
     defaults = {
         'name': fake.company(),
         'price': fake.pyfloat(2, 2, positive=True),
-        'collection': collection,
         'weight': fake.random_digit(),
         'description': '\n\n'.join(fake.paragraphs(5))
     }
@@ -87,7 +80,7 @@ def create_items(placeholder_dir, how_many=10):
     default_category = get_or_create_category('Default')
 
     for i in range(how_many):
-        product = create_product(collection='')
+        product = create_product()
         product.categories.add(default_category)
 
         create_variant(product)  # ensure at least one variant
