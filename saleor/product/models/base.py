@@ -176,12 +176,13 @@ class ProductVariant(models.Model, Item):
 
     def get_attributes_display(self):
         display = {}
-        for attr_pk, value in self.attributes.iteritems():
-            attribute = ProductAttribute.objects.get(pk=attr_pk)
-            if attribute.has_values():
-                display[attribute.display] = attribute.values.get(pk=value).display
-            else:
-                display[attribute.display] = value
+        if self.attributes:
+            for attr_pk, value in self.attributes.iteritems():
+                attribute = ProductAttribute.objects.get(pk=attr_pk)
+                if attribute.has_values():
+                    display[attribute.display] = attribute.values.get(pk=value).display
+                else:
+                    display[attribute.display] = value
         return display
 
 @python_2_unicode_compatible
