@@ -30,3 +30,21 @@ if (el) {
     }
   });
 }
+$('#select-all').on('change', function() {
+  if (this.checked) {
+    $('.switch-actions').prop('checked', true);
+  } else {
+    $('.switch-actions').prop('checked', false);
+  }
+});
+$('.switch-actions').on('change', function() {
+  var $btnChecked = $('.btn-show-when-checked');
+  var $btnUnchecked = $('.btn-show-when-unchecked');
+  if($('.switch-actions:checked').length) {
+    $btnChecked.show();
+    $btnUnchecked.hide();
+  } else {
+    $btnUnchecked.show();
+    $btnChecked.hide();
+  }
+});

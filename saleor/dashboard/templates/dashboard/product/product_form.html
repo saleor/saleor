@@ -62,26 +62,26 @@
     {% endif %}
 
     <div class="row" id="details">
-    <div id="form-product">
-        <div class="col l8" >
-            <div class="row">
-                {% csrf_token %}
-                {{ product_form.name|materializecss }}
-                {{ product_form.description|materializecss }}
-            </div>
-            </div>
-
-    <div class="col l4"><div class="row">
-                {{ product_form.price|materializecss }}
-                {{ product_form.weight|materializecss }}
-                {{ product_form.categories|materializecss:"input-field s12" }}
-                {{ product_form.attributes|materializecss:"input-field s12" }}
-            </div>
+        <form method="post" id="form-product" enctype="multipart/form-data">
+            <div class="col l8" >
+                <div class="row">
+                    {% csrf_token %}
+                    {{ product_form.name|materializecss }}
+                    {{ product_form.description|materializecss }}
+                </div>
             </div>
 
-            <div class="row">
-                <div class="col s12 right-align">
+            <div class="col l4">
+                <div class="row">
+                    {{ product_form.price|materializecss }}
+                    {{ product_form.weight|materializecss }}
+                    {{ product_form.categories|materializecss:"input-field s12" }}
+                    {{ product_form.attributes|materializecss:"input-field s12" }}
+                </div>
+            </div>
 
+            <div class="col s12 right-align">
+                <div class="row">
                     {% if product.pk %}
                         <button type="submit" name="product-form" class="btn">{% trans "Update" %}</button>
                     {% else %}
@@ -89,41 +89,57 @@
                     {% endif %}
                 </div>
             </div>
-        </div>
+        </form>
     </div>
-    </div>
-</form>
 
     {% if product.pk %}
-        <div id="variants">
-            <div class="row">
-                <div class="col l12">
-                    <ul class="collection">
-                        {% for variant in variants %}
-                            <li class="collection-item">
-                                {{ variant.get_attributes_display }}, SKU: {{ variant.sku }}, price: {% gross variant.get_price_per_item %}
-                                <a class="light-blue-text text-lighten-1" title="{% trans "Edit variant" %}"
-                                        href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}">
-                                    <i class="mdi-content-create"></i>
-                                </a>
-                                <a class="materialize-red-text text-lighten-2" title="{% trans "Delete variant" %}"
-                                        href="{% url 'dashboard:variant-delete' product_pk=product.pk variant_pk=variant.pk %}">
-                                    <i class="mdi-action-delete"></i>
-                                </a>
-                            </li>
-                        {% empty %}
-                            <span>{% trans "No variants" %}</span>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col s12 right-align">
-                    <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn">
-                        <i class="mdi-content-add"></i> {% trans "Add new variant" %}
+        <div id="variants" class="card">
+            <form>
+                <div class="data-table-header">
+                    <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
+                        {% trans "Add" %}
                     </a>
+
+                    <button type="submit" class="btn-data-table btn-show-when-checked red-text" hidden>{% trans "Delete" %}</button>
                 </div>
-            </div>
+                <table class="bordered hoverable data-table">
+                    <thead>
+                        <tr>
+                            <th class="bulk-checkbox">
+                                <input type="checkbox" id="select-all" class="filled-in switch-actions">
+                                <label for="select-all"></label>
+                            </th>
+                            <th>{% trans "Name" %}</th>
+                            <th class="right-align">{% trans "SKU" %}</th>
+                            <th class="right-align">{% trans "Price" %}</th>
+                            <th class="right-align">{% trans "Weight" %}</th>
+                            <th>{% trans "Attributes" %}</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for variant in variants %}
+                            <tr>
+                                <td class="bulk-checkbox">
+                                    <input name="variant_id" type="checkbox" id="{{ variant.id }}" class="filled-in switch-actions">
+                                    <label for="{{ variant.id }}"></label>
+                                </td>
+                                <td><a class="light-blue-text text-lighten-1" title="{% trans "Edit variant" %}"
+                                            href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}">
+                                    {{ variant.name }}</a></td>
+                                <td class="right-align">{{ variant.sku }}</td>
+                                <td class="right-align">{% gross variant.get_price_per_item %}</td>
+                                <td class="right-align">{{ variant.get_weight }}</td>
+                                <td>
+                                    {% for name, value in variant.get_attributes_display.items %}
+                                        {{ name }}: {{ value }}{% if not forloop.last %},{% endif %}
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </form>
         </div>
 
         <div id="images">

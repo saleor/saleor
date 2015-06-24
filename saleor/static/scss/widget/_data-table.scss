@@ -1,0 +1,52 @@
+@mixin data-table {
+  &-header {
+    padding: 21px 24px;
+  }
+  input[type=checkbox].filled-in + label {
+    margin-top: 5px;
+    padding: 0;
+
+    &:after {
+      display: inline-block;
+      position: static;
+    }
+  }
+
+  th, td {
+    height: 48px;
+    overflow: hidden;
+    padding: 0 28px;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+    white-space: nowrap;
+
+    &:first-child {
+      padding-left: 24px;
+    }
+
+    &:last-child {
+      padding-right: 24px;
+    }
+  }
+
+  th {
+    border-top: 1px solid $table-border-color;
+    color: map_get($grey, darken-1);
+    font-weight: normal;
+    font-size: 85%;
+    height: 56px;
+  }
+
+  .bulk-checkbox {
+    padding: 0 24px;
+    width: 1px;
+
+    + th, + td {
+      padding-left: 0;
+    }
+  }
+}
+
+.data-table {
+  @include data-table;
+}

@@ -43,6 +43,7 @@ $header-height: 60px;
       top: $header-height/4;
 
       i {
+        height: $header-height/2;
         line-height: $header-height/2;
       }
     }
@@ -72,7 +73,6 @@ $header-height: 60px;
       }
 
       &.brand-logo {
-        padding-top: 4px;
         top: 0;
         width: 100%;
 
@@ -85,22 +85,15 @@ $header-height: 60px;
         }
 
         a {
-          font-family: "HurmeGeometricSans4-Black", sans-serif;
-          font-size: 36px;
+          display: block;
           height: $header-height;
-          line-height: $header-height;
-          letter-spacing: -4px;
-          letter-spacing: -.5vmin;
-          margin-left: -4px;
-          margin-left: -.5vmin;
+          padding: 0;
           text-align: center;
-          text-transform: uppercase;
 
-          @media (min-width: $large-screen-up) {
-            font-size: 46px;
-            font-size: 4vmin;
+          img {
+            height: 100%;
+            padding: 15px 0;
           }
-
         }
       }
 
@@ -185,21 +178,6 @@ table {
   width: calc(100% - 40px);
 }
 
-%input-lg {
-  font-size: 2.2rem;
-  height: 3.5rem;
-}
-
-#form-product {
-  #id_name {
-    @extend %input-lg;
-  }
-
-  #id_price {
-    @extend %input-lg;
-  }
-}
-
 .input-text-suffix {
   float: right;
   line-height: 45px;
@@ -215,8 +193,17 @@ table {
   color: #999;
 }
 
+.btn-data-table {
+  background: none;
+  border: none;
+  font-weight: bold;
+  padding: 0;
+  text-transform: uppercase;
+}
+
 @import "widget/breadcrumbs";
 @import "widget/category-list";
+@import "widget/data-table";
 @import "widget/form";
 @import "widget/product-gallery";
 @import "widget/product-list";

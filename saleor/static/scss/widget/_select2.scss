@@ -17,8 +17,20 @@
       .select2-selection__choice {
         background-color: map_get($blue, lighten-4);
         border-color: map-get($blue, lighten-3);
+        border-radius: 2px;
         line-height: 1.5;
         margin-top: 10px;
+
+        &__remove {
+          @extend .mdi-navigation-close;
+          font-size: 0;
+
+          &:before {
+            display: inline-block;
+            font-family: $font-mdi;
+            font-size: 12px;
+          }
+        }
       }
     }
 

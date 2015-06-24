@@ -23,6 +23,21 @@
     margin: -7px 0 15px;
     font-size: $label-font-size;
   }
+
+  %input-lg {
+    font-size: 2.2rem;
+    height: 3.5rem;
+  }
+
+  &#form-product {
+    #id_name {
+      @extend %input-lg;
+    }
+
+    #id_price {
+      @extend %input-lg;
+    }
+  }
 }
 
 form {
