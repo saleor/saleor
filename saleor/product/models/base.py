@@ -175,8 +175,8 @@ class ProductVariant(models.Model, Item):
     def get_attributes_display(self):
         display = {}
         for attr_pk, value in self.attributes.iteritems():
-            attribute = ProductAttribute.objects.get(pk=attr_pk)
-            if self.product.attributes.filter(pk=attribute.pk):
+            if self.product.attributes.filter(pk=attr_pk):
+                attribute = ProductAttribute.objects.get(pk=attr_pk)
                 if attribute.has_values():
                     try:
                         value = attribute.values.get(pk=value)
