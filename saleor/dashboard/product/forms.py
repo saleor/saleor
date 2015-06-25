@@ -75,6 +75,7 @@ class ProductVariantForm(forms.ModelForm):
         self.fields['price_override'].widget.attrs['placeholder'] = gross(self.instance.product.price)
         self.fields['weight_override'].widget.attrs['placeholder'] = self.instance.product.weight
 
+        self.attribute_fields = []
         self.available_attrs = self.instance.product.attributes.prefetch_related('values').all()
         for attr in self.available_attrs:
             field_defaults = {'label': attr.display, 'required': True,
@@ -82,10 +83,11 @@ class ProductVariantForm(forms.ModelForm):
             if attr.has_values():
                 choices = [('', '')] + [(value.pk, value.display)
                                         for value in attr.values.all()]
-                self.fields[attr.get_formfield_name()] = forms.ChoiceField(
-                    choices=choices, **field_defaults)
+                field = forms.ChoiceField(choices=choices, **field_defaults)
             else:
-                self.fields[attr.get_formfield_name()] = forms.CharField(**field_defaults)
+                field = forms.CharField(**field_defaults)
+            self.fields[attr.get_formfield_name()] = field
+            self.attribute_fields.append(field)
 
     def save(self, commit=True):
         attributes = {attr.pk: self.cleaned_data.pop(attr.get_formfield_name())
