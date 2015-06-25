@@ -32,7 +32,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--with-menu">
-        <li class="hide-on-small-only"><a href="{% url "dashboard:products" %}">{% trans "Products" %}</a></li>
+        <li><a href="{% url "dashboard:products" %}">{% trans "Products" %}</a></li>
         <li title="{{ title }}">{{ title }}</li>
     </ul>
 {% endblock %}

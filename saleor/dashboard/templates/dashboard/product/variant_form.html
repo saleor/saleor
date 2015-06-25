@@ -9,22 +9,35 @@
 
 {% block page_title %}{{ title }}{% endblock %}
 
+{% block header_menu %}
+    {% url "dashboard:product-update" pk=product.pk as url %}
+    {% include "dashboard/includes/_back-link.html" with url=url hash="#variants" %}
+{% endblock %}
+
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--with-menu">
         <li><a href="{% url "dashboard:products" %}">{% trans "Products" %}</a></li>
-        <li><a href="{% url "dashboard:product-update" pk=product.pk %}#variants"><i class="mdi-navigation-chevron-right"></i>{{ product }}</a></li>
-        <li><i class="mdi-navigation-chevron-right"></i> {{ title }}</li>
+        <li><a href="{% url "dashboard:product-update" pk=product.pk %}#variants">{{ product }}</a></li>
+        <li>{{ title }}</li>
     </ul>
 {% endblock %}
 
 {% block content %}
-    <form method="post" id="variant-form" enctype="multipart/form-data">
+    <form method="post" id="form-variant" enctype="multipart/form-data">
         <div class="row">
-            <div class="col l8 offset-l2">
+            <div class="col l4 offset-l2">
                 <div class="row">
                     {% csrf_token %}
-                    {{ form|materializecss }}
                     <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#variants">
+                </div>
+            </div>
+
+            <div class="col l4">
+                <div class="row">
+                    {{ form.sku|materializecss }}
+                    {{ form.price_override|materializecss }}
+                    {{ form.weight_override|materializecss }}
+                    {{ form.name|materializecss }}
                 </div>
             </div>
         </div>

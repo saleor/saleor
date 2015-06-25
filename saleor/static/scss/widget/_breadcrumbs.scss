@@ -12,9 +12,17 @@
   }
 
   li {
-    display: inline;
+    display: none;
     float: none;
     line-height: $header-height/2;
+
+    @media (min-width: $small-screen-up) {
+      display: inline;
+    }
+
+    &:last-child {
+      display: inline;
+    }
 
     &:hover {
       background: none;
@@ -36,6 +44,7 @@
         color: map-get($materialize-red, lighten-4);
         display: inline-block;
         font-family: "Material-Design-Icons", sans-serif;
+        margin-left: 5px;
         vertical-align: bottom;
       }
     }

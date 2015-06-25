@@ -9,6 +9,14 @@
 
   label {
     @extend .active;
+
+    &:not(.required) {
+      &:before {
+        content: "(optional)";
+        float: right;
+        margin-left: 3px;
+      }
+    }
   }
 
   input[type=radio] {
@@ -26,7 +34,6 @@
 
   %input-lg {
     font-size: 2.2rem;
-    height: 3.5rem;
   }
 
   &#form-product {
@@ -35,6 +42,16 @@
     }
 
     #id_price {
+      @extend %input-lg;
+    }
+  }
+
+  &#form-variant {
+    #id_sku {
+      @extend %input-lg;
+    }
+
+    #id_price_override {
       @extend %input-lg;
     }
   }
