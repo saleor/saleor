@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from decimal import Decimal
 
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator, RegexValidator
 from django.utils.encoding import python_2_unicode_compatible, smart_text
@@ -178,10 +179,16 @@ class ProductVariant(models.Model, Item):
         display = {}
         for attr_pk, value in self.attributes.iteritems():
             attribute = ProductAttribute.objects.get(pk=attr_pk)
-            if attribute.has_values():
-                display[attribute.display] = attribute.values.get(pk=value).display
-            else:
-                display[attribute.display] = value
+            if self.product.attributes.filter(pk=attribute.pk):
+                if attribute.has_values():
+                    try:
+                        value = attribute.values.get(pk=value)
+                    except ObjectDoesNotExist:
+                        pass
+                    else:
+                        display[attribute.display] = value.display
+                else:
+                    display[attribute.display] = value
         return display
 
     def get_attribute(self, pk):
