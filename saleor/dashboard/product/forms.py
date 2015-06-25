@@ -58,24 +58,6 @@ class ProductForm(forms.ModelForm):
         self.fields['categories'].widget.attrs['data-placeholder'] = pgettext_lazy('Product form labels', 'Search')
         self.fields['attributes'].widget.attrs['data-placeholder'] = pgettext_lazy('Product form labels', 'Search')
 
-    def save(self, commit=True):
-        old_attrs = [attr.pk for attr in self.instance.attributes.all()]
-        product = super(ProductForm, self).save(commit=commit)
-        new_attrs = [attr.pk for attr in product.attributes.all()]
-        self.update_variant_attributes(old_attrs, new_attrs)
-        return product
-
-    def update_variant_attributes(self, old_attrs, new_attrs):
-        removed = [attr for attr in old_attrs if attr not in new_attrs]
-        if removed:
-            for variant in self.instance.variants.all():
-                for pk in removed:
-                    try:
-                        del variant.attributes[str(pk)]
-                    except KeyError:
-                        pass
-                variant.save()
-
 
 class ProductVariantForm(forms.ModelForm):
     class Meta:
