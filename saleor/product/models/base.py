@@ -54,7 +54,7 @@ class Product(models.Model, ItemRange):
         related_name='products')
     price = PriceField(
         pgettext_lazy('Product field', 'price'),
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
     weight = models.DecimalField(
         pgettext_lazy('Product field', 'weight'), max_digits=6,
         decimal_places=2)
@@ -118,13 +118,13 @@ class Product(models.Model, ItemRange):
 
 @python_2_unicode_compatible
 class ProductVariant(models.Model, Item):
-    name = models.CharField(
-        pgettext_lazy('Variant field', 'name'), max_length=100)
     sku = models.CharField(
         pgettext_lazy('Variant field', 'SKU'), max_length=32, unique=True)
+    name = models.CharField(
+        pgettext_lazy('Variant field', 'variant name'), max_length=100, blank=True)
     price_override = PriceField(
         pgettext_lazy('Variant field', 'price override'),
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
     weight_override = models.DecimalField(
         pgettext_lazy('Variant field', 'weight override'),
@@ -207,7 +207,7 @@ class Stock(models.Model):
         validators=[MinValueValidator(0)], default=Decimal(1))
     cost_price = PriceField(
         pgettext_lazy('Stock item field', 'cost price'),
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
 
     class Meta:

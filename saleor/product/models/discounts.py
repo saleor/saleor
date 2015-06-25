@@ -18,7 +18,7 @@ class FixedProductDiscount(models.Model):
     products = models.ManyToManyField('Product', blank=True)
     discount = PriceField(pgettext_lazy('Discount field', 'discount value'),
                           currency=settings.DEFAULT_CURRENCY,
-                          max_digits=12, decimal_places=4)
+                          max_digits=12, decimal_places=2)
 
     class Meta:
         app_label = 'product'
