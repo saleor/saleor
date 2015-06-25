@@ -28,16 +28,16 @@
             <div class="col l4 offset-l2">
                 <div class="row">
                     {% csrf_token %}
-                    {{ form.attribute_fields.0.choices }}
-{#                    {% for attribute_field in form.attribute_fields %}#}
-{#                        {{ attribute_field|materializecss }}#}
-{#                    {% endfor %}#}
+                    {% for attribute_field in attributes_form %}
+                        {{ attribute_field|materializecss }}
+                    {% endfor %}
                     <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#variants">
                 </div>
             </div>
 
             <div class="col l4">
                 <div class="row">
+                    {{ form.product }}
                     {{ form.sku|materializecss }}
                     {{ form.price_override|materializecss }}
                     {{ form.weight_override|materializecss }}

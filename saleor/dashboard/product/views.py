@@ -14,7 +14,7 @@ from .forms import (ProductClassForm, get_product_form,
                     get_product_cls_by_name, get_variant_form,
                     ProductImageForm, get_verbose_name, StockForm,
                     get_variant_cls, ProductAttributeForm,
-                    AttributeChoiceValueFormset)
+                    AttributeChoiceValueFormset, VariantAttributesForm)
 
 
 @staff_member_required
@@ -194,9 +194,13 @@ def variant_edit(request, product_pk, variant_pk=None):
     form_cls = get_variant_form(product)
     form = form_cls(request.POST or None, instance=variant,
                     initial=form_initial)
+    attributes_form = VariantAttributesForm(request.POST or None,
+                                            instance=variant)
+    forms = [form, attributes_form]
 
-    if form.is_valid():
+    if all([f.is_valid() for f in forms]):
         form.save()
+        attributes_form.save()
         if variant_pk:
             msg = _('Updated variant %s') % variant.name
         else:
@@ -205,10 +209,11 @@ def variant_edit(request, product_pk, variant_pk=None):
         success_url = request.POST['success_url']
         return redirect(success_url)
     else:
-        if form.errors:
+        if any([f.errors for f in forms]):
             messages.error(request, _('Your submitted data was not valid - '
                                       'please correct the errors below'))
-    ctx = {'product': product, 'variant': variant, 'title': title, 'form': form}
+    ctx = {'product': product, 'variant': variant, 'title': title,
+           'form': form, 'attributes_form': attributes_form}
     return TemplateResponse(request, 'dashboard/product/variant_form.html', ctx)
 
 

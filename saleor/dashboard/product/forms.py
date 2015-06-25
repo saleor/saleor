@@ -68,7 +68,6 @@ class ProductVariantForm(forms.ModelForm):
         exclude = ['attributes']
         widgets = {
             'product': forms.HiddenInput(),
-            'attributes': forms.HiddenInput(),
         }
 
     def __init__(self, *args, **kwargs):
@@ -76,7 +75,14 @@ class ProductVariantForm(forms.ModelForm):
         self.fields['price_override'].widget.attrs['placeholder'] = gross(self.instance.product.price)
         self.fields['weight_override'].widget.attrs['placeholder'] = self.instance.product.weight
 
-        self.attribute_fields = []
+
+class VariantAttributesForm(forms.ModelForm):
+    class Meta:
+        model = ProductVariant
+        fields = []
+
+    def __init__(self, *args, **kwargs):
+        super(VariantAttributesForm, self).__init__(*args, **kwargs)
         self.available_attrs = self.instance.product.attributes.prefetch_related('values').all()
         for attr in self.available_attrs:
             field_defaults = {'label': attr.display, 'required': True,
@@ -88,13 +94,12 @@ class ProductVariantForm(forms.ModelForm):
             else:
                 field = forms.CharField(**field_defaults)
             self.fields[attr.get_formfield_name()] = field
-            self.attribute_fields.append(field)
 
     def save(self, commit=True):
         attributes = {attr.pk: self.cleaned_data.pop(attr.get_formfield_name())
                       for attr in self.available_attrs}
         self.instance.attributes = attributes
-        return super(ProductVariantForm, self).save(commit=commit)
+        return super(VariantAttributesForm, self).save(commit=commit)
 
 
 def get_product_form(product):
