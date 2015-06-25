@@ -1,5 +1,7 @@
 @mixin form {
   .select-wrapper {
+    margin-top: -3px;
+
     &.invalid {
       input {
         @extend .invalid;
@@ -9,6 +11,7 @@
 
   label {
     @extend .active;
+    display: block;
 
     &.optional {
       &:before {
@@ -52,6 +55,12 @@
     }
 
     #id_price_override {
+      @extend %input-lg;
+    }
+  }
+
+  &#form-stock {
+    #id_quantity {
       @extend %input-lg;
     }
   }

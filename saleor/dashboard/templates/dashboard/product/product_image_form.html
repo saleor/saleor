@@ -6,10 +6,10 @@
 {% block title %}{{ title }} - {% trans "Images" %} - {{ block.super }}{% endblock %}
 
 {% block breadcrumbs %}
-    <ul class="breadcrumbs breadcrumbs--with-menu">
+    <ul class="breadcrumbs">
         <li><a href="{% url "dashboard:products" %}">{% trans "Products" %}</a></li>
-        <li><a href="{% url "dashboard:product-update" pk=product.pk %}"><i class="mdi-navigation-chevron-right"></i>{{ product }}</a></li>
-        <li><i class="mdi-navigation-chevron-right"></i> {{ title }}</li>
+        <li><a href="{% url "dashboard:product-update" pk=product.pk %}">{{ product }}</a></li>
+        <li>{{ title }}</li>
     </ul>
 {% endblock %}
 

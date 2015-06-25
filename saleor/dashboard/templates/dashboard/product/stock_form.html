@@ -5,7 +5,7 @@
 
 {% block title %}{{ title }} - {% trans "Stock" %} - {{ block.super }}{% endblock %}
 
-{% block body_class %}body-products{% endblock %}
+{% block body_class %}body-store body-products{% endblock %}
 
 {% block page_title %}{{ title }}{% endblock %}
 
@@ -23,15 +23,14 @@
 {% endblock %}
 
 {% block content %}
-    <form method="post" id="product-form" enctype="multipart/form-data">
+    <form method="post" id="form-stock" enctype="multipart/form-data">
         <div class="row">
-            <div class="col l8 offset-l2">
-                <div class="row">
-                    {% csrf_token %}
-                    {{ form|materializecss }}
-                    <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#stock">
-                </div>
-            </div>
+            {% csrf_token %}
+            {{ form.variant|materializecss:"s12 m8 l6 offset-l2" }}
+            {{ form.quantity|materializecss:"s12 m4 l2" }}
+            {{ form.location|materializecss:"s12 m6 l4 offset-l2" }}
+            {{ form.cost_price|materializecss:"s12 m6 l4" }}
+            <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#stock">
         </div>
 
         <div class="row">

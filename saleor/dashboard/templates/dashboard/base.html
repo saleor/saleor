@@ -41,7 +41,6 @@
                             <div class="collapsible-body">
                                 <ul>
                                     <li><a href="/" class="waves-effect waves-teal">{% trans "Visit storefront" %}</a></li>
-                                    <li class="divider"></li>
                                     <li><a href="{% url 'registration:logout' %}" class="waves-effect waves-teal">{% trans "Log out" %}</a></li>
                                 </ul>
                             </div>
@@ -53,13 +52,35 @@
                         <img src="{% static "img/dashboard-logo.svg" %}" alt="Saleor">
                     </a>
                 </li>
-                <li class="nav-home"><a href="{% url 'dashboard:index' %}" class="waves-effect waves-teal">Home</a></li>
-                <li class="nav-orders"><a href="{% url 'dashboard:orders' %}" class="waves-effect waves-teal">Orders</a></li>
-                <li class="nav-products"><a href="{% url 'dashboard:products' %}" class="waves-effect waves-teal">Products</a></li>
-                <li class="nav-attributes"><a href="{% url 'dashboard:product-attributes' %}" class="waves-effect waves-teal">Attributes</a></li>
-                <li class="nav-categories"><a href="{% url 'dashboard:categories' %}" class="waves-effect waves-teal">Categories</a></li>
-                <li class="nav-customers"><a href="{% url 'dashboard:customers' %}" class="waves-effect waves-teal">Customers</a></li>
-                <li class="nav-payments"><a href="{% url 'dashboard:payments' %}" class="waves-effect waves-teal">Payments</a></li>
+                <li class="nav-home"><a href="{% url 'dashboard:index' %}">Home</a></li>
+                <li class="nav-store">
+                    <ul class="collapsible collapsible-accordion">
+                        <li>
+                            <a class="waves-effect waves-teal collapsible-header">{% trans "Store" %}</a>
+                            <div class="collapsible-body">
+                                <ul>
+                                    <li class="subnav-products"><a href="{% url 'dashboard:products' %}">{% trans "Products" %}</a></li>
+                                    <li class="subnav-attributes"><a href="{% url 'dashboard:product-attributes' %}">{% trans "Attributes" %}</a></li>
+                                    <li class="subnav-categories"><a href="{% url 'dashboard:categories' %}">{% trans "Categories" %}</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-orders">
+                    <ul class="collapsible collapsible-accordion">
+                        <li>
+                            <a class="waves-effect waves-teal collapsible-header">{% trans "Orders" %}</a>
+                            <div class="collapsible-body">
+                                <ul>
+                                    <li class="subnav-order-list"><a href="{% url 'dashboard:orders' %}">{% trans "List" %}</a></li>
+                                    <li class="subnav-attributes"><a href="{% url 'dashboard:payments' %}">{% trans "Payments" %}</a></li>
+                                    <li class="subnav-categories"><a href="{% url 'dashboard:customers' %}">{% trans "Customers" %}</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
             </ul>
         </nav>
     </header>

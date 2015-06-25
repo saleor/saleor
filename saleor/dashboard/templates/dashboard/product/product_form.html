@@ -6,7 +6,7 @@
 
 {% block title %}{{ title }} - {% trans "Products" %} - {{ block.super }}{% endblock %}
 
-{% block body_class %}body-products{% endblock %}
+{% block body_class %}body-store body-products{% endblock %}
 
 {% block page_title %}{{ title }}{% endblock %}
 
@@ -183,7 +183,6 @@
                             <th>{% trans "SKU" %}</th>
                             <th class="right-align">{% trans "Quantity" %}</th>
                             <th>{% trans "Location" %}</th>
-                            <th class="right-align">{% trans "Price" %}</th>
                         </tr>
                     </thead>
 
@@ -200,11 +199,6 @@
                                 </a></td>
                                 <td class="right-align">{{ item.quantity }}</td>
                                 <td>{{ item.location }}</td>
-                                <td class="right-align">
-                                    {% if item.cost_price %}
-                                        {% gross item.cost_price %}
-                                    {% endif %}
-                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>

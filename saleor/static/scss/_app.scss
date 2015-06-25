@@ -72,9 +72,19 @@ $header-height: 60px;
         content: none;
       }
 
-      @each $module in (home, orders, products, categories, customers, paymentss) {
+      @each $module in (home, orders, store) {
         .body-#{$module} &.nav-#{$module} {
           @extend .active;
+        }
+      }
+
+      @each $submodule in (products, attributes, categories, order-list, payments, customers) {
+        .body-#{$submodule} &.subnav-#{$submodule} {
+          @extend .active;
+
+          a {
+            background-color: map_get($materialize-red, lighten-2);
+          }
         }
       }
 
@@ -123,12 +133,35 @@ $header-height: 60px;
         ul ul {
           li {
             a {
-              background: map-get($grey, lighten-5);
-              height: 52px;
               line-height: 52px;
-              padding-left: 30px;
             }
           }
+        }
+      }
+
+      ul ul {
+        li {
+          a {
+            background: map-get($grey, lighten-5);
+            height: 52px;
+            line-height: 52px;
+            padding-left: 30px;
+            transition: background-color .2s;
+
+            &:hover, &:focus {
+              background-color: #ddd;
+            }
+          }
+        }
+      }
+
+      .collapsible-header {
+        margin: 0;
+      }
+
+      .collapsible-body {
+        a {
+          margin: 0;
         }
       }
 
