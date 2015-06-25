@@ -5,11 +5,11 @@
 <table class="striped hoverable responsive">
     <thead>
         <tr>
-            <th>{% trans "Number" %}</th>
-            <th>{% trans "Placed on" %}</th>
-            <th>{% trans "Customer" %}</th>
+            <th></th>
             <th>{% trans "Order status" %}</th>
             <th>{% trans "Payment status" %}</th>
+            <th>{% trans "Customer" %}</th>
+            <th>{% trans "Placed on" %}</th>
             <th>{% trans "Total" %}</th>
         </tr>
     </thead>
@@ -19,10 +19,10 @@
             <td>
                 <a href="{% url 'dashboard:order-details' pk=order.pk %}">#{{ order.id }}</a>
             </td>
-            <td>{{ order.created }}</td>
-            <td>{{ order.user|default:_("Guest") }}</td>
             <td>{% render_status order.status order.get_status_display %}</td>
             <td>{% render_status order.get_last_payment_status order.get_last_payment_status_display %}</td>
+            <td>{{ order.created }}</td>
+            <td>{{ order.user|default:_("Guest") }}</td>
             <td>{% gross order.get_total %}</td>
         </tr>
     {% endfor %}

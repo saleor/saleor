@@ -47,6 +47,12 @@ $header-height: 60px;
         line-height: $header-height/2;
       }
     }
+
+    .dropdown-content {
+      left: auto !important;
+      right: 0;
+      white-space: nowrap;
+    }
   }
 
   .side-nav {
@@ -173,7 +179,7 @@ table {
   }
 }
 
-#id_price {
+.input-with-suffix input {
   float: left;
   width: calc(100% - 40px);
 }

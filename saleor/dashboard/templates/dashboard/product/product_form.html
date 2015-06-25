@@ -11,18 +11,19 @@
 {% block page_title %}{{ title }}{% endblock %}
 
 {% block header_menu %}
-    <a href="{% url "dashboard:products" %}" class="header-button"><i class="mdi-navigation-arrow-back"></i></a>
+    {% url "dashboard:products" as url %}
+    {% include "dashboard/includes/_back-link.html" with url=url %}
 {% endblock %}
 
 {% block header_extra %}
     {% if product.pk %}
-    <a class="dropdown-button" href="#" data-activates="product-delete">
+    <a class="dropdown-button" href="#" data-activates="product-delete" data-constrainwidth="false">
         <i class="mdi-navigation-more-vert"></i>
     </a>
     <ul id="product-delete" class="dropdown-content">
         <li>
             <a href="{% url "dashboard:product-delete" pk=product.pk %}">
-                {% trans "Remove" %}
+                {% trans "Remove product" %}
             </a>
         </li>
     </ul>
@@ -31,13 +32,12 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--with-menu">
-        <li><a href="{% url "dashboard:products" %}">{% trans "Products" %}</a></li>
-        <li><i class="mdi-navigation-chevron-right"></i> {{ title }}</li>
+        <li class="hide-on-small-only"><a href="{% url "dashboard:products" %}">{% trans "Products" %}</a></li>
+        <li title="{{ title }}">{{ title }}</li>
     </ul>
 {% endblock %}
 
 {% block content %}
-<form method="post" id="product-form" enctype="multipart/form-data">
     <div class="row" hidden>
         <div class="col s12">
             <div class="card green">
@@ -63,17 +63,18 @@
 
     <div class="row" id="details">
         <form method="post" id="form-product" enctype="multipart/form-data">
-            <div class="col l8" >
+            {% csrf_token %}
+            {{ product_form.name|materializecss:"s12 m8" }}
+            {{ product_form.price|materializecss:"s12 m4" }}
+
+            <div class="col s12 l8" >
                 <div class="row">
-                    {% csrf_token %}
-                    {{ product_form.name|materializecss }}
                     {{ product_form.description|materializecss }}
                 </div>
             </div>
 
-            <div class="col l4">
+            <div class="col s12 l4">
                 <div class="row">
-                    {{ product_form.price|materializecss }}
                     {{ product_form.weight|materializecss }}
                     {{ product_form.categories|materializecss:"input-field s12" }}
                     {{ product_form.attributes|materializecss:"input-field s12" }}
@@ -109,11 +110,12 @@
                                 <input type="checkbox" id="select-all" class="filled-in switch-actions">
                                 <label for="select-all"></label>
                             </th>
+                            <th>{% trans "SKU" %}</th>
+                            {% for name, value in variants.0.get_attributes_display.items %}
+                                <th>{{ name }}</th>
+                            {% endfor %}
                             <th>{% trans "Name" %}</th>
-                            <th class="right-align">{% trans "SKU" %}</th>
                             <th class="right-align">{% trans "Price" %}</th>
-                            <th class="right-align">{% trans "Weight" %}</th>
-                            <th>{% trans "Attributes" %}</th>
                         </tr>
                     </thead>
 
@@ -126,15 +128,15 @@
                                 </td>
                                 <td><a class="light-blue-text text-lighten-1" title="{% trans "Edit variant" %}"
                                             href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}">
-                                    {{ variant.name }}</a></td>
-                                <td class="right-align">{{ variant.sku }}</td>
+                                    {{ variant.sku }}
+                                </a></td>
+                                {% for name, attribute in variant.get_attributes_display.items %}
+                                    <td>
+                                        {{ attribute }}
+                                    </td>
+                                {% endfor %}
+                                <td>{{ variant.name }}</td>
                                 <td class="right-align">{% gross variant.get_price_per_item %}</td>
-                                <td class="right-align">{{ variant.get_weight }}</td>
-                                <td>
-                                    {% for name, value in variant.get_attributes_display.items %}
-                                        {{ name }}: {{ value }}{% if not forloop.last %},{% endif %}
-                                    {% endfor %}
-                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>
