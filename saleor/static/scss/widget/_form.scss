@@ -10,7 +10,7 @@
   label {
     @extend .active;
 
-    &:not(.required) {
+    &.optional {
       &:before {
         content: "(optional)";
         float: right;

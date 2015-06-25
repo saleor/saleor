@@ -9,11 +9,16 @@
 
 {% block page_title %}{{ title }}{% endblock %}
 
+{% block header_menu %}
+    {% url "dashboard:product-update" pk=product.pk as url %}
+    {% include "dashboard/includes/_back-link.html" with url=url hash="#stock" %}
+{% endblock %}
+
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--with-menu">
         <li><a href="{% url "dashboard:products" %}">{% trans "Products" %}</a></li>
-        <li><a href="{% url "dashboard:product-update" pk=product.pk %}"><i class="mdi-navigation-chevron-right"></i>{{ product }}</a></li>
-        <li><i class="mdi-navigation-chevron-right"></i> {{ title }}</li>
+        <li><a href="{% url "dashboard:product-update" pk=product.pk %}#stock">{{ product }}</a></li>
+        <li>{{ title }}</li>
     </ul>
 {% endblock %}
 
@@ -31,11 +36,10 @@
 
         <div class="row">
             <div class="col l8 offset-l2 right-align">
-                <a href="{% url 'dashboard:product-update' pk=product.pk %}#stock" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
                 {% if stock.pk %}
-                    <button type="submit" class="btn"><i class="mdi-content-save"></i> {% trans "Update" %}</button>
+                    <button type="submit" class="btn">{% trans "Update" %}</button>
                 {% else %}
-                    <button type="submit" class="btn"><i class="mdi-content-create"></i> {% trans "Create" %}</button>
+                    <button type="submit" class="btn">{% trans "Create" %}</button>
                 {% endif %}
             </div>
         </div>

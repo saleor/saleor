@@ -30,11 +30,12 @@ if (el) {
     }
   });
 }
-$('#select-all').on('change', function() {
+$('.select-all').on('change', function() {
+  var $items = $(this).parents('form').find('.switch-actions');
   if (this.checked) {
-    $('.switch-actions').prop('checked', true);
+    $items.prop('checked', true);
   } else {
-    $('.switch-actions').prop('checked', false);
+    $items.prop('checked', false);
   }
 });
 $('.switch-actions').on('change', function() {

@@ -52,10 +52,30 @@
         <div class="row">
             <div class="col s12">
                 <ul class="tabs">
-                    <li class="tab col s3"><a class="active" href="#details">{% trans "Details" %}</a></li>
-                    <li class="tab col s3"><a href="#variants">{% trans "Variants" %}</a></li>
-                    <li class="tab col s3"><a href="#stock">{% trans "Stock" %}</a></li>
-                    <li class="tab col s3"><a href="#images">{% trans "Images" %}</a></li>
+                    <li class="tab col s3">
+                        <a href="#details" class="active">
+                            <span>{% trans "Details" %}</span>
+                            <i class="mdi-action-description"></i>
+                        </a>
+                    </li>
+                    <li class="tab col s3">
+                        <a href="#variants">
+                            <span>{% trans "Variants" %}</span>
+                            <i class="mdi-image-style"></i>
+                        </a>
+                    </li>
+                    <li class="tab col s3">
+                        <a href="#stock">
+                            <span>{% trans "Stock" %}</span>
+                            <i class="mdi-action-store"></i>
+                        </a>
+                    </li>
+                    <li class="tab col s3">
+                        <a href="#images">
+                            <span>{% trans "Images" %}</span>
+                            <i class="mdi-image-collections"></i>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -107,14 +127,14 @@
                     <thead>
                         <tr>
                             <th class="bulk-checkbox">
-                                <input type="checkbox" id="select-all" class="filled-in switch-actions">
-                                <label for="select-all"></label>
+                                <input type="checkbox" id="select-all-variants" class="filled-in select-all switch-actions">
+                                <label for="select-all-variants"></label>
                             </th>
                             <th>{% trans "SKU" %}</th>
                             {% for name, value in variants.0.get_attributes_display.items %}
                                 <th>{{ name }}</th>
                             {% endfor %}
-                            <th>{% trans "Name" %}</th>
+                            <th>{% trans "Variant name" %}</th>
                             <th class="right-align">{% trans "Price" %}</th>
                         </tr>
                     </thead>
@@ -137,6 +157,54 @@
                                 {% endfor %}
                                 <td>{{ variant.name }}</td>
                                 <td class="right-align">{% gross variant.get_price_per_item %}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </form>
+        </div>
+
+        <div id="stock" class="card">
+            <form>
+                <div class="data-table-header">
+                    <a href="{% url 'dashboard:product-stock-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
+                        {% trans "Add" %}
+                    </a>
+
+                    <button type="submit" class="btn-data-table btn-show-when-checked red-text" hidden>{% trans "Delete" %}</button>
+                </div>
+                <table class="bordered hoverable data-table">
+                    <thead>
+                        <tr>
+                            <th class="bulk-checkbox">
+                                <input type="checkbox" id="select-all-stock" class="filled-in select-all switch-actions">
+                                <label for="select-all-stock"></label>
+                            </th>
+                            <th>{% trans "SKU" %}</th>
+                            <th class="right-align">{% trans "Quantity" %}</th>
+                            <th>{% trans "Location" %}</th>
+                            <th class="right-align">{% trans "Price" %}</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in stock_items %}
+                            <tr>
+                                <td class="bulk-checkbox">
+                                    <input name="variant_id" type="checkbox" id="{{ variant.id }}" class="filled-in switch-actions">
+                                    <label for="{{ variant.id }}"></label>
+                                </td>
+                                <td><a class="light-blue-text text-lighten-1" title="{% trans "Edit variant" %}"
+                                            href="{% url 'dashboard:product-stock-update' product_pk=product.pk stock_pk=item.pk %}">
+                                    {{ item.variant.sku }}
+                                </a></td>
+                                <td class="right-align">{{ item.quantity }}</td>
+                                <td>{{ item.location }}</td>
+                                <td class="right-align">
+                                    {% if item.cost_price %}
+                                        {% gross item.cost_price %}
+                                    {% endif %}
+                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -172,37 +240,6 @@
                 <div class="col s12 right-align">
                     <a href="{% url 'dashboard:product-image-add' product_pk=product.pk %}" class="btn">
                         <i class="mdi-content-add"></i> {% trans "Add new image" %}
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div id="stock">
-            <div class="row">
-                <div class="col l12">
-                    <ul class="collection">
-                        {% for item in stock_items %}
-                            <li class="collection-item">
-                                <span>SKU: {{ item.variant.sku }}, quantity: {{ item.quantity }}, location: {{ item.location }}</span>
-                                <a class="light-blue-text text-lighten-1" title="{% trans "Edit stock" %}"
-                                        href="{% url 'dashboard:product-stock-update' product_pk=product.pk stock_pk=item.pk %}">
-                                    <i class="mdi-content-create"></i>
-                                </a>
-                                <a class="materialize-red-text text-lighten-2" title="{% trans "Delete stock" %}"
-                                        href="{% url 'dashboard:product-stock-delete' product_pk=product.pk stock_pk=item.pk %}">
-                                    <i class="mdi-action-delete"></i>
-                                </a>
-                            </li>
-                        {% empty %}
-                            <span>{% trans "No stock items" %}</span>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col s12 right-align">
-                    <a href="{% url 'dashboard:product-stock-add' product_pk=product.pk %}" class="btn">
-                        <i class="mdi-content-add"></i> {% trans "Add stock" %}
                     </a>
                 </div>
             </div>
