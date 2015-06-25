@@ -139,10 +139,7 @@ class ProductVariant(models.Model, Item):
         app_label = 'product'
 
     def __str__(self):
-        name = self.product.name
-        if self.name:
-            name += ' (%s)' % self.name
-        return name
+        return '%s (%s)' % (self.sku, self.name) if self.name else self.sku
 
     def get_weight(self):
         return self.weight_override or self.product.weight
