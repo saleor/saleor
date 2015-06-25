@@ -223,7 +223,11 @@ class Stock(models.Model):
 
 @python_2_unicode_compatible
 class ProductAttribute(models.Model):
-    display = models.CharField(max_length=100, unique=True)
+    display = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=50, unique=True)
+
+    class Meta:
+        ordering = ['slug']
 
     def __str__(self):
         return self.display
@@ -247,6 +251,3 @@ class AttributeChoiceValue(models.Model):
 
     def __str__(self):
         return self.display
-
-    def get_slug(self):
-        return slugify('%s %s' % (self.attribute.display, self.display))
