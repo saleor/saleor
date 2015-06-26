@@ -3,6 +3,7 @@ $icons-font-path: $roboto-font-path;
 
 $font-size-action-icon: 18px;
 $header-height: 60px;
+$transition-duration: .2s;
 
 @import "materialize/sass/materialize";
 @import "select2/src/scss/core";
@@ -72,10 +73,8 @@ $header-height: 60px;
         content: none;
       }
 
-      @each $module in (home, orders, store) {
-        .body-#{$module} &.nav-#{$module} {
-          @extend .active;
-        }
+      .body-home &.nav-home {
+        @extend .active;
       }
 
       @each $submodule in (products, attributes, categories, order-list, payments, customers) {
@@ -146,7 +145,7 @@ $header-height: 60px;
             height: 52px;
             line-height: 52px;
             padding-left: 30px;
-            transition: background-color .2s;
+            transition: background-color $transition-duration;
 
             &:hover, &:focus {
               background-color: #ddd;
@@ -168,6 +167,12 @@ $header-height: 60px;
       i {
         display: inline-block;
         float: none;
+      }
+    }
+
+    > li {
+      &:hover {
+        background: none;
       }
     }
   }
@@ -238,6 +243,30 @@ table {
   font-weight: bold;
   padding: 0;
   text-transform: uppercase;
+}
+
+.fixed-action-btn {
+  padding: 0;
+}
+
+.btn-fab {
+  transition: transform $transition-duration;
+
+  i {
+    &:before {
+      transition: font-size $transition-duration;
+    }
+  }
+}
+
+.btn-fab.btn-fab-hidden {
+  transform: scale(0, 0);
+
+  i {
+    &:before {
+      font-size: 0;
+    }
+  }
 }
 
 @import "widget/breadcrumbs";

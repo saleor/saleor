@@ -41,6 +41,7 @@ def product_details(request, pk=None, product_cls=None):
             Product.objects.select_subclasses().prefetch_related(
                 'images', 'variants'), pk=pk)
         title = product.name
+    attributes = product.attributes.all()
     images = product.images.all()
     variants = product.variants.select_subclasses()
     stock_items = Stock.objects.filter(variant__in=variants)
@@ -54,8 +55,8 @@ def product_details(request, pk=None, product_cls=None):
         if creating and product:
             return redirect('dashboard:product-update', pk=product.pk)
 
-    ctx = {'title': title, 'product': product, 'images': images,
-           'product_form': form, 'stock_items': stock_items,
+    ctx = {'title': title, 'product': product, 'attributes': attributes,
+           'images': images, 'product_form': form, 'stock_items': stock_items,
            'variants': variants}
     if pk:
         images_reorder_url = reverse_lazy('dashboard:product-images-reorder',

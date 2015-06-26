@@ -53,10 +53,10 @@
                     </a>
                 </li>
                 <li class="nav-home"><a href="{% url 'dashboard:index' %}">Home</a></li>
-                <li class="nav-store">
-                    <ul class="collapsible collapsible-accordion">
+                <li>
+                    <ul class="collapsible collapsible-accordion" data-collapsible="accordion">
                         <li>
-                            <a class="waves-effect waves-teal collapsible-header">{% trans "Store" %}</a>
+                            <a class="waves-effect waves-teal collapsible-header{% block menu_store_class %}{% endblock %}">{% trans "Store" %}</a>
                             <div class="collapsible-body">
                                 <ul>
                                     <li class="subnav-products"><a href="{% url 'dashboard:products' %}">{% trans "Products" %}</a></li>
@@ -65,12 +65,11 @@
                                 </ul>
                             </div>
                         </li>
-                    </ul>
-                </li>
-                <li class="nav-orders">
-                    <ul class="collapsible collapsible-accordion">
+
+                        <li class="divider"></li>
+
                         <li>
-                            <a class="waves-effect waves-teal collapsible-header">{% trans "Orders" %}</a>
+                            <a class="waves-effect waves-teal collapsible-header{% block menu_orders_class %}{% endblock %}">{% trans "Orders" %}</a>
                             <div class="collapsible-body">
                                 <ul>
                                     <li class="subnav-order-list"><a href="{% url 'dashboard:orders' %}">{% trans "List" %}</a></li>

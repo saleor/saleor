@@ -33,7 +33,7 @@
       display: inline-block;
       font-size: $h5-fontsize;
       padding: 0;
-      transition: color .2s;
+      transition: color $transition-duration;
 
       &:hover {
         color: white;

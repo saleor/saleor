@@ -37,6 +37,8 @@
     </ul>
 {% endblock %}
 
+{% block menu_store_class %} active{% endblock %}
+
 {% block content %}
     <div class="row" hidden>
         <div class="col s12">
@@ -81,7 +83,7 @@
         </div>
     {% endif %}
 
-    <div class="row" id="details">
+    <div class="row tab-content" id="details">
         <form method="post" id="form-product" enctype="multipart/form-data">
             {% csrf_token %}
             {{ product_form.name|materializecss:"s12 m8" }}
@@ -114,27 +116,33 @@
     </div>
 
     {% if product.pk %}
-        <div id="variants" class="card">
+        <div id="variants" class="card tab-content">
             <form>
                 <div class="data-table-header">
-                    <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
-                        {% trans "Add" %}
-                    </a>
+                    {% if attributes %}
+                        <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
+                            {% trans "Add" %}
+                        </a>
+                    {% else %}
+                        <span class="deep-purple-text">{% trans "You need to add some attributes to product to be able to add more variants." %}</span>
+                    {% endif %}
 
                     <button type="submit" class="btn-data-table btn-show-when-checked red-text" hidden>{% trans "Delete" %}</button>
                 </div>
                 <table class="bordered hoverable data-table">
                     <thead>
                         <tr>
-                            <th class="bulk-checkbox">
-                                <input type="checkbox" id="select-all-variants" class="filled-in select-all switch-actions">
-                                <label for="select-all-variants"></label>
-                            </th>
+                            {% if attributes %}
+                                <th class="bulk-checkbox">
+                                    <input type="checkbox" id="select-all-variants" class="filled-in select-all switch-actions">
+                                    <label for="select-all-variants"></label>
+                                </th>
+                            {% endif %}
                             <th>{% trans "SKU" %}</th>
                             {% for name, value in variants.0.get_attributes_display.items %}
                                 <th>{{ name }}</th>
                             {% endfor %}
-                            <th>{% trans "Variant name" %}</th>
+                            <th class="wide">{% trans "Variant name" %}</th>
                             <th class="right-align">{% trans "Price" %}</th>
                         </tr>
                     </thead>
@@ -142,10 +150,12 @@
                     <tbody>
                         {% for variant in variants %}
                             <tr>
-                                <td class="bulk-checkbox">
-                                    <input name="variant_id" type="checkbox" id="{{ variant.id }}" class="filled-in switch-actions">
-                                    <label for="{{ variant.id }}"></label>
-                                </td>
+                                {% if attributes %}
+                                    <td class="bulk-checkbox">
+                                        <input name="variant_id" type="checkbox" id="{{ variant.id }}" class="filled-in switch-actions">
+                                        <label for="{{ variant.id }}"></label>
+                                    </td>
+                                {% endif %}
                                 <td><a class="light-blue-text text-lighten-1" title="{% trans "Edit variant" %}"
                                             href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}">
                                     {{ variant.sku }}
@@ -164,7 +174,7 @@
             </form>
         </div>
 
-        <div id="stock" class="card">
+        <div id="stock" class="card tab-content">
             <form>
                 <div class="data-table-header">
                     <a href="{% url 'dashboard:product-stock-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
@@ -174,69 +184,82 @@
                     <button type="submit" class="btn-data-table btn-show-when-checked red-text" hidden>{% trans "Delete" %}</button>
                 </div>
                 <table class="bordered hoverable data-table">
-                    <thead>
-                        <tr>
-                            <th class="bulk-checkbox">
-                                <input type="checkbox" id="select-all-stock" class="filled-in select-all switch-actions">
-                                <label for="select-all-stock"></label>
-                            </th>
-                            <th>{% trans "SKU" %}</th>
-                            <th class="right-align">{% trans "Quantity" %}</th>
-                            <th>{% trans "Location" %}</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        {% for item in stock_items %}
+                    {% if stock_items %}
+                        <thead>
                             <tr>
-                                <td class="bulk-checkbox">
-                                    <input name="variant_id" type="checkbox" id="{{ variant.id }}" class="filled-in switch-actions">
-                                    <label for="{{ variant.id }}"></label>
-                                </td>
-                                <td><a class="light-blue-text text-lighten-1" title="{% trans "Edit variant" %}"
-                                            href="{% url 'dashboard:product-stock-update' product_pk=product.pk stock_pk=item.pk %}">
-                                    {{ item.variant.sku }}
-                                </a></td>
-                                <td class="right-align">{{ item.quantity }}</td>
-                                <td>{{ item.location }}</td>
+                                <th class="bulk-checkbox">
+                                    <input type="checkbox" id="select-all-stock" class="filled-in select-all switch-actions">
+                                    <label for="select-all-stock"></label>
+                                </th>
+                                <th>{% trans "SKU" %}</th>
+                                <th class="right-align">{% trans "Quantity" %}</th>
+                                <th class="wide">{% trans "Location" %}</th>
                             </tr>
-                        {% endfor %}
-                    </tbody>
+                        </thead>
+
+                        <tbody>
+                            {% for item in stock_items %}
+                                <tr>
+                                    <td class="bulk-checkbox">
+                                        <input name="variant_id" type="checkbox" id="{{ variant.id }}" class="filled-in switch-actions">
+                                        <label for="{{ variant.id }}"></label>
+                                    </td>
+                                    <td><a class="light-blue-text text-lighten-1" title="{% trans "Edit variant" %}"
+                                                href="{% url 'dashboard:product-stock-update' product_pk=product.pk stock_pk=item.pk %}">
+                                        {{ item.variant.sku }}
+                                    </a></td>
+                                    <td class="right-align">{{ item.quantity }}</td>
+                                    <td>{{ item.location }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    {% else %}
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <span class="deep-purple-text">{% trans "You have literally no stock." %}</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    {% endif %}
                 </table>
             </form>
         </div>
 
-        <div id="images">
-            <div class="row">
-                <div class="col l12">
-                    <ul class="row product-gallery" id="product-gallery" data-post-url="{{ images_reorder_url }}">
-                        {% for image in images %}
-                            <li class="col s6 m3 card product-gallery-item" data-id="{{ image.pk }}">
-                                <div class="card-content">
-                                    <img class="responsive-img" src="{{ image.image.crop.300x300 }}" alt="">
-                                    <span class="product-gallery-item-text">{{ image.alt|default:image.image.name }}</span>
-                                    <a class="product-gallery-item-create light-blue-text text-lighten-1" title="{% trans "Edit image" %}"
-                                            href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">
-                                        <i class="mdi-content-create"></i>
-                                    </a>
-                                    <a class="product-gallery-item-remove materialize-red-text text-lighten-2" title="{% trans "Delete image" %}"
-                                            href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}">
-                                        <i class="mdi-action-delete"></i>
-                                    </a>
-                                </div>
-                            </li>
-                        {% endfor %}
-                    </ul>
+        <div id="images" class="tab-content">
+            {% if images %}
+                <div class="row">
+                    <div class="col l12">
+                        <ul class="row product-gallery" id="product-gallery" data-post-url="{{ images_reorder_url }}">
+                            {% for image in images %}
+                                <li class="col s6 m3 card product-gallery-item" data-id="{{ image.pk }}">
+                                    <div class="card-content">
+                                        <img class="responsive-img" src="{{ image.image.crop.300x300 }}" alt="">
+                                        <span class="product-gallery-item-text">{{ image.alt|default:image.image.name }}</span>
+                                        <a class="product-gallery-item-create light-blue-text text-lighten-1" title="{% trans "Edit image" %}"
+                                                href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">
+                                            <i class="mdi-content-create"></i>
+                                        </a>
+                                        <a class="product-gallery-item-remove materialize-red-text text-lighten-2" title="{% trans "Delete image" %}"
+                                                href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}">
+                                            <i class="mdi-action-delete"></i>
+                                        </a>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                 </div>
-            </div>
+            {% else %}
+                <p class="deep-purple-text">{% trans "This product has no images yet." %}</p>
+            {% endif %}
+        </div>
 
-            <div class="row">
-                <div class="col s12 right-align">
-                    <a href="{% url 'dashboard:product-image-add' product_pk=product.pk %}" class="btn">
-                        <i class="mdi-content-add"></i> {% trans "Add new image" %}
-                    </a>
-                </div>
-            </div>
+        <div class="fixed-action-btn">
+            <a class="btn-fab btn-fab-hidden btn-floating btn-large waves-effect waves-light teal" id="images-btn"
+               href="{% url 'dashboard:product-image-add' product_pk=product.pk %}" title="{% trans "Add product" %}">
+                <i class="mdi-content-add"></i>
+            </a>
         </div>
     {% endif %}
 
