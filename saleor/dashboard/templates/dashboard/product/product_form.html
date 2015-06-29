@@ -8,8 +8,6 @@
 
 {% block body_class %}body-store body-products{% endblock %}
 
-{% block page_title %}{{ title }}{% endblock %}
-
 {% block header_menu %}
     {% url "dashboard:products" as url %}
     {% include "dashboard/includes/_back-link.html" with url=url %}
@@ -37,7 +35,7 @@
     </ul>
 {% endblock %}
 
-{% block menu_store_class %} active{% endblock %}
+{% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
     <div class="row" hidden>
@@ -124,7 +122,7 @@
                             {% trans "Add" %}
                         </a>
                     {% else %}
-                        <span class="deep-purple-text">{% trans "You need to add some attributes to product to be able to add more variants." %}</span>
+                        <span>{% trans "You need to add some attributes to product to be able to add more variants." %}</span>
                     {% endif %}
 
                     <button type="submit" class="btn-data-table btn-show-when-checked red-text" hidden>{% trans "Delete" %}</button>
@@ -217,7 +215,7 @@
                         <tbody>
                             <tr>
                                 <td>
-                                    <span class="deep-purple-text">{% trans "You have literally no stock." %}</span>
+                                    <span>{% trans "You have literally no stock." %}</span>
                                 </td>
                             </tr>
                         </tbody>
@@ -235,7 +233,9 @@
                                 <li class="col s6 m3 card product-gallery-item" data-id="{{ image.pk }}">
                                     <div class="card-content">
                                         <img class="responsive-img" src="{{ image.image.crop.300x300 }}" alt="">
-                                        <span class="product-gallery-item-text">{{ image.alt|default:image.image.name }}</span>
+                                        <span class="product-gallery-item-text" title="{{ image.alt|default:image.image.name }}">
+                                            {{ image.alt|default:image.image.name }}
+                                        </span>
                                         <a class="product-gallery-item-create light-blue-text text-lighten-1" title="{% trans "Edit image" %}"
                                                 href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">
                                             <i class="mdi-content-create"></i>
@@ -257,7 +257,7 @@
 
         <div class="fixed-action-btn">
             <a class="btn-fab btn-fab-hidden btn-floating btn-large waves-effect waves-light teal" id="images-btn"
-               href="{% url 'dashboard:product-image-add' product_pk=product.pk %}" title="{% trans "Add product" %}">
+               href="{% url 'dashboard:product-image-add' product_pk=product.pk %}" title="{% trans "Add image" %}">
                 <i class="mdi-content-add"></i>
             </a>
         </div>

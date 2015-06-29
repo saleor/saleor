@@ -3,6 +3,13 @@
 
 {% block title %}{% trans "Delete image" %} - {{ block.super }}{% endblock %}
 
+{% block body_class %}body-store body-products{% endblock %}
+
+{% block header_menu %}
+    {% url "dashboard:product-update" pk=product.pk as url %}
+    {% include "dashboard/includes/_back-link.html" with url=url hash="#images" %}
+{% endblock %}
+
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--with-menu">
         <li><a href="{% url "dashboard:products" %}">{% trans "Products" %}</a></li>

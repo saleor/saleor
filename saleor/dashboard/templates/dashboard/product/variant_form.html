@@ -3,11 +3,14 @@
 {% load materializecss %}
 {% load static %}
 
-{% block title %}{{ title }} - {% trans "Variants" %} - {{ block.super }}{% endblock %}
+{% block title %}
+    {% if variant.pk %}
+        {{ variant.sku }}{% if variant.name %} ({{ variant.name }}){% endif %}
+    {% else %}
+        {% trans "Add variant" %}
+    {% endif %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-store body-products{% endblock %}
-
-{% block page_title %}{{ title }}{% endblock %}
 
 {% block header_menu %}
     {% url "dashboard:product-update" pk=product.pk as url %}
@@ -18,24 +21,35 @@
     <ul class="breadcrumbs breadcrumbs--with-menu">
         <li><a href="{% url "dashboard:products" %}">{% trans "Products" %}</a></li>
         <li><a href="{% url "dashboard:product-update" pk=product.pk %}#variants">{{ product }}</a></li>
-        <li>{{ title }}</li>
+        {% if variant.pk %}
+            <li>{% trans "Variant" %} {{ variant.sku }}{% if variant.name %} ({{ variant.name }}){% endif %}</li>
+        {% else %}
+            <li>
+                <span class="hide-on-med-and-down">{% trans "Add variant" %}</span>
+                <span class="hide-on-large-only">{% blocktrans %}Add variant for {{ product }}{% endblocktrans %}</span>
+            </li>
+        {% endif %}
     </ul>
 {% endblock %}
 
+{% block menu_catalogue_class %} active{% endblock %}
+
 {% block content %}
     <form method="post" id="form-variant" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#variants">
         <div class="row">
-            {% if attributes_form.fields %}
-                <div class="col s12 m6 l4">
+            <div class="col s12 m6 l4">
+                {% if attributes_form.fields %}
                     <div class="row">
-                        {% csrf_token %}
                         {% for attribute_field in attributes_form %}
                             {{ attribute_field|materializecss }}
                         {% endfor %}
-                        <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#variants">
                     </div>
-                </div>
-            {% endif %}
+                {% else %}
+                    <p>{% trans "This product has no attributes." %}</p>
+                {% endif %}
+            </div>
 
             <div class="col s12 m6 l4">
                 <div class="row">
@@ -49,7 +63,7 @@
         </div>
 
         <div class="row">
-            <div class="col s12{% if attributes_form.fields %} l8{% else %} m4{% endif %} right-align">
+            <div class="col s12 l8 right-align">
                 {% if variant.pk %}
                     <button type="submit" class="btn">{% trans "Update" %}</button>
                 {% else %}

@@ -56,7 +56,7 @@
                 <li>
                     <ul class="collapsible collapsible-accordion" data-collapsible="accordion">
                         <li>
-                            <a class="waves-effect waves-teal collapsible-header{% block menu_store_class %}{% endblock %}">{% trans "Store" %}</a>
+                            <a class="waves-effect waves-teal collapsible-header{% block menu_catalogue_class %}{% endblock %}">{% trans "Catalogue" %}</a>
                             <div class="collapsible-body">
                                 <ul>
                                     <li class="subnav-products"><a href="{% url 'dashboard:products' %}">{% trans "Products" %}</a></li>
@@ -69,12 +69,12 @@
                         <li class="divider"></li>
 
                         <li>
-                            <a class="waves-effect waves-teal collapsible-header{% block menu_orders_class %}{% endblock %}">{% trans "Orders" %}</a>
+                            <a class="waves-effect waves-teal collapsible-header{% block menu_sales_class %}{% endblock %}">{% trans "Sales" %}</a>
                             <div class="collapsible-body">
                                 <ul>
-                                    <li class="subnav-order-list"><a href="{% url 'dashboard:orders' %}">{% trans "List" %}</a></li>
-                                    <li class="subnav-attributes"><a href="{% url 'dashboard:payments' %}">{% trans "Payments" %}</a></li>
+                                    <li class="subnav-order-list"><a href="{% url 'dashboard:orders' %}">{% trans "Orders" %}</a></li>
                                     <li class="subnav-categories"><a href="{% url 'dashboard:customers' %}">{% trans "Customers" %}</a></li>
+                                    <li class="subnav-attributes"><a href="{% url 'dashboard:payments' %}">{% trans "Payments" %}</a></li>
                                 </ul>
                             </div>
                         </li>

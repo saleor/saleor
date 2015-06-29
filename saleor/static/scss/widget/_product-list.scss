@@ -1,6 +1,21 @@
 @mixin product-list {
-  & &-item {
-    padding-right: 40px;
+  border: none;
+  overflow: visible;
+
+  & &-item.avatar {
+    border: none;
+    padding-left: 59px;
+    padding-right: 0;
+    padding-bottom: 3px;
+    min-height: 0;
+
+    @media (max-width: $small-screen) {
+      margin-right: -$gutter-width/2;
+    }
+
+    .circle {
+      left: 0;
+    }
 
     &-delete {
       background: white;
@@ -29,10 +44,8 @@
   }
 
   &-price {
-    @media (max-width: $small-screen) {
-      position: static !important;
-      float: left;
-    }
+    border-bottom: 1px solid $collection-border-color;
+    padding-bottom: 12px;
   }
 }
 

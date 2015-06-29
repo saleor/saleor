@@ -243,6 +243,10 @@ table {
   font-weight: bold;
   padding: 0;
   text-transform: uppercase;
+
+  &:hover, &:focus {
+    background: none;
+  }
 }
 
 .fixed-action-btn {
@@ -250,7 +254,7 @@ table {
 }
 
 .btn-fab {
-  transition: transform $transition-duration;
+  transition: transform $transition-duration, box-shadow $transition-duration;
 
   i {
     &:before {
@@ -260,11 +264,30 @@ table {
 }
 
 .btn-fab.btn-fab-hidden {
-  transform: scale(0, 0);
+  transform: scaleX(0) scaleY(0);
 
   i {
     &:before {
       font-size: 0;
+    }
+  }
+}
+
+.card {
+  img {
+    display: block;
+
+    @media (max-width: $small-screen) {
+      width: 100%;
+    }
+  }
+
+  .card-action {
+    button {
+      @extend a;
+      background: none;
+      border: none;
+      padding: 0;
     }
   }
 }
@@ -275,6 +298,7 @@ table {
 @import "widget/form";
 @import "widget/product-gallery";
 @import "widget/product-list";
+@import "widget/ppoi";
 @import "widget/select2";
 @import "widget/tabs";
 @import "widget/toast";

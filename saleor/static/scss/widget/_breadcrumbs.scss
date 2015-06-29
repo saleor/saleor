@@ -16,7 +16,7 @@
     float: none;
     line-height: $header-height/2;
 
-    @media (min-width: $small-screen-up) {
+    @media (min-width: $medium-screen-up) {
       display: inline;
     }
 

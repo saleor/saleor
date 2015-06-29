@@ -97,10 +97,8 @@ def stock_edit(request, product_pk, stock_pk=None):
     product = get_object_or_404(Product, pk=product_pk)
     if stock_pk:
         stock = get_object_or_404(Stock, pk=stock_pk)
-        title = stock.variant.name
     else:
         stock = Stock()
-        title = _('Add stock')
     form = StockForm(request.POST or None, instance=stock, product=product)
     if product.variants.exists():
         if form.is_valid():
@@ -115,7 +113,7 @@ def stock_edit(request, product_pk, stock_pk=None):
     else:
         messages.error(request, _(
             'You have to add at least one variant before you can add stock'))
-    ctx = {'product': product, 'stock': stock, 'form': form, 'title': title}
+    ctx = {'product': product, 'stock': stock, 'form': form}
     return TemplateResponse(request, 'dashboard/product/stock_form.html', ctx)
 
 
@@ -138,10 +136,8 @@ def product_image_edit(request, product_pk, img_pk=None):
     product = get_object_or_404(Product, pk=product_pk)
     if img_pk:
         product_image = get_object_or_404(product.images, pk=img_pk)
-        title = product_image.image.name
     else:
         product_image = ProductImage(product=product)
-        title = _('Add image')
     form = ProductImageForm(request.POST or None, request.FILES or None,
                             instance=product_image)
     if form.is_valid():
@@ -157,7 +153,7 @@ def product_image_edit(request, product_pk, img_pk=None):
         if form.errors:
             messages.error(request, _('Your submitted data was not valid - '
                                       'please correct the errors below'))
-    ctx = {'product': product, 'product_image': product_image, 'title': title,
+    ctx = {'product': product, 'product_image': product_image,
            'form': form}
     return TemplateResponse(
         request, 'dashboard/product/product_image_form.html', ctx)
@@ -187,10 +183,8 @@ def variant_edit(request, product_pk, variant_pk=None):
     if variant_pk:
         variant = get_object_or_404(product.variants.select_subclasses(),
                                     pk=variant_pk)
-        title = variant.name
     else:
         variant = variant_cls(product=product)
-        title = _('Add variant')
 
     form_cls = get_variant_form(product)
     form = form_cls(request.POST or None, instance=variant,
@@ -213,7 +207,7 @@ def variant_edit(request, product_pk, variant_pk=None):
         if any([f.errors for f in forms]):
             messages.error(request, _('Your submitted data was not valid - '
                                       'please correct the errors below'))
-    ctx = {'product': product, 'variant': variant, 'title': title,
+    ctx = {'product': product, 'variant': variant,
            'form': form, 'attributes_form': attributes_form}
     return TemplateResponse(request, 'dashboard/product/variant_form.html', ctx)
 

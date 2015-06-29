@@ -23,7 +23,7 @@
     </ul>
 {% endblock %}
 
-{% block menu_store_class %} active{% endblock %}
+{% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
     <div class="row">
@@ -39,9 +39,7 @@
                         <a class="title" href="{% url 'dashboard:product-update' pk=product.pk %}">
                             <span class="product-list-name">{{ product.name }}</span>
                         </a>
-                        <p class="secondary-content product-list-price">{% gross product.price %}</p>
-                        <a href="{% url 'dashboard:product-delete' pk=product.pk %}" title="{% trans "Delete product" %}"
-                           class="secondary-content materialize-red-text text-lighten-2 product-list-item-delete"><i class="mdi-action-delete"></i></a>
+                        <p class="product-list-price">{% gross product.price %}</p>
                     </li>
                 {% endfor %}
             </ul>

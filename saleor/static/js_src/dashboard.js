@@ -8,7 +8,9 @@ $('ul.tabs').find('.tab').on('click', function(e) {
   $('.btn-fab').addClass('btn-fab-hidden');
   $(tabSelector+'-btn').removeClass('btn-fab-hidden');
 });
-$('.tabs').find('a.active').parent().click();
+$(document).ready(function() {
+  $('.tabs').find('a.active').parent().click();
+});
 var el = document.getElementById('product-gallery');
 if (el) {
   var sortable = Sortable.create(el, {
