@@ -115,7 +115,8 @@
 
     {% if product.pk %}
         <div id="variants" class="card tab-content">
-            <form>
+            <form method="POST">
+                {% csrf_token %}
                 <div class="data-table-header">
                     {% if attributes %}
                         <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
@@ -125,7 +126,7 @@
                         <span>{% trans "You need to add some attributes to product to be able to add more variants." %}</span>
                     {% endif %}
 
-                    <button type="submit" class="btn-data-table btn-show-when-checked red-text" hidden>{% trans "Delete" %}</button>
+                    <button name="variants-bulk-delete-form" type="submit" class="btn-data-table btn-show-when-checked red-text" hidden>{% trans "Delete" %}</button>
                 </div>
                 <table class="bordered hoverable data-table">
                     <thead>
@@ -150,8 +151,8 @@
                             <tr>
                                 {% if attributes %}
                                     <td class="bulk-checkbox">
-                                        <input name="variant_id" type="checkbox" id="{{ variant.id }}" class="filled-in switch-actions">
-                                        <label for="{{ variant.id }}"></label>
+                                        <input id="id_variants_{{ variant.id }}" name="variants" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
+                                        <label for="id_variants_{{ variant.id }}"></label>
                                     </td>
                                 {% endif %}
                                 <td><a class="light-blue-text text-lighten-1" title="{% trans "Edit variant" %}"

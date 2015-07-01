@@ -102,6 +102,19 @@ class VariantAttributesForm(forms.ModelForm):
         return super(VariantAttributesForm, self).save(commit=commit)
 
 
+class VariantsBulkDeleteForm(forms.Form):
+    variants = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple())
+
+    def __init__(self, *args, **kwargs):
+        product = kwargs.pop('product')
+        super(VariantsBulkDeleteForm, self).__init__(*args, **kwargs)
+        self.fields['variants'].choices = [(variant.pk, variant.name) for variant in product.variants.all()]
+
+    def delete(self):
+        variants = ProductVariant.objects.filter(pk__in=self.cleaned_data['variants'])
+        variants.delete()
+
+
 def get_product_form(product):
     if isinstance(product, Product):
         return ProductForm

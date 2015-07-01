@@ -14,7 +14,8 @@ from .forms import (ProductClassForm, get_product_form,
                     get_product_cls_by_name, get_variant_form,
                     ProductImageForm, get_verbose_name, StockForm,
                     get_variant_cls, ProductAttributeForm,
-                    AttributeChoiceValueFormset, VariantAttributesForm)
+                    AttributeChoiceValueFormset, VariantAttributesForm,
+                    VariantsBulkDeleteForm)
 
 
 @staff_member_required
@@ -48,6 +49,7 @@ def product_details(request, pk=None, product_cls=None):
 
     form_cls = get_product_form(product)
     form = form_cls(instance=product, initial=initial)
+    variants_delete_form = VariantsBulkDeleteForm(product=product)
 
     if 'product-form' in request.POST:
         form = form_cls(request.POST, instance=product)
@@ -55,9 +57,16 @@ def product_details(request, pk=None, product_cls=None):
         if creating and product:
             return redirect('dashboard:product-update', pk=product.pk)
 
-    ctx = {'title': title, 'product': product, 'attributes': attributes,
-           'images': images, 'product_form': form, 'stock_items': stock_items,
-           'variants': variants}
+    if 'variants-bulk-delete-form' in request.POST:
+        variants_delete_form = VariantsBulkDeleteForm(request.POST, product=product)
+        if variants_delete_form.is_valid():
+            variants_delete_form.delete()
+            return redirect('dashboard:product-update', pk=product.pk)
+
+    ctx = {
+        'attributes': attributes, 'title': title, 'product': product,
+        'images': images, 'product_form': form, 'stock_items': stock_items,
+        'variants': variants, 'variants_delete_form': variants_delete_form}
     if pk:
         images_reorder_url = reverse_lazy('dashboard:product-images-reorder',
                                           kwargs={'product_pk': pk})
