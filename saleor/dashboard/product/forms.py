@@ -54,9 +54,12 @@ class ProductForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ProductForm, self).__init__(*args, **kwargs)
-        self.fields['name'].widget.attrs['placeholder'] = pgettext_lazy('Product form labels', 'Give your awesome product a name')
-        self.fields['categories'].widget.attrs['data-placeholder'] = pgettext_lazy('Product form labels', 'Search')
-        self.fields['attributes'].widget.attrs['data-placeholder'] = pgettext_lazy('Product form labels', 'Search')
+        self.fields['name'].widget.attrs['placeholder'] = pgettext_lazy(
+            'Product form labels', 'Give your awesome product a name')
+        self.fields['categories'].widget.attrs[
+            'data-placeholder'] = pgettext_lazy('Product form labels', 'Search')
+        self.fields['attributes'].widget.attrs[
+            'data-placeholder'] = pgettext_lazy('Product form labels', 'Search')
 
 
 class ProductVariantForm(forms.ModelForm):
@@ -69,8 +72,10 @@ class ProductVariantForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ProductVariantForm, self).__init__(*args, **kwargs)
-        self.fields['price_override'].widget.attrs['placeholder'] = self.instance.product.price.gross
-        self.fields['weight_override'].widget.attrs['placeholder'] = self.instance.product.weight
+        self.fields['price_override'].widget.attrs[
+            'placeholder'] = self.instance.product.price.gross
+        self.fields['weight_override'].widget.attrs[
+            'placeholder'] = self.instance.product.weight
 
 
 class VariantAttributesForm(forms.ModelForm):
@@ -80,7 +85,8 @@ class VariantAttributesForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(VariantAttributesForm, self).__init__(*args, **kwargs)
-        self.available_attrs = self.instance.product.attributes.prefetch_related('values').all()
+        self.available_attrs = self.instance.product.attributes.prefetch_related(
+            'values').all()
         for attr in self.available_attrs:
             field_defaults = {'label': attr.display, 'required': True,
                               'initial': self.instance.get_attribute(attr.pk)}
