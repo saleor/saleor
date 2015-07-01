@@ -281,20 +281,12 @@ table {
       width: 100%;
     }
   }
-
-  .card-action {
-    button {
-      @extend a;
-      background: none;
-      border: none;
-      padding: 0;
-    }
-  }
 }
 
 @import "widget/breadcrumbs";
 @import "widget/category-list";
 @import "widget/data-table";
+@import "widget/dropzone";
 @import "widget/form";
 @import "widget/product-gallery";
 @import "widget/product-list";

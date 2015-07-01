@@ -16,6 +16,22 @@ $(document).ready(function() {
     $tabs.find('a.active').parent().click();
   }
 });
+Dropzone.options.productImageForm = {
+  paramName: "image_0",
+  maxFilesize: 20,
+  previewsContainer: ".product-gallery",
+  thumbnailWidth: 400,
+  thumbnailHeight: 250,
+  previewTemplate: $("#template").html(),
+  init: function() {
+    var $dropzoneGhost = $('.dropzone-ghost');
+    var $gallery = $('.product-gallery');
+
+    this.on('complete', function() {
+      $dropzoneGhost.remove().appendTo($gallery);
+    });
+  }
+};
 var el = document.getElementById('product-gallery');
 if (el) {
   var sortable = Sortable.create(el, {

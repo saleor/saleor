@@ -1,0 +1,28 @@
+@mixin dropzone {
+  height: 82vh;
+  position: relative;
+
+  & li.dropzone-ghost {
+    display: none;
+    opacity: .75;
+  }
+
+  &.dz-drag-hover {
+    &:after {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      content: "";
+    }
+
+    li.dropzone-ghost {
+      display: block;
+    }
+  }
+}
+
+.dropzone {
+  @include dropzone;
+}

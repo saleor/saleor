@@ -20,6 +20,12 @@
 
     &-image {
       cursor: move;
+
+      &--ghost {
+        background: map_get($grey, lighten-5);
+        padding: 61px 0 60px;
+        text-align: center;
+      }
     }
 
     &-title, &-desc {

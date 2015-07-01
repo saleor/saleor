@@ -170,7 +170,7 @@ module.exports = function(grunt) {
       },
       sass: {
         files: ["saleor/static/scss/**/*.scss"],
-        tasks: ["sass", "postcss"]
+        tasks: ["sass", "concat", "postcss"]
       },
       uglify: {
         files: ["saleor/static/js_src/**/*.js"],
