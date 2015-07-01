@@ -151,7 +151,7 @@
                             <tr>
                                 {% if attributes %}
                                     <td class="bulk-checkbox">
-                                        <input id="id_variants_{{ variant.id }}" name="variants" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
+                                        <input id="id_variants_{{ variant.id }}" name="items" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
                                         <label for="id_variants_{{ variant.id }}"></label>
                                     </td>
                                 {% endif %}
@@ -174,13 +174,14 @@
         </div>
 
         <div id="stock" class="card tab-content">
-            <form>
+            <form method="POST">
+                {% csrf_token %}
                 <div class="data-table-header">
                     <a href="{% url 'dashboard:product-stock-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
                         {% trans "Add" %}
                     </a>
 
-                    <button type="submit" class="btn-data-table btn-show-when-checked red-text" hidden>{% trans "Delete" %}</button>
+                    <button name="stock-bulk-delete-form" type="submit" class="btn-data-table btn-show-when-checked red-text" hidden>{% trans "Delete" %}</button>
                 </div>
                 <table class="bordered hoverable data-table">
                     {% if stock_items %}
@@ -200,8 +201,8 @@
                             {% for item in stock_items %}
                                 <tr>
                                     <td class="bulk-checkbox">
-                                        <input name="variant_id" type="checkbox" id="{{ variant.id }}" class="filled-in switch-actions">
-                                        <label for="{{ variant.id }}"></label>
+                                        <input name="items" type="checkbox" id="{{ item.id }}" class="filled-in switch-actions" value="{{ item.id }}">
+                                        <label for="{{ item.id }}"></label>
                                     </td>
                                     <td><a class="light-blue-text text-lighten-1" title="{% trans "Edit variant" %}"
                                                 href="{% url 'dashboard:product-stock-update' product_pk=product.pk stock_pk=item.pk %}">

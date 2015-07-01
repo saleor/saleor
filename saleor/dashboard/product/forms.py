@@ -102,17 +102,28 @@ class VariantAttributesForm(forms.ModelForm):
         return super(VariantAttributesForm, self).save(commit=commit)
 
 
-class VariantsBulkDeleteForm(forms.Form):
-    variants = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple())
+class BulkDeleteForm(forms.Form):
+    items = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple())
 
     def __init__(self, *args, **kwargs):
-        product = kwargs.pop('product')
-        super(VariantsBulkDeleteForm, self).__init__(*args, **kwargs)
-        self.fields['variants'].choices = [(variant.pk, variant.name) for variant in product.variants.all()]
+        choices = kwargs.pop('choices')
+        model = getattr(self, 'model', None)
+        if not model:
+            raise ValueError('BulkDeleteForm has no model specified')
+        super(BulkDeleteForm, self).__init__(*args, **kwargs)
+        self.fields['items'].choices = choices
 
     def delete(self):
-        variants = ProductVariant.objects.filter(pk__in=self.cleaned_data['variants'])
-        variants.delete()
+        items = self.model.objects.filter(pk__in=self.cleaned_data['items'])
+        items.delete()
+
+
+class VariantsBulkDeleteForm(BulkDeleteForm):
+    model = ProductVariant
+
+
+class StockBulkDeleteForm(BulkDeleteForm):
+    model = Stock
 
 
 def get_product_form(product):

@@ -15,7 +15,7 @@ from .forms import (ProductClassForm, get_product_form,
                     ProductImageForm, get_verbose_name, StockForm,
                     get_variant_cls, ProductAttributeForm,
                     AttributeChoiceValueFormset, VariantAttributesForm,
-                    VariantsBulkDeleteForm)
+                    VariantsBulkDeleteForm, StockBulkDeleteForm)
 
 
 @staff_member_required
@@ -47,9 +47,13 @@ def product_details(request, pk=None, product_cls=None):
     variants = product.variants.select_subclasses()
     stock_items = Stock.objects.filter(variant__in=variants)
 
+    variant_choices = [(variant.pk, variant.name) for variant in variants]
+    stock_choices = [(item.pk, item.pk) for item in stock_items]
+
     form_cls = get_product_form(product)
     form = form_cls(instance=product, initial=initial)
-    variants_delete_form = VariantsBulkDeleteForm(product=product)
+    variants_delete_form = VariantsBulkDeleteForm(choices=variant_choices)
+    stock_delete_form = StockBulkDeleteForm(choices=stock_choices)
 
     if 'product-form' in request.POST:
         form = form_cls(request.POST, instance=product)
@@ -58,15 +62,23 @@ def product_details(request, pk=None, product_cls=None):
             return redirect('dashboard:product-update', pk=product.pk)
 
     if 'variants-bulk-delete-form' in request.POST:
-        variants_delete_form = VariantsBulkDeleteForm(request.POST, product=product)
+        variants_delete_form = VariantsBulkDeleteForm(request.POST, choices=variant_choices)
         if variants_delete_form.is_valid():
             variants_delete_form.delete()
             return redirect('dashboard:product-update', pk=product.pk)
 
+    if 'stock-bulk-delete-form' in request.POST:
+        stock_delete_form = StockBulkDeleteForm(request.POST, choices=stock_choices)
+        if stock_delete_form.is_valid():
+            stock_delete_form.delete()
+            return redirect('dashboard:product-update', pk=product.pk)
+        print stock_delete_form.errors
+
     ctx = {
         'attributes': attributes, 'title': title, 'product': product,
         'images': images, 'product_form': form, 'stock_items': stock_items,
-        'variants': variants, 'variants_delete_form': variants_delete_form}
+        'variants': variants, 'variants_delete_form': variants_delete_form,
+        'stock_delete_form': stock_delete_form}
     if pk:
         images_reorder_url = reverse_lazy('dashboard:product-images-reorder',
                                           kwargs={'product_pk': pk})
