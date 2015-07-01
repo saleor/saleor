@@ -49,6 +49,10 @@
   .wide {
     width: 99%;
   }
+
+  &.hoverable {
+    box-shadow: none;
+  }
 }
 
 .data-table {

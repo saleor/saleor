@@ -21,9 +21,9 @@ module.exports = function(grunt) {
     concat: {
       dist: {
         src: [
-          "saleor/static/css/dashboard.css",
           "saleor/static/components/dropzone/dist/basic.css",
-          "saleor/static/components/dropzone/dist/dropzone.css"
+          "saleor/static/components/dropzone/dist/dropzone.css",
+          "saleor/static/css/dashboard.css"
         ],
         dest: "saleor/static/css/dashboard.css"
       }

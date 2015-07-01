@@ -115,7 +115,7 @@
 
     {% if product.pk %}
         <div id="variants" class="card tab-content">
-            <form method="POST">
+            <form method="post">
                 {% csrf_token %}
                 <div class="data-table-header">
                     {% if attributes %}
@@ -126,7 +126,24 @@
                         <span>{% trans "You need to add some attributes to product to be able to add more variants." %}</span>
                     {% endif %}
 
-                    <button name="variants-bulk-delete-form" type="submit" class="btn-data-table btn-show-when-checked red-text" hidden>{% trans "Delete" %}</button>
+                    <a href="#modal-product-variant-delete" class="modal-trigger btn-data-table btn-show-when-checked red-text" hidden>
+                        {% trans "Delete" %}
+                    </a>
+
+                    <div class="modal" id="modal-product-variant-delete">
+                        <div class="modal-content">
+                            <h5>{% trans "Are you sure?" %}</h5>
+
+                            <p>
+                                {% blocktrans %}You are about to delete variants of this product.{% endblocktrans %}
+                            </p>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button name="variants-bulk-delete-form" type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
+                            <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+                        </div>
+                    </div>
                 </div>
                 <table class="bordered hoverable data-table">
                     <thead>
@@ -175,14 +192,31 @@
         </div>
 
         <div id="stock" class="card tab-content">
-            <form method="POST">
+            <form method="post">
                 {% csrf_token %}
                 <div class="data-table-header">
                     <a href="{% url 'dashboard:product-stock-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
                         {% trans "Add" %}
                     </a>
 
-                    <button name="stock-bulk-delete-form" type="submit" class="btn-data-table btn-show-when-checked red-text" hidden>{% trans "Delete" %}</button>
+                    <a href="#modal-product-stock-delete" class="modal-trigger btn-data-table btn-show-when-checked red-text" hidden>
+                        {% trans "Delete" %}
+                    </a>
+
+                    <div class="modal" id="modal-product-stock-delete">
+                        <div class="modal-content">
+                            <h5>{% trans "Are you sure?" %}</h5>
+
+                            <p>
+                                {% blocktrans %}You are about to delete stock for this product variant.{% endblocktrans %}
+                            </p>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button name="stock-bulk-delete-form" type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
+                            <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+                        </div>
+                    </div>
                 </div>
                 <table class="bordered hoverable data-table">
                     {% if stock_items %}
@@ -218,7 +252,7 @@
                         <tbody>
                             <tr>
                                 <td>
-                                    <span>{% trans "You have literally no stock." %}</span>
+                                    <span>{% trans "There is no stock for this product." %}</span>
                                 </td>
                             </tr>
                         </tbody>
@@ -233,6 +267,7 @@
                 <div class="row">
                     <div class="col l12">
                         <form action="{% url 'dashboard:product-images-upload' product_pk=product.pk %}" class="dropzone" id="product-image-form">
+                            <div class="dz-message"></div>
                             {% csrf_token %}
                             <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#images">
 
@@ -251,7 +286,7 @@
                                                     <span class="grey-text">{% trans "No description" %}</span>
                                                 {% endif %}
                                             </span>
-                                            <span class="product-gallery-item-desc">{{ image.image.name }}</span>
+                                            <span class="product-gallery-item-desc" title="{{ image.image.name }}">{{ image.image.name }}</span>
                                         </div>
 
                                         <div class="card-action">
@@ -274,13 +309,13 @@
                                                         <img class="responsive-img" src="{{ image.image.crop.400x250 }}" alt="">
 
                                                         <p>
-                                                            {% blocktrans %}You are about to delete an image.{% endblocktrans %}
+                                                            {% blocktrans %}You are about to delete this image.{% endblocktrans %}
                                                         </p>
                                                     </div>
 
                                                     <div class="modal-footer">
-                                                        <button type="submit" class="modal-action waves-effect waves-green btn-flat blue-text">{% trans "Yes" %}</button>
-                                                        <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat blue-text">{% trans "No" %}</a>
+                                                        <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
+                                                        <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
                                                     </div>
                                                 </form>
                                             </div>
@@ -289,33 +324,10 @@
                                 {% endfor %}
 
                                 <li class="col s6 m3 card product-gallery-item dropzone-ghost">
-                                    <div class="card-image product-gallery-item-image--ghost">
-                                        {% trans "New image" %}
-                                    </div>
-
-                                    <div class="dz-progress">
-                                        <span class="dz-upload" data-dz-uploadprogress></span>
-                                    </div>
-
                                     <div class="card-content">
-                                        <span class="product-gallery-item-title card-title black-text" title="{{ image.alt }}">
-                                            {% if image.alt %}
-                                                {{ image.alt }}
-                                            {% else %}
-                                                <span class="grey-text">{% trans "No description" %}</span>
-                                            {% endif %}
+                                        <span class="product-gallery-item-title product-gallery-item-title--noclip card-title black-text">
+                                            <span class="grey-text">{% trans "Drop images here to upload" %}</span>
                                         </span>
-                                        <span class="product-gallery-item-desc">filename</span>
-                                    </div>
-
-                                    <div class="card-action">
-                                        <a href="#">
-                                            {% trans "Edit" %}
-                                        </a>
-
-                                        <a href="#">
-                                            {% trans "Delete" %}
-                                        </a>
                                     </div>
                                 </li>
                             </ul>
@@ -327,53 +339,7 @@
             {% endif %}
 
             <script type="application/template" id="template">
-{#                <div class="dz-preview dz-file-preview">#}
-{#                    <div class="dz-image">#}
-{#                        <img data-dz-thumbnail />#}
-{#                    </div>#}
-{##}
-{#                    <div class="dz-details">#}
-{#                        <div class="dz-size">#}
-{#                            <span data-dz-size></span>#}
-{#                        </div>#}
-{##}
-{#                        <div class="dz-filename">#}
-{#                            <span data-dz-name></span>#}
-{#                        </div>#}
-{#                    </div>#}
-{##}
-{#                    <div class="dz-progress">#}
-{#                        <span class="dz-upload" data-dz-uploadprogress></span>#}
-{#                    </div>#}
-{##}
-{#                    <div class="dz-error-message">#}
-{#                        <span data-dz-errormessage></span>#}
-{#                    </div>#}
-{##}
-{#                    <div class="dz-success-mark">#}
-{#                        <svg width="54px" height="54px" viewBox="0 0 54 54" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"#}
-{#                             xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">#}
-{#                            <title>Check</title>#}
-{#                            <defs></defs>#}
-{#                            <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">#}
-{#                                <path d="M23.5,31.8431458 L17.5852419,25.9283877 C16.0248253,24.3679711 13.4910294,24.366835 11.9289322,25.9289322 C10.3700136,27.4878508 10.3665912,30.0234455 11.9283877,31.5852419 L20.4147581,40.0716123 C20.5133999,40.1702541 20.6159315,40.2626649 20.7218615,40.3488435 C22.2835669,41.8725651 24.794234,41.8626202 26.3461564,40.3106978 L43.3106978,23.3461564 C44.8771021,21.7797521 44.8758057,19.2483887 43.3137085,17.6862915 C41.7547899,16.1273729 39.2176035,16.1255422 37.6538436,17.6893022 L23.5,31.8431458 Z M27,53 C41.3594035,53 53,41.3594035 53,27 C53,12.6405965 41.3594035,1 27,1 C12.6405965,1 1,12.6405965 1,27 C1,41.3594035 12.6405965,53 27,53 Z" id="Oval-2" stroke-opacity="0.198794158" stroke="#747474" fill-opacity="0.816519475" fill="#FFFFFF" sketch:type="MSShapeGroup"></path>#}
-{#                            </g>#}
-{#                        </svg>#}
-{#                    </div>#}
-{##}
-{#                    <div class="dz-error-mark">#}
-{#                        <svg width="54px" height="54px" viewBox="0 0 54 54" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">#}
-{#                            <title>Error</title>#}
-{#                            <defs></defs>#}
-{#                            <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">#}
-{#                                <g id="Check-+-Oval-2" sketch:type="MSLayerGroup" stroke="#747474" stroke-opacity="0.198794158" fill="#FFFFFF" fill-opacity="0.816519475">#}
-{#                                    <path d="M32.6568542,29 L38.3106978,23.3461564 C39.8771021,21.7797521 39.8758057,19.2483887 38.3137085,17.6862915 C36.7547899,16.1273729 34.2176035,16.1255422 32.6538436,17.6893022 L27,23.3431458 L21.3461564,17.6893022 C19.7823965,16.1255422 17.2452101,16.1273729 15.6862915,17.6862915 C14.1241943,19.2483887 14.1228979,21.7797521 15.6893022,23.3461564 L21.3431458,29 L15.6893022,34.6538436 C14.1228979,36.2202479 14.1241943,38.7516113 15.6862915,40.3137085 C17.2452101,41.8726271 19.7823965,41.8744578 21.3461564,40.3106978 L27,34.6568542 L32.6538436,40.3106978 C34.2176035,41.8744578 36.7547899,41.8726271 38.3137085,40.3137085 C39.8758057,38.7516113 39.8771021,36.2202479 38.3106978,34.6538436 L32.6568542,29 Z M27,53 C41.3594035,53 53,41.3594035 53,27 C53,12.6405965 41.3594035,1 27,1 C12.6405965,1 1,12.6405965 1,27 C1,41.3594035 12.6405965,53 27,53 Z" id="Oval-2" sketch:type="MSShapeGroup"></path>#}
-{#                                </g>#}
-{#                            </g>#}
-{#                        </svg>#}
-{#                    </div>#}
-{#                </div>#}
-                <li class="col s6 m3 card product-gallery-item dz-preview dz-file-preview" data-id="{{ image.pk }}">
+                <li class="col s6 m3 card product-gallery-item dz-preview dz-file-preview">
                     <div class="card-image product-gallery-item-image">
                         <img data-dz-thumbnail />
                     </div>
@@ -383,24 +349,24 @@
                     </div>
 
                     <div class="card-content">
-                        <span class="product-gallery-item-title card-title black-text" title="{{ image.alt }}">
-                            {% if image.alt %}
-                                {{ image.alt }}
-                            {% else %}
-                                <span class="grey-text">{% trans "No description" %}</span>
-                            {% endif %}
+                        <span class="product-gallery-item-title card-title black-text">
+                            <span class="grey-text">{% trans "No description" %}</span>
                         </span>
-                        <span class="product-gallery-item-desc">filename</span>
+                        <span class="product-gallery-item-desc">
+                            &nbsp;
+                        </span>
                     </div>
 
                     <div class="card-action">
-                        <a href="#">
+                        <a class="card-action-edit" href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=0 %}" hidden>
                             {% trans "Edit" %}
                         </a>
 
-                        <a href="#">
+                        <a class="card-action-delete" href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=0 %}" hidden>
                             {% trans "Delete" %}
                         </a>
+
+                        &nbsp;
                     </div>
                 </li>
             </script>
@@ -429,8 +395,8 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="submit" class="modal-action waves-effect waves-green btn-flat blue-text">{% trans "Yes" %}</button>
-                    <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat blue-text">{% trans "No" %}</a>
+                    <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
+                    <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
                 </div>
             </form>
         </div>

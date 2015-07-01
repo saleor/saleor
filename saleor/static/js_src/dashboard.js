@@ -23,12 +23,27 @@ Dropzone.options.productImageForm = {
   thumbnailWidth: 400,
   thumbnailHeight: 250,
   previewTemplate: $("#template").html(),
+  clickable: false,
   init: function() {
     var $dropzoneGhost = $('.dropzone-ghost');
     var $gallery = $('.product-gallery');
 
     this.on('complete', function() {
       $dropzoneGhost.remove().appendTo($gallery);
+    }).on('success', function(e, response) {
+      console.log(e, response);
+      $(e.previewElement).find('.product-gallery-item-desc').html(e.name);
+      $(e.previewElement).attr('data-id', response.id);
+      var editLinkHref = $(e.previewElement).find('.card-action-edit').attr('href');
+      editLinkHref = editLinkHref.split('/');
+      editLinkHref[editLinkHref.length - 2] = response.id;
+      $(e.previewElement).find('.card-action-edit').attr('href', editLinkHref.join('/'));
+      $(e.previewElement).find('.card-action-edit').show();
+      var deleteLinkHref = $(e.previewElement).find('.card-action-delete').attr('href');
+      deleteLinkHref = deleteLinkHref.split('/');
+      deleteLinkHref[deleteLinkHref.length - 3] = response.id;
+      $(e.previewElement).find('.card-action-delete').attr('href', deleteLinkHref.join('/'));
+      $(e.previewElement).find('.card-action-delete').show();
     });
   }
 };
@@ -43,7 +58,7 @@ if (el) {
         data: JSON.stringify({
           'order': (function () {
             var postData = [];
-            $(el).find('.product-gallery-item').each(function (i) {
+            $(el).find('.product-gallery-item[data-id]').each(function (i) {
               postData.push($(this).data('id'));
             });
             return postData;
@@ -67,9 +82,9 @@ $('.select-all').on('change', function() {
   }
 });
 $('.switch-actions').on('change', function() {
-  var $btnChecked = $('.btn-show-when-checked');
-  var $btnUnchecked = $('.btn-show-when-unchecked');
-  if($('.switch-actions:checked').length) {
+  var $btnChecked = $(this).parents('form').find('.btn-show-when-checked');
+  var $btnUnchecked = $(this).parents('form').find('.btn-show-when-unchecked');
+  if($(this).parents('form').find('.switch-actions:checked').length) {
     $btnChecked.show();
     $btnUnchecked.hide();
   } else {

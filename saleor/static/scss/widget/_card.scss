@@ -1,0 +1,12 @@
+@mixin card {
+  & &-content {
+    .card-title {
+      line-height: 28px;
+      margin-bottom: 10px;
+    }
+  }
+}
+
+.card {
+  @include card;
+}

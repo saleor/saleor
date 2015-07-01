@@ -19,11 +19,13 @@
     }
 
     &-image {
-      cursor: move;
+      img {
+        cursor: move;
+      }
 
       &--ghost {
         background: map_get($grey, lighten-5);
-        padding: 61px 0 60px;
+        padding: 64px 0 63px;
         text-align: center;
       }
     }
@@ -33,6 +35,12 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+
+      &--noclip {
+        padding: 104px 0 103px;
+        text-align: center;
+        white-space: normal;
+      }
     }
 
     &-text {
