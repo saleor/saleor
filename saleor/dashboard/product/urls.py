@@ -37,6 +37,8 @@ urlpatterns = patterns(
         views.product_image_delete, name='product-image-delete'),
     url('^(?P<product_pk>[0-9]+)/images/reorder/$',
         api.reorder_product_images, name='product-images-reorder'),
+    url('^(?P<product_pk>[0-9]+)/images/upload/$',
+        api.upload_image, name='product-images-upload'),
 
     url(r'attributes/$',
         views.attribute_list, name='product-attributes'),

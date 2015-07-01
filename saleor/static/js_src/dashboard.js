@@ -17,7 +17,7 @@ $(document).ready(function() {
   }
 });
 Dropzone.options.productImageForm = {
-  paramName: "image_0",
+  paramName: "image",
   maxFilesize: 20,
   previewsContainer: ".product-gallery",
   thumbnailWidth: 400,
