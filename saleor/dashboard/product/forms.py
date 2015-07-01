@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 from django import forms
 from django.forms.models import inlineformset_factory
 from django.utils.translation import pgettext_lazy
-from django_prices.templatetags.prices_i18n import gross
 
 from ...product.models import (ProductImage, Stock, ProductVariant, Product,
                                ProductAttribute, AttributeChoiceValue)
@@ -70,7 +69,7 @@ class ProductVariantForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ProductVariantForm, self).__init__(*args, **kwargs)
-        self.fields['price_override'].widget.attrs['placeholder'] = gross(self.instance.product.price)
+        self.fields['price_override'].widget.attrs['placeholder'] = self.instance.product.price.gross
         self.fields['weight_override'].widget.attrs['placeholder'] = self.instance.product.weight
 
 
