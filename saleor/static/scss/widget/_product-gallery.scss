@@ -1,21 +1,32 @@
 @mixin product-gallery {
   & &-item {
-    cursor: move;
     margin: 0 $gutter-width/2 $gutter-width !important;
     padding: 0;
     display: block;
     position: relative;
-    text-align: center;
-    width: calc(50% - 1.5rem) !important;
+    width: calc(50% - #{$gutter-width*3/2}) !important;
+
+    @media (min-width: $small-screen-up) {
+      width: calc(33.3% - #{$gutter-width}) !important;
+    }
 
     @media (min-width: $medium-screen-up) {
-      width: calc(25% - 1.5rem) !important;
+      width: calc(20% - #{$gutter-width}) !important;
+    }
 
-      &:hover {
-        .product-gallery-item-create, .product-gallery-item-remove {
-          display: block;
-        }
-      }
+    &-reorder {
+      position: absolute;
+    }
+
+    &-image {
+      cursor: move;
+    }
+
+    &-title, &-desc {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     &-text {
@@ -32,25 +43,6 @@
       text-align: left;
       text-overflow: ellipsis;
       white-space: nowrap;
-    }
-
-    &-create, &-remove {
-      bottom: 0;
-      font-size: $font-size-action-icon;
-      line-height: 48px;
-      position: absolute;
-      right: 0;
-      width: 48px;
-
-      @media (min-width: $medium-screen-up) {
-        display: none;
-      }
-    }
-
-    &-remove {
-      bottom: auto;
-      text-shadow: 0 0 1px white;
-      top: 0;
     }
   }
 

@@ -14,6 +14,7 @@ $(document).ready(function() {
 var el = document.getElementById('product-gallery');
 if (el) {
   var sortable = Sortable.create(el, {
+    handle: '.card-image',
     onUpdate: function () {
       $.ajax({
         dataType: 'json',

@@ -4,9 +4,9 @@ module.exports = function(grunt) {
       dev: {
         bsFiles: {
           src: [
-            'saleor/static/css/*.css',
-            'saleor/static/js/*.js',
-            'saleor/**/*.html'
+            "saleor/static/css/*.css",
+            "saleor/static/js/*.js",
+            "saleor/**/*.html"
           ]
         },
         options: {
@@ -16,6 +16,16 @@ module.exports = function(grunt) {
           reloadOnRestart: true,
           watchTask: true
         }
+      }
+    },
+    concat: {
+      dist: {
+        src: [
+          "saleor/static/css/dashboard.css",
+          "saleor/static/components/dropzone/dist/basic.css",
+          "saleor/static/components/dropzone/dist/dropzone.css"
+        ],
+        dest: "saleor/static/css/dashboard.css"
       }
     },
     copy: {
@@ -114,8 +124,8 @@ module.exports = function(grunt) {
       options: {
         map: true,
         processors: [
-          require('autoprefixer-core'),
-          require('csswring')
+          require("autoprefixer-core"),
+          require("csswring")
         ]
       },
       prod: {
@@ -141,6 +151,7 @@ module.exports = function(grunt) {
       dev: {
         files: {
           "saleor/static/js/dashboard.js": [
+            "saleor/static/components/dropzone/dist/dropzone.js",
             "saleor/static/components/jquery/dist/jquery.js",
             "saleor/static/components/materialize/dist/js/materialize.js",
             "saleor/static/components/Sortable/Sortable.js",
@@ -168,15 +179,9 @@ module.exports = function(grunt) {
     }
   });
 
-  grunt.loadNpmTasks("grunt-browser-sync");
-  grunt.loadNpmTasks("grunt-contrib-copy");
-  grunt.loadNpmTasks("grunt-contrib-less");
-  grunt.loadNpmTasks("grunt-contrib-uglify");
-  grunt.loadNpmTasks("grunt-contrib-watch");
-  grunt.loadNpmTasks("grunt-postcss");
-  grunt.loadNpmTasks("grunt-sass");
+  require("load-grunt-tasks")(grunt);
 
-  grunt.registerTask("default", ["copy", "less", "sass", "postcss", "uglify"]);
+  grunt.registerTask("default", ["copy", "less", "sass", "concat", "postcss", "uglify"]);
   grunt.registerTask("sync", ["browserSync", "watch"]);
-  grunt.registerTask("heroku", ["copy", "less", "sass", "postcss", "uglify"]);
+  grunt.registerTask("heroku", ["copy", "less", "sass", "concat", "postcss", "uglify"]);
 };
