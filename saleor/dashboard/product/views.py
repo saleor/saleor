@@ -26,7 +26,9 @@ def product_list(request):
         product_cls = form.cleaned_data['product_cls']
         return redirect('dashboard:product-add', product_cls=product_cls)
     products, paginator = paginate(products, 30, request.GET.get('page'))
-    ctx = {'products': products, 'form': form, 'paginator': paginator}
+    ctx = {'form': form,
+           'products': products,
+           'paginator': paginator}
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
 
 
@@ -75,11 +77,15 @@ def product_details(request, pk=None, product_cls=None):
             success_url = request.POST['success_url']
             return redirect(success_url)
 
-    ctx = {
-        'attributes': attributes, 'title': title, 'product': product,
-        'images': images, 'product_form': form, 'stock_items': stock_items,
-        'variants': variants, 'variants_delete_form': variants_delete_form,
-        'stock_delete_form': stock_delete_form}
+    ctx = {'attributes': attributes,
+           'images': images, 'product_form': form,
+           'product': product,
+           'stock_delete_form': stock_delete_form,
+           'stock_items': stock_items,
+           'title': title,
+           'variants': variants,
+           'variants_delete_form': variants_delete_form}
+
     if pk:
         images_reorder_url = reverse_lazy('dashboard:product-images-reorder',
                                           kwargs={'product_pk': pk})
@@ -135,7 +141,9 @@ def stock_edit(request, product_pk, stock_pk=None):
     else:
         messages.error(request, _(
             'You have to add at least one variant before you can add stock'))
-    ctx = {'product': product, 'stock': stock, 'form': form}
+    ctx = {'form': form,
+           'product': product,
+           'stock': stock}
     return TemplateResponse(request, 'dashboard/product/stock_form.html', ctx)
 
 
@@ -148,7 +156,8 @@ def stock_delete(request, product_pk, stock_pk):
         messages.success(request, _('Deleted stock'))
         success_url = request.POST['success_url']
         return redirect(success_url)
-    ctx = {'product': product, 'stock': stock}
+    ctx = {'product': product,
+           'stock': stock}
     return TemplateResponse(
         request, 'dashboard/product/stock_confirm_delete.html', ctx)
 
@@ -175,8 +184,9 @@ def product_image_edit(request, product_pk, img_pk=None):
         if form.errors:
             messages.error(request, _('Your submitted data was not valid - '
                                       'please correct the errors below'))
-    ctx = {'product': product, 'product_image': product_image,
-           'form': form}
+    ctx = {'form': form,
+           'product': product,
+           'product_image': product_image}
     return TemplateResponse(
         request, 'dashboard/product/product_image_form.html', ctx)
 
@@ -229,8 +239,10 @@ def variant_edit(request, product_pk, variant_pk=None):
         if any([f.errors for f in forms]):
             messages.error(request, _('Your submitted data was not valid - '
                                       'please correct the errors below'))
-    ctx = {'product': product, 'variant': variant,
-           'form': form, 'attributes_form': attributes_form}
+    ctx = {'attributes_form': attributes_form,
+           'form': form,
+           'product': product,
+           'variant': variant}
     return TemplateResponse(request, 'dashboard/product/variant_form.html', ctx)
 
 
@@ -244,8 +256,9 @@ def variant_delete(request, product_pk, variant_pk):
         messages.success(request, _('Deleted variant %s') % variant.name)
         success_url = request.POST['success_url']
         return redirect(success_url)
-    ctx = {'product': product, 'variant': variant,
-           'is_only_variant': is_only_variant}
+    ctx = {'is_only_variant': is_only_variant,
+           'product': product,
+           'variant': variant}
     return TemplateResponse(
         request, 'dashboard/product/product_variant_confirm_delete.html', ctx)
 
@@ -280,7 +293,10 @@ def attribute_edit(request, pk=None):
         if form.errors or formset.errors:
             messages.error(request, _('Your submitted data was not valid - '
                                       'please correct the errors below'))
-    ctx = {'attribute': attribute, 'form': form, 'formset': formset, 'title': title}
+    ctx = {'attribute': attribute,
+           'form': form,
+           'formset': formset,
+           'title': title}
     return TemplateResponse(request, 'dashboard/product/attributes/form.html',
                             ctx)
 
