@@ -2,14 +2,19 @@ $('.button-collapse').sideNav();
 $('select:not(.browser-default):not([multiple])').material_select();
 $('select[multiple]').addClass('browser-default').select2();
 $('.modal-trigger').leanModal();
-$('ul.tabs').find('.tab').on('click', function(e) {
-  window.history.pushState(null, null, e.target.hash);
-  var tabSelector = $(this).find('a').attr('href');
-  $('.btn-fab').addClass('btn-fab-hidden');
-  $(tabSelector+'-btn').removeClass('btn-fab-hidden');
-});
 $(document).ready(function() {
-  $('.tabs').find('a.active').parent().click();
+  var $tabs = $('ul.tabs');
+
+  if ($tabs.length) {
+    $tabs.find('.tab').on('click', function (e) {
+      window.history.pushState(null, null, e.target.hash);
+      var tabSelector = $(this).find('a').attr('href');
+      $('.btn-fab').addClass('btn-fab-hidden');
+      $(tabSelector + '-btn').removeClass('btn-fab-hidden');
+    });
+
+    $tabs.find('a.active').parent().click();
+  }
 });
 var el = document.getElementById('product-gallery');
 if (el) {

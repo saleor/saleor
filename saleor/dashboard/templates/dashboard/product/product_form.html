@@ -20,7 +20,7 @@
     </a>
     <ul id="product-delete" class="dropdown-content">
         <li>
-            <a href="{% url "dashboard:product-delete" pk=product.pk %}">
+            <a class="modal-trigger" href="#modal-product-delete">
                 {% trans "Remove product" %}
             </a>
         </li>
@@ -228,38 +228,111 @@
             {% if images %}
                 <div class="row">
                     <div class="col l12">
-                        <ul class="row product-gallery" id="product-gallery" data-post-url="{{ images_reorder_url }}">
-                            {% for image in images %}
-                                <li class="col s6 m3 card product-gallery-item" data-id="{{ image.pk }}">
-                                    <div class="card-content">
-                                        <img class="responsive-img" src="{{ image.image.crop.300x300 }}" alt="">
-                                        <span class="product-gallery-item-text" title="{{ image.alt|default:image.image.name }}">
-                                            {{ image.alt|default:image.image.name }}
-                                        </span>
-                                        <a class="product-gallery-item-create light-blue-text text-lighten-1" title="{% trans "Edit image" %}"
-                                                href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">
-                                            <i class="mdi-content-create"></i>
-                                        </a>
-                                        <a class="product-gallery-item-remove materialize-red-text text-lighten-2" title="{% trans "Delete image" %}"
-                                                href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}">
-                                            <i class="mdi-action-delete"></i>
-                                        </a>
-                                    </div>
-                                </li>
-                            {% endfor %}
-                        </ul>
+                        <form action="{% url 'dashboard:product-image-add' product_pk=product.pk %}" class="dropzone" id="product-image-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#images">
+
+                            <div class="fallback">
+                                <input name="image_0" type="file" multiple />
+                            </div>
+
+                            <ul class="row product-gallery" id="product-gallery" data-post-url="{{ images_reorder_url }}">
+                                {% for image in images %}
+                                    <li class="col s6 m3 card product-gallery-item" data-id="{{ image.pk }}">
+                                        <div class="card-image product-gallery-item-image">
+                                            <img class="responsive-img" src="{{ image.image.crop.400x250 }}" alt="">
+                                        </div>
+
+                                        <div class="card-content">
+                                            <span class="product-gallery-item-title card-title black-text" title="{{ image.alt }}">
+                                                {% if image.alt %}
+                                                    {{ image.alt }}
+                                                {% else %}
+                                                    <span class="grey-text">{% trans "No description" %}</span>
+                                                {% endif %}
+                                            </span>
+                                            <span class="product-gallery-item-desc">{{ image.image.name }}</span>
+                                        </div>
+
+                                        <div class="card-action">
+                                            <a href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">
+                                                {% trans "Edit" %}
+                                            </a>
+
+                                            <a href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}">
+                                                {% trans "Delete" %}
+                                            </a>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </form>
                     </div>
                 </div>
             {% else %}
                 <p class="deep-purple-text">{% trans "This product has no images yet." %}</p>
             {% endif %}
+
+            <script type="application/template" id="template">
+                <li class="col s6 m3 card product-gallery-item" data-id="{{ image.pk }}">
+                    <div class="card-image product-gallery-item-image">
+                        <img data-dz-thumbnail />
+{#                        <img class="responsive-img" src="{{ image.image.crop.400x250 }}" alt="">#}
+                    </div>
+
+                    <div class="card-content">
+                        <span class="product-gallery-item-title card-title black-text" title="{{ image.alt }}">
+                            {% if image.alt %}
+                                {{ image.alt }}
+                            {% else %}
+                                <span class="grey-text">{% trans "No description" %}</span>
+                            {% endif %}
+                        </span>
+                        <span class="product-gallery-item-desc">{{ image.image.name }}</span>
+                    </div>
+
+                    <div class="card-action">
+{#                        <a href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">#}
+{#                            {% trans "Edit" %}#}
+{#                        </a>#}
+{##}
+{#                        <a href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}">#}
+{#                            {% trans "Delete" %}#}
+{#                        </a>#}
+                    </div>
+                </li>
+            </script>
         </div>
+
+
 
         <div class="fixed-action-btn">
             <a class="btn-fab btn-fab-hidden btn-floating btn-large waves-effect waves-light teal" id="images-btn"
                href="{% url 'dashboard:product-image-add' product_pk=product.pk %}" title="{% trans "Add image" %}">
                 <i class="mdi-content-add"></i>
             </a>
+        </div>
+
+        <div id="modal-product-delete" class="modal">
+            <form action="{% url "dashboard:product-delete" pk=product.pk %}" method="post">
+                {% csrf_token %}
+                <div class="modal-content">
+                    <h5>{% trans "Are you sure?" %}</h5>
+
+                    {% if object.images.exists %}
+                        <img src="{{ product.images.first.image.crop.600x600 }}" alt="" class="responsive-img">
+                    {% endif %}
+
+                    <p>
+                        {% blocktrans %}If you remove <b>{{ product }}</b> you will lose all data related to this product.{% endblocktrans %}
+                    </p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="modal-action waves-effect waves-green btn-flat blue-text">{% trans "Yes" %}</button>
+                    <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat blue-text">{% trans "No" %}</a>
+                </div>
+            </form>
         </div>
     {% endif %}
 
