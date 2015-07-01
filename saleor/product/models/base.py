@@ -220,17 +220,21 @@ class Stock(models.Model):
 
 @python_2_unicode_compatible
 class ProductAttribute(models.Model):
-    display = models.CharField(max_length=100)
-    slug = models.SlugField(max_length=50, unique=True)
+    name = models.SlugField(
+        pgettext_lazy('Product attribute field', 'name'),
+        max_length=50, unique=True)
+    display = models.CharField(
+        pgettext_lazy('Product attribute field', 'display'),
+        max_length=100)
 
     class Meta:
-        ordering = ['slug']
+        ordering = ['name']
 
     def __str__(self):
         return self.display
 
     def get_formfield_name(self):
-        return slugify('attribute-%s' % self.display)
+        return slugify('attribute-%s' % self.name)
 
     def has_values(self):
         return self.values.exists()

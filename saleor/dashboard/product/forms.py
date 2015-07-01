@@ -2,9 +2,7 @@ from __future__ import unicode_literals
 
 from django import forms
 from django.forms.models import inlineformset_factory
-from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
-
 from django_prices.templatetags.prices_i18n import gross
 
 from ...product.models import (ProductImage, Stock, ProductVariant, Product,
@@ -163,23 +161,7 @@ class ProductImageForm(forms.ModelForm):
 class ProductAttributeForm(forms.ModelForm):
     class Meta:
         model = ProductAttribute
-        exclude = ['slug']
-
-    def __init__(self, *args, **kwargs):
-        super(ProductAttributeForm, self).__init__(*args, **kwargs)
-
-    def clean(self):
-        cleaned_data = super(ProductAttributeForm, self).clean()
-        slug = slugify(self.cleaned_data['display'])
-        if ProductAttribute.objects.filter(slug=slug):
-            raise forms.ValidationError(
-                pgettext_lazy('Validation error', 'Attribute already exists'))
-        cleaned_data['slug'] = slug
-        return cleaned_data
-
-    def save(self, commit=True):
-        self.instance.slug = self.cleaned_data['slug']
-        return super(ProductAttributeForm, self).save(commit=commit)
+        exclude = []
 
 
 AttributeChoiceValueFormset = inlineformset_factory(
