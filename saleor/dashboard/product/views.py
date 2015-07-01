@@ -65,14 +65,15 @@ def product_details(request, pk=None, product_cls=None):
         variants_delete_form = VariantsBulkDeleteForm(request.POST, choices=variant_choices)
         if variants_delete_form.is_valid():
             variants_delete_form.delete()
-            return redirect('dashboard:product-update', pk=product.pk)
+            success_url = request.POST['success_url']
+            return redirect(success_url)
 
     if 'stock-bulk-delete-form' in request.POST:
         stock_delete_form = StockBulkDeleteForm(request.POST, choices=stock_choices)
         if stock_delete_form.is_valid():
             stock_delete_form.delete()
-            return redirect('dashboard:product-update', pk=product.pk)
-        print stock_delete_form.errors
+            success_url = request.POST['success_url']
+            return redirect(success_url)
 
     ctx = {
         'attributes': attributes, 'title': title, 'product': product,
