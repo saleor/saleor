@@ -129,34 +129,6 @@ class StockBulkDeleteForm(BulkDeleteForm):
     model = Stock
 
 
-def get_product_form(product):
-    if isinstance(product, Product):
-        return ProductForm
-    else:
-        raise ValueError('Unknown product class')
-
-
-def get_product_cls_by_name(cls_name):
-    for cls in PRODUCT_CLASSES.keys():
-        if cls_name == cls.__name__:
-            return cls
-    raise ValueError('Unknown product class')
-
-
-def get_variant_form(product):
-    if isinstance(product, Product):
-        return ProductVariantForm
-    else:
-        raise ValueError('Unknown product class')
-
-
-def get_variant_cls(product):
-    if isinstance(product, Product):
-        return ProductVariant
-    else:
-        raise ValueError('Unknown product class')
-
-
 class ProductImageForm(forms.ModelForm):
     class Meta:
         model = ProductImage

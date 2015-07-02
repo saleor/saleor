@@ -7,14 +7,14 @@ from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DeleteView
 
-from ...product.models import Product, ProductImage, Stock, ProductAttribute
+from ...product.models import Product, ProductImage, Stock, ProductAttribute, \
+    ProductVariant
 from ..utils import paginate
 from ..views import StaffMemberOnlyMixin, staff_member_required
-from .forms import (ProductClassForm, get_product_form,
-                    get_variant_form, ProductImageForm, StockForm,
-                    get_variant_cls, ProductAttributeForm,
-                    AttributeChoiceValueFormset, VariantAttributesForm,
-                    VariantsBulkDeleteForm, StockBulkDeleteForm)
+from .forms import (ProductClassForm, ProductImageForm, StockForm,
+                    ProductAttributeForm, AttributeChoiceValueFormset,
+                    VariantAttributesForm, VariantsBulkDeleteForm,
+                    StockBulkDeleteForm, ProductForm, ProductVariantForm)
 
 
 @staff_member_required
@@ -34,8 +34,7 @@ def product_list(request):
 def product_create(request):
     product = Product()
     title = _('Add new product')
-    form_cls = get_product_form(product)
-    form = form_cls(request.POST or None, instance=product)
+    form = ProductForm(request.POST or None, instance=product)
     if form.is_valid():
         product = form.save()
         msg = _('Added product %s') % product
@@ -61,13 +60,12 @@ def product_edit(request, pk):
     variant_choices = [(variant.pk, variant.name) for variant in variants]
     stock_choices = [(item.pk, item.pk) for item in stock_items]
 
-    form_cls = get_product_form(product)
-    form = form_cls(instance=product)
+    form = ProductForm(instance=product)
     variants_delete_form = VariantsBulkDeleteForm(choices=variant_choices)
     stock_delete_form = StockBulkDeleteForm(choices=stock_choices)
 
     if 'product-form' in request.POST:
-        form = form_cls(request.POST, instance=product)
+        form = ProductForm(request.POST, instance=product)
         product = save_product_form(request, form, False)
         return redirect('dashboard:product-update', pk=product.pk)
 
@@ -220,17 +218,14 @@ def product_image_delete(request, product_pk, img_pk):
 def variant_edit(request, product_pk, variant_pk=None):
     product = get_object_or_404(Product.objects.select_subclasses(),
                                 pk=product_pk)
-    variant_cls = get_variant_cls(product)
     form_initial = {}
     if variant_pk:
         variant = get_object_or_404(product.variants.select_subclasses(),
                                     pk=variant_pk)
     else:
-        variant = variant_cls(product=product)
-
-    form_cls = get_variant_form(product)
-    form = form_cls(request.POST or None, instance=variant,
-                    initial=form_initial)
+        variant = ProductVariant(product=product)
+    form = ProductVariantForm(request.POST or None, instance=variant,
+                              initial=form_initial)
     attributes_form = VariantAttributesForm(request.POST or None,
                                             instance=variant)
     forms = [form, attributes_form]
