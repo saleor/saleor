@@ -5,12 +5,11 @@ from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import DeleteView
 
 from ...product.models import Product, ProductImage, Stock, ProductAttribute, \
     ProductVariant
 from ..utils import paginate
-from ..views import StaffMemberOnlyMixin, staff_member_required
+from ..views import staff_member_required
 from . import forms
 
 
@@ -109,15 +108,16 @@ def save_product_form(request, form, creating):
     return product
 
 
-class ProductDeleteView(StaffMemberOnlyMixin, DeleteView):
-    model = Product
-    template_name = 'dashboard/product/product_confirm_delete.html'
-    success_url = reverse_lazy('dashboard:products')
-
-    def post(self, request, *args, **kwargs):
-        result = self.delete(request, *args, **kwargs)
-        messages.success(request, _('Deleted product %s') % self.object)
-        return result
+@staff_member_required
+def product_delete(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        product.delete()
+        messages.success(request, _('Deleted product %s') % product)
+        return redirect('dashboard:products')
+    return TemplateResponse(request,
+                            'dashboard/product/product_confirm_delete.html',
+                            {'product': product})
 
 
 @staff_member_required

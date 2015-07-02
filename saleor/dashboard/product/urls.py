@@ -13,7 +13,7 @@ urlpatterns = patterns(
     url(r'^add/$',
         views.product_create, name='product-add'),
     url(r'^(?P<pk>[0-9]+)/delete/$',
-        views.ProductDeleteView.as_view(), name='product-delete'),
+        views.product_delete, name='product-delete'),
 
     url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/$',
         views.variant_edit, name='variant-update'),
