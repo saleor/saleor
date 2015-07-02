@@ -54,12 +54,9 @@ def product_edit(request, pk):
     variants = product.variants.select_subclasses()
     stock_items = Stock.objects.filter(variant__in=variants)
 
-    variant_choices = [(variant.pk, variant.name) for variant in variants]
-    stock_choices = [(item.pk, item.pk) for item in stock_items]
-
     form = forms.ProductForm(instance=product)
-    variants_delete_form = forms.VariantsBulkDeleteForm(choices=variant_choices)
-    stock_delete_form = forms.StockBulkDeleteForm(choices=stock_choices)
+    variants_delete_form = forms.VariantBulkDeleteForm()
+    stock_delete_form = forms.StockBulkDeleteForm()
 
     if 'product-form' in request.POST:
         form = forms.ProductForm(request.POST, instance=product)
@@ -67,16 +64,14 @@ def product_edit(request, pk):
         return redirect('dashboard:product-update', pk=product.pk)
 
     if 'variants-bulk-delete-form' in request.POST:
-        variants_delete_form = forms.VariantsBulkDeleteForm(request.POST,
-                                                            choices=variant_choices)
+        variants_delete_form = forms.VariantBulkDeleteForm(request.POST)
         if variants_delete_form.is_valid():
             variants_delete_form.delete()
             success_url = request.POST['success_url']
             return redirect(success_url)
 
     if 'stock-bulk-delete-form' in request.POST:
-        stock_delete_form = forms.StockBulkDeleteForm(request.POST,
-                                                      choices=stock_choices)
+        stock_delete_form = forms.StockBulkDeleteForm(request.POST)
         if stock_delete_form.is_valid():
             stock_delete_form.delete()
             success_url = request.POST['success_url']
