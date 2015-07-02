@@ -11,16 +11,13 @@ from ...product.models import Product, ProductImage, Stock, ProductAttribute, \
     ProductVariant
 from ..utils import paginate
 from ..views import StaffMemberOnlyMixin, staff_member_required
-from .forms import (ProductClassForm, ProductImageForm, StockForm,
-                    ProductAttributeForm, AttributeChoiceValueFormset,
-                    VariantAttributesForm, VariantsBulkDeleteForm,
-                    StockBulkDeleteForm, ProductForm, ProductVariantForm)
+from . import forms
 
 
 @staff_member_required
 def product_list(request):
-    products = Product.objects.prefetch_related('images')
-    form = ProductClassForm(request.POST or None)
+    products = Product.objects.prefetch_related('images').select_subclasses()
+    form = forms.ProductClassForm(request.POST or None)
     if form.is_valid():
         return redirect('dashboard:product-add')
     products, paginator = paginate(products, 30, request.GET.get('page'))
@@ -34,7 +31,7 @@ def product_list(request):
 def product_create(request):
     product = Product()
     title = _('Add new product')
-    form = ProductForm(request.POST or None, instance=product)
+    form = forms.ProductForm(request.POST or None, instance=product)
     if form.is_valid():
         product = form.save()
         msg = _('Added product %s') % product
@@ -60,26 +57,26 @@ def product_edit(request, pk):
     variant_choices = [(variant.pk, variant.name) for variant in variants]
     stock_choices = [(item.pk, item.pk) for item in stock_items]
 
-    form = ProductForm(instance=product)
-    variants_delete_form = VariantsBulkDeleteForm(choices=variant_choices)
-    stock_delete_form = StockBulkDeleteForm(choices=stock_choices)
+    form = forms.ProductForm(instance=product)
+    variants_delete_form = forms.VariantsBulkDeleteForm(choices=variant_choices)
+    stock_delete_form = forms.StockBulkDeleteForm(choices=stock_choices)
 
     if 'product-form' in request.POST:
-        form = ProductForm(request.POST, instance=product)
+        form = forms.ProductForm(request.POST, instance=product)
         product = save_product_form(request, form, False)
         return redirect('dashboard:product-update', pk=product.pk)
 
     if 'variants-bulk-delete-form' in request.POST:
-        variants_delete_form = VariantsBulkDeleteForm(request.POST,
-                                                      choices=variant_choices)
+        variants_delete_form = forms.VariantsBulkDeleteForm(request.POST,
+                                                            choices=variant_choices)
         if variants_delete_form.is_valid():
             variants_delete_form.delete()
             success_url = request.POST['success_url']
             return redirect(success_url)
 
     if 'stock-bulk-delete-form' in request.POST:
-        stock_delete_form = StockBulkDeleteForm(request.POST,
-                                                choices=stock_choices)
+        stock_delete_form = forms.StockBulkDeleteForm(request.POST,
+                                                      choices=stock_choices)
         if stock_delete_form.is_valid():
             stock_delete_form.delete()
             success_url = request.POST['success_url']
@@ -135,7 +132,8 @@ def stock_edit(request, product_pk, stock_pk=None):
         stock = get_object_or_404(Stock, pk=stock_pk)
     else:
         stock = Stock()
-    form = StockForm(request.POST or None, instance=stock, product=product)
+    form = forms.StockForm(request.POST or None, instance=stock,
+                           product=product)
     if product.variants.exists():
         if form.is_valid():
             form.save()
@@ -177,8 +175,8 @@ def product_image_edit(request, product_pk, img_pk=None):
         product_image = get_object_or_404(product.images, pk=img_pk)
     else:
         product_image = ProductImage(product=product)
-    form = ProductImageForm(request.POST or None, request.FILES or None,
-                            instance=product_image)
+    form = forms.ProductImageForm(request.POST or None, request.FILES or None,
+                                  instance=product_image)
     if form.is_valid():
         product_image = form.save()
         if img_pk:
@@ -224,15 +222,13 @@ def variant_edit(request, product_pk, variant_pk=None):
                                     pk=variant_pk)
     else:
         variant = ProductVariant(product=product)
-    form = ProductVariantForm(request.POST or None, instance=variant,
-                              initial=form_initial)
-    attributes_form = VariantAttributesForm(request.POST or None,
-                                            instance=variant)
-    forms = [form, attributes_form]
-
-    if all([f.is_valid() for f in forms]):
+    form = forms.ProductVariantForm(request.POST or None, instance=variant,
+                                    initial=form_initial)
+    attribute_form = forms.VariantAttributeForm(request.POST or None,
+                                                instance=variant)
+    if all([form.is_valid(), attribute_form.is_valid()]):
         form.save()
-        attributes_form.save()
+        attribute_form.save()
         if variant_pk:
             msg = _('Updated variant %s') % variant.name
         else:
@@ -241,10 +237,10 @@ def variant_edit(request, product_pk, variant_pk=None):
         success_url = request.POST['success_url']
         return redirect(success_url)
     else:
-        if any([f.errors for f in forms]):
+        if any([form.is_valid(), attribute_form.is_valid()]):
             messages.error(request, _('Your submitted data was not valid - '
                                       'please correct the errors below'))
-    ctx = {'attributes_form': attributes_form,
+    ctx = {'attribute_form': attribute_form,
            'form': form,
            'product': product,
            'variant': variant}
@@ -284,10 +280,10 @@ def attribute_edit(request, pk=None):
     else:
         attribute = ProductAttribute()
         title = _('Add new attribute')
-    form = ProductAttributeForm(request.POST or None, instance=attribute)
-    formset = AttributeChoiceValueFormset(request.POST or None,
-                                          request.FILES or None,
-                                          instance=attribute)
+    form = forms.ProductAttributeForm(request.POST or None, instance=attribute)
+    formset = forms.AttributeChoiceValueFormset(request.POST or None,
+                                                request.FILES or None,
+                                                instance=attribute)
     if form.is_valid() and formset.is_valid():
         attribute = form.save()
         formset.save()

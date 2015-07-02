@@ -65,10 +65,7 @@ class ProductForm(forms.ModelForm):
 class ProductVariantForm(forms.ModelForm):
     class Meta:
         model = ProductVariant
-        exclude = ['attributes']
-        widgets = {
-            'product': forms.HiddenInput(),
-        }
+        exclude = ['attributes', 'product']
 
     def __init__(self, *args, **kwargs):
         super(ProductVariantForm, self).__init__(*args, **kwargs)
@@ -78,15 +75,15 @@ class ProductVariantForm(forms.ModelForm):
             'placeholder'] = self.instance.product.weight
 
 
-class VariantAttributesForm(forms.ModelForm):
+class VariantAttributeForm(forms.ModelForm):
     class Meta:
         model = ProductVariant
         fields = []
 
     def __init__(self, *args, **kwargs):
-        super(VariantAttributesForm, self).__init__(*args, **kwargs)
+        super(VariantAttributeForm, self).__init__(*args, **kwargs)
         self.available_attrs = self.instance.product.attributes.prefetch_related(
-            'values').all()
+            'values')
         for attr in self.available_attrs:
             field_defaults = {'label': attr.display, 'required': True,
                               'initial': self.instance.get_attribute(attr.pk)}
@@ -102,7 +99,7 @@ class VariantAttributesForm(forms.ModelForm):
         attributes = {attr.pk: self.cleaned_data.pop(attr.get_formfield_name())
                       for attr in self.available_attrs}
         self.instance.attributes = attributes
-        return super(VariantAttributesForm, self).save(commit=commit)
+        return super(VariantAttributeForm, self).save(commit=commit)
 
 
 class BulkDeleteForm(forms.Form):
