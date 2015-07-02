@@ -11,8 +11,7 @@ from ...product.models import Product, ProductImage, Stock, ProductAttribute
 from ..utils import paginate
 from ..views import StaffMemberOnlyMixin, staff_member_required
 from .forms import (ProductClassForm, get_product_form,
-                    get_product_cls_by_name, get_variant_form,
-                    ProductImageForm, get_verbose_name, StockForm,
+                    get_variant_form, ProductImageForm, StockForm,
                     get_variant_cls, ProductAttributeForm,
                     AttributeChoiceValueFormset, VariantAttributesForm,
                     VariantsBulkDeleteForm, StockBulkDeleteForm)
@@ -23,8 +22,7 @@ def product_list(request):
     products = Product.objects.prefetch_related('images')
     form = ProductClassForm(request.POST or None)
     if form.is_valid():
-        product_cls = form.cleaned_data['product_cls']
-        return redirect('dashboard:product-add', product_cls=product_cls)
+        return redirect('dashboard:product-add')
     products, paginator = paginate(products, 30, request.GET.get('page'))
     ctx = {'form': form,
            'products': products,
@@ -33,17 +31,28 @@ def product_list(request):
 
 
 @staff_member_required
-def product_details(request, pk=None, product_cls=None):
-    creating = pk is None
-    initial = {}
-    if creating:
-        product = get_product_cls_by_name(product_cls)()
-        title = _('Add new %s') % get_verbose_name(product)
-    else:
-        product = get_object_or_404(
-            Product.objects.select_subclasses().prefetch_related(
-                'images', 'variants'), pk=pk)
-        title = product.name
+def product_create(request):
+    product = Product()
+    title = _('Add new product')
+    form_cls = get_product_form(product)
+    form = form_cls(request.POST or None, instance=product)
+    if form.is_valid():
+        product = form.save()
+        msg = _('Added product %s') % product
+        messages.success(request, msg)
+        return redirect('dashboard:product-update', pk=product.pk)
+    elif form.errors:
+        messages.error(request, _('Your submitted data was not valid - '
+                                  'please correct the errors below'))
+    ctx = {'product_form': form, 'product': product, 'title': title}
+    return TemplateResponse(request, 'dashboard/product/product_form.html', ctx)
+
+
+@staff_member_required
+def product_edit(request, pk):
+    product = get_object_or_404(
+        Product.objects.select_subclasses().prefetch_related('images',
+                                                             'variants'), pk=pk)
     attributes = product.attributes.all()
     images = product.images.all()
     variants = product.variants.select_subclasses()
@@ -53,25 +62,26 @@ def product_details(request, pk=None, product_cls=None):
     stock_choices = [(item.pk, item.pk) for item in stock_items]
 
     form_cls = get_product_form(product)
-    form = form_cls(instance=product, initial=initial)
+    form = form_cls(instance=product)
     variants_delete_form = VariantsBulkDeleteForm(choices=variant_choices)
     stock_delete_form = StockBulkDeleteForm(choices=stock_choices)
 
     if 'product-form' in request.POST:
         form = form_cls(request.POST, instance=product)
-        product = save_product_form(request, form, creating)
-        if creating and product:
-            return redirect('dashboard:product-update', pk=product.pk)
+        product = save_product_form(request, form, False)
+        return redirect('dashboard:product-update', pk=product.pk)
 
     if 'variants-bulk-delete-form' in request.POST:
-        variants_delete_form = VariantsBulkDeleteForm(request.POST, choices=variant_choices)
+        variants_delete_form = VariantsBulkDeleteForm(request.POST,
+                                                      choices=variant_choices)
         if variants_delete_form.is_valid():
             variants_delete_form.delete()
             success_url = request.POST['success_url']
             return redirect(success_url)
 
     if 'stock-bulk-delete-form' in request.POST:
-        stock_delete_form = StockBulkDeleteForm(request.POST, choices=stock_choices)
+        stock_delete_form = StockBulkDeleteForm(request.POST,
+                                                choices=stock_choices)
         if stock_delete_form.is_valid():
             stock_delete_form.delete()
             success_url = request.POST['success_url']
@@ -82,7 +92,7 @@ def product_details(request, pk=None, product_cls=None):
            'product': product,
            'stock_delete_form': stock_delete_form,
            'stock_items': stock_items,
-           'title': title,
+           'title': product.name,
            'variants': variants,
            'variants_delete_form': variants_delete_form}
 
