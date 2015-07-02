@@ -12,10 +12,6 @@ PRODUCT_CLASSES = {
 }
 
 
-def get_verbose_name(model):
-    return model._meta.verbose_name
-
-
 class ProductClassForm(forms.Form):
     product_cls = forms.ChoiceField(
         label=pgettext_lazy('Product class form label', 'Product class'),
@@ -32,9 +28,6 @@ class StockForm(forms.ModelForm):
     class Meta:
         model = Stock
         exclude = []
-        widgets = {
-            'product': forms.HiddenInput()
-        }
 
     def __init__(self, *args, **kwargs):
         product = kwargs.pop('product')
