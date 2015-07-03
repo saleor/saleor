@@ -7,7 +7,7 @@ from . import views
 urlpatterns = patterns(
     '',
     url(r'^$',
-        views.product_list, name='products'),
+        views.product_list, name='product-list'),
     url(r'^(?P<pk>[0-9]+)/update/$',
         views.product_edit, name='product-update'),
     url(r'^add/$',

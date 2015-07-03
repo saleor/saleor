@@ -20,7 +20,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li><a href="{% url "dashboard:products" %}">{% trans "Products" %}</a></li>
+        <li><a href="{% url "dashboard:product-list" %}">{% trans "Products" %}</a></li>
         <li><a href="{% url "dashboard:product-update" pk=product.pk %}#images">{{ product }}</a></li>
         {% if product_image.pk %}
             <li>{{ product_image.image }}</li>

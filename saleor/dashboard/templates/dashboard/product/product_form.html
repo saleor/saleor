@@ -9,7 +9,7 @@
 {% block body_class %}body-store body-products{% endblock %}
 
 {% block header_menu %}
-    {% url "dashboard:products" as url %}
+    {% url "dashboard:product-list" as url %}
     {% include "dashboard/includes/_back-link.html" with url=url %}
 {% endblock %}
 
@@ -30,7 +30,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--with-menu">
-        <li><a href="{% url "dashboard:products" %}">{% trans "Products" %}</a></li>
+        <li><a href="{% url "dashboard:product-list" %}">{% trans "Products" %}</a></li>
         <li title="{{ title }}">{{ title }}</li>
     </ul>
 {% endblock %}

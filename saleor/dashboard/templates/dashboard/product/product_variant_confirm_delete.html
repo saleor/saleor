@@ -12,7 +12,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--with-menu">
-        <li><a href="{% url "dashboard:products" %}">{% trans "Products" %}</a></li>
+        <li><a href="{% url "dashboard:product-list" %}">{% trans "Products" %}</a></li>
         <li><a href="{% url "dashboard:product-update" pk=product.pk %}#variants">{{ product }}</a></li>
         <li>
             <span class="hide-on-med-and-down">{% trans "Delete variant" %}</span>

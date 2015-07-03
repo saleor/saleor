@@ -114,7 +114,7 @@ def product_delete(request, pk):
     if request.method == 'POST':
         product.delete()
         messages.success(request, _('Deleted product %s') % product)
-        return redirect('dashboard:products')
+        return redirect('dashboard:product-list')
     return TemplateResponse(request,
                             'dashboard/product/product_confirm_delete.html',
                             {'product': product})
