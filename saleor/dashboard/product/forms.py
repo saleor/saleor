@@ -7,9 +7,7 @@ from django.utils.translation import pgettext_lazy
 from ...product.models import (ProductImage, Stock, ProductVariant, Product,
                                ProductAttribute, AttributeChoiceValue)
 
-PRODUCT_CLASSES = {
-    Product: 'Default'
-}
+PRODUCT_CLASSES = {Product: 'Default'}
 
 
 class ProductClassForm(forms.Form):
@@ -32,12 +30,8 @@ class StockForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         product = kwargs.pop('product')
         super(StockForm, self).__init__(*args, **kwargs)
-        variants = product.variants.all()
-        if variants:
-            self.fields['variant'].choices = [(variant.pk, variant) for variant
-                                              in variants]
-        else:
-            self.fields['variant'].widget.attrs['disabled'] = True
+        self.fields['variant'] = forms.ModelChoiceField(
+            queryset=product.variants)
 
 
 class ProductForm(forms.ModelForm):
@@ -78,19 +72,21 @@ class VariantAttributeForm(forms.ModelForm):
         self.available_attrs = self.instance.product.attributes.prefetch_related(
             'values')
         for attr in self.available_attrs:
-            field_defaults = {'label': attr.display, 'required': True,
+            field_defaults = {'label': attr.display,
+                              'required': True,
                               'initial': self.instance.get_attribute(attr.pk)}
             if attr.has_values():
-                choices = [('', '')] + [(value.pk, value.display)
-                                        for value in attr.values.all()]
-                field = forms.ChoiceField(choices=choices, **field_defaults)
+                field = forms.ModelChoiceField(queryset=attr.values.all(),
+                                               **field_defaults)
             else:
                 field = forms.CharField(**field_defaults)
             self.fields[attr.get_formfield_name()] = field
 
     def save(self, commit=True):
-        attributes = {attr.pk: self.cleaned_data.pop(attr.get_formfield_name())
-                      for attr in self.available_attrs}
+        attributes = {}
+        for attr in self.available_attrs:
+            value = self.cleaned_data.pop(attr.get_formfield_name())
+            attributes[attr.pk] = value.pk if hasattr(value, 'pk') else value
         self.instance.attributes = attributes
         return super(VariantAttributeForm, self).save(commit=commit)
 
