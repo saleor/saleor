@@ -6,13 +6,12 @@ from ...product.models import Category
 
 
 class CategoryForm(forms.ModelForm):
+    parent = TreeNodeChoiceField(queryset=Category.objects.all(),
+                                 required=False)
+
     class Meta:
         model = Category
         exclude = []
-
-    def __init__(self, *args, **kwargs):
-        super(CategoryForm, self).__init__(*args, **kwargs)
-        self.fields['parent'] = TreeNodeChoiceField(queryset=Category.objects.all(), required=False)
 
     def clean_parent(self):
         parent = self.cleaned_data['parent']

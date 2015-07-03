@@ -21,10 +21,8 @@
         </div>
         <div class="row">
             <div class="col l8 offset-l2 right-align">
-                {% if parent_pk %}
-                    <a href="{% url 'dashboard:categories' root=parent_pk %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
-{#                {% elif category.pk %}#}
-{#                    <a href="{% url 'dashboard:categories' root=category.pk %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>#}
+                {% if category.parent %}
+                    <a href="{% url 'dashboard:categories' root=category.parent.pk %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
                 {% else %}
                     <a href="{% url 'dashboard:categories' %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
                 {% endif %}

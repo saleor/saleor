@@ -27,18 +27,14 @@ def category_list(request, root=None):
 
 @staff_member_required
 def category_details(request, pk=None, parent_pk=None):
-    ctx = {}
     if pk:
         category = get_object_or_404(Category.objects.all(), pk=pk)
         title = category.name
     else:
         category = Category()
         title = _('Add new category')
-    initial = {}
-    if parent_pk:
-        initial['parent'] = parent_pk
-        ctx['parent_pk'] = parent_pk
-    form = CategoryForm(request.POST or None, instance=category, initial=initial)
+    form = CategoryForm(request.POST or None, instance=category,
+                        initial={'parent': parent_pk})
     if form.is_valid():
         form.save()
         if pk:
@@ -50,7 +46,7 @@ def category_details(request, pk=None, parent_pk=None):
     else:
         if form.errors:
             messages.error(request, _('Failed to save category'))
-    ctx.update({'category': category, 'form': form, 'title': title})
+    ctx = {'category': category, 'form': form, 'title': title}
     return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
 
 
