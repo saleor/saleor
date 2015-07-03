@@ -1,12 +1,10 @@
 from django.contrib import messages
-from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import DeleteView
 
 from ...product.models import Category
-from ..views import StaffMemberOnlyMixin, staff_member_required
+from ..views import staff_member_required
 from .forms import CategoryForm
 
 
@@ -56,18 +54,16 @@ def category_details(request, pk=None, parent_pk=None):
     return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
 
 
-class CategoryDeleteView(StaffMemberOnlyMixin, DeleteView):
-    model = Category
-    template_name = 'dashboard/category/category_confirm_delete.html'
-    success_url = reverse_lazy('dashboard:categories')
-
-    def get_context_data(self, **kwargs):
-        ctx = super(CategoryDeleteView, self).get_context_data(**kwargs)
-        ctx['descendants'] = list(self.get_object().get_descendants())
-        ctx['products_count'] = len(self.get_object().products.all())
-        return ctx
-
-    def post(self, request, *args, **kwargs):
-        result = self.delete(request, *args, **kwargs)
-        messages.success(request, _('Deleted category %s') % self.object)
-        return result
+@staff_member_required
+def category_delete(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    if request.method == 'POST':
+        category.delete()
+        messages.success(request, _('Deleted category %s') % category)
+        return redirect('dashboard:categories')
+    ctx = {'category': category,
+           'descendants': list(category.get_descendants()),
+           'products_count': len(category.products.all())}
+    return TemplateResponse(request,
+                            'dashboard/category/category_confirm_delete.html',
+                            ctx)
