@@ -84,11 +84,6 @@ def product_edit(request, pk):
            'title': product.name,
            'variants': variants,
            'variants_delete_form': variants_delete_form}
-
-    if pk:
-        images_reorder_url = reverse_lazy('dashboard:product-images-reorder',
-                                          kwargs={'product_pk': pk})
-        ctx['images_reorder_url'] = images_reorder_url
     return TemplateResponse(request, 'dashboard/product/product_form.html', ctx)
 
 
@@ -101,10 +96,9 @@ def save_product_form(request, form, creating):
         else:
             msg = _('Updated product %s') % product
         messages.success(request, msg)
-    else:
-        if form.errors:
-            messages.error(request, _('Your submitted data was not valid - '
-                                      'please correct the errors below'))
+    elif form.errors:
+        messages.error(request, _('Your submitted data was not valid - '
+                                  'please correct the errors below'))
     return product
 
 
@@ -135,10 +129,9 @@ def stock_edit(request, product_pk, stock_pk=None):
             messages.success(request, _('Saved stock'))
             success_url = request.POST['success_url']
             return redirect(success_url)
-        else:
-            if form.errors:
-                messages.error(request, _('Your submitted data was not valid - '
-                                          'please correct the errors below'))
+        elif form.errors:
+            messages.error(request, _('Your submitted data was not valid - '
+                                      'please correct the errors below'))
     else:
         messages.error(request, _(
             'You have to add at least one variant before you can add stock'))
@@ -181,10 +174,9 @@ def product_image_edit(request, product_pk, img_pk=None):
         messages.success(request, msg)
         success_url = request.POST['success_url']
         return redirect(success_url)
-    else:
-        if form.errors:
-            messages.error(request, _('Your submitted data was not valid - '
-                                      'please correct the errors below'))
+    elif form.errors:
+        messages.error(request, _('Your submitted data was not valid - '
+                                  'please correct the errors below'))
     ctx = {'form': form,
            'product': product,
            'product_image': product_image}
@@ -231,10 +223,9 @@ def variant_edit(request, product_pk, variant_pk=None):
         messages.success(request, msg)
         success_url = request.POST['success_url']
         return redirect(success_url)
-    else:
-        if any([form.is_valid(), attribute_form.is_valid()]):
-            messages.error(request, _('Your submitted data was not valid - '
-                                      'please correct the errors below'))
+    elif any([form.is_valid(), attribute_form.is_valid()]):
+        messages.error(request, _('Your submitted data was not valid - '
+                                  'please correct the errors below'))
     ctx = {'attribute_form': attribute_form,
            'form': form,
            'product': product,
@@ -279,16 +270,15 @@ def attribute_edit(request, pk=None):
     formset = forms.AttributeChoiceValueFormset(request.POST or None,
                                                 request.FILES or None,
                                                 instance=attribute)
-    if form.is_valid() and formset.is_valid():
+    if all([form.is_valid(), formset.is_valid()]):
         attribute = form.save()
         formset.save()
         msg = _('Updated attribute') if pk else _('Added attribute')
         messages.success(request, msg)
         return redirect('dashboard:product-attribute-update', pk=attribute.pk)
-    else:
-        if form.errors or formset.errors:
-            messages.error(request, _('Your submitted data was not valid - '
-                                      'please correct the errors below'))
+    elif any([form.errors, formset.errors]):
+        messages.error(request, _('Your submitted data was not valid - '
+                                  'please correct the errors below'))
     ctx = {'attribute': attribute,
            'form': form,
            'formset': formset,
