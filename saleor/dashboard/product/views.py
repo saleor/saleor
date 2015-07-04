@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 from django.contrib import messages
-from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
@@ -59,8 +58,14 @@ def product_edit(request, pk):
 
     if 'product-form' in request.POST:
         form = forms.ProductForm(request.POST, instance=product)
-        product = save_product_form(request, form, False)
-        return redirect('dashboard:product-update', pk=product.pk)
+        if form.is_valid():
+            product = form.save()
+            msg = _('Updated product %s') % product
+            messages.success(request, msg)
+            return redirect('dashboard:product-update', pk=product.pk)
+        elif form.errors:
+            messages.error(request, _('Your submitted data was not valid - '
+                                      'please correct the errors below'))
 
     if 'variants-bulk-delete-form' in request.POST:
         variants_delete_form = forms.VariantBulkDeleteForm(request.POST)
@@ -85,21 +90,6 @@ def product_edit(request, pk):
            'variants': variants,
            'variants_delete_form': variants_delete_form}
     return TemplateResponse(request, 'dashboard/product/product_form.html', ctx)
-
-
-def save_product_form(request, form, creating):
-    product = None
-    if form.is_valid():
-        product = form.save()
-        if creating:
-            msg = _('Added product %s') % product
-        else:
-            msg = _('Updated product %s') % product
-        messages.success(request, msg)
-    elif form.errors:
-        messages.error(request, _('Your submitted data was not valid - '
-                                  'please correct the errors below'))
-    return product
 
 
 @staff_member_required
