@@ -3,8 +3,7 @@ from django.conf.urls import patterns, url
 from . import views
 
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^$', views.details, name='details'),
     url(r'^orders/$', views.orders, name='orders'),
     url(r'^address/create/$', views.address_create,
@@ -16,4 +15,4 @@ urlpatterns = patterns(
     url(r'^address/(?P<pk>\d+)/make-default-for-'
         r'(?P<purpose>billing|shipping)/$', views.address_make_default,
         name='address-make-default')
-)
+]

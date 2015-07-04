@@ -1,10 +1,9 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from . import views
 
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^$', views.OrderListView.as_view(), name='orders'),
     url(r'^(?P<pk>[0-9]+)/$',
         views.order_details, name='order-details'),
@@ -18,4 +17,4 @@ urlpatterns = patterns(
         views.edit_order_line, name='order-line-edit'),
     url(r'^ship/(?P<pk>[0-9]+)/$', views.ship_delivery_group,
         name='ship-delivery-group')
-)
+]

@@ -1,11 +1,10 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from . import api
 from . import views
 
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^$',
         views.product_list, name='product-list'),
     url(r'^(?P<pk>[0-9]+)/update/$',
@@ -48,4 +47,4 @@ urlpatterns = patterns(
         views.attribute_edit, name='product-attribute-add'),
     url(r'attributes/(?P<pk>[0-9]+)/delete/$',
         views.attribute_delete, name='product-attribute-delete'),
-)
+]
