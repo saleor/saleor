@@ -19,9 +19,7 @@ def product_list(request):
     if form.is_valid():
         return redirect('dashboard:product-add')
     products, paginator = paginate(products, 30, request.GET.get('page'))
-    ctx = {'form': form,
-           'products': products,
-           'paginator': paginator}
+    ctx = {'form': form, 'products': products, 'paginator': paginator}
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
 
 
@@ -81,14 +79,10 @@ def product_edit(request, pk):
             success_url = request.POST['success_url']
             return redirect(success_url)
 
-    ctx = {'attributes': attributes,
-           'images': images, 'product_form': form,
-           'product': product,
-           'stock_delete_form': stock_delete_form,
-           'stock_items': stock_items,
-           'title': product.name,
-           'variants': variants,
-           'variants_delete_form': variants_delete_form}
+    ctx = {'attributes': attributes, 'images': images, 'product_form': form,
+           'product': product, 'stock_delete_form': stock_delete_form,
+           'stock_items': stock_items, 'title': product.name,
+           'variants': variants, 'variants_delete_form': variants_delete_form}
     return TemplateResponse(request, 'dashboard/product/product_form.html', ctx)
 
 
@@ -125,9 +119,7 @@ def stock_edit(request, product_pk, stock_pk=None):
     else:
         messages.error(request, _(
             'You have to add at least one variant before you can add stock'))
-    ctx = {'form': form,
-           'product': product,
-           'stock': stock}
+    ctx = {'form': form, 'product': product, 'stock': stock}
     return TemplateResponse(request, 'dashboard/product/stock_form.html', ctx)
 
 
@@ -140,8 +132,7 @@ def stock_delete(request, product_pk, stock_pk):
         messages.success(request, _('Deleted stock'))
         success_url = request.POST['success_url']
         return redirect(success_url)
-    ctx = {'product': product,
-           'stock': stock}
+    ctx = {'product': product, 'stock': stock}
     return TemplateResponse(
         request, 'dashboard/product/stock_confirm_delete.html', ctx)
 
@@ -167,9 +158,7 @@ def product_image_edit(request, product_pk, img_pk=None):
     elif form.errors:
         messages.error(request, _('Your submitted data was not valid - '
                                   'please correct the errors below'))
-    ctx = {'form': form,
-           'product': product,
-           'product_image': product_image}
+    ctx = {'form': form, 'product': product, 'product_image': product_image}
     return TemplateResponse(
         request, 'dashboard/product/product_image_form.html', ctx)
 
@@ -216,9 +205,7 @@ def variant_edit(request, product_pk, variant_pk=None):
     elif any([form.is_valid(), attribute_form.is_valid()]):
         messages.error(request, _('Your submitted data was not valid - '
                                   'please correct the errors below'))
-    ctx = {'attribute_form': attribute_form,
-           'form': form,
-           'product': product,
+    ctx = {'attribute_form': attribute_form, 'form': form, 'product': product,
            'variant': variant}
     return TemplateResponse(request, 'dashboard/product/variant_form.html', ctx)
 
@@ -233,8 +220,7 @@ def variant_delete(request, product_pk, variant_pk):
         messages.success(request, _('Deleted variant %s') % variant.name)
         success_url = request.POST['success_url']
         return redirect(success_url)
-    ctx = {'is_only_variant': is_only_variant,
-           'product': product,
+    ctx = {'is_only_variant': is_only_variant, 'product': product,
            'variant': variant}
     return TemplateResponse(
         request, 'dashboard/product/product_variant_confirm_delete.html', ctx)
@@ -269,9 +255,7 @@ def attribute_edit(request, pk=None):
     elif any([form.errors, formset.errors]):
         messages.error(request, _('Your submitted data was not valid - '
                                   'please correct the errors below'))
-    ctx = {'attribute': attribute,
-           'form': form,
-           'formset': formset,
+    ctx = {'attribute': attribute, 'form': form, 'formset': formset,
            'title': title}
     return TemplateResponse(request, 'dashboard/product/attributes/form.html',
                             ctx)
