@@ -9,6 +9,20 @@
 
 {% block page_title %}{{ title }}{% endblock %}
 
+{% block breadcrumbs %}
+    <ul class="breadcrumbs breadcrumbs--with-menu">
+        <li><a href="{% url 'dashboard:category-list' %}">{% trans "Categories" %}</a></li>
+        {% if path %}
+            {% for node in path %}
+                <li><a href="{% url 'dashboard:category-list' root_pk=node.pk %}">{{ node.name }}</a></li>
+            {% endfor %}
+        {% endif %}
+        <li>{{ title }}</li>
+    </ul>
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
 {% block content %}
     <form method="post" id="category-form" enctype="multipart/form-data">
         <div class="row">
@@ -22,9 +36,9 @@
         <div class="row">
             <div class="col l8 offset-l2 right-align">
                 {% if category.parent %}
-                    <a href="{% url 'dashboard:categories' root=category.parent.pk %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
+                    <a href="{% url 'dashboard:category-list' root_pk=category.parent.pk %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
                 {% else %}
-                    <a href="{% url 'dashboard:categories' %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
+                    <a href="{% url 'dashboard:category-list' %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
                 {% endif %}
                 {% if category.pk %}
                     <button type="submit" class="btn"><i class="mdi-content-save"></i> {% trans "Update" %}</button>

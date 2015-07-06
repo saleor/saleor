@@ -10,44 +10,51 @@
 
 {% block header_extra %}
     <a class="btn-fab btn-floating btn-large waves-effect waves-light teal" title="{% trans "Add category" %}"
-       href="{% if current_node %}{% url 'dashboard:category-add' parent_pk=current_node.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}">
+       href="{% if root %}{% url 'dashboard:category-add' root_pk=root.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}">
         <i class="mdi-content-add"></i>
     </a>
 {% endblock %}
 
+{% block breadcrumbs %}
+    <ul class="breadcrumbs breadcrumbs--with-menu">
+        <li>{% if path %}<a href="{% url 'dashboard:category-list' %}">{% trans "Categories" %}</a>{% else %}{% trans "Categories" %}{% endif %}</li>
+        {% if path %}
+            {% for node in path %}
+                {% if forloop.last %}
+                    <li>{{ node.name }}</li>
+                {% else %}
+                    <li><a href="{% url 'dashboard:category-list' root_pk=node.pk %}">{{ node.name }}</a></li>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </ul>
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
 {% block content %}
-            <div class="row">
-                <div class="col s12">
-                    {% for item in category_breadcrumbs %}
-                        {% if forloop.last %}
-                            <span>{% if not forloop.first %} / {% endif %}{{ item.name }}</span>
-                        {% else %}
-                            <span>{% if not forloop.first %} / {% endif %}<a href="{% url 'dashboard:categories' root=item.pk %}">{{ item.name }}</a></span>
-                        {% endif %}
+    <div class="row">
+        <div class="col s12">
+            <ul class="collection category-list">
+                {% if categories %}
+                    {% for node in categories %}
+                        <li class="collection-item category-list-item">
+                            <a href="{% url 'dashboard:category-list' root_pk=node.pk %}">{{ node.name }}</a>
+                            <div class="right category-list-item-actions">
+                                <a href="{% url 'dashboard:category-add' root_pk=node.pk %}" title="{% trans "Add child" %}">
+                                    <i class="mdi-content-add teal-text"></i>
+                                </a>
+                                <a href="{% url 'dashboard:category-update' pk=node.pk %}" title="{% trans "Edit category" %}"><i class="mdi-content-create light-blue-text lighten-2"></i></a>
+                                <a href="{% url 'dashboard:category-delete' pk=node.pk %}" title="{% trans "Delete category" %}">
+                                    <i class="mdi-action-delete materialize-red-text"></i>
+                                </a>
+                            </div>
+                        </li>
                     {% endfor %}
-
-                    <ul class="collection category-list">
-                        {% recursetree categories %}
-                            <li class="collection-item category-list-item">
-                                {% if node.level == min_level %}<a href="{% url 'dashboard:categories' root=node.pk %}">{{ node.name }}</a>{% else %}{{ node.name }}{% endif %}
-
-                                <div class="right category-list-item-actions">
-                                    <a href="{% url 'dashboard:category-add' parent_pk=node.pk %}" title="{% trans "Add child" %}">
-                                        <i class="mdi-content-add teal-text"></i>
-                                    </a>
-                                    <a href="{% url 'dashboard:category-update' pk=node.pk %}" title="{% trans "Edit category" %}">
-                                        <i class="mdi-content-create light-blue-text lighten-2"></i>
-                                    </a>
-                                    <a href="{% url 'dashboard:category-delete' pk=node.pk %}" title="{% trans "Delete category" %}">
-                                        <i class="mdi-action-delete materialize-red-text"></i>
-                                    </a>
-                                </div>
-                            </li>
-                            {% if not node.is_leaf_node %}
-                                {{ children }}
-                            {% endif %}
-                        {% endrecursetree %}
-                    </ul>
-                </div>
-            </div>
-{% endblock %}{% if current_node %}: {{ current_node }}{% endif %}
+                {% else %}
+                    <p>{% trans "No subcategories" %}</p>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+{% endblock %}

@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator, RegexValidator
+from django.db.models import Manager
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.db import models
 from django.utils.text import slugify
@@ -12,6 +13,7 @@ from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
+from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from satchless.item import ItemRange, Item
 from unidecode import unidecode
@@ -31,6 +33,9 @@ class Category(MPTTModel):
     parent = models.ForeignKey(
         'self', null=True, blank=True, related_name='children',
         verbose_name=pgettext_lazy('Category field', 'parent'))
+
+    objects = Manager()
+    tree = TreeManager()
 
     def __str__(self):
         return self.name

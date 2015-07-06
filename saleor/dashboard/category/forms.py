@@ -1,6 +1,8 @@
 from django import forms
+from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
 from mptt.forms import TreeNodeChoiceField
+from unidecode import unidecode
 
 from ...product.models import Category
 
@@ -11,7 +13,7 @@ class CategoryForm(forms.ModelForm):
 
     class Meta:
         model = Category
-        exclude = []
+        exclude = ['slug']
 
     def clean_parent(self):
         parent = self.cleaned_data['parent']
@@ -21,3 +23,7 @@ class CategoryForm(forms.ModelForm):
             if self.instance in parent.get_ancestors():
                 raise forms.ValidationError(_('A category may not be made a child of any of its descendants.'))
         return parent
+
+    def save(self, commit=True):
+        self.instance.slug = slugify(unidecode(self.instance.name))
+        return super(CategoryForm, self).save(commit=commit)

@@ -9,43 +9,53 @@ from .forms import CategoryForm
 
 
 @staff_member_required
-def category_list(request, root=None):
-    ctx = {}
-    categories = Category.objects.all()
-    if root:
-        current_node = get_object_or_404(Category, pk=root)
-        categories = current_node.get_descendants()
-        ctx['current_node'] = current_node
-        ctx['category_breadcrumbs'] = current_node.get_ancestors(include_self=True)
-    min_level = categories[0].get_level() if categories else 0
-    max_level = min_level + 1
-    categories = categories.filter(level__gte=min_level, level__lte=max_level)
-    ctx['categories'] = categories
-    ctx['min_level'] = min_level
+def category_list(request, root_pk=None):
+    root = None
+    if root_pk:
+        root = get_object_or_404(Category, pk=root_pk)
+        categories = root.get_children()
+    else:
+        categories = Category.tree.root_nodes()
+    path = root.get_ancestors(include_self=True) if root else []
+    ctx = {'categories': categories, 'path': path, 'root': root}
     return TemplateResponse(request, 'dashboard/category/list.html', ctx)
 
 
 @staff_member_required
-def category_details(request, pk=None, parent_pk=None):
-    if pk:
-        category = get_object_or_404(Category.objects.all(), pk=pk)
-        title = category.name
-    else:
-        category = Category()
-        title = _('Add new category')
-    form = CategoryForm(request.POST or None, instance=category,
-                        initial={'parent': parent_pk})
+def category_create(request, root_pk=None):
+    category = Category()
+    title = _('Add new category')
+    form = CategoryForm(request.POST or None, initial={'parent': root_pk})
     if form.is_valid():
-        form.save()
-        if pk:
-            msg = _('Updated category %s') % category
+        category = form.save()
+        messages.success(request, _('Added category %s') % category)
+        if root_pk:
+            return redirect('dashboard:category-list', root_pk=root_pk)
         else:
-            msg = _('Added category %s') % category
-        messages.success(request, msg)
-        return redirect('dashboard:categories')
-    else:
-        if form.errors:
-            messages.error(request, _('Failed to save category'))
+            return redirect('dashboard:category-list')
+    elif form.errors:
+        messages.error(request, _('Failed to save category'))
+    ctx = {'category': category, 'form': form, 'title': title}
+    return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
+
+
+@staff_member_required
+def category_edit(request, pk=None):
+    category = get_object_or_404(Category, pk=pk)
+    title = category.name
+    form = CategoryForm(request.POST or None,
+                        instance=category,
+                        initial={'parent': category.parent})
+    if form.is_valid():
+        category = form.save()
+        messages.success(request, _('Updated category %s') % category)
+        if category.parent:
+            return redirect('dashboard:category-list',
+                            root_pk=category.parent.pk)
+        else:
+            return redirect('dashboard:category-list')
+    elif form.errors:
+        messages.error(request, _('Failed to save category'))
     ctx = {'category': category, 'form': form, 'title': title}
     return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
 
@@ -56,7 +66,10 @@ def category_delete(request, pk):
     if request.method == 'POST':
         category.delete()
         messages.success(request, _('Deleted category %s') % category)
-        return redirect('dashboard:categories')
+        if category.parent:
+            return redirect('dashboard:category-list', root_pk=category.parent.pk)
+        else:
+            return redirect('dashboard:category-list')
     ctx = {'category': category,
            'descendants': list(category.get_descendants()),
            'products_count': len(category.products.all())}

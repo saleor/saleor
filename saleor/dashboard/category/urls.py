@@ -4,15 +4,15 @@ from . import views
 
 urlpatterns = [
     url(r'^$',
-        views.category_list, name='categories'),
-    url(r'^(?P<root>[0-9]+)/$',
-        views.category_list, name='categories'),
+        views.category_list, name='category-list'),
+    url(r'^(?P<root_pk>[0-9]+)/$',
+        views.category_list, name='category-list'),
     url(r'^add/$',
-        views.category_details, name='category-add'),
-    url(r'^(?P<parent_pk>[0-9]+)/add/$',
-        views.category_details, name='category-add'),
+        views.category_create, name='category-add'),
+    url(r'^(?P<root_pk>[0-9]+)/add/$',
+        views.category_create, name='category-add'),
     url(r'^(?P<pk>[0-9]+)/update/$',
-        views.category_details, name='category-update'),
+        views.category_edit, name='category-update'),
     url(r'^(?P<pk>[0-9]+)/delete/$',
         views.category_delete, name='category-delete')
 ]
