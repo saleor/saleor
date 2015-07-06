@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
+from django.utils.http import is_safe_url
 from django.utils.translation import ugettext_lazy as _
 
 from ...product.models import Product, ProductImage, Stock, ProductAttribute, \
@@ -70,14 +71,16 @@ def product_edit(request, pk):
         if variants_delete_form.is_valid():
             variants_delete_form.delete()
             success_url = request.POST['success_url']
-            return redirect(success_url)
+            if is_safe_url(success_url, request.get_host()):
+                return redirect(success_url)
 
     if 'stock-bulk-delete-form' in request.POST:
         stock_delete_form = forms.StockBulkDeleteForm(request.POST)
         if stock_delete_form.is_valid():
             stock_delete_form.delete()
             success_url = request.POST['success_url']
-            return redirect(success_url)
+            if is_safe_url(success_url, request.get_host()):
+                return redirect(success_url)
 
     ctx = {'attributes': attributes, 'images': images, 'product_form': form,
            'product': product, 'stock_delete_form': stock_delete_form,
@@ -112,7 +115,8 @@ def stock_edit(request, product_pk, stock_pk=None):
             form.save()
             messages.success(request, _('Saved stock'))
             success_url = request.POST['success_url']
-            return redirect(success_url)
+            if is_safe_url(success_url, request.get_host()):
+                return redirect(success_url)
         elif form.errors:
             messages.error(request, _('Your submitted data was not valid - '
                                       'please correct the errors below'))
@@ -131,7 +135,8 @@ def stock_delete(request, product_pk, stock_pk):
         stock.delete()
         messages.success(request, _('Deleted stock'))
         success_url = request.POST['success_url']
-        return redirect(success_url)
+        if is_safe_url(success_url, request.get_host()):
+            return redirect(success_url)
     ctx = {'product': product, 'stock': stock}
     return TemplateResponse(
         request, 'dashboard/product/stock_confirm_delete.html', ctx)
@@ -154,7 +159,8 @@ def product_image_edit(request, product_pk, img_pk=None):
             msg = _('Added image %s') % product_image.image.name
         messages.success(request, msg)
         success_url = request.POST['success_url']
-        return redirect(success_url)
+        if is_safe_url(success_url, request.get_host()):
+            return redirect(success_url)
     elif form.errors:
         messages.error(request, _('Your submitted data was not valid - '
                                   'please correct the errors below'))
@@ -172,7 +178,8 @@ def product_image_delete(request, product_pk, img_pk):
         messages.success(
             request, _('Deleted image %s') % product_image.image.name)
         success_url = request.POST['success_url']
-        return redirect(success_url)
+        if is_safe_url(success_url, request.get_host()):
+            return redirect(success_url)
     ctx = {'product': product, 'product_image': product_image}
     return TemplateResponse(
         request, 'dashboard/product/product_image_confirm_delete.html', ctx)
@@ -201,7 +208,8 @@ def variant_edit(request, product_pk, variant_pk=None):
             msg = _('Added variant %s') % variant.name
         messages.success(request, msg)
         success_url = request.POST['success_url']
-        return redirect(success_url)
+        if is_safe_url(success_url, request.get_host()):
+            return redirect(success_url)
     elif any([form.is_valid(), attribute_form.is_valid()]):
         messages.error(request, _('Your submitted data was not valid - '
                                   'please correct the errors below'))
@@ -219,7 +227,8 @@ def variant_delete(request, product_pk, variant_pk):
         variant.delete()
         messages.success(request, _('Deleted variant %s') % variant.name)
         success_url = request.POST['success_url']
-        return redirect(success_url)
+        if is_safe_url(success_url, request.get_host()):
+            return redirect(success_url)
     ctx = {'is_only_variant': is_only_variant, 'product': product,
            'variant': variant}
     return TemplateResponse(
