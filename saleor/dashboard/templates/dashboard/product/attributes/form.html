@@ -5,6 +5,8 @@
 
 {% block title %}{{ title }} - {% trans "Attributes" %} - {{ block.super }}{% endblock %}
 
+{% block body_class %}body-store body-attributes{% endblock %}
+
 {% block custom_css %}
     <style>
     [type=checkbox]:not(:checked), [type=checkbox]:checked {
@@ -17,9 +19,11 @@
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--with-menu">
         <li><a href="{% url 'dashboard:product-attributes' %}">{% trans "Attributes" %}</a></li>
-        <li><i class="mdi-navigation-chevron-right"></i> {{ title }}</li>
+        <li>{{ title }}</li>
     </ul>
 {% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
     <form method="post" enctype="multipart/form-data">
