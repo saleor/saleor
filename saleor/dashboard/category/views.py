@@ -42,16 +42,16 @@ def category_create(request, root_pk=None):
 @staff_member_required
 def category_edit(request, pk=None):
     category = get_object_or_404(Category, pk=pk)
+    root = category.parent
     title = category.name
     form = CategoryForm(request.POST or None,
                         instance=category,
-                        initial={'parent': category.parent})
+                        initial={'parent': root})
     if form.is_valid():
         category = form.save()
         messages.success(request, _('Updated category %s') % category)
-        if category.parent:
-            return redirect('dashboard:category-list',
-                            root_pk=category.parent.pk)
+        if root:
+            return redirect('dashboard:category-list', root_pk=root.pk)
         else:
             return redirect('dashboard:category-list')
     elif form.errors:
