@@ -11,6 +11,7 @@ from django.db import models
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
+from django_prices.templatetags.prices_i18n import gross
 from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
 from mptt.managers import TreeManager
@@ -151,7 +152,12 @@ class ProductVariant(models.Model, Item):
         app_label = 'product'
 
     def __str__(self):
-        return '%s (%s)' % (self.sku, self.name) if self.name else self.sku
+        if self.name:
+            _str = self.name
+        else:
+            _str = ' / '.join(self.get_attributes_display().itervalues())
+        _str = '%s - %s' % (_str, gross(self.get_price()))
+        return _str
 
     def get_weight(self):
         return self.weight_override or self.product.weight
