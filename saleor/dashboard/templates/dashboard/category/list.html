@@ -40,6 +40,7 @@
                     {% for node in categories %}
                         <li class="collection-item category-list-item">
                             <a href="{% url 'dashboard:category-list' root_pk=node.pk %}">{{ node.name }}</a>
+                            {% if node.hidden %}<span class="grey-text"> hidden</span>{% endif %}
                             <div class="right category-list-item-actions">
                                 <a href="{% url 'dashboard:category-add' root_pk=node.pk %}" title="{% trans "Add child" %}">
                                     <i class="mdi-content-add teal-text"></i>

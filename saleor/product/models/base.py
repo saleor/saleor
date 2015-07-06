@@ -33,6 +33,8 @@ class Category(MPTTModel):
     parent = models.ForeignKey(
         'self', null=True, blank=True, related_name='children',
         verbose_name=pgettext_lazy('Category field', 'parent'))
+    hidden = models.BooleanField(
+        pgettext_lazy('Category field', 'hidden'), default=False)
 
     objects = Manager()
     tree = TreeManager()
@@ -46,6 +48,11 @@ class Category(MPTTModel):
     class Meta:
         verbose_name_plural = 'categories'
         app_label = 'product'
+
+    def set_hidden_descendants(self, hidden):
+        for category in self.get_descendants():
+            category.hidden = hidden
+            category.save()
 
 
 @python_2_unicode_compatible

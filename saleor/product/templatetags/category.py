@@ -6,4 +6,4 @@ register = template.Library()
 
 @register.inclusion_tag('category/_list.html')
 def categories_list():
-    return {'categories': Category.objects.all()}
+    return {'categories': Category.objects.filter(hidden=False)}

@@ -5,6 +5,15 @@
 
 {% block title %}{{ title }} - {% trans 'Categories' %} - {{ block.super }}{% endblock %}
 
+{% block custom_css %}
+<style type="text/css">
+[type=checkbox]:not(:checked), [type=checkbox]:checked {
+    position: static;
+    visibility: visible;
+}
+</style>
+{% endblock %}
+
 {% block body_class %}body-categories{% endblock %}
 
 {% block page_title %}{{ title }}{% endblock %}
@@ -29,7 +38,10 @@
             <div class="col l8 offset-l2">
                 <div class="row">
                     {% csrf_token %}
-                    {{ form|materializecss }}
+                    {{ form.parent|materializecss }}
+                    {{ form.name|materializecss }}
+                    {{ form.description|materializecss }}
+                    {{ form.hidden|materializecss }}
                 </div>
             </div>
         </div>
