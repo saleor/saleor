@@ -16,7 +16,7 @@ from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
-from satchless.item import ItemRange, Item
+from satchless.item import ItemRange, Item, InsufficientStock
 from unidecode import unidecode
 from versatileimagefield.fields import VersatileImageField
 
@@ -161,6 +161,14 @@ class ProductVariant(models.Model, Item):
 
     def get_weight(self):
         return self.weight_override or self.product.weight
+
+    def check_quantity(self, quantity):
+        available_quantity = sum([stock.quantity for stock in self.stock.all()])
+        if quantity > available_quantity:
+            raise InsufficientStock(self)
+
+    def get_stock_quantity(self):
+        return sum([stock.quantity for stock in self.stock.all()])
 
     def get_price_per_item(self, discounts=None, **kwargs):
         price = self.price_override or self.product.price
