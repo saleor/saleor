@@ -21,6 +21,7 @@ from unidecode import unidecode
 from versatileimagefield.fields import VersatileImageField
 
 from .discounts import get_product_discounts
+from .fields import WeightField
 
 
 @python_2_unicode_compatible
@@ -68,9 +69,9 @@ class Product(models.Model, ItemRange):
     price = PriceField(
         pgettext_lazy('Product field', 'price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
-    weight = models.DecimalField(
-        pgettext_lazy('Product field', 'weight'), max_digits=6,
-        decimal_places=2)
+    weight = WeightField(
+        pgettext_lazy('Product field', 'weight'), unit=settings.DEFAULT_WEIGHT,
+        max_digits=6, decimal_places=2)
     attributes = models.ManyToManyField(
         'ProductAttribute', related_name='products', blank=True, null=True)
 
@@ -139,9 +140,10 @@ class ProductVariant(models.Model, Item):
         pgettext_lazy('Variant field', 'price override'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
-    weight_override = models.DecimalField(
+    weight_override = WeightField(
         pgettext_lazy('Variant field', 'weight override'),
-        max_digits=6, decimal_places=2, blank=True, null=True)
+        unit=settings.DEFAULT_WEIGHT, max_digits=6, decimal_places=2,
+        blank=True, null=True)
     product = models.ForeignKey(Product, related_name='variants')
     attributes = JSONField(pgettext_lazy('Variant field', 'attributes'),
                            default={})

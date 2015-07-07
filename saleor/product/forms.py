@@ -1,8 +1,8 @@
 from django import forms
+from django.template.loader import render_to_string
 from django.utils.translation import pgettext_lazy
 
 from ..cart.forms import AddToCartForm
-from ..product.models import Product
 
 
 class ProductForm(AddToCartForm):
@@ -36,6 +36,30 @@ class ImageInline(ProductVariantInline):
 
 
 def get_form_class_for_product(product):
+    from ..product.models import Product
     if isinstance(product, Product):
         return ProductForm
     raise NotImplementedError
+
+
+class WeightInput(forms.TextInput):
+    template = 'weight_field_widget.html'
+
+    def __init__(self, unit, *args, **kwargs):
+        self.unit = unit
+        super(WeightInput, self).__init__(*args, **kwargs)
+
+    def render(self, name, value, attrs=None):
+        widget = super(WeightInput, self).render(name, value, attrs=attrs)
+        return render_to_string(self.template, {'widget': widget,
+                                                'value': value,
+                                                'unit': self.unit})
+
+
+class WeightField(forms.DecimalField):
+
+    def __init__(self, unit, widget=WeightInput, *args, **kwargs):
+        self.unit = unit
+        if isinstance(widget, type):
+            widget = widget(unit=self.unit, attrs={'type': 'number'})
+        super(WeightField, self).__init__(*args, widget=widget, **kwargs)
