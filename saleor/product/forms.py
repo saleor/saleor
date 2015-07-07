@@ -1,22 +1,55 @@
 from django import forms
+from django.forms import ChoiceField
+from django.forms.models import ModelChoiceIterator
 from django.template.loader import render_to_string
 from django.utils.translation import pgettext_lazy
+from django_prices.templatetags.prices_i18n import gross
 
 from ..cart.forms import AddToCartForm
 
 
+class VariantChoiceIterator(ModelChoiceIterator):
+    def __init__(self, field):
+        super(VariantChoiceIterator, self).__init__(field)
+        attr_display = {}
+        if self.queryset:
+            product = self.queryset.instance
+            for attr in product.attributes.all():
+                attr_display[str(attr.pk)] = {choice.pk: choice.display for choice in attr.values.all()}
+        self.attr_display = attr_display
+
+    def choice(self, obj):
+        if self.attr_display:
+            _label = []
+            for attr_pk, value in obj.attributes.items():
+                if attr_pk in self.attr_display:
+                    _label.append(self.attr_display[attr_pk].get(value, ''))
+                else:
+                    _label.append(value)
+            label = ', '.join(_label)
+        else:
+            label = self.field.label_from_instance(obj)
+        label += ' - ' + gross(obj.get_price())
+        return (self.field.prepare_value(obj), label)
+
+
+class VariantChoiceField(forms.ModelChoiceField):
+    def _get_choices(self):
+        if hasattr(self, '_choices'):
+            return self._choices
+        return VariantChoiceIterator(self)
+    choices = property(_get_choices, ChoiceField._set_choices)
+
+
 class ProductForm(AddToCartForm):
-    variant = forms.ChoiceField(required=False)
+    variant = VariantChoiceField(queryset=None)
 
     def __init__(self, *args, **kwargs):
         super(ProductForm, self).__init__(*args, **kwargs)
-        variants = self.product.variants.all()
-        self.fields['variant'].choices = [(v.pk, v) for v in variants]
+        self.fields['variant'].queryset = self.product.variants
 
     def get_variant(self, cleaned_data):
-        pk = cleaned_data.get('variant')
-        variant = self.product.variants.get(pk=pk)
-        return variant
+        return cleaned_data.get('variant', None)
 
 
 class ProductVariantInline(forms.models.BaseInlineFormSet):
