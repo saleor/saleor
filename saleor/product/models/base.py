@@ -52,9 +52,7 @@ class Category(MPTTModel):
         app_label = 'product'
 
     def set_hidden_descendants(self, hidden):
-        for category in self.get_descendants():
-            category.hidden = hidden
-            category.save()
+        self.get_descendants().update(hidden=hidden)
 
 
 @python_2_unicode_compatible
