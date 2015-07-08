@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from . import views
 
@@ -6,6 +6,6 @@ from . import views
 urlpatterns = [
     url(r'^(?P<slug>[a-z0-9-]+?)-(?P<product_id>[0-9]+)/$',
         views.product_details, name='details'),
-    url(r'^category/(?P<slug>[a-z0-9-]+?)/$', views.category_index,
+    url(r'^category/(?P<slug>[\w-]+?)/$', views.category_index,
         name='category')
 ]
