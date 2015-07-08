@@ -19,7 +19,7 @@ class VariantChoiceIterator(ModelChoiceIterator):
     def choice(self, obj):
         if self.product:
             values = get_attributes_display(obj, self.attributes).values()
-            label = ', '.join(values)
+            label = ', '.join([str(value) for value in values])
         else:
             label = self.field.label_from_instance(obj)
         label += ' - ' + gross(obj.get_price())

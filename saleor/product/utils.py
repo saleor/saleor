@@ -13,5 +13,5 @@ def get_attributes_display(variant, attributes):
             except ValueError:
                 display[attribute.pk] = value
             else:
-                display[attribute.pk] = choice.display
+                display[attribute.pk] = choice
     return display
