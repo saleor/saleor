@@ -40,9 +40,10 @@ class ProductForm(AddToCartForm):
     def __init__(self, *args, **kwargs):
         super(ProductForm, self).__init__(*args, **kwargs)
         self.fields['variant'].queryset = self.product.variants
+        self.fields['variant'].empty_label = None
 
     def get_variant(self, cleaned_data):
-        return cleaned_data.get('variant', None)
+        return cleaned_data.get('variant')
 
 
 class ProductVariantInline(forms.models.BaseInlineFormSet):
