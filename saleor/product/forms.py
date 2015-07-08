@@ -17,7 +17,7 @@ class VariantChoiceIterator(ModelChoiceIterator):
             'values') if self.product else None
 
     def choice(self, obj):
-        if self.product:
+        if self.attributes:
             values = get_attributes_display(obj, self.attributes).values()
             label = ', '.join([str(value) for value in values])
         else:
