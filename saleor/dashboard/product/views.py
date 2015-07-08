@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url
 from django.utils.translation import ugettext_lazy as _
+from django.views.decorators.http import require_http_methods
 
 from ...product.models import Product, ProductImage, Stock, ProductAttribute, \
     ProductVariant
@@ -51,36 +52,18 @@ def product_edit(request, pk):
     variants = product.variants.select_subclasses()
     stock_items = Stock.objects.filter(variant__in=variants)
 
-    form = forms.ProductForm(instance=product)
+    form = forms.ProductForm(request.POST or None, instance=product)
     variants_delete_form = forms.VariantBulkDeleteForm()
     stock_delete_form = forms.StockBulkDeleteForm()
 
-    if 'product-form' in request.POST:
-        form = forms.ProductForm(request.POST, instance=product)
-        if form.is_valid():
-            product = form.save()
-            msg = _('Updated product %s') % product
-            messages.success(request, msg)
-            return redirect('dashboard:product-update', pk=product.pk)
-        elif form.errors:
-            messages.error(request, _('Your submitted data was not valid - '
-                                      'please correct the errors below'))
-
-    if 'variants-bulk-delete-form' in request.POST:
-        variants_delete_form = forms.VariantBulkDeleteForm(request.POST)
-        if variants_delete_form.is_valid():
-            variants_delete_form.delete()
-            success_url = request.POST['success_url']
-            if is_safe_url(success_url, request.get_host()):
-                return redirect(success_url)
-
-    if 'stock-bulk-delete-form' in request.POST:
-        stock_delete_form = forms.StockBulkDeleteForm(request.POST)
-        if stock_delete_form.is_valid():
-            stock_delete_form.delete()
-            success_url = request.POST['success_url']
-            if is_safe_url(success_url, request.get_host()):
-                return redirect(success_url)
+    if form.is_valid():
+        product = form.save()
+        msg = _('Updated product %s') % product
+        messages.success(request, msg)
+        return redirect('dashboard:product-update', pk=product.pk)
+    elif form.errors:
+        messages.error(request, _('Your submitted data was not valid - '
+                                  'please correct the errors below'))
 
     ctx = {'attributes': attributes, 'images': images, 'product_form': form,
            'product': product, 'stock_delete_form': stock_delete_form,
@@ -140,6 +123,22 @@ def stock_delete(request, product_pk, stock_pk):
     ctx = {'product': product, 'stock': stock}
     return TemplateResponse(
         request, 'dashboard/product/stock_confirm_delete.html', ctx)
+
+
+@staff_member_required
+@require_http_methods(['POST'])
+def stock_bulk_delete(request, product_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    form = forms.StockBulkDeleteForm(request.POST)
+    if form.is_valid():
+        form.delete()
+        success_url = request.POST['success_url']
+        messages.success(request, _('Deleted stock'))
+        if is_safe_url(success_url, request.get_host()):
+            return redirect(success_url)
+    elif form.errors:
+        messages.error(request, _('Failed to delete stock'))
+    return redirect('dashboard:product-update', pk=product.pk)
 
 
 @staff_member_required
@@ -233,6 +232,22 @@ def variant_delete(request, product_pk, variant_pk):
            'variant': variant}
     return TemplateResponse(
         request, 'dashboard/product/product_variant_confirm_delete.html', ctx)
+
+
+@staff_member_required
+@require_http_methods(['POST'])
+def variants_bulk_delete(request, product_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    form = forms.VariantBulkDeleteForm(request.POST)
+    if form.is_valid():
+        form.delete()
+        success_url = request.POST['success_url']
+        messages.success(request, _('Deleted variants'))
+        if is_safe_url(success_url, request.get_host()):
+            return redirect(success_url)
+    elif form.errors:
+        messages.error(request, _('Failed to delete variants'))
+    return redirect('dashboard:product-update', pk=product.pk)
 
 
 @staff_member_required

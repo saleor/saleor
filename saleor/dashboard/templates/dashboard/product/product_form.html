@@ -105,9 +105,9 @@
             <div class="col s12 right-align">
                 <div class="row">
                     {% if product.pk %}
-                        <button type="submit" name="product-form" class="btn">{% trans "Update" %}</button>
+                        <button type="submit" class="btn">{% trans "Update" %}</button>
                     {% else %}
-                        <button type="submit" name="product-form" class="btn">{% trans "Create" %}</button>
+                        <button type="submit" class="btn">{% trans "Create" %}</button>
                     {% endif %}
                 </div>
             </div>
@@ -116,7 +116,7 @@
 
     {% if product.pk %}
         <div id="variants" class="card tab-content">
-            <form method="post">
+            <form method="post" action="{% url 'dashboard:variant-bulk-delete' product_pk=product.pk %}">
                 {% csrf_token %}
                 <div class="data-table-header">
                     <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
@@ -137,7 +137,7 @@
                         </div>
 
                         <div class="modal-footer">
-                            <button name="variants-bulk-delete-form" type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
+                            <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
                             <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
                         </div>
                     </div>
@@ -199,7 +199,7 @@
         </div>
 
         <div id="stock" class="card tab-content">
-            <form method="post">
+            <form method="post" action="{% url 'dashboard:stock-bulk-delete' product_pk=product.pk %}">
                 {% csrf_token %}
                 <div class="data-table-header">
                     <a href="{% url 'dashboard:product-stock-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
@@ -220,7 +220,7 @@
                         </div>
 
                         <div class="modal-footer">
-                            <button name="stock-bulk-delete-form" type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
+                            <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
                             <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
                         </div>
                     </div>

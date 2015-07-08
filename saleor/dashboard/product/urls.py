@@ -20,6 +20,8 @@ urlpatterns = [
         views.variant_edit, name='variant-add'),
     url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/delete/$',
         views.variant_delete, name='variant-delete'),
+    url(r'^(?P<product_pk>[0-9]+)/variants/bulk_delete/',
+        views.variants_bulk_delete, name='variant-bulk-delete'),
 
     url(r'^(?P<product_pk>[0-9]+)/stock/(?P<stock_pk>[0-9]+)/$',
         views.stock_edit, name='product-stock-update'),
@@ -27,6 +29,8 @@ urlpatterns = [
         views.stock_edit, name='product-stock-add'),
     url(r'^(?P<product_pk>[0-9]+)/stock/(?P<stock_pk>[0-9]+)/delete/$',
         views.stock_delete, name='product-stock-delete'),
+    url(r'^(?P<product_pk>[0-9]+)/stock/bulk_delete/',
+        views.stock_bulk_delete, name='stock-bulk-delete'),
 
     url(r'^(?P<product_pk>[0-9]+)/images/(?P<img_pk>[0-9]+)/$',
         views.product_image_edit, name='product-image-update'),
