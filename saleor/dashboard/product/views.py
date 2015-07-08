@@ -33,7 +33,7 @@ def product_create(request):
         product = form.save()
         msg = _('Added product %s') % product
         messages.success(request, msg)
-        return redirect('dashboard:product-update', pk=product.pk)
+        return redirect('dashboard:variant-add', product_pk=product.pk)
     elif form.errors:
         messages.error(request, _('Your submitted data was not valid - '
                                   'please correct the errors below'))
