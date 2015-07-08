@@ -119,13 +119,9 @@
             <form method="post">
                 {% csrf_token %}
                 <div class="data-table-header">
-                    {% if attributes %}
-                        <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
-                            {% trans "Add" %}
-                        </a>
-                    {% else %}
-                        <span>{% trans "You need to add some attributes to product to be able to add more variants." %}</span>
-                    {% endif %}
+                    <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
+                        {% trans "Add" %}
+                    </a>
 
                     <a href="#modal-product-variant-delete" class="modal-trigger btn-data-table btn-show-when-checked red-text" hidden>
                         {% trans "Delete" %}
