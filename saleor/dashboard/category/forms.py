@@ -11,6 +11,11 @@ class CategoryForm(forms.ModelForm):
     parent = TreeNodeChoiceField(queryset=Category.objects.all(),
                                  required=False)
 
+    def __init__(self, *args, **kwargs):
+        super(CategoryForm, self).__init__(*args, **kwargs)
+        if self.instance.parent and self.instance.parent.hidden:
+            self.fields['hidden'].widget.attrs['disabled'] = True
+
     class Meta:
         model = Category
         exclude = ['slug']
