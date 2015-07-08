@@ -2,6 +2,7 @@ from django import forms
 from django.forms import ChoiceField
 from django.forms.models import ModelChoiceIterator
 from django.template.loader import render_to_string
+from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
 
@@ -19,7 +20,7 @@ class VariantChoiceIterator(ModelChoiceIterator):
     def choice(self, obj):
         if self.attributes:
             values = get_attributes_display(obj, self.attributes).values()
-            label = ', '.join([str(value) for value in values])
+            label = ', '.join([smart_text(value) for value in values])
         else:
             label = self.field.label_from_instance(obj)
         label += ' - ' + gross(obj.get_price())
