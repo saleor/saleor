@@ -3,6 +3,7 @@
 {% load i18n %}
 {% load materializecss %}
 {% load static %}
+{% load attributes %}
 
 {% block title %}{{ title }} - {% trans "Products" %} - {{ block.super }}{% endblock %}
 
@@ -155,8 +156,8 @@
                                 </th>
                             {% endif %}
                             <th>{% trans "SKU" %}</th>
-                            {% for name, value in variants.0.get_attributes_display.items %}
-                                <th>{{ name }}</th>
+                            {% for attribute in attributes %}
+                                <th>{{ attribute.display|capfirst }}</th>
                             {% endfor %}
                             <th class="wide">{% trans "Variant name" %}</th>
                             <th class="right-align">{% trans "Price" %}</th>
@@ -176,9 +177,9 @@
                                             href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}">
                                     {{ variant.sku }}
                                 </a></td>
-                                {% for name, attribute in variant.get_attributes_display.items %}
+                                {% for attr_display in variant|get_attributes_values:attributes %}
                                     <td>
-                                        {{ attribute }}
+                                        {{ attr_display }}
                                     </td>
                                 {% endfor %}
                                 <td>{{ variant.name }}</td>

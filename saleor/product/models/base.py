@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 from decimal import Decimal
 
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db.models import Manager
@@ -191,22 +190,6 @@ class ProductVariant(models.Model, Item):
 
     def is_available(self):
         return any([stock_item.is_available() for stock_item in self.stock.all()])
-
-    def get_attributes_display(self):
-        display = {}
-        for attr_pk, value in self.attributes.iteritems():
-            if self.product.attributes.filter(pk=attr_pk):
-                attribute = ProductAttribute.objects.get(pk=attr_pk)
-                if attribute.has_values():
-                    try:
-                        value = attribute.values.get(pk=value)
-                    except ObjectDoesNotExist:
-                        pass
-                    else:
-                        display[attribute.display] = value.display
-                else:
-                    display[attribute.display] = value
-        return display
 
     def get_attribute(self, pk):
         return self.attributes.get(str(pk))

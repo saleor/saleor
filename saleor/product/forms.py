@@ -6,27 +6,20 @@ from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
 
 from ..cart.forms import AddToCartForm
+from .utils import get_attributes_display
 
 
 class VariantChoiceIterator(ModelChoiceIterator):
     def __init__(self, field):
         super(VariantChoiceIterator, self).__init__(field)
-        attr_display = {}
-        if self.queryset:
-            product = self.queryset.instance
-            for attr in product.attributes.all():
-                attr_display[str(attr.pk)] = {choice.pk: choice.display for choice in attr.values.all()}
-        self.attr_display = attr_display
+        self.product = self.queryset.instance if self.queryset else None
+        self.attributes = self.product.attributes.prefetch_related(
+            'values') if self.product else None
 
     def choice(self, obj):
-        if self.attr_display:
-            _label = []
-            for attr_pk, value in obj.attributes.items():
-                if attr_pk in self.attr_display:
-                    _label.append(self.attr_display[attr_pk].get(value, ''))
-                else:
-                    _label.append(value)
-            label = ', '.join(_label)
+        if self.product:
+            values = get_attributes_display(obj, self.attributes).values()
+            label = ', '.join(values)
         else:
             label = self.field.label_from_instance(obj)
         label += ' - ' + gross(obj.get_price())
