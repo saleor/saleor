@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
 from decimal import Decimal
+import datetime
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator, RegexValidator
-from django.db.models import Manager
-from django.utils import timezone
+from django.db.models import Manager, Q
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.db import models
 from django.utils.text import slugify
@@ -54,6 +54,13 @@ class Category(MPTTModel):
         self.get_descendants().update(hidden=hidden)
 
 
+class ProductManager(InheritanceManager):
+    def get_available_products(self):
+        today = datetime.datetime.today()
+        return self.get_queryset().filter(
+            Q(available_on__lte=today) | Q(available_on__isnull=True))
+
+
 @python_2_unicode_compatible
 class Product(models.Model, ItemRange):
     name = models.CharField(
@@ -74,7 +81,7 @@ class Product(models.Model, ItemRange):
     attributes = models.ManyToManyField(
         'ProductAttribute', related_name='products', blank=True, null=True)
 
-    objects = InheritanceManager()
+    objects = ProductManager()
 
     class Meta:
         app_label = 'product'

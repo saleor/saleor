@@ -12,7 +12,7 @@ from saleor.cart import Cart
 
 
 def product_details(request, slug, product_id):
-    products = Product.objects.select_subclasses()
+    products = Product.objects.get_available_products().select_subclasses()
     products = products.prefetch_related('categories')
     products = products.prefetch_related('images')
     product = get_object_or_404(products, id=product_id)
@@ -39,7 +39,7 @@ def product_details(request, slug, product_id):
 
 def category_index(request, slug):
     category = get_object_or_404(Category, slug=slug)
-    products = category.products.all().select_subclasses()
+    products = category.products.get_available_products().select_subclasses()
     products = products.prefetch_related('images')
     return TemplateResponse(
         request, 'category/index.html',
