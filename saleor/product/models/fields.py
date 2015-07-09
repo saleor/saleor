@@ -18,6 +18,7 @@ class WeightField(models.DecimalField):
 
     def formfield(self, **kwargs):
         defaults = {'unit': self.unit,
+                    'decimal_places': self.decimal_places,
                     'form_class': forms.WeightField}
         defaults.update(kwargs)
         return super(WeightField, self).formfield(**defaults)
