@@ -132,8 +132,8 @@ class Product(models.Model, ItemRange):
     admin_get_price_max.short_description = pgettext_lazy(
         'Product admin page', 'Maximum price')
 
-    def is_available(self):
-        return any(variant.is_available() for variant in self)
+    def is_in_stock(self):
+        return any(variant.is_in_stock() for variant in self)
 
 
 @python_2_unicode_compatible
@@ -198,8 +198,8 @@ class ProductVariant(models.Model, Item):
     def is_shipping_required(self):
         return True
 
-    def is_available(self):
-        return any([stock_item.is_available() for stock_item in self.stock.all()])
+    def is_in_stock(self):
+        return any([stock_item.quantity > 0 for stock_item in self.stock.all()])
 
     def get_attribute(self, pk):
         return self.attributes.get(str(pk))
@@ -226,9 +226,6 @@ class Stock(models.Model):
 
     def __str__(self):
         return "%s - %s" % (self.variant.name, self.location)
-
-    def is_available(self):
-        return self.quantity > 0
 
 
 @python_2_unicode_compatible
