@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db.models import Manager
+from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.db import models
 from django.utils.text import slugify
@@ -68,6 +69,8 @@ class Product(models.Model, ItemRange):
     weight = WeightField(
         pgettext_lazy('Product field', 'weight'), unit=settings.DEFAULT_WEIGHT,
         max_digits=6, decimal_places=2)
+    available_on = models.DateField(
+        pgettext_lazy('Product field', 'available on'), blank=True, null=True)
     attributes = models.ManyToManyField(
         'ProductAttribute', related_name='products', blank=True, null=True)
 

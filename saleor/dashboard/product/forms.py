@@ -35,6 +35,10 @@ class StockForm(forms.ModelForm):
 
 
 class ProductForm(forms.ModelForm):
+    available_on_submit = forms.DateField(widget=forms.HiddenInput(),
+                                          input_formats=['%Y/%m/%d'],
+                                          required=False)
+
     class Meta:
         model = Product
         exclude = []
@@ -47,6 +51,13 @@ class ProductForm(forms.ModelForm):
             'data-placeholder'] = pgettext_lazy('Product form labels', 'Search')
         self.fields['attributes'].widget.attrs[
             'data-placeholder'] = pgettext_lazy('Product form labels', 'Search')
+
+    def clean(self):
+        data = super(ProductForm, self).clean()
+        data['available_on'] = data.get('available_on_submit')
+        if data['available_on'] and 'available_on' in self._errors:
+            del self._errors['available_on']
+        return data
 
 
 class ProductVariantForm(forms.ModelForm):

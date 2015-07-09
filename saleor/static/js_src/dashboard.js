@@ -92,3 +92,9 @@ $('.switch-actions').on('change', function() {
     $btnChecked.hide();
   }
 });
+$('.datepicker').pickadate({
+  format: 'd mmmm yyyy',
+  formatSubmit: 'yyyy/mm/dd',
+  selectYears: 15,
+  selectMonths: true
+});

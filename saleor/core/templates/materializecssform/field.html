@@ -49,7 +49,7 @@
     <div class="col {{ classes.label }}">
 
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-        <input type="date" id="{{ field.id }}" class="datepicker" value="{% if field.value %}{{ field.value }}{% endif %}">
+        <input type="date" id="{{ field.auto_id }}" class="datepicker" name="{{field.name}}" value="{% if field.value %}{{ field.value }}{% endif %}">
 
             {% for error in field.errors %}
                 <p class="help-block materialize-red-text">{{ error }}</p>
