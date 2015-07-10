@@ -5,7 +5,7 @@
 {% load static %}
 {% load attributes %}
 
-{% block title %}{{ title }} - {% trans "Products" %} - {{ block.super }}{% endblock %}
+{% block title %}{% if product.pk %}{{ product }}{% else %}{% trans 'Add new product' %}{% endif %} - {% trans "Products" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-store body-products{% endblock %}
 
@@ -32,7 +32,7 @@
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--with-menu">
         <li><a href="{% url "dashboard:product-list" %}">{% trans "Products" %}</a></li>
-        <li title="{{ title }}">{{ title }}</li>
+        <li>{% if product.pk %}{{ product }}{% else %}{% trans 'Add new product' %}{% endif %}</li>
     </ul>
 {% endblock %}
 

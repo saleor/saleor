@@ -24,7 +24,6 @@ def category_list(request, root_pk=None):
 @staff_member_required
 def category_create(request, root_pk=None):
     category = Category()
-    title = _('Add new category')
     form = CategoryForm(request.POST or None, initial={'parent': root_pk})
     if form.is_valid():
         category = form.save()
@@ -35,7 +34,7 @@ def category_create(request, root_pk=None):
             return redirect('dashboard:category-list')
     elif form.errors:
         messages.error(request, _('Failed to save category'))
-    ctx = {'category': category, 'form': form, 'title': title}
+    ctx = {'category': category, 'form': form}
     return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
 
 
@@ -43,7 +42,6 @@ def category_create(request, root_pk=None):
 def category_edit(request, pk=None):
     category = get_object_or_404(Category, pk=pk)
     root = category.parent
-    title = category.name
     form = CategoryForm(request.POST or None,
                         instance=category,
                         initial={'parent': root})
@@ -56,7 +54,7 @@ def category_edit(request, pk=None):
             return redirect('dashboard:category-list')
     elif form.errors:
         messages.error(request, _('Failed to save category'))
-    ctx = {'category': category, 'form': form, 'title': title}
+    ctx = {'category': category, 'form': form}
     return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
 
 

@@ -28,7 +28,6 @@ def product_list(request):
 @staff_member_required
 def product_create(request):
     product = Product()
-    title = _('Add new product')
     form = forms.ProductForm(request.POST or None, instance=product)
     if form.is_valid():
         product = form.save()
@@ -38,7 +37,7 @@ def product_create(request):
     elif form.errors:
         messages.error(request, _('Your submitted data was not valid - '
                                   'please correct the errors below'))
-    ctx = {'product_form': form, 'product': product, 'title': title}
+    ctx = {'product_form': form, 'product': product}
     return TemplateResponse(request, 'dashboard/product/product_form.html', ctx)
 
 
@@ -67,8 +66,8 @@ def product_edit(request, pk):
 
     ctx = {'attributes': attributes, 'images': images, 'product_form': form,
            'product': product, 'stock_delete_form': stock_delete_form,
-           'stock_items': stock_items, 'title': product.name,
-           'variants': variants, 'variants_delete_form': variants_delete_form}
+           'stock_items': stock_items, 'variants': variants,
+           'variants_delete_form': variants_delete_form}
     return TemplateResponse(request, 'dashboard/product/product_form.html', ctx)
 
 
@@ -262,10 +261,8 @@ def attribute_list(request):
 def attribute_edit(request, pk=None):
     if pk:
         attribute = get_object_or_404(ProductAttribute, pk=pk)
-        title = attribute.display
     else:
         attribute = ProductAttribute()
-        title = _('Add new attribute')
     form = forms.ProductAttributeForm(request.POST or None, instance=attribute)
     formset = forms.AttributeChoiceValueFormset(request.POST or None,
                                                 request.FILES or None,
@@ -279,8 +276,7 @@ def attribute_edit(request, pk=None):
     elif any([form.errors, formset.errors]):
         messages.error(request, _('Your submitted data was not valid - '
                                   'please correct the errors below'))
-    ctx = {'attribute': attribute, 'form': form, 'formset': formset,
-           'title': title}
+    ctx = {'attribute': attribute, 'form': form, 'formset': formset}
     return TemplateResponse(request, 'dashboard/product/attributes/form.html',
                             ctx)
 

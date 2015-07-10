@@ -3,7 +3,7 @@
 {% load materializecss %}
 {% load static %}
 
-{% block title %}{{ title }} - {% trans "Attributes" %} - {{ block.super }}{% endblock %}
+{% block title %}{% if attribute.pk %}{{ attribute }}{% else %}{% trans 'Add new attribute' %}{% endif %} - {% trans "Attributes" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-store body-attributes{% endblock %}
 
@@ -19,7 +19,7 @@
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--with-menu">
         <li><a href="{% url 'dashboard:product-attributes' %}">{% trans "Attributes" %}</a></li>
-        <li>{{ title }}</li>
+        <li>{% if attribute.pk %}{{ attribute }}{% else %}{% trans 'Add new attribute' %}{% endif %}</li>
     </ul>
 {% endblock %}
 
