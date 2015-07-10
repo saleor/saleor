@@ -1,4 +1,4 @@
-def get_attributes_display(variant, attributes):
+def get_attributes_display_map(variant, attributes):
     display = {}
     for attribute in attributes:
         value = variant.get_attribute(attribute.pk)

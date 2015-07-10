@@ -21,6 +21,7 @@ from versatileimagefield.fields import VersatileImageField
 
 from .discounts import get_product_discounts
 from .fields import WeightField
+from saleor.product.utils import get_attributes_display_map
 
 
 @python_2_unicode_compatible
@@ -160,7 +161,7 @@ class ProductVariant(models.Model, Item):
         app_label = 'product'
 
     def __str__(self):
-        return '%s (%s)' % (self.sku, self.name) if self.name else self.sku
+        return self.name or self.sku
 
     def get_weight(self):
         return self.weight_override or self.product.weight
@@ -203,6 +204,15 @@ class ProductVariant(models.Model, Item):
 
     def get_attribute(self, pk):
         return self.attributes.get(str(pk))
+
+    def display_variant(self, attributes=None):
+        if attributes is None:
+            attributes = self.product.attributes.all()
+        values = get_attributes_display_map(self, attributes).values()
+        if values:
+            return ', '.join([smart_text(value) for value in values])
+        else:
+            return smart_text(self)
 
 
 @python_2_unicode_compatible

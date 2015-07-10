@@ -2,12 +2,10 @@ from django import forms
 from django.forms import ChoiceField
 from django.forms.models import ModelChoiceIterator
 from django.template.loader import render_to_string
-from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
 
 from ..cart.forms import AddToCartForm
-from .utils import get_attributes_display
 
 
 class VariantChoiceIterator(ModelChoiceIterator):
@@ -18,11 +16,7 @@ class VariantChoiceIterator(ModelChoiceIterator):
             'values') if self.product else None
 
     def choice(self, obj):
-        if self.attributes:
-            values = get_attributes_display(obj, self.attributes).values()
-            label = ', '.join([smart_text(value) for value in values])
-        else:
-            label = self.field.label_from_instance(obj)
+        label = obj.display_variant(self.attributes)
         label += ' - ' + gross(obj.get_price())
         return (self.field.prepare_value(obj), label)
 
