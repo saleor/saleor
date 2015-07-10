@@ -1,17 +1,14 @@
-from django.core.exceptions import ObjectDoesNotExist
-
-
 def get_attributes_display(variant, attributes):
     display = {}
     for attribute in attributes:
         value = variant.get_attribute(attribute.pk)
         if value:
-            try:
-                choice = attribute.values.get(pk=value)
-            except ObjectDoesNotExist:
-                pass
-            except ValueError:
-                display[attribute.pk] = value
+            choices = attribute.values.all()
+            if choices:
+                for choice in attribute.values.all():
+                    if choice.pk == value:
+                        display[attribute.pk] = choice
+                        break
             else:
-                display[attribute.pk] = choice
+                display[attribute.pk] = value
     return display
