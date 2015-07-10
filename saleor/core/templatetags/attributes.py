@@ -1,5 +1,6 @@
 from django.template import Library
-from saleor.product.utils import get_attributes_display
+
+from ...product.utils import get_attributes_display_map
 
 register = Library()
 
@@ -7,8 +8,8 @@ ATTRIBUTE_EMPTY_VALUE = '-'
 
 
 @register.filter
-def get_attributes_values(variant, attributes):
-    attr_values = get_attributes_display(variant, attributes)
+def attributes_values_with_empty(variant, attributes):
+    attr_values = get_attributes_display_map(variant, attributes)
     values = []
     for attribute in attributes:
         if attribute.pk in attr_values:

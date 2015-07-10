@@ -175,7 +175,7 @@
                                                 href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}">
                                         {{ variant.sku }}
                                     </a></td>
-                                    {% for attr_display in variant|get_attributes_values:attributes %}
+                                    {% for attr_display in variant|attributes_values_with_empty:attributes %}
                                         <td>
                                             {{ attr_display }}
                                         </td>
