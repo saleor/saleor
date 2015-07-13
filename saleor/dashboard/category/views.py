@@ -11,13 +11,29 @@ from .forms import CategoryForm
 @staff_member_required
 def category_list(request, root_pk=None):
     root = None
+    form = None
     if root_pk:
         root = get_object_or_404(Category, pk=root_pk)
+        category = None
+        if root.parent:
+            category = get_object_or_404(Category, pk=root.parent.pk)
         categories = root.get_children()
+        form = CategoryForm(request.POST or None,
+                        instance=root,
+                        initial={'parent': category})
+        if form.is_valid():
+            category = form.save()
+            messages.success(request, _('Updated category %s') % category)
+            if root:
+                return redirect('dashboard:category-list', root_pk=root.pk)
+            else:
+                return redirect('dashboard:category-list')
+        elif form.errors:
+            messages.error(request, _('Failed to save category'))
     else:
         categories = Category.tree.root_nodes()
     path = root.get_ancestors(include_self=True) if root else []
-    ctx = {'categories': categories, 'path': path, 'root': root}
+    ctx = {'categories': categories, 'path': path, 'root': root, 'form': form}
     return TemplateResponse(request, 'dashboard/category/list.html', ctx)
 
 
