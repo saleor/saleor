@@ -48,8 +48,6 @@ def category_create(request, root_pk=None):
             return redirect('dashboard:category-list', root_pk=root_pk)
         else:
             return redirect('dashboard:category-list')
-    elif form.errors:
-        messages.error(request, _('Failed to save category'))
     ctx = {'category': category, 'form': form}
     return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
 
@@ -68,8 +66,6 @@ def category_edit(request, pk=None):
             return redirect('dashboard:category-list', root_pk=root.pk)
         else:
             return redirect('dashboard:category-list')
-    elif form.errors:
-        messages.error(request, _('Failed to save category'))
     ctx = {'category': category, 'form': form}
     return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
 
