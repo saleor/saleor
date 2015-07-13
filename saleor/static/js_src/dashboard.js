@@ -15,6 +15,14 @@ $(document).ready(function() {
 
     $tabs.find('a.active').parent().click();
   }
+
+  var $breadcrumbs = $('.breadcrumbs--ellipsed');
+  if ($breadcrumbs && !$('.hide-on-large-only').is(':visible')) {
+    var $breadcrumbsItems = $('.breadcrumbs--ellipsed-item');
+    var breadcrumbsItemWidth = ($breadcrumbs.width() - $breadcrumbs.find('li:first').width()) / $breadcrumbsItems.length;
+    $breadcrumbsItems.css('max-width', breadcrumbsItemWidth).dotdotdot({'height': 50});
+    console.log($breadcrumbs.width() - $breadcrumbs.find('li:first').width(), $breadcrumbsItems.length);
+  }
 });
 Dropzone.options.productImageForm = {
   paramName: "image",

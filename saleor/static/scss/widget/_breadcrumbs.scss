@@ -57,6 +57,14 @@
       width: calc(100% - 76px - 3rem);
     }
   }
+
+  &--ellipsed {
+    li span {
+      @media (min-width: $large-screen) {
+        display: inline-block;
+      }
+    }
+  }
 }
 
 .breadcrumbs {

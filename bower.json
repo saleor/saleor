@@ -15,6 +15,7 @@
     "jquery": "~2.1.4",
     "Sortable": "~1.2.0",
     "select2": "~4.0.0",
-    "dropzone": "~4.0.1"
+    "dropzone": "~4.0.1",
+    "dotdotdot": "~1.7.3"
   }
 }
