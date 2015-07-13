@@ -1,4 +1,4 @@
-@mixin product-list {
+@mixin list {
   border: none;
   overflow: visible;
 
@@ -36,19 +36,55 @@
     }
   }
 
-  &-name {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  & &-item--two-lines {
+    border: none;
+    padding: 0;
   }
 
-  &-price {
-    border-bottom: 1px solid $collection-border-color;
-    padding-bottom: 12px;
+  &-item {
+    &-name {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &-price, &-desc {
+      border-bottom: 1px solid $collection-border-color;
+      padding-bottom: 12px;
+    }
+
+    &-desc {
+      color: map_get($grey, base);
+      margin: 0 0 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &-prefix {
+      color: initial;
+    }
   }
+
+  .category-list-actions {
+      font-size: $font-size-action-icon;
+
+      @media (min-width: $medium-screen-up) {
+        display: none;
+      }
+    }
+
+    &:hover {
+      .category-list-item-actions {
+        @media (min-width: $medium-screen-up) {
+          display: block;
+        }
+      }
+    }
+
 }
 
-.product-list {
-  @include product-list;
+.list {
+  @include list;
 }

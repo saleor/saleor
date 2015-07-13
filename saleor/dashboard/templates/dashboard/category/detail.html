@@ -5,15 +5,6 @@
 
 {% block title %}{% if category.pk %}{{ category }}{% else %}{% trans 'Add new category' %}{% endif %} - {% trans 'Categories' %} - {{ block.super }}{% endblock %}
 
-{% block custom_css %}
-<style type="text/css">
-[type=checkbox]:not(:checked), [type=checkbox]:checked {
-    position: static;
-    visibility: visible;
-}
-</style>
-{% endblock %}
-
 {% block body_class %}body-categories{% endblock %}
 
 {% block page_title %}{% if category.pk %}{{ category }}{% else %}{% trans 'Add new category' %}{% endif %}{% endblock %}

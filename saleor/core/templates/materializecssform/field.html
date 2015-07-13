@@ -4,10 +4,11 @@
     {% if field|is_checkbox %}
     <div class="col {{ classes.label }}">
         <div class="{{ classes.single_value }}">
-            <div class="checkbox">
+            <p>
                 {% if field.auto_id %}
-                    <label {% if field.field.required and form.required_css_class %}class="{{ form.required_css_class }}"{% endif %}>
-                        {{ field }} <span>{{ field.label }}</span>
+                    {{ field }}
+                    <label for="{{ field.auto_id }}" {% if field.field.required and form.required_css_class %}class="{{ form.required_css_class }}"{% endif %}>
+                        {{ field.label }}
                     </label>
                 {% endif %}
                 {% for error in field.errors %}
@@ -19,7 +20,7 @@
                         {{ field.help_text|safe }}
                     </p>
                 {% endif %}
-            </div>
+            </p>
         </div>
     </div>
     {% elif field|is_radio %}
