@@ -5,15 +5,26 @@
 
 {% block title %}{% if attribute.pk %}{{ attribute }}{% else %}{% trans 'Add new attribute' %}{% endif %} - {% trans "Attributes" %} - {{ block.super }}{% endblock %}
 
-{% block body_class %}body-store body-attributes{% endblock %}
+{% block body_class %}body-attributes{% endblock %}
 
-{% block custom_css %}
-    <style>
-    [type=checkbox]:not(:checked), [type=checkbox]:checked {
-        position: initial;
-        visibility: visible;
-    }
-    </style>
+{% block header_menu %}
+    {% url "dashboard:product-attributes" as url %}
+    {% include "dashboard/includes/_back-link.html" with url=url %}
+{% endblock %}
+
+{% block header_extra %}
+    {% if attribute.pk %}
+    <a class="dropdown-button" href="#" data-activates="attribute-delete" data-constrainwidth="false">
+        <i class="mdi-navigation-more-vert"></i>
+    </a>
+    <ul id="attribute-delete" class="dropdown-content">
+        <li>
+            <a class="modal-trigger" href="#modal-attribute-delete">
+                {% trans "Remove attribute" %}
+            </a>
+        </li>
+    </ul>
+    {% endif %}
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -26,56 +37,74 @@
 {% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" id="form-attributes">
         <div class="row">
-            <div class="col l8 offset-l2">
+            <div class="col l8">
                 <div class="row">
                     {% csrf_token %}
                     {{ form|materializecss }}
                 </div>
-                <div class="row">
-                    <legend>Attribute values</legend>
-                    {{ formset.management_form }}
-                    {{ formset.non_form_errors.as_ul }}
-                    <table id="formset" class="form">
-                        {% for form in formset.forms %}
-                            {% if forloop.first %}
-                                <thead>
-                                <tr>
-                                    {% for field in form.visible_fields %}
-                                        <th>{{ field.label|capfirst }}</th>
-                                    {% endfor %}
-                                </tr>
-                                </thead>
-                            {% endif %}
-                            <tr class="{% cycle row1,row2 %}">
+
+                <h5>{% trans "Attribute values" %}</h5>
+                {{ formset.management_form }}
+                {{ formset.non_form_errors.as_ul }}
+                <table id="formset" class="highlight">
+                    {% for form in formset.forms %}
+                        {% if forloop.first %}
+                            <thead>
+                            <tr>
                                 {% for field in form.visible_fields %}
-                                    <td>
-                                        {% if forloop.first %}
-                                            {% for hidden in form.hidden_fields %}
-                                                {{ hidden }}
-                                            {% endfor %}
-                                        {% endif %}
-                                        {{ field.errors.as_ul }}
-                                        {{ field|materializecss }}
-                                    </td>
+                                    <th>{{ field.label|capfirst }}</th>
                                 {% endfor %}
                             </tr>
-                        {% endfor %}
-                    </table>
-                </div>
+                            </thead>
+                        {% endif %}
+                        <tr>
+                            {% for field in form.visible_fields %}
+                                <td{% if forloop.last %} class="center-align"{% endif %}>
+                                    {% if forloop.first %}
+                                        {% for hidden in form.hidden_fields %}
+                                            {{ hidden }}
+                                        {% endfor %}
+                                    {% endif %}
+                                    {{ field.errors.as_ul }}
+                                    {{ field }}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </table>
             </div>
         </div>
 
         <div class="row">
-            <div class="col l8 offset-l2 right-align">
-                <a href="{% url 'dashboard:product-attributes' %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
+            <div class="col l8 right-align">
                 {% if attribute.pk %}
-                    <button type="submit" class="btn"><i class="mdi-content-save"></i> {% trans "Update" %}</button>
+                    <button type="submit" class="btn">{% trans "Update" %}</button>
                 {% else %}
-                    <button type="submit" class="btn"><i class="mdi-content-create"></i> {% trans "Create" %}</button>
+                    <button type="submit" class="btn">{% trans "Create" %}</button>
                 {% endif %}
             </div>
         </div>
     </form>
+
+    {% if attribute.pk %}
+    <div id="modal-attribute-delete" class="modal">
+        <form action="{% url "dashboard:product-attribute-delete" pk=attribute.pk %}" method="post">
+            {% csrf_token %}
+            <div class="modal-content">
+                <h5>{% trans "Are you sure?" %}</h5>
+
+                <p>
+                    {% blocktrans %}You are about to delete an attribute <strong>{{ attribute }}</strong>.{% endblocktrans %}
+                </p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
+                <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+            </div>
+        </form>
+    </div>
+    {% endif %}
 {% endblock %}

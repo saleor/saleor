@@ -65,6 +65,13 @@
     }
   }
 
+  &#form-attributes {
+    [type=checkbox]:not(:checked), [type=checkbox]:checked {
+        position: initial;
+        visibility: visible;
+    }
+  }
+
   .versatileimagefield {
     margin-bottom: $gutter-width/2;
 
