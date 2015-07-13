@@ -8,6 +8,7 @@ from django.core.validators import MinValueValidator, RegexValidator
 from django.db.models import Manager, Q
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.db import models
+from django.utils.functional import cached_property
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
@@ -133,6 +134,7 @@ class Product(models.Model, ItemRange):
     admin_get_price_max.short_description = pgettext_lazy(
         'Product admin page', 'Maximum price')
 
+    @cached_property
     def is_in_stock(self):
         return any(variant.is_in_stock() for variant in self)
 

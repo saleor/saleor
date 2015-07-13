@@ -23,50 +23,48 @@
                 {{ product }}
             </h1>
 
-            {% with in_stock=product.is_in_stock %}
-                {% if in_stock %}
-                    {% with price_range=product|discounted_price_range:request.discounts undiscounted=product.get_price_range %}
-                        {% with discount=undiscounted.min_price|price_difference:price_range.min_price %}
-                            <p class="lead" itemprop="offers" itemscope itemtype="http://schema.org/Offer"
-                                {% if undiscounted.min_price != price_range.min_price %}
-                                    <span class="price undiscounted">{% price_range undiscounted %}</span>
-                                    <br>
-                                    <span class="price">{% price_range price_range %}</span>
-                                    <br>
-                                    <small class="label label-success">{% trans "You save" %} {% gross discount %}</small>
-                                {% else %}
-                                    <span class="price">{% price_range price_range %}</span>
-                                {% endif %}
-                            </p>
-                        {% endwith %}
+            {% if product.is_in_stock %}
+                {% with price_range=product|discounted_price_range:request.discounts undiscounted=product.get_price_range %}
+                    {% with discount=undiscounted.min_price|price_difference:price_range.min_price %}
+                        <p class="lead" itemprop="offers" itemscope itemtype="http://schema.org/Offer"
+                            {% if undiscounted.min_price != price_range.min_price %}
+                                <span class="price undiscounted">{% price_range undiscounted %}</span>
+                                <br>
+                                <span class="price">{% price_range price_range %}</span>
+                                <br>
+                                <small class="label label-success">{% trans "You save" %} {% gross discount %}</small>
+                            {% else %}
+                                <span class="price">{% price_range price_range %}</span>
+                            {% endif %}
+                        </p>
                     {% endwith %}
-                {% endif %}
+                {% endwith %}
+            {% endif %}
+
+            <hr>
+
+            <div class="visible-xs">
+                <img class="img-responsive" src="{{ product.images.first.image.thumbnail.750x750 }}" alt="">
 
                 <hr>
+            </div>
 
-                <div class="visible-xs">
-                    <img class="img-responsive" src="{{ product.images.first.image.thumbnail.750x750 }}" alt="">
+            {% if product.is_in_stock %}
+                {% block orderform %}
+                <form role="form" class="product-form form-vertical" method="post" action=".">
+                    {% csrf_token %}
+                    {{ form|as_vertical_form }}
 
-                    <hr>
-                </div>
-
-                {% if in_stock %}
-                    {% block orderform %}
-                    <form role="form" class="product-form form-vertical" method="post" action=".">
-                        {% csrf_token %}
-                        {{ form|as_vertical_form }}
-
-                        <div class="form-group">
-                            <button class="btn btn-lg btn-block btn-primary">
-                                {% trans "Add to cart" %}
-                            </button>
-                        </div>
-                    </form>
-                    {% endblock %}
-                {% else %}
-                    <p class="alert alert-warning">{% trans "This product is currently <strong>unavailable</strong>." %}</p>
-                {% endif %}
-            {% endwith %}
+                    <div class="form-group">
+                        <button class="btn btn-lg btn-block btn-primary">
+                            {% trans "Add to cart" %}
+                        </button>
+                    </div>
+                </form>
+                {% endblock %}
+            {% else %}
+                <p class="alert alert-warning">{% trans "This product is currently <strong>unavailable</strong>." %}</p>
+            {% endif %}
 
             <hr>
 
