@@ -10,10 +10,25 @@
 
 {% block header_extra %}
     <div class="fixed-action-btn">
-        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal modal-trigger"
-           href="#modal-product-class" title="{% trans "Add product" %}">
-            <i class="mdi-content-add"></i>
-        </a>
+        {% if form.product_cls.1 %}
+            <a class="btn-fab btn-floating btn-large waves-effect waves-light teal modal-trigger"
+                href="#modal-product-class" title="{% trans "Add product" %}">
+                <i class="mdi-content-add"></i>
+            </a>
+        {% else %}
+            <form method="post" action=".">
+                <div hidden>
+                    {% csrf_token %}
+                    {{ form }}
+                </div>
+
+                <button type="submit" class="btn-fab btn-floating btn-large waves-effect waves-light teal"
+                    title="{% trans "Add product" %}">
+                    <i class="mdi-content-add"></i>
+                </button>
+            </form>
+        {% endif %}
+
     </div>
 {% endblock %}
 
