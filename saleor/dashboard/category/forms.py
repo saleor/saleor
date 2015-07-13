@@ -31,6 +31,8 @@ class CategoryForm(forms.ModelForm):
 
     def save(self, commit=True):
         self.instance.slug = slugify(unidecode(self.instance.name))
+        if self.instance.parent and self.instance.parent.hidden:
+            self.instance.hidden = True
         super(CategoryForm, self).save(commit=commit)
         self.instance.set_hidden_descendants(self.cleaned_data['hidden'])
         return self.instance
