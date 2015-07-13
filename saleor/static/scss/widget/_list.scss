@@ -67,22 +67,11 @@
     }
   }
 
-  .category-list-actions {
-      font-size: $font-size-action-icon;
-
-      @media (min-width: $medium-screen-up) {
-        display: none;
-      }
+  &--attributes {
+    & &-item {
+      padding-left: 0;
     }
-
-    &:hover {
-      .category-list-item-actions {
-        @media (min-width: $medium-screen-up) {
-          display: block;
-        }
-      }
-    }
-
+  }
 }
 
 .list {

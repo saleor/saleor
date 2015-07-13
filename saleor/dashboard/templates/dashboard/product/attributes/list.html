@@ -26,9 +26,9 @@
 {% block content %}
     <div class="row">
         <div class="col s12">
-            <ul class="collection attribute-list">
+            <ul class="collection list list--attributes">
                 {% for attribute in attributes %}
-                    <li class="collection-item attribute-list-item">
+                    <li class="collection-item list-item list--attributes-item">
                         <a href="{% url 'dashboard:product-attribute-update' pk=attribute.pk %}">{{ attribute.display }}</a>
                     </li>
                 {% endfor %}

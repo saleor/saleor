@@ -26,27 +26,24 @@
 {% block content %}
     <form method="post" id="category-form" enctype="multipart/form-data">
         <div class="row">
-            <div class="col l8 offset-l2">
-                <div class="row">
-                    {% csrf_token %}
-                    {{ form.parent|materializecss }}
-                    {{ form.name|materializecss }}
-                    {{ form.description|materializecss }}
-                    {{ form.hidden|materializecss }}
-                </div>
-            </div>
+            {% csrf_token %}
+            {{ form.parent|materializecss:"s12 m6 l6" }}
+            {{ form.name|materializecss:"s12 m6" }}
+            {{ form.description|materializecss }}
+            {{ form.hidden|materializecss:"s12 l1" }}
         </div>
+
         <div class="row">
-            <div class="col l8 offset-l2 right-align">
+            <div class="col s12 right-align">
                 {% if category.parent %}
-                    <a href="{% url 'dashboard:category-list' root_pk=category.parent.pk %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
+                    <a href="{% url 'dashboard:category-list' root_pk=category.parent.pk %}" class="btn-flat">{% trans "Cancel" %}</a>
                 {% else %}
-                    <a href="{% url 'dashboard:category-list' %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
+                    <a href="{% url 'dashboard:category-list' %}" class="btn-flat">{% trans "Cancel" %}</a>
                 {% endif %}
                 {% if category.pk %}
-                    <button type="submit" class="btn"><i class="mdi-content-save"></i> {% trans "Update" %}</button>
+                    <button type="submit" class="btn">{% trans "Update" %}</button>
                 {% else %}
-                    <button type="submit" class="btn"><i class="mdi-content-create"></i> {% trans "Create" %}</button>
+                    <button type="submit" class="btn">{% trans "Create" %}</button>
                 {% endif %}
             </div>
         </div>
