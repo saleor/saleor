@@ -64,6 +64,18 @@
       @extend %input-lg;
     }
   }
+
+  .versatileimagefield {
+    margin-bottom: $gutter-width/2;
+
+    .sizedimage-mod {
+      margin-bottom: $gutter-width/2;
+
+      label {
+        margin-bottom: 5px;
+      }
+    }
+  }
 }
 
 form {
