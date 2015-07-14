@@ -138,6 +138,9 @@ class Product(models.Model, ItemRange):
     def is_in_stock(self):
         return any(variant.is_in_stock() for variant in self)
 
+    def get_first_category(self):
+        return self.categories.filter(hidden=False).first()
+
 
 @python_2_unicode_compatible
 class ProductVariant(models.Model, Item):
