@@ -34,6 +34,12 @@
     </a>
     <ul id="category-delete" class="dropdown-content">
         <li>
+            <a class="modal-trigger" href="#modal-category-edit">
+                {% trans "Edit category" %}
+            </a>
+        </li>
+
+        <li>
             <a class="modal-trigger" href="#modal-category-delete">
                 {% trans "Remove category" %}
             </a>
@@ -64,37 +70,27 @@
 {% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
-    {% if form %}
-    <form method="post" id="category-form" enctype="multipart/form-data">
-        <div class="row">
-            {% csrf_token %}
-            {{ form.parent|materializecss:"s12 m6 l6" }}
-            {{ form.name|materializecss:"s12 m6" }}
-            {{ form.description|materializecss }}
-            {{ form.hidden|materializecss:"s12 l1" }}
-        </div>
-
-        <div class="row">
-            <div class="col s12 right-align">
-                <button type="submit" class="btn">{% trans "Update" %}</button>
-            </div>
-        </div>
-    </form>
-    {% endif %}
-
-    {% if root %}
-        <h5>{% trans "Subcategories" %}</h5>
-    {% endif %}
     <div class="row">
         <div class="col s12">
             <ul class="collection list">
                 {% if categories %}
                     {% for node in categories %}
-                        <li class="collection-item list-item list-item--two-lines{% if node.hidden %} list-item--hidden{% endif %}">
+                        <li class="collection-item list-item list-item--two-lines">
                             <a class="list-item-name" href="{% url 'dashboard:category-children-list' root_pk=node.pk %}">
-                                {% if node.hidden %}<span class="list-item-prefix">({% trans "Hidden" %}) </span>{% endif %}{{ node.name }}
+                                {{ node.name }}
                             </a>
-                            <p class="list-item-desc"><span>{{ node.description }}</span></p>
+
+                            <p class="list-item-desc"><span>
+                                {% if node.description %}
+                                    {{ node.description }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            </span></p>
+
+                            {% if node.hidden %}
+                                <span class="list-item-icon"><i class="mdi-action-visibility-off"></i></span>
+                            {% endif %}
                         </li>
                     {% endfor %}
                 {% else %}
@@ -118,6 +114,28 @@
 
                 <div class="modal-footer">
                     <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
+                    <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+                </div>
+            </form>
+        </div>
+    {% endif %}
+
+    {% if form %}
+        <div id="modal-category-edit" class="modal">
+            <form method="post" id="form-category" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-content">
+                    <h5>{% trans "Edit" %} {{ root }}</h5>
+
+                    <div class="row">
+                        {{ form.name|materializecss:"s8 m10" }}
+                        {{ form.hidden|materializecss:"s4 m2" }}
+                        {{ form.description|materializecss }}
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="modal-action btn-flat blue-text">{% trans "Update" %}</button>
                     <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
                 </div>
             </form>

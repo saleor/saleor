@@ -42,6 +42,8 @@
   }
 
   &-item {
+    position: relative;
+
     &-name {
       display: block;
       overflow: hidden;
@@ -72,6 +74,13 @@
 
     &-author {
       color: map_get($grey, base);
+    }
+
+    &-icon {
+      opacity: .6;
+      position: absolute;
+      right: 0;
+      top: 0;
     }
 
     &--spaced {
