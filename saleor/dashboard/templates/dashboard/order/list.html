@@ -7,14 +7,22 @@
 
 {% block body_class %}body-orders{% endblock %}
 
-{% block page_title %}{% trans "Orders" %}{% endblock %}
+{% block breadcrumbs %}
+    <ul class="breadcrumbs">
+        <li>{% trans "Orders" %}</li>
+    </ul>
+{% endblock %}
+
+{% block menu_sales_class %} active{% endblock %}
 
 {% block content %}
+    {% include "dashboard/includes/_status_filters.html" %}
+
+    <div class="card">
+        {% include "dashboard/includes/_orders_table.html" with orders=object_list %}
+    </div>
+
     <div class="row">
-        <div class="col-lg-12">
-            {% include "dashboard/includes/_status_filters.html" %}
-            {% include "dashboard/includes/_orders_table.html" with orders=object_list %}
-            {% include "dashboard/includes/_pagination.html" %}
-        </div>
+        {% include "dashboard/includes/_pagination.html" %}
     </div>
 {% endblock %}
