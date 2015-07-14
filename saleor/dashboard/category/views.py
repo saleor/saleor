@@ -28,8 +28,6 @@ def category_list(request, root_pk=None):
                 return redirect('dashboard:category-list', root_pk=root.pk)
             else:
                 return redirect('dashboard:category-list')
-        elif form.errors:
-            messages.error(request, _('Failed to save category'))
     else:
         categories = Category.tree.root_nodes()
     path = root.get_ancestors(include_self=True) if root else []
