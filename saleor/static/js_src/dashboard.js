@@ -21,7 +21,6 @@ $(document).ready(function() {
     var $breadcrumbsItems = $('.breadcrumbs--ellipsed-item');
     var breadcrumbsItemWidth = ($breadcrumbs.width() - $breadcrumbs.find('li:first').width()) / $breadcrumbsItems.length;
     $breadcrumbsItems.css('max-width', breadcrumbsItemWidth).dotdotdot({'height': 50});
-    console.log($breadcrumbs.width() - $breadcrumbs.find('li:first').width(), $breadcrumbsItems.length);
   }
 });
 Dropzone.options.productImageForm = {
