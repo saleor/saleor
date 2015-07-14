@@ -6,6 +6,7 @@ from django.utils.translation import pgettext_lazy
 
 from ...product.models import (ProductImage, Stock, ProductVariant, Product,
                                ProductAttribute, AttributeChoiceValue)
+from .widgets import ImagePreviewWidget
 
 PRODUCT_CLASSES = {Product: 'Default'}
 
@@ -122,9 +123,15 @@ class StockBulkDeleteForm(forms.Form):
 
 
 class ProductImageForm(forms.ModelForm):
+
     class Meta:
         model = ProductImage
         exclude = ('product', 'order')
+
+    def __init__(self, *args, **kwargs):
+        super(ProductImageForm, self).__init__(*args, **kwargs)
+        if self.instance.image:
+            self.fields['image'].widget = ImagePreviewWidget()
 
 
 class ProductAttributeForm(forms.ModelForm):

@@ -40,7 +40,7 @@
         <div class="row">
             <div class="col l8">
                 {% csrf_token %}
-                {{ form.image }}
+                {{ form.image|materializecss }}
 
                 <div class="row">
                     {{ form.alt|materializecss }}
