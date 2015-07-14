@@ -66,9 +66,26 @@
   }
 
   &#form-attributes {
-    [type=checkbox]:not(:checked), [type=checkbox]:checked {
-      position: initial;
-      visibility: visible;
+    #id_display {
+      @extend %input-lg;
+    }
+
+    table {
+      .input-field, p {
+        margin: 0;
+        padding: 0;
+      }
+
+      label {
+        font-size: 0;
+        vertical-align: bottom;
+      }
+    }
+  }
+
+  &#form-category {
+    #id_name {
+      @extend %input-lg;
     }
   }
 

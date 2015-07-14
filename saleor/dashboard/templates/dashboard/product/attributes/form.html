@@ -42,7 +42,8 @@
             <div class="col l8">
                 <div class="row">
                     {% csrf_token %}
-                    {{ form|materializecss }}
+                    {{ form.display|materializecss }}
+                    {{ form.name|materializecss }}
                 </div>
 
                 <h5>{% trans "Attribute values" %}</h5>
@@ -68,7 +69,7 @@
                                         {% endfor %}
                                     {% endif %}
                                     {{ field.errors.as_ul }}
-                                    {{ field }}
+                                    {{ field|materializecss }}
                                 </td>
                             {% endfor %}
                         </tr>
