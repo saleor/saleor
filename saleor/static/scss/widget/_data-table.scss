@@ -53,6 +53,12 @@
   &.hoverable {
     box-shadow: none;
   }
+
+  .card &:first-child, .card-title + & {
+    th {
+      border-top: none;
+    }
+  }
 }
 
 .data-table {

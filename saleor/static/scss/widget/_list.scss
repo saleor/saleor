@@ -47,9 +47,13 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+
+      &--single {
+        margin-bottom: 10px;
+      }
     }
 
-    &-price, &-desc {
+    &-price, &-desc, &-name--single {
       border-bottom: 1px solid $collection-border-color;
       padding-bottom: 12px;
     }
@@ -70,6 +74,17 @@
   &--attributes {
     & &-item {
       padding-left: 0;
+    }
+  }
+
+  .card & {
+    margin-bottom: 0;
+
+    &-item:last-child {
+      .list-item-name {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
     }
   }
 }

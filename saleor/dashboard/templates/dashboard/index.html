@@ -7,9 +7,9 @@
 {% block content %}
 <div class="row">
     <div class="col s12">
-        <div class="card blue-grey">
-            <div class="card-content white-text">
-                <span class="card-title">{% trans "Preauthorized payments" %}</span>
+        <div class="card">
+            <div class="card-content">
+                <span class="card-title black-text">{% trans "Preauthorized payments" %}</span>
                 {% if preauthorized_payments %}
                     <table class="table">
                         <thead>
@@ -36,9 +36,9 @@
                 {% endif %}
             </div>
         </div>
-        <div class="card blue-grey">
-            <div class="card-content white-text">
-                <span class="card-title">{% trans "Orders ready for shipment" %}</span>
+        <div class="card">
+            <div class="card-content">
+                <span class="card-title black-text">{% trans "Orders ready for shipment" %}</span>
                 {% if orders_to_ship %}
                     {% include "dashboard/includes/_orders_table.html" with orders=orders_to_ship %}
                 {% else %}
@@ -46,24 +46,17 @@
                 {% endif %}
             </div>
         </div>
-        <div class="card blue-grey">
-            <div class="card-content white-text">
-                <span class="card-title">{% trans "Low stock" %}</span>
+        <div class="card">
+            <div class="card-content">
+                <span class="card-title black-text">{% trans "Products with low stock" %}</span>
                 {% if low_stock %}
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>{% trans "Product" %}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for product in low_stock %}
-                                <tr>
-                                    <td><a href="{% url "dashboard:product-update" pk=product.pk %}">{{ product }}</a></td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    <ul class="list">
+                        {% for product in low_stock %}
+                            <li class="list-item">
+                                <a class="list-item-name list-item-name--single" href="{% url "dashboard:product-update" pk=product.pk %}">{{ product }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
                 {% else %}
                     <p>{% trans "No products are low in stock." %}</p>
                 {% endif %}
