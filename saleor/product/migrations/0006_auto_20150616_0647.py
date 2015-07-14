@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=100, verbose_name='name')),
-                ('sku', models.CharField(unique=True, max_length=32, verbose_name='SKU')),
+                ('sku', models.CharField(max_length=32, verbose_name='SKU')),
                 ('price', django_prices.models.PriceField(decimal_places=4, currency=b'USD', max_digits=12, blank=True, null=True, verbose_name='price')),
             ],
             bases=(models.Model, satchless.item.Item),
@@ -59,7 +59,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='product',
             name='sku',
-            field=models.CharField(default='', unique=True, max_length=32, verbose_name='SKU'),
+            field=models.CharField(default='', max_length=32, verbose_name='SKU'),
             preserve_default=False,
         ),
         migrations.AddField(
