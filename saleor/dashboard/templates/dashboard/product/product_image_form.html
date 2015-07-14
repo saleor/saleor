@@ -40,9 +40,12 @@
         <div class="row">
             <div class="col l8">
                 {% csrf_token %}
-                {{ form.image|materializecss }}
 
+                {% if product_image.pk %}
+                    <p class="no-margin">{% trans "Pick the most relevant part of the image using the red circle." %}</p>
+                {% endif %}
                 <div class="row">
+                    {{ form.image|materializecss }}
                     {{ form.alt|materializecss }}
                     <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#images">
                 </div>

@@ -283,6 +283,10 @@ table {
   }
 }
 
+.no-margin {
+  margin: 0;
+}
+
 @import "widget/breadcrumbs";
 @import "widget/card";
 @import "widget/data-table";

@@ -67,20 +67,22 @@
 
   &#form-attributes {
     [type=checkbox]:not(:checked), [type=checkbox]:checked {
-        position: initial;
-        visibility: visible;
+      position: initial;
+      visibility: visible;
     }
   }
 
-  .versatileimagefield {
+  .sizedimage-mod {
     margin-bottom: $gutter-width/2;
 
-    .sizedimage-mod {
-      margin-bottom: $gutter-width/2;
+    & ~ label {
+      display: none;
+    }
+  }
 
-      label {
-        margin-bottom: 5px;
-      }
+  .file-field {
+    label {
+      display: none;
     }
   }
 }
