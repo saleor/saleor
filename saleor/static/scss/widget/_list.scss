@@ -69,6 +69,14 @@
     &-prefix {
       color: initial;
     }
+
+    &-author {
+      color: map_get($grey, base);
+    }
+
+    &--spaced {
+      margin-bottom: 5px;
+    }
   }
 
   &--attributes {

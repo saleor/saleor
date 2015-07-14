@@ -3,32 +3,25 @@
 {% load bootstrap %}
 {% load prices_i18n %}
 
-<div class="modal-header">
-    <a href="#" data-dismiss="modal" aria-hidden="true" class="close">×</a>
-    <h3>{{ action|capfirst }} {% trans "payment" %}</h3>
-</div>
-<div class="modal-body">
-    <form id="modal-form" class="form-inline" role="form" method="post" action="{% url 'dashboard:manage-payment' pk=payment.pk action=action %}">
-        {% csrf_token %}
-        <div class="form-group">
-            <label class="control-label" for="amount">{% blocktrans %}Amount to {{ action }}:{% endblocktrans %}</label>
-            {% render_widget form.amount class="form-control" %} {{ currency }}
-        </div>
-    </form>
-    <p>{% trans "Before this action" %}</p>
-      <ul>
-        <li>{% trans "Order total: " %}{% gross payment.order.get_total %}</li>
-        <li>{% trans "Captured amount: " %}{{ captured|currencyfmt:currency }} </li>
-      </ul>
-</div>
-<div class="modal-footer">
-    <button id="id_btn_yes" type="submit" class="btn btn-{% if action == 'capture' %}success{% else%}danger{% endif %}">{{ action|capfirst }}</button>
-    <button data-dismiss="modal" aria-hidden="true" class="btn btn-default">{% trans "Cancel" %}</button>
-</div>
+<form role="form" method="post" action="{% url 'dashboard:manage-payment' pk=payment.pk action=action %}">
+    {% csrf_token %}
 
+    <div class="modal-content">
+        <h5>{{ action|capfirst }} {% trans "payment" %}</h5>
 
-<script>
-$('#id_btn_yes').click(function() {
-    $('#modal-form').submit();
-});
-</script>
+        <label class="control-label" for="amount">{% blocktrans %}Amount to {{ action }}:{% endblocktrans %}</label>
+        {% render_widget form.amount class="form-control" %} {{ currency }}
+
+        <p>{% trans "Before this action" %}</p>
+
+        <ul>
+            <li>{% trans "Order total: " %}{% gross payment.order.get_total %}</li>
+            <li>{% trans "Captured amount: " %}{{ captured|currencyfmt:currency }} </li>
+        </ul>
+    </div>
+
+    <div class="modal-footer">
+        <button type="submit" class="modal-action btn-flat{% if action == 'capture' %} blue-text{% else %} red-text{% endif %}">{{ action|capfirst }}</button>
+        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+    </div>
+</form>

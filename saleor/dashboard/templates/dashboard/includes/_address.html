@@ -7,6 +7,6 @@
     <div>{{ address.postal_code }}</div>
     <div>{{ address.city }}, {{ address.get_country_display }}</div>
     {% if address.phone %}
-        <div><span class="glyphicon glyphicon-earphone"></span> <a href="tel:{{ address.phone }}">{{ address.phone }}</a></div>
+        <div><span class="mdi-hardware-phone-android"></span> <a href="tel:{{ address.phone }}">{{ address.phone }}</a></div>
     {% endif %}
 </div>

@@ -2,6 +2,34 @@
   &-header {
     padding: 21px 24px;
   }
+
+  &-title {
+    margin: 0;
+
+    .data-table-status {
+      float: right;
+      margin-top: -4px;
+    }
+  }
+
+  $statuses-map: (
+    danger: map-get($red, base),
+    success: map-get($green, lighten-2),
+    default: map-get($grey, base)
+  );
+
+  &-status {
+    @each $status in (danger, success, default) {
+      &--#{$status} {
+        color: white;
+        background: #{map_get($statuses-map, $status)};
+        border-radius: 2px;
+        padding: .25em 5px;
+        font-size: .8em;
+      }
+    }
+  }
+
   input[type=checkbox].filled-in + label {
     margin-top: 5px;
     padding: 0;
@@ -35,6 +63,10 @@
     font-weight: normal;
     font-size: 85%;
     height: 56px;
+  }
+
+  tfoot {
+    font-weight: bold;
   }
 
   .bulk-checkbox {
