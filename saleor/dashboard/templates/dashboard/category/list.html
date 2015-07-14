@@ -10,9 +10,9 @@
 {% block header_menu %}
     {% if root %}
         {% if root.parent %}
-            {% url 'dashboard:category-list' root_pk=root.parent.pk as url %}
+            {% url 'dashboard:category-children-list' root_pk=root.parent.pk as url %}
         {% else %}
-            {% url 'dashboard:category-list' as url %}
+            {% url 'dashboard:category-root-list' as url %}
         {% endif %}
         {% include "dashboard/includes/_back-link.html" with url=url %}
     {% else %}
@@ -44,14 +44,14 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--with-menu breadcrumbs--ellipsed">
-        <li>{% if path %}<a href="{% url 'dashboard:category-list' %}">{% trans "Categories" %}</a>{% else %}{% trans "Categories" %}{% endif %}</li>
+        <li>{% if path %}<a href="{% url 'dashboard:category-root-list' %}">{% trans "Categories" %}</a>{% else %}{% trans "Categories" %}{% endif %}</li>
         {% if path %}
             {% for node in path %}
                 {% if forloop.last %}
                     <li title="{{ node.name }}"><span class="breadcrumbs--ellipsed-item">{{ node.name }}</span></li>
                 {% else %}
                     <li>
-                        <a title="{{ node.name }}" href="{% url 'dashboard:category-list' root_pk=node.pk %}">
+                        <a title="{{ node.name }}" href="{% url 'dashboard:category-children-list' root_pk=node.pk %}">
                             <span class="breadcrumbs--ellipsed-item">{{ node.name }}</span>
                         </a>
                     </li>
@@ -91,7 +91,7 @@
                 {% if categories %}
                     {% for node in categories %}
                         <li class="collection-item list-item list-item--two-lines{% if node.hidden %} list-item--hidden{% endif %}">
-                            <a class="list-item-name" href="{% url 'dashboard:category-list' root_pk=node.pk %}">
+                            <a class="list-item-name" href="{% url 'dashboard:category-children-list' root_pk=node.pk %}">
                                 {% if node.hidden %}<span class="list-item-prefix">({% trans "Hidden" %}) </span>{% endif %}{{ node.name }}
                             </a>
                             <p class="list-item-desc"><span>{{ node.description }}</span></p>

@@ -9,28 +9,28 @@ from .forms import CategoryForm
 
 
 @staff_member_required
-def category_list(request, root_pk=None):
-    root = None
-    form = None
-    if root_pk:
-        root = get_object_or_404(Category, pk=root_pk)
-        category = None
-        if root.parent:
-            category = get_object_or_404(Category, pk=root.parent.pk)
-        categories = root.get_children()
-        form = CategoryForm(request.POST or None,
-                        instance=root,
+def category_root_nodes_list(request):
+    categories = Category.tree.root_nodes()
+    ctx = {'categories': categories, 'path': [], 'root': None, 'form': None}
+    return TemplateResponse(request, 'dashboard/category/list.html', ctx)
+
+
+@staff_member_required
+def category_children_nodes_list(request, root_pk):
+    root = get_object_or_404(Category, pk=root_pk)
+    category = get_object_or_404(Category,
+                                 pk=root.parent.pk) if root.parent else None
+    form = CategoryForm(request.POST or None, instance=root,
                         initial={'parent': category})
-        if form.is_valid():
-            category = form.save()
-            messages.success(request, _('Updated category %s') % category)
-            if root:
-                return redirect('dashboard:category-list', root_pk=root.pk)
-            else:
-                return redirect('dashboard:category-list')
-    else:
-        categories = Category.tree.root_nodes()
+    if form.is_valid():
+        category = form.save()
+        messages.success(request, _('Updated category %s') % category)
+        if root:
+            return redirect('dashboard:category-children-list', root_pk=root.pk)
+        else:
+            return redirect('dashboard:category-root-list')
     path = root.get_ancestors(include_self=True) if root else []
+    categories = root.get_children()
     ctx = {'categories': categories, 'path': path, 'root': root, 'form': form}
     return TemplateResponse(request, 'dashboard/category/list.html', ctx)
 
@@ -43,27 +43,9 @@ def category_create(request, root_pk=None):
         category = form.save()
         messages.success(request, _('Added category %s') % category)
         if root_pk:
-            return redirect('dashboard:category-list', root_pk=root_pk)
+            return redirect('dashboard:category-children-list', root_pk=root_pk)
         else:
-            return redirect('dashboard:category-list')
-    ctx = {'category': category, 'form': form}
-    return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
-
-
-@staff_member_required
-def category_edit(request, pk=None):
-    category = get_object_or_404(Category, pk=pk)
-    root = category.parent
-    form = CategoryForm(request.POST or None,
-                        instance=category,
-                        initial={'parent': root})
-    if form.is_valid():
-        category = form.save()
-        messages.success(request, _('Updated category %s') % category)
-        if root:
-            return redirect('dashboard:category-list', root_pk=root.pk)
-        else:
-            return redirect('dashboard:category-list')
+            return redirect('dashboard:category-root-list')
     ctx = {'category': category, 'form': form}
     return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
 
@@ -75,9 +57,9 @@ def category_delete(request, pk):
         category.delete()
         messages.success(request, _('Deleted category %s') % category)
         if category.parent:
-            return redirect('dashboard:category-list', root_pk=category.parent.pk)
+            return redirect('dashboard:category-children-list', root_pk=category.parent.pk)
         else:
-            return redirect('dashboard:category-list')
+            return redirect('dashboard:category-root-list')
     ctx = {'category': category,
            'descendants': list(category.get_descendants()),
            'products_count': len(category.products.all())}
