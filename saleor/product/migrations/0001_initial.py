@@ -2,10 +2,12 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-from decimal import Decimal
 import versatileimagefield.fields
-import django_prices.models
+import jsonfield.fields
+from decimal import Decimal
+import saleor.product.models.fields
 import django.core.validators
+import django_prices.models
 import satchless.item
 
 
@@ -16,13 +18,13 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='BagVariant',
+            name='AttributeChoiceValue',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('stock', models.IntegerField(default=Decimal('1'), verbose_name='stock', validators=[django.core.validators.MinValueValidator(0)])),
-                ('sku', models.CharField(unique=True, max_length=32, verbose_name='SKU')),
+                ('display', models.CharField(max_length=100)),
+                ('color', models.CharField(blank=True, max_length=7, validators=[django.core.validators.RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')])),
+                ('image', versatileimagefield.fields.VersatileImageField(null=True, upload_to='attributes', blank=True)),
             ],
-            bases=(models.Model, satchless.item.StockedItem, satchless.item.Item),
         ),
         migrations.CreateModel(
             name='Category',
@@ -31,6 +33,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=128, verbose_name='name')),
                 ('slug', models.SlugField(unique=True, verbose_name='slug')),
                 ('description', models.TextField(verbose_name='description', blank=True)),
+                ('hidden', models.BooleanField(default=False, verbose_name='hidden')),
                 ('lft', models.PositiveIntegerField(editable=False, db_index=True)),
                 ('rght', models.PositiveIntegerField(editable=False, db_index=True)),
                 ('tree_id', models.PositiveIntegerField(editable=False, db_index=True)),
@@ -42,19 +45,11 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='Color',
-            fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('name', models.CharField(max_length=100, verbose_name='name')),
-                ('color', models.CharField(max_length=6, verbose_name='HEX value')),
-            ],
-        ),
-        migrations.CreateModel(
             name='FixedProductDiscount',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=255)),
-                ('discount', django_prices.models.PriceField(currency=b'USD', verbose_name='discount value', max_digits=12, decimal_places=4)),
+                ('discount', django_prices.models.PriceField(currency=b'USD', verbose_name='discount value', max_digits=12, decimal_places=2)),
             ],
         ),
         migrations.CreateModel(
@@ -63,9 +58,22 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=128, verbose_name='name')),
                 ('description', models.TextField(verbose_name='description')),
-                ('collection', models.CharField(db_index=True, max_length=100, blank=True)),
+                ('price', django_prices.models.PriceField(currency=b'USD', verbose_name='price', max_digits=12, decimal_places=2)),
+                ('weight', saleor.product.models.fields.WeightField(unit=b'lb', verbose_name='weight', max_digits=6, decimal_places=2)),
+                ('available_on', models.DateField(null=True, verbose_name='available on', blank=True)),
             ],
             bases=(models.Model, satchless.item.ItemRange),
+        ),
+        migrations.CreateModel(
+            name='ProductAttribute',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.SlugField(unique=True, verbose_name='name')),
+                ('display', models.CharField(max_length=100, verbose_name='display')),
+            ],
+            options={
+                'ordering': ['name'],
+            },
         ),
         migrations.CreateModel(
             name='ProductImage',
@@ -73,57 +81,46 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('image', versatileimagefield.fields.VersatileImageField(upload_to='products')),
                 ('ppoi', versatileimagefield.fields.PPOIField(default='0.5x0.5', max_length=20, editable=False)),
-                ('alt', models.CharField(max_length=128, verbose_name='alternative text', blank=True)),
+                ('alt', models.CharField(max_length=128, verbose_name='short description', blank=True)),
+                ('order', models.PositiveIntegerField(editable=False)),
+                ('product', models.ForeignKey(related_name='images', to='product.Product')),
             ],
             options={
-                'ordering': ['id'],
+                'ordering': ['order'],
             },
         ),
         migrations.CreateModel(
-            name='ShirtVariant',
+            name='ProductVariant',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('stock', models.IntegerField(default=Decimal('1'), verbose_name='stock', validators=[django.core.validators.MinValueValidator(0)])),
                 ('sku', models.CharField(unique=True, max_length=32, verbose_name='SKU')),
-                ('size', models.CharField(max_length=3, verbose_name='size', choices=[('xs', 'XS'), ('s', 'S'), ('m', 'M'), ('l', 'L'), ('xl', 'XL'), ('xxl', 'XXL')])),
+                ('name', models.CharField(max_length=100, verbose_name='variant name', blank=True)),
+                ('price_override', django_prices.models.PriceField(decimal_places=2, currency=b'USD', max_digits=12, blank=True, null=True, verbose_name='price override')),
+                ('weight_override', saleor.product.models.fields.WeightField(decimal_places=2, max_digits=6, blank=True, null=True, verbose_name='weight override', unit=b'lb')),
+                ('attributes', jsonfield.fields.JSONField(default={}, verbose_name='attributes')),
+                ('product', models.ForeignKey(related_name='variants', to='product.Product')),
             ],
-            bases=(models.Model, satchless.item.StockedItem, satchless.item.Item),
+            bases=(models.Model, satchless.item.Item),
         ),
         migrations.CreateModel(
-            name='Bag',
+            name='Stock',
             fields=[
-                ('product_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='product.Product')),
-                ('weight', models.DecimalField(max_digits=6, decimal_places=2)),
-                ('length', models.DecimalField(default=0, max_digits=6, decimal_places=2, blank=True)),
-                ('width', models.DecimalField(default=0, max_digits=6, decimal_places=2, blank=True)),
-                ('depth', models.DecimalField(default=0, max_digits=6, decimal_places=2, blank=True)),
-                ('price', django_prices.models.PriceField(currency=b'USD', verbose_name='price', max_digits=12, decimal_places=4)),
-                ('color', models.ForeignKey(to='product.Color')),
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('location', models.CharField(max_length=100, verbose_name='location')),
+                ('quantity', models.IntegerField(default=Decimal('1'), verbose_name='quantity', validators=[django.core.validators.MinValueValidator(0)])),
+                ('cost_price', django_prices.models.PriceField(decimal_places=2, currency=b'USD', max_digits=12, blank=True, null=True, verbose_name='cost price')),
+                ('variant', models.ForeignKey(related_name='stock', verbose_name='variant', to='product.ProductVariant')),
             ],
-            bases=('product.product', models.Model),
-        ),
-        migrations.CreateModel(
-            name='Shirt',
-            fields=[
-                ('product_ptr', models.OneToOneField(parent_link=True, auto_created=True, primary_key=True, serialize=False, to='product.Product')),
-                ('weight', models.DecimalField(max_digits=6, decimal_places=2)),
-                ('length', models.DecimalField(default=0, max_digits=6, decimal_places=2, blank=True)),
-                ('width', models.DecimalField(default=0, max_digits=6, decimal_places=2, blank=True)),
-                ('depth', models.DecimalField(default=0, max_digits=6, decimal_places=2, blank=True)),
-                ('price', django_prices.models.PriceField(currency=b'USD', verbose_name='price', max_digits=12, decimal_places=4)),
-                ('color', models.ForeignKey(to='product.Color')),
-            ],
-            bases=('product.product', models.Model),
-        ),
-        migrations.AddField(
-            model_name='productimage',
-            name='product',
-            field=models.ForeignKey(related_name='images', to='product.Product'),
         ),
         migrations.AddField(
             model_name='product',
-            name='category',
-            field=models.ForeignKey(related_name='products', verbose_name='category', to='product.Category'),
+            name='attributes',
+            field=models.ManyToManyField(related_name='products', null=True, to='product.ProductAttribute', blank=True),
+        ),
+        migrations.AddField(
+            model_name='product',
+            name='categories',
+            field=models.ManyToManyField(related_name='products', verbose_name='categories', to='product.Category'),
         ),
         migrations.AddField(
             model_name='fixedproductdiscount',
@@ -131,13 +128,12 @@ class Migration(migrations.Migration):
             field=models.ManyToManyField(to='product.Product', blank=True),
         ),
         migrations.AddField(
-            model_name='shirtvariant',
-            name='product',
-            field=models.ForeignKey(related_name='variants', to='product.Shirt'),
+            model_name='attributechoicevalue',
+            name='attribute',
+            field=models.ForeignKey(related_name='values', to='product.ProductAttribute'),
         ),
-        migrations.AddField(
-            model_name='bagvariant',
-            name='product',
-            field=models.ForeignKey(related_name='variants', to='product.Bag'),
+        migrations.AlterUniqueTogether(
+            name='stock',
+            unique_together=set([('variant', 'location')]),
         ),
     ]
