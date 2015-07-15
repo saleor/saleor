@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required \
     as _staff_member_required
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
 from django.views.generic.edit import FormMixin
@@ -60,6 +60,5 @@ def index(request):
 
 def get_low_stock_products():
     threshold = getattr(settings, 'LOW_STOCK_THRESHOLD', 10)
-    products = Product.objects.filter(
-        Q(variants__stock__quantity__lte=threshold)).distinct()
-    return products
+    products = Product.objects.annotate(total_stock=Sum('variants__stock__quantity'))
+    return products.filter(Q(total_stock__lte=threshold)).distinct()
