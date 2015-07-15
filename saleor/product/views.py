@@ -13,8 +13,8 @@ from saleor.cart import Cart
 
 def product_details(request, slug, product_id):
     products = Product.objects.get_available_products().select_subclasses()
-    products = products.prefetch_related('categories')
-    products = products.prefetch_related('images')
+    products = products.prefetch_related('categories', 'images',
+                                         'variants__stock')
     product = get_object_or_404(products, id=product_id)
     if product.get_slug() != slug:
         return HttpResponsePermanentRedirect(product.get_absolute_url())
