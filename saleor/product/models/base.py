@@ -17,6 +17,7 @@ from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from satchless.item import ItemRange, Item, InsufficientStock
 from unidecode import unidecode
+
 from versatileimagefield.fields import VersatileImageField
 
 from .discounts import get_product_discounts
@@ -45,7 +46,12 @@ class Category(MPTTModel):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('product:category', kwargs={'slug': self.slug})
+        return reverse('product:category', kwargs={'path': self.get_full_path(),
+                                                   'category_id': self.id})
+
+    def get_full_path(self):
+        return '/'.join(
+            [node.slug for node in self.get_ancestors(include_self=True)])
 
     class Meta:
         verbose_name_plural = 'categories'

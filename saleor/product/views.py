@@ -37,8 +37,12 @@ def product_details(request, slug, product_id):
         {'product': product, 'form': form})
 
 
-def category_index(request, slug):
-    category = get_object_or_404(Category, slug=slug)
+def category_index(request, path, category_id):
+    category = get_object_or_404(Category, id=category_id)
+    actual_path = category.get_full_path()
+    if actual_path != path:
+        return redirect('product:category', permanent=True, path=actual_path,
+                        category_id=category_id)
     products = category.products.get_available_products().select_subclasses()
     products = products.prefetch_related('images')
     return TemplateResponse(
