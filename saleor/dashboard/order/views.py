@@ -72,6 +72,7 @@ def order_details(request, pk):
 def manage_payment(request, pk, action):
     payment = get_object_or_404(Payment, pk=pk)
     form = ManagePaymentForm(request.POST or None, payment=payment)
+    status = 200
     if form.is_valid():
         try:
             form.handle_action(action, request.user)
@@ -91,22 +92,22 @@ def manage_payment(request, pk, action):
             payment.order.create_history_entry(comment=comment,
                                                user=request.user)
             messages.success(request, comment)
-        return redirect('dashboard:order-details', pk=payment.order.pk)
+    elif form.errors:
+        status = 403
+    amount = 0
+    if action == 'release':
+        template = 'dashboard/order/modal_release.html'
     else:
-        amount = 0
-        if action == 'release':
-            template = 'dashboard/order/modal_release.html'
-        else:
-            if action == 'refund':
-                amount = payment.captured_amount
-            elif action == 'capture':
-                amount = payment.order.get_total().gross
-            template = 'dashboard/order/modal_capture_refund.html'
-        initial = {'amount': amount, 'action': action}
-        form = ManagePaymentForm(payment=payment, initial=initial)
-        ctx = {'form': form, 'action': action, 'currency': payment.currency,
-               'captured': payment.captured_amount, 'payment': payment}
-        return TemplateResponse(request, template, ctx)
+        if action == 'refund':
+            amount = payment.captured_amount
+        elif action == 'capture':
+            amount = payment.order.get_total().gross
+        template = 'dashboard/order/modal_capture_refund.html'
+    initial = {'amount': amount, 'action': action}
+    form = ManagePaymentForm(payment=payment, initial=initial)
+    ctx = {'form': form, 'action': action, 'currency': payment.currency,
+           'captured': payment.captured_amount, 'payment': payment}
+    return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required
