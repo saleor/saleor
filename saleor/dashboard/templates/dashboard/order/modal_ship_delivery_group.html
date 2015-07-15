@@ -8,7 +8,7 @@
 </div>
 
 <div class="modal-footer">
-    <form id="ship-delivery-group-form" method="post" role="form" action="{% url 'dashboard:ship-delivery-group' pk=group.pk %}">
+    <form id="ship-delivery-group-form" method="post" role="form" action="{% url 'dashboard:ship-delivery-group' order_pk=order.pk group_pk=group.pk %}">
         {% csrf_token %}
         <button type="submit" class="modal-action btn-flat blue-text">{% trans "Ship" %}</button>
         <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>

@@ -1,17 +1,19 @@
 {% load i18n %}
 {% load materializecss %}
 
-<div class="modal-content">
-    <h5>{% trans "Edit order line " %}</h5>
+<form method="post" role="form" action="{% url 'dashboard:orderline-split' order_pk=order.pk line_pk=object.pk %}" class="form-async">
+    {% csrf_token %}
+    <div class="modal-content">
+        <h5>{% trans "Split order line " %}</h5>
 
-    <form class="form-inline" method="post" role="form" action="{% url 'dashboard:orderline-split' pk=object.pk %}">
-        {% csrf_token %}
-{#        <span>Move {% render_widget move_items_form.how_many class="form-control input-sm" %} items to delivery group: {% render_widget move_items_form.groups class="form-control input-sm" %}#}
-        {{ form|materializecss }}
-        <button type="submit" class="btn-flat teal-text">OK</button></span>
-    </form>
-</div>
+        <div class="row">
+{#            <span>Move {% render_widget move_items_form.how_many class="form-control input-sm" %} items to delivery group: {% render_widget move_items_form.groups class="form-control input-sm" %}#}
+            {{ form|materializecss:"s12 m6" }}
+        </div>
+    </div>
 
-<div class="modal-footer">
-    <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
-</div>
+    <div class="modal-footer">
+        <button type="submit" class="modal-action btn-flat blue-text"> {% trans "Split" %}</button>
+        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+    </div>
+</form>

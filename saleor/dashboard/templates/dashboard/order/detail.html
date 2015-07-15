@@ -27,7 +27,7 @@
         <div class="col s12">
             <ul class="tabs" role="tablist">
                 <li role="presentation" class="tab">
-                    <a href="#order-details" role="tab" class="active">{% trans "Contents" %}</a>
+                    <a href="#order-details" role="tab" class="active">{% trans "Details" %}</a>
                 </li>
 
                 <li role="presentation" class="tab">
@@ -42,7 +42,69 @@
     </div>
 
     <div class="row tab-content" id="order-details">
-        <div class="col s12 l8">
+        <div class="col s12 l4 switch-two-columns">
+            <div class="card grey lighten-4">
+                <div class="card-content">
+                    <span class="card-title black-text">Order summary</span>
+
+                    <ul>
+                        <li class="text-lg">{% trans "Order total" %}: <strong>{% gross order.get_total %}</strong></li>
+                        <li>
+                            {% trans "Customer:" %}
+                            {% if order.user %}
+                                <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a>
+                            {% else %}
+                                {% trans "Account" %}: {% trans "Guest" %}
+                            {% endif %}
+                        </li>
+                        <li>{% trans "Order date:" %}  {{ order.created }}</li>
+                        <li>{% trans "Order status:" %}  {% render_status order.status order.get_status_display %}</li>
+                        <li>{% trans "Payment status:" %}  {% if payment %}{% render_status payment.status payment.get_status_display %}{% else %}{% trans "N/A" %}{% endif %}</li>
+                    </ul>
+                </div>
+            </div>
+
+            {% with order.shipping_address as address %}
+                {% if address %}
+                    <div class="card grey lighten-4">
+                        <div class="card-content">
+                            <span class="card-title black-text">{% trans "Shipping address" %}</span>
+
+                            {% include 'dashboard/includes/_address.html' with address=address only %}
+
+                            <div>
+                                <i class="mdi-content-mail"></i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
+                            </div>
+                        </div>
+
+                        <div class="card-action">
+                            <a href="#base-modal-fixed" class="modal-trigger-custom"
+                               data-href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">Edit</a>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <div class="card grey lighten-4">
+                <div class="card-content">
+                    {% with order.billing_address as address %}
+                        <span class="card-title black-text">{% trans "Billing address" %}</span>
+
+                        {% include 'dashboard/includes/_address.html' with address=address only %}
+                        <div>
+                            <i class="mdi-content-mail"></i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
+                        </div>
+                    {% endwith %}
+                </div>
+
+                <div class="card-action">
+                    <a href="#base-modal-fixed" class="modal-trigger-custom"
+                       data-href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}">Edit</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col s12 l8 switch-two-columns">
             {% for group in groups %}
                 <div class="card">
                     <div class="data-table-header">
@@ -54,39 +116,33 @@
                     <table class="bordered hoverable responsive data-table">
                         <thead>
                             <tr>
-                                <th>{% trans "Item" %}</th>
+                                <th class="wide">{% trans "Item" %}</th>
+                                <th>{% trans "SKU" %}</th>
                                 <th class="right-align">{% trans "Price" %}</th>
                                 <th class="right-align">{% trans "Quantity" %}</th>
                                 <th class="right-align">{% trans "Total" %}</th>
-                                <th class=""></th>
+                                <th class="no-padded"></th>
                             </tr>
                         </thead>
 
                         <tfoot>
                             {% if group.shipping_price.gross or group.is_shipping_required %}
                                 <tr>
-                                    <td colspan="3" class="">
+                                    <td colspan="4">
                                         {% trans "Shipping" %} ({{ order.shipping_method }})
                                     </td>
                                     <td class="right-align">
                                         {% gross group.shipping_price %}
                                     </td>
-                                    <td class="right-align">
-                                        {% if group.is_shipping_required %}
-                                            <a href="#base-modal" data-href="{% url 'dashboard:ship-delivery-group' pk=group.pk %}"
-                                                    {% if not group.can_ship %} disabled{% endif %} class="modal-trigger-custom">
-                                                <i class="mdi-maps-local-shipping"></i> {% trans "Ship" %}
-                                            </a>
-                                        {% endif %}
-                                    </td>
+                                    <td class="no-padded"></td>
                                 </tr>
                             {% endif %}
                             <tr>
-                                <td colspan="3">{% trans "Total" %}</td>
+                                <td colspan="4">{% trans "Total" %}</td>
                                 <td class="right-align">
                                     <strong>{% gross group.get_total %}</strong>
                                 </td>
-                                <td></td>
+                                <td class="no-padded"></td>
                             </tr>
                         </tfoot>
 
@@ -94,32 +150,46 @@
                             {% for item in group.items.all %}
                                 <tr>
                                     <td>
-                                        {% if item.product %}<a href="{% url "dashboard:product-update" pk=item.product.id %}">{{ item.product_name }}</a>{% else %}{{ item.product_name }}{% endif %}<br>
-                                        <strong>SKU:</strong> {{ item.product_sku }}
+                                        {{ item.product_name }}<br>
                                     </td>
+                                    <td>{{ item.product_sku }}</td>
                                     <td class="right-align">{% gross item.get_price_per_item %}</td>
                                     <td class="right-align">{{ item.quantity }}</td>
                                     <td class="right-align">{% gross item.get_total %}</td>
-                                    <td class="right-align">
-                                        <a href="#base-modal" data-href="{% url 'dashboard:orderline-change-quantity' pk=item.pk %}" class="modal-trigger-custom"
-                                                {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Change quantity" %}">
-                                            <i class="mdi-content-create"></i>
+                                    <td class="right-align no-padded">
+                                        <a class="dropdown-button" href="#" data-activates="line-actions-{{ item.pk }}" data-constrainwidth="false">
+                                            <i class="mdi-navigation-more-vert"></i>
                                         </a>
-                                        <a href="#base-modal" data-href="{% url 'dashboard:orderline-split' pk=item.pk %}" class="modal-trigger-custom"
-                                                {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Split line" %}">
-                                            <i class="mdi-content-create"></i>
-                                        </a>
+
+                                        <ul id="line-actions-{{ item.pk }}" class="dropdown-content">
+                                            <li>
+                                                <a href="#base-modal" data-href="{% url 'dashboard:orderline-change-quantity' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom"
+                                                    {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Change quantity" %}">
+                                                    {% trans "Change quantity" %}
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#base-modal" data-href="{% url 'dashboard:orderline-split' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom"
+                                                    {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Split line" %}">
+                                                    {% trans "Split order line" %}
+                                                </a>
+                                            </li>
+                                        </ul>
                                     </td>
                                 </tr>
                             {% endfor %}
                         </tbody>
                     </table>
+
+                    {% if group.can_ship %}
+                        <div class="card-action">
+                            <a href="#base-modal" data-href="{% url 'dashboard:ship-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="modal-trigger-custom">
+                                {% trans "Ship" %}
+                            </a>
+                        </div>
+                    {% endif %}
                 </div>
             {% endfor %}
-
-            <div class="card-panel green lighten-4">
-                <span>{% trans "Order total" %}: <strong>{% gross order.get_total %}</strong></span>
-            </div>
 
             <div class="card">
                 <div class="card-content">
@@ -138,7 +208,7 @@
                     {% endif %}
                 </div>
 
-                {% if payment %}
+                {% if can_capture or can_refund or can_release %}
                     <div class="card-action">
                         {% if can_capture %}
                             <a href="#base-modal" data-href="{% url 'dashboard:manage-payment' pk=payment.pk action='capture' %}"
@@ -176,94 +246,12 @@
                 </div>
 
                 <div class="card-action">
-                    <a class="modal-trigger" href="#add-order-note">Add note</a>
-                </div>
-
-                <div id="add-order-note" class="modal">
-                    <form role="form" method="post">
-                        {% csrf_token %}
-
-                        <div class="modal-content">
-                            <h5>{% trans "Add note" %}</h5>
-
-                            <div class="row">
-                                {{ note_form|materializecss }}
-                            </div>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="submit" class="modal-action btn-flat blue-text">{% trans "Save note" %}</button>
-                            <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
-                        </div>
-                    </form>
+                    <a data-href="{% url "dashboard:order-add-note" order_pk=order.pk %}"
+                       class="modal-trigger-custom" href="#base-modal">{% trans "Add note" %}</a>
                 </div>
             </div>
-        </div>
-
-        <div class="col s12 l4">
-            <div class="card grey lighten-4">
-                <div class="card-content">
-                    <span class="card-title black-text">Order summary</span>
-
-                    <p>Order date: {{ order.created }}</p>
-                    <p>Order status: {% render_status order.status order.get_status_display %}</p>
-                    <p>Payment status: {% if payment %}{% render_status payment.status payment.get_status_display %}{% else %}{% trans "N/A" %}{% endif %}</p>
-                </div>
-            </div>
-
-            <div class="card grey lighten-4">
-                <div class="card-content">
-                    <span class="card-title black-text">{% trans "Customer" %}</span>
-
-                    <div class="address">
-                        {% if order.user %}
-                            <div>{% trans "Account" %}: <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a></div>
-                        {% else %}
-                            <div>{% trans "Account" %}: {% trans "Guest" %}</div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="card grey lighten-4">
-                <div class="card-content">
-                    {% with order.billing_address as address %}
-                        <span class="card-title black-text">{% trans "Billing address" %}</span>
-
-                        {% include 'dashboard/includes/_address.html' with address=address only %}
-                        <div>
-                            <i class="mdi-content-mail"></i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
-                        </div>
-                    {% endwith %}
-                </div>
-
-                <div class="card-action">
-                    <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}">Edit</a>
-                </div>
-            </div>
-
-            {% with order.shipping_address as address %}
-                {% if address %}
-                    <div class="card grey lighten-4">
-                        <div class="card-content">
-                            <span class="card-title black-text">{% trans "Shipping address" %}</span>
-
-                            {% include 'dashboard/includes/_address.html' with address=address only %}
-
-                            <div>
-                                <i class="mdi-content-mail"></i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
-                            </div>
-                        </div>
-
-                        <div class="card-action">
-                            <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">Edit</a>
-                        </div>
-                    </div>
-                {% endif %}
-            {% endwith %}
         </div>
     </div>
-
 
     <div class="card tab-content" id="payment-history">
         <table class="bordered hoverable responsive data-table">
@@ -316,4 +304,5 @@
     </div>
 
     <div id="base-modal" class="modal"></div>
+    <div id="base-modal-fixed" class="modal modal-fixed-footer"></div>
 {% endblock %}
