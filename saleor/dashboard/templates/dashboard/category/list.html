@@ -94,7 +94,13 @@
                         </li>
                     {% endfor %}
                 {% else %}
-                    <p>{% trans "No subcategories" %}</p>
+                    <p>
+                        {% if root %}
+                            {% trans "No subcategories." %}
+                        {% else %}
+                            {% trans "No categories." %}
+                        {% endif %}
+                    </p>
                 {% endif %}
             </ul>
         </div>
