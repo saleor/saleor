@@ -10,6 +10,9 @@ from django.utils import timezone
 
 now = timezone.now
 
+def default_valid_date():
+        return now() + timedelta(settings.ACCOUNT_ACTIVATION_DAYS)
+
 
 class ExternalUserData(models.Model):
 
@@ -34,9 +37,6 @@ class UniqueTokenManager(models.Manager):  # this might end up in `utils`
 
 
 class AbstractToken(models.Model):
-
-    def default_valid_date():
-        return now() + timedelta(settings.ACCOUNT_ACTIVATION_DAYS)
 
     token = models.CharField(max_length=36, unique=True)
     valid_until = models.DateTimeField(default=default_valid_date)
