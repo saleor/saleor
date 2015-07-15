@@ -9,7 +9,7 @@ from ...product.models import Category
 
 class CategoryForm(forms.ModelForm):
     parent = TreeNodeChoiceField(queryset=Category.objects.all(),
-                                 required=False)
+                                 required=False, widget=forms.HiddenInput())
 
     def __init__(self, *args, **kwargs):
         super(CategoryForm, self).__init__(*args, **kwargs)
