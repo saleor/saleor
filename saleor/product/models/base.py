@@ -246,10 +246,10 @@ class Stock(models.Model):
 @python_2_unicode_compatible
 class ProductAttribute(models.Model):
     name = models.SlugField(
-        pgettext_lazy('Product attribute field', 'name'),
+        pgettext_lazy('Product attribute field', 'internal name'),
         max_length=50, unique=True)
     display = models.CharField(
-        pgettext_lazy('Product attribute field', 'display'),
+        pgettext_lazy('Product attribute field', 'display name'),
         max_length=100)
 
     class Meta:
@@ -267,12 +267,17 @@ class ProductAttribute(models.Model):
 
 @python_2_unicode_compatible
 class AttributeChoiceValue(models.Model):
-    display = models.CharField(max_length=100)
+    display = models.CharField(
+        pgettext_lazy('Attribute choice value field', 'display name'),
+        max_length=100)
     color = models.CharField(
+        pgettext_lazy('Attribute choice value field', 'color'),
         max_length=7,
         validators=[RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')],
         blank=True)
-    image = VersatileImageField(upload_to='attributes', blank=True, null=True)
+    image = VersatileImageField(
+        pgettext_lazy('Attribute choice value field', 'image'),
+        upload_to='attributes', blank=True, null=True)
     attribute = models.ForeignKey(ProductAttribute, related_name='values')
 
     def __str__(self):

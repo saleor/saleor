@@ -21,9 +21,9 @@ class Migration(migrations.Migration):
             name='AttributeChoiceValue',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('display', models.CharField(max_length=100)),
-                ('color', models.CharField(blank=True, max_length=7, validators=[django.core.validators.RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')])),
-                ('image', versatileimagefield.fields.VersatileImageField(null=True, upload_to='attributes', blank=True)),
+                ('display', models.CharField(max_length=100, verbose_name='display name')),
+                ('color', models.CharField(blank=True, max_length=7, verbose_name='color', validators=[django.core.validators.RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')])),
+                ('image', versatileimagefield.fields.VersatileImageField(upload_to='attributes', null=True, verbose_name='image', blank=True)),
             ],
         ),
         migrations.CreateModel(
@@ -68,8 +68,8 @@ class Migration(migrations.Migration):
             name='ProductAttribute',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('name', models.SlugField(unique=True, verbose_name='name')),
-                ('display', models.CharField(max_length=100, verbose_name='display')),
+                ('name', models.SlugField(unique=True, verbose_name='internal name')),
+                ('display', models.CharField(max_length=100, verbose_name='display name')),
             ],
             options={
                 'ordering': ['name'],
