@@ -137,7 +137,10 @@ class Product(models.Model, ItemRange):
         return any(variant.is_in_stock() for variant in self)
 
     def get_first_category(self):
-        return self.categories.filter(hidden=False).first()
+        for category in self.categories.all():
+            if not category.hidden:
+                return category
+        return None
 
 
 @python_2_unicode_compatible
