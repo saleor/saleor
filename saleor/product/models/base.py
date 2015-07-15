@@ -30,7 +30,7 @@ class Category(MPTTModel):
     name = models.CharField(
         pgettext_lazy('Category field', 'name'), max_length=128)
     slug = models.SlugField(
-        pgettext_lazy('Category field', 'slug'), max_length=50, unique=True)
+        pgettext_lazy('Category field', 'slug'), max_length=50)
     description = models.TextField(
         pgettext_lazy('Category field', 'description'), blank=True)
     parent = models.ForeignKey(

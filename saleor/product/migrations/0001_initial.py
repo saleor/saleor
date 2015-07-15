@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=128, verbose_name='name')),
-                ('slug', models.SlugField(unique=True, verbose_name='slug')),
+                ('slug', models.SlugField(verbose_name='slug')),
                 ('description', models.TextField(verbose_name='description', blank=True)),
                 ('hidden', models.BooleanField(default=False, verbose_name='hidden')),
                 ('lft', models.PositiveIntegerField(editable=False, db_index=True)),
