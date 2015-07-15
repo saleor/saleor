@@ -82,15 +82,10 @@ class ChangeQuantityForm(forms.ModelForm):
             'max': self.instance.quantity, 'min': 1})
         self.fields['quantity'].initial = self.instance.quantity
 
-    def get_variant(self):
-        p = Product.objects.get_subclass(pk=self.instance.product.pk)
-        return p.variants.get(sku=self.instance.product_sku)
-
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
-        variant = self.get_variant()
         try:
-            variant.check_quantity(quantity)
+            self.instance.product.check_quantity(quantity)
         except InsufficientStock as e:
             raise forms.ValidationError(
                 _('Only %(remaining)d remaining in stock.') % {

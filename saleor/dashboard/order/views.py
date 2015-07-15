@@ -114,6 +114,7 @@ def orderline_change_quantity(request, pk):
     item = get_object_or_404(OrderedItem, pk=pk)
     order = item.delivery_group.order
     form = ChangeQuantityForm(request.POST or None, instance=item)
+    status = 200
     if form.is_valid():
         old_quantity = item.quantity
         with transaction.atomic():
@@ -125,11 +126,12 @@ def orderline_change_quantity(request, pk):
                 'new_quantity': item.quantity}
         messages.success(request, msg)
         order.create_history_entry(comment=msg, user=request.user)
-        return redirect('dashboard:order-details', pk=order.pk)
+    elif form.errors:
+        status = 403
     ctx = {'object': item, 'form': form}
     ctx.update(csrf(request))
     template = 'dashboard/order/modal_change_quantity.html'
-    return TemplateResponse(request, template, ctx)
+    return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required
@@ -137,6 +139,7 @@ def orderline_split(request, pk):
     item = get_object_or_404(OrderedItem, pk=pk)
     order = item.delivery_group.order
     form = MoveItemsForm(request.POST or None, item=item)
+    status = 200
     if form.is_valid():
         old_group = item.delivery_group
         how_many = form.cleaned_data['how_many']
@@ -151,29 +154,31 @@ def orderline_split(request, pk):
                 'new_group': target_group}
         messages.success(request, msg)
         order.create_history_entry(comment=msg, user=request.user)
-        return redirect('dashboard:order-details', pk=order.pk)
+    elif form.errors:
+        status = 403
     ctx = {'object': item, 'form': form}
     ctx.update(csrf(request))
     template = 'dashboard/order/modal_split_order_line.html'
-    return TemplateResponse(request, template, ctx)
+    return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required
 def ship_delivery_group(request, pk):
     group = get_object_or_404(DeliveryGroup, pk=pk)
     form = ShipGroupForm(request.POST or None, instance=group)
+    status = 200
     if form.is_valid():
         with transaction.atomic():
             form.save()
         msg = _('Shipped %s') % group
         messages.success(request, msg)
         group.order.create_history_entry(comment=msg, user=request.user)
-        return redirect('dashboard:order-details', pk=group.order.pk)
-    else:
-        ctx = {'group': group}
-        ctx.update(csrf(request))
-        template = 'dashboard/order/modal_ship_delivery_group.html'
-        return TemplateResponse(request, template, ctx)
+    elif form.errors:
+        status = 403
+    ctx = {'group': group}
+    ctx.update(csrf(request))
+    template = 'dashboard/order/modal_ship_delivery_group.html'
+    return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required
