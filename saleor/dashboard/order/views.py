@@ -110,53 +110,52 @@ def manage_payment(request, pk, action):
 
 
 @staff_member_required
-def edit_order_line(request, pk, action=None):
+def orderline_change_quantity(request, pk):
     item = get_object_or_404(OrderedItem, pk=pk)
     order = item.delivery_group.order
-    quantity_form = ChangeQuantityForm(request.POST or None, instance=item)
-    move_items_form = MoveItemsForm(request.POST or None, item=item)
-
-    if not action:
-        ctx = {'object': item, 'change_quantity_form': quantity_form,
-               'move_items_form': move_items_form}
-        ctx.update(csrf(request))
-        template = 'dashboard/order/modal_order_line_edit.html'
-        return TemplateResponse(request, template, ctx)
-
-    if action == 'change_quantity':
+    form = ChangeQuantityForm(request.POST or None, instance=item)
+    if form.is_valid():
         old_quantity = item.quantity
-        if quantity_form.is_valid():
-            with transaction.atomic():
-                quantity_form.save()
-            msg = _(
-                'Changed quantity for product %(product)s from'
-                ' %(old_quantity)s to %(new_quantity)s') % {
-                    'product': item.product, 'old_quantity': old_quantity,
-                    'new_quantity': item.quantity}
-            messages.success(request, msg)
-            order.create_history_entry(comment=msg, user=request.user)
-        else:
-            errors = quantity_form.errors.as_text()
-            messages.error(request, _('Failed to change quantity: %s') % errors)
-    elif action == 'move_items':
-        if move_items_form.is_valid():
-            old_group = item.delivery_group
-            how_many = move_items_form.cleaned_data['how_many']
-            with transaction.atomic():
-                target_group = move_items_form.move_items()
-            if not old_group.pk:
-                old_group = _('removed group')
-            msg = _(
-                'Moved %(how_many)s items %(item)s from %(old_group)s'
-                ' to %(new_group)s') % {
-                    'how_many': how_many, 'item': item, 'old_group': old_group,
-                    'new_group': target_group}
-            messages.success(request, msg)
-            order.create_history_entry(comment=msg, user=request.user)
-        else:
-            errors = move_items_form.errors.as_text()
-            messages.error(request, _('Failed to move items: %s') % errors)
-    return redirect('dashboard:order-details', pk=order.pk)
+        with transaction.atomic():
+            form.save()
+        msg = _(
+            'Changed quantity for product %(product)s from'
+            ' %(old_quantity)s to %(new_quantity)s') % {
+                'product': item.product, 'old_quantity': old_quantity,
+                'new_quantity': item.quantity}
+        messages.success(request, msg)
+        order.create_history_entry(comment=msg, user=request.user)
+        return redirect('dashboard:order-details', pk=order.pk)
+    ctx = {'object': item, 'form': form}
+    ctx.update(csrf(request))
+    template = 'dashboard/order/modal_change_quantity.html'
+    return TemplateResponse(request, template, ctx)
+
+
+@staff_member_required
+def orderline_split(request, pk):
+    item = get_object_or_404(OrderedItem, pk=pk)
+    order = item.delivery_group.order
+    form = MoveItemsForm(request.POST or None, item=item)
+    if form.is_valid():
+        old_group = item.delivery_group
+        how_many = form.cleaned_data['how_many']
+        with transaction.atomic():
+            target_group = form.move_items()
+        if not old_group.pk:
+            old_group = _('removed group')
+        msg = _(
+            'Moved %(how_many)s items %(item)s from %(old_group)s'
+            ' to %(new_group)s') % {
+                'how_many': how_many, 'item': item, 'old_group': old_group,
+                'new_group': target_group}
+        messages.success(request, msg)
+        order.create_history_entry(comment=msg, user=request.user)
+        return redirect('dashboard:order-details', pk=order.pk)
+    ctx = {'object': item, 'form': form}
+    ctx.update(csrf(request))
+    template = 'dashboard/order/modal_split_order_line.html'
+    return TemplateResponse(request, template, ctx)
 
 
 @staff_member_required

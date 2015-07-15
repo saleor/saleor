@@ -11,10 +11,10 @@ urlpatterns = [
         views.address_view, name='address-edit'),
     url(r'^payment/(?P<pk>[0-9]+)/(?P<action>capture|refund|release)/$',
         views.manage_payment, name='manage-payment'),
-    url(r'^line/(?P<pk>[0-9]+)/$', views.edit_order_line,
-        name='order-line-edit'),
-    url(r'^line/(?P<pk>[0-9]+)/(?P<action>change_quantity|move_items)/$',
-        views.edit_order_line, name='order-line-edit'),
+    url(r'^line/change/(?P<pk>[0-9]+)/$', views.orderline_change_quantity,
+        name='orderline-change-quantity'),
+    url(r'^line/split/(?P<pk>[0-9]+)/$', views.orderline_split,
+        name='orderline-split'),
     url(r'^ship/(?P<pk>[0-9]+)/$', views.ship_delivery_group,
         name='ship-delivery-group')
 ]

@@ -101,8 +101,12 @@
                                     <td class="right-align">{{ item.quantity }}</td>
                                     <td class="right-align">{% gross item.get_total %}</td>
                                     <td class="right-align">
-                                        <a href="#base-modal" data-href="{% url 'dashboard:order-line-edit' pk=item.pk %}" class="modal-trigger-custom"
-                                                {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Edit" %}">
+                                        <a href="#base-modal" data-href="{% url 'dashboard:orderline-change-quantity' pk=item.pk %}" class="modal-trigger-custom"
+                                                {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Change quantity" %}">
+                                            <i class="mdi-content-create"></i>
+                                        </a>
+                                        <a href="#base-modal" data-href="{% url 'dashboard:orderline-split' pk=item.pk %}" class="modal-trigger-custom"
+                                                {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Split line" %}">
                                             <i class="mdi-content-create"></i>
                                         </a>
                                     </td>

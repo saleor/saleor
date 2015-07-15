@@ -1,0 +1,16 @@
+{% load i18n %}
+{% load materializecss %}
+
+<div class="modal-content">
+    <h5>{% trans "Change quantity" %}</h5>
+
+    <form class="form-inline" method="post" role="form" action="{% url 'dashboard:orderline-change-quantity' pk=object.pk %}">
+        {% csrf_token %}
+        {{ form|materializecss }}
+        <button type="submit" class="btn-flat teal-text">OK</button></span>
+    </form>
+</div>
+
+<div class="modal-footer">
+    <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+</div>
