@@ -1,9 +1,7 @@
 $('.button-collapse').sideNav();
-$('select:not(.browser-default):not([multiple])').material_select();
-$('select[multiple]').addClass('browser-default').select2();
-$('.modal-trigger').leanModal();
 $(document).ready(function() {
   var $tabs = $('ul.tabs');
+  initSelects();
 
   if ($tabs.length) {
     $tabs.find('.tab').on('click', function (e) {
@@ -23,20 +21,44 @@ $(document).ready(function() {
     $breadcrumbsItems.css('max-width', breadcrumbsItemWidth).dotdotdot({'height': 50});
   }
 
-  var $orderModal = $('#base-modal');
-  if ($orderModal) {
-    $('.modal-trigger-custom').on('click', function (e) {
-      $.ajax({
-        url: $(this).data('href'),
-        method: 'get',
-        success: function (response) {
-          $orderModal.html(response).openModal();
-        }
-      });
-
-      e.preventDefault();
+  $('.modal-trigger-custom').on('click', function (e) {
+    var that = this;
+    $.ajax({
+      url: $(this).data('href'),
+      method: 'get',
+      success: function (response) {
+        var $modal = $($(that).attr('href'));
+        $modal.html(response);
+        initSelects();
+        $modal.openModal();
+      }
     });
-  }
+
+    e.preventDefault();
+  });
+
+  $(document).on('submit', '.form-async', function(e) {
+    var that = this;
+    $.ajax({
+      url: $(that).attr('action'),
+      method: 'post',
+      data: $(that).serialize(),
+      complete: function(response) {
+        if (response.status === 400) {
+          $(that).parent().html(response.responseText);
+          initSelects();
+        } else {
+          $('.modal-close').click();
+        }
+      },
+      success: function(response) {
+        location.reload();
+      }
+    });
+    e.preventDefault();
+  }).on('click', '.modal-close', function() {
+    $('.modal').closeModal();
+  });
 });
 Dropzone.options.productImageForm = {
   paramName: "image",
@@ -120,3 +142,7 @@ $('.datepicker').pickadate({
   selectYears: 15,
   selectMonths: true
 });
+function initSelects() {
+  $('select:not(.browser-default):not([multiple])').material_select();
+  $('select[multiple]').addClass('browser-default').select2();
+}

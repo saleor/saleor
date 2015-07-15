@@ -287,6 +287,20 @@ table {
   margin: 0;
 }
 
+.switch-two-columns {
+  @media (min-width: $large-screen) {
+    float: left !important;
+
+    &:first-child {
+      float: right !important;
+    }
+  }
+}
+
+.text-lg {
+  font-size: 120%;
+}
+
 @import "widget/breadcrumbs";
 @import "widget/card";
 @import "widget/data-table";

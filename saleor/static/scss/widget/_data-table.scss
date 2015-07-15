@@ -55,6 +55,10 @@
     &:last-child {
       padding-right: 24px;
     }
+
+    &.no-padded {
+      padding: 0;
+    }
   }
 
   th {
@@ -90,6 +94,17 @@
     th {
       border-top: none;
     }
+  }
+
+  .dropdown-button {
+    padding: 15px 28px;
+  }
+
+  .dropdown-content {
+    left: auto !important;
+    right: 0;
+    top: 0;
+    white-space: nowrap;
   }
 }
 
