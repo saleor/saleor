@@ -41,27 +41,27 @@ class ManagePaymentForm(forms.Form):
 
 
 class MoveItemsForm(forms.Form):
-    how_many = QuantityField()
-    groups = forms.ChoiceField()
+    quantity = QuantityField(label=_('Quantity'))
+    target_group = forms.ChoiceField(label=_('Target shipment'))
 
     def __init__(self, *args, **kwargs):
         self.item = kwargs.pop('item')
         super(MoveItemsForm, self).__init__(*args, **kwargs)
-        self.fields['how_many'].widget.attrs.update({
+        self.fields['quantity'].widget.attrs.update({
             'max': self.item.quantity, 'min': 1})
-        self.fields['groups'].choices = self.get_delivery_group_choices()
+        self.fields['target_group'].choices = self.get_delivery_group_choices()
 
     def get_delivery_group_choices(self):
         group = self.item.delivery_group
         groups = group.order.groups.exclude(pk=group.pk).exclude(
             status='cancelled')
-        choices = [('new', _('New'))]
+        choices = [('new', _('New shipment'))]
         choices.extend([(g.pk, str(g)) for g in groups])
         return choices
 
     def move_items(self):
-        how_many = self.cleaned_data['how_many']
-        choice = self.cleaned_data['groups']
+        how_many = self.cleaned_data['quantity']
+        choice = self.cleaned_data['target_group']
         old_group = self.item.delivery_group
         if choice == 'new':
             target_group = DeliveryGroup.objects.duplicate_group(old_group)
@@ -78,8 +78,7 @@ class ChangeQuantityForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ChangeQuantityForm, self).__init__(*args, **kwargs)
-        self.fields['quantity'].widget.attrs.update({
-            'max': self.instance.quantity, 'min': 1})
+        self.fields['quantity'].widget.attrs.update({'min': 1})
         self.fields['quantity'].initial = self.instance.quantity
 
     def clean_quantity(self):
@@ -89,7 +88,7 @@ class ChangeQuantityForm(forms.ModelForm):
         except InsufficientStock as e:
             raise forms.ValidationError(
                 _('Only %(remaining)d remaining in stock.') % {
-                    'remaining': e.item.stock})
+                    'remaining': e.item.get_stock_quantity()})
         return quantity
 
     def save(self):

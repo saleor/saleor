@@ -10,8 +10,7 @@ from django.views.generic import ListView
 from payments import PaymentError
 from prices import Price
 
-from ...order.models import (Order, OrderedItem, DeliveryGroup, Payment,
-                             OrderNote)
+from ...order.models import Order, OrderedItem, OrderNote
 from ...userprofile.forms import AddressForm
 from ..views import (StaffMemberOnlyMixin, FilterByStatusMixin,
                      staff_member_required)
@@ -30,25 +29,12 @@ class OrderListView(StaffMemberOnlyMixin, FilterByStatusMixin, ListView):
 
 
 @staff_member_required
-def order_details(request, pk):
+def order_details(request, order_pk):
     order = get_object_or_404(Order.objects.prefetch_related(
-        'notes', 'payments', 'history', 'groups'), pk=pk)
+        'notes', 'payments', 'history', 'groups'), pk=order_pk)
     notes = order.notes.all()
     payment = order.payments.last()
     groups = list(order)
-    for group in groups:
-        group.can_ship = (payment and payment.status == 'confirmed' and
-                          group.status == 'new')
-
-    note = OrderNote(order=order, user=request.user)
-    note_form = OrderNoteForm(request.POST or None, instance=note)
-    if note_form.is_valid():
-        note_form.save()
-        msg = _('Added note')
-        order.create_history_entry(comment=msg, user=request.user)
-        messages.success(request, msg)
-        return redirect('dashboard:order-details', pk=pk)
-
     captured = preauthorized = Price(0, currency=order.get_total().currency)
     if payment:
         can_capture = (payment.status == 'preauth' and
@@ -62,15 +48,35 @@ def order_details(request, pk):
         can_capture = can_release = can_refund = False
 
     ctx = {'order': order, 'payment': payment, 'notes': notes, 'groups': groups,
-           'note_form': note_form, 'captured': captured,
-           'preauthorized': preauthorized, 'can_capture': can_capture,
-           'can_release': can_release, 'can_refund': can_refund}
+           'captured': captured, 'preauthorized': preauthorized,
+           'can_capture': can_capture, 'can_release': can_release,
+           'can_refund': can_refund}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
 
 
 @staff_member_required
-def manage_payment(request, pk, action):
-    payment = get_object_or_404(Payment, pk=pk)
+def order_add_note(request, order_pk):
+    order = get_object_or_404(Order, pk=order_pk)
+    note = OrderNote(order=order, user=request.user)
+    form = OrderNoteForm(request.POST or None, instance=note)
+    status = 200
+    if form.is_valid():
+        form.save()
+        msg = _('Added note')
+        order.create_history_entry(comment=msg, user=request.user)
+        return redirect('dashboard:order-details', order_pk=order_pk)
+    elif form.errors:
+        status = 400
+    ctx = {'object': order, 'form': form}
+    ctx.update(csrf(request))
+    template = 'dashboard/order/modal_add_note.html'
+    return TemplateResponse(request, template, ctx, status=status)
+
+
+@staff_member_required
+def manage_payment(request, order_pk, payment_pk, action):
+    order = get_object_or_404(Order, pk=order_pk)
+    payment = get_object_or_404(order.payments.all(), pk=payment_pk)
     form = ManagePaymentForm(request.POST or None, payment=payment)
     status = 200
     if form.is_valid():
@@ -84,16 +90,19 @@ def manage_payment(request, pk, action):
             if action == 'capture':
                 comment = _('Captured %(amount)s %(currency)s') % {
                     'amount': amount, 'currency': currency}
+                payment.order.create_history_entry(comment=comment,
+                                                   user=request.user)
             elif action == 'refund':
                 comment = _('Refunded %(amount)s %(currency)s') % {
                     'amount': amount, 'currency': currency}
+                payment.order.create_history_entry(comment=comment,
+                                                   user=request.user)
             elif action == 'release':
                 comment = _('Released payment')
-            payment.order.create_history_entry(comment=comment,
-                                               user=request.user)
-            messages.success(request, comment)
+                payment.order.create_history_entry(comment=comment,
+                                                   user=request.user)
     elif form.errors:
-        status = 403
+        status = 400
     amount = 0
     if action == 'release':
         template = 'dashboard/order/modal_release.html'
@@ -111,9 +120,10 @@ def manage_payment(request, pk, action):
 
 
 @staff_member_required
-def orderline_change_quantity(request, pk):
-    item = get_object_or_404(OrderedItem, pk=pk)
-    order = item.delivery_group.order
+def orderline_change_quantity(request, order_pk, line_pk):
+    order = get_object_or_404(Order, pk=order_pk)
+    item = get_object_or_404(OrderedItem.objects.filter(
+        delivery_group__order=order), pk=line_pk)
     form = ChangeQuantityForm(request.POST or None, instance=item)
     status = 200
     if form.is_valid():
@@ -125,25 +135,25 @@ def orderline_change_quantity(request, pk):
             ' %(old_quantity)s to %(new_quantity)s') % {
                 'product': item.product, 'old_quantity': old_quantity,
                 'new_quantity': item.quantity}
-        messages.success(request, msg)
         order.create_history_entry(comment=msg, user=request.user)
+        return redirect('dashboard:order-details', order_pk=order_pk)
     elif form.errors:
-        status = 403
-    ctx = {'object': item, 'form': form}
-    ctx.update(csrf(request))
+        status = 400
+    ctx = {'order': order, 'object': item, 'form': form}
     template = 'dashboard/order/modal_change_quantity.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required
-def orderline_split(request, pk):
-    item = get_object_or_404(OrderedItem, pk=pk)
-    order = item.delivery_group.order
+def orderline_split(request, order_pk, line_pk):
+    order = get_object_or_404(Order, pk=order_pk)
+    item = get_object_or_404(OrderedItem.objects.filter(
+        delivery_group__order=order), pk=line_pk)
     form = MoveItemsForm(request.POST or None, item=item)
     status = 200
     if form.is_valid():
         old_group = item.delivery_group
-        how_many = form.cleaned_data['how_many']
+        how_many = form.cleaned_data['quantity']
         with transaction.atomic():
             target_group = form.move_items()
         if not old_group.pk:
@@ -153,19 +163,19 @@ def orderline_split(request, pk):
             ' to %(new_group)s') % {
                 'how_many': how_many, 'item': item, 'old_group': old_group,
                 'new_group': target_group}
-        messages.success(request, msg)
         order.create_history_entry(comment=msg, user=request.user)
+        return redirect('dashboard:order-details', order_pk=order_pk)
     elif form.errors:
-        status = 403
-    ctx = {'object': item, 'form': form}
-    ctx.update(csrf(request))
+        status = 400
+    ctx = {'order': order, 'object': item, 'form': form}
     template = 'dashboard/order/modal_split_order_line.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
 @staff_member_required
-def ship_delivery_group(request, pk):
-    group = get_object_or_404(DeliveryGroup, pk=pk)
+def ship_delivery_group(request, order_pk, group_pk):
+    order = get_object_or_404(Order, pk=order_pk)
+    group = get_object_or_404(order.groups.all(), pk=group_pk)
     form = ShipGroupForm(request.POST or None, instance=group)
     status = 200
     if form.is_valid():
@@ -174,10 +184,10 @@ def ship_delivery_group(request, pk):
         msg = _('Shipped %s') % group
         messages.success(request, msg)
         group.order.create_history_entry(comment=msg, user=request.user)
+        return redirect('dashboard:order-details', order_pk=order_pk)
     elif form.errors:
-        status = 403
-    ctx = {'group': group}
-    ctx.update(csrf(request))
+        status = 400
+    ctx = {'order': order, 'group': group}
     template = 'dashboard/order/modal_ship_delivery_group.html'
     return TemplateResponse(request, template, ctx, status=status)
 
@@ -192,10 +202,14 @@ def address_view(request, order_pk, address_type):
         address = order.billing_address
         success_msg = _('Updated billing address')
     form = AddressForm(request.POST or None, instance=address)
+    status = 200
     if form.is_valid():
         form.save()
         order.create_history_entry(comment=success_msg, user=request.user)
         messages.success(request, success_msg)
-        return redirect('dashboard:order-details', pk=order.pk)
+        return redirect('dashboard:order-details', order_pk=order.pk)
+    elif form.errors:
+        status = 400
     ctx = {'order': order, 'address_type': address_type, 'form': form}
-    return TemplateResponse(request, 'dashboard/order/address-edit.html', ctx)
+    return TemplateResponse(request, 'dashboard/order/modal_address_edit.html',
+                            ctx, status=status)
