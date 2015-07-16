@@ -4,7 +4,7 @@ $(document).ready(function() {
   $('.modal-trigger').leanModal();
 
   if (isTablet()) {
-    $('.equal-height').equalHeights();
+    $('.equal-height-on-med').equalHeights();
   }
 
   var $tabs = $('ul.tabs');

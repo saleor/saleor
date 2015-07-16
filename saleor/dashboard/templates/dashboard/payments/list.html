@@ -36,8 +36,8 @@
                         <td><a href="{% url "dashboard:payment-details" pk=payment.pk %}">#{{ payment.id }}</a></td>
                         <td>{{ payment.created }}</td>
                         <td>
-                            {% trans "Gateway" %}: {{ payment.variant }} &middot; {% trans "Order number" %}:
-                            <a href="{% url 'dashboard:order-details' order_pk=payment.order.pk %}">{{ payment.order }}</a>
+                            {% trans "Gateway" %}: {{ payment.variant }} &middot;
+                            <a href="{% url 'dashboard:order-details' order_pk=payment.order.pk %}"> {% trans "Order " %}{{ payment.order }}</a>
                         </td>
                         <td class="right-align">{% gross payment.get_total_price %}</td>
                         <td>{% render_status payment.status payment.get_status_display %}</td>
