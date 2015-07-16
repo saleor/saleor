@@ -7,37 +7,49 @@
 
 {% block body_class %}body-payments{% endblock %}
 
-{% block page_title %}{% trans "Payments" %}{% endblock %}
+{% block breadcrumbs %}
+    <ul class="breadcrumbs">
+        <li>{% trans "Payments" %}</li>
+    </ul>
+{% endblock %}
+
+{% block menu_sales_class %} active{% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col l12">
-            {% include "dashboard/includes/_status_filters.html" %}
+    {% include "dashboard/includes/_status_filters.html" %}
 
-            <table class="table">
+    {% if payments %}
+        <div class="card">
+            <table class="bordered hoverable responsive data-table">
                 <thead>
                     <tr>
-                        <th class="col-sm-3">{% trans "Date" %}</th>
-                        <th class="col-sm-4">{% trans "Payment" %}</th>
-                        <th class="col-sm-2 text-right">{% trans "Amount" %}</th>
-                        <th class="col-sm-3">{% trans "Status" %}</th>
+                        <th></th>
+                        <th>{% trans "Date" %}</th>
+                        <th>{% trans "Payment" %}</th>
+                        <th class="right-align">{% trans "Amount" %}</th>
+                        <th class="wide">{% trans "Status" %}</th>
                     </tr>
                 </thead>
                 <tbody>
                 {% for payment in payments %}
                     <tr>
+                        <td><a href="{% url "dashboard:payment-details" pk=payment.pk %}">#{{ payment.id }}</a></td>
                         <td>{{ payment.created }}</td>
                         <td>
-                            <a href="{% url "dashboard:payment-details" pk=payment.pk %}">#{{ payment.id }}</a><br>
-                            {% trans "Gateway" %}: {{ payment.variant }} &middot; {% trans "Order number" %}: <a href="{% url 'dashboard:order-details' pk=payment.order.pk %}">{{ payment.order }}</a>
+                            {% trans "Gateway" %}: {{ payment.variant }} &middot; {% trans "Order number" %}:
+                            <a href="{% url 'dashboard:order-details' order_pk=payment.order.pk %}">{{ payment.order }}</a>
                         </td>
-                        <td class="text-right">{% gross payment.get_total_price %}</td>
+                        <td class="right-align">{% gross payment.get_total_price %}</td>
                         <td>{% render_status payment.status payment.get_status_display %}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
-            {% include "dashboard/includes/_pagination.html" %}
         </div>
-    </div>
+
+        {% include "dashboard/includes/_pagination.html" %}
+    {% else %}
+        <p>{% trans "No payments found." %}</p>
+    {% endif %}
+
 {% endblock %}
