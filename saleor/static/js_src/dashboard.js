@@ -1,8 +1,9 @@
-$('.button-collapse').sideNav();
 $(document).ready(function() {
-  var $tabs = $('ul.tabs');
   initSelects();
+  $('.button-collapse').sideNav();
+  $('.modal-trigger').leanModal();
 
+  var $tabs = $('ul.tabs');
   if ($tabs.length) {
     $tabs.find('.tab').on('click', function (e) {
       window.history.pushState(null, null, e.target.hash);

@@ -48,6 +48,10 @@
         vertical-align: bottom;
       }
     }
+
+    [class^=mdi-] {
+      display: inline;
+    }
   }
 
   &--with-menu {
@@ -59,7 +63,7 @@
   }
 
   &--ellipsed {
-    li span {
+    &-item {
       @media (min-width: $large-screen) {
         display: inline-block;
       }

@@ -34,7 +34,7 @@
     </a>
     <ul id="category-delete" class="dropdown-content">
         <li>
-            <a class="modal-trigger" href="#modal-category-edit">
+            <a class="modal-trigger-custom" data-href="{% url 'dashboard:category-edit' root_pk=root.pk %}" href="#base-modal">
                 {% trans "Edit category" %}
             </a>
         </li>
@@ -54,7 +54,11 @@
         {% if path %}
             {% for node in path %}
                 {% if forloop.last %}
-                    <li title="{{ node.name }}"><span class="breadcrumbs--ellipsed-item">{{ node.name }}</span></li>
+                    <li title="{{ node.name }}">
+                        <span class="breadcrumbs--ellipsed-item">
+                            {{ node.name }}
+                        </span>
+                    </li>
                 {% else %}
                     <li>
                         <a title="{{ node.name }}" href="{% url 'dashboard:category-children-list' root_pk=node.pk %}">
@@ -108,7 +112,7 @@
 
     {% if root %}
         <div id="modal-category-delete" class="modal">
-            <form action="{% url "dashboard:category-delete" pk=root.pk %}" method="post">
+            <form action="{% url "dashboard:category-delete" pk=root.pk %}" method="post" class="form-async">
                 {% csrf_token %}
                 <div class="modal-content">
                     <h5>{% trans "Are you sure?" %}</h5>
@@ -120,29 +124,6 @@
 
                 <div class="modal-footer">
                     <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
-                    <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
-                </div>
-            </form>
-        </div>
-    {% endif %}
-
-    {% if form %}
-        <div id="modal-category-edit" class="modal">
-            <form method="post" id="form-category" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="modal-content">
-                    <h5>{% trans "Edit" %} {{ root }}</h5>
-
-                    <div class="row">
-                        {{ form.parent }}
-                        {{ form.name|materializecss:"s8 m10" }}
-                        {{ form.hidden|materializecss:"s4 m2" }}
-                        {{ form.description|materializecss }}
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="submit" class="modal-action btn-flat blue-text">{% trans "Update" %}</button>
                     <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
                 </div>
             </form>
