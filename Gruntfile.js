@@ -157,7 +157,8 @@ module.exports = function(grunt) {
             "saleor/static/components/Sortable/Sortable.js",
             "saleor/static/components/select2/dist/js/select2.js",
             "saleor/static/js_src/dashboard.js",
-            "saleor/static/components/dotdotdot/src/js/jquery.dotdotdot.js"
+            "saleor/static/components/dotdotdot/src/js/jquery.dotdotdot.js",
+            "saleor/static/components/jquery.equalheights/jquery.equalheights.js"
           ]
         }
       }

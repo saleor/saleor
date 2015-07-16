@@ -3,6 +3,10 @@ $(document).ready(function() {
   $('.button-collapse').sideNav();
   $('.modal-trigger').leanModal();
 
+  if (isTablet()) {
+    $('.equal-height').equalHeights();
+  }
+
   var $tabs = $('ul.tabs');
   if ($tabs.length) {
     $tabs.find('.tab').on('click', function (e) {
@@ -16,7 +20,7 @@ $(document).ready(function() {
   }
 
   var $breadcrumbs = $('.breadcrumbs--ellipsed');
-  if ($breadcrumbs && !$('.hide-on-large-only').is(':visible')) {
+  if ($breadcrumbs && isDesktop()) {
     var $breadcrumbsItems = $('.breadcrumbs--ellipsed-item');
     var breadcrumbsItemWidth = ($breadcrumbs.width() - $breadcrumbs.find('li:first').width()) / $breadcrumbsItems.length;
     $breadcrumbsItems.css('max-width', breadcrumbsItemWidth).dotdotdot({'height': 50});
@@ -60,6 +64,14 @@ $(document).ready(function() {
   }).on('click', '.modal-close', function() {
     $('.modal').closeModal();
   });
+
+  function isDesktop() {
+    return !$('.hide-on-large-only').is(':visible');
+  }
+
+  function isTablet() {
+    return !$('.hide-on-med-only').is(':visible');
+  }
 });
 Dropzone.options.productImageForm = {
   paramName: "image",

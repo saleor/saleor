@@ -65,43 +65,49 @@
             </div>
 
             {% with order.shipping_address as address %}
-                {% if address %}
-                    <div class="card grey lighten-4">
-                        <div class="card-content">
-                            <span class="card-title black-text">{% trans "Shipping address" %}</span>
+                <div class="row">
+                    {% if address %}
+                        <div class="col s12 m6 l12">
+                            <div class="card grey lighten-4">
+                                <div class="card-content">
+                                    <span class="card-title black-text">{% trans "Shipping address" %}</span>
 
-                            {% include 'dashboard/includes/_address.html' with address=address only %}
+                                    {% include 'dashboard/includes/_address.html' with address=address only %}
 
-                            <div>
-                                <i class="mdi-content-mail"></i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
+                                    <div>
+                                        <i class="mdi-content-mail"></i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
+                                    </div>
+                                </div>
+
+                                <div class="card-action">
+                                    <a href="#base-modal-fixed" class="modal-trigger-custom"
+                                       data-href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">Edit</a>
+                                </div>
                             </div>
                         </div>
+                    {% endif %}
 
-                        <div class="card-action">
-                            <a href="#base-modal-fixed" class="modal-trigger-custom"
-                               data-href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">Edit</a>
+                    <div class="col s12 {% if address %}m6{% else %}m12{% endif %} l12">
+                        <div class="card grey lighten-4">
+                            <div class="card-content">
+                                {% with order.billing_address as address %}
+                                    <span class="card-title black-text">{% trans "Billing address" %}</span>
+
+                                    {% include 'dashboard/includes/_address.html' with address=address only %}
+                                    <div>
+                                        <i class="mdi-content-mail"></i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
+                                    </div>
+                                {% endwith %}
+                            </div>
+
+                            <div class="card-action">
+                                <a href="#base-modal-fixed" class="modal-trigger-custom"
+                                   data-href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}">Edit</a>
+                            </div>
                         </div>
                     </div>
-                {% endif %}
+                </div>
             {% endwith %}
-
-            <div class="card grey lighten-4">
-                <div class="card-content">
-                    {% with order.billing_address as address %}
-                        <span class="card-title black-text">{% trans "Billing address" %}</span>
-
-                        {% include 'dashboard/includes/_address.html' with address=address only %}
-                        <div>
-                            <i class="mdi-content-mail"></i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
-                        </div>
-                    {% endwith %}
-                </div>
-
-                <div class="card-action">
-                    <a href="#base-modal-fixed" class="modal-trigger-custom"
-                       data-href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}">Edit</a>
-                </div>
-            </div>
         </div>
 
         <div class="col s12 l8 switch-two-columns">

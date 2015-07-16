@@ -41,5 +41,6 @@ def customer_details(request, pk):
     queryset = User.objects.prefetch_related(
         'orders', 'addresses').select_related('default_billing_address')
     customer = get_object_or_404(queryset, pk=pk)
-    ctx = {'customer': customer}
+    customer_orders = customer.orders.all()
+    ctx = {'customer': customer, 'customer_orders': customer_orders}
     return TemplateResponse(request, 'dashboard/customer/detail.html', ctx)
