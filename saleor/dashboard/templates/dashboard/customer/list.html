@@ -1,87 +1,88 @@
 {% extends "dashboard/base.html" %}
-
 {% load i18n %}
 {% load prices_i18n %}
 {% load materializecss %}
-
 
 {% block title %}{% trans "Customers" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-customers{% endblock %}
 
-{% block page_title %}{% trans "Customers" %}{% endblock %}
+{% block breadcrumbs %}
+    <ul class="breadcrumbs">
+        <li>{% trans "Customers" %}</li>
+    </ul>
+{% endblock %}
+
+{% block menu_sales_class %} active{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col l12">
-        <div class="panel panel-default">
-            <div class="panel-heading">{% trans "Search customers" %}</div>
-            <div class="panel-body">
-                <form method="get" class="row">
-                    {{ form.email|materializecss:"m4" }}
-                    {{ form.name|materializecss:"m4" }}
+    <form method="get">
+        <div class="row">
+            {{ form.email|materializecss:"s12 m4 l3" }}
+            {{ form.name|materializecss:"s8 m4 l3" }}
 
-                    <div class="col s12">
-                        <button type="submit" class="btn btn-default"><i class="mdi-action-search"></i> Search</button>
-                        {% if form.is_bound %}
-                            <a class="btn btn-default" href="{% url 'dashboard:customers' %}"><i class="mdi-content-clear"></i> {% trans "Clear" %}</a>
-                        {% endif %}
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <span class="panel-title">{{ title }}</span>
-            </div>
-            <div class="panel-body">
-                {% if customers %}
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th class="col-sm-2">{% trans "Email" %}</th>
-                                <th class="col-sm-4">{% trans "Name" %}</th>
-                                <th class="col-sm-2">{% trans "Location" %}</th>
-                                <th class="col-sm-2 text-right">{% trans "Number of orders" %}</th>
-                                <th class="col-sm-2">{% trans "Last order" %}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {% for customer in customers %}
-                            <tr>
-                                {% with customer.default_billing_address as default_address %}
-                                <td>
-                                    <a href="{% url "dashboard:customer-details" pk=customer.pk %}">{{ customer.email }}</a>
-                                </td>
-                                <td>
-                                    {{ default_address.first_name }} {{ default_address.last_name }}
-                                </td>
-                                <td>
-                                    {{ default_address.city }}, {{ default_address.get_country_display }}
-                                </td>
-                                {% endwith %}
-                                <td class="text-right">
-                                    {{ customer.num_orders }}
-                                </td>
-                                <td>
-                                    {% if customer.last_order %}
-                                        <a href="{% url 'dashboard:order-details' pk=customer.last_order %}">#{{ customer.last_order }}</a>
-                                    {% else %}
-                                        {% trans "N/A" %}
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                    {% include "dashboard/includes/_pagination.html" with page_obj=customers %}
-                {% else %}
-                    <span>No customers found</span>
+            <div class="col s4 m2 l3">
+                <button type="submit" class="btn btn--inline">{% trans "Search" %}</button>
+                {% if form.is_bound %}
+                    <a class="btn btn--inline" href="{% url 'dashboard:customers' %}">{% trans "Clear" %}</a>
                 {% endif %}
             </div>
         </div>
-    </div>
-</div>
-{% endblock %}
+    </form>
 
+    <div class="card">
+        <div class="data-table-header">
+            <h5 class="data-table-title">{{ title }}</h5>
+        </div>
+
+        <table class="bordered hoverable responsive data-table">
+            {% if customers %}
+                <thead>
+                    <tr>
+                        <th>{% trans "Email" %}</th>
+                        <th class="wide">{% trans "Name" %}</th>
+                        <th>{% trans "Location" %}</th>
+                        <th class="right-align">{% trans "Number of orders" %}</th>
+                        <th>{% trans "Last order" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for customer in customers %}
+                    <tr>
+                        {% with customer.default_billing_address as default_address %}
+                        <td>
+                            <a href="{% url "dashboard:customer-details" pk=customer.pk %}">{{ customer.email }}</a>
+                        </td>
+                        <td>
+                            {{ default_address.first_name }} {{ default_address.last_name }}
+                        </td>
+                        <td>
+                            {{ default_address.city }}, {{ default_address.get_country_display }}
+                        </td>
+                        {% endwith %}
+                        <td class="right-align">
+                            {{ customer.num_orders }}
+                        </td>
+                        <td>
+                            {% if customer.last_order %}
+                                <a href="{% url 'dashboard:order-details' order_pk=customer.last_order %}">#{{ customer.last_order }}</a>
+                            {% else %}
+                                {% trans "N/A" %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            {% else %}
+                <tbody>
+                    <tr>
+                        <td>
+                            <span>{% trans "No customers found." %}</span>
+                        </td>
+                    </tr>
+                </tbody>
+            {% endif %}
+        </table>
+    </div>
+    {% include "dashboard/includes/_pagination.html" with page_obj=customers %}
+{% endblock %}
