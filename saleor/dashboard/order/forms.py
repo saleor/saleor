@@ -14,7 +14,7 @@ class OrderNoteForm(forms.ModelForm):
         model = OrderNote
         fields = ['content']
         widgets = {'content': forms.Textarea({
-            'rows': 5, 'placeholder': _('Note')})}
+            'rows': 5, 'placeholder': _('Note'), 'class': 'materialize-textarea'})}
 
     def __init__(self, *args, **kwargs):
         super(OrderNoteForm, self).__init__(*args, **kwargs)

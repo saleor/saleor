@@ -33,6 +33,7 @@ def order_details(request, order_pk):
     order = get_object_or_404(Order.objects.prefetch_related(
         'notes', 'payments', 'history', 'groups'), pk=order_pk)
     notes = order.notes.all()
+    all_payments = order.payments.all()
     payment = order.payments.last()
     groups = list(order)
     captured = preauthorized = Price(0, currency=order.get_total().currency)
@@ -47,10 +48,10 @@ def order_details(request, order_pk):
     else:
         can_capture = can_release = can_refund = False
 
-    ctx = {'order': order, 'payment': payment, 'notes': notes, 'groups': groups,
-           'captured': captured, 'preauthorized': preauthorized,
-           'can_capture': can_capture, 'can_release': can_release,
-           'can_refund': can_refund}
+    ctx = {'order': order, 'all_payments': all_payments, 'payment': payment,
+           'notes': notes, 'groups': groups, 'captured': captured,
+           'preauthorized': preauthorized, 'can_capture': can_capture,
+           'can_release': can_release, 'can_refund': can_refund}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
 
 
@@ -67,7 +68,7 @@ def order_add_note(request, order_pk):
         return redirect('dashboard:order-details', order_pk=order_pk)
     elif form.errors:
         status = 400
-    ctx = {'object': order, 'form': form}
+    ctx = {'order': order, 'form': form}
     ctx.update(csrf(request))
     template = 'dashboard/order/modal_add_note.html'
     return TemplateResponse(request, template, ctx, status=status)
