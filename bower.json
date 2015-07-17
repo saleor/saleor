@@ -17,6 +17,7 @@
     "select2": "~4.0.0",
     "dropzone": "~4.0.1",
     "dotdotdot": "~1.7.3",
-    "jquery.equalheights": "~1.5.2"
+    "jquery.equalheights": "~1.5.2",
+    "modernizr": "~2.8.3"
   }
 }

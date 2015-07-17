@@ -1,7 +1,7 @@
 {% load staticfiles %}
 {% load i18n %}
 <!DOCTYPE html>
-<html>
+<html class="no-js">
 
 <head>
     <meta charset="utf-8">
@@ -11,6 +11,8 @@
 
     <link rel="stylesheet" type="text/css" href="{% static "css/dashboard.css" %}">
     <link rel="stylesheet" type="text/css" href="{% static "versatileimagefield/css/versatileimagefield.css" %}">
+
+    <script src="{% static "js/dashboard-head.js" %}"></script>
     {% block custom_css %}
     {% endblock %}
 </head>

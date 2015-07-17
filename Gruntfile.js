@@ -162,6 +162,9 @@ module.exports = function(grunt) {
             "saleor/static/js_src/dashboard.js",
             "saleor/static/components/dotdotdot/src/js/jquery.dotdotdot.js",
             "saleor/static/components/jquery.equalheights/jquery.equalheights.js"
+          ],
+          "saleor/static/js/dashboard-head.js": [
+            "saleor/static/components/modernizr/modernizr.js"
           ]
         }
       }
