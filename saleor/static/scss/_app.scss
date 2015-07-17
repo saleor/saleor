@@ -7,6 +7,8 @@ $transition-duration: .2s;
 
 @import "materialize/sass/materialize";
 @import "select2/src/scss/core";
+@import "vendor/basic";
+@import "vendor/dropzone";
 
 .header {
   @media (min-width: $large-screen-up) {

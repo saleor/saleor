@@ -18,16 +18,6 @@ module.exports = function(grunt) {
         }
       }
     },
-    concat: {
-      dist: {
-        src: [
-          "saleor/static/components/dropzone/dist/basic.css",
-          "saleor/static/components/dropzone/dist/dropzone.css",
-          "saleor/static/css/dashboard.css"
-        ],
-        dest: "saleor/static/css/dashboard.css"
-      }
-    },
     copy: {
       production: {
         files: [
@@ -102,6 +92,19 @@ module.exports = function(grunt) {
             src: [
               "jquery.min.*"
             ]
+          },
+          {
+            expand: true,
+            dot: true,
+            cwd: "saleor/static/components/dropzone/dist",
+            dest: "saleor/static/scss/vendor/",
+            src: [
+              "*.css"
+            ],
+            rename: function(dest, src) {
+              src = "_" + src;
+              return dest + src.replace(/\.css$/, ".scss");
+            }
           }
         ]
       }
@@ -172,7 +175,7 @@ module.exports = function(grunt) {
       },
       sass: {
         files: ["saleor/static/scss/**/*.scss"],
-        tasks: ["sass", "concat", "postcss"]
+        tasks: ["sass", "postcss"]
       },
       uglify: {
         files: ["saleor/static/js_src/**/*.js"],
@@ -183,7 +186,7 @@ module.exports = function(grunt) {
 
   require("load-grunt-tasks")(grunt);
 
-  grunt.registerTask("default", ["copy", "less", "sass", "concat", "postcss", "uglify"]);
+  grunt.registerTask("default", ["copy", "less", "sass", "postcss", "uglify"]);
   grunt.registerTask("sync", ["browserSync", "watch"]);
-  grunt.registerTask("heroku", ["copy", "less", "sass", "concat", "postcss", "uglify"]);
+  grunt.registerTask("heroku", ["copy", "less", "sass", "postcss", "uglify"]);
 };

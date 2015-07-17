@@ -28,7 +28,6 @@
     "grunt-postcss": "~0.4.0",
     "autoprefixer-core": "~5.2.0",
     "csswring": "~3.0.5",
-    "grunt-contrib-concat": "~0.5.1",
     "load-grunt-tasks": "~3.2.0"
   }
 }
