@@ -18,11 +18,12 @@
 {% block content %}
     <form method="get">
         <div class="row">
-            {{ form.email|materializecss:"s12 m4 l3" }}
-            {{ form.name|materializecss:"s7 m4 l3" }}
+            {{ form.email|materializecss:"s12 m3 l3" }}
+            {{ form.name|materializecss:"s12 m3 l3" }}
+            {{ form.order_status|materializecss:"s7 m3 l2" }}
 
             <div class="col s5 m3 l3">
-                <button type="submit" class="btn btn--inline">{% trans "Search" %}</button>
+                <button type="submit" class="btn btn--inline">{% trans "Filter" %}</button>
                 {% if form.is_bound %}
                     <a class="btn btn--inline" href="{% url 'dashboard:customers' %}">{% trans "Clear" %}</a>
                 {% endif %}
@@ -30,11 +31,9 @@
         </div>
     </form>
 
-    <div class="card">
-        <div class="data-table-header">
-            <h5 class="data-table-title">{{ title }}</h5>
-        </div>
+    <h5 class="data-table-title">{{ title }}</h5><br/>
 
+    <div class="card">
         <table class="bordered hoverable responsive data-table">
             {% if customers %}
                 <thead>

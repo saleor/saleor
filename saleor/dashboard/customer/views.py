@@ -11,11 +11,6 @@ from ..views import staff_member_required
 from ...userprofile.models import User
 
 
-def _get_users_with_open_orders(queryset):
-    open_order = ['new', 'payment-pending', 'fully-paid']
-    return queryset.filter(orders__status__in=open_order)
-
-
 @staff_member_required
 def customer_list(request):
     customers = User.objects.prefetch_related('orders', 'addresses').annotate(
@@ -25,10 +20,10 @@ def customer_list(request):
     form = CustomerSearchForm(request.GET or None, queryset=customers)
     if form.is_valid():
         customers = form.search()
-        title = _('Search results (%s)') % len(customers)
     else:
-        customers = _get_users_with_open_orders(customers)
-        title = _('Customers with open orders (%s)') % len(customers)
+        customers = customers.filter(
+            orders__status__in=['new', 'payment-pending', 'fully-paid'])
+    title = _('Results (%s)') % len(customers)
 
     customers, paginator = paginate(customers, 30, request.GET.get('page'))
     ctx = {'customers': customers, 'form': form, 'title': title,

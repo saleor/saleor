@@ -208,7 +208,6 @@ def address_view(request, order_pk, address_type):
         form.save()
         order.create_history_entry(comment=success_msg, user=request.user)
         messages.success(request, success_msg)
-        return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400
     ctx = {'order': order, 'address_type': address_type, 'form': form}
