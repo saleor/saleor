@@ -42,6 +42,23 @@ $(document).ready(function() {
     e.preventDefault();
   });
 
+  var $messages = $('.message');
+  var timeout = 0;
+  var offset = 100;
+  var firstMessageOffset = 250;
+  setTimeout(function() {
+    $messages.each(function () {
+      var that = this;
+      setTimeout(function () {
+        $(that).removeClass('toast--hidden');
+      }, timeout + offset);
+      timeout += 3000;
+      setTimeout(function () {
+        $(that).addClass('toast--hidden');
+      }, timeout - offset);
+    });
+  }, firstMessageOffset);
+
   $(document).on('submit', '.form-async', function(e) {
     var that = this;
     $.ajax({

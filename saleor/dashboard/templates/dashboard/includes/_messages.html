@@ -1,23 +1,13 @@
 {% load i18n %}
 
-<div id="messages">
 {% if messages %}
     {% for message in messages %}
-        <div class="row">
-            <div class="col s12 center-align">
-                <div class="toast toast--static">
-                    <span>
-                        {% if 'safe' in message.tags %}
-                            {{ message|safe }}
-                        {% else %}
-                            {{ message }}
-                        {% endif %}
-                    </span>
-
-                    <a class="btn-flat teal-text">{% trans "Dismiss" %}</a>
-                </div>
-            </div>
+        <div class="toast toast--fixed toast--hidden message">
+            {% if 'safe' in message.tags %}
+                {{ message|safe }}
+            {% else %}
+                {{ message }}
+            {% endif %}
         </div>
     {% endfor %}
 {% endif %}
-</div>

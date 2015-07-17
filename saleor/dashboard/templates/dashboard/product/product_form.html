@@ -140,12 +140,10 @@
                     {% if variants %}
                         <thead>
                             <tr>
-                                {% if attributes %}
-                                    <th class="bulk-checkbox">
-                                        <input type="checkbox" id="select-all-variants" class="filled-in select-all switch-actions">
-                                        <label for="select-all-variants"></label>
-                                    </th>
-                                {% endif %}
+                                <th class="bulk-checkbox">
+                                    <input type="checkbox" id="select-all-variants" class="filled-in select-all switch-actions">
+                                    <label for="select-all-variants"></label>
+                                </th>
                                 <th>{% trans "SKU" %}</th>
                                 {% for attribute in attributes %}
                                     <th>{{ attribute.display|capfirst }}</th>
@@ -158,12 +156,10 @@
                         <tbody>
                             {% for variant in variants %}
                                 <tr>
-                                    {% if attributes %}
-                                        <td class="bulk-checkbox">
-                                            <input id="id_variants_{{ variant.id }}" name="items" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
-                                            <label for="id_variants_{{ variant.id }}"></label>
-                                        </td>
-                                    {% endif %}
+                                    <td class="bulk-checkbox">
+                                        <input id="id_variants_{{ variant.id }}" name="items" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
+                                        <label for="id_variants_{{ variant.id }}"></label>
+                                    </td>
                                     <td><a class="light-blue-text text-lighten-1" title="{% trans "Edit variant" %}"
                                                 href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}">
                                         {{ variant.sku }}
@@ -338,7 +334,7 @@
                     </div>
                 </div>
             {% else %}
-                <p class="deep-purple-text">{% trans "This product has no images yet." %}</p>
+                <p>{% trans "This product has no images yet." %}</p>
             {% endif %}
 
             <script type="application/template" id="template">

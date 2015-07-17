@@ -252,3 +252,5 @@ if AWS_STATIC_BUCKET_NAME:
 if AWS_MEDIA_BUCKET_NAME:
     DEFAULT_FILE_STORAGE = 'offsite_storage.storages.S3MediaStorage'
     THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
+
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'

@@ -9,29 +9,15 @@ from .forms import CategoryForm
 
 
 @staff_member_required
-def category_root_nodes_list(request):
+def category_list(request, root_pk=None):
+    root = None
+    path = None
     categories = Category.tree.root_nodes()
-    ctx = {'categories': categories, 'path': [], 'root': None, 'form': None}
-    return TemplateResponse(request, 'dashboard/category/list.html', ctx)
-
-
-@staff_member_required
-def category_children_nodes_list(request, root_pk):
-    root = get_object_or_404(Category, pk=root_pk)
-    category = get_object_or_404(Category,
-                                 pk=root.parent.pk) if root.parent else None
-    form = CategoryForm(request.POST or None, instance=root,
-                        initial={'parent': category})
-    if form.is_valid():
-        category = form.save()
-        messages.success(request, _('Updated category %s') % category)
-        if root:
-            return redirect('dashboard:category-children-list', root_pk=root.pk)
-        else:
-            return redirect('dashboard:category-root-list')
-    path = root.get_ancestors(include_self=True) if root else []
-    categories = root.get_children()
-    ctx = {'categories': categories, 'path': path, 'root': root, 'form': form}
+    if root_pk:
+        root = get_object_or_404(Category, pk=root_pk)
+        path = root.get_ancestors(include_self=True) if root else []
+        categories = root.get_children()
+    ctx = {'categories': categories, 'path': path, 'root': root}
     return TemplateResponse(request, 'dashboard/category/list.html', ctx)
 
 
@@ -43,9 +29,9 @@ def category_create(request, root_pk=None):
         category = form.save()
         messages.success(request, _('Added category %s') % category)
         if root_pk:
-            return redirect('dashboard:category-children-list', root_pk=root_pk)
+            return redirect('dashboard:category-list', root_pk=root_pk)
         else:
-            return redirect('dashboard:category-root-list')
+            return redirect('dashboard:category-list')
     ctx = {'category': category, 'form': form}
     return TemplateResponse(request, 'dashboard/category/detail.html', ctx)
 
@@ -76,10 +62,13 @@ def category_delete(request, pk):
     if request.method == 'POST':
         category.delete()
         messages.success(request, _('Deleted category %s') % category)
+        root_pk = None
         if category.parent:
-            return redirect('dashboard:category-children-list', root_pk=category.parent.pk)
+            root_pk = category.parent.pk
+        if root_pk:
+            return redirect('dashboard:category-list', root_pk=root_pk)
         else:
-            return redirect('dashboard:category-root-list')
+            return redirect('dashboard:category-list')
     ctx = {'category': category,
            'descendants': list(category.get_descendants()),
            'products_count': len(category.products.all())}

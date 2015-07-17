@@ -65,7 +65,7 @@ def order_add_note(request, order_pk):
         form.save()
         msg = _('Added note')
         order.create_history_entry(comment=msg, user=request.user)
-        return redirect('dashboard:order-details', order_pk=order_pk)
+        messages.success(request, msg)
     elif form.errors:
         status = 400
     ctx = {'order': order, 'form': form}
@@ -127,8 +127,8 @@ def orderline_change_quantity(request, order_pk, line_pk):
         delivery_group__order=order), pk=line_pk)
     form = ChangeQuantityForm(request.POST or None, instance=item)
     status = 200
+    old_quantity = item.quantity
     if form.is_valid():
-        old_quantity = item.quantity
         with transaction.atomic():
             form.save()
         msg = _(
@@ -137,7 +137,7 @@ def orderline_change_quantity(request, order_pk, line_pk):
                 'product': item.product, 'old_quantity': old_quantity,
                 'new_quantity': item.quantity}
         order.create_history_entry(comment=msg, user=request.user)
-        return redirect('dashboard:order-details', order_pk=order_pk)
+        messages.success(request, msg)
     elif form.errors:
         status = 400
     ctx = {'order': order, 'object': item, 'form': form}
@@ -165,7 +165,7 @@ def orderline_split(request, order_pk, line_pk):
                 'how_many': how_many, 'item': item, 'old_group': old_group,
                 'new_group': target_group}
         order.create_history_entry(comment=msg, user=request.user)
-        return redirect('dashboard:order-details', order_pk=order_pk)
+        messages.success(request, msg)
     elif form.errors:
         status = 400
     ctx = {'order': order, 'object': item, 'form': form}

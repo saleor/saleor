@@ -18,7 +18,6 @@ class OrderNoteForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(OrderNoteForm, self).__init__(*args, **kwargs)
-        self.fields['content'].label = ''
 
 
 class ManagePaymentForm(forms.Form):
