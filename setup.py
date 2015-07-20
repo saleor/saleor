@@ -42,23 +42,23 @@ setup(
         'Django>=1.8',
         'dj_database_url>=0.3.0',
         'django-emailit>=0.2.2',
+        'django-materializecss-form==0.0.64',
         'django-model-utils>=2.0.0,<2.1a0',
         'django-mptt>=0.7.1',
         'django-offsite-storage>=0.0.5',
         'django-payments>=0.6.1,<0.7a0',
         'django-prices>=0.4.0,<0.5a0',
+        'djangorestframework>=3.1,<3.2a0',
         'django-selectable==0.8.0',
         'django-versatileimagefield>=1.0.1,<1.1a0',
         'fake-factory>=0.3.2',
         'google-measurement-protocol>=0.1.2,<0.2a0',
+        'jsonfield>=1.0.3',
         'Markdown>=2.4',
         'prices>=0.5,<0.6a0',
         'requests>=1.2.0',
         'satchless>=1.1.2,<1.2a0',
-        'unidecode',
-        'django-materializecss-form==0.0.64',
-        'djangorestframework>3.1',
-        'jsonfield>=1.0.3'
+        'unidecode'
     ],
     extras_require={
         'PaaS': [
