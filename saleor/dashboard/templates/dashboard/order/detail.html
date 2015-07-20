@@ -209,11 +209,8 @@
                         {% if captured %}
                             <p>{% trans "Captured amount" %}: {% gross captured %}</p>
                         {% endif %}
-                        {% if refunded %}
-                            <p>{% trans "Refunded amount" %}: {% gross refunded %}</p>
-                        {% endif %}
                     {% else %}
-                        <small>{% trans "There are no payments assigned with this order." %}</small>
+                        <p>{% trans "There are no payments assigned with this order." %}</p>
                     {% endif %}
                 </div>
 
@@ -236,9 +233,7 @@
 
             <div class="card" id="order-notes">
                 <div class="card-content">
-                    <span class="card-title black-text">
-                        Order notes
-                    </span>
+                    <span class="card-title black-text">{% trans "Order notes" %}</span>
 
                     {% if notes %}
                         <ul class="list">
@@ -250,7 +245,7 @@
                         {% endfor %}
                         </ul>
                     {% else %}
-                        <small>{% trans "There are no notes associated with this order." %}</small>
+                        <p>{% trans "There are no notes associated with this order." %}</p>
                     {% endif %}
                 </div>
 
