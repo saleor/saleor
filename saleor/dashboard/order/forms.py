@@ -5,6 +5,7 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _, pgettext_lazy
 from django_prices.forms import PriceField
+from payments import PaymentError
 from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
@@ -40,7 +41,12 @@ class CapturePaymentForm(ManagePaymentForm):
 
     def capture(self):
         amount = self.cleaned_data['amount']
-        self.payment.capture(amount.gross)
+        try:
+            self.payment.capture(amount.gross)
+        except (PaymentError, ValueError) as e:
+            self.add_error(None, _('Payment gateway error: %s') % e.message)
+            return False
+        return True
 
 
 class RefundPaymentForm(ManagePaymentForm):
@@ -51,7 +57,12 @@ class RefundPaymentForm(ManagePaymentForm):
 
     def refund(self):
         amount = self.cleaned_data['amount']
-        self.payment.refund(amount.gross)
+        try:
+            self.payment.refund(amount.gross)
+        except (PaymentError, ValueError) as e:
+            self.add_error(None, _('Payment gateway error: %s') % e.message)
+            return False
+        return True
 
 
 class ReleasePaymentForm(forms.Form):
@@ -65,7 +76,12 @@ class ReleasePaymentForm(forms.Form):
                 _('Only preauthorized payments can be released'))
 
     def release(self):
-        self.payment.release()
+        try:
+            self.payment.release()
+        except (PaymentError, ValueError) as e:
+            self.add_error(None, _('Payment gateway error: %s') % e.message)
+            return False
+        return True
 
 
 class MoveItemsForm(forms.Form):
