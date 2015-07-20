@@ -227,7 +227,7 @@ def variants_bulk_delete(request, product_pk):
 
 @staff_member_required
 def attribute_list(request):
-    attributes = ProductAttribute.objects.all()
+    attributes = ProductAttribute.objects.prefetch_related('values')
     ctx = {'attributes': attributes}
     return TemplateResponse(request, 'dashboard/product/attributes/list.html',
                             ctx)
