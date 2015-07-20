@@ -1,9 +1,9 @@
 from __future__ import unicode_literals
 from decimal import Decimal
-from itertools import chain
 from uuid import uuid4
-from django.forms.models import model_to_dict
 
+from django.forms.models import model_to_dict
+from django.shortcuts import get_list_or_404
 import emailit.api
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -21,7 +21,8 @@ from prices import Price
 from satchless.item import ItemSet, ItemLine
 
 from ..core.utils import build_absolute_uri
-from ..product.models import Product
+from ..product.models import Product, ProductVariant
+from saleor.cart import CartLine
 from ..userprofile.models import Address, User
 from ..delivery import get_delivery
 
@@ -216,7 +217,16 @@ class DeliveryGroup(models.Model, ItemSet):
     def update_delivery_cost(self):
         if self.order.is_shipping_required():
             delivery = get_delivery(self.order.shipping_method)
-            self.shipping_price = delivery.get_delivery_total(self)
+            skus = [line.product_sku for line in self]
+            variants = get_list_or_404(
+                ProductVariant.objects.select_related('product'), sku__in=skus)
+            variants_map = {variant.sku: variant for variant in variants}
+            items = []
+            for line in self:
+                data = {'product': variants_map[line.product_sku],
+                        'quantity': line.get_quantity()}
+                items.append(CartLine(**data))
+            self.shipping_price = delivery.get_delivery_total(items)
             self.save()
 
     def get_total_quantity(self):
@@ -226,7 +236,6 @@ class DeliveryGroup(models.Model, ItemSet):
         return self.shipping_required
 
     def can_ship(self):
-        print self.is_shipping_required(), self.status
         return self.is_shipping_required() and self.status == 'new'
 
 

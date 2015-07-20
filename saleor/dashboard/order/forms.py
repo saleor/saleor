@@ -2,12 +2,14 @@ from __future__ import unicode_literals
 
 from django import forms
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _, pgettext_lazy
 from django_prices.forms import PriceField
 from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
 from ...order.models import DeliveryGroup, OrderedItem, OrderNote, Order
+from saleor.product.models import ProductVariant
 
 
 class OrderNoteForm(forms.ModelForm):
@@ -109,8 +111,9 @@ class ChangeQuantityForm(forms.ModelForm):
 
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
+        variant = get_object_or_404(ProductVariant, sku=self.instance.product_sku)
         try:
-            self.instance.product.check_quantity(quantity)
+            variant.check_quantity(quantity)
         except InsufficientStock as e:
             raise forms.ValidationError(
                 _('Only %(remaining)d remaining in stock.') % {
