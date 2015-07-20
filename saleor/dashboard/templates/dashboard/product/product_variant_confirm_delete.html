@@ -32,14 +32,14 @@
                 <div class="card">
                     <div class="card-content">
                         {% if is_only_variant %}
-                            <p class="red-text">{% trans 'This is the only variant. Deleting it will make the product unavailable for your customers.' %}</p>
+                            <p>{% trans 'This is the only variant. Deleting it will make the product unavailable for your customers.' %}</p>
                         {% endif %}
 
                         <h5>{{ variant }}{% if variant.name %} {{ variant.name }}{% endif %} </h5>
                     </div>
 
                     <div class="card-action">
-                        <button type="submit" class="card-link red-text">{% trans "Delete" %}</button>
+                        <button type="submit" class="card-link blue-text">{% trans "Delete" %}</button>
                     </div>
                 </li>
             </ul>

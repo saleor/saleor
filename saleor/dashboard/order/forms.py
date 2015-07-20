@@ -37,7 +37,7 @@ class CapturePaymentForm(ManagePaymentForm):
     def clean(self):
         if self.payment.status != 'preauth':
             raise forms.ValidationError(
-                _('Only preauthorized payments can be captured'))
+                _('Only pre-authorized payments can be captured'))
 
     def capture(self):
         amount = self.cleaned_data['amount']
@@ -73,7 +73,7 @@ class ReleasePaymentForm(forms.Form):
     def clean(self):
         if self.payment.status != 'preauth':
             raise forms.ValidationError(
-                _('Only preauthorized payments can be released'))
+                _('Only pre-authorized payments can be released'))
 
     def release(self):
         try:
