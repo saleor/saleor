@@ -1,0 +1,32 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete attribute" %} - {{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs breadcrumbs--with-menu">
+        <li><a href="{% url 'dashboard:product-attributes' %}">{% trans "Attributes" %}</a></li>
+        <li><i class="mdi-navigation-chevron-right"></i> {% trans "Delete attribute" %}</li>
+    </ul>
+{% endblock %}
+
+{% block content %}
+    <p>{% trans "Are you sure you want to delete the following attribute?" %}</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="row">
+            <ul class="collection">
+                <li class="collection-item">
+                    {{ attribute }}
+                </li>
+            </ul>
+        </div>
+
+        <div class="row">
+            <div class="col m6 l4 offset-m3 offset-l4 right-align">
+                <a href="{% url 'dashboard:product-attributes' %}" class="btn-flat"><i class="mdi-content-clear"></i> {% trans "Cancel" %}</a>
+                <button type="submit" class="btn materialize-red"><i class="mdi-action-delete"></i> {% trans "Delete" %}</button>
+            </div>
+        </div>
+    </form>
+{% endblock %}

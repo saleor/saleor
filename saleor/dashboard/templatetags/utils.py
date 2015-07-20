@@ -1,4 +1,7 @@
 import json
+
+from versatileimagefield.widgets import VersatileImagePPOIClickWidget
+
 try:
     from urllib.parse import urlencode
 except ImportError:
@@ -23,3 +26,8 @@ def construct_get_query(context, **params):
     all_params.update(request_get)
     all_params.update(params)
     return '?' + urlencode(all_params)
+
+
+@register.filter
+def is_versatile_image_ppoi_click_widget(field):
+    return isinstance(field.field.widget, VersatileImagePPOIClickWidget)

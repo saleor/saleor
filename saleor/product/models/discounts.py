@@ -7,8 +7,6 @@ from django.utils.encoding import python_2_unicode_compatible
 from django_prices.models import PriceField
 from prices import FixedDiscount
 
-from .base import Product
-
 
 class NotApplicable(ValueError):
     pass
@@ -17,10 +15,10 @@ class NotApplicable(ValueError):
 @python_2_unicode_compatible
 class FixedProductDiscount(models.Model):
     name = models.CharField(max_length=255)
-    products = models.ManyToManyField(Product, blank=True)
+    products = models.ManyToManyField('Product', blank=True)
     discount = PriceField(pgettext_lazy('Discount field', 'discount value'),
                           currency=settings.DEFAULT_CURRENCY,
-                          max_digits=12, decimal_places=4)
+                          max_digits=12, decimal_places=2)
 
     class Meta:
         app_label = 'product'

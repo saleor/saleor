@@ -5,13 +5,28 @@
 
 {% block title %}{% trans "Orders" %} - {{ block.super }}{% endblock %}
 
+{% block body_class %}body-orders{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs">
+        <li>{% trans "Orders" %}</li>
+    </ul>
+{% endblock %}
+
+{% block menu_sales_class %} active{% endblock %}
+
 {% block content %}
-    <div class="row">
-        <div class="col-lg-12">
-            <h1 class="page-header">{% trans "Orders" %}</h1>
-            {% include "dashboard/includes/_status_filters.html" %}
+    {% if object_list %}
+        {% include "dashboard/includes/_status_filters.html" %}
+
+        <div class="card">
             {% include "dashboard/includes/_orders_table.html" with orders=object_list %}
+        </div>
+
+        <div class="row">
             {% include "dashboard/includes/_pagination.html" %}
         </div>
-    </div>
+    {% else %}
+        <p>{% trans "No orders." %}</p>
+    {% endif %}
 {% endblock %}

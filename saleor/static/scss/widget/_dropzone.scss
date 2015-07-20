@@ -1,0 +1,60 @@
+@mixin dropzone {
+  border: none;
+  height: 79vh;
+  padding: 0;
+  position: relative;
+
+  &.dz-clickable * {
+    cursor: initial;
+  }
+
+  & li.dropzone-ghost {
+    display: none;
+    opacity: .75;
+  }
+
+  &.dz-drag-hover {
+    border: none;
+    &:after {
+      bottom: 0;
+      content: "";
+      left: 0;
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
+
+    li.dropzone-ghost {
+      display: block;
+    }
+  }
+
+  .dz-preview {
+    .dz-progress {
+      border: 0;
+      border-radius: 0;
+      bottom: 163px;
+      height: 4px;
+      top: auto;
+      left: 0;
+      width: 100%;
+      margin: 0;
+      opacity: 1 !important;
+      transition: height $transition-duration !important;
+
+      .dz-upload {
+        background: map-get($blue, base);
+      }
+    }
+
+    &.dz-complete {
+      .dz-progress {
+        height: 0;
+      }
+    }
+  }
+}
+
+.dropzone {
+  @include dropzone;
+}

@@ -3,7 +3,6 @@ from django.conf.urls import patterns, url
 from . import views
 
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^$', views.home, name='home')
-)
+]

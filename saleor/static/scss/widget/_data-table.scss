@@ -1,0 +1,124 @@
+@mixin data-table {
+  &-container {
+    @media #{$medium-and-down} {
+      overflow: scroll;
+    }
+
+    .card &:first-child, .card-title + & {
+      th {
+        border-top: none;
+      }
+    }
+  }
+
+  &-header {
+    padding: 21px 24px;
+
+    &--no-data {
+      padding: 20px 20px 0;
+    }
+  }
+
+  &-title {
+    font-weight: 300;
+    margin: 0;
+
+    .data-table-status {
+      float: right;
+      margin-top: -4px;
+    }
+  }
+
+  $statuses-map: (
+    danger: map-get($red, base),
+    success: map-get($green, lighten-2),
+    default: map-get($grey, base)
+  );
+
+  &-status {
+    @each $status in (danger, success, default) {
+      &--#{$status} {
+        color: white;
+        background: #{map_get($statuses-map, $status)};
+        border-radius: 2px;
+        padding: .25em 5px;
+        font-size: .8em;
+      }
+    }
+  }
+
+  input[type=checkbox].filled-in + label {
+    margin-top: 5px;
+    padding: 0;
+
+    &:after {
+      display: inline-block;
+      position: static;
+    }
+  }
+
+  th, td {
+    height: 48px;
+    overflow: hidden;
+    padding: 0 28px;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+    white-space: nowrap;
+
+    &:first-child {
+      padding-left: 24px;
+    }
+
+    &:last-child {
+      padding-right: 24px;
+    }
+
+    &.no-padded {
+      padding: 0;
+    }
+  }
+
+  th {
+    border-top: 1px solid $table-border-color;
+    color: map_get($grey, darken-1);
+    font-weight: normal;
+    font-size: 85%;
+    height: 56px;
+  }
+
+  tfoot {
+    font-weight: bold;
+  }
+
+  .bulk-checkbox {
+    padding: 0 24px;
+    width: 1px;
+
+    + th, + td {
+      padding-left: 0;
+    }
+  }
+
+  .wide {
+    width: 99%;
+  }
+
+  &.hoverable {
+    box-shadow: none;
+  }
+
+  .dropdown-button {
+    padding: 15px 28px;
+  }
+
+  .dropdown-content {
+    left: auto !important;
+    right: 0;
+    top: 0;
+    white-space: nowrap;
+  }
+}
+
+.data-table {
+  @include data-table;
+}

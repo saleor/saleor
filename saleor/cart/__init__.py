@@ -65,7 +65,7 @@ class Cart(cart.Cart):
                 # TODO: Provide error message
                 continue
             else:
-                variant = product.variants.get(pk=item.data['variant_id'])
+                variant = product.variants.get_subclass(pk=item.data['variant_id'])
             quantity = item.quantity
             cart.add(variant, quantity=quantity, check_quantity=False,
                      skip_session_cart=True)
@@ -86,8 +86,8 @@ class Cart(cart.Cart):
         super(Cart, self).add(product, quantity, data, replace, check_quantity)
         data = self.get_data_for_product(product)
         if not skip_session_cart:
-            self.session_cart.add(smart_text(product), quantity, data,
-                                  replace=replace)
+            display = '%s - %s' % (smart_text(product.product), product.display_variant())
+            self.session_cart.add(display, quantity, data, replace=replace)
 
     def clear(self):
         super(Cart, self).clear()

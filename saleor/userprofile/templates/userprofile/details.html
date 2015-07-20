@@ -28,37 +28,37 @@
             </tr>
         </thead>
         <tbody>
-            {% for entry in address_book %}
+            {% for address in addresses %}
             <tr>
                 <th class="col-sm-2">
-                    {{ entry }}
+                    {{ address }}
                 </th>
                 <td class="col-sm-4">
-                    {{ entry.address }}
+                    {{ address }}
                 </td>
                 <td class="col-sm-2">
-                    {% if user.default_billing_address == entry %}
+                    {% if user.default_billing_address == address %}
                     <span class="label label-default">{% trans "Default" %}</span>
                     {% else %}
-                    <form method="post" action="{% url "profile:address-make-default" pk=entry.pk purpose="billing" %}" class="form-inline form-horizontal">
+                    <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="billing" %}" class="form-inline form-horizontal">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-default btn-sm">{% trans "Make default" %}</button>
                     </form>
                     {% endif %}
                 </td>
                 <td class="col-sm-2">
-                    {% if user.default_shipping_address == entry %}
+                    {% if user.default_shipping_address == address %}
                     <span class="label label-default">{% trans "Default" %}</span>
                     {% else %}
-                    <form method="post" action="{% url "profile:address-make-default" pk=entry.pk purpose="shipping" %}" class="form-inline form-horizontal">
+                    <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="shipping" %}" class="form-inline form-horizontal">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-default btn-sm">{% trans "Make default" %}</button>
                     </form>
                     {% endif %}
                 </td>
                 <td class="col-sm-2">
-                    <a href="{% url 'profile:address-edit' pk=entry.pk slug=entry.get_slug %}" class="btn btn-default btn-sm"><i class="glyphicon glyphicon-edit"></i> {% trans "Edit" %}</a>
-                    <a href="{% url 'profile:address-delete' pk=entry.pk slug=entry.get_slug %}" class="btn btn-danger btn-sm"><i class="glyphicon glyphicon-remove"></i> {% trans "Delete" %}</a>
+                    <a href="{% url 'profile:address-edit' pk=address.pk %}" class="btn btn-default btn-sm"><i class="glyphicon glyphicon-edit"></i> {% trans "Edit" %}</a>
+                    <a href="{% url 'profile:address-delete' pk=address.pk %}" class="btn btn-danger btn-sm"><i class="glyphicon glyphicon-remove"></i> {% trans "Delete" %}</a>
                 </td>
             </tr>
             {% endfor %}

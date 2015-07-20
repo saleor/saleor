@@ -11,19 +11,10 @@ from .models import Product, Category
 from saleor.cart import Cart
 
 
-def get_related_products(product):
-    if not product.collection:
-        return []
-    related_products = Product.objects.filter(
-        collection=product.collection).exclude(id=product.id)
-    related_products = related_products.prefetch_related('images')
-    return related_products
-
-
 def product_details(request, slug, product_id):
-    products = Product.objects.select_subclasses()
-    products = products.select_related('category')
-    products = products.prefetch_related('images')
+    products = Product.objects.get_available_products().select_subclasses()
+    products = products.prefetch_related('categories', 'images',
+                                         'variants__stock')
     product = get_object_or_404(products, id=product_id)
     if product.get_slug() != slug:
         return HttpResponsePermanentRedirect(product.get_absolute_url())
@@ -41,16 +32,18 @@ def product_details(request, slug, product_id):
     template_name = 'product/details_%s.html' % (
         type(product).__name__.lower(),)
     templates = [template_name, 'product/details.html']
-    related_products = get_related_products(product)
     return TemplateResponse(
         request, templates,
-        {'product': product, 'form': form,
-         'related_products': related_products})
+        {'product': product, 'form': form})
 
 
-def category_index(request, slug):
-    category = get_object_or_404(Category, slug=slug)
-    products = category.products.all().select_subclasses()
+def category_index(request, path, category_id):
+    category = get_object_or_404(Category, id=category_id)
+    actual_path = category.get_full_path()
+    if actual_path != path:
+        return redirect('product:category', permanent=True, path=actual_path,
+                        category_id=category_id)
+    products = category.products.get_available_products().select_subclasses()
     products = products.prefetch_related('images')
     return TemplateResponse(
         request, 'category/index.html',

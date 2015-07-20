@@ -17,8 +17,7 @@ from .dashboard.urls import urlpatterns as dashboard_urls
 
 admin.autodiscover()
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^$', include(core_urls), name='home'),
     url(r'^account/', include(registration_urls, namespace='registration')),
     url(r'^admin/', include(admin.site.urls)),
@@ -32,11 +31,10 @@ urlpatterns = patterns(
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
     url(r'', include('payments.urls'))
-)
+]
 
 if settings.DEBUG:
     # static files (images, css, javascript, etc.)
-    urlpatterns += patterns(
-        '',
+    urlpatterns += [
         url(r'^media/(?P<path>.*)$', 'django.views.static.serve',
-            {'document_root': settings.MEDIA_ROOT}))
+            {'document_root': settings.MEDIA_ROOT})]

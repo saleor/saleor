@@ -1,265 +1,319 @@
 {% extends "dashboard/base.html" %}
 {% load prices_i18n %}
 {% load i18n %}
-{% load bootstrap %}
+{% load materializecss %}
 {% load status %}
 
 {% block title %}{{ order }} - {% trans "Orders" %} - {{ block.super }}{% endblock %}
 
+{% block body_class %}body-orders{% endblock %}
+
+{% block header_menu %}
+    {% url "dashboard:orders" as url %}
+    {% include "dashboard/includes/_back-link.html" with url=url %}
+{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs">
+        <li><a href="{% url "dashboard:orders" %}">{% trans "Orders" %}</a></li>
+        <li>{{ order }}</li>
+    </ul>
+{% endblock %}
+
+{% block menu_sales_class %} active{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-lg-12">
-        <h1 class="page-header">Order {{ order }}</h1>
+    <div class="row">
+        <div class="col s12">
+            <ul class="tabs" role="tablist">
+                <li role="presentation" class="tab">
+                    <a href="#order-details" role="tab" class="active">{% trans "Details" %}</a>
+                </li>
+
+                <li role="presentation" class="tab">
+                    <a href="#payment-history" role="tab">{% trans "Payments" %}</a>
+                </li>
+
+                <li role="presentation" class="tab">
+                    <a href="#order-history" role="tab">{% trans "History" %}</a>
+                </li>
+            </ul>
+        </div>
     </div>
-</div>
-<ul class="nav nav-tabs" role="tablist">
-    <li role="presentation" class="active"><a href="#order-details" role="tab" data-toggle="tab">{% trans "Contents" %}</a></li>
-    <li role="presentation"><a href="#payment-history" role="tab" data-toggle="tab">{% trans "Payments" %}</a></li>
-    <li role="presentation"><a href="#order-history" role="tab" data-toggle="tab">{% trans "History" %}</a></li>
-</ul>
-<div class="tab-content">
-    <div role="tabpanel" class="tab-pane active" id="order-details">
-        <br>{# workaround to avoid the first panel sticking to the tabs #}
-        <div class="row">
-            <div class="col-lg-8">
-                {% for group in groups %}
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <span class="panel-title">{% blocktrans with shipment=group.id %}Shipment #{{ shipment }}{% endblocktrans %} <span class="pull-right">{% render_status group.status group.get_status_display %}</span></span>
+
+    <div class="row tab-content" id="order-details">
+        <div class="col s12 l4 switch-two-columns">
+            <div class="card grey lighten-4">
+                <div class="card-content">
+                    <span class="card-title black-text">Order summary</span>
+
+                    <ul>
+                        <li class="text-lg">{% trans "Order total" %}: <strong>{% gross order.get_total %}</strong></li>
+                        <li>
+                            {% trans "Customer:" %}
+                            {% if order.user %}
+                                <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a>
+                            {% else %}
+                                {% trans "Account" %}: {% trans "Guest" %}
+                            {% endif %}
+                        </li>
+                        <li>{% trans "Order date:" %}  {{ order.created }}</li>
+                        <li>{% trans "Order status:" %}  {% render_status order.status order.get_status_display %}</li>
+                        <li>{% trans "Payment status:" %}  {% if payment %}{% render_status payment.status payment.get_status_display %}{% else %}{% trans "N/A" %}{% endif %}</li>
+                    </ul>
+                </div>
+            </div>
+
+            {% with order.shipping_address as address %}
+                <div class="row">
+                    {% if address %}
+                        <div class="col s12 m6 l12">
+                            <div class="card grey lighten-4">
+                                <div class="card-content">
+                                    <span class="card-title black-text">{% trans "Shipping address" %}</span>
+
+                                    {% include 'dashboard/includes/_address.html' with address=address only %}
+
+                                    <div>
+                                        <i class="mdi-content-mail"></i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
+                                    </div>
+                                </div>
+
+                                <div class="card-action">
+                                    <a href="#base-modal-fixed" class="modal-trigger-custom"
+                                       data-href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">Edit</a>
+                                </div>
+                            </div>
                         </div>
-                        <table class="table">
+                    {% endif %}
+
+                    <div class="col s12 {% if address %}m6{% else %}m12{% endif %} l12">
+                        <div class="card grey lighten-4">
+                            <div class="card-content">
+                                {% with order.billing_address as address %}
+                                    <span class="card-title black-text">{% trans "Billing address" %}</span>
+
+                                    {% include 'dashboard/includes/_address.html' with address=address only %}
+                                    <div>
+                                        <i class="mdi-content-mail"></i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
+                                    </div>
+                                {% endwith %}
+                            </div>
+
+                            <div class="card-action">
+                                <a href="#base-modal-fixed" class="modal-trigger-custom"
+                                   data-href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}">Edit</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endwith %}
+        </div>
+
+        <div class="col s12 l8 switch-two-columns">
+            {% for group in groups %}
+                <div class="card">
+                    <div class="data-table-header">
+                        <h5 class="data-table-title">
+                            {% blocktrans with shipment=group.id %}Shipment #{{ shipment }}{% endblocktrans %}
+                            {% render_status group.status group.get_status_display %}
+                        </h5>
+                    </div>
+
+                    <div class="data-table-container">
+                        <table class="bordered hoverable responsive data-table">
                             <thead>
                                 <tr>
-                                    <th class="col-sm-5">{% trans "Item" %}</th>
-                                    <th class="col-sm-2 text-right">{% trans "Price" %}</th>
-                                    <th class="col-sm-2 text-right">{% trans "Quantity" %}</th>
-                                    <th class="col-sm-2 text-right">{% trans "Total" %}</th>
-                                    <th class="col-sm-1"></th>
+                                    <th class="wide">{% trans "Item" %}</th>
+                                    <th>{% trans "SKU" %}</th>
+                                    <th class="right-align">{% trans "Price" %}</th>
+                                    <th class="right-align">{% trans "Quantity" %}</th>
+                                    <th class="right-align">{% trans "Total" %}</th>
+                                    <th class="no-padded"></th>
                                 </tr>
                             </thead>
+
                             <tfoot>
                                 {% if group.shipping_price.gross or group.is_shipping_required %}
                                     <tr>
-                                        <td colspan="3">
+                                        <td colspan="4">
                                             {% trans "Shipping" %} ({{ order.shipping_method }})
                                         </td>
-                                        <td class="text-right">
+                                        <td class="right-align">
                                             {% gross group.shipping_price %}
                                         </td>
-                                        <td class="text-right">
-                                            {% if group.is_shipping_required %}
-                                                <a class="btn btn-default btn-sm" data-target="#base-modal" href="{% url 'dashboard:ship-delivery-group' pk=group.pk %}" data-toggle="modal" {% if not group.can_ship %}disabled{% endif %}><i class="glyphicon glyphicon-plane"></i> {% trans "Ship" %}</a>
-                                            {% endif %}
-                                        </td>
+                                        <td class="no-padded"></td>
                                     </tr>
                                 {% endif %}
                                 <tr>
-                                    <th colspan="3">{% trans "Total" %}</th>
-                                    <td class="text-right">
+                                    <td colspan="4">{% trans "Total" %}</td>
+                                    <td class="right-align">
                                         <strong>{% gross group.get_total %}</strong>
                                     </td>
-                                    <td></td>
+                                    <td class="no-padded"></td>
                                 </tr>
                             </tfoot>
+
                             <tbody>
                                 {% for item in group.items.all %}
                                     <tr>
                                         <td>
-                                            {% if item.product %}<a href="{% url "dashboard:product-update" pk=item.product.id %}">{{ item.product_name }}</a>{% else %}{{ item.product_name }}{% endif %}<br>
-                                            <strong>SKU:</strong> {{ item.product_sku }}
+                                            {{ item.product_name }}<br>
                                         </td>
-                                        <td class="text-right">{% gross item.get_price_per_item %}</td>
-                                        <td class="text-right">{{ item.quantity }}</td>
-                                        <td class="text-right">{% gross item.get_total %}</td>
-                                        <td class="text-right">
-                                            <a class="btn btn-primary btn-sm" data-target="#base-modal" href="{% url 'dashboard:order-line-edit' pk=item.pk %}" data-toggle="modal" {% if group.status != 'new' %}disabled{% endif %} title="{% trans "Edit" %}"><i class="glyphicon glyphicon-pencil"></i></a>
+                                        <td>{{ item.product_sku }}</td>
+                                        <td class="right-align">{% gross item.get_price_per_item %}</td>
+                                        <td class="right-align">{{ item.quantity }}</td>
+                                        <td class="right-align">{% gross item.get_total %}</td>
+                                        <td class="right-align no-padded">
+                                            <a class="dropdown-button" href="#" data-activates="line-actions-{{ item.pk }}" data-constrainwidth="false">
+                                                <i class="mdi-navigation-more-vert"></i>
+                                            </a>
+
+                                            <ul id="line-actions-{{ item.pk }}" class="dropdown-content">
+                                                <li>
+                                                    <a href="#base-modal" data-href="{% url 'dashboard:orderline-change-quantity' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom"
+                                                        {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Change quantity" %}">
+                                                        {% trans "Change quantity" %}
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#base-modal" data-href="{% url 'dashboard:orderline-split' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom"
+                                                        {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Split line" %}">
+                                                        {% trans "Split order line" %}
+                                                    </a>
+                                                </li>
+                                            </ul>
                                         </td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
-                {% endfor %}
 
-                <div class="alert alert-success">
-                    <p>{% trans "Order total" %}: <strong>{% gross order.get_total %}</strong></p>
-                </div>
-
-                <div class="panel panel-default">
-                    <div class="panel-heading"><span class="panel-title">{% trans "Manage payment" %}</span></div>
-                    <div class="panel-body">
-                        {% if payment %}
-                            <p>{% trans "Preauthorized amount:" %} {% if preauthorized %}{% gross preauthorized %}{% else %}{% trans "N/A" %}{% endif %}</p>
-                            {% if captured %}
-                                <p>{% trans "Captured amount" %}: {% gross captured %}</p>
-                            {% endif %}
-                            {% if refunded %}
-                                <p>{% trans "Refunded amount" %}: {% gross refunded %}</p>
-                            {% endif %}
-                            {% if can_capture %}
-                            <a class="btn btn-success" data-target="#base-modal" href="{% url 'dashboard:manage-payment' pk=payment.pk action='capture' %}" data-toggle="modal">{% trans "Capture" %}</a>
-                            {% elif can_refund %}
-                            <a class="btn btn-danger" data-target="#base-modal" href="{% url 'dashboard:manage-payment' pk=payment.pk action='refund' %}" data-toggle="modal">{% trans "Refund" %}</a>
-                            {% endif %}
-                            {% if can_release %}
-                            <a class="btn btn-danger" data-target="#base-modal" href="{% url 'dashboard:manage-payment' pk=payment.pk action='release' %}" data-toggle="modal">{% trans "Release" %}</a>
-                            {% endif %}
-                        {% else %}
-                            <small>{% trans "There are no payments assigned with this order." %}</small>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="panel panel-default" id="order-notes">
-                    <div class="panel-heading">
-                        <span class="panel-title">Order notes</span>
-                        <span class="pull-right"><a data-toggle="collapse" href="#add-order-note"><i class="glyphicon glyphicon-plus"></i> Add note</a></span>
-                    </div>
-                    <div class="panel-body">
-                        {% if notes %}
-                            <ul class="list-unstyled">
-                            {% for note in notes %}
-                                <li>
-                                    <small>{{ note.user }} - {{ note.date }}</small>
-                                    <p>{{ note.content }}</p>
-                                </li>
-                            {% endfor %}
-                            </ul>
-                        {% else %}
-                            <small>{% trans "There are no notes associated with this order." %}</small>
-                        {% endif %}
-                        <div id="add-order-note" class="collapse">
-                            <form class="form-horizontal" role="form" method="post">
-                                {% csrf_token %}
-                                {{ note_form|as_vertical_form }}
-                                <div class="form-group">
-                                    <button name='note_form' type="submit" class="btn btn-success"><i class="glyphicon glyphicon-plus"></i> {% trans "Save note" %}</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <span class="panel-title">Order summary</span>
-                    </div>
-                    <div class="panel-body">
-                        <p>Order date: {{ order.created }}</p>
-                        <p>Order status: {% render_status order.status order.get_status_display %}</p>
-                        <p>Payment status: {% if payment %}{% render_status payment.status payment.get_status_display %}{% else %}{% trans "N/A" %}{% endif %}</p>
-                    </div>
-                </div>
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <span class="panel-title">{% trans "Customer" %}</span>
-                    </div>
-                    <div class="panel-body">
-                        <div class="address">
-                            {% if order.user %}
-                                <div>{% trans "Account" %}: <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a></div>
-                            {% else %}
-                                <div>{% trans "Account" %}: {% trans "Guest" %}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                <div class="panel panel-default">
-                    {% with order.billing_address as address %}
-                    <div class="panel-heading">
-                        <span class="panel-title">{% trans "Billing address" %}</span>
-                        <span class="pull-right"><a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}"><i class="glyphicon glyphicon-pencil"></i> Edit</a></span>
-                    </div>
-                    <div class="panel-body">
-                        {% include 'dashboard/includes/_address.html' with address=address only %}
-                        <div>
-                            <i class="glyphicon glyphicon-envelope"></i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
-                        </div>
-                    </div>
-                    {% endwith %}
-                </div>
-                {% with order.shipping_address as address %}
-                    {% if address %}
-                        <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <span class="panel-title">{% trans "Shipping address" %}</span>
-                                <span class="pull-right"><a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}"><i class="glyphicon glyphicon-pencil"></i> Edit</a></span>
-                            </div>
-                            <div class="panel-body">
-                                {% include 'dashboard/includes/_address.html' with address=address only %}
-                                <div>
-                                    <i class="glyphicon glyphicon-envelope"></i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
-                                </div>
-                            </div>
+                    {% if group.can_ship %}
+                        <div class="card-action">
+                            <a href="#base-modal" data-href="{% url 'dashboard:ship-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="modal-trigger-custom">
+                                {% trans "Ship" %}
+                            </a>
                         </div>
                     {% endif %}
-                {% endwith %}
+                </div>
+            {% endfor %}
+
+            <div class="card">
+                <div class="card-content">
+                    <span class="card-title black-text">{% trans "Manage payment" %}</span>
+
+                    {% if payment %}
+                        <p>{% trans "Preauthorized amount:" %} {% if preauthorized %}{% gross preauthorized %}{% else %}{% trans "N/A" %}{% endif %}</p>
+                        {% if captured %}
+                            <p>{% trans "Captured amount" %}: {% gross captured %}</p>
+                        {% endif %}
+                    {% else %}
+                        <p>{% trans "There are no payments assigned with this order." %}</p>
+                    {% endif %}
+                </div>
+
+                {% if can_capture or can_refund or can_release %}
+                    <div class="card-action">
+                        {% if can_capture %}
+                            <a href="#base-modal" data-href="{% url 'dashboard:capture-payment' order_pk=order.pk payment_pk=payment.pk %}"
+                               class="modal-trigger-custom">{% trans "Capture" %}</a>
+                        {% elif can_refund %}
+                            <a href="#base-modal" data-href="{% url 'dashboard:refund-payment' order_pk=order.pk payment_pk=payment.pk %}"
+                               class="modal-trigger-custom">{% trans "Refund" %}</a>
+                        {% endif %}
+                        {% if can_release %}
+                            <a href="#base-modal" data-href="{% url 'dashboard:release-payment' order_pk=order.pk payment_pk=payment.pk %}"
+                               class="modal-trigger-custom">{% trans "Release" %}</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="card" id="order-notes">
+                <div class="card-content">
+                    <span class="card-title black-text">{% trans "Order notes" %}</span>
+
+                    {% if notes %}
+                        <ul class="list">
+                        {% for note in notes %}
+                            <li class="list-item list-item--spaced">
+                                <small class="list-item-author">{{ note.user }} - {{ note.date }}</small>
+                                <p>{{ note.content }}</p>
+                            </li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>{% trans "There are no notes associated with this order." %}</p>
+                    {% endif %}
+                </div>
+
+                <div class="card-action">
+                    <a data-href="{% url "dashboard:order-add-note" order_pk=order.pk %}"
+                       class="modal-trigger-custom" href="#base-modal">{% trans "Add note" %}</a>
+                </div>
             </div>
         </div>
     </div>
-    <div role="tabpanel" class="tab-pane" id="payment-history">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th class="col-sm-2">{% trans "Number" %}</th>
-                    <th class="col-sm-3">{% trans "Date" %}</th>
-                    <th class="col-sm-7">{% trans "Payment status" %}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for payment in order.payments.all %}
-                <tr>
-                    <td><a href="{% url "dashboard:payment-details" pk=payment.pk %}">#{{ payment.id }}</a></td>
-                    <td>{{ payment.created }}</td>
-                    <td>{% render_status payment.status payment.get_status_display %}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    <div role="tabpanel" class="tab-pane" id="order-history">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th class="col-sm-3">Date</th>
-                    <th class="col-sm-3">Order status</th>
-                    <th class="col-sm-2">User</th>
-                    <th class="col-sm-4">Comment</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for event in order.history.all %}
-                <tr>
-                    <td>{{ event.date }}</td>
-                    <td>{% render_status event.status event.get_status_display %}</td>
-                    <td>
-                        {% if event.user %}
-                            {{ event.user }}
-                        {% endif %}
-                    </td>
-                    <td>{{ event.comment|default:"" }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-<div id="base-modal" class="modal">
-    <div class="modal-dialog">
-      <div class="modal-content"></div>
-    </div>
-</div>
 
-{% endblock %}
+    <div class="tab-content" id="payment-history">
+        {% if all_payments %}
+            <div class="card">
+                <div class="data-table-container">
+                    <table class="bordered hoverable responsive data-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>{% trans "Date" %}</th>
+                                <th class="wide">{% trans "Payment status" %}</th>
+                            </tr>
+                        </thead>
 
-{% block custom_js %}
-{{ block.super }}
-<script>
-    $('#base-modal').on('hide.bs.modal', function(e) {
-        $(this).removeData();
-    });
-    $(function() {
-        $(".address-details").popover();
-    });
-</script>
+                        <tbody>
+                            {% for payment in all_payments %}
+                            <tr>
+                                <td><a href="{% url "dashboard:payment-details" pk=payment.pk %}">#{{ payment.id }}</a></td>
+                                <td>{{ payment.created }}</td>
+                                <td>{% render_status payment.status payment.get_status_display %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <p>{% trans "No payments made for this order." %}</p>
+        {% endif %}
+    </div>
+
+    <div class="card tab-content" id="order-history">
+        <div class="data-table-container">
+            <table class="bordered hooverable responsive data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Order status</th>
+                        <th>User</th>
+                        <th class="wide">Comment</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for event in order.history.all %}
+                    <tr>
+                        <td>{{ event.date }}</td>
+                        <td>{% render_status event.status event.get_status_display %}</td>
+                        <td>
+                            {% if event.user %}
+                                {{ event.user }}
+                            {% endif %}
+                        </td>
+                        <td>{{ event.comment|default:"" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 {% endblock %}

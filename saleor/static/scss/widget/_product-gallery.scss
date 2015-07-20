@@ -1,0 +1,70 @@
+@mixin product-gallery {
+  & &-item {
+    margin: 0 $gutter-width/2 $gutter-width !important;
+    padding: 0;
+    display: block;
+    position: relative;
+    width: calc(50% - #{$gutter-width*3/2}) !important;
+
+    @media (min-width: $small-screen-up) {
+      width: calc(33.3% - #{$gutter-width}) !important;
+    }
+
+    @media (min-width: $medium-screen-up) {
+      width: calc(20% - #{$gutter-width}) !important;
+    }
+
+    &-reorder {
+      position: absolute;
+    }
+
+    &-image {
+      img {
+        cursor: move;
+      }
+
+      &--ghost {
+        background: map_get($grey, lighten-5);
+        padding: 64px 0 63px;
+        text-align: center;
+      }
+    }
+
+    &-title, &-desc {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      &--noclip {
+        padding: 104px 0 103px;
+        text-align: center;
+        white-space: normal;
+      }
+    }
+
+    &-text {
+      background: rgba(black, .5);
+      bottom: 0;
+      color: white;
+      height: 48px;
+      line-height: 48px;
+      left: 0;
+      overflow: hidden;
+      padding: 0 calc(#{$gutter-width/2} + 48px) 0 $gutter-width/2;
+      position: absolute;
+      right: 0;
+      text-align: left;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .sortable-ghost {
+    opacity: .4;
+  }
+}
+
+.product-gallery {
+  @include product-gallery;
+}

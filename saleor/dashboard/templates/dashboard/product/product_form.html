@@ -1,182 +1,410 @@
 {% extends "dashboard/base.html" %}
 {% load prices_i18n %}
 {% load i18n %}
-{% load bootstrap %}
+{% load materializecss %}
 {% load static %}
+{% load attributes %}
 
-{% block title %}{{ title }} - {% trans "Products" %} - {{ block.super }}{% endblock %}
+{% block title %}{% if product.pk %}{{ product }}{% else %}{% trans 'Add new product' %}{% endif %} - {% trans "Products" %} - {{ block.super }}{% endblock %}
+
+{% block body_class %}body-products{% endblock %}
+
+{% block header_menu %}
+    {% url "dashboard:product-list" as url %}
+    {% include "dashboard/includes/_back-link.html" with url=url %}
+{% endblock %}
+
+{% block header_extra %}
+    {% if product.pk %}
+    <a class="dropdown-button" href="#" data-activates="product-delete" data-constrainwidth="false">
+        <i class="mdi-navigation-more-vert"></i>
+    </a>
+    <ul id="product-delete" class="dropdown-content">
+        <li>
+            <a class="modal-trigger" href="#modal-product-delete">
+                {% trans "Remove product" %}
+            </a>
+        </li>
+    </ul>
+    {% endif %}
+{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs breadcrumbs--with-menu">
+        <li><a href="{% url "dashboard:product-list" %}">{% trans "Products" %}</a></li>
+        <li>{% if product.pk %}{{ product }}{% else %}{% trans 'Add new product' %}{% endif %}</li>
+    </ul>
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-12">
-        <h1 class="page-header">{{ title }}</h1>
-    </div>
-</div>
+    {% if product.pk %}
+        <div class="row">
+            <div class="col s12">
+                <ul class="tabs">
+                    <li class="tab col s3" role="presentation">
+                        <a href="#details" class="active" role="tab">
+                            <span>{% trans "Details" %}</span>
+                            <i class="mdi-content-create"></i>
+                        </a>
+                    </li>
 
-<form class="form form-vertical" method="post" id="product-form" enctype="multipart/form-data">
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="form-message alert alert-success" hidden="hidden">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                <span class="glyphicon glyphicon-ok-sign"></span>
-                <span class="message-content">{% trans "Data saved" %}</span>
-            </div>
+                    <li class="tab col s3" role="presentation">
+                        <a href="#variants" role="tab">
+                            <span>{% trans "Variants" %}</span>
+                            <i class="mdi-image-style"></i>
+                        </a>
+                    </li>
 
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <span class="panel-title">{% trans "Details" %}</span>
-                </div>
-                <div class="panel-body">
-                    {% csrf_token %}
-                    {{ form|as_vertical_form }}
-                </div>
-            </div>
+                    <li class="tab col s3" role="presentation">
+                        <a href="#stock" role="tab">
+                            <span>{% trans "Stock" %}</span>
+                            <i class="mdi-action-store"></i>
+                        </a>
+                    </li>
 
-            {{ variant_formset.management_form }}
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <span class="panel-title">{% trans "Variants" %}</span>
-                </div>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>{% trans "SKU" %}</th>
-                            {% for field in variant_formset.0.visible_fields %}
-                                {% if field.name != 'sku' and field.name != 'DELETE' %}
-                                    <th>{{ field.label }}</th>
-                                {% endif %}
-                            {% endfor %}
-                            <th class="text-right"><i class="glyphicon glyphicon-trash"></i></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for form in variant_formset.initial_forms %}
-                        <tr>
-                            <td>
-                                {% for field in form.hidden_fields %}
-                                    {{ field }}
-                                {% endfor %}
-                                {{ form.sku|as_vertical_form:False }}
-                            </td>
-                            {% for field in form.visible_fields %}
-                                {% if field.name != 'sku' and field.name != 'DELETE' %}
-                                    <td>
-                                        <div class="{% if field.errors %} has-error{% endif %}{% if field.required %} required{% endif %}">
-                                            {{ field|as_vertical_form:False }}
-                                            {% if field.errors %}
-                                                {% for error in field.errors %}
-                                                    <span class="label label-danger">{{ error }}</span>
-                                                {% endfor %}
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                {% endif %}
-                            {% endfor %}
-                            <td class="text-right">
-                                {{ form.DELETE }}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    {% for form in variant_formset.extra_forms %}
-                        <tr>
-                            <td>
-                                {% for field in form.hidden_fields %}
-                                    {{ field }}
-                                {% endfor %}
-                                {{ form.sku|as_vertical_form:False }}
-                            </td>
-                            {% for field in form.visible_fields %}
-                                {% if field.name != 'sku' and field.name != 'DELETE' %}
-                                    <td>
-                                        <div class="{% if field.errors %} has-error{% endif %}{% if field.required %} required{% endif %}">
-                                            {{ field|as_vertical_form:False }}
-                                            {% if field.errors %}
-                                                {% for error in field.errors %}
-                                                    <span class="label label-danger">{{ error }}</span>
-                                                {% endfor %}
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                {% endif %}
-                            {% endfor %}
-                            <td></td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-            {{ image_formset.management_form }}
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <span class="panel-title">{% trans "Images" %}</span>
-                </div>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th colspan="1" class="col-sm-11">{% trans "Image" %}</th>
-                            <th class="text-right"><i class="glyphicon glyphicon-trash"></i></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for form in image_formset.initial_forms %}
-                        <tr>
-                            <td>
-                                {% for field in form.hidden_fields %}
-                                    {{ field }}
-                                {% endfor %}
-                                {{ form.image }}
-                            </td>
-                            <td class="text-right">
-                                {{ form.DELETE }}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    {% for form in image_formset.extra_forms %}
-                        <tr>
-                            <td>
-                                {{ form.image }}
-                            </td>
-                            <td></td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-
+                    <li class="tab col s3" role="presentation">
+                        <a href="#images" role="tab">
+                            <span>{% trans "Images" %}</span>
+                            <i class="mdi-image-collections"></i>
+                        </a>
+                    </li>
+                </ul>
             </div>
         </div>
+    {% endif %}
 
-        <div class="col-lg-4">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <span class="panel-title">Product image</span>
+    <div class="row tab-content" id="details">
+        <form method="post" id="form-product" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ product_form.name|materializecss:"s12 m8" }}
+            {{ product_form.price|materializecss:"s12 m4" }}
+
+            <div class="col s12 l8" >
+                <div class="row">
+                    {{ product_form.description|materializecss }}
                 </div>
-                <div class="panel-body">
-                    {% if product.images.exists %}
-                        <img class="img-responsive" src="{{ product.images.first.image.thumbnail.300x300 }}" alt="">
+            </div>
+
+            <div class="col s12 l4">
+                <div class="row">
+                    {{ product_form.weight|materializecss:"input-field s12" }}
+                    {{ product_form.categories|materializecss:"input-field s12" }}
+                    {{ product_form.attributes|materializecss:"input-field s12" }}
+                    {{ product_form.available_on|materializecss:"input-field s12" }}
+                </div>
+            </div>
+
+            <div class="col s12 right-align">
+                <div class="row">
+                    {% if product.pk %}
+                        <button type="submit" class="btn">{% trans "Update" %}</button>
                     {% else %}
-                        <img class="img-responsive" src="http://placehold.it/300x300/&text=Product Image" alt="">
+                        <button type="submit" class="btn">{% trans "Create" %}</button>
                     {% endif %}
                 </div>
             </div>
-        </div>
+        </form>
     </div>
-    <div class="row">
-        <div class="col-lg-12">
-            <p>
-                {% if product.pk %}
-                    <span class="pull-right">
-                        <a href="{% url 'dashboard:product-delete' pk=product.pk %}" class="btn btn-danger"><i class="glyphicon glyphicon-trash"></i> {% trans "Delete" %}</a>
-                    </span>
-                {% endif %}
-                {% if product.pk %}
-                    <button type="submit" class="btn btn-primary"><i class="glyphicon glyphicon-refresh"></i> {% trans "Update" %}</button>
-                {% else %}
-                    <button type="submit" class="btn btn-primary"><i class="glyphicon glyphicon-upload"></i> {% trans "Create" %}</button>
-                {% endif %}
-                <a href="{% url 'dashboard:products' %}" class="btn btn-default"><i class="glyphicon glyphicon-remove"></i> {% trans "Cancel" %}</a>
-            </p>
+
+    {% if product.pk %}
+        <div id="variants" class="card tab-content">
+            <form method="post" action="{% url 'dashboard:variant-bulk-delete' product_pk=product.pk %}">
+                {% csrf_token %}
+                <div class="data-table-header">
+                    <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
+                        {% trans "Add" %}
+                    </a>
+
+                    <a href="#modal-product-variant-delete" class="modal-trigger btn-data-table btn-show-when-checked blue-text" hidden>
+                        {% trans "Delete" %}
+                    </a>
+
+                    <div class="modal" id="modal-product-variant-delete">
+                        <div class="modal-content">
+                            <h5>{% trans "Are you sure?" %}</h5>
+
+                            <p>
+                                {% blocktrans %}You are about to delete variants of this product.{% endblocktrans %}
+                            </p>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
+                            <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-table-container">
+                    <table class="bordered hoverable responsive data-table">
+                        {% if variants %}
+                            <thead>
+                                <tr>
+                                    <th class="bulk-checkbox">
+                                        <input type="checkbox" id="select-all-variants" class="filled-in select-all switch-actions">
+                                        <label for="select-all-variants"></label>
+                                    </th>
+                                    <th>{% trans "SKU" %}</th>
+                                    {% for attribute in attributes %}
+                                        <th>{{ attribute.display|capfirst }}</th>
+                                    {% endfor %}
+                                    <th class="wide">{% trans "Variant name" %}</th>
+                                    <th class="right-align">{% trans "Price" %}</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for variant in variants %}
+                                    <tr>
+                                        <td class="bulk-checkbox">
+                                            <input id="id_variants_{{ variant.id }}" name="items" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
+                                            <label for="id_variants_{{ variant.id }}"></label>
+                                        </td>
+                                        <td><a class="light-blue-text text-lighten-1" title="{% trans "Edit variant" %}"
+                                                    href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}">
+                                            {{ variant.sku }}
+                                        </a></td>
+                                        {% for attr_display in variant|attributes_values_with_empty:attributes %}
+                                            <td>
+                                                {{ attr_display }}
+                                            </td>
+                                        {% endfor %}
+                                        <td>{{ variant.name }}</td>
+                                        <td class="right-align">{% gross variant.get_price_per_item %}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        {% else %}
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <span>{% trans "There are no variants for this product" %}</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        {% endif %}
+                    </table>
+                </div>
+                <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#variants">
+            </form>
         </div>
-    </div>
-</form>
+
+        <div id="stock" class="card tab-content">
+            <form method="post" action="{% url 'dashboard:stock-bulk-delete' product_pk=product.pk %}">
+                {% csrf_token %}
+                <div class="data-table-header">
+                    <a href="{% url 'dashboard:product-stock-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
+                        {% trans "Add" %}
+                    </a>
+
+                    <a href="#modal-product-stock-delete" class="modal-trigger btn-data-table btn-show-when-checked blue-text" hidden>
+                        {% trans "Delete" %}
+                    </a>
+
+                    <div class="modal" id="modal-product-stock-delete">
+                        <div class="modal-content">
+                            <h5>{% trans "Are you sure?" %}</h5>
+
+                            <p>
+                                {% blocktrans %}You are about to delete stock for this product variant.{% endblocktrans %}
+                            </p>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
+                            <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-table-container">
+                    <table class="bordered hoverable responsive data-table">
+                        {% if stock_items %}
+                            <thead>
+                                <tr>
+                                    <th class="bulk-checkbox">
+                                        <input type="checkbox" id="select-all-stock" class="filled-in select-all switch-actions">
+                                        <label for="select-all-stock"></label>
+                                    </th>
+                                    <th>{% trans "SKU" %}</th>
+                                    <th class="right-align">{% trans "Quantity" %}</th>
+                                    <th class="wide">{% trans "Location" %}</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for item in stock_items %}
+                                    <tr>
+                                        <td class="bulk-checkbox">
+                                            <input name="items" type="checkbox" id="{{ item.id }}" class="filled-in switch-actions" value="{{ item.id }}">
+                                            <label for="{{ item.id }}"></label>
+                                        </td>
+                                        <td><a class="light-blue-text text-lighten-1" title="{% trans "Edit variant" %}"
+                                                    href="{% url 'dashboard:product-stock-update' product_pk=product.pk stock_pk=item.pk %}">
+                                            {{ item.variant.sku }}
+                                        </a></td>
+                                        <td class="right-align">{{ item.quantity }}</td>
+                                        <td>{{ item.location }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        {% else %}
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <span>{% trans "There is no stock for this product." %}</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        {% endif %}
+                    </table>
+                </div>
+                <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#stock">
+            </form>
+        </div>
+
+        <div id="images" class="tab-content">
+            {% if images %}
+                <div class="row">
+                    <div class="col l12">
+                        <form action="{% url 'dashboard:product-images-upload' product_pk=product.pk %}" class="dropzone" id="product-image-form">
+                            <div class="dz-message"></div>
+                            {% csrf_token %}
+                            <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#images">
+
+                            <ul class="row product-gallery" id="product-gallery" data-post-url="{% url 'dashboard:product-images-reorder' product_pk=product.pk %}">
+                                {% for image in images %}
+                                    <li class="col s6 m3 card product-gallery-item" data-id="{{ image.pk }}">
+                                        <div class="card-image product-gallery-item-image">
+                                            <img class="responsive-img" src="{{ image.image.crop.400x250 }}" alt="">
+                                        </div>
+
+                                        <div class="card-content">
+                                            <span class="product-gallery-item-title card-title black-text" title="{{ image.alt }}">
+                                                {% if image.alt %}
+                                                    {{ image.alt }}
+                                                {% else %}
+                                                    <span class="grey-text">{% trans "No description" %}</span>
+                                                {% endif %}
+                                            </span>
+                                            <span class="product-gallery-item-desc" title="{{ image.image.name }}">{{ image.image.name }}</span>
+                                        </div>
+
+                                        <div class="card-action">
+                                            <a href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">
+                                                {% trans "Edit" %}
+                                            </a>
+
+                                            <a href="#modal-product-image-delete-{{ image.pk }}" class="modal-trigger">
+                                                {% trans "Delete" %}
+                                            </a>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+
+                                <li class="col s6 m3 card product-gallery-item dropzone-ghost">
+                                    <div class="card-content">
+                                        <span class="product-gallery-item-title product-gallery-item-title--noclip card-title black-text">
+                                            <span class="grey-text">{% trans "Drop images here to upload" %}</span>
+                                        </span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </form>
+
+                        {% for image in images %}
+                            <div class="modal" id="modal-product-image-delete-{{ image.pk }}">
+                                <form action="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#images">
+
+                                    <div class="modal-content">
+                                        <h5>{% trans "Are you sure?" %}</h5>
+
+                                        <img class="responsive-img" src="{{ image.image.crop.400x250 }}" alt="">
+
+                                        <p>
+                                            {% blocktrans %}You are about to delete this image.{% endblocktrans %}
+                                        </p>
+                                    </div>
+
+                                    <div class="modal-footer">
+                                        <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
+                                        <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+                                    </div>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <p>{% trans "This product has no images yet." %}</p>
+            {% endif %}
+
+            <script type="application/template" id="template">
+                <li class="col s6 m3 card product-gallery-item dz-preview dz-file-preview">
+                    <div class="card-image product-gallery-item-image">
+                        <img data-dz-thumbnail />
+                    </div>
+
+                    <div class="dz-progress">
+                        <span class="dz-upload" data-dz-uploadprogress></span>
+                    </div>
+
+                    <div class="card-content">
+                        <span class="product-gallery-item-title card-title black-text">
+                            <span class="grey-text">{% trans "No description" %}</span>
+                        </span>
+                        <span class="product-gallery-item-desc">
+                            &nbsp;
+                        </span>
+                    </div>
+
+                    <div class="card-action">
+                        <a class="card-action-edit" href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=0 %}" hidden>
+                            {% trans "Edit" %}
+                        </a>
+
+                        <a class="card-action-delete" href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=0 %}" hidden>
+                            {% trans "Delete" %}
+                        </a>
+
+                        &nbsp;
+                    </div>
+                </li>
+            </script>
+        </div>
+
+        <div class="fixed-action-btn">
+            <a class="btn-fab btn-fab-hidden btn-floating btn-large waves-effect waves-light teal" id="images-btn"
+               href="{% url 'dashboard:product-image-add' product_pk=product.pk %}" title="{% trans "Add image" %}">
+                <i class="mdi-content-add"></i>
+            </a>
+        </div>
+
+        <div id="modal-product-delete" class="modal">
+            <form action="{% url "dashboard:product-delete" pk=product.pk %}" method="post">
+                {% csrf_token %}
+                <div class="modal-content">
+                    <h5>{% trans "Are you sure?" %}</h5>
+
+                    {% if object.images.exists %}
+                        <img src="{{ product.images.first.image.crop.600x600 }}" alt="" class="responsive-img">
+                    {% endif %}
+
+                    <p>
+                        {% blocktrans %}If you remove <strong>{{ product }}</strong> you will lose all data related to this product.{% endblocktrans %}
+                    </p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
+                    <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+                </div>
+            </form>
+        </div>
+    {% endif %}
+
 {% endblock %}

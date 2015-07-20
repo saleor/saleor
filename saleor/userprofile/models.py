@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-import re
 
 from django.contrib.auth.hashers import (check_password, make_password,
                                          is_password_usable)
@@ -8,9 +7,7 @@ from django.db import models
 from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
-from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
-from unidecode import unidecode
 
 from ..core.countries import COUNTRY_CHOICES
 

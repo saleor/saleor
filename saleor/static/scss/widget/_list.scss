@@ -1,0 +1,112 @@
+@mixin list {
+  border: none;
+  overflow: visible;
+
+  & &-item.avatar {
+    border: none;
+    padding-left: 59px;
+    padding-right: 0;
+    padding-bottom: 3px;
+    min-height: 0;
+
+    @media (max-width: $small-screen) {
+      margin-right: -$gutter-width/2;
+    }
+
+    .circle {
+      left: 0;
+    }
+
+    &-delete {
+      background: white;
+      font-size: $font-size-action-icon;
+
+      @media (min-width: $medium-screen-up) {
+        padding-left: 50px;
+        display: none;
+      }
+    }
+
+    @media (min-width: $medium-screen-up) {
+      &:hover {
+        .product-list-item-delete {
+          display: block;
+        }
+      }
+    }
+  }
+
+  & &-item--two-lines {
+    border: none;
+    padding: 0;
+  }
+
+  &-item {
+    position: relative;
+
+    &-name {
+      display: block;
+      overflow: hidden;
+      padding-right: 20px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      &--single {
+        margin-bottom: 10px;
+      }
+    }
+
+    &-price, &-desc, &-name--single {
+      border-bottom: 1px solid $collection-border-color;
+      padding-bottom: 12px;
+    }
+
+    &-desc {
+      color: map_get($grey, base);
+      margin: 0 0 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &-prefix {
+      color: initial;
+    }
+
+    &-author {
+      color: map_get($grey, base);
+    }
+
+    &-icon {
+      opacity: .6;
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
+
+    &--spaced {
+      margin-bottom: 5px;
+    }
+  }
+
+  &--attributes {
+    & &-item {
+      padding-left: 0;
+    }
+  }
+
+  .card & {
+    margin-bottom: 0;
+
+    &-item:last-child {
+      .list-item-name {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+    }
+  }
+}
+
+.list {
+  @include list;
+}

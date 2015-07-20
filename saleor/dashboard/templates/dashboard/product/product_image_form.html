@@ -1,0 +1,65 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load materializecss %}
+{% load static %}
+
+{% block title %}
+    {% if product_image.pk %}
+        {{ product_image.image.name }}
+    {% else %}
+        {% trans "Add image" %}
+    {% endif %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-store body-products{% endblock %}
+
+{% block header_menu %}
+    {% url "dashboard:product-update" pk=product.pk as url %}
+    {% include "dashboard/includes/_back-link.html" with url=url hash="#images" %}
+{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs">
+        <li><a href="{% url "dashboard:product-list" %}">{% trans "Products" %}</a></li>
+        <li><a href="{% url "dashboard:product-update" pk=product.pk %}#images">{{ product }}</a></li>
+        {% if product_image.pk %}
+            <li>{{ product_image.image }}</li>
+        {% else %}
+            <li>
+                <span class="hide-on-med-and-down">{% trans "Add image" %}</span>
+                <span class="hide-on-large-only">{% blocktrans %}Add image for {{ product }}{% endblocktrans %}</span>
+            </li>
+        {% endif %}
+    </ul>
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
+{% block content %}
+    <form method="post" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col l8">
+                {% csrf_token %}
+
+                {% if product_image.pk %}
+                    <p class="no-margin">{% trans "Pick the most relevant part of the image using the red circle." %}</p>
+                {% endif %}
+                <div class="row">
+                    {{ form.image|materializecss }}
+                    {{ form.alt|materializecss }}
+                    <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#images">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col l8 right-align">
+                {% if product_image.pk %}
+                    <button type="submit" class="btn">{% trans "Update" %}</button>
+                {% else %}
+                    <button type="submit" class="btn">{% trans "Create" %}</button>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+{% endblock %}

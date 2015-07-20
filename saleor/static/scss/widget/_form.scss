@@ -1,0 +1,114 @@
+@mixin form {
+  .select-wrapper {
+    margin-top: -3px;
+
+    &.invalid {
+      input {
+        @extend .invalid;
+      }
+    }
+  }
+
+  label {
+    @extend .active;
+    display: block;
+
+    &.optional {
+      &:before {
+        content: "(optional)";
+        float: right;
+        margin-left: 3px;
+      }
+    }
+  }
+
+  input[type=radio] {
+    @extend .with-gap;
+  }
+
+  .price-wrapper {
+    overflow: hidden;
+  }
+
+  p.help-block {
+    margin: -7px 0 15px;
+    font-size: $label-font-size;
+  }
+
+  %input-lg {
+    font-size: 2.2rem;
+  }
+
+  &#form-product {
+    #id_name {
+      @extend %input-lg;
+    }
+
+    #id_price {
+      @extend %input-lg;
+    }
+  }
+
+  &#form-variant {
+    #id_sku {
+      @extend %input-lg;
+    }
+
+    #id_price_override {
+      @extend %input-lg;
+    }
+  }
+
+  &#form-stock {
+    #id_quantity {
+      @extend %input-lg;
+    }
+  }
+
+  &#form-attributes {
+    #id_display {
+      @extend %input-lg;
+    }
+
+    table {
+      .input-field, p {
+        margin: 0;
+        padding: 0;
+      }
+
+      label {
+        font-size: 0;
+        vertical-align: bottom;
+      }
+    }
+  }
+
+  &#form-category {
+    #id_name {
+      @extend %input-lg;
+    }
+  }
+
+  .sizedimage-mod {
+    margin-bottom: $gutter-width/2;
+
+    & ~ label {
+      display: none;
+    }
+  }
+
+  .file-field {
+    label {
+      display: none;
+    }
+  }
+
+  .btn--inline {
+    display: inline-block;
+    margin-top: 1.4rem;
+  }
+}
+
+form {
+  @include form;
+}

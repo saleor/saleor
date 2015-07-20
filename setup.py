@@ -39,7 +39,7 @@ setup(
     install_requires=[
         'Babel>=1.3,<1.4a0',
         'BabelDjango>=0.2,<0.3a0',
-        'Django>=1.7',
+        'Django>=1.8',
         'dj_database_url>=0.3.0',
         'django-emailit>=0.2.2',
         'django-model-utils>=2.0.0,<2.1a0',
@@ -55,7 +55,11 @@ setup(
         'prices>=0.5,<0.6a0',
         'requests>=1.2.0',
         'satchless>=1.1.2,<1.2a0',
-        'unidecode'],
+        'unidecode',
+        'django-materializecss-form==0.0.64',
+        'djangorestframework>3.1',
+        'jsonfield>=1.0.3'
+    ],
     extras_require={
         'PaaS': [
             'whitenoise==1.0.6',

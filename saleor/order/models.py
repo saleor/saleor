@@ -1,8 +1,9 @@
 from __future__ import unicode_literals
 from decimal import Decimal
-from itertools import chain
 from uuid import uuid4
 
+from django.forms.models import model_to_dict
+from django.shortcuts import get_list_or_404
 import emailit.api
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -20,7 +21,8 @@ from prices import Price
 from satchless.item import ItemSet, ItemLine
 
 from ..core.utils import build_absolute_uri
-from ..product.models import Product
+from ..product.models import Product, ProductVariant
+from saleor.cart import CartLine
 from ..userprofile.models import Address, User
 from ..delivery import get_delivery
 
@@ -150,10 +152,10 @@ class Order(models.Model, ItemSet):
 class DeliveryGroupManager(models.Manager):
 
     def duplicate_group(self, group):
-        group.id = None
-        group.status = 'new'
-        group.save()
-        return group
+        data = model_to_dict(group)
+        data['id'] = None
+        data['status'] = 'new'
+        return group.order.groups.create(**data)
 
 
 class DeliveryGroup(models.Model, ItemSet):
@@ -215,7 +217,16 @@ class DeliveryGroup(models.Model, ItemSet):
     def update_delivery_cost(self):
         if self.order.is_shipping_required():
             delivery = get_delivery(self.order.shipping_method)
-            self.shipping_price = delivery.get_delivery_total(self)
+            skus = [line.product_sku for line in self]
+            variants = get_list_or_404(
+                ProductVariant.objects.select_related('product'), sku__in=skus)
+            variants_map = {variant.sku: variant for variant in variants}
+            items = []
+            for line in self:
+                data = {'product': variants_map[line.product_sku],
+                        'quantity': line.get_quantity()}
+                items.append(CartLine(**data))
+            self.shipping_price = delivery.get_delivery_total(items)
             self.save()
 
     def get_total_quantity(self):
@@ -224,10 +235,15 @@ class DeliveryGroup(models.Model, ItemSet):
     def is_shipping_required(self):
         return self.shipping_required
 
+    def can_ship(self):
+        return self.is_shipping_required() and self.status == 'new'
+
 
 class OrderedItemManager(models.Manager):
 
     def move_to_group(self, item, target_group, quantity):
+        source_group = item.delivery_group
+        order = target_group.order
         try:
             target_item = target_group.items.get(
                 product=item.product, product_name=item.product_name,
@@ -241,17 +257,16 @@ class OrderedItemManager(models.Manager):
         else:
             target_item.quantity += quantity
             target_item.save()
-
         item.quantity -= quantity
-        item.save()
-
-        item.delivery_group.update_delivery_cost()
+        if item.quantity:
+            item.save()
+        else:
+            item.delete()
+        if source_group.get_total_quantity():
+            source_group.update_delivery_cost()
+        else:
+            source_group.delete()
         target_group.update_delivery_cost()
-
-        if not item.delivery_group.get_total_quantity():
-            item.delivery_group.delete()
-
-        order = target_group.order
         if not order.get_items():
             order.change_status('cancelled')
 

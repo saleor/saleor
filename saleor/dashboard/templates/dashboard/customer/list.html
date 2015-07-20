@@ -1,93 +1,88 @@
 {% extends "dashboard/base.html" %}
-
 {% load i18n %}
 {% load prices_i18n %}
-{% load bootstrap %}
-
+{% load materializecss %}
 
 {% block title %}{% trans "Customers" %} - {{ block.super }}{% endblock %}
 
+{% block body_class %}body-customers{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs">
+        <li>{% trans "Customers" %}</li>
+    </ul>
+{% endblock %}
+
+{% block menu_sales_class %} active{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-lg-12">
-        <h1 class="page-header">{% trans "Customers" %}</h1>
-    </div>
-</div>
+    <form method="get">
+        <div class="row">
+            {{ form.email|materializecss:"s12 m3 l3" }}
+            {{ form.name|materializecss:"s12 m3 l3" }}
+            {{ form.order_status|materializecss:"s7 m3 l2" }}
 
-<div class="row">
-    <div class="col-lg-12">
-
-        <div class="panel panel-default">
-            <div class="panel-heading">{% trans "Search customers" %}</div>
-            <div class="panel-body">
-                <form method="get" class="form-inline">
-                    <div class="form-group">
-                        <label class="control-label"for="amount">{% trans "Email" %}</label>
-                        {% render_widget form.email class="form-control" %}
-                    </div>
-                    <div class="form-group">
-                        <label class="control-label"for="amount">{% trans "Name" %}</label>
-                        {% render_widget form.name class="form-control" %}
-                    </div>
-                    <button type="submit" class="btn btn-default"><i class="glyphicon glyphicon-search"></i> Search</button>
-                    {% if form.is_bound %}
-                        <a class="btn btn-default" href="{% url 'dashboard:customers' %}"><i class="glyphicon glyphicon-remove"></i> {% trans "Clear" %}</a>
-                    {% endif %}
-                </form>
-            </div>
-        </div>
-
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <span class="panel-title">{{ title }}</span>
-            </div>
-            <div class="panel-body">
-                {% if customers %}
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th class="col-sm-2">{% trans "Email" %}</th>
-                                <th class="col-sm-4">{% trans "Name" %}</th>
-                                <th class="col-sm-2">{% trans "Location" %}</th>
-                                <th class="col-sm-2 text-right">{% trans "Number of orders" %}</th>
-                                <th class="col-sm-2">{% trans "Last order" %}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {% for customer in customers %}
-                            <tr>
-                                {% with customer.default_billing_address.address as default_address %}
-                                <td>
-                                    <a href="{% url "dashboard:customer-details" pk=customer.pk %}">{{ customer.email }}</a>
-                                </td>
-                                <td>
-                                    {{ default_address.first_name }} {{ default_address.last_name }}
-                                </td>
-                                <td>
-                                    {{ default_address.city }}, {{ default_address.get_country_display }}
-                                </td>
-                                {% endwith %}
-                                <td class="text-right">
-                                    {{ customer.num_orders }}
-                                </td>
-                                <td>
-                                    {% if customer.last_order %}
-                                        <a href="{% url 'dashboard:order-details' pk=customer.last_order %}">#{{ customer.last_order }}</a>
-                                    {% else %}
-                                        {% trans "N/A" %}
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                    {% include "dashboard/includes/_pagination.html" with page_obj=customers %}
-                {% else %}
-                    <span>No customers found</span>
+            <div class="col s5 m3 l3">
+                <button type="submit" class="btn btn--inline">{% trans "Filter" %}</button>
+                {% if form.is_bound %}
+                    <a class="btn btn--inline" href="{% url 'dashboard:customers' %}">{% trans "Clear" %}</a>
                 {% endif %}
             </div>
         </div>
-    </div>
-</div>
-{% endblock %}
+    </form>
 
+
+    <div class="card">
+        <div class="data-table-header{% if not customers %} data-table-header--no-data{% endif %}">
+            <h5 class="card-title black-text">{{ title }}</h5>
+        </div>
+
+        {% if customers %}
+            <div class="data-table-container">
+                <table class="bordered hoverable responsive data-table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Email" %}</th>
+                            <th class="wide">{% trans "Name" %}</th>
+                            <th>{% trans "Location" %}</th>
+                            <th class="right-align">{% trans "Number of orders" %}</th>
+                            <th>{% trans "Last order" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for customer in customers %}
+                        <tr>
+                            {% with customer.default_billing_address as default_address %}
+                            <td>
+                                <a href="{% url "dashboard:customer-details" pk=customer.pk %}">{{ customer.email }}</a>
+                            </td>
+                            <td>
+                                {{ default_address.first_name }} {{ default_address.last_name }}
+                            </td>
+                            <td>
+                                {{ default_address.city }}, {{ default_address.get_country_display }}
+                            </td>
+                            {% endwith %}
+                            <td class="right-align">
+                                {{ customer.num_orders }}
+                            </td>
+                            <td>
+                                {% if customer.last_order %}
+                                    <a href="{% url 'dashboard:order-details' order_pk=customer.last_order %}">#{{ customer.last_order }}</a>
+                                {% else %}
+                                    {% trans "N/A" %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="card-content card-content--no-data">
+                <p>{% trans "No customers found." %}</p>
+            </div>
+        {% endif %}
+    </div>
+    {% include "dashboard/includes/_pagination.html" with page_obj=customers %}
+{% endblock %}

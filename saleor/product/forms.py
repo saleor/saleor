@@ -1,41 +1,44 @@
 from django import forms
+from django.forms import ChoiceField
+from django.forms.models import ModelChoiceIterator
+from django.template.loader import render_to_string
 from django.utils.translation import pgettext_lazy
-from selectable.forms import AutoCompleteWidget
+from django_prices.templatetags.prices_i18n import gross
 
 from ..cart.forms import AddToCartForm
-from .models import Bag, Shirt, ShirtVariant
-from .lookups import CollectionLookup
 
 
-class BagForm(AddToCartForm):
+class VariantChoiceIterator(ModelChoiceIterator):
+    def __init__(self, field):
+        super(VariantChoiceIterator, self).__init__(field)
+        self.product = self.queryset.instance if self.queryset else None
+        self.attributes = self.product.attributes.prefetch_related(
+            'values') if self.product else None
 
-    def get_variant(self, clean_data):
-        return self.product.variants.get(product__color=self.product.color)
+    def choice(self, obj):
+        label = obj.display_variant(self.attributes)
+        label += ' - ' + gross(obj.get_price())
+        return (self.field.prepare_value(obj), label)
 
 
-class ShirtForm(AddToCartForm):
+class VariantChoiceField(forms.ModelChoiceField):
+    def _get_choices(self):
+        if hasattr(self, '_choices'):
+            return self._choices
+        return VariantChoiceIterator(self)
+    choices = property(_get_choices, ChoiceField._set_choices)
 
-    size = forms.ChoiceField(choices=ShirtVariant.SIZE_CHOICES,
-                             widget=forms.RadioSelect())
+
+class ProductForm(AddToCartForm):
+    variant = VariantChoiceField(queryset=None)
 
     def __init__(self, *args, **kwargs):
-        super(ShirtForm, self).__init__(*args, **kwargs)
-        available_sizes = [
-            (p.size, p.get_size_display()) for p in self.product.variants.all()]
-        self.fields['size'].choices = available_sizes
+        super(ProductForm, self).__init__(*args, **kwargs)
+        self.fields['variant'].queryset = self.product.variants
+        self.fields['variant'].empty_label = None
 
-    def get_variant(self, clean_data):
-        size = clean_data.get('size')
-        return self.product.variants.get(size=size,
-                                         product__color=self.product.color)
-
-
-class ShirtAdminForm(forms.ModelForm):
-    class Meta:
-        model = Shirt
-        exclude = []
-        widgets = {
-            'collection': AutoCompleteWidget(CollectionLookup)}
+    def get_variant(self, cleaned_data):
+        return cleaned_data.get('variant')
 
 
 class ProductVariantInline(forms.models.BaseInlineFormSet):
@@ -55,8 +58,32 @@ class ImageInline(ProductVariantInline):
 
 
 def get_form_class_for_product(product):
-    if isinstance(product, Shirt):
-        return ShirtForm
-    if isinstance(product, Bag):
-        return BagForm
+    from ..product.models import Product
+    if isinstance(product, Product):
+        return ProductForm
     raise NotImplementedError
+
+
+class WeightInput(forms.TextInput):
+    template = 'weight_field_widget.html'
+
+    def __init__(self, unit, *args, **kwargs):
+        self.unit = unit
+        super(WeightInput, self).__init__(*args, **kwargs)
+
+    def render(self, name, value, attrs=None):
+        widget = super(WeightInput, self).render(name, value, attrs=attrs)
+        return render_to_string(self.template, {'widget': widget,
+                                                'value': value,
+                                                'unit': self.unit})
+
+
+class WeightField(forms.DecimalField):
+    def __init__(self, unit, decimal_places, widget=WeightInput, *args,
+                 **kwargs):
+        self.unit = unit
+        step = 10 ** -decimal_places
+        if isinstance(widget, type):
+            widget = widget(unit=self.unit,
+                            attrs={'type': 'number', 'step': step})
+        super(WeightField, self).__init__(*args, widget=widget, **kwargs)

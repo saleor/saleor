@@ -8,6 +8,8 @@ from django.utils.translation import ugettext_lazy as _
 class CustomerSearchForm(forms.Form):
     email = forms.CharField(required=False, label=_('Email'))
     name = forms.CharField(required=False, label=_('Name'))
+    order_status = forms.BooleanField(required=False, initial=True,
+                                      label=_('With open orders'))
 
     def __init__(self, *args, **kwargs):
         self.queryset = kwargs.pop('queryset')
@@ -15,10 +17,7 @@ class CustomerSearchForm(forms.Form):
 
     def clean(self):
         data = self.cleaned_data
-        if not any(data.values()):
-            raise forms.ValidationError(
-                _('At least one field must be specified'), code='invalid')
-        for field in data.keys():
+        for field in ['email', 'name']:
             data[field] = data[field].strip()
         return data
 
@@ -38,4 +37,8 @@ class CustomerSearchForm(forms.Form):
                 query = (Q(addresses__first_name__icontains=data['name']) |
                          Q(addresses__last_name__icontains=data['name']))
             queryset = queryset.filter(query).distinct()
+        if data['order_status']:
+            open_order = ['new', 'payment-pending', 'fully-paid']
+            queryset = queryset.filter(orders__status__in=open_order)
+
         return queryset

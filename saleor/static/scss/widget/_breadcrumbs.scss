@@ -1,0 +1,76 @@
+@mixin breadcrumbs {
+  display: block;
+  float: left;
+  font-size: $h5-fontsize;
+  line-height: $header-height;
+  white-space: nowrap;
+
+  @media (max-width: $medium-screen) {
+    width: calc(100% - 38px - 1.5rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  li {
+    display: none;
+    float: none;
+    line-height: $header-height/2;
+
+    @media (min-width: $medium-screen-up) {
+      display: inline;
+    }
+
+    &:last-child {
+      display: inline;
+    }
+
+    &:hover {
+      background: none;
+    }
+
+    a {
+      color: map-get($materialize-red, lighten-4);
+      display: inline-block;
+      font-size: $h5-fontsize;
+      padding: 0;
+      transition: color $transition-duration;
+
+      &:hover {
+        color: white;
+      }
+
+      &:after {
+        content: "\e8a9";
+        color: map-get($materialize-red, lighten-4);
+        display: inline-block;
+        font-family: "Material-Design-Icons", sans-serif;
+        margin-left: 5px;
+        vertical-align: bottom;
+      }
+    }
+
+    [class^=mdi-] {
+      display: inline;
+    }
+  }
+
+  &--with-menu {
+    width: calc(100% - 38px - 1.5rem);
+
+    @media (max-width: $medium-screen) {
+      width: calc(100% - 76px - 3rem);
+    }
+  }
+
+  &--ellipsed {
+    &-item {
+      @media (min-width: $large-screen) {
+        display: inline-block;
+      }
+    }
+  }
+}
+
+.breadcrumbs {
+  @include breadcrumbs;
+}

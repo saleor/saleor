@@ -23,7 +23,7 @@
                         </a>
                     {% endif %}
                     <h3><a href="{{ product.get_absolute_url }}">{{ product }}</a></h3>
-                    {% if product.is_available %}
+                    {% if product.is_in_stock %}
                         {% with price_range=product|discounted_price_range:request.discounts undiscounted=product.get_price_range %}
                             {% with discount=undiscounted.min_price|price_difference:price_range.min_price %}
                                 <h4>
