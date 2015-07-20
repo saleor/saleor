@@ -24,7 +24,7 @@ def category_list(request, root_pk=None):
 @staff_member_required
 def category_create(request, root_pk=None):
     category = Category()
-    form = CategoryForm(request.POST or None, initial={'parent': root_pk})
+    form = CategoryForm(request.POST or None, parent_pk=root_pk)
     if form.is_valid():
         category = form.save()
         messages.success(request, _('Added category %s') % category)
@@ -40,15 +40,15 @@ def category_create(request, root_pk=None):
 def category_edit(request, root_pk=None):
     category = get_object_or_404(Category, pk=root_pk)
     form = CategoryForm(request.POST or None, instance=category,
-                        initial={'parent': category.parent_id})
+                        parent_pk=category.parent_id)
     status = 200
     if form.is_valid():
         category = form.save()
         messages.success(request, _('Added category %s') % category)
         if root_pk:
-            return redirect('dashboard:category-children-list', root_pk=root_pk)
+            return redirect('dashboard:category-list', root_pk=root_pk)
         else:
-            return redirect('dashboard:category-root-list')
+            return redirect('dashboard:category-list')
     elif form.errors:
         status = 400
     ctx = {'category': category, 'form': form, 'status': status}
