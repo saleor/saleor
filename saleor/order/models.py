@@ -21,7 +21,7 @@ from prices import Price
 from satchless.item import ItemSet, ItemLine
 
 from ..core.utils import build_absolute_uri
-from ..product.models import Product, ProductVariant
+from ..product.models import Product
 from ..userprofile.models import Address, User
 from ..delivery import get_delivery
 
@@ -206,7 +206,7 @@ class DeliveryGroup(models.Model, ItemSet):
             product_variant = item_line.product
             price = item_line.get_price_per_item()
             self.items.create(
-                product=product_variant,
+                product=product_variant.product,
                 quantity=item_line.get_quantity(),
                 unit_price_net=price.net,
                 product_name=smart_text(product_variant),
@@ -267,7 +267,7 @@ class OrderedItem(models.Model, ItemLine):
     delivery_group = models.ForeignKey(
         DeliveryGroup, related_name='items', editable=False)
     product = models.ForeignKey(
-        ProductVariant, blank=True, null=True, related_name='+',
+        Product, blank=True, null=True, related_name='+',
         on_delete=models.SET_NULL,
         verbose_name=pgettext_lazy('OrderedItem field', 'product'))
     product_name = models.CharField(
