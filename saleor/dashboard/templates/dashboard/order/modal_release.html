@@ -1,5 +1,5 @@
 {% load i18n %}
-{% load bootstrap %}
+{% load materializecss %}
 
 <div class="modal-content">
     <h5>{% trans "Release payment" %}</h5>
@@ -8,8 +8,10 @@
 </div>
 
 <div class="modal-footer">
-    <form id="release-form" method="post" role="form" action="{% url 'dashboard:manage-payment' pk=payment.pk action=action %}">
+    <form id="release-form" method="post" role="form" class="form-async"
+          action="{% url 'dashboard:manage-payment' order_pk=order.pk payment_pk=payment.pk action=action %}">
         {% csrf_token %}
+        <input type="hidden" name="{{ form.amount.name }}" value="0">
 
         <button type="submit" class="modal-action btn-flat red-text">{% trans "Release" %}</button>
         <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>

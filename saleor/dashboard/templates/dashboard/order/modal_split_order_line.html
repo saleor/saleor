@@ -1,13 +1,13 @@
 {% load i18n %}
 {% load materializecss %}
 
-<form method="post" role="form" action="{% url 'dashboard:orderline-split' order_pk=order.pk line_pk=object.pk %}" class="form-async">
+<form method="post" role="form" class="form-async"
+      action="{% url 'dashboard:orderline-split' order_pk=order.pk line_pk=line_pk %}">
     {% csrf_token %}
     <div class="modal-content">
         <h5>{% trans "Split order line " %}</h5>
 
         <div class="row">
-{#            <span>Move {% render_widget move_items_form.how_many class="form-control input-sm" %} items to delivery group: {% render_widget move_items_form.groups class="form-control input-sm" %}#}
             {{ form|materializecss:"s12 m6" }}
         </div>
     </div>

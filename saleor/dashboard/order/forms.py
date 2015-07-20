@@ -1,12 +1,13 @@
 from __future__ import unicode_literals
 
 from django import forms
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _, pgettext_lazy
+from django_prices.forms import PriceField
 from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
 from ...order.models import DeliveryGroup, OrderedItem, OrderNote, Order
-from ...product.models import Product
 
 
 class OrderNoteForm(forms.ModelForm):
@@ -21,7 +22,8 @@ class OrderNoteForm(forms.ModelForm):
 
 
 class ManagePaymentForm(forms.Form):
-    amount = forms.DecimalField(min_value=0, decimal_places=2, required=False)
+    amount = PriceField(max_digits=12, decimal_places=2,
+                        currency=settings.DEFAULT_CURRENCY)
 
     def __init__(self, *args, **kwargs):
         self.payment = kwargs.pop('payment')
@@ -30,9 +32,9 @@ class ManagePaymentForm(forms.Form):
     def handle_action(self, action, user):
         amount = self.cleaned_data['amount']
         if action == 'capture' and self.payment.status == 'preauth':
-            self.payment.capture(amount)
+            self.payment.capture(amount.gross)
         elif action == 'refund' and self.payment.status == 'confirmed':
-            self.payment.refund(amount)
+            self.payment.refund(amount.gross)
         elif action == 'release' and self.payment.status == 'preauth':
             self.payment.release()
         else:

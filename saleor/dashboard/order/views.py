@@ -3,10 +3,12 @@ from __future__ import unicode_literals
 from django.contrib import messages
 from django.core.context_processors import csrf
 from django.db import transaction
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
+from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentError
 from prices import Price
 
@@ -78,7 +80,20 @@ def order_add_note(request, order_pk):
 def manage_payment(request, order_pk, payment_pk, action):
     order = get_object_or_404(Order, pk=order_pk)
     payment = get_object_or_404(order.payments.all(), pk=payment_pk)
-    form = ManagePaymentForm(request.POST or None, payment=payment)
+    if action == 'release':
+        amount = 0
+        template = 'dashboard/order/modal_release.html'
+    elif action == 'refund':
+        amount = payment.captured_amount
+        template = 'dashboard/order/modal_capture_refund.html'
+    elif action == 'capture':
+        amount = payment.order.get_total().quantize('0.01').gross
+        template = 'dashboard/order/modal_capture_refund.html'
+    else:
+        raise Http404()
+    initial = {'amount': amount, 'action': action}
+    form = ManagePaymentForm(request.POST or None, payment=payment,
+                             initial=initial)
     status = 200
     if form.is_valid():
         try:
@@ -87,36 +102,28 @@ def manage_payment(request, order_pk, payment_pk, action):
             messages.error(request, _('Payment gateway error: %s') % e.message)
         else:
             amount = form.cleaned_data['amount']
+            comment = None
             currency = payment.currency
             if action == 'capture':
-                comment = _('Captured %(amount)s %(currency)s') % {
-                    'amount': amount, 'currency': currency}
+                comment = _('Captured %(amount)s') % {
+                    'amount': gross(amount)}
                 payment.order.create_history_entry(comment=comment,
                                                    user=request.user)
             elif action == 'refund':
-                comment = _('Refunded %(amount)s %(currency)s') % {
-                    'amount': amount, 'currency': currency}
+                comment = _('Refunded %(amount)s') % {
+                    'amount': gross(amount)}
                 payment.order.create_history_entry(comment=comment,
                                                    user=request.user)
             elif action == 'release':
                 comment = _('Released payment')
                 payment.order.create_history_entry(comment=comment,
                                                    user=request.user)
+            messages.success(request, comment)
     elif form.errors:
         status = 400
-    amount = 0
-    if action == 'release':
-        template = 'dashboard/order/modal_release.html'
-    else:
-        if action == 'refund':
-            amount = payment.captured_amount
-        elif action == 'capture':
-            amount = payment.order.get_total().gross
-        template = 'dashboard/order/modal_capture_refund.html'
-    initial = {'amount': amount, 'action': action}
-    form = ManagePaymentForm(payment=payment, initial=initial)
     ctx = {'form': form, 'action': action, 'currency': payment.currency,
-           'captured': payment.captured_amount, 'payment': payment}
+           'captured': payment.captured_amount, 'order': order,
+           'payment': payment}
     return TemplateResponse(request, template, ctx, status=status)
 
 
@@ -151,6 +158,9 @@ def orderline_split(request, order_pk, line_pk):
     item = get_object_or_404(OrderedItem.objects.filter(
         delivery_group__order=order), pk=line_pk)
     form = MoveItemsForm(request.POST or None, item=item)
+    line_pk = None
+    if item:
+        line_pk = item.pk
     status = 200
     if form.is_valid():
         old_group = item.delivery_group
@@ -168,7 +178,7 @@ def orderline_split(request, order_pk, line_pk):
         messages.success(request, msg)
     elif form.errors:
         status = 400
-    ctx = {'order': order, 'object': item, 'form': form}
+    ctx = {'order': order, 'object': item, 'form': form, 'line_pk': line_pk}
     template = 'dashboard/order/modal_split_order_line.html'
     return TemplateResponse(request, template, ctx, status=status)
 
