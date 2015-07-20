@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 from django.contrib import messages
 from django.core.context_processors import csrf
 from django.db import transaction
-from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
@@ -16,8 +15,9 @@ from ...order.models import Order, OrderedItem, OrderNote
 from ...userprofile.forms import AddressForm
 from ..views import (StaffMemberOnlyMixin, FilterByStatusMixin,
                      staff_member_required)
-from .forms import (OrderNoteForm, ManagePaymentForm, MoveItemsForm,
-                    ChangeQuantityForm, ShipGroupForm)
+from .forms import (OrderNoteForm, MoveItemsForm,
+                    ChangeQuantityForm, ShipGroupForm, CapturePaymentForm,
+                    ReleasePaymentForm, RefundPaymentForm)
 
 
 class OrderListView(StaffMemberOnlyMixin, FilterByStatusMixin, ListView):
@@ -77,54 +77,78 @@ def order_add_note(request, order_pk):
 
 
 @staff_member_required
-def manage_payment(request, order_pk, payment_pk, action):
+def capture_payment(request, order_pk, payment_pk):
     order = get_object_or_404(Order, pk=order_pk)
-    payment = get_object_or_404(order.payments.all(), pk=payment_pk)
-    if action == 'release':
-        amount = 0
-        template = 'dashboard/order/modal_release.html'
-    elif action == 'refund':
-        amount = payment.captured_amount
-        template = 'dashboard/order/modal_capture_refund.html'
-    elif action == 'capture':
-        amount = payment.order.get_total().quantize('0.01').gross
-        template = 'dashboard/order/modal_capture_refund.html'
-    else:
-        raise Http404()
-    initial = {'amount': amount, 'action': action}
-    form = ManagePaymentForm(request.POST or None, payment=payment,
-                             initial=initial)
+    payment = get_object_or_404(order.payments, pk=payment_pk)
+    amount = order.get_total().quantize('0.01').gross
+    form = CapturePaymentForm(request.POST or None, payment=payment,
+                              initial={'amount': amount})
     status = 200
     if form.is_valid():
         try:
-            form.handle_action(action, request.user)
+            form.capture()
         except (PaymentError, ValueError) as e:
             messages.error(request, _('Payment gateway error: %s') % e.message)
         else:
             amount = form.cleaned_data['amount']
-            comment = None
-            currency = payment.currency
-            if action == 'capture':
-                comment = _('Captured %(amount)s') % {
-                    'amount': gross(amount)}
-                payment.order.create_history_entry(comment=comment,
-                                                   user=request.user)
-            elif action == 'refund':
-                comment = _('Refunded %(amount)s') % {
-                    'amount': gross(amount)}
-                payment.order.create_history_entry(comment=comment,
-                                                   user=request.user)
-            elif action == 'release':
-                comment = _('Released payment')
-                payment.order.create_history_entry(comment=comment,
-                                                   user=request.user)
-            messages.success(request, comment)
+            msg = _('Captured %(amount)s') % {'amount': gross(amount)}
+            payment.order.create_history_entry(comment=msg, user=request.user)
+            messages.success(request, msg)
     elif form.errors:
         status = 400
-    ctx = {'form': form, 'action': action, 'currency': payment.currency,
-           'captured': payment.captured_amount, 'order': order,
-           'payment': payment}
-    return TemplateResponse(request, template, ctx, status=status)
+    ctx = {'captured': payment.captured_amount, 'currency': payment.currency,
+           'form': form, 'order': order, 'payment': payment}
+    return TemplateResponse(request, 'dashboard/order/modal_capture.html', ctx,
+                            status=status)
+
+
+@staff_member_required
+def refund_payment(request, order_pk, payment_pk):
+    order = get_object_or_404(Order, pk=order_pk)
+    payment = get_object_or_404(order.payments, pk=payment_pk)
+    amount = payment.captured_amount
+    form = RefundPaymentForm(request.POST or None, payment=payment,
+                             initial={'amount': amount})
+    status = 200
+    if form.is_valid():
+        try:
+            form.refund()
+        except (PaymentError, ValueError) as e:
+            messages.error(request, _('Payment gateway error: %s') % e.message)
+        else:
+            amount = form.cleaned_data['amount']
+            msg = _('Refunded %(amount)s') % {'amount': gross(amount)}
+            payment.order.create_history_entry(comment=msg, user=request.user)
+            messages.success(request, msg)
+    elif form.errors:
+        status = 400
+    ctx = {'captured': payment.captured_amount, 'currency': payment.currency,
+           'form': form, 'order': order, 'payment': payment}
+    return TemplateResponse(request, 'dashboard/order/modal_refund.html', ctx,
+                            status=status)
+
+
+@staff_member_required
+def release_payment(request, order_pk, payment_pk):
+    order = get_object_or_404(Order, pk=order_pk)
+    payment = get_object_or_404(order.payments, pk=payment_pk)
+    form = ReleasePaymentForm(request.POST or None, payment=payment)
+    status = 200
+    if form.is_valid():
+        try:
+            form.release()
+        except (PaymentError, ValueError) as e:
+            messages.error(request, _('Payment gateway error: %s') % e.message)
+        else:
+            msg = _('Released payment')
+            payment.order.create_history_entry(comment=msg, user=request.user)
+            messages.success(request, msg)
+    elif form.errors:
+        status = 400
+    ctx = {'captured': payment.captured_amount, 'currency': payment.currency,
+           'form': form, 'order': order, 'payment': payment}
+    return TemplateResponse(request, 'dashboard/order/modal_release.html', ctx,
+                            status=status)
 
 
 @staff_member_required

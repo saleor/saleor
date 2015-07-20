@@ -11,8 +11,14 @@ urlpatterns = [
         views.order_add_note, name='order-add-note'),
     url(r'^(?P<order_pk>\d+)/address/(?P<address_type>billing|shipping)/$',
         views.address_view, name='address-edit'),
-    url(r'^(?P<order_pk>\d+)/payment/(?P<payment_pk>\d+)/(?P<action>capture|refund|release)/$',
-        views.manage_payment, name='manage-payment'),
+
+    url(r'^(?P<order_pk>\d+)/payment/(?P<payment_pk>\d+)/capture/$',
+        views.capture_payment, name='capture-payment'),
+    url(r'^(?P<order_pk>\d+)/payment/(?P<payment_pk>\d+)/release/$',
+        views.release_payment, name='release-payment'),
+    url(r'^(?P<order_pk>\d+)/payment/(?P<payment_pk>\d+)/refund/$',
+        views.refund_payment, name='refund-payment'),
+
     url(r'^(?P<order_pk>\d+)/line/(?P<line_pk>\d+)/change/$', views.orderline_change_quantity,
         name='orderline-change-quantity'),
     url(r'^(?P<order_pk>\d+)/line/(?P<line_pk>\d+)/split/$', views.orderline_split,

@@ -9,7 +9,7 @@
 
 <div class="modal-footer">
     <form id="release-form" method="post" role="form" class="form-async"
-          action="{% url 'dashboard:manage-payment' order_pk=order.pk payment_pk=payment.pk action=action %}">
+          action="{% url 'dashboard:release-payment' order_pk=order.pk payment_pk=payment.pk %}">
         {% csrf_token %}
         <input type="hidden" name="{{ form.amount.name }}" value="0">
 

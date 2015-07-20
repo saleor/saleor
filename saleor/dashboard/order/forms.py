@@ -29,16 +29,41 @@ class ManagePaymentForm(forms.Form):
         self.payment = kwargs.pop('payment')
         super(ManagePaymentForm, self).__init__(*args, **kwargs)
 
-    def handle_action(self, action, user):
+
+class CapturePaymentForm(ManagePaymentForm):
+    def clean(self):
+        if self.payment.status != 'preauth':
+            raise forms.ValidationError(
+                _('Only preauthorized payments can be captured'))
+
+    def capture(self):
         amount = self.cleaned_data['amount']
-        if action == 'capture' and self.payment.status == 'preauth':
-            self.payment.capture(amount.gross)
-        elif action == 'refund' and self.payment.status == 'confirmed':
-            self.payment.refund(amount.gross)
-        elif action == 'release' and self.payment.status == 'preauth':
-            self.payment.release()
-        else:
-            raise ValueError(_('Invalid payment action'))
+        self.payment.capture(amount.gross)
+
+
+class RefundPaymentForm(ManagePaymentForm):
+    def clean(self):
+        if self.payment.status != 'confirmed':
+            raise forms.ValidationError(
+                _('Only confirmed payments can be refunded'))
+
+    def refund(self):
+        amount = self.cleaned_data['amount']
+        self.payment.refund(amount.gross)
+
+
+class ReleasePaymentForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        self.payment = kwargs.pop('payment')
+        super(ReleasePaymentForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        if self.payment.status != 'preauth':
+            raise forms.ValidationError(
+                _('Only preauthorized payments can be released'))
+
+    def release(self):
+        self.payment.release()
 
 
 class MoveItemsForm(forms.Form):

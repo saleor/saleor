@@ -220,14 +220,14 @@
                 {% if can_capture or can_refund or can_release %}
                     <div class="card-action">
                         {% if can_capture %}
-                            <a href="#base-modal" data-href="{% url 'dashboard:manage-payment' order_pk=order.pk payment_pk=payment.pk action='capture' %}"
+                            <a href="#base-modal" data-href="{% url 'dashboard:capture-payment' order_pk=order.pk payment_pk=payment.pk %}"
                                class="modal-trigger-custom">{% trans "Capture" %}</a>
                         {% elif can_refund %}
-                            <a href="#base-modal" data-href="{% url 'dashboard:manage-payment' order_pk=order.pk payment_pk=payment.pk action='refund' %}"
+                            <a href="#base-modal" data-href="{% url 'dashboard:refund-payment' order_pk=order.pk payment_pk=payment.pk %}"
                                class="modal-trigger-custom">{% trans "Refund" %}</a>
                         {% endif %}
                         {% if can_release %}
-                            <a href="#base-modal" data-href="{% url 'dashboard:manage-payment' order_pk=order.pk payment_pk=payment.pk action='release' %}"
+                            <a href="#base-modal" data-href="{% url 'dashboard:release-payment' order_pk=order.pk payment_pk=payment.pk %}"
                                class="modal-trigger-custom">{% trans "Release" %}</a>
                         {% endif %}
                     </div>
