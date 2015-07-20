@@ -136,54 +136,57 @@
                         </div>
                     </div>
                 </div>
-                <table class="bordered hoverable responsive data-table">
-                    {% if variants %}
-                        <thead>
-                            <tr>
-                                <th class="bulk-checkbox">
-                                    <input type="checkbox" id="select-all-variants" class="filled-in select-all switch-actions">
-                                    <label for="select-all-variants"></label>
-                                </th>
-                                <th>{% trans "SKU" %}</th>
-                                {% for attribute in attributes %}
-                                    <th>{{ attribute.display|capfirst }}</th>
-                                {% endfor %}
-                                <th class="wide">{% trans "Variant name" %}</th>
-                                <th class="right-align">{% trans "Price" %}</th>
-                            </tr>
-                        </thead>
 
-                        <tbody>
-                            {% for variant in variants %}
+                <div class="data-table-container">
+                    <table class="bordered hoverable responsive data-table">
+                        {% if variants %}
+                            <thead>
                                 <tr>
-                                    <td class="bulk-checkbox">
-                                        <input id="id_variants_{{ variant.id }}" name="items" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
-                                        <label for="id_variants_{{ variant.id }}"></label>
-                                    </td>
-                                    <td><a class="light-blue-text text-lighten-1" title="{% trans "Edit variant" %}"
-                                                href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}">
-                                        {{ variant.sku }}
-                                    </a></td>
-                                    {% for attr_display in variant|attributes_values_with_empty:attributes %}
-                                        <td>
-                                            {{ attr_display }}
-                                        </td>
+                                    <th class="bulk-checkbox">
+                                        <input type="checkbox" id="select-all-variants" class="filled-in select-all switch-actions">
+                                        <label for="select-all-variants"></label>
+                                    </th>
+                                    <th>{% trans "SKU" %}</th>
+                                    {% for attribute in attributes %}
+                                        <th>{{ attribute.display|capfirst }}</th>
                                     {% endfor %}
-                                    <td>{{ variant.name }}</td>
-                                    <td class="right-align">{% gross variant.get_price_per_item %}</td>
+                                    <th class="wide">{% trans "Variant name" %}</th>
+                                    <th class="right-align">{% trans "Price" %}</th>
                                 </tr>
-                            {% endfor %}
-                        </tbody>
-                    {% else %}
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <span>{% trans "There are no variants for this product" %}</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    {% endif %}
-                </table>
+                            </thead>
+
+                            <tbody>
+                                {% for variant in variants %}
+                                    <tr>
+                                        <td class="bulk-checkbox">
+                                            <input id="id_variants_{{ variant.id }}" name="items" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
+                                            <label for="id_variants_{{ variant.id }}"></label>
+                                        </td>
+                                        <td><a class="light-blue-text text-lighten-1" title="{% trans "Edit variant" %}"
+                                                    href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}">
+                                            {{ variant.sku }}
+                                        </a></td>
+                                        {% for attr_display in variant|attributes_values_with_empty:attributes %}
+                                            <td>
+                                                {{ attr_display }}
+                                            </td>
+                                        {% endfor %}
+                                        <td>{{ variant.name }}</td>
+                                        <td class="right-align">{% gross variant.get_price_per_item %}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        {% else %}
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <span>{% trans "There are no variants for this product" %}</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        {% endif %}
+                    </table>
+                </div>
                 <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#variants">
             </form>
         </div>
@@ -215,46 +218,49 @@
                         </div>
                     </div>
                 </div>
-                <table class="bordered hoverable responsive data-table">
-                    {% if stock_items %}
-                        <thead>
-                            <tr>
-                                <th class="bulk-checkbox">
-                                    <input type="checkbox" id="select-all-stock" class="filled-in select-all switch-actions">
-                                    <label for="select-all-stock"></label>
-                                </th>
-                                <th>{% trans "SKU" %}</th>
-                                <th class="right-align">{% trans "Quantity" %}</th>
-                                <th class="wide">{% trans "Location" %}</th>
-                            </tr>
-                        </thead>
 
-                        <tbody>
-                            {% for item in stock_items %}
+                <div class="data-table-container">
+                    <table class="bordered hoverable responsive data-table">
+                        {% if stock_items %}
+                            <thead>
                                 <tr>
-                                    <td class="bulk-checkbox">
-                                        <input name="items" type="checkbox" id="{{ item.id }}" class="filled-in switch-actions" value="{{ item.id }}">
-                                        <label for="{{ item.id }}"></label>
-                                    </td>
-                                    <td><a class="light-blue-text text-lighten-1" title="{% trans "Edit variant" %}"
-                                                href="{% url 'dashboard:product-stock-update' product_pk=product.pk stock_pk=item.pk %}">
-                                        {{ item.variant.sku }}
-                                    </a></td>
-                                    <td class="right-align">{{ item.quantity }}</td>
-                                    <td>{{ item.location }}</td>
+                                    <th class="bulk-checkbox">
+                                        <input type="checkbox" id="select-all-stock" class="filled-in select-all switch-actions">
+                                        <label for="select-all-stock"></label>
+                                    </th>
+                                    <th>{% trans "SKU" %}</th>
+                                    <th class="right-align">{% trans "Quantity" %}</th>
+                                    <th class="wide">{% trans "Location" %}</th>
                                 </tr>
-                            {% endfor %}
-                        </tbody>
-                    {% else %}
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <span>{% trans "There is no stock for this product." %}</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    {% endif %}
-                </table>
+                            </thead>
+
+                            <tbody>
+                                {% for item in stock_items %}
+                                    <tr>
+                                        <td class="bulk-checkbox">
+                                            <input name="items" type="checkbox" id="{{ item.id }}" class="filled-in switch-actions" value="{{ item.id }}">
+                                            <label for="{{ item.id }}"></label>
+                                        </td>
+                                        <td><a class="light-blue-text text-lighten-1" title="{% trans "Edit variant" %}"
+                                                    href="{% url 'dashboard:product-stock-update' product_pk=product.pk stock_pk=item.pk %}">
+                                            {{ item.variant.sku }}
+                                        </a></td>
+                                        <td class="right-align">{{ item.quantity }}</td>
+                                        <td>{{ item.location }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        {% else %}
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <span>{% trans "There is no stock for this product." %}</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        {% endif %}
+                    </table>
+                </div>
                 <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#stock">
             </form>
         </div>

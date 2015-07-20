@@ -119,73 +119,76 @@
                             {% render_status group.status group.get_status_display %}
                         </h5>
                     </div>
-                    <table class="bordered hoverable responsive data-table">
-                        <thead>
-                            <tr>
-                                <th class="wide">{% trans "Item" %}</th>
-                                <th>{% trans "SKU" %}</th>
-                                <th class="right-align">{% trans "Price" %}</th>
-                                <th class="right-align">{% trans "Quantity" %}</th>
-                                <th class="right-align">{% trans "Total" %}</th>
-                                <th class="no-padded"></th>
-                            </tr>
-                        </thead>
 
-                        <tfoot>
-                            {% if group.shipping_price.gross or group.is_shipping_required %}
+                    <div class="data-table-container">
+                        <table class="bordered hoverable responsive data-table">
+                            <thead>
                                 <tr>
-                                    <td colspan="4">
-                                        {% trans "Shipping" %} ({{ order.shipping_method }})
-                                    </td>
+                                    <th class="wide">{% trans "Item" %}</th>
+                                    <th>{% trans "SKU" %}</th>
+                                    <th class="right-align">{% trans "Price" %}</th>
+                                    <th class="right-align">{% trans "Quantity" %}</th>
+                                    <th class="right-align">{% trans "Total" %}</th>
+                                    <th class="no-padded"></th>
+                                </tr>
+                            </thead>
+
+                            <tfoot>
+                                {% if group.shipping_price.gross or group.is_shipping_required %}
+                                    <tr>
+                                        <td colspan="4">
+                                            {% trans "Shipping" %} ({{ order.shipping_method }})
+                                        </td>
+                                        <td class="right-align">
+                                            {% gross group.shipping_price %}
+                                        </td>
+                                        <td class="no-padded"></td>
+                                    </tr>
+                                {% endif %}
+                                <tr>
+                                    <td colspan="4">{% trans "Total" %}</td>
                                     <td class="right-align">
-                                        {% gross group.shipping_price %}
+                                        <strong>{% gross group.get_total %}</strong>
                                     </td>
                                     <td class="no-padded"></td>
                                 </tr>
-                            {% endif %}
-                            <tr>
-                                <td colspan="4">{% trans "Total" %}</td>
-                                <td class="right-align">
-                                    <strong>{% gross group.get_total %}</strong>
-                                </td>
-                                <td class="no-padded"></td>
-                            </tr>
-                        </tfoot>
+                            </tfoot>
 
-                        <tbody>
-                            {% for item in group.items.all %}
-                                <tr>
-                                    <td>
-                                        {{ item.product_name }}<br>
-                                    </td>
-                                    <td>{{ item.product_sku }}</td>
-                                    <td class="right-align">{% gross item.get_price_per_item %}</td>
-                                    <td class="right-align">{{ item.quantity }}</td>
-                                    <td class="right-align">{% gross item.get_total %}</td>
-                                    <td class="right-align no-padded">
-                                        <a class="dropdown-button" href="#" data-activates="line-actions-{{ item.pk }}" data-constrainwidth="false">
-                                            <i class="mdi-navigation-more-vert"></i>
-                                        </a>
+                            <tbody>
+                                {% for item in group.items.all %}
+                                    <tr>
+                                        <td>
+                                            {{ item.product_name }}<br>
+                                        </td>
+                                        <td>{{ item.product_sku }}</td>
+                                        <td class="right-align">{% gross item.get_price_per_item %}</td>
+                                        <td class="right-align">{{ item.quantity }}</td>
+                                        <td class="right-align">{% gross item.get_total %}</td>
+                                        <td class="right-align no-padded">
+                                            <a class="dropdown-button" href="#" data-activates="line-actions-{{ item.pk }}" data-constrainwidth="false">
+                                                <i class="mdi-navigation-more-vert"></i>
+                                            </a>
 
-                                        <ul id="line-actions-{{ item.pk }}" class="dropdown-content">
-                                            <li>
-                                                <a href="#base-modal" data-href="{% url 'dashboard:orderline-change-quantity' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom"
-                                                    {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Change quantity" %}">
-                                                    {% trans "Change quantity" %}
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a href="#base-modal" data-href="{% url 'dashboard:orderline-split' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom"
-                                                    {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Split line" %}">
-                                                    {% trans "Split order line" %}
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                            <ul id="line-actions-{{ item.pk }}" class="dropdown-content">
+                                                <li>
+                                                    <a href="#base-modal" data-href="{% url 'dashboard:orderline-change-quantity' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom"
+                                                        {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Change quantity" %}">
+                                                        {% trans "Change quantity" %}
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="#base-modal" data-href="{% url 'dashboard:orderline-split' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom"
+                                                        {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Split line" %}">
+                                                        {% trans "Split order line" %}
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
 
                     {% if group.can_ship %}
                         <div class="card-action">
@@ -262,25 +265,27 @@
     <div class="tab-content" id="payment-history">
         {% if all_payments %}
             <div class="card">
-                <table class="bordered hoverable responsive data-table">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>{% trans "Date" %}</th>
-                            <th class="wide">{% trans "Payment status" %}</th>
-                        </tr>
-                    </thead>
+                <div class="data-table-container">
+                    <table class="bordered hoverable responsive data-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>{% trans "Date" %}</th>
+                                <th class="wide">{% trans "Payment status" %}</th>
+                            </tr>
+                        </thead>
 
-                    <tbody>
-                        {% for payment in all_payments %}
-                        <tr>
-                            <td><a href="{% url "dashboard:payment-details" pk=payment.pk %}">#{{ payment.id }}</a></td>
-                            <td>{{ payment.created }}</td>
-                            <td>{% render_status payment.status payment.get_status_display %}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                        <tbody>
+                            {% for payment in all_payments %}
+                            <tr>
+                                <td><a href="{% url "dashboard:payment-details" pk=payment.pk %}">#{{ payment.id }}</a></td>
+                                <td>{{ payment.created }}</td>
+                                <td>{% render_status payment.status payment.get_status_display %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         {% else %}
             <p>{% trans "No payments made for this order." %}</p>
@@ -288,30 +293,32 @@
     </div>
 
     <div class="card tab-content" id="order-history">
-        <table class="bordered hooverable responsive data-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Order status</th>
-                    <th>User</th>
-                    <th class="wide">Comment</th>
-                </tr>
-            </thead>
+        <div class="data-table-container">
+            <table class="bordered hooverable responsive data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Order status</th>
+                        <th>User</th>
+                        <th class="wide">Comment</th>
+                    </tr>
+                </thead>
 
-            <tbody>
-                {% for event in order.history.all %}
-                <tr>
-                    <td>{{ event.date }}</td>
-                    <td>{% render_status event.status event.get_status_display %}</td>
-                    <td>
-                        {% if event.user %}
-                            {{ event.user }}
-                        {% endif %}
-                    </td>
-                    <td>{{ event.comment|default:"" }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                <tbody>
+                    {% for event in order.history.all %}
+                    <tr>
+                        <td>{{ event.date }}</td>
+                        <td>{% render_status event.status event.get_status_display %}</td>
+                        <td>
+                            {% if event.user %}
+                                {{ event.user }}
+                            {% endif %}
+                        </td>
+                        <td>{{ event.comment|default:"" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 {% endblock %}

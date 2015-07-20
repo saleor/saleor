@@ -1,9 +1,26 @@
 @mixin data-table {
+  &-container {
+    @media #{$medium-and-down} {
+      overflow: scroll;
+    }
+
+    .card &:first-child, .card-title + & {
+      th {
+        border-top: none;
+      }
+    }
+  }
+
   &-header {
     padding: 21px 24px;
+
+    &--no-data {
+      padding: 20px 20px 0;
+    }
   }
 
   &-title {
+    font-weight: 300;
     margin: 0;
 
     .data-table-status {
@@ -88,12 +105,6 @@
 
   &.hoverable {
     box-shadow: none;
-  }
-
-  .card &:first-child, .card-title + & {
-    th {
-      border-top: none;
-    }
   }
 
   .dropdown-button {
