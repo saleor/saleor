@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from django.db import models
 from django.test import TestCase
-from django.utils.encoding import python_2_unicode_compatible, smart_text
+from django.utils.encoding import smart_text
 from mock import MagicMock
 from prices import Price
 import pytest
@@ -32,14 +32,12 @@ class BigShipVariant(ProductVariant):
         return 'BIG SHIP'
 
 
-@python_2_unicode_compatible
 class BigShip(Product):
 
     def get_slug(self):
         return 'bigship'
 
 
-@python_2_unicode_compatible
 class ShipPhotoVariant(ProductVariant):
 
     @property
@@ -56,7 +54,6 @@ class ShipPhotoVariant(ProductVariant):
         return 'BIG SHIP'
 
 
-@python_2_unicode_compatible
 class ShipPhoto(Product):
 
     def get_slug(self):
