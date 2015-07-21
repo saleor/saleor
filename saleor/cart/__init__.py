@@ -86,7 +86,7 @@ class Cart(cart.Cart):
         super(Cart, self).add(product, quantity, data, replace, check_quantity)
         data = self.get_data_for_product(product)
         if not skip_session_cart:
-            display = '%s - %s' % (smart_text(product.product), product.display_variant())
+            display = product.display_product()
             self.session_cart.add(display, quantity, data, replace=replace)
 
     def clear(self):

@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from django.db import models
 from django.test import TestCase
-from django.utils.encoding import smart_text
+from django.utils.encoding import python_2_unicode_compatible, smart_text
 from mock import MagicMock
 from prices import Price
 import pytest
@@ -12,32 +12,58 @@ from satchless.item import InsufficientStock
 from . import Cart, SessionCart
 from . import forms
 from .forms import ReplaceCartLineForm, ReplaceCartLineFormSet
-from ..product.models import (ProductVariant, StockedProduct, PhysicalProduct)
+from ..product.models import (ProductVariant, Product)
 
 
-class BigShip(ProductVariant, StockedProduct, PhysicalProduct):
-    name = models.CharField(max_length=250)
+class BigShipVariant(ProductVariant):
 
     def get_price_per_item(self, discounted=True, **kwargs):
-        return self.price
+        return Price(10, currency='USD')
+
+    def get_stock_quantity(self):
+        return 10
+
+    @property
+    def product(self):
+        return BigShip(name='Big Ship', price=Price(10, currency='USD'),
+                       weight=Decimal(123))
+
+    def display_variant(self, attributes=None):
+        return 'BIG SHIP'
+
+
+@python_2_unicode_compatible
+class BigShip(Product):
 
     def get_slug(self):
         return 'bigship'
 
+
+@python_2_unicode_compatible
+class ShipPhotoVariant(ProductVariant):
+
     @property
     def product(self):
-        return self
+        return ShipPhoto(name='Ship Photo', price=Price(10, currency='USD'))
+
+    def check_quantity(self, quantity):
+        pass
+
+    def display_variant(self, attributes=None):
+        return 'SHIP PHOTO'
+
+    def display_variant(self, attributes=None):
+        return 'BIG SHIP'
 
 
-class ShipPhoto(ProductVariant, PhysicalProduct):
-    name = models.CharField(max_length=250)
+@python_2_unicode_compatible
+class ShipPhoto(Product):
 
     def get_slug(self):
         return 'bigship-photo'
 
-    @property
-    def product(self):
-        return self
+    def is_shipping_required(self):
+        return False
 
 
 class AddToCartForm(forms.AddToCartForm):
@@ -46,94 +72,83 @@ class AddToCartForm(forms.AddToCartForm):
         return self.product
 
 
-stock_product = BigShip(name='BigShip', stock=10,
-                        price=Price(10, currency='USD'), weight=Decimal(123))
-non_stock_product = ShipPhoto(price=Price(10, currency='USD'))
+stocked_variant = BigShipVariant(name='Big Ship')
+non_stocked_variant = ShipPhotoVariant(name='Ship Photo')
 
 
 def test_cart_checks_quantity():
     cart = Cart(session_cart=MagicMock())
     with pytest.raises(InsufficientStock):
-        cart.add(stock_product, 100)
+        cart.add(stocked_variant, 100)
     assert not cart
 
 
 def test_cart_add_adds_to_session_cart():
     cart = Cart(session_cart=SessionCart())
-    cart.add(stock_product, 10)
+    cart.add(stocked_variant, 10)
     assert cart.session_cart.count() == 10
     assert cart.session_cart.modified
-    assert cart.session_cart[0].product == smart_text(stock_product)
+    assert cart.session_cart[0].product == stocked_variant.display_product()
 
 
 def test_quantity_is_correctly_saved():
     cart = Cart(session_cart=MagicMock())
     data = {'quantity': 5}
-    form = AddToCartForm(data, cart=cart, product=stock_product)
+    form = AddToCartForm(data, cart=cart, product=stocked_variant)
     assert form.is_valid()
     assert not cart
     form.save()
-    product_quantity = cart.get_line(stock_product).quantity
+    product_quantity = cart.get_line(stocked_variant).quantity
     assert product_quantity == 5
 
 
 def test_multiple_actions_result_in_combined_quantity():
     cart = Cart(session_cart=MagicMock())
     data = {'quantity': 5}
-    form = AddToCartForm(data, cart=cart, product=stock_product)
+    form = AddToCartForm(data, cart=cart, product=stocked_variant)
     assert form.is_valid()
     form.save()
-    form = AddToCartForm(data, cart=cart, product=stock_product)
+    form = AddToCartForm(data, cart=cart, product=stocked_variant)
     assert form.is_valid()
     form.save()
-    product_quantity = cart.get_line(stock_product).quantity
+    product_quantity = cart.get_line(stocked_variant).quantity
     assert product_quantity == 10
 
 
 def test_excessive_quantity_is_rejected():
     cart = Cart(session_cart=MagicMock())
     data = {'quantity': 15}
-    form = AddToCartForm(data, cart=cart, product=stock_product)
+    form = AddToCartForm(data, cart=cart, product=stocked_variant)
     assert not form.is_valid()
     assert not cart
-
-
-def test_any_quantity_is_valid_for_non_stock_products():
-    cart = Cart(session_cart=MagicMock())
-    data = {'quantity': 999}
-    form = AddToCartForm(data, cart=cart, product=non_stock_product)
-    assert form.is_valid()
-    assert not cart
-    form.save()
-    assert cart
 
 
 def test_replace_form_replaces_quantity():
     cart = Cart(session_cart=MagicMock())
     data = {'quantity': 5}
-    form = ReplaceCartLineForm(data, cart=cart, product=stock_product)
+    form = ReplaceCartLineForm(data, cart=cart, product=stocked_variant)
     assert form.is_valid()
     form.save()
-    product_quantity = cart.get_line(stock_product).quantity
+    product_quantity = cart.get_line(stocked_variant).quantity
     assert product_quantity == 5
-    form = ReplaceCartLineForm(data, cart=cart, product=stock_product)
+    form = ReplaceCartLineForm(data, cart=cart, product=stocked_variant)
     assert form.is_valid()
     form.save()
-    product_quantity = cart.get_line(stock_product).quantity
+    product_quantity = cart.get_line(stocked_variant).quantity
     assert product_quantity == 5
 
 
 def test_replace_form_rejects_excessive_quantity():
     cart = Cart(session_cart=MagicMock())
     data = {'quantity': 15}
-    form = ReplaceCartLineForm(data, cart=cart, product=stock_product)
+    form = ReplaceCartLineForm(data, cart=cart, product=stocked_variant)
     assert not form.is_valid()
 
 
 def test_replace_formset_works():
     cart = Cart(session_cart=MagicMock())
-    cart.add(stock_product, 5)
-    cart.add(non_stock_product, 100)
+    cart.add(stocked_variant, 5)
+    cart.add(non_stocked_variant, 100)
     data = {
         'form-TOTAL_FORMS': 2,
         'form-INITIAL_FORMS': 2,
@@ -142,13 +157,13 @@ def test_replace_formset_works():
     form = ReplaceCartLineFormSet(data, cart=cart)
     assert form.is_valid()
     form.save()
-    product_quantity = cart.get_line(stock_product).quantity
+    product_quantity = cart.get_line(stocked_variant).quantity
     assert product_quantity == 5
 
 
 def test_session_cart_returns_correct_prices():
     cart = Cart(session_cart=SessionCart())
-    cart.add(stock_product, quantity=10)
+    cart.add(stocked_variant, quantity=10)
     cart_price = cart[0].get_price_per_item()
     sessioncart_price = cart.session_cart[0].get_price_per_item()
     assert cart_price == sessioncart_price

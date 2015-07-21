@@ -16,7 +16,7 @@ class ProductClassForm(forms.Form):
         label=pgettext_lazy('Product class form label', 'Product class'),
         widget=forms.RadioSelect,
         choices=[(cls.__name__, presentation) for cls, presentation in
-                 PRODUCT_CLASSES.iteritems()])
+                 PRODUCT_CLASSES.items()])
 
     def __init__(self, *args, **kwargs):
         super(ProductClassForm, self).__init__(*args, **kwargs)

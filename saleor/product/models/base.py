@@ -179,7 +179,7 @@ class ProductVariant(models.Model, Item):
         return self.weight_override or self.product.weight
 
     def check_quantity(self, quantity):
-        available_quantity = sum([stock.quantity for stock in self.stock.all()])
+        available_quantity = self.get_stock_quantity()
         if quantity > available_quantity:
             raise InsufficientStock(self)
 
@@ -225,6 +225,10 @@ class ProductVariant(models.Model, Item):
             return ', '.join([smart_text(value) for value in values])
         else:
             return smart_text(self)
+
+    def display_product(self, attributes=None):
+        return '%s (%s)' % (smart_text(self.product),
+                            self.display_variant(attributes=attributes))
 
 
 @python_2_unicode_compatible
