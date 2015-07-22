@@ -7,6 +7,10 @@
   "license": "MIT",
   "private": true,
   "devDependencies": {
-    "typed.js": "*"
+    "typed.js": "*",
+    "bootstrap-sass": "~3.3.5",
+    "font-awesome": "~4.3.0",
+    "jquery": "~2.1.4",
+    "jquery-smooth-scroll": "~1.5.5"
   }
 }

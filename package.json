@@ -3,15 +3,6 @@
   "version": "1.0.0",
   "description": "Saleor site",
   "main": "index.html",
-  "scripts": {
-    "build": "npm run jade && npm run scss && npm run uglify",
-    "jade": "node_modules/jade/bin/jade.js src/jade/*.jade -o ./",
-    "scss": "node_modules/node-sass/bin/node-sass src/scss/style.scss static/style_no_prefix.css --source-map static/style.css.map && node_modules/autoprefixer/autoprefixer static/style_no_prefix.css -o static/style.css && rm static/style_no_prefix.css",
-    "sync": "node_modules/browser-sync/bin/browser-sync.js start --server --port 3004 watch --files *.html --files static/style.css --files static/*.js --no-open",
-    "sync-n-watch": "npm run watch & npm run sync",
-    "uglify": "node_modules/uglify-js/bin/uglifyjs node_modules/jquery/dist/jquery.js node_modules/bootstrap-sass/assets/javascripts/bootstrap.js node_modules/jquery-smooth-scroll/jquery.smooth-scroll.js bower_components/typed.js/js/typed.js src/js/site.js --output static/site.js --compress --mangle --source-map static/site.js.map --source-map-url site.js.map",
-    "watch": "node_modules/watch/cli.js 'npm run jade' src/jade & node_modules/watch/cli.js 'npm run scss' src/scss & node_modules/watch/cli.js 'npm run uglify' src/js"
-  },
   "repository": {
     "type": "git",
     "url": "git://github.com/mirumee/saleor.git"
@@ -22,15 +13,14 @@
     "url": "https://github.com/mirumee/saleor/issues"
   },
   "devDependencies": {
-    "jade": "~1.9.2",
-    "watch": "~0.16.0",
-    "browser-sync": "~2.7.1",
-    "node-sass": "~3.1.0",
-    "bootstrap-sass": "~3.3.4",
-    "font-awesome": "~4.3.0",
-    "jquery": "~2.1.4",
-    "uglify-js": "~2.4.22",
-    "autoprefixer": "~5.1.1",
-    "jquery-smooth-scroll": "~1.5.5"
+    "grunt-sass": "~1.0.0",
+    "grunt-postcss": "~0.5.5",
+    "grunt-contrib-uglify": "~0.9.1",
+    "grunt-contrib-jade": "~0.15.0",
+    "grunt-browser-sync": "~2.1.3",
+    "grunt-contrib-watch": "~0.6.1",
+    "autoprefixer-core": "~5.2.1",
+    "csswring": "~3.0.5",
+    "load-grunt-tasks": "~3.2.0"
   }
 }
