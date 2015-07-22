@@ -25,6 +25,7 @@ def construct_get_query(context, **params):
     all_params = {}
     all_params.update(request_get)
     all_params.update(params)
+    all_params.update(context.get('default_pagination_params', {}))
     return '?' + urlencode(all_params)
 
 

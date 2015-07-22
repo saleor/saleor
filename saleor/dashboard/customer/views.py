@@ -28,6 +28,8 @@ def customer_list(request):
     customers, paginator = paginate(customers, 30, request.GET.get('page'))
     ctx = {'customers': customers, 'form': form, 'title': title,
            'paginator': paginator}
+    if not request.GET:
+        ctx.update({'default_pagination_params': {'order_status': 'on'}})
     return TemplateResponse(request, 'dashboard/customer/list.html', ctx)
 
 
