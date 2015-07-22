@@ -8,5 +8,5 @@ $.fn.addDeleteButtons = function() {
     });
     this.find('.delete-button').click(function(){
         $(this).parents('tr').find('input[type="number"]').val('0');
-    })
+    });
 };

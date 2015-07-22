@@ -73,7 +73,7 @@ $(document).ready(function() {
           $('.modal-close').click();
         }
       },
-      success: function(response) {
+      success: function() {
         location.reload();
       }
     });
@@ -123,7 +123,7 @@ Dropzone.options.productImageForm = {
 };
 var el = document.getElementById('product-gallery');
 if (el) {
-  var sortable = Sortable.create(el, {
+  Sortable.create(el, {
     handle: '.card-image',
     onUpdate: function () {
       $.ajax({
@@ -132,7 +132,7 @@ if (el) {
         data: JSON.stringify({
           'order': (function () {
             var postData = [];
-            $(el).find('.product-gallery-item[data-id]').each(function (i) {
+            $(el).find('.product-gallery-item[data-id]').each(function() {
               postData.push($(this).data('id'));
             });
             return postData;
