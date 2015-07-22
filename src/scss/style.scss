@@ -9,8 +9,6 @@ body {
 }
 
 h3 {
-  color: $brand-info;
-
   @media (max-width: $grid-float-breakpoint-max) {
     font-size: $font-size-h1-px;
     font-size: $font-size-h1;
@@ -186,9 +184,11 @@ h3 {
 }
 
 .section {
+  background-color: $gray-light;
   background-position: top;
   background-repeat: no-repeat;
   background-size: cover;
+  font-size: 20px;
   padding: 4em 0 130px;
   padding-bottom: 17vmin;
   position: relative;
@@ -207,10 +207,9 @@ h3 {
   min-height: 100vh;
 
   &-header {
-    color: $brand-info;
     font-family: $font-family-sans-serif-light;
-    font-size: $font-size-h2-px;
-    font-size: $font-size-h2;
+    font-size: $font-size-h1-px;
+    font-size: $font-size-h1;
     margin-bottom: $font-size-h2-px;
     margin-bottom: $font-size-h2;
     padding-bottom: $font-size-h2-px;
@@ -221,20 +220,6 @@ h3 {
     @media (max-width: $grid-float-breakpoint-max) {
       font-size: $font-size-h1-px;
       font-size: $font-size-h1;
-    }
-
-    &:after {
-      border-bottom: solid $brand-info;
-      border-bottom-width: 6px;
-      border-bottom-width: .8vmin;
-      bottom: 0;
-      content: "";
-      display: block;
-      left: 50%;
-      margin-left: -2.1vmin;
-      position: absolute;
-      width: 32px;
-      width: 4.2vmin;
     }
 
     b {
@@ -270,7 +255,7 @@ h3 {
 
   &-stripe {
     align-items: center;
-    background: $brand-info;
+    background-color: $yellow;
     bottom: 0;
     color: white;
     display: flex;
@@ -278,6 +263,7 @@ h3 {
     font-family: $font-family-sans-serif-light;
     font-size: $font-size-h2-px;
     font-size: $font-size-h2;
+    font-weight: bold;
     min-height: 130px;
     min-height: 17vmin;
     justify-content: center;
@@ -286,12 +272,8 @@ h3 {
     padding: $font-size-h2-px;
     padding: $font-size-h2;
     position: absolute;
+    text-transform: uppercase;
     width: 100%;
-
-    @media (min-width: $grid-float-breakpoint) {
-      font-size: $font-size-h3-px;
-      font-size: $font-size-h3;
-    }
 
     span {
       display: block;
@@ -346,8 +328,6 @@ h3 {
       padding: 0;
 
       .section-header {
-        font-size: $font-size-h1-px;
-        font-size: $font-size-h1;
         line-height: 1.2;
         -ms-transform: translate(0, 30vh);
 
@@ -361,20 +341,6 @@ h3 {
           padding-top: $font-size-h2-px;
           padding-top: $font-size-h2;
           position: relative;
-
-          &:before {
-            border-bottom: solid;
-            border-bottom-width: 6px;
-            border-bottom-width: .9vmin;
-            top: 0;
-            content: "";
-            display: block;
-            left: 50%;
-            margin-left: -2.3vmin;
-            position: absolute;
-            width: 35px;
-            width: 4.6vmin;
-          }
         }
       }
 
@@ -448,8 +414,8 @@ h3 {
           max-height: 64vmin;
           max-width: 56%;
           position: absolute;
+          left: -12vmin;
           right: 92px;
-          right: 12vmin;
         }
       }
 

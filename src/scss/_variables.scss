@@ -6,7 +6,7 @@ $brand-primary: #304C58;
 $brand-info: #006599;
 $brand-warning: #FF9900;
 $gray-dark: #323232;
-$gray-light: #E6E2D9;
+$gray-light: #F5EFDF;
 $gray-lighter: #DADADA;
 
 $btn-primary-color: $brand-primary;
@@ -70,22 +70,6 @@ $pages-colors: (
 $sections-colors: (
   home: (
     header: white,
-    intro: $brand-primary,
-    intro-bg: $yellow
-  ),
-  customers: (
-    header: white,
-    intro: white,
-    intro-bg: rgba($yellow, .5)
-  ),
-  dashboard: (
-    background: $gray-light,
-    intro: $text-color,
-    intro-bg: white
-  ),
-  home-developers: (
-    intro: $text-color,
-    intro-bg: white
   ),
   try-it-now: (
     header: white,
@@ -102,6 +86,6 @@ $sections-flex: (
   home, developers
 );
 $sections-image: (
-  home, customers, home-developers
+  home
 );
 $transition-duration: .2s;
