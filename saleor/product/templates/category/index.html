@@ -21,7 +21,7 @@
                         {% if product.images.first %}
                             <img class="img-responsive" src="{{ product.images.first.image.thumbnail.750x750 }}" alt="">
                         {% else %}
-                            <img class="img-responsive" src="http://placehold.it/750x500/&text=Product Image" alt="">
+                            <img class="img-responsive" src="http://placehold.it/750x750/F5F5F5/AAAAAA?text=Product Image" alt="">
                         {% endif %}
                     </a>
                     <h3><a href="{{ product.get_absolute_url }}">{{ product }}</a></h3>
