@@ -8,6 +8,7 @@
   "env": {
     "BUILDPACK_URL": "https://github.com/ddollar/heroku-buildpack-multi.git",
     "DJANGO_SETTINGS_MODULE": "saleor.settings",
+    "ALLOWED_HOSTS": "*",
     "SECRET_KEY": {
       "description": "A secret key for verifying the integrity of signed cookies.",
       "generator": "secret"
@@ -29,7 +30,7 @@
     }
   },
   "scripts": {
-    "postdeploy": "saleor migrate && saleor populatedb"
+    "postdeploy": "saleor migrate && saleor populatedb --createsuperuser"
   },
   "addons": [
     "heroku-postgresql:hobby-dev"
