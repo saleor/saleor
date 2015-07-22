@@ -15,37 +15,33 @@ block main
                     span  Written in python.
             div.section-stripe
                 a(href="#business") Find out more
-    section#business(class=["section", "section--customers"])
-        h2.section-header Better
-            b  user experience
-            span means
-            span happier
-                b  customers
-        p.section-text
-        div.section-stripe
-            span Happy customers result in higher return rates and more recognition to your brand. Strive to provide the best shopping experience you can.
-                | Saleor's storefront offers great experience out-of-the-box. With help of a developer or two you can make it match your brand's both look and feel.
     section(class=["section", "section--dashboard"])
         h2.section-header Better
             b  dashboard
-            span means
+            span
+                | =
             span a satisfied
                 b  sales team
         div.container
             div.row
-                div.col-sm-4
+                div.col-sm-6
                     p Your team is going to spend a lot of time with your dashboard. Make sure their only concern is
                         | providing the best shopping experience to your customers. We've designed Saleor's dashboard
                         | to solve your every day problems. It's so intuitive that even a senior executive could use it.
-                div.col-sm-8
+                    ul
+                        li dashboard experience
+                        li multidevice support
+                        li multideliveries for single order
+                        li supports from one to 10 millions plus products
+                div.col-sm-6
                     img(src="static/images/dashboard.png", alt="")
         div.section-stripe
-            span See how SALEOR helps your business
-            a.section-button Learn more
+            i(class=["fa", "fa-plus"])
     section(class=["section", "section--home-developers"])
         h2.section-header Better
             b  architecture
-            span  means
+            span
+                | =
             span  productive
                 b  developers
         div.container
@@ -55,10 +51,36 @@ block main
                         | fighting it. Saleor's clean architecture makes it easy to customize. Its adherence to
                         | industry standards results in great SEO. Our excellent documentation makes it easy to
                         | pick up for newcomers.
-                    img.img-responsive(src="https://placekitten.com/g/1000/600", alt="")
+                    ul
+                        li semantic templates bootstrap/sass
+                        li SEO friendly
+                        li supports latest Django &amp; Python
+                        li serverside analytics / no tracking cookies needed
+                        li translation ready
+                        li multicurrency
+                        li scalable
+                        li deploy on heroku in seconds
         div.section-stripe
-            span See how SALEOR makes your developers happy
-            a.section-button Learn more
+            i(class=["fa", "fa-plus"])
+    section#business(class=["section", "section--customers"])
+        h2.section-header Better
+            b  user experience
+            span
+                | =
+            span happier
+                b  customers
+        div.container
+            div.row
+                div.col-sm-6
+                    p Happy customers result in higher return rates and more recognition to your brand. Strive to provide the best shopping experience you can.
+                        | Saleor's storefront offers great experience out-of-the-box. With help of a developer or two you can make it match your brand's both look and feel.
+                    ul
+                        li industry standard checkout
+                        li multidevice support
+        div.section-stripe
+            span Probably the best opensource shop
+                br
+                | in the world
     section#try-it-now(class=["section", "section--try-it-now"])
         div.container
             h2.section-header Try it now.<br>
@@ -66,8 +88,9 @@ block main
                 b  free
             div.row
                 div.col
-                    h3.section-subheader Some small talk about bug issues<br>installing marchewka.
+                    img.img-responsive(src="static/images/box.png", alt="")
+                div.col-sm-6
+                    p Some small talk about bug issues installing marchewka.
                     p We have got some awesome code. It's hard to believe it in like this and it's free. Imagine this
                         | and go to Github. Bla bla bla lorem ipsum jeszcze one more lajn.
-                    img.img-responsive(src="static/images/box.png", alt="")
                     a(class=["section-button", "section-button--strong"]) Get now
