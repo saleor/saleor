@@ -86,6 +86,9 @@ Do you want to see `saleor` in action? Launch the demo on `heroku`.
 
 [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
 
+Login credentials: `admin@example.com`/`admin`
+
+
 Google Analytics
 ----------------
 
