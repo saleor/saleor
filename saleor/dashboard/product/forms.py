@@ -20,8 +20,8 @@ class ProductClassForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(ProductClassForm, self).__init__(*args, **kwargs)
-        product_classes = list(PRODUCT_CLASSES.keys())
-        self.fields['product_cls'].initial = product_classes[0].__name__
+        product_class = next(iter((PRODUCT_CLASSES)))
+        self.fields['product_cls'].initial = product_class.__name__
 
 
 class StockForm(forms.ModelForm):
