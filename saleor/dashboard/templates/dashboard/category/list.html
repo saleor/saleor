@@ -40,7 +40,7 @@
         </li>
 
         <li>
-            <a class="modal-trigger" href="#modal-category-delete">
+            <a class="modal-trigger-custom" data-href="{% url 'dashboard:category-delete' pk=root.pk %}" href="#base-modal">
                 {% trans "Remove category" %}
             </a>
         </li>
@@ -109,24 +109,4 @@
             </ul>
         </div>
     </div>
-
-    {% if root %}
-        <div id="modal-category-delete" class="modal">
-            <form action="{% url "dashboard:category-delete" pk=root.pk %}" method="post">
-                {% csrf_token %}
-                <div class="modal-content">
-                    <h5>{% trans "Are you sure?" %}</h5>
-
-                    <p>
-                        {% blocktrans %}If you remove <strong>{{ root }}</strong> you will lose all data related to this category.{% endblocktrans %}
-                    </p>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
-                    <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
-                </div>
-            </form>
-        </div>
-    {% endif %}
 {% endblock %}

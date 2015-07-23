@@ -19,7 +19,8 @@
     </a>
     <ul id="attribute-delete" class="dropdown-content">
         <li>
-            <a class="modal-trigger" href="#modal-attribute-delete">
+            <a class="modal-trigger-custom" href="#base-modal"
+                data-href="{% url 'dashboard:product-attribute-delete' pk=attribute.pk %}">
                 {% trans "Remove attribute" %}
             </a>
         </li>
@@ -88,24 +89,4 @@
             </div>
         </div>
     </form>
-
-    {% if attribute.pk %}
-    <div id="modal-attribute-delete" class="modal">
-        <form action="{% url "dashboard:product-attribute-delete" pk=attribute.pk %}" method="post">
-            {% csrf_token %}
-            <div class="modal-content">
-                <h5>{% trans "Are you sure?" %}</h5>
-
-                <p>
-                    {% blocktrans %}You are about to delete an attribute <strong>{{ attribute }}</strong>.{% endblocktrans %}
-                </p>
-            </div>
-
-            <div class="modal-footer">
-                <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
-                <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
-            </div>
-        </form>
-    </div>
-    {% endif %}
 {% endblock %}

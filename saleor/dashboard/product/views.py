@@ -71,9 +71,9 @@ def product_delete(request, pk):
         product.delete()
         messages.success(request, _('Deleted product %s') % product)
         return redirect('dashboard:product-list')
-    return TemplateResponse(request,
-                            'dashboard/product/product_confirm_delete.html',
-                            {'product': product})
+    return TemplateResponse(
+        request, 'dashboard/product/modal_product_confirm_delete.html',
+        {'product': product})
 
 
 @staff_member_required
@@ -161,7 +161,8 @@ def product_image_delete(request, product_pk, img_pk):
             return redirect(success_url)
     ctx = {'product': product, 'product_image': product_image}
     return TemplateResponse(
-        request, 'dashboard/product/product_image_confirm_delete.html', ctx)
+        request,
+        'dashboard/product/modal_product_image_confirm_delete.html', ctx)
 
 
 @staff_member_required
@@ -208,7 +209,8 @@ def variant_delete(request, product_pk, variant_pk):
     ctx = {'is_only_variant': is_only_variant, 'product': product,
            'variant': variant}
     return TemplateResponse(
-        request, 'dashboard/product/product_variant_confirm_delete.html', ctx)
+        request,
+        'dashboard/product/modal_product_variant_confirm_delete.html', ctx)
 
 
 @staff_member_required
@@ -262,6 +264,5 @@ def attribute_delete(request, pk):
         messages.success(request, _('Deleted attribute %s' % attribute.display))
         return redirect('dashboard:product-attributes')
     ctx = {'attribute': attribute}
-    return TemplateResponse(request,
-                            'dashboard/product/attributes/confirm_delete.html',
-                            ctx)
+    return TemplateResponse(
+        request, 'dashboard/product/attributes/modal_confirm_delete.html', ctx)

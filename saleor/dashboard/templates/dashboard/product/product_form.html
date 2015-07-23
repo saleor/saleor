@@ -21,7 +21,8 @@
     </a>
     <ul id="product-delete" class="dropdown-content">
         <li>
-            <a class="modal-trigger" href="#modal-product-delete">
+            <a href="#base-modal" data-href="{% url 'dashboard:product-delete' pk=product.pk %}"
+               class="modal-trigger-custom">
                 {% trans "Remove product" %}
             </a>
         </li>
@@ -297,7 +298,8 @@
                                                 {% trans "Edit" %}
                                             </a>
 
-                                            <a href="#modal-product-image-delete-{{ image.pk }}" class="modal-trigger">
+                                            <a href="#base-modal" class="modal-trigger-custom"
+                                                data-href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}">
                                                 {% trans "Delete" %}
                                             </a>
                                         </div>
@@ -313,30 +315,6 @@
                                 </li>
                             </ul>
                         </form>
-
-                        {% for image in images %}
-                            <div class="modal" id="modal-product-image-delete-{{ image.pk }}">
-                                <form action="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}" method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#images">
-
-                                    <div class="modal-content">
-                                        <h5>{% trans "Are you sure?" %}</h5>
-
-                                        <img class="responsive-img" src="{{ image.image.crop.400x250 }}" alt="">
-
-                                        <p>
-                                            {% blocktrans %}You are about to delete this image.{% endblocktrans %}
-                                        </p>
-                                    </div>
-
-                                    <div class="modal-footer">
-                                        <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
-                                        <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
-                                    </div>
-                                </form>
-                            </div>
-                        {% endfor %}
                     </div>
                 </div>
             {% else %}
@@ -382,28 +360,6 @@
                href="{% url 'dashboard:product-image-add' product_pk=product.pk %}" title="{% trans "Add image" %}">
                 <i class="mdi-content-add"></i>
             </a>
-        </div>
-
-        <div id="modal-product-delete" class="modal">
-            <form action="{% url "dashboard:product-delete" pk=product.pk %}" method="post">
-                {% csrf_token %}
-                <div class="modal-content">
-                    <h5>{% trans "Are you sure?" %}</h5>
-
-                    {% if object.images.exists %}
-                        <img src="{{ product.images.first.image.crop.600x600 }}" alt="" class="responsive-img">
-                    {% endif %}
-
-                    <p>
-                        {% blocktrans %}If you remove <strong>{{ product }}</strong> you will lose all data related to this product.{% endblocktrans %}
-                    </p>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
-                    <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
-                </div>
-            </form>
         </div>
     {% endif %}
 
