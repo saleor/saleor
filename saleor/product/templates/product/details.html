@@ -48,7 +48,7 @@
                 {% if product.images.first %}
                     <img class="img-responsive" src="{{ product.images.first.image.thumbnail.750x750 }}" alt="">
                 {% else %}
-                    <img src="{% static 'placeholders/product-image-placeholder.png' %}" alt="" class="img-responsive">
+                    <img src="{% static 'images/product-image-placeholder.png' %}" alt="" class="img-responsive">
                 {% endif %}
 
                 <hr>
@@ -98,7 +98,7 @@
                     </div>
                     {% empty %}
                         <div class="item active">
-                            <img src="{% static 'placeholders/product-image-placeholder.png' %}" alt="" class="img-responsive">
+                            <img src="{% static 'images/product-image-placeholder.png' %}" alt="" class="img-responsive">
                         </div>
                     {% endfor %}
                 </div>
