@@ -73,5 +73,5 @@ def category_delete(request, pk):
            'descendants': list(category.get_descendants()),
            'products_count': len(category.products.all())}
     return TemplateResponse(request,
-                            'dashboard/category/category_confirm_delete.html',
+                            'dashboard/category/modal_category_confirm_delete.html',
                             ctx)

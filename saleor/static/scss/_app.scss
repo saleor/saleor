@@ -192,6 +192,15 @@ $transition-duration: .2s;
   }
 }
 
+.modal-content {
+  .row {
+    margin: {
+      left: -.75rem;
+      right: -.75rem;
+    }
+  }
+}
+
 .page-title {
   display: block;
   font-size: $h5-fontsize;

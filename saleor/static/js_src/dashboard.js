@@ -105,7 +105,6 @@ Dropzone.options.productImageForm = {
     this.on('complete', function() {
       $dropzoneGhost.remove().appendTo($gallery);
     }).on('success', function(e, response) {
-      console.log(e, response);
       $(e.previewElement).find('.product-gallery-item-desc').html(e.name);
       $(e.previewElement).attr('data-id', response.id);
       var editLinkHref = $(e.previewElement).find('.card-action-edit').attr('href');
