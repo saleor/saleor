@@ -48,7 +48,7 @@
                         {% if product.images.exists %}
                             <img src="{{ product.images.first.image.crop.50x50 }}" alt="" class="circle teal">
                         {% else %}
-                            <img src="{% static 'placeholders/product-image-placeholder.png' %}" alt="" class="circle teal">
+                            <img src="{% static 'images/product-image-placeholder.png' %}" alt="" class="circle teal">
                         {% endif %}
                         <a class="title" href="{% url 'dashboard:product-update' pk=product.pk %}">
                             <span class="list-item-name">{{ product.name }}</span>
