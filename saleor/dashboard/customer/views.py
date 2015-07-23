@@ -18,6 +18,7 @@ def customer_list(request):
         last_order=Max('orders', distinct=True))
 
     form = CustomerSearchForm(request.GET or None, queryset=customers)
+    form_values = [(field.name, field.value() or '') for field in form]
     if form.is_valid():
         customers = form.search()
     else:
@@ -27,9 +28,7 @@ def customer_list(request):
 
     customers, paginator = paginate(customers, 30, request.GET.get('page'))
     ctx = {'customers': customers, 'form': form, 'title': title,
-           'paginator': paginator}
-    if not request.GET:
-        ctx.update({'default_pagination_params': {'order_status': 'on'}})
+           'paginator': paginator, 'default_pagination_params': form_values}
     return TemplateResponse(request, 'dashboard/customer/list.html', ctx)
 
 
