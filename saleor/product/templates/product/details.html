@@ -24,7 +24,7 @@
                 {{ product }}
             </h1>
 
-            {% if product.is_available %}
+            {% if product.is_in_stock %}
                 {% with price_range=product|discounted_price_range:request.discounts undiscounted=product.get_price_range %}
                     {% with discount=undiscounted.min_price|price_difference:price_range.min_price %}
                         <p class="lead" itemprop="offers" itemscope itemtype="http://schema.org/Offer"
@@ -54,7 +54,7 @@
                 <hr>
             </div>
 
-            {% if product.is_available %}
+            {% if product.is_in_stock %}
                 {% block orderform %}
                 <form role="form" class="product-form form-vertical" method="post" action=".">
                     {% csrf_token %}
