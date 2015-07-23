@@ -6,6 +6,7 @@
 {% load gross from prices_i18n %}
 {% load markdown from markdown %}
 {% load price_range from price_ranges %}
+{% load static from staticfiles %}
 
 {% block title %}{{ product }} — {{ block.super }}{% endblock %}
 
@@ -48,7 +49,11 @@
             <hr>
 
             <div class="visible-xs">
-                <img class="img-responsive" src="{{ product.images.first.image.thumbnail.750x750 }}" alt="">
+                {% if product.images.first %}
+                    <img class="img-responsive" src="{{ product.images.first.image.thumbnail.750x750 }}" alt="">
+                {% else %}
+                    <img src="{% static 'images/product-image-placeholder.png' %}" alt="" class="img-responsive">
+                {% endif %}
 
                 <hr>
             </div>
@@ -95,6 +100,10 @@
                             <img class="img-responsive" src="{{ image.image.thumbnail.750x750 }}" alt="">
                         </a>
                     </div>
+                    {% empty %}
+                        <div class="item active">
+                            <img src="{% static 'images/product-image-placeholder.png' %}" alt="" class="img-responsive">
+                        </div>
                     {% endfor %}
                 </div>
 

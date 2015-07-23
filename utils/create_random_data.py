@@ -79,12 +79,16 @@ def create_product_images(product, how_many, placeholder_dir):
 def create_items(placeholder_dir, how_many=10):
     default_category = get_or_create_category('Default')
 
+    create_images = os.path.exists(placeholder_dir)
+
     for i in range(how_many):
         product = create_product()
         product.categories.add(default_category)
 
         create_variant(product)  # ensure at least one variant
-        create_product_images(product, random.randrange(1, 5), placeholder_dir)
+        if create_images:
+            create_product_images(
+                product, random.randrange(1, 5), placeholder_dir)
 
         for _ in range(random.randrange(1, 5)):
             if random.choice([True, False]):

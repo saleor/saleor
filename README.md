@@ -78,8 +78,16 @@ If you intend to use S3 for your static files as well, set the following config 
 ### Prepare the database
     
     $ heroku run python manage.py migrate
-  
     
+    
+## Demo
+
+Do you want to see `saleor` in action? Launch the demo on `heroku`.
+
+[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+
+Login credentials: `admin@example.com`/`admin`
+
 
 Google Analytics
 ----------------
