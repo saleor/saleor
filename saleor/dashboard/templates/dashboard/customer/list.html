@@ -56,16 +56,16 @@
                             <td>
                                 <a href="{% url "dashboard:customer-details" pk=customer.pk %}">{{ customer.email }}</a>
                             </td>
-                            <td>
-                                {% if default_address.first_name %}
+                            {% if default_address %}
+                                <td>
                                     {{ default_address.first_name }} {{ default_address.last_name }}
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if default_address.city %}
+                                </td>
+                                <td>
                                     {{ default_address.city }}, {{ default_address.get_country_display }}
-                                {% endif %}
-                            </td>
+                                </td>
+                            {% else %}
+                                <td colspan="2"></td>
+                            {% endif %}
                             {% endwith %}
                             <td class="right-align">
                                 {{ customer.num_orders }}
