@@ -5,9 +5,10 @@ $border-radius-large: 0;
 $brand-primary: #304C58;
 $brand-info: #006599;
 $brand-warning: #FF9900;
+$brand-danger: #FF3A49;
 $gray-dark: #323232;
 $gray-light: #F5EFDF;
-$gray-lighter: #DADADA;
+$gray-lighter: #FBFBFB;
 
 $btn-primary-color: $brand-primary;
 $btn-primary-bg: transparent;
@@ -54,14 +55,13 @@ $text-color: $gray-dark;
 // Font awesome variables
 $fa-font-path: "//netdna.bootstrapcdn.com/font-awesome/4.3.0/fonts";
 
+// Material Design Icons variables
+$icons-font-path: "webfonts/";
+
 // Custom variables
 $blueish: #267377;
 $yellow: #ffe169;
 $pages-colors: (
-  home: (
-    brand: white,
-    menu: white,
-  ),
   developers: (
     brand: $blueish,
     menu: $blueish,
@@ -69,7 +69,9 @@ $pages-colors: (
 );
 $sections-colors: (
   home: (
-    header: white,
+    header: $brand-info,
+    background: $gray-lighter,
+    intro-bg: $brand-danger,
   ),
   try-it-now: (
     header: white,
@@ -86,6 +88,5 @@ $sections-flex: (
   home, developers
 );
 $sections-image: (
-  home
 );
 $transition-duration: .2s;

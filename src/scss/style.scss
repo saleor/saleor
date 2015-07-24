@@ -1,6 +1,7 @@
 @import "variables";
 @import "bootstrap-sass/assets/stylesheets/bootstrap";
 @import "font-awesome/scss/font-awesome";
+@import "materialize/sass/components/icons-material-design";
 @import "webfont";
 
 body {
@@ -260,10 +261,9 @@ h3 {
     color: white;
     display: flex;
     flex-direction: column;
-    font-family: $font-family-sans-serif-light;
+    font-family: $font-family-sans-serif-black;
     font-size: $font-size-h2-px;
     font-size: $font-size-h2;
-    font-weight: bold;
     min-height: 130px;
     min-height: 17vmin;
     justify-content: center;
@@ -274,6 +274,11 @@ h3 {
     position: absolute;
     text-transform: uppercase;
     width: 100%;
+
+    i {
+      font-size: 120%;
+      font-weight: bold;
+    }
 
     span {
       display: block;
@@ -378,7 +383,6 @@ h3 {
     .section-header {
       &-sub {
         color: map-get(map-get($sections-colors, home), intro-bg);
-        border-color: map-get(map-get($sections-colors, home), intro-bg);
       }
     }
   }

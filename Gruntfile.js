@@ -74,6 +74,13 @@ module.exports = function(grunt) {
         }
       }
     },
+    uncss: {
+      dist: {
+        files: {
+          "static/style.css": "index.html"
+        }
+      }
+    },
     watch: {
       options: {
         atBegin: true,
@@ -98,6 +105,6 @@ module.exports = function(grunt) {
 
   require("load-grunt-tasks")(grunt);
 
-  grunt.registerTask("default", ["sass", "postcss", "uglify"]);
+  grunt.registerTask("default", ["sass", "uncss", "postcss", "uglify"]);
   grunt.registerTask("sync", ["browserSync", "watch"]);
 };
