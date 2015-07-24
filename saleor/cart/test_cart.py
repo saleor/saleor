@@ -12,6 +12,7 @@ from satchless.item import InsufficientStock
 from . import Cart, SessionCart
 from . import forms
 from .forms import ReplaceCartLineForm, ReplaceCartLineFormSet
+from ..cart.utils import has_available_products, remove_unavailable_products
 from ..product.models import (ProductVariant, Product)
 
 
@@ -164,3 +165,33 @@ def test_session_cart_returns_correct_prices():
     cart_price = cart[0].get_price_per_item()
     sessioncart_price = cart.session_cart[0].get_price_per_item()
     assert cart_price == sessioncart_price
+
+
+def test_cart_has_unavailable_products():
+    cart = Cart(session_cart=SessionCart())
+    cart.add(non_stocked_variant, quantity=100)
+    cart.add(stocked_variant, quantity=12, check_quantity=False)
+    assert not has_available_products(cart)
+
+
+def test_cart_has_available_products():
+    cart = Cart(session_cart=SessionCart())
+    cart.add(non_stocked_variant, quantity=100)
+    cart.add(stocked_variant, quantity=10, check_quantity=False)
+    assert has_available_products(cart)
+
+
+def test_cart_contains_products_on_stock():
+    cart = Cart(session_cart=SessionCart())
+    cart.add(stocked_variant, quantity=12, check_quantity=False)
+    updated_cart = remove_unavailable_products(cart)
+    assert cart.count() == 12
+    assert updated_cart.count() == 10
+
+
+def test_cart_doesnt_contain_empty_products():
+    stocked_variant.get_stock_quantity = MagicMock(return_value=0)
+    cart = Cart(session_cart=SessionCart())
+    cart.add(stocked_variant, quantity=10, check_quantity=False)
+    updated_cart = remove_unavailable_products(cart)
+    assert len(updated_cart) == 0
