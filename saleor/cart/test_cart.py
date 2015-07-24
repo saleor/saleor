@@ -184,9 +184,9 @@ def test_cart_has_available_products():
 def test_cart_contains_products_on_stock():
     cart = Cart(session_cart=SessionCart())
     cart.add(stocked_variant, quantity=12, check_quantity=False)
-    updated_cart = remove_unavailable_products(cart)
     assert cart.count() == 12
-    assert updated_cart.count() == 10
+    cart = remove_unavailable_products(cart)
+    assert cart.count() == 10
 
 
 def test_cart_doesnt_contain_empty_products():
