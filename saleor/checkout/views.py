@@ -2,11 +2,13 @@ from django.http.response import Http404
 from django.shortcuts import redirect
 
 from . import Checkout
+from ..cart import Cart
 from ..cart.utils import has_available_products
 
 
 def details(request, step):
-    if not request.cart or not has_available_products(request.cart):
+    if not request.cart or not has_available_products(
+            Cart.for_session_cart(request.cart, discounts=request.discounts)):
         return redirect('cart:index')
     checkout = Checkout(request)
     if not step:
