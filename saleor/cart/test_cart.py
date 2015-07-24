@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.db import models
 from django.test import TestCase
 from django.utils.encoding import smart_text
-from mock import MagicMock
+from mock import MagicMock, patch
 from prices import Price
 import pytest
 from satchless.item import InsufficientStock
@@ -14,6 +14,8 @@ from . import forms
 from .forms import ReplaceCartLineForm, ReplaceCartLineFormSet
 from ..cart.utils import (
     contains_unavailable_products, remove_unavailable_products)
+from ..checkout import Checkout
+from ..checkout.views import details as checkout_details
 from ..product.models import (ProductVariant, Product)
 
 
@@ -191,8 +193,33 @@ def test_cart_contains_products_on_stock():
 
 
 def test_cart_doesnt_contain_empty_products():
+    stocked_variant = BigShipVariant(name='Big Ship')
     stocked_variant.get_stock_quantity = MagicMock(return_value=0)
     cart = Cart(session_cart=SessionCart())
     cart.add(stocked_variant, quantity=10, check_quantity=False)
     updated_cart = remove_unavailable_products(cart)
     assert len(updated_cart) == 0
+
+
+@patch.object(Cart, 'for_session_cart')
+@patch('saleor.checkout.views.redirect')
+def test_checkout_redirects_on_cart_page(mocked_redirect, mocked_cart):
+    cart = Cart(session_cart=SessionCart())
+    cart.add(stocked_variant, quantity=12, check_quantity=False)
+    mocked_cart.return_value = cart
+    checkout_details(request=MagicMock(), step=None)
+    mocked_redirect.assert_called_once_with('cart:index')
+
+
+@patch.object(Checkout, 'get_next_step')
+@patch.object(Cart, 'for_session_cart')
+@patch('saleor.checkout.views.redirect')
+def test_checkout_redirects_on_next_step(
+        mocked_redirect, mocked_cart, mocked_step):
+    next_step = 'next_step'
+    cart = Cart(session_cart=SessionCart())
+    cart.add(stocked_variant, quantity=1)
+    mocked_cart.return_value = cart
+    mocked_step.return_value = next_step
+    checkout_details(request=MagicMock(), step=None)
+    mocked_redirect.assert_called_once_with(next_step)
