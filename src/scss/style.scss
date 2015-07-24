@@ -102,10 +102,6 @@ h3 {
   width: 100%;
   z-index: $zindex-navbar;
 
-  @media (min-width: $grid-float-breakpoint) {
-    top: 4em;
-  }
-
   &-brand {
     font-size: 28px;
     font-size: 9vmin;
@@ -122,6 +118,15 @@ h3 {
       font-size: 4vmin;
       height: 46px;
       height: 4vmin;
+    }
+  }
+
+  .logo {
+    display: block;
+    padding-top: 11px;
+
+    &-img {
+      width: 136px;
     }
   }
 
@@ -211,10 +216,7 @@ h3 {
     font-family: $font-family-sans-serif-light;
     font-size: $font-size-h1-px;
     font-size: $font-size-h1;
-    margin-bottom: $font-size-h2-px;
-    margin-bottom: $font-size-h2;
-    padding-bottom: $font-size-h2-px;
-    padding-bottom: $font-size-h2;
+    margin-bottom: 0;
     position: relative;
     text-transform: uppercase;
 
@@ -333,18 +335,9 @@ h3 {
       padding: 0;
 
       .section-header {
-        line-height: 1.2;
-        -ms-transform: translate(0, 30vh);
-
-        &:after {
-          content: none;
-        }
-
         &-sub {
           margin-top: $font-size-h2-px*.5;
           margin-top: $font-size-h2*.5;
-          padding-top: $font-size-h2-px;
-          padding-top: $font-size-h2;
           position: relative;
         }
       }
@@ -352,12 +345,10 @@ h3 {
       .section-stripe {
         text-transform: uppercase;
       }
-    }
-  }
 
-  @each $section in $sections-image {
-    &.section--#{$section} {
-      background-image: url("images/hero-#{$section}.jpg");
+      .container {
+        -ms-transform: translate(0, 26vh);
+      }
     }
   }
 
@@ -380,6 +371,20 @@ h3 {
   }
 
   &--home {
+    .section-image {
+      display: block;
+      height: auto;
+      margin: 0 auto $font-size-h2-px;
+      margin: 0 auto $font-size-h2;
+      max-width: 80%;
+      width: 80%;
+
+      @media (min-width: $screen-sm-min) {
+        max-width: 60%;
+        width: auto;
+      }
+    }
+
     .section-header {
       &-sub {
         color: map-get(map-get($sections-colors, home), intro-bg);

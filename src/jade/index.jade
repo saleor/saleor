@@ -2,8 +2,9 @@ extends extends/base
 block bodyClass
     - var bodyClass = "body--home"
 block main
-    section(class=["section", "section--home"])
-        div.container
+    section.section.section--home
+        div.container.text-center
+            img.section-image(src="static/images/hero-home.png", alt="")
             h1.section-header
                 span Sell
                     =" "
@@ -13,7 +14,7 @@ block main
                 b  For free
                 span.section-header-sub Saleor is an opensource storefront.
                     span  Written in python.
-    section(class=["section", "section--dashboard"])
+    section.section.section--dashboard
         h2.section-header Better
             b  dashboard
             span
@@ -34,8 +35,8 @@ block main
                 div.col-sm-6
                     img(src="static/images/dashboard.png", alt="")
         div.section-stripe
-            i(class=["mdi-content-add"])
-    section(class=["section", "section--home-developers"])
+            i.mdi-content-add
+    section.section.section--home-developers
         h2.section-header Better
             b  architecture
             span
@@ -44,7 +45,7 @@ block main
                 b  developers
         div.container
             div.row
-                div(class=["col-sm-6", "col-sm-offset-6"])
+                div.col-sm-6.col-sm-offset-6
                     p Your developer's time is precious. Make sure they spend it improving your storefront instead of
                         | fighting it. Saleor's clean architecture makes it easy to customize. Its adherence to
                         | industry standards results in great SEO. Our excellent documentation makes it easy to
@@ -59,8 +60,8 @@ block main
                         li scalable
                         li deploy on heroku in seconds
         div.section-stripe
-            i(class=["mdi-content-add"])
-    section#business(class=["section", "section--customers"])
+            i.mdi-content-add
+    section#business.section.section--customers
         h2.section-header Better
             b  user experience
             span
@@ -79,7 +80,7 @@ block main
             span Probably the best opensource shop
                 br
                 | in the world
-    section#try-it-now(class=["section", "section--try-it-now"])
+    section#try-it-now.section.section--try-it-now
         div.container
             h2.section-header Try it now.<br>
                 | It's totally
@@ -91,4 +92,4 @@ block main
                     p Some small talk about bug issues installing marchewka.
                     p We have got some awesome code. It's hard to believe it in like this and it's free. Imagine this
                         | and go to Github. Bla bla bla lorem ipsum jeszcze one more lajn.
-                    a(class=["section-button", "section-button--strong"]) Get now
+                    a.section-button.section-button--strong Get now
