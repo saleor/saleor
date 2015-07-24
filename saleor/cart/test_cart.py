@@ -12,7 +12,8 @@ from satchless.item import InsufficientStock
 from . import Cart, SessionCart
 from . import forms
 from .forms import ReplaceCartLineForm, ReplaceCartLineFormSet
-from ..cart.utils import has_available_products, remove_unavailable_products
+from ..cart.utils import (
+    contains_unavailable_products, remove_unavailable_products)
 from ..product.models import (ProductVariant, Product)
 
 
@@ -167,18 +168,18 @@ def test_session_cart_returns_correct_prices():
     assert cart_price == sessioncart_price
 
 
-def test_cart_has_unavailable_products():
+def test_cart_contains_unavailable_products():
     cart = Cart(session_cart=SessionCart())
     cart.add(non_stocked_variant, quantity=100)
     cart.add(stocked_variant, quantity=12, check_quantity=False)
-    assert not has_available_products(cart)
+    assert contains_unavailable_products(cart)
 
 
-def test_cart_has_available_products():
+def test_cart_contains_only_available_products():
     cart = Cart(session_cart=SessionCart())
     cart.add(non_stocked_variant, quantity=100)
     cart.add(stocked_variant, quantity=10, check_quantity=False)
-    assert has_available_products(cart)
+    assert not contains_unavailable_products(cart)
 
 
 def test_cart_contains_products_on_stock():

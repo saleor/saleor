@@ -7,13 +7,14 @@ from django.utils.translation import ugettext as _
 
 from .forms import ReplaceCartLineFormSet
 from . import Cart
-from ..cart.utils import has_available_products, remove_unavailable_products
+from ..cart.utils import (
+    contains_unavailable_products, remove_unavailable_products)
 
 
 def index(request):
     cart = Cart.for_session_cart(request.cart, discounts=request.discounts)
     cart_partitioner = cart.partition()
-    if not has_available_products(cart):
+    if contains_unavailable_products(cart):
         msg = _('Sorry. We don\'t have that many items in stock. '
                 'Quantity was set to maximum available for now.')
         messages.warning(request, msg)

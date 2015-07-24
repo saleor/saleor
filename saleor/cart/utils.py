@@ -1,12 +1,12 @@
 from satchless.item import InsufficientStock
 
 
-def has_available_products(cart):
+def contains_unavailable_products(cart):
     try:
         [item.product.check_quantity(item.quantity) for item in cart]
     except InsufficientStock:
-        return False
-    return True
+        return True
+    return False
 
 
 def remove_unavailable_products(cart):

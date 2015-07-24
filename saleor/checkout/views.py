@@ -3,11 +3,11 @@ from django.shortcuts import redirect
 
 from . import Checkout
 from ..cart import Cart
-from ..cart.utils import has_available_products
+from ..cart.utils import contains_unavailable_products
 
 
 def details(request, step):
-    if not request.cart or not has_available_products(
+    if not request.cart or contains_unavailable_products(
             Cart.for_session_cart(request.cart, discounts=request.discounts)):
         return redirect('cart:index')
     checkout = Checkout(request)
