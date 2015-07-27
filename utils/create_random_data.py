@@ -108,21 +108,22 @@ def create_items(placeholder_dir, how_many=10):
         yield "Product - %s %s Variants" % (product, product.variants.count())
 
 
-def create_fake_user():
-    first_name = fake.first_name()
-    last_name = fake.last_name()
-
-    email = get_email(first_name, last_name)
-
-    user = User.objects.create_user(email=email, password='password')
-
+def create_address():
     address = Address.objects.create(
-        first_name=first_name,
-        last_name=last_name,
+        first_name=fake.first_name(),
+        last_name=fake.last_name(),
         street_address_1=fake.street_address(),
         city=fake.city(),
         postal_code=fake.postcode(),
         country=fake.country_code())
+    return address
+
+
+def create_fake_user():
+    address = create_address()
+    email = get_email(address.first_name, address.last_name)
+
+    user = User.objects.create_user(email=email, password='password')
 
     user.addresses.add(address)
     user.default_billing_address = address
@@ -191,13 +192,7 @@ def create_fake_order():
             'billing_address': user.default_billing_address,
             'shipping_address': user.default_shipping_address}
     else:
-        address = Address.objects.create(
-            first_name=fake.first_name(),
-            last_name=fake.last_name(),
-            street_address_1=fake.street_address(),
-            city=fake.city(),
-            postal_code=fake.postcode(),
-            country=fake.country_code())
+        address = create_address()
         user_data = {
             'billing_address': address,
             'shipping_address': address,
