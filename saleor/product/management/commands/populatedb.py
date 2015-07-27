@@ -1,8 +1,6 @@
-from os.path import exists
+from django.core.management.base import BaseCommand
 
-from django.core.management.base import BaseCommand, CommandError
-
-from utils.create_random_data import create_items, create_users
+from utils.create_random_data import create_items, create_users, create_orders
 
 from saleor.userprofile.models import User
 
@@ -23,6 +21,8 @@ class Command(BaseCommand):
         for msg in create_items(self.placeholders_dir, 10):
             self.stdout.write(msg)
         for msg in create_users(10):
+            self.stdout.write(msg)
+        for msg in create_orders(20):
             self.stdout.write(msg)
 
         if options['createsuperuser']:
