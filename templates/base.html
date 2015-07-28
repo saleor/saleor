@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 {% load i18n %}
-{% load categories_list from category %}
-{% load lorem from webdesign %}
+{% load discounted_price_range price_difference from discount %}
+{% load price_range from price_ranges %}
 {% load staticfiles %}
+
 <html lang="en">
     <head>
         <title>{% block title %}Saleor{% endblock %}</title>
@@ -13,18 +14,10 @@
         <meta name="author" content="{% trans "Mirumee Software" %}">
         {% endblock meta %}
 
-        {% if debug %}
-        <link rel="stylesheet/less" type="text/css" href="{% static "less/style.less" %}">
-        {% else %}
-        <link rel="stylesheet" type="text/css" href="{% static "css/style.css" %}">
-        {% endif %}
-
+        <link rel="stylesheet" type="text/css" href="{% static "css/storefront.css" %}">
 
         {% block stylesheet %}{% endblock stylesheet %}
 
-        {% if debug %}
-        <script type="text/javascript" src="{% static "dist/js/less.min.js" %}"></script>
-        {% endif %}
         <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
         <!--[if lt IE 9]>
         <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
@@ -46,15 +39,13 @@
                     </div>
                     <div class="collapse navbar-collapse navbar-ex1-collapse">
                         <ul class="nav navbar-nav">
-                            <li class="active">
-                                <a href="/">Home</a>
-                            </li>
-                            <li class="dropdown">
-                                <a class="dropdown-toggle" data-toggle="dropdown" href="#">{% trans "Categories" %} <b class="caret"></b></a>
-                                <ul class="dropdown-menu">
-                                    {% categories_list %}
-                                </ul>
-                            </li>
+                            {% for category in categories %}
+                                <li>
+                                    <a href="{{ category.get_absolute_url }}">
+                                        {{ category }}
+                                    </a>
+                                </li>
+                            {% endfor %}
                         </ul>
                         <ul class="nav navbar-nav navbar-right">
                             <li class="dropdown">
@@ -73,7 +64,7 @@
                                     <li class="divider"></li>
                                     <li><a href="{% url "checkout:index" %}">{% trans "Proceed to checkout" %}</a></li>
                                     {% endif %}
-                                  </ul>
+                                </ul>
                             </li>
                             {% if user.is_authenticated %}
                             <li class="dropdown">
@@ -123,7 +114,39 @@
             <div class="row">
                 <div class="col-sm-12">
                     {% block content %}
-                    {% lorem 5 p %}
+                        <div class="row">
+                            {% for product in products %}
+                                <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3" itemscope itemtype="https://schema.org/Product">
+                                    <div class="panel panel-default text-center">
+                                        <div class="panel-body">
+                                            <a itemprop="url" href="{{ product.get_absolute_url }}">
+                                                {% if product.images.first %}
+                                                    <img itemprop="image" class="img-responsive" src="{{ product.images.first.image.crop.400x400 }}" alt="">
+                                                {% else %}
+                                                    <img src="{% static 'images/product-image-placeholder.png' %}" alt="" class="img-responsive">
+                                                {% endif %}
+                                                <span itemprop="name">{{ product }}</span>
+                                            </a>
+                                        </div>
+
+                                        <div class="panel-footer">
+                                            {% if product.is_in_stock %}
+                                                {% with price_range=product|discounted_price_range:request.discounts undiscounted=product.get_price_range %}
+                                                    {% with discount=undiscounted.min_price|price_difference:price_range.min_price %}
+                                                        {% price_range price_range %}
+                                                        {% if undiscounted.min_price != price_range.min_price %}
+                                                            <span class="label label-success">{% trans "Discount!" %}</span>
+                                                        {% endif %}
+                                                    {% endwith %}
+                                                {% endwith %}
+                                            {% else %}
+                                                &nbsp;
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
                     {% endblock content %}
                 </div>
             </div>

@@ -92,7 +92,8 @@ TEMPLATE_CONTEXT_PROCESSORS = [
     'django.contrib.messages.context_processors.messages',
     'django.core.context_processors.request',
     'saleor.core.context_processors.canonical_hostname',
-    'saleor.core.context_processors.default_currency'
+    'saleor.core.context_processors.default_currency',
+    'saleor.core.context_processors.categories'
 ]
 
 INSTALLED_APPS = [
