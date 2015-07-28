@@ -21,6 +21,14 @@ $icon-font-path: "../fonts/";
 	min-width: 200px;
 }
 
+.product-list-item-name {
+  display: block;
+  margin-top: $grid-gutter-width/4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .product-gallery {
 	margin-top: $grid-gutter-width;
 }
