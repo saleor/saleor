@@ -24,16 +24,7 @@ module.exports = function(grunt) {
           {
             expand: true,
             dot: true,
-            cwd: "saleor/static/components/bootstrap/dist/js/",
-            dest: "saleor/static/dist/js/",
-            src: [
-              "bootstrap.min.js"
-            ]
-          },
-          {
-            expand: true,
-            dot: true,
-            cwd: "saleor/static/components/bootstrap/fonts",
+            cwd: "saleor/static/components/bootstrap-sass/assets/fonts/bootstrap",
             dest: "saleor/static/fonts/",
             src: [
               "*"
@@ -69,33 +60,6 @@ module.exports = function(grunt) {
           {
             expand: true,
             dot: true,
-            cwd: "saleor/static/components/zocial-less/css",
-            dest: "saleor/static/fonts/",
-            src: [
-              "zocial-regular-*"
-            ]
-          },
-          {
-            expand: true,
-            dot: true,
-            cwd: "saleor/static/components/less/dist/",
-            dest: "saleor/static/dist/js/",
-            src: [
-              "less.min.js"
-            ]
-          },
-          {
-            expand: true,
-            dot: true,
-            cwd: "saleor/static/components/jquery/dist/",
-            dest: "saleor/static/dist/js/",
-            src: [
-              "jquery.min.*"
-            ]
-          },
-          {
-            expand: true,
-            dot: true,
             cwd: "saleor/static/components/dropzone/dist",
             dest: "saleor/static/scss/vendor/",
             src: [
@@ -109,20 +73,6 @@ module.exports = function(grunt) {
         ]
       }
     },
-    less: {
-      production: {
-        options: {
-          compress: true,
-          yuicompress: true,
-          cleancss: true,
-          optimization: 2
-        },
-        files: {
-          "saleor/static/css/style.css": "saleor/static/less/style.less",
-          "saleor/static/css/dashboard.css": "saleor/static/less/dashboard.less"
-        }
-      }
-    },
     postcss: {
       options: {
         map: true,
@@ -132,7 +82,10 @@ module.exports = function(grunt) {
         ]
       },
       prod: {
-        src: "saleor/static/css/dashboard.css"
+        src: [
+          "saleor/static/css/storefront.css",
+          "saleor/static/css/dashboard.css"
+        ]
       }
     },
     sass: {
@@ -142,6 +95,7 @@ module.exports = function(grunt) {
       },
       dist: {
         files: {
+          "saleor/static/css/storefront.css": "saleor/static/scss/storefront.scss",
           "saleor/static/css/dashboard.css": "saleor/static/scss/dashboard.scss"
         }
       }
@@ -159,12 +113,16 @@ module.exports = function(grunt) {
             "saleor/static/components/materialize/dist/js/materialize.js",
             "saleor/static/components/Sortable/Sortable.js",
             "saleor/static/components/select2/dist/js/select2.js",
-            "saleor/static/js_src/dashboard.js",
             "saleor/static/components/dotdotdot/src/js/jquery.dotdotdot.js",
-            "saleor/static/components/jquery.equalheights/jquery.equalheights.js"
+            "saleor/static/components/jquery.equalheights/jquery.equalheights.js",
+            "saleor/static/js_src/dashboard.js"
           ],
           "saleor/static/js/dashboard-head.js": [
             "saleor/static/components/modernizr/modernizr.js"
+          ],
+          "saleor/static/js/storefront.js": [
+            "saleor/static/components/jquery/dist/jquery.js",
+            "saleor/static/components/bootstrap-sass/assets/javascripts/bootstrap.js"
           ]
         }
       }
@@ -189,7 +147,7 @@ module.exports = function(grunt) {
 
   require("load-grunt-tasks")(grunt);
 
-  grunt.registerTask("default", ["copy", "less", "sass", "postcss", "uglify"]);
+  grunt.registerTask("default", ["copy", "sass", "postcss", "uglify"]);
   grunt.registerTask("sync", ["browserSync", "watch"]);
-  grunt.registerTask("heroku", ["copy", "less", "sass", "postcss", "uglify"]);
+  grunt.registerTask("heroku", ["copy", "sass", "postcss", "uglify"]);
 };
