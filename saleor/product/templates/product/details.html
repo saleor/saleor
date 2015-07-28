@@ -31,7 +31,7 @@
             {% if product.is_in_stock %}
                 {% with price_range=product|discounted_price_range:request.discounts undiscounted=product.get_price_range %}
                     {% with discount=undiscounted.min_price|price_difference:price_range.min_price %}
-                        <p class="lead" itemprop="offers" itemscope itemtype="http://schema.org/Offer"
+                        <p class="lead" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
                             {% if undiscounted.min_price != price_range.min_price %}
                                 <span class="price undiscounted">{% price_range undiscounted %}</span>
                                 <br>
@@ -50,7 +50,7 @@
 
             <div class="visible-xs">
                 {% if product.images.first %}
-                    <img class="img-responsive" src="{{ product.images.first.image.thumbnail.750x750 }}" alt="">
+                    <img class="img-responsive" src="{{ product.images.first.image.crop.680x680 }}" alt="">
                 {% else %}
                     <img src="{% static 'images/product-image-placeholder.png' %}" alt="" class="img-responsive">
                 {% endif %}
@@ -85,19 +85,12 @@
 
         {% with images=product.images.all %}
         <div class="col-sm-6 col-sm-pull-6">
-            <div id="product-carousel" class="carousel slide hidden-xs" data-ride="carousel">
-                <ol class="carousel-indicators">
-                    {% for image in images %}
-                        <li data-target="#product-carousel" data-slide-to="{{ forloop.counter0 }}"
-                            {% if forloop.first %} class="active"{% endif %}></li>
-                    {% endfor %}
-                </ol>
-
+            <div id="product-carousel" class="carousel slide panel panel-default hidden-xs" data-ride="carousel">
                 <div class="carousel-inner">
                     {% for image in images %}
                     <div class="item{% if forloop.first %} active{% endif %}">
                         <a href="#" data-toggle="modal" data-target="#modal-{{ forloop.counter }}">
-                            <img class="img-responsive" src="{{ image.image.thumbnail.750x750 }}" alt="">
+                            <img class="img-responsive" src="{{ image.image.crop.750x750 }}" alt="">
                         </a>
                     </div>
                     {% empty %}
@@ -124,13 +117,6 @@
                     </div>
                 </div>
                 {% endfor %}
-
-                <a class="left carousel-control" href="#product-carousel" data-slide="prev">
-                    <span class="glyphicon glyphicon-chevron-left"></span>
-                </a>
-                <a class="right carousel-control" href="#product-carousel" data-slide="next">
-                    <span class="glyphicon glyphicon-chevron-right"></span>
-                </a>
             </div>
 
             <div class="product-gallery row">

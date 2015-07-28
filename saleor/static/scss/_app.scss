@@ -2,7 +2,7 @@ $icon-font-path: "../fonts/";
 @import "bootstrap-sass/assets/stylesheets/bootstrap";
 
 .navbar {
-	margin-bottom: 50px;
+	margin-bottom: $grid-gutter-width;
 }
 
 .price {
