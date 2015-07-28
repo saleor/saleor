@@ -30,7 +30,7 @@ setup(
     name='saleor',
     author='Mirumee Software',
     author_email='hello@mirumee.com',
-    description="A fork'n'play e-commerence in Django",
+    description="A fork'n'play e-commerce in Django",
     license='BSD',
     version='0.1.0a0',
     url='http://getsaleor.com/',
