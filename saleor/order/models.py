@@ -319,13 +319,10 @@ class OrderedItem(models.Model, ItemLine):
 class PaymentManager(models.Manager):
 
     def last(self):
-        """
-        Returns the last object without touching db
-        """
+        # using .all() here reuses data fetched by prefetch_related
         objects = list(self.all()[:1])
         if objects:
             return objects[0]
-        return None
 
 
 class Payment(BasePayment):
