@@ -13,9 +13,13 @@ from ...userprofile.models import User
 
 @staff_member_required
 def customer_list(request):
-    customers = User.objects.prefetch_related('orders', 'addresses').annotate(
-        num_orders=Count('orders', distinct=True),
-        last_order=Max('orders', distinct=True))
+    customers = (
+        User.objects
+        .prefetch_related('orders', 'addresses')
+        .select_related('default_billing_address', 'default_shipping_address')
+        .annotate(
+            num_orders=Count('orders', distinct=True),
+            last_order=Max('orders', distinct=True)))
 
     form = CustomerSearchForm(request.GET or None, queryset=customers)
     form_values = [(field.name, field.value() or '') for field in form]

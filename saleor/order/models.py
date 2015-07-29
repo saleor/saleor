@@ -316,8 +316,22 @@ class OrderedItem(models.Model, ItemLine):
             order.change_status('cancelled')
 
 
+class PaymentManager(models.Manager):
+
+    def last(self):
+        """
+        Returns the last object without touching db
+        """
+        objects = list(self.all()[:1])
+        if objects:
+            return objects[0]
+        return None
+
+
 class Payment(BasePayment):
     order = models.ForeignKey(Order, related_name='payments')
+
+    objects = PaymentManager()
 
     def get_failure_url(self):
         return build_absolute_uri(
@@ -350,6 +364,10 @@ class Payment(BasePayment):
 
     def get_captured_price(self):
         return Price(self.captured_amount, currency=self.currency)
+
+    class Meta:
+        ordering = ('-pk',)
+
 
 
 @python_2_unicode_compatible
