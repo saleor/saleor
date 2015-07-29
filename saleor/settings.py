@@ -55,15 +55,17 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.AppDirectoriesFinder'
 ]
 
-TEMPLATE_DIRS = [
-    os.path.join(PROJECT_ROOT, 'templates')
-]
-TEMPLATE_LOADERS = [
+loaders = [
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
     # TODO: this one is slow, but for now need for mptt?
-    'django.template.loaders.eggs.Loader'
-]
+    'django.template.loaders.eggs.Loader']
+if not DEBUG:
+    loaders = [('django.template.loaders.cached.Loader', loaders)]
+TEMPLATES = [{
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'DIRS': [os.path.join(PROJECT_ROOT, 'templates')],
+    'OPTIONS': {'loaders': loaders}}]
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.environ.get('SECRET_KEY', '{{ secret_key }}')
