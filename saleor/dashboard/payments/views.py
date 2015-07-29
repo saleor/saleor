@@ -19,7 +19,7 @@ class PaymentList(StaffMemberOnlyMixin, FilterByStatusMixin, ListView):
 
     def get_queryset(self):
         qs = super(PaymentList, self).get_queryset()
-        return qs.order_by('-created')
+        return qs.order_by('-created').select_related('order')
 
 
 @staff_member_required

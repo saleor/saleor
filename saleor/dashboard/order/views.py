@@ -26,13 +26,17 @@ class OrderListView(StaffMemberOnlyMixin, FilterByStatusMixin, ListView):
 
     def get_queryset(self):
         qs = super(OrderListView, self).get_queryset()
-        return qs.prefetch_related('groups')
+        return qs.prefetch_related(
+            'groups', 'payments', 'groups__items').select_related('user')
 
 
 @staff_member_required
 def order_details(request, order_pk):
-    order = get_object_or_404(Order.objects.prefetch_related(
-        'notes', 'payments', 'history', 'groups'), pk=order_pk)
+    qs = (Order.objects
+          .select_related('user', 'shipping_address', 'billing_address')
+          .prefetch_related('notes', 'payments', 'history',
+                            'groups', 'groups__items'))
+    order = get_object_or_404(qs, pk=order_pk)
     notes = order.notes.all()
     all_payments = order.payments.all()
     payment = order.payments.last()
