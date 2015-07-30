@@ -69,9 +69,9 @@ $pages-colors: (
 );
 $sections-colors: (
   home: (
-    header: $brand-info,
+    header: $brand-danger,
     background: $gray-lighter,
-    intro-bg: $brand-danger,
+    intro-bg: $text-color,
   ),
   try-it-now: (
     header: white,

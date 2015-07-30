@@ -102,6 +102,10 @@ h3 {
   width: 100%;
   z-index: $zindex-navbar;
 
+  &-header {
+    float: left;
+  }
+
   &-brand {
     font-size: 28px;
     font-size: 9vmin;
@@ -126,12 +130,18 @@ h3 {
     padding-top: 11px;
 
     &-img {
+      height: 100%;
       width: 136px;
     }
   }
 
   &-right {
+    float: right;
     text-transform: uppercase;
+
+    @media (max-width: $screen-xs-max) {
+      margin-right: $grid-gutter-width/2;
+    }
 
     > li {
       a {
@@ -140,24 +150,17 @@ h3 {
         }
       }
 
+      float: none;
+      display: inline-block;
+
       a.btn-menu {
-        display: none;
-      }
-
-      @media (min-width: $grid-float-breakpoint) {
-        display: inline-block;
+        display: block;
         float: none;
-        vertical-align: middle;
 
-        a.btn-menu {
-          display: block;
-          float: none;
-
-          &:hover, &:focus {
-            background-color: $brand-primary;
-            border-color: white;
-            color: white;
-          }
+        &:hover, &:focus {
+          background-color: $brand-primary;
+          border-color: white;
+          color: white;
         }
       }
     }
@@ -195,8 +198,6 @@ h3 {
   background-repeat: no-repeat;
   background-size: cover;
   font-size: 20px;
-  padding: 4em 0 130px;
-  padding-bottom: 17vmin;
   position: relative;
   text-align: center;
 
@@ -212,17 +213,38 @@ h3 {
   }
   min-height: 100vh;
 
+  &-content {
+    min-height: 83vh;
+
+    b, strong {
+      font-size: 115%;
+      font-weight: normal;
+
+      @media (min-width: $screen-md-min) {
+        font-size: 130%;
+      }
+    }
+  }
+
   &-header {
+    color: $brand-danger;
     font-family: $font-family-sans-serif-light;
     font-size: $font-size-h1-px;
     font-size: $font-size-h1;
-    margin-bottom: 0;
+    margin-bottom: $font-size-h1-px;
+    margin-bottom: $font-size-h1;
+    margin-top: 0;
+    padding: 2em 0 0;
     position: relative;
     text-transform: uppercase;
 
     @media (max-width: $grid-float-breakpoint-max) {
       font-size: $font-size-h1-px;
       font-size: $font-size-h1;
+    }
+
+    @media (min-width: $screen-sm-min) {
+      padding-top: 1em;
     }
 
     b {
@@ -256,10 +278,19 @@ h3 {
     }
   }
 
+  &-means {
+    display: block;
+    height: .9em;
+    margin: 0 auto 9px;
+
+    @media (min-width: $screen-sm-min) {
+      height: .7em;
+    }
+  }
+
   &-stripe {
     align-items: center;
     background-color: $yellow;
-    bottom: 0;
     color: white;
     display: flex;
     flex-direction: column;
@@ -269,11 +300,9 @@ h3 {
     min-height: 130px;
     min-height: 17vmin;
     justify-content: center;
-    left: 0;
     margin: 0;
     padding: $font-size-h2-px;
     padding: $font-size-h2;
-    position: absolute;
     text-transform: uppercase;
     width: 100%;
 
@@ -374,8 +403,7 @@ h3 {
     .section-image {
       display: block;
       height: auto;
-      margin: 0 auto $font-size-h2-px;
-      margin: 0 auto $font-size-h2;
+      margin: 0 auto;
       max-width: 80%;
       width: 80%;
 
@@ -386,6 +414,9 @@ h3 {
     }
 
     .section-header {
+      padding-top: $font-size-h1-px;
+      padding-top: $font-size-h1;
+
       &-sub {
         color: map-get(map-get($sections-colors, home), intro-bg);
       }
@@ -394,10 +425,12 @@ h3 {
 
   &--dashboard {
     overflow-x: hidden;
-  }
 
-  &--home-developers {
-    background-position: bottom;
+    &-image {
+      display: block;
+      max-height: 55vmin;
+      margin: 0 auto;
+    }
   }
 
   &--try-it-now {
@@ -437,6 +470,10 @@ h3 {
     h3 {
       color: white;
     }
+  }
+
+  &--autoheight {
+    min-height: 0;
   }
 }
 
@@ -491,13 +528,12 @@ h3 {
   &-brand {
     @extend .navbar-brand;
     color: $brand-info !important;
-    display: none;
-    line-height: 1;
+    display: inline-block;
 
-    @media (min-width: $grid-float-breakpoint) {
-      display: inline;
+    img {
+      height: 100%;
+      width: 106px;
     }
-
     &:hover, &:focus {
       color: $brand-primary !important;
     }
@@ -524,6 +560,9 @@ h3 {
     font-size: 3.5vmin;
     height: 38px;
     height: 5vmin;
+    line-height: 27px;
+    line-height: 3.5vmin;
+    padding: .75vmin 0;
     text-align: center;
     width: 38px;
     width: 5vmin;
@@ -537,10 +576,6 @@ h3 {
     &:hover, &:focus {
       background-color: $brand-primary;
       color: $gray-light;
-    }
-
-    .fa {
-      vertical-align: middle;
     }
   }
 
@@ -559,4 +594,14 @@ a, .btn {
   &:hover, &:focus {
     text-decoration: none;
   }
+}
+
+.btn-heroku {
+  display: inline-block;
+  margin: $grid-gutter-width/2 0 $grid-gutter-width;
+}
+
+.two-cols-flex {
+  display: flex;
+  align-items: center;
 }

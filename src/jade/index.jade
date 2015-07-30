@@ -8,90 +8,92 @@ block main
             h1.section-header
                 span Sell
                     =" "
-                    b.typed(data-words=["thing", "everything", "yo momma"])
+                    b.typed(data-words=["fashion", "books", "anything", "electronics", "cars", "bananas"]) fashion
                     |  online
                 | with Saleor.
                 b  For free
                 span.section-header-sub Saleor is an opensource storefront
-                    span  written in python.
+                    span  written in python
     section.section.section--dashboard
-        h2.section-header Better
-            b  dashboard
-            span
-                | =
-            span a satisfied
-                b  sales team
-        div.container
-            div.row
-                div.col-sm-6
-                    p
-                        strong
-                            | Your team is going to spend a lot of time with your dashboard. Make sure their only concern is
-                            | providing the best shopping experience to your customers.
-                    p We've designed Saleor's dashboard
-                        | to solve your every day problems. It's so intuitive that even a senior executive could use it.
-                    ul
-                        li multidevice support
-                        li multideliveries for single order
-                        li supports from one to 10 millions plus products
-                div.col-sm-6
-                    img(src="static/images/dashboard.png", alt="")
+        div.section-content
+            h2.section-header Better
+                b  dashboard
+                img.section-means(src="static/images/means.svg", alt="means")
+                span a satisfied
+                    b  sales team
+            div.container
+                div.row.two-cols-flex
+                    div.col-sm-6
+                        p
+                            strong
+                                | Your team is going to spend a lot of time with your dashboard. Make sure their only concern is
+                                | providing the best shopping experience to your&nbsp;customers.
+                        p We've designed Saleor's dashboard to solve your every day problems.
+                            | It's so intuitive that even a senior executive could use&nbsp;it.
+                    div.col-sm-6
+                        img.section--dashboard-image(src="static/images/dashboard.png", alt="")
         div.section-stripe
             i.mdi-content-add
     section.section.section--home-developers
-        h2.section-header Better
-            b  architecture
-            span
-                | =
-            span  productive
-                b  developers
-        div.container
-            div.row
-                div.col-sm-6.col-sm-offset-6
-                    p
-                        strong
-                            | Your developer's time is precious. Make sure they spend it improving your storefront instead of
-                            | fighting it.
-                    p Saleor's clean architecture makes it easy to customize. Its adherence to
-                        | industry standards results in great SEO.
-                    ul
-                        li semantic templates bootstrap/sass
-                        li SEO friendly
-                        li supports latest Django &amp; Python
-                        li serverside analytics / no tracking cookies needed
-                        li translation ready
-                        li multicurrency
-                        li scalable
-                        li deploy on heroku in seconds
+        div.section-content
+            h2.section-header Better
+                b  architecture
+                img.section-means(src="static/images/means.svg", alt="means")
+                span  productive
+                    b  developers
+            div.container
+                div.row
+                    div.col-sm-6.col-sm-offset-6
+                        p
+                            strong
+                                | Your developer's time is precious. Make sure they spend it improving your storefront instead of
+                                | fighting&nbsp;it.
+                        p Saleor's clean architecture makes it easy to customize. Its adherence to
+                            | industry standards results in great&nbsp;SEO.
+                        ul
+                            li semantic templates bootstrap/sass
+                            li SEO friendly
+                            li supports latest Django &amp; Python
+                            li serverside analytics / no tracking cookies needed
+                            li translation ready
+                            li multicurrency
+                            li scalable
+                            li deploy on heroku in seconds
+                div.row
+                    div.col-xs-12.text-center
+                        | Looking for demo?&nbsp;
+                        a.btn-heroku(href="https://heroku.com/deploy")
+                            img(src="https://www.herokucdn.com/deploy/button.png", alt="Deploy")
         div.section-stripe
             i.mdi-content-add
     section#business.section.section--customers
-        h2.section-header Better
-            b  user experience
-            span
-                | =
-            span happier
-                b  customers
-        div.container
-            div.row
-                div.col-sm-6
-                    p Happy customers result in higher return rates and more recognition to your brand. Strive to provide the best shopping experience you can.
-                        | Saleor's storefront offers great experience out-of-the-box. With help of a developer or two you can make it match your brand's both look and feel.
-                    ul
-                        li industry standard checkout
-                        li multidevice support
-        div.section-stripe
+        div.section-content
+            h2.section-header Better
+                b  user experience
+                img.section-means(src="static/images/means.svg", alt="means")
+                span happier
+                    b  customers
+            div.container
+                div.row
+                    div.col-sm-6
+                        p Happy customers result in higher return rates and more recognition to your brand. Strive to provide the best shopping experience you can.
+                            | Saleor's storefront offers great experience out-of-the-box. With help of a developer or two you can make it match your brand's both look and&nbsp;feel.
+                        ul
+                            li industry standard checkout
+                            li multidevice support
+        div#try-it-now.section-stripe
             span Simple is better than complex
                 br
                 | Less is more
-    section#try-it-now.section.section--try-it-now
+                br
+                | Try it now for free
+            a.section-button.section-button--strong(href="https://github.com/mirumee/saleor") Get now
+    section.section.section--try-it-now
         div.container
-            h2.section-header Try it now.<br>
-                | It's totally
-                b  free
+            h2.section-header Commercial support
             div.row
                 div.col-sm-6.col-sm-offset-3
-                    p Some small talk about bug issues installing marchewka.
-                    p We have got some awesome code. It's hard to believe it in like this and it's free. Imagine this
-                        | and go to Github. Bla bla bla lorem ipsum jeszcze one more lajn.
-                    a.section-button.section-button--strong Get now
+                    p Saleor is open and free to use. It is not a bait to force you to
+                        | pay us later and we promise to do our bests to fix bugs and improve the&nbsp;code.
+                    p Some situations however call for extra code being written. Whether you need us
+                        | to cover an exotic use case or build you a custom e&#8209;commerce appliance, our team can&nbsp;help.
