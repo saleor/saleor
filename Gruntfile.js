@@ -78,6 +78,9 @@ module.exports = function(grunt) {
       dist: {
         files: {
           "static/style.css": "index.html"
+        },
+        options: {
+          ignore: [/typed-cursor/]
         }
       }
     },
