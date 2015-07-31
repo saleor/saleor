@@ -12,13 +12,15 @@ block main
                     |  online
                 | with Saleor.
                 b  For free
+                | .
                 span.section-header-sub Saleor is an opensource storefront
                     span  written in python
     section.section.section--dashboard
         div.section-content
             h2.section-header Better
                 b  dashboard
-                img.section-means(src="static/images/means.svg", alt="means")
+                span.section-means-container
+                    img.section-means(src="static/images/means.svg", alt="means")
                 span a satisfied
                     b  sales team
             div.container
@@ -50,7 +52,8 @@ block main
         div.section-content
             h2.section-header Better
                 b  architecture
-                img.section-means(src="static/images/means.svg", alt="means")
+                span.section-means-container
+                    img.section-means(src="static/images/means.svg", alt="means")
                 span  productive
                     b  developers
             div.container
@@ -91,7 +94,8 @@ block main
         div.section-content
             h2.section-header Better
                 b  user experience
-                img.section-means(src="static/images/means.svg", alt="means")
+                span.section-means-container
+                    img.section-means(src="static/images/means.svg", alt="means")
                 span happier
                     b  customers
             div.container
@@ -119,10 +123,8 @@ block main
                         img(src="static/images/customers.png", alt="")
         div#try-it-now.section-stripe.section-stripe--alternate
             span Simple is better than complex
-                br
-                span Less is more
-                br
-                | Saleor is free
+            span.less-is-more Less is more
+            span Saleor is free
             a.section-button.section-button--strong(href="https://github.com/mirumee/saleor") Fork it on GitHub
     section.section.section--commercial-support
         div.container

@@ -237,6 +237,7 @@ h3 {
     font-family: $font-family-sans-serif-light;
     font-size: $font-size-h1-px;
     font-size: $font-size-h1;
+    line-height: 1.4;
     margin-bottom: $font-size-h1-px;
     margin-bottom: $font-size-h1;
     margin-top: 0;
@@ -285,12 +286,17 @@ h3 {
   }
 
   &-means {
-    display: block;
+    display: inline-block;
     height: .9em;
-    margin: 0 auto 9px;
+    margin: 0 auto;
+    vertical-align: baseline;
 
     @media (min-width: $screen-sm-min) {
       height: .7em;
+    }
+
+    &-container {
+      margin: -.4em 0;
     }
   }
 
@@ -319,11 +325,11 @@ h3 {
 
     span {
       display: block;
+    }
 
-      span {
-        font-family: $font-family-sans-serif;
-        display: inline;
-      }
+    .less-is-more {
+      font-family: $font-family-sans-serif;
+      display: inline;
     }
 
     &--alternate {
