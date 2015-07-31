@@ -50,3 +50,11 @@ $icon-font-path: "../fonts/";
 .form-group.required .control-label:after{
     content: '*';
 }
+
+.breadcrumb {
+  > li+li {
+	&:before {
+	  content: '/';
+	}
+  }
+}
