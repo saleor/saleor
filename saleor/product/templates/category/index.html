@@ -1,45 +1,44 @@
 {% extends "base.html" %}
-{% load i18n %}
 {% load slice from shop %}
-{% load price_range from price_ranges %}
-{% load discounted_price_range price_difference from discount %}
 {% load static from staticfiles %}
 
 {% block title %}{{ category }} — {{ block.super }}{% endblock %}
 
 {% block breadcrumb %}
     {{ block.super }}
-    <li><a href="{{ category.get_absolute_url }}">{{ category }}</a></li>
+    {% for breadcrumb in breadcrumbs %}
+        <li{% if forloop.last %} class="active"{% endif %}>
+            {% if not forloop.last %}
+                <a href="{{ breadcrumb.get_absolute_url }}">{{ breadcrumb }}</a>
+            {% else %}
+                <span>{{ breadcrumb }}</span>
+            {% endif %}
+        </li>
+    {% endfor %}
 {% endblock breadcrumb %}
 
 {% block content %}
-    <h2>{{ category }}</h2>
-    {% for row in products|slice:2 %}
-        <div class="row">
-            {% for product in row %}
-                <div class="col-sm-6">
-                    <a href="{{ product.get_absolute_url }}">
-                        {% if product.images.first %}
-                            <img class="img-responsive" src="{{ product.images.first.image.thumbnail.750x750 }}" alt="">
-                        {% else %}
-                            <img src="{% static 'images/product-image-placeholder.png' %}" alt="" class="img-responsive">
-                        {% endif %}
-                    </a>
-                    <h3><a href="{{ product.get_absolute_url }}">{{ product }}</a></h3>
-                    {% if product.is_in_stock %}
-                        {% with price_range=product|discounted_price_range:request.discounts undiscounted=product.get_price_range %}
-                            {% with discount=undiscounted.min_price|price_difference:price_range.min_price %}
-                                <h4>
-                                    {% price_range price_range %}
-                                    {% if undiscounted.min_price != price_range.min_price %}
-                                        <span class="label label-success">{% trans "Discount!" %}</span>
-                                    {% endif %}
-                                </h4>
-                            {% endwith %}
-                        {% endwith %}
-                    {% endif %}
-                </div>
-            {% endfor %}
+    <div class="row">
+        <div class="col-md-3">
+            <ul class="list-group">
+                <li class="list-group-item active">
+                    {{ category }}
+                </li>
+
+                {% for category in children_categories %}
+                    <li class="list-group-item">
+                        <a href="{{ category.get_absolute_url }}">
+                            {{ category }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
         </div>
-    {% endfor %}
+
+        <div class="col-md-9">
+            <div class="row">
+                {% include "category/_items.html" %}
+            </div>
+        </div>
+    </div>
 {% endblock content %}
