@@ -1,0 +1,645 @@
+@import "variables";
+@import "bootstrap-sass/assets/stylesheets/bootstrap";
+@import "font-awesome/scss/font-awesome";
+@import "materialize/sass/components/icons-material-design";
+@import "webfont";
+
+body {
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+}
+
+h3 {
+  @media (max-width: $grid-float-breakpoint-max) {
+    font-size: $font-size-h1-px;
+    font-size: $font-size-h1;
+  }
+}
+
+.btn {
+  text-transform: uppercase;
+  font-family: $font-family-sans-serif-black;
+}
+
+.btn-warning {
+  border-color: $brand-warning;
+  border-top-color: darken($brand-warning, 3%);
+
+  &:hover, &:focus {
+    border-color: $brand-primary;
+    background-color: $brand-primary;
+    color: white;
+  }
+}
+
+@each $page, $colors in $pages-colors {
+  .body--#{$page} {
+    .navbar-brand {
+      color: map-get($colors, brand);
+
+      &:hover, &:focus {
+        color: white;
+      }
+    }
+
+    .navbar-right {
+      font-family: $font-family-sans-serif-black;
+
+      > li > a {
+        border-color: map-get($colors, menu);
+        color: map-get($colors, menu);
+
+        &:hover, &:focus {
+          color: white;
+        }
+
+        @media (max-width: $grid-float-breakpoint-max) {
+          background: map-get($colors, menu);
+          @if lightness(map-get($colors, menu)) > 50% {
+            color: $brand-primary;
+          } @else {
+            color: white;
+          }
+
+          &:hover, &:focus {
+            @if lightness(map-get($colors, menu)) > 50% {
+              color: $brand-primary;
+            } @else {
+              color: white;
+            }
+            background: darken(map-get($colors, menu), 10%);
+          }
+        }
+
+        &.btn-menu {
+          &:hover, &:focus {
+            background-color: map-get($colors, menu);
+            border-color: map-get($colors, menu);
+            color: white;
+          }
+        }
+      }
+    }
+
+    .navbar-toggle {
+      color: map-get($colors, menu);
+
+      &:hover, &:focus {
+        background-color: map-get($colors, menu);
+        color: white;
+      }
+    }
+
+    .btn-menu {
+      @include button-variant(map-get($colors, menu), transparent, map-get($colors, menu));
+    }
+  }
+}
+
+.navbar {
+  position: absolute;
+  top: $grid-gutter-width/2;
+  width: 100%;
+  z-index: $zindex-navbar;
+
+  &-header {
+    float: left;
+  }
+
+  &-brand {
+    font-size: 28px;
+    font-size: 9vmin;
+    font-family: $font-family-sans-serif-black;
+    letter-spacing: -4px;
+    letter-spacing: -.5vmin;
+    height: 43px;
+    height: 13.5vmin;
+    line-height: 1.5;
+    text-transform: uppercase;
+
+    @media (min-width: $grid-float-breakpoint) {
+      font-size: 46px;
+      font-size: 4vmin;
+      height: 46px;
+      height: 4vmin;
+    }
+  }
+
+  .logo {
+    display: block;
+    padding-top: 11px;
+
+    &-img {
+      height: 100%;
+      width: 136px;
+    }
+  }
+
+  &-right {
+    float: right;
+    text-transform: uppercase;
+
+    @media (max-width: $screen-xs-max) {
+      margin-right: $grid-gutter-width/2;
+    }
+
+    > li {
+      a {
+        &:hover, &:focus {
+          color: white;
+        }
+      }
+
+      float: none;
+      display: inline-block;
+
+      a.btn-menu {
+        display: block;
+        float: none;
+
+        &:hover, &:focus {
+          background-color: $brand-primary;
+          border-color: white;
+          color: white;
+        }
+      }
+    }
+  }
+
+  &-toggle {
+    color: $brand-primary;
+    margin: 0 $grid-gutter-width/-2 0 0;
+    padding: $padding-base-vertical $grid-gutter-width/2;
+  }
+
+  & &-collapse {
+    @media (max-width: $grid-float-breakpoint-max) {
+      margin: {
+        left: $grid-gutter-width/-2;
+        right: $grid-gutter-width/-2;
+      }
+    }
+  }
+
+  .btn-menu {
+    @extend .btn, .btn-primary;
+    float: right;
+    font-size: $font-size-base;
+
+    @media (min-width: $grid-float-breakpoint) {
+      display: none;
+    }
+  }
+}
+
+.section {
+  background-color: $gray-light;
+  background-position: top;
+  background-repeat: no-repeat;
+  background-size: cover;
+  font-size: 20px;
+  position: relative;
+  text-align: center;
+
+  .row {
+    text-align: left;
+  }
+
+  @media (device-width: 768px) and (device-height: 1024px) {
+    min-height: 928px;
+  }
+  @media (device-width: 768px) and (device-height: 1024px) and (orientation: landscape) {
+    min-height: 672px;
+  }
+  min-height: 100vh;
+
+  &-content {
+    min-height: 83vh;
+    padding-bottom: $grid-gutter-width;
+
+    strong {
+      font-size: 115%;
+      font-weight: normal;
+
+      @media (min-width: $screen-md-min) {
+        font-size: 130%;
+      }
+    }
+
+    b {
+      font-weight: normal;
+      font-family: $font-family-sans-serif-black;
+    }
+  }
+
+  &-header {
+    color: $brand-danger;
+    font-family: $font-family-sans-serif-light;
+    font-size: $font-size-h1-px;
+    font-size: $font-size-h1;
+    margin-bottom: $font-size-h1-px;
+    margin-bottom: $font-size-h1;
+    margin-top: 0;
+    padding: 2em 0 0;
+    position: relative;
+    text-transform: uppercase;
+
+    @media (max-width: $grid-float-breakpoint-max) {
+      font-size: $font-size-h1-px;
+      font-size: $font-size-h1;
+    }
+
+    @media (min-width: $screen-sm-min) {
+      padding-top: 1em;
+    }
+
+    b {
+      font-family: $font-family-sans-serif-black;
+      font-weight: normal;
+    }
+
+    span:not(.typed-cursor) {
+      display: block;
+    }
+
+    @keyframes blink {
+      0% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
+    .typed-cursor {
+      animation: blink .7s infinite;
+    }
+
+    &-sub {
+      font-size: $font-size-h2-px;
+      font-size: $font-size-h2;
+    }
+  }
+
+  &-means {
+    display: block;
+    height: .9em;
+    margin: 0 auto 9px;
+
+    @media (min-width: $screen-sm-min) {
+      height: .7em;
+    }
+  }
+
+  &-stripe {
+    align-items: center;
+    background-color: $yellow;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    font-family: $font-family-sans-serif-black;
+    font-size: $font-size-h2-px;
+    font-size: $font-size-h2;
+    min-height: 130px;
+    min-height: 17vmin;
+    justify-content: center;
+    margin: 0;
+    padding: $font-size-h2-px;
+    padding: $font-size-h2;
+    text-transform: uppercase;
+    width: 100%;
+
+    i {
+      font-size: 120%;
+      font-weight: bold;
+    }
+
+    span {
+      display: block;
+
+      span {
+        font-family: $font-family-sans-serif;
+        display: inline;
+      }
+    }
+
+    &--alternate {
+      background-color: $brand-info;
+    }
+  }
+
+  &-button {
+    @extend .btn, .btn-warning;
+    font-size: $font-size-base;
+    margin-top: 1.5em;
+
+    &--strong {
+      box-shadow: 3px 3px 0 0 $brand-primary;
+      font-size: $font-size-h2-px;
+      font-size: $font-size-h2;
+
+      @media (min-width: $grid-float-breakpoint) {
+        font-size: $font-size-h3-px;
+        font-size: $font-size-h3;
+      }
+    }
+
+    &--lg {
+      font-size: $font-size-large;
+      margin: {
+        left: 60px;
+        right: 60px;
+      }
+      margin: {
+        left: 8vmin;
+        right: 8vmin;
+      }
+      padding: $padding-large-vertical $padding-large-horizontal;
+
+      &-additional {
+        display: block;
+        font-size: $font-size-small;
+        line-height: .8;
+      }
+    }
+
+    &--strong {
+      background-color: $brand-warning;
+      color: white;
+    }
+  }
+
+  @each $section in $sections-flex {
+    &.section--#{$section} {
+      align-items: center;
+      display: flex;
+      padding: 0;
+
+      .section-header {
+        &-sub {
+          margin-top: $font-size-h2-px*.5;
+          margin-top: $font-size-h2*.5;
+          position: relative;
+        }
+      }
+
+      .section-stripe {
+        text-transform: uppercase;
+      }
+
+      .container {
+        -ms-transform: translate(0, 26vh);
+      }
+    }
+  }
+
+  @each $section, $colors in $sections-colors {
+    &.section--#{$section} {
+      background-color: map_get($colors, background);
+      .section-header {
+        color: map_get($colors, header);
+
+        &:after {
+          border-color: map_get($colors, header);
+        }
+      }
+
+      .section-stripe {
+        background: map_get($colors, intro-bg);
+        color: map_get($colors, intro);
+      }
+    }
+  }
+
+  &--home {
+    .section-image {
+      display: block;
+      height: auto;
+      margin: 0 auto;
+      max-width: 80%;
+      width: 80%;
+
+      @media (min-width: $screen-sm-min) {
+        max-width: 60%;
+        width: auto;
+      }
+    }
+
+    .section-header {
+      padding-top: $font-size-h1-px;
+      padding-top: $font-size-h1;
+
+      &-sub {
+        color: map-get(map-get($sections-colors, home), intro-bg);
+      }
+    }
+  }
+
+  &--dashboard {
+    overflow-x: hidden;
+
+    &-image {
+      display: block;
+      max-height: 55vmin;
+      margin: 0 auto;
+    }
+  }
+
+  &--home-developers {
+    &-image {
+      display: block;
+      max-width: 100%;
+
+      @media (min-width: $screen-sm-min) {
+        float: right;
+        max-width: none;
+      }
+    }
+  }
+
+  &--try-it-now {
+    @media (min-width: $grid-float-breakpoint) {
+      min-height: 0 !important;
+      padding: 0;
+    }
+
+    .container {
+      padding-top: 4em;
+      position: relative;
+
+      @media (min-width: $grid-float-breakpoint) {
+        height: 849px;
+        height: 83vh;
+
+        img {
+          bottom: -23px;
+          bottom: -3vmin;
+          max-height: 490px;
+          max-height: 64vmin;
+          max-width: 56%;
+          position: absolute;
+          left: -12vmin;
+          right: 92px;
+        }
+      }
+
+      .col {
+        @include make-sm-column(6);
+        position: static;
+      }
+    }
+
+    h3 {
+      color: white;
+    }
+  }
+
+  &--commercial-support {
+    min-height: 0;
+    padding-bottom: 1em;
+
+    @media (min-width: $screen-md-min) {
+      padding-bottom: 2em;
+    }
+  }
+}
+
+.footer {
+  background: $gray-light;
+
+  &-in {
+    @extend .container;
+    align-items: center;
+    background: $gray-light;
+    display: flex;
+    height: 130px;
+    height: 17vmin;
+    justify-content: space-between;
+
+    &:before, &:after {
+      content: none;
+    }
+  }
+
+  &-menu {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-transform: uppercase;
+
+    @media (max-width: $grid-float-breakpoint-max) {
+      font-size: $font-size-h3-px;
+      font-size: $font-size-h3;
+    }
+
+    li {
+      display: inline-block;
+      vertical-align: middle;
+
+      &:nth-child(n+3):before {
+        color: $brand-info;
+        content: "|";
+      }
+
+      a {
+        color: $brand-info;
+        padding: 0 .5em;
+
+        &:hover, &:focus {
+          color: $brand-primary;
+        }
+      }
+    }
+  }
+
+  &-brand {
+    @extend .navbar-brand;
+    color: $brand-info !important;
+    display: inline-block;
+
+    img {
+      height: 100%;
+      width: 106px;
+    }
+    &:hover, &:focus {
+      color: $brand-primary !important;
+    }
+  }
+}
+
+.social-links {
+  margin: 0;
+  padding: 0;
+
+  &-item {
+    display: inline-block;
+    list-style: none;
+    margin: 0 15px;
+    margin: 0 2vmin;
+  }
+
+  &-link {
+    background-color: $brand-info;
+    border-radius: 50%;
+    color: $gray-light;
+    display: inline-block;
+    font-size: 27px;
+    font-size: 3.5vmin;
+    height: 38px;
+    height: 5vmin;
+    line-height: 27px;
+    line-height: 3.5vmin;
+    padding: .75vmin 0;
+    text-align: center;
+    width: 38px;
+    width: 5vmin;
+
+    @media (max-width: $grid-float-breakpoint-max) {
+      font-size: 5vmin;
+      height: 7vmin;
+      width: 7vmin;
+    }
+
+    &:hover, &:focus {
+      background-color: $brand-primary;
+      color: $gray-light;
+    }
+  }
+
+  @each $social-media in (twitter, facebook) {
+    &-#{$social-media} {
+      @extend .fa;
+      @extend .fa-#{$social-media};
+    }
+  }
+}
+
+a, .btn {
+  transition: background-color $transition-duration, border-color $transition-duration, color $transition-duration;
+  text-decoration: none;
+
+  &:hover, &:focus {
+    text-decoration: none;
+  }
+}
+
+.btn-heroku {
+  display: inline-block;
+  margin: $grid-gutter-width/2 0 $grid-gutter-width;
+}
+
+.two-cols-flex {
+  @media (min-width: $screen-sm-min) {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.copyrights {
+  color: $brand-info;
+  margin: 0;
+  text-transform: uppercase;
+}

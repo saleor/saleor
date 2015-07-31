@@ -1,0 +1,27 @@
+{
+  "name": "saleor-gh-pages",
+  "version": "1.0.0",
+  "description": "Saleor site",
+  "main": "index.html",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mirumee/saleor.git"
+  },
+  "author": "Mirumee Software",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mirumee/saleor/issues"
+  },
+  "devDependencies": {
+    "grunt-sass": "~1.0.0",
+    "grunt-postcss": "~0.5.5",
+    "grunt-contrib-uglify": "~0.9.1",
+    "grunt-contrib-jade": "~0.15.0",
+    "grunt-browser-sync": "~2.1.3",
+    "grunt-contrib-watch": "~0.6.1",
+    "autoprefixer-core": "~5.2.1",
+    "csswring": "~3.0.5",
+    "load-grunt-tasks": "~3.2.0",
+    "grunt-uncss": "~0.4.3"
+  }
+}

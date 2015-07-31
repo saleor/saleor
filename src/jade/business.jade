@@ -1,0 +1,33 @@
+extends extends/base
+block title
+    title Saleor for business
+block bodyClass
+    - var bodyClass="body--business"
+block main
+    section(class=["section", "section--home"])
+        div.container
+            h1.section-header
+                span Increase your
+                b.typed(data-words=["customers", "developers", "girlfriend", "momma"])  customers
+                span  satisfaction with saleor.
+                b   For free
+            p.section-stripe
+                | Saleor is an opensource storefront.
+                span  Written in python.
+    section.section
+        h2.section-header Satisfied<br>customers
+        p.section-text
+            img.section-image(src="https://placekitten.com/g/1000/600", alt="")
+            | We had two bags of grass, seventy-five pellets of mescaline, five sheets of hogh-powered blotter acid, a saltshaker half-full of cocaine and a whole galaxy of multi-colored uppers, downers, screamers, laughers...
+    section.section
+        h2.section-header Satisfied<br>developers
+        p.section-text
+            img.section-image(src="https://placekitten.com/g/1000/600", alt="")
+            | We had two bags of grass, seventy-five pellets of mescaline, five sheets of hogh-powered blotter acid, a saltshaker half-full of cocaine and a whole galaxy of multi-colored uppers, downers, screamers, laughers...
+        a.section-button Find out more
+    section.section
+        h2.section-header Satisfied<br>team
+        p.section-text
+            img.section-image(src="https://placekitten.com/g/1000/600", alt="")
+            | We had two bags of grass, seventy-five pellets of mescaline, five sheets of hogh-powered blotter acid, a saltshaker half-full of cocaine and a whole galaxy of multi-colored uppers, downers, screamers, laughers...
+        a.section-button Find out more
