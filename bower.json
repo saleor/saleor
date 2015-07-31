@@ -7,17 +7,16 @@
   ],
   "license": "BSD",
   "devDependencies": {
-    "less": "~2.4.0",
+    "bootstrap-sass": "~3.3.5",
     "components-font-awesome": "~4.3.0",
-    "zocial-less": "~1.0.0",
-    "materialize": "~0.97.0",
-    "jquery": "~2.1.4",
-    "Sortable": "~1.2.0",
-    "select2": "~4.0.0",
-    "dropzone": "~4.0.1",
     "dotdotdot": "~1.7.3",
+    "dropzone": "~4.0.1",
+    "jquery": "~2.1.4",
     "jquery.equalheights": "~1.5.2",
+    "less": "~2.4.0",
+    "materialize": "~0.97.0",
     "modernizr": "~2.8.3",
-    "bootstrap-sass": "~3.3.5"
+    "select2": "~4.0.0",
+    "Sortable": "~1.2.0"
   }
 }
