@@ -46,7 +46,7 @@ def category_index(request, path, category_id):
         return redirect('product:category', permanent=True, path=actual_path,
                         category_id=category_id)
     products = category.products.get_available_products().select_subclasses()
-    products = products.prefetch_related('images')
+    products = products.prefetch_related('images', 'variants', 'variants__stock')
     return TemplateResponse(
         request, 'category/index.html',
         {'products': products, 'category': category,

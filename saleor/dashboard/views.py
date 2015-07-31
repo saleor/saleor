@@ -51,7 +51,11 @@ class FilterByStatusMixin(FormMixin):
 @staff_member_required
 def index(request):
     orders_to_ship = Order.objects.filter(status='fully-paid')
+    orders_to_ship = (orders_to_ship
+                      .select_related('user')
+                      .prefetch_related('groups', 'groups__items', 'payments'))
     payments = Payment.objects.filter(status='preauth').order_by('-created')
+    payments = payments.select_related('order', 'order__user')
     low_stock = get_low_stock_products()
     ctx = {'preauthorized_payments': payments, 'orders_to_ship': orders_to_ship,
            'low_stock': low_stock}

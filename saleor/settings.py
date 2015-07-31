@@ -55,15 +55,32 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.AppDirectoriesFinder'
 ]
 
-TEMPLATE_DIRS = [
-    os.path.join(PROJECT_ROOT, 'templates')
-]
-TEMPLATE_LOADERS = [
+context_processors = [
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.debug',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
+    'django.core.context_processors.tz',
+    'django.contrib.messages.context_processors.messages',
+    'django.core.context_processors.request',
+    'saleor.core.context_processors.canonical_hostname',
+    'saleor.core.context_processors.default_currency',
+    'saleor.core.context_processors.categories']
+
+loaders = [
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
     # TODO: this one is slow, but for now need for mptt?
-    'django.template.loaders.eggs.Loader'
-]
+    'django.template.loaders.eggs.Loader']
+
+if not DEBUG:
+    loaders = [('django.template.loaders.cached.Loader', loaders)]
+
+TEMPLATES = [{
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'DIRS': [os.path.join(PROJECT_ROOT, 'templates')],
+    'OPTIONS': {'loaders': loaders, 'context_processors': context_processors}}]
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.environ.get('SECRET_KEY', '{{ secret_key }}')
@@ -80,20 +97,6 @@ MIDDLEWARE_CLASSES = [
     'saleor.core.middleware.DiscountMiddleware',
     'saleor.core.middleware.GoogleAnalytics',
     'saleor.core.middleware.CheckHTML'
-]
-
-TEMPLATE_CONTEXT_PROCESSORS = [
-    'django.contrib.auth.context_processors.auth',
-    'django.core.context_processors.debug',
-    'django.core.context_processors.i18n',
-    'django.core.context_processors.media',
-    'django.core.context_processors.static',
-    'django.core.context_processors.tz',
-    'django.contrib.messages.context_processors.messages',
-    'django.core.context_processors.request',
-    'saleor.core.context_processors.canonical_hostname',
-    'saleor.core.context_processors.default_currency',
-    'saleor.core.context_processors.categories'
 ]
 
 INSTALLED_APPS = [
@@ -219,6 +222,7 @@ PAYMENT_VARIANTS = {
 PAYMENT_HOST = os.environ.get('PAYMENT_HOST', 'localhost:8000')
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 CHECKOUT_PAYMENT_CHOICES = [
     ('default', 'Dummy provider')
