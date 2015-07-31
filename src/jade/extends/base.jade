@@ -5,6 +5,7 @@ html(lang="en")
         block title
             title Saleor
         meta(name="viewport", content="width=device-width,initial-scale=1")
+        meta(name="theme-color", content="#F5EFDF")
         link(href="static/style.css", rel="stylesheet")
     block bodyClass
     body(class=bodyClass, id="top")
@@ -22,10 +23,12 @@ html(lang="en")
             block main
         footer.footer
             div.footer-in
-                ul.footer-menu
+                ul.footer-menu.hidden-xs
                     li
                         a.footer-brand(href="#top")
                             img.img-responsive(src="static/images/logo.svg", alt="")
+                p.copyrights &copy; 2015
+                    a(href="https://mirumee.com")  Mirumee Software
                 ul.social-links
                     li.social-links-item
                         a.social-links-link(href="https://twitter.com/getsaleor")

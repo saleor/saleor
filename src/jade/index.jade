@@ -30,6 +30,18 @@ block main
                                 | providing the best shopping experience to your&nbsp;customers.
                         p We've designed Saleor's dashboard to solve your every day problems.
                             | It's so intuitive that even a senior executive could use&nbsp;it.
+                        p It scales well for
+                            b  milions of products
+                            | , customers and&nbsp;orders.
+                        p It supports
+                            b  multiple currencies
+                            |  and payment&nbsp;gateways.
+                        p It supports
+                            b  split&nbsp;shipments
+                            | .
+                        p It works with
+                            b  all screen sizes
+                            | , including&nbsp;mobiles.
                     div.col-sm-6
                         img.section--dashboard-image(src="static/images/dashboard.png", alt="")
         div.section-stripe
@@ -42,31 +54,40 @@ block main
                 span  productive
                     b  developers
             div.container
-                div.row
-                    div.col-sm-6.col-sm-offset-6
+                div.row.two-cols-flex
+                    div.col-sm-6.col-sm-push-6
                         p
                             strong
                                 | Your developer's time is precious. Make sure they spend it improving your storefront instead of
                                 | fighting&nbsp;it.
                         p Saleor's clean architecture makes it easy to customize. Its adherence to
                             | industry standards results in great&nbsp;SEO.
-                        ul
-                            li semantic templates bootstrap/sass
-                            li SEO friendly
-                            li supports latest Django &amp; Python
-                            li serverside analytics / no tracking cookies needed
-                            li translation ready
-                            li multicurrency
-                            li scalable
-                            li deploy on heroku in seconds
-                div.row
-                    div.col-xs-12.text-center
-                        | Looking for demo?&nbsp;
-                        a.btn-heroku(href="https://heroku.com/deploy")
-                            img(src="https://www.herokucdn.com/deploy/button.png", alt="Deploy")
+                        p It's built using
+                            b  Django 1.8
+                            |  and runs on
+                            b  Python 2.7
+                            |  and&nbsp;
+                            b 3.4
+                            | .
+                        p It's
+                            b  super fast
+                            |  without relying on caching.
+                        p It's easy to theme thanks to
+                            b  semantic templates
+                            | ,
+                            b  Bootstrap
+                            |  and
+                            b  Sass
+                            | .
+                        p It's lightweight, modular and easy to add new features.
+                        p Looking for a demo?&nbsp;
+                            a.btn-heroku(href="https://heroku.com/deploy?template=https://github.com/mirumee/saleor/")
+                                img(src="https://www.herokucdn.com/deploy/button.png", alt="Deploy")
+                    div.col-sm-6.col-sm-pull-6
+                        img.section--home-developers-image(src="static/images/developers.png", alt="")
         div.section-stripe
             i.mdi-content-add
-    section#business.section.section--customers
+    section.section.section--customers
         div.section-content
             h2.section-header Better
                 b  user experience
@@ -74,26 +95,44 @@ block main
                 span happier
                     b  customers
             div.container
-                div.row
+                div.row.two-cols-flex
                     div.col-sm-6
-                        p Happy customers result in higher return rates and more recognition to your brand. Strive to provide the best shopping experience you can.
-                            | Saleor's storefront offers great experience out-of-the-box. With help of a developer or two you can make it match your brand's both look and&nbsp;feel.
-                        ul
-                            li industry standard checkout
-                            li multidevice support
-        div#try-it-now.section-stripe
+                        p
+                            strong
+                                | Happy customers result in higher return rates and more recognition to your brand.
+                                | We strive to provide the best shopping experience we&nbsp;can.
+                        p Saleor's storefront offers great experience out-of-the-box.
+                            | With help of a developer or two you can make it match your brand's look and&nbsp;feel.
+                        p It provides an
+                            b  industry-standard checkout
+                            |  process.
+                        p It offers an excellent
+                            b  mobile shopping experience
+                            | .
+                        p It supports
+                            b  multiple payment methods
+                            | .
+                        p It's
+                            b  optimized for search engines
+                            |  and supports cookie-less&nbsp;analytics.
+                    div.col-sm-6.text-center
+                        img(src="static/images/customers.png", alt="")
+        div#try-it-now.section-stripe.section-stripe--alternate
             span Simple is better than complex
                 br
-                | Less is more
+                span Less is more
                 br
-                | Try it now for free
-            a.section-button.section-button--strong(href="https://github.com/mirumee/saleor") Get now
-    section.section.section--try-it-now
+                | Saleor is free
+            a.section-button.section-button--strong(href="https://github.com/mirumee/saleor") Fork it on GitHub
+    section.section.section--commercial-support
         div.container
-            h2.section-header Commercial support
+            h2.section-header
+                b Commercial support
             div.row
-                div.col-sm-6.col-sm-offset-3
+                div.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
                     p Saleor is open and free to use. It is not a bait to force you to
                         | pay us later and we promise to do our bests to fix bugs and improve the&nbsp;code.
                     p Some situations however call for extra code being written. Whether you need us
                         | to cover an exotic use case or build you a custom e&#8209;commerce appliance, our team can&nbsp;help.
+                    p.text-center
+                        a.section-button.section-button--strong(href="https://mirumee.typeform.com/to/gf97sQ") Contact Us

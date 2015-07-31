@@ -215,14 +215,20 @@ h3 {
 
   &-content {
     min-height: 83vh;
+    padding-bottom: $grid-gutter-width;
 
-    b, strong {
+    strong {
       font-size: 115%;
       font-weight: normal;
 
       @media (min-width: $screen-md-min) {
         font-size: 130%;
       }
+    }
+
+    b {
+      font-weight: normal;
+      font-family: $font-family-sans-serif-black;
     }
   }
 
@@ -313,6 +319,15 @@ h3 {
 
     span {
       display: block;
+
+      span {
+        font-family: $font-family-sans-serif;
+        display: inline;
+      }
+    }
+
+    &--alternate {
+      background-color: $brand-info;
     }
   }
 
@@ -433,9 +448,19 @@ h3 {
     }
   }
 
-  &--try-it-now {
-    color: white;
+  &--home-developers {
+    &-image {
+      display: block;
+      max-width: 100%;
 
+      @media (min-width: $screen-sm-min) {
+        float: right;
+        max-width: none;
+      }
+    }
+  }
+
+  &--try-it-now {
     @media (min-width: $grid-float-breakpoint) {
       min-height: 0 !important;
       padding: 0;
@@ -472,8 +497,13 @@ h3 {
     }
   }
 
-  &--autoheight {
+  &--commercial-support {
     min-height: 0;
+    padding-bottom: 1em;
+
+    @media (min-width: $screen-md-min) {
+      padding-bottom: 2em;
+    }
   }
 }
 
@@ -602,6 +632,14 @@ a, .btn {
 }
 
 .two-cols-flex {
-  display: flex;
-  align-items: center;
+  @media (min-width: $screen-sm-min) {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.copyrights {
+  color: $brand-info;
+  margin: 0;
+  text-transform: uppercase;
 }

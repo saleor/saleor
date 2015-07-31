@@ -73,10 +73,10 @@ $sections-colors: (
     background: $gray-lighter,
     intro-bg: $text-color,
   ),
-  try-it-now: (
-    header: white,
-    background: $brand-info,
-    header: white,
+  commercial-support: (
+    header: $text-color,
+    background: $yellow,
+    intro: $text-color,
   ),
   developers: (
     header: $brand-info,

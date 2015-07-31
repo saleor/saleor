@@ -28,9 +28,9 @@ module.exports = function(grunt) {
           }
         },
         files: {
-          "index.html": "src/jade/index.jade",
-          "business.html": "src/jade/business.jade",
-          "developers.html": "src/jade/developers.jade"
+          "index.html": "src/jade/index.jade"
+          //"business.html": "src/jade/business.jade",
+          //"developers.html": "src/jade/developers.jade"
         }
       }
     },
@@ -105,6 +105,6 @@ module.exports = function(grunt) {
 
   require("load-grunt-tasks")(grunt);
 
-  grunt.registerTask("default", ["sass", "uncss", "postcss", "uglify"]);
+  grunt.registerTask("default", ["jade", "sass", "uncss", "postcss", "uglify"]);
   grunt.registerTask("sync", ["browserSync", "watch"]);
 };
