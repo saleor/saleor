@@ -50,6 +50,8 @@ class Category(MPTTModel):
                                                    'category_id': self.id})
 
     def get_full_path(self):
+        if not self.parent_id:
+            return self.slug
         return '/'.join(
             [node.slug for node in self.get_ancestors(include_self=True)])
 
