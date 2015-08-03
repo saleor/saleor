@@ -156,7 +156,7 @@ class GoogleClient(OAuth2Client):
 
     def get_user_info(self):
         response = super(GoogleClient, self).get_user_info()
-        if response['verified_email']:
+        if response.get('verified_email'):
             return response
         else:
             raise ValueError('Google account not verified.')
@@ -183,7 +183,7 @@ class FacebookClient(OAuth2Client):
 
     def get_user_info(self):
         response = super(FacebookClient, self).get_user_info()
-        if response['verified']:
+        if response.get('verified'):
             return response
         else:
             raise ValueError('Facebook account not verified.')
