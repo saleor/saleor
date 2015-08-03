@@ -423,10 +423,10 @@ h3 {
   &--home {
     .section-image {
       display: block;
-      height: auto;
+      height: 40vmin;
       margin: 0 auto;
-      max-width: 80%;
-      width: 80%;
+      max-height: 40vmin;
+      width: auto;
 
       @media (min-width: $screen-sm-min) {
         max-width: 60%;
