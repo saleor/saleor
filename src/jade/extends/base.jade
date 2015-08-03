@@ -2,8 +2,10 @@ doctype html
 html(lang="en")
     head
         meta(charset="utf-8")
+        - var pageTitle = "Saleor \u2014 an opensource storefront written in Python"
         block title
-            title Saleor
+            title
+                = pageTitle
         meta(name="viewport", content="width=device-width,initial-scale=1")
         meta(name="theme-color", content="#F5EFDF")
         link(href="static/style.css", rel="stylesheet")

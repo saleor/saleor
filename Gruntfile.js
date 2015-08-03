@@ -97,7 +97,7 @@ module.exports = function(grunt) {
       },
       sass: {
         files: ["src/scss/**/*.scss"],
-        tasks: ["sass", "postcss"]
+        tasks: ["sass", "uncss", "postcss"]
       },
       uglify: {
         files: ["src/js/**/*.js"],
