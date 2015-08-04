@@ -1,5 +1,12 @@
 module.exports = function(grunt) {
   grunt.initConfig({
+    babel: {
+      dist: {
+        files: {
+          'saleor/static/js/storefront_react.js': 'saleor/static/js_src/storefront_react.js'
+        }
+      }
+    },
     browserSync: {
       dev: {
         bsFiles: {
@@ -122,7 +129,11 @@ module.exports = function(grunt) {
           ],
           "saleor/static/js/storefront.js": [
             "saleor/static/components/jquery/dist/jquery.js",
-            "saleor/static/components/bootstrap-sass/assets/javascripts/bootstrap.js"
+            "saleor/static/components/react/react.js",
+            "saleor/static/components/bootstrap-sass/assets/javascripts/bootstrap.js",
+            "saleor/static/components/underscore/underscore.js",
+            "saleor/static/js_src/storefront.js",
+            "saleor/static/js/storefront_react.js"
           ]
         }
       }
@@ -140,14 +151,14 @@ module.exports = function(grunt) {
       },
       uglify: {
         files: ["saleor/static/js_src/**/*.js"],
-        tasks: ["uglify"]
+        tasks: ["babel", "uglify"]
       }
     }
   });
 
   require("load-grunt-tasks")(grunt);
 
-  grunt.registerTask("default", ["copy", "sass", "postcss", "uglify"]);
+  grunt.registerTask("default", ["copy", "sass", "postcss", "babel", "uglify"]);
   grunt.registerTask("sync", ["browserSync", "watch"]);
-  grunt.registerTask("heroku", ["copy", "sass", "postcss", "uglify"]);
+  grunt.registerTask("heroku", ["copy", "sass", "postcss", "babel", "uglify"]);
 };

@@ -52,9 +52,35 @@ $icon-font-path: "../fonts/";
 }
 
 .breadcrumb {
-  > li+li {
-	&:before {
-	  content: '/';
+	> li+li {
+		&:before {
+			content: '/';
+		}
 	}
-  }
+}
+
+.cart {
+	> tbody {
+		> .cart-item {
+			> td {
+				vertical-align: text-bottom;
+			}
+		}
+	}
+
+	&-item {
+		&-image {
+			width: 100px;
+		}
+
+		&-subtotal {
+			position: relative;
+		}
+
+		&-remove {
+			position: absolute;
+			bottom: 0;
+			right: 0;
+		}
+	}
 }

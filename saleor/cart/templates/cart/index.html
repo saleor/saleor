@@ -16,43 +16,52 @@
 <form role="form" action="." method="post">
     {% csrf_token %}
     {{ formset.management_form }}
-    <table class="table table-striped" id="cart-items">
+    <table class="table table-striped cart" id="cart-items">
         <thead>
             <tr>
-                <th class="col-sm-4">{% trans "Product" %}</th>
-                <th class="col-sm-2">{% trans "Quantity" %}</th>
-                <th class="col-sm-2">{% trans "Price" %}</th>
-                <th class="col-sm-2">{% trans "Subtotal" %}</th>
+                <th class="col-sm-7">{% trans "Product" %}</th>
+                <th class="col-sm-1 text-right">{% trans "Quantity" %}</th>
+                <th class="col-sm-2 text-right">{% trans "Price" %}</th>
+                <th class="col-sm-2 text-right">{% trans "Subtotal" %}</th>
             </tr>
         </thead>
         <tfoot>
             <tr>
-                <td class="col-sm-4"></td>
-                <td class="col-sm-2">
-                    <button class="btn btn-default" type="submit">
-                        {% trans "Update quantities" %}
-                    </button>
-                </td>
-                <th class="col-sm-2">{% trans "Total" %}:</th>
-                <td class="col-sm-2">{% gross cart.get_total %}</td>
+                <td class="col-sm-10 text-right lead" colspan="3">{% trans "Total" %}:
+                <td class="col-sm-2 text-right lead"><b>{% gross cart.get_total %}</b></td>
             </tr>
         </tfoot>
         <tbody>
             {% for form in formset %}
-            <tr>
+            <tr class="cart-item">
                 <td>
-                    <a href="{{ form.cart_line.product.get_absolute_url }}">{{ form.cart_line.product.product }} - {{ form.cart_line.product.display_variant }}</a>
+                    <a href="{{ form.cart_line.product.get_absolute_url }}">
+                        {% if form.cart_line.product.product.images.first %}
+                            <img class="cart-item-image" itemprop="image" src="{{ form.cart_line.product.product.images.first.image.crop.100x100 }}" alt="">
+                        {% else %}
+                            <img class="cart-item-image" src="{% static 'images/product-image-placeholder.png' %}" alt="">
+                        {% endif %}
+                        {{ form.cart_line.product.product }} - {{ form.cart_line.product.display_variant }}
+                    </a>
                 </td>
-                <td>{{ form.quantity|as_vertical_form:False }}</td>
-                <td>{% gross form.cart_line.get_price_per_item %}</td>
-                <td>{% gross form.cart_line.get_total %}</td>
+                <td class="cart-item-quantity">
+                    {{ form.quantity|as_vertical_form:False }}
+                    <button type="submit" class="btn btn-link btn-sm">{% trans "Update" %}</button>
+                </td>
+                <td class="text-right">{% gross form.cart_line.get_price_per_item %}</td>
+                <td class="text-right cart-item-subtotal">
+                    {% gross form.cart_line.get_total %}
+                    <button type="submit" class="btn btn-link btn-sm cart-item-remove">
+                        <span class="text-muted">{% trans "Remove from cart" %}</span>
+                    </button>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     <div class="form-group">
         <div>
-            <a href="{% url "checkout:index" %}" class="btn btn-primary">Checkout</a>
+            <a href="{% url "checkout:index" %}" class="btn btn-primary btn-lg pull-right">{% trans "Proceed to checkout" %}</a>
         </div>
     </div>
 </form>
@@ -62,11 +71,3 @@
 </p>
 {% endif %}
 {% endblock content %}
-
-{% block footer_scripts %}
-    {{ block.super }}
-    <script type="text/javascript" src="{% static "js/delete_buttons.js" %}"></script>
-    <script>
-        $('#cart-items').addDeleteButtons();
-    </script>
-{% endblock footer_scripts %}

@@ -28,6 +28,7 @@
     "grunt-contrib-watch": "~0.6.1",
     "grunt-postcss": "~0.4.0",
     "grunt-sass": "~1.0.0",
-    "load-grunt-tasks": "~3.2.0"
+    "load-grunt-tasks": "~3.2.0",
+    "grunt-babel": "~5.0.1"
   }
 }
