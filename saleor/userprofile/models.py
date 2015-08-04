@@ -79,14 +79,6 @@ class Address(models.Model):
 
 class UserManager(BaseUserManager):
 
-    def get_or_create(self, **kwargs):
-        defaults = kwargs.pop('defaults', {})
-        try:
-            return self.get_query_set().get(**kwargs), False
-        except self.model.DoesNotExist:
-            defaults.update(kwargs)
-            return self.create_user(**defaults), True
-
     def create_user(self, email, password=None, is_staff=False,
                     is_active=True, **extra_fields):
         'Creates a User with the given username, email and password'

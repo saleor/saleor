@@ -156,7 +156,7 @@ class GoogleClient(OAuth2Client):
 
     def get_user_info(self):
         response = super(GoogleClient, self).get_user_info()
-        if response['verified_email']:
+        if response.get('verified_email'):
             return response
         else:
             raise ValueError('Google account not verified.')
@@ -171,7 +171,7 @@ class FacebookClient(OAuth2Client):
 
     auth_uri = 'https://www.facebook.com/dialog/oauth'
     token_uri = 'https://graph.facebook.com/oauth/access_token'
-    user_info_uri = 'https://graph.facebook.com/me'
+    user_info_uri = 'https://graph.facebook.com/me?fields=name,email,verified'
 
     scope = ','.join(['email'])
 
@@ -183,10 +183,11 @@ class FacebookClient(OAuth2Client):
 
     def get_user_info(self):
         response = super(FacebookClient, self).get_user_info()
-        if response['verified']:
-            return response
-        else:
+        if not response.get('verified'):
             raise ValueError('Facebook account not verified.')
+        if not response.get('email'):
+            raise ValueError('Access to your email address is required.')
+        return response
 
     def extract_error_from_response(self, response_content):
         return response_content['error']['message']
