@@ -7,11 +7,30 @@
     <button type="submit" class="btn {% if entry.is_selected %}btn-primary{% else %}btn-default{% endif %} btn-lg col-sm-12">{% trans "Bill to this address" %}</button>
 {% endblock %}
 
-{% block extra_forms %}
+{% block additional_message %}
     {% if not user.is_authenticated %}
-        {{ step.forms.anonymous|as_vertical_form }}
+        <p class="alert alert-info">
+            {% trans "Already have an account?" %}
+            <a href="{% url "registration:login" %}">{% trans "Log in" %}</a>
+        </p>
     {% endif %}
-{% endblock extra_forms %}
+{% endblock %}
+
+{% block fields %}
+    {% if not user.is_authenticated %}
+        {{ step.forms.address.first_name|as_vertical_form }}
+        {{ step.forms.address.last_name|as_vertical_form }}
+        {{ step.forms.anonymous|as_vertical_form }}
+        {{ step.forms.address.company_name|as_vertical_form }}
+        {{ step.forms.address.street_address_1|as_vertical_form }}
+        {{ step.forms.address.street_address_2|as_vertical_form }}
+        {{ step.forms.address.city|as_vertical_form }}
+        {{ step.forms.address.postal_code|as_vertical_form }}
+        {{ step.forms.address.country|as_vertical_form }}
+        {{ step.forms.address.country_area|as_vertical_form }}
+        {{ step.forms.address.phone|as_vertical_form }}
+    {% endif %}
+{% endblock fields %}
 
 {% block form_submit %}
     <button type="submit" class="btn btn-primary">

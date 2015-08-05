@@ -39,16 +39,17 @@
 
     <div class="row">
         <div class="col-sm-6">
+            {% block additional_message %}{% endblock %}
+
             <div class="panel panel-default{% if addresses %} collapse{% endif %}" id="address-form">
                 <div class="panel-body">
                     <form method="post" class="{% if not address_book or not existing_address_selected %} in{% endif %}">
                         {% csrf_token %}
                         <fieldset>
-                            {{ step.forms.address|as_vertical_form }}
-                            {% block extra_forms %}{% endblock %}
+                            {% block fields %}{% endblock %}
                         </fieldset>
 
-                        <div class="form-group">
+                        <div class="form-group pull-right">
                             {% block form_submit %}
                                 <button type="submit" class="btn btn-primary">
                                     {% trans "Save address" %}
