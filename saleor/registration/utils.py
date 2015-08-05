@@ -1,3 +1,5 @@
+import hashlib
+import hmac
 import logging
 try:
     from urllib.parse import parse_qs, urlencode, urljoin, urlunparse
@@ -182,7 +184,12 @@ class FacebookClient(OAuth2Client):
         super(FacebookClient, self).__init__(*args, **kwargs)
 
     def get_user_info(self):
-        response = super(FacebookClient, self).get_user_info()
+        params = {'appsecret_proof': hmac.new(
+            settings.FACEBOOK_SECRET.encode('utf8'),
+            msg=self.authorizer.access_token.encode('utf8'),
+            digestmod=hashlib.sha256
+        ).hexdigest()}
+        response = self.get(self.user_info_uri, params=params)
         if not response.get('verified'):
             raise ValueError('Facebook account not verified.')
         if not response.get('email'):
