@@ -183,13 +183,26 @@ class FacebookClient(OAuth2Client):
             self.client_secret = settings.FACEBOOK_SECRET
         super(FacebookClient, self).__init__(*args, **kwargs)
 
-    def get_user_info(self):
-        params = {'appsecret_proof': hmac.new(
+    def get_request_params(self, data=None):
+        data = data or {}
+        data.update({'appsecret_proof': hmac.new(
             settings.FACEBOOK_SECRET.encode('utf8'),
             msg=self.authorizer.access_token.encode('utf8'),
-            digestmod=hashlib.sha256
-        ).hexdigest()}
-        response = self.get(self.user_info_uri, params=params)
+            digestmod=hashlib.sha256).hexdigest()})
+        return data
+
+    def get(self, address, params=None, authorize=True):
+        if authorize:
+            params = self.get_request_params(params)
+        return super(FacebookClient, self).get(address, params, authorize)
+
+    def post(self, address, data=None, authorize=True):
+        if authorize:
+            data = self.get_request_params(data)
+        return super(FacebookClient, self).post(address, data, authorize)
+
+    def get_user_info(self):
+        response = super(FacebookClient, self).get_user_info()
         if not response.get('verified'):
             raise ValueError('Facebook account not verified.')
         if not response.get('email'):
