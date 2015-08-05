@@ -3,6 +3,7 @@ from unittest import TestCase
 from django.core.urlresolvers import resolve
 from django.conf import settings
 from django.http import HttpRequest
+from django.test import override_settings
 from mock import call, Mock, MagicMock, patch, sentinel
 from purl import URL
 
@@ -28,6 +29,7 @@ class SessionMock(Mock):
         pass
 
 
+@override_settings(FACEBOOK_APP_ID='112233')
 def test_facebook_login_url():
     facebook_client = FacebookClient(local_host='localhost')
     facebook_login_url = URL(facebook_client.get_login_uri())
@@ -36,10 +38,11 @@ def test_facebook_login_url():
     func, _args, kwargs = resolve(callback_url.path())
     assert func is oauth_callback
     assert kwargs['service'] == FACEBOOK
-    assert query['scope'][0] == FacebookClient.scope
-    assert query['client_id'][0] == str(FacebookClient.client_id)
+    assert query['scope'][0] == facebook_client.scope
+    assert query['client_id'][0] == str(facebook_client.client_id)
 
 
+@override_settings(GOOGLE_CLIENT_ID='112233')
 def test_google_login_url():
     google_client = GoogleClient(local_host='local_host')
     google_login_url = URL(google_client.get_login_uri())
@@ -48,8 +51,21 @@ def test_google_login_url():
     func, _args, kwargs = resolve(callback_url.path())
     assert func is oauth_callback
     assert kwargs['service'] == GOOGLE
-    assert params['scope'][0] == GoogleClient.scope
-    assert params['client_id'][0] == str(GoogleClient.client_id)
+    assert params['scope'][0] == google_client.scope
+    assert params['client_id'][0] == str(google_client.client_id)
+
+
+@override_settings(FACEBOOK_APP_ID='112233', FACEBOOK_SECRET='abcd')
+def test_facebook_appsecret_proof():
+    proof = '8368ea8c31a8848293fe8ee87b393f3d2c2e3b63f2bdd9165877c00213ffe45d'
+    authorizer = MagicMock()
+    authorizer.access_token = 'access_token'
+
+    facebook_client = FacebookClient(local_host='localhost')
+    facebook_client.authorizer = authorizer
+
+    data, _ = facebook_client.get_request_params()
+    assert data['appsecret_proof'] == proof
 
 
 def test_parse_json():
@@ -148,6 +164,9 @@ class UserInfoTestCase(BaseCommunicationTestCase):
     def setUp(self):
         super(UserInfoTestCase, self).setUp()
 
+        self.authorizer = MagicMock()
+        self.authorizer.access_token = 'access_token'
+
         self.user_info_response = MagicMock()
         self.requests_mock.get.return_value = self.user_info_response
 
@@ -171,11 +190,13 @@ class UserInfoTestCase(BaseCommunicationTestCase):
         google_client = GoogleClient(local_host='http://localhost')
         self.assertRaises(ValueError, google_client.get_user_info)
 
+    @override_settings(FACEBOOK_APP_ID='112233', FACEBOOK_SECRET='abcd')
     def test_facebook_user_data_account_not_verified(self):
         """Facebook OAuth2 client checks for account verification"""
         self.user_info_response.status_code = sentinel.ok
         self.parse_mock.return_value = {'verified': False}
         facebook_client = FacebookClient(local_host='http://localhost')
+        facebook_client.authorizer = self.authorizer
         self.assertRaises(ValueError, facebook_client.get_user_info)
 
 
