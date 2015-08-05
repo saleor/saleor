@@ -7,43 +7,47 @@ var CartItemAmount = React.createClass({
     change: function(event){
         if (event.target.value == this.lastOptionValue) {
             var parent = this.getDOMNode().parentNode;
-            console.log(parent.innerHTML);
             React.unmountComponentAtNode(parent);
-            parent.appendChild(inputs[this.props.name]);
+            parent.appendChild(textInput[this.props.name]);
         } else {
             this.setState({value: event.target.value});
+            this.submitForm();
         }
     },
+    submitForm: function() {
+        $(".form-cart").submit();
+    },
     render: function() {
-        this.lastOptionValue = _.clone(this.props.options).pop() + 1;
-        this.lastOptionLabel = this.lastOptionValue + " +";
+        this.lastOptionValue = this.props.options[this.props.options.length - 1];
+        var that = this;
         return <select name={this.props.name} onChange={this.change} value={this.state.value} className="form-control">
             {this.props.options.map(function(option) {
-                return <CartItemAmountOption key={option} value={option} />
+                return <CartItemAmountOption key={option} value={option} label={option == that.lastOptionValue ? option+" +" : option} />
             })}
-            <CartItemAmountLastOption value={this.lastOptionValue} label={this.lastOptionLabel} />
         </select>;
     }
 });
 
 class CartItemAmountOption extends React.Component {
     render() {
-        return <option value={this.props.value}>{this.props.value}</option>;
+        var value = this.props.value;
+        var label = this.props.label ? this.props.label : value;
+        return <option value={value}>{label}</option>;
     };
 }
 
-class CartItemAmountLastOption extends React.Component {
-    render() {
-        return <option value={this.props.value}>{this.props.label}</option>;
-    };
-}
-
-var inputs = [];
+var textInput = [];
 $(".cart-item-quantity").each(function() {
-    var input = $(this).find("input");
-    var value = input.val();
-    var name = input.attr("name");
-    inputs[name] = input[0];
+    var $input = $(this).find("input");
+    var $submit = $(this).find("button");
+    var value = $input.val();
+    var name = $input.attr("name");
+    var hasErrors = $(this).hasClass("has-error");
+    textInput[name] = this;
 
-    React.render(<CartItemAmount options={_.range(1, 10)} value={value} name={name} />, this);
+    var options = [1,2,3,4,5,6,7,8,9,10];
+
+    if (options.indexOf(parseInt(value)) != -1 && !hasErrors) {
+        React.render(<CartItemAmount options={options} value={value} name={name}/>, this.parentNode);
+    }
 });

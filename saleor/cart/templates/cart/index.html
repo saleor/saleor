@@ -13,14 +13,14 @@
 
 {% block content %}
 {% if cart %}
-<form role="form" action="." method="post">
+<form role="form" action="." method="post" class="form-cart">
     {% csrf_token %}
     {{ formset.management_form }}
     <table class="table table-striped cart" id="cart-items">
         <thead>
             <tr>
-                <th class="col-sm-7">{% trans "Product" %}</th>
-                <th class="col-sm-1 text-right">{% trans "Quantity" %}</th>
+                <th class="col-sm-6">{% trans "Product" %}</th>
+                <th class="col-sm-2 text-right">{% trans "Quantity" %}</th>
                 <th class="col-sm-2 text-right">{% trans "Price" %}</th>
                 <th class="col-sm-2 text-right">{% trans "Subtotal" %}</th>
             </tr>
@@ -44,9 +44,18 @@
                         {{ form.cart_line.product.product }} - {{ form.cart_line.product.display_variant }}
                     </a>
                 </td>
-                <td class="cart-item-quantity">
-                    {{ form.quantity|as_vertical_form:False }}
-                    <button type="submit" class="btn btn-link btn-sm">{% trans "Update" %}</button>
+                <td>
+                    <div class="input-group cart-item-quantity{% if form.quantity.errors %} has-error{% endif %}">
+                        {{ form.quantity }}
+                        <span class="input-group-btn">
+                            <button class="btn btn-info" type="submit">{% trans "Update" %}</button>
+                        </span>
+                    </div>
+                    {% if form.quantity.errors %}
+                        {% for error in form.quantity.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
                 </td>
                 <td class="text-right">{% gross form.cart_line.get_price_per_item %}</td>
                 <td class="text-right cart-item-subtotal">

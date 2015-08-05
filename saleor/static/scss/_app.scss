@@ -22,11 +22,11 @@ $icon-font-path: "../fonts/";
 }
 
 .product-list-item-name {
-  display: block;
-  margin-top: $grid-gutter-width/4;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+	display: block;
+	margin-top: $grid-gutter-width/4;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .product-gallery {
@@ -48,7 +48,7 @@ $icon-font-path: "../fonts/";
 }
 
 .form-group.required .control-label:after{
-    content: '*';
+	content: '*';
 }
 
 .breadcrumb {
@@ -73,6 +73,20 @@ $icon-font-path: "../fonts/";
 			width: 100px;
 		}
 
+		&-quantity {
+			input {
+				@extend .form-control;
+				border-bottom-right-radius: 0;
+				border-top-right-radius: 0;
+			}
+
+			&.has-error {
+				input {
+					border-color: $state-danger-text;
+				}
+			}
+		}
+
 		&-subtotal {
 			position: relative;
 		}
@@ -81,6 +95,14 @@ $icon-font-path: "../fonts/";
 			position: absolute;
 			bottom: 0;
 			right: 0;
+		}
+
+		select {
+			option {
+				&:last-child {
+					color: lighten($text-color, 33%);
+				}
+			}
 		}
 	}
 }
