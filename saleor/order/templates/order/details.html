@@ -32,6 +32,54 @@
             </h1>
         </div>
     </div>
+
+    {% if order.user == user or not order.is_fully_paid %}
+        {% if not order.is_fully_paid %}
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            {% if waiting_payment %}
+                                <form method="post" action="{% url 'order:cancel-payment' token=order.token %}">
+                                    {% csrf_token %}
+                                    <legend>{% trans "Payment pending" %}</legend>
+                                    <p>{% trans "We are currently waiting for an external service to authorize your payment for this order." %}</p>
+                                    <p>{% trans "Current status" %}: <span class="label label-default">{{ waiting_payment.get_status_display }}</span></p>
+                                    <p>{% trans "Unless you are absolutely sure that the process will not complete (for example you have closed the browser window before paying), you should wait before attempting a new payment. Please be warned that if you try again and the previous transaction succeeds you might end up being charged twice." %}</p>
+                                    {{ waiting_payment_form|as_vertical_form }}
+                                    <button type="submit" class="btn btn-danger">{% trans "I understand, allow me to pay again" %}</button>
+                                </form>
+                            {% elif payment_form %}
+                                <form method="post" action="{% url "order:details" token=order.token %}">
+                                    {% csrf_token %}
+                                    <legend>{% trans "Pay for your order" %}</legend>
+                                    {{ payment_form }}
+                                    <div class="form-group text-right">
+                                        {% block form_submit %}
+                                            <button type="submit" class="btn btn-primary">
+                                                {% trans "Make a payment" %}
+                                            </button>
+                                        {% endblock %}
+                                    </div>
+                                </form>
+                            {% else %}
+                                <p>{% trans "You've authorized transaction. Order is in processing" %}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        {% if payments %}
+            <h3>{% trans "Payment history" %}</h3>
+            <ul>
+                {% for payment in payments %}
+                    <li>{{ payment.created|date }}, {{ payment.created|time }} — <span class="label label-default">{{ payment.get_status_display }}</span></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endif %}
+
     <div class="row">
         {% if order.user == user %}
             <div class="col-sm-6">
@@ -102,52 +150,6 @@
             </table>
         </div>
     {% endfor %}
-    {% if order.user == user or not order.is_fully_paid %}
-        {% if not order.is_fully_paid %}
-            <div class="row">
-                <div class="col-sm-6">
-                    <div class="panel panel-default">
-                        <div class="panel-body">
-                            {% if waiting_payment %}
-                                <form method="post" action="{% url 'order:cancel-payment' token=order.token %}">
-                                    {% csrf_token %}
-                                    <legend>{% trans "Payment pending" %}</legend>
-                                    <p>{% trans "We are currently waiting for an external service to authorize your payment for this order." %}</p>
-                                    <p>{% trans "Current status" %}: <span class="label label-default">{{ waiting_payment.get_status_display }}</span></p>
-                                    <p>{% trans "Unless you are absolutely sure that the process will not complete (for example you have closed the browser window before paying), you should wait before attempting a new payment. Please be warned that if you try again and the previous transaction succeeds you might end up being charged twice." %}</p>
-                                    {{ waiting_payment_form|as_vertical_form }}
-                                    <button type="submit" class="btn btn-danger">{% trans "I understand, allow me to pay again" %}</button>
-                                </form>
-                            {% elif payment_form %}
-                                <form method="post" action="{% url "order:details" token=order.token %}">
-                                    {% csrf_token %}
-                                    <legend>{% trans "Pay for your order" %}</legend>
-                                    {{ payment_form|as_vertical_form }}
-                                    <div class="form-group">
-                                        {% block form_submit %}
-                                            <button type="submit" class="btn btn-primary">
-                                                {% trans "Make a payment" %}
-                                            </button>
-                                        {% endblock %}
-                                    </div>
-                                </form>
-                            {% else %}
-                                <p>{% trans "You've authorized transaction. Order is in processing" %}</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
-        {% if payments %}
-            <h3>{% trans "Payment history" %}</h3>
-            <ul>
-                {% for payment in payments %}
-                    <li>{{ payment.created|date }}, {{ payment.created|time }} — <span class="label label-default">{{ payment.get_status_display }}</span></li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    {% endif %}
 {% endblock content %}
 
 {% block footer_scripts %}

@@ -20,7 +20,7 @@
         <thead>
             <tr>
                 <th class="col-sm-6">{% trans "Product" %}</th>
-                <th class="col-sm-2 text-right">{% trans "Quantity" %}</th>
+                <th class="col-sm-2">{% trans "Quantity" %}</th>
                 <th class="col-sm-2 text-right">{% trans "Price" %}</th>
                 <th class="col-sm-2 text-right">{% trans "Subtotal" %}</th>
             </tr>
@@ -45,7 +45,7 @@
                     </a>
                 </td>
                 <td>
-                    <div class="input-group cart-item-quantity{% if form.quantity.errors %} has-error{% endif %}">
+                    <div class="input-group cart-item-quantity hidden{% if form.quantity.errors %} has-error{% endif %}">
                         {{ form.quantity }}
                         <span class="input-group-btn">
                             <button class="btn btn-info" type="submit">{% trans "Update" %}</button>

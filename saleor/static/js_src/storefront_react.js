@@ -22,7 +22,7 @@ var CartItemAmount = React.createClass({
     render: function() {
         this.lastOptionValue = this.props.options[this.props.options.length - 1];
         var that = this;
-        return <select name={this.props.name} onChange={this.change} value={this.state.value} className="form-control">
+        return <select name={this.props.name} onChange={this.change} value={this.state.value} className="form-control cart-item-quantity-select">
             {this.props.options.map(function(option) {
                 return <CartItemAmountOption key={option} value={option} label={option == that.lastOptionValue ? option+" +" : option} />
             })}
@@ -44,13 +44,15 @@ $(".cart-item-quantity").each(function() {
     var value = $input.val();
     var name = $input.attr("name");
     var hasErrors = $(this).hasClass("has-error");
-    textInput[name] = this;
 
     var options = [1,2,3,4,5,6,7,8,9,10];
 
     if (options.indexOf(parseInt(value)) != -1 && !hasErrors) {
         React.render(<CartItemAmount options={options} value={value} name={name}/>, this.parentNode);
     }
+
+    $(this).removeClass("hidden");
+    textInput[name] = this;
 });
 
 var FormShippingToggler = React.createClass({
