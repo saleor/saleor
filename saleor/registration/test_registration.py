@@ -55,9 +55,9 @@ def test_google_login_url():
     assert params['client_id'][0] == str(google_client.client_id)
 
 
-@override_settings(FACEBOOK_APP_ID='112233')
+@override_settings(FACEBOOK_APP_ID='112233', FACEBOOK_SECRET='abcd')
 def test_facebook_appsecret_proof():
-    proof = '430c69d9596533cd94a17c6647d96d8bf60e118dc50e0d693a84ec59619079f5'
+    proof = '8368ea8c31a8848293fe8ee87b393f3d2c2e3b63f2bdd9165877c00213ffe45d'
     authorizer = MagicMock()
     authorizer.access_token = 'access_token'
 
@@ -190,6 +190,7 @@ class UserInfoTestCase(BaseCommunicationTestCase):
         google_client = GoogleClient(local_host='http://localhost')
         self.assertRaises(ValueError, google_client.get_user_info)
 
+    @override_settings(FACEBOOK_APP_ID='112233', FACEBOOK_SECRET='abcd')
     def test_facebook_user_data_account_not_verified(self):
         """Facebook OAuth2 client checks for account verification"""
         self.user_info_response.status_code = sentinel.ok
