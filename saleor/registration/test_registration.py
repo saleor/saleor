@@ -64,7 +64,7 @@ def test_facebook_appsecret_proof():
     facebook_client = FacebookClient(local_host='localhost')
     facebook_client.authorizer = authorizer
 
-    data = facebook_client.get_request_params()
+    data, _ = facebook_client.get_request_params()
     assert data['appsecret_proof'] == proof
 
 
