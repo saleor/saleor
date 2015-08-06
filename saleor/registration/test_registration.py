@@ -45,9 +45,9 @@ class SessionMock(Mock):
         pass
 
 
-def test_facebook_login_url(facebook_client):
-    with override_settings(FACEBOOK_APP_ID='112233'):
-        facebook_login_url = URL(facebook_client.get_login_uri())
+def test_facebook_login_url(facebook_client, settings):
+    settings.FACEBOOK_APP_ID = '112233'
+    facebook_login_url = URL(facebook_client.get_login_uri())
     query = facebook_login_url.query_params()
     callback_url = URL(query['redirect_uri'][0])
     func, _args, kwargs = resolve(callback_url.path())
@@ -57,9 +57,9 @@ def test_facebook_login_url(facebook_client):
     assert query['client_id'][0] == str(facebook_client.client_id)
 
 
-def test_google_login_url(google_client):
-    with override_settings(GOOGLE_CLIENT_ID='112233'):
-        google_login_url = URL(google_client.get_login_uri())
+def test_google_login_url(google_client, settings):
+    settings.GOOGLE_CLIENT_ID = '112233'
+    google_login_url = URL(google_client.get_login_uri())
     params = google_login_url.query_params()
     callback_url = URL(params['redirect_uri'][0])
     func, _args, kwargs = resolve(callback_url.path())
@@ -69,10 +69,11 @@ def test_google_login_url(google_client):
     assert params['client_id'][0] == str(google_client.client_id)
 
 
-def test_facebook_appsecret_proof(facebook_client):
+def test_facebook_appsecret_proof(facebook_client, settings):
+    settings.FACEBOOK_APP_ID = '112233'
+    settings.FACEBOOK_SECRET = 'abcd'
     proof = '8368ea8c31a8848293fe8ee87b393f3d2c2e3b63f2bdd9165877c00213ffe45d'
-    with override_settings(FACEBOOK_APP_ID='112233', FACEBOOK_SECRET='abcd'):
-        data, _ = facebook_client.get_request_params()
+    data, _ = facebook_client.get_request_params()
     assert data['appsecret_proof'] == proof
 
 
