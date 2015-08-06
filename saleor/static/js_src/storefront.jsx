@@ -22,11 +22,13 @@ var CartItemAmount = React.createClass({
     render: function() {
         this.lastOptionValue = this.props.options[this.props.options.length - 1];
         var that = this;
-        return <select name={this.props.name} onChange={this.change} value={this.state.value} className="form-control cart-item-quantity-select">
-            {this.props.options.map(function(option) {
-                return <CartItemAmountOption key={option} value={option} label={option == that.lastOptionValue ? option+" +" : option} />
-            })}
-        </select>;
+        return <div className={this.props.className}>
+            <select name={this.props.name} onChange={this.change} value={this.state.value} className="form-control cart-item-quantity-select">
+                {this.props.options.map(function(option) {
+                    return <CartItemAmountOption key={option} value={option} label={option == that.lastOptionValue ? option+" +" : option} />
+                })}
+            </select>
+        </div>;
     }
 });
 
@@ -41,6 +43,7 @@ class CartItemAmountOption extends React.Component {
 var textInput = [];
 $(".cart-item-quantity").each(function() {
     var $input = $(this).find("input");
+    var $button = $(this).find("button");
     var value = $input.val();
     var name = $input.attr("name");
     var hasErrors = $(this).hasClass("has-error");
@@ -52,7 +55,11 @@ $(".cart-item-quantity").each(function() {
     }
 
     $(this).removeClass("hidden");
+    $button.addClass("invisible");
     textInput[name] = this;
+}).on("keyup change", function() {
+    $(this).find("input").addClass("input-left");
+    $(this).find("button").removeClass("invisible");
 });
 
 var FormShippingToggler = React.createClass({

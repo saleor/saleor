@@ -76,8 +76,11 @@ $icon-font-path: "../fonts/";
 		&-quantity {
 			input {
 				@extend .form-control;
-				border-bottom-right-radius: 0;
-				border-top-right-radius: 0;
+
+				&.input-left {
+					border-bottom-right-radius: 0;
+					border-top-right-radius: 0;
+				}
 			}
 
 			&-select {
@@ -96,9 +99,7 @@ $icon-font-path: "../fonts/";
 		}
 
 		&-remove {
-			position: absolute;
-			bottom: 0;
-			right: 0;
+			padding-left: 0;
 		}
 
 		select {
@@ -134,6 +135,20 @@ $icon-font-path: "../fonts/";
 						width: 100px;
 					}
 				}
+			}
+		}
+	}
+}
+
+.nav {
+	> li {
+		> a {
+			@extend .text-info;
+		}
+
+		&.active {
+			> a, a:hover {
+				background-color: $brand-info;
 			}
 		}
 	}

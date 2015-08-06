@@ -3,7 +3,7 @@ module.exports = function(grunt) {
     babel: {
       dist: {
         files: {
-          'saleor/static/js/storefront_react.js': 'saleor/static/js_src/storefront_react.js'
+          'saleor/static/js/storefront_fromjsx.js': 'saleor/static/js_src/storefront.jsx'
         }
       }
     },
@@ -131,8 +131,8 @@ module.exports = function(grunt) {
             "saleor/static/components/jquery/dist/jquery.js",
             "saleor/static/components/react/react.js",
             "saleor/static/components/bootstrap-sass/assets/javascripts/bootstrap.js",
-            "saleor/static/js_src/storefront.js",
-            "saleor/static/js/storefront_react.js"
+            "saleor/static/js/storefront_fromjsx.js",
+            "saleor/static/js_src/storefront.js"
           ]
         }
       }
@@ -149,7 +149,7 @@ module.exports = function(grunt) {
         tasks: ["sass", "postcss"]
       },
       uglify: {
-        files: ["saleor/static/js_src/**/*.js"],
+        files: ["saleor/static/js_src/**/*.js", "saleor/static/js_src/**/*.jsx"],
         tasks: ["babel", "uglify"]
       }
     }

@@ -45,24 +45,26 @@
                     </a>
                 </td>
                 <td>
-                    <div class="input-group cart-item-quantity hidden{% if form.quantity.errors %} has-error{% endif %}">
-                        {{ form.quantity }}
-                        <span class="input-group-btn">
-                            <button class="btn btn-info" type="submit">{% trans "Update" %}</button>
-                        </span>
+                    <div>
+                        <div class="input-group cart-item-quantity hidden{% if form.quantity.errors %} has-error{% endif %}">
+                            {{ form.quantity }}
+                            <span class="input-group-btn">
+                                <button class="btn btn-info" type="submit">{% trans "Update" %}</button>
+                            </span>
+                        </div>
                     </div>
                     {% if form.quantity.errors %}
                         {% for error in form.quantity.errors %}
                             <span class="text-danger">{{ error }}</span>
                         {% endfor %}
                     {% endif %}
+                    <button type="submit" class="btn btn-link btn-sm cart-item-remove">
+                        <span class="text-muted">{% trans "Remove from cart" %}</span>
+                    </button>
                 </td>
                 <td class="text-right">{% gross form.cart_line.get_price_per_item %}</td>
                 <td class="text-right cart-item-subtotal">
                     {% gross form.cart_line.get_total %}
-                    <button type="submit" class="btn btn-link btn-sm cart-item-remove">
-                        <span class="text-muted">{% trans "Remove from cart" %}</span>
-                    </button>
                 </td>
             </tr>
             {% endfor %}

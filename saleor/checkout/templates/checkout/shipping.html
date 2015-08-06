@@ -25,8 +25,9 @@
         {{ step.forms.address.country|as_vertical_form }}
         {{ step.forms.address.country_area|as_vertical_form }}
         {{ step.forms.address.phone|as_vertical_form }}
-        {{ delivery_form|as_horizontal_form }}
     </div>
+
+    {{ delivery_form|as_horizontal_form }}
 {% endblock fields %}
 
 {% block form_submit %}
