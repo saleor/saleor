@@ -1,36 +1,110 @@
-var CartItemAmount = React.createClass({
-    componentDidMount: function() {
-        this.parent = this.getDOMNode().parentNode;
-    },
-    getInitialState: function() {
-        return {
-            value: this.props.value
+class CartItemAmount extends React.Component {
+    state = {
+        error: null,
+        lastSavedValue: this.props.value,
+        renderSelect: false,
+        renderSubmit: false,
+        result: null,
+        sending: false,
+        value: this.props.value
+    };
+
+    componentDidMount() {
+        if (this.state.value < this.props.thresholdValue) {
+            this.setState({renderSelect: true});
         }
-    },
-    change: function(event){
-        if (event.target.value == this.lastOptionValue) {
-            React.unmountComponentAtNode(this.parent);
-            this.parent.appendChild(textInput[this.props.name]);
-        } else {
-            this.setState({value: event.target.value});
-            this.submitForm();
+    }
+
+    change(event){
+        let newValue = event.target.value;
+        this.setState({result: null});
+        if (newValue != this.props.thresholdValue || !this.state.renderSelect) {
+            this.setState({value: newValue});
         }
-    },
-    submitForm: function() {
-        $(".form-cart").submit();
-    },
-    render: function() {
-        this.lastOptionValue = this.props.options[this.props.options.length - 1];
-        var that = this;
-        return <div className={this.props.className}>
-            <select name={this.props.name} onChange={this.change} value={this.state.value} className="form-control cart-item-quantity-select">
-                {this.props.options.map(function(option) {
-                    return <CartItemAmountOption key={option} value={option} label={option == that.lastOptionValue ? option+" +" : option} />
-                })}
-            </select>
+        if (newValue >= this.props.thresholdValue) {
+            this.setState({renderSelect: false});
+        }
+        if (newValue < this.props.thresholdValue && this.state.renderSelect) {
+            this.sendQuantity(newValue);
+        }
+
+        if (!this.state.renderSelect && !this.state.sending) {
+            this.setState({renderSubmit: true});
+        }
+    }
+
+    valueChanged() {
+        return this.state.lastSavedValue != this.state.value;
+    }
+
+    checkKey(event) {
+        if (event.key == "Enter" && this.valueChanged()) {
+            this.sendQuantityWrapper();
+        }
+    }
+
+    sendQuantityWrapper() {
+        this.sendQuantity(this.refs.inputQuantity.props.value);
+    }
+
+    sendQuantity(quantity) {
+        this.setState({renderSubmit: false});
+        this.setState({sending: true});
+
+        $.ajax({
+            url: this.props.url,
+            method: "post",
+            data: {quantity: quantity},
+            complete: () => {
+                this.setState({sending: false});
+                if (quantity < this.props.thresholdValue) {
+                    this.setState({renderSelect: true});
+                }
+            },
+            success: () => {
+                this.setState({result: "success", lastSavedValue: quantity});
+                setTimeout(() => {
+                    this.setState({result: null});
+                }, 1000);
+            },
+            error: (response) => {
+                this.setState({error: response.responseJSON.error.quantity, result: "error"});
+            }
+        });
+    }
+
+    render() {
+        let classNames = React.addons.classSet({
+            [this.props.className]: true,
+            "has-success": this.state.result == "success",
+            "has-error": this.state.result == "error"
+        });
+
+        let select = <select onChange={this.change.bind(this)} value={this.state.value} className="form-control cart-item-quantity-select">
+                {this.props.options.map(option =>
+                    <CartItemAmountOption key={option} value={option} label={option == this.props.thresholdValue ? option+" +" : option} />)}
+            </select>;
+
+        let classNamesInput = React.addons.classSet({
+            "input-group": true,
+            "cart-item-quantity": true,
+            "no-submit": (!this.state.renderSubmit || !this.valueChanged()) && !(this.state.result == "error")
+        });
+        let input =
+            <div className={classNamesInput}>
+                <input onKeyUp={this.checkKey.bind(this)} onChange={this.change.bind(this)} id="id_quantity" max={this.props.max} min="1" ref="inputQuantity"
+                       name="quantity" type="number" value={this.state.value} />
+                <span className="input-group-btn">
+                    <button onClick={this.sendQuantityWrapper.bind(this)} className="btn btn-info" type="submit">Update</button>
+                </span>
+            </div>;
+        return <div className={classNames}>
+            {this.state.renderSelect ? select : input}
+            {this.state.sending && !(this.state.result == "error")? <i className="fa fa-circle-o-notch fa-spin"></i> : ""}
+            {this.state.result == "error" ? <span className="error text-danger">{this.state.error}</span> : ""}
         </div>;
     }
-});
+}
 
 class CartItemAmountOption extends React.Component {
     render() {
@@ -41,41 +115,57 @@ class CartItemAmountOption extends React.Component {
 }
 
 var textInput = [];
-$(".cart-item-quantity").each(function() {
+var options = [1,2,3,4,5,6,7,8,9,10];
+var csrftoken = $.cookie('csrftoken');
+function csrfSafeMethod(method) {
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+    }
+});
+
+$(".cart-item-amount").each(function(index) {
     var $input = $(this).find("input");
     var $button = $(this).find("button");
     var value = $input.val();
     var name = $input.attr("name");
-    var hasErrors = $(this).hasClass("has-error");
+    var max = $input.attr("max");
+    var props = {
+        className: "",
+        index: index,
+        max: max,
+        options: options.slice(0, max),
+        thresholdValue: options[options.length - 1],
+        url: $(this).find("form").attr("action"),
+        value: value
+    };
 
-    var options = [1,2,3,4,5,6,7,8,9,10];
-
-    if (options.indexOf(parseInt(value)) != -1 && !hasErrors) {
-        React.render(<CartItemAmount options={options} value={value} name={name}/>, this.parentNode);
-    }
-
-    $(this).removeClass("hidden");
+    $(this).find(".cart-item-quantity").removeClass("js-hidden");
     $button.addClass("invisible");
-    textInput[name] = this;
-}).on("keyup change", function() {
-    $(this).find("input").addClass("input-left");
-    $(this).find("button").removeClass("invisible");
+    textInput.push(this.firstElementChild);
+
+    React.render(<CartItemAmount {...props} />, this);
 });
 
-var FormShippingToggler = React.createClass({
-    componentDidMount: function() {
+class FormShippingToggler extends React.Component {
+    state = {
+        value: true
+    };
+
+    componentDidMount() {
         $(".form-full").hide();
-    },
-    getInitialState: function() {
-        return {
-            value: true
-        }
-    },
-    formFullToggle: function() {
+    }
+
+    formFullToggle() {
         this.setState({value: event.target.checked});
         $(".form-full").toggle();
-    },
-    render: function() {
+    }
+
+    render() {
         return <div className="checkbox">
             <label>
                 <input checked={this.state.value} type="checkbox" onChange={this.formFullToggle} name="shipping_same_as_billing" />
@@ -83,7 +173,7 @@ var FormShippingToggler = React.createClass({
             </label>
         </div>;
     }
-});
+}
 
 var $formFullToggle = $("#form-full-toggle");
 if ($formFullToggle.length) {

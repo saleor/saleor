@@ -84,6 +84,7 @@ class ReplaceCartLineForm(AddToCartForm):
     def __init__(self, *args, **kwargs):
         super(ReplaceCartLineForm, self).__init__(*args, **kwargs)
         self.cart_line = self.cart.get_line(self.product)
+        self.fields['quantity'].widget.attrs = {'min': 1, 'max': self.cart_line.product.get_stock_quantity()}
 
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
@@ -105,6 +106,7 @@ class ReplaceCartLineForm(AddToCartForm):
         """
         Replace quantity.
         """
+        print repr(self.cart), repr(self.product), repr(self.cleaned_data)
         return self.cart.add(self.product, self.cleaned_data['quantity'],
                              replace=True)
 

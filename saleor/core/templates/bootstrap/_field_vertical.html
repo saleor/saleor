@@ -43,7 +43,7 @@
         {% if bound_field.errors %}
             {% for error in bound_field.errors %}
                 {% if input_type == "input" %}
-                    <span class="glyphicon glyphicon-remove form-control-feedback"></span>
+                    <span class="fa fa-times form-control-feedback"></span>
                 {% endif %}
                 <span class="text-danger">{{ error }}</span>
             {% endfor %}

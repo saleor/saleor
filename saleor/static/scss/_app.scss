@@ -1,5 +1,6 @@
 $icon-font-path: "../fonts/";
 @import "bootstrap-sass/assets/stylesheets/bootstrap";
+@import "components-font-awesome/scss/font-awesome";
 
 .navbar {
 	margin-bottom: $grid-gutter-width;
@@ -77,20 +78,48 @@ $icon-font-path: "../fonts/";
 			input {
 				@extend .form-control;
 
-				&.input-left {
-					border-bottom-right-radius: 0;
-					border-top-right-radius: 0;
-				}
+				border-bottom-right-radius: 0;
+				border-top-right-radius: 0;
 			}
 
 			&-select {
+				display: inline-block;
 				width: calc(100% - 71px);
+
+				option {
+					&:last-child {
+						color: lighten($text-color, 33%);
+					}
+				}
 			}
 
 			&.has-error {
 				input {
 					border-color: $state-danger-text;
 				}
+			}
+		}
+
+		&-amount {
+			.input-group {
+				&.no-submit {
+					display: inline-block;
+					width: calc(100% - 71px);
+
+					input {
+						border-bottom-right-radius: $input-border-radius;
+						border-top-right-radius: $input-border-radius;
+					}
+
+					.btn {
+						display: none;
+					}
+				}
+			}
+
+			.fa {
+				margin-left: 6px;
+				padding-left: 1px;
 			}
 		}
 
@@ -102,12 +131,8 @@ $icon-font-path: "../fonts/";
 			padding-left: 0;
 		}
 
-		select {
-			option {
-				&:last-child {
-					color: lighten($text-color, 33%);
-				}
-			}
+		.error {
+			display: block;
 		}
 	}
 }
@@ -151,5 +176,12 @@ $icon-font-path: "../fonts/";
 				background-color: $brand-info;
 			}
 		}
+	}
+}
+
+
+.js {
+	.js-hidden {
+		display: none;
 	}
 }

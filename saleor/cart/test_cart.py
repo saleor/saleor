@@ -188,7 +188,7 @@ def test_cart_contains_products_on_stock():
     cart = Cart(session_cart=SessionCart())
     cart.add(stocked_variant, quantity=12, check_quantity=False)
     assert cart.count() == 12
-    cart = remove_unavailable_products(cart)
+    remove_unavailable_products(cart)
     assert cart.count() == 10
 
 
@@ -197,8 +197,8 @@ def test_cart_doesnt_contain_empty_products():
     stocked_variant.get_stock_quantity = MagicMock(return_value=0)
     cart = Cart(session_cart=SessionCart())
     cart.add(stocked_variant, quantity=10, check_quantity=False)
-    updated_cart = remove_unavailable_products(cart)
-    assert len(updated_cart) == 0
+    remove_unavailable_products(cart)
+    assert len(cart) == 0
 
 
 @patch.object(Cart, 'for_session_cart')

@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load staticfiles %}
 
-<html lang="en">
+<html lang="en" class="no-js">
     <head>
         <title>{% block title %}Saleor{% endblock %}</title>
         {% block meta %}
@@ -12,6 +12,7 @@
         <meta name="author" content="{% trans "Mirumee Software" %}">
         {% endblock meta %}
 
+        <script src="{% static "js/storefront_head.js" %}"></script>
         <link rel="stylesheet" type="text/css" href="{% static "css/storefront.css" %}">
 
         {% block stylesheet %}{% endblock stylesheet %}
@@ -47,7 +48,7 @@
                         </ul>
                         <ul class="nav navbar-nav navbar-right">
                             <li class="dropdown">
-                                <a data-toggle="dropdown" class="dropdown-toggle" href="{% url "cart:index" %}"><i class="glyphicon glyphicon-shopping-cart"></i> {% trans "Shopping cart" %} {% if request.cart %}<span class="badge">{{ request.cart.count }}</span>{% endif %} <b class="caret"></b></a>
+                                <a data-toggle="dropdown" class="dropdown-toggle" href="{% url "cart:index" %}"><i class="fa fa-shopping-cart"></i> {% trans "Shopping cart" %} {% if request.cart %}<span class="badge">{{ request.cart.count }}</span>{% endif %} <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     <li><a href="{% url "cart:index" %}">{% trans "View cart contents" %}</a></li>
                                     {% if request.cart %}
@@ -129,7 +130,6 @@
                 </div>
             </footer>
         {% endblock %}
-        {% block third-party-js %}{% endblock third-party-js %}
         {% block footer_scripts %}
             <script src="{% static "js/storefront.js" %}"></script>
         {% endblock footer_scripts %}
