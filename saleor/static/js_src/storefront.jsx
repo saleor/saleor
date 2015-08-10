@@ -188,7 +188,9 @@ $(".cart-item-amount").each(function(index) {
 
 var $cartTotal = $(".cart-total");
 var cartTotalValue = $cartTotal.text();
-var cartTotal = React.render(<CartTotal value={cartTotalValue} />, $(".cart-total")[0]);
+if ($cartTotal.length) {
+    var cartTotal = React.render(<CartTotal value={cartTotalValue}/>, $(".cart-total")[0]);
+}
 
 var cartSubtotals = [];
 $(".cart-item-subtotal").each(function() {

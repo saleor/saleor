@@ -21,6 +21,16 @@ def details(request, token):
     order = get_object_or_404(orders, token=token)
     groups = order.groups.all()
     payments = order.payments.all()
+    return TemplateResponse(request, 'order/details.html',
+                            {'order': order, 'groups': groups,
+                             'payments': payments})
+
+
+def payment(request, token):
+    orders = Order.objects.prefetch_related('groups__items')
+    order = get_object_or_404(orders, token=token)
+    groups = order.groups.all()
+    payments = order.payments.all()
     form_data = request.POST or None
     try:
         waiting_payment = order.payments.get(status='waiting')
@@ -36,11 +46,12 @@ def details(request, token):
     payment_form = None
     if not order.is_pre_authorized():
         payment_form = PaymentMethodsForm(form_data)
+        # FIXME: redirect if there is only one payment method
         if payment_form.is_valid():
             payment_method = payment_form.cleaned_data['method']
             return redirect('order:payment', token=order.token,
                             variant=payment_method)
-    return TemplateResponse(request, 'order/details.html',
+    return TemplateResponse(request, 'order/payment.html',
                             {'order': order, 'groups': groups,
                              'payment_form': payment_form,
                              'waiting_payment': waiting_payment,

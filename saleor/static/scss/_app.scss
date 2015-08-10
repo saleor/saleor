@@ -134,14 +134,23 @@ $icon-font-path: "../fonts/";
 }
 
 #id_method {
+	@include make-row;
 	list-style: none;
 	padding: 0;
+
+	li {
+		@include make-xs-column(6);
+		@include make-sm-column(4);
+		margin-bottom: $grid-gutter-width/3;
+		white-space: nowrap;
+	}
 
 	li:not(:first-child) {
 		label {
 			font-size: 0;
 
-			@each $provider in (default, authorize_net, braintree, paypal) {
+			@each $provider in (default, authorizenet, braintree, coinbase, cybersource, dotpay,
+				wallet, paypal, sage, sofort, stripe) {
 				input[value=#{$provider}] {
 					margin: 6px 110px 6px 0;
 
