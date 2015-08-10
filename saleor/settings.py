@@ -1,10 +1,11 @@
+import ast
 import os.path
 
 import dj_database_url
 from django.contrib.messages import constants as messages
 
 
-DEBUG = bool(os.environ.get('DEBUG', False))
+DEBUG = ast.literal_eval(os.environ.get('DEBUG', True))
 TEMPLATE_DEBUG = DEBUG
 
 SITE_ID = 1
