@@ -26,7 +26,7 @@
         <tfoot>
         <tr>
             <td class="col-sm-10 text-right lead" colspan="3">{% trans "Total" %}:
-            <td class="col-sm-2 text-right lead"><b>{% gross cart.get_total %}</b></td>
+            <td class="col-sm-2 text-right lead"><b class="cart-total">{% gross cart.get_total %}</b></td>
         </tr>
         </tfoot>
         <tbody>
@@ -59,13 +59,14 @@
                                 {% endif %}
                                 {% csrf_token %}
                             </form>
+
+                            <button type="submit" class="btn btn-link btn-sm cart-item-remove">
+                                <span class="text-muted">{% trans "Remove from cart" %}</span>
+                            </button>
                         </div>
-                        <button type="submit" class="btn btn-link btn-sm cart-item-remove">
-                            <span class="text-muted">{% trans "Remove from cart" %}</span>
-                        </button>
                     </td>
                     <td class="text-right">{% gross line.get_price_per_item %}</td>
-                    <td class="text-right cart-item-subtotal">
+                    <td class="text-right cart-item-subtotal" data-product-id="{{ line.product.pk }}">
                         {% gross line.get_total %}
                     </td>
                 </tr>

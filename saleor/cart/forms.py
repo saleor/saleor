@@ -106,7 +106,6 @@ class ReplaceCartLineForm(AddToCartForm):
         """
         Replace quantity.
         """
-        print repr(self.cart), repr(self.product), repr(self.cleaned_data)
         return self.cart.add(self.product, self.cleaned_data['quantity'],
                              replace=True)
 

@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
+from babeldjango.templatetags.babel import currencyfmt
 
 from django.contrib import messages
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext as _
@@ -32,7 +33,13 @@ def index(request, product_id=None):
         if form.is_valid():
             form.save()
             if request.is_ajax():
-                return HttpResponse('')
+                response = {'product_id': line.product.pk,
+                            'subtotal': currencyfmt(line.get_total().gross,
+                            line.get_total().currency), 'total': 0}
+                if cart:
+                    response['total'] = currencyfmt(
+                        cart.get_total().gross, cart.get_total().currency)
+                return JsonResponse(response)
             return redirect('cart:index')
         elif data is not None:
             if request.is_ajax():

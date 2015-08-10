@@ -61,7 +61,15 @@ class CartItemAmount extends React.Component {
                     this.setState({renderSelect: true});
                 }
             },
-            success: () => {
+            success: (response) => {
+                if (!quantity) {
+                    if (!response.total) {
+                        location.reload();
+                    }
+                    $(React.findDOMNode(this)).parents("tr").fadeOut(function() {
+                        $(this).remove();
+                    });
+                }
                 this.setState({result: "success", lastSavedValue: quantity});
                 setTimeout(() => {
                     this.setState({result: null});
@@ -71,6 +79,10 @@ class CartItemAmount extends React.Component {
                 this.setState({error: response.responseJSON.error.quantity, result: "error"});
             }
         });
+    }
+
+    removeFromCart() {
+        this.sendQuantity(0);
     }
 
     render() {
@@ -102,6 +114,9 @@ class CartItemAmount extends React.Component {
             {this.state.renderSelect ? select : input}
             {this.state.sending && !(this.state.result == "error")? <i className="fa fa-circle-o-notch fa-spin"></i> : ""}
             {this.state.result == "error" ? <span className="error text-danger">{this.state.error}</span> : ""}
+            <button type="submit" className="btn btn-link btn-sm cart-item-remove" onClick={this.removeFromCart.bind(this)}>
+                <span className="text-muted">Remove from cart</span>
+            </button>
         </div>;
     }
 }
@@ -112,6 +127,26 @@ class CartItemAmountOption extends React.Component {
         var label = this.props.label ? this.props.label : value;
         return <option value={value}>{label}</option>;
     };
+}
+
+class CartItemSubtotal extends React.Component {
+    state = {
+        value: this.props.value
+    };
+
+    render() {
+        return <span>{this.state.value}</span>;
+    }
+}
+
+class CartTotal extends React.Component {
+    state = {
+        value: this.props.value
+    };
+
+    render() {
+        return <b>{this.state.value}</b>;
+    }
 }
 
 var textInput = [];
@@ -149,6 +184,28 @@ $(".cart-item-amount").each(function(index) {
     textInput.push(this.firstElementChild);
 
     React.render(<CartItemAmount {...props} />, this);
+});
+
+var $cartTotal = $(".cart-total");
+var cartTotalValue = $cartTotal.text();
+var cartTotal = React.render(<CartTotal value={cartTotalValue} />, $(".cart-total")[0]);
+
+var cartSubtotals = [];
+$(".cart-item-subtotal").each(function() {
+    var productId = $(this).data("product-id");
+    var props = {
+        productId: productId,
+        value: $(this).text()
+    };
+    cartSubtotals[productId] = React.render(<CartItemSubtotal {...props} />, this);
+});
+
+$(document).on("ajaxComplete", function(event, response) {
+    var json = response.responseJSON;
+    if (json.product_id && $cartTotal.length) {
+        cartSubtotals[json.product_id].setState({value: json.subtotal});
+        cartTotal.setState({value: json.total});
+    }
 });
 
 class FormShippingToggler extends React.Component {

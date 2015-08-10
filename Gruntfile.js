@@ -3,7 +3,7 @@ module.exports = function(grunt) {
     babel: {
       dist: {
         files: {
-          'saleor/static/js/storefront_fromjsx.js': 'saleor/static/js_src/storefront.jsx'
+          "saleor/static/js/storefront_fromjsx.js": "saleor/static/js_src/storefront.jsx"
         },
         options: {
           stage: 0
