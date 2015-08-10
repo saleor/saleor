@@ -9,6 +9,7 @@
     "BUILDPACK_URL": "https://github.com/ddollar/heroku-buildpack-multi.git",
     "DJANGO_SETTINGS_MODULE": "saleor.settings",
     "ALLOWED_HOSTS": "*",
+    "DEBUG": "False",
     "SECRET_KEY": {
       "description": "A secret key for verifying the integrity of signed cookies.",
       "generator": "secret"
