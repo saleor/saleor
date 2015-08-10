@@ -264,6 +264,10 @@ h3 {
     }
   }
 
+  &-image {
+    transform: translate3d(0,0,0);
+  }
+
   &-means {
     display: inline-block;
     height: .9em;
