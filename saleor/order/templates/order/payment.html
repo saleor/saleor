@@ -32,7 +32,7 @@
                             </div>
                         {% elif payment_form %}
                             <div class="panel-heading">
-                                {% trans "Pay for your order" %} {{ order }}
+                                {% trans "Pay for order" %} {{ order }}
                             </div>
                             <div class="panel-body">
                                 <form method="post" action="{% url "order:details" token=order.token %}">
@@ -55,51 +55,12 @@
                     </div>
                 {% endif %}
             {% endif %}
-
-            {% for group in groups %}
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        {% blocktrans with number=forloop.counter %}Shipment #{{ number }}{% endblocktrans %}
-                    </div>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th class="col-sm-6">{% trans "Name" %}</th>
-                                <th class="col-sm-3 text-right">{% trans "Price" %}</th>
-                                <th class="col-sm-3 text-right">{% trans "Subtotal" %}</th>
-                            </tr>
-                        </thead>
-                        <tfoot>
-                            <tr>
-                                <th colspan="2">{% trans "Total" %}</th>
-                                <th class="text-right">{% gross group.get_total %}</th>
-                            </tr>
-                        </tfoot>
-                        <tbody>
-                            {% for item in group %}
-                                <tr>
-                                    <td>{{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}</td>
-                                    <td class="text-right">{% gross item.get_price_per_item %}</td>
-                                    <td class="text-right">{% gross item.get_total %}</td>
-                                </tr>
-                            {% endfor %}
-                            {% if group.shipping_price.gross %}
-                                <tr>
-                                    <td class="col-sm-4">
-                                        {% trans "Shipping" %}
-                                    </td>
-                                    <td class="text-right">{% gross group.shipping_price %}</td>
-                                    <td class="text-right">{% gross group.shipping_price %}</td>
-                                </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
-                </div>
-            {% endfor %}
         </div>
+    </div>
 
+    <div class="row">
         {% if order.user == user %}
-            <div class="col-sm-4">
+            <div class="col-sm-6">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         {% trans "Billing address" %}
@@ -108,7 +69,9 @@
                         <address>{% include "userprofile/snippets/address-details.html" with address=order.billing_address %}</address>
                     </div>
                 </div>
+            </div>
 
+            <div class="col-sm-6">
                 {% if order.is_shipping_required %}
                     <div class="panel panel-default">
                         <div class="panel-heading">
@@ -122,4 +85,45 @@
             </div>
         {% endif %}
     </div>
+
+    {% for group in groups %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                {% blocktrans with number=forloop.counter %}Shipment #{{ number }}{% endblocktrans %}
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th class="col-sm-6">{% trans "Name" %}</th>
+                        <th class="col-sm-3 text-right">{% trans "Price" %}</th>
+                        <th class="col-sm-3 text-right">{% trans "Subtotal" %}</th>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <th colspan="2">{% trans "Total" %}</th>
+                        <th class="text-right">{% gross group.get_total %}</th>
+                    </tr>
+                </tfoot>
+                <tbody>
+                    {% for item in group %}
+                        <tr>
+                            <td>{{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}</td>
+                            <td class="text-right">{% gross item.get_price_per_item %}</td>
+                            <td class="text-right">{% gross item.get_total %}</td>
+                        </tr>
+                    {% endfor %}
+                    {% if group.shipping_price.gross %}
+                        <tr>
+                            <td class="col-sm-4">
+                                {% trans "Shipping" %}
+                            </td>
+                            <td class="text-right">{% gross group.shipping_price %}</td>
+                            <td class="text-right">{% gross group.shipping_price %}</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    {% endfor %}
 {% endblock content %}

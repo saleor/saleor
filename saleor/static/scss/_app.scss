@@ -71,7 +71,8 @@ $icon-font-path: "../fonts/";
 
 	&-item {
 		&-image {
-			width: 100px;
+			display: inline-block;
+			max-width: 100%;
 		}
 
 		&-quantity {

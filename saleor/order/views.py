@@ -20,10 +20,8 @@ def details(request, token):
     orders = Order.objects.prefetch_related('groups__items')
     order = get_object_or_404(orders, token=token)
     groups = order.groups.all()
-    payments = order.payments.all()
     return TemplateResponse(request, 'order/details.html',
-                            {'order': order, 'groups': groups,
-                             'payments': payments})
+                            {'order': order, 'groups': groups})
 
 
 def payment(request, token):
