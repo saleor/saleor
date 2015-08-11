@@ -16,4 +16,3 @@ def remove_unavailable_products(cart):
         except InsufficientStock as e:
             quantity = e.item.get_stock_quantity()
             cart.add(item.product, quantity=quantity, replace=True)
-    return cart

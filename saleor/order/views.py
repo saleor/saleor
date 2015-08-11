@@ -20,6 +20,14 @@ def details(request, token):
     orders = Order.objects.prefetch_related('groups__items')
     order = get_object_or_404(orders, token=token)
     groups = order.groups.all()
+    return TemplateResponse(request, 'order/details.html',
+                            {'order': order, 'groups': groups})
+
+
+def payment(request, token):
+    orders = Order.objects.prefetch_related('groups__items')
+    order = get_object_or_404(orders, token=token)
+    groups = order.groups.all()
     payments = order.payments.all()
     form_data = request.POST or None
     try:
@@ -36,11 +44,12 @@ def details(request, token):
     payment_form = None
     if not order.is_pre_authorized():
         payment_form = PaymentMethodsForm(form_data)
+        # FIXME: redirect if there is only one payment method
         if payment_form.is_valid():
             payment_method = payment_form.cleaned_data['method']
             return redirect('order:payment', token=order.token,
                             variant=payment_method)
-    return TemplateResponse(request, 'order/details.html',
+    return TemplateResponse(request, 'order/payment.html',
                             {'order': order, 'groups': groups,
                              'payment_form': payment_form,
                              'waiting_payment': waiting_payment,
@@ -52,7 +61,7 @@ def details(request, token):
 def start_payment(request, order, variant):
     waiting_payments = order.payments.filter(status='waiting').exists()
     if waiting_payments:
-        return redirect('order:details', token=order.token)
+        return redirect('order:payment', token=order.token)
     billing = order.billing_address
     total = order.get_total()
     defaults = {'total': total.gross,
@@ -89,7 +98,7 @@ def start_payment(request, order, variant):
                 _('Oops, it looks like we were unable to contact the selected'
                   ' payment service'))
             payment.change_status('error')
-            return redirect('order:details', token=order.token)
+            return redirect('order:payment', token=order.token)
     template = 'order/payment/%s.html' % variant
     return TemplateResponse(request, [template, 'order/payment/default.html'],
                             {'form': form, 'payment': payment})
@@ -101,5 +110,5 @@ def cancel_payment(request, order):
     if form.is_valid():
         with transaction.atomic():
             form.save()
-        return redirect('order:details', token=order.token)
+        return redirect('order:payment', token=order.token)
     return HttpResponseForbidden()

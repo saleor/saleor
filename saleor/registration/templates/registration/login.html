@@ -17,18 +17,20 @@
                         <input type="hidden" name="next" value="{{ next }}" />
                     </fieldset>
 
-                    <div class="form-group">
+                    <div class="form-group text-right">
+                        <a class="btn btn-secondary" href="{% url 'registration:request_email_confirmation' %}">{% trans "I don't know my password" %}</a>
                         <button class="btn btn-primary">
                             {% trans "Log in" %}
                         </button>
-                        <a class="btn btn-secondary" href="{% url 'registration:request_email_confirmation' %}">{% trans "I don't know my password" %}</a>
                     </div>
                     <hr>
                     {% if facebook_login_url or google_login_url %}
                         <p>{% trans "Want to use your social profile?" %}</p>
                         <p>
                             {% if facebook_login_url %}
-                                <a class="btn btn-default" href="{{ facebook_login_url }}"> {% trans "Log in using Facebook" %}</a>
+                                <a class="btn btn-default" href="{{ facebook_login_url }}">
+                                    {% trans "Log in using Facebook" %}
+                                </a>
                             {% endif %}
                             {% if google_login_url %}
                                 <a class="btn btn-default" href="{{ google_login_url }}"> {% trans "Log in using Google" %}</a>

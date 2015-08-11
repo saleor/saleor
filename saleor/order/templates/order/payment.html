@@ -5,7 +5,7 @@
 {% load i18n %}
 {% load staticfiles %}
 
-{% block title %}{% trans "Order" %} {{ order }} — {{ block.super }}{% endblock %}
+{% block title %}{% trans "Pay for order" %} {{ order }} — {{ block.super }}{% endblock %}
 
 {% block outerbreadcrumb %}
     {% if order.user == user %}
@@ -18,24 +18,50 @@
 {% endblock outerbreadcrumb %}
 
 {% block content %}
-    {# This view is available by just knowing url,          #}
-    {# so we don't show all details (like delivery address) #}
-    {# unless current user is owner of the order.           #}
-
     <div class="row">
-        <div class="col-sm-12">
-            <h3 class="page-header page-header--order">
-                <span class="text-muted">{% blocktrans %}Order {{ order }}: {% endblocktrans %}</span>
-                {{ order.get_status_display }}
-
+        <div class="col-sm-8">
+            {% if order.user == user or not order.is_fully_paid %}
                 {% if not order.is_fully_paid %}
-                    {% if order.is_pre_authorized %}
-                        <a href="{% url "order:payment" token=order.token %}" class="btn btn-info">{% trans "Payment details" %}</a>
-                    {% else %}
-                        <a href="{% url "order:payment" token=order.token %}" class="btn btn-primary">{% trans "Pay for order" %}</a>
-                    {% endif %}
+                    <div class="panel panel-info">
+                        {% if waiting_payment %}
+                            <div class="panel-heading">
+                                {% trans "Payment pending" %}
+                            </div>
+                            <div class="panel-body">
+                                <form method="post" action="{% url 'order:cancel-payment' token=order.token %}">
+                                    {% csrf_token %}
+                                    <p>{% trans "We are currently waiting for an external service to authorize your payment for this order." %}</p>
+                                    <p>{% trans "Current status" %}: <span class="label label-default">{{ waiting_payment.get_status_display }}</span></p>
+                                    <p>{% trans "Unless you are absolutely sure that the process will not complete (for example you have closed the browser window before paying), you should wait before attempting a new payment. Please be warned that if you try again and the previous transaction succeeds you might end up being charged twice." %}</p>
+                                    {{ waiting_payment_form|as_vertical_form }}
+                                    <button type="submit" class="btn btn-danger">{% trans "I understand, allow me to pay again" %}</button>
+                                </form>
+                            </div>
+                        {% elif payment_form %}
+                            <div class="panel-heading">
+                                {% trans "Pay for order" %} {{ order }}
+                            </div>
+                            <div class="panel-body">
+                                <form method="post" action="{% url "order:payment" token=order.token %}">
+                                    {% csrf_token %}
+                                    {{ payment_form }}
+                                    <div class="form-group text-right">
+                                        {% block form_submit %}
+                                            <button type="submit" class="btn btn-primary">
+                                                {% trans "Proceed to payment" %}
+                                            </button>
+                                        {% endblock %}
+                                    </div>
+                                </form>
+                            </div>
+                        {% else %}
+                            <div class="panel-body alert-info">
+                                <span>{% trans "You've authorized transaction. Order is in processing" %}</span>
+                            </div>
+                        {% endif %}
+                    </div>
                 {% endif %}
-            </h3>
+            {% endif %}
         </div>
     </div>
 
@@ -51,8 +77,9 @@
                     </div>
                 </div>
             </div>
-            {% if order.is_shipping_required %}
-                <div class="col-sm-6">
+
+            <div class="col-sm-6">
+                {% if order.is_shipping_required %}
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             {% trans "Shipping address" %}
@@ -61,8 +88,8 @@
                             <address>{% include "userprofile/snippets/address-details.html" with address=order.shipping_address %}</address>
                         </div>
                     </div>
-                </div>
-            {% endif %}
+                {% endif %}
+            </div>
         {% endif %}
     </div>
 
@@ -70,9 +97,6 @@
         <div class="panel panel-default">
             <div class="panel-heading">
                 {% blocktrans with number=forloop.counter %}Shipment #{{ number }}{% endblocktrans %}
-                <span class="pull-right">
-                    <span class="label label-default">{{ group.get_status_display }}</span>
-                </span>
             </div>
             <table class="table">
                 <thead>

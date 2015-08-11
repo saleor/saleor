@@ -1,5 +1,6 @@
 $icon-font-path: "../fonts/";
 @import "bootstrap-sass/assets/stylesheets/bootstrap";
+@import "components-font-awesome/scss/font-awesome";
 
 .navbar {
 	margin-bottom: $grid-gutter-width;
@@ -22,11 +23,11 @@ $icon-font-path: "../fonts/";
 }
 
 .product-list-item-name {
-  display: block;
-  margin-top: $grid-gutter-width/4;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+	display: block;
+	margin-top: $grid-gutter-width/4;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .product-gallery {
@@ -48,13 +49,150 @@ $icon-font-path: "../fonts/";
 }
 
 .form-group.required .control-label:after{
-    content: '*';
+	content: '*';
 }
 
 .breadcrumb {
-  > li+li {
-	&:before {
-	  content: '/';
+	> li+li {
+		&:before {
+			content: '/';
+		}
 	}
-  }
+}
+
+.cart {
+	> tbody {
+		> .cart-item {
+			> td {
+				vertical-align: text-bottom;
+			}
+		}
+	}
+
+	&-item {
+		&-image {
+			display: inline-block;
+			max-width: 100%;
+		}
+
+		&-quantity {
+			input {
+				@extend .form-control;
+
+				border-bottom-right-radius: 0;
+				border-top-right-radius: 0;
+			}
+
+			&-select {
+				display: inline-block;
+				width: calc(100% - 71px);
+
+				option {
+					&:last-child {
+						color: lighten($text-color, 33%);
+					}
+				}
+			}
+
+			&.has-error {
+				input {
+					border-color: $state-danger-text;
+				}
+			}
+		}
+
+		&-amount {
+			.input-group {
+				&.no-submit {
+					display: inline-block;
+					width: calc(100% - 71px);
+
+					input {
+						border-bottom-right-radius: $input-border-radius;
+						border-top-right-radius: $input-border-radius;
+					}
+
+					.btn {
+						display: none;
+					}
+				}
+			}
+
+			.fa {
+				margin-left: 6px;
+				padding-left: 1px;
+			}
+		}
+
+		&-remove {
+			padding-left: 0;
+		}
+
+		.error {
+			display: block;
+		}
+	}
+}
+
+#id_method {
+	@include make-row;
+	list-style: none;
+	padding: 0;
+
+	li {
+		@include make-xs-column(6);
+		@include make-sm-column(4);
+		margin-bottom: $grid-gutter-width/3;
+		white-space: nowrap;
+	}
+
+	li:not(:first-child) {
+		label {
+			font-size: 0;
+
+			@each $provider in (default, authorizenet, braintree, coinbase, cybersource, dotpay,
+				wallet, paypal, sage, sofort, stripe) {
+				input[value=#{$provider}] {
+					margin: 6px 110px 6px 0;
+
+					&:after {
+						background: url("../img/#{$provider}-logo.png") no-repeat left;
+						background-size: contain;
+						content: "";
+						display: block;
+						float: left;
+						height: 26px;
+						margin: -6px 0 0 18px;
+						width: 100px;
+					}
+				}
+			}
+		}
+	}
+}
+
+.nav {
+	> li {
+		> a {
+			@extend .text-info;
+		}
+
+		&.active {
+			> a, a:hover {
+				background-color: $brand-info;
+			}
+		}
+	}
+}
+
+.page-header {
+	&--order {
+		margin-top: $grid-gutter-width/3;
+	}
+}
+
+.js {
+	.js-hidden {
+		display: none;
+	}
 }

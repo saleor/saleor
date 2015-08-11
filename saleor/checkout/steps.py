@@ -212,7 +212,7 @@ class SummaryStep(BaseCheckoutStep):
                 order = self.checkout.create_order()
                 order.create_history_entry()
                 order.send_confirmation_email()
-            return redirect('order:details', token=order.token)
+            return redirect('order:payment', token=order.token)
         return response
 
     def validate(self):

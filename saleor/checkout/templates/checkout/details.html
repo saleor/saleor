@@ -23,7 +23,7 @@
 <ul class="nav nav-pills nav-justified">
     {% for stepitem in checkout %}
     <li class="{% if stepitem == step %}active{% endif %}">
-        <a href="{{ stepitem.get_absolute_url }}">{% if stepitem %}<i class="glyphicon glyphicon-ok-sign"></i> {% endif %}{{ stepitem.title }}</a>
+        <a href="{{ stepitem.get_absolute_url }}">{% if stepitem %}<i class="fa fa-check-circle"></i> {% endif %}{{ stepitem.title }}</a>
     </li>
     {% endfor %}
 </ul>
