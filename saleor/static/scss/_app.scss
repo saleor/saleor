@@ -185,6 +185,11 @@ $icon-font-path: "../fonts/";
 	}
 }
 
+.page-header {
+	&--order {
+		margin-top: $grid-gutter-width/3;
+	}
+}
 
 .js {
 	.js-hidden {

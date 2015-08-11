@@ -24,12 +24,18 @@
 
     <div class="row">
         <div class="col-sm-12">
-            <h1 class="page-header">
-                {% blocktrans %}Order {{ order }}{% endblocktrans %}
-                <span class="pull-right">
-                    <span class="label label-default">{{ order.get_status_display }}</span>
-                </span>
-            </h1>
+            <h3 class="page-header page-header--order">
+                <span class="text-muted">{% blocktrans %}Order {{ order }}: {% endblocktrans %}</span>
+                {{ order.get_status_display }}
+
+                {% if not order.is_fully_paid %}
+                    {% if order.is_pre_authorized %}
+                        <a href="{% url "order:payment" token=order.token %}" class="btn btn-info">{% trans "Payment details" %}</a>
+                    {% else %}
+                        <a href="{% url "order:payment" token=order.token %}" class="btn btn-primary">{% trans "Pay for order" %}</a>
+                    {% endif %}
+                {% endif %}
+            </h3>
         </div>
     </div>
 

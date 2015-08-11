@@ -61,7 +61,7 @@ def payment(request, token):
 def start_payment(request, order, variant):
     waiting_payments = order.payments.filter(status='waiting').exists()
     if waiting_payments:
-        return redirect('order:details', token=order.token)
+        return redirect('order:payment', token=order.token)
     billing = order.billing_address
     total = order.get_total()
     defaults = {'total': total.gross,
@@ -98,7 +98,7 @@ def start_payment(request, order, variant):
                 _('Oops, it looks like we were unable to contact the selected'
                   ' payment service'))
             payment.change_status('error')
-            return redirect('order:details', token=order.token)
+            return redirect('order:payment', token=order.token)
     template = 'order/payment/%s.html' % variant
     return TemplateResponse(request, [template, 'order/payment/default.html'],
                             {'form': form, 'payment': payment})
@@ -110,5 +110,5 @@ def cancel_payment(request, order):
     if form.is_valid():
         with transaction.atomic():
             form.save()
-        return redirect('order:details', token=order.token)
+        return redirect('order:payment', token=order.token)
     return HttpResponseForbidden()

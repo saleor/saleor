@@ -8,6 +8,13 @@
 {% block title %}{% trans "Pay for order" %} {{ order }} — {{ block.super }}{% endblock %}
 
 {% block outerbreadcrumb %}
+    {% if order.user == user %}
+    <ul class="breadcrumb" itemprop="breadcrumb">
+        <li><a href="/">{% trans "Home" %}</a></li>
+        <li><a href="{% url 'profile:orders' %}">{% trans "Your orders" %}</a></li>
+        <li><a href="{% url 'order:details' token=order.token %}">{{ order }}</a></li>
+    </ul>
+    {% endif %}
 {% endblock outerbreadcrumb %}
 
 {% block content %}
@@ -15,7 +22,7 @@
         <div class="col-sm-8">
             {% if order.user == user or not order.is_fully_paid %}
                 {% if not order.is_fully_paid %}
-                    <div class="panel panel-primary">
+                    <div class="panel panel-info">
                         {% if waiting_payment %}
                             <div class="panel-heading">
                                 {% trans "Payment pending" %}
@@ -35,7 +42,7 @@
                                 {% trans "Pay for order" %} {{ order }}
                             </div>
                             <div class="panel-body">
-                                <form method="post" action="{% url "order:details" token=order.token %}">
+                                <form method="post" action="{% url "order:payment" token=order.token %}">
                                     {% csrf_token %}
                                     {{ payment_form }}
                                     <div class="form-group text-right">
@@ -48,8 +55,8 @@
                                 </form>
                             </div>
                         {% else %}
-                            <div class="panel-body">
-                                <p>{% trans "You've authorized transaction. Order is in processing" %}</p>
+                            <div class="panel-body alert-info">
+                                <span>{% trans "You've authorized transaction. Order is in processing" %}</span>
                             </div>
                         {% endif %}
                     </div>
