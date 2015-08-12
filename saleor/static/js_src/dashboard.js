@@ -73,8 +73,12 @@ $(document).ready(function() {
           $('.modal-close').click();
         }
       },
-      success: function() {
-        location.reload();
+      success: function(response) {
+        if (response.redirectUrl) {
+          window.location.href = response.redirectUrl;
+        } else {
+          location.reload();
+        }
       }
     });
     e.preventDefault();
