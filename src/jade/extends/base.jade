@@ -2,7 +2,7 @@ doctype html
 html(lang="en")
     head
         meta(charset="utf-8")
-        - var pageTitle = "Saleor \u2014 an opensource storefront written in Python"
+        - var pageTitle = "Saleor \u2014 an open source storefront written in Python"
         block title
             title
                 = pageTitle
@@ -17,17 +17,18 @@ html(lang="en")
         meta(name="msapplication-TileColor", content="#FFFFFF")
         meta(name="msapplication-TileImage", content="mstile-144x144.png")
     block bodyClass
-    body(class=bodyClass, id="top")
-        header.header
+    body(class=bodyClass, itemscope, itemtype="http://schema.org/WebApplication")
+        header.header#top
             nav.navbar.navbar-default
                 div.container
                     div.navbar-header
-                        a.logo(href="./")
+                        a.logo(href="/")
                             img.logo-img(src="static/images/logo.svg", alt="")
                     div#navbar.navbar-collapse
                         ul.nav.navbar-right.hidden-xs.hidden-sm
                             li
-                                a(class=["btn-menu"], href="#try-it-now") Get Saleor
+                                a(class=["btn-menu"], href="#try-it-now") Get
+                                    span(itemprop="name")  Saleor
         main
             block main
         footer.footer
@@ -36,18 +37,11 @@ html(lang="en")
                     li
                         a.footer-brand(href="#top")
                             img.img-responsive(src="static/images/logo.svg", alt="")
-                p.copyrights &copy; 2015
-                    a(href="https://mirumee.com")  Mirumee Software
+                p.copyrights(itemprop="author", itemscope, itemtype="http://schema.org/Organization") &copy; 2015
+                    a.tracked-outbound-link(href="https://mirumee.com", itemprop="url")
+                        span(itemprop="name")  Mirumee Software
                 ul.social-links
                     li.social-links-item
-                        a.social-links-link(href="https://twitter.com/getsaleor")
+                        a.social-links-link.tracked-outbound-link(href="https://twitter.com/getsaleor")
                             i.social-links-twitter
         script(src="static/site.js")
-        script.
-            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-            ga('create', 'UA-10159761-12', 'auto');
-            ga('send', 'pageview');

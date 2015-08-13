@@ -632,3 +632,11 @@ a, .btn {
   margin: 0;
   text-transform: uppercase;
 }
+
+.list-paragraphs {
+  @include list-unstyled;
+
+  li {
+    @extend p;
+  }
+}
