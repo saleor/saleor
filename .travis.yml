@@ -1,13 +1,12 @@
 language: python
 sudo: false
-python:
-  - 2.7
-  - 3.3
-  - 3.4
 install:
-  - python setup.py install
-  - pip install coverage
-  - pip install codecov
-script: coverage run setup.py test
+  - pip install tox codecov
+script:
+  - tox
+env:
+  - TOXENV=py27
+  - TOXENV=py33
+  - TOXENV=py34
 after_success:
   - codecov
