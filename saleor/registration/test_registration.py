@@ -141,7 +141,15 @@ class AccessTokenTestCase(BaseCommunicationTestCase):
         """OAuth2 client asks for access token if interim code is available"""
         self.access_token_response.status_code = sentinel.ok
         Client(local_host='http://localhost', code=sentinel.code)
-        self.requests_mock.post.assert_called_once()
+        self.requests_mock.post.assert_called_once_with(
+            sentinel.token_uri,
+            data={'grant_type': 'authorization_code',
+                  'client_id': sentinel.client_id,
+                  'client_secret': sentinel.client_secret,
+                  'code': sentinel.code,
+                  'redirect_uri': sentinel.redirect_uri,
+                  'scope': sentinel.scope},
+            auth=None)
 
     def test_token_success(self):
         """OAuth2 client properly obtains access token"""

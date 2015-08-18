@@ -70,7 +70,7 @@ setup(
     entry_points={
         'console_scripts': ['saleor = saleor:manage']},
     tests_require=[
-        'mock==1.0.1',
+        'mock==1.3.0',
         'purl>=0.4.1',
         'pytest',
         'pytest-django'])
