@@ -1,6 +1,8 @@
 [run]
 branch = 1
-omit = */test_*.py
+omit =
+    */migrations/*
+    */test_*.py
 source = saleor
 
 [report]
