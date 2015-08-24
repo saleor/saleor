@@ -116,13 +116,13 @@ INSTALLED_APPS = [
     'django.contrib.webdesign',
 
     # Local apps
+    'saleor.userprofile',
+    'saleor.product',
     'saleor.cart',
     'saleor.checkout',
     'saleor.core',
-    'saleor.product',
     'saleor.order',
     'saleor.registration',
-    'saleor.userprofile',
     'saleor.dashboard',
 
     # External apps
