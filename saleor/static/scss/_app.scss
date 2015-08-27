@@ -134,40 +134,19 @@ $icon-font-path: "../fonts/";
 	}
 }
 
-#id_method {
-	@include make-row;
-	list-style: none;
-	padding: 0;
-
-	li {
-		@include make-xs-column(6);
-		@include make-sm-column(4);
-		margin-bottom: $grid-gutter-width/3;
-		white-space: nowrap;
+.btn-payment {
+	background: {
+		position: center;
+		repeat: no-repeat;
+		size: auto 16px;
 	}
-
-	li:not(:first-child) {
-		label {
-			font-size: 0;
-
-			@each $provider in (default, authorizenet, braintree, coinbase, cybersource, dotpay,
+	height: 34px;
+	margin-bottom: $grid-gutter-width/2;
+}
+@each $provider in (default, authorizenet, braintree, coinbase, cybersource, dotpay,
 				wallet, paypal, sage, sofort, stripe) {
-				input[value=#{$provider}] {
-					margin: 6px 110px 6px 0;
-
-					&:after {
-						background: url("../img/#{$provider}-logo.png") no-repeat left;
-						background-size: contain;
-						content: "";
-						display: block;
-						float: left;
-						height: 26px;
-						margin: -6px 0 0 18px;
-						width: 100px;
-					}
-				}
-			}
-		}
+	.btn-#{$provider} {
+		background-image: url("../img/#{$provider}-logo.png");
 	}
 }
 

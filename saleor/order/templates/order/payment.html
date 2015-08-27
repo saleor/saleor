@@ -45,13 +45,6 @@
                                 <form method="post" action="{% url "order:payment" token=order.token %}">
                                     {% csrf_token %}
                                     {{ payment_form }}
-                                    <div class="form-group text-right">
-                                        {% block form_submit %}
-                                            <button type="submit" class="btn btn-primary">
-                                                {% trans "Proceed to payment" %}
-                                            </button>
-                                        {% endblock %}
-                                    </div>
                                 </form>
                             </div>
                         {% else %}

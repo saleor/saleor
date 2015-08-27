@@ -3,12 +3,14 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from .models import Payment
+from .widgets import ButtonSelect
 
 
 class PaymentMethodsForm(forms.Form):
 
-    method = forms.ChoiceField(choices=settings.CHECKOUT_PAYMENT_CHOICES, widget=forms.RadioSelect,
-                               initial=settings.CHECKOUT_PAYMENT_CHOICES[0][0])
+    method = forms.ChoiceField(
+        choices=settings.CHECKOUT_PAYMENT_CHOICES, widget=ButtonSelect,
+        initial=settings.CHECKOUT_PAYMENT_CHOICES[0][0])
 
 
 class PaymentDeleteForm(forms.Form):
