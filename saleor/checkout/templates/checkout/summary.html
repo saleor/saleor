@@ -81,26 +81,32 @@
         </div>
     {% endfor %}
 
-    {% with total=checkout.get_total %}
-        <div class="alert alert-success">
-            {% trans "Your total will be" %}:
-            <strong>{% gross total %}</strong>
-            {% if total.tax %}
-                ({% blocktrans with tax=total.tax|floatformat:2 currency=total.currency %}includes {{ tax }} <span class="currency">{{ currency }}</span> tax{% endblocktrans %})
-            {% endif %}
+                <div class="alert alert-success">
+    <div class="row">
+        <div class="col-xs-9 text-right">
+            {% with total=checkout.get_total %}
+                    <span class="checkout-total">
+                        {% trans "Your total will be" %}:
+                        <strong>{% gross total %}</strong>
+                    </span>
+                    {% if total.tax %}
+                        ({% blocktrans with tax=total.tax|floatformat:2 currency=total.currency %}includes {{ tax }} <span class="currency">{{ currency }}</span> tax{% endblocktrans %})
+                    {% endif %}
+            {% endwith %}
         </div>
-    {% endwith %}
 
-    {% if all_steps_valid %}
-        <form method="post">
-            {% csrf_token %}
-            <p>
-                <button type="submit" class="btn btn-primary btn-lg pull-right">
+        <div class="col-xs-3">
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" {% if not all_steps_valid %}disabled {% endif %}class="btn btn-primary btn-lg btn-block">
                     {% trans "Place order" %}
                 </button>
-            </p>
-        </form>
-    {% else %}
+            </form>
+        </div>
+    </div>
+                </div>
+
+    {% if not all_steps_valid %}
         <div class="alert alert-danger">
             <p>{% trans "Before continuing please make sure that you've provided all of the information required." %}</p>
         </div>

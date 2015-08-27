@@ -185,6 +185,14 @@ $icon-font-path: "../fonts/";
 	}
 }
 
+.checkout-total {
+	display: inline-block;
+	font-size: $font-size-large;
+	line-height: $line-height-large;
+	margin-right: -$grid-gutter-width/2;
+	padding: $padding-large-vertical 8px;
+}
+
 .page-header {
 	&--order {
 		margin-top: $grid-gutter-width/3;
