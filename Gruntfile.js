@@ -3,7 +3,8 @@ module.exports = function(grunt) {
     babel: {
       dist: {
         files: {
-          "saleor/static/js/storefront_fromjsx.js": "saleor/static/js_src/storefront.jsx"
+          "saleor/static/js/storefront_fromjsx.js": "saleor/static/js_src/storefront.jsx",
+          "saleor/static/js/dashboard_fromjsx.js": "saleor/static/js_src/dashboard.jsx"
         },
         options: {
           stage: 0
@@ -121,6 +122,8 @@ module.exports = function(grunt) {
             "saleor/static/components/dropzone/dist/dropzone.js",
             "saleor/static/components/jquery/dist/jquery.js",
             "saleor/static/components/materialize/dist/js/materialize.js",
+            "saleor/static/components/react/react-with-addons.js",
+            "node_modules/react-datagrid/dist/react-datagrid.js",
             "saleor/static/components/Sortable/Sortable.js",
             "saleor/static/components/select2/dist/js/select2.js",
             "saleor/static/components/dotdotdot/src/js/jquery.dotdotdot.js",
