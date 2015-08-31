@@ -20,7 +20,7 @@
                                 <th>{% trans "Order number" %}</th>
                                 <th>{% trans "Date" %}</th>
                                 <th>{% trans "Customer" %}</th>
-                                <th class="text-right">{% trans "Amount" %}</th>
+                                <th class="right-align">{% trans "Amount" %}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -29,7 +29,7 @@
                                     <td><a href="{% url "dashboard:order-details" order_pk=payment.order.pk %}">{{ payment.order }}</a></td>
                                     <td>{{ payment.created }}</td>
                                     <td>{{ payment.order.user|default:_("Guest") }}</td>
-                                    <td class="text-right">{% gross payment.get_total_price %}</td>
+                                    <td class="right-align">{% gross payment.get_total_price %}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -48,7 +48,7 @@
             </div>
 
             {% if orders_to_ship %}
-                {% include "dashboard/includes/_orders_table.html" with orders=orders_to_ship %}
+                {% include "dashboard/includes/_orders_table.html" with orders=orders_to_ship not_sortable=True %}
             {% else %}
                 <div class="card-content card-content--no-data">
                     <p>{% trans "No orders are ready for shipment." %}</p>

@@ -1,45 +1,43 @@
-var SORT_INFO = [ { name: 'id', dir: 'asc'}];
+import React from "react";
+import DataGrid from "react-datagrid";
+import sorty from "sorty";
 
 class DataTable extends React.Component {
     state = {
-        data: this.props.data
+        data: sort(this.props.data, this.props.sortInfo),
+        sortInfo: this.props.sortInfo
     };
 
     handleSortChange(sortInfo) {
-        SORT_INFO = sortInfo;
-
-        this.setState({data: sort(this.props.data)});
-    };
-
-    handleColumnOrderChange(index, dropIndex) {
-        var col = columns[index];
-        columns.splice(index, 1); //delete from index, 1 item
-        columns.splice(dropIndex, 0, col);
-        this.setState({})
+        this.setState({
+            sortInfo: sortInfo,
+            data: sort(this.state.data, sortInfo)
+        });
     };
 
     render() {
         return <DataGrid
-            idProperty={this.props.columns[0]}
+            idProperty={this.props.columns[0]+""}
             dataSource={this.state.data}
             columns={this.props.columns}
-            sortInfo={SORT_INFO}
+            sortInfo={this.state.sortInfo}
             onSortChange={this.handleSortChange.bind(this)}
-            onColumnOrderChange={this.handleColumnOrderChange.bind(this)}
             />;
     };
 }
 
-$(".data-table").each(function() {
+$(".data-table-sortable").each(function() {
     var columns = [];
     var data = [];
 
     $(this).find("thead").find("th").each(function(i) {
+        var that = this;
         columns[i] = {
             name: getColumnName(i, this.innerText),
             render: function(el) {
-                return <div dangerouslySetInnerHTML={{__html: el}} />;
-            }
+                return <span dangerouslySetInnerHTML={{__html: el}} />;
+            },
+            textAlign: $(this).hasClass("right-align") ? "right" : "left"
         };
     });
 
@@ -50,17 +48,18 @@ $(".data-table").each(function() {
         });
     });
 
-    data = sort(data);
-
+    var sort = $(this).data("sort") ? $(this).data("sort") : "ID";
+    var sortDir = $(this).data("sort-dir") ? $(this).data("sort-dir") : "desc";
     var props = {
         columns: columns,
-        data: data
+        data: data,
+        sortInfo: [{ name: sort, dir: sortDir}],
     };
     React.render(<DataTable {...props} />, this.parentElement);
 });
 
-function sort(arr){
-    return arr;//sorty(SORT_INFO, arr);
+function sort(arr, sortInfo){
+    return sorty(sortInfo, arr);
 }
 
 function getColumnName(index, name) {
@@ -72,7 +71,5 @@ function getColumnName(index, name) {
         return name;
     } else if (index) {
         return spacer;
-    } else {
-        return "id";
     }
 }

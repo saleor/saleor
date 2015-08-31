@@ -3,15 +3,15 @@
 {% load status %}
 
 <div class="data-table-container">
-    <table class="bordered hoverable responsive data-table">
+    <table class="bordered hoverable responsive data-table{% if not not_sortable %} data-table-sortable{% endif %}">
         <thead>
             <tr>
-                <th></th>
+                <th>ID</th>
                 <th>{% trans "Order status" %}</th>
                 <th>{% trans "Payment status" %}</th>
-                <th>{% trans "Customer" %}</th>
                 <th>{% trans "Placed on" %}</th>
-                <th>{% trans "Total" %}</th>
+                <th>{% trans "Customer" %}</th>
+                <th class="right-align">{% trans "Total" %}</th>
             </tr>
         </thead>
         <tbody>
@@ -24,7 +24,7 @@
                 <td>{% render_status order.get_last_payment_status order.get_last_payment_status_display %}</td>
                 <td>{{ order.created }}</td>
                 <td>{{ order.user|default:_("Guest") }}</td>
-                <td>{% gross order.get_total %}</td>
+                <td class="right-align">{% gross order.get_total %}</td>
             </tr>
         {% endfor %}
         </tbody>
