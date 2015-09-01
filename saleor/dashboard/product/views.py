@@ -41,12 +41,13 @@ def product_create(request):
 @staff_member_required
 def product_edit(request, pk):
     product = get_object_or_404(
-        Product.objects.select_subclasses().prefetch_related('images',
-                                                             'variants'), pk=pk)
+        Product.objects.select_subclasses().prefetch_related(
+            'images', 'variants'), pk=pk)
     attributes = product.attributes.prefetch_related('values')
     images = product.images.all()
     variants = product.variants.select_subclasses()
-    stock_items = Stock.objects.filter(variant__in=variants)
+    stock_items = Stock.objects.filter(
+        variant__in=variants).select_related('variant')
 
     form = forms.ProductForm(request.POST or None, instance=product)
     variants_delete_form = forms.VariantBulkDeleteForm()
