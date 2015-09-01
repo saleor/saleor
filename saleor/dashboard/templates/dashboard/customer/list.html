@@ -38,7 +38,7 @@
         </div>
 
         {% if customers %}
-            <div class="data-table-container">
+            <div class="data-table-container even-cols">
                 <table class="bordered hoverable responsive data-table data-table-sortable"
                        data-sort="Email" data-sort-dir="asc">
                     <thead>
@@ -46,8 +46,8 @@
                             <th>{% trans "Email" %}</th>
                             <th class="wide">{% trans "Name" %}</th>
                             <th>{% trans "Location" %}</th>
-                            <th class="right-align">{% trans "Number of orders" %}</th>
                             <th>{% trans "Last order" %}</th>
+                            <th class="right-align">{% trans "Number of orders" %}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -68,13 +68,13 @@
                                 <td colspan="2"></td>
                             {% endif %}
                             {% endwith %}
-                            <td class="right-align">
-                                {{ customer.num_orders }}
-                            </td>
                             <td>
                                 {% if customer.last_order %}
                                     <a href="{% url 'dashboard:order-details' order_pk=customer.last_order %}">#{{ customer.last_order }}</a>
                                 {% endif %}
+                            </td>
+                            <td class="right-align">
+                                {{ customer.num_orders }}
                             </td>
                         </tr>
                     {% endfor %}

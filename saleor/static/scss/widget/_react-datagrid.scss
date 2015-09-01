@@ -24,6 +24,12 @@
     }
 
     &:first-child {
+      flex: none !important;
+
+      @at-root .even-cols & {
+        flex: 1!important;
+      }
+
       .z-content {
         padding-left: 24px;
       }
@@ -106,6 +112,14 @@
       .z-cell {
         display: block;
         min-width: 100px !important;
+
+        &:first-child {
+          flex: none !important;
+
+          @at-root .even-cols & {
+            flex: 1 !important;
+          }
+        }
       }
     }
 
