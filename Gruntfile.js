@@ -12,9 +12,13 @@ module.exports = function(grunt) {
       }
     },
     browserify: {
-      dist: {
+      dashboard: {
         src: "saleor/static/js/dashboard_react.js",
         dest: "saleor/static/js/dashboard_react.js"
+      },
+      storefront: {
+        src: "saleor/static/js/storefront_react.js",
+        dest: "saleor/static/js/storefront_react.js"
       }
     },
     browserSync: {
@@ -157,7 +161,6 @@ module.exports = function(grunt) {
           "saleor/static/js/storefront.js": [
             "saleor/static/components/jquery/dist/jquery.js",
             "saleor/static/components/jquery-cookie/jquery.cookie.js",
-            "saleor/static/components/react/react-with-addons.js",
             "saleor/static/components/bootstrap-sass/assets/javascripts/bootstrap.js",
             "saleor/static/js/storefront_react.js",
             "saleor/static/js_src/storefront.js"
