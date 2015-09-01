@@ -7,4 +7,4 @@ class ButtonSelect(forms.RadioSelect):
         if not choices:
             choices = self.choices
         return render_to_string('order/includes/choices.html', {
-            'value': value, 'choices': choices})
+            'value': value, 'choices': choices, 'name': name})
