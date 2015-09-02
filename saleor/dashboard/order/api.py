@@ -27,3 +27,4 @@ class OrderViewSet(ModelViewSet):
     serializer_class = OrderSerializer
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ('status', 'shipping_method')
+    ordering_fields = ('status', 'shipping_method')
