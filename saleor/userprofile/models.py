@@ -110,7 +110,7 @@ class UserManager(BaseUserManager):
 @python_2_unicode_compatible
 class User(PermissionsMixin, models.Model):
     email = models.EmailField(unique=True)
-    addresses = models.ManyToManyField(Address)
+    addresses = models.ManyToManyField(Address, blank=True)
     is_staff = models.BooleanField(
         pgettext_lazy('User field', 'staff status'),
         default=False)
