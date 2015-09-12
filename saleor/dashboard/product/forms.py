@@ -78,7 +78,7 @@ class ProductVariantForm(forms.ModelForm):
             'placeholder'] = self.instance.product.weight
 
 
-class QuerysetChoiceIterator(ModelChoiceIterator):
+class CachingModelChoiceIterator(ModelChoiceIterator):
     def __iter__(self):
         if self.field.empty_label is not None:
             yield ("", self.field.empty_label)
@@ -86,11 +86,11 @@ class QuerysetChoiceIterator(ModelChoiceIterator):
             yield self.choice(obj)
 
 
-class QuerysetChoiceField(forms.ModelChoiceField):
+class CachingModelChoiceField(forms.ModelChoiceField):
     def _get_choices(self):
         if hasattr(self, '_choices'):
             return self._choices
-        return QuerysetChoiceIterator(self)
+        return CachingModelChoiceIterator(self)
     choices = property(_get_choices, forms.ChoiceField._set_choices)
 
 
@@ -108,7 +108,7 @@ class VariantAttributeForm(forms.ModelForm):
                               'required': True,
                               'initial': self.instance.get_attribute(attr.pk)}
             if attr.has_values():
-                field = QuerysetChoiceField(
+                field = CachingModelChoiceField(
                     queryset=attr.values.all(), **field_defaults)
             else:
                 field = forms.CharField(**field_defaults)
