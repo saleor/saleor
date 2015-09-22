@@ -22,8 +22,8 @@
                 </td>
                 <td>{% render_status order.status order.get_status_display %}</td>
                 <td>{% render_status order.get_last_payment_status order.get_last_payment_status_display %}</td>
-                <td>{{ order.created }}</td>
                 <td>{{ order.user|default:_("Guest") }}</td>
+                <td>{{ order.created }}</td>
                 <td>{% gross order.get_total %}</td>
             </tr>
         {% endfor %}
