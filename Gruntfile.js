@@ -96,16 +96,6 @@ module.exports = function(grunt) {
               "*.css"
             ],
             rename: renameFunction
-          },
-          {
-            expand: true,
-            dot: true,
-            cwd: "node_modules/react-datagrid/dist",
-            dest: "saleor/static/scss/vendor/",
-            src: [
-              "index.css"
-            ],
-            rename: renameFunction
           }
         ]
       }

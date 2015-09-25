@@ -16,10 +16,10 @@
     "jquery.equalheights": "~1.5.2",
     "less": "~2.4.0",
     "materialize": "~0.97.0",
+    "mdi": "~1.2.65",
     "modernizr": "~2.8.3",
     "react": "~0.13.3",
     "select2": "~4.0.0",
-    "Sortable": "~1.2.0",
-    "mdi": "~1.2.65"
+    "Sortable": "~1.2.0"
   }
 }
