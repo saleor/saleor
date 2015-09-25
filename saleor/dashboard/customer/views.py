@@ -28,11 +28,12 @@ def customer_list(request):
     else:
         customers = customers.filter(
             orders__status__in=['new', 'payment-pending', 'fully-paid'])
-    title = _('Results (%s)') % len(customers)
+    customers_count = customers.count()
 
     customers, paginator = paginate(customers, 30, request.GET.get('page'))
-    ctx = {'customers': customers, 'form': form, 'title': title,
-           'paginator': paginator, 'default_pagination_params': form_values}
+    ctx = {'customers': customers, 'form': form,
+           'customers_count': customers_count, 'paginator': paginator,
+           'default_pagination_params': form_values}
     return TemplateResponse(request, 'dashboard/customer/list.html', ctx)
 
 

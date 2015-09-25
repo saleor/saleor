@@ -1,75 +1,189 @@
 import React from "react";
-import DataGrid from "react-datagrid";
-import sorty from "sorty";
+import Griddle from "griddle-react";
 
 class DataTable extends React.Component {
     state = {
-        data: sort(this.props.data, this.props.sortInfo),
-        sortInfo: this.props.sortInfo
+        rows: [],
+        sortColumn: this.props.defaultSortColumn,
+        sortAscending: this.props.defaultSortAscending,
+        currentPage: 0,
+        maxPage: 0,
+        tableClassName: this.props.tableClassName
     };
 
-    handleSortChange(sortInfo) {
-        this.setState({
-            sortInfo: sortInfo,
-            data: sort(this.state.data, sortInfo)
+    componentDidMount() {
+        this.getRows();
+    }
+
+    getRows(sortColumn, sortAscending, newPage) {
+        var sortColumn = sortColumn !== undefined ? sortColumn : this.state.sortColumn;
+        var sortAscending = sortAscending !== undefined ? sortAscending : this.state.sortAscending;
+        var newPage = newPage !== undefined ? newPage : this.state.currentPage;
+
+        var ordering = (sortAscending ? "" : "-") + sortColumn;
+        var that = this;
+
+        $.ajax({
+            url: this.props.apiUrl,
+            method: "get",
+            data: {
+                ordering: ordering,
+                page: newPage + 1,
+                page_size: this.props.pageSize
+            },
+            dataType: "json",
+            beforeSend: function() {
+                that.props.classNameBackup = that.state.tableClassName;
+                that.setState({
+                    tableClassName: that.state.tableClassName + " data-table--loading"
+                });
+            },
+            success: function (data) {
+                that.setState({
+                    rows: data.results,
+                    sortColumn: sortColumn,
+                    sortAscending: sortAscending,
+                    currentPage: newPage,
+                    maxPage: Math.ceil(data.count / that.props.pageSize),
+                    tableClassName: that.props.classNameBackup
+                });
+            }
         });
-    };
+    }
+
+    setFilter(a,b,c,d) {
+        console.log(a,b,c,d);
+    }
+
+    changeSort(sortColumn, sortAscending) {
+        this.getRows(sortColumn, sortAscending, this.state.externalCurrentPage);
+    }
+
+    setPage(page) {
+        this.getRows(this.state.externalSortColumn, this.state.externalSortAscending, page);
+    }
 
     render() {
-        return <DataGrid
-            idProperty={this.props.columns[0]+""}
-            dataSource={this.state.data}
+        return <Griddle
+            useExternal={true}
+            results={this.state.rows}
             columns={this.props.columns}
-            sortInfo={this.state.sortInfo}
-            onSortChange={this.handleSortChange.bind(this)}
-            />;
+            columnMetadata={this.props.columnMetadata}
+            externalSortColumn={this.state.sortColumn}
+            externalSortAscending={this.state.sortAscending}
+            externalMaxPage={this.state.maxPage}
+            externalCurrentPage={this.state.currentPage}
+            externalSetFilter={::this.setFilter}
+            externalChangeSort={::this.changeSort}
+            externalSetPage={::this.setPage}
+            externalSetPageSize
+            useGriddleStyles={false}
+            tableClassName={this.state.tableClassName}
+            sortAscendingComponent={<span className="data-table--orderable-ascending"></span>}
+            sortDescendingComponent={<span className="data-table--orderable-descending"></span>}
+            useCustomPagerComponent={true}
+            customPagerComponent={OtherPager}
+        />;
     };
 }
 
-$(".data-table-sortable").each(function() {
+var OtherPager = React.createClass({
+    getDefaultProps: function(){
+        return {
+            "maxPage": 0,
+            "nextText": "",
+            "previousText": "",
+            "currentPage": 0
+        }
+    },
+    pageChange: function(event){
+        this.props.setPage(parseInt(event.target.getAttribute("data-value")));
+    },
+    render: function(){
+        return (
+            <div className="data-table-pagination">
+                <ul>
+                    <li className={this.props.currentPage ? "" : "data-table-pagination-inactive"}>
+                        <i data-value="0" onClick={this.pageChange} className="data-table-pagination-prev"></i>
+                    </li>
+                    <li className={this.props.currentPage ? "" : "data-table-pagination-inactive"}>
+                        <i onClick={this.props.previous} className="data-table-pagination-prev"></i>
+                    </li>
+                    <li className={this.props.currentPage != (this.props.maxPage -1) ? "" : "data-table-pagination-inactive"}>
+                        <i onClick={this.props.next} className="data-table-pagination-next"></i>
+                    </li>
+                    <li className={this.props.currentPage != (this.props.maxPage - 1) ? "" : "data-table-pagination-inactive"}>
+                        <i data-value={this.props.maxPage - 1} onClick={this.pageChange} className="data-table-pagination-next"></i>
+                    </li>
+                </ul>
+            </div>
+        )
+    }
+});
+
+class CustomerEmail extends React.Component {
+    render() {
+        return <a href={this.props.rowData.dashboard_customer_url}>
+            {this.props.data}
+        </a>;
+    };
+}
+
+class CustomerLastOrder extends React.Component {
+    render() {
+        return <a href={this.props.rowData.dashboard_last_order_url}>
+            #{this.props.data}
+        </a>;
+    };
+}
+
+class CustomerFullname extends React.Component {
+    render() {
+        return <span>
+            {this.props.data} {this.props.rowData.default_shipping_address__first_name}
+        </span>;
+    }
+}
+
+class CustomerLocation extends React.Component {
+    render() {
+        return <span>
+            {this.props.data}, {this.props.rowData.default_shipping_address__city}
+        </span>;
+    }
+}
+
+var customComponents = {
+    "CustomerEmail": CustomerEmail,
+    "CustomerFullname": CustomerFullname,
+    "CustomerLastOrder": CustomerLastOrder,
+    "CustomerLocation": CustomerLocation
+};
+
+$("DataTablePaginated").each(function() {
     var columns = [];
-    var data = [];
+    var columnMetadata = [];
 
-    $(this).find("thead").find("th").each(function(i) {
-        var that = this;
-        columns[i] = {
-            name: getColumnName(i, this.innerText),
-            render: function(el) {
-                return <span dangerouslySetInnerHTML={{__html: el}} />;
-            },
-            textAlign: $(this).hasClass("right-align") ? "right" : "left"
-        };
-    });
-
-    $(this).find("tbody").find("tr").each(function(i) {
-        data[i] = {};
-        $(this).find("td").each(function(j) {
-            data[i][columns[j].name] = $(this).html();
+    $(this).find("Column").each(function() {
+        var columnName = $(this).data("key") ? $(this).data("key") : this.innerText.toLowerCase().split(" ").join("_");
+        columns.push(columnName);
+        columnMetadata.push({
+            columnName: columnName,
+            displayName: this.innerText,
+            customComponent: customComponents[$(this).data("component")] ? customComponents[$(this).data("component")] : undefined,
+            cssClassName: $(this).data("css-class")
         });
     });
 
-    var sort = $(this).data("sort") ? $(this).data("sort") : "ID";
-    var sortDir = $(this).data("sort-dir") ? $(this).data("sort-dir") : "desc";
     var props = {
+        apiUrl: $(this).data("table-api"),
+        defaultSortColumn: $(this).data("default-sort-column"),
+        defaultSortAscending: $(this).data("default-sort-ascending"),
+        defaultFilter: window.location.href,
         columns: columns,
-        data: data,
-        sortInfo: [{ name: sort, dir: sortDir}],
+        columnMetadata: columnMetadata,
+        pageSize: $(this).data("page-size"),
+        tableClassName: $(this).attr("class")
     };
     React.render(<DataTable {...props} />, this.parentElement);
 });
-
-function sort(arr, sortInfo){
-    return sorty(sortInfo, arr);
-}
-
-function getColumnName(index, name) {
-    var spacer = " ";
-    for (var i = 0; i < index; i++) {
-        spacer += " ";
-    }
-    if (name) {
-        return name;
-    } else if (index) {
-        return spacer;
-    }
-}

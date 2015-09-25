@@ -31,23 +31,37 @@
         </div>
     </form>
 
-
     <div class="card">
         <div class="data-table-header{% if not customers %} data-table-header--no-data{% endif %}">
-            <h5 class="card-title black-text">{{ title }}</h5>
+            <h5 class="card-title black-text">{% trans "Results" %} ({{ customers_count }})</h5>
         </div>
 
         {% if customers %}
             <div class="data-table-container even-cols">
-                <table class="bordered hoverable responsive data-table data-table-sortable"
-                       data-sort="Email" data-sort-dir="asc">
+                <DataTablePaginated data-table-api="/dashboard/api/customers/"
+                                    data-default-filter="is_active=true"
+                                    data-default-sort-column="last_order_id"
+                                    data-default-sort-ascending="false"
+                                    data-page-size="10"
+                                    data-max-page="{{ paginator.num_pages }}"
+                                    class="bordered hoverable responsive data-table data-table--orderable">
+                    <Column data-key="email" data-component="CustomerEmail" data-css-class="wide">{% trans "Email" %}</Column>
+                    <Column data-key="default_shipping_address__last_name" data-component="CustomerFullname">{% trans "Fullname" %}</Column>
+                    <Column data-key="default_shipping_address__country" data-component="CustomerLocation">{% trans "Location" %}</Column>
+                    <Column data-key="last_order_id" data-component="CustomerLastOrder">{% trans "Last order" %}</Column>
+                    <Column data-key="num_orders" data-css-class="right-align">{% trans "Number of orders" %}</Column>
+                </DataTablePaginated>
+
+                {% comment %}
+                <table class="bordered hoverable responsive data-table">
                     <thead>
                         <tr>
-                            <th>{% trans "Email" %}</th>
-                            <th class="wide">{% trans "Name" %}</th>
-                            <th>{% trans "Location" %}</th>
-                            <th>{% trans "Last order" %}</th>
-                            <th class="right-align">{% trans "Number of orders" %}</th>
+                            <th data-key="email" data-formatter="LinkFormatter">{% trans "Email" %}</th>
+                            <th data-key="default_shipping_address__last_name">{% trans "Fullname" %}</th>
+                            <th data-key="default_shipping_address__city">{% trans "City" %}</th>
+                            <th data-key="default_shipping_address__country">{% trans "Country" %}</th>
+                            <th data-key="last_order_id" data-formatter="LinkFormatter">{% trans "Last order" %}</th>
+                            <th data-key="num_orders" class="right-align">{% trans "Number of orders" %}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -80,6 +94,7 @@
                     {% endfor %}
                     </tbody>
                 </table>
+                {% endcomment %}
             </div>
         {% else %}
             <div class="card-content card-content--no-data">

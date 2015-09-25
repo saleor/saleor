@@ -10,7 +10,6 @@ $transition-duration: .2s;
 @import "mdi/scss/materialdesignicons";
 @import "vendor/basic";
 @import "vendor/dropzone";
-@import "vendor/index";
 
 .header {
   @media (min-width: $large-screen-up) {
@@ -322,7 +321,6 @@ table {
 @import "widget/list";
 @import "widget/product-gallery";
 @import "widget/ppoi";
-@import "widget/react-datagrid";
 @import "widget/select2";
 @import "widget/tabs";
 @import "widget/toast";

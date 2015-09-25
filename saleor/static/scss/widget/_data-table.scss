@@ -30,9 +30,9 @@
   }
 
   $statuses-map: (
-    danger: map-get($red, base),
-    success: map-get($green, lighten-2),
-    default: map-get($grey, base)
+          danger: map-get($red, base),
+          success: map-get($green, lighten-2),
+          default: map-get($grey, base)
   );
 
   &-status {
@@ -117,6 +117,158 @@
     top: 0;
     white-space: nowrap;
   }
+
+  &-pagination {
+    color: map_get($grey, darken-1);
+    text-align: right;
+
+    ul {
+      display: inline-block;
+      margin: 0 -10px 0 0;
+      vertical-align: middle;
+    }
+
+    li {
+
+      display: inline-block;
+      position: relative;
+
+      &:first-child, &:last-child {
+        .data-table-pagination-prev, .data-table-pagination-next {
+          &:before {
+            background-color: $off-black;
+            content: "";
+            display: block;
+            height: 12px;
+            left: 14px;
+            opacity: .5;
+            position: absolute;
+            top: 12px;
+            transition: opacity $transition-duration;
+            width: 2px;
+          }
+        }
+      }
+
+      &:last-child {
+        .data-table-pagination-next {
+          &:before {
+            left: auto;
+            right: 15px;
+          }
+        }
+      }
+    }
+
+    &-prev, &-next {
+      color: $off-black;
+      cursor: pointer;
+      font-style: normal;
+
+      &:after {
+        content: "\f212";
+        font-family: 'MaterialDesignIcons';
+        font-size: 24px;
+        opacity: .55;
+        padding: 0 10px;
+        transition: opacity $transition-duration;
+      }
+
+      &:hover {
+        &:before {
+          opacity: .95 !important;
+        }
+
+        &:after {
+          opacity: 1;
+        }
+      }
+    }
+
+    &-next {
+      &:after {
+        content: "\f213";
+      }
+    }
+
+    &-inactive {
+      .data-table-pagination-prev, .data-table-pagination-next {
+        cursor: not-allowed;
+
+        &:before {
+          opacity: .2 !important;
+        }
+
+        &:after {
+          opacity: .25;
+        }
+      }
+    }
+  }
+
+  &--orderable {
+    th {
+      cursor: pointer;
+
+      &.sort-ascending, &.sort-descending {
+        color: $off-black;
+      }
+
+      &:not(.sort-ascending):not(.sort-descending):hover {
+        > span {
+          position: relative;
+
+          &:after {
+            color: map_get($grey, lighten-1);
+            content: "\f14c";
+            font-family: 'MaterialDesignIcons';
+            font-size: 16px;
+            position: absolute;
+            left: calc(100% + 5px);
+            top: -5px;
+          }
+        }
+      }
+    }
+
+    &-ascending, &-descending {
+      position: relative;
+
+      &:after {
+        content: "\f14c";
+        font-family: 'MaterialDesignIcons';
+        font-size: 16px;
+        position: absolute;
+        left: calc(100% + 5px);
+        top: -5px;
+      }
+    }
+
+    &-descending {
+      &:after {
+        content: "\f13a";
+      }
+    }
+  }
+
+  &--loading {
+    position: relative;
+
+    &:after {
+      background: white;
+      opacity: .4;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      content: "";
+      position: absolute;
+    }
+  }
+}
+
+.griddle-nodata {
+  padding: 0 24px 21px;
 }
 
 .data-table {
