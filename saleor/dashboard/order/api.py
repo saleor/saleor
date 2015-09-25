@@ -7,7 +7,6 @@ from ...order.models import Order
 
 
 class OrderSerializer(serializers.ModelSerializer):
-
     total = SerializerMethodField()
 
     class Meta:
@@ -21,7 +20,6 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class OrderViewSet(ModelViewSet):
-
     model = Order
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
