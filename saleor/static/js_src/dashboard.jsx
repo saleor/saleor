@@ -5,7 +5,8 @@ class DataTable extends React.Component {
     state = {
         rows: [],
         sortColumn: this.props.defaultSortColumn,
-        sortAscending: this.props.defaultSortAscending,
+        defaultSort: this.props.defaultSort,
+        sortAscending: this.props.defaultSort == "asc",
         currentPage: 0,
         maxPage: 0,
         tableClassName: this.props.tableClassName
@@ -22,6 +23,7 @@ class DataTable extends React.Component {
 
         var ordering = (sortAscending ? "" : "-") + sortColumn;
         var that = this;
+        var timeout;
 
         $.ajax({
             url: this.props.apiUrl,
@@ -34,11 +36,16 @@ class DataTable extends React.Component {
             dataType: "json",
             beforeSend: function() {
                 that.props.classNameBackup = that.state.tableClassName;
-                that.setState({
-                    tableClassName: that.state.tableClassName + " data-table--loading"
-                });
+
+                timeout = setTimeout(function() {
+                    that.setState({
+                        tableClassName: that.state.tableClassName + " data-table--loading"
+                    });
+                }, 200);
             },
             success: function (data) {
+                window.clearTimeout(timeout);
+
                 that.setState({
                     rows: data.results,
                     sortColumn: sortColumn,
@@ -49,10 +56,6 @@ class DataTable extends React.Component {
                 });
             }
         });
-    }
-
-    setFilter(a,b,c,d) {
-        console.log(a,b,c,d);
     }
 
     changeSort(sortColumn, sortAscending) {
@@ -73,7 +76,7 @@ class DataTable extends React.Component {
             externalSortAscending={this.state.sortAscending}
             externalMaxPage={this.state.maxPage}
             externalCurrentPage={this.state.currentPage}
-            externalSetFilter={::this.setFilter}
+            externalSetFilter
             externalChangeSort={::this.changeSort}
             externalSetPage={::this.setPage}
             externalSetPageSize
@@ -83,6 +86,7 @@ class DataTable extends React.Component {
             sortDescendingComponent={<span className="data-table--orderable-descending"></span>}
             useCustomPagerComponent={true}
             customPagerComponent={OtherPager}
+            noDataMessage={this.props.noDataMessage}
         />;
     };
 }
@@ -121,6 +125,28 @@ var OtherPager = React.createClass({
     }
 });
 
+class OrderLink extends React.Component {
+    render() {
+        return <a href={this.props.data}>
+            #{this.props.data}
+        </a>;
+    };
+}
+
+class OrderStatus extends React.Component {
+    render() {
+        return <Label text={this.props.rowData.status_display}
+            classSuffix={this.props.rowData.status_css_class} />
+    }
+}
+
+class OrderLastPaymentStatus extends React.Component {
+    render() {
+        return <Label text={this.props.rowData.last_payment_status_display}
+            classSuffix={this.props.rowData.last_payment_css_class} />;
+    }
+}
+
 class CustomerEmail extends React.Component {
     render() {
         return <a href={this.props.rowData.dashboard_customer_url}>
@@ -153,18 +179,28 @@ class CustomerLocation extends React.Component {
     }
 }
 
+class Label extends React.Component {
+    render() {
+        var className = "data-table-status--" + this.props.classSuffix;
+        return <span className={className}>{this.props.text}</span>;
+    }
+}
+
 var customComponents = {
     "CustomerEmail": CustomerEmail,
     "CustomerFullname": CustomerFullname,
     "CustomerLastOrder": CustomerLastOrder,
-    "CustomerLocation": CustomerLocation
+    "CustomerLocation": CustomerLocation,
+    "OrderLastPaymentStatus": OrderLastPaymentStatus,
+    "OrderLink": OrderLink,
+    "OrderStatus": OrderStatus
 };
 
-$("DataTablePaginated").each(function() {
+$(".data-table--orderable").each(function() {
     var columns = [];
     var columnMetadata = [];
 
-    $(this).find("Column").each(function() {
+    $(this).find("th").each(function() {
         var columnName = $(this).data("key") ? $(this).data("key") : this.innerText.toLowerCase().split(" ").join("_");
         columns.push(columnName);
         columnMetadata.push({
@@ -177,12 +213,12 @@ $("DataTablePaginated").each(function() {
 
     var props = {
         apiUrl: $(this).data("table-api"),
-        defaultSortColumn: $(this).data("default-sort-column"),
-        defaultSortAscending: $(this).data("default-sort-ascending"),
-        defaultFilter: window.location.href,
+        defaultSortColumn: $(this).data("default-sort-column") ? $(this).data("default-sort-column") : "id",
+        defaultSort: $(this).data("default-sort") ? $(this).data("default-sort") : "asc",
         columns: columns,
         columnMetadata: columnMetadata,
-        pageSize: $(this).data("page-size"),
+        pageSize: $(this).data("page-size") ? $(this).data("page-size") : 10,
+        noDataMessage: $(this).data("no-data-message"),
         tableClassName: $(this).attr("class")
     };
     React.render(<DataTable {...props} />, this.parentElement);

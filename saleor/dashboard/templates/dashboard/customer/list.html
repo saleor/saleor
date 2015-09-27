@@ -36,71 +36,21 @@
             <h5 class="card-title black-text">{% trans "Results" %} ({{ customers_count }})</h5>
         </div>
 
-        {% if customers %}
-            <div class="data-table-container even-cols">
-                <DataTablePaginated data-table-api="/dashboard/api/customers/"
-                                    data-default-filter="is_active=true"
-                                    data-default-sort-column="last_order_id"
-                                    data-default-sort-ascending="false"
-                                    data-page-size="10"
-                                    data-max-page="{{ paginator.num_pages }}"
-                                    class="bordered hoverable responsive data-table data-table--orderable">
-                    <Column data-key="email" data-component="CustomerEmail" data-css-class="wide">{% trans "Email" %}</Column>
-                    <Column data-key="default_shipping_address__last_name" data-component="CustomerFullname">{% trans "Fullname" %}</Column>
-                    <Column data-key="default_shipping_address__country" data-component="CustomerLocation">{% trans "Location" %}</Column>
-                    <Column data-key="last_order_id" data-component="CustomerLastOrder">{% trans "Last order" %}</Column>
-                    <Column data-key="num_orders" data-css-class="right-align">{% trans "Number of orders" %}</Column>
-                </DataTablePaginated>
-
-                {% comment %}
-                <table class="bordered hoverable responsive data-table">
-                    <thead>
-                        <tr>
-                            <th data-key="email" data-formatter="LinkFormatter">{% trans "Email" %}</th>
-                            <th data-key="default_shipping_address__last_name">{% trans "Fullname" %}</th>
-                            <th data-key="default_shipping_address__city">{% trans "City" %}</th>
-                            <th data-key="default_shipping_address__country">{% trans "Country" %}</th>
-                            <th data-key="last_order_id" data-formatter="LinkFormatter">{% trans "Last order" %}</th>
-                            <th data-key="num_orders" class="right-align">{% trans "Number of orders" %}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for customer in customers %}
-                        <tr>
-                            {% with customer.default_billing_address as default_address %}
-                            <td>
-                                <a href="{% url "dashboard:customer-details" pk=customer.pk %}">{{ customer.email }}</a>
-                            </td>
-                            {% if default_address %}
-                                <td>
-                                    {{ default_address.first_name }} {{ default_address.last_name }}
-                                </td>
-                                <td>
-                                    {{ default_address.city }}, {{ default_address.get_country_display }}
-                                </td>
-                            {% else %}
-                                <td colspan="2"></td>
-                            {% endif %}
-                            {% endwith %}
-                            <td>
-                                {% if customer.last_order %}
-                                    <a href="{% url 'dashboard:order-details' order_pk=customer.last_order %}">#{{ customer.last_order }}</a>
-                                {% endif %}
-                            </td>
-                            <td class="right-align">
-                                {{ customer.num_orders }}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-                {% endcomment %}
-            </div>
-        {% else %}
-            <div class="card-content card-content--no-data">
-                <p>{% trans "No customers found." %}</p>
-            </div>
-        {% endif %}
+        <div class="data-table-container">
+            <table data-table-api="/dashboard/api/customers/"
+                                data-default-sort-column="last_order_id"
+                                data-default-sort="desc"
+                                data-max-page="{{ paginator.num_pages }}"
+                                data-no-data-message="{% trans "No customers found." %}"
+                                class="bordered hoverable responsive data-table data-table--orderable">
+                <thead>
+                    <th data-key="email" data-component="CustomerEmail">{% trans "Email" %}</th>
+                    <th data-key="default_shipping_address__last_name" data-component="CustomerFullname" data-css-class="wide">{% trans "Fullname" %}</th>
+                    <th data-key="default_shipping_address__country" data-component="CustomerLocation">{% trans "Location" %}</th>
+                    <th data-key="last_order_id" data-component="CustomerLastOrder">{% trans "Last order" %}</th>
+                    <th data-key="num_orders" data-css-class="right-align">{% trans "Number of orders" %}</th>
+                </thead>
+            </table>
+        </div>
     </div>
-    {% include "dashboard/includes/_pagination.html" with page_obj=customers %}
 {% endblock %}

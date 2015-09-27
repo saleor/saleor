@@ -40,12 +40,13 @@ class CustomerPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 30
 
+
 class CustomerViewSet(ModelViewSet):
 
     model = User
     serializer_class = CustomerSerializer
     queryset = User.objects.all()
-    filter_backends = (DjangoFilterBackend, OrderingFilter)
+    filter_backends = (DjangoFilterBackend, OrderingFilter,)
     filter_fields = ('is_active', 'email')
     ordering_fields = ('id', 'email', 'default_shipping_address__first_name',
                        'default_shipping_address__last_name',

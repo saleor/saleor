@@ -22,10 +22,6 @@
         <div class="card">
             {% include "dashboard/includes/_orders_table.html" with orders=object_list %}
         </div>
-
-        <div class="row">
-            {% include "dashboard/includes/_pagination.html" %}
-        </div>
     {% else %}
         <p>{% trans "No orders." %}</p>
     {% endif %}

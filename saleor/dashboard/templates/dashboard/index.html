@@ -48,7 +48,7 @@
             </div>
 
             {% if orders_to_ship %}
-                {% include "dashboard/includes/_orders_table.html" with orders=orders_to_ship not_sortable=True %}
+                {% include "dashboard/includes/_orders_table.html" with orders=orders_to_ship page_size=5 %}
             {% else %}
                 <div class="card-content card-content--no-data">
                     <p>{% trans "No orders are ready for shipment." %}</p>

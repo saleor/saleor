@@ -143,7 +143,7 @@
             left: 14px;
             opacity: .5;
             position: absolute;
-            top: 12px;
+            top: 22px;
             transition: opacity $transition-duration;
             width: 2px;
           }
@@ -167,10 +167,11 @@
 
       &:after {
         content: "\f212";
+        display: inline-block;
         font-family: 'MaterialDesignIcons';
         font-size: 24px;
         opacity: .55;
-        padding: 0 10px;
+        padding: 10px;
         transition: opacity $transition-duration;
       }
 
@@ -229,6 +230,17 @@
           }
         }
       }
+
+      &.right-align {
+        &:not(.sort-ascending):not(.sort-descending):hover {
+          > span {
+            &:after {
+              left: auto;
+              right: calc(100% + 5px);
+            }
+          }
+        }
+      }
     }
 
     &-ascending, &-descending {
@@ -247,6 +259,22 @@
     &-descending {
       &:after {
         content: "\f13a";
+      }
+    }
+
+    .right-align {
+      &.sort-ascending, &.sort-descending {
+        > span {
+          float: right;
+        }
+
+        .data-table--orderable-ascending, .data-table--orderable-descending {
+          &:after {
+            left: auto;
+            right: calc(100% + 5px);
+            top: -3px;
+          }
+        }
       }
     }
   }
@@ -268,7 +296,7 @@
 }
 
 .griddle-nodata {
-  padding: 0 24px 21px;
+  padding: 21px 24px;
 }
 
 .data-table {
