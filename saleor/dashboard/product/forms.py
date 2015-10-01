@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from django import forms
-from django.forms.models import inlineformset_factory
+from django.forms.models import inlineformset_factory, ModelChoiceIterator
 from django.utils.translation import pgettext_lazy
 
 from ...product.models import (ProductImage, Stock, ProductVariant, Product,
@@ -78,6 +78,22 @@ class ProductVariantForm(forms.ModelForm):
             'placeholder'] = self.instance.product.weight
 
 
+class CachingModelChoiceIterator(ModelChoiceIterator):
+    def __iter__(self):
+        if self.field.empty_label is not None:
+            yield ("", self.field.empty_label)
+        for obj in self.queryset:
+            yield self.choice(obj)
+
+
+class CachingModelChoiceField(forms.ModelChoiceField):
+    def _get_choices(self):
+        if hasattr(self, '_choices'):
+            return self._choices
+        return CachingModelChoiceIterator(self)
+    choices = property(_get_choices, forms.ChoiceField._set_choices)
+
+
 class VariantAttributeForm(forms.ModelForm):
     class Meta:
         model = ProductVariant
@@ -92,8 +108,8 @@ class VariantAttributeForm(forms.ModelForm):
                               'required': True,
                               'initial': self.instance.get_attribute(attr.pk)}
             if attr.has_values():
-                field = forms.ModelChoiceField(queryset=attr.values.all(),
-                                               **field_defaults)
+                field = CachingModelChoiceField(
+                    queryset=attr.values.all(), **field_defaults)
             else:
                 field = forms.CharField(**field_defaults)
             self.fields[attr.get_formfield_name()] = field
