@@ -136,6 +136,7 @@ class ShippingStep(BaseAddressStep):
                  default_address=None):
         self.cart = cart
         address_data = storage.get('address', {})
+        self.billing_address = default_address
         if not address_data and default_address:
             address = default_address
         else:
@@ -157,13 +158,19 @@ class ShippingStep(BaseAddressStep):
         self.forms['delivery'] = DeliveryForm(
             delivery_choices, request.POST or None,
             initial={'method': selected_method_name})
+        self.shipping_same_as_billing = request.POST.get(
+            'shipping_same_as_billing')
 
     def __str__(self):
         return 'shipping-address'
 
     def save(self):
         delivery_form = self.forms['delivery']
-        self.storage['address'] = Address.objects.as_data(self.address)
+        if self.shipping_same_as_billing:
+            address = self.billing_address
+        else:
+            address = self.address
+        self.storage['address'] = Address.objects.as_data(address)
         delivery_method = delivery_form.cleaned_data['method']
         self.storage['delivery_method'] = delivery_method
 
