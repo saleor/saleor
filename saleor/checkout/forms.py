@@ -7,7 +7,7 @@ from ..userprofile.forms import AddressForm
 
 class ShippingForm(AddressForm):
 
-    use_billing = forms.BooleanField(initial=True)
+    shipping_same_as_billing = forms.BooleanField(initial=True, required=False)
 
 
 class DeliveryForm(forms.Form):

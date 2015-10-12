@@ -7,7 +7,7 @@ from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from satchless.process import InvalidData
 
-from .forms import DeliveryForm
+from .forms import DeliveryForm, ShippingForm
 from ..checkout.forms import AnonymousEmailForm
 from ..core.utils import BaseStep
 from ..delivery import get_delivery_options_for_items
@@ -31,18 +31,20 @@ class BaseCheckoutStep(BaseStep):
 
 class BaseAddressStep(BaseCheckoutStep):
     template = 'checkout/address.html'
+    address_form_class = AddressForm
 
     def __init__(self, request, storage, address):
         super(BaseAddressStep, self).__init__(request, storage)
         self.address = address
         existing_selected = False
-        address_form = AddressForm(request.POST or None, instance=self.address)
+        address_form = self.address_form_class(request.POST or None,
+                                               instance=self.address)
         if request.user.is_authenticated():
             addresses = list(request.user.addresses.all())
             for address in addresses:
                 data = Address.objects.as_data(address)
                 instance = Address(**data)
-                address.form = AddressForm(instance=instance)
+                address.form = self.address_form_class(instance=instance)
                 address.is_selected = Address.objects.are_identical(
                     address, self.address)
                 if address.is_selected:
@@ -131,13 +133,15 @@ class BillingAddressStep(BaseAddressStep):
 class ShippingStep(BaseAddressStep):
     template = 'checkout/shipping.html'
     title = _('Shipping Address')
+    address_form_class = ShippingForm
 
     def __init__(self, request, storage, cart,
-                 default_address=None):
+                 billing_address=None):
         self.cart = cart
         address_data = storage.get('address', {})
-        if not address_data and default_address:
-            address = default_address
+        self.billing_address = billing_address
+        if not address_data and billing_address:
+            address = billing_address
         else:
             address = Address(**address_data)
         super(ShippingStep, self).__init__(request, storage, address)
@@ -163,7 +167,11 @@ class ShippingStep(BaseAddressStep):
 
     def save(self):
         delivery_form = self.forms['delivery']
-        self.storage['address'] = Address.objects.as_data(self.address)
+        if self.forms['address'].cleaned_data.get('shipping_same_as_billing'):
+            address = self.billing_address
+        else:
+            address = self.address
+        self.storage['address'] = Address.objects.as_data(address)
         delivery_method = delivery_form.cleaned_data['method']
         self.storage['delivery_method'] = delivery_method
 
