@@ -227,7 +227,7 @@ class FormShippingToggler extends React.Component {
     render() {
         return <div className="checkbox">
             <label>
-                <input checked={this.state.value} type="checkbox" onChange={this.formFullToggle.bind(this)} name="shipping_same_as_billing" />
+                <input checked={this.state.value} type="checkbox" onChange={::this.formFullToggle} name="shipping_same_as_billing" />
                 {this.props.label}
             </label>
         </div>;
