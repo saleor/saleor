@@ -53,7 +53,7 @@ class Checkout(ProcessManager):
         if self.is_shipping_required():
             self.shipping = ShippingStep(
                 self.request, self.get_storage('shipping'),
-                self.cart, default_address=self.billing_address)
+                self.cart, billing_address=self.billing_address)
             self.steps.append(self.shipping)
         else:
             self.shipping = None
