@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from ..order.models import Order, Payment, OrderedItem
 from ..userprofile.models import Address
+from ..product.models import Product, ProductVariant, ProductImage
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -95,3 +96,75 @@ class OrderSerializer(serializers.ModelSerializer):
             'billing_address',
             'payments'
         )
+
+
+class ProductVariantSerializer(serializers.ModelSerializer):
+
+    price = serializers.SerializerMethodField()
+    cost_price = serializers.SerializerMethodField()
+    quantity = serializers.SerializerMethodField()
+    options = serializers.CharField(source='attributes')
+
+    def get_price(self, obj):
+        return obj.get_price().gross
+
+    def get_cost_price(self, obj):
+        return obj.stock.first().cost_price
+
+    def get_quantity(self, obj):
+        return obj.stock.first().quantity
+
+    class Meta:
+        model = ProductVariant
+        fields = ('sku', 'price', 'cost_price', 'options', 'quantity')
+
+
+class ProductImageSerializer(serializers.ModelSerializer):
+
+    url = serializers.CharField(source='image.url')
+    type = serializers.SerializerMethodField()
+    dimensions = serializers.SerializerMethodField()
+    position = serializers.CharField(source='order')
+    title = serializers.CharField(source='alt')
+
+    def get_type(self, obj):
+        return 'product_image'
+
+    def get_dimensions(self, obj):
+        return {
+            'height': obj.image.height,
+            'width': obj.image.width
+        }
+
+    class Meta:
+        model = ProductImage
+        fields = ('url', 'position', 'title', 'type', 'dimensions')
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    variants = ProductVariantSerializer(many=True)
+    images = ProductImageSerializer(many=True)
+    options = serializers.SerializerMethodField()
+    properties = serializers.SerializerMethodField()
+    shipping_category = serializers.SerializerMethodField()
+    permalink = serializers.URLField(source='get_absolute_url')
+
+
+    def get_options(self, product):
+        return product.attributes.values_list('name', flat=True)
+
+    def get_properties(self, product):
+        return {}
+
+    def get_shipping_category(self, product):
+        return 'standard'
+
+
+    class Meta:
+        model = Product
+        fields = ('id', 'name', 'description',
+                  'available_on', 'permalink',
+                  # 'meta_description',
+                  # 'meta_keywords',
+                  'shipping_category', 'options',
+                  'properties', 'images', 'variants')
