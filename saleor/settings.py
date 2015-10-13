@@ -6,7 +6,6 @@ from django.contrib.messages import constants as messages
 
 
 DEBUG = ast.literal_eval(os.environ.get('DEBUG', 'True'))
-TEMPLATE_DEBUG = DEBUG
 
 SITE_ID = 1
 
@@ -81,7 +80,11 @@ if not DEBUG:
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
     'DIRS': [os.path.join(PROJECT_ROOT, 'templates')],
-    'OPTIONS': {'loaders': loaders, 'context_processors': context_processors}}]
+    'OPTIONS': {
+        'debug': DEBUG,
+        'context_processors': context_processors,
+        'loaders': loaders,
+        'string_if_invalid': '<< MISSING VARIABLE >>'}}]
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.environ.get('SECRET_KEY', '{{ secret_key }}')
@@ -116,13 +119,13 @@ INSTALLED_APPS = [
     'django.contrib.webdesign',
 
     # Local apps
+    'saleor.userprofile',
+    'saleor.product',
     'saleor.cart',
     'saleor.checkout',
     'saleor.core',
-    'saleor.product',
     'saleor.order',
     'saleor.registration',
-    'saleor.userprofile',
     'saleor.dashboard',
 
     # External apps
@@ -228,8 +231,6 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 CHECKOUT_PAYMENT_CHOICES = [
     ('default', 'Dummy provider')
 ]
-
-TEMPLATE_STRING_IF_INVALID = '<< MISSING VARIABLE >>'
 
 MESSAGE_TAGS = {
     messages.ERROR: 'danger',

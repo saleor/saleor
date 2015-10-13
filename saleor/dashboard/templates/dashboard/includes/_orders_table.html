@@ -19,5 +19,19 @@
                 <th data-key="total" data-css-class="right-align" data-component="CommonTotal">{% trans "Total" %}</th>
             </tr>
         </thead>
+        <tbody>
+        {% for order in orders %}
+            <tr>
+                <td>
+                    <a href="{% url 'dashboard:order-details' order_pk=order.pk %}">#{{ order.id }}</a>
+                </td>
+                <td>{% render_status order.status order.get_status_display %}</td>
+                <td>{% render_status order.get_last_payment_status order.get_last_payment_status_display %}</td>
+                <td>{{ order.created }}</td>
+                <td>{{ order.user|default:_("Guest") }}</td>
+                <td>{% gross order.get_total %}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
     </table>
 </div>

@@ -6,13 +6,14 @@ from payments.models import PAYMENT_STATUS_CHOICES
 from ..views import (FilterByStatusMixin, StaffMemberOnlyMixin,
                      staff_member_required)
 from ...order.models import Payment
-
+from ..order.forms import PaymentFilterForm
 
 class PaymentList(StaffMemberOnlyMixin, FilterByStatusMixin, ListView):
     model = Payment
     template_name = 'dashboard/payments/list.html'
     context_object_name = 'payments'
     paginate_by = 30
+    form_class = PaymentFilterForm
     status_choices = PAYMENT_STATUS_CHOICES
     status_order = ['waiting', 'input', 'preauth', 'confirmed', 'refunded',
                     'rejected', 'error']

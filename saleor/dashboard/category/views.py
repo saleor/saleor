@@ -1,4 +1,6 @@
 from django.contrib import messages
+from django.core.urlresolvers import reverse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
@@ -66,12 +68,19 @@ def category_delete(request, pk):
         if category.parent:
             root_pk = category.parent.pk
         if root_pk:
+            if request.is_ajax():
+                response = {'redirectUrl': reverse(
+                    'dashboard:category-list', kwargs={'root_pk': root_pk})}
+                return JsonResponse(response)
             return redirect('dashboard:category-list', root_pk=root_pk)
         else:
+            if request.is_ajax():
+                response = {'redirectUrl': reverse('dashboard:category-list')}
+                return JsonResponse(response)
             return redirect('dashboard:category-list')
     ctx = {'category': category,
            'descendants': list(category.get_descendants()),
            'products_count': len(category.products.all())}
     return TemplateResponse(request,
-                            'dashboard/category/modal_category_confirm_delete.html',
+                            'dashboard/category/modal_delete.html',
                             ctx)

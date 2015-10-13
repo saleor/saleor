@@ -1,0 +1,15 @@
+db:
+  image: sameersbn/postgresql:9.4
+  environment:
+    - DB_NAME=saleor
+    - DB_USER=saleor
+    - DB_PASS=saleor
+web:
+  build: .
+  links:
+    - db
+  ports:
+    - '8000:8000'
+  volumes:
+    - .:/app
+  command: /app/compose/start.sh
