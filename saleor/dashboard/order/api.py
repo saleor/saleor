@@ -17,7 +17,6 @@ class OrderSerializer(serializers.ModelSerializer):
     last_payment_status_display = serializers.SerializerMethodField()
     last_payment_css_class = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField()
-    created_display = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -57,9 +56,6 @@ class OrderSerializer(serializers.ModelSerializer):
             return obj.user.email
         return _('Guest')
 
-    def get_created_display(self, obj):
-        return obj.created
-
 
 class OrderPagination(PageNumberPagination):
     page_size = 30
@@ -73,7 +69,7 @@ class OrderViewSet(ModelViewSet):
     serializer_class = OrderSerializer
     filter_backends = (DjangoFilterBackend, OrderingFilter,)
     filter_fields = ('status', 'shipping_method',)
-    ordering_fields = ('id', 'status', 'created', 'user', 'total')
+    ordering_fields = ('id', 'status', 'created', 'user', )
     pagination_class = OrderPagination
 
     def get_queryset(self):

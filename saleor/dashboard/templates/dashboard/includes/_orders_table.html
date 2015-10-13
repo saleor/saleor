@@ -11,12 +11,12 @@
                                 class="bordered hoverable responsive data-table{% if not plain_table %} data-table--orderable{% endif %}">
         <thead>
             <tr>
-                <th data-key="id" data-component="OrderLink">Number</th>
-                <th data-key="status" data-component="OrderStatus">{% trans "Order status" %}</th>
+                <th data-key="id" data-component="CommonLink">{% trans "Number" %}</th>
+                <th data-key="status" data-component="CommonStatus">{% trans "Order status" %}</th>
                 <th data-key="last_payment_status_display" data-component="OrderLastPaymentStatus">{% trans "Payment status" %}</th>
-                <th data-key="created">{% trans "Placed on" %}</th>
+                <th data-key="created" data-component="CommonDate">{% trans "Placed on" %}</th>
                 <th data-key="user" data-css-class="wide">{% trans "Customer" %}</th>
-                <th data-key="total" data-css-class="right-align">{% trans "Total" %}</th>
+                <th data-key="total" data-css-class="right-align" data-component="CommonTotal">{% trans "Total" %}</th>
             </tr>
         </thead>
     </table>

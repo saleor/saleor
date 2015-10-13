@@ -125,21 +125,6 @@ var OtherPager = React.createClass({
     }
 });
 
-class OrderLink extends React.Component {
-    render() {
-        return <a href={this.props.data}>
-            #{this.props.data}
-        </a>;
-    };
-}
-
-class OrderStatus extends React.Component {
-    render() {
-        return <Label text={this.props.rowData.status_display}
-            classSuffix={this.props.rowData.status_css_class} />
-    }
-}
-
 class OrderLastPaymentStatus extends React.Component {
     render() {
         return <Label text={this.props.rowData.last_payment_status_display}
@@ -179,6 +164,52 @@ class CustomerLocation extends React.Component {
     }
 }
 
+class PaymentGateway extends React.Component {
+    render() {
+        console.log(this.props.rowData);
+        return <span>
+            {this.props.rowData.gateway_translation}: {this.props.data}
+            &nbsp;&middot;&nbsp;
+            <a href={this.props.rowData.dashboard_order_url}>
+                {this.props.rowData.description}
+            </a>
+        </span>;
+    }
+}
+
+class CommonDate extends React.Component {
+    render() {
+        return <span>
+            {new Date(this.props.data).toLocaleString()}
+        </span>;
+    }
+}
+
+class CommonLink extends React.Component {
+    render() {
+        return <a href={this.props.data}>
+            #{this.props.data}
+        </a>;
+    };
+}
+
+class CommonStatus extends React.Component {
+    render() {
+        return <Label text={this.props.rowData.status_display}
+            classSuffix={this.props.rowData.status_css_class} />
+    }
+}
+
+class CommonTotal extends React.Component {
+    render() {
+        var total = new Number(this.props.data.gross);
+        var settings = {currency: this.props.data.currency, style: "currency"};
+        return <span>
+            {total.toLocaleString(undefined, settings)}
+        </span>;
+    }
+}
+
 class Label extends React.Component {
     render() {
         var className = "data-table-status--" + this.props.classSuffix;
@@ -187,13 +218,16 @@ class Label extends React.Component {
 }
 
 var customComponents = {
+    "CommonDate": CommonDate,
+    "CommonLink": CommonLink,
+    "CommonStatus": CommonStatus,
+    "CommonTotal": CommonTotal,
     "CustomerEmail": CustomerEmail,
     "CustomerFullname": CustomerFullname,
     "CustomerLastOrder": CustomerLastOrder,
     "CustomerLocation": CustomerLocation,
     "OrderLastPaymentStatus": OrderLastPaymentStatus,
-    "OrderLink": OrderLink,
-    "OrderStatus": OrderStatus
+    "PaymentGateway": PaymentGateway
 };
 
 $(".data-table--orderable").each(function() {
