@@ -103,16 +103,25 @@ class ProductVariantSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField()
     cost_price = serializers.SerializerMethodField()
     quantity = serializers.SerializerMethodField()
-    options = serializers.CharField(source='attributes')
+    options = serializers.SerializerMethodField()
 
     def get_price(self, obj):
         return obj.get_price().gross
 
     def get_cost_price(self, obj):
-        return obj.stock.first().cost_price
+        return obj.stock.all()[0].cost_price
 
     def get_quantity(self, obj):
-        return obj.stock.first().quantity
+        return obj.stock.all()[0].quantity
+
+    def get_options(self, obj):
+        attributes = obj.product.attributes.all()
+        attr_map = {str(a.pk): a.name for a in attributes}
+        options = {}
+        for attribute_id, value in obj.attributes.items():
+            name = attr_map[str(attribute_id)]
+            options[name] = value
+        return options
 
     class Meta:
         model = ProductVariant
@@ -148,7 +157,6 @@ class ProductSerializer(serializers.ModelSerializer):
     properties = serializers.SerializerMethodField()
     shipping_category = serializers.SerializerMethodField()
     permalink = serializers.URLField(source='get_absolute_url')
-
 
     def get_options(self, product):
         return product.attributes.values_list('name', flat=True)
