@@ -64,6 +64,12 @@ class Order(models.Model, ItemSet):
                                              editable=False)
     token = models.CharField(
         pgettext_lazy('Order field', 'token'), max_length=36, unique=True)
+    currency = models.CharField(
+        pgettext_lazy('Order field', 'currency'),
+        max_length=3, default=settings.DEFAULT_CURRENCY)
+    rate = models.DecimalField(
+        pgettext_lazy('Order field', 'conversion rate'),
+        max_digits=12, decimal_places=5, default=0)
 
     class Meta:
         ordering = ('-last_status_change',)
