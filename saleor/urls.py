@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 
 
+from .wombat.urls import urlpatterns as wombat_urls
 from .cart.urls import urlpatterns as cart_urls
 from .checkout.urls import urlpatterns as checkout_urls
 from .core.sitemaps import sitemaps
@@ -27,6 +28,7 @@ urlpatterns = [
     url(r'^order/', include(order_urls, namespace='order')),
     url(r'^products/', include(product_urls, namespace='product')),
     url(r'^profile/', include(userprofile_urls, namespace='profile')),
+    url(r'^wombat/', include(wombat_urls, namespace='wombat')),
     url(r'^selectable/', include('selectable.urls')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
