@@ -58,12 +58,12 @@ class OrderSerializer(serializers.ModelSerializer):
     channel = serializers.SerializerMethodField()
     adjustments = serializers.SerializerMethodField()
     payments = PaymentsSerializer(many=True)
-    line_items = LineItemsSerializer(many=True, source='get_items')
+    line_items = LineItemsSerializer(many=True, source='items')
 
     def get_totals(self, order):
         return {
             'item': sum(item.unit_price_gross*item.quantity
-                        for item in order.get_items()),
+                        for item in order.items.all()),
             'adjustment': order.get_total().tax,
             'tax': order.get_total().tax,
             'shipping': order.get_delivery_total().gross,
@@ -109,10 +109,16 @@ class ProductVariantSerializer(serializers.ModelSerializer):
         return obj.get_price().gross
 
     def get_cost_price(self, obj):
-        return obj.stock.all()[0].cost_price
+        # Get maximal cost price for a product
+        stock = sorted(obj.stock.all(), key=lambda s: s.cost_price,
+                       reverse=True)
+        return stock[0].cost_price
 
     def get_quantity(self, obj):
-        return obj.stock.all()[0].quantity
+        # Get maximal quantity for a product
+        stock = sorted(obj.stock.all(), key=lambda s: s.quantity,
+                       reverse=True)
+        return stock[0].quantity
 
     def get_options(self, obj):
         attributes = obj.product.attributes.all()
@@ -159,7 +165,7 @@ class ProductSerializer(serializers.ModelSerializer):
     permalink = serializers.URLField(source='get_absolute_url')
 
     def get_options(self, product):
-        return product.attributes.values_list('name', flat=True)
+        return [a.name for a in product.attributes.all()]
 
     def get_properties(self, product):
         return {}
