@@ -298,6 +298,7 @@ class OrderedItem(models.Model, ItemLine):
     unit_price_gross = models.DecimalField(
         pgettext_lazy('OrderedItem field', 'unit price (gross)'),
         max_digits=12, decimal_places=4)
+    order = models.ForeignKey(Order, related_name='items')
 
     objects = OrderedItemManager()
 
