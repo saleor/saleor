@@ -173,7 +173,6 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_shipping_category(self, product):
         return 'standard'
 
-
     class Meta:
         model = Product
         fields = ('id', 'name', 'description',
@@ -182,3 +181,20 @@ class ProductSerializer(serializers.ModelSerializer):
                   # 'meta_keywords',
                   'shipping_category', 'options',
                   'properties', 'images', 'variants')
+
+
+class GetWebhookRequestSerializer(serializers.Serializer):
+    request_id = serializers.CharField(required=True)
+    parameters = serializers.DictField(child=serializers.CharField())
+
+
+PAYLOAD_CONFIG = {
+    Order._meta.model: {
+        'wombat_name': 'orders',
+        'serializer_class': OrderSerializer
+    },
+    Product._meta.model: {
+        'wombat_name': 'orders',
+        'serializer_class': ProductSerializer
+    }
+}
