@@ -302,6 +302,10 @@ class OrderedItem(models.Model, ItemLine):
 
     objects = OrderedItemManager()
 
+    def save(self, *args, **kwargs):
+        self.order = self.delivery_group.order
+        super(OrderedItem, self).save(*args, **kwargs)
+
     def get_price_per_item(self, **kwargs):
         return Price(net=self.unit_price_net, gross=self.unit_price_gross,
                      currency=settings.DEFAULT_CURRENCY)
