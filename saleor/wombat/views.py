@@ -34,13 +34,13 @@ def get_orders_webhook(request):
     request_id = serializer.data.get('request_id')
     parameters = serializer.data.get('parameters', {})
     since = parameters.get('since')
-    id = parameters.get('id')
+    pk = parameters.get('id')
     query_filter = None
 
     if since:
         query_filter = Q(last_status_change__gte=since)
-    if id:
-        query_filter = Q(pk=id)
+    if pk:
+        query_filter = Q(pk=pk)
 
     if not query_filter:
         raise ParseError()
