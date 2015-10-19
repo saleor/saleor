@@ -150,4 +150,6 @@ class Checkout(ProcessManager):
             order.anonymous_user_email = ''
         order.tracking_client_id = analytics.get_client_id(self.request)
         order.save()
+        order.total = order.get_total()
+        order.save(update_fields=['total'])
         return order
