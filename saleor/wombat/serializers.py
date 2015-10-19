@@ -2,7 +2,7 @@ from django.db.models import Q
 from rest_framework import serializers
 from ..order.models import Order, Payment, OrderedItem
 from ..userprofile.models import Address
-from ..product.models import Product, ProductVariant, ProductImage
+from ..product.models import Product, ProductVariant, ProductImage, Stock
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -123,7 +123,7 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProductVariant
-        fields = ('sku', 'price', 'cost_price', 'options', 'quantity')
+        fields = ['sku', 'price', 'cost_price', 'options', 'quantity']
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
@@ -174,6 +174,13 @@ class ProductSerializer(serializers.ModelSerializer):
                   'shipping_category', 'options',
                   'properties', 'images', 'variants']
 
+class StockSerializer(serializers.ModelSerializer):
+    product_id = serializers.CharField(source='variant.sku')
+
+    class Meta:
+        model = Stock
+        fields = ['id', 'location', 'quantity', 'product_id']
+
 
 class GetWebhookRequestSerializer(serializers.Serializer):
     request_id = serializers.CharField(required=True)
@@ -184,7 +191,7 @@ class GetWebhookRequestSerializer(serializers.Serializer):
         self.since_query_field = since_query_field
 
     def get_query_filter(self):
-        query_filter = None
+        query_filter = Q()
         if self.is_valid():
             parameters = self.data.get('parameters', {})
             since = parameters.get('since')
@@ -194,4 +201,18 @@ class GetWebhookRequestSerializer(serializers.Serializer):
                 query_filter = Q(**{query: since})
             if pk:
                 query_filter = Q(pk=pk)
+        return query_filter
+
+
+class GetInventoryWebhookRequestSerializer(serializers.Serializer):
+    request_id = serializers.CharField(required=True)
+    parameters = serializers.DictField(child=serializers.CharField())
+
+    def get_query_filter(self):
+        query_filter = Q()
+        if self.is_valid():
+            parameters = self.data.get('parameters', {})
+            sku = parameters.get('sku')
+            if sku:
+                query_filter = Q(variant__sku=sku)
         return query_filter

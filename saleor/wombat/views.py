@@ -3,10 +3,12 @@ from rest_framework.exceptions import ParseError
 from rest_framework import status
 from rest_framework.response import Response
 from ..order import Order
-from ..product.models import Product
+from ..product.models import Product, Stock
 from .authentication import WombatAuthentication
 from .serializers import (OrderSerializer, ProductSerializer,
-                          GetWebhookRequestSerializer)
+                          GetWebhookRequestSerializer,
+                          GetInventoryWebhookRequestSerializer,
+                          StockSerializer)
 
 
 def get_serialized_data(request_serializer, queryset, serializer, wombat_name):
@@ -43,3 +45,15 @@ def get_products_webhook(request):
                                queryset=Product.objects.with_all_related(),
                                serializer=ProductSerializer,
                                wombat_name='products')
+
+
+@api_view(['POST'])
+@authentication_classes((WombatAuthentication,))
+def get_inventory_webhook(request):
+    request_serializer = GetInventoryWebhookRequestSerializer(
+        data=request.data)
+    return get_serialized_data(request_serializer,
+                               queryset=Stock.objects.all(),
+                               serializer=StockSerializer,
+                               wombat_name='inventories')
+
