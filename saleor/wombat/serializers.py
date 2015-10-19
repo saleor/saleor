@@ -177,15 +177,3 @@ class ProductSerializer(serializers.ModelSerializer):
 class GetWebhookRequestSerializer(serializers.Serializer):
     request_id = serializers.CharField(required=True)
     parameters = serializers.DictField(child=serializers.CharField())
-
-
-PAYLOAD_CONFIG = {
-    Order._meta.model: {
-        'wombat_name': 'orders',
-        'serializer_class': OrderSerializer
-    },
-    Product._meta.model: {
-        'wombat_name': 'orders',
-        'serializer_class': ProductSerializer
-    }
-}
