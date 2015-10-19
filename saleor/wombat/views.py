@@ -10,21 +10,6 @@ from .serializers import OrderSerializer, ProductSerializer, GetWebhookRequestSe
 from .authentication import WombatAuthentication
 
 
-class OrderList(generics.ListAPIView):
-    queryset = Order.objects.prefetch_related(
-        'groups', 'groups__items', 'payments').select_related(
-        'billing_address', 'shipping_address', 'user')
-    serializer_class = OrderSerializer
-
-
-class ProductList(generics.ListAPIView):
-    queryset = Product.objects.prefetch_related('variants',
-                                                'variants__stock',
-                                                'images',
-                                                'attributes')
-    serializer_class = ProductSerializer
-
-
 def get_serialized_data(request_serializer, queryset, serializer, wombat_name):
     if not request_serializer.is_valid():
         raise ParseError()
