@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from decimal import Decimal
 from uuid import uuid4
+import itertools
 
 from django.forms.models import model_to_dict
 from django.shortcuts import get_list_or_404
@@ -84,7 +85,9 @@ class Order(models.Model, ItemSet):
             self.history.create(status=status)
 
     def get_items(self):
-        return OrderedItem.objects.filter(delivery_group__order=self)
+        return list(
+            itertools.chain(
+                *[delivery_group.items.all() for delivery_group in self]))
 
     def is_fully_paid(self):
         total_paid = sum([payment.total for payment in
