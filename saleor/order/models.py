@@ -28,6 +28,21 @@ from ..userprofile.models import Address, User
 from ..delivery import get_delivery
 
 
+class OrderQuerySet(models.QuerySet):
+    def with_items(self):
+        return self.prefetch_related('groups', 'groups__items')
+
+    def with_payments(self):
+        return self.prefetch_related('payments')
+
+    def with_user(self):
+        return self.select_related('billing_address', 'shipping_address',
+                                   'user')
+
+    def with_all_related(self):
+        return self.with_items().with_payments().with_user()
+
+
 @python_2_unicode_compatible
 class Order(models.Model, ItemSet):
     STATUS_CHOICES = (
@@ -69,6 +84,8 @@ class Order(models.Model, ItemSet):
         pgettext_lazy('Order field', 'total'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
+
+    objects = OrderQuerySet.as_manager()
 
     class Meta:
         ordering = ('-last_status_change',)
