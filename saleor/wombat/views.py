@@ -1,13 +1,12 @@
-from django.db.models import Q
-from ..order import Order
-from ..product.models import Product
-from rest_framework import generics
 from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.exceptions import ParseError
 from rest_framework import status
 from rest_framework.response import Response
-from .serializers import OrderSerializer, ProductSerializer, GetWebhookRequestSerializer
+from ..order import Order
+from ..product.models import Product
 from .authentication import WombatAuthentication
+from .serializers import (OrderSerializer, ProductSerializer,
+                          GetWebhookRequestSerializer)
 
 
 def get_serialized_data(request_serializer, queryset, serializer, wombat_name):
