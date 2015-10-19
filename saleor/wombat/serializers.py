@@ -14,8 +14,8 @@ class AddressSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Address
-        fields = ('firstname', 'lastname', 'address1', 'address2',
-                  'city', 'zipcode', 'state', 'country', 'phone')
+        fields = ['firstname', 'lastname', 'address1', 'address2',
+                  'city', 'zipcode', 'state', 'country', 'phone']
 
 
 class PaymentsSerializer(serializers.ModelSerializer):
@@ -26,7 +26,7 @@ class PaymentsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payment
-        fields = ('id', 'amount', 'payment_method', 'status')
+        fields = ['id', 'amount', 'payment_method', 'status']
 
 
 class TotalsSerializer(serializers.Serializer):
@@ -46,7 +46,7 @@ class LineItemsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderedItem
-        fields = ('product_id', 'name', 'price', 'quantity')
+        fields = ['product_id', 'name', 'price', 'quantity']
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -75,8 +75,7 @@ class OrderSerializer(serializers.ModelSerializer):
     def get_adjustments(self, order):
         return [{
             'name': 'Tax',
-            'value': order.get_total().tax
-        }]
+            'value': order.get_total().tax}]
 
     def get_channel(self, order):
         return 'Saleor'
@@ -86,7 +85,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = (
+        fields = [
             'id',
             'status',
             'channel',
@@ -98,8 +97,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'line_items',
             'shipping_address',
             'billing_address',
-            'payments'
-        )
+            'payments']
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
@@ -146,7 +144,7 @@ class ProductImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProductImage
-        fields = ('url', 'position', 'title', 'type', 'dimensions')
+        fields = ['url', 'position', 'title', 'type', 'dimensions']
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -168,12 +166,12 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ('id', 'name', 'description',
+        fields = ['id', 'name', 'description',
                   'available_on', 'permalink',
                   # 'meta_description',
                   # 'meta_keywords',
                   'shipping_category', 'options',
-                  'properties', 'images', 'variants')
+                  'properties', 'images', 'variants']
 
 
 class GetWebhookRequestSerializer(serializers.Serializer):
