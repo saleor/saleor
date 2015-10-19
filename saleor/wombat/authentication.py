@@ -14,7 +14,7 @@ class WombatAuthentication(BaseAuthentication):
 
         if (store_id == settings.WOMBAT_STORE_ID and
                 access_token in settings.WOMBAT_ALLOWED_INTEGRATION_TOKENS):
-            wombat = User.objects.get_or_create(email=wombat_username)
+            wombat, _ = User.objects.get_or_create(email=wombat_username)
             if wombat.is_active:
                 return (wombat, None)
         return None
