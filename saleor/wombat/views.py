@@ -25,33 +25,37 @@ class ProductList(generics.ListAPIView):
     serializer_class = ProductSerializer
 
 
+def get_serialized_data(request_serializer, queryset, serializer, wombat_name):
+    if not request_serializer.is_valid():
+        raise ParseError()
+    request_id = request_serializer.data.get('request_id')
+    query_filter = request_serializer.get_query_filter()
+    data = queryset.filter(query_filter)
+    serialized = serializer(data, many=True)
+    response = {
+        'request_id': request_id,
+        wombat_name: serialized.data
+    }
+    return Response(data=response, status=status.HTTP_200_OK)
+
+
 @api_view(['POST'])
 @authentication_classes((WombatAuthentication,))
 def get_orders_webhook(request):
-    serializer = GetWebhookRequestSerializer(data=request.data)
-    if not serializer.is_valid():
-        raise ParseError()
-    request_id = serializer.data.get('request_id')
-    parameters = serializer.data.get('parameters', {})
-    since = parameters.get('since')
-    pk = parameters.get('id')
-    query_filter = None
+    request_serializer = GetWebhookRequestSerializer(
+        data=request.data, since_query_field='last_status_change')
+    return get_serialized_data(request_serializer,
+                               queryset=Order.objects.with_all_related(),
+                               serializer=OrderSerializer,
+                               wombat_name='orders')
 
-    if since:
-        query_filter = Q(last_status_change__gte=since)
-    if pk:
-        query_filter = Q(pk=pk)
 
-    if not query_filter:
-        raise ParseError()
-
-    orders = OrderList.queryset.filter(query_filter)
-    serialized_orders = OrderSerializer(orders, many=True)
-
-    data = {
-        'request_id': request_id,
-        'orders': serialized_orders.data
-    }
-
-    return Response(data=data, status=status.HTTP_200_OK)
-
+@api_view(['POST'])
+@authentication_classes((WombatAuthentication,))
+def get_products_webhook(request):
+    request_serializer = GetWebhookRequestSerializer(
+        data=request.data, since_query_field='updated_at')
+    return get_serialized_data(request_serializer,
+                               queryset=Product.objects.with_all_related(),
+                               serializer=ProductSerializer,
+                               wombat_name='products')

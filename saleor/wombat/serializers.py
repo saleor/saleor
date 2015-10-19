@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import serializers
 from ..order.models import Order, Payment, OrderedItem
 from ..userprofile.models import Address
@@ -177,3 +178,20 @@ class ProductSerializer(serializers.ModelSerializer):
 class GetWebhookRequestSerializer(serializers.Serializer):
     request_id = serializers.CharField(required=True)
     parameters = serializers.DictField(child=serializers.CharField())
+
+    def __init__(self, since_query_field, *args, **kwargs):
+        super(GetWebhookRequestSerializer, self).__init__(*args, **kwargs)
+        self.since_query_field = since_query_field
+
+    def get_query_filter(self):
+        query_filter = None
+        if self.is_valid():
+            parameters = self.data.get('parameters', {})
+            since = parameters.get('since')
+            pk = parameters.get('id')
+            if since:
+                query = '%s__gte' % (self.since_query_field, )
+                query_filter = Q(**{query: since})
+            if pk:
+                query_filter = Q(pk=pk)
+        return query_filter
