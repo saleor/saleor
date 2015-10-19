@@ -58,12 +58,13 @@ class OrderSerializer(serializers.ModelSerializer):
     channel = serializers.SerializerMethodField()
     adjustments = serializers.SerializerMethodField()
     payments = PaymentsSerializer(many=True)
-    line_items = LineItemsSerializer(many=True, source='items')
+    line_items = LineItemsSerializer(many=True, source='get_items')
+    currency = serializers.SerializerMethodField()
 
     def get_totals(self, order):
         return {
             'item': sum(item.unit_price_gross*item.quantity
-                        for item in order.items.all()),
+                        for item in order.get_items()),
             'adjustment': order.get_total().tax,
             'tax': order.get_total().tax,
             'shipping': order.get_delivery_total().gross,
@@ -79,6 +80,9 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def get_channel(self, order):
         return 'Saleor'
+
+    def get_currency(self, order):
+        return order.total.currency
 
     class Meta:
         model = Order
@@ -101,24 +105,13 @@ class OrderSerializer(serializers.ModelSerializer):
 class ProductVariantSerializer(serializers.ModelSerializer):
 
     price = serializers.SerializerMethodField()
-    cost_price = serializers.SerializerMethodField()
-    quantity = serializers.SerializerMethodField()
+    cost_price = serializers.DecimalField(max_digits=9, decimal_places=2,
+                                          source='get_cost_price')
+    quantity = serializers.IntegerField(source='get_stock_quantity')
     options = serializers.SerializerMethodField()
 
     def get_price(self, obj):
         return obj.get_price().gross
-
-    def get_cost_price(self, obj):
-        # Get maximal cost price for a product
-        stock = sorted(obj.stock.all(), key=lambda s: s.cost_price,
-                       reverse=True)
-        return stock[0].cost_price
-
-    def get_quantity(self, obj):
-        # Get maximal quantity for a product
-        stock = sorted(obj.stock.all(), key=lambda s: s.quantity,
-                       reverse=True)
-        return stock[0].quantity
 
     def get_options(self, obj):
         attributes = obj.product.attributes.all()

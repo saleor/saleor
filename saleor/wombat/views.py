@@ -12,7 +12,7 @@ from .authentication import WombatAuthentication
 
 class OrderList(generics.ListAPIView):
     queryset = Order.objects.prefetch_related(
-        'groups', 'groups__items', 'payments', 'items').select_related(
+        'groups', 'groups__items', 'payments').select_related(
         'billing_address', 'shipping_address', 'user')
     serializer_class = OrderSerializer
 
@@ -44,7 +44,7 @@ def get_orders_webhook(request):
 
     if not query_filter:
         raise ParseError()
-    
+
     orders = OrderList.queryset.filter(query_filter)
     serialized_orders = OrderSerializer(orders, many=True)
 
