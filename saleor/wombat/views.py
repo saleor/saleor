@@ -6,9 +6,9 @@ from ..order import Order
 from ..product.models import Product, Stock
 from .authentication import WombatAuthentication
 from .serializers import (OrderSerializer, ProductSerializer,
-                          GetWebhookRequestSerializer,
-                          GetInventoryWebhookRequestSerializer,
-                          StockSerializer)
+                          GetWebhookSerializer,
+                          StockSerializer, AddProductWebhookSerializer,
+                          GetInventoryWebhookSerializer)
 
 
 def get_serialized_data(request_serializer, queryset, serializer, wombat_name):
@@ -28,7 +28,7 @@ def get_serialized_data(request_serializer, queryset, serializer, wombat_name):
 @api_view(['POST'])
 @authentication_classes((WombatAuthentication,))
 def get_orders_webhook(request):
-    request_serializer = GetWebhookRequestSerializer(
+    request_serializer = GetWebhookSerializer(
         data=request.data, since_query_field='last_status_change')
     return get_serialized_data(request_serializer,
                                queryset=Order.objects.with_all_related(),
@@ -39,7 +39,7 @@ def get_orders_webhook(request):
 @api_view(['POST'])
 @authentication_classes((WombatAuthentication,))
 def get_products_webhook(request):
-    request_serializer = GetWebhookRequestSerializer(
+    request_serializer = GetWebhookSerializer(
         data=request.data, since_query_field='updated_at')
     return get_serialized_data(request_serializer,
                                queryset=Product.objects.with_all_related(),
@@ -49,9 +49,23 @@ def get_products_webhook(request):
 
 @api_view(['POST'])
 @authentication_classes((WombatAuthentication,))
+def add_product_webhook(request):
+    serializer = AddProductWebhookSerializer(data=request.data)
+    response = {}
+    if serializer.is_valid():
+        product = serializer.save()
+        response['summary'] = 'Product %s was added' % (product.name, )
+        return Response(data=response, status=status.HTTP_200_OK)
+    else:
+        response['summary'] = 'Validation error - %s' % (serializer.errors, )
+    response['request_id'] = serializer.data['request_id']
+    return Response(data=response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@authentication_classes((WombatAuthentication,))
 def get_inventory_webhook(request):
-    request_serializer = GetInventoryWebhookRequestSerializer(
-        data=request.data)
+    request_serializer = GetInventoryWebhookSerializer(data=request.data)
     return get_serialized_data(request_serializer,
                                queryset=Stock.objects.all(),
                                serializer=StockSerializer,

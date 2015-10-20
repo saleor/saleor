@@ -3,6 +3,7 @@ from rest_framework import serializers
 from ..order.models import Order, Payment, OrderedItem
 from ..userprofile.models import Address
 from ..product.models import Product, ProductVariant, ProductImage, Stock
+from .deserializers import ProductDeserializer
 
 
 class AddressSerializer(serializers.ModelSerializer):
@@ -182,12 +183,15 @@ class StockSerializer(serializers.ModelSerializer):
         fields = ['id', 'location', 'quantity', 'product_id']
 
 
-class GetWebhookRequestSerializer(serializers.Serializer):
+class BaseWombatGetWebhookSerializer(serializers.Serializer):
     request_id = serializers.CharField(required=True)
     parameters = serializers.DictField(child=serializers.CharField())
 
+
+class GetWebhookSerializer(BaseWombatGetWebhookSerializer):
+
     def __init__(self, since_query_field, *args, **kwargs):
-        super(GetWebhookRequestSerializer, self).__init__(*args, **kwargs)
+        super(GetWebhookSerializer, self).__init__(*args, **kwargs)
         self.since_query_field = since_query_field
 
     def get_query_filter(self):
@@ -204,9 +208,7 @@ class GetWebhookRequestSerializer(serializers.Serializer):
         return query_filter
 
 
-class GetInventoryWebhookRequestSerializer(serializers.Serializer):
-    request_id = serializers.CharField(required=True)
-    parameters = serializers.DictField(child=serializers.CharField())
+class GetInventoryWebhookSerializer(BaseWombatGetWebhookSerializer):
 
     def get_query_filter(self):
         query_filter = Q()
@@ -216,3 +218,15 @@ class GetInventoryWebhookRequestSerializer(serializers.Serializer):
             if sku:
                 query_filter = Q(variant__sku=sku)
         return query_filter
+
+
+class AddProductWebhookSerializer(serializers.Serializer):
+    request_id = serializers.CharField(required=True)
+    product = ProductDeserializer()
+
+    def create(self, validated_data):
+        product_data = validated_data['product']
+        product = ProductDeserializer(data=product_data)
+        if product.is_valid():
+            product = product.save()
+            return product
