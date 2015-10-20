@@ -12,7 +12,7 @@ from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from jsonfield import JSONField
-from model_utils.managers import InheritanceManager
+from model_utils.managers import InheritanceManager, InheritanceQuerySet
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from satchless.item import ItemRange, Item, InsufficientStock
@@ -63,7 +63,7 @@ class Category(MPTTModel):
         self.get_descendants().update(hidden=hidden)
 
 
-class ProductQuerySet(models.QuerySet):
+class ProductQuerySet(InheritanceQuerySet):
     def get_available_products(self):
         today = datetime.datetime.today()
         return self.filter(
