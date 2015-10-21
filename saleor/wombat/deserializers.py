@@ -1,3 +1,5 @@
+from unidecode import unidecode
+from django.utils.text import slugify
 import os
 try:
     import urlparse
@@ -43,6 +45,7 @@ class ProductImageDeserializer(serializers.Serializer):
             image=image_path,
             alt=validated_data['title']
         )
+
 
 class VariantsDeserializer(serializers.Serializer):
     sku = serializers.CharField()
@@ -127,8 +130,10 @@ class ProductDeserializer(serializers.Serializer):
         for category_list in validated_data['taxons']:
             parent = None
             for single_category in category_list:
+                slug = slugify(unidecode(single_category))
                 cat, _ = Category.objects.get_or_create(
-                    name=single_category, defaults={'parent': parent})
+                    name=single_category, defaults={'parent': parent,
+                                                    'slug': slug})
                 parent = cat
                 db_categories.append(cat)
         product.categories.add(*db_categories)
