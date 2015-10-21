@@ -52,15 +52,45 @@ def get_products_webhook(request):
 def add_product_webhook(request):
     serializer = AddProductWebhookSerializer(data=request.data)
     response = {}
-    if serializer.is_valid():
+    valid = serializer.is_valid()
+    response['request_id'] = serializer.data['request_id']
+    if valid:
         product = serializer.save()
         response['summary'] = 'Product %s was added' % (product.name, )
         return Response(data=response, status=status.HTTP_200_OK)
     else:
         response['summary'] = 'Validation error - %s' % (serializer.errors, )
-    response['request_id'] = serializer.data['request_id']
     return Response(data=response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+@api_view(['POST'])
+@authentication_classes((WombatAuthentication,))
+def update_product_webhook(request):
+    serializer = AddProductWebhookSerializer(data=request.data)
+    response = {}
+    if serializer.is_valid():
+        try:
+            product = Product.objects.get(pk=serializer.data['product']['id'])
+        except Product.DoesNotExist:
+            summary = 'Product does not exist'
+            code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        else:
+            code = status.HTTP_200_OK
+            update_serializer = AddProductWebhookSerializer(instance=product,
+                                                            data=request.data)
+            if update_serializer.is_valid():
+                update_serializer.save()
+                summary = 'Product updated'
+            else:
+                summary = 'Validation error - %s' % (update_serializer.errors, )
+                code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    else:
+        code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        summary = 'Validation error - %s' % (serializer.errors, )
+    response['request_id'] = serializer.data['request_id']
+    response['summary'] = summary
+
+    return Response(data=response, status=code)
 
 @api_view(['POST'])
 @authentication_classes((WombatAuthentication,))

@@ -230,3 +230,9 @@ class AddProductWebhookSerializer(serializers.Serializer):
         if product.is_valid():
             product = product.save()
             return product
+
+    def update(self, instance, validated_data):
+        product_data = validated_data['product']
+        product = ProductDeserializer(instance=instance, data=product_data)
+        if product.is_valid():
+            return product.save()

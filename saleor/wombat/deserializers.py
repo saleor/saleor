@@ -71,7 +71,7 @@ class VariantsDeserializer(serializers.Serializer):
             attributes=attributes,
             price_override=validated_data['price']
         )
-        stock = Stock.objects.create(
+        Stock.objects.create(
             variant=variant,
             quantity=validated_data['quantity'],
             cost_price=validated_data['cost_price'],
@@ -79,8 +79,33 @@ class VariantsDeserializer(serializers.Serializer):
         )
         return variant
 
+    def update(self, instance, validated_data):
+        product = self.context['product']
+        attributes = self.get_attributes(validated_data['options'])
+        variant, created = ProductVariant.objects.get_or_create(
+            sku=validated_data['sku'], product=product,
+            defaults={
+                'attributes': attributes,
+                'price_override': validated_data['price']})
+        if not created:
+            variant.attributes = attributes
+            variant.price_override = validated_data.get(
+                'price', variant.price_override)
+            variant.save()
+
+        Stock.objects.update_or_create(
+            variant=variant,
+            defaults={'quantity': validated_data['quantity'],
+                      'cost_price': validated_data['cost_price'],
+                      'location': 'default'}
+        )
+
+        return variant
+
+
 
 class ProductDeserializer(serializers.Serializer):
+    id = serializers.CharField()
     name = serializers.CharField()
     sku = serializers.CharField()
     description = serializers.CharField()
@@ -107,6 +132,33 @@ class ProductDeserializer(serializers.Serializer):
         if variants.is_valid():
             variants.save()
         return product
+
+    def update(self, instance, validated_data):
+        # Product
+        instance.name = validated_data.get('name', instance.name)
+        instance.description = validated_data.get('description', instance.description)
+        instance.price = validated_data.get('price', instance.price)
+        instance.available_on = validated_data.get('available_on', instance.available_on)
+        instance.weight = validated_data.get('weight', instance.weight)
+        instance.save()
+        # Images
+
+        # Categories
+        instance.categories.all().delete()
+        self.save_categories(validated_data, instance)
+        # Properties
+        instance.attributes.all().delete()
+        self.save_properties(validated_data, instance)
+        # Variants
+        variants = VariantsDeserializer(data=validated_data['variants'],
+                                        context={'product': instance},
+                                        instance=instance.variants.all(),
+                                        many=True)
+        if variants.is_valid():
+            variants.save()
+
+
+        return instance
 
     def save_product(self, validated_data):
         product_data = {
@@ -145,6 +197,3 @@ class ProductDeserializer(serializers.Serializer):
                 name=product_property, display=product_property)
             attribtues.append(attr)
         product.attributes.add(*attribtues)
-
-    def update(self, instance, validated_data):
-        pass
