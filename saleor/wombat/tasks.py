@@ -34,17 +34,3 @@ def push_products(queryset):
 
 def push_orders(queryset):
     return push_data(queryset, serializers.OrderSerializer, 'orders')
-
-
-def download_image(image_url):
-    temp = tempfile.mktemp()
-    content = requests.get(image_url, stream=True)
-    with open(temp, 'wb') as f:
-        for chunk in content.iter_content():
-            if chunk:
-                f.write(chunk)
-    file_name = ''.join(os.path.splitext(
-        os.path.basename(urlparse.urlsplit(image_url).path)))
-    new_path = default_storage.save(file_name, File(open(temp)))
-
-    return new_path
