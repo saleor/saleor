@@ -4,16 +4,16 @@ from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 
 
-from .wombat.urls import urlpatterns as wombat_urls
 from .cart.urls import urlpatterns as cart_urls
 from .checkout.urls import urlpatterns as checkout_urls
 from .core.sitemaps import sitemaps
 from .core.urls import urlpatterns as core_urls
+from .dashboard.urls import urlpatterns as dashboard_urls
 from .order.urls import urlpatterns as order_urls
 from .product.urls import urlpatterns as product_urls
 from .registration.urls import urlpatterns as registration_urls
 from .userprofile.urls import urlpatterns as userprofile_urls
-from .dashboard.urls import urlpatterns as dashboard_urls
+from .wombat.urls import urlpatterns as wombat_urls
 
 
 admin.autodiscover()
