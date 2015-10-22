@@ -47,6 +47,22 @@ class ProductImageDeserializer(serializers.Serializer):
         )
 
 
+class VariantListDeserializer(serializers.ListSerializer):
+    child = serializers.DictField()
+
+    def update(self, instance, validated_data):
+        instance_map = {i.sku: i for i in instance}
+        data_map = {d['sku']: d for d in validated_data}
+        variants = []
+        for variant_sku, data in data_map.items():
+            variant_instance = instance_map.get(variant_sku, None)
+            if variant_instance is None:
+                variants.append(self.child.create(data))
+            else:
+                variants.append(self.child.update(variant_instance, data))
+        return variants
+
+
 class VariantsDeserializer(serializers.Serializer):
     sku = serializers.CharField()
     price = PriceField()
@@ -102,6 +118,8 @@ class VariantsDeserializer(serializers.Serializer):
 
         return variant
 
+    class Meta:
+        list_serializer_class = VariantListDeserializer
 
 
 class ProductDeserializer(serializers.Serializer):
@@ -142,7 +160,8 @@ class ProductDeserializer(serializers.Serializer):
         instance.weight = validated_data.get('weight', instance.weight)
         instance.save()
         # Images
-
+        instance.images.all().delete()
+        self.save_images(validated_data, instance)
         # Categories
         instance.categories.all().delete()
         self.save_categories(validated_data, instance)
@@ -156,7 +175,6 @@ class ProductDeserializer(serializers.Serializer):
                                         many=True)
         if variants.is_valid():
             variants.save()
-
 
         return instance
 
