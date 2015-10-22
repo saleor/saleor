@@ -144,19 +144,17 @@ class ProductDeserializer(serializers.Serializer):
         self.save_images(validated_data, product)
         self.save_categories(validated_data, product)
         self.save_properties(validated_data, product)
-        variants = VariantsDeserializer(data=validated_data['variants'],
-                                        context={'product': product},
-                                        many=True)
-        if variants.is_valid():
-            variants.save()
+        self.save_variants(validated_data, product)
         return product
 
     def update(self, instance, validated_data):
         # Product
         instance.name = validated_data.get('name', instance.name)
-        instance.description = validated_data.get('description', instance.description)
+        instance.description = validated_data.get(
+            'description', instance.description)
         instance.price = validated_data.get('price', instance.price)
-        instance.available_on = validated_data.get('available_on', instance.available_on)
+        instance.available_on = validated_data.get(
+            'available_on', instance.available_on)
         instance.weight = validated_data.get('weight', instance.weight)
         instance.save()
         # Images
@@ -169,14 +167,17 @@ class ProductDeserializer(serializers.Serializer):
         instance.attributes.all().delete()
         self.save_properties(validated_data, instance)
         # Variants
+        self.save_variants(validated_data, instance)
+
+        return instance
+
+    def save_variants(self, validated_data, product):
         variants = VariantsDeserializer(data=validated_data['variants'],
-                                        context={'product': instance},
-                                        instance=instance.variants.all(),
+                                        context={'product': product},
+                                        instance=product.variants.all(),
                                         many=True)
         if variants.is_valid():
             variants.save()
-
-        return instance
 
     def save_product(self, validated_data):
         product_data = {
