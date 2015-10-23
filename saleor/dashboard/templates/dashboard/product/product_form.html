@@ -16,14 +16,19 @@
 
 {% block header_extra %}
     {% if product.pk %}
-    <a class="dropdown-button" href="#" data-activates="product-delete" data-constrainwidth="false">
+    <a class="dropdown-button" href="#" data-activates="context-menu" data-constrainwidth="false">
         <i class="mdi-navigation-more-vert"></i>
     </a>
-    <ul id="product-delete" class="dropdown-content">
+    <ul id="context-menu" class="dropdown-content">
         <li>
             <a href="#base-modal" data-href="{% url 'dashboard:product-delete' pk=product.pk %}"
                class="modal-trigger-custom">
                 {% trans "Remove product" %}
+            </a>
+        </li>
+        <li>
+            <a href="{{ product.get_absolute_url }}">
+                {% trans "Go to product page" %}
             </a>
         </li>
     </ul>
