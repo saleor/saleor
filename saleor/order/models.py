@@ -203,6 +203,7 @@ class DeliveryGroup(models.Model, ItemSet):
         decimal_places=4,
         default=0,
         editable=False)
+    last_updated = models.DateTimeField(null=True, auto_now=True)
 
     objects = DeliveryGroupManager()
 
