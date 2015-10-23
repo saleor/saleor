@@ -183,6 +183,8 @@ class DeliveryGroup(models.Model, ItemSet):
         decimal_places=4,
         default=0,
         editable=False)
+    shipping_method = models.CharField(max_length=255, default='',
+                                       db_index=True)
     last_updated = models.DateTimeField(null=True, auto_now=True)
 
     objects = DeliveryGroupManager()
