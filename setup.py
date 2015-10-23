@@ -9,6 +9,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'saleor.settings')
 
 class PyTest(TestCommand):
     user_options = [('pytest-args=', 'a', "Arguments to pass to py.test")]
+    test_args = []
 
     def initialize_options(self):
         TestCommand.initialize_options(self)
