@@ -21,14 +21,14 @@
     </a>
     <ul id="context-menu" class="dropdown-content">
         <li>
-            <a href="#base-modal" data-href="{% url 'dashboard:product-delete' pk=product.pk %}"
-               class="modal-trigger-custom">
-                {% trans "Remove product" %}
+            <a href="{{ product.get_absolute_url }}">
+                {% trans "Go to product page" %}
             </a>
         </li>
         <li>
-            <a href="{{ product.get_absolute_url }}">
-                {% trans "Go to product page" %}
+            <a href="#base-modal" data-href="{% url 'dashboard:product-delete' pk=product.pk %}"
+               class="modal-trigger-custom">
+                {% trans "Remove product" %}
             </a>
         </li>
     </ul>
