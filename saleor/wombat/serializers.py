@@ -118,8 +118,9 @@ class ProductVariantSerializer(serializers.ModelSerializer):
         attr_map = {str(a.pk): a.name for a in attributes}
         options = {}
         for attribute_id, value in obj.attributes.items():
-            name = attr_map[str(attribute_id)]
-            options[name] = value
+            name = attr_map.get(str(attribute_id))
+            if name:
+                options[name] = value
         return options
 
     class Meta:
