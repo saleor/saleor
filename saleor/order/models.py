@@ -205,6 +205,7 @@ class DeliveryGroup(models.Model, ItemSet):
         editable=False)
     shipping_method = models.CharField(max_length=255, default='',
                                        db_index=True)
+    tracking_number = models.CharField(max_length=255, default='')
     last_updated = models.DateTimeField(null=True, auto_now=True)
 
     objects = DeliveryGroupManager()
