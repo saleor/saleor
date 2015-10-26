@@ -8,18 +8,24 @@ from django.views.decorators.http import require_POST
 from django.utils.translation import ugettext as _
 
 from .forms import AddressForm
+from saleor.userprofile.models import User
 
 
 @login_required
 def details(request):
-    ctx = {'addresses': request.user.addresses.all()}
+    user_id = request.user.pk
+    user = User.objects.filter(id=user_id).prefetch_related('addresses')
+    user = user.select_related('default_shipping_address',
+                               'default_billing_address')
+    user = user[0]
+    ctx = {'user': user, 'addresses': user.addresses.all()}
     return TemplateResponse(request, 'userprofile/details.html', ctx)
 
 
 @login_required
 def orders(request):
 
-    ctx = {'orders': request.user.orders.prefetch_related('groups')}
+    ctx = {'orders': request.user.orders.prefetch_related('groups__items')}
     return TemplateResponse(request, 'userprofile/orders.html', ctx)
 
 
