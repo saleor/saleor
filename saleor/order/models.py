@@ -291,6 +291,11 @@ class OrderedItem(models.Model, ItemLine):
         pgettext_lazy('OrderedItem field', 'product name'), max_length=128)
     product_sku = models.CharField(pgettext_lazy('OrderedItem field', 'sku'),
                                    max_length=32)
+    stock_location = models.CharField(
+        pgettext_lazy('OrderedItem field', 'stock location'), max_length=100,
+        default='')
+    stock = models.ForeignKey('product.Stock', on_delete=models.SET_NULL,
+                              null=True)
     quantity = models.IntegerField(
         pgettext_lazy('OrderedItem field', 'quantity'),
         validators=[MinValueValidator(0), MaxValueValidator(999)])
