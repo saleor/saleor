@@ -89,6 +89,8 @@ class Product(models.Model, ItemRange):
         pgettext_lazy('Product field', 'available on'), blank=True, null=True)
     attributes = models.ManyToManyField(
         'ProductAttribute', related_name='products', blank=True)
+    updated_at = models.DateTimeField(
+        pgettext_lazy('Product field', 'updated at'), auto_now=True, null=True)
 
     objects = ProductManager()
 
