@@ -149,9 +149,9 @@ class ShipGroupForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ShipGroupForm, self).__init__(*args, **kwargs)
         self.fields['shipping_method'].widget.attrs.update(
-            {'placeholder': 'Carrier name. e.g UPS'})
+            {'placeholder': _('Carrier name. e.g UPS')})
         self.fields['tracking_number'].widget.attrs.update(
-            {'placeholder': 'Parcel tracking number'})
+            {'placeholder': _('Parcel tracking number')})
 
     def clean(self):
         if self.instance.status != 'new':
