@@ -1,6 +1,6 @@
 from django.db.models import Q
 from rest_framework import serializers
-from ..order.models import Order, Payment, OrderedItem
+from ..order.models import Order, Payment, OrderedItem, DeliveryGroup
 from ..userprofile.models import Address
 from ..product.models import Product, ProductVariant, ProductImage, Stock
 from .deserializers import ProductDeserializer
@@ -237,3 +237,35 @@ class AddProductWebhookSerializer(serializers.Serializer):
         product = ProductDeserializer(instance=instance, data=product_data)
         if product.is_valid():
             return product.save()
+
+
+class DeliveryGroupSerializer(serializers.ModelSerializer):
+    shipping_address = AddressSerializer(source='order.shipping_address')
+    tracking = serializers.CharField(source='tracking_number')
+    shipped_at = serializers.SerializerMethodField()
+    cost = serializers.SerializerMethodField()
+    email = serializers.EmailField(source='order.get_user_email')
+    items = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DeliveryGroup
+        fields = ['id', 'order', 'email', 'cost', 'status',
+                  # 'stock_location',
+                  'shipping_method', 'tracking', 'shipped_at',
+                  'shipping_address', 'items']
+
+    def get_shipped_at(self, obj):
+        pass
+
+    def get_cost(self, obj):
+        pass
+
+    def get_items(self, obj):
+        return [{
+            'name': item.product_name,
+            'product_id': item.product_sku,
+            'quantity': item.quantity,
+            'price': item.unit_price_gross,
+            'options': {}
+        } for item in obj.items.all()]
+

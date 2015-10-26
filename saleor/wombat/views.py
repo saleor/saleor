@@ -2,13 +2,15 @@ from rest_framework.decorators import api_view, authentication_classes
 from rest_framework.exceptions import ParseError
 from rest_framework import status
 from rest_framework.response import Response
-from ..order import Order
+from ..order.models import Order, DeliveryGroup
 from ..product.models import Product, Stock
 from .authentication import WombatAuthentication
 from .serializers import (OrderSerializer, ProductSerializer,
                           GetWebhookSerializer,
                           StockSerializer, AddProductWebhookSerializer,
-                          GetInventoryWebhookSerializer)
+                          GetInventoryWebhookSerializer,
+                          BaseWombatGetWebhookSerializer,
+                          DeliveryGroupSerializer)
 
 
 def get_serialized_data(request_serializer, queryset, serializer, wombat_name):
@@ -101,3 +103,13 @@ def get_inventory_webhook(request):
                                serializer=StockSerializer,
                                wombat_name='inventories')
 
+
+@api_view(['POST'])
+@authentication_classes((WombatAuthentication,))
+def get_shipments_webhook(request):
+    request_serializer = GetWebhookSerializer(data=request.data,
+                                              since_query_field='last_updated')
+    return get_serialized_data(request_serializer,
+                               queryset=DeliveryGroup.objects.all(),
+                               serializer=DeliveryGroupSerializer,
+                               wombat_name='shipments')
