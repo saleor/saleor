@@ -286,7 +286,10 @@ class AttributeChoiceValue(models.Model):
     color = models.CharField(
         pgettext_lazy('Attribute choice value field', 'color'),
         max_length=7,
-        validators=[RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')],
+        validators=[RegexValidator(
+            '^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$',
+            message=pgettext_lazy('Attribute choice value field',
+                                  'Value must be in hexadecimal notation'))],
         blank=True)
     image = VersatileImageField(
         pgettext_lazy('Attribute choice value field', 'image'),
