@@ -232,6 +232,18 @@ class ProductVariant(models.Model, Item):
         return '%s (%s)' % (smart_text(self.product),
                             self.display_variant(attributes=attributes))
 
+    def select_stockrecord(self):
+        # By default selects stock with lowest cost price
+        stock = sorted(self.stock.all(), key=lambda stock: stock.cost_price,
+                       reverse=True)
+        if stock:
+            return stock[0]
+
+    def get_cost_price(self):
+        stock = self.select_stockrecord()
+        if stock:
+            return stock.cost_price
+
 
 @python_2_unicode_compatible
 class Stock(models.Model):
