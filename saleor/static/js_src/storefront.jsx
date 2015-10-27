@@ -1,3 +1,5 @@
+import React from 'react/addons';
+
 class CartItemAmount extends React.Component {
     state = {
         error: null,

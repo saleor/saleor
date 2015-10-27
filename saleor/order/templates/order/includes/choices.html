@@ -1,0 +1,10 @@
+<div class="row">
+    {% for value, choice in choices %}
+        <div class="col-xs-6 col-sm-4">
+            <button type="submit" class="btn btn-block btn-default btn-payment btn-{{ value }}"
+                    name="{{ name }}" value="{{ value }}">
+                <span{% if choice != "Dummy provider" %} class="sr-only"{% endif %}>{{ choice }}</span>
+            </button>
+        </div>
+    {% endfor %}
+</div>

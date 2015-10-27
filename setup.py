@@ -43,6 +43,7 @@ setup(
         'Django>=1.8',
         'dj_database_url>=0.3.0',
         'django-emailit>=0.2.2',
+        'django-filter==0.11.0',
         'django-materializecss-form==0.0.64',
         'django-model-utils>=2.0.0,<2.1a0',
         'django-mptt>=0.7.1',

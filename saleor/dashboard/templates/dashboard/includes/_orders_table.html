@@ -3,15 +3,20 @@
 {% load status %}
 
 <div class="data-table-container">
-    <table class="bordered hoverable responsive data-table">
+    <table data-table-api="/dashboard/api/orders/"
+                                data-default-sort="desc"
+                                data-max-page="{{ paginator.num_pages }}"
+                                {% if page_size %}data-page-size="{{ page_size }}"{% endif %}
+                                data-no-data-message="{% trans "No orders." %}"
+                                class="bordered hoverable responsive data-table{% if not plain_table %} data-table--orderable{% endif %}">
         <thead>
             <tr>
-                <th></th>
-                <th>{% trans "Order status" %}</th>
-                <th>{% trans "Payment status" %}</th>
-                <th>{% trans "Customer" %}</th>
-                <th>{% trans "Placed on" %}</th>
-                <th>{% trans "Total" %}</th>
+                <th data-key="id" data-component="CommonLink">{% trans "Number" %}</th>
+                <th data-key="status" data-component="CommonStatus">{% trans "Order status" %}</th>
+                <th data-key="last_payment_status_display" data-component="OrderLastPaymentStatus">{% trans "Payment status" %}</th>
+                <th data-key="created" data-component="CommonDate">{% trans "Placed on" %}</th>
+                <th data-key="user" data-css-class="wide">{% trans "Customer" %}</th>
+                <th data-key="total" data-css-class="right-align" data-component="CommonTotal">{% trans "Total" %}</th>
             </tr>
         </thead>
         <tbody>
@@ -22,8 +27,8 @@
                 </td>
                 <td>{% render_status order.status order.get_status_display %}</td>
                 <td>{% render_status order.get_last_payment_status order.get_last_payment_status_display %}</td>
-                <td>{{ order.user|default:_("Guest") }}</td>
                 <td>{{ order.created }}</td>
+                <td>{{ order.user|default:_("Guest") }}</td>
                 <td>{% gross order.get_total %}</td>
             </tr>
         {% endfor %}

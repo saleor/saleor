@@ -21,30 +21,19 @@
     {% if payments %}
         <div class="card">
             <div class="data-table-container">
-                <table class="bordered hoverable responsive data-table">
+                <table data-table-api="/dashboard/api/payments/"
+                                    data-default-sort-column="id"
+                                    data-default-sort="desc"
+                                    data-max-page="{{ paginator.num_pages }}"
+                                    data-no-data-message="{% trans "No payments found." %}"
+                                    class="bordered hoverable responsive data-table data-table--orderable">
                     <thead>
-                        <tr>
-                            <th></th>
-                            <th>{% trans "Date" %}</th>
-                            <th>{% trans "Payment" %}</th>
-                            <th class="right-align">{% trans "Amount" %}</th>
-                            <th class="wide">{% trans "Status" %}</th>
-                        </tr>
+                        <th data-key="id" data-component="CommonLink">{% trans "ID" %}</th>
+                        <th data-key="created" data-component="CommonDate">{% trans "Date" %}</th>
+                        <th data-key="variant" data-component="PaymentGateway">{% trans "Payment" %}</th>
+                        <th data-key="total_price" data-css-class="right-align" data-component="CommonTotal">{% trans "Total" %}</th>
+                        <th data-key="status" data-component="CommonStatus" data-css-class="wide">{% trans "Status" %}</th>
                     </thead>
-                    <tbody>
-                    {% for payment in payments %}
-                        <tr>
-                            <td><a href="{% url "dashboard:payment-details" pk=payment.pk %}">#{{ payment.id }}</a></td>
-                            <td>{{ payment.created }}</td>
-                            <td>
-                                {% trans "Gateway" %}: {{ payment.variant }} &middot;
-                                <a href="{% url 'dashboard:order-details' order_pk=payment.order.pk %}"> {% trans "Order " %}{{ payment.order }}</a>
-                            </td>
-                            <td class="right-align">{% gross payment.get_total_price %}</td>
-                            <td>{% render_status payment.status payment.get_status_display %}</td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
                 </table>
             </div>
         </div>

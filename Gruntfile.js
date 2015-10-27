@@ -3,11 +3,22 @@ module.exports = function(grunt) {
     babel: {
       dist: {
         files: {
-          "saleor/static/js/storefront_fromjsx.js": "saleor/static/js_src/storefront.jsx"
+          "saleor/static/js/storefront_react.js": "saleor/static/js_src/storefront.jsx",
+          "saleor/static/js/dashboard_react.js": "saleor/static/js_src/dashboard.jsx"
         },
         options: {
           stage: 0
         }
+      }
+    },
+    browserify: {
+      dashboard: {
+        src: "saleor/static/js/dashboard_react.js",
+        dest: "saleor/static/js/dashboard_react.js"
+      },
+      storefront: {
+        src: "saleor/static/js/storefront_react.js",
+        dest: "saleor/static/js/storefront_react.js"
       }
     },
     browserSync: {
@@ -70,15 +81,21 @@ module.exports = function(grunt) {
           {
             expand: true,
             dot: true,
+            cwd: "saleor/static/components/mdi/fonts/",
+            dest: "saleor/static/fonts/",
+            src: [
+              "*"
+            ]
+          },
+          {
+            expand: true,
+            dot: true,
             cwd: "saleor/static/components/dropzone/dist",
             dest: "saleor/static/scss/vendor/",
             src: [
               "*.css"
             ],
-            rename: function(dest, src) {
-              src = "_" + src;
-              return dest + src.replace(/\.css$/, ".scss");
-            }
+            rename: renameFunction
           }
         ]
       }
@@ -125,6 +142,7 @@ module.exports = function(grunt) {
             "saleor/static/components/select2/dist/js/select2.js",
             "saleor/static/components/dotdotdot/src/js/jquery.dotdotdot.js",
             "saleor/static/components/jquery.equalheights/jquery.equalheights.js",
+            "saleor/static/js/dashboard_react.js",
             "saleor/static/js_src/dashboard.js"
           ],
           "saleor/static/js/dashboard-head.js": [
@@ -133,9 +151,8 @@ module.exports = function(grunt) {
           "saleor/static/js/storefront.js": [
             "saleor/static/components/jquery/dist/jquery.js",
             "saleor/static/components/jquery-cookie/jquery.cookie.js",
-            "saleor/static/components/react/react-with-addons.js",
             "saleor/static/components/bootstrap-sass/assets/javascripts/bootstrap.js",
-            "saleor/static/js/storefront_fromjsx.js",
+            "saleor/static/js/storefront_react.js",
             "saleor/static/js_src/storefront.js"
           ],
           "saleor/static/js/storefront_head.js": [
@@ -157,14 +174,19 @@ module.exports = function(grunt) {
       },
       uglify: {
         files: ["saleor/static/js_src/**/*.js", "saleor/static/js_src/**/*.jsx"],
-        tasks: ["babel", "uglify"]
+        tasks: ["babel", "browserify", "uglify"]
       }
     }
   });
 
   require("load-grunt-tasks")(grunt);
 
-  grunt.registerTask("default", ["copy", "sass", "postcss", "babel", "uglify"]);
+  grunt.registerTask("default", ["copy", "sass", "postcss", "babel", "browserify", "uglify"]);
   grunt.registerTask("sync", ["browserSync", "watch"]);
-  grunt.registerTask("heroku", ["copy", "sass", "postcss", "babel", "uglify"]);
+  grunt.registerTask("heroku", ["copy", "sass", "postcss", "babel", "browserify", "uglify"]);
+
+  function renameFunction(dest, src) {
+    src = "_" + src;
+    return dest + src.replace(/\.css$/, ".scss");
+  };
 };

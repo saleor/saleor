@@ -15,20 +15,25 @@
       }
 
       .select2-selection__choice {
-        background-color: map_get($blue, lighten-4);
-        border-color: map-get($blue, lighten-3);
-        border-radius: 2px;
-        line-height: 1.5;
-        margin-top: 10px;
+        background-color: map_get($grey, lighten-3);
+        border: none;
+        border-radius: 16px;
+        color: map_get($grey, darken-2);
+        line-height: 2.15;
+        margin-top: 8px;
+        padding: 0 0 0 12px;
 
         &__remove {
           @extend .mdi-navigation-close;
+          float: right;
           font-size: 0;
 
           &:before {
             display: inline-block;
             font-family: $font-mdi;
-            font-size: 12px;
+            font-size: 14px;
+            margin: -7px 0;
+            padding: 8px;
           }
         }
       }

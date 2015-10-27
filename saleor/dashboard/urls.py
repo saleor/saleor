@@ -1,6 +1,7 @@
 from django.conf.urls import url, include
 
 from . import views as core_views
+from .api import router
 from .category.urls import urlpatterns as category_urls
 from .customer.urls import urlpatterns as customer_urls
 from .order.urls import urlpatterns as order_urls
@@ -10,6 +11,7 @@ from .product.urls import urlpatterns as product_urls
 
 urlpatterns = [
     url(r'^$', core_views.index, name='index'),
+    url(r'^api/', include(router.urls)),
     url(r'^categories/', include(category_urls)),
     url(r'^orders/', include(order_urls)),
     url(r'^products/', include(product_urls)),

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "checkout/details.html" %}
 
 {% load as_vertical_form from bootstrap %}
 {% load gross from prices_i18n %}
@@ -6,16 +6,6 @@
 {% load staticfiles %}
 
 {% block title %}{% trans "Pay for order" %} {{ order }} — {{ block.super }}{% endblock %}
-
-{% block outerbreadcrumb %}
-    {% if order.user == user %}
-    <ul class="breadcrumb" itemprop="breadcrumb">
-        <li><a href="/">{% trans "Home" %}</a></li>
-        <li><a href="{% url 'profile:orders' %}">{% trans "Your orders" %}</a></li>
-        <li><a href="{% url 'order:details' token=order.token %}">{{ order }}</a></li>
-    </ul>
-    {% endif %}
-{% endblock outerbreadcrumb %}
 
 {% block content %}
     <div class="row">
@@ -45,13 +35,6 @@
                                 <form method="post" action="{% url "order:payment" token=order.token %}">
                                     {% csrf_token %}
                                     {{ payment_form }}
-                                    <div class="form-group text-right">
-                                        {% block form_submit %}
-                                            <button type="submit" class="btn btn-primary">
-                                                {% trans "Proceed to payment" %}
-                                            </button>
-                                        {% endblock %}
-                                    </div>
                                 </form>
                             </div>
                         {% else %}
