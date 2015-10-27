@@ -8,7 +8,7 @@ from django.views.decorators.http import require_POST
 from django.utils.translation import ugettext as _
 
 from .forms import AddressForm
-from saleor.userprofile.models import User
+from .models import User
 
 
 @login_required
@@ -24,7 +24,6 @@ def details(request):
 
 @login_required
 def orders(request):
-
     ctx = {'orders': request.user.orders.prefetch_related('groups__items')}
     return TemplateResponse(request, 'userprofile/orders.html', ctx)
 
