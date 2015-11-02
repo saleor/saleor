@@ -9,10 +9,6 @@ class CopyShippingAddressForm(forms.Form):
     shipping_same_as_billing = forms.BooleanField(initial=True, required=False)
 
 
-class ShippingAddressForm(AddressForm):
-    pass
-
-
 class DeliveryForm(forms.Form):
 
     method = forms.ChoiceField(label=_('Shipping method'))
@@ -23,7 +19,6 @@ class DeliveryForm(forms.Form):
         method_field.choices = delivery_choices
         if len(delivery_choices) == 1:
             method_field.initial = delivery_choices[0][1]
-            # method_field.widget = forms.HiddenInput()
 
 
 class AnonymousEmailForm(forms.Form):

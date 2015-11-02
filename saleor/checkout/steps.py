@@ -7,7 +7,7 @@ from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from satchless.process import InvalidData
 
-from .forms import DeliveryForm, ShippingAddressForm, CopyShippingAddressForm
+from .forms import DeliveryForm, CopyShippingAddressForm
 from ..checkout.forms import AnonymousEmailForm
 from ..core.utils import BaseStep
 from ..delivery import get_delivery_options_for_items
@@ -32,7 +32,7 @@ class BaseCheckoutStep(BaseStep):
 class ShippingAddressStep(BaseCheckoutStep):
     template = 'checkout/shipping_address.html'
     title = _('Shipping Address')
-    address_form_class = ShippingAddressForm
+    address_form_class = AddressForm
 
     def __init__(self, request, storage):
         super(ShippingAddressStep, self).__init__(request, storage)
@@ -52,16 +52,18 @@ class ShippingAddressStep(BaseCheckoutStep):
                     address, self.address)
                 if address.is_selected:
                     existing_selected = True
+
+            # self.anonymous_user_email = request.user.email
         else:
             addresses = []
             self.anonymous_user_email = ''
+            initial = {'email': self.anonymous_user_email}
+            self.forms['anonymous'] = AnonymousEmailForm(request.POST or None, initial=initial)
 
         self.existing_selected = existing_selected
         self.forms = {'address': address_form}
         self.addresses = addresses
 
-        initial = {'email': self.anonymous_user_email}
-        self.forms['anonymous'] = AnonymousEmailForm(request.POST or None, initial=initial)
 
     def validate(self):
         try:
@@ -88,7 +90,6 @@ class ShippingAddressStep(BaseCheckoutStep):
         order.shipping_address = self.address
         if order.user:
             User.objects.store_address(order.user, self.address, shipping=True)
-
 
 
 class ShippingMethodStep(BaseCheckoutStep):
@@ -209,7 +210,7 @@ class SummaryStep(BaseCheckoutStep):
         self.billing_address.save()
         order.billing_address = self.billing_address
         if order.user:
-            User.objects.store_address(order.user, self.address, billing=True)
+            User.objects.store_address(order.user, self.billing_address, billing=True)
 
     def add_to_order(self, order):
         self.billing_address_add_to_order(order)
