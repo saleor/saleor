@@ -55,7 +55,7 @@ def test_shipping_step_save_without_address(rf):
     group = MagicMock()
     group.address = None
     storage = {'address': NEW_ADDRESS.copy()}
-    step = ShippingStep(request, storage, group)
+    step = ShippingAddressStep(request, storage, group)
     assert step.forms_are_valid()
     step.save()
     assert isinstance(storage['address'], dict)
@@ -69,7 +69,7 @@ def test_shipping_step_save_with_address_in_group(rf):
     group = MagicMock()
     group.address = NEW_ADDRESS.copy()
     storage = {'address': NEW_ADDRESS.copy()}
-    step = ShippingStep(request, storage, group)
+    step = ShippingAddressStep(request, storage, group)
     assert step.forms_are_valid()
     step.save()
     assert storage['address'] == NEW_ADDRESS
@@ -87,7 +87,7 @@ def test_shipping_step_save_with_address_in_checkout(rf):
             'first_name': 'Change',
             'last_name': 'Me',
             'id': 10}}
-    step = ShippingStep(request, storage, group)
+    step = ShippingAddressStep(request, storage, group)
     assert step.forms_are_valid()
     step.save()
     assert storage['address'] == NEW_ADDRESS
@@ -121,7 +121,7 @@ def test_shipping_step_save_with_address_other_than_billing(rf):
             'last_name': 'Test',
             'id': 10}}
     billing_address = Address(**address_data)
-    step = ShippingStep(request, storage, group, billing_address)
+    step = ShippingAddressStep(request, storage, group, billing_address)
     assert step.forms_are_valid()
     step.save()
     assert storage['address'] == address_data
@@ -151,7 +151,7 @@ def test_shipping_step_save_same_as_billing(rf):
     group.address = None
     storage = {
         'address': NEW_ADDRESS}
-    step = ShippingStep(request, storage, group,
+    step = ShippingAddressStep(request, storage, group,
                         billing_address=Address(**NEW_ADDRESS))
     assert step.forms_are_valid()
     step.save()

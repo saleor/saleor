@@ -7,7 +7,7 @@ from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from satchless.process import InvalidData
 
-from .forms import DeliveryForm, ShippingForm
+from .forms import DeliveryForm, ShippingAddressForm, CopyShippingAddressForm
 from ..checkout.forms import AnonymousEmailForm
 from ..core.utils import BaseStep
 from ..delivery import get_delivery_options_for_items
@@ -28,13 +28,72 @@ class BaseCheckoutStep(BaseStep):
     def add_to_order(self, order):
         raise NotImplementedError()
 
+# class BillingAddressStep(BaseAddressStep):
+#     template = 'checkout/billing.html'
+#     title = _('Billing Address')
+#
+#     def __init__(self, request, storage):
+#         address_data = storage.get('address', {})
+#         address = Address(**address_data)
+#         skip = False
+#         if not address_data and request.user.is_authenticated():
+#             if request.user.default_billing_address:
+#                 address = request.user.default_billing_address
+#                 skip = True
+#             elif request.user.addresses.count() == 1:
+#                 address = request.user.addresses.all()[0].address
+#                 skip = True
+#         super(BillingAddressStep, self).__init__(request, storage, address)
+#         if not request.user.is_authenticated():
+#             self.anonymous_user_email = self.storage.get(
+#                 'anonymous_user_email')
+#             initial = {'email': self.anonymous_user_email}
+#             self.forms['anonymous'] = AnonymousEmailForm(request.POST or None,
+#                                                          initial=initial)
+#         else:
+#             self.anonymous_user_email = ''
+#         if skip:
+#             self.save()
+#
+#     def __str__(self):
+#         return 'billing-address'
+#
+#     def forms_are_valid(self):
+#         forms_are_valid = super(BillingAddressStep, self).forms_are_valid()
+#         if 'anonymous' not in self.forms:
+#             return forms_are_valid
+#         anonymous_form = self.forms['anonymous']
+#         if forms_are_valid and anonymous_form.is_valid():
+#             self.anonymous_user_email = anonymous_form.cleaned_data['email']
+#             return True
+#         return False
+#
+#     def save(self):
+#         self.storage['anonymous_user_email'] = self.anonymous_user_email
+#         self.storage['address'] = Address.objects.as_data(self.address)
+#
+#     def add_to_order(self, order):
+#         self.address.save()
+#         order.anonymous_user_email = self.anonymous_user_email
+#         order.billing_address = self.address
+#         if order.user:
+#             User.objects.store_address(order.user, self.address, billing=True)
+#
+#     def validate(self):
+#         super(BillingAddressStep, self).validate()
+#         if 'anonymous' in self.forms and not self.anonymous_user_email:
+#             raise InvalidData()
 
-class BaseAddressStep(BaseCheckoutStep):
-    template = 'checkout/address.html'
-    address_form_class = AddressForm
 
-    def __init__(self, request, storage, address):
-        super(BaseAddressStep, self).__init__(request, storage)
+class ShippingAddressStep(BaseCheckoutStep):
+    template = 'checkout/shipping_address.html'
+    title = _('Shipping Address')
+    address_form_class = ShippingAddressForm
+
+    def __init__(self, request, storage):
+        super(ShippingAddressStep, self).__init__(request, storage)
+        address_data = storage.get('address', {})
+        address = Address(**address_data)
         self.address = address
         existing_selected = False
         address_form = self.address_form_class(request.POST or None,
@@ -51,13 +110,14 @@ class BaseAddressStep(BaseCheckoutStep):
                     existing_selected = True
         else:
             addresses = []
+            self.anonymous_user_email = ''
+
         self.existing_selected = existing_selected
         self.forms = {'address': address_form}
         self.addresses = addresses
 
-    def forms_are_valid(self):
-        address_form = self.forms['address']
-        return address_form.is_valid()
+        initial = {'email': self.anonymous_user_email}
+        self.forms['anonymous'] = AnonymousEmailForm(request.POST or None, initial=initial)
 
     def validate(self):
         try:
@@ -70,143 +130,88 @@ class BaseAddressStep(BaseCheckoutStep):
         context['form'] = self.forms['address']
         context['addresses'] = self.addresses
         context['existing_address_selected'] = self.existing_selected
-        return super(BaseAddressStep, self).process(extra_context=context)
-
-
-class BillingAddressStep(BaseAddressStep):
-    template = 'checkout/billing.html'
-    title = _('Billing Address')
-
-    def __init__(self, request, storage):
-        address_data = storage.get('address', {})
-        address = Address(**address_data)
-        skip = False
-        if not address_data and request.user.is_authenticated():
-            if request.user.default_billing_address:
-                address = request.user.default_billing_address
-                skip = True
-            elif request.user.addresses.count() == 1:
-                address = request.user.addresses.all()[0].address
-                skip = True
-        super(BillingAddressStep, self).__init__(request, storage, address)
-        if not request.user.is_authenticated():
-            self.anonymous_user_email = self.storage.get(
-                'anonymous_user_email')
-            initial = {'email': self.anonymous_user_email}
-            self.forms['anonymous'] = AnonymousEmailForm(request.POST or None,
-                                                         initial=initial)
-        else:
-            self.anonymous_user_email = ''
-        if skip:
-            self.save()
-
-    def __str__(self):
-        return 'billing-address'
-
-    def forms_are_valid(self):
-        forms_are_valid = super(BillingAddressStep, self).forms_are_valid()
-        if 'anonymous' not in self.forms:
-            return forms_are_valid
-        anonymous_form = self.forms['anonymous']
-        if forms_are_valid and anonymous_form.is_valid():
-            self.anonymous_user_email = anonymous_form.cleaned_data['email']
-            return True
-        return False
-
-    def save(self):
-        self.storage['anonymous_user_email'] = self.anonymous_user_email
-        self.storage['address'] = Address.objects.as_data(self.address)
-
-    def add_to_order(self, order):
-        self.address.save()
-        order.anonymous_user_email = self.anonymous_user_email
-        order.billing_address = self.address
-        if order.user:
-            User.objects.store_address(order.user, self.address, billing=True)
-
-    def validate(self):
-        super(BillingAddressStep, self).validate()
-        if 'anonymous' in self.forms and not self.anonymous_user_email:
-            raise InvalidData()
-
-
-class ShippingStep(BaseAddressStep):
-    template = 'checkout/shipping.html'
-    title = _('Shipping Address')
-    address_form_class = ShippingForm
-
-    def __init__(self, request, storage, cart,
-                 billing_address=None):
-        self.cart = cart
-        address_data = storage.get('address', {})
-        self.billing_address = billing_address
-        if not address_data and billing_address:
-            address = billing_address
-        else:
-            address = Address(**address_data)
-        super(ShippingStep, self).__init__(request, storage, address)
-        delivery_choices = list(
-            (m.name, m) for m in get_delivery_options_for_items(
-                self.cart, address=address))
-        selected_method_name = storage.get('delivery_method')
-        selected_method = None
-        for method_name, method in delivery_choices:
-            if method_name == selected_method_name:
-                selected_method = method
-                break
-        if selected_method is None:
-            # TODO: find cheapest not first
-            selected_method_name, selected_method = delivery_choices[0]
-        self.delivery_method = selected_method
-        self.forms['delivery'] = DeliveryForm(
-            delivery_choices, request.POST or None,
-            initial={'method': selected_method_name})
+        return super(BaseCheckoutStep, self).process(extra_context=context)
 
     def __str__(self):
         return 'shipping-address'
 
     def save(self):
-        delivery_form = self.forms['delivery']
-        if self.forms['address'].cleaned_data.get('shipping_same_as_billing'):
-            address = self.billing_address
-        else:
-            address = self.address
+        address = self.address
         self.storage['address'] = Address.objects.as_data(address)
-        delivery_method = delivery_form.cleaned_data['method']
-        self.storage['delivery_method'] = delivery_method
-
-    def validate(self):
-        super(ShippingStep, self).validate()
-        if 'delivery_method' not in self.storage:
-            raise InvalidData()
-
-    def forms_are_valid(self):
-        base_forms_are_valid = super(ShippingStep, self).forms_are_valid()
-        delivery_form = self.forms['delivery']
-        if base_forms_are_valid and delivery_form.is_valid():
-            return True
-        return False
 
     def add_to_order(self, order):
         self.address.save()
-        order.shipping_method = self.delivery_method.name
         order.shipping_address = self.address
         if order.user:
             User.objects.store_address(order.user, self.address, shipping=True)
 
+
+
+class ShippingMethodStep(BaseCheckoutStep):
+    template = 'checkout/shipping_method.html'
+    title = _('Shipping Method')
+    forms = {}
+
+    def __str__(self):
+        return 'shipping-method'
+
+    def __init__(self, request, storage, cart):
+        super(ShippingMethodStep, self).__init__(request, storage)
+        self.cart = cart
+        address_data = storage.get('address', {})
+        address = Address(**address_data)
+        delivery_choices = [
+            (method.name, method) for method in get_delivery_options_for_items(
+                self.cart, address=address)]
+        self.valid_delivery_methods = [
+            name for name, method in delivery_choices]
+        selected_method_name = storage.get('delivery_method')
+        for method_name, method in delivery_choices:
+            if method_name == selected_method_name:
+                delivery_method = method
+                break
+        else:
+            # TODO: find cheapest not first
+            selected_method_name, delivery_method = delivery_choices[0]
+        self.delivery_method = delivery_method
+
+        self.forms['delivery'] = DeliveryForm(
+            delivery_choices,
+            request.POST or None,
+            initial={'method': selected_method_name})
+
     def process(self, extra_context=None):
         context = dict(extra_context or {})
-        context['delivery_form'] = self.forms['delivery']
-        return super(ShippingStep, self).process(extra_context=context)
+        context['form'] = self.forms['delivery']
+        return super(ShippingMethodStep, self).process(extra_context=context)
+
+    def save(self):
+        delivery_form = self.forms['delivery']
+        self.storage['delivery_method'] = delivery_form.cleaned_data['method']
+
+    def add_to_order(self, order):
+        order.delivery_method = self.delivery_method
+
+    def validate(self):
+        selected_method_name = self.storage.get('delivery_method')
+        if selected_method_name not in self.valid_delivery_methods:
+            raise InvalidData('Select a valid delivery method')
 
 
 class SummaryStep(BaseCheckoutStep):
     template = 'checkout/summary.html'
     title = _('Summary')
+    forms = {}
+    billing_address = None
 
-    def __init__(self, request, storage, checkout):
-        self.checkout = checkout
+    def __init__(self, request, whole_storage, checkout):
+        self.whole_storage = whole_storage
+        storage = whole_storage['summary']
         super(SummaryStep, self).__init__(request, storage)
+        self.checkout = checkout
+        self.forms['same_billing_as_shipping_address'] = CopyShippingAddressForm(
+            request.POST or None)
+        self.forms['billing_address'] = AddressForm(request.POST or None)
 
     def __str__(self):
         return 'summary'
@@ -214,7 +219,11 @@ class SummaryStep(BaseCheckoutStep):
     def process(self, extra_context=None):
         context = dict(extra_context or {})
         context['all_steps_valid'] = self.forms_are_valid()
+        context['billing_address'] = self.forms['billing_address']
+        context['same_billing_as_shipping_address'] = self.forms['same_billing_as_shipping_address']
+
         response = super(SummaryStep, self).process(context)
+
         if not response:
             with transaction.atomic():
                 order = self.checkout.create_order()
@@ -227,16 +236,42 @@ class SummaryStep(BaseCheckoutStep):
         raise InvalidData()
 
     def forms_are_valid(self):
+        copy_address_form = self.forms['same_billing_as_shipping_address']
+        if copy_address_form.is_valid() and copy_address_form.cleaned_data['shipping_same_as_billing']:
+            shipping_address = self.whole_storage['shipping']['address'].copy()
+            billing_address = {
+                'address': shipping_address}
+            self.whole_storage['billing'] = billing_address
+            obj = Address(**shipping_address)
+            self.billing_address = obj
+        else:
+            billing_form = self.forms['billing_address']
+            if billing_form.is_valid():
+                billing_address_model = Address(**billing_form.cleaned_data)
+                billing_address = {
+                'address': Address.objects.as_data(billing_address_model)}
+                self.whole_storage['billing'] = billing_address
+                self.billing_address = Address(**billing_address['address'])
+            else:
+                return False
+
         next_step = self.checkout.get_next_step()
         return next_step == self
 
     def save(self):
         pass
 
+    def billing_address_add_to_order(self, order):
+        self.billing_address.save()
+        order.billing_address = self.billing_address
+        if order.user:
+            User.objects.store_address(order.user, self.address, billing=True)
+
     def add_to_order(self, order):
+        self.billing_address_add_to_order(order)
         order.save()
         if self.checkout.is_shipping_required():
-            method = self.checkout.shipping.delivery_method
+            method = order.delivery_method
         else:
             method = None
         for partition in self.checkout.cart.partition():

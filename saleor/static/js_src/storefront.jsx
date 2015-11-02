@@ -210,29 +210,29 @@ $(document).on("ajaxComplete", function(event, response) {
     }
 });
 
-class FormShippingToggler extends React.Component {
-    state = {
-        value: true
-    };
-
-    componentDidMount() {
-        $(".form-full").hide();
-    }
-
-    formFullToggle() {
-        this.setState({value: event.target.checked});
-        $(".form-full").toggle();
-    }
-
-    render() {
-        return <div className="checkbox">
-            <label>
-                <input checked={this.state.value} type="checkbox" onChange={::this.formFullToggle} name="shipping_same_as_billing" />
-                {this.props.label}
-            </label>
-        </div>;
-    }
-}
+//class FormShippingToggler extends React.Component {
+//    state = {
+//        value: true
+//    };
+//
+//    componentDidMount() {
+//        $(".form-full").hide();
+//    }
+//
+//    formFullToggle() {
+//        this.setState({value: event.target.checked});
+//        $(".form-full").toggle();
+//    }
+//
+//    render() {
+//        return <div className="checkbox">
+//            <label>
+//                <input checked={this.state.value} type="checkbox" onChange={::this.formFullToggle} name="shipping_same_as_billing" />
+//                {this.props.label}
+//            </label>
+//        </div>;
+//    }
+//}
 
 var $formFullToggle = $("#form-full-toggle");
 if ($formFullToggle.length) {

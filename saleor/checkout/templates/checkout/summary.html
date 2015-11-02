@@ -1,4 +1,5 @@
 {% extends "checkout/details.html" %}
+{% load as_vertical_form from bootstrap %}
 {% load gross from prices_i18n %}
 {% load tax from prices_i18n %}
 {% load i18n %}
@@ -12,11 +13,18 @@
                     {% trans "Billing address" %}
                 </div>
                 <div class="panel-body">
+                    <form method="post">
+                    {% csrf_token %}
+                    {{ same_billing_as_shipping_address|as_vertical_form }}
+                    {{ billing_address|as_vertical_form }}
+
                     {% if checkout.billing_address %}
                         <address>{% include "userprofile/snippets/address-details.html" with address=checkout.billing_address %}</address>
                     {% else %}
                         <p class="text-danger">{% trans "No address given yet." %}</p>
                     {% endif %}
+                   <button type="submit">submit</button>
+                    </form>
                     <p><a href="{{ checkout.billing.get_absolute_url }}">{% trans "Edit billing details" %}</a></p>
                 </div>
             </div>

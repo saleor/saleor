@@ -12,11 +12,14 @@ def details(request, step):
         return redirect('cart:index')
     checkout = Checkout(request)
     if not step:
+
         return redirect(checkout.get_next_step())
     try:
         step = checkout[step]
     except KeyError:
         raise Http404()
+    if step not in checkout.available_steps():
+        return redirect(checkout.get_next_step())
     response = step.process(extra_context={'checkout': checkout})
     if not response:
         checkout.save()
