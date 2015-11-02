@@ -1,7 +1,7 @@
 from django.http.response import Http404
 from django.shortcuts import redirect
 
-from . import Checkout
+from .core import Checkout
 from ..cart import Cart
 from ..cart.utils import contains_unavailable_products
 

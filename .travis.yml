@@ -6,15 +6,28 @@ script:
   - tox
 env:
   - TOXENV=py27-django18
+  - TOXENV=py27-django19
   - TOXENV=py27-django_master
-  - TOXENV=py33-django18
-  - TOXENV=py33-django_master
   - TOXENV=py34-django18
+  - TOXENV=py34-django19
   - TOXENV=py34-django_master
+  - TOXENV=py35-django18
+  - TOXENV=py35-django19
+  - TOXENV=py35-django_master
 matrix:
   allow_failures:
+    - env: TOXENV=py27-django19
     - env: TOXENV=py27-django_master
-    - env: TOXENV=py33-django_master
+    - env: TOXENV=py34-django19
     - env: TOXENV=py34-django_master
+    - env: TOXENV=py35-django19
+    - env: TOXENV=py35-django_master
 after_success:
   - codecov
+addons:
+  apt:
+    sources:
+      - deadsnakes
+    packages:
+      - python3.5
+      - python3.5-dev
