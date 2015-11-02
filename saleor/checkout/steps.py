@@ -28,62 +28,6 @@ class BaseCheckoutStep(BaseStep):
     def add_to_order(self, order):
         raise NotImplementedError()
 
-# class BillingAddressStep(BaseAddressStep):
-#     template = 'checkout/billing.html'
-#     title = _('Billing Address')
-#
-#     def __init__(self, request, storage):
-#         address_data = storage.get('address', {})
-#         address = Address(**address_data)
-#         skip = False
-#         if not address_data and request.user.is_authenticated():
-#             if request.user.default_billing_address:
-#                 address = request.user.default_billing_address
-#                 skip = True
-#             elif request.user.addresses.count() == 1:
-#                 address = request.user.addresses.all()[0].address
-#                 skip = True
-#         super(BillingAddressStep, self).__init__(request, storage, address)
-#         if not request.user.is_authenticated():
-#             self.anonymous_user_email = self.storage.get(
-#                 'anonymous_user_email')
-#             initial = {'email': self.anonymous_user_email}
-#             self.forms['anonymous'] = AnonymousEmailForm(request.POST or None,
-#                                                          initial=initial)
-#         else:
-#             self.anonymous_user_email = ''
-#         if skip:
-#             self.save()
-#
-#     def __str__(self):
-#         return 'billing-address'
-#
-#     def forms_are_valid(self):
-#         forms_are_valid = super(BillingAddressStep, self).forms_are_valid()
-#         if 'anonymous' not in self.forms:
-#             return forms_are_valid
-#         anonymous_form = self.forms['anonymous']
-#         if forms_are_valid and anonymous_form.is_valid():
-#             self.anonymous_user_email = anonymous_form.cleaned_data['email']
-#             return True
-#         return False
-#
-#     def save(self):
-#         self.storage['anonymous_user_email'] = self.anonymous_user_email
-#         self.storage['address'] = Address.objects.as_data(self.address)
-#
-#     def add_to_order(self, order):
-#         self.address.save()
-#         order.anonymous_user_email = self.anonymous_user_email
-#         order.billing_address = self.address
-#         if order.user:
-#             User.objects.store_address(order.user, self.address, billing=True)
-#
-#     def validate(self):
-#         super(BillingAddressStep, self).validate()
-#         if 'anonymous' in self.forms and not self.anonymous_user_email:
-#             raise InvalidData()
-
 
 class ShippingAddressStep(BaseCheckoutStep):
     template = 'checkout/shipping_address.html'
