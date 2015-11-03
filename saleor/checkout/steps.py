@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.db import transaction
 from django.shortcuts import redirect
@@ -23,7 +22,7 @@ class BaseCheckoutStep(BaseStep):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('checkout:details', (), {'step': str(self)})
+        return 'checkout:details', tuple(), {'step': str(self)}
 
     def add_to_order(self, order):
         raise NotImplementedError()
@@ -37,53 +36,52 @@ class ShippingAddressStep(BaseCheckoutStep):
     def __init__(self, request, storage):
         super(ShippingAddressStep, self).__init__(request, storage)
         address_data = storage.get('address', {})
-        address = Address(**address_data)
-        self.address = address
-        existing_selected = False
-        address_form = self.address_form_class(request.POST or None,
-                                               instance=self.address)
+        self.address = Address(**address_data)
+        self.existing_selected = False
+        address_form = self.address_form_class(
+            request.POST or address_data or None, instance=self.address)
+        self.forms = {'address': address_form}
+
         if request.user.is_authenticated():
-            addresses = list(request.user.addresses.all())
-            for address in addresses:
+            self.addresses = list(request.user.addresses.all())
+            for address in self.addresses:
                 data = Address.objects.as_data(address)
                 instance = Address(**data)
                 address.form = self.address_form_class(instance=instance)
-                address.is_selected = Address.objects.are_identical(
-                    address, self.address)
-                if address.is_selected:
-                    existing_selected = True
-
-            # self.anonymous_user_email = request.user.email
+                if Address.objects.are_identical(address, self.address):
+                    self.existing_selected = True
+            email = storage.get('email', request.user.email)
         else:
-            addresses = []
-            self.anonymous_user_email = ''
-            initial = {'email': self.anonymous_user_email}
-            self.forms['anonymous'] = AnonymousEmailForm(request.POST or None, initial=initial)
+            self.addresses = []
+            email = storage.get('email', '')
 
-        self.existing_selected = existing_selected
-        self.forms = {'address': address_form}
-        self.addresses = addresses
-
-
-    def validate(self):
-        try:
-            self.address.clean_fields()
-        except ValidationError as e:
-            raise InvalidData(e.messages)
-
-    def process(self, extra_context=None):
-        context = dict(extra_context or {})
-        context['form'] = self.forms['address']
-        context['addresses'] = self.addresses
-        context['existing_address_selected'] = self.existing_selected
-        return super(BaseCheckoutStep, self).process(extra_context=context)
+        data = {'email': email} if email else None
+        self.forms['email'] = AnonymousEmailForm(request.POST or data,
+                                                 initial={'email': email})
 
     def __str__(self):
         return 'shipping-address'
 
+    def process(self, extra_context=None):
+        context = dict(extra_context or {})
+        context['addresses'] = self.addresses
+        context['existing_address_selected'] = self.existing_selected
+        return super(BaseCheckoutStep, self).process(extra_context=context)
+
+    def forms_are_valid(self):
+        forms = self.forms
+        if forms['email'].is_valid():
+            self.email = forms['email'].cleaned_data['email']
+        if forms['address'].is_valid():
+            address = forms['address'].cleaned_data
+            self.address = Address(**address)
+        result = super(ShippingAddressStep, self).forms_are_valid()
+        print result
+        return result
+
     def save(self):
-        address = self.address
-        self.storage['address'] = Address.objects.as_data(address)
+        self.storage['address'] = Address.objects.as_data(self.address)
+        self.storage['email'] = self.email
 
     def add_to_order(self, order):
         self.address.save()
@@ -138,6 +136,9 @@ class ShippingMethodStep(BaseCheckoutStep):
         order.delivery_method = self.delivery_method
 
     def validate(self):
+        raise InvalidData()
+        return False
+        print "shipping method"
         selected_method_name = self.storage.get('delivery_method')
         if selected_method_name not in self.valid_delivery_methods:
             raise InvalidData('Select a valid delivery method')
