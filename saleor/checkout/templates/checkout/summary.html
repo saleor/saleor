@@ -18,14 +18,10 @@
                     {{ same_billing_as_shipping_address|as_vertical_form }}
                     {{ billing_address|as_vertical_form }}
 
-                    {% if checkout.billing_address %}
-                        <address>{% include "userprofile/snippets/address-details.html" with address=checkout.billing_address %}</address>
-                    {% else %}
-                        <p class="text-danger">{% trans "No address given yet." %}</p>
-                    {% endif %}
-                   <button type="submit">submit</button>
+                     <button type="submit" class="btn btn-primary">
+                         {% trans "Use this address" %}
+                        </button>
                     </form>
-                    <p><a href="{{ checkout.billing.get_absolute_url }}">{% trans "Edit billing details" %}</a></p>
                 </div>
             </div>
         </div>
