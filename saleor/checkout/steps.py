@@ -136,9 +136,6 @@ class ShippingMethodStep(BaseCheckoutStep):
         order.delivery_method = self.delivery_method
 
     def validate(self):
-        raise InvalidData()
-        return False
-        print "shipping method"
         selected_method_name = self.storage.get('delivery_method')
         if selected_method_name not in self.valid_delivery_methods:
             raise InvalidData('Select a valid delivery method')

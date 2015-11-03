@@ -25,7 +25,7 @@ class FirstDummyShipping(BaseDelivery):
     name = 'first_dummy_shipping'
 
     def __str__(self):
-        return 'First dummy shipping'
+        return 'First and cheaper dummy shipping'
 
     def get_delivery_total(self, items, **kwargs):
         return Price(10, currency=settings.DEFAULT_CURRENCY)
@@ -35,7 +35,7 @@ class SecondDummyShipping(BaseDelivery):
     name = 'second_dummy_shipping'
 
     def __str__(self):
-        return 'Second dummy shipping'
+        return 'Second and more expensive dummy shipping'
 
     def get_delivery_total(self, items, **kwargs):
         return Price(25, currency=settings.DEFAULT_CURRENCY)
