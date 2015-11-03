@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+from django.core.exceptions import ValidationError
 
 from django.db import models
 from django.db import transaction
@@ -39,7 +40,7 @@ class ShippingAddressStep(BaseCheckoutStep):
         self.address = Address(**address_data)
         self.existing_selected = False
         address_form = self.address_form_class(
-            request.POST or address_data or None, instance=self.address)
+            request.POST or None, instance=self.address)
         self.forms = {'address': address_form}
 
         if request.user.is_authenticated():
@@ -55,9 +56,9 @@ class ShippingAddressStep(BaseCheckoutStep):
             self.addresses = []
             email = storage.get('email', '')
 
-        data = {'email': email} if email else None
-        self.forms['email'] = AnonymousEmailForm(request.POST or data,
+        self.forms['email'] = AnonymousEmailForm(request.POST or None,
                                                  initial={'email': email})
+        self.email = email
 
     def __str__(self):
         return 'shipping-address'
@@ -89,6 +90,15 @@ class ShippingAddressStep(BaseCheckoutStep):
         if order.user:
             User.objects.store_address(order.user, self.address, shipping=True)
 
+    def validate(self):
+        try:
+            self.address.clean_fields()
+        except ValidationError as e:
+            raise InvalidData(e.messages)
+
+        if not self.email:
+            raise InvalidData()
+
 
 class ShippingMethodStep(BaseCheckoutStep):
     template = 'checkout/shipping_method.html'
@@ -103,11 +113,11 @@ class ShippingMethodStep(BaseCheckoutStep):
         self.cart = cart
         address_data = storage.get('address', {})
         address = Address(**address_data)
-        delivery_choices = [
-            (method.name, method) for method in get_delivery_options_for_items(
-                self.cart, address=address)]
-        self.valid_delivery_methods = [
-            name for name, method in delivery_choices]
+        delivery_choices = [(method.name, method) for method
+                            in get_delivery_options_for_items(self.cart,
+                                                              address=address)]
+        self.valid_delivery_methods = [name for name, method
+                                       in delivery_choices]
         selected_method_name = storage.get('delivery_method')
         for method_name, method in delivery_choices:
             if method_name == selected_method_name:
@@ -117,10 +127,10 @@ class ShippingMethodStep(BaseCheckoutStep):
             # TODO: find cheapest not first
             selected_method_name, delivery_method = delivery_choices[0]
         self.delivery_method = delivery_method
-
+        selected_method = {'method': selected_method_name} if selected_method_name else None
         self.forms['delivery'] = DeliveryForm(
             delivery_choices,
-            request.POST or None,
+            request.POST or selected_method,
             initial={'method': selected_method_name})
 
     def process(self, extra_context=None):
@@ -182,19 +192,13 @@ class SummaryStep(BaseCheckoutStep):
         copy_address_form = self.forms['same_billing_as_shipping_address']
         if copy_address_form.is_valid() and copy_address_form.cleaned_data['shipping_same_as_billing']:
             shipping_address = self.whole_storage['shipping']['address'].copy()
-            billing_address = {
-                'address': shipping_address}
-            self.whole_storage['billing'] = billing_address
-            obj = Address(**shipping_address)
-            self.billing_address = obj
+            address = Address(**shipping_address)
+            self.billing_address = address
         else:
             billing_form = self.forms['billing_address']
             if billing_form.is_valid():
-                billing_address_model = Address(**billing_form.cleaned_data)
-                billing_address = {
-                'address': Address.objects.as_data(billing_address_model)}
-                self.whole_storage['billing'] = billing_address
-                self.billing_address = Address(**billing_address['address'])
+                billing_address = Address(**billing_form.cleaned_data)
+                self.billing_address = billing_address
             else:
                 return False
 
@@ -202,7 +206,8 @@ class SummaryStep(BaseCheckoutStep):
         return next_step == self
 
     def save(self):
-        pass
+        billing_addres = Address.objects.as_data(self.billing_address)
+        self.whole_storage['billing'] = {'address': billing_addres}
 
     def billing_address_add_to_order(self, order):
         self.billing_address.save()
