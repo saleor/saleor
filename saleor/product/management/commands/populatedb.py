@@ -1,5 +1,4 @@
 from django.core.management.base import BaseCommand
-from django.db import IntegrityError
 
 from utils.create_random_data import create_items, create_users, create_orders
 
@@ -28,11 +27,14 @@ class Command(BaseCommand):
 
         if options['createsuperuser']:
             credentials = {'email': 'admin@example.com', 'password': 'admin'}
-            try:
-                User.objects.create_superuser(**credentials)
-            except IntegrityError:
-                self.stdout.write(
-                    'Superuser already exists - %(email)s' % credentials)
-            else:
+            user, created = User.objects.get_or_create(
+                email=credentials['email'],
+                is_active=True, is_staff=True, is_superuser=True)
+            if created:
+                user.set_password(credentials['password'])
+                user.save()
                 self.stdout.write(
                     'Superuser - %(email)s/%(password)s' % credentials)
+            else:
+                self.stdout.write(
+                    'Superuser already exists - %(email)s' % credentials)
