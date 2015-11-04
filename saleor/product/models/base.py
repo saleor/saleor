@@ -288,8 +288,9 @@ class AttributeChoiceValue(models.Model):
         max_length=7,
         validators=[RegexValidator(
             '^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$',
-            message=pgettext_lazy('Attribute choice value field',
-                                  'Value must be in hexadecimal notation'))],
+            message=pgettext_lazy(
+                'Attribute choice value field',
+                'Value must be in hexadecimal notation (e.g. #ababab)'))],
         blank=True)
     image = VersatileImageField(
         pgettext_lazy('Attribute choice value field', 'image'),
