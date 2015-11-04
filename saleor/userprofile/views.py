@@ -13,12 +13,7 @@ from .models import User
 
 @login_required
 def details(request):
-    user_id = request.user.pk
-    user = User.objects.filter(id=user_id).prefetch_related('addresses')
-    user = user.select_related('default_shipping_address',
-                               'default_billing_address')
-    user = user[0]
-    ctx = {'user': user, 'addresses': user.addresses.all()}
+    ctx = {'addresses': request.user.addresses.all()}
     return TemplateResponse(request, 'userprofile/details.html', ctx)
 
 
