@@ -1,17 +1,17 @@
 from django import forms
-from django.contrib.auth.models import AnonymousUser
 from django.utils.translation import ugettext_lazy as _
-
-from ..userprofile.forms import AddressForm
 
 
 class CopyShippingAddressForm(forms.Form):
-    shipping_same_as_billing = forms.BooleanField(initial=True, required=False)
+
+    billing_same_as_shipping = forms.BooleanField(
+        initial=True, required=False, label=_('Change billing address'))
 
 
 class DeliveryForm(forms.Form):
 
-    method = forms.ChoiceField(label=_('Shipping method'))
+    method = forms.ChoiceField(label=_('Shipping method'),
+                               widget=forms.RadioSelect)
 
     def __init__(self, delivery_choices, *args, **kwargs):
         super(DeliveryForm, self).__init__(*args, **kwargs)

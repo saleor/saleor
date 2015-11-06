@@ -69,18 +69,10 @@ class ShippingAddressStep(BaseCheckoutStep):
         context['existing_address_selected'] = self.existing_selected
         return super(BaseCheckoutStep, self).process(extra_context=context)
 
-    def forms_are_valid(self):
-        forms = self.forms
-        if forms['email'].is_valid():
-            self.email = forms['email'].cleaned_data['email']
-        if forms['address'].is_valid():
-            address = forms['address'].cleaned_data
-            self.address = Address(**address)
-        result = super(ShippingAddressStep, self).forms_are_valid()
-        print result
-        return result
-
     def save(self):
+        self.email = self.forms['email'].cleaned_data['email']
+        address = self.forms['address'].cleaned_data
+        self.address = Address(**address)
         self.storage['address'] = Address.objects.as_data(self.address)
         self.storage['email'] = self.email
 
@@ -127,10 +119,9 @@ class ShippingMethodStep(BaseCheckoutStep):
             # TODO: find cheapest not first
             selected_method_name, delivery_method = delivery_choices[0]
         self.delivery_method = delivery_method
-        selected_method = {'method': selected_method_name} if selected_method_name else None
         self.forms['delivery'] = DeliveryForm(
             delivery_choices,
-            request.POST or selected_method,
+            request.POST or None,
             initial={'method': selected_method_name})
 
     def process(self, extra_context=None):
@@ -158,11 +149,12 @@ class SummaryStep(BaseCheckoutStep):
     billing_address = None
 
     def __init__(self, request, whole_storage, checkout):
+        self.same_blling_as_shipping = False
         self.whole_storage = whole_storage
         storage = whole_storage['summary']
         super(SummaryStep, self).__init__(request, storage)
         self.checkout = checkout
-        self.forms['same_billing_as_shipping_address'] = CopyShippingAddressForm(
+        self.forms['copy_shipping_address'] = CopyShippingAddressForm(
             request.POST or None)
         self.forms['billing_address'] = AddressForm(request.POST or None)
 
@@ -171,9 +163,9 @@ class SummaryStep(BaseCheckoutStep):
 
     def process(self, extra_context=None):
         context = dict(extra_context or {})
-        context['all_steps_valid'] = self.forms_are_valid()
+        # context['all_steps_valid'] = self.forms_are_valid()
         context['billing_address'] = self.forms['billing_address']
-        context['same_billing_as_shipping_address'] = self.forms['same_billing_as_shipping_address']
+        context['copy_shipping_address'] = self.forms['copy_shipping_address']
 
         response = super(SummaryStep, self).process(context)
 
@@ -189,23 +181,25 @@ class SummaryStep(BaseCheckoutStep):
         raise InvalidData()
 
     def forms_are_valid(self):
-        copy_address_form = self.forms['same_billing_as_shipping_address']
-        if copy_address_form.is_valid() and copy_address_form.cleaned_data['shipping_same_as_billing']:
-            shipping_address = self.whole_storage['shipping']['address'].copy()
-            address = Address(**shipping_address)
-            self.billing_address = address
+        copy_address_form = self.forms['copy_shipping_address']
+        if (copy_address_form.is_valid()
+            and copy_address_form.cleaned_data['billing_same_as_shipping']):
+            self.same_blling_as_shipping = True
         else:
-            billing_form = self.forms['billing_address']
-            if billing_form.is_valid():
-                billing_address = Address(**billing_form.cleaned_data)
-                self.billing_address = billing_address
-            else:
+            if not self.forms['billing_address'].is_valid():
                 return False
 
         next_step = self.checkout.get_next_step()
         return next_step == self
 
     def save(self):
+        if self.same_blling_as_shipping:
+            shipping_address = self.whole_storage['shipping']['address'].copy()
+            address = Address(**shipping_address)
+            self.billing_address = address
+        else:
+             billing_address = Address(**self.forms['billing_address'].cleaned_data)
+             self.billing_address = billing_address
         billing_addres = Address.objects.as_data(self.billing_address)
         self.whole_storage['billing'] = {'address': billing_addres}
 
