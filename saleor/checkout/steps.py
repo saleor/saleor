@@ -42,6 +42,7 @@ class ShippingAddressStep(BaseCheckoutStep):
         address_form = self.address_form_class(
             request.POST or None, instance=self.address)
         self.forms = {'address': address_form}
+        self.authenticated_user = False
 
         if request.user.is_authenticated():
             self.addresses = list(request.user.addresses.all())
@@ -51,14 +52,15 @@ class ShippingAddressStep(BaseCheckoutStep):
                 address.form = self.address_form_class(instance=instance)
                 if Address.objects.are_identical(address, self.address):
                     self.existing_selected = True
-            email = storage.get('email', request.user.email)
+            self.email = request.user.email
+            self.authenticated_user = True
         else:
             self.addresses = []
             email = storage.get('email', '')
 
-        self.forms['email'] = AnonymousEmailForm(request.POST or None,
-                                                 initial={'email': email})
-        self.email = email
+            self.forms['email'] = AnonymousEmailForm(request.POST or None,
+                                                     initial={'email': email})
+            self.email = email
 
     def __str__(self):
         return 'shipping-address'
@@ -70,11 +72,12 @@ class ShippingAddressStep(BaseCheckoutStep):
         return super(BaseCheckoutStep, self).process(extra_context=context)
 
     def save(self):
-        self.email = self.forms['email'].cleaned_data['email']
+        if not self.authenticated_user:
+            self.email = self.forms['email'].cleaned_data['email']
+        self.storage['email'] = self.email
         address = self.forms['address'].cleaned_data
         self.address = Address(**address)
         self.storage['address'] = Address.objects.as_data(self.address)
-        self.storage['email'] = self.email
 
     def add_to_order(self, order):
         self.address.save()
@@ -90,6 +93,12 @@ class ShippingAddressStep(BaseCheckoutStep):
 
         if not self.email:
             raise InvalidData()
+
+    def forms_are_valid(self):
+        if self.forms['address'].is_valid() and (
+            self.authenticated_user or self.forms['email'].is_valid()):
+            return True
+        return False
 
 
 class ShippingMethodStep(BaseCheckoutStep):

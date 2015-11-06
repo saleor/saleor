@@ -4,12 +4,7 @@
 {% load gross from prices_i18n %}
 {% load i18n %}
 
-{% block use_this_address %}
-    <button type="submit" class="btn {% if entry.is_selected %}btn-primary{% else %}btn-default{% endif %} btn-lg col-sm-12">{% trans "Ship to this address" %}</button>
-{% endblock %}
-
 {% block fields %}
-    <div id="form-full-toggle" data-label="{% trans "Shipping address same as billing" %}"></div>
     <div class="form-full">
         {{ step.forms.delivery }}
     </div>
@@ -17,6 +12,6 @@
 
 {% block form_submit %}
     <button type="submit" class="btn btn-primary">
-        {% trans "Ship to this address" %}
+        {% trans 'Ship this way' %}
     </button>
 {% endblock %}
