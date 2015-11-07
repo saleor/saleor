@@ -1,10 +1,9 @@
 var $ = require('jquery');
 var Dropzone = require('dropzone');
-var ellipsis = require('html-ellipsis');
 
 require('jquery-ui/datepicker');
 require('jquery-match-height');
-require('materialize-css');
+require('materialize-sass-origin');
 require('select2');
 
 $(document).ready(function() {

@@ -37,8 +37,8 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--with-menu">
-        <li><a href="{% url "dashboard:product-list" %}">{% trans "Products" %}</a></li>
-        <li>{% if product.pk %}{{ product }}{% else %}{% trans 'Add new product' %}{% endif %}</li>
+        <li><a href="{% url "dashboard:product-list" %}" class="breadcrumbs--ellipsed-item">{% trans "Products" %}</a></li>
+        <li><span class="breadcrumbs--ellipsed-item">{% if product.pk %}{{ product }}{% else %}{% trans 'Add new product' %}{% endif %}</span></li>
     </ul>
 {% endblock %}
 
