@@ -50,7 +50,15 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--with-menu breadcrumbs--ellipsed">
-        <li>{% if path %}<a href="{% url 'dashboard:category-list' %}">{% trans "Categories" %}</a>{% else %}{% trans "Categories" %}{% endif %}</li>
+        <li>
+        {% if path %}
+            <a href="{% url 'dashboard:category-list' %}" class="breadcrumbs--ellipsed-item">
+                {% trans "Categories" %}
+            </a>
+        {% else %}
+            <span class="breadcrumbs--ellipsed-item">{% trans "Categories" %}</span>
+        {% endif %}
+        </li>
         {% if path %}
             {% for node in path %}
                 {% if forloop.last %}
@@ -61,8 +69,8 @@
                     </li>
                 {% else %}
                     <li>
-                        <a title="{{ node.name }}" href="{% url 'dashboard:category-list' root_pk=node.pk %}">
-                            <span class="breadcrumbs--ellipsed-item">{{ node.name }}</span>
+                        <a title="{{ node.name }}" href="{% url 'dashboard:category-list' root_pk=node.pk %}" class="breadcrumbs--ellipsed-item">
+                            {{ node.name }}
                         </a>
                     </li>
                 {% endif %}

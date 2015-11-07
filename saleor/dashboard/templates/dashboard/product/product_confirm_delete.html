@@ -14,8 +14,8 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--with-menu">
-        <li><a href="{% url "dashboard:product-list" %}">{% trans "Products" %}</a></li>
-        <li><a href="{% url "dashboard:product-update" pk=product.pk %}">{{ product }}</a></li>
+        <li><a href="{% url "dashboard:product-list" %}" class="breadcrumbs--ellipsed-item">{% trans "Products" %}</a></li>
+        <li><a href="{% url "dashboard:product-update" pk=product.pk %}" class="breadcrumbs--ellipsed-item">{{ product }}</a></li>
         <li>
             <span class="hide-on-med-and-down">{% trans "Delete product" %}</span>
             <span class="hide-on-large-only">{% trans "Delete" %} {{ product }}</span>
