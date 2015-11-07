@@ -48,9 +48,12 @@ class Address(models.Model):
     city = models.CharField(
         pgettext_lazy('Address field', 'city'),
         max_length=256)
+    city_area = models.CharField(
+        pgettext_lazy('Address field', 'city administrative area'),
+        max_length=128, blank=True)
     postal_code = models.CharField(
         pgettext_lazy('Address field', 'postal code'),
-        max_length=20)
+        max_length=20, blank=True)
     country = models.CharField(
         pgettext_lazy('Address field', 'country'),
         choices=COUNTRY_CHOICES, max_length=2)
