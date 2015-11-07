@@ -1,21 +1,16 @@
 module.exports = function(grunt) {
   grunt.initConfig({
-    babel: {
-      dist: {
-        files: {
-          "saleor/static/js/storefront_fromjsx.js": "saleor/static/js_src/storefront.jsx"
-        },
-        options: {
-          stage: 0
-        }
-      }
+    NODE_MODULES_DIR: 'node_modules/',
+    STATIC_DIR: 'saleor/static/',
+    webpack: {
+      default: require('./webpack.config')
     },
     browserSync: {
       dev: {
         bsFiles: {
           src: [
-            "saleor/static/css/*.css",
-            "saleor/static/js/*.js",
+            "<%= STATIC_DIR %>/css/*.css",
+            "<%= STATIC_DIR %>/js/*.js",
             "saleor/**/*.html"
           ]
         },
@@ -30,16 +25,16 @@ module.exports = function(grunt) {
     },
     copy: {
       address: {
-        src: "saleor/static/js_src/address.json",
-        dest: "saleor/static/js/address.json"
+        src: "<%= STATIC_DIR %>/js_src/address.json",
+        dest: "<%= STATIC_DIR %>/js/address.json"
       },
       production: {
         files: [
           {
             expand: true,
             dot: true,
-            cwd: "saleor/static/components/bootstrap-sass/assets/fonts/bootstrap",
-            dest: "saleor/static/fonts/",
+            cwd: "<%= NODE_MODULES_DIR %>/bootstrap-sass/assets/fonts/bootstrap",
+            dest: "<%= STATIC_DIR %>/fonts/",
             src: [
               "*"
             ]
@@ -47,8 +42,8 @@ module.exports = function(grunt) {
           {
             expand: true,
             dot: true,
-            cwd: "saleor/static/components/components-font-awesome/fonts",
-            dest: "saleor/static/fonts/",
+            cwd: "<%= NODE_MODULES_DIR %>/font-awesome/fonts",
+            dest: "<%= STATIC_DIR %>/fonts/",
             src: [
               "*"
             ]
@@ -56,8 +51,8 @@ module.exports = function(grunt) {
           {
             expand: true,
             dot: true,
-            cwd: "saleor/static/components/materialize/font/roboto",
-            dest: "saleor/static/fonts/",
+            cwd: "<%= NODE_MODULES_DIR %>/materialize-sass-origin/font/roboto",
+            dest: "<%= STATIC_DIR %>/fonts/",
             src: [
               "*"
             ]
@@ -65,8 +60,8 @@ module.exports = function(grunt) {
           {
             expand: true,
             dot: true,
-            cwd: "saleor/static/components/materialize/font/material-design-icons",
-            dest: "saleor/static/fonts/",
+            cwd: "<%= NODE_MODULES_DIR %>/materialize-sass-origin/font/material-design-icons",
+            dest: "<%= STATIC_DIR %>/fonts/",
             src: [
               "*"
             ]
@@ -74,8 +69,8 @@ module.exports = function(grunt) {
           {
             expand: true,
             dot: true,
-            cwd: "saleor/static/components/dropzone/dist",
-            dest: "saleor/static/scss/vendor/",
+            cwd: "<%= NODE_MODULES_DIR %>/dropzone/dist",
+            dest: "<%= STATIC_DIR %>/scss/vendor/",
             src: [
               "*.css"
             ],
@@ -96,46 +91,20 @@ module.exports = function(grunt) {
       },
       prod: {
         src: [
-          "saleor/static/css/storefront.css",
-          "saleor/static/css/dashboard.css"
+          "<%= STATIC_DIR %>/css/storefront.css",
+          "<%= STATIC_DIR %>/css/dashboard.css"
         ]
       }
     },
     sass: {
       options: {
         sourceMap: true,
-        includePaths: ["saleor/static/components"]
+        includePaths: ["<%= NODE_MODULES_DIR %>"]
       },
       dist: {
         files: {
-          "saleor/static/css/storefront.css": "saleor/static/scss/storefront.scss",
-          "saleor/static/css/dashboard.css": "saleor/static/scss/dashboard.scss"
-        }
-      }
-    },
-    uglify: {
-      options: {
-        mangle: false,
-        sourceMap: true
-      },
-      dev: {
-        files: {
-          "saleor/static/js/dashboard.js": [
-            "saleor/static/components/dropzone/dist/dropzone.js",
-            "saleor/static/components/jquery/dist/jquery.js",
-            "saleor/static/components/materialize/dist/js/materialize.js",
-            "saleor/static/components/Sortable/Sortable.js",
-            "saleor/static/components/select2/dist/js/select2.js",
-            "saleor/static/components/dotdotdot/src/js/jquery.dotdotdot.js",
-            "saleor/static/components/jquery.equalheights/jquery.equalheights.js",
-            "saleor/static/js_src/dashboard.js"
-          ],
-          "saleor/static/js/dashboard-head.js": [
-            "saleor/static/components/modernizr/modernizr.js"
-          ],
-          "saleor/static/js/storefront_head.js": [
-              "saleor/static/components/modernizr/modernizr.js"
-          ]
+          "<%= STATIC_DIR %>/css/storefront.css": "<%= STATIC_DIR %>/scss/storefront.scss",
+          "<%= STATIC_DIR %>/css/dashboard.css": "<%= STATIC_DIR %>/scss/dashboard.scss"
         }
       }
     },
@@ -147,19 +116,19 @@ module.exports = function(grunt) {
         spawn: false
       },
       sass: {
-        files: ["saleor/static/scss/**/*.scss"],
+        files: ["<%= STATIC_DIR %>/scss/**/*.scss"],
         tasks: ["sass", "postcss"]
       },
       uglify: {
-        files: ["saleor/static/js_src/**/*.js", "saleor/static/js_src/**/*.jsx"],
-        tasks: ["babel", "uglify"]
+        files: ["<%= STATIC_DIR %>/js_src/**/*.js", "<%= STATIC_DIR %>/js_src/**/*.jsx"],
+        tasks: ["webpack"]
       }
     }
   });
 
   require("load-grunt-tasks")(grunt);
 
-  grunt.registerTask("default", ["copy", "sass", "postcss", "babel", "uglify"]);
+  grunt.registerTask("default", ["copy", "sass", "postcss", "webpack"]);
   grunt.registerTask("sync", ["browserSync", "watch"]);
   grunt.registerTask("heroku", ["copy", "sass", "postcss", "babel", "uglify"]);
 };
