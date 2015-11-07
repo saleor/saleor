@@ -22,15 +22,24 @@
 {% block content %}
 <ul class="nav nav-pills nav-justified nav-wizard">
     {% for stepitem in checkout %}
-    <li class="{% if stepitem == step %}active{% endif %}">
-        {% if not forloop.first %}
-            <div class="nav-wedge"></div>
+        {% if stepitem %}
+            <li {% if stepitem == step %}class="active"{% endif %}>
+                <a href="{{ stepitem.get_absolute_url }}">
+                    <i class="fa fa-check-circle"></i>
+                    {{ stepitem.title }}
+                </a>
+            </li>
+        {% elif stepitem == next_step %}
+             <li {% if stepitem == step %}class="active"{% endif %}>
+                <a href="{{ stepitem.get_absolute_url }}">
+                    {{ stepitem.title }}
+                </a>
+            </li>
+        {% else %}
+             <li class="disabled">
+                <a>{{ stepitem.title }}</a>
+            </li>
         {% endif %}
-        <a href="{{ stepitem.get_absolute_url }}">{% if stepitem %}<i class="fa fa-check-circle"></i> {% endif %}{{ stepitem.title }}</a>
-        {% if not forloop.last %}
-            <div class="nav-arrow"></div>
-        {% endif %}
-    </li>
     {% endfor %}
 </ul>
 

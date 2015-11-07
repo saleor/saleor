@@ -20,7 +20,9 @@ def details(request, step):
         raise Http404()
     if step not in checkout.available_steps():
         return redirect(checkout.get_next_step())
-    response = step.process(extra_context={'checkout': checkout})
+    response = step.process(
+        extra_context={'checkout': checkout,
+                       'next_step': checkout.get_next_step()})
     if not response:
         checkout.save()
         return redirect(checkout.get_next_step())
