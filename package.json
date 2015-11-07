@@ -16,22 +16,21 @@
     "node": "0.10.x"
   },
   "dependencies": {
-    "autoprefixer": "~6.0.3",
     "bootstrap-sass": "^3.3.5",
     "csswring": "^4.0.0",
     "dropzone": "^4.2.0",
     "font-awesome": "^4.4.0",
     "hammerjs": "^2.0.4",
     "jquery": "^2.1.4",
-    "jquery-match-height": "^0.6.0",
     "jquery-ui": "^1.10.5",
     "jquery.cookie": "^1.4.1",
-    "materialize-css": "git+https://github.com/NicholasAntonov/materialize.git",
+    "materialize-sass-origin": "git+https://github.com/mociepka/materialize-sass-origin.git",
     "modernizr": "^3.2.0",
     "react": "^0.14.2",
     "react-dom": "^0.14.2",
     "select2": "^4.0.0",
-    "sortablejs": "^1.4.2"
+    "sortablejs": "^1.4.2",
+    "underscore": "^1.8.3"
   },
   "babel": {
     "presets": [
@@ -41,30 +40,26 @@
     ]
   },
   "devDependencies": {
-    "autoprefixer-core": "~5.2.0",
+    "autoprefixer": "^6.1.0",
     "babel-core": "^6.1.2",
     "babel-loader": "^6.0.1",
     "babel-preset-es2015": "^6.1.2",
     "babel-preset-react": "^6.0.15",
     "babel-preset-stage-0": "^6.0.15",
     "bower": "^1.3.12",
-    "css-loader": "^0.22.0",
-    "csswring": "~3.0.5",
     "grunt": "~0.4.5",
     "grunt-babel": "^6.0.0",
     "grunt-browser-sync": "~2.1.3",
     "grunt-cli": "^0.1.13",
     "grunt-contrib-copy": "~0.6.0",
     "grunt-contrib-less": "~0.11.2",
-    "grunt-contrib-uglify": "~0.9.1",
     "grunt-contrib-watch": "~0.6.1",
-    "grunt-postcss": "~0.4.0",
+    "grunt-postcss": "^0.7.1",
     "grunt-sass": "~1.0.0",
+    "grunt-webpack": "^1.0.11",
     "less": "^2.5.3",
-    "less-loader": "^2.2.1",
     "load-grunt-tasks": "~3.2.0",
-    "sass-loader": "^3.1.1",
-    "style-loader": "^0.13.0",
+    "postcss": "^5.0.10",
     "webpack": "^1.12.2"
   },
   "scripts": {
