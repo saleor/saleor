@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
-from django.core.exceptions import ValidationError
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db import transaction
 from django.shortcuts import redirect
@@ -23,7 +23,7 @@ class BaseCheckoutStep(BaseStep):
 
     @models.permalink
     def get_absolute_url(self):
-        return 'checkout:details', tuple(), {'step': str(self)}
+        return 'checkout:details', (), {'step': str(self)}
 
     def add_to_order(self, order):
         raise NotImplementedError()
@@ -194,7 +194,6 @@ class SummaryStep(BaseCheckoutStep):
         else:
             if not self.forms['billing_address'].is_valid():
                 return False
-
         next_step = self.checkout.get_next_step()
         return next_step == self
 
