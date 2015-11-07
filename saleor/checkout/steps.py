@@ -95,10 +95,8 @@ class ShippingAddressStep(BaseCheckoutStep):
             raise InvalidData()
 
     def forms_are_valid(self):
-        if self.forms['address'].is_valid() and (
-            self.authenticated_user or self.forms['email'].is_valid()):
-            return True
-        return False
+        return self.forms['address'].is_valid() and (
+            self.authenticated_user or self.forms['email'].is_valid())
 
 
 class ShippingMethodStep(BaseCheckoutStep):
