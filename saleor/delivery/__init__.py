@@ -54,5 +54,4 @@ def get_delivery(name):
     for delivery_method in delivery_methods:
         if name == delivery_method.name:
             return delivery_method()
-    else:
-        raise ValueError('Unknown delivery method: %s' % (name,))
+    raise ValueError('Unknown delivery method: %s' % (name,))
