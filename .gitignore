@@ -4,6 +4,7 @@
 !.buildpacks
 !.coveragerc
 !.gitignore
+!.flowconfig
 !.travis*
 *.css
 *.log

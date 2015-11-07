@@ -29,6 +29,10 @@ module.exports = function(grunt) {
       }
     },
     copy: {
+      address: {
+        src: "saleor/static/js_src/address.json",
+        dest: "saleor/static/js/address.json"
+      },
       production: {
         files: [
           {
@@ -87,8 +91,7 @@ module.exports = function(grunt) {
       options: {
         map: true,
         processors: [
-          require("autoprefixer"),
-          require("csswring")
+          require("autoprefixer")
         ]
       },
       prod: {
@@ -129,14 +132,6 @@ module.exports = function(grunt) {
           ],
           "saleor/static/js/dashboard-head.js": [
             "saleor/static/components/modernizr/modernizr.js"
-          ],
-          "saleor/static/js/storefront.js": [
-            "saleor/static/components/jquery/dist/jquery.js",
-            "saleor/static/components/jquery-cookie/jquery.cookie.js",
-            "saleor/static/components/react/react-with-addons.js",
-            "saleor/static/components/bootstrap-sass/assets/javascripts/bootstrap.js",
-            "saleor/static/js/storefront_fromjsx.js",
-            "saleor/static/js_src/storefront.js"
           ],
           "saleor/static/js/storefront_head.js": [
               "saleor/static/components/modernizr/modernizr.js"
