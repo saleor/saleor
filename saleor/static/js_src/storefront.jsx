@@ -216,12 +216,12 @@ $(document).on("ajaxComplete", function(event, response) {
 //    };
 //
 //    componentDidMount() {
-//        $(".form-full").hide();
+//        $(".billing_address_form").hide();
 //    }
 //
 //    formFullToggle() {
 //        this.setState({value: event.target.checked});
-//        $(".form-full").toggle();
+//        $(".billing_address_form").toggle();
 //    }
 //
 //    render() {
@@ -233,8 +233,8 @@ $(document).on("ajaxComplete", function(event, response) {
 //        </div>;
 //    }
 //}
-
-var $formFullToggle = $("#form-full-toggle");
-if ($formFullToggle.length) {
-    React.render(<FormShippingToggler label={$formFullToggle.data("label")} />, document.getElementById("form-full-toggle"));
-}
+//
+//var $formFullToggle = $("#form-full-toggle");
+//if ($formFullToggle.length) {
+//    React.render(<FormShippingToggler label={$formFullToggle.data("label")} />, document.getElementById("form-full-toggle"));
+//}
