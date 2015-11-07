@@ -1,13 +1,17 @@
 class CartItemAmount extends React.Component {
-    state = {
-        error: null,
-        lastSavedValue: this.props.value,
-        renderSelect: false,
-        renderSubmit: false,
-        result: null,
-        sending: false,
-        value: this.props.value
-    };
+
+    constructor() {
+        super(...arguments);
+        this.state = {
+            error: null,
+            lastSavedValue: this.props.value,
+            renderSelect: false,
+            renderSubmit: false,
+            result: null,
+            sending: false,
+            value: this.props.value
+        };
+    }
 
     componentDidMount() {
         if (this.state.value < this.props.thresholdValue) {
@@ -93,7 +97,7 @@ class CartItemAmount extends React.Component {
         });
 
         let select = <select onChange={this.change.bind(this)} value={this.state.value} className="form-control cart-item-quantity-select">
-                {this.props.options.map(option =>
+                {this.props.options.map((option) =>
                     <CartItemAmountOption key={option} value={option} label={option == this.props.thresholdValue ? option+" +" : option} />)}
             </select>;
 
@@ -130,9 +134,12 @@ class CartItemAmountOption extends React.Component {
 }
 
 class CartItemSubtotal extends React.Component {
-    state = {
-        value: this.props.value
-    };
+    constructor() {
+        super(...arguments);
+        this.state = {
+            value: this.props.value
+        };
+    }
 
     render() {
         return <span>{this.state.value}</span>;
@@ -140,9 +147,12 @@ class CartItemSubtotal extends React.Component {
 }
 
 class CartTotal extends React.Component {
-    state = {
-        value: this.props.value
-    };
+    constructor() {
+        super(...arguments);
+        this.state = {
+            value: this.props.value
+        };
+    }
 
     render() {
         return <b>{this.state.value}</b>;
@@ -211,9 +221,12 @@ $(document).on("ajaxComplete", function(event, response) {
 });
 
 class FormShippingToggler extends React.Component {
-    state = {
-        value: true
-    };
+    constructor() {
+        super(...arguments);
+        this.state = {
+            value: true
+        };
+    }
 
     componentDidMount() {
         $(".form-full").hide();
