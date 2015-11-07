@@ -170,7 +170,6 @@ class SummaryStep(BaseCheckoutStep):
 
     def process(self, extra_context=None):
         context = dict(extra_context or {})
-        # context['all_steps_valid'] = self.forms_are_valid()
         context['billing_address'] = self.forms['billing_address']
         context['copy_shipping_address'] = self.forms['copy_shipping_address']
 
@@ -205,8 +204,9 @@ class SummaryStep(BaseCheckoutStep):
             address = Address(**shipping_address)
             self.billing_address = address
         else:
-             billing_address = Address(**self.forms['billing_address'].cleaned_data)
-             self.billing_address = billing_address
+            billing_address = Address(
+                **self.forms['billing_address'].cleaned_data)
+            self.billing_address = billing_address
         billing_addres = Address.objects.as_data(self.billing_address)
         self.whole_storage['billing'] = {'address': billing_addres}
 
@@ -214,7 +214,8 @@ class SummaryStep(BaseCheckoutStep):
         self.billing_address.save()
         order.billing_address = self.billing_address
         if order.user:
-            User.objects.store_address(order.user, self.billing_address, billing=True)
+            User.objects.store_address(
+                order.user, self.billing_address, billing=True)
 
     def add_to_order(self, order):
         self.billing_address_add_to_order(order)
