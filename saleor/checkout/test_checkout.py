@@ -1,9 +1,9 @@
 from django.contrib.auth.models import AnonymousUser
 from mock import MagicMock
 
-from ..checkout.core import STORAGE_SESSION_KEY
-from ..checkout.steps import BaseAddressStep, BillingAddressStep, ShippingStep
+from .core import STORAGE_SESSION_KEY
 from ..userprofile.models import Address
+from .steps import ShippingAddressStep, ShippingMethodStep, SummaryStep
 
 NEW_ADDRESS = {
     'first_name': 'Test',
@@ -16,35 +16,6 @@ NEW_ADDRESS = {
     'country': 'PL',
     'country_area': '',
     'company_name': 'Test'}
-
-
-def test_base_address_step_works(rf):
-    request = rf.post('/checkout/', NEW_ADDRESS)
-    request.user = AnonymousUser()
-    address = Address(**NEW_ADDRESS)
-    step = BaseAddressStep(request, storage={}, address=address)
-    assert step.forms_are_valid()
-    assert step.address.first_name == 'Test'
-
-
-def test_billing_address_save_without_address(rf):
-    data = dict(NEW_ADDRESS, email='test@example.com')
-    request = rf.post('/checkout/', data)
-    request.user = AnonymousUser()
-    storage = {}
-    step = BillingAddressStep(request, storage)
-    assert step.process() is None
-    assert isinstance(storage['address'], dict)
-    assert storage['address']['first_name'] == 'Test'
-
-
-def test_billing_address_save_with_address_in_checkout(rf):
-    data = dict(NEW_ADDRESS, email='test@example.com')
-    request = rf.post('/checkout/', data)
-    request.user = AnonymousUser()
-    storage = {'address': {}}
-    step = BillingAddressStep(request, storage)
-    assert step.forms_are_valid()
 
 
 def test_shipping_step_save_without_address(rf):
