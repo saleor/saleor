@@ -8,6 +8,15 @@
     <button type="submit" class="btn {% if entry.is_selected %}btn-primary{% else %}btn-default{% endif %} btn-lg col-sm-12">{% trans "Ship to this address" %}</button>
 {% endblock %}
 
+{% block additional_message %}
+    {% if not user.is_authenticated %}
+        <p class="alert alert-info">
+            {% trans "Already have an account?" %}
+            <a href="{% url "registration:login" %}?next={% url "checkout:details" step="shipping-address" %}">{% trans "Log in" %}</a>
+        </p>
+    {% endif %}
+{% endblock %}
+
 {% block fields %}
     <div id="form-full-toggle" data-label="{% trans "Shipping address same as billing" %}"></div>
     <div class="form-full">
