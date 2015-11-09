@@ -7,7 +7,6 @@ import $ from 'jquery';
 import AddressForm  from './components/addressform';
 import {CartItemAmount, CartItemSubtotal, CartTotal, FormShippingToggler} from './components/cart';
 import AddressStore from './stores/address-store';
-console.log(AddressStore);
 import CartStore from './stores/cart-store';
 require('jquery.cookie');
 require('bootstrap-sass');
