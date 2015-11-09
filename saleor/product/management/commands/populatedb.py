@@ -28,8 +28,8 @@ class Command(BaseCommand):
         if options['createsuperuser']:
             credentials = {'email': 'admin@example.com', 'password': 'admin'}
             user, created = User.objects.get_or_create(
-                email=credentials['email'],
-                is_active=True, is_staff=True, is_superuser=True)
+                email=credentials['email'], defaults={
+                    'is_active': True, 'is_staff': True, 'is_superuser': True})
             if created:
                 user.set_password(credentials['password'])
                 user.save()
