@@ -196,3 +196,88 @@ $icon-font-path: "../fonts/";
 		display: none;
 	}
 }
+
+.nav-pills {
+    &.nav-wizard {
+        > li {
+            position: relative;
+            overflow: visible;
+            border-right: 15px solid #fff;
+            border-left: 15px solid #fff;
+
+            &:first-child {
+                border-left: 0;
+
+                a {
+                    border-radius:5px 0 0 5px;
+                }
+            }
+
+            &:last-child {
+                border-right: 0;
+
+                a {
+                    border-radius:0 5px 5px 0;
+                }
+            }
+
+            a {
+                border-radius: 0;
+                background-color: #eee;
+            }
+
+            .nav-arrow {
+                position: absolute;
+                top: 0px;
+                right: -20px;
+                width: 0px;
+                height: 0px;
+                border-style: solid;
+                border-width: 20px 0 20px 20px;
+                border-color: transparent transparent transparent #eee;
+                z-index: 150;
+            }
+
+            .nav-wedge {
+                position: absolute;
+                top: 0px;
+                left: -20px;
+                width: 0px;
+                height: 0px;
+                border-style: solid;
+                border-width: 20px 0 20px 20px;
+                border-color: #eee #eee #eee transparent;
+                z-index: 150;
+            }
+
+            &:hover {
+                .nav-arrow {
+                    border-color: transparent transparent transparent #aaa;
+                }
+
+                .nav-wedge {
+                    border-color: #aaa #aaa #aaa transparent;
+                }
+
+                a {
+                    background-color: #aaa;
+                    color: #fff;
+                }
+            }
+
+            &.active {
+                .nav-arrow {
+                    border-color: transparent transparent transparent #428bca;
+                }
+
+                .nav-wedge {
+                    border-color: #428bca #428bca #428bca transparent;
+                }
+
+                a {
+                    background-color: #428bca;
+                }
+            }
+        }
+    }
+}
