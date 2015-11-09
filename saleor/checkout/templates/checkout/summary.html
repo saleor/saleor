@@ -18,7 +18,7 @@
 
                         <p><a href="#">{% trans "Provide billing address" %}</a></p>
                         <div id="billing_address_form">
-                            {{ copy_shipping_address }}
+                            {% if copy_shipping_address %}{{ copy_shipping_address }}{% endif %}
                             {{ billing_address|as_vertical_form }}
                         </div>
 

@@ -46,19 +46,27 @@ class Checkout(ProcessManager):
         return iter(self.steps)
 
     def generate_steps(self, cart):
+        shipping_address = None
         self.cart = cart
         self.billing = BillingAddressStep(
             self.request, self.get_storage('billing'))
         self.steps.append(self.billing)
         if self.is_shipping_required():
-            self.shipping = ShippingStep(
-                self.request, self.get_storage('shipping'),
-                self.cart, billing_address=self.billing_address)
+            self.shipping = ShippingAddressStep(self.request,
+                                                self.storage['shipping_address'])
+            shipping_address = self.shipping.address
             self.steps.append(self.shipping)
+            self.delivery = ShippingMethodStep(self.request,
+                                               self.storage['shipping_method'],
+                                               shipping_address,
+                                               self.cart)
+            self.steps.append(self.delivery)
         else:
             self.shipping = None
-        summary_step = SummaryStep(
-            self.request, self.get_storage('summary'), checkout=self)
+            self.delivery = None
+
+        summary_step = SummaryStep(self.request, self.storage['summary'],
+                                   shipping_address, checkout=self)
         self.steps.append(summary_step)
 
     @property
@@ -124,7 +132,11 @@ class Checkout(ProcessManager):
         self.request.session[STORAGE_SESSION_KEY] = dict(self.storage)
 
     def clear_storage(self):
-        del self.request.session[STORAGE_SESSION_KEY]
+        try:
+            del self.request.session[STORAGE_SESSION_KEY]
+        except KeyError:
+            pass
+
         self.cart.clear()
 
     def is_shipping_required(self):
