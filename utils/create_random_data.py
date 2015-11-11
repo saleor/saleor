@@ -7,8 +7,7 @@ from faker import Factory
 from django.conf import settings
 from django.core.files import File
 
-from saleor.order import Order
-from saleor.order.models import OrderedItem, DeliveryGroup, Payment
+from saleor.order.models import Order, OrderedItem, DeliveryGroup, Payment
 from saleor.product.models import (Product, ProductVariant, ProductImage, Stock)
 from saleor.product.models import Category
 from saleor.userprofile.models import User, Address

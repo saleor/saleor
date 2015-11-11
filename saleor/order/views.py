@@ -9,9 +9,9 @@ from django.utils.translation import ugettext as _
 from django.template.response import TemplateResponse
 from payments import RedirectNeeded
 
-from . import check_order_status, get_ip
 from .forms import PaymentDeleteForm, PaymentMethodsForm
 from .models import Order, Payment
+from .utils import check_order_status, get_ip
 
 logger = logging.getLogger(__name__)
 

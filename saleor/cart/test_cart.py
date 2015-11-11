@@ -14,7 +14,7 @@ from . import forms
 from .forms import ReplaceCartLineForm, ReplaceCartLineFormSet
 from ..cart.utils import (
     contains_unavailable_products, remove_unavailable_products)
-from ..checkout import Checkout
+from ..checkout.core import Checkout
 from ..checkout.views import details as checkout_details
 from ..product.models import (ProductVariant, Product)
 

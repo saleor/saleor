@@ -20,8 +20,7 @@
     <table class="table table-striped">
         <thead>
             <tr>
-                <th class="col-sm-2">{% trans "Short alias" %}</th>
-                <th class="col-sm-4">{% trans "Addressee" %}</th>
+                <th class="col-sm-6">{% trans "Addressee" %}</th>
                 <th class="col-sm-2">{% trans "Billing" %}</th>
                 <th class="col-sm-2">{% trans "Shipping" %}</th>
                 <th class="col-sm-2"></th>
@@ -30,12 +29,9 @@
         <tbody>
             {% for address in addresses %}
             <tr>
-                <th class="col-sm-2">
+                <th class="col-sm-6">
                     {{ address }}
                 </th>
-                <td class="col-sm-4">
-                    {{ address }}
-                </td>
                 <td class="col-sm-2">
                     {% if user.default_billing_address == address %}
                     <span class="label label-default">{% trans "Default" %}</span>
