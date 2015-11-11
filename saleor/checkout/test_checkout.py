@@ -1,10 +1,8 @@
 from django.contrib.auth.models import AnonymousUser
-from django.test import TestCase
-from mock import MagicMock, patch
+from mock import MagicMock
 
-from . import BillingAddressStep, ShippingStep
-from ..checkout import STORAGE_SESSION_KEY
-from ..checkout.steps import BaseAddressStep
+from ..checkout.core import STORAGE_SESSION_KEY
+from ..checkout.steps import BaseAddressStep, BillingAddressStep, ShippingStep
 from ..userprofile.models import Address
 
 NEW_ADDRESS = {

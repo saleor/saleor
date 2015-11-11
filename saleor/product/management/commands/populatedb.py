@@ -26,6 +26,15 @@ class Command(BaseCommand):
             self.stdout.write(msg)
 
         if options['createsuperuser']:
-            user = User.objects.create_superuser(
-                email='admin@example.com', password='admin')
-            self.stdout.write('Superuser - %s' % user.email)
+            credentials = {'email': 'admin@example.com', 'password': 'admin'}
+            user, created = User.objects.get_or_create(
+                email=credentials['email'], defaults={
+                    'is_active': True, 'is_staff': True, 'is_superuser': True})
+            if created:
+                user.set_password(credentials['password'])
+                user.save()
+                self.stdout.write(
+                    'Superuser - %(email)s/%(password)s' % credentials)
+            else:
+                self.stdout.write(
+                    'Superuser already exists - %(email)s' % credentials)
