@@ -35,6 +35,7 @@ class ShippingAddressStep(BaseCheckoutStep):
     address_form_class = AddressForm
 
     def __init__(self, request, storage):
+        self.address_selected = False
         super(ShippingAddressStep, self).__init__(request, storage)
         address_data = storage.get('address', {})
         self.address = Address(**address_data)
@@ -52,8 +53,10 @@ class ShippingAddressStep(BaseCheckoutStep):
             addresses = list(existing_addresses.fields['address']._queryset)
             self.addresses = addresses
             for address in addresses:
-                 address.is_selected = Address.objects.are_identical(
-                     address, self.address)
+                is_selected = Address.objects.are_identical(address,
+                                                            self.address)
+                address.is_selected = is_selected
+                self.address_selected = self.address_selected or is_selected
         else:
             self.authenticated_user = False
             self.addresses = []
@@ -68,6 +71,8 @@ class ShippingAddressStep(BaseCheckoutStep):
     def process(self, extra_context=None):
         context = dict(extra_context or {})
         context['addresses'] = self.addresses
+        context['new_address'] = (self.authenticated_user and self.address
+                                  and not self.address_selected)
         return super(BaseCheckoutStep, self).process(extra_context=context)
 
     def forms_are_valid(self):
@@ -75,10 +80,8 @@ class ShippingAddressStep(BaseCheckoutStep):
         if self.addresses:
             addresses_form = self.forms['existing_addresses']
             if addresses_form.is_valid():
-                # addresses = [a.id for a in self.addresses]
                 address_id = addresses_form.cleaned_data['address']
                 if address_id in self.addresses:
-                    # self.address = Address.objects.get(pk=address_id.pk)
                     self.address = address_id
                     address_is_valid = True
 
@@ -103,7 +106,6 @@ class ShippingAddressStep(BaseCheckoutStep):
             self.email = self.forms['email'].cleaned_data['email']
 
         self.storage['email'] = self.email
-        # self.address = Address(**self.address)
         self.storage['address'] = Address.objects.as_data(self.address)
 
     def add_to_order(self, order):
@@ -183,9 +185,6 @@ class SummaryStep(BaseCheckoutStep):
     def process(self, extra_context=None):
         context = dict(extra_context or {})
         context['shipping_address'] = self.shipping_address
-        print "--------------"
-        print self.shipping_address
-        print "--------------"
         context['billing_address'] = self.forms['billing_address']
         copy_address_form = self.forms.get('copy_shipping_address')
         if copy_address_form:

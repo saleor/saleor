@@ -33,7 +33,11 @@
                                             <div class="form-group">
                                                 <label for="{{ addresses_form.address.html_name }}_{{ address.id }}">
                                                     <div class="btn btn-default btn-lg col-sm-12">
-                                                        <input type="radio" name="{{ addresses_form.address.html_name }}" value="{{ address.id }}" id="{{ addresses_form.address.html_name }}_{{ address.id }}">
+                                                        <input type="radio"
+                                                               name="{{ addresses_form.address.html_name }}"
+                                                               value="{{ address.id }}"
+                                                               id="{{ addresses_form.address.html_name }}_{{ address.id }}"
+                                                                {% if address.is_selected %}checked{% endif %}>
                                                         Ship to this address
                                                     </div>
                                                 </label>
@@ -53,7 +57,11 @@
                         <p>
                             <label for="{{ addresses_form.address.html_name }}_new">
                                 <span class="btn btn-default btn-lg col-sm-12">
-                                    <input type="radio" name="{{ addresses_form.address.html_name }}" value="" id="{{ addresses_form.address.html_name }}_new">
+                                    <input type="radio"
+                                           name="{{ addresses_form.address.html_name }}"
+                                           value=""
+                                           id="{{ addresses_form.address.html_name }}_new"
+                                            {% if new_address %}checked{% endif %}>
                                     {% trans "Enter a new address" %}
                                 </span>
                             </label>
@@ -67,7 +75,7 @@
         <div class="row">
             <div class="col-sm-6">
 
-                <div class="panel panel-default">
+                <div class="panel  {% if new_address %}panel-primary{% else %}panel-default{% endif %}">
                     <div class="panel-body">
                         {% if not user.is_authenticated %}
                             {{ step.forms.email|as_vertical_form  }}
