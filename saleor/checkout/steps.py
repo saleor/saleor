@@ -125,29 +125,31 @@ class ShippingMethodStep(BaseCheckoutStep):
 
     def __init__(self, request, storage, shipping_address, cart):
         super(ShippingMethodStep, self).__init__(request, storage)
-        self.cart = cart
-        delivery_choices = [
-            (method.name, method) for method in get_delivery_options_for_items(
-                self.cart, address=shipping_address)]
-        self.valid_delivery_methods = [name for name, method
-                                       in delivery_choices]
+        self.delivery_method = None
         selected_method_name = storage.get('delivery_method')
-        for method_name, method in delivery_choices:
-            if method_name == selected_method_name:
-                delivery_method = method
+        available_deliveries = [
+            {'method': method, 'cost': method.get_delivery_total(cart)}
+            for method in get_delivery_options_for_items(
+                cart, address=shipping_address)]
+
+        delivery_choices = [(delivery['method'].name, delivery['method'].name)
+                            for delivery in available_deliveries]
+
+        for delivery in available_deliveries:
+            if delivery['method'].name == selected_method_name:
+                self.delivery_method = delivery['method']
                 break
-        else:
-            # TODO: find cheapest not first
-            selected_method_name, delivery_method = delivery_choices[0]
-        self.delivery_method = delivery_method
+        # else:
+        #     selected_method_name, delivery_method = available_deliveries[0]
+        self.available_deliveries = available_deliveries
         self.forms['delivery'] = DeliveryForm(
-            delivery_choices,
-            request.POST or None,
+            delivery_choices, request.POST or None,
             initial={'method': selected_method_name})
 
     def process(self, extra_context=None):
         context = dict(extra_context or {})
-        context['form'] = self.forms['delivery']
+        context['available_deliveries'] = self.available_deliveries
+        context['selected_method_name'] = self.delivery_method.name
         return super(ShippingMethodStep, self).process(extra_context=context)
 
     def save(self):
@@ -159,7 +161,8 @@ class ShippingMethodStep(BaseCheckoutStep):
 
     def validate(self):
         selected_method_name = self.storage.get('delivery_method')
-        if selected_method_name not in self.valid_delivery_methods:
+        valid_methods = [d['method'].name for d in self.available_deliveries]
+        if selected_method_name not in valid_methods:
             raise InvalidData('Select a valid delivery method')
 
 

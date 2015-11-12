@@ -1,17 +1,49 @@
-{% extends "checkout/address.html" %}
-{% load as_horizontal_form from bootstrap %}
-{% load as_vertical_form from bootstrap %}
-{% load gross from prices_i18n %}
+{% extends "checkout/details.html" %}
 {% load i18n %}
+{% load gross from prices_i18n %}
 
-{% block fields %}
-    <div class="form-full">
-        {{ step.forms.delivery }}
-    </div>
-{% endblock fields %}
+{% block forms %}
+    <p>{% trans "Choose shipping method." %}</p>
+    <div class="row">
+        <div class="col-sm-8">
+            <div class="row">
+                {% with delivery_form=step.forms.delivery %}
+                    <form method="post">
+                        {% csrf_token %}
+                            {% for method in available_deliveries %}
+                                <div class="col-sm-6">
+                                    {% with method_name=method.method.name %}
+                                        <div class="panel {% if method_name == selected_method_name %}panel-primary{% else %}panel-default{% endif %}">
+                                            <div class="panel-body">
+                                                <p>
+                                                    <strong>{{ method.method }}</strong><br>
+                                                    <span class="badge">{% gross method.cost %}</span>
+                                                </p>
 
-{% block form_submit %}
-    <button type="submit" class="btn btn-primary">
-        {% trans 'Ship this way' %}
-    </button>
+                                                <label for="{{ delivery_form.method.html_name }}_{{ method_name }}">
+                                                    <div class="btn btn-default btn-lg col-sm-12">
+                                                        <input type="radio"
+                                                               name="{{ delivery_form.method.html_name }}"
+                                                               value="{{ method_name }}"
+                                                               id="{{ delivery_form.method.html_name }}_{{ method_name }}"
+                                                                {% if method_name == selected_method_name %}checked{% endif %}>
+                                                        {% trans "Ship this way" %}
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    {% endwith %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+        {% endwith %}
+
+        <button type="submit" class="btn btn-primary">
+            {% trans "Ship this way" %}
+        </button>
+    </form>
 {% endblock %}
+
