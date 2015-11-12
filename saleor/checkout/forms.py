@@ -1,5 +1,16 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
+from saleor.userprofile.models import Address
+
+
+class UserAddressesForm(forms.Form):
+    address = forms.ModelChoiceField(queryset=Address.objects.all(),
+                                     empty_label=_('Add new address'),
+                                     widget=forms.RadioSelect)
+
+    def __init__(self, queryset, *args, **kwargs):
+        super(UserAddressesForm, self).__init__(*args, **kwargs)
+        self.fields['address'].queryset = queryset
 
 
 class CopyShippingAddressForm(forms.Form):

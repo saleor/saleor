@@ -3,11 +3,11 @@ from __future__ import unicode_literals
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db import transaction
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from satchless.process import InvalidData
 
-from .forms import DeliveryForm, CopyShippingAddressForm
+from .forms import DeliveryForm, CopyShippingAddressForm, UserAddressesForm
 from ..checkout.forms import AnonymousEmailForm
 from ..core.utils import BaseStep
 from ..delivery import get_delivery_options_for_items
@@ -38,29 +38,29 @@ class ShippingAddressStep(BaseCheckoutStep):
         super(ShippingAddressStep, self).__init__(request, storage)
         address_data = storage.get('address', {})
         self.address = Address(**address_data)
-        self.existing_selected = False
-        address_form = self.address_form_class(
-            request.POST or None, instance=self.address)
-        self.forms = {'address': address_form}
-        self.authenticated_user = False
+
+        new_address_form = self.address_form_class(request.POST or None,
+                                                   instance=self.address)
+        self.forms = {'new_address': new_address_form}
 
         if request.user.is_authenticated():
-            self.addresses = list(request.user.addresses.all())
-            for address in self.addresses:
-                data = Address.objects.as_data(address)
-                instance = Address(**data)
-                address.form = self.address_form_class(instance=instance)
-                if Address.objects.are_identical(address, self.address):
-                    self.existing_selected = True
-            self.email = request.user.email
             self.authenticated_user = True
+            self.email = request.user.email
+            existing_addresses = UserAddressesForm(request.user.addresses.all(),
+                                                   data=request.POST or None)
+            self.forms['existing_addresses'] = existing_addresses
+            addresses = list(existing_addresses.fields['address']._queryset)
+            self.addresses = addresses
+            for address in addresses:
+                 address.is_selected = Address.objects.are_identical(
+                     address, self.address)
         else:
+            self.authenticated_user = False
             self.addresses = []
             email = storage.get('email', '')
-
+            self.email = email
             self.forms['email'] = AnonymousEmailForm(request.POST or None,
                                                      initial={'email': email})
-            self.email = email
 
     def __str__(self):
         return 'shipping-address'
@@ -68,22 +68,26 @@ class ShippingAddressStep(BaseCheckoutStep):
     def process(self, extra_context=None):
         context = dict(extra_context or {})
         context['addresses'] = self.addresses
-        context['existing_address_selected'] = self.existing_selected
         return super(BaseCheckoutStep, self).process(extra_context=context)
 
-    def save(self):
-        if not self.authenticated_user:
-            self.email = self.forms['email'].cleaned_data['email']
-        self.storage['email'] = self.email
-        address = self.forms['address'].cleaned_data
-        self.address = Address(**address)
-        self.storage['address'] = Address.objects.as_data(self.address)
+    def forms_are_valid(self):
+        address_is_valid = False
+        if self.addresses:
+            addresses_form = self.forms['existing_addresses']
+            if addresses_form.is_valid():
+                # addresses = [a.id for a in self.addresses]
+                address_id = addresses_form.cleaned_data['address']
+                if address_id in self.addresses:
+                    # self.address = Address.objects.get(pk=address_id.pk)
+                    self.address = address_id
+                    address_is_valid = True
 
-    def add_to_order(self, order):
-        self.address.save()
-        order.shipping_address = self.address
-        if order.user:
-            User.objects.store_address(order.user, self.address, shipping=True)
+        if not address_is_valid and self.forms['new_address'].is_valid():
+            address_is_valid = True
+            self.address = Address(**self.forms['new_address'].cleaned_data)
+
+        return ((self.authenticated_user or self.forms['email'].is_valid())
+                and address_is_valid)
 
     def validate(self):
         try:
@@ -94,9 +98,19 @@ class ShippingAddressStep(BaseCheckoutStep):
         if not self.email:
             raise InvalidData()
 
-    def forms_are_valid(self):
-        return self.forms['address'].is_valid() and (
-            self.authenticated_user or self.forms['email'].is_valid())
+    def save(self):
+        if not self.authenticated_user:
+            self.email = self.forms['email'].cleaned_data['email']
+
+        self.storage['email'] = self.email
+        # self.address = Address(**self.address)
+        self.storage['address'] = Address.objects.as_data(self.address)
+
+    def add_to_order(self, order):
+        self.address.save()
+        order.shipping_address = self.address
+        if order.user:
+            User.objects.store_address(order.user, self.address, shipping=True)
 
 
 class ShippingMethodStep(BaseCheckoutStep):
@@ -168,6 +182,10 @@ class SummaryStep(BaseCheckoutStep):
 
     def process(self, extra_context=None):
         context = dict(extra_context or {})
+        context['shipping_address'] = self.shipping_address
+        print "--------------"
+        print self.shipping_address
+        print "--------------"
         context['billing_address'] = self.forms['billing_address']
         copy_address_form = self.forms.get('copy_shipping_address')
         if copy_address_form:

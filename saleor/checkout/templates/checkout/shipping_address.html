@@ -1,33 +1,87 @@
-{% extends "checkout/address.html" %}
-{% load as_horizontal_form from bootstrap %}
+{% extends "checkout/details.html" %}
 {% load as_vertical_form from bootstrap %}
-{% load gross from prices_i18n %}
 {% load i18n %}
 
-{% block use_this_address %}
-    <button type="submit" class="btn {% if entry.is_selected %}btn-primary{% else %}btn-default{% endif %} btn-lg col-sm-12">{% trans "Ship to this address" %}</button>
-{% endblock %}
 
-{% block additional_message %}
-    {% if not user.is_authenticated %}
-        <p class="alert alert-info">
-            {% trans "Already have an account?" %}
-            <a href="{% url "registration:login" %}?next={% url "checkout:details" step="shipping-address" %}">{% trans "Log in" %}</a>
-        </p>
+{% block forms %}
+   {% if not user.is_authenticated %}
+        <div class="row">
+            <div class="col-sm-6">
+                <p class="alert alert-info">
+                    {% trans "Already have an account?" %}
+                    <a href="{% url "registration:login" %}?next={% url "checkout:details" step="shipping-address" %}">{% trans "Log in" %}</a>
+                </p>
+            </div>
+        </div>
     {% endif %}
-{% endblock %}
+    <form method="post">
+        {% csrf_token %}
 
-{% block fields %}
-    <div id="form-full-toggle" data-label="{% trans "Shipping address same as billing" %}"></div>
-    <div class="form-full">
-        {% for form in step.forms.values %}
-            {{ form|as_vertical_form }}
-        {% endfor %}
-    </div>
-{% endblock fields %}
+        {% with addresses_form=step.forms.existing_addresses %}
 
-{% block form_submit %}
-    <button type="submit" class="btn btn-primary">
-        {% trans "Ship to this address" %}
-    </button>
+            {% if addresses %}
+                <p>{% trans "Use one of your existing addresses or enter a new address below." %}</p>
+
+                <div class="row">
+                    <div class="col-sm-8">
+                        <div class="row">
+                            {% for address in addresses %}
+                                <div class="col-sm-6">
+                                    <div class="panel {% if address.is_selected %}panel-primary{% else %}panel-default{% endif %}">
+                                        <div class="panel-body">
+                                            <address>{% include "userprofile/snippets/address-details.html" with address=address %}</address>
+                                            <div class="form-group">
+                                                <label for="{{ addresses_form.address.html_name }}_{{ address.id }}">
+                                                    <div class="btn btn-default btn-lg col-sm-12">
+                                                        <input type="radio" name="{{ addresses_form.address.html_name }}" value="{{ address.id }}" id="{{ addresses_form.address.html_name }}_{{ address.id }}">
+                                                        Ship to this address
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row">
+                    <hr/ >
+                    <div class="col-sm-8">
+                        <p>
+                            <label for="{{ addresses_form.address.html_name }}_new">
+                                <span class="btn btn-default btn-lg col-sm-12">
+                                    <input type="radio" name="{{ addresses_form.address.html_name }}" value="" id="{{ addresses_form.address.html_name }}_new">
+                                    {% trans "Enter a new address" %}
+                                </span>
+                            </label>
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+
+        {% endwith %}
+
+        <div class="row">
+            <div class="col-sm-6">
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        {% if not user.is_authenticated %}
+                            {{ step.forms.email|as_vertical_form  }}
+                        {% endif %}
+
+                        {{ step.forms.new_address|as_vertical_form }}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            {% trans "Ship to this address" %}
+        </button>
+    </form>
 {% endblock %}
