@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db import transaction
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from satchless.process import InvalidData
 
@@ -73,6 +73,8 @@ class ShippingAddressStep(BaseCheckoutStep):
         context['addresses'] = self.addresses
         context['new_address'] = (self.authenticated_user and self.address
                                   and not self.address_selected)
+        context['form_prefix'] = 'shipping'
+        context['button_label'] = _('Ship to this address')
         return super(BaseCheckoutStep, self).process(extra_context=context)
 
     def forms_are_valid(self):
@@ -139,8 +141,6 @@ class ShippingMethodStep(BaseCheckoutStep):
             if delivery['method'].name == selected_method_name:
                 self.delivery_method = delivery['method']
                 break
-        # else:
-        #     selected_method_name, delivery_method = available_deliveries[0]
         self.available_deliveries = available_deliveries
         self.forms['delivery'] = DeliveryForm(
             delivery_choices, request.POST or None,
