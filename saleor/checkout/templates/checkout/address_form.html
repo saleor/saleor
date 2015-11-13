@@ -12,12 +12,12 @@
                         <div class="panel {% if address.is_selected %}panel-primary{% else %}panel-default{% endif %}">
                             <div class="panel-body">
                                 <address>{% include "userprofile/snippets/address-details.html" with address=address %}</address>
-                                <label for="{{ form_prefix }}-{{ addresses_form.address.html_name }}_{{ address.id }}">
+                                <label for="{{ addresses_form.address.html_name }}_{{ address.id }}">
                                     <div class="btn btn-default btn-lg col-sm-12">
                                         <input type="radio"
-                                               name="{{ form_prefix }}-{{ addresses_form.address.html_name }}"
+                                               name="{{ addresses_form.address.html_name }}"
                                                value="{{ address.id }}"
-                                               id="{{ form_prefix }}-{{ addresses_form.address.html_name }}_{{ address.id }}"
+                                               id="{{ addresses_form.address.html_name }}_{{ address.id }}"
                                                 {% if address.is_selected %}checked{% endif %}>
                                         {{ button_label }}
                                     </div>
@@ -33,12 +33,12 @@
     <div class="row">
         <div class="col-sm-6">
             <hr/>
-            <label for="{{ form_prefix }}-{{ addresses_form.address.html_name }}_new">
+            <label for="{{ addresses_form.address.html_name }}_new">
                 <div class="btn btn-default btn-lg col-sm-12">
                     <input type="radio"
-                           name="{{ form_prefix }}-{{ addresses_form.address.html_name }}"
+                           name="{{ addresses_form.address.html_name }}"
                            value=""
-                           id="{{ form_prefix }}-{{ addresses_form.address.html_name }}_new"
+                           id="{{ addresses_form.address.html_name }}_new"
                             {% if new_address %}checked{% endif %}>
                     {% trans "Enter a new address" %}
                 </div>
