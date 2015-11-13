@@ -32,23 +32,22 @@ class BaseCheckoutStep(BaseStep):
 class ShippingAddressStep(BaseCheckoutStep):
     template = 'checkout/shipping_address.html'
     title = _('Shipping Address')
-    address_form_class = AddressForm
+    form_prefix = 'shipping'
 
     def __init__(self, request, storage):
         self.address_selected = False
         super(ShippingAddressStep, self).__init__(request, storage)
         address_data = storage.get('address', {})
         self.address = Address(**address_data)
-
-        new_address_form = self.address_form_class(request.POST or None,
-                                                   instance=self.address)
-        self.forms = {'new_address': new_address_form}
+        self.forms = {'new_address': AddressForm(request.POST or None,
+                                                 instance=self.address)}
 
         if request.user.is_authenticated():
             self.authenticated_user = True
             self.email = request.user.email
             existing_addresses = UserAddressesForm(request.user.addresses.all(),
-                                                   data=request.POST or None)
+                                                   data=request.POST or None,
+                                                   prefix=self.form_prefix)
             self.forms['existing_addresses'] = existing_addresses
             addresses = list(existing_addresses.fields['address']._queryset)
             self.addresses = addresses
@@ -73,7 +72,7 @@ class ShippingAddressStep(BaseCheckoutStep):
         context['addresses'] = self.addresses
         context['new_address'] = (self.authenticated_user and self.address
                                   and not self.address_selected)
-        context['form_prefix'] = 'shipping'
+        context['form_prefix'] = self.form_prefix
         context['button_label'] = _('Ship to this address')
         return super(BaseCheckoutStep, self).process(extra_context=context)
 
