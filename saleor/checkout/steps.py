@@ -188,7 +188,6 @@ class SummaryStep(BaseCheckoutStep):
     def __init__(self, request, storage, shipping_address, checkout):
         super(SummaryStep, self).__init__(request, storage)
         self.billing_address = None
-        # self.same_blling_as_shipping = False
         self.shipping_address = shipping_address
         self.addresses = []
         self.checkout = checkout
@@ -203,6 +202,12 @@ class SummaryStep(BaseCheckoutStep):
                                                    prefix=self.step_name)
             self.forms['existing_addresses'] = existing_addresses
             addresses = list(existing_addresses.fields['address']._queryset)
+            default_billing_address = request.user.default_billing_address
+            for address in addresses:
+                if Address.objects.are_identical(address,
+                                                 default_billing_address):
+                    address.is_selected = True
+                    break
             self.addresses = addresses
         elif not checkout.is_shipping_required():
             self.forms['email'] = AnonymousEmailForm
