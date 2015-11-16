@@ -202,8 +202,8 @@ $icon-font-path: "../fonts/";
         > li {
             position: relative;
             overflow: visible;
-            border-right: 15px solid #fff;
-            border-left: 15px solid #fff;
+            border-right: 15px solid $body-bg;
+            border-left: 15px solid $body-bg;
 
             &:first-child {
                 border-left: 0;
@@ -223,7 +223,7 @@ $icon-font-path: "../fonts/";
 
             a {
                 border-radius: 0;
-                background-color: #eee;
+                background-color: $gray-lighter;
             }
 
             .nav-arrow {
@@ -234,7 +234,7 @@ $icon-font-path: "../fonts/";
                 height: 0px;
                 border-style: solid;
                 border-width: 20px 0 20px 20px;
-                border-color: transparent transparent transparent #eee;
+                border-color: transparent transparent transparent $gray-lighter;
                 z-index: 150;
             }
 
@@ -246,36 +246,22 @@ $icon-font-path: "../fonts/";
                 height: 0px;
                 border-style: solid;
                 border-width: 20px 0 20px 20px;
-                border-color: #eee #eee #eee transparent;
+                border-color: $gray-lighter $gray-lighter $gray-lighter transparent;
                 z-index: 150;
-            }
-
-            &:hover {
-                .nav-arrow {
-                    border-color: transparent transparent transparent #aaa;
-                }
-
-                .nav-wedge {
-                    border-color: #aaa #aaa #aaa transparent;
-                }
-
-                a {
-                    background-color: #aaa;
-                    color: #fff;
-                }
             }
 
             &.active {
                 .nav-arrow {
-                    border-color: transparent transparent transparent #428bca;
+                    border-color: transparent transparent transparent $nav-pills-active-link-hover-bg;
                 }
 
                 .nav-wedge {
-                    border-color: #428bca #428bca #428bca transparent;
+                    border-color: $nav-pills-active-link-hover-bg $nav-pills-active-link-hover-bg $nav-pills-active-link-hover-bg transparent;
                 }
 
                 a {
-                    background-color: #428bca;
+                    background-color: $nav-pills-active-link-hover-bg;
+					color: $nav-pills-active-link-hover-color;
                 }
             }
         }
