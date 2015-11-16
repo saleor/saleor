@@ -137,19 +137,27 @@ class ShippingMethodStep(BaseCheckoutStep):
         delivery_choices = [(delivery['method'].name, delivery['method'].name)
                             for delivery in available_deliveries]
 
+        if available_deliveries:
+            cheapest_delivery = available_deliveries[0]
+
         for delivery in available_deliveries:
             if delivery['method'].name == selected_method_name:
                 self.delivery_method = delivery['method']
                 break
+            if delivery['cost'] < cheapest_delivery['cost']:
+                cheapest_delivery = delivery
+        else:
+            selected_method_name = cheapest_delivery['method'].name
         self.available_deliveries = available_deliveries
         self.forms['delivery'] = DeliveryForm(
             delivery_choices, request.POST or None,
             initial={'method': selected_method_name})
+        self.selected_method_name = selected_method_name
 
     def process(self, extra_context=None):
         context = dict(extra_context or {})
         context['available_deliveries'] = self.available_deliveries
-        context['selected_method_name'] = self.delivery_method.name
+        context['selected_method_name'] = self.selected_method_name
         return super(ShippingMethodStep, self).process(extra_context=context)
 
     def save(self):
