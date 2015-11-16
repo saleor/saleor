@@ -55,15 +55,20 @@ class ShippingAddressStep(BaseCheckoutStep):
             self.forms['existing_addresses'] = existing_addresses
             addresses = list(existing_addresses.fields['address']._queryset)
             self.addresses = addresses
-            address_selected = False
             for address in addresses:
-                is_selected = Address.objects.are_identical(address,
-                                                            self.address)
-                address.is_selected = is_selected
-                address_selected = address_selected or is_selected
-
-            if self.address and not address_selected:
-                self.is_new_address = True
+                if Address.objects.are_identical(address, self.address):
+                    address.is_selected = True
+                    break
+            else:
+                if address_data:
+                    self.is_new_address = True
+                else:
+                    default_address = request.user.default_shipping_address
+                    for address in addresses:
+                        if Address.objects.are_identical(address,
+                                                         default_address):
+                            address.is_selected = True
+                            break
         else:
             self.authenticated_user = False
             self.addresses = []
@@ -180,7 +185,6 @@ class SummaryStep(BaseCheckoutStep):
     forms = {}
     step_name = 'summary'
 
-
     def __init__(self, request, storage, shipping_address, checkout):
         super(SummaryStep, self).__init__(request, storage)
         self.billing_address = None
@@ -192,7 +196,6 @@ class SummaryStep(BaseCheckoutStep):
         if checkout.is_shipping_required():
             self.forms['copy_shipping_address'] = CopyShippingAddressForm(
                 request.POST or None)
-
 
         if request.user.is_authenticated():
             existing_addresses = UserAddressesForm(request.user.addresses.all(),
