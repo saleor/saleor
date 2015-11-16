@@ -14,13 +14,17 @@ class UserAddressesForm(forms.Form):
 
 
 class CopyShippingAddressForm(forms.Form):
+    CHOICES = (
+        (True, "Copy shipping address"),
+        (False, "Provide another address"),
+    )
 
-    billing_same_as_shipping = forms.BooleanField(
-        initial=True, required=False, label=_('Change billing address'))
+    billing_same_as_shipping = forms.BooleanField(initial=True,
+                                                  widget=forms.RadioSelect(
+                                                      choices=CHOICES))
 
 
 class DeliveryForm(forms.Form):
-
     method = forms.ChoiceField(label=_('Shipping method'),
                                widget=forms.RadioSelect)
 
@@ -33,5 +37,4 @@ class DeliveryForm(forms.Form):
 
 
 class AnonymousEmailForm(forms.Form):
-
     email = forms.EmailField()
