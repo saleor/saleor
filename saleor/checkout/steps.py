@@ -123,9 +123,7 @@ class ShippingMethodStep(BaseCheckoutStep):
     template = 'checkout/shipping_method.html'
     title = _('Shipping Method')
     forms = {}
-
-    def __str__(self):
-        return 'shipping-method'
+    step_name = 'shipping-method'
 
     def __init__(self, request, storage, shipping_address, cart):
         super(ShippingMethodStep, self).__init__(request, storage)
