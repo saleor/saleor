@@ -28,34 +28,42 @@ class BaseCheckoutStep(BaseStep):
     def add_to_order(self, order):
         raise NotImplementedError()
 
+    def __str__(self):
+        return self.step_name
+
 
 class ShippingAddressStep(BaseCheckoutStep):
     template = 'checkout/shipping_address.html'
     title = _('Shipping Address')
-    form_prefix = 'shipping'
+    step_name = 'shipping-address'
 
     def __init__(self, request, storage):
-        self.address_selected = False
         super(ShippingAddressStep, self).__init__(request, storage)
         address_data = storage.get('address', {})
         self.address = Address(**address_data)
+        self.is_new_address = False
         self.forms = {'new_address': AddressForm(request.POST or None,
-                                                 instance=self.address)}
+                                                 instance=self.address,
+                                                 prefix=self.step_name)}
 
         if request.user.is_authenticated():
             self.authenticated_user = True
             self.email = request.user.email
             existing_addresses = UserAddressesForm(request.user.addresses.all(),
                                                    data=request.POST or None,
-                                                   prefix=self.form_prefix)
+                                                   prefix=self.step_name)
             self.forms['existing_addresses'] = existing_addresses
             addresses = list(existing_addresses.fields['address']._queryset)
             self.addresses = addresses
+            address_selected = False
             for address in addresses:
                 is_selected = Address.objects.are_identical(address,
                                                             self.address)
                 address.is_selected = is_selected
-                self.address_selected = self.address_selected or is_selected
+                address_selected = address_selected or is_selected
+
+            if self.address and not address_selected:
+                self.is_new_address = True
         else:
             self.authenticated_user = False
             self.addresses = []
@@ -64,15 +72,10 @@ class ShippingAddressStep(BaseCheckoutStep):
             self.forms['email'] = AnonymousEmailForm(request.POST or None,
                                                      initial={'email': email})
 
-    def __str__(self):
-        return 'shipping-address'
-
     def process(self, extra_context=None):
         context = dict(extra_context or {})
         context['addresses'] = self.addresses
-        context['new_address'] = (self.authenticated_user and self.address
-                                  and not self.address_selected)
-        context['form_prefix'] = self.form_prefix
+        context['new_address'] = self.is_new_address
         context['button_label'] = _('Ship to this address')
         return super(BaseCheckoutStep, self).process(extra_context=context)
 
