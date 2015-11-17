@@ -6,7 +6,6 @@
   "logo": "https://mirumee.com/img/opensource-saleor.png",
   "keywords": ["saleor", "e-commerce", "django"],
   "env": {
-    "BUILDPACK_URL": "https://github.com/ddollar/heroku-buildpack-multi.git",
     "DJANGO_SETTINGS_MODULE": "saleor.settings",
     "ALLOWED_HOSTS": "*",
     "DEBUG": "False",
@@ -35,5 +34,10 @@
   },
   "addons": [
     "heroku-postgresql:hobby-dev"
+  ],
+  "buildpacks": [
+    {
+      "url": "https://github.com/ddollar/heroku-buildpack-multi.git"
+    }
   ]
 }
