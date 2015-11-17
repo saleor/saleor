@@ -1,0 +1,6 @@
+include requirements.in
+recursive-include saleor/**/templates *.html *.txt
+graft templates
+
+prune media
+graft static
