@@ -40,7 +40,7 @@ setup(
     install_requires=[
         'Babel>=1.3,<1.4a0',
         'BabelDjango>=0.2,<0.3a0',
-        'Django>=1.8',
+        'Django>=1.8,!=1.8.6',
         'dj_database_url>=0.3.0',
         'django-emailit>=0.2.2',
         'django-materializecss-form>=0.1,<0.2a0',
