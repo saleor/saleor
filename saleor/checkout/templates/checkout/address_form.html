@@ -26,7 +26,7 @@
         {% endfor %}
     </div>
 
-    <hr/>
+{#    <hr/>#}
     <label for="{{ addresses_form.address.html_name }}_new">
         <div class="btn btn-default btn-lg col-sm-12">
             <input type="radio"
@@ -37,8 +37,6 @@
             {% trans "Enter a new address" %}
         </div>
     </label>
-{% else %}
-    <p>{% trans "Enter new address." %}</p>
 {% endif %}
     {% if display_email_form %}
         {{ step.forms.email|as_vertical_form  }}
