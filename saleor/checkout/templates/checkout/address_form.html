@@ -5,61 +5,43 @@
     <p>{% trans "Use one of your existing addresses or enter a new address below." %}</p>
 
     <div class="row">
-        <div class="col-sm-8">
-            <div class="row">
-                {% for address in addresses %}
-                    <div class="col-sm-6">
-                        <div class="panel {% if address.is_selected %}panel-primary{% else %}panel-default{% endif %}">
-                            <div class="panel-body">
-                                <address>{% include "userprofile/snippets/address-details.html" with address=address %}</address>
-                                <label for="{{ addresses_form.address.html_name }}_{{ address.id }}">
-                                    <div class="btn btn-default btn-lg col-sm-12">
-                                        <input type="radio"
-                                               name="{{ addresses_form.address.html_name }}"
-                                               value="{{ address.id }}"
-                                               id="{{ addresses_form.address.html_name }}_{{ address.id }}"
-                                                {% if address.is_selected %}checked{% endif %}>
-                                        {{ button_label }}
-                                    </div>
-                                </label>
+        {% for address in addresses %}
+            <div class="col-sm-6">
+                <div class="panel {% if address.is_selected %}panel-primary{% else %}panel-default{% endif %}">
+                    <div class="panel-body">
+                        <address>{% include "userprofile/snippets/address-details.html" with address=address %}</address>
+                        <label for="{{ addresses_form.address.html_name }}_{{ address.id }}">
+                            <div class="btn btn-default btn-lg col-sm-12">
+                                <input type="radio"
+                                       name="{{ addresses_form.address.html_name }}"
+                                       value="{{ address.id }}"
+                                       id="{{ addresses_form.address.html_name }}_{{ address.id }}"
+                                        {% if address.is_selected %}checked{% endif %}>
+                                {{ button_label }}
                             </div>
-                        </div>
+                        </label>
                     </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-sm-6">
-            <hr/>
-            <label for="{{ addresses_form.address.html_name }}_new">
-                <div class="btn btn-default btn-lg col-sm-12">
-                    <input type="radio"
-                           name="{{ addresses_form.address.html_name }}"
-                           value=""
-                           id="{{ addresses_form.address.html_name }}_new"
-                            {% if new_address %}checked{% endif %}>
-                    {% trans "Enter a new address" %}
                 </div>
-            </label>
-        </div>
-    </div>
-{% else %}
-        <div class="col-sm-6">
-    <div class="row">
-        <p>{% trans "Enter new address." %}</p>
-{% endif %}
-<div class="row">
-    <div class="col-sm-6">
-        <div class="panel  {% if new_address %}panel-primary{% else %}panel-default{% endif %}">
-            <div class="panel-body">
-                {% if display_email_form %}
-                    {{ step.forms.email|as_vertical_form  }}
-                {% endif %}
-
-                {{ step.forms.new_address|as_vertical_form }}
             </div>
-        </div>
+        {% endfor %}
     </div>
-</div>
+
+    <hr/>
+    <label for="{{ addresses_form.address.html_name }}_new">
+        <div class="btn btn-default btn-lg col-sm-12">
+            <input type="radio"
+                   name="{{ addresses_form.address.html_name }}"
+                   value=""
+                   id="{{ addresses_form.address.html_name }}_new"
+                    {% if new_address %}checked{% endif %}>
+            {% trans "Enter a new address" %}
+        </div>
+    </label>
+{% else %}
+    <p>{% trans "Enter new address." %}</p>
+{% endif %}
+    {% if display_email_form %}
+        {{ step.forms.email|as_vertical_form  }}
+    {% endif %}
+
+    {{ step.forms.new_address|as_vertical_form }}
