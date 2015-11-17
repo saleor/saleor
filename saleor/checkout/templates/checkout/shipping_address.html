@@ -15,13 +15,17 @@
     {% endif %}
     <form method="post">
         {% csrf_token %}
+        <div class="row">
+            <div class="col-sm-8">
 
-        {% if user.is_authenticated %}
-            {% include "checkout/address_form.html" with addresses_form=step.forms.existing_addresses %}
-        {% else %}
-            {% include "checkout/address_form.html" with addresses_form=step.forms.existing_addresses display_email_form=True %}
-        {% endif %}
+                {% if user.is_authenticated %}
+                    {% include "checkout/address_form.html" with addresses_form=step.forms.existing_addresses %}
+                {% else %}
+                    {% include "checkout/address_form.html" with addresses_form=step.forms.existing_addresses display_email_form=True %}
+                {% endif %}
 
+            </div>
+        </div>
         <button type="submit" class="btn btn-primary">
             {% trans "Ship to this address" %}
         </button>
