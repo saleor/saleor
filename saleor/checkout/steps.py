@@ -42,7 +42,6 @@ class ShippingAddressStep(BaseCheckoutStep):
         address_data = storage.get('address', {})
         self.address = Address(**address_data)
         self.address_id = storage.get('address_id')
-        # self.is_new_address = False
         address_form = AddressForm(
             request.POST or None, prefix=self.step_name,
             instance=self.address if not self.address_id else None)
@@ -57,17 +56,16 @@ class ShippingAddressStep(BaseCheckoutStep):
             self.forms['existing_addresses'] = existing_addresses
             addresses = list(existing_addresses.fields['address']._queryset)
             self.addresses = addresses
-            selected_address = self.get_same_own_address(self.address)
-            if selected_address:
-                selected_address.is_selected = True
-            elif address_data:
-                # self.is_new_address = True
-                pass
-            else:
-                default_address = request.user.default_shipping_address
-                selected_address = self.get_same_own_address(default_address)
+            if not (address_form.is_bound
+                    or (self.address and not self.address_id)):
+                selected_address = self.get_same_own_address(self.address)
                 if selected_address:
                     selected_address.is_selected = True
+                else:
+                    default_address = request.user.default_shipping_address
+                    address = self.get_same_own_address(default_address)
+                    if address:
+                        address.is_selected = True
         else:
             self.authenticated_user = False
             self.addresses = []
@@ -84,7 +82,8 @@ class ShippingAddressStep(BaseCheckoutStep):
     def process(self, extra_context=None):
         context = dict(extra_context or {})
         context['addresses'] = self.addresses
-        context['new_address'] = self.authenticated_user and not self.address_id
+        context['new_address'] = (self.forms['new_address'].is_bound
+                                  or not self.address_id)
         context['button_label'] = _('Ship to this address')
         return super(BaseCheckoutStep, self).process(extra_context=context)
 
@@ -199,10 +198,11 @@ class SummaryStep(BaseCheckoutStep):
         self.shipping_address = shipping_address
         self.addresses = []
         self.checkout = checkout
-        self.forms = {'new_address': AddressForm(request.POST or None)}
+        self.forms = {'new_address': AddressForm(request.POST or None,
+                                                 prefix=self.step_name)}
         if checkout.is_shipping_required():
             self.forms['copy_shipping_address'] = CopyShippingAddressForm(
-                request.POST or None)
+                request.POST or None, prefix=self.step_name)
 
         if request.user.is_authenticated():
             existing_addresses = UserAddressesForm(request.user.addresses.all(),
@@ -210,21 +210,25 @@ class SummaryStep(BaseCheckoutStep):
                                                    prefix=self.step_name)
             self.forms['existing_addresses'] = existing_addresses
             addresses = list(existing_addresses.fields['address']._queryset)
-            default_billing_address = request.user.default_billing_address
-            for address in addresses:
-                if Address.objects.are_identical(address,
-                                                 default_billing_address):
-                    address.is_selected = True
-                    break
+            if not self.forms['new_address'].is_bound:
+                default_billing_address = request.user.default_billing_address
+                for address in addresses:
+                    if Address.objects.are_identical(address,
+                                                    default_billing_address):
+                        address.is_selected = True
+                        break
             self.addresses = addresses
         elif not checkout.is_shipping_required():
-            self.forms['email'] = AnonymousEmailForm
+            self.forms['email'] = AnonymousEmailForm(request.POST or None,
+                                                     prefix=self.step_name)
 
     def process(self, extra_context=None):
         context = dict(extra_context or {})
         context['shipping_address'] = self.shipping_address
         context['addresses'] = self.addresses
         context['button_label'] = _('Bill to this address')
+        context['display_email_form'] = self.forms.get('email')
+        context['new_address'] = self.forms['new_address'].is_bound
         response = super(SummaryStep, self).process(context)
 
         if not response:
@@ -253,7 +257,7 @@ class SummaryStep(BaseCheckoutStep):
                 **self.forms['new_address'].cleaned_data)
 
         self.billing_address = address or self.billing_address
-        email_form = self.forms.get('email_form')
+        email_form = self.forms.get('email')
         if email_form:
             return email_form.is_valid() and address
         else:
@@ -267,7 +271,7 @@ class SummaryStep(BaseCheckoutStep):
     def save(self):
         billing_addres_data = Address.objects.as_data(self.billing_address)
         self.storage = {'billing_address': billing_addres_data}
-        if self.forms.get('email_form'):
+        if self.forms.get('email'):
             self.storage['email'] = self.forms['email'].cleaned_data['email']
 
     def billing_address_add_to_order(self, order):
