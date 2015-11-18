@@ -18,8 +18,13 @@
       "description": "A secret key for verifying the integrity of signed cookies.",
       "generator": "secret"
     },
+    "FQDN": {
+      "description": "Fully qualified domain name for linking back to your app.",
+      "value": "",
+      "required": false
+    },
     "AWS_MEDIA_BUCKET_NAME": {
-      "description": "If you intend to upload your own product images, we strongly recommend configure S3",
+      "description": "If you intend to upload your own product images, we strongly recommend configure S3.",
       "value": "",
       "required": false
     },
@@ -45,5 +50,6 @@
     {
       "url": "https://github.com/ddollar/heroku-buildpack-multi.git"
     }
-  ]
+  ],
+  "success_url": "/"
 }
