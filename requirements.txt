@@ -4,7 +4,7 @@
 #
 #    pip-compile requirements.in
 #
-babel==1.3
+babel==2.1.1
 babeldjango==0.2.2
 boto==2.38.0              # via django-offsite-storage
 braintree==3.21.0         # via django-payments
@@ -15,16 +15,16 @@ django-absolute==0.3      # via django-emailit
 django-cache-url==1.0.0
 django-emailit==0.2.2
 django-materializecss-form==0.1
-django-model-utils==2.0.3
+django-model-utils==2.3.1
 django-mptt==0.7.4
 django-offsite-storage==0.0.6
 django-payments==0.8.2
 django-prices==0.4.1
 django-redis==4.3.0
 django-selectable==0.9.0
-django-versatileimagefield==1.0.6
+django-versatileimagefield==1.1
 django==1.8.5
-djangorestframework==3.1.3
+djangorestframework==3.3.1
 fake-factory==0.5.3
 funcsigs==0.4             # via mock
 google-measurement-protocol==0.1.4
