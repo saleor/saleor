@@ -77,9 +77,9 @@ class BaseStep(Step):
 
 def build_absolute_uri(location, is_secure=False):
     try:
-        host = settings.CANONICAL_HOSTNAME
+        host = settings.FQDN
     except AttributeError:
-        raise ImproperlyConfigured('You need to specify CANONICAL_HOSTNAME in '
+        raise ImproperlyConfigured('You need to specify FQDN in '
                                    'your Django settings file')
     if not absolute_http_url_re.match(location):
         current_uri = '%s://%s' % ('https' if is_secure else 'http', host)
