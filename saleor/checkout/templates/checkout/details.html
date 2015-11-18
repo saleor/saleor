@@ -9,18 +9,17 @@
 
 {% block outerbreadcrumb %}{% endblock %}
 
-{% block header %}
-    <header class="navbar navbar-default navbar-static-top" role="navigation">
-        <nav class="container">
-            <div class="navbar-header">
-                <a class="navbar-brand" href="/">Saleor</a>
-            </div>
-        </nav>
-    </header>
-{% endblock %}
-
 {% block footer %}
 {% endblock %}
+
+{% if not user.is_authenticated %}
+    <p class="alert alert-info">
+        {% trans "Already have an account?" %}
+        <a href="{% url "registration:login" %}?next={% url "checkout:details" step="shipping-address" %}">
+            {% trans "Log in" %}
+        </a>
+    </p>
+{% endif %}
 
 {% block content %}
     <ul class="nav nav-pills nav-justified">
@@ -48,6 +47,15 @@
 
     <hr>
 
+
+    {% if not user.is_authenticated %}
+        <p class="alert alert-info">
+            {% trans "Already have an account?" %}
+            <a href="{% url "registration:login" %}?next={% url "checkout:details" step="shipping-address" %}">
+                {% trans "Log in" %}
+            </a>
+        </p>
+    {% endif %}
     {% block step_info %}{% endblock %}
 
     <div class="row">

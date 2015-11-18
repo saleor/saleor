@@ -3,6 +3,7 @@
 {% load i18n %}
 {% load staticfiles %}
 
+
 {% block forms %}
     <form method="post">
         {% csrf_token %}
@@ -16,10 +17,10 @@
                 </button>
             </p>
     </form>
-    </div>
-    <div class="col-sm-4">
-        {% if checkout.is_shipping_required %}
-            <h4>{% trans "Shipping address" %}</h4>
-            <address>{% include "userprofile/snippets/address-details.html" with address=shipping_address %}</address>
-        {% endif %}
+</div>
+<div class="col-sm-4">
+    {% if checkout.is_shipping_required %}
+        <h4>{% trans "Shipping address" %}</h4>
+        <address>{% include "userprofile/snippets/address-details.html" with address=shipping_address %}</address>
+    {% endif %}
 {% endblock forms %}

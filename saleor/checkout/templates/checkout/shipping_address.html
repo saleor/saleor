@@ -2,19 +2,7 @@
 {% load i18n %}
 
 
-{% block step_info %}
-    {% if not user.is_authenticated %}
-        <p class="alert alert-info">
-            {% trans "Already have an account?" %}
-            <a href="{% url "registration:login" %}?next={% url "checkout:details" step="shipping-address" %}">
-                {% trans "Log in" %}
-            </a>
-        </p>
-    {% endif %}
-{% endblock %}
-
 {% block forms %}
-
     <form method="post">
         {% csrf_token %}
 
