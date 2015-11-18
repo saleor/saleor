@@ -2,43 +2,39 @@
 {% load i18n %}
 {% load gross from prices_i18n %}
 
+
 {% block forms %}
-    <p>{% trans "Choose shipping method." %}</p>
-    <div class="row">
-        <div class="col-sm-8">
-            <div class="row">
-                {% with delivery_form=step.forms.delivery %}
-                    <form method="post">
-                        {% csrf_token %}
-                            {% for method in available_deliveries %}
-                                <div class="col-sm-6">
-                                    {% with method_name=method.method.name %}
-                                        <div class="panel {% if method_name == selected_method_name %}panel-primary{% else %}panel-default{% endif %}">
-                                            <div class="panel-body">
-                                                <p>
-                                                    <strong>{{ method.method }}</strong><br>
-                                                    <span class="badge">{% gross method.cost %}</span>
-                                                </p>
+    <form method="post">
+        {% csrf_token %}
 
-                                                <label for="{{ delivery_form.method.html_name }}_{{ method_name }}">
-                                                    <div class="btn btn-default btn-lg col-sm-12">
-                                                        <input type="radio"
-                                                               name="{{ delivery_form.method.html_name }}"
-                                                               value="{{ method_name }}"
-                                                               id="{{ delivery_form.method.html_name }}_{{ method_name }}"
-                                                                {% if method_name == selected_method_name %}checked{% endif %}>
-                                                        {% trans "Ship this way" %}
-                                                    </div>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    {% endwith %}
-                                </div>
-                            {% endfor %}
+        <p>{% trans "Choose shipping method." %}</p>
+
+        {% with delivery_form=step.forms.delivery %}
+            {% for method in available_deliveries %}
+                <div class="col-sm-6">
+                    {% with method_name=method.method.name %}
+                        <div class="panel {% if method_name == selected_method_name %}panel-primary{% else %}panel-default{% endif %}">
+                            <div class="panel-body">
+                                <p>
+                                    <strong>{{ method.method }}</strong><br>
+                                    <span class="badge">{% gross method.cost %}</span>
+                                </p>
+
+                                <label for="{{ delivery_form.method.html_name }}_{{ method_name }}">
+                                    <div class="btn btn-default btn-lg col-sm-12">
+                                        <input type="radio"
+                                               name="{{ delivery_form.method.html_name }}"
+                                               value="{{ method_name }}"
+                                               id="{{ delivery_form.method.html_name }}_{{ method_name }}"
+                                                {% if method_name == selected_method_name %}checked{% endif %}>
+                                        {% trans "Ship this way" %}
+                                    </div>
+                                </label>
+                            </div>
                         </div>
-                    </div>
+                    {% endwith %}
                 </div>
-
+            {% endfor %}
         {% endwith %}
 
         <button type="submit" class="btn btn-primary">

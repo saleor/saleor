@@ -2,30 +2,28 @@
 {% load i18n %}
 
 
-{% block forms %}
-   {% if not user.is_authenticated %}
-        <div class="row">
-            <div class="col-sm-6">
-                <p class="alert alert-info">
-                    {% trans "Already have an account?" %}
-                    <a href="{% url "registration:login" %}?next={% url "checkout:details" step="shipping-address" %}">{% trans "Log in" %}</a>
-                </p>
-            </div>
-        </div>
+{% block step_info %}
+    {% if not user.is_authenticated %}
+        <p class="alert alert-info">
+            {% trans "Already have an account?" %}
+            <a href="{% url "registration:login" %}?next={% url "checkout:details" step="shipping-address" %}">
+                {% trans "Log in" %}
+            </a>
+        </p>
     {% endif %}
+{% endblock %}
+
+{% block forms %}
+
     <form method="post">
         {% csrf_token %}
-        <div class="row">
-            <div class="col-sm-8">
 
-                {% if user.is_authenticated %}
-                    {% include "checkout/address_form.html" with addresses_form=step.forms.addresses_form %}
-                {% else %}
-                    {% include "checkout/address_form.html" with addresses_form=step.forms.addresses_form display_email_form=True %}
-                {% endif %}
+        {% if user.is_authenticated %}
+            {% include "checkout/address_form.html" with addresses_form=step.forms.addresses_form %}
+        {% else %}
+            {% include "checkout/address_form.html" with addresses_form=step.forms.addresses_form display_email_form=True %}
+        {% endif %}
 
-            </div>
-        </div>
         <button type="submit" class="btn btn-primary">
             {% trans "Ship to this address" %}
         </button>

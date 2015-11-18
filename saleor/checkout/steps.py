@@ -17,9 +17,10 @@ from ..userprofile.models import Address, User
 
 class BaseCheckoutStep(BaseStep):
 
-    def __init__(self, request, storage):
+    def __init__(self, request, storage, checkout):
         super(BaseCheckoutStep, self).__init__(request)
         self.storage = storage
+        self.checkout = checkout
 
     @models.permalink
     def get_absolute_url(self):
@@ -38,8 +39,8 @@ class ShippingAddressStep(BaseCheckoutStep):
     step_name = 'shipping-address'
     addresses = []
 
-    def __init__(self, request, storage):
-        super(ShippingAddressStep, self).__init__(request, storage)
+    def __init__(self, request, storage, checkout):
+        super(ShippingAddressStep, self).__init__(request, storage, checkout)
         address_data = storage.get('address', {})
         self.address = Address(**address_data)
         self.address_id = storage.get('address_id')
@@ -141,8 +142,8 @@ class ShippingMethodStep(BaseCheckoutStep):
     title = _('Shipping Method')
     step_name = 'shipping-method'
 
-    def __init__(self, request, storage, shipping_address, cart):
-        super(ShippingMethodStep, self).__init__(request, storage)
+    def __init__(self, request, storage, shipping_address, cart, checkout):
+        super(ShippingMethodStep, self).__init__(request, storage, checkout)
         self.delivery_method = None
         selected_method_name = storage.get('delivery_method')
         available_deliveries = [
@@ -199,10 +200,9 @@ class SummaryStep(BaseCheckoutStep):
     available_address_choices = [('new', _('Enter a new address'))]
 
     def __init__(self, request, storage, shipping_address, checkout):
-        super(SummaryStep, self).__init__(request, storage)
+        super(SummaryStep, self).__init__(request, storage, checkout)
         self.billing_address = storage.get('billing_address')
         self.shipping_address = shipping_address
-        self.checkout = checkout
         self.forms = {'new_address': AddressForm(request.POST or None,
                                                  prefix=self.step_name)}
         if shipping_address:
@@ -275,8 +275,6 @@ class SummaryStep(BaseCheckoutStep):
             return email_form.is_valid() and billing_address
         else:
             return billing_address
-        # next_step = self.checkout.get_next_step()
-        # return next_step == self
 
     def validate(self):
         raise InvalidData()
