@@ -198,7 +198,8 @@ AUTHENTICATION_BACKENDS = (
 
 AUTH_USER_MODEL = 'userprofile.User'
 
-CANONICAL_HOSTNAME = os.environ.get('CANONICAL_HOSTNAME', 'localhost:8000')
+# Fully qualified domain name
+FQDN = os.environ.get('FQDN', 'localhost:8000')
 
 LOGIN_URL = '/account/login'
 
@@ -218,15 +219,13 @@ GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get('GOOGLE_ANALYTICS_TRACKING_ID')
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
 GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
 
-PAYMENT_BASE_URL = 'http://%s/' % CANONICAL_HOSTNAME
-
 PAYMENT_MODEL = 'order.Payment'
 
 PAYMENT_VARIANTS = {
     'default': ('payments.dummy.DummyProvider', {})
 }
 
-PAYMENT_HOST = os.environ.get('PAYMENT_HOST', 'localhost:8000')
+PAYMENT_HOST = FQDN
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'

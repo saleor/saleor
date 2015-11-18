@@ -12,7 +12,7 @@ def get_setting_as_dict(name, short_name=None):
 
 
 def canonical_hostname(request):
-    return get_setting_as_dict('CANONICAL_HOSTNAME')
+    return get_setting_as_dict('FQDN')
 
 
 def default_currency(request):
