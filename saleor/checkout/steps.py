@@ -36,6 +36,7 @@ class ShippingAddressStep(BaseCheckoutStep):
     template = 'checkout/shipping_address.html'
     title = _('Shipping Address')
     step_name = 'shipping-address'
+    addresses = []
 
     def __init__(self, request, storage):
         super(ShippingAddressStep, self).__init__(request, storage)
@@ -46,7 +47,7 @@ class ShippingAddressStep(BaseCheckoutStep):
             request.POST or None, prefix=self.step_name,
             instance=self.address if not self.address_id else None)
         self.forms = {'new_address': new_address_form}
-        self.avalable_address_choices = [('new', _('Enter a new address'))]
+        self.available_address_choices = [('new', _('Enter a new address'))]
 
         if request.user.is_authenticated():
             self.authenticated_user = True
@@ -54,7 +55,7 @@ class ShippingAddressStep(BaseCheckoutStep):
             queryset = request.user.addresses.all()
             addresses = list(queryset)
             self.forms['addresses_form'] = UserAddressesForm(
-                queryset=queryset, possibilities=self.avalable_address_choices,
+                queryset=queryset, possibilities=self.available_address_choices,
                 data=request.POST or None, prefix=self.step_name)
             self.addresses = addresses
             if not (new_address_form.is_bound
@@ -70,7 +71,6 @@ class ShippingAddressStep(BaseCheckoutStep):
                             address.is_selected = True
         else:
             self.authenticated_user = False
-            self.addresses = []
             email = storage.get('email', '')
             self.email = email
             self.forms['email'] = AnonymousEmailForm(request.POST or None,
@@ -96,7 +96,7 @@ class ShippingAddressStep(BaseCheckoutStep):
             if addresses_form.is_valid():
                 selected_address = addresses_form.cleaned_data['address']
                 special_values = [value for value, label
-                                  in self.avalable_address_choices]
+                                  in self.available_address_choices]
                 if selected_address not in special_values:
                     own_address = self.get_same_own_address(selected_address)
                     if own_address:
@@ -105,9 +105,9 @@ class ShippingAddressStep(BaseCheckoutStep):
                         address_is_valid = True
 
         if not address_is_valid and self.forms['new_address'].is_valid():
-            address_is_valid = True
             self.address = Address(**self.forms['new_address'].cleaned_data)
             self.address_id = None
+            address_is_valid = True
 
         return ((self.authenticated_user or self.forms['email'].is_valid())
                 and address_is_valid)
@@ -139,7 +139,6 @@ class ShippingAddressStep(BaseCheckoutStep):
 class ShippingMethodStep(BaseCheckoutStep):
     template = 'checkout/shipping_method.html'
     title = _('Shipping Method')
-    forms = {}
     step_name = 'shipping-method'
 
     def __init__(self, request, storage, shipping_address, cart):
@@ -166,9 +165,9 @@ class ShippingMethodStep(BaseCheckoutStep):
         else:
             selected_method_name = cheapest_delivery['method'].name
         self.available_deliveries = available_deliveries
-        self.forms['delivery'] = DeliveryForm(
-            delivery_choices, request.POST or None,
-            initial={'method': selected_method_name})
+        delivery_form = DeliveryForm(delivery_choices, request.POST or None,
+                                     initial={'method': selected_method_name})
+        self.forms = {'delivery': delivery_form}
         self.selected_method_name = selected_method_name
 
     def process(self, extra_context=None):
@@ -194,38 +193,47 @@ class ShippingMethodStep(BaseCheckoutStep):
 class SummaryStep(BaseCheckoutStep):
     template = 'checkout/summary.html'
     title = _('Summary')
-    forms = {}
     step_name = 'summary'
+    addresses = []
+    select_copy_shipping_address = True
+    available_address_choices = [('new', _('Enter a new address'))]
 
     def __init__(self, request, storage, shipping_address, checkout):
         super(SummaryStep, self).__init__(request, storage)
-        self.billing_address = None
+        self.billing_address = storage.get('billing_address')
         self.shipping_address = shipping_address
-        self.addresses = []
         self.checkout = checkout
         self.forms = {'new_address': AddressForm(request.POST or None,
                                                  prefix=self.step_name)}
-        if checkout.is_shipping_required():
-            self.forms['copy_shipping_address'] = CopyShippingAddressForm(
-                request.POST or None, prefix=self.step_name)
+        if shipping_address:
+            self.available_address_choices.append(
+                ('copy', _('Copy shipping address')))
 
         if request.user.is_authenticated():
-            existing_addresses = UserAddressesForm(request.user.addresses.all(),
-                                                   data=request.POST or None,
-                                                   prefix=self.step_name)
-            self.forms['existing_addresses'] = existing_addresses
-            addresses = list(existing_addresses.fields['address']._queryset)
+            queryset = request.user.addresses.all()
+            self.addresses = list(queryset)
+            addresses_form = UserAddressesForm(
+                queryset=queryset, possibilities=self.available_address_choices,
+                data=request.POST or None, prefix=self.step_name)
+
             if not self.forms['new_address'].is_bound:
                 default_billing_address = request.user.default_billing_address
-                for address in addresses:
-                    if Address.objects.are_identical(address,
-                                                    default_billing_address):
-                        address.is_selected = True
-                        break
-            self.addresses = addresses
-        elif not checkout.is_shipping_required():
-            self.forms['email'] = AnonymousEmailForm(request.POST or None,
-                                                     prefix=self.step_name)
+                if default_billing_address:
+                    for address in self.addresses:
+                        if Address.objects.are_identical(
+                                address, default_billing_address):
+                            address.is_selected = True
+                            self.select_copy_shipping_address = False
+                            break
+        else:
+            addresses_form = UserAddressesForm(
+                queryset=None, possibilities=self.available_address_choices,
+                data=request.POST or None, prefix=self.step_name)
+            if not checkout.is_shipping_required():
+                self.forms['email'] = AnonymousEmailForm(request.POST or None,
+                                                         prefix=self.step_name)
+
+        self.forms['addresses_form'] = addresses_form
 
     def process(self, extra_context=None):
         context = dict(extra_context or {})
@@ -234,6 +242,7 @@ class SummaryStep(BaseCheckoutStep):
         context['button_label'] = _('Bill to this address')
         context['display_email_form'] = self.forms.get('email')
         context['new_address'] = self.forms['new_address'].is_bound
+        context['copy_shipping_address'] = self.select_copy_shipping_address
         response = super(SummaryStep, self).process(context)
 
         if not response:
@@ -245,28 +254,27 @@ class SummaryStep(BaseCheckoutStep):
         return response
 
     def forms_are_valid(self):
-        address = None
-        copy_address_form = self.forms.get('copy_shipping_address')
-        if (copy_address_form
-            and copy_address_form.is_valid()
-            and copy_address_form.cleaned_data['billing_same_as_shipping']):
-            address = self.shipping_address
-        elif self.addresses:
-            addresses_form = self.forms['existing_addresses']
-            if (addresses_form.is_valid()
-                and addresses_form.cleaned_data['address'] in self.addresses):
-                address = addresses_form.cleaned_data['address']
+        billing_address = None
+        addresses_form = self.forms['addresses_form']
+        new_address_form = self.forms['new_address']
+        if addresses_form.is_valid():
+            choice = addresses_form.cleaned_data['address']
+            if choice == "copy":
+                billing_address = self.shipping_address
+            elif choice in self.addresses:
+                billing_address = choice
 
-        if not address and self.forms['new_address'].is_valid():
-            address = self.address = Address(
-                **self.forms['new_address'].cleaned_data)
+        if not billing_address and new_address_form.is_valid():
+            billing_address = Address(**new_address_form.cleaned_data)
 
-        self.billing_address = address or self.billing_address
+        if billing_address:
+            self.billing_address = billing_address
+
         email_form = self.forms.get('email')
         if email_form:
-            return email_form.is_valid() and address
+            return email_form.is_valid() and billing_address
         else:
-            return address
+            return billing_address
         # next_step = self.checkout.get_next_step()
         # return next_step == self
 

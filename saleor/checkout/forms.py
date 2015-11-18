@@ -17,7 +17,8 @@ class AddressChoiceField(forms.ModelChoiceField):
             return super(AddressChoiceField, self).to_python(value)
 
     def add_magic_choices(self, magic_choices, queryset):
-        self.choices = magic_choices + list(queryset)
+        choices = list(queryset) if queryset else []
+        self.choices = magic_choices + choices
 
 
 class UserAddressesForm(forms.Form):
@@ -28,7 +29,7 @@ class UserAddressesForm(forms.Form):
     def __init__(self, queryset, possibilities, *args, **kwargs):
         super(UserAddressesForm, self).__init__(*args, **kwargs)
         address_field = self.fields['address']
-        address_field.queryset = queryset
+        address_field.queryset = queryset if queryset else Address.objects.none()
         address_field.add_magic_choices(possibilities, queryset)
         address_field.choice_values = [value for value, label in possibilities]
 
