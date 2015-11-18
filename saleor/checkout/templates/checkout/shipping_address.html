@@ -19,9 +19,9 @@
             <div class="col-sm-8">
 
                 {% if user.is_authenticated %}
-                    {% include "checkout/address_form.html" with addresses_form=step.forms.existing_addresses %}
+                    {% include "checkout/address_form.html" with addresses_form=step.forms.addresses_form %}
                 {% else %}
-                    {% include "checkout/address_form.html" with addresses_form=step.forms.existing_addresses display_email_form=True %}
+                    {% include "checkout/address_form.html" with addresses_form=step.forms.addresses_form display_email_form=True %}
                 {% endif %}
 
             </div>

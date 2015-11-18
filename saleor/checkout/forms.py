@@ -33,18 +33,6 @@ class UserAddressesForm(forms.Form):
         address_field.choice_values = [value for value, label in possibilities]
 
 
-
-# class CopyShippingAddressForm(forms.Form):
-#     CHOICES = (
-#         (True, "Copy shipping address"),
-#         (False, "Provide another address"),
-#     )
-#
-#     billing_same_as_shipping = forms.BooleanField(initial=True,
-#                                                   widget=forms.RadioSelect(
-#                                                       choices=CHOICES))
-
-
 class DeliveryForm(forms.Form):
     method = forms.ChoiceField(label=_('Shipping method'),
                                widget=forms.RadioSelect)
