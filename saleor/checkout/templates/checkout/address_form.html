@@ -1,6 +1,20 @@
 {% load i18n %}
 {% load as_vertical_form from bootstrap %}
 
+
+{% if step.shipping_address %}
+    <label for="{{ addresses_form.address.html_name }}_copy">
+        <div class="btn btn-default btn-lg col-sm-12">
+        <input type="radio"
+               name="{{ addresses_form.address.html_name }}"
+               value="copy"
+               id="{{ addresses_form.address.html_name }}_copy"
+               {% if copy_shipping_address %}checked{% endif %}>
+            {% trans "Copy shipping address" %}
+        </div>
+    </label>
+{% endif %}
+
 {% if addresses %}
     <p>{% trans "Use one of your existing addresses or enter a new address below." %}</p>
 
@@ -25,8 +39,10 @@
             </div>
         {% endfor %}
     </div>
+{% endif %}
 
-{#    <hr/>#}
+{% if step.shipping_address or addresses %}
+
     <label for="{{ addresses_form.address.html_name }}_new">
         <div class="btn btn-default btn-lg col-sm-12">
             <input type="radio"
@@ -37,9 +53,10 @@
             {% trans "Enter a new address" %}
         </div>
     </label>
-{% endif %}
-    {% if display_email_form %}
-        {{ step.forms.email|as_vertical_form  }}
-    {% endif %}
+{%  endif %}
 
-    {{ step.forms.new_address|as_vertical_form }}
+{% if display_email_form %}
+    {{ step.forms.email|as_vertical_form  }}
+{% endif %}
+
+{{ step.forms.new_address|as_vertical_form }}

@@ -7,7 +7,7 @@ from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from satchless.process import InvalidData
 
-from .forms import DeliveryForm, CopyShippingAddressForm, UserAddressesForm
+from .forms import DeliveryForm, UserAddressesForm
 from ..checkout.forms import AnonymousEmailForm
 from ..core.utils import BaseStep
 from ..delivery import get_delivery_options_for_items
@@ -42,30 +42,32 @@ class ShippingAddressStep(BaseCheckoutStep):
         address_data = storage.get('address', {})
         self.address = Address(**address_data)
         self.address_id = storage.get('address_id')
-        address_form = AddressForm(
+        new_address_form = AddressForm(
             request.POST or None, prefix=self.step_name,
             instance=self.address if not self.address_id else None)
-        self.forms = {'new_address': address_form}
+        self.forms = {'new_address': new_address_form}
+        self.avalable_address_choices = [('new', _('Enter a new address'))]
 
         if request.user.is_authenticated():
             self.authenticated_user = True
             self.email = request.user.email
-            existing_addresses = UserAddressesForm(request.user.addresses.all(),
-                                                   data=request.POST or None,
-                                                   prefix=self.step_name)
-            self.forms['existing_addresses'] = existing_addresses
-            addresses = list(existing_addresses.fields['address']._queryset)
+            queryset = request.user.addresses.all()
+            addresses = list(queryset)
+            self.forms['addresses_form'] = UserAddressesForm(
+                queryset=queryset, possibilities=self.avalable_address_choices,
+                data=request.POST or None, prefix=self.step_name)
             self.addresses = addresses
-            if not (address_form.is_bound
+            if not (new_address_form.is_bound
                     or (self.address and not self.address_id)):
                 selected_address = self.get_same_own_address(self.address)
                 if selected_address:
                     selected_address.is_selected = True
                 else:
                     default_address = request.user.default_shipping_address
-                    address = self.get_same_own_address(default_address)
-                    if address:
-                        address.is_selected = True
+                    if default_address:
+                        address = self.get_same_own_address(default_address)
+                        if address:
+                            address.is_selected = True
         else:
             self.authenticated_user = False
             self.addresses = []
@@ -90,14 +92,17 @@ class ShippingAddressStep(BaseCheckoutStep):
     def forms_are_valid(self):
         address_is_valid = False
         if self.addresses:
-            addresses_form = self.forms['existing_addresses']
+            addresses_form = self.forms['addresses_form']
             if addresses_form.is_valid():
                 selected_address = addresses_form.cleaned_data['address']
-                own_address = self.get_same_own_address(selected_address)
-                if own_address:
-                    self.address = own_address
-                    self.address_id = own_address.id
-                    address_is_valid = True
+                special_values = [value for value, label
+                                  in self.avalable_address_choices]
+                if selected_address not in special_values:
+                    own_address = self.get_same_own_address(selected_address)
+                    if own_address:
+                        self.address = own_address
+                        self.address_id = own_address.id
+                        address_is_valid = True
 
         if not address_is_valid and self.forms['new_address'].is_valid():
             address_is_valid = True

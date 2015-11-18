@@ -3,25 +3,46 @@ from django.utils.translation import ugettext_lazy as _
 from saleor.userprofile.models import Address
 
 
+class AddressChoiceField(forms.ModelChoiceField):
+    choice_values = []
+
+    def validate(self, value):
+        if value not in self.choice_values:
+            return super(AddressChoiceField, self).validate(value)
+
+    def to_python(self, value):
+        if value in self.choice_values:
+            return value
+        else:
+            return super(AddressChoiceField, self).to_python(value)
+
+    def add_magic_choices(self, magic_choices, queryset):
+        self.choices = magic_choices + list(queryset)
+
+
 class UserAddressesForm(forms.Form):
-    address = forms.ModelChoiceField(queryset=Address.objects.all(),
-                                     empty_label=_('Add new address'),
-                                     widget=forms.RadioSelect)
+    address = AddressChoiceField(
+        queryset=Address.objects.none(),
+        widget=forms.RadioSelect)
 
-    def __init__(self, queryset, *args, **kwargs):
+    def __init__(self, queryset, possibilities, *args, **kwargs):
         super(UserAddressesForm, self).__init__(*args, **kwargs)
-        self.fields['address'].queryset = queryset
+        address_field = self.fields['address']
+        address_field.queryset = queryset
+        address_field.add_magic_choices(possibilities, queryset)
+        address_field.choice_values = [value for value, label in possibilities]
 
 
-class CopyShippingAddressForm(forms.Form):
-    CHOICES = (
-        (True, "Copy shipping address"),
-        (False, "Provide another address"),
-    )
 
-    billing_same_as_shipping = forms.BooleanField(initial=True,
-                                                  widget=forms.RadioSelect(
-                                                      choices=CHOICES))
+# class CopyShippingAddressForm(forms.Form):
+#     CHOICES = (
+#         (True, "Copy shipping address"),
+#         (False, "Provide another address"),
+#     )
+#
+#     billing_same_as_shipping = forms.BooleanField(initial=True,
+#                                                   widget=forms.RadioSelect(
+#                                                       choices=CHOICES))
 
 
 class DeliveryForm(forms.Form):
