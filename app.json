@@ -35,7 +35,7 @@
     }
   },
   "scripts": {
-    "postdeploy": "saleor migrate && saleor populatedb --createsuperuser"
+    "postdeploy": "python manage.py migrate && python manage.py populatedb --createsuperuser"
   },
   "addons": [
     "heroku-postgresql:hobby-dev",
