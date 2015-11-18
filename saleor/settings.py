@@ -3,6 +3,7 @@ import os.path
 
 import dj_database_url
 from django.contrib.messages import constants as messages
+import django_cache_url
 
 
 DEBUG = ast.literal_eval(os.environ.get('DEBUG', 'True'))
@@ -21,8 +22,10 @@ ADMINS = (
 MANAGERS = ADMINS
 INTERNAL_IPS = os.environ.get('INTERNAL_IPS', '127.0.0.1').split()
 
-SQLITE_DB_URL = 'sqlite:///' + os.path.join(PROJECT_ROOT, 'dev.sqlite')
+CACHE_URL = os.environ.get('CACHE_URL', os.environ.get('REDIS_URL', 'locmem://'))
+CACHES = {'default': django_cache_url.parse(CACHE_URL)}
 
+SQLITE_DB_URL = 'sqlite:///' + os.path.join(PROJECT_ROOT, 'dev.sqlite')
 DATABASES = {'default': dj_database_url.config(default=SQLITE_DB_URL)}
 
 

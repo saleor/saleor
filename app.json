@@ -4,7 +4,12 @@
   "repository": "https://github.com/mirumee/saleor",
   "website": "http://getsaleor.com/",
   "logo": "https://mirumee.com/img/opensource-saleor.png",
-  "keywords": ["saleor", "e-commerce", "django"],
+  "keywords": [
+    "saleor",
+    "e-commerce",
+    "django"
+  ],
+  "image": "heroku/python",
   "env": {
     "DJANGO_SETTINGS_MODULE": "saleor.settings",
     "ALLOWED_HOSTS": "*",
@@ -33,7 +38,8 @@
     "postdeploy": "saleor migrate && saleor populatedb --createsuperuser"
   },
   "addons": [
-    "heroku-postgresql:hobby-dev"
+    "heroku-postgresql:hobby-dev",
+    "heroku-redis:hobby-dev"
   ],
   "buildpacks": [
     {
