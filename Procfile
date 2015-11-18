@@ -1,1 +1,1 @@
-web: gunicorn saleor.wsgi.static --log-file -
+web: uwsgi saleor/wsgi/uwsgi.ini
