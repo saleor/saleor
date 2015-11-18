@@ -8,7 +8,8 @@ RUN \
  ln -s /usr/bin/nodejs /usr/bin/node
 
 ADD setup.py /app/setup.py
-RUN cd /app && pip install -e .[PaaS]
+ADD requirements.txt /app/requirements.txt
+RUN cd /app && pip install -r requirements.txt
 
 ADD package.json /node/package.json
 RUN cd /node && npm install
