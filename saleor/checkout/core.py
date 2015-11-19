@@ -4,11 +4,12 @@ from django.conf import settings
 from prices import Price
 from satchless.process import ProcessManager
 
-from .steps import BillingAddressStep, ShippingStep, SummaryStep
+from .steps import ShippingAddressStep, SummaryStep, ShippingMethodStep
 from ..cart import Cart
 from ..core import analytics
 from ..order.models import Order
 from ..userprofile.models import Address
+
 
 STORAGE_SESSION_KEY = 'checkout_storage'
 
@@ -48,9 +49,6 @@ class Checkout(ProcessManager):
     def generate_steps(self, cart):
         shipping_address = None
         self.cart = cart
-        self.billing = BillingAddressStep(
-            self.request, self.get_storage('billing'))
-        self.steps.append(self.billing)
         if self.is_shipping_required():
             self.shipping = ShippingAddressStep(
                 self.request, self.storage['shipping_address'], checkout=self)
@@ -120,11 +118,10 @@ class Checkout(ProcessManager):
 
     def get_total(self, **kwargs):
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)
-        total = sum(
-            (total_with_delivery
-             for delivery, delivery_cost, total_with_delivery
-             in self.get_deliveries(**kwargs)),
-            zero)
+        cost_iterator = (total_with_delivery
+                         for delivery, delivery_cost, total_with_delivery
+                         in self.get_deliveries(**kwargs))
+        total = sum(cost_iterator, zero)
         return total
 
     def save(self):
@@ -144,8 +141,8 @@ class Checkout(ProcessManager):
     def get_deliveries(self, **kwargs):
         for partition in self.cart.partition():
             if self.shipping:
-                delivery_cost = self.shipping.delivery_method.get_delivery_total(
-                    partition)
+                delivery_method = self.delivery.delivery_method
+                delivery_cost = delivery_method.get_delivery_total(partition)
             else:
                 delivery_cost = Price(0, currency=settings.DEFAULT_CURRENCY)
             total_with_delivery = partition.get_total(**kwargs) + delivery_cost
@@ -162,3 +159,11 @@ class Checkout(ProcessManager):
         order.tracking_client_id = analytics.get_client_id(self.request)
         order.save()
         return order
+
+    def available_steps(self):
+        available = []
+        for step in self:
+            available.append(step)
+            if not self.validate_step(step):
+                break
+        return available
