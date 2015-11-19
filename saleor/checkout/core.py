@@ -4,11 +4,10 @@ from django.conf import settings
 from prices import Price
 from satchless.process import ProcessManager
 
-from .steps import ShippingAddressStep, SummaryStep, ShippingMethodStep
+from .steps import ShippingAddressStep, ShippingMethodStep, SummaryStep
 from ..cart import Cart
 from ..core import analytics
 from ..order.models import Order
-from ..userprofile.models import Address
 
 
 STORAGE_SESSION_KEY = 'checkout_storage'
@@ -49,6 +48,7 @@ class Checkout(ProcessManager):
     def generate_steps(self, cart):
         shipping_address = None
         self.cart = cart
+
         if self.is_shipping_required():
             self.shipping = ShippingAddressStep(
                 self.request, self.storage['shipping_address'], checkout=self)
@@ -65,53 +65,6 @@ class Checkout(ProcessManager):
         summary_step = SummaryStep(self.request, self.storage['summary'],
                                    shipping_address, checkout=self)
         self.steps.append(summary_step)
-
-    @property
-    def anonymous_user_email(self):
-        storage = self.get_storage('billing')
-        return storage.get('anonymous_user_email')
-
-    @anonymous_user_email.setter
-    def anonymous_user_email(self, email):
-        storage = self.get_storage('billing')
-        storage['anonymous_user_email'] = email
-
-    @anonymous_user_email.deleter
-    def anonymous_user_email(self):
-        storage = self.get_storage('billing')
-        storage['anonymous_user_email'] = ''
-
-    @property
-    def billing_address(self):
-        storage = self.get_storage('billing')
-        address_data = storage.get('address', {})
-        return Address(**address_data)
-
-    @billing_address.setter
-    def billing_address(self, address):
-        storage = self.get_storage('billing')
-        storage['address'] = address.as_data()
-
-    @billing_address.deleter
-    def billing_address(self):
-        storage = self.get_storage('billing')
-        storage['address'] = None
-
-    @property
-    def shipping_address(self):
-        storage = self.get_storage('shipping')
-        address_data = storage.get('address', {})
-        return Address(**address_data)
-
-    @shipping_address.setter
-    def shipping_address(self, address):
-        storage = self.get_storage('shipping')
-        storage['address'] = address.as_data()
-
-    @shipping_address.deleter
-    def shipping_address(self):
-        storage = self.get_storage('shipping')
-        storage['address'] = None
 
     def get_storage(self, name):
         return self.storage[name]
@@ -140,7 +93,7 @@ class Checkout(ProcessManager):
 
     def get_deliveries(self, **kwargs):
         for partition in self.cart.partition():
-            if self.shipping:
+            if self.shipping and self.delivery.delivery_method:
                 delivery_method = self.delivery.delivery_method
                 delivery_cost = delivery_method.get_delivery_total(partition)
             else:

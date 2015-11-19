@@ -300,15 +300,12 @@ class SummaryStep(BaseCheckoutStep):
         if self.forms.get('email'):
             self.storage['email'] = self.forms['email'].cleaned_data['email']
 
-    def billing_address_add_to_order(self, order):
+    def add_to_order(self, order):
         self.billing_address.save()
         order.billing_address = self.billing_address
         if order.user:
             User.objects.store_address(
                 order.user, self.billing_address, billing=True)
-
-    def add_to_order(self, order):
-        self.billing_address_add_to_order(order)
         order.save()
         if self.checkout.is_shipping_required():
             method = order.delivery_method
