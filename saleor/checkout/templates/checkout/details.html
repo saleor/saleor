@@ -64,7 +64,6 @@
         </div>
 
         <div class="col-sm-4">
-        {% if checkout.delivery.delivery_method %}
             {% for delivery, delivery_cost, total_with_delivery in checkout.get_deliveries %}
                 <div class="panel panel-default">
                     <div class="panel-heading">
@@ -105,9 +104,7 @@
                     </table>
                 </div>
             {% endfor %}
-        {% endif %}
 
-        {% if checkout.delivery.delivery_method %}
             {% with total=checkout.get_total %}
                 <div class="alert alert-success">
                     {% trans "Your total will be" %}:
@@ -117,8 +114,6 @@
                     {% endif %}
                 </div>
             {% endwith %}
-        {% endif %}
-
         </div>
     </div>
 
