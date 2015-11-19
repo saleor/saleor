@@ -12,4 +12,3 @@ web:
     - '8000:8000'
   volumes:
     - .:/app
-  command: /app/compose/start.sh
