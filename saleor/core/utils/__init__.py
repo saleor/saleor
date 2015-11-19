@@ -3,9 +3,6 @@ from __future__ import unicode_literals
 import re
 
 from django import forms
-from django.conf import settings
-from django.contrib.sites.models import Site
-from django.core.exceptions import ImproperlyConfigured
 from django.template.response import TemplateResponse
 from django.utils.encoding import iri_to_uri, smart_text
 from satchless.process import InvalidData, Step
@@ -77,6 +74,7 @@ class BaseStep(Step):
 
 
 def build_absolute_uri(location, is_secure=False):
+    from django.contrib.sites.models import Site
     site = Site.objects.get_current()
     host = site.domain
     if not absolute_http_url_re.match(location):
