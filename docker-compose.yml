@@ -4,10 +4,13 @@ db:
     - DB_NAME=saleor
     - DB_USER=saleor
     - DB_PASS=saleor
+redis:
+  image: redis
 web:
   build: .
   links:
     - db
+    - redis
   ports:
     - '8000:8000'
   volumes:
