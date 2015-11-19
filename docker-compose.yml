@@ -8,6 +8,8 @@ redis:
   image: redis
 web:
   build: .
+  environment:
+    - SECRET_KEY=changeme
   links:
     - db
     - redis
