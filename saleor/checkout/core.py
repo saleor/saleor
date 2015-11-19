@@ -116,7 +116,9 @@ class Checkout(ProcessManager):
     def available_steps(self):
         available = []
         for step in self:
+            step.is_step_available = True
             available.append(step)
             if not self.validate_step(step):
                 break
+            step.is_step_valid = True
         return available

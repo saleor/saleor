@@ -16,6 +16,8 @@ from ..userprofile.models import Address, User
 
 
 class BaseCheckoutStep(BaseStep):
+    is_step_valid = False
+    is_step_available = False
 
     def __init__(self, request, storage, checkout):
         super(BaseCheckoutStep, self).__init__(request)

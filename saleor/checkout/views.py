@@ -20,8 +20,7 @@ def details(request, step):
     if step not in checkout.available_steps():
         return redirect(checkout.get_next_step())
     response = step.process(
-        extra_context={'checkout': checkout,
-                       'next_step': checkout.get_next_step()})
+        extra_context={'checkout': checkout})
     if not response:
         checkout.save()
         return redirect(checkout.get_next_step())
