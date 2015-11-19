@@ -10,14 +10,12 @@
                value="copy"
                id="{{ addresses_form.address.html_name }}_copy"
                {% if copy_shipping_address %}checked{% endif %}>
-            {% trans "Copy shipping address" %}
+            {% trans "Use shipping address" %}
         </div>
     </label>
 {% endif %}
 
 {% if addresses %}
-    <p>{% trans "Use one of your existing addresses or enter a new address below." %}</p>
-
     <div class="row">
         {% for address in addresses %}
             <div class="col-sm-6">
