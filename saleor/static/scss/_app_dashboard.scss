@@ -79,6 +79,10 @@ $transition-duration: .2s;
         @extend .active;
       }
 
+      .body-setup &.nav-setup {
+        @extend .active;
+      }
+
       @each $submodule in (products, attributes, categories, orders, payments, customers) {
         .body-#{$submodule} &.subnav-#{$submodule} {
           @extend .active;

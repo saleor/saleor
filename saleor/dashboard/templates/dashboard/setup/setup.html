@@ -1,0 +1,46 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load materializecss %}
+
+{% block title %}{% trans "Setup" %}{% endblock %}
+
+{% block body_class %}body-store body-setup{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs breadcrumbs--with-menu">
+        <li>
+            <span>{% trans "Setup" %}</span>
+        </li>
+    </ul>
+{% endblock %}
+
+{% block content %}
+    <form method="post" id="form-setup">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col m6">
+                <div class="row">
+                    {{ site_form.name|materializecss }}
+                </div>
+                <div class="row">
+                    {{ site_form.domain|materializecss }}
+                </div>
+
+                {% if admin_form %}
+                    <div class="row">
+                        {{ admin_form.email|materializecss }}
+                    </div>
+                    <div class="row">
+                        {{ admin_form.password1|materializecss }}
+                    </div>
+                    <div class="row">
+                        {{ admin_form.password2|materializecss }}
+                    </div>
+                {% endif %}
+                <div class="right-align">
+                    <button type="submit" class="btn">{% trans "Update" %}</button>
+                </div>
+            </div>
+        </div>
+    </form>
+{% endblock %}

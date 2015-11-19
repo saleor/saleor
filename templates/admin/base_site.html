@@ -1,9 +1,9 @@
 {% extends "admin/base.html" %}
 
-{% block title %}{{ title }} | Saleor{% endblock %}
+{% block title %}{{ title }} | {{ request.site.name }}{% endblock %}
 
 {% block branding %}
-<h1 id="site-name"><a href="{% url 'admin:index' %}">Saleor Admin</a></h1>
+<h1 id="site-name"><a href="{% url 'admin:index' %}">{{ request.site.name }}</a></h1>
 {% endblock %}
 
 {% block nav-global %}{% endblock %}

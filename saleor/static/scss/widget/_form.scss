@@ -49,6 +49,12 @@
     }
   }
 
+  &#form-setup {
+    #id_name {
+      @extend %input-lg;
+    }
+  }
+
   &#form-variant {
     #id_sku {
       @extend %input-lg;

@@ -7,7 +7,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
-    <title>{% block title %}{% trans "Dashboard - Saleor" %}{% endblock %}</title>
+    <title>{% block title %}{% trans "Dashboard" %}{% endblock %}</title>
 
     <link rel="stylesheet" type="text/css" href="{% static "css/dashboard.css" %}">
     <link rel="stylesheet" type="text/css" href="{% static "versatileimagefield/css/versatileimagefield.css" %}">
@@ -34,6 +34,7 @@
                 </div>
             </div>
             <ul class="side-nav fixed" id="side-menu">
+                {% if user.is_authenticated %}
                 <li class="side-nav-user">
                     <ul class="collapsible collapsible-accordion">
                         <li>
@@ -49,12 +50,14 @@
                         </li>
                     </ul>
                 </li>
+                {% endif %}
                 <li class="brand-logo">
                     <a href="{% url 'dashboard:index' %}">
-                        <img src="{% static "img/dashboard-logo.svg" %}" alt="Saleor">
+                        <img src="{% static "img/dashboard-logo.svg" %}" alt="{{ request.site.name }}">
                     </a>
                 </li>
-                <li class="nav-home"><a href="{% url 'dashboard:index' %}">Home</a></li>
+                {% if user.is_authenticated %}
+                <li class="nav-home"><a href="{% url 'dashboard:index' %}">{% trans "Home" %}</a></li>
                 <li>
                     <ul class="collapsible collapsible-accordion" data-collapsible="accordion">
                         <li>
@@ -82,6 +85,8 @@
                         </li>
                     </ul>
                 </li>
+                <li class="nav-setup"><a href="{% url 'dashboard:setup' %}">{% trans "Setup" %}</a></li>
+                {% endif %}
             </ul>
         </nav>
     </header>

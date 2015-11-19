@@ -18,7 +18,7 @@
     __ga('set', 'currencyCode', '{{ DEFAULT_CURRENCY }}');
     __ga('ecommerce:addTransaction', {
       'id': '{{ order.id }}',
-      'affiliation': 'Saleor',
+      'affiliation': '{{ request.site.name }}',
       'revenue': '{{ order.get_total.gross }}',
       'shipping': '{{ order.get_delivery_total.gross }}',
       'tax': '{{ order.get_total.tax }}'
