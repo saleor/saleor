@@ -3,6 +3,7 @@
 !.bowerrc
 !.buildpacks
 !.coveragerc
+!.dockerignore
 !.gitignore
 !.travis*
 *.css
