@@ -22,31 +22,48 @@
 {% endif %}
 
 {% block content %}
-    <ul class="nav nav-pills nav-justified">
+    <ul class="nav nav-pills nav-justified nav-wizard">
         {% for stepitem in checkout %}
             {% if stepitem %}
                 <li {% if stepitem == step %}class="active"{% endif %}>
-                    <a href="{{ stepitem.get_absolute_url }}">
-                        <i class="fa fa-check-circle"></i>
-                        {{ stepitem.title }}
-                    </a>
+                    {% if not forloop.first %}
+                        <div class="nav-wedge"></div>
+                    {% endif %}
+                        <a href="{{ stepitem.get_absolute_url }}">
+                            <i class="fa fa-check-circle"></i>
+                            {{ stepitem.title }}
+                        </a>
+                    {% if not forloop.last %}
+                        <div class="nav-arrow"></div>
+                    {% endif %}
                 </li>
             {% elif stepitem == next_step %}
                  <li {% if stepitem == step %}class="active"{% endif %}>
-                    <a href="{{ stepitem.get_absolute_url }}">
-                        {{ stepitem.title }}
-                    </a>
-                </li>
+                     {% if not forloop.first %}
+                         <div class="nav-wedge"></div>
+                     {% endif %}
+                         <a href="{{ stepitem.get_absolute_url }}">
+                             {{ stepitem.title }}
+                         </a>
+                     {% if not forloop.last %}
+                         <div class="nav-arrow"></div>
+                     {% endif %}
+                 </li>
             {% else %}
-                 <li class="disabled">
-                    <a>{{ stepitem.title }}</a>
+                 <li>
+                     {% if not forloop.first %}
+                         <div class="nav-wedge"></div>
+                     {% endif %}
+                         <a>{{ stepitem.title }}</a>
+                     {% if not forloop.last %}
+                         <div class="nav-arrow"></div>
+                     {% endif %}
                 </li>
             {% endif %}
         {% endfor %}
     </ul>
 
     <hr>
-
 
     {% if not user.is_authenticated %}
         <p class="alert alert-info">
@@ -116,5 +133,4 @@
             {% endwith %}
         </div>
     </div>
-
 {% endblock content %}
