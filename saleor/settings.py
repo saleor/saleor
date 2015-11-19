@@ -67,7 +67,6 @@ context_processors = [
     'django.core.context_processors.tz',
     'django.contrib.messages.context_processors.messages',
     'django.core.context_processors.request',
-    'saleor.core.context_processors.canonical_hostname',
     'saleor.core.context_processors.default_currency',
     'saleor.core.context_processors.categories']
 
@@ -198,9 +197,6 @@ AUTHENTICATION_BACKENDS = (
 
 AUTH_USER_MODEL = 'userprofile.User'
 
-# Fully qualified domain name
-FQDN = os.environ.get('FQDN', 'localhost:8000')
-
 LOGIN_URL = '/account/login'
 
 WARN_ABOUT_INVALID_HTML5_OUTPUT = False
@@ -224,8 +220,6 @@ PAYMENT_MODEL = 'order.Payment'
 PAYMENT_VARIANTS = {
     'default': ('payments.dummy.DummyProvider', {})
 }
-
-PAYMENT_HOST = FQDN
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'

@@ -4,6 +4,7 @@ import re
 
 from django import forms
 from django.conf import settings
+from django.contrib.sites.models import Site
 from django.core.exceptions import ImproperlyConfigured
 from django.template.response import TemplateResponse
 from django.utils.encoding import iri_to_uri, smart_text
@@ -76,11 +77,8 @@ class BaseStep(Step):
 
 
 def build_absolute_uri(location, is_secure=False):
-    try:
-        host = settings.FQDN
-    except AttributeError:
-        raise ImproperlyConfigured('You need to specify FQDN in '
-                                   'your Django settings file')
+    site = Site.objects.get_current()
+    host = site.domain
     if not absolute_http_url_re.match(location):
         current_uri = '%s://%s' % ('https' if is_secure else 'http', host)
         location = urljoin(current_uri, location)
