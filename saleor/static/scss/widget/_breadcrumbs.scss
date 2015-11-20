@@ -66,6 +66,11 @@
     &-item {
       @media (min-width: $large-screen) {
         display: inline-block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 14em;
+        vertical-align: middle;
       }
     }
   }
