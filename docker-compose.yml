@@ -4,12 +4,16 @@ db:
     - DB_NAME=saleor
     - DB_USER=saleor
     - DB_PASS=saleor
+redis:
+  image: redis
 web:
   build: .
+  environment:
+    - SECRET_KEY=changeme
   links:
     - db
+    - redis
   ports:
     - '8000:8000'
   volumes:
     - .:/app
-  command: /app/compose/start.sh
