@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load static from staticfiles %}
 {% load as_vertical_form from bootstrap %}
 
 
@@ -57,4 +58,16 @@
     {{ step.forms.email|as_vertical_form  }}
 {% endif %}
 
-{{ step.forms.new_address|as_vertical_form }}
+<div class="i18n-address" data-address-url="{% static 'js/address.json' %}" data-lang="{{ LANGUAGE_CODE }}" data-prefix="{{ step.forms.new_address.prefix }}">
+    {{ step.forms.new_address.first_name|as_vertical_form }}
+    {{ step.forms.new_address.last_name|as_vertical_form }}
+    {{ step.forms.new_address.company_name|as_vertical_form }}
+    {{ step.forms.new_address.street_address_1|as_vertical_form }}
+    {{ step.forms.new_address.street_address_2|as_vertical_form }}
+    {{ step.forms.new_address.city|as_vertical_form }}
+    {{ step.forms.new_address.city_area|as_vertical_form }}
+    {{ step.forms.new_address.postal_code|as_vertical_form }}
+    {{ step.forms.new_address.country|as_vertical_form }}
+    {{ step.forms.new_address.country_area|as_vertical_form }}
+</div>
+{{ step.forms.new_address.phone|as_vertical_form }}
