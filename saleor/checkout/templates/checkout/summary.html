@@ -7,20 +7,13 @@
 {% block forms %}
     <form method="post">
         {% csrf_token %}
-            <h4>{% trans "Billing address" %}</h4>
-
-            {% include "checkout/address_form.html" with addresses_form=step.forms.addresses_form %}
-
-            <p>
-                <button type="submit" class="btn btn-primary btn-lg pull-right">
-                    {% trans "Place order" %}
-                </button>
-            </p>
+        <h4>{% trans "Billing address" %}</h4>
+        {% include "checkout/address_form.html" with addresses_form=step.forms.addresses_form %}
+        <br>
+        <p class="text-right">
+            <button type="submit" class="btn btn-primary btn-lg">
+                {% trans "Place order" %}
+            </button>
+        </p>
     </form>
-</div>
-<div class="col-sm-4">
-    {% if checkout.is_shipping_required %}
-        <h4>{% trans "Shipping address" %}</h4>
-        <address>{% include "userprofile/snippets/address-details.html" with address=shipping_address %}</address>
-    {% endif %}
 {% endblock forms %}
