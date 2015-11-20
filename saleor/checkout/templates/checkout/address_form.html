@@ -6,11 +6,11 @@
 {% if step.shipping_address %}
     <label for="{{ addresses_form.address.html_name }}_copy">
         <div class="btn btn-default btn-lg col-sm-12">
-        <input type="radio"
-               name="{{ addresses_form.address.html_name }}"
-               value="copy"
-               id="{{ addresses_form.address.html_name }}_copy"
-               {% if copy_shipping_address %}checked{% endif %}>
+            <input type="radio"
+                   name="{{ addresses_form.address.html_name }}"
+                   value="copy"
+                   id="{{ addresses_form.address.html_name }}_copy"
+                   {% if copy_shipping_address %}checked{% endif %}>
             {% trans "Use shipping address" %}
         </div>
     </label>
