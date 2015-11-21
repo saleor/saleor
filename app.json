@@ -12,8 +12,11 @@
   "image": "heroku/python",
   "env": {
     "DJANGO_SETTINGS_MODULE": "saleor.settings",
-    "ALLOWED_HOSTS": "*",
     "DEBUG": "False",
+    "ALLOWED_HOSTS": {
+      "description": "Comma-separated list of hosts",
+      "value": ".herokuapp.com"
+    },
     "SECRET_KEY": {
       "description": "A secret key for verifying the integrity of signed cookies.",
       "generator": "secret"
