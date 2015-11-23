@@ -7,7 +7,7 @@ import $ from 'jquery';
 
 type Rules = {fmt: string; require: string};
 
-let FormGroup = ({required, children}) => <div className={required ? "form-group has-feedback required" : "form-group has-feedback"}>{children}</div>;
+let FormGroup = ({required, children}) => <div className={required ? "form-group required" : "form-group"}>{children}</div>;
 
 let LevelSelect = ({rules, id, label, name, value, autoComplete, onChange, required}) => {
   if (rules.hasOwnProperty('sub_keys') || rules.hasOwnProperty('sub_names')) {

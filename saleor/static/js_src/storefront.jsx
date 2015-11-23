@@ -172,3 +172,22 @@ $(function() {
         $img.attr('src', dataSrc);
     });
 });
+
+$(function() {
+  $('.conditional-visibility').each(function() {
+    let $element = $(this);
+    let controller = $element.data('controller');
+    let triggerValue = $element.data('value');
+    let $controller = $(controller);
+    function updateVisiblity() {
+      let value = $controller.filter(':checked').val();
+      if (value === triggerValue) {
+        $element.show();
+      } else {
+        $element.hide();
+      }
+    }
+    $controller.on('change', updateVisiblity);
+    updateVisiblity();
+  });
+});
