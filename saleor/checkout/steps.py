@@ -54,10 +54,13 @@ class ShippingAddressStep(BaseCheckoutStep):
             self.email = request.user.email
             queryset = request.user.addresses.all()
             addresses = list(queryset)
-            if self.address not in addresses:
-                self.address_id = None
+            self.addresses = addresses
 
-            address = self.address if not self.address_id else None
+            if not self.get_same_own_address(self.address):
+                address = self.address
+            else:
+                address = None
+
             new_address_form = AddressForm(request.POST or None,
                                            prefix=self.step_name,
                                            instance=address)
@@ -65,7 +68,6 @@ class ShippingAddressStep(BaseCheckoutStep):
             self.forms['addresses_form'] = UserAddressesForm(
                 queryset=queryset, possibilities=self.available_address_choices,
                 data=request.POST or None, prefix=self.step_name)
-            self.addresses = addresses
 
             if not new_address_form.is_bound:
                 selected_address = self.get_same_own_address(self.address)
