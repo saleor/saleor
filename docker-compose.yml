@@ -15,9 +15,6 @@ web:
   environment:
     - SECRET_KEY=changeme
     - DEFAULT_FROM_EMAIL=info@getsaleor.com
-    - EMAIL_BACKEND_MODULE=smtp
-    - EMAIL_HOST=mailcatcher
-    - EMAIL_PORT=1025
   links:
     - db
     - mailcatcher

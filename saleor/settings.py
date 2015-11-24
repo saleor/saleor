@@ -2,6 +2,7 @@ import ast
 import os.path
 
 import dj_database_url
+import dj_email_url
 from django.contrib.messages import constants as messages
 import django_cache_url
 
@@ -35,13 +36,17 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-EMAIL_BACKEND = ('django.core.mail.backends.%s.EmailBackend' %
-                 os.environ.get('EMAIL_BACKEND_MODULE', 'console'))
-EMAIL_HOST = os.environ.get('EMAIL_HOST')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-EMAIL_PORT = os.environ.get('EMAIL_PORT')
-EMAIL_USE_TLS = ast.literal_eval(os.environ.get('EMAIL_USE_TLS', 'False'))
+
+EMAIL_URL = os.environ.get('EMAIL_URL', 'console://')
+email_config = dj_email_url.parse(EMAIL_URL)
+
+EMAIL_FILE_PATH = email_config['EMAIL_FILE_PATH']
+EMAIL_HOST_USER = email_config['EMAIL_HOST_USER']
+EMAIL_HOST_PASSWORD = email_config['EMAIL_HOST_PASSWORD']
+EMAIL_HOST = email_config['EMAIL_HOST']
+EMAIL_PORT = email_config['EMAIL_PORT']
+EMAIL_BACKEND = email_config['EMAIL_BACKEND']
+EMAIL_USE_TLS = email_config['EMAIL_USE_TLS']
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 
 
