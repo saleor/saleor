@@ -27,4 +27,4 @@ EXPOSE 8000
 ENV PORT 8000
 
 ENTRYPOINT ["/app/compose/entrypoint.sh"]
-CMD uwsgi saleor/wsgi/uwsgi.ini
+CMD ["uwsgi saleor/wsgi/uwsgi.ini"]
