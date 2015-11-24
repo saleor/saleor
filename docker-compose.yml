@@ -1,15 +1,14 @@
 db:
-  image: sameersbn/postgresql:9.4
+  image: postgres
   environment:
-    - DB_NAME=saleor
-    - DB_USER=saleor
-    - DB_PASS=saleor
+    - POSTGRES_USER=saleor
+    - POSTGRES_PASSWORD=saleor
 redis:
   image: redis
 mailcatcher:
- image: schickling/mailcatcher
- ports:
-  - '1080:1080'
+  image: schickling/mailcatcher
+  ports:
+    - '1080:1080'
 web:
   build: .
   environment:
