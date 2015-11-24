@@ -11,7 +11,7 @@ if [ "$APP_UID" != "0" ]; then
     if [ "$APP_UID" != "$(id -u $USER)" ]; then
         usermod -u "$APP_UID" $USER
     fi
-    su $USER -c "PATH=$PATH:/app/node_modules/.bin $*"
+    su $USER -c "PATH=$PATH:/app/node_modules/.bin $@"
 fi
 
 exec "$@"
