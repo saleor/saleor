@@ -1,23 +1,19 @@
 db:
-  image: sameersbn/postgresql:9.4
+  image: postgres
   environment:
-    - DB_NAME=saleor
-    - DB_USER=saleor
-    - DB_PASS=saleor
+    - POSTGRES_USER=saleor
+    - POSTGRES_PASSWORD=saleor
 redis:
   image: redis
 mailcatcher:
- image: schickling/mailcatcher
- ports:
-  - '1080:1080'
+  image: schickling/mailcatcher
+  ports:
+    - '1080:1080'
 web:
   build: .
   environment:
     - SECRET_KEY=changeme
     - DEFAULT_FROM_EMAIL=info@getsaleor.com
-    - EMAIL_BACKEND_MODULE=smtp
-    - EMAIL_HOST=mailcatcher
-    - EMAIL_PORT=1025
   links:
     - db
     - mailcatcher
