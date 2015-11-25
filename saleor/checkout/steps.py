@@ -249,8 +249,7 @@ class SummaryStep(BaseCheckoutStep):
                 queryset=None, possibilities=self.available_address_choices,
                 data=request.POST or None, prefix=self.step_name)
             if not checkout.is_shipping_required():
-                self.forms['email'] = AnonymousEmailForm(request.POST or None,
-                                                         prefix=self.step_name)
+                self.forms['email'] = AnonymousEmailForm(request.POST or None)
 
         self.forms['addresses_form'] = addresses_form
 
