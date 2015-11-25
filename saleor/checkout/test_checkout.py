@@ -66,18 +66,6 @@ def get_address(address, prefix=''):
     return {prefix + k: v for k, v in address.items()}
 
 
-# def test_checkout_steps_with_shipping(rf):
-#     pass
-#
-#
-# def test_checkout_steps_without_shipping(rf):
-#     pass
-#
-#
-# def test_revrite_next_step_if_invalid(rf)
-#     pass
-
-
 def test_shipping_step_save_address_anonymous_user(rf):
     address = get_address(NEW_ADDRESS, SHIPPING_PREFIX)
     data = dict(address, email=USER_EMAIL)
