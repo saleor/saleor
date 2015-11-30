@@ -46,28 +46,25 @@ class Checkout(ProcessManager):
         return iter(self.steps)
 
     def generate_steps(self, cart):
-        shipping_address = None
         self.cart = cart
 
         if self.is_shipping_required():
-            self.shipping = ShippingAddressStep(
+            self.shipping_address_step = ShippingAddressStep(
                 self.request, self.storage['shipping_address'], checkout=self)
-            shipping_address = self.shipping.address
-            self.steps.append(self.shipping)
-            self.delivery = ShippingMethodStep(
+            shipping_address = self.shipping_address_step.address
+            self.steps.append(self.shipping_address_step)
+            self.shipping_method_step = ShippingMethodStep(
                 self.request, self.storage['shipping_method'], shipping_address,
                 self.cart, checkout=self)
-            self.steps.append(self.delivery)
+            self.steps.append(self.shipping_method_step)
         else:
-            self.shipping = None
-            self.delivery = None
+            shipping_address = None
+            self.shipping_address_step = None
+            self.shipping_method_step = None
 
         summary_step = SummaryStep(self.request, self.storage['summary'],
                                    shipping_address, checkout=self)
         self.steps.append(summary_step)
-
-    def get_storage(self, name):
-        return self.storage[name]
 
     def get_total(self, **kwargs):
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)
@@ -93,8 +90,9 @@ class Checkout(ProcessManager):
 
     def get_deliveries(self, **kwargs):
         for partition in self.cart.partition():
-            if self.shipping and self.delivery.delivery_method:
-                delivery_method = self.delivery.delivery_method
+            if (self.shipping_address_step and
+                    self.shipping_method_step.delivery_method):
+                delivery_method = self.shipping_method_step.delivery_method
                 delivery_cost = delivery_method.get_delivery_total(partition)
             else:
                 delivery_cost = Price(0, currency=settings.DEFAULT_CURRENCY)
