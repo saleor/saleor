@@ -1,0 +1,62 @@
+{% load i18n %}
+{% load static from staticfiles %}
+{% load as_vertical_form from bootstrap %}
+
+<div class="row">
+    <div class="btn-group-vertical col-sm-12" data-toggle="buttons">
+        {% if step.shipping_address %}
+            <label for="{{ addresses_form.address.html_name }}_copy" class="btn btn-default{% if copy_shipping_address %} active{% endif %}">
+                <input type="radio"
+                       name="{{ addresses_form.address.html_name }}"
+                       value="copy"
+                       id="{{ addresses_form.address.html_name }}_copy"
+                       {% if copy_shipping_address %}checked{% endif %}>
+                {% trans "Use shipping address for billing" %}
+            </label>
+        {% endif %}
+
+        {% if addresses %}
+            {% for address in addresses %}
+                <label for="{{ addresses_form.address.html_name }}_{{ address.id }}" class="btn btn-default{% if address.is_selected %} active{% endif %}">
+                    <input type="radio"
+                           name="{{ addresses_form.address.html_name }}"
+                           value="{{ address.id }}"
+                           id="{{ addresses_form.address.html_name }}_{{ address.id }}"
+                           {% if address.is_selected %}checked{% endif %}>
+                    {% include "userprofile/snippets/address-details.html" with address=address %}
+                </label>
+            {% endfor %}
+        {% endif %}
+
+        {% if step.shipping_address or addresses %}
+            <label for="{{ addresses_form.address.html_name }}_new" class="btn btn-default{% if new_address %} active{% endif %}">
+                <input type="radio"
+                       name="{{ addresses_form.address.html_name }}"
+                       value=""
+                       id="{{ addresses_form.address.html_name }}_new"
+                       {% if new_address %}checked{% endif %}>
+                {% trans "Enter a new address" %}
+            </label>
+        {%  endif %}
+    </div>
+</div>
+<div class="conditional-visibility" data-controller="input[name={{ addresses_form.address.html_name }}]" data-value="">
+    <br>
+    {% if display_email_form %}
+        {{ step.forms.email|as_vertical_form  }}
+    {% endif %}
+
+    <div class="i18n-address" data-address-url="{% static 'js/address.json' %}" data-lang="{{ LANGUAGE_CODE }}" data-prefix="{{ step.forms.new_address.prefix }}">
+        {{ step.forms.new_address.first_name|as_vertical_form }}
+        {{ step.forms.new_address.last_name|as_vertical_form }}
+        {{ step.forms.new_address.company_name|as_vertical_form }}
+        {{ step.forms.new_address.street_address_1|as_vertical_form }}
+        {{ step.forms.new_address.street_address_2|as_vertical_form }}
+        {{ step.forms.new_address.city|as_vertical_form }}
+        {{ step.forms.new_address.city_area|as_vertical_form }}
+        {{ step.forms.new_address.postal_code|as_vertical_form }}
+        {{ step.forms.new_address.country|as_vertical_form }}
+        {{ step.forms.new_address.country_area|as_vertical_form }}
+    </div>
+    {{ step.forms.new_address.phone|as_vertical_form }}
+</div>
