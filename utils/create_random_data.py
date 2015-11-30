@@ -34,8 +34,7 @@ def get_email(first_name, last_name):
 
 def get_or_create_category(name, **kwargs):
     defaults = {
-        'description': fake.text()
-    }
+        'description': fake.text()}
     defaults.update(kwargs)
     defaults['slug'] = fake.slug(name)
 
@@ -47,35 +46,29 @@ def create_product(**kwargs):
         'name': fake.company(),
         'price': fake.price(),
         'weight': fake.random_digit(),
-        'description': '\n\n'.join(fake.paragraphs(5))
-    }
+        'description': '\n\n'.join(fake.paragraphs(5))}
     defaults.update(kwargs)
     return Product.objects.create(**defaults)
+
+
+def create_stock(variant, **kwargs):
+    defaults = {
+        'variant': variant,
+        'location': STOCK_LOCATION,
+        'quantity': fake.random_int(1, 50)}
+    defaults.update(kwargs)
+    return Stock.objects.create(**defaults)
 
 
 def create_variant(product, **kwargs):
     defaults = {
         'name': fake.word(),
         'sku': fake.random_int(1, 100000),
-        'product': product,
-    }
+        'product': product}
     defaults.update(kwargs)
-    return ProductVariant.objects.create(**defaults)
-
-
-def create_stock(product, **kwargs):
-    for variant in product.variants.all():
-        _create_stock(variant, **kwargs)
-
-
-def _create_stock(variant, **kwargs):
-    defaults = {
-        'variant': variant,
-        'location': STOCK_LOCATION,
-        'quantity': fake.random_int(1, 50)
-    }
-    defaults.update(kwargs)
-    return Stock.objects.create(**defaults)
+    variant = ProductVariant.objects.create(**defaults)
+    create_stock(variant)
+    return variant
 
 
 def create_product_image(product, placeholder_dir):
@@ -83,9 +76,7 @@ def create_product_image(product, placeholder_dir):
                           random.choice(os.listdir(placeholder_dir)))
     image = ProductImage(
         product=product,
-        image=File(open(img_path, 'rb'))
-    ).save()
-
+        image=File(open(img_path, 'rb'))).save()
     return image
 
 
@@ -102,18 +93,12 @@ def create_items(placeholder_dir, how_many=10):
     for i in range(how_many):
         product = create_product()
         product.categories.add(default_category)
-
-        create_variant(product)  # ensure at least one variant
         if create_images:
             create_product_images(
                 product, random.randrange(1, 5), placeholder_dir)
-
         num_variants = random.randrange(1, 5)
         for _ in range(num_variants):
-            if random.choice([True, False]):
-                create_variant(product)
-
-        create_stock(product)
+            create_variant(product)
         yield 'Product: %s, %s variant(s)' % (product, num_variants)
 
 
