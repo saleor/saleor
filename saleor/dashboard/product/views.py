@@ -7,9 +7,9 @@ from django.utils.http import is_safe_url
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
+from ...core.utils import get_paginator_items
 from ...product.models import Product, ProductImage, Stock, ProductAttribute, \
     ProductVariant
-from ..utils import paginate
 from ..views import staff_member_required
 from . import forms
 
@@ -20,8 +20,8 @@ def product_list(request):
     form = forms.ProductClassForm(request.POST or None)
     if form.is_valid():
         return redirect('dashboard:product-add')
-    products, paginator = paginate(products, 30, request.GET.get('page'))
-    ctx = {'form': form, 'products': products, 'paginator': paginator}
+    products = get_paginator_items(products, 30, request.GET.get('page'))
+    ctx = {'form': form, 'products': products}
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
 
 

@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.http import HttpResponsePermanentRedirect
+from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -48,7 +49,8 @@ def category_index(request, path, category_id):
                         category_id=category_id)
     products = category.products.get_available_products().select_subclasses()
     products = products.prefetch_related('images', 'variants', 'variants__stock')
-    products = get_paginator_items(products, request.GET.get('page'))
+    products = get_paginator_items(
+        products, settings.PAGINATE_BY, request.GET.get('page'))
     return TemplateResponse(
         request, 'category/index.html',
         {'products': products, 'category': category,

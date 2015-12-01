@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import re
 
 from django import forms
-from django.conf import settings
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.template.response import TemplateResponse
 from django.utils.encoding import iri_to_uri, smart_text
@@ -85,8 +84,8 @@ def build_absolute_uri(location, is_secure=False):
     return iri_to_uri(location)
 
 
-def get_paginator_items(items, page):
-    paginator = Paginator(items, settings.PAGINATE_BY)
+def get_paginator_items(items, paginate_by, page):
+    paginator = Paginator(items, paginate_by)
     try:
         items = paginator.page(page)
     except PageNotAnInteger:

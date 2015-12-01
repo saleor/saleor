@@ -42,13 +42,6 @@ def render_field(bound_field, show_label, template):
     return render_to_string(template, context_instance=context)
 
 
-def render_pagination(items, current_page):
-    context = Context({
-        'items': items, 'current_page': current_page,
-        'pages': map(str, range(1, items.paginator.num_pages + 1))})
-    return render_to_string(TEMPLATE_PAGINATION, context_instance=context)
-
-
 def as_bootstrap(obj, show_label, template):
     if isinstance(obj, BoundField):
         return render_field(obj, show_label, template)
@@ -81,7 +74,7 @@ def render_widget(obj, **attrs):
     return obj.as_widget(attrs=attrs)
 
 
-@register.simple_tag(takes_context=True)
-def pagination(context, items):
-    current_page = context['request'].GET.get('page', '1')
-    return render_pagination(items, current_page)
+@register.filter
+def as_pagination(items):
+    context = Context({'items': items})
+    return render_to_string(TEMPLATE_PAGINATION, context_instance=context)

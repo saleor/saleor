@@ -3,8 +3,8 @@
     <nav>
       <ul class="pagination">
         <li {% if not items.has_previous %}class="disabled"{% endif %}><a href="{% if items.has_previous%}?page={{ items.previous_page_number }}{% else %}#{% endif %}" aria-label="{% trans "Previous" %}"><span aria-hidden="true">&laquo;</span></a></li>
-        {% for page in pages %}
-            {% if page == current_page %}
+        {% for page in items.paginator.page_range %}
+            {% if page == items.number %}
                 <li class="active"><a href="#">{{ page }} <span class="sr-only">(current)</span></a></li>
             {% else %}
                 <li><a href="?page={{ page }}">{{ page }}</a></li>
