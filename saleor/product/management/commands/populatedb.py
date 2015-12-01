@@ -30,7 +30,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.make_database_faster()
-        for msg in create_items(self.placeholders_dir, 20):
+        for msg in create_items(self.placeholders_dir, 40):
             self.stdout.write(msg)
         for msg in create_users(20):
             self.stdout.write(msg)
