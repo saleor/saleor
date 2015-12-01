@@ -204,7 +204,7 @@ class ShippingMethodStep(BaseCheckoutStep):
         selected_method_name = self.storage.get('delivery_method')
         valid_methods = [d['method'].name for d in self.available_deliveries]
         if selected_method_name not in valid_methods:
-            raise InvalidData('Select a valid delivery method')
+            raise InvalidData(_('Select a valid delivery method'))
 
 
 class SummaryStep(BaseCheckoutStep):
