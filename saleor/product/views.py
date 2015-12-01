@@ -25,12 +25,8 @@ def product_details(request, slug, product_id):
     form = form_class(cart=cart, product=product,
                       data=request.POST or None)
     if form.is_valid():
-        if form.cleaned_data['quantity']:
-            msg = _('Added %(product)s to your cart.') % {
-                'product': product}
-            messages.success(request, msg)
         form.save()
-        return redirect('product:details', slug=slug, product_id=product_id)
+        return redirect('cart:index')
     template_name = 'product/details_%s.html' % (
         type(product).__name__.lower(),)
     templates = [template_name, 'product/details.html']

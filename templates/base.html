@@ -47,27 +47,12 @@
                             {% endfor %}
                         </ul>
                         <ul class="nav navbar-nav navbar-right">
-                            <li class="dropdown">
-                                <a data-toggle="dropdown" class="dropdown-toggle" href="{% url "cart:index" %}"><i class="fa fa-shopping-cart"></i> {% trans "Shopping cart" %} {% if request.cart %}<span class="badge">{{ request.cart.count }}</span>{% endif %} <b class="caret"></b></a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="{% url "cart:index" %}">{% trans "View cart contents" %}</a></li>
-                                    {% if request.cart %}
-                                    <li class="divider"></li>
-                                    {% for item in request.cart %}
-                                    <li>
-                                        <a href="{% url 'product:details' slug=item.data.product_slug product_id=item.data.product_id %}">
-                                            {{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}
-                                        </a>
-                                    </li>
-                                    {% endfor %}
-                                    <li class="divider"></li>
-                                    <li><a href="{% url "checkout:index" %}">{% trans "Proceed to checkout" %}</a></li>
-                                    {% endif %}
-                                </ul>
+                            <li>
+                                <a href="{% url "cart:index" %}"><i class="fa fa-shopping-cart"></i> {% trans "Cart" %} {% if request.cart %}<span class="badge">{{ request.cart.count }}</span>{% endif %}</a>
                             </li>
                             {% if user.is_authenticated %}
                             <li class="dropdown">
-                                <a data-toggle="dropdown" class="dropdown-toggle" href="."><i class="glyphicon glyphicon-user"></i> {{ user }} <b class="caret"></b></a>
+                                <a data-toggle="dropdown" class="dropdown-toggle" href=".">{% blocktrans %}Hello, {{ user }}{% endblocktrans %} <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     <li><a href="{% url "profile:details" %}">{% trans "Your profile" %}</a></li>
                                     <li><a href="{% url "profile:orders" %}">{% trans "Your orders" %}</a></li>
@@ -81,7 +66,7 @@
                             </li>
                             {% else %}
                             <li>
-                                <a href="{% url "registration:login" %}">Log in</a>
+                                <a href="{% url "registration:login" %}">Sign in</a>
                             </li>
                             {% endif %}
                         </ul>
