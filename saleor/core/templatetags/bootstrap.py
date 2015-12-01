@@ -10,6 +10,7 @@ register = Library()
 TEMPLATE_ERRORS = 'bootstrap/_non_field_errors.html'
 TEMPLATE_HORIZONTAL = 'bootstrap/_field_horizontal.html'
 TEMPLATE_VERTICAL = 'bootstrap/_field_vertical.html'
+TEMPLATE_PAGINATION = 'bootstrap/_pagination.html'
 
 
 def render_non_field_errors(errors):
@@ -71,3 +72,9 @@ def as_vertical_form(obj, show_label=True):
 @register.simple_tag
 def render_widget(obj, **attrs):
     return obj.as_widget(attrs=attrs)
+
+
+@register.filter
+def as_pagination(items):
+    context = Context({'items': items})
+    return render_to_string(TEMPLATE_PAGINATION, context_instance=context)

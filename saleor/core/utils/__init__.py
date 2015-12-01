@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from django import forms
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.template.response import TemplateResponse
 from django.utils.encoding import iri_to_uri, smart_text
 from satchless.process import InvalidData, Step
@@ -81,3 +82,14 @@ def build_absolute_uri(location, is_secure=False):
         current_uri = '%s://%s' % ('https' if is_secure else 'http', host)
         location = urljoin(current_uri, location)
     return iri_to_uri(location)
+
+
+def get_paginator_items(items, paginate_by, page):
+    paginator = Paginator(items, paginate_by)
+    try:
+        items = paginator.page(page)
+    except PageNotAnInteger:
+        items = paginator.page(1)
+    except EmptyPage:
+        items = paginator.page(paginator.num_pages)
+    return items

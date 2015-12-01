@@ -1,6 +1,6 @@
 {% load i18n %}
 {% load utils %}
-{% if paginator.num_pages > 1 %}
+{% if page_obj.paginator.num_pages > 1 %}
     <ul class="pagination">
         <li{% if not page_obj.has_previous %} class="disabled"{% endif %}>
             {% if page_obj.has_previous %}
@@ -11,7 +11,7 @@
                 <span><i class="mdi-navigation-chevron-left"></i></span>
             {% endif %}
         </li>
-        {% for page in paginator.page_range %}
+        {% for page in page_obj.paginator.page_range %}
             <li class="{% if page == page_obj.number %}active{% else %}waves-effect{% endif %}">
                 <a href="{% construct_get_query page=page %}">
                     {{ page }}
