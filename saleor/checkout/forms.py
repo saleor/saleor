@@ -23,7 +23,7 @@ class AddressChoiceField(forms.ModelChoiceField):
         super(AddressChoiceField, self).__init__(*args, **kwargs)
 
     def validate(self, value):
-        if not self.if_special_choice(value):
+        if not self.is_special_choice(value):
             return super(AddressChoiceField, self).validate(value)
 
     def to_python(self, value):
@@ -39,7 +39,7 @@ class AddressChoiceField(forms.ModelChoiceField):
 
     choices = property(_get_choices, forms.ChoiceField._set_choices)
 
-    def if_special_choice(self, value):
+    def is_special_choice(self, value):
         return value == self.last_choice[0] or (
             self.first_choice and value == self.first_choice[0])
 
