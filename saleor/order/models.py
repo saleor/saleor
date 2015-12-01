@@ -64,10 +64,15 @@ class Order(models.Model, ItemSet):
                                              editable=False)
     token = models.CharField(
         pgettext_lazy('Order field', 'token'), max_length=36, unique=True)
-    total = PriceField(
+    total_net = PriceField(
         pgettext_lazy('Order field', 'total'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
+    total_tax = PriceField(
+        pgettext_lazy('Order field', 'total'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        blank=True, null=True)
+
 
     class Meta:
         ordering = ('-last_status_change',)
@@ -151,6 +156,12 @@ class Order(models.Model, ItemSet):
 
     def is_shipping_required(self):
         return any(group.is_shipping_required() for group in self.groups.all())
+
+    @property
+    def total(self):
+        gross = self.total_net.net + self.total_tax.gross
+        return Price(net=self.total_net.net, gross=gross,
+                     currency=settings.DEFAULT_CURRENCY)
 
 
 class DeliveryGroupManager(models.Manager):
