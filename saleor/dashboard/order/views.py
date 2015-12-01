@@ -207,7 +207,7 @@ def ship_delivery_group(request, order_pk, group_pk):
         return redirect('dashboard:order-details', order_pk=order_pk)
     elif form.errors:
         status = 400
-    ctx = {'order': order, 'group': group}
+    ctx = {'order': order, 'group': group, 'form': form}
     template = 'dashboard/order/modal_ship_delivery_group.html'
     return TemplateResponse(request, template, ctx, status=status)
 

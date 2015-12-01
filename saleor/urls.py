@@ -8,11 +8,12 @@ from .cart.urls import urlpatterns as cart_urls
 from .checkout.urls import urlpatterns as checkout_urls
 from .core.sitemaps import sitemaps
 from .core.urls import urlpatterns as core_urls
+from .dashboard.urls import urlpatterns as dashboard_urls
 from .order.urls import urlpatterns as order_urls
 from .product.urls import urlpatterns as product_urls
 from .registration.urls import urlpatterns as registration_urls
 from .userprofile.urls import urlpatterns as userprofile_urls
-from .dashboard.urls import urlpatterns as dashboard_urls
+from .wombat.urls import urlpatterns as wombat_urls
 
 
 admin.autodiscover()
@@ -27,6 +28,7 @@ urlpatterns = [
     url(r'^order/', include(order_urls, namespace='order')),
     url(r'^products/', include(product_urls, namespace='product')),
     url(r'^profile/', include(userprofile_urls, namespace='profile')),
+    url(r'^wombat/', include(wombat_urls, namespace='wombat')),
     url(r'^selectable/', include('selectable.urls')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),

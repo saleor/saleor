@@ -12,7 +12,7 @@ from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from jsonfield import JSONField
-from model_utils.managers import InheritanceManager
+from model_utils.managers import InheritanceManager, InheritanceQuerySet
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from satchless.item import ItemRange, Item, InsufficientStock
@@ -63,11 +63,23 @@ class Category(MPTTModel):
         self.get_descendants().update(hidden=hidden)
 
 
-class ProductManager(InheritanceManager):
+class ProductQuerySet(InheritanceQuerySet):
     def get_available_products(self):
         today = datetime.datetime.today()
-        return self.get_queryset().filter(
+        return self.filter(
             Q(available_on__lte=today) | Q(available_on__isnull=True))
+
+    def with_variants(self):
+        return self.prefetch_related('variants', 'variants__stock')
+
+    def with_images(self):
+        return self.prefetch_related('images')
+
+    def with_attributes(self):
+        return self.prefetch_related('attributes')
+
+    def with_all_related(self):
+        return self.with_variants().with_images().with_attributes()
 
 
 @python_2_unicode_compatible
@@ -89,8 +101,10 @@ class Product(models.Model, ItemRange):
         pgettext_lazy('Product field', 'available on'), blank=True, null=True)
     attributes = models.ManyToManyField(
         'ProductAttribute', related_name='products', blank=True)
+    updated_at = models.DateTimeField(
+        pgettext_lazy('Product field', 'updated at'), auto_now=True, null=True)
 
-    objects = ProductManager()
+    objects = ProductQuerySet.as_manager()
 
     class Meta:
         app_label = 'product'
@@ -231,6 +245,18 @@ class ProductVariant(models.Model, Item):
     def display_product(self, attributes=None):
         return '%s (%s)' % (smart_text(self.product),
                             self.display_variant(attributes=attributes))
+
+    def select_stockrecord(self):
+        # By default selects stock with lowest cost price
+        stock = sorted(self.stock.all(), key=lambda stock: stock.cost_price,
+                       reverse=True)
+        if stock:
+            return stock[0]
+
+    def get_cost_price(self):
+        stock = self.select_stockrecord()
+        if stock:
+            return stock.cost_price
 
 
 @python_2_unicode_compatible
