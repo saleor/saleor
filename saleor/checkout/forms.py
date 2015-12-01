@@ -1,37 +1,55 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
-from saleor.userprofile.models import Address
+
+
+class AddressChoiceIterator(forms.models.ModelChoiceIterator):
+
+    def __iter__(self):
+        first_choice = self.field.first_choice
+        if first_choice:
+            yield first_choice
+        for obj in self.queryset:
+            yield self.choice(obj)
+        yield self.field.last_choice
 
 
 class AddressChoiceField(forms.ModelChoiceField):
-    choice_values = []
+    first_choice = 'copy', _('Use shipping address')
+    last_choice = 'new', _('Enter a new address')
+
+    def __init__(self, can_copy, *args, **kwargs):
+        if not can_copy:
+            self.first_choice = None
+        super(AddressChoiceField, self).__init__(*args, **kwargs)
 
     def validate(self, value):
-        if value not in self.choice_values:
+        if not self.if_special_choice(value):
             return super(AddressChoiceField, self).validate(value)
 
     def to_python(self, value):
-        if value in self.choice_values:
+        if self.is_special_choice(value):
             return value
         else:
             return super(AddressChoiceField, self).to_python(value)
 
-    def add_magic_choices(self, magic_choices, queryset):
-        choices = list(queryset) if queryset else []
-        self.choices = magic_choices + choices
+    def _get_choices(self):
+        if hasattr(self, '_choices'):
+            return self._choices
+        return AddressChoiceIterator(self)
+
+    choices = property(_get_choices, forms.ChoiceField._set_choices)
+
+    def if_special_choice(self, value):
+        return value == self.last_choice[0] or (
+            self.first_choice and value == self.first_choice[0])
 
 
 class UserAddressesForm(forms.Form):
-    address = AddressChoiceField(
-        queryset=Address.objects.none(),
-        widget=forms.RadioSelect)
-
-    def __init__(self, queryset, possibilities, *args, **kwargs):
+    def __init__(self, queryset, can_copy=False, *args, **kwargs):
         super(UserAddressesForm, self).__init__(*args, **kwargs)
-        address_field = self.fields['address']
-        address_field.queryset = queryset if queryset else Address.objects.none()
-        address_field.add_magic_choices(possibilities, queryset)
-        address_field.choice_values = [value for value, label in possibilities]
+        self.fields['address'] = AddressChoiceField(queryset=queryset,
+                                                    widget=forms.RadioSelect,
+                                                    can_copy=can_copy)
 
 
 class DeliveryForm(forms.Form):

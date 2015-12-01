@@ -14,7 +14,6 @@ STORAGE_SESSION_KEY = 'checkout_storage'
 
 
 class CheckoutStorage(defaultdict):
-
     modified = False
 
     def __init__(self, *args, **kwargs):
@@ -22,17 +21,11 @@ class CheckoutStorage(defaultdict):
 
 
 class Checkout(ProcessManager):
-
-    items = None
-    groups = None
-    billing = None
     steps = None
 
     def __init__(self, request):
         self.request = request
-        self.groups = []
         self.steps = []
-        self.items = []
         try:
             self.storage = CheckoutStorage(
                 request.session[STORAGE_SESSION_KEY])

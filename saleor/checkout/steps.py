@@ -48,7 +48,6 @@ class ShippingAddressStep(BaseCheckoutStep):
         address_data = storage.get('address', {})
         self.address = Address(**address_data)
         self.address_id = storage.get('address_id')
-        self.available_address_choices = [('new', _('Enter a new address'))]
 
         if request.user.is_authenticated():
             self.email = request.user.email
@@ -66,8 +65,8 @@ class ShippingAddressStep(BaseCheckoutStep):
                                            instance=address)
 
             self.forms['addresses_form'] = UserAddressesForm(
-                queryset=queryset, possibilities=self.available_address_choices,
-                data=request.POST or None, prefix=self.step_name)
+                data=request.POST or None, queryset=queryset,
+                prefix=self.step_name)
 
             if not new_address_form.is_bound:
                 selected_address = self.get_same_own_address(self.address)
@@ -112,9 +111,7 @@ class ShippingAddressStep(BaseCheckoutStep):
             addresses_form = self.forms['addresses_form']
             if addresses_form.is_valid():
                 selected_address = addresses_form.cleaned_data['address']
-                special_values = [value for value, label
-                                  in self.available_address_choices]
-                if selected_address not in special_values:
+                if selected_address != 'new':
                     own_address = self.get_same_own_address(selected_address)
                     if own_address:
                         self.address = own_address
@@ -216,7 +213,6 @@ class SummaryStep(BaseCheckoutStep):
     step_name = 'summary'
     addresses = []
     select_copy_shipping_address = True
-    available_address_choices = [('new', _('Enter a new address'))]
 
     def __init__(self, request, storage, shipping_address, checkout):
         super(SummaryStep, self).__init__(request, storage, checkout)
@@ -224,17 +220,10 @@ class SummaryStep(BaseCheckoutStep):
         self.shipping_address = shipping_address
         self.forms = {'new_address': AddressForm(request.POST or None,
                                                  prefix=self.step_name)}
-        if shipping_address:
-            self.available_address_choices.append(
-                ('copy', _('Copy shipping address')))
 
         if request.user.is_authenticated():
             queryset = request.user.addresses.all()
             self.addresses = list(queryset)
-            addresses_form = UserAddressesForm(
-                queryset=queryset, possibilities=self.available_address_choices,
-                data=request.POST or None, prefix=self.step_name)
-
             if not self.forms['new_address'].is_bound:
                 default_billing_address = request.user.default_billing_address
                 if default_billing_address:
@@ -245,13 +234,13 @@ class SummaryStep(BaseCheckoutStep):
                             self.select_copy_shipping_address = False
                             break
         else:
-            addresses_form = UserAddressesForm(
-                queryset=None, possibilities=self.available_address_choices,
-                data=request.POST or None, prefix=self.step_name)
+            queryset = None
             if not checkout.is_shipping_required():
                 self.forms['email'] = AnonymousEmailForm(request.POST or None)
 
-        self.forms['addresses_form'] = addresses_form
+        self.forms['addresses_form'] = UserAddressesForm(
+            data=request.POST or None, queryset=queryset,
+            prefix=self.step_name, can_copy=shipping_address)
 
     def process(self, extra_context=None):
         context = dict(extra_context or {})
@@ -277,7 +266,7 @@ class SummaryStep(BaseCheckoutStep):
         new_address_form = self.forms['new_address']
         if addresses_form.is_valid():
             choice = addresses_form.cleaned_data['address']
-            if choice == "copy":
+            if choice == 'copy':
                 billing_address = self.shipping_address
             elif choice in self.addresses:
                 billing_address = choice
