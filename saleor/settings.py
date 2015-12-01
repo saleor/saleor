@@ -238,6 +238,8 @@ MESSAGE_TAGS = {
 
 LOW_STOCK_THRESHOLD = 10
 
+PAGINATE_BY = 16
+
 TEST_RUNNER = ''
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split()

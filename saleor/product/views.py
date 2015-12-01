@@ -8,7 +8,8 @@ from django.utils.translation import ugettext as _
 
 from .forms import get_form_class_for_product
 from .models import Product, Category
-from saleor.cart import Cart
+from ..cart import Cart
+from ..core.utils import get_paginator_items
 
 
 def product_details(request, slug, product_id):
@@ -47,6 +48,7 @@ def category_index(request, path, category_id):
                         category_id=category_id)
     products = category.products.get_available_products().select_subclasses()
     products = products.prefetch_related('images', 'variants', 'variants__stock')
+    products = get_paginator_items(products, request.GET.get('page'))
     return TemplateResponse(
         request, 'category/index.html',
         {'products': products, 'category': category,
