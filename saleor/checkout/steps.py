@@ -46,54 +46,41 @@ class ShippingAddressStep(BaseCheckoutStep):
     def __init__(self, request, storage, checkout):
         super(ShippingAddressStep, self).__init__(request, storage, checkout)
         address_data = storage.get('address', {})
-        self.address = Address(**address_data)
+        address = Address(**address_data)
+        self.address = address
         self.address_id = storage.get('address_id')
-
+        initial_address = 'new'
         if request.user.is_authenticated():
             self.email = request.user.email
-            queryset = request.user.addresses.all()
-            addresses = list(queryset)
-            self.addresses = addresses
-
-            if not self.get_same_own_address(self.address):
-                address = self.address
-            else:
+            addresses_queryset = request.user.addresses.all()
+            self.addresses = list(addresses_queryset)
+            selected_address = self.find_address_book_entry(address)
+            if selected_address:
                 address = None
-
-            new_address_form = AddressForm(request.POST or None,
-                                           prefix=self.step_name,
-                                           instance=address)
-
-            self.forms['addresses_form'] = UserAddressesForm(
-                data=request.POST or None, queryset=queryset,
-                prefix=self.step_name)
-
-            if not new_address_form.is_bound:
-                selected_address = self.get_same_own_address(self.address)
-                if selected_address:
-                    selected_address.is_selected = True
-                    self.is_new_address = False
-                elif not address_data:
-                    default_address = request.user.default_shipping_address
-                    if default_address:
-                        address = self.get_same_own_address(default_address)
-                        if address:
-                            address.is_selected = True
-                            self.is_new_address = False
-                    elif addresses:
-                        addresses[0].is_selected = True
-                        self.is_new_address = False
+                initial_address = selected_address.id
+            elif not address_data:
+                default_address = request.user.default_shipping_address
+                if default_address:
+                    # own_address = self.find_address_book_entry(default_address)
+                    # if own_address:
+                    #     initial_address = own_address.id
+                    initial_address = default_address.id
+                elif self.addresses:
+                    initial_address = self.addresses[0].id
         else:
-            new_address_form = AddressForm(request.POST or None,
-                                           prefix=self.step_name,
-                                           instance=self.address)
             email = storage.get('email', '')
             self.email = email
             self.forms['email'] = AnonymousEmailForm(request.POST or None,
                                                      initial={'email': email})
-        self.forms['new_address'] = new_address_form
+            addresses_queryset = None
 
-    def get_same_own_address(self, address):
+        self.forms['addresses_form'] = UserAddressesForm(
+            data=request.POST or None, queryset=addresses_queryset,
+            prefix=self.step_name, initial={'address': initial_address})
+        self.forms['new_address'] = AddressForm(
+                request.POST or None, prefix=self.step_name, instance=address)
+
+    def find_address_book_entry(self, address):
         for own_address in self.addresses:
             if Address.objects.are_identical(address, own_address):
                 return own_address
@@ -101,33 +88,35 @@ class ShippingAddressStep(BaseCheckoutStep):
     def process(self, extra_context=None):
         context = dict(extra_context or {})
         context['addresses'] = self.addresses
-        context['new_address'] = self.is_new_address
         context['button_label'] = _('Ship to this address')
         return super(BaseCheckoutStep, self).process(extra_context=context)
 
     def forms_are_valid(self):
-        address_is_valid = False
-        if self.addresses:
-            addresses_form = self.forms['addresses_form']
-            if addresses_form.is_valid():
-                selected_address = addresses_form.cleaned_data['address']
-                if selected_address != 'new':
-                    own_address = self.get_same_own_address(selected_address)
-                    if own_address:
-                        self.address = own_address
-                        self.address_id = own_address.id
-                        address_is_valid = True
+        address = None
+        addresses_form = self.forms['addresses_form']
+        if addresses_form.is_valid():
+            choice = addresses_form.cleaned_data['address']
+            if choice == 'new':
+                new_address_form = self.forms['new_address']
+                if new_address_form.is_valid():
+                    address = Address(**new_address_form.cleaned_data)
+            else:
+                address = choice
 
-        if not address_is_valid and self.forms['new_address'].is_valid():
-            self.address = Address(**self.forms['new_address'].cleaned_data)
-            self.address_id = None
-            address_is_valid = True
+            if address:
+                own_address = self.find_address_book_entry(address)
+                if own_address:
+                    self.address = own_address
+                    self.address_id = own_address.id
+                else:
+                    self.address = address
+                    self.address_id = None
 
         email_form = self.forms.get('email')
         if email_form:
-            return email_form.is_valid() and address_is_valid
+            return email_form.is_valid() and address
         else:
-            return address_is_valid
+            return address
 
     def validate(self):
         try:
