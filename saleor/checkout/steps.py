@@ -48,7 +48,6 @@ class ShippingAddressStep(BaseCheckoutStep):
     step_name = 'shipping-address'
     is_new_address = True
     addresses = []
-    forms = {}
 
     def __init__(self, request, storage, checkout):
         super(ShippingAddressStep, self).__init__(request, storage, checkout)
@@ -61,16 +60,13 @@ class ShippingAddressStep(BaseCheckoutStep):
             self.email = request.user.email
             addresses_queryset = request.user.addresses.all()
             self.addresses = list(addresses_queryset)
-            selected_address = self.find_address_book_entry(address)
+            selected_address = find_address_book_entry(self.addresses, address)
             if selected_address:
                 address = None
                 initial_address = selected_address.id
             elif not address_data:
                 default_address = request.user.default_shipping_address
                 if default_address:
-                    # own_address = self.find_address_book_entry(default_address)
-                    # if own_address:
-                    #     initial_address = own_address.id
                     initial_address = default_address.id
                 elif self.addresses:
                     initial_address = self.addresses[0].id
@@ -86,11 +82,6 @@ class ShippingAddressStep(BaseCheckoutStep):
             prefix=self.step_name, initial={'address': initial_address})
         self.forms['new_address'] = AddressForm(
                 request.POST or None, prefix=self.step_name, instance=address)
-
-    def find_address_book_entry(self, address):
-        for own_address in self.addresses:
-            if Address.objects.are_identical(address, own_address):
-                return own_address
 
     def process(self, extra_context=None):
         context = dict(extra_context or {})
@@ -111,7 +102,7 @@ class ShippingAddressStep(BaseCheckoutStep):
                 address = choice
 
             if address:
-                own_address = self.find_address_book_entry(address)
+                own_address = find_address_book_entry(self.addresses, address)
                 if own_address:
                     self.address = own_address
                     self.address_id = own_address.id
@@ -180,7 +171,7 @@ class ShippingMethodStep(BaseCheckoutStep):
         self.available_deliveries = available_deliveries
         delivery_form = DeliveryForm(delivery_choices, request.POST or None,
                                      initial={'method': selected_method_name})
-        self.forms = {'delivery': delivery_form}
+        self.forms['delivery'] = delivery_form
         self.selected_method_name = selected_method_name
 
     def process(self, extra_context=None):
