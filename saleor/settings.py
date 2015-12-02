@@ -2,7 +2,9 @@ import ast
 import os.path
 
 import dj_database_url
+import dj_email_url
 from django.contrib.messages import constants as messages
+import django_cache_url
 
 
 DEBUG = ast.literal_eval(os.environ.get('DEBUG', 'True'))
@@ -21,8 +23,10 @@ ADMINS = (
 MANAGERS = ADMINS
 INTERNAL_IPS = os.environ.get('INTERNAL_IPS', '127.0.0.1').split()
 
-SQLITE_DB_URL = 'sqlite:///' + os.path.join(PROJECT_ROOT, 'dev.sqlite')
+CACHE_URL = os.environ.get('CACHE_URL', os.environ.get('REDIS_URL', 'locmem://'))
+CACHES = {'default': django_cache_url.parse(CACHE_URL)}
 
+SQLITE_DB_URL = 'sqlite:///' + os.path.join(PROJECT_ROOT, 'dev.sqlite')
 DATABASES = {'default': dj_database_url.config(default=SQLITE_DB_URL)}
 
 
@@ -32,13 +36,17 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-EMAIL_BACKEND = ('django.core.mail.backends.%s.EmailBackend' %
-                 os.environ.get('EMAIL_BACKEND_MODULE', 'console'))
-EMAIL_HOST = os.environ.get('EMAIL_HOST')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-EMAIL_PORT = os.environ.get('EMAIL_PORT')
-EMAIL_USE_TLS = ast.literal_eval(os.environ.get('EMAIL_USE_TLS', 'False'))
+
+EMAIL_URL = os.environ.get('EMAIL_URL', 'console://')
+email_config = dj_email_url.parse(EMAIL_URL)
+
+EMAIL_FILE_PATH = email_config['EMAIL_FILE_PATH']
+EMAIL_HOST_USER = email_config['EMAIL_HOST_USER']
+EMAIL_HOST_PASSWORD = email_config['EMAIL_HOST_PASSWORD']
+EMAIL_HOST = email_config['EMAIL_HOST']
+EMAIL_PORT = email_config['EMAIL_PORT']
+EMAIL_BACKEND = email_config['EMAIL_BACKEND']
+EMAIL_USE_TLS = email_config['EMAIL_USE_TLS']
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 
 
@@ -64,7 +72,6 @@ context_processors = [
     'django.core.context_processors.tz',
     'django.contrib.messages.context_processors.messages',
     'django.core.context_processors.request',
-    'saleor.core.context_processors.canonical_hostname',
     'saleor.core.context_processors.default_currency',
     'saleor.core.context_processors.categories']
 
@@ -84,10 +91,10 @@ TEMPLATES = [{
         'debug': DEBUG,
         'context_processors': context_processors,
         'loaders': loaders,
-        'string_if_invalid': '<< MISSING VARIABLE >>'}}]
+        'string_if_invalid': '<< MISSING VARIABLE "%s" >>' if DEBUG else ''}}]
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = os.environ.get('SECRET_KEY', '{{ secret_key }}')
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 MIDDLEWARE_CLASSES = [
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -116,7 +123,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.auth',
-    'django.contrib.webdesign',
 
     # Local apps
     'saleor.userprofile',
@@ -195,8 +201,6 @@ AUTHENTICATION_BACKENDS = (
 
 AUTH_USER_MODEL = 'userprofile.User'
 
-CANONICAL_HOSTNAME = os.environ.get('CANONICAL_HOSTNAME', 'localhost:8000')
-
 LOGIN_URL = '/account/login'
 
 WARN_ABOUT_INVALID_HTML5_OUTPUT = False
@@ -215,15 +219,11 @@ GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get('GOOGLE_ANALYTICS_TRACKING_ID')
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
 GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
 
-PAYMENT_BASE_URL = 'http://%s/' % CANONICAL_HOSTNAME
-
 PAYMENT_MODEL = 'order.Payment'
 
 PAYMENT_VARIANTS = {
     'default': ('payments.dummy.DummyProvider', {})
 }
-
-PAYMENT_HOST = os.environ.get('PAYMENT_HOST', 'localhost:8000')
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
@@ -237,6 +237,8 @@ MESSAGE_TAGS = {
 }
 
 LOW_STOCK_THRESHOLD = 10
+
+PAGINATE_BY = 16
 
 TEST_RUNNER = ''
 

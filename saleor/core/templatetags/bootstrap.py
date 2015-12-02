@@ -1,7 +1,7 @@
 from django import forms
 from django.forms.forms import BoundField, BaseForm
-from django.forms.util import ErrorList
-from django.template import Library, Context, TemplateSyntaxError
+from django.forms.utils import ErrorList
+from django.template import Library, TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
@@ -10,13 +10,14 @@ register = Library()
 TEMPLATE_ERRORS = 'bootstrap/_non_field_errors.html'
 TEMPLATE_HORIZONTAL = 'bootstrap/_field_horizontal.html'
 TEMPLATE_VERTICAL = 'bootstrap/_field_vertical.html'
+TEMPLATE_PAGINATION = 'bootstrap/_pagination.html'
 
 
 def render_non_field_errors(errors):
     if not errors:
         return ''
-    context = Context({'errors': errors})
-    return render_to_string(TEMPLATE_ERRORS, context_instance=context)
+    context = {'errors': errors}
+    return render_to_string(TEMPLATE_ERRORS, context=context)
 
 
 def render_field(bound_field, show_label, template):
@@ -35,10 +36,11 @@ def render_field(bound_field, show_label, template):
     else:
         input_type = 'input'
 
-    context = Context({'bound_field': bound_field,
-                       'input_type': input_type,
-                       'show_label': show_label})
-    return render_to_string(template, context_instance=context)
+    context = {
+        'bound_field': bound_field,
+        'input_type': input_type,
+        'show_label': show_label}
+    return render_to_string(template, context=context)
 
 
 def as_bootstrap(obj, show_label, template):
@@ -71,3 +73,9 @@ def as_vertical_form(obj, show_label=True):
 @register.simple_tag
 def render_widget(obj, **attrs):
     return obj.as_widget(attrs=attrs)
+
+
+@register.filter
+def as_pagination(items):
+    context = {'items': items}
+    return render_to_string(TEMPLATE_PAGINATION, context=context)

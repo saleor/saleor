@@ -4,18 +4,25 @@
   "repository": "https://github.com/mirumee/saleor",
   "website": "http://getsaleor.com/",
   "logo": "https://mirumee.com/img/opensource-saleor.png",
-  "keywords": ["saleor", "e-commerce", "django"],
+  "keywords": [
+    "saleor",
+    "e-commerce",
+    "django"
+  ],
+  "image": "heroku/python",
   "env": {
-    "BUILDPACK_URL": "https://github.com/ddollar/heroku-buildpack-multi.git",
     "DJANGO_SETTINGS_MODULE": "saleor.settings",
-    "ALLOWED_HOSTS": "*",
     "DEBUG": "False",
+    "ALLOWED_HOSTS": {
+      "description": "Comma-separated list of hosts",
+      "value": ".herokuapp.com"
+    },
     "SECRET_KEY": {
       "description": "A secret key for verifying the integrity of signed cookies.",
       "generator": "secret"
     },
     "AWS_MEDIA_BUCKET_NAME": {
-      "description": "If you intend to upload your own product images, we strongly recommend configure S3",
+      "description": "If you intend to upload your own product images, we strongly recommend configure S3.",
       "value": "",
       "required": false
     },
@@ -31,9 +38,16 @@
     }
   },
   "scripts": {
-    "postdeploy": "saleor migrate && saleor populatedb --createsuperuser"
+    "postdeploy": "python manage.py migrate && python manage.py populatedb --createsuperuser --withoutimages"
   },
   "addons": [
-    "heroku-postgresql:hobby-dev"
-  ]
+    "heroku-postgresql:hobby-dev",
+    "heroku-redis:hobby-dev"
+  ],
+  "buildpacks": [
+    {
+      "url": "https://github.com/ddollar/heroku-buildpack-multi.git"
+    }
+  ],
+  "success_url": "/"
 }

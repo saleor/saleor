@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load slice from shop %}
 {% load static from staticfiles %}
+{% load as_pagination from bootstrap %}
 
 {% block title %}{{ category }} — {{ block.super }}{% endblock %}
 
@@ -39,6 +40,7 @@
             <div class="row">
                 {% include "category/_items.html" %}
             </div>
+            {{ products|as_pagination }}
         </div>
     </div>
 {% endblock content %}

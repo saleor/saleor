@@ -1,8 +1,8 @@
 from django.core.management.base import BaseCommand
-
-from utils.create_random_data import create_items, create_users, create_orders
+from django.db import connection
 
 from saleor.userprofile.models import User
+from utils.create_random_data import create_items, create_users, create_orders
 
 
 class Command(BaseCommand):
@@ -16,11 +16,30 @@ class Command(BaseCommand):
             dest='createsuperuser',
             default=False,
             help='Create admin account')
+        parser.add_argument(
+            '--withoutimages',
+            action='store_true',
+            dest='withoutimages',
+            default=False,
+            help='Don\'t create product images')
+
+    def make_database_faster(self):
+        '''Sacrifices some of the safeguards of sqlite3 for speed
+
+        Users are not likely to run this command in a production environment.
+        They are even less likely to run it in production while using sqlite3.
+        '''
+        if 'sqlite3' in connection.settings_dict['ENGINE']:
+            cursor = connection.cursor()
+            cursor.execute('PRAGMA temp_store = MEMORY;')
+            cursor.execute('PRAGMA synchronous = OFF;')
 
     def handle(self, *args, **options):
-        for msg in create_items(self.placeholders_dir, 10):
+        self.make_database_faster()
+        create_images = not options['withoutimages']
+        for msg in create_items(self.placeholders_dir, 40, create_images):
             self.stdout.write(msg)
-        for msg in create_users(10):
+        for msg in create_users(20):
             self.stdout.write(msg)
         for msg in create_orders(20):
             self.stdout.write(msg)

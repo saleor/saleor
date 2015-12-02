@@ -6,8 +6,8 @@ from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
 
 from .forms import CustomerSearchForm
-from ..utils import paginate
 from ..views import staff_member_required
+from ...core.utils import get_paginator_items
 from ...userprofile.models import User
 
 
@@ -30,9 +30,9 @@ def customer_list(request):
             orders__status__in=['new', 'payment-pending', 'fully-paid'])
     title = _('Results (%s)') % len(customers)
 
-    customers, paginator = paginate(customers, 30, request.GET.get('page'))
+    customers = get_paginator_items(customers, 30, request.GET.get('page'))
     ctx = {'customers': customers, 'form': form, 'title': title,
-           'paginator': paginator, 'default_pagination_params': form_values}
+           'default_pagination_params': form_values}
     return TemplateResponse(request, 'dashboard/customer/list.html', ctx)
 
 

@@ -7,7 +7,7 @@
     "url": "git://github.com/mirumee/saleor.git"
   },
   "author": "Mirumee Software",
-  "license": "BSD",
+  "license": "BSD-3-Clause",
   "bugs": {
     "url": "https://github.com/mirumee/saleor/issues"
   },

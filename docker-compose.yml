@@ -1,15 +1,24 @@
 db:
-  image: sameersbn/postgresql:9.4
+  image: postgres
   environment:
-    - DB_NAME=saleor
-    - DB_USER=saleor
-    - DB_PASS=saleor
+    - POSTGRES_USER=saleor
+    - POSTGRES_PASSWORD=saleor
+redis:
+  image: redis
+mailcatcher:
+  image: schickling/mailcatcher
+  ports:
+    - '1080:1080'
 web:
   build: .
+  environment:
+    - SECRET_KEY=changeme
+    - DEFAULT_FROM_EMAIL=info@getsaleor.com
   links:
     - db
+    - mailcatcher
+    - redis
   ports:
     - '8000:8000'
   volumes:
     - .:/app
-  command: /app/compose/start.sh
