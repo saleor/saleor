@@ -85,10 +85,8 @@ def create_product_images(product, how_many, placeholder_dir):
         create_product_image(product, placeholder_dir)
 
 
-def create_items(placeholder_dir, how_many=10):
+def create_items(placeholder_dir, how_many=10, create_images=True):
     default_category = get_or_create_category('Default')
-
-    create_images = os.path.exists(placeholder_dir)
 
     for i in range(how_many):
         product = create_product()

@@ -16,6 +16,12 @@ class Command(BaseCommand):
             dest='createsuperuser',
             default=False,
             help='Create admin account')
+        parser.add_argument(
+            '--withoutimages',
+            action='store_true',
+            dest='withoutimages',
+            default=False,
+            help='Don\'t create product images')
 
     def make_database_faster(self):
         '''Sacrifices some of the safeguards of sqlite3 for speed
@@ -30,7 +36,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.make_database_faster()
-        for msg in create_items(self.placeholders_dir, 40):
+        create_images = not options['withoutimages']
+        for msg in create_items(self.placeholders_dir, 40, create_images):
             self.stdout.write(msg)
         for msg in create_users(20):
             self.stdout.write(msg)
