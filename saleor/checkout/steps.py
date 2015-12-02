@@ -16,9 +16,9 @@ from ..userprofile.models import Address, User
 
 
 def find_address_book_entry(addresses, address):
-        for own_address in addresses:
-            if Address.objects.are_identical(address, own_address):
-                return own_address
+    for own_address in addresses:
+        if Address.objects.are_identical(address, own_address):
+            return own_address
 
 
 class BaseCheckoutStep(BaseStep):
@@ -112,9 +112,12 @@ class ShippingAddressStep(BaseCheckoutStep):
 
         email_form = self.forms.get('email')
         if email_form:
-            return email_form.is_valid() and address
-        else:
-            return address
+            valid_email = False
+            if email_form.is_valid():
+                valid_email = True
+                self.email = self.forms['email'].cleaned_data['email']
+            return address and valid_email
+        return address
 
     def validate(self):
         try:
@@ -126,9 +129,6 @@ class ShippingAddressStep(BaseCheckoutStep):
             raise InvalidData()
 
     def save(self):
-        if self.forms.get('email'):
-            self.email = self.forms['email'].cleaned_data['email']
-
         self.storage['email'] = self.email
         self.storage['address'] = Address.objects.as_data(self.address)
         self.storage['address_id'] = self.address_id
@@ -185,7 +185,7 @@ class ShippingMethodStep(BaseCheckoutStep):
         self.storage['delivery_method'] = delivery_form.cleaned_data['method']
 
     def add_to_order(self, order):
-        order.delivery_method = self.delivery_method
+        order.shipping_method = self.delivery_method
 
     def validate(self):
         selected_method_name = self.storage.get('delivery_method')
@@ -280,10 +280,7 @@ class SummaryStep(BaseCheckoutStep):
             User.objects.store_address(
                 order.user, self.billing_address, billing=True)
         order.save()
-        if self.checkout.is_shipping_required():
-            method = order.delivery_method
-        else:
-            method = None
+        method = order.shipping_method
         for partition in self.checkout.cart.partition():
             shipping_required = partition.is_shipping_required()
             if shipping_required and method:
@@ -292,6 +289,7 @@ class SummaryStep(BaseCheckoutStep):
                 shipping_price = 0
             group = order.groups.create(
                 shipping_required=shipping_required,
-                shipping_price=shipping_price)
+                shipping_price=shipping_price,
+                shipping_method=method)
             group.add_items_from_partition(partition)
         self.checkout.clear_storage()
