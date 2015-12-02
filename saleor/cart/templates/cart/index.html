@@ -39,7 +39,7 @@
                             {% if line.product.product.images.first %}
                                 <img class="cart-item-image" itemprop="image" src="{{ line.product.product.images.first.image.crop.100x100 }}" alt="">
                             {% else %}
-                                <img class="cart-item-image" src="{% static 'images/product-image-placeholder.png' %}" alt="">
+                                <img class="cart-item-image" src="{% static 'images/product-image-placeholder-small.png' %}" alt="">
                             {% endif %}
                         </a>
                     </td>
