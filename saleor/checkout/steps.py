@@ -15,9 +15,16 @@ from ..userprofile.forms import AddressForm
 from ..userprofile.models import Address, User
 
 
+def find_address_book_entry(addresses, address):
+        for own_address in addresses:
+            if Address.objects.are_identical(address, own_address):
+                return own_address
+
+
 class BaseCheckoutStep(BaseStep):
     is_step_valid = False
     is_step_available = False
+    forms = {}
 
     def __init__(self, request, storage, checkout):
         super(BaseCheckoutStep, self).__init__(request)
@@ -207,29 +214,26 @@ class SummaryStep(BaseCheckoutStep):
         super(SummaryStep, self).__init__(request, storage, checkout)
         self.billing_address = storage.get('billing_address')
         self.shipping_address = shipping_address
-        self.forms = {'new_address': AddressForm(request.POST or None,
-                                                 prefix=self.step_name)}
-
+        without_shipping = not checkout.is_shipping_required()
+        initial_address = 'copy' if shipping_address else 'new'
         if request.user.is_authenticated():
             queryset = request.user.addresses.all()
             self.addresses = list(queryset)
-            if not self.forms['new_address'].is_bound:
-                default_billing_address = request.user.default_billing_address
-                if default_billing_address:
-                    for address in self.addresses:
-                        if Address.objects.are_identical(
-                                address, default_billing_address):
-                            address.is_selected = True
-                            self.select_copy_shipping_address = False
-                            break
+            default_billing_address = request.user.default_billing_address
+            if default_billing_address:
+                initial_address = default_billing_address.id
+            elif without_shipping and self.addresses:
+                initial_address = self.addresses[0].id
         else:
             queryset = None
-            if not checkout.is_shipping_required():
+            if without_shipping:
                 self.forms['email'] = AnonymousEmailForm(request.POST or None)
-
+        self.forms['new_address'] = AddressForm(request.POST or None,
+                                                prefix=self.step_name)
         self.forms['addresses_form'] = UserAddressesForm(
             data=request.POST or None, queryset=queryset,
-            prefix=self.step_name, can_copy=shipping_address)
+            prefix=self.step_name, initial={'address': initial_address},
+            can_copy=shipping_address)
 
     def process(self, extra_context=None):
         context = dict(extra_context or {})
@@ -237,8 +241,6 @@ class SummaryStep(BaseCheckoutStep):
         context['addresses'] = self.addresses
         context['button_label'] = _('Bill to this address')
         context['display_email_form'] = self.forms.get('email')
-        context['new_address'] = self.forms['new_address'].is_bound
-        context['copy_shipping_address'] = self.select_copy_shipping_address
         response = super(SummaryStep, self).process(context)
 
         if not response:
@@ -250,27 +252,26 @@ class SummaryStep(BaseCheckoutStep):
         return response
 
     def forms_are_valid(self):
-        billing_address = None
         addresses_form = self.forms['addresses_form']
         new_address_form = self.forms['new_address']
         if addresses_form.is_valid():
             choice = addresses_form.cleaned_data['address']
             if choice == 'copy':
-                billing_address = self.shipping_address
+                self.billing_address = self.shipping_address
             elif choice in self.addresses:
-                billing_address = choice
-
-        if not billing_address and new_address_form.is_valid():
-            billing_address = Address(**new_address_form.cleaned_data)
-
-        if billing_address:
-            self.billing_address = billing_address
+                own_address = find_address_book_entry(self.addresses, choice)
+                if own_address:
+                    self.billing_address = own_address
+                else:
+                    self.billing_address = choice
+            elif choice == 'new' and new_address_form.is_valid():
+                self.billing_address = Address(**new_address_form.cleaned_data)
 
         email_form = self.forms.get('email')
         if email_form:
-            return email_form.is_valid() and billing_address
+            return email_form.is_valid() and self.billing_address
         else:
-            return billing_address
+            return self.billing_address
 
     def validate(self):
         raise InvalidData()
