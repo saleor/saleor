@@ -69,6 +69,7 @@ def get_address(address, prefix=''):
 def test_shipping_step_save_address_anonymous_user(rf):
     address = get_address(NEW_ADDRESS, SHIPPING_PREFIX)
     data = dict(address, email=USER_EMAIL)
+    data[SHIPPING_PREFIX + '-address'] = 'new'
     request = rf.post('/checkout/', data)
     request.user = AnonymousUser()
     request.session = {STORAGE_SESSION_KEY: {}}
@@ -89,6 +90,7 @@ def test_shipping_step_save_address_anonymous_user(rf):
 
 def test_shipping_step_address_without_email_anonymous_user(rf):
     address = get_address(NEW_ADDRESS, SHIPPING_PREFIX)
+    address[SHIPPING_PREFIX + '-address'] = 'new'
     request = rf.post('/checkout/', address)
     request.user = AnonymousUser()
     request.session = {STORAGE_SESSION_KEY: {}}
@@ -108,6 +110,7 @@ def test_shipping_step_without_address_anonymous_user(rf):
 
 def test_shipping_step_save_address_authenticated_user(rf):
     address = get_address(NEW_ADDRESS, SHIPPING_PREFIX)
+    address[SHIPPING_PREFIX + '-address'] = 'new'
     user = TestUser()
     request = rf.post('/checkout/', address)
     request.user = user
@@ -153,6 +156,7 @@ def test_shipping_step_save_address_reload_step(rf):
     saved_address_data = NEW_ADDRESS
     new_address_data = dict(NEW_ADDRESS, first_name='Another address')
     new_address_form = get_address(new_address_data, SHIPPING_PREFIX)
+    new_address_form[SHIPPING_PREFIX + '-address'] = 'new'
     request = rf.post('/checkout/', new_address_form)
     request.user = TestUser()
     request.session = {STORAGE_SESSION_KEY: {}}
@@ -361,7 +365,7 @@ def test_billing_step_save_address_anonymous_user_without_shipping(rf):
 
 
 def test_billing_step_anonymous_user_without_address_without_shipping(rf):
-    data= {'summary-address': 'new', 'email': USER_EMAIL}
+    data = {'summary-address': 'new', 'email': USER_EMAIL}
     request = rf.post('/summary/', data)
     request.user = AnonymousUser()
     request.session = {STORAGE_SESSION_KEY: {}}
