@@ -1,6 +1,6 @@
 from django import forms
 from django.forms.forms import BoundField, BaseForm
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from django.template import Library, Context, TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
