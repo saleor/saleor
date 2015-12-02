@@ -9,7 +9,6 @@ from ..cart import Cart
 from ..core import analytics
 from ..order.models import Order
 
-
 STORAGE_SESSION_KEY = 'checkout_storage'
 
 
@@ -40,7 +39,6 @@ class Checkout(ProcessManager):
 
     def generate_steps(self, cart):
         self.cart = cart
-
         if self.is_shipping_required():
             self.shipping_address_step = ShippingAddressStep(
                 self.request, self.storage['shipping_address'], checkout=self)
