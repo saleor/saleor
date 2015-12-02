@@ -88,12 +88,10 @@ def create_product_images(product, how_many, placeholder_dir):
 def create_items(placeholder_dir, how_many=10, create_images=True):
     default_category = get_or_create_category('Default')
 
-    placeholder_images = os.path.exists(placeholder_dir)
-
     for i in range(how_many):
         product = create_product()
         product.categories.add(default_category)
-        if placeholder_images and create_images:
+        if create_images:
             create_product_images(
                 product, random.randrange(1, 5), placeholder_dir)
         num_variants = random.randrange(1, 5)
