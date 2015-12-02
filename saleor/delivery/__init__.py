@@ -21,24 +21,37 @@ class BaseDelivery(ItemSet):
 
 
 @python_2_unicode_compatible
-class DummyShipping(BaseDelivery):
-    name = 'dummy_shipping'
+class FirstDummyShipping(BaseDelivery):
+    name = 'first_dummy_shipping'
 
     def __str__(self):
-        return 'Dummy shipping'
+        return 'First and cheaper dummy shipping'
 
     def get_delivery_total(self, items, **kwargs):
-        weight = sum(
-            line.product.get_weight() * line.quantity for line in items)
-        return Price(weight, currency=settings.DEFAULT_CURRENCY)
+        return Price(10, currency=settings.DEFAULT_CURRENCY)
+
+@python_2_unicode_compatible
+class SecondDummyShipping(BaseDelivery):
+    name = 'second_dummy_shipping'
+
+    def __str__(self):
+        return 'Second and more expensive dummy shipping'
+
+    def get_delivery_total(self, items, **kwargs):
+        return Price(25, currency=settings.DEFAULT_CURRENCY)
 
 
 def get_delivery_options_for_items(items, **kwargs):
     if 'address' in kwargs:
-        yield DummyShipping()
+        yield FirstDummyShipping()
+        yield SecondDummyShipping()
     else:
         raise ValueError('Unknown delivery type')
 
 
 def get_delivery(name):
-    return DummyShipping()
+    delivery_methods = [FirstDummyShipping, SecondDummyShipping]
+    for delivery_method in delivery_methods:
+        if name == delivery_method.name:
+            return delivery_method()
+    raise ValueError('Unknown delivery method: %s' % (name,))

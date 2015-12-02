@@ -5,8 +5,8 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--with-menu">
-        <li><a href="{% url 'dashboard:product-attributes' %}">{% trans "Attributes" %}</a></li>
-        <li><i class="mdi-navigation-chevron-right"></i> {% trans "Delete attribute" %}</li>
+        <li><a href="{% url 'dashboard:product-attributes' %}" class="breadcrumbs--ellipsed-item">{% trans "Attributes" %}</a></li>
+        <li><span class="breadcrumbs--ellipsed-item"><i class="mdi-navigation-chevron-right"></i> {% trans "Delete attribute" %}</span></li>
     </ul>
 {% endblock %}
 

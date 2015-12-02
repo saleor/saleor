@@ -5,6 +5,7 @@
 !.coveragerc
 !.dockerignore
 !.gitignore
+!.flowconfig
 !.travis*
 *.css
 *.log
