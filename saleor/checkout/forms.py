@@ -57,12 +57,12 @@ class UserAddressesForm(forms.Form):
                                                     can_copy=can_copy)
 
 
-class DeliveryForm(forms.Form):
+class ShippingForm(forms.Form):
     method = forms.ChoiceField(label=_('Shipping method'),
                                widget=forms.RadioSelect)
 
     def __init__(self, delivery_choices, *args, **kwargs):
-        super(DeliveryForm, self).__init__(*args, **kwargs)
+        super(ShippingForm, self).__init__(*args, **kwargs)
         method_field = self.fields['method']
         method_field.choices = delivery_choices
         if len(delivery_choices) == 1:

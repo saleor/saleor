@@ -7,7 +7,7 @@ from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from satchless.process import InvalidData
 
-from .forms import DeliveryForm, UserAddressesForm
+from .forms import UserAddressesForm, ShippingForm
 from ..checkout.forms import AnonymousEmailForm
 from ..core.utils import BaseStep
 from ..delivery import get_delivery_options_for_items
@@ -147,51 +147,50 @@ class ShippingMethodStep(BaseCheckoutStep):
 
     def __init__(self, request, storage, shipping_address, cart, checkout):
         super(ShippingMethodStep, self).__init__(request, storage, checkout)
-        self.delivery_method = None
-        selected_method_name = storage.get('delivery_method')
-        available_deliveries = [
+        self.shipping_method = None
+        selected_method_name = storage.get('shipping_method')
+        available_shipping = [
             {'method': method, 'cost': method.get_delivery_total(cart)}
             for method in get_delivery_options_for_items(
                 cart, address=shipping_address)]
 
-        delivery_choices = [(delivery['method'].name, delivery['method'].name)
-                            for delivery in available_deliveries]
+        shipping_choices = [(shipping['method'].name, shipping['method'].name)
+                            for shipping in available_shipping]
 
-        if available_deliveries:
-            cheapest_delivery = available_deliveries[0]
-
-        for delivery in available_deliveries:
-            if delivery['method'].name == selected_method_name:
-                self.delivery_method = delivery['method']
-                break
-            if delivery['cost'] < cheapest_delivery['cost']:
-                cheapest_delivery = delivery
-        else:
-            selected_method_name = cheapest_delivery['method'].name
-        self.available_deliveries = available_deliveries
-        delivery_form = DeliveryForm(delivery_choices, request.POST or None,
+        if available_shipping:
+            cheapest_shipping = available_shipping[0]
+            for shipping in available_shipping:
+                if shipping['method'].name == selected_method_name:
+                    self.shipping_method = shipping['method']
+                    break
+                if shipping['cost'] < cheapest_shipping['cost']:
+                    cheapest_shipping = shipping
+            else:
+                selected_method_name = cheapest_shipping['method'].name
+        self.available_shipping = available_shipping
+        shipping_form = ShippingForm(shipping_choices, request.POST or None,
                                      initial={'method': selected_method_name})
-        self.forms['delivery'] = delivery_form
+        self.forms['shipping'] = shipping_form
         self.selected_method_name = selected_method_name
 
     def process(self, extra_context=None):
         context = dict(extra_context or {})
-        context['available_deliveries'] = self.available_deliveries
+        context['available_shipping'] = self.available_shipping
         context['selected_method_name'] = self.selected_method_name
         return super(ShippingMethodStep, self).process(extra_context=context)
 
     def save(self):
-        delivery_form = self.forms['delivery']
-        self.storage['delivery_method'] = delivery_form.cleaned_data['method']
+        shipping_form = self.forms['shipping']
+        self.storage['shipping_method'] = shipping_form.cleaned_data['method']
 
     def add_to_order(self, order):
-        order.shipping_method = self.delivery_method
+        order.shipping_method = self.shipping_method
 
     def validate(self):
-        selected_method_name = self.storage.get('delivery_method')
-        valid_methods = [d['method'].name for d in self.available_deliveries]
+        selected_method_name = self.storage.get('shipping_method')
+        valid_methods = [d['method'].name for d in self.available_shipping]
         if selected_method_name not in valid_methods:
-            raise InvalidData(_('Select a valid delivery method'))
+            raise InvalidData(_('Select a valid shipping method'))
 
 
 class SummaryStep(BaseCheckoutStep):

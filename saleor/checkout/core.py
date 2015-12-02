@@ -59,9 +59,9 @@ class Checkout(ProcessManager):
 
     def get_total(self, **kwargs):
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)
-        cost_iterator = (total_with_delivery
-                         for delivery, delivery_cost, total_with_delivery
-                         in self.get_deliveries(**kwargs))
+        cost_iterator = (total_with_shipping
+                         for shipping, shipping_cost, total_with_shipping
+                         in self.get_shipping(**kwargs))
         total = sum(cost_iterator, zero)
         return total
 
@@ -79,16 +79,16 @@ class Checkout(ProcessManager):
     def is_shipping_required(self):
         return self.cart.is_shipping_required()
 
-    def get_deliveries(self, **kwargs):
+    def get_shipping(self, **kwargs):
         for partition in self.cart.partition():
             if (self.shipping_address_step and
-                    self.shipping_method_step.delivery_method):
-                delivery_method = self.shipping_method_step.delivery_method
-                delivery_cost = delivery_method.get_delivery_total(partition)
+                    self.shipping_method_step.shipping_method):
+                shipping_method = self.shipping_method_step.shipping_method
+                shipping_cost = shipping_method.get_delivery_total(partition)
             else:
-                delivery_cost = Price(0, currency=settings.DEFAULT_CURRENCY)
-            total_with_delivery = partition.get_total(**kwargs) + delivery_cost
-            yield partition, delivery_cost, total_with_delivery
+                shipping_cost = Price(0, currency=settings.DEFAULT_CURRENCY)
+            total_with_shipping = partition.get_total(**kwargs) + shipping_cost
+            yield partition, shipping_cost, total_with_shipping
 
     def create_order(self):
         order = Order()

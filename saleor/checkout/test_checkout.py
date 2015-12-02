@@ -204,14 +204,14 @@ def test_shipping_method_step(rf):
     shipping_method.name = shipping_method_name
 
     with patch('saleor.checkout.steps.get_delivery_options_for_items') as (
-            delivery_options):
-        delivery_options.return_value = [shipping_method]
+            shipping_options):
+        shipping_options.return_value = [shipping_method]
         step = ShippingMethodStep(
             request, storage, shipping_address=MagicMock(), cart=MagicMock(),
             checkout=MagicMock())
     assert step.forms_are_valid()
     step.save()
-    assert step.storage['delivery_method'] == shipping_method_name
+    assert step.storage['shipping_method'] == shipping_method_name
     try:
         step.validate()
     except InvalidData:
@@ -231,16 +231,16 @@ def test_shipping_method_reload_step(rf):
     shipping_method.name = new_shipping_method_name
 
     with patch('saleor.checkout.steps.get_delivery_options_for_items') as (
-            delivery_options):
-        storage = {'delivery_method': 'previous_shipping_method'}
-        delivery_options.return_value = [shipping_method]
+            shipping_options):
+        storage = {'shipping_method': 'previous_shipping_method'}
+        shipping_options.return_value = [shipping_method]
         step = ShippingMethodStep(
             request, storage, shipping_address=MagicMock(), cart=MagicMock(),
             checkout=MagicMock())
-    assert step.storage['delivery_method'] == 'previous_shipping_method'
+    assert step.storage['shipping_method'] == 'previous_shipping_method'
     assert step.forms_are_valid()
     step.save()
-    assert step.storage['delivery_method'] == new_shipping_method_name
+    assert step.storage['shipping_method'] == new_shipping_method_name
     try:
         step.validate()
     except InvalidData:
@@ -260,8 +260,8 @@ def test_false_shipping_method_step(rf):
     shipping_method.name = 'a_shipping_method'
 
     with patch('saleor.checkout.steps.get_delivery_options_for_items') as (
-            delivery_options):
-        delivery_options.return_value = [shipping_method]
+            shipping_options):
+        shipping_options.return_value = [shipping_method]
         step = ShippingMethodStep(
             request, storage, shipping_address=MagicMock(), cart=MagicMock(),
             checkout=MagicMock())

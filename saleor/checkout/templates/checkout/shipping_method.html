@@ -9,16 +9,16 @@
         <h4>{% trans "Shipping method" %}</h4>
         <div class="row">
             <div class="btn-group-vertical col-sm-12" data-toggle="buttons">
-                {% with delivery_form=step.forms.delivery %}
-                    {% for method in available_deliveries %}
+                {% with shipping_form=step.forms.shipping %}
+                    {% for method in available_shipping %}
                         {% with method_name=method.method.name %}
-                            <label for="{{ delivery_form.method.html_name }}_{{ method_name }}" class="btn btn-default{% if method_name == selected_method_name %} active{% endif %}">
+                            <label for="{{ shipping_form.method.html_name }}_{{ method_name }}" class="btn btn-default{% if method_name == selected_method_name %} active{% endif %}">
                                 <strong>{{ method.method }}</strong><br>
                                 <span class="badge">{% gross method.cost %}</span>
                                 <input type="radio"
-                                       name="{{ delivery_form.method.html_name }}"
+                                       name="{{ shipping_form.method.html_name }}"
                                        value="{{ method_name }}"
-                                       id="{{ delivery_form.method.html_name }}_{{ method_name }}"
+                                       id="{{ shipping_form.method.html_name }}_{{ method_name }}"
                                        {% if method_name == selected_method_name %}checked{% endif %}>
                             </label>
                         {% endwith %}
