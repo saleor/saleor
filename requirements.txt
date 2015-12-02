@@ -38,7 +38,7 @@ premailer==2.9.6          # via django-emailit
 prices==0.5.4
 psycopg2==2.6.1
 purl==1.1
-py==1.4.30                # via pytest
+py==1.4.31                # via pytest
 pycryptodome==3.3.1       # via django-payments
 pyjwt==1.4.0              # via django-payments
 pytest-django==2.9.1
