@@ -144,7 +144,12 @@ class ChangeQuantityForm(forms.ModelForm):
 class ShipGroupForm(forms.ModelForm):
     class Meta:
         model = DeliveryGroup
-        fields = []
+        fields = ['tracking_number']
+
+    def __init__(self, *args, **kwargs):
+        super(ShipGroupForm, self).__init__(*args, **kwargs)
+        self.fields['tracking_number'].widget.attrs.update(
+            {'placeholder': _('Parcel tracking number')})
 
     def clean(self):
         if self.instance.status != 'new':

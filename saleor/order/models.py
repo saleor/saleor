@@ -64,6 +64,15 @@ class Order(models.Model, ItemSet):
                                              editable=False)
     token = models.CharField(
         pgettext_lazy('Order field', 'token'), max_length=36, unique=True)
+    total_net = PriceField(
+        pgettext_lazy('Order field', 'total'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        blank=True, null=True)
+    total_tax = PriceField(
+        pgettext_lazy('Order field', 'total'),
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        blank=True, null=True)
+
 
     class Meta:
         ordering = ('-last_status_change',)
@@ -148,6 +157,12 @@ class Order(models.Model, ItemSet):
     def is_shipping_required(self):
         return any(group.is_shipping_required() for group in self.groups.all())
 
+    @property
+    def total(self):
+        gross = self.total_net.net + self.total_tax.gross
+        return Price(net=self.total_net.net, gross=gross,
+                     currency=settings.DEFAULT_CURRENCY)
+
 
 class DeliveryGroupManager(models.Manager):
 
@@ -179,6 +194,10 @@ class DeliveryGroup(models.Model, ItemSet):
         decimal_places=4,
         default=0,
         editable=False)
+    shipping_method = models.CharField(max_length=255, default='',
+                                       db_index=True, blank=True)
+    tracking_number = models.CharField(max_length=255, default='', blank=True)
+    last_updated = models.DateTimeField(null=True, auto_now=True)
 
     objects = DeliveryGroupManager()
 
@@ -206,13 +225,16 @@ class DeliveryGroup(models.Model, ItemSet):
         for item_line in partition:
             product_variant = item_line.product
             price = item_line.get_price_per_item()
+            stock = product_variant.select_stockrecord()
             self.items.create(
                 product=product_variant.product,
                 quantity=item_line.get_quantity(),
                 unit_price_net=price.net,
                 product_name=smart_text(product_variant),
                 product_sku=product_variant.sku,
-                unit_price_gross=price.gross)
+                unit_price_gross=price.gross,
+                stock=stock,
+                stock_location=stock.location if stock else None)
 
     def update_delivery_cost(self):
         if self.order.is_shipping_required():
@@ -283,6 +305,11 @@ class OrderedItem(models.Model, ItemLine):
         pgettext_lazy('OrderedItem field', 'product name'), max_length=128)
     product_sku = models.CharField(pgettext_lazy('OrderedItem field', 'sku'),
                                    max_length=32)
+    stock_location = models.CharField(
+        pgettext_lazy('OrderedItem field', 'stock location'), max_length=100,
+        default='')
+    stock = models.ForeignKey('product.Stock', on_delete=models.SET_NULL,
+                              null=True)
     quantity = models.IntegerField(
         pgettext_lazy('OrderedItem field', 'quantity'),
         validators=[MinValueValidator(0), MaxValueValidator(999)])
