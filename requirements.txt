@@ -7,7 +7,7 @@
 babel==2.1.1
 babeldjango==0.2.2
 boto==2.38.0              # via django-offsite-storage
-braintree==3.22.0         # via django-payments
+braintree==3.23.0         # via django-payments
 cssselect==0.9.1          # via premailer
 cssutils==1.0.1           # via premailer
 dj-database-url==0.3.0
@@ -16,7 +16,7 @@ django-absolute==0.3      # via django-emailit
 django-cache-url==1.0.0
 django-emailit==0.2.2
 django-materializecss-form==0.1
-django-model-utils==2.3.1
+django-model-utils==2.4
 django-mptt==0.7.4
 django-offsite-storage==0.0.7
 django-payments==0.8.3
