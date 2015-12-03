@@ -131,30 +131,3 @@
     </div>
 </div>
 {% endblock outercontent %}
-
-{% block footer_scripts %}
-    {{ block.super }}
-    <script>
-    $(function() {
-        var $carousel = $('.carousel'),
-            $items = $('.product-gallery-item'),
-            $modal = $('.modal');
-
-        $items.on('click', function(e) {
-            if ($('.carousel').is(':visible')) {
-                e.preventDefault();
-            }
-            var index = $(this).index();
-
-            $carousel.carousel(index);
-        });
-
-        $modal.on('show.bs.modal', function() {
-            var $img = $(this).find('.modal-body img'),
-                dataSrc = $img.attr('data-src');
-
-            $img.attr('src', dataSrc);
-        });
-    });
-    </script>
-{% endblock %}
