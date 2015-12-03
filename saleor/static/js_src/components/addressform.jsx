@@ -1,4 +1,10 @@
 /* @flow */
+import React, {Component} from 'react';
+import ReactDOM from 'react-dom';
+import {connect} from 'react-redux';
+import $ from 'jquery';
+
+type Rules = {fmt: string; require: string};
 
 let LevelSelect = ({rules, id, label, name, value, autoComplete, onChange, required}) => {
   if (rules.hasOwnProperty('sub_keys') || rules.hasOwnProperty('sub_names')) {
@@ -33,13 +39,8 @@ let LevelSelect = ({rules, id, label, name, value, autoComplete, onChange, requi
   </div>;
 }
 
-export class AddressForm extends React.Component {
-  constructor() {
-    super(...arguments);
-    let country = this.props.country;
-    this.state = {address: {country}};
-  }
-  getRule(parts) {
+class AddressForm extends Component {
+  getRule(parts: Array<string>): {} {
     let rule = {}
     let key = parts.join('/');
     if (key in this.props.data) {
@@ -51,62 +52,65 @@ export class AddressForm extends React.Component {
     }
     return rule;
   }
-  getRules() {
+  getRules(): Rules {
     let rules = {
       fmt: '%N%n%O%n%A%n%Z %C',
       require: 'AC'
     };
-    let {address} = this.state;
-    if (address.hasOwnProperty('country')) {
-      rules = {...rules, ...this.getRule([address.country])};
+    if (this.props.country) {
+      rules = {...rules, ...this.getRule([this.props.country])};
       if (rules.fmt.indexOf('%S') !== -1) {
-        if (address.hasOwnProperty('level1')) {
-          rules = {...rules, ...this.getRule([address.country, address.level1])};
+        if (this.props.level1) {
+          rules = {...rules, ...this.getRule([this.props.country, this.props.level1])};
           if (rules.fmt.indexOf('%C') !== -1) {
-            if (address.hasOwnProperty('level2')) {
-              rules = {...rules, ...this.getRule([address.country, address.level1, address.level2])};
+            if (this.props.level2) {
+              rules = {...rules, ...this.getRule([this.props.country, this.props.level1, this.props.level2])};
             }
           }
         }
       } else {
         if (rules.fmt.indexOf('%C') !== -1) {
-          if (address.hasOwnProperty('level2')) {
-            rules = {...rules, ...this.getRule([address.country, address.level2])};
+          if (this.props.level2) {
+            rules = {...rules, ...this.getRule([this.props.country, this.props.level2])};
           }
         }
       }
     }
     return rules;
   }
-  _renderAddressField(rules, required) {
+  _renderAddressField(rules: Rules, required: boolean): Component {
     return <div className="row">
       <div className="col-xs-8">
         <div className="form-group">
           <label htmlFor="field-address1">Address</label>
-        <input id="field-address1" className="form-control" name="street_address_1" autoComplete="address-line1" required={required} onChange={this._onAddress1Change.bind(this)} value={this.state.address.address1} />
+          <input id="field-address1" className="form-control" name="street_address_1" autoComplete="address-line1" required={required} onChange={this._onAddress1Change.bind(this)} value={this.props.address1} />
         </div>
       </div>
       <div className="col-xs-4">
         <div className="form-group">
           <label htmlFor="field-address2">Address</label>
-        <input id="field-address2" className="form-control" name="street_address_2" autoComplete="address-line2" onChange={this._onAddress2Change.bind(this)} value={this.state.address.address2} />
+          <input id="field-address2" className="form-control" name="street_address_2" autoComplete="address-line2" onChange={this._onAddress2Change.bind(this)} value={this.props.address2} />
         </div>
       </div>
     </div>;
   }
-  _renderCountryField(rules) {
+  _renderCountryField(rules: Rules): Component {
     let options = this.props.countries.map((code) => {
       let countryRules = this.getRule([code]);
-      return <option value={code} key={code}>{countryRules.name}</option>;
+      let name = code;
+      if (countryRules.hasOwnProperty('name')) {
+        name = countryRules.name;
+      }
+      return <option value={code} key={code}>{name}</option>;
     });
     return <div className="form-group">
       <label htmlFor="field-country">Country/region</label>
-    <select id="field-country" name="country" className="form-control" value={this.state.address.country} autoComplete="country" ref="country" onChange={this._onCountryChange.bind(this)} required={true}>
+      <select id="field-country" name="country" className="form-control" value={this.props.country} autoComplete="country" ref="country" onChange={this._onCountryChange.bind(this)} required={true}>
         {options}
       </select>
     </div>;
   }
-  _renderLevel1Field(rules, required: boolean) {
+  _renderLevel1Field(rules: Rules, required: boolean) {
     let label = 'Province';
     if (rules.hasOwnProperty('state_name_type')) {
       let map = {
@@ -121,17 +125,17 @@ export class AddressForm extends React.Component {
         parish: 'Parish',
         prefecture: 'Prefecture',
         state: 'State'
-      }
+      };
       label = map[rules.state_name_type];
     }
     let countryRules = {};
-    if (this.state.address.hasOwnProperty('country')) {
-      let nodes = [this.state.address.country];
+    if (this.props.country) {
+      let nodes = [this.props.country];
       countryRules = this.getRule(nodes);
     }
-    return <LevelSelect rules={countryRules} id="field-level1" name="country_area" autoComplete="address-level1" onChange={this._onLevel1Change.bind(this)} label={label} value={this.state.address.level1} required={required} />;
+    return <LevelSelect rules={countryRules} id="field-level1" name="country_area" autoComplete="address-level1" onChange={this._onLevel1Change.bind(this)} label={label} value={this.props.level1} required={required} />;
   }
-  _renderLevel2Field(rules, required: boolean) {
+  _renderLevel2Field(rules: Rules, required: boolean) {
     let label = 'City';
     if (rules.hasOwnProperty('locality_name_type')) {
       let map = {
@@ -143,17 +147,17 @@ export class AddressForm extends React.Component {
     let levelRules = {};
     if (rules.fmt.indexOf('%S') !== -1) {
       // we have a level1 field
-      if (this.state.address.hasOwnProperty('level1')) {
-        let nodes = [this.state.address.country, this.state.address.level1];
+      if (this.props.country && this.props.level1) {
+        let nodes = [this.props.country, this.props.level1];
         levelRules = this.getRule(nodes);
       }
-    } else {
-      let nodes = [this.state.address.country];
+    } else if (this.props.country) {
+      let nodes = [this.props.country];
       levelRules = this.getRule(nodes);
     }
-    return <LevelSelect rules={levelRules} id="field-level2" name="city" autoComplete="address-level2" onChange={this._onLevel2Change.bind(this)} label={label} value={this.state.address.level2} required={required} />;
+    return <LevelSelect rules={levelRules} id="field-level2" name="city" autoComplete="address-level2" onChange={this._onLevel2Change.bind(this)} label={label} value={this.props.level2} required={required} />;
   }
-  _renderLevel3Field(rules, required: boolean) {
+  _renderLevel3Field(rules: Rules, required: boolean) {
     let label = 'Sublocality';
     if (rules.hasOwnProperty('sublocality_name_type')) {
       let map = {
@@ -165,41 +169,41 @@ export class AddressForm extends React.Component {
     }
     let levelRules = {};
     if (rules.fmt.indexOf('%S') !== -1) {
-      if (this.state.address.hasOwnProperty('level1') && this.state.address.hasOwnProperty('level2')) {
-        let nodes = [this.state.address.country, this.state.address.level1, this.state.address.level2];
+      if (this.props.country && this.props.level1 && this.props.level2) {
+        let nodes = [this.props.country, this.props.level1, this.props.level2];
         levelRules = this.getRule(nodes);
       }
     } else {
-      if (this.state.address.hasOwnProperty('level2')) {
-        let nodes = [this.state.address.country, this.state.address.level2];
+      if (this.props.country && this.props.level2) {
+        let nodes = [this.props.country, this.props.level2];
         levelRules = this.getRule(nodes);
       }
     }
-    return <LevelSelect rules={levelRules} id="field-level3" name="country_area_2" autoComplete="address-level3" onChange={this._onLevel3Change.bind(this)} label={label} value={this.state.address.level3} required={required} />;
+    return <LevelSelect rules={levelRules} id="field-level3" name="country_area_2" autoComplete="address-level3" onChange={this._onLevel3Change.bind(this)} label={label} value={this.props.level3} required={required} />;
   }
-  _renderNameField(rules, required: boolean) {
+  _renderNameField(rules: Rules, required: boolean): Component {
     return <div className="row">
       <div className="col-xs-6">
         <div className="form-group">
           <label htmlFor="field-country">First name</label>
-          <input className="form-control" name="first_name" autoComplete="given-name" required={required} onChange={this._onFirstNameChange.bind(this)} value={this.state.address.firstName} />
+          <input className="form-control" name="first_name" autoComplete="given-name" required={required} onChange={this._onFirstNameChange.bind(this)} value={this.props.firstName} />
         </div>
       </div>
       <div className="col-xs-6">
         <div className="form-group">
           <label htmlFor="field-country">Last name</label>
-          <input className="form-control" name="last_name" autoComplete="family-name" required={required} onChange={this._onLastNameChange.bind(this)} value={this.state.address.lastName} />
+          <input className="form-control" name="last_name" autoComplete="family-name" required={required} onChange={this._onLastNameChange.bind(this)} value={this.props.lastName} />
         </div>
       </div>
     </div>;
   }
-  _renderOrganizationField(rules, required) {
+  _renderOrganizationField(rules: Rules, required: boolean): Component {
     return <div className="form-group">
       <label htmlFor="field-country">Company/organization</label>
-    <input className="form-control" name="company_name" autoComplete="organization" required={required} onChange={this._onOrganizationChange.bind(this)} value={this.state.address.organization} />
+      <input className="form-control" name="company_name" autoComplete="organization" required={required} onChange={this._onOrganizationChange.bind(this)} value={this.props.organization} />
     </div>;
   }
-  _renderPostcodeField(rules, required) {
+  _renderPostcodeField(rules: Rules, required: boolean): Component {
     let label = 'Postal code';
     if (rules.hasOwnProperty('zip_name_type')) {
       let map = {
@@ -222,70 +226,58 @@ export class AddressForm extends React.Component {
         <label htmlFor="field-country">{label}</label>
         <div className="input-group">
           <div className="input-group-addon">{rules.postprefix}</div>
-          <input type="text" className="form-control" name="postal_code" autoComplete="postal-code" required={required} pattern={pattern} onChange={this._onPostcodeChange.bind(this)} value={this.state.address.postcode} />
+          <input type="text" className="form-control" name="postal_code" autoComplete="postal-code" required={required} pattern={pattern} onChange={this._onPostcodeChange.bind(this)} value={this.props.postcode} />
         </div>
         {hint ? <span className="help-block">{hint}</span> : undefined}
       </div>;
     }
     return <div className="form-group">
       <label htmlFor="field-country">{label}</label>
-      <input type="text" className="form-control" name="postcode" autoComplete="postal-code" required={required} pattern={pattern} onChange={this._onPostcodeChange.bind(this)} value={this.state.address.postcode} />
+      <input type="text" className="form-control" name="postcode" autoComplete="postal-code" required={required} pattern={pattern} onChange={this._onPostcodeChange.bind(this)} value={this.props.postcode} />
       {hint ? <span className="help-block">{hint}</span> : undefined}
     </div>;
   }
-  _onCountryChange(event) {
+  _onCountryChange(event: React.event) {
     let country = event.target.value;
-    let address = {...this.state.address, country};
-    this.setState({address})
+    this.props.dispatch({type: 'SET_COUNTRY', country});
   }
-  _onLevel1Change(event) {
+  _onLevel1Change(event: React.event) {
     let level1 = event.target.value;
-    let address = {...this.state.address, level1};
-    this.setState({address})
+    this.props.dispatch({type: 'SET_LEVEL1', level1});
   }
-  _onLevel2Change(event) {
+  _onLevel2Change(event: React.event) {
     let level2 = event.target.value;
-    let address = {...this.state.address, level2};
-    this.setState({address})
+    this.props.dispatch({type: 'SET_LEVEL2', level2});
   }
-  _onLevel3Change(event) {
+  _onLevel3Change(event: React.event) {
     let level3 = event.target.value;
-    let address = {...this.state.address, level3};
-    this.setState({address})
+    this.props.dispatch({type: 'SET_LEVEL3', level3});
   }
-  _onFirstNameChange(event) {
+  _onFirstNameChange(event: React.event) {
     let firstName = event.target.value;
-    let address = {...this.state.address, firstName};
-    this.setState({address})
+    this.props.dispatch({type: 'SET_FIRST_NAME', firstName});
   }
-
-  _onLastNameChange(event) {
+  _onLastNameChange(event: React.event) {
     let lastName = event.target.value;
-    let address = {...this.state.address, lastName};
-    this.setState({address})
+    this.props.dispatch({type: 'SET_LAST_NAME', lastName});
   }
-
-  _onOrganizationChange(event) {
+  _onOrganizationChange(event: React.event) {
     let organization = event.target.value;
-    let address = {...this.state.address, organization};
-    this.setState({address})
+    this.props.dispatch({type: 'SET_ORGANIZATION', organization});
   }
-  _onPostcodeChange(event) {
+  _onPostcodeChange(event: React.event) {
     let postcode = event.target.value;
-    let address = {...this.state.address, postcode};
-    this.setState({address})
+    this.props.dispatch({type: 'SET_POSTCODE', postcode});
   }
-  _onAddress1Change(event) {
+  _onAddress1Change(event: React.event) {
     let address1 = event.target.value;
-    let address = {...this.state.address, address1};
-    this.setState({address})
+    this.props.dispatch({type: 'SET_ADDRESS1', address1});
   }
-  _onAddress2Change(event) {
+  _onAddress2Change(event: React.event) {
     let address2 = event.target.value;
-    let address = {...this.state.address, address2};
-    this.setState({address})
+    this.props.dispatch({type: 'SET_ADDRESS2', address2});
   }
-  _renderControl(controlFormat, width, rules) {
+  _renderControl(controlFormat: string, width: number, rules: Rules): Component {
     let control;
     let required = rules.require.indexOf(controlFormat) !== -1;
     switch (controlFormat) {
@@ -315,7 +307,7 @@ export class AddressForm extends React.Component {
       {control}
     </div>;
   }
-  _renderRow(rowFormat, key, rules) {
+  _renderRow(rowFormat: string, key: string, rules: Rules): Component {
     let itemRe = /%([A-Z])/g;
     let results = [];
     let match;
@@ -334,11 +326,11 @@ export class AddressForm extends React.Component {
       {controls}
     </div>;
   }
-  render() {
+  render(): Component {
     let rules = this.getRules();
     let formatString = rules.fmt;
     let formatRows = formatString.split('%n');
-    let rows = formatRows.map((formatRow, i) => this._renderRow(formatRow, i, rules));
+    let rows = formatRows.map((formatRow, i) => this._renderRow(formatRow, String(i), rules));
     return <div>
       {rows}
       <div className="row" key='country'>
@@ -349,3 +341,5 @@ export class AddressForm extends React.Component {
     </div>;
   }
 };
+
+export default connect(state => state)(AddressForm);

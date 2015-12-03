@@ -24,6 +24,10 @@ module.exports = function(grunt) {
       }
     },
     copy: {
+      address: {
+        src: "saleor/static/js_src/address.json",
+        dest: "saleor/static/js/address.json"
+      },
       production: {
         files: [
           {

@@ -4,8 +4,9 @@ import React from 'react';
 import {render} from 'react-dom';
 import {Provider} from 'react-redux';
 import $ from 'jquery';
-import {AddressForm} from './components/addressform';
+import AddressForm from './components/addressform';
 import {CartItemAmount, CartItemSubtotal, CartTotal} from './components/cart';
+import AddressStore from './stores/address-store';
 import CartStore from './stores/cart-store';
 require('jquery.cookie');
 require('bootstrap-sass');
@@ -127,7 +128,9 @@ $(function () {
         'YE', 'YT',
         'ZA', 'ZM', 'ZW'
       ];
-      render(<AddressForm lang="it" countries={countries} country="CN" data={data} />, $address[0]);
+      render(<Provider store={AddressStore}>
+        <AddressForm lang="it" countries={countries} country="CN" data={data} />
+      </Provider>, $address[0]);
     }.bind(this),
     error: function (xhr, status, err) {
       console.error(status, err.toString());
