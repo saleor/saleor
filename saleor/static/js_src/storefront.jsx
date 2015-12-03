@@ -238,3 +238,25 @@ var $formFullToggle = $("#form-full-toggle");
 if ($formFullToggle.length) {
     React.render(<FormShippingToggler label={$formFullToggle.data("label")} />, document.getElementById("form-full-toggle"));
 }
+
+$(function() {
+    $('.conditional-visibility').each(function() {
+        let $element = $(this);
+        let controller = $element.data('controller');
+        let triggerValue = $element.data('value');
+        let $controller = $(controller);
+        function updateVisiblity() {
+            let value = $controller.filter(':checked').val();
+            if (!value && $controller.prop('type') === 'hidden') {
+                value = $controller.val();
+            }
+            if (value === triggerValue) {
+                $element.show();
+            } else {
+                $element.hide();
+            }
+        }
+        $controller.on('change', updateVisiblity);
+        updateVisiblity();
+    });
+});

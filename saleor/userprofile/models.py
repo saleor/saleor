@@ -37,19 +37,19 @@ class Address(models.Model):
         pgettext_lazy('Address field', 'last name'),
         max_length=256)
     company_name = models.CharField(
-        pgettext_lazy('Address field', 'company name'),
+        pgettext_lazy('Address field', 'company or organization'),
         max_length=256, blank=True)
     street_address_1 = models.CharField(
-        pgettext_lazy('Address field', 'street address 1'),
+        pgettext_lazy('Address field', 'address'),
         max_length=256)
     street_address_2 = models.CharField(
-        pgettext_lazy('Address field', 'street address 2'),
+        pgettext_lazy('Address field', 'address'),
         max_length=256, blank=True)
     city = models.CharField(
         pgettext_lazy('Address field', 'city'),
         max_length=256)
     city_area = models.CharField(
-        pgettext_lazy('Address field', 'city administrative area'),
+        pgettext_lazy('Address field', 'district'),
         max_length=128, blank=True)
     postal_code = models.CharField(
         pgettext_lazy('Address field', 'postal code'),
@@ -58,7 +58,7 @@ class Address(models.Model):
         pgettext_lazy('Address field', 'country'),
         choices=COUNTRY_CHOICES, max_length=2)
     country_area = models.CharField(
-        pgettext_lazy('Address field', 'country administrative area'),
+        pgettext_lazy('Address field', 'state or province'),
         max_length=128, blank=True)
     phone = models.CharField(
         pgettext_lazy('Address field', 'phone number'),

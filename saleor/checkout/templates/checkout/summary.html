@@ -8,6 +8,7 @@
     <form method="post">
         {% csrf_token %}
         <h4>{% trans "Billing address" %}</h4>
+        <br>
         {% include "checkout/address_form.html" with addresses_form=step.forms.addresses_form %}
         <br>
         <p class="text-right">
