@@ -7,8 +7,8 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext as _
 
-from .forms import ReplaceCartLineForm
 from . import Cart
+from .forms import ReplaceCartLineForm
 from ..cart.utils import (
     contains_unavailable_products, remove_unavailable_products)
 
