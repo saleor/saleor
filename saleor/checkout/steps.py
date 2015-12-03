@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+from operator import itemgetter
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -157,14 +158,13 @@ class ShippingMethodStep(BaseCheckoutStep):
                             for shipping in available_shipping]
 
         if available_shipping:
-            cheapest_shipping = available_shipping[0]
             for shipping in available_shipping:
                 if shipping['method'].name == selected_method_name:
                     self.shipping_method = shipping['method']
                     break
-                if shipping['cost'] < cheapest_shipping['cost']:
-                    cheapest_shipping = shipping
             else:
+                cheapest_shipping = min(available_shipping,
+                                        key=itemgetter('cost'))
                 selected_method_name = cheapest_shipping['method'].name
         self.available_shipping = available_shipping
         shipping_form = ShippingForm(shipping_choices, request.POST or None,
