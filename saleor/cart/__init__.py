@@ -129,7 +129,13 @@ class SessionCartLine(cart.CartLine):
 
 @python_2_unicode_compatible
 class SessionCart(cart.Cart):
+    '''Simplified cart representation that gets serialized into the user's session.
 
+    It contains just enough information to display cart contents on every page
+    without executing any database queries. At times it may be inaccurate if
+    prices or item availability change but it should not matter as checkout
+    depends on the full representation of the cart.
+    '''
     def __str__(self):
         return 'SessionCart'
 
