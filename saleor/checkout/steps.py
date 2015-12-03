@@ -7,7 +7,7 @@ from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from satchless.process import InvalidData
 
-from .forms import UserAddressesForm, ShippingForm
+from .forms import ShippingForm, UserAddressesForm
 from ..checkout.forms import AnonymousEmailForm
 from ..core.utils import BaseStep
 from ..delivery import get_delivery_options_for_items
@@ -81,12 +81,11 @@ class ShippingAddressStep(BaseCheckoutStep):
             data=request.POST or None, queryset=addresses_queryset,
             prefix=self.step_name, initial={'address': initial_address})
         self.forms['new_address'] = AddressForm(
-                request.POST or None, prefix=self.step_name, instance=address)
+            request.POST or None, prefix=self.step_name, instance=address)
 
     def process(self, extra_context=None):
         context = dict(extra_context or {})
         context['addresses'] = self.addresses
-        context['button_label'] = _('Ship to this address')
         return super(BaseCheckoutStep, self).process(extra_context=context)
 
     def forms_are_valid(self):
@@ -229,7 +228,6 @@ class SummaryStep(BaseCheckoutStep):
         context = dict(extra_context or {})
         context['shipping_address'] = self.shipping_address
         context['addresses'] = self.addresses
-        context['button_label'] = _('Bill to this address')
         context['display_email_form'] = self.forms.get('email')
         response = super(SummaryStep, self).process(context)
 

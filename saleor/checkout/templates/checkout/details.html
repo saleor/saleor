@@ -22,21 +22,12 @@
 {% block footer %}
 {% endblock %}
 
-{% if not user.is_authenticated %}
-    <p class="alert alert-info">
-        {% trans "Already have an account?" %}
-        <a href="{% url "registration:login" %}?next={% url "checkout:details" step="shipping-address" %}">
-            {% trans "Log in" %}
-        </a>
-    </p>
-{% endif %}
-
 {% block content %}
     {% if not user.is_authenticated %}
         <p class="alert alert-info">
             {% trans "Already have an account?" %}
             <a href="{% url "registration:login" %}?next={% url "checkout:details" step="shipping-address" %}">
-                {% trans "Log in" %}
+                {% trans "Sign in" %}
             </a>
         </p>
     {% endif %}
