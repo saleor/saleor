@@ -82,8 +82,7 @@ module.exports = function(grunt) {
       options: {
         map: true,
         processors: [
-          require("autoprefixer"),
-          require("csswring")
+          require("autoprefixer")
         ]
       },
       prod: {

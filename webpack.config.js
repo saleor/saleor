@@ -4,6 +4,7 @@ var webpack = require('webpack');
 configuration = {
     entry: {
         dashboard: './saleor/static/js_src/dashboard.jsx',
+        storefront: './saleor/static/js_src/storefront.jsx',
     },
     output: {
         filename: './saleor/static/js/[name].js'
@@ -16,7 +17,7 @@ configuration = {
         ]
     },
     resolve: {
-        extensions: ['', '.js']
+        extensions: ['', '.jsx', '.js']
     },
     plugins: [
         new webpack.ProvidePlugin({
