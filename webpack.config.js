@@ -29,7 +29,9 @@ configuration = {
             '_': 'underscore',
             Backbone: 'backbone',
             'window.Backbone': 'backbone'
-        })
+        }),
+        new webpack.optimize.UglifyJsPlugin(),
+        new webpack.optimize.DedupePlugin()
     ]
 };
 
