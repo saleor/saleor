@@ -61,7 +61,7 @@ class Checkout(ProcessManager):
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)
         cost_iterator = (total_with_shipping
                          for shipping, shipping_cost, total_with_shipping
-                         in self.get_shipping(**kwargs))
+                         in self.get_deliveries(**kwargs))
         total = sum(cost_iterator, zero)
         return total
 
@@ -79,7 +79,7 @@ class Checkout(ProcessManager):
     def is_shipping_required(self):
         return self.cart.is_shipping_required()
 
-    def get_shipping(self, **kwargs):
+    def get_deliveries(self, **kwargs):
         for partition in self.cart.partition():
             if (self.shipping_address_step and
                     self.shipping_method_step.shipping_method):
