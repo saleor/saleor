@@ -11,10 +11,9 @@ import CartStore from './stores/cart-store';
 require('jquery.cookie');
 require('bootstrap-sass');
 
-let textInput = [];
-let options = [1,2,3,4,5,6,7,8,9,10];
-let csrftoken = $.cookie('csrftoken');
-
+var textInput = [];
+var options = [1,2,3,4,5,6,7,8,9,10];
+var csrftoken = $.cookie('csrftoken');
 function csrfSafeMethod(method) {
   return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
@@ -27,14 +26,14 @@ $.ajaxSetup({
   }
 });
 
-$('.cart-item-amount').each(function(index) {
-  let $input = $(this).find('input');
-  let $button = $(this).find('button');
-  let value = $input.val();
-  let name = $input.attr('name');
-  let max = $input.attr('max');
-  let props = {
-    className: '',
+$(".cart-item-amount").each(function(index) {
+  var $input = $(this).find("input");
+  var $button = $(this).find("button");
+  var value = $input.val();
+  var name = $input.attr("name");
+  var max = $input.attr("max");
+  var props = {
+    className: "",
     index: index,
     max: max,
     options: options.slice(0, max),
@@ -51,7 +50,7 @@ $('.cart-item-amount').each(function(index) {
   </Provider>, this);
 });
 
-let $cartTotal = $('.cart-total');
+let $cartTotal = $(".cart-total");
 let cartTotalValue = $cartTotal.text();
 if ($cartTotal.length) {
   CartStore.dispatch({type: 'UPDATE_TOTAL', total: cartTotalValue});
@@ -72,34 +71,42 @@ $('.cart-item-subtotal').each(function() {
   </Provider>, this);
 });
 
-$(function() {
-  let $carousel = $('.carousel');
-  let $items = $('.product-gallery-item');
-  let $modal = $('.modal');
-
-  $items.on('click', function(e) {
-    if ($carousel.is(':visible')) {
-      e.preventDefault();
-    }
-    let index = $(this).index();
-    $carousel.carousel(index);
-  });
-
-  $modal.on('show.bs.modal', function() {
-    let $img = $(this).find('.modal-body img');
-    let dataSrc = $img.attr('data-src');
-    $img.attr('src', dataSrc);
-  });
-});
-
 $(function () {
   let $address = $('.i18n-address');
+  if ($address.length === 0) {
+    return;
+  }
   let addressUrl = $address.data('address-url');
+  let lang = $address.data('lang');
+  let prefix = $address.data('prefix');
+  let addressMapping = [
+    {fieldName: 'country', messageType: 'SET_COUNTRY', messageField: 'country'},
+    {fieldName: 'country_area', messageType: 'SET_LEVEL1', messageField: 'level1'},
+    {fieldName: 'city', messageType: 'SET_LEVEL2', messageField: 'level2'},
+    {fieldName: 'city_area', messageType: 'SET_LEVEL3', messageField: 'level3'},
+    {fieldName: 'first_name', messageType: 'SET_FIRST_NAME', messageField: 'firstName'},
+    {fieldName: 'last_name', messageType: 'SET_LAST_NAME', messageField: 'lastName'},
+    {fieldName: 'company_name', messageType: 'SET_ORGANIZATION', messageField: 'organization'},
+    {fieldName: 'postal_code', messageType: 'SET_POSTCODE', messageField: 'postcode'},
+    {fieldName: 'street_address_1', messageType: 'SET_ADDRESS1', messageField: 'address1'},
+    {fieldName: 'street_address_2', messageType: 'SET_ADDRESS2', messageField: 'address2'}
+  ];
+  let prefixName = (name, prefix) => (prefix ? `${prefix}-${name}` : name);
+  addressMapping.map(({fieldName, messageType, messageField}) => {
+    let name = prefixName(fieldName, prefix);
+    let input = $address.find(`[name=${name}]`);
+    let value = '';
+    if (input.length !== 0) {
+      value = input.val();
+    }
+    let message = {type: messageType, [messageField]: value};
+    AddressStore.dispatch(message);
+  });
   $.ajax({
     url: addressUrl,
     dataType: 'json',
     cache: false,
-    success: function (data) {
+    success: (data) => {
       let countries = [
         'AC', 'AD', 'AE', 'AF', 'AG', 'AI', 'AL', 'AM', 'AO', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AW', 'AX', 'AZ',
         'BA', 'BB', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BL', 'BM', 'BN', 'BO', 'BQ', 'BR', 'BS', 'BT', 'BV', 'BW', 'BY', 'BZ',
@@ -128,14 +135,34 @@ $(function () {
         'YE', 'YT',
         'ZA', 'ZM', 'ZW'
       ];
-      render(<Provider store={AddressStore}>
-        <AddressForm lang="it" countries={countries} country="CN" data={data} />
-      </Provider>, $address[0]);
-    }.bind(this),
-    error: function (xhr, status, err) {
-      console.error(status, err.toString());
-    }.bind(this)
+      render(
+        <Provider store={AddressStore}>
+          <AddressForm lang={lang} countries={countries} country="CN" data={data} prefix={prefix} />
+        </Provider>,
+        $address[0]
+      );
+    }
   });
+});
+
+$(function() {
+    let $carousel = $('.carousel');
+    let $items = $('.product-gallery-item');
+    let $modal = $('.modal');
+
+    $items.on('click', function(e) {
+        if ($('.carousel').is(':visible')) {
+            e.preventDefault();
+        }
+        let index = $(this).index();
+        $carousel.carousel(index);
+    });
+
+    $modal.on('show.bs.modal', function() {
+        let $img = $(this).find('.modal-body img');
+        let dataSrc = $img.attr('data-src');
+        $img.attr('src', dataSrc);
+    });
 });
 
 $(function() {

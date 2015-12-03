@@ -50,7 +50,7 @@
 {% endwith %}
 <div class="conditional-visibility" data-controller="input[name={{ addresses_form.address.html_name }}]" data-value="{{ addresses_form.address.field.new_choice_value }}">
     {% with new_address=step.forms.new_address %}
-        <div class="i18n-address" data-address-url="{% static 'js/address.json' %}">
+        <div class="i18n-address" data-address-url="{% static 'js/address.json' %}" data-lang="{{ LANGUAGE_CODE }}" data-prefix="{{ step.forms.new_address.prefix }}">
             <div class="row">
                 <div class="col-sm-6">
                     {{ new_address.first_name|as_vertical_form }}
