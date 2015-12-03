@@ -1,10 +1,18 @@
+var $ = require('jquery');
+var Dropzone = require('dropzone');
+
+require('jquery-ui/datepicker');
+require('jquery-match-height');
+require('materialize-sass-origin');
+require('select2');
+
 $(document).ready(function() {
   initSelects();
   $('.button-collapse').sideNav();
   $('.modal-trigger').leanModal();
 
   if (isTablet()) {
-    $('.equal-height-on-med').equalHeights();
+    $('.equal-height-on-med').matchHeight();
   }
 
   var $tabs = $('ul.tabs');
@@ -17,13 +25,6 @@ $(document).ready(function() {
     });
 
     $tabs.find('a.active').parent().click();
-  }
-
-  var $breadcrumbs = $('.breadcrumbs--ellipsed');
-  if ($breadcrumbs && isDesktop()) {
-    var $breadcrumbsItems = $('.breadcrumbs--ellipsed-item');
-    var breadcrumbsItemWidth = ($breadcrumbs.width() - $breadcrumbs.find('li:first').width()) / $breadcrumbsItems.length;
-    $breadcrumbsItems.css('max-width', breadcrumbsItemWidth).dotdotdot({'height': 50});
   }
 
   $('.modal-trigger-custom').on('click', function (e) {

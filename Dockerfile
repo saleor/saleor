@@ -19,8 +19,7 @@ ADD . /app
 WORKDIR /app
 
 ENV PATH $PATH:/app/node_modules/.bin
-RUN echo "{\"allow_root\": true }" > ~/.bowerrc
-RUN bower install && grunt
+RUN grunt
 RUN SECRET_KEY=tmpkey python manage.py collectstatic --noinput
 
 EXPOSE 8000
