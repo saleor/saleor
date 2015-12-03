@@ -1,6 +1,5 @@
 *.py[cod]
 .*
-!.bowerrc
 !.buildpacks
 !.coveragerc
 !.dockerignore
