@@ -1,108 +1,20 @@
 {% extends "checkout/details.html" %}
-{% load gross from prices_i18n %}
-{% load tax from prices_i18n %}
+{% load as_vertical_form from bootstrap %}
 {% load i18n %}
 {% load staticfiles %}
 
+
 {% block forms %}
-    <div class="row">
-        <div class="col-sm-6">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    {% trans "Billing address" %}
-                </div>
-                <div class="panel-body">
-                    {% if checkout.billing_address %}
-                        <address>{% include "userprofile/snippets/address-details.html" with address=checkout.billing_address %}</address>
-                    {% else %}
-                        <p class="text-danger">{% trans "No address given yet." %}</p>
-                    {% endif %}
-                    <p><a href="{{ checkout.billing.get_absolute_url }}">{% trans "Edit billing details" %}</a></p>
-                </div>
-            </div>
-        </div>
-        {% if checkout.is_shipping_required %}
-            <div class="col-sm-6">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        {% trans "Shipping address" %}
-                    </div>
-                    <div class="panel-body">
-                        {% if checkout.shipping_address %}
-                            <address>{% include "userprofile/snippets/address-details.html" with address=checkout.shipping_address %}</address>
-                        {% else %}
-                            <p class="text-danger">{% trans "No address given yet." %}</p>
-                        {% endif %}
-                        <p><a href="{{ checkout.shipping.get_absolute_url }}">{% trans "Edit shipping details" %}</a></p>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
-    </div>
-
-    {% for delivery, delivery_cost, total_with_delivery in checkout.get_deliveries %}
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                {% blocktrans with number=forloop.counter %}Shipment #{{ number }}{% endblocktrans %}
-            </div>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th class="col-sm-6">{% trans "Item" %}</th>
-                        <th class="col-sm-3 text-right">{% trans "Price" %}</th>
-                        <th class="col-sm-3 text-right">{% trans "Subtotal" %}</th>
-                    </tr>
-                </thead>
-                <tfoot>
-                    <tr>
-                        <th colspan="2">{% trans "Total" %}</th>
-                        <th class="text-right">{% gross total_with_delivery %}</th>
-                    </tr>
-                </tfoot>
-                <tbody>
-                    {% for item in delivery %}
-                        <tr>
-                            <td>{{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}</td>
-                            <td class="text-right">{% gross item.get_price_per_item %}</td>
-                            <td class="text-right">{% gross item.get_total %}</td>
-                        </tr>
-                    {% endfor %}
-                    {% if delivery_cost.gross %}
-                        <tr>
-                            <td>
-                                {% trans "Shipping" %}
-                            </td>
-                            <td class="text-right">{% gross delivery_cost %}</td>
-                            <td class="text-right">{% gross delivery_cost %}</td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
-    {% endfor %}
-
-    {% with total=checkout.get_total %}
-        <div class="alert alert-success">
-            {% trans "Your total will be" %}:
-            <strong>{% gross total %}</strong>
-            {% if total.tax %}
-                ({% blocktrans with tax=total.tax|floatformat:2 currency=total.currency %}includes {{ tax }} <span class="currency">{{ currency }}</span> tax{% endblocktrans %})
-            {% endif %}
-        </div>
-    {% endwith %}
-
-    {% if all_steps_valid %}
-        <form method="post">
-            {% csrf_token %}
-            <p>
-                <button type="submit" class="btn btn-primary btn-lg pull-right">
-                    {% trans "Place order" %}
-                </button>
-            </p>
-        </form>
-    {% else %}
-        <div class="alert alert-danger">
-            <p>{% trans "Before continuing please make sure that you've provided all of the information required." %}</p>
-        </div>
-    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <h4>{% trans "Billing address" %}</h4>
+        <br>
+        {% include "checkout/address_form.html" with addresses_form=step.forms.addresses_form %}
+        <br>
+        <p class="text-right">
+            <button type="submit" class="btn btn-primary btn-lg">
+                {% trans "Place order" %}
+            </button>
+        </p>
+    </form>
 {% endblock forms %}

@@ -1,0 +1,37 @@
+{% extends "checkout/details.html" %}
+{% load i18n %}
+{% load gross from prices_i18n %}
+
+
+{% block forms %}
+    <form method="post">
+        {% csrf_token %}
+        <h4>{% trans "Shipping method" %}</h4>
+        <br>
+        <div class="row">
+            <div class="btn-group-vertical col-sm-12" data-toggle="buttons">
+                {% with shipping_form=step.forms.shipping %}
+                    {% for method in available_shipping %}
+                        {% with method_name=method.method.name %}
+                            <label for="{{ shipping_form.method.html_name }}_{{ method_name }}" class="btn btn-default{% if method_name == selected_method_name %} active{% endif %}">
+                                <strong>{{ method.method }}</strong><br>
+                                <span class="badge">{% gross method.cost %}</span>
+                                <input type="radio"
+                                       name="{{ shipping_form.method.html_name }}"
+                                       value="{{ method_name }}"
+                                       id="{{ shipping_form.method.html_name }}_{{ method_name }}"
+                                       {% if method_name == selected_method_name %}checked{% endif %}>
+                            </label>
+                        {% endwith %}
+                    {% endfor %}
+                {% endwith %}
+            </div>
+        </div>
+        <br>
+        <p class="text-right">
+            <button type="submit" class="btn btn-primary btn-lg">
+                {% trans "Continue to payment" %}
+            </button>
+        </p>
+    </form>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "checkout/details.html" %}
+{% load i18n %}
+
+
+{% block forms %}
+    <form method="post">
+        {% csrf_token %}
+        <h4>{% trans "Shipping address" %}</h4>
+        <br>
+        {% if user.is_authenticated %}
+            {% include "checkout/address_form.html" with addresses_form=step.forms.addresses_form %}
+        {% else %}
+            {% include "checkout/address_form.html" with addresses_form=step.forms.addresses_form display_email_form=True %}
+        {% endif %}
+        <br>
+        <p class="text-right">
+            <button type="submit" class="btn btn-primary btn-lg">
+                {% trans "Continue to shipping method" %}
+            </button>
+        </p>
+    </form>
+{% endblock %}

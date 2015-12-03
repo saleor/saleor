@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
 {% load i18n %}
+{% load gross from prices_i18n %}
+{% load tax from prices_i18n %}
+
 
 {% block title %}{% trans "Checkout" %} — {{ block.super }}{% endblock %}
 
@@ -20,24 +23,90 @@
 {% endblock %}
 
 {% block content %}
-<ul class="nav nav-pills nav-justified nav-wizard">
-    {% for stepitem in checkout %}
-    <li class="{% if stepitem == step %}active{% endif %}">
-        {% if not forloop.first %}
-            <div class="nav-wedge"></div>
-        {% endif %}
-        <a href="{{ stepitem.get_absolute_url }}">{% if stepitem %}<i class="fa fa-check-circle"></i> {% endif %}{{ stepitem.title }}</a>
-        {% if not forloop.last %}
-            <div class="nav-arrow"></div>
-        {% endif %}
-    </li>
-    {% endfor %}
-</ul>
+    {% if not user.is_authenticated %}
+        <p class="alert alert-info">
+            {% trans "Already have an account?" %}
+            <a href="{% url "registration:login" %}?next={% url "checkout:details" step="shipping-address" %}">
+                {% trans "Sign in" %}
+            </a>
+        </p>
+    {% endif %}
+    {% block step_info %}{% endblock %}
 
-<hr>
+    <div class="row">
+        <div class="col-sm-8">
+            <ul class="nav nav-pills nav-justified nav-wizard">
+                {% for stepitem in checkout %}
+                    <li{% if stepitem == step %} class="active"{% endif %}>
+                        {% if not forloop.first %}
+                            <div class="nav-wedge"></div>
+                        {% endif %}
+                            <a{% if stepitem.is_step_available %} href="{{ stepitem.get_absolute_url }}"{% endif %}>
+                                {{ stepitem.title }}
+                            </a>
+                        {% if not forloop.last %}
+                            <div class="nav-arrow"></div>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
 
-{% block step_info %}{% endblock %}
+            <br>
 
-{% block forms %}{% endblock %}
+            {% block forms %}{% endblock %}
+        </div>
 
+        <div class="col-sm-4">
+            {% for delivery, delivery_cost, total_with_delivery in checkout.get_deliveries %}
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        {% blocktrans with number=forloop.counter %}Shipment #{{ number }}{% endblocktrans %}
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th class="col-sm-6">{% trans "Item" %}</th>
+                                <th class="col-sm-3 text-right">{% trans "Price" %}</th>
+                                <th class="col-sm-3 text-right">{% trans "Subtotal" %}</th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr>
+                                <th colspan="2">{% trans "Total" %}</th>
+                                <th class="text-right">{% gross total_with_delivery %}</th>
+                            </tr>
+                        </tfoot>
+                        <tbody>
+                            {% for item in delivery %}
+                                <tr>
+                                    <td>{{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}</td>
+                                    <td class="text-right">{% gross item.get_price_per_item %}</td>
+                                    <td class="text-right">{% gross item.get_total %}</td>
+                                </tr>
+                            {% endfor %}
+                            {% if delivery_cost.gross %}
+                                <tr>
+                                    <td>
+                                        {% trans "Shipping" %}
+                                    </td>
+                                    <td class="text-right">{% gross delivery_cost %}</td>
+                                    <td class="text-right">{% gross delivery_cost %}</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endfor %}
+
+            {% with total=checkout.get_total %}
+                <div class="alert alert-success">
+                    {% trans "Your total will be" %}:
+                    <strong>{% gross total %}</strong>
+                    {% if total.tax %}
+                        ({% blocktrans with tax=total.tax|floatformat:2 currency=total.currency %}includes {{ tax }} <span class="currency">{{ currency }}</span> tax{% endblocktrans %})
+                    {% endif %}
+                </div>
+            {% endwith %}
+        </div>
+    </div>
 {% endblock content %}
