@@ -1,11 +1,9 @@
 {% extends "checkout/details.html" %}
-{% load as_vertical_form from bootstrap %}
 {% load i18n %}
-{% load staticfiles %}
 
 
 {% block forms %}
-    <form method="post">
+    <form method="post" novalidate>
         {% csrf_token %}
         <h4>{% trans "Billing address" %}</h4>
         <br>
