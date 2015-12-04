@@ -95,14 +95,7 @@ class AddressForm extends Component {
     </div>;
   }
   _renderCountryField(rules: Rules, prefix: string): Component {
-    let options = this.props.countries.map((code) => {
-      let countryRules = this.getRule([code]);
-      let name = code;
-      if (countryRules.hasOwnProperty('name')) {
-        name = countryRules.name;
-      }
-      return <option value={code} key={code}>{name}</option>;
-    });
+    let options = this.props.countries.map(({code, label}) => <option value={code} key={code}>{label}</option>);
     return <FormGroup required={true}>
       <label htmlFor="field-country" className="control-label">Country/region</label>
       <select id="field-country" name={prefixName('country', prefix)} className="form-control" value={this.props.country} autoComplete="country" ref="country" onChange={this._onCountryChange.bind(this)} required={true}>

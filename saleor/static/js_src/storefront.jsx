@@ -103,7 +103,7 @@ $(function () {
     AddressStore.dispatch(message);
   });
   let $countryField = $address.find(`[name=${prefixName('country', prefix)}]`);
-  let countries = $countryField.find('option').map((option, item) => item.value).get();
+  let countries = $countryField.find('option').map((option, item) => ({code: item.value, label: item.label})).get();
   $.ajax({
     url: addressUrl,
     dataType: 'json',
