@@ -212,7 +212,8 @@ class AddressForm extends Component {
     let hint;
     if (rules.hasOwnProperty('zipex')) {
       let examples = rules.zipex.split(',');
-      hint = `Example: ${examples[0]}`;
+      examples = examples[0].split(':');
+      hint = `Format: ${examples[0]}`;
     }
     if (rules.hasOwnProperty('postprefix')) {
       return <FormGroup required={required}>
