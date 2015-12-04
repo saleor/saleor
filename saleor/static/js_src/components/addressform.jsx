@@ -22,12 +22,7 @@ let LevelSelect = ({rules, id, label, name, value, autoComplete, onChange, requi
     } else {
       names = rules.sub_keys.split('~');
     }
-    if (rules.hasOwnProperty('sub_lnames')) {
-      lnames = rules.sub_lnames.split('~');
-    } else {
-      lnames = codes.map(() => undefined);
-    }
-    let options = codes.map((code, i) => <option value={code} key={code}>{lnames[i] ? `${names[i]} (${lnames[i]})` : names[i]}</option>);
+    let options = codes.map((code, i) => <option value={code} key={code}>{names[i]}</option>);
     return <FormGroup required={required}>
       <label htmlFor={id} className="control-label">{label}</label>
         <select id={id} name={name} className="form-control" value={value} autoComplete={autoComplete} onChange={onChange} required={required}>
@@ -190,22 +185,22 @@ class AddressForm extends Component {
     return <div className="row">
       <div className="col-xs-6">
         <FormGroup required={required}>
-          <label htmlFor="field-country" className="control-label">First name</label>
-          <input className="form-control" name={prefixName('first_name', prefix)} autoComplete="given-name" required={required} onChange={this._onFirstNameChange.bind(this)} value={this.props.firstName} />
+          <label htmlFor="field-first-name" className="control-label">First name</label>
+          <input id="field-first-name" className="form-control" name={prefixName('first_name', prefix)} autoComplete="given-name" required={required} onChange={this._onFirstNameChange.bind(this)} value={this.props.firstName} />
         </FormGroup>
       </div>
       <div className="col-xs-6">
         <FormGroup required={required}>
-          <label htmlFor="field-country" className="control-label">Last name</label>
-          <input className="form-control" name={prefixName('last_name', prefix)} autoComplete="family-name" required={required} onChange={this._onLastNameChange.bind(this)} value={this.props.lastName} />
+          <label htmlFor="field-last-name" className="control-label">Last name</label>
+          <input id="field-last-name" className="form-control" name={prefixName('last_name', prefix)} autoComplete="family-name" required={required} onChange={this._onLastNameChange.bind(this)} value={this.props.lastName} />
         </FormGroup>
       </div>
     </div>;
   }
   _renderOrganizationField(rules: Rules, required: boolean, prefix: string): Component {
     return <FormGroup required={required}>
-      <label htmlFor="field-country" className="control-label">Company/organization</label>
-      <input className="form-control" name={prefixName('company_name', prefix)} autoComplete="organization" required={required} onChange={this._onOrganizationChange.bind(this)} value={this.props.organization} />
+      <label htmlFor="field-organization" className="control-label">Company/organization</label>
+      <input id="field-organization" className="form-control" name={prefixName('company_name', prefix)} autoComplete="organization" required={required} onChange={this._onOrganizationChange.bind(this)} value={this.props.organization} />
     </FormGroup>;
   }
   _renderPostcodeField(rules: Rules, required: boolean, prefix: string): Component {
@@ -231,14 +226,14 @@ class AddressForm extends Component {
         <label htmlFor="field-postcode" className="control-label">{label}</label>
         <div className="input-group">
           <div className="input-group-addon">{rules.postprefix}</div>
-          <input type="text" className="form-control" name={prefixName('postal_code', prefix)} autoComplete="postal-code" required={required} pattern={pattern} onChange={this._onPostcodeChange.bind(this)} value={this.props.postcode} />
+          <input id="field-postcode" type="text" className="form-control" name={prefixName('postal_code', prefix)} autoComplete="postal-code" required={required} pattern={pattern} onChange={this._onPostcodeChange.bind(this)} value={this.props.postcode} />
         </div>
         {hint ? <span className="help-block">{hint}</span> : undefined}
       </FormGroup>;
     }
     return <FormGroup required={required}>
       <label htmlFor="field-postcode" className="control-label">{label}</label>
-      <input type="text" className="form-control" name={prefixName('postal_code', prefix)} autoComplete="postal-code" required={required} pattern={pattern} onChange={this._onPostcodeChange.bind(this)} value={this.props.postcode} />
+      <input id="field-postcode" type="text" className="form-control" name={prefixName('postal_code', prefix)} autoComplete="postal-code" required={required} pattern={pattern} onChange={this._onPostcodeChange.bind(this)} value={this.props.postcode} />
       {hint ? <span className="help-block">{hint}</span> : undefined}
     </FormGroup>;
   }
