@@ -1,8 +1,6 @@
 /* @flow */
 
-import {createStore} from 'redux';
-
-function updateAddress(state = {country: null, level1: null, level2: null, level3: null, address1: null, address2: null, firstName: null, lastName: null, organization: null, postcode: null}, action) {
+function address(state: {} = {country: null, level1: null, level2: null, level3: null, address1: null, address2: null, firstName: null, lastName: null, organization: null, postcode: null}, action) {
   switch(action.type) {
     case ('SET_COUNTRY'):
       let {country} = action;
@@ -39,6 +37,4 @@ function updateAddress(state = {country: null, level1: null, level2: null, level
   }
 }
 
-let store = createStore(updateAddress);
-
-export default store;
+export default address;

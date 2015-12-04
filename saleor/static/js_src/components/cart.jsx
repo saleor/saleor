@@ -1,6 +1,7 @@
 /* @flow */
 
 import React, {Component, findDOMNode} from 'react';
+import ReactDOM from 'react-dom';
 import {connect} from 'react-redux';
 import $ from 'jquery';
 
@@ -144,13 +145,6 @@ class CartItemAmountSelect extends Component {
   }
 }
 
-function selectQuantities(state) {
-  // FIXME: move quantities to store
-  return {};
-}
-
-export var CartItemAmount = connect(selectQuantities)(CartItemAmountSelect);
-
 let renderSubtotal = ({productId, subtotals}) => {
   let value;
   if (subtotals.hasOwnProperty(productId)) {
@@ -159,16 +153,10 @@ let renderSubtotal = ({productId, subtotals}) => {
   return <span>{value}</span>;
 }
 
-function selectSubtotals(state) {
-  return {'subtotals': state.subtotals};
-}
+let renderTotal = ({total}) => <b>{total}</b>;
 
-export var CartItemSubtotal = connect(selectSubtotals)(renderSubtotal);
+const getCart = ({cart}) => cart
 
-let renderTotal = ({value}) => <b>{value}</b>;
-
-function selectTotal(state) {
-  return {'value': state.total};
-}
-
-export var CartTotal = connect(selectTotal)(renderTotal);
+export var CartItemAmount = connect(getCart)(CartItemAmountSelect);
+export var CartItemSubtotal = connect(getCart)(renderSubtotal);
+export var CartTotal = connect(getCart)(renderTotal);

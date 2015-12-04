@@ -3,13 +3,15 @@
 import React from 'react';
 import {render} from 'react-dom';
 import {Provider} from 'react-redux';
+import {createStore} from 'redux';
 import $ from 'jquery';
-import AddressForm from './components/addressform';
+import AddressForm  from './components/addressform';
 import {CartItemAmount, CartItemSubtotal, CartTotal} from './components/cart';
-import AddressStore from './stores/address-store';
-import CartStore from './stores/cart-store';
+import storeApp from './reducers';
 require('jquery.cookie');
 require('bootstrap-sass');
+
+let store = createStore(storeApp, window.STATE_FROM_SERVER);
 
 var textInput = [];
 var options = [1,2,3,4,5,6,7,8,9,10];
@@ -45,7 +47,7 @@ $(".cart-item-amount").each(function(index) {
   $(this).find('.cart-item-quantity').removeClass('js-hidden');
   $button.addClass('invisible');
   textInput.push(this.firstElementChild);
-  render(<Provider store={CartStore}>
+  render(<Provider store={store}>
     <CartItemAmount {...props} />
   </Provider>, this);
 });
@@ -53,8 +55,8 @@ $(".cart-item-amount").each(function(index) {
 let $cartTotal = $(".cart-total");
 let cartTotalValue = $cartTotal.text();
 if ($cartTotal.length) {
-  CartStore.dispatch({type: 'UPDATE_TOTAL', total: cartTotalValue});
-  render(<Provider store={CartStore}>
+  store.dispatch({type: 'UPDATE_TOTAL', total: cartTotalValue});
+  render(<Provider store={store}>
     <CartTotal />
   </Provider>, $cartTotal[0]);
 }
@@ -65,8 +67,8 @@ $('.cart-item-subtotal').each(function() {
     productId,
     subtotal: $(this).text()
   };
-  CartStore.dispatch({type: 'UPDATE_SUBTOTAL', ...props});
-  render(<Provider store={CartStore}>
+  store.dispatch({type: 'UPDATE_SUBTOTAL', ...props});
+  render(<Provider store={store}>
     <CartItemSubtotal productId={productId} />
   </Provider>, this);
 });
@@ -100,7 +102,7 @@ $(function () {
       value = input.val();
     }
     let message = {type: messageType, [messageField]: value};
-    AddressStore.dispatch(message);
+    store.dispatch(message);
   });
   let $countryField = $address.find(`[name=${prefixName('country', prefix)}]`);
   let countries = $countryField.find('option').map((option, item) => ({code: item.value, label: item.label})).get();
@@ -110,7 +112,7 @@ $(function () {
     cache: false,
     success: (data) => {
       render(
-        <Provider store={AddressStore}>
+        <Provider store={store}>
           <AddressForm lang={lang} countries={countries} data={data} prefix={prefix} />
         </Provider>,
         $address[0]

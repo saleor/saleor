@@ -338,8 +338,4 @@ class AddressForm extends Component {
   }
 };
 
-function select(state) {
-  return state;
-}
-
-export default connect(select)(AddressForm);
+export default connect(({address}) => address)(AddressForm);
