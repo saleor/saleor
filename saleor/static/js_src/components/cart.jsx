@@ -1,8 +1,11 @@
+/* @flow */
+
 import React, {Component, findDOMNode} from 'react';
 import {connect} from 'react-redux';
+import $ from 'jquery';
 
 export class CartItemAmountOption extends Component {
-  render() {
+  render(): Component {
     var value = this.props.value;
     var label = this.props.label ? this.props.label : value;
     return <option value={value}>{label}</option>;
@@ -52,7 +55,7 @@ class CartItemAmountSelect extends Component {
   }
 
   checkKey(event) {
-    if (event.key == "Enter" && this.valueChanged()) {
+    if (event.key === 'Enter' && this.valueChanged()) {
       this.sendQuantityWrapper();
     }
   }
@@ -67,8 +70,8 @@ class CartItemAmountSelect extends Component {
 
     $.ajax({
       url: this.props.url,
-      method: "post",
-      data: {quantity: quantity},
+      method: 'post',
+      data: {[this.props.fieldName]: quantity},
       complete: () => {
         this.setState({sending: false});
         if (quantity < this.props.thresholdValue) {
@@ -80,7 +83,7 @@ class CartItemAmountSelect extends Component {
           if (!response.total) {
             location.reload();
           }
-          $(findDOMNode(this)).parents("tr").fadeOut(function() {
+          $(findDOMNode(this)).parents('tr').fadeOut(function() {
             $(this).remove();
           });
         }
@@ -90,13 +93,13 @@ class CartItemAmountSelect extends Component {
           this.props.dispatch({type: 'UPDATE_SUBTOTAL', ...props});
           this.props.dispatch({type: 'UPDATE_TOTAL', total});
         }
-        this.setState({result: "success", lastSavedValue: quantity});
+        this.setState({result: 'success', lastSavedValue: quantity});
         setTimeout(() => {
           this.setState({result: null});
         }, 1000);
       },
       error: (response) => {
-        this.setState({error: response.error.quantity, result: "error"});
+        this.setState({error: response.error.quantity, result: 'error'});
       }
     });
   }
@@ -116,7 +119,7 @@ class CartItemAmountSelect extends Component {
         break;
     }
     let classNamesInput = ['input-group', 'cart-item-quantity'];
-    if ((!this.state.renderSubmit || !this.valueChanged()) && !(this.state.result == "error")) {
+    if ((!this.state.renderSubmit || !this.valueChanged()) && !(this.state.result === 'error')) {
       classNamesInput.push('no-submit');
     }
 
@@ -169,30 +172,3 @@ function selectTotal(state) {
 }
 
 export var CartTotal = connect(selectTotal)(renderTotal);
-
-export class FormShippingToggler extends Component {
-  constructor() {
-    super(...arguments);
-    this.state = {
-      value: true
-    };
-  }
-
-  componentDidMount() {
-    $(".form-full").hide();
-  }
-
-  formFullToggle(event) {
-    this.setState({value: event.target.checked});
-    $(".form-full").toggle();
-  }
-
-  render() {
-    return <div className="checkbox">
-      <label>
-        <input checked={this.state.value} type="checkbox" onChange={this.formFullToggle.bind(this)} name="shipping_same_as_billing" />
-        {this.props.label}
-      </label>
-    </div>;
-  }
-}

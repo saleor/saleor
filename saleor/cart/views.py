@@ -34,7 +34,7 @@ def index(request, product_id=None):
             form.save()
             if request.is_ajax():
                 response = {
-                    'product_id': line.product.pk,
+                    'productId': line.product.pk,
                     'subtotal': currencyfmt(
                         line.get_total().gross,
                         line.get_total().currency),
