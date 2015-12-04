@@ -11,7 +11,7 @@ import storeApp from './reducers';
 require('jquery.cookie');
 require('bootstrap-sass');
 
-let store = createStore(storeApp, window.STATE_FROM_SERVER);
+let store = createStore(storeApp, window.__INITIAL_STATE__);
 
 var textInput = [];
 var options = [1,2,3,4,5,6,7,8,9,10];
@@ -53,9 +53,7 @@ $(".cart-item-amount").each(function(index) {
 });
 
 let $cartTotal = $(".cart-total");
-let cartTotalValue = $cartTotal.text();
 if ($cartTotal.length) {
-  store.dispatch({type: 'UPDATE_TOTAL', total: cartTotalValue});
   render(<Provider store={store}>
     <CartTotal />
   </Provider>, $cartTotal[0]);
@@ -63,11 +61,6 @@ if ($cartTotal.length) {
 
 $('.cart-item-subtotal').each(function() {
   let productId = $(this).data('product-id');
-  let props = {
-    productId,
-    subtotal: $(this).text()
-  };
-  store.dispatch({type: 'UPDATE_SUBTOTAL', ...props});
   render(<Provider store={store}>
     <CartItemSubtotal productId={productId} />
   </Provider>, this);

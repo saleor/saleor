@@ -1,11 +1,12 @@
 from __future__ import unicode_literals
-from babeldjango.templatetags.babel import currencyfmt
+import json
 
 from django.contrib import messages
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext as _
+from django_prices.templatetags.prices_i18n import gross
 
 from . import Cart
 from .forms import ReplaceCartLineForm
@@ -35,13 +36,10 @@ def index(request, product_id=None):
             if request.is_ajax():
                 response = {
                     'productId': line.product.pk,
-                    'subtotal': currencyfmt(
-                        line.get_total().gross,
-                        line.get_total().currency),
+                    'subtotal': gross(line.get_total()),
                     'total': 0}
                 if cart:
-                    response['total'] = currencyfmt(
-                        cart.get_total().gross, cart.get_total().currency)
+                    response['total'] = gross(cart.get_total())
                 return JsonResponse(response)
             return redirect('cart:index')
         elif data is not None:
@@ -49,6 +47,14 @@ def index(request, product_id=None):
                 response = {'error': form.errors}
                 return JsonResponse(response, status=400)
     cart_partitioner = cart.partition()
+    initial_state = {
+        'cart': {
+            'subtotals': {line.product.pk: gross(line.get_total())
+                          for line in cart},
+            'total': 0}}
+    if cart:
+        initial_state['cart']['total'] = gross(cart.get_total())
     return TemplateResponse(
         request, 'cart/index.html', {
-            'cart': cart_partitioner})
+            'cart': cart_partitioner,
+            'initial_state': json.dumps(initial_state)})
