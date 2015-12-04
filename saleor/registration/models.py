@@ -17,8 +17,8 @@ def default_valid_date():
 class ExternalUserData(models.Model):
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='external_ids')
-    service = models.TextField(db_index=True)
-    username = models.TextField(db_index=True)
+    service = models.CharField(db_index=True,  max_length=255)
+    username = models.CharField(db_index=True,  max_length=255)
 
     class Meta:
         unique_together = [['service', 'username']]
