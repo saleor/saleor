@@ -219,7 +219,7 @@ class AddressForm extends Component {
     }
     let pattern;
     if (rules.hasOwnProperty('zip')) {
-      pattern = `(${rules.zip})\\w*`;
+      pattern = `(${rules.zip}).*`;
     }
     let hint;
     if (rules.hasOwnProperty('zipex')) {
