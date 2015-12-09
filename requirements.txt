@@ -31,6 +31,7 @@ djangorestframework==3.3.1
 enum34==1.1.1             # via cryptography
 fake-factory==0.5.3
 funcsigs==0.4             # via mock
+google-i18n-address==1.0.1
 google-measurement-protocol==0.1.4
 idna==2.0                 # via cryptography
 ipaddress==1.0.15         # via cryptography
