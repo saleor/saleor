@@ -20,7 +20,7 @@ django-model-utils==2.4
 django-mptt==0.7.4
 django-offsite-storage==0.0.7
 django-payments==0.8.4
-django-prices==0.4.5
+django-prices==0.4.6
 django-redis==4.3.0
 django-selectable==0.9.0
 django-versatileimagefield==1.1
@@ -43,7 +43,7 @@ py==1.4.31                # via pytest
 pycryptodome==3.3.1       # via django-payments
 pyjwt==1.4.0              # via django-payments
 pytest-django==2.9.1
-pytest==2.8.3
+pytest==2.8.4
 pytz==2015.7              # via babel
 redis==2.10.5             # via django-redis
 requests==2.8.1
