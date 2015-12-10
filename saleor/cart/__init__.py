@@ -1,23 +1,21 @@
 from __future__ import unicode_literals
 
 from django.conf import settings
-from django.utils.translation import pgettext
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.translation import pgettext
 from prices import Price
 from satchless import cart
 from satchless.item import ItemList, partition
 
-
 CART_SESSION_KEY = 'cart'
 
-class ProductGroup(ItemList):
 
+class ProductGroup(ItemList):
     def is_shipping_required(self):
         return any(p.is_shipping_required() for p in self)
 
 
 class CartLine(cart.CartLine):
-
     def __init__(self, product, quantity, data=None, discounts=None):
         super(CartLine, self).__init__(product, quantity, data=data)
         self.discounts = discounts
@@ -32,10 +30,11 @@ class CartLine(cart.CartLine):
 
 @python_2_unicode_compatible
 class Cart(cart.Cart):
-    '''
-    Contains cart items. Serialized instance of cart is saved into django
-    session.
-    '''
+    """Full-fledged cart implementation
+
+    This implementation depends on the database to implement its functionality.
+    A lightweight SessionCart is kept internally for easy storage.
+    """
     timestamp = None
     billing_address = None
 
@@ -65,7 +64,8 @@ class Cart(cart.Cart):
                 # TODO: Provide error message
                 continue
             else:
-                variant = product.variants.get_subclass(pk=item.data['variant_id'])
+                variant = product.variants.get_subclass(
+                    pk=item.data['variant_id'])
             quantity = item.quantity
             cart.add(variant, quantity=quantity, check_quantity=False,
                      skip_session_cart=True)
@@ -101,12 +101,12 @@ class Cart(cart.Cart):
 
     def partition(self):
         return partition(
-            self, lambda p: 'physical' if p.is_shipping_required() else 'digital',
+            self,
+            lambda p: 'physical' if p.is_shipping_required() else 'digital',
             ProductGroup)
 
 
 class SessionCartLine(cart.CartLine):
-
     def get_price_per_item(self, **kwargs):
         gross = self.data['unit_price_gross']
         net = self.data['unit_price_net']
@@ -129,13 +129,13 @@ class SessionCartLine(cart.CartLine):
 
 @python_2_unicode_compatible
 class SessionCart(cart.Cart):
-    '''Simplified cart representation that gets serialized into the user's session.
+    """Simplified cart representation that gets serialized into the user's session.
 
     It contains just enough information to display cart contents on every page
     without executing any database queries. At times it may be inaccurate if
     prices or item availability change but it should not matter as checkout
     depends on the full representation of the cart.
-    '''
+    """
     def __str__(self):
         return 'SessionCart'
 
