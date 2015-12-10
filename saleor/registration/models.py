@@ -12,7 +12,7 @@ now = timezone.now
 
 
 def default_valid_date():
-        return now() + timedelta(settings.ACCOUNT_ACTIVATION_DAYS)
+    return now() + timedelta(settings.ACCOUNT_ACTIVATION_DAYS)
 
 
 class ExternalUserData(models.Model):

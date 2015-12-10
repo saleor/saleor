@@ -24,8 +24,8 @@ class CategoryChoiceField(forms.ModelChoiceField):
         level = getattr(obj, obj._mptt_meta.level_attr)
         indent = max(0, level - 1) * '│'
         if obj.parent:
-            last = ((obj.parent.rght - obj.rght == 1)
-                    and (obj.rght - obj.lft == 1))
+            last = ((obj.parent.rght - obj.rght == 1) and
+                    (obj.rght - obj.lft == 1))
             if last:
                 indent += '└ '
             else:
