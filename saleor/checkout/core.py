@@ -45,8 +45,8 @@ class Checkout(ProcessManager):
             shipping_address = self.shipping_address_step.address
             self.steps.append(self.shipping_address_step)
             self.shipping_method_step = ShippingMethodStep(
-                self.request, self.storage['shipping_method'], shipping_address,
-                self.cart, checkout=self)
+                self.request, self.storage['shipping_method'],
+                shipping_address, self.cart, checkout=self)
             self.steps.append(self.shipping_method_step)
         else:
             shipping_address = None

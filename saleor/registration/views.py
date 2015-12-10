@@ -119,7 +119,7 @@ def change_email(request, token):
     try:
         email_change_request = EmailChangeRequest.objects.get(
             token=token, valid_until__gte=now())
-            # TODO: cronjob (celery task) to delete stale tokens
+        # TODO: cronjob (celery task) to delete stale tokens
     except EmailChangeRequest.DoesNotExist:
         return TemplateResponse(request, 'registration/invalid_token.html')
 

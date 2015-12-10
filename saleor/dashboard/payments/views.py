@@ -8,6 +8,7 @@ from ..views import (FilterByStatusMixin, StaffMemberOnlyMixin,
 from ...order.models import Payment
 from ..order.forms import PaymentFilterForm
 
+
 class PaymentList(StaffMemberOnlyMixin, FilterByStatusMixin, ListView):
     model = Payment
     template_name = 'dashboard/payments/list.html'

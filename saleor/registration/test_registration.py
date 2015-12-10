@@ -156,7 +156,7 @@ class AccessTokenTestCase(BaseCommunicationTestCase):
         client = Client(local_host='http://localhost')
         self.access_token_response.status_code = sentinel.ok
         access_token = client.get_access_token(code=sentinel.code)
-        self.assertEquals(access_token, sentinel.access_token)
+        assert access_token == sentinel.access_token
         self.requests_mock.post.assert_called_once_with(
             sentinel.token_uri,
             data={'grant_type': 'authorization_code',
@@ -193,7 +193,7 @@ class UserInfoTestCase(BaseCommunicationTestCase):
         self.parse_mock.return_value = sentinel.user_info
         self.user_info_response.status_code = sentinel.ok
         user_info = self.client.get_user_info()
-        self.assertEquals(user_info, sentinel.user_info)
+        assert user_info == sentinel.user_info
 
     def test_user_data_failure(self):
         """OAuth2 client reacts well to user info fetch failure"""
@@ -220,7 +220,7 @@ class AuthorizerTestCase(TestCase):
         authorizer = OAuth2RequestAuthorizer(access_token='token')
         request = Mock(headers={})
         authorizer(request)
-        self.assertEquals('Bearer token', request.headers['Authorization'])
+        assert request.headers['Authorization'] == 'Bearer token'
 
 
 class CallbackTestCase(TestCase):
@@ -240,7 +240,7 @@ class CallbackTestCase(TestCase):
         self.form = OAuth2CallbackForm(service=sentinel.service,
                                        local_host=sentinel.local_host,
                                        data={'code': 'test_code'})
-        self.assertTrue(self.form.is_valid(), self.form.errors)
+        assert self.form.is_valid()
 
     @patch('saleor.registration.forms.ExternalUserData')
     @patch('saleor.registration.forms.User')
@@ -251,13 +251,12 @@ class CallbackTestCase(TestCase):
 
         user = self.form.get_authenticated_user()
 
-        self.assertEquals(self.authenticate_mock.mock_calls,
-                          [call(service=sentinel.service,
-                                username=sentinel.id),
-                           call(user=sentinel.user)])
+        assert self.authenticate_mock.mock_calls == [
+            call(service=sentinel.service, username=sentinel.id),
+            call(user=sentinel.user)]
         external_data_mock.objects.create.assert_called_once_with(
             service=sentinel.service, username=sentinel.id, user=sentinel.user)
-        self.assertEquals(user, sentinel.authed_user)
+        assert user == sentinel.authed_user
 
     def test_existing_user(self):
         """OAuth2 recognizes existing user via external data credentials"""
@@ -265,7 +264,7 @@ class CallbackTestCase(TestCase):
 
         user = self.form.get_authenticated_user()
 
-        self.assertEquals(user, sentinel.authed_user)
+        assert user == sentinel.authed_user
         self.authenticate_mock.assert_called_once_with(
             service=sentinel.service, username=sentinel.id)
 
@@ -294,10 +293,10 @@ class EmailChangeTestCase(TestCase):
 
         # first user clicks link in his email
         result = change_email(request, token_object.token)
-        self.assertEquals(result.status_code, 302)
+        assert result.status_code == 302
         get.assert_called_once_with(
             token=token_object.token, valid_until__gte=now())
-        self.assertFalse(request.user.is_authenticated())
+        assert not request.user.is_authenticated()
         token_object.delete.assert_not_called()
 
     @patch('saleor.registration.views.now')
@@ -318,16 +317,16 @@ class EmailChangeTestCase(TestCase):
 
         # user clicks link in his email
         result = change_email(request, token_object.token)
-        self.assertEquals(result.status_code, 302)
+        assert result.status_code == 302
         get.assert_called_once_with(
             token=token_object.token, valid_until__gte=now())
         # user stays logged in
-        self.assertTrue(request.user.is_authenticated())
+        assert request.user.is_authenticated()
         # token is deleted
         token_object.delete.assert_called_once_with()
         user.save.assert_called_once_with()
         # user email gets changed
-        self.assertEqual(user.email, token_object.email)
+        assert user.email == token_object.email
 
 
 class OAuthClientTestCase(TestCase):
@@ -339,22 +338,22 @@ class OAuthClientTestCase(TestCase):
         client = GoogleClient(local_host='http://localhost',
                               client_id=self.fake_client_id,
                               client_secret=self.fake_client_secret)
-        self.assertEqual(client.client_id, self.fake_client_id)
-        self.assertEqual(client.client_secret, self.fake_client_secret)
+        assert client.client_id == self.fake_client_id
+        assert client.client_secret == self.fake_client_secret
 
     def test_google_secrets_fallback(self):
         client = google_client()
-        self.assertEqual(client.client_id, settings.GOOGLE_CLIENT_ID)
-        self.assertEqual(client.client_secret, settings.GOOGLE_CLIENT_SECRET)
+        assert client.client_id == settings.GOOGLE_CLIENT_ID
+        assert client.client_secret == settings.GOOGLE_CLIENT_SECRET
 
     def test_facebook_secrets_override(self):
         client = FacebookClient(local_host='http://localhost',
                                 client_id=self.fake_client_id,
                                 client_secret=self.fake_client_secret)
-        self.assertEqual(client.client_id, self.fake_client_id)
-        self.assertEqual(client.client_secret, self.fake_client_secret)
+        assert client.client_id == self.fake_client_id
+        assert client.client_secret == self.fake_client_secret
 
     def test_facebook_secrets_fallback(self):
         client = facebook_client()
-        self.assertEqual(client.client_id, settings.FACEBOOK_APP_ID)
-        self.assertEqual(client.client_secret, settings.FACEBOOK_SECRET)
+        assert client.client_id == settings.FACEBOOK_APP_ID
+        assert client.client_secret == settings.FACEBOOK_SECRET

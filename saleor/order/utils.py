@@ -39,9 +39,9 @@ def order_status_change(sender, instance, **kwargs):
 
 
 def get_ip(request):
-    ip = request.META.get("HTTP_X_FORWARDED_FOR", None)
+    ip = request.META.get('HTTP_X_FORWARDED_FOR', None)
     if ip:
-        ip = ip.split(", ")[0]
+        ip = ip.split(', ')[0]
     else:
-        ip = request.META.get("REMOTE_ADDR", "")
+        ip = request.META.get('REMOTE_ADDR', '')
     return ip

@@ -32,7 +32,7 @@ class SetOrRemovePasswordForm(SetPasswordForm):
 
     def __init__(self, *args, **kwargs):
         super(SetOrRemovePasswordForm, self).__init__(*args, **kwargs)
-        if not 'new_password1' in self.data.keys():
+        if 'new_password1' not in self.data.keys():
             self.fields['new_password1'].required = False
             self.fields['new_password2'].required = False
 

@@ -25,7 +25,8 @@ ADMINS = (
 MANAGERS = ADMINS
 INTERNAL_IPS = os.environ.get('INTERNAL_IPS', '127.0.0.1').split()
 
-CACHE_URL = os.environ.get('CACHE_URL', os.environ.get('REDIS_URL', 'locmem://'))
+CACHE_URL = os.environ.get('CACHE_URL',
+                           os.environ.get('REDIS_URL', 'locmem://'))
 CACHES = {'default': django_cache_url.parse(CACHE_URL)}
 
 SQLITE_DB_URL = 'sqlite:///' + os.path.join(PROJECT_ROOT, 'dev.sqlite')

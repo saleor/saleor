@@ -73,7 +73,6 @@ class Order(models.Model, ItemSet):
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
 
-
     class Meta:
         ordering = ('-last_status_change',)
 
@@ -379,7 +378,7 @@ class Payment(BasePayment):
             quantity=item.quantity,
             price=item.unit_price_gross.quantize(Decimal('0.01')),
             currency=settings.DEFAULT_CURRENCY)
-                 for item in self.order.get_items()]
+            for item in self.order.get_items()]
         return items
 
     def get_total_price(self):
@@ -391,7 +390,6 @@ class Payment(BasePayment):
 
     class Meta:
         ordering = ('-pk',)
-
 
 
 @python_2_unicode_compatible

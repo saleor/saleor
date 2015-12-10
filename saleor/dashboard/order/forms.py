@@ -129,7 +129,8 @@ class ChangeQuantityForm(forms.ModelForm):
 
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
-        variant = get_object_or_404(ProductVariant, sku=self.instance.product_sku)
+        variant = get_object_or_404(
+            ProductVariant, sku=self.instance.product_sku)
         try:
             variant.check_quantity(quantity)
         except InsufficientStock as e:
@@ -170,10 +171,12 @@ ORDER_STATUS_CHOICES = (('', pgettext_lazy('Order status field value',
                                            'All')),) + Order.STATUS_CHOICES
 
 PAYMENT_STATUS_CHOICES = (('', pgettext_lazy('Payment status field value',
-                                           'All')),) + PAYMENT_STATUS_CHOICES
+                                             'All')),) + PAYMENT_STATUS_CHOICES
+
 
 class OrderFilterForm(forms.Form):
     status = forms.ChoiceField(choices=ORDER_STATUS_CHOICES)
+
 
 class PaymentFilterForm(forms.Form):
     status = forms.ChoiceField(choices=PAYMENT_STATUS_CHOICES)

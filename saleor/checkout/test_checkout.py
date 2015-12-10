@@ -223,7 +223,8 @@ def test_shipping_method_step(rf):
 
 def test_shipping_method_reload_step(rf):
     new_shipping_method_name = 'another_shipping_method'
-    request = rf.post('/shipping-method/', {'method': new_shipping_method_name})
+    request = rf.post('/shipping-method/',
+                      {'method': new_shipping_method_name})
     request.session = {STORAGE_SESSION_KEY: {}}
     shipping_method = MagicMock()
     shipping_method.get_delivery_total = MagicMock()
@@ -391,4 +392,3 @@ def test_billing_step_anonymous_user_without_email_without_shipping(rf):
     step = SummaryStep(request, storage, shipping_address=None,
                        checkout=checkout)
     assert not step.forms_are_valid()
-

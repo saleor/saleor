@@ -4,10 +4,7 @@ from . import SessionCart, CART_SESSION_KEY
 
 
 class CartMiddleware(object):
-    '''
-    Saves the cart instance into the django session.
-    '''
-
+    """Bind cart to a request and stores it in Django session"""
     def process_request(self, request):
         try:
             cart_data = request.session[CART_SESSION_KEY]

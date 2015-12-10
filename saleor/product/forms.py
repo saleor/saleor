@@ -42,7 +42,8 @@ class ProductForm(AddToCartForm):
 
 
 class ProductVariantInline(forms.models.BaseInlineFormSet):
-    error_no_items = pgettext_lazy('Product admin error', 'You have to create at least one variant')
+    error_no_items = pgettext_lazy(
+        'Product admin error', 'You have to create at least one variant')
 
     def clean(self):
         count = 0
@@ -54,7 +55,8 @@ class ProductVariantInline(forms.models.BaseInlineFormSet):
 
 
 class ImageInline(ProductVariantInline):
-    error_no_items = pgettext_lazy('Product admin error', 'You have to add at least one image')
+    error_no_items = pgettext_lazy(
+        'Product admin error', 'You have to add at least one image')
 
 
 def get_form_class_for_product(product):

@@ -22,7 +22,8 @@ class ProductImage(models.Model):
         upload_to='products', ppoi_field='ppoi', blank=False)
     ppoi = PPOIField()
     alt = models.CharField(
-        pgettext_lazy('Product image field', 'short description'), max_length=128, blank=True)
+        pgettext_lazy('Product image field', 'short description'),
+        max_length=128, blank=True)
     order = models.PositiveIntegerField(editable=False)
 
     objects = ImageManager()
@@ -36,11 +37,13 @@ class ProductImage(models.Model):
 
     def save(self, *args, **kwargs):
         if self.order is None:
-            c = self.get_ordering_queryset().aggregate(Max('order')).get('order__max')
-            self.order = 0 if c is None else c + 1
+            qs = self.get_ordering_queryset()
+            existing_max = qs.aggregate(Max('order'))
+            existing_max = existing_max.get('order__max')
+            self.order = 0 if existing_max is None else existing_max + 1
         super(ProductImage, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         qs = self.get_ordering_queryset()
-        qs.filter(order__gt=self.order).update(order=F('order')-1)
+        qs.filter(order__gt=self.order).update(order=F('order') - 1)
         super(ProductImage, self).delete(*args, **kwargs)

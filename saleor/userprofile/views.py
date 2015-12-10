@@ -8,7 +8,6 @@ from django.views.decorators.http import require_POST
 from django.utils.translation import ugettext as _
 
 from .forms import AddressForm
-from .models import User
 
 
 @login_required

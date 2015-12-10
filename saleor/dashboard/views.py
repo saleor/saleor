@@ -57,12 +57,14 @@ def index(request):
     payments = Payment.objects.filter(status='preauth').order_by('-created')
     payments = payments.select_related('order', 'order__user')
     low_stock = get_low_stock_products()
-    ctx = {'preauthorized_payments': payments, 'orders_to_ship': orders_to_ship,
+    ctx = {'preauthorized_payments': payments,
+           'orders_to_ship': orders_to_ship,
            'low_stock': low_stock}
     return TemplateResponse(request, 'dashboard/index.html', ctx)
 
 
 def get_low_stock_products():
     threshold = getattr(settings, 'LOW_STOCK_THRESHOLD', 10)
-    products = Product.objects.annotate(total_stock=Sum('variants__stock__quantity'))
+    products = Product.objects.annotate(
+        total_stock=Sum('variants__stock__quantity'))
     return products.filter(Q(total_stock__lte=threshold)).distinct()

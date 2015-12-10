@@ -1,4 +1,4 @@
-#coding: utf-8
+# coding: utf-8
 
 from __future__ import unicode_literals
 
@@ -122,7 +122,8 @@ COUNTRY_CHOICES = [
     ('KZ', pgettext_lazy('Country', 'Kazakhstan')),
     ('KE', pgettext_lazy('Country', 'Kenya')),
     ('KI', pgettext_lazy('Country', 'Kiribati')),
-    ('KP', pgettext_lazy('Country', 'Korea, Democratic People\'s Republic of')),
+    ('KP', pgettext_lazy('Country',
+                         'Korea, Democratic People\'s Republic of')),
     ('KR', pgettext_lazy('Country', 'Korea, Republic of')),
     ('KW', pgettext_lazy('Country', 'Kuwait')),
     ('KG', pgettext_lazy('Country', 'Kyrgyzstan')),
@@ -136,7 +137,8 @@ COUNTRY_CHOICES = [
     ('LT', pgettext_lazy('Country', 'Lithuania')),
     ('LU', pgettext_lazy('Country', 'Luxembourg')),
     ('MO', pgettext_lazy('Country', 'Macao')),
-    ('MK', pgettext_lazy('Country', 'Macedonia, The Former Yugoslav Republic of')),
+    ('MK', pgettext_lazy('Country',
+                         'Macedonia, The Former Yugoslav Republic of')),
     ('MG', pgettext_lazy('Country', 'Madagascar')),
     ('MW', pgettext_lazy('Country', 'Malawi')),
     ('MY', pgettext_lazy('Country', 'Malaysia')),
@@ -190,7 +192,8 @@ COUNTRY_CHOICES = [
     ('RU', pgettext_lazy('Country', 'Russian Federation')),
     ('RW', pgettext_lazy('Country', 'Rwanda')),
     ('BL', pgettext_lazy('Country', 'Saint Barthélemy')),
-    ('SH', pgettext_lazy('Country', 'Saint Helena, Ascension And Tristan Da Cunha')),
+    ('SH', pgettext_lazy('Country',
+                         'Saint Helena, Ascension And Tristan Da Cunha')),
     ('KN', pgettext_lazy('Country', 'Saint Kitts And Nevis')),
     ('LC', pgettext_lazy('Country', 'Saint Lucia')),
     ('MF', pgettext_lazy('Country', 'Saint Martin (French Part)')),
@@ -211,7 +214,8 @@ COUNTRY_CHOICES = [
     ('SB', pgettext_lazy('Country', 'Solomon Islands')),
     ('SO', pgettext_lazy('Country', 'Somalia')),
     ('ZA', pgettext_lazy('Country', 'South Africa')),
-    ('GS', pgettext_lazy('Country', 'South Georgia and the South Sandwich Islands')),
+    ('GS', pgettext_lazy('Country',
+                         'South Georgia and the South Sandwich Islands')),
     ('ES', pgettext_lazy('Country', 'Spain')),
     ('LK', pgettext_lazy('Country', 'Sri Lanka')),
     ('SD', pgettext_lazy('Country', 'Sudan')),

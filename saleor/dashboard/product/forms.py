@@ -47,12 +47,15 @@ class ProductForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ProductForm, self).__init__(*args, **kwargs)
-        self.fields['name'].widget.attrs['placeholder'] = pgettext_lazy(
+        field = self.fields['name']
+        field.widget.attrs['placeholder'] = pgettext_lazy(
             'Product form labels', 'Give your awesome product a name')
-        self.fields['categories'].widget.attrs[
-            'data-placeholder'] = pgettext_lazy('Product form labels', 'Search')
-        self.fields['attributes'].widget.attrs[
-            'data-placeholder'] = pgettext_lazy('Product form labels', 'Search')
+        field = self.fields['categories']
+        field.widget.attrs['data-placeholder'] = pgettext_lazy(
+            'Product form labels', 'Search')
+        field = self.fields['attributes']
+        field.widget.attrs['data-placeholder'] = pgettext_lazy(
+            'Product form labels', 'Search')
         if self.instance.available_on:
             self.fields['available_on'].widget.attrs[
                 'datavalue'] = self.instance.available_on.strftime('%Y/%m/%d')
@@ -81,7 +84,7 @@ class ProductVariantForm(forms.ModelForm):
 class CachingModelChoiceIterator(ModelChoiceIterator):
     def __iter__(self):
         if self.field.empty_label is not None:
-            yield ("", self.field.empty_label)
+            yield ('', self.field.empty_label)
         for obj in self.queryset:
             yield self.choice(obj)
 
@@ -101,8 +104,8 @@ class VariantAttributeForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(VariantAttributeForm, self).__init__(*args, **kwargs)
-        self.available_attrs = self.instance.product.attributes.prefetch_related(
-            'values')
+        attrs = self.instance.product.attributes.all()
+        self.available_attrs = attrs.prefetch_related('values')
         for attr in self.available_attrs:
             field_defaults = {'label': attr.display,
                               'required': True,
@@ -127,7 +130,8 @@ class VariantBulkDeleteForm(forms.Form):
     items = forms.ModelMultipleChoiceField(queryset=ProductVariant.objects)
 
     def delete(self):
-        items = ProductVariant.objects.filter(pk__in=self.cleaned_data['items'])
+        items = ProductVariant.objects.filter(
+            pk__in=self.cleaned_data['items'])
         items.delete()
 
 

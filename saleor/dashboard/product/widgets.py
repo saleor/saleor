@@ -19,7 +19,6 @@ class ImagePreviewFileInput(ClearableFileInputWithImagePreview):
 
 
 class ImagePreviewWidget(SizedImageCenterpointWidgetMixIn, MultiWidget):
-
     def __init__(self, attrs=None):
         widgets = (ImagePreviewFileInput(attrs={'class': 'file-chooser'}),
                    HiddenInput(attrs={'class': 'ppoi-input'}))

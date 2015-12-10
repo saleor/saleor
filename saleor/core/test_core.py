@@ -28,12 +28,12 @@ class SimpleStepTest(TestCase):
         request = MagicMock()
         request.method = 'GET'
         step = SimpleStep(request)
-        self.assert_(step.forms_are_valid())
+        assert step.forms_are_valid()
 
     def test_process(self):
         request = MagicMock()
         request.method = 'GET'
         step = SimpleStep(request)
-        self.assertEqual(type(step.process()), TemplateResponse)
+        assert isinstance(step.process(), TemplateResponse)
         request.method = 'POST'
-        self.assertEqual(step.process(), None)
+        assert step.process() is None

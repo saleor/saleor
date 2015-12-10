@@ -19,10 +19,9 @@ urlpatterns = [
     url(r'^(?P<order_pk>\d+)/payment/(?P<payment_pk>\d+)/refund/$',
         views.refund_payment, name='refund-payment'),
 
-    url(r'^(?P<order_pk>\d+)/line/(?P<line_pk>\d+)/change/$', views.orderline_change_quantity,
-        name='orderline-change-quantity'),
-    url(r'^(?P<order_pk>\d+)/line/(?P<line_pk>\d+)/split/$', views.orderline_split,
-        name='orderline-split'),
-    url(r'^(?P<order_pk>\d+)/shipment/(?P<group_pk>\d+)/ship/$', views.ship_delivery_group,
-        name='ship-delivery-group')
-]
+    url(r'^(?P<order_pk>\d+)/line/(?P<line_pk>\d+)/change/$',
+        views.orderline_change_quantity, name='orderline-change-quantity'),
+    url(r'^(?P<order_pk>\d+)/line/(?P<line_pk>\d+)/split/$',
+        views.orderline_split, name='orderline-split'),
+    url(r'^(?P<order_pk>\d+)/shipment/(?P<group_pk>\d+)/ship/$',
+        views.ship_delivery_group, name='ship-delivery-group')]

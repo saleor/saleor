@@ -7,7 +7,6 @@ from ...product.models import Category
 
 
 class CategoryForm(forms.ModelForm):
-
     def __init__(self, *args, **kwargs):
         self.parent_pk = kwargs.pop('parent_pk')
         super(CategoryForm, self).__init__(*args, **kwargs)
@@ -21,7 +20,8 @@ class CategoryForm(forms.ModelForm):
     def save(self, commit=True):
         self.instance.slug = slugify(unidecode(self.instance.name))
         if self.parent_pk:
-            self.instance.parent = get_object_or_404(Category, pk=self.parent_pk)
+            self.instance.parent = get_object_or_404(
+                Category, pk=self.parent_pk)
         if self.instance.parent and self.instance.parent.hidden:
             self.instance.hidden = True
         super(CategoryForm, self).save(commit=commit)

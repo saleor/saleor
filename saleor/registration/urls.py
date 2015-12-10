@@ -18,5 +18,4 @@ urlpatterns = [
     url(r'^request_email_change/$', views.request_email_change,
         name='request_email_change'),
     url(r'^change_email/%s/$' % (TOKEN_PATTERN,), views.change_email,
-        name='change_email')
-]
+        name='change_email')]

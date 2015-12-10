@@ -46,8 +46,9 @@ class Category(MPTTModel):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('product:category', kwargs={'path': self.get_full_path(),
-                                                   'category_id': self.id})
+        return reverse('product:category',
+                       kwargs={'path': self.get_full_path(),
+                               'category_id': self.id})
 
     def get_full_path(self):
         if not self.parent_id:
@@ -117,9 +118,6 @@ class Product(models.Model, ItemRange):
     def get_slug(self):
         return slugify(smart_text(unidecode(self.name)))
 
-    def get_formatted_price(self, price):
-        return "{0} {1}".format(price.gross, price.currency)
-
     def get_price_per_item(self, item, discounts=None, **kwargs):
         price = self.price
         if price and discounts:
@@ -128,20 +126,6 @@ class Product(models.Model, ItemRange):
                 modifier = max(discounts)
                 price += modifier
         return price
-
-    def admin_get_price_min(self):
-        price = self.get_price_range().min_price
-        return self.get_formatted_price(price)
-
-    admin_get_price_min.short_description = pgettext_lazy(
-        'Product admin page', 'Minimum price')
-
-    def admin_get_price_max(self):
-        price = self.get_price_range().max_price
-        return self.get_formatted_price(price)
-
-    admin_get_price_max.short_description = pgettext_lazy(
-        'Product admin page', 'Maximum price')
 
     def is_in_stock(self):
         return any(variant.is_in_stock() for variant in self)
@@ -158,7 +142,8 @@ class ProductVariant(models.Model, Item):
     sku = models.CharField(
         pgettext_lazy('Variant field', 'SKU'), max_length=32, unique=True)
     name = models.CharField(
-        pgettext_lazy('Variant field', 'variant name'), max_length=100, blank=True)
+        pgettext_lazy('Variant field', 'variant name'), max_length=100,
+        blank=True)
     price_override = PriceField(
         pgettext_lazy('Variant field', 'price override'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
@@ -216,7 +201,8 @@ class ProductVariant(models.Model, Item):
         return True
 
     def is_in_stock(self):
-        return any([stock_item.quantity > 0 for stock_item in self.stock.all()])
+        return any(
+            [stock_item.quantity > 0 for stock_item in self.stock.all()])
 
     def get_attribute(self, pk):
         return self.attributes.get(str(pk))
@@ -267,7 +253,7 @@ class Stock(models.Model):
         unique_together = ('variant', 'location')
 
     def __str__(self):
-        return "%s - %s" % (self.variant.name, self.location)
+        return '%s - %s' % (self.variant.name, self.location)
 
 
 @python_2_unicode_compatible

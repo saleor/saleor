@@ -1,9 +1,6 @@
 from __future__ import unicode_literals
 from decimal import Decimal
 
-from django.db import models
-from django.test import TestCase
-from django.utils.encoding import smart_text
 from mock import MagicMock, patch
 from prices import Price
 import pytest
@@ -53,9 +50,6 @@ class ShipPhotoVariant(ProductVariant):
 
     def display_variant(self, attributes=None):
         return 'SHIP PHOTO'
-
-    def display_variant(self, attributes=None):
-        return 'BIG SHIP'
 
 
 class ShipPhoto(Product):

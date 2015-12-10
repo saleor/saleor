@@ -10,22 +10,22 @@ from django.utils import timezone
 
 now = timezone.now
 
+
 def default_valid_date():
         return now() + timedelta(settings.ACCOUNT_ACTIVATION_DAYS)
 
 
 class ExternalUserData(models.Model):
-
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='external_ids')
-    service = models.CharField(db_index=True,  max_length=255)
-    username = models.CharField(db_index=True,  max_length=255)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name='external_ids')
+    service = models.CharField(db_index=True, max_length=255)
+    username = models.CharField(db_index=True, max_length=255)
 
     class Meta:
         unique_together = [['service', 'username']]
 
 
 class UniqueTokenManager(models.Manager):  # this might end up in `utils`
-
     def __init__(self, token_field):
         self.token_field = token_field
         super(UniqueTokenManager, self).__init__()
@@ -37,7 +37,6 @@ class UniqueTokenManager(models.Manager):  # this might end up in `utils`
 
 
 class AbstractToken(models.Model):
-
     token = models.CharField(max_length=36, unique=True)
     valid_until = models.DateTimeField(default=default_valid_date)
 
@@ -48,11 +47,11 @@ class AbstractToken(models.Model):
 
 
 class EmailConfirmationRequest(AbstractToken):
-
     email = models.EmailField()
 
     def get_authenticated_user(self):
-        user, _created = get_user_model().objects.get_or_create(email=self.email)
+        user, _created = get_user_model().objects.get_or_create(
+            email=self.email)
         return authenticate(user=user)
 
     def get_confirmation_url(self):
@@ -61,8 +60,8 @@ class EmailConfirmationRequest(AbstractToken):
 
 
 class EmailChangeRequest(AbstractToken):
-
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="email_change_requests")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name='email_change_requests')
     email = models.EmailField()  # email address that user is switching to
 
     def get_confirmation_url(self):

@@ -15,7 +15,7 @@ except ImportError:
 
 __all__ = ['BaseStep', 'CategoryChoiceField', 'build_absolute_uri']
 
-absolute_http_url_re = re.compile(r"^https?://", re.I)
+absolute_http_url_re = re.compile(r'^https?://', re.I)
 
 
 class CategoryChoiceField(forms.ModelChoiceField):
