@@ -15,8 +15,10 @@ class QuantityField(forms.IntegerField):
 
 
 class AddToCartForm(forms.Form):
-    """
-    Class use product and cart instance.
+    """Add-to-cart form
+
+    Allows selection of a product variant and quantity.
+    The save method adds it to the cart.
     """
     quantity = QuantityField(label=pgettext_lazy('Form field', 'Quantity'))
     error_messages = {
@@ -63,9 +65,7 @@ class AddToCartForm(forms.Form):
         return cleaned_data
 
     def save(self):
-        """
-        Adds CartLine into the Cart instance.
-        """
+        """Adds the selected product variant and quantity to the cart"""
         product_variant = self.get_variant(self.cleaned_data)
         return self.cart.add(product_variant, self.cleaned_data['quantity'])
 
@@ -78,8 +78,9 @@ class AddToCartForm(forms.Form):
 
 
 class ReplaceCartLineForm(AddToCartForm):
-    """
-    Replaces quantity in CartLine.
+    """Replace quantity form
+
+    Similar to AddToCartForm but its save method replaces the quantity.
     """
     def __init__(self, *args, **kwargs):
         super(ReplaceCartLineForm, self).__init__(*args, **kwargs)
@@ -101,21 +102,17 @@ class ReplaceCartLineForm(AddToCartForm):
         return super(AddToCartForm, self).clean()
 
     def get_variant(self, cleaned_data):
-        """In cart formset product is already variant"""
+        """In cart formsets product is already the variant we want"""
         return self.product
 
     def save(self):
-        """
-        Replace quantity.
-        """
-        return self.cart.add(self.product, self.cleaned_data['quantity'],
+        """Replaces the selected product's quantity in cart"""
+        product_variant = self.get_variant(self.cleaned_data)
+        return self.cart.add(product_variant, self.cleaned_data['quantity'],
                              replace=True)
 
 
 class ReplaceCartLineFormSet(BaseFormSet):
-    """
-    Formset for all CartLines in the cart instance.
-    """
     absolute_max = 9999
     can_delete = False
     can_order = False
