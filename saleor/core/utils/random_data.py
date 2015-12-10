@@ -1,18 +1,19 @@
 from __future__ import unicode_literals
+
 import os
 import random
 import unicodedata
 
-from faker import Factory
-from faker.providers import BaseProvider
 from django.conf import settings
 from django.core.files import File
+from faker import Factory
+from faker.providers import BaseProvider
 from prices import Price
 
-from saleor.order.models import Order, OrderedItem, DeliveryGroup, Payment
-from saleor.product.models import (Product, ProductVariant, ProductImage, Stock)
-from saleor.product.models import Category
-from saleor.userprofile.models import User, Address
+from ...order.models import DeliveryGroup, Order, OrderedItem, Payment
+from ...product.models import (Category, Product, ProductImage, ProductVariant,
+                               Stock)
+from ...userprofile.models import Address, User
 
 fake = Factory.create()
 STOCK_LOCATION = 'default'

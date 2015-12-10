@@ -1,8 +1,8 @@
 from django.core.management.base import BaseCommand
 from django.db import connection
 
-from saleor.userprofile.models import User
-from utils.create_random_data import create_items, create_users, create_orders
+from ....userprofile.models import User
+from ...utils.random_data import create_items, create_orders, create_users
 
 
 class Command(BaseCommand):
