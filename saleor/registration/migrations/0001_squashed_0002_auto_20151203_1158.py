@@ -8,7 +8,7 @@ import saleor.registration.models
 
 class Migration(migrations.Migration):
 
-    replaces = [(b'registration', '0001_initial'), (b'registration', '0002_auto_20151203_1158')]
+    replaces = [('registration', '0001_initial'), ('registration', '0002_auto_20151203_1158')]
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
