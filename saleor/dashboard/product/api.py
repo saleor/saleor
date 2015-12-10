@@ -1,13 +1,13 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
-from rest_framework import renderers, status
-from rest_framework.decorators import renderer_classes, api_view, parser_classes
+from rest_framework import renderers, serializers, status
+from rest_framework.decorators import (api_view, parser_classes,
+                                       renderer_classes)
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
-from rest_framework import serializers
 
-from saleor.dashboard.views import staff_member_required
 from ...product.models import Product, ProductImage
+from ..views import staff_member_required
 
 
 class ReorderProductImagesSerializer(serializers.Serializer):

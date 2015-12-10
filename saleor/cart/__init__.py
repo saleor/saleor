@@ -50,7 +50,7 @@ class Cart(cart.Cart):
 
     @classmethod
     def for_session_cart(cls, session_cart, discounts=None):
-        from saleor.product.models import Product
+        from ..product.models import Product
 
         cart = Cart(session_cart, discounts=discounts)
         product_ids = [item.data['product_id'] for item in session_cart]

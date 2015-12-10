@@ -1,13 +1,14 @@
 from __future__ import unicode_literals
-from decimal import Decimal
+
 import datetime
+from decimal import Decimal
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator, RegexValidator
-from django.db.models import Manager, Q
-from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.db import models
+from django.db.models import Q, Manager
+from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
@@ -15,14 +16,13 @@ from jsonfield import JSONField
 from model_utils.managers import InheritanceManager
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
-from satchless.item import ItemRange, Item, InsufficientStock
+from satchless.item import InsufficientStock, Item, ItemRange
 from unidecode import unidecode
-
 from versatileimagefield.fields import VersatileImageField
 
+from ..utils import get_attributes_display_map
 from .discounts import get_product_discounts
 from .fields import WeightField
-from saleor.product.utils import get_attributes_display_map
 
 
 @python_2_unicode_compatible

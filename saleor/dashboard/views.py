@@ -1,6 +1,6 @@
 from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required \
-    as _staff_member_required
+from django.contrib.admin.views.decorators import \
+    staff_member_required as _staff_member_required
 from django.db.models import Q, Sum
 from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
@@ -8,7 +8,7 @@ from django.views.generic.edit import FormMixin
 
 from ..order.models import Order, Payment
 from ..product.models import Product
-from saleor.dashboard.order.forms import OrderFilterForm
+from .order.forms import OrderFilterForm
 
 
 def staff_member_required(f):

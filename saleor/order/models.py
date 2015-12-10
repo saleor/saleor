@@ -1,30 +1,30 @@
 from __future__ import unicode_literals
+
 from decimal import Decimal
 from uuid import uuid4
 
-from django.forms.models import model_to_dict
-from django.shortcuts import get_list_or_404
 import emailit.api
 from django.conf import settings
-from django.core.urlresolvers import reverse
-from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.utils.encoding import smart_text
+from django.forms.models import model_to_dict
+from django.shortcuts import get_list_or_404
+from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.timezone import now
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from payments import PurchasedItem
 from payments.models import BasePayment
 from prices import Price
-from satchless.item import ItemSet, ItemLine
+from satchless.item import ItemLine, ItemSet
 
+from ..cart import CartLine
 from ..core.utils import build_absolute_uri
-from ..product.models import Product, ProductVariant
-from saleor.cart import CartLine
-from ..userprofile.models import Address, User
 from ..delivery import get_delivery
+from ..product.models import Product, ProductVariant
+from ..userprofile.models import Address, User
 
 
 @python_2_unicode_compatible

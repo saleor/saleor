@@ -1,5 +1,6 @@
 from django.template.response import TemplateResponse
-from saleor.product.models import Product
+
+from ..product.models import Product
 
 
 def home(request):

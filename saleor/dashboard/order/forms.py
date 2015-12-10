@@ -3,15 +3,17 @@ from __future__ import unicode_literals
 from django import forms
 from django.conf import settings
 from django.shortcuts import get_object_or_404
-from django.utils.translation import ugettext_lazy as _, pgettext_lazy
+from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from django_prices.forms import PriceField
 from payments import PaymentError
+from payments.models import PAYMENT_STATUS_CHOICES
 from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
-from ...order.models import DeliveryGroup, OrderedItem, OrderNote, Order
-from saleor.product.models import ProductVariant
-from payments.models import PAYMENT_STATUS_CHOICES
+from ...order.models import DeliveryGroup, Order, OrderedItem, OrderNote
+from ...product.models import ProductVariant
+
 
 class OrderNoteForm(forms.ModelForm):
     class Meta:
