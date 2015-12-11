@@ -1,5 +1,6 @@
 var $ = require('jquery');
 var Dropzone = require('dropzone');
+var Sortable = require('sortablejs');
 
 require('jquery-ui/datepicker');
 require('jquery-match-height');
