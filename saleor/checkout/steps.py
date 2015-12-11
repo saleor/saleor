@@ -87,7 +87,7 @@ class ShippingAddressStep(BaseCheckoutStep):
     def process(self, extra_context=None):
         context = dict(extra_context or {})
         context['addresses'] = self.addresses
-        return super(BaseCheckoutStep, self).process(extra_context=context)
+        return super(ShippingAddressStep, self).process(extra_context=context)
 
     def forms_are_valid(self):
         address = None

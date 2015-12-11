@@ -99,6 +99,8 @@ class ReplaceCartLineForm(AddToCartForm):
         return quantity
 
     def clean(self):
+        # explicitly skip parent's implementation
+        # pylint: disable=E1003
         return super(AddToCartForm, self).clean()
 
     def get_variant(self, cleaned_data):
