@@ -82,14 +82,14 @@ def create_product_image(product, placeholder_dir):
 
 
 def create_product_images(product, how_many, placeholder_dir):
-    for i in range(how_many):
+    for dummy in range(how_many):
         create_product_image(product, placeholder_dir)
 
 
 def create_items(placeholder_dir, how_many=10, create_images=True):
     default_category = get_or_create_category('Default')
 
-    for i in range(how_many):
+    for dummy in range(how_many):
         product = create_product()
         product.categories.add(default_category)
         if create_images:
@@ -172,7 +172,7 @@ def create_order_line(delivery_group):
 
 
 def create_order_lines(delivery_group, how_many=10):
-    for i in range(how_many):
+    for dummy in range(how_many):
         create_order_line(delivery_group)
 
 
@@ -208,12 +208,12 @@ def create_fake_order():
 
 
 def create_users(how_many=10):
-    for i in range(how_many):
+    for dummy in range(how_many):
         user = create_fake_user()
         yield 'User: %s' % (user.email,)
 
 
 def create_orders(how_many=10):
-    for i in range(how_many):
+    for dummy in range(how_many):
         order = create_fake_order()
         yield 'Order: %s' % (order,)

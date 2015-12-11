@@ -50,7 +50,7 @@ class EmailConfirmationRequest(AbstractToken):
     email = models.EmailField()
 
     def get_authenticated_user(self):
-        user, _created = get_user_model().objects.get_or_create(
+        user, dummy_created = get_user_model().objects.get_or_create(
             email=self.email)
         return authenticate(user=user)
 

@@ -6,13 +6,11 @@ from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
 from django.utils.translation import pgettext_lazy, ugettext
 
-User = get_user_model()
-
-from .models import (
-    EmailConfirmationRequest,
-    EmailChangeRequest,
-    ExternalUserData)
+from .models import (EmailChangeRequest, EmailConfirmationRequest,
+                     ExternalUserData)
 from .utils import get_client_class_for_service
+
+User = get_user_model()
 
 
 class LoginForm(AuthenticationForm):

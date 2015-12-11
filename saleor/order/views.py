@@ -79,14 +79,13 @@ def start_payment(request, order, variant):
                     'order_number': order},
                 'billing_country_area': billing.country_area,
                 'customer_ip_address': get_ip(request)}
-    if variant not in [v for v, n in settings.CHECKOUT_PAYMENT_CHOICES]:
+    variant_choices = settings.CHECKOUT_PAYMENT_CHOICES
+    if variant not in [code for code, dummy_name in variant_choices]:
         raise Http404('%r is not a valid payment variant' % (variant,))
     with transaction.atomic():
         order.change_status('payment-pending')
-        payment, _created = Payment.objects.get_or_create(variant=variant,
-                                                          status='waiting',
-                                                          order=order,
-                                                          defaults=defaults)
+        payment, dummy_created = Payment.objects.get_or_create(
+            variant=variant, status='waiting', order=order, defaults=defaults)
         try:
             form = payment.get_form(data=request.POST or None)
         except RedirectNeeded as redirect_to:

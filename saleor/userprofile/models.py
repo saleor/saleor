@@ -24,7 +24,7 @@ class AddressManager(models.Manager):
 
     def store_address(self, user, address):
         data = self.as_data(address)
-        address, created = user.addresses.get_or_create(**data)
+        address, dummy_created = user.addresses.get_or_create(**data)
         return address
 
 

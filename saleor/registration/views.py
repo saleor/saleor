@@ -52,7 +52,7 @@ def oauth_callback(request, service):
             messages.success(request, _('You are now logged in.'))
             return redirect(settings.LOGIN_REDIRECT_URL)
     else:
-        for _field, errors in form.errors.items():
+        for dummy_field, errors in form.errors.items():
             for error in errors:
                 messages.error(request, error)
     return redirect('registration:login')

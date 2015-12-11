@@ -203,8 +203,8 @@ def test_shipping_method_step(rf):
     shipping_method.get_delivery_total.return_value = 7
     shipping_method.name = shipping_method_name
 
-    with patch('saleor.checkout.steps.get_delivery_options_for_items') as (
-            shipping_options):
+    with patch('saleor.checkout.steps.get_delivery_options_for_items') as \
+            shipping_options:
         shipping_options.return_value = [shipping_method]
         step = ShippingMethodStep(
             request, storage, shipping_address=MagicMock(), cart=MagicMock(),
@@ -231,8 +231,8 @@ def test_shipping_method_reload_step(rf):
     shipping_method.get_delivery_total.return_value = 7
     shipping_method.name = new_shipping_method_name
 
-    with patch('saleor.checkout.steps.get_delivery_options_for_items') as (
-            shipping_options):
+    with patch('saleor.checkout.steps.get_delivery_options_for_items') as \
+            shipping_options:
         storage = {'shipping_method': 'previous_shipping_method'}
         shipping_options.return_value = [shipping_method]
         step = ShippingMethodStep(
@@ -260,8 +260,8 @@ def test_false_shipping_method_step(rf):
     shipping_method.get_delivery_total.return_value = 7
     shipping_method.name = 'a_shipping_method'
 
-    with patch('saleor.checkout.steps.get_delivery_options_for_items') as (
-            shipping_options):
+    with patch('saleor.checkout.steps.get_delivery_options_for_items') as \
+            shipping_options:
         shipping_options.return_value = [shipping_method]
         step = ShippingMethodStep(
             request, storage, shipping_address=MagicMock(), cart=MagicMock(),

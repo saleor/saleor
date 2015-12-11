@@ -17,7 +17,7 @@ class CheckHTML(object):
                 settings.WARN_ABOUT_INVALID_HTML5_OUTPUT and
                 200 <= response.status_code < 300):
             proc = Popen(['tidy'], stdout=PIPE, stderr=PIPE, stdin=PIPE)
-            _out, err = proc.communicate(response.content)
+            dummy_out, err = proc.communicate(response.content)
             for l in err.split('\n\n')[0].split('\n')[:-2]:
                 logger.warning(l)
         return response
