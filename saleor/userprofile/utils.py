@@ -19,13 +19,17 @@ def serialize_address_form(form):
         ('company_name', 'organization'),
         ('postal_code', 'postcode')]
     state = {
-        'countries': list(
+        'countries': [
             {'code': id, 'label': force_text(name)}
-            for id, name in form['country'].field.choices),
+            for id, name in form['country'].field.choices],
         'lang': get_language(),
         'prefix': form.prefix}
-    for form_field, state_field in MAP:
-        state[state_field] = form[form_field].value()
+    for form_field_name, state_field_name in MAP:
+        form_field = form[form_field_name]
+        state[state_field_name] = form_field.value()
+        error_state_name = '%sErrors' % (state_field_name,)
+        state[error_state_name] = [
+            force_text(error) for error in form_field.errors]
     return state
 
 
