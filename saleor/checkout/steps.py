@@ -1,4 +1,6 @@
 from __future__ import unicode_literals
+
+import json
 from operator import itemgetter
 
 from django.core.exceptions import ValidationError
@@ -6,14 +8,17 @@ from django.db import models
 from django.db import transaction
 from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
+from ipware.ip import get_ip
 from satchless.process import InvalidData
 
 from .forms import ShippingForm, UserAddressesForm
+from ..cart.utils import serialize_cart
 from ..checkout.forms import AnonymousEmailForm
 from ..core.utils import BaseStep
 from ..delivery import get_delivery_options_for_items
 from ..userprofile.forms import AddressForm
 from ..userprofile.models import Address, User
+from ..userprofile.utils import get_default_country, serialize_address_form
 
 
 def find_address_book_entry(addresses, address):
@@ -52,7 +57,8 @@ class ShippingAddressStep(BaseCheckoutStep):
 
     def __init__(self, request, storage, checkout):
         super(ShippingAddressStep, self).__init__(request, storage, checkout)
-        address_data = storage.get('address', {})
+        default_country = get_default_country(get_ip(request))
+        address_data = storage.get('address', {'country': default_country})
         address = Address(**address_data)
         self.address = address
         self.address_id = storage.get('address_id')
@@ -87,6 +93,12 @@ class ShippingAddressStep(BaseCheckoutStep):
     def process(self, extra_context=None):
         context = dict(extra_context or {})
         context['addresses'] = self.addresses
+        address_form = self.forms['new_address']
+        address_form.full_clean()
+        initial_state = {
+            'address': serialize_address_form(address_form),
+            'cart': serialize_cart(self.checkout.cart)}
+        context['initial_state'] = json.dumps(initial_state)
         return super(ShippingAddressStep, self).process(extra_context=context)
 
     def forms_are_valid(self):
@@ -205,6 +217,7 @@ class SummaryStep(BaseCheckoutStep):
         self.shipping_address = shipping_address
         without_shipping = not checkout.is_shipping_required()
         initial_address = 'copy' if shipping_address else 'new'
+        default_country = get_default_country(get_ip(request))
         if request.user.is_authenticated():
             queryset = request.user.addresses.all()
             self.addresses = list(queryset)
@@ -217,8 +230,9 @@ class SummaryStep(BaseCheckoutStep):
             queryset = None
             if without_shipping:
                 self.forms['email'] = AnonymousEmailForm(request.POST or None)
-        self.forms['new_address'] = AddressForm(request.POST or None,
-                                                prefix=self.step_name)
+        self.forms['new_address'] = AddressForm(
+            request.POST or None, prefix=self.step_name,
+            initial={'country': default_country})
         self.forms['addresses_form'] = UserAddressesForm(
             data=request.POST or None, queryset=queryset,
             prefix=self.step_name, initial={'address': initial_address},
@@ -229,6 +243,12 @@ class SummaryStep(BaseCheckoutStep):
         context['shipping_address'] = self.shipping_address
         context['addresses'] = self.addresses
         context['display_email_form'] = self.forms.get('email')
+        address_form = self.forms['new_address']
+        address_form.full_clean()
+        initial_state = {
+            'address': serialize_address_form(address_form),
+            'cart': serialize_cart(self.checkout.cart)}
+        context['initial_state'] = json.dumps(initial_state)
         response = super(SummaryStep, self).process(context)
 
         if not response:

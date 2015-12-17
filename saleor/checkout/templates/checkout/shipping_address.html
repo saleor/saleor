@@ -20,3 +20,10 @@
         </p>
     </form>
 {% endblock %}
+
+{% block footer_scripts %}
+    <script>
+        window.__INITIAL_STATE__ = JSON.parse('{{ initial_state|escapejs }}');
+    </script>
+    {{ block.super }}
+{% endblock footer_scripts %}

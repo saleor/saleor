@@ -72,33 +72,7 @@ $(function () {
     return;
   }
   let addressUrl = $address.data('address-url');
-  let lang = $address.data('lang');
-  let prefix = $address.data('prefix');
-  let addressMapping = [
-    {fieldName: 'country', messageType: 'SET_COUNTRY', messageField: 'country'},
-    {fieldName: 'country_area', messageType: 'SET_LEVEL1', messageField: 'level1'},
-    {fieldName: 'city', messageType: 'SET_LEVEL2', messageField: 'level2'},
-    {fieldName: 'city_area', messageType: 'SET_LEVEL3', messageField: 'level3'},
-    {fieldName: 'first_name', messageType: 'SET_FIRST_NAME', messageField: 'firstName'},
-    {fieldName: 'last_name', messageType: 'SET_LAST_NAME', messageField: 'lastName'},
-    {fieldName: 'company_name', messageType: 'SET_ORGANIZATION', messageField: 'organization'},
-    {fieldName: 'postal_code', messageType: 'SET_POSTCODE', messageField: 'postcode'},
-    {fieldName: 'street_address_1', messageType: 'SET_ADDRESS1', messageField: 'address1'},
-    {fieldName: 'street_address_2', messageType: 'SET_ADDRESS2', messageField: 'address2'}
-  ];
   let prefixName = (name, prefix) => (prefix ? `${prefix}-${name}` : name);
-  addressMapping.map(({fieldName, messageType, messageField}) => {
-    let name = prefixName(fieldName, prefix);
-    let input = $address.find(`[name=${name}]`);
-    let value = '';
-    if (input.length !== 0) {
-      value = input.val();
-    }
-    let message = {type: messageType, [messageField]: value};
-    store.dispatch(message);
-  });
-  let $countryField = $address.find(`[name=${prefixName('country', prefix)}]`);
-  let countries = $countryField.find('option').map((option, item) => ({code: item.value, label: item.label})).get();
   $.ajax({
     url: addressUrl,
     dataType: 'json',
@@ -106,7 +80,7 @@ $(function () {
     success: (data) => {
       render(
         <Provider store={store}>
-          <AddressForm lang={lang} countries={countries} data={data} prefix={prefix} />
+          <AddressForm data={data} />
         </Provider>,
         $address[0]
       );

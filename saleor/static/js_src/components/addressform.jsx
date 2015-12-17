@@ -192,7 +192,7 @@ class AddressForm extends Component {
   }
   _renderOrganizationField(rules: Rules, required: boolean, prefix: string): Component {
     return <FormGroup required={required}>
-      <label htmlFor="field-organization" className="control-label">Company/organization</label>
+      <label htmlFor="field-organization" className="control-label">Company or organization</label>
       <input id="field-organization" className="form-control" name={prefixName('company_name', prefix)} autoComplete="organization" required={required} onChange={this._onOrganizationChange.bind(this)} value={this.props.organization} />
     </FormGroup>;
   }

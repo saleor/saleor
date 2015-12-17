@@ -10,8 +10,8 @@ from django_prices.templatetags.prices_i18n import gross
 
 from . import Cart
 from .forms import ReplaceCartLineForm
-from ..cart.utils import (
-    contains_unavailable_products, remove_unavailable_products)
+from .utils import (
+    contains_unavailable_products, remove_unavailable_products, serialize_cart)
 
 
 def index(request, product_id=None):
@@ -48,12 +48,7 @@ def index(request, product_id=None):
                 return JsonResponse(response, status=400)
     cart_partitioner = cart.partition()
     initial_state = {
-        'cart': {
-            'subtotals': {line.product.pk: gross(line.get_total())
-                          for line in cart},
-            'total': 0}}
-    if cart:
-        initial_state['cart']['total'] = gross(cart.get_total())
+        'cart': serialize_cart(cart)}
     return TemplateResponse(
         request, 'cart/index.html', {
             'cart': cart_partitioner,
