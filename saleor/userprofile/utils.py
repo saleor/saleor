@@ -18,7 +18,6 @@ def serialize_address_form(form):
         ('last_name', 'lastName'),
         ('company_name', 'organization'),
         ('postal_code', 'postcode')]
-    data = form.data or form.initial
     state = {
         'countries': list(
             {'code': id, 'label': force_text(name)}
@@ -26,7 +25,7 @@ def serialize_address_form(form):
         'lang': get_language(),
         'prefix': form.prefix}
     for form_field, state_field in MAP:
-        state[state_field] = data.get(form_field)
+        state[state_field] = form[form_field].value()
     return state
 
 
