@@ -1,5 +1,4 @@
 .*
-!.bowerrc
 *.sqlite
 media
 node_modules
