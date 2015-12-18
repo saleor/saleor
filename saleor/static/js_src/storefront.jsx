@@ -3,16 +3,19 @@
 import React from 'react';
 import {render} from 'react-dom';
 import {Provider} from 'react-redux';
+import {createStore} from 'redux';
 import $ from 'jquery';
+import AddressForm  from './components/addressform';
 import {CartItemAmount, CartItemSubtotal, CartTotal} from './components/cart';
-import CartStore from './stores/cart-store';
+import storeApp from './reducers';
 require('jquery.cookie');
 require('bootstrap-sass');
 
-let textInput = [];
-let options = [1,2,3,4,5,6,7,8,9,10];
-let csrftoken = $.cookie('csrftoken');
+let store = createStore(storeApp, window.__INITIAL_STATE__);
 
+var textInput = [];
+var options = [1,2,3,4,5,6,7,8,9,10];
+var csrftoken = $.cookie('csrftoken');
 function csrfSafeMethod(method) {
   return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
@@ -25,14 +28,14 @@ $.ajaxSetup({
   }
 });
 
-$('.cart-item-amount').each(function(index) {
-  let $input = $(this).find('input');
-  let $button = $(this).find('button');
-  let value = $input.val();
-  let name = $input.attr('name');
-  let max = $input.attr('max');
-  let props = {
-    className: '',
+$(".cart-item-amount").each(function(index) {
+  var $input = $(this).find("input");
+  var $button = $(this).find("button");
+  var value = $input.val();
+  var name = $input.attr("name");
+  var max = $input.attr("max");
+  var props = {
+    className: "",
     index: index,
     max: max,
     options: options.slice(0, max),
@@ -44,50 +47,65 @@ $('.cart-item-amount').each(function(index) {
   $(this).find('.cart-item-quantity').removeClass('js-hidden');
   $button.addClass('invisible');
   textInput.push(this.firstElementChild);
-  render(<Provider store={CartStore}>
+  render(<Provider store={store}>
     <CartItemAmount {...props} />
   </Provider>, this);
 });
 
-let $cartTotal = $('.cart-total');
-let cartTotalValue = $cartTotal.text();
+let $cartTotal = $(".cart-total");
 if ($cartTotal.length) {
-  CartStore.dispatch({type: 'UPDATE_TOTAL', total: cartTotalValue});
-  render(<Provider store={CartStore}>
+  render(<Provider store={store}>
     <CartTotal />
   </Provider>, $cartTotal[0]);
 }
 
 $('.cart-item-subtotal').each(function() {
   let productId = $(this).data('product-id');
-  let props = {
-    productId,
-    subtotal: $(this).text()
-  };
-  CartStore.dispatch({type: 'UPDATE_SUBTOTAL', ...props});
-  render(<Provider store={CartStore}>
+  render(<Provider store={store}>
     <CartItemSubtotal productId={productId} />
   </Provider>, this);
 });
 
-$(function() {
-  let $carousel = $('.carousel');
-  let $items = $('.product-gallery-item');
-  let $modal = $('.modal');
-
-  $items.on('click', function(e) {
-    if ($carousel.is(':visible')) {
-      e.preventDefault();
+$(function () {
+  let $address = $('.i18n-address');
+  if ($address.length === 0) {
+    return;
+  }
+  let addressUrl = $address.data('address-url');
+  let prefixName = (name, prefix) => (prefix ? `${prefix}-${name}` : name);
+  $.ajax({
+    url: addressUrl,
+    dataType: 'json',
+    cache: false,
+    success: (data) => {
+      render(
+        <Provider store={store}>
+          <AddressForm data={data} />
+        </Provider>,
+        $address[0]
+      );
     }
-    let index = $(this).index();
-    $carousel.carousel(index);
   });
+});
 
-  $modal.on('show.bs.modal', function() {
-    let $img = $(this).find('.modal-body img');
-    let dataSrc = $img.attr('data-src');
-    $img.attr('src', dataSrc);
-  });
+$(function() {
+    let $carousel = $('.carousel');
+    let $items = $('.product-gallery-item');
+    let $modal = $('.modal');
+
+    $items.on('click', function(e) {
+        if ($('.carousel').is(':visible')) {
+            e.preventDefault();
+        }
+        let index = $(this).index();
+        $carousel.carousel(index);
+    });
+
+    $modal.on('show.bs.modal', function() {
+        let $img = $(this).find('.modal-body img');
+        let dataSrc = $img.attr('data-src');
+        $img.attr('src', dataSrc);
+    });
 });
 
 $(function() {

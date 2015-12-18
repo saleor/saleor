@@ -41,13 +41,13 @@ class Address(models.Model):
         max_length=256, blank=True)
     street_address_1 = models.CharField(
         pgettext_lazy('Address field', 'address'),
-        max_length=256)
+        max_length=256, blank=True)
     street_address_2 = models.CharField(
         pgettext_lazy('Address field', 'address'),
         max_length=256, blank=True)
     city = models.CharField(
         pgettext_lazy('Address field', 'city'),
-        max_length=256)
+        max_length=256, blank=True)
     city_area = models.CharField(
         pgettext_lazy('Address field', 'district'),
         max_length=128, blank=True)

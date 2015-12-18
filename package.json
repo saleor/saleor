@@ -65,7 +65,7 @@
     "webpack": "^1.12.2"
   },
   "scripts": {
-    "build": "UV_THREADPOOL_SIZE=32 ./node_modules/.bin/webpack --progress",
-    "watch": "UV_THREADPOOL_SIZE=32 ./node_modules/.bin/webpack --progress --debug --devtool source-map --watch"
+    "build": "./node_modules/.bin/webpack --progress --optimize-minimize --optimize-dedupe",
+    "watch": "./node_modules/.bin/webpack --progress --debug --devtool eval --watch"
   }
 }

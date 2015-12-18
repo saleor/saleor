@@ -1,8 +1,4 @@
-/* @flow */
-
-import {createStore} from 'redux';
-
-function updateCart(state = {total: 'N/A', subtotals: {}}, action) {
+function cart(state = {total: 'N/A', subtotals: {}}, action) {
   switch(action.type) {
     case ('UPDATE_TOTAL'):
       return {...state, total: action.total};
@@ -16,6 +12,4 @@ function updateCart(state = {total: 'N/A', subtotals: {}}, action) {
   }
 }
 
-let store = createStore(updateCart);
-
-export default store;
+export default cart;

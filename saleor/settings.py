@@ -207,6 +207,8 @@ LOGIN_URL = '/account/login'
 
 DEFAULT_CURRENCY = 'USD'
 DEFAULT_WEIGHT = 'lb'
+# used as a fallback when GeoIP fails
+DEFAULT_COUNTRY = 'US'
 
 ACCOUNT_ACTIVATION_DAYS = 3
 

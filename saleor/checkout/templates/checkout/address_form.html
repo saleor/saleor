@@ -50,40 +50,42 @@
 {% endwith %}
 <div class="conditional-visibility" data-controller="input[name={{ addresses_form.address.html_name }}]" data-value="{{ addresses_form.address.field.new_choice_value }}">
     {% with new_address=step.forms.new_address %}
-        <div class="row">
-            <div class="col-sm-6">
-                {{ new_address.first_name|as_vertical_form }}
+        <div class="i18n-address" data-address-url="{% static 'js/address.json' %}" data-lang="{{ LANGUAGE_CODE }}" data-prefix="{{ step.forms.new_address.prefix }}">
+            <div class="row">
+                <div class="col-sm-6">
+                    {{ new_address.first_name|as_vertical_form }}
+                </div>
+                <div class="col-sm-6">
+                    {{ new_address.last_name|as_vertical_form }}
+                </div>
             </div>
-            <div class="col-sm-6">
-                {{ new_address.last_name|as_vertical_form }}
+            {{ new_address.company_name|as_vertical_form }}
+            <div class="row">
+                <div class="col-sm-8">
+                    {{ new_address.street_address_1|as_vertical_form }}
+                </div>
+                <div class="col-sm-4">
+                    {{ new_address.street_address_2|as_vertical_form }}
+                </div>
             </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    {{ new_address.city|as_vertical_form }}
+                </div>
+                <div class="col-sm-6">
+                    {{ new_address.city_area|as_vertical_form }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-8">
+                    {{ new_address.country_area|as_vertical_form }}
+                </div>
+                <div class="col-sm-4">
+                    {{ new_address.postal_code|as_vertical_form }}
+                </div>
+            </div>
+            {{ new_address.country|as_vertical_form }}
         </div>
-        {{ new_address.company_name|as_vertical_form }}
-        <div class="row">
-            <div class="col-sm-8">
-                {{ new_address.street_address_1|as_vertical_form }}
-            </div>
-            <div class="col-sm-4">
-                {{ new_address.street_address_2|as_vertical_form }}
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-6">
-                {{ new_address.city|as_vertical_form }}
-            </div>
-            <div class="col-sm-6">
-                {{ new_address.city_area|as_vertical_form }}
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-8">
-                {{ new_address.country_area|as_vertical_form }}
-            </div>
-            <div class="col-sm-4">
-                {{ new_address.postal_code|as_vertical_form }}
-            </div>
-        </div>
-        {{ new_address.country|as_vertical_form }}
         {% if display_email_form %}
             {{ step.forms.email|as_vertical_form  }}
         {% endif %}
