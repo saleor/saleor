@@ -94,7 +94,7 @@ class OrderAdmin(OrderModelAdmin):
     customer.allow_tags = True
 
     def total(self, obj):
-        total = obj.get_total()
+        total = obj.total
         return '%s %s' % (total.gross, total.currency)
     total.short_description = 'Total'
 

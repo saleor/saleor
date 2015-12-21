@@ -41,7 +41,7 @@ def order_details(request, order_pk):
     all_payments = order.payments.all()
     payment = order.payments.last()
     groups = list(order)
-    captured = preauthorized = Price(0, currency=order.get_total().currency)
+    captured = preauthorized = Price(0, currency=order.total.currency)
     if payment:
         can_capture = (payment.status == 'preauth' and
                        order.status != 'cancelled')
@@ -83,7 +83,7 @@ def order_add_note(request, order_pk):
 def capture_payment(request, order_pk, payment_pk):
     order = get_object_or_404(Order, pk=order_pk)
     payment = get_object_or_404(order.payments, pk=payment_pk)
-    amount = order.get_total().quantize('0.01').gross
+    amount = order.total.quantize('0.01').gross
     form = CapturePaymentForm(request.POST or None, payment=payment,
                               initial={'amount': amount})
     if form.is_valid() and form.capture():
