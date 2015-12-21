@@ -93,7 +93,7 @@ class Order(models.Model, ItemSet):
     def is_fully_paid(self):
         total_paid = sum([payment.total for payment in
                           self.payments.filter(status='confirmed')], Decimal())
-        total = self.total
+        total = self.get_total()
         return total_paid >= total.gross
 
     def get_user_email(self):
@@ -111,8 +111,10 @@ class Order(models.Model, ItemSet):
         return '#%d' % (self.id, )
 
     def get_total(self):
-        # For backwards compatibility
-        return self.total
+        try:
+            return super(Order, self).get_total()
+        except AttributeError:
+            return Price(0, currency=settings.DEFAULT_CURRENCY)
 
     @property
     def billing_full_name(self):
