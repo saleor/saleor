@@ -16,11 +16,8 @@ env:
   - TOXENV=py35-django_master
 matrix:
   allow_failures:
-    - env: TOXENV=py27-django19
     - env: TOXENV=py27-django_master
-    - env: TOXENV=py34-django19
     - env: TOXENV=py34-django_master
-    - env: TOXENV=py35-django19
     - env: TOXENV=py35-django_master
 after_success:
   - codecov
