@@ -99,9 +99,7 @@ class Checkout(ProcessManager):
         if self.request.user.is_authenticated():
             order.anonymous_user_email = ''
         order.tracking_client_id = analytics.get_client_id(self.request)
-        order.total_net = self.get_total()
-        # Tax is not calculated by default
-        order.total_tax = Price(0, currency=settings.DEFAULT_CURRENCY)
+        order.total = self.get_total()
         order.save()
         return order
 

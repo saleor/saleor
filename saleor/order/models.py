@@ -155,9 +155,15 @@ class Order(models.Model, ItemSet):
 
     @property
     def total(self):
-        gross = self.total_net.net + self.total_tax.gross
-        return Price(net=self.total_net.net, gross=gross,
-                     currency=settings.DEFAULT_CURRENCY)
+        if self.total_net is not None:
+            gross = self.total_net.net + self.total_tax.gross
+            return Price(net=self.total_net.net, gross=gross,
+                         currency=settings.DEFAULT_CURRENCY)
+
+    @total.setter
+    def total(self, price):
+        self.total_net = price
+        self.total_tax = Price(price.tax, currency=price.currency)
 
 
 class DeliveryGroupManager(models.Manager):
