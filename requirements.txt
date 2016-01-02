@@ -8,7 +8,7 @@ babel==2.1.1
 babeldjango==0.2.2
 boto==2.38.0              # via django-offsite-storage
 braintree==3.23.0         # via django-payments
-cffi==1.4.1               # via cryptography
+cffi==1.4.2               # via cryptography
 cryptography==1.1.2       # via django-payments
 cssselect==0.9.1          # via premailer
 cssutils==1.0.1           # via premailer
@@ -22,18 +22,18 @@ django-model-utils==2.4
 django-mptt==0.8.0
 django-offsite-storage==0.0.7
 django-payments==0.9.1
-django-prices==0.4.8
+django-prices==0.4.9
 django-redis==4.3.0
 django-selectable==0.9.0
-django-versatileimagefield==1.2
-django==1.9
+django-versatileimagefield==1.2.2
+django==1.9.1
 djangorestframework==3.3.2
-enum34==1.1.1             # via cryptography
+enum34==1.1.2             # via cryptography
 fake-factory==0.5.3
 funcsigs==0.4             # via mock
 google-measurement-protocol==0.1.5
 idna==2.0                 # via cryptography
-ipaddress==1.0.15         # via cryptography
+ipaddress==1.0.16         # via cryptography
 jsonfield==1.0.3
 lxml==3.5.0               # via premailer
 markdown==2.6.5
@@ -52,16 +52,16 @@ pytest-django==2.9.1
 pytest==2.8.5
 pytz==2015.7              # via babel
 redis==2.10.5             # via django-redis
-requests==2.9.0
+requests==2.9.1
 satchless==1.1.3
 six==1.10.0               # via cryptography, mock, purl
 stripe==1.27.1            # via django-payments
 suds-jurko==0.6           # via django-payments
 unidecode==0.4.18
-uwsgi==2.0.11.2
+uwsgi==2.0.12
 whitenoise==2.0.6
 xmltodict==0.9.2          # via django-payments
 
 # The following packages are commented out because they are
 # considered to be unsafe in a requirements file:
-# setuptools==19.1.1        # via cryptography
+# setuptools==19.2          # via cryptography
