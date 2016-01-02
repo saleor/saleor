@@ -161,7 +161,7 @@ def create_delivery_group(order):
 def create_order_line(delivery_group):
     product = Product.objects.all().order_by('?')[0]
     variant = product.variants.all()[0]
-    OrderedItem.objects.create(
+    return OrderedItem.objects.create(
         delivery_group=delivery_group,
         product=product,
         product_name=product.name,
@@ -173,7 +173,7 @@ def create_order_line(delivery_group):
 
 def create_order_lines(delivery_group, how_many=10):
     for dummy in range(how_many):
-        create_order_line(delivery_group)
+        yield create_order_line(delivery_group)
 
 
 def create_fake_order():
@@ -197,7 +197,11 @@ def create_fake_order():
     order.change_status('payment-pending')
 
     delivery_group = create_delivery_group(order)
-    create_order_lines(delivery_group, random.randrange(1, 5))
+    lines = create_order_lines(delivery_group, random.randrange(1, 5))
+
+    order.total = sum(
+        [line.get_total() for line in lines], delivery_group.shipping_price)
+    order.save()
 
     payment = create_payment(delivery_group)
     if payment.status == 'confirmed':
