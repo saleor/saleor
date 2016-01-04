@@ -61,7 +61,7 @@ class CartItemAmountSelect extends Component {
   }
 
   sendQuantityWrapper() {
-    this.sendQuantity(this.refs.inputQuantity.props.value);
+    this.sendQuantity(this.refs.inputQuantity.value);
   }
 
   sendQuantity(quantity) {
