@@ -111,8 +111,12 @@ class Order(models.Model, ItemSet):
         return '#%d' % (self.id, )
 
     def get_total(self):
-        return self.total
-    
+        try:
+            return super(Order, self).get_total()
+        except AttributeError:
+            return Price(0, currency=settings.DEFAULT_CURRENCY)
+        #return self.total
+
     @property
     def billing_full_name(self):
         return '%s %s' % (self.billing_first_name, self.billing_last_name)
