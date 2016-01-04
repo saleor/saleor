@@ -98,6 +98,8 @@ class Checkout(ProcessManager):
             step.add_to_order(order)
         if self.request.user.is_authenticated():
             order.anonymous_user_email = ''
+        else:
+            order.anonymous_user_email = self.shipping_address_step.email
         order.tracking_client_id = analytics.get_client_id(self.request)
         order.total = self.get_total()
         order.save()
