@@ -34,10 +34,9 @@ class FixedProductDiscount(models.Model):
         from ...product.models import ProductVariant
         if isinstance(variant, ProductVariant):
             pk = variant.product.pk
-            check_price = variant.get_price_per_item()
         else:
             pk = variant.pk
-            check_price = variant.get_price_per_item(variant)
+        check_price = variant.get_price_per_item()
         if not self.products.filter(pk=pk).exists():
             raise NotApplicable('Discount not applicable for this product')
         if self.discount > check_price:
