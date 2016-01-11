@@ -30,6 +30,9 @@ class FixedProductDiscount(models.Model):
     def __str__(self):
         return self.name
 
+    def __lt__(self, other):
+        return self.discount < other.discount
+
     def modifier_for_product(self, variant):
         from ...product.models import ProductVariant
         if isinstance(variant, ProductVariant):
