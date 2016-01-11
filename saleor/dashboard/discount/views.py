@@ -43,4 +43,4 @@ def discount_delete(request, pk):
         return redirect('dashboard:discount-list')
     ctx = {'discount': instance}
     return TemplateResponse(
-        request, 'dashboard/product/discount/modal_confirm_delete.html', ctx)
+        request, 'dashboard/discount/modal_confirm_delete.html', ctx)
