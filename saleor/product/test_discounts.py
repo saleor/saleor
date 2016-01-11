@@ -60,7 +60,41 @@ def test_only_applicable_discounts(variants_manager, mock_discount, test_product
     mock_discount.all.return_value = [test_product]
     discounts = [FixedProductDiscount(name='test', discount=10),
                  FixedProductDiscount(name='test2', discount=90),
-                 FixedProductDiscount(name='test2', discount=120)]
+                 FixedProductDiscount(name='test3', discount=120)]
     applied_discounts = list(
         get_product_discounts(test_product.variants.all()[0], discounts))
     assert len(applied_discounts) == 2
+
+
+@mock.patch.object(FixedProductDiscount, 'products', create=True)
+@mock.patch.object(Product, 'variants', create=True)
+def test_max_discount_is_applied(variants_manager, mock_discount, test_product):
+    variant = ProductVariant(
+        sku='0001', name='first variant', product=test_product)
+    variants_manager.all.return_value = [variant]
+    test_product.variants = variants_manager
+    mock_discount.all.return_value = [test_product]
+    discounts = [FixedProductDiscount(name='test', discount=10),
+                 FixedProductDiscount(name='test2', discount=90),
+                 FixedProductDiscount(name='test3', discount=120)]
+    final_price = test_product.get_price_per_item(discounts=discounts)
+    assert final_price.gross == 10
+    variant_price = variant.get_price_per_item(discounts)
+    assert variant_price.gross == 10
+
+
+@mock.patch.object(FixedProductDiscount, 'products', create=True)
+@mock.patch.object(Product, 'variants', create=True)
+def test_max_discount_is_applied_variant_custom_price(
+        variants_manager, mock_discount, test_product):
+    variant = ProductVariant(
+        sku='0001', name='first variant', product=test_product,
+        price_override=50)
+    variants_manager.all.return_value = [variant]
+    test_product.variants = variants_manager
+    mock_discount.all.return_value = [test_product]
+    discounts = [FixedProductDiscount(name='test', discount=10),
+                 FixedProductDiscount(name='test2', discount=90),
+                 FixedProductDiscount(name='test3', discount=120)]
+    variant_price = variant.get_price_per_item(discounts)
+    assert variant_price.gross == 50-10
