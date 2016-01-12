@@ -3,7 +3,7 @@ import logging
 from django.utils.translation import get_language
 
 from . import analytics
-from ..product.models import FixedProductDiscount
+from ..product.models import Discount
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +24,6 @@ class GoogleAnalytics(object):
 
 class DiscountMiddleware(object):
     def process_request(self, request):
-        discounts = FixedProductDiscount.objects.all()
+        discounts = Discount.objects.all()
         discounts = discounts.prefetch_related('products')
         request.discounts = discounts

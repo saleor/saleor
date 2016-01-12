@@ -3,13 +3,13 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
-from ...product.models import FixedProductDiscount
+from ...product.models import Discount
 from . import forms
 
 
 @staff_member_required
 def discount_list(request):
-    discounts = FixedProductDiscount.objects.prefetch_related('products')
+    discounts = Discount.objects.prefetch_related('products')
     ctx = {'discounts': discounts}
     return TemplateResponse(request, 'dashboard/discount/list.html',
                             ctx)
@@ -18,10 +18,10 @@ def discount_list(request):
 @staff_member_required
 def discount_edit(request, pk=None):
     if pk:
-        instance = get_object_or_404(FixedProductDiscount, pk=pk)
+        instance = get_object_or_404(Discount, pk=pk)
     else:
-        instance = FixedProductDiscount()
-    form = forms.FixedProductDiscountForm(
+        instance = Discount()
+    form = forms.DiscountForm(
         request.POST or None, instance=instance)
     if form.is_valid():
         instance = form.save()
@@ -35,7 +35,7 @@ def discount_edit(request, pk=None):
 
 @staff_member_required
 def discount_delete(request, pk):
-    instance = get_object_or_404(FixedProductDiscount, pk=pk)
+    instance = get_object_or_404(Discount, pk=pk)
     if request.method == 'POST':
         instance.delete()
         messages.success(
