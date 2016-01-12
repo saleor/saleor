@@ -33,7 +33,12 @@
                         <li class="collection-item list-item list--attributes-item list-item--two-lines">
                             <a class="list-item-name" href="{% url 'dashboard:discount-update' pk=discount.pk %}">{{ discount }}</a>
                             <p class="list-item-desc">
-                                {% gross discount.discount %}
+                                {% if discount.discount %}
+                                    {% gross discount.discount %}
+                                {% endif %}
+                                {% if discount.percentage_discount %}
+                                    {{ discount.percentage_discount }} %
+                                {% endif %}
                             </p>
                         </li>
                     {% endfor %}

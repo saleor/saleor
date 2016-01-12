@@ -17,6 +17,7 @@ class NotApplicable(ValueError):
 class FixedProductDiscount(models.Model):
     name = models.CharField(max_length=255)
     products = models.ManyToManyField('Product', blank=True)
+    categories = models.ManyToManyField('Category', blank=True)
     discount = PriceField(pgettext_lazy('Discount field', 'discount value'),
                           currency=settings.DEFAULT_CURRENCY,
                           max_digits=12, decimal_places=2, null=True,
@@ -46,10 +47,13 @@ class FixedProductDiscount(models.Model):
         from ...product.models import ProductVariant
         if isinstance(variant, ProductVariant):
             pk = variant.product.pk
+            categories = variant.product.categories.all()
         else:
             pk = variant.pk
+            categories = variant.categories.all()
         check_price = variant.get_price_per_item()
-        if not self.products.filter(pk=pk).exists():
+        if not (self.products.filter(pk=pk).exists() and
+                any(c in self.categories.all() for c in categories)):
             raise NotApplicable('Discount not applicable for this product')
         discount = self.get_discount()
         after_discount = discount.apply(check_price)
