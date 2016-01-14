@@ -46,10 +46,24 @@ class Discount(models.Model):
             return percentage_discount(value=self.value, name=self.name)
         raise NotImplementedError('Unknown discount type')
 
+    def _product_has_category_discount(self, product, discounted_categories):
+        for category in product.categories.all():
+            for discounted_category in discounted_categories:
+                if category.is_descendant_of(discounted_category,
+                                             include_self=True):
+                    return True
+        return False
+
     def modifier_for_variant(self, variant):
         check_price = variant.get_price_per_item()
-        if variant.product not in self.products.all():
+        discounted_products = [p.pk for p in self.products.all()]
+        discounted_categories = list(self.categories.all())
+        if discounted_products and variant.pk not in discounted_products:
             raise NotApplicable('Discount not applicable for this product')
+        if (discounted_categories and not
+                self._product_has_category_discount(
+                    variant.product, discounted_categories)):
+            raise NotApplicable('Discount too high for this product')
         discount = self.get_discount()
         after_discount = discount.apply(check_price)
         if after_discount.gross <= 0:
