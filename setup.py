@@ -27,7 +27,7 @@ class PyTest(TestCommand):
         sys.exit(errno)
 
 
-with open('requirements.in', 'r') as req_file:
+with open('requirements.txt', 'r') as req_file:
     requirements = req_file.readlines()
 
 
