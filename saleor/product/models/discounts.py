@@ -30,10 +30,19 @@ class FixedProductDiscount(models.Model):
     def __str__(self):
         return self.name
 
+    def __lt__(self, other):
+        return self.discount < other.discount
+
     def modifier_for_product(self, variant):
-        if not self.products.filter(pk=variant.product.pk).exists():
+        from ...product.models import ProductVariant
+        if isinstance(variant, ProductVariant):
+            pk = variant.product.pk
+        else:
+            pk = variant.pk
+        check_price = variant.get_price_per_item()
+        if not self.products.filter(pk=pk).exists():
             raise NotApplicable('Discount not applicable for this product')
-        if self.discount > variant.get_price(discounted=False):
+        if self.discount > check_price:
             raise NotApplicable('Discount too high for this product')
         return FixedDiscount(self.discount, name=self.name)
 

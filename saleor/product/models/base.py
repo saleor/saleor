@@ -118,7 +118,7 @@ class Product(models.Model, ItemRange):
     def get_slug(self):
         return slugify(smart_text(unidecode(self.name)))
 
-    def get_price_per_item(self, item, discounts=None, **kwargs):
+    def get_price_per_item(self, discounts=None, **kwargs):
         price = self.price
         if price and discounts:
             discounts = list(get_product_discounts(self, discounts, **kwargs))
