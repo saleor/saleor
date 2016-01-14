@@ -17,13 +17,24 @@ class NotApplicable(ValueError):
 class Discount(models.Model):
     FIXED = 'fixed'
     PERCENTAGE = 'percentage'
+    APPLY_ON_PRODUCTS = 'products'
+    APPLY_ON_CATEGORIES = 'categories'
+    APPLY_ON_BOTH = 'both'
 
     DISCOUNT_TYPE_CHOICES = (
         (FIXED, pgettext_lazy('discount type', 'Fixed amount')),
         (PERCENTAGE, pgettext_lazy('discount_type', 'Percentage discount')))
 
+    APPLY_ON_CHOICES = (
+        (APPLY_ON_PRODUCTS, pgettext_lazy('discount apply on', 'Products')),
+        (APPLY_ON_CATEGORIES, pgettext_lazy('discount apply on', 'Categories')),
+        (APPLY_ON_BOTH, pgettext_lazy('discount apply on',
+                                      'Both products and categories')))
+
     name = models.CharField(max_length=255)
     type = models.CharField(max_length=10, choices=DISCOUNT_TYPE_CHOICES)
+    apply_on = models.CharField(max_length=10, choices=APPLY_ON_CHOICES,
+                                default=APPLY_ON_BOTH)
     products = models.ManyToManyField('Product', blank=True)
     categories = models.ManyToManyField('Category', blank=True)
     value = models.DecimalField(
@@ -48,18 +59,25 @@ class Discount(models.Model):
                                    currency=settings.DEFAULT_CURRENCY)
             return FixedDiscount(amount=discount_price, name=self.name)
         elif self.type == self.PERCENTAGE:
-            return percentage_discount(value=self.value,
-                                       name=self.name)
-        raise NotImplementedError()
+            return percentage_discount(value=self.value, name=self.name)
+        raise NotImplementedError('Unknown discount type')
 
     def modifier_for_product(self, product):
-        pk = product.pk
-        categories = product.categories.all()
+        product_categories = product.categories.all()
+        discounted_categories = self.categories.all()
         check_price = product.get_price_per_item()
-        if self.products.exists() and not (self.products.filter(pk=pk).exists()):
-            raise NotApplicable('Discount not applicable for this product')
-        if self.categories.exists() and not any(c in self.categories.all() for c in categories):
-            raise NotApplicable('Discount not applicable for this product')
+        product_in_discount = product in self.products.all()
+        category_in_discount = any(c in discounted_categories
+                                   for c in product_categories)
+
+        if self.apply_on == self.APPLY_ON_BOTH:
+            if not (product_in_discount or category_in_discount):
+                raise NotApplicable('Discount not applicable for this product')
+        else:
+            if self.apply_on == self.APPLY_ON_PRODUCTS and not product_in_discount:
+                raise NotApplicable('Discount not applicable for this product')
+            if self.apply_on == self.APPLY_ON_CATEGORIES and not category_in_discount:
+                raise NotApplicable('Discount not applicable for this product')
         discount = self.get_discount()
         after_discount = discount.apply(check_price)
         if after_discount.gross <= 0:

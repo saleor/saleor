@@ -25,5 +25,5 @@ class GoogleAnalytics(object):
 class DiscountMiddleware(object):
     def process_request(self, request):
         discounts = Discount.objects.all()
-        discounts = discounts.prefetch_related('products')
+        discounts = discounts.prefetch_related('products', 'categories')
         request.discounts = discounts

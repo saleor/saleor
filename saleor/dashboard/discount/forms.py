@@ -7,7 +7,7 @@ from ...product.models import Discount
 class DiscountForm(forms.ModelForm):
     class Meta:
         model = Discount
-        fields = ['name', 'type', 'products', 'categories', 'value']
+        exclude = []
 
     def clean(self):
         cleaned_data = super(DiscountForm, self).clean()
