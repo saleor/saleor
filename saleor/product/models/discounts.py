@@ -26,11 +26,7 @@ class Discount(models.Model):
     type = models.CharField(max_length=10, choices=DISCOUNT_TYPE_CHOICES,
                             default=FIXED)
     products = models.ManyToManyField('Product', blank=True)
-    value = models.DecimalField(
-        max_digits=12, decimal_places=2, default=0,
-        help_text=pgettext_lazy('discount help',
-                                'Value for a discount. It could be fixed '
-                                'amount or percentage value in range 0-100'))
+    value = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     class Meta:
         app_label = 'product'

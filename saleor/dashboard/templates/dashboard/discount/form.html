@@ -43,9 +43,17 @@
             <div class="col l8">
                 <div class="row">
                     {% csrf_token %}
-                    {{ form|materializecss }}
+                    {{ form.name|materializecss }}
+                    <div class="row">
+                        <div class="col s4">
+                            {{ form.type|materializecss }}
+                        </div>
+                        <div class="col s4">
+                            {{ form.value|materializecss }}
+                        </div>
+                    </div>
+                    {{ form.products|materializecss }}
                 </div>
-
             </div>
         </div>
 
