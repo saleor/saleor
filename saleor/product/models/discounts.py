@@ -52,15 +52,10 @@ class Discount(models.Model):
                                        name=self.name)
         raise NotImplementedError()
 
-    def modifier_for_product(self, variant):
-        from ...product.models import ProductVariant
-        if isinstance(variant, ProductVariant):
-            pk = variant.product.pk
-            categories = variant.product.categories.all()
-        else:
-            pk = variant.pk
-            categories = variant.categories.all()
-        check_price = variant.get_price_per_item()
+    def modifier_for_product(self, product):
+        pk = product.pk
+        categories = product.categories.all()
+        check_price = product.get_price_per_item()
         if self.products.exists() and not (self.products.filter(pk=pk).exists()):
             raise NotApplicable('Discount not applicable for this product')
         if self.categories.exists() and not any(c in self.categories.all() for c in categories):
@@ -72,9 +67,9 @@ class Discount(models.Model):
         return discount
 
 
-def get_product_discounts(variant, discounts, **kwargs):
+def get_product_discounts(product, discounts, **kwargs):
     for discount in discounts:
         try:
-            yield discount.modifier_for_product(variant, **kwargs)
+            yield discount.modifier_for_product(product, **kwargs)
         except NotApplicable:
             pass

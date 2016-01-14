@@ -186,7 +186,8 @@ class ProductVariant(models.Model, Item):
     def get_price_per_item(self, discounts=None, **kwargs):
         price = self.price_override or self.product.price
         if discounts:
-            discounts = list(get_product_discounts(self, discounts, **kwargs))
+            discounts = list(
+                get_product_discounts(self.product, discounts, **kwargs))
             if discounts:
                 modifier = max(discounts)
                 price += modifier
