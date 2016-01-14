@@ -23,8 +23,9 @@ class Discount(models.Model):
     name = models.CharField(max_length=255)
     type = models.CharField(max_length=10, choices=DISCOUNT_TYPE_CHOICES,
                             default=FIXED)
-    products = models.ManyToManyField('Product', blank=True)
     value = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    products = models.ManyToManyField('Product', blank=True)
+    categories = models.ManyToManyField('Category', blank=True)
 
     class Meta:
         app_label = 'product'
