@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='address',
             name='city_area',
-            field=models.CharField(max_length=128, verbose_name='city administrative area', blank=True),
+            field=models.CharField(max_length=128, verbose_name='district', blank=True),
         ),
         migrations.AlterField(
             model_name='address',
