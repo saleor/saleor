@@ -4,6 +4,7 @@ Django>=1.8,!=1.8.6
 dj_database_url>=0.3.0
 dj_email_url>=0.0.4
 django-cache-url>=1.0.0
+django-countries>=3.4
 django-emailit>=0.2.2
 django-materializecss-form>=0.1
 django-model-utils>=2.3

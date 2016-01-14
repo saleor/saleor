@@ -8,8 +8,7 @@ from django.forms.models import model_to_dict
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import pgettext_lazy
-
-from ..core.countries import COUNTRY_CHOICES
+from django_countries.fields import CountryField
 
 
 class AddressManager(models.Manager):
@@ -54,9 +53,8 @@ class Address(models.Model):
     postal_code = models.CharField(
         pgettext_lazy('Address field', 'postal code'),
         max_length=20, blank=True)
-    country = models.CharField(
-        pgettext_lazy('Address field', 'country'),
-        choices=COUNTRY_CHOICES, max_length=2)
+    country = CountryField(
+        pgettext_lazy('Address field', 'country'))
     country_area = models.CharField(
         pgettext_lazy('Address field', 'state or province'),
         max_length=128, blank=True)
