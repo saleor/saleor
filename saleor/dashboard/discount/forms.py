@@ -16,7 +16,7 @@ class DiscountForm(forms.ModelForm):
         discount_type = cleaned_data['type']
         value = cleaned_data['value']
         if discount_type == Discount.PERCENTAGE and value > 100:
-            self.add_error('value', pgettext_lazy('discount error',
-                                                  'Percentage discount '
-                                                  'cannot be higher than 100%'))
+            self.add_error('value', pgettext_lazy(
+                'discount error',
+                'Discount cannot exceed 100%'))
         return cleaned_data
