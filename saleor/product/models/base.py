@@ -22,7 +22,7 @@ from versatileimagefield.fields import VersatileImageField
 
 from prices import PriceRange
 from ..utils import get_attributes_display_map
-from .discounts import get_product_discounts
+from .discounts import get_variant_discounts
 from .fields import WeightField
 
 
@@ -126,15 +126,6 @@ class Product(models.Model, ItemRange):
                 'Calling get_price_range() on an empty item range')
         return PriceRange(min(prices), max(prices))
 
-    def get_price_per_item(self, discounts=None, **kwargs):
-        price = self.price
-        if price and discounts:
-            discounts = list(get_product_discounts(self, discounts, **kwargs))
-            if discounts:
-                modifier = max(discounts)
-                price += modifier
-        return price
-
     def is_in_stock(self):
         return any(variant.is_in_stock() for variant in self)
 
@@ -187,7 +178,7 @@ class ProductVariant(models.Model, Item):
         price = self.price_override or self.product.price
         if discounts:
             discounts = list(
-                get_product_discounts(self.product, discounts, **kwargs))
+                get_variant_discounts(self, discounts, **kwargs))
             if discounts:
                 modifier = max(discounts)
                 price += modifier

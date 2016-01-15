@@ -1,11 +1,9 @@
 from __future__ import unicode_literals
 
 from django.conf import settings
-from django.core.validators import MaxValueValidator
 from django.db import models
 from django.utils.translation import pgettext_lazy
 from django.utils.encoding import python_2_unicode_compatible
-from django_prices.models import PriceField
 from prices import FixedDiscount, percentage_discount, Price
 
 
@@ -33,7 +31,7 @@ class Discount(models.Model):
 
     def __repr__(self):
         return 'Discount(name=%r, value=%r, type=%s)' % (
-            str(self.discount), self.name, self.get_type_display())
+            str(self.name), self.value, self.get_type_display())
 
     def __str__(self):
         return self.name
@@ -47,10 +45,10 @@ class Discount(models.Model):
             return percentage_discount(value=self.value, name=self.name)
         raise NotImplementedError('Unknown discount type')
 
-    def modifier_for_product(self, product):
-        check_price = product.get_price_per_item()
-        if product not in self.products.all():
-                raise NotApplicable('Discount not applicable for this product')
+    def modifier_for_variant(self, variant):
+        check_price = variant.get_price_per_item()
+        if variant.product not in self.products.all():
+            raise NotApplicable('Discount not applicable for this product')
         discount = self.get_discount()
         after_discount = discount.apply(check_price)
         if after_discount.gross <= 0:
@@ -58,9 +56,9 @@ class Discount(models.Model):
         return discount
 
 
-def get_product_discounts(product, discounts, **kwargs):
+def get_variant_discounts(variant, discounts, **kwargs):
     for discount in discounts:
         try:
-            yield discount.modifier_for_product(product, **kwargs)
+            yield discount.modifier_for_variant(variant, **kwargs)
         except NotApplicable:
             pass
