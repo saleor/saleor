@@ -1,6 +1,0 @@
-include requirements.txt
-recursive-include saleor/**/templates *.html *.txt
-graft templates
-
-prune media
-graft static
