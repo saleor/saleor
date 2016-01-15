@@ -180,8 +180,7 @@ class ProductVariant(models.Model, Item):
             discounts = list(
                 get_variant_discounts(self, discounts, **kwargs))
             if discounts:
-                modifier = max(discounts)
-                price += modifier
+                price = min(price | discount for discount in discounts)
         return price
 
     def get_absolute_url(self):
