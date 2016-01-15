@@ -119,13 +119,6 @@ class Product(models.Model, ItemRange):
     def get_slug(self):
         return slugify(smart_text(unidecode(self.name)))
 
-    def get_price_range(self, **kwargs):
-        prices = [item.get_price_per_item(**kwargs) for item in self]
-        if not prices:
-            raise AttributeError(
-                'Calling get_price_range() on an empty item range')
-        return PriceRange(min(prices), max(prices))
-
     def is_in_stock(self):
         return any(variant.is_in_stock() for variant in self)
 
