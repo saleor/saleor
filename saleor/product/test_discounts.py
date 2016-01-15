@@ -22,6 +22,7 @@ def product_variant(product):
         name='variant')
 
 
+@pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 def test_variant_discounts(product_variant):
     product = product_variant.product
@@ -45,6 +46,7 @@ def test_variant_discounts(product_variant):
     assert applied_discount.amount.gross == 8
 
 
+@pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 def test_percentage_discounts(product_variant):
     discount = models.Discount.objects.create(
