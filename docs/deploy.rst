@@ -21,6 +21,7 @@ Usage
 
     $ docker-compose build
 
+
 2. Prepare the database
 
    .. code::
@@ -31,6 +32,7 @@ Usage
    The ``--createsuperuser`` switch creates an admin account for
     ``admin@example.com`` with the password set to ``admin``.
 
+
 3. Install front-end dependencies
 
    .. code::
@@ -38,11 +40,13 @@ Usage
     $ docker-compose run web npm install
     $ docker-compose run web grunt
 
+
 4. Run ``Saleor``
 
    .. code::
 
     $ docker-compose up
+
 
 By default, the application is configured to listen on port ``8000``.
 
@@ -64,6 +68,7 @@ First steps
 
 .. note::
  Heroku's storage is volatile. This means that all instances of your application will have separate disks and will lose all changes made to the local disk each time the application is restarted. The best approach is to use cloud storage such as [[Amazon S3|Storage: Amazon S3]].
+
 
 Deploy
 ******

@@ -10,19 +10,19 @@ Installation
 
 2. Enter the directory:
 
-  .. code:: bash
+   .. code:: bash
 
-   $ cd saleor/
+    $ cd saleor/
 
 
 3. Install all dependencies:
 
-  .. code:: bash
+   .. code:: bash
 
-   $ pip install -r requirements.txt
+    $ pip install -r requirements.txt
+
 
 4. Set `SECRET_KEY` environmental variable.
-
 
    .. note::
     Secret key has to be unique and must not be shared with anybody.
@@ -30,7 +30,6 @@ Installation
    .. code:: bash
 
     $ export SECRET_KEY='mysecretkey'
-
 
 
 5. Prepare the database:
@@ -52,27 +51,22 @@ Installation
 
 7. Prepare assets:
 
-  .. code:: bash
+   .. code:: bash
 
-   $ ./node_modules/.bin/grunt
+    $ ./node_modules/.bin/grunt
 
-7. Run like a normal django project:
 
- .. code:: bash
+8. Run like a normal django project:
 
-  $ python manage.py runserver
+   .. code:: bash
+
+    $ python manage.py runserver
+
 
 Tests
 -----
 
 To run the test suite use:
-
-.. code:: bash
-
- $ python setup.py test
-
-
-or:
 
 .. code:: bash
 
