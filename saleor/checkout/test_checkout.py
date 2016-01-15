@@ -26,6 +26,9 @@ USER_EMAIL = 'user@example.com'
 
 class TestUser(User):
 
+    class Meta:
+        app_label = 'userprofile'
+
     class QuerysetMock(list):
         model = MagicMock()
 
