@@ -1,5 +1,7 @@
 language: python
-cache: pip
+cache:
+  directories:
+    - $HOME/.cache/pip
 sudo: false
 install:
   - pip install -U pip setuptools wheel
