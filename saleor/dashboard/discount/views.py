@@ -11,8 +11,7 @@ from . import forms
 def discount_list(request):
     discounts = Discount.objects.prefetch_related('products')
     ctx = {'discounts': discounts}
-    return TemplateResponse(request, 'dashboard/discount/list.html',
-                            ctx)
+    return TemplateResponse(request, 'dashboard/discount/list.html', ctx)
 
 
 @staff_member_required
@@ -29,8 +28,7 @@ def discount_edit(request, pk=None):
         messages.success(request, msg)
         return redirect('dashboard:discount-update', pk=instance.pk)
     ctx = {'discount': instance, 'form': form}
-    return TemplateResponse(request, 'dashboard/discount/form.html',
-                            ctx)
+    return TemplateResponse(request, 'dashboard/discount/form.html', ctx)
 
 
 @staff_member_required
