@@ -6,7 +6,7 @@ from . import models
 
 
 @pytest.fixture
-def test_product():
+def product():
     return models.Product.objects.create(
         name='test product',
         description='test description',
@@ -15,17 +15,16 @@ def test_product():
 
 
 @pytest.fixture
-def test_product_variant(test_product):
+def product_variant(product):
     return models.ProductVariant.objects.create(
-        product=test_product,
+        product=product,
         sku='TESTSKU',
         name='variant')
 
 
 @pytest.mark.django_db(transaction=True)
-def test_variant_discounts(test_product_variant):
-    variant = test_product_variant
-    product = variant.product
+def test_variant_discounts(product_variant):
+    product = product_variant.product
     low_discount = models.Discount.objects.create(
         type=models.Discount.FIXED,
         value=5)
@@ -38,8 +37,8 @@ def test_variant_discounts(test_product_variant):
         type=models.Discount.FIXED,
         value=50)
     high_discount.products.add(product)
-    final_price = variant.get_price_per_item(
-        discounts=[low_discount, discount, high_discount])
+    final_price = product_variant.get_price_per_item(
+        discounts=models.Discount.objects.all())
     assert final_price.gross == 2
     applied_discount = final_price.history.right
     assert isinstance(applied_discount, FixedDiscount)
@@ -47,14 +46,12 @@ def test_variant_discounts(test_product_variant):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_percentage_discounts(test_product_variant):
-    variant = test_product_variant
-    product = variant.product
+def test_percentage_discounts(product_variant):
     discount = models.Discount.objects.create(
         type=models.Discount.PERCENTAGE,
         value=50)
-    discount.products.add(product)
-    final_price = variant.get_price_per_item(discounts=[discount])
+    discount.products.add(product_variant.product)
+    final_price = product_variant.get_price_per_item(discounts=[discount])
     assert final_price.gross == 5
     applied_discount = final_price.history.right
     assert isinstance(applied_discount, FractionalDiscount)
