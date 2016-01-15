@@ -89,6 +89,12 @@
     }
   }
 
+  &#form-discounts {
+    #id_name {
+      @extend %input-lg;
+    }
+  }
+
   .sizedimage-mod {
     margin-bottom: $gutter-width/2;
 

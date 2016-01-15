@@ -18,6 +18,9 @@ from ..product.models import (ProductVariant, Product)
 
 class BigShipVariant(ProductVariant):
 
+    class Meta:
+        app_label = 'product'
+
     def get_price_per_item(self, discounted=True, **kwargs):
         return Price(10, currency='USD')
 
@@ -35,6 +38,9 @@ class BigShipVariant(ProductVariant):
 
 class BigShip(Product):
 
+    class Meta:
+        app_label = 'product'
+
     def get_slug(self):
         return 'bigship'
 
@@ -51,6 +57,9 @@ class ShipPhotoVariant(ProductVariant):
     def display_variant(self, attributes=None):
         return 'SHIP PHOTO'
 
+    class Meta:
+        app_label = 'product'
+
 
 class ShipPhoto(Product):
 
@@ -59,6 +68,9 @@ class ShipPhoto(Product):
 
     def is_shipping_required(self):
         return False
+
+    class Meta:
+        app_label = 'product'
 
 
 class AddToCartForm(forms.AddToCartForm):

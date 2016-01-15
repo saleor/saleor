@@ -1,7 +1,7 @@
 from django.contrib import admin
 from mptt.admin import MPTTModelAdmin
 
-from .models import (ProductImage, Category, FixedProductDiscount)
+from .models import (ProductImage, Category, Discount)
 from .forms import ImageInline
 
 
@@ -15,4 +15,4 @@ class ProductCollectionAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Category, MPTTModelAdmin)
-admin.site.register(FixedProductDiscount)
+admin.site.register(Discount)

@@ -4,8 +4,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import pgettext_lazy
 from django.utils.encoding import python_2_unicode_compatible
-from django_prices.models import PriceField
-from prices import FixedDiscount
+from prices import FixedDiscount, percentage_discount, Price
 
 
 class NotApplicable(ValueError):
@@ -13,34 +12,53 @@ class NotApplicable(ValueError):
 
 
 @python_2_unicode_compatible
-class FixedProductDiscount(models.Model):
+class Discount(models.Model):
+    FIXED = 'fixed'
+    PERCENTAGE = 'percentage'
+
+    DISCOUNT_TYPE_CHOICES = (
+        (FIXED, pgettext_lazy('discount type', 'Fixed amount')),
+        (PERCENTAGE, pgettext_lazy('discount_type', 'Percentage discount')))
+
     name = models.CharField(max_length=255)
+    type = models.CharField(max_length=10, choices=DISCOUNT_TYPE_CHOICES,
+                            default=FIXED)
     products = models.ManyToManyField('Product', blank=True)
-    discount = PriceField(pgettext_lazy('Discount field', 'discount value'),
-                          currency=settings.DEFAULT_CURRENCY,
-                          max_digits=12, decimal_places=2)
+    value = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     class Meta:
         app_label = 'product'
 
     def __repr__(self):
-        return 'FixedProductDiscount(name=%r, discount=%r)' % (
-            str(self.discount), self.name)
+        return 'Discount(name=%r, value=%r, type=%s)' % (
+            str(self.name), self.value, self.get_type_display())
 
     def __str__(self):
         return self.name
 
-    def modifier_for_product(self, variant):
-        if not self.products.filter(pk=variant.product.pk).exists():
+    def get_discount(self):
+        if self.type == self.FIXED:
+            discount_price = Price(net=self.value,
+                                   currency=settings.DEFAULT_CURRENCY)
+            return FixedDiscount(amount=discount_price, name=self.name)
+        elif self.type == self.PERCENTAGE:
+            return percentage_discount(value=self.value, name=self.name)
+        raise NotImplementedError('Unknown discount type')
+
+    def modifier_for_variant(self, variant):
+        check_price = variant.get_price_per_item()
+        if variant.product not in self.products.all():
             raise NotApplicable('Discount not applicable for this product')
-        if self.discount > variant.get_price(discounted=False):
+        discount = self.get_discount()
+        after_discount = discount.apply(check_price)
+        if after_discount.gross <= 0:
             raise NotApplicable('Discount too high for this product')
-        return FixedDiscount(self.discount, name=self.name)
+        return discount
 
 
-def get_product_discounts(variant, discounts, **kwargs):
+def get_variant_discounts(variant, discounts, **kwargs):
     for discount in discounts:
         try:
-            yield discount.modifier_for_product(variant, **kwargs)
+            yield discount.modifier_for_variant(variant, **kwargs)
         except NotApplicable:
             pass

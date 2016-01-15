@@ -20,8 +20,9 @@ from satchless.item import InsufficientStock, Item, ItemRange
 from unidecode import unidecode
 from versatileimagefield.fields import VersatileImageField
 
+from prices import PriceRange
 from ..utils import get_attributes_display_map
-from .discounts import get_product_discounts
+from .discounts import get_variant_discounts
 from .fields import WeightField
 
 
@@ -118,15 +119,6 @@ class Product(models.Model, ItemRange):
     def get_slug(self):
         return slugify(smart_text(unidecode(self.name)))
 
-    def get_price_per_item(self, item, discounts=None, **kwargs):
-        price = self.price
-        if price and discounts:
-            discounts = list(get_product_discounts(self, discounts, **kwargs))
-            if discounts:
-                modifier = max(discounts)
-                price += modifier
-        return price
-
     def is_in_stock(self):
         return any(variant.is_in_stock() for variant in self)
 
@@ -178,10 +170,10 @@ class ProductVariant(models.Model, Item):
     def get_price_per_item(self, discounts=None, **kwargs):
         price = self.price_override or self.product.price
         if discounts:
-            discounts = list(get_product_discounts(self, discounts, **kwargs))
+            discounts = list(
+                get_variant_discounts(self, discounts, **kwargs))
             if discounts:
-                modifier = max(discounts)
-                price += modifier
+                price = min(price | discount for discount in discounts)
         return price
 
     def get_absolute_url(self):
