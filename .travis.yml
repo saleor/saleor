@@ -2,6 +2,7 @@ language: python
 cache: pip
 sudo: false
 install:
+  - pip install -U pip setuptools wheel
   - pip install tox codecov
 script:
   - tox
