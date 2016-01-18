@@ -7,8 +7,8 @@
 babel==2.2.0
 babeldjango==0.2.2
 boto==2.38.0              # via django-offsite-storage
-braintree==3.23.0         # via django-payments
-cffi==1.4.2               # via cryptography
+braintree==3.24.0         # via django-payments
+cffi==1.5.0               # via cryptography
 cryptography==1.2.1       # via django-payments
 cssselect==0.9.1          # via premailer
 cssutils==1.0.1           # via premailer
@@ -17,7 +17,7 @@ dj-email-url==0.0.4
 django-absolute==0.3      # via django-emailit
 django-cache-url==1.0.0
 django-emailit==0.2.2
-django-materializecss-form==0.1
+django-materializecss-form==1.0.1
 django-model-utils==2.4
 django-mptt==0.8.0
 django-offsite-storage==0.0.7
@@ -43,7 +43,7 @@ pillow==3.1.0             # via django-versatileimagefield
 premailer==2.9.7          # via django-emailit
 prices==0.5.5
 psycopg2==2.6.1
-purl==1.1
+purl==1.2
 py==1.4.31                # via pytest
 pyasn1==0.1.9             # via cryptography
 pycparser==2.14           # via cffi
@@ -64,4 +64,4 @@ xmltodict==0.9.2          # via django-payments
 
 # The following packages are commented out because they are
 # considered to be unsafe in a requirements file:
-# setuptools==19.2          # via cryptography
+# setuptools==19.4          # via cryptography

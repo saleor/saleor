@@ -4,6 +4,7 @@ Saleor
 Avast ye landlubbers! Saleor be a Satchless store ye can fork.
 
 [![Build Status](https://travis-ci.org/mirumee/saleor.png?branch=master)](https://travis-ci.org/mirumee/saleor)
+[![Requirements Status](https://requires.io/github/mirumee/saleor/requirements.svg?branch=master)](https://requires.io/github/mirumee/saleor/requirements/?branch=master)
 
 
 Usage
