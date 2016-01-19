@@ -6,7 +6,7 @@
 #
 babel==2.2.0
 babeldjango==0.2.2
-boto==2.38.0              # via django-offsite-storage
+boto==2.39.0              # via django-offsite-storage
 braintree==3.24.0         # via django-payments
 cffi==1.5.0               # via cryptography
 cryptography==1.2.1       # via django-payments
