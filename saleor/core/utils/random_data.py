@@ -10,20 +10,28 @@ from faker import Factory
 from faker.providers import BaseProvider
 from prices import Price
 
+from ...shipping.models import ShippingMethod, ShippingMethodCountry
 from ...order.models import DeliveryGroup, Order, OrderedItem, Payment
-from ...product.models import (Category, Product, ProductImage, ProductVariant,
-                               Stock)
+from ...product.models import Category, Product, ProductImage, ProductVariant, Stock
 from ...userprofile.models import Address, User
 
 fake = Factory.create()
 STOCK_LOCATION = 'default'
 
+DELIVERY_REGIONS = [ShippingMethodCountry.ANY_COUNTRY, 'US', 'PL', 'DE', 'GB']
 
-class FakePriceProvider(BaseProvider):
+
+class SaleorProvider(BaseProvider):
     def price(self):
         return Price(fake.pydecimal(2, 2, positive=True),
                      currency=settings.DEFAULT_CURRENCY)
-fake.add_provider(FakePriceProvider)
+
+    def delivery_region(self):
+        return random.choice(DELIVERY_REGIONS)
+
+    def shipping_method(self):
+        return random.choice(ShippingMethod.objects.all())
+fake.add_provider(SaleorProvider)
 
 
 def get_email(first_name, last_name):
@@ -151,10 +159,17 @@ def create_payment(delivery_group):
 
 
 def create_delivery_group(order):
+    region = order.shipping_address.country
+    if region not in DELIVERY_REGIONS:
+        region = ShippingMethodCountry.ANY_COUNTRY
+    shipping_method = fake.shipping_method()
+    shipping_country = shipping_method.price_per_country.get_or_create(
+        country_code=region, defaults={'price': fake.price()})[0]
     delivery_group = DeliveryGroup.objects.create(
         status=random.choice(['new', 'shipped']),
         order=order,
-        shipping_price=fake.price())
+        shipping_method_name=str(shipping_country),
+        shipping_price=shipping_country.get_total())
     return delivery_group
 
 
@@ -191,9 +206,7 @@ def create_fake_order():
             'shipping_address': address,
             'anonymous_user_email': get_email(
                 address.first_name, address.last_name)}
-    order = Order.objects.create(
-        shipping_method='dummy',
-        **user_data)
+    order = Order.objects.create(**user_data)
     order.change_status('payment-pending')
 
     delivery_group = create_delivery_group(order)
@@ -221,3 +234,12 @@ def create_orders(how_many=10):
     for dummy in range(how_many):
         order = create_fake_order()
         yield 'Order: %s' % (order,)
+
+
+def create_shipping_methods():
+    shipping_method = ShippingMethod.objects.create(name='UPC')
+    shipping_method.price_per_country.create(price=fake.price())
+    yield 'Shipping method #%d' % shipping_method.id
+    shipping_method = ShippingMethod.objects.create(name='DHL')
+    shipping_method.price_per_country.create(price=fake.price())
+    yield 'Shipping method #%d' % shipping_method.id
