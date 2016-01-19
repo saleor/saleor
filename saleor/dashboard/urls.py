@@ -7,6 +7,7 @@ from .order.urls import urlpatterns as order_urls
 from .payments.urls import urlpatterns as payments_urls
 from .product.urls import urlpatterns as product_urls
 from .discount.urls import urlpatterns as discount_urls
+from .shipping.urls import urlpatterns as shipping_urls
 
 
 urlpatterns = [
@@ -17,4 +18,5 @@ urlpatterns = [
     url(r'^payments/', include(payments_urls)),
     url(r'^customers/', include(customer_urls)),
     url(r'^discounts/', include(discount_urls)),
+    url(r'^shipping/', include(shipping_urls)),
 ]
