@@ -16,6 +16,7 @@ dj-database-url==0.3.0
 dj-email-url==0.0.4
 django-absolute==0.3      # via django-emailit
 django-cache-url==1.0.0
+django-countries==3.4.1
 django-emailit==0.2.2
 django-materializecss-form==1.0.1
 django-model-utils==2.4
