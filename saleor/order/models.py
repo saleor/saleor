@@ -24,7 +24,7 @@ from ..cart import CartLine
 from ..core.utils import build_absolute_uri
 from ..delivery import get_delivery
 from ..product.models import Product, ProductVariant
-from ..userprofile.models import Address, User
+from ..userprofile.models import Address
 
 
 @python_2_unicode_compatible
@@ -49,7 +49,7 @@ class Order(models.Model, ItemSet):
         pgettext_lazy('Order field', 'last status change'),
         default=now, editable=False)
     user = models.ForeignKey(
-        User, blank=True, null=True, related_name='orders',
+        settings.AUTH_USER_MODEL, blank=True, null=True, related_name='orders',
         verbose_name=pgettext_lazy('Order field', 'user'))
     tracking_client_id = models.CharField(max_length=36, blank=True,
                                           editable=False)
@@ -405,7 +405,7 @@ class OrderHistoryEntry(models.Model):
         pgettext_lazy('Order field', 'order status'),
         max_length=32, choices=Order.STATUS_CHOICES)
     comment = models.CharField(max_length=100, default='', blank=True)
-    user = models.ForeignKey(User, blank=True, null=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True)
 
     def __str__(self):
         return 'OrderHistoryEntry for Order #%d' % self.order.pk
@@ -416,7 +416,7 @@ class OrderHistoryEntry(models.Model):
 
 @python_2_unicode_compatible
 class OrderNote(models.Model):
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
     date = models.DateTimeField(auto_now_add=True)
     order = models.ForeignKey(Order, related_name='notes')
     content = models.CharField(max_length=250)
