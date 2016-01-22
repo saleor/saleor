@@ -110,7 +110,10 @@ class MoveItemsForm(forms.Form):
         choice = self.cleaned_data['target_group']
         old_group = self.item.delivery_group
         if choice == 'new':
-            target_group = DeliveryGroup.objects.duplicate_group(old_group)
+            # For new group we are set the same delivery name but with zero price
+            target_group = old_group.order.groups.create(
+                status=old_group.status,
+                shipping_method_name=old_group.shipping_method_name)
         else:
             target_group = DeliveryGroup.objects.get(pk=choice)
         OrderedItem.objects.move_to_group(self.item, target_group, how_many)

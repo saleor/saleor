@@ -1,14 +1,42 @@
 {% extends "checkout/details.html" %}
 {% load i18n %}
+{% load as_vertical_form from bootstrap %}
+
+
+{% block steps_menu %}
+    <ul class="nav nav-pills nav-justified nav-wizard">
+        <li>
+            <a href="{% url "cart:index" %}">{% trans "Cart" %}</a>
+
+            <div class="nav-arrow"></div>
+        </li>
+        <li>
+            <div class="nav-wedge"></div>
+            <a href="{% url "checkout:shipping-address" %}">{% trans "Shipping address" %}</a>
+
+            <div class="nav-arrow"></div>
+        </li>
+        <li>
+            <div class="nav-wedge"></div>
+            <a href="{% url "checkout:shipping-method" %}">{% trans "Shipping method" %}</a>
+
+            <div class="nav-arrow"></div>
+        </li>
+        <li class="active">
+            <div class="nav-wedge"></div>
+            <a href="{% url "checkout:summary" %}">{% trans "Summary" %}</a>
+        </li>
+    </ul>
+{% endblock steps_menu %}
 
 
 {% block forms %}
     <form method="post" novalidate>
         {% csrf_token %}
-        <h4>{% trans "Billing address" %}</h4>
-        <br>
-        {% include "checkout/address_form.html" with addresses_form=step.forms.addresses_form %}
-        <br>
+        <h3>{% trans "Billing address" %}</h3>
+
+        {% include "checkout/snippets/addresses-form.html" with addresses_form=addresses_form addresses=additional_addresses address_form=address_form only %}
+
         <p class="text-right">
             <button type="submit" class="btn btn-primary btn-lg">
                 {% trans "Place order" %}

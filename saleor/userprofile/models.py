@@ -67,8 +67,14 @@ class Address(models.Model):
 
     objects = AddressManager()
 
-    def __str__(self):
+    @property
+    def full_name(self):
         return '%s %s' % (self.first_name, self.last_name)
+
+    def __str__(self):
+        if self.company_name:
+            return '%s - %s' % (self.company_name, self.full_name)
+        return self.full_name
 
     def __repr__(self):
         return (
@@ -109,6 +115,7 @@ class UserManager(BaseUserManager):
             changed = True
         if changed:
             user.save()
+        return entry
 
 
 @python_2_unicode_compatible

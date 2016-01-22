@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 
-{% load as_vertical_form from bootstrap %}
 {% load i18n %}
 
 {% block title %}{% trans "Edit Address" %} — {{ block.super }}{% endblock %}
@@ -21,44 +20,8 @@
         <form action="." method="post">
             {% csrf_token %}
             <h4>{% trans "Address" %}</h4>
-
             <br>
-
-            <div class="row">
-                <div class="col-sm-6">
-                    {{ address_form.first_name|as_vertical_form }}
-                </div>
-                <div class="col-sm-6">
-                    {{ address_form.last_name|as_vertical_form }}
-                </div>
-            </div>
-            {{ address_form.company_name|as_vertical_form }}
-            <div class="row">
-                <div class="col-sm-8">
-                    {{ address_form.street_address_1|as_vertical_form }}
-                </div>
-                <div class="col-sm-4">
-                    {{ address_form.street_address_2|as_vertical_form }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-6">
-                    {{ address_form.city|as_vertical_form }}
-                </div>
-                <div class="col-sm-6">
-                    {{ address_form.city_area|as_vertical_form }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-8">
-                    {{ address_form.country_area|as_vertical_form }}
-                </div>
-                <div class="col-sm-4">
-                    {{ address_form.postal_code|as_vertical_form }}
-                </div>
-            </div>
-            {{ address_form.country|as_vertical_form }}
-            {{ address_form.phone|as_vertical_form }}
+            {% include "userprofile/snippets/address-form.html" %}
             <p class="text-right">
                 <button type="submit" class="btn btn-primary">{% trans "Save changes" %}</button>
             </p>

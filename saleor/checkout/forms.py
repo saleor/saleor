@@ -1,73 +1,77 @@
 from django import forms
+from django.template.loader import get_template
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+from django_prices.templatetags.prices_i18n import format_price
+
+from ..shipping.models import ShippingMethodCountry
+from ..userprofile.models import Address
 
 
-class AddressChoiceIterator(forms.models.ModelChoiceIterator):
+class CheckoutAddressField(forms.ChoiceField):
 
-    def __iter__(self):
-        if self.field.copy_choice:
-            yield self.field.copy_choice_value, self.field.copy_choice_label
-        for obj in self.queryset:
-            yield self.choice(obj)
-        yield self.field.new_choice_value, self.field.new_choice_label
+    widget = forms.RadioSelect()
 
 
-class AddressChoiceField(forms.ModelChoiceField):
-    copy_choice_value = 'copy'
-    copy_choice_label = _('Use shipping address for billing')
-    new_choice_value = 'new'
-    new_choice_label = _('Enter a new address')
+class ShippingAddressesForm(forms.Form):
 
-    def __init__(self, queryset, can_copy, *args, **kwargs):
-        if queryset or can_copy:
-            widget = forms.RadioSelect
-        else:
-            widget = forms.HiddenInput
-        if not can_copy:
-            self.copy_choice_value = None
-        super(AddressChoiceField, self).__init__(
-            widget=widget, queryset=queryset, *args, **kwargs)
-        self.widget.field_instance = self
+    NEW_ADDRESS = 'new_address'
+    CHOICES = (
+        (NEW_ADDRESS, _('Enter a new address')),
+    )
 
-    def validate(self, value):
-        if not self.is_special_choice(value):
-            return super(AddressChoiceField, self).validate(value)
+    address = CheckoutAddressField(choices=CHOICES, initial=NEW_ADDRESS)
 
-    def to_python(self, value):
-        if self.is_special_choice(value):
-            return value
-        else:
-            return super(AddressChoiceField, self).to_python(value)
-
-    def _get_choices(self):
-        if hasattr(self, '_choices'):
-            return self._choices
-        return AddressChoiceIterator(self)
-
-    choices = property(_get_choices, forms.ChoiceField._set_choices)
-
-    def is_special_choice(self, value):
-        return value in (self.new_choice_value, self.copy_choice_value)
+    def __init__(self, *args, **kwargs):
+        additional_addresses = kwargs.pop('additional_addresses', [])
+        super(ShippingAddressesForm, self).__init__(*args, **kwargs)
+        address_field = self.fields['address']
+        address_choices = [
+            (address.id, str(address)) for address in additional_addresses]
+        address_field.choices = list(self.CHOICES) + address_choices
 
 
-class UserAddressesForm(forms.Form):
-    def __init__(self, queryset, can_copy=False, *args, **kwargs):
-        super(UserAddressesForm, self).__init__(*args, **kwargs)
-        self.fields['address'] = AddressChoiceField(queryset=queryset,
-                                                    can_copy=can_copy)
+class BillingAddressesForm(ShippingAddressesForm):
+
+    NEW_ADDRESS = 'new_address'
+    SHIPPING_ADDRESS = 'shipping_address'
+    CHOICES = (
+        (NEW_ADDRESS, _('Enter a new address')),
+        (SHIPPING_ADDRESS, _('Same as shipping'))
+    )
+
+    address = CheckoutAddressField(choices=CHOICES, initial=SHIPPING_ADDRESS)
 
 
-class ShippingForm(forms.Form):
-    method = forms.ChoiceField(label=_('Shipping method'),
-                               widget=forms.RadioSelect)
+class ShippingCountryChoiceField(forms.ModelChoiceField):
 
-    def __init__(self, delivery_choices, *args, **kwargs):
-        super(ShippingForm, self).__init__(*args, **kwargs)
+    widget = forms.RadioSelect()
+
+    def label_from_instance(self, obj):
+        price_html = format_price(obj.price.gross, obj.price.currency)
+        label = mark_safe('%s %s' % (obj.shipping_method, price_html))
+        return label
+
+
+class ShippingMethodForm(forms.Form):
+
+    method = ShippingCountryChoiceField(
+        queryset=ShippingMethodCountry.objects.select_related(
+            'shipping_method').order_by('price').all(),
+        label=_('Shipping method'), required=True)
+
+    def __init__(self, country_code, *args, **kwargs):
+        super(ShippingMethodForm, self).__init__(*args, **kwargs)
         method_field = self.fields['method']
-        method_field.choices = delivery_choices
-        if len(delivery_choices) == 1:
-            method_field.initial = delivery_choices[0][1]
+        if country_code:
+            queryset = method_field.queryset
+            method_field.queryset = queryset.unique_for_country_code(country_code)
+        if self.initial.get('method') is None:
+            method_field.initial = method_field.queryset.first()
+        method_field.empty_label = None
 
 
-class AnonymousEmailForm(forms.Form):
-    email = forms.EmailField()
+class AnonymousUserShippingForm(forms.Form):
+
+    email = forms.EmailField(
+        required=True, widget=forms.EmailInput(attrs={'autocomplete': 'shipping email'}))

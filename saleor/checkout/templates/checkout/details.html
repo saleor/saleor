@@ -26,7 +26,7 @@
     {% if not user.is_authenticated %}
         <p class="alert alert-info">
             {% trans "Already have an account?" %}
-            <a href="{% url "registration:login" %}?next={% url "checkout:details" step="shipping-address" %}">
+            <a href="{% url "registration:login" %}?next={{ request.get_full_path }}">
                 {% trans "Sign in" %}
             </a>
         </p>
@@ -35,29 +35,44 @@
 
     <div class="row">
         <div class="col-sm-8">
+            {% block steps_menu %}
             <ul class="nav nav-pills nav-justified nav-wizard">
-                {% for stepitem in checkout %}
-                    <li{% if stepitem == step %} class="active"{% endif %}>
-                        {% if not forloop.first %}
-                            <div class="nav-wedge"></div>
-                        {% endif %}
-                            <a{% if stepitem.is_step_available %} href="{{ stepitem.get_absolute_url }}"{% endif %}>
-                                {{ stepitem.title }}
-                            </a>
-                        {% if not forloop.last %}
-                            <div class="nav-arrow"></div>
-                        {% endif %}
-                    </li>
-                {% endfor %}
+                <li>
+                    <a href="{% url "cart:index" %}">{% trans "Cart" %}</a>
+                    <div class="nav-arrow"></div>
+                </li>
+                <li>
+                    <div class="nav-wedge"></div>
+                    <a href="{% url "checkout:shipping-address" %}">{% trans "Shipping address" %}</a>
+                    <div class="nav-arrow"></div>
+                </li>
+                <li>
+                    <div class="nav-wedge"></div>
+                    <a href="{% url "checkout:shipping-method" %}">{% trans "Shipping method" %}</a>
+                    <div class="nav-arrow"></div>
+                </li>
+                <li>
+                    <div class="nav-wedge"></div>
+                    <a href="{% url "checkout:summary" %}">{% trans "Summary" %}</a>
+                </li>
             </ul>
-
-            <br>
+            {% endblock steps_menu %}
 
             {% block forms %}{% endblock %}
         </div>
 
         <div class="col-sm-4">
-            {% for delivery, delivery_cost, total_with_delivery in checkout.get_deliveries %}
+            {% if checkout.shipping_address.country %}
+            <div class="panel panel-default">
+                <div class="panel-heading">{% trans "Shipping address" %}</div>
+                <div class="panel-body">
+                    {% include "userprofile/snippets/address-details.html" with address=checkout.shipping_address only %}
+                </div>
+            </div>
+            {% endif %}
+
+
+            {% for delivery, delivery_cost, total_with_delivery in checkout.deliveries %}
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         {% blocktrans with number=forloop.counter %}Shipment #{{ number }}{% endblocktrans %}

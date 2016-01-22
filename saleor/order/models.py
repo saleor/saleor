@@ -9,8 +9,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.forms.models import model_to_dict
-from django.shortcuts import get_list_or_404
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
@@ -20,9 +18,7 @@ from payments.models import BasePayment
 from prices import Price
 from satchless.item import ItemLine, ItemSet
 
-from ..cart import CartLine
 from ..core.utils import build_absolute_uri
-from ..delivery import get_delivery
 from ..product.models import Product, ProductVariant
 from ..userprofile.models import Address
 
@@ -57,11 +53,7 @@ class Order(models.Model, ItemSet):
                                         editable=False)
     shipping_address = models.ForeignKey(Address, related_name='+',
                                          editable=False, null=True)
-    shipping_method = models.CharField(
-        pgettext_lazy('Order field', 'Delivery method'),
-        max_length=255, blank=True)
-    anonymous_user_email = models.EmailField(blank=True, default='',
-                                             editable=False)
+    anonymous_user_email = models.EmailField(blank=True, default='', editable=False)
     token = models.CharField(
         pgettext_lazy('Order field', 'token'), max_length=36, unique=True)
     total_net = PriceField(
@@ -112,7 +104,7 @@ class Order(models.Model, ItemSet):
 
     def get_total(self):
         return self.total
-    
+
     @property
     def billing_full_name(self):
         return '%s %s' % (self.billing_first_name, self.billing_last_name)
@@ -166,15 +158,6 @@ class Order(models.Model, ItemSet):
         self.total_tax = Price(price.tax, currency=price.currency)
 
 
-class DeliveryGroupManager(models.Manager):
-
-    def duplicate_group(self, group):
-        data = model_to_dict(group)
-        data['id'] = None
-        data['status'] = 'new'
-        return group.order.groups.create(**data)
-
-
 class DeliveryGroup(models.Model, ItemSet):
     STATUS_CHOICES = (
         ('new',
@@ -187,21 +170,14 @@ class DeliveryGroup(models.Model, ItemSet):
         pgettext_lazy('Delivery group field', 'delivery status'),
         max_length=32, default='new', choices=STATUS_CHOICES)
     order = models.ForeignKey(Order, related_name='groups', editable=False)
-    shipping_required = models.BooleanField(
-        pgettext_lazy('Delivery group field', 'shipping required'),
-        default=True)
     shipping_price = PriceField(
         pgettext_lazy('Delivery group field', 'shipping price'),
-        currency=settings.DEFAULT_CURRENCY, max_digits=12,
-        decimal_places=4,
-        default=0,
-        editable=False)
-    shipping_method = models.CharField(max_length=255, default='',
-                                       db_index=True, blank=True)
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
+        default=0, editable=False)
+    shipping_method_name = models.CharField(
+        max_length=255, null=True, default=None, blank=True, editable=False)
     tracking_number = models.CharField(max_length=255, default='', blank=True)
     last_updated = models.DateTimeField(null=True, auto_now=True)
-
-    objects = DeliveryGroupManager()
 
     def __str__(self):
         return pgettext_lazy(
@@ -214,6 +190,10 @@ class DeliveryGroup(models.Model, ItemSet):
         if self.id:
             return iter(self.items.all())
         return super(DeliveryGroup, self).__iter__()
+
+    @property
+    def shipping_required(self):
+        return self.shipping_method_name is not None
 
     def change_status(self, status):
         self.status = status
@@ -237,21 +217,6 @@ class DeliveryGroup(models.Model, ItemSet):
                 unit_price_gross=price.gross,
                 stock=stock,
                 stock_location=stock.location if stock else None)
-
-    def update_delivery_cost(self):
-        if self.order.is_shipping_required():
-            delivery = get_delivery(self.order.shipping_method)
-            skus = [line.product_sku for line in self]
-            variants = get_list_or_404(
-                ProductVariant.objects.select_related('product'), sku__in=skus)
-            variants_map = {variant.sku: variant for variant in variants}
-            items = []
-            for line in self:
-                data = {'product': variants_map[line.product_sku],
-                        'quantity': line.get_quantity()}
-                items.append(CartLine(**data))
-            self.shipping_price = delivery.get_delivery_total(items)
-            self.save()
 
     def get_total_quantity(self):
         return sum([item.get_quantity() for item in self])
@@ -286,11 +251,8 @@ class OrderedItemManager(models.Manager):
             item.save()
         else:
             item.delete()
-        if source_group.get_total_quantity():
-            source_group.update_delivery_cost()
-        else:
+        if not source_group.get_total_quantity():
             source_group.delete()
-        target_group.update_delivery_cost()
         if not order.get_items():
             order.change_status('cancelled')
 
@@ -338,7 +300,6 @@ class OrderedItem(models.Model, ItemLine):
         order = self.delivery_group.order
         self.quantity = new_quantity
         self.save()
-        self.delivery_group.update_delivery_cost()
         if not self.delivery_group.get_total_quantity():
             self.delivery_group.delete()
         if not order.get_items():

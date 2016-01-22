@@ -4,6 +4,8 @@ from . import views
 
 
 urlpatterns = [
-    url(r'^$', views.details, kwargs={'step': None}, name='index'),
-    url(r'^(?P<step>[a-z0-9-]+)/$', views.details, name='details')
+    url(r'^$', views.index_view, name='index'),
+    url(r'^shipping-address/', views.shipping_address_view, name='shipping-address'),
+    url(r'^shipping-method/', views.shipping_method_view, name='shipping-method'),
+    url(r'^summary/', views.summary_view, name='summary')
 ]
