@@ -45,6 +45,17 @@ class Checkout(object):
         self.storage = None
         self.modified = True
 
+    def _get_address_from_storage(self, key):
+        address_data = self.storage.get(key)
+        if address_data is not None and address_data.get('id'):
+            try:
+                return Address.objects.get(id=address_data['id'])
+            except Address.DoesNotExist:
+                return None
+        elif address_data:
+            return Address(**address_data)
+        return None
+
     @property
     def is_shipping_required(self):
         return self.cart.is_shipping_required()
@@ -52,7 +63,7 @@ class Checkout(object):
     @property
     def deliveries(self):
         for partition in self.cart.partition():
-            if self.shipping_method:
+            if self.shipping_method and partition.is_shipping_required():
                 shipping_cost = self.shipping_method.get_total()
             else:
                 shipping_cost = Price(0, currency=settings.DEFAULT_CURRENCY)
@@ -61,17 +72,10 @@ class Checkout(object):
 
     @property
     def shipping_address(self):
-        address_data = self.storage.get('shipping_address')
-        if address_data is None and self.user.is_authenticated():
+        address = self._get_address_from_storage('shipping_address')
+        if address is None and self.user.is_authenticated():
             return self.user.default_shipping_address
-        elif address_data is None:
-            address_data = {}
-        if address_data.get('id'):
-            try:
-                return Address.objects.get(id=address_data['id'])
-            except Address.DoesNotExist:
-                return Address()
-        return Address(**address_data)
+        return address
 
     @shipping_address.setter
     def shipping_address(self, address):
@@ -111,17 +115,10 @@ class Checkout(object):
 
     @property
     def billing_address(self):
-        address_data = self.storage.get('billing_address')
-        if address_data is None and self.user.is_authenticated():
+        address = self._get_address_from_storage('billing_address')
+        if address is None and self.user.is_authenticated():
             return self.user.default_billing_address
-        elif address_data is None:
-            address_data = self.storage.get('shipping_address', {})
-        if address_data.get('id'):
-            try:
-                return Address.objects.get(id=address_data['id'])
-            except Address.DoesNotExist:
-                return Address()
-        return Address(**address_data)
+        return address
 
     @billing_address.setter
     def billing_address(self, address):
@@ -144,7 +141,11 @@ class Checkout(object):
 
     @transaction.atomic
     def create_order(self):
-        shipping_address = self._save_address(self.shipping_address, is_shipping=True)
+        if self.is_shipping_required:
+            shipping_address = self._save_address(
+                self.shipping_address, is_shipping=True)
+        else:
+            shipping_address = None
         billing_address = self._save_address(self.billing_address, is_billing=True)
         if self.user.is_authenticated():
             order = Order.objects.create(
