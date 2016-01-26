@@ -62,7 +62,7 @@
         </div>
 
         <div class="col-sm-4">
-            {% if checkout.shipping_address.country %}
+            {% if checkout.is_shipping_required and checkout.shipping_address.country %}
             <div class="panel panel-default">
                 <div class="panel-heading">{% trans "Shipping address" %}</div>
                 <div class="panel-body">
@@ -75,7 +75,11 @@
             {% for delivery, delivery_cost, total_with_delivery in checkout.deliveries %}
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        {% blocktrans with number=forloop.counter %}Shipment #{{ number }}{% endblocktrans %}
+                        {% if delivery.is_shipping_required %}
+                            {% blocktrans with number=forloop.counter %}Shipment #{{ number }}{% endblocktrans %}
+                        {% else %}
+                            {% blocktrans with number=forloop.counter %}Digital delivery #{{ number }}{% endblocktrans %}
+                        {% endif %}
                     </div>
                     <table class="table">
                         <thead>

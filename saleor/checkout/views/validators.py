@@ -34,3 +34,12 @@ def validate_shipping_method(view):
             return redirect('checkout:shipping-method')
         return view(request, checkout)
     return func
+
+
+def validate_is_shipping_required(view):
+    @wraps(view)
+    def func(request, checkout):
+        if not checkout.is_shipping_required:
+            return redirect('checkout:summary')
+        return view(request, checkout)
+    return func

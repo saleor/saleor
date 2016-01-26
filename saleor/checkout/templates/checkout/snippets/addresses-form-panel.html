@@ -13,7 +13,7 @@
                        id="address_{{ radio_value }}"
                        {% if radio_value == value %}checked{% endif %}>
                 {% if address %}
-                    {{ address.full_name }}, {{ address.street_address_1 }} {{ address.street_address_2 }}
+                    {{ address }}, {{ address.street_address_1 }} {{ address.street_address_2 }}
                     {{ address.city }}
                 {% else %}
                     {{ label }}

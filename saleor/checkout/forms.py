@@ -43,6 +43,11 @@ class BillingAddressesForm(ShippingAddressesForm):
     address = CheckoutAddressField(choices=CHOICES, initial=SHIPPING_ADDRESS)
 
 
+class BillingWithoutShippingAddressForm(ShippingAddressesForm):
+
+    pass
+
+
 class ShippingCountryChoiceField(forms.ModelChoiceField):
 
     widget = forms.RadioSelect()
@@ -75,3 +80,9 @@ class AnonymousUserShippingForm(forms.Form):
 
     email = forms.EmailField(
         required=True, widget=forms.EmailInput(attrs={'autocomplete': 'shipping email'}))
+
+
+class AnonymousUserBillingForm(forms.Form):
+
+    email = forms.EmailField(
+        required=True, widget=forms.EmailInput(attrs={'autocomplete': 'billing email'}))
