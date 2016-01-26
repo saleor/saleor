@@ -72,10 +72,6 @@ class AddToCartForm(forms.Form):
     def get_variant(self, cleaned_data):
         raise NotImplementedError()
 
-    def add_error(self, name, value):
-        errors = self.errors.setdefault(name, self.error_class())
-        errors.append(value)
-
 
 class ReplaceCartLineForm(AddToCartForm):
     """Replace quantity form
