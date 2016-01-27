@@ -109,7 +109,8 @@ MIDDLEWARE_CLASSES = [
     'babeldjango.middleware.LocaleMiddleware',
     'saleor.cart.middleware.CartMiddleware',
     'saleor.core.middleware.DiscountMiddleware',
-    'saleor.core.middleware.GoogleAnalytics'
+    'saleor.core.middleware.GoogleAnalytics',
+    'saleor.core.middleware.CountryMiddleware',
 ]
 
 INSTALLED_APPS = [
