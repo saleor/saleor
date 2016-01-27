@@ -3,7 +3,7 @@ import logging
 from django.conf import settings
 from django.utils.translation import get_language
 
-from . import analytics, get_country_by_ip
+from . import analytics, get_country_by_ip, get_currency_for_country
 from ..product.models import Discount
 
 logger = logging.getLogger(__name__)
