@@ -1,0 +1,88 @@
+{% extends "dashboard/base.html" %}
+{% load materializecss %}
+{% load i18n %}
+{% load mptt_tags %}
+
+
+{% block title %}
+    {% trans "Shipping methods" %}
+    {% if shipping_method.pk %}
+        - {{ shipping_method }}
+    {% else %}
+        - {% trans 'Add new method' %}
+    {% endif %}
+    - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-shipping-methods{% endblock %}
+
+{% block menu_delivery_class %}active{% endblock %}
+
+{% block page_title %}{% if shipping_method.pk %}{{ shipping_method }}{% else %}
+    {% trans 'Add new method' %}
+{% endif %}{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs breadcrumbs--with-menu">
+        <li><a href="{% url 'dashboard:shipping-methods' %}"
+               class="breadcrumbs--ellipsed-item">{% trans "Shipping methods" %}</a>
+        </li>
+        <li>
+            {% if shipping_method.pk %}
+                <span class="breadcrumbs--ellipsed-item">{{ shipping_method }}</span>
+            {% else %}
+                <span class="breadcrumbs--ellipsed-item">{% trans 'Add new method' %}</span>
+            {% endif %}
+        </li>
+    </ul>
+{% endblock %}
+
+{% block menu_shipping_class %} active{% endblock %}
+
+{% block content %}
+    <form method="post" id="form-method">
+        {% csrf_token %}
+        {{ price_per_country_formset.management_form }}
+        <div class="row">
+            {{ shipping_method_form|materializecss }}
+        </div>
+        <h4 class="light">{% trans "Price per country" %}</h4>
+
+        <div class="card-panel">
+            {% for form in price_per_country_formset %}
+                <div class="row">
+                    {{ form.id }}
+                    {{ form.country_code|materializecss:"input-field s12 l6" }}
+                    {{ form.price|materializecss:"input-field s12 l5" }}
+                    {{ form.DELETE|materializecss:"input-field s12 l1" }}
+                </div>
+                {% if form.non_field_errors %}
+                    {% for error in form.non_field_errors %}
+                        <p class="help-block materialize-red-text">{{ error }}</p>
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+        </div>
+
+
+        <div class="row">
+            {% if shipping_method.pk %}
+                <div class="col s12 l6">
+                    <a href="{% url 'dashboard:shipping-method-delete' pk=shipping_method.pk %}"
+                       class="btn red">{% trans "Delete" %}</a>
+                </div>
+                <div class="col s12 l6 right-align">
+                    <a href="{% url 'dashboard:shipping-methods' %}"
+                       class="btn-flat">{% trans "Cancel" %}</a>
+                    <button type="submit" class="btn">{% trans "Update" %}</button>
+                </div>
+            {% else %}
+                <div class="col s12 right-align">
+                    <a href="{% url 'dashboard:shipping-methods' %}"
+                       class="btn-flat">{% trans "Cancel" %}</a>
+                    <button type="submit" class="btn">{% trans "Create" %}</button>
+                </div>
+            {% endif %}
+        </div>
+    </form>
+{% endblock %}

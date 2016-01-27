@@ -137,7 +137,7 @@
                                 {% if group.shipping_price.gross or group.is_shipping_required %}
                                     <tr>
                                         <td colspan="4">
-                                            {% trans "Shipping" %} ({{ order.shipping_method }})
+                                            {% trans "Shipping" %} ({{ group.shipping_method_name }})
                                         </td>
                                         <td class="right-align">
                                             {% gross group.shipping_price %}

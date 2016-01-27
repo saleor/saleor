@@ -2,7 +2,8 @@ from django.core.management.base import BaseCommand
 from django.db import connection
 
 from ....userprofile.models import User
-from ...utils.random_data import create_items, create_orders, create_users
+from ...utils.random_data import (
+    create_items, create_orders, create_users, create_shipping_methods)
 
 
 class Command(BaseCommand):
@@ -37,6 +38,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.make_database_faster()
         create_images = not options['withoutimages']
+        for msg in create_shipping_methods():
+            self.stdout.write(msg)
         for msg in create_items(self.placeholders_dir, 40, create_images):
             self.stdout.write(msg)
         for msg in create_users(20):

@@ -53,7 +53,7 @@
                         <img src="{% static "img/dashboard-logo.svg" %}" alt="Saleor">
                     </a>
                 </li>
-                <li class="nav-home"><a href="{% url 'dashboard:index' %}">Home</a></li>
+                <li class="nav-home"><a href="{% url 'dashboard:index' %}">{% trans "Home" %}</a></li>
                 <li>
                     <ul class="collapsible collapsible-accordion" data-collapsible="accordion">
                         <li>
@@ -80,6 +80,10 @@
                                 </ul>
                             </div>
                         </li>
+
+                        <li class="divider"></li>
+
+                        <li class="{% block menu_delivery_class %}{% endblock %}"><a href="{% url 'dashboard:shipping-methods' %}">{% trans "Shipping methods" %}</a></li>
                     </ul>
                 </li>
             </ul>

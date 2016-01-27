@@ -1,0 +1,19 @@
+{% extends "checkout/details.html" %}
+{% load i18n %}
+{% load as_vertical_form from bootstrap %}
+
+
+{% block forms %}
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <h4>{% trans "Payment" %}</h4>
+        <p class="text-right">
+            {{ payment_form|as_vertical_form }}
+
+            {{ billing_address_form|as_vertical_form }}
+            <button type="submit" class="btn btn-primary btn-lg">
+                {% trans "Place order" %}
+            </button>
+        </p>
+    </form>
+{% endblock forms %}

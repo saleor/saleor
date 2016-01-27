@@ -1,18 +1,45 @@
 {% extends "checkout/details.html" %}
 {% load i18n %}
+{% load as_vertical_form from bootstrap %}
+
+{% block steps_menu %}
+    <ul class="nav nav-pills nav-justified nav-wizard">
+        <li>
+            <a href="{% url "cart:index" %}">{% trans "Cart" %}</a>
+
+            <div class="nav-arrow"></div>
+        </li>
+        <li class="active">
+            <div class="nav-wedge"></div>
+            <a href="{% url "checkout:shipping-address" %}">{% trans "Shipping address" %}</a>
+
+            <div class="nav-arrow"></div>
+        </li>
+        <li>
+            <div class="nav-wedge"></div>
+            <a>{% trans "Shipping method" %}</a>
+
+            <div class="nav-arrow"></div>
+        </li>
+        <li>
+            <div class="nav-wedge"></div>
+            <a>{% trans "Summary" %}</a>
+        </li>
+    </ul>
+{% endblock steps_menu %}
 
 
 {% block forms %}
     <form method="post" novalidate>
         {% csrf_token %}
-        <h4>{% trans "Shipping address" %}</h4>
-        <br>
-        {% if user.is_authenticated %}
-            {% include "checkout/address_form.html" with addresses_form=step.forms.addresses_form %}
+        <h3>{% trans "Shipping address" %}</h3>
+        {% if request.user.is_authenticated %}
+           {% include "checkout/snippets/addresses-form.html" with addresses_form=user_form addresses=additional_addresses address_form=address_form only %}
         {% else %}
-            {% include "checkout/address_form.html" with addresses_form=step.forms.addresses_form display_email_form=True %}
+            {{ user_form|as_vertical_form }}
+            {% include "userprofile/snippets/address-form.html" with address_form=address_form only %}
         {% endif %}
-        <br>
+
         <p class="text-right">
             <button type="submit" class="btn btn-primary btn-lg">
                 {% trans "Continue to shipping method" %}

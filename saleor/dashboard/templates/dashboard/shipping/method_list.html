@@ -1,0 +1,70 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load prices_i18n %}
+{% load status %}
+
+{% block title %}{% trans "Shipping methods" %} - {{ block.super }}{% endblock %}
+
+{% block body_class %}body-shipping-methods{% endblock %}
+
+{% block menu_delivery_class %}active{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs">
+        <li>{% trans "Shipping" %}</li>
+        <li>{% trans "methods" %}</li>
+    </ul>
+{% endblock %}
+
+{% block header_extra %}
+    <div class="fixed-action-btn">
+        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
+           title="{% trans "Add method" %}"
+           href="{% url 'dashboard:shipping-method-add' %}">
+            <i class="mdi-content-add"></i>
+        </a>
+    </div>
+{% endblock %}
+
+{% block content %}
+    {% if shipping_methods %}
+        <div class="card">
+            <div class="data-table-container">
+                <table class="bordered hoverable responsive data-table">
+                    <thead>
+                    <tr>
+                        <th>{% trans "Name" %}</th>
+                        <th>{% trans "Price range" %}</th>
+                        <th class="wide">{% trans "Countries" %}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for method in shipping_methods %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'dashboard:shipping-method-detail' pk=method.pk %}">{{ method }}</a>
+                            </td>
+                            <td>
+                                {% if not method.price_range %}
+                                    -
+                                {% elif method.price_range.min_price == method.price_range.max_price %}
+                                    {% gross method.price_range.min_price %}
+                                {% else %}
+                                    {% gross method.price_range.min_price %} -
+                                    {% gross method.price_range.max_price %}
+                                {% endif %}
+                            </td>
+                            <td>{{ method.countries|join:", " }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% include "dashboard/includes/_pagination.html" %}
+    {% else %}
+        <p>{% trans "No shipping methods found." %}</p>
+    {% endif %}
+
+{% endblock %}
