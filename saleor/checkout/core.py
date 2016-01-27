@@ -118,9 +118,12 @@ class Checkout(object):
     @property
     def billing_address(self):
         address = self._get_address_from_storage('billing_address')
-        if address is None and self.user.is_authenticated():
+        if address is not None:
+            return address
+        elif self.user.is_authenticated() and self.user.default_billing_address:
             return self.user.default_billing_address
-        return address
+        elif self.shipping_address:
+            return self.shipping_address
 
     @billing_address.setter
     def billing_address(self, address):
