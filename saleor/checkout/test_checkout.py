@@ -1,397 +1,167 @@
+from mock import Mock
+
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from mock import MagicMock, patch
-from satchless.process import InvalidData
+from prices import Price
+import pytest
 
-from .core import STORAGE_SESSION_KEY
-from ..userprofile.models import Address, User
-from .steps import ShippingAddressStep, ShippingMethodStep, SummaryStep
-
-
-NEW_ADDRESS = {
-    'first_name': 'Test',
-    'last_name': 'Test',
-    'street_address_1': 'Test',
-    'street_address_2': 'Test',
-    'city': 'Test',
-    'phone': '12345678',
-    'postal_code': '987654',
-    'country': 'PL',
-    'country_area': '',
-    'company_name': 'Test'}
-
-SHIPPING_PREFIX = 'shipping-address'
-SUMMARY_PREFIX = 'summary'
-USER_EMAIL = 'user@example.com'
+from .core import Checkout, STORAGE_SESSION_KEY
+from ..shipping.models import ShippingMethodCountry
+from ..userprofile.models import Address
+from . import views
 
 
-class TestUser(User):
-
-    class Meta:
-        app_label = 'userprofile'
-
-    class QuerysetMock(list):
-        model = MagicMock()
-
-        def get(self, pk):
-            pk = int(pk)
-            for address in TestUser._addresses:
-                if address.id == pk:
-                    return address
-
-    _addresses = QuerysetMock()
-    _email = 'user@example.com'
-
-    @property
-    def addresses(self):
-        addresses_mock = MagicMock()
-        addresses_mock.all = MagicMock()
-        addresses_mock.all.return_value = self._addresses
-        return addresses_mock
-
-    @addresses.setter
-    def addresses(self, addresses_list):
-        for address in addresses_list:
-            self._addresses.append(address)
-
-    @property
-    def email(self):
-        return self._email
-
-    @email.setter
-    def email(self, value):
-        pass
+def test_checkout_version():
+    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
+    storage = checkout.for_storage()
+    assert storage['version'] == Checkout.VERSION
 
 
-def get_address(address, prefix=''):
-    if prefix:
-        prefix = '%s-' % (prefix,)
-
-    return {prefix + k: v for k, v in address.items()}
-
-
-def test_shipping_step_save_address_anonymous_user(rf):
-    address = get_address(NEW_ADDRESS, SHIPPING_PREFIX)
-    data = dict(address, email=USER_EMAIL)
-    data[SHIPPING_PREFIX + '-address'] = 'new'
-    request = rf.post('/checkout/', data)
-    request.user = AnonymousUser()
-    request.session = {STORAGE_SESSION_KEY: {}}
-    storage = {}
-    step = ShippingAddressStep(request, storage, checkout=MagicMock())
-    assert step.forms_are_valid()
-    step.save()
-    assert isinstance(storage['address'], dict)
-    assert storage['email'] == USER_EMAIL
-    try:
-        step.validate()
-    except InvalidData:
-        is_valid = False
-    else:
-        is_valid = True
-    assert is_valid is True
+@pytest.mark.parametrize('storage_data, expected_storage', [
+    ({'version': Checkout.VERSION, 'new': 1}, {'version': Checkout.VERSION, 'new': 1}),
+    ({'version': 'wrong', 'new': 1}, {'version': Checkout.VERSION}),
+    ({'new': 1}, {'version': Checkout.VERSION}),
+    ({}, {'version': Checkout.VERSION}),
+    (None, {'version': Checkout.VERSION}),
+])
+def test_checkout_version_with_from_storage(storage_data, expected_storage):
+    checkout = Checkout.from_storage(
+        storage_data, Mock(), AnonymousUser(), 'tracking_code')
+    storage = checkout.for_storage()
+    assert storage == expected_storage
 
 
-def test_shipping_step_address_without_email_anonymous_user(rf):
-    address = get_address(NEW_ADDRESS, SHIPPING_PREFIX)
-    address[SHIPPING_PREFIX + '-address'] = 'new'
-    request = rf.post('/checkout/', address)
-    request.user = AnonymousUser()
-    request.session = {STORAGE_SESSION_KEY: {}}
-    storage = {}
-    step = ShippingAddressStep(request, storage, checkout=MagicMock())
-    assert not step.forms_are_valid()
+def test_checkout_clear_storage():
+    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
+    checkout.storage['new'] = 1
+    checkout.clear_storage()
+    assert checkout.storage is None
+    assert checkout.modified == True
 
 
-def test_shipping_step_without_address_anonymous_user(rf):
-    request = rf.post('/checkout/', {'email': USER_EMAIL})
-    request.user = AnonymousUser()
-    request.session = {STORAGE_SESSION_KEY: {}}
-    storage = {}
-    step = ShippingAddressStep(request, storage, checkout=MagicMock())
-    assert not step.forms_are_valid()
+def test_checkout_is_shipping_required():
+    cart = Mock(is_shipping_required=Mock(return_value=True))
+    checkout = Checkout(cart, AnonymousUser(), 'tracking_code')
+    assert checkout.is_shipping_required == True
 
 
-def test_shipping_step_save_address_authenticated_user(rf):
-    address = get_address(NEW_ADDRESS, SHIPPING_PREFIX)
-    address[SHIPPING_PREFIX + '-address'] = 'new'
-    user = TestUser()
-    request = rf.post('/checkout/', address)
-    request.user = user
-    request.session = {STORAGE_SESSION_KEY: {}}
-    storage = {}
-    step = ShippingAddressStep(request, storage, checkout=MagicMock())
-    assert step.forms_are_valid()
-    step.save()
-    assert isinstance(storage['address'], dict)
-    try:
-        step.validate()
-    except InvalidData:
-        is_valid = False
-    else:
-        is_valid = True
-    assert is_valid is True
+def test_checkout_deliveries():
+    partition = Mock(
+        get_total=Mock(return_value=Price(10, currency=settings.DEFAULT_CURRENCY)))
+    cart = Mock(partition=Mock(return_value=[partition]))
+    checkout = Checkout(cart, AnonymousUser(), 'tracking_code')
+    deliveries = list(checkout.deliveries)
+    assert deliveries == [(partition, Price(
+        0, currency=settings.DEFAULT_CURRENCY), partition.get_total())]
 
 
-def test_shipping_step_choose_own_address(rf):
-    user = TestUser()
-    address = Address(**NEW_ADDRESS)
-    address.id = 42
-    user.addresses = [address]
-    request = rf.post('/checkout/', {SHIPPING_PREFIX + '-address': '42'})
-    request.user = user
-    request.session = {STORAGE_SESSION_KEY: {}}
-    storage = {}
-    step = ShippingAddressStep(request, storage, checkout=MagicMock())
-    assert step.forms_are_valid()
-    step.save()
-    assert isinstance(storage['address'], dict)
-    assert storage['address_id'] == 42
-    try:
-        step.validate()
-    except InvalidData:
-        is_valid = False
-    else:
-        is_valid = True
-    assert is_valid is True
+def test_checkout_deliveries_with_shipping_method(monkeypatch):
+    partition = Mock(
+        get_total=Mock(return_value=Price(10, currency=settings.DEFAULT_CURRENCY)))
+    cart = Mock(partition=Mock(return_value=[partition]))
+    cart.partition.return_value = [partition]
+    shipping_method_mock = Mock(
+        get_total=Mock(return_value=Price(5, currency=settings.DEFAULT_CURRENCY)))
+    monkeypatch.setattr(Checkout, 'shipping_method', shipping_method_mock)
+    checkout = Checkout(cart, AnonymousUser(), 'tracking_code')
+    deliveries = list(checkout.deliveries)
+    total = partition.get_total() + shipping_method_mock.get_total()
+    assert deliveries == [
+        (partition, shipping_method_mock.get_total(), total)]
 
 
-def test_shipping_step_save_address_reload_step(rf):
-    saved_address_data = NEW_ADDRESS
-    new_address_data = dict(NEW_ADDRESS, first_name='Another address')
-    new_address_form = get_address(new_address_data, SHIPPING_PREFIX)
-    new_address_form[SHIPPING_PREFIX + '-address'] = 'new'
-    request = rf.post('/checkout/', new_address_form)
-    request.user = TestUser()
-    request.session = {STORAGE_SESSION_KEY: {}}
-    storage = {'address': saved_address_data}
-    step = ShippingAddressStep(request, storage, checkout=MagicMock())
-    previous_address = Address(**saved_address_data)
-    saved_address = Address(**step.storage['address'])
-    assert Address.objects.are_identical(previous_address, saved_address)
-    step.forms_are_valid()
-    step.save()
-    new_saved_address = Address(**step.storage['address'])
-    new_provided_address = Address(**new_address_data)
-    assert Address.objects.are_identical(new_saved_address,
-                                         new_provided_address)
-    try:
-        step.validate()
-    except InvalidData:
-        is_valid = False
-    else:
-        is_valid = True
-    assert is_valid is True
+
+@pytest.mark.parametrize('user, shipping', [
+    (Mock(default_shipping_address='user_shipping'), 'user_shipping'),
+    (AnonymousUser(), None),
+])
+def test_checkout_shipping_address_with_anonymous_user(user, shipping):
+    checkout = Checkout(Mock(), user, 'tracking_code')
+    assert checkout.shipping_address == shipping
 
 
-def test_shipping_step_provide_false_address(rf):
-    user = TestUser()
-    address = Address(**NEW_ADDRESS)
-    address.id = 42
-    user.addresses = [address]
-    request = rf.post('/checkout/', {SHIPPING_PREFIX + '-address': '13'})
-    request.user = user
-    request.session = {STORAGE_SESSION_KEY: {}}
-    storage = {}
-    step = ShippingAddressStep(request, storage, checkout=MagicMock())
-    assert not step.forms_are_valid()
+@pytest.mark.parametrize('address_objects, shipping', [
+    (Mock(get=Mock(return_value='shipping')), 'shipping'),
+    (Mock(get=Mock(side_effect = Address.DoesNotExist)), None),
+])
+def test_checkout_shipping_address_with_storage(address_objects, shipping, monkeypatch):
+    monkeypatch.setattr('saleor.checkout.core.Address.objects', address_objects)
+    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
+    checkout.storage['shipping_address'] = {'id': 1}
+    assert checkout.shipping_address == shipping
 
 
-def test_shipping_method_step(rf):
-    shipping_method_name = 'a_shipping_method'
-    request = rf.post('/shipping-method/', {'method': shipping_method_name})
-    request.session = {STORAGE_SESSION_KEY: {}}
-    storage = {}
-    shipping_method = MagicMock()
-    shipping_method.get_delivery_total = MagicMock()
-    shipping_method.get_delivery_total.return_value = 7
-    shipping_method.name = shipping_method_name
-
-    with patch('saleor.checkout.steps.get_delivery_options_for_items') as \
-            shipping_options:
-        shipping_options.return_value = [shipping_method]
-        step = ShippingMethodStep(
-            request, storage, shipping_address=MagicMock(), cart=MagicMock(),
-            checkout=MagicMock())
-    assert step.forms_are_valid()
-    step.save()
-    assert step.storage['shipping_method'] == shipping_method_name
-    try:
-        step.validate()
-    except InvalidData:
-        is_valid = False
-    else:
-        is_valid = True
-    assert is_valid is True
+def test_checkout_shipping_address_setter():
+    address = Address(first_name='Jan', last_name='Kowalski')
+    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
+    checkout.shipping_address = address
+    assert checkout.storage['shipping_address'] == {
+        'city': u'', 'city_area': u'', 'company_name': u'', 'country': '', 'phone': u'',
+        'country_area': u'', 'first_name': 'Jan', 'id': None, 'last_name': 'Kowalski',
+        'postal_code': u'', 'street_address_1': u'','street_address_2': u''}
 
 
-def test_shipping_method_reload_step(rf):
-    new_shipping_method_name = 'another_shipping_method'
-    request = rf.post('/shipping-method/',
-                      {'method': new_shipping_method_name})
-    request.session = {STORAGE_SESSION_KEY: {}}
-    shipping_method = MagicMock()
-    shipping_method.get_delivery_total = MagicMock()
-    shipping_method.get_delivery_total.return_value = 7
-    shipping_method.name = new_shipping_method_name
 
-    with patch('saleor.checkout.steps.get_delivery_options_for_items') as \
-            shipping_options:
-        storage = {'shipping_method': 'previous_shipping_method'}
-        shipping_options.return_value = [shipping_method]
-        step = ShippingMethodStep(
-            request, storage, shipping_address=MagicMock(), cart=MagicMock(),
-            checkout=MagicMock())
-    assert step.storage['shipping_method'] == 'previous_shipping_method'
-    assert step.forms_are_valid()
-    step.save()
-    assert step.storage['shipping_method'] == new_shipping_method_name
-    try:
-        step.validate()
-    except InvalidData:
-        is_valid = False
-    else:
-        is_valid = True
-    assert is_valid is True
+@pytest.mark.parametrize('shipping_address, shipping_method, value', [
+    (Mock(country=Mock(code='PL')),
+     Mock(country_code='PL', __eq__=lambda n, o: n.country_code == o.country_code),
+     Mock(country_code='PL')),
+    (Mock(country=Mock(code='DE')), Mock(country_code='PL'), None),
+])
+def test_checkout_shipping_method(shipping_address, shipping_method, value, monkeypatch):
+    queryset = Mock(get=Mock(return_value=shipping_method))
+    monkeypatch.setattr(Checkout, 'shipping_address', shipping_address)
+    monkeypatch.setattr('saleor.checkout.core.ShippingMethodCountry.objects', queryset)
+    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
+    checkout.storage['shipping_method_country_id'] = 1
+    assert checkout.shipping_method == value
 
 
-def test_false_shipping_method_step(rf):
-    request = rf.post('/shipping-method/', {'method': 'bad_shipping_method'})
-    request.session = {STORAGE_SESSION_KEY: {}}
-    storage = {}
-    shipping_method = MagicMock()
-    shipping_method.get_delivery_total = MagicMock()
-    shipping_method.get_delivery_total.return_value = 7
-    shipping_method.name = 'a_shipping_method'
-
-    with patch('saleor.checkout.steps.get_delivery_options_for_items') as \
-            shipping_options:
-        shipping_options.return_value = [shipping_method]
-        step = ShippingMethodStep(
-            request, storage, shipping_address=MagicMock(), cart=MagicMock(),
-            checkout=MagicMock())
-    assert not step.forms_are_valid()
+def test_checkout_shipping_does_not_exists(monkeypatch):
+    queryset = Mock(get=Mock(side_effect = ShippingMethodCountry.DoesNotExist))
+    monkeypatch.setattr('saleor.checkout.core.ShippingMethodCountry.objects', queryset)
+    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
+    checkout.storage['shipping_method_country_id'] = 1
+    assert checkout.shipping_method is None
 
 
-def test_billing_step_copy_shipping_address(rf):
-    shipping_address = Address(**NEW_ADDRESS)
-    request = rf.post('/summary/', {'summary-address': 'copy'})
-    request.user = AnonymousUser()
-    request.session = {STORAGE_SESSION_KEY: {}}
-    storage = {}
-    checkout = MagicMock()
-    checkout.is_shipping_required = MagicMock()
-    checkout.is_shipping_required.return_value = True
-    step = SummaryStep(request, storage, shipping_address, checkout)
-    assert step.forms_are_valid()
-    step.save()
-    saved_address = Address(**step.storage['billing_address'])
-    assert Address.objects.are_identical(shipping_address, saved_address)
+def test_checkout_shipping_method_setter():
+    shipping_method = Mock(id=1)
+    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
+    assert checkout.modified == False
+    checkout.shipping_method = shipping_method
+    assert checkout.modified == True
+    assert checkout.storage['shipping_method_country_id'] == 1
 
 
-def test_billing_step_save_new_address(rf):
-    shipping_address = Address(**NEW_ADDRESS)
-    billing_address_data = dict(NEW_ADDRESS, first_name='Another address')
-    data = get_address(billing_address_data, SUMMARY_PREFIX)
-    data['summary-address'] = 'new'
-    request = rf.post('/summary/', data)
-    request.user = AnonymousUser()
-    request.session = {STORAGE_SESSION_KEY: {}}
-    storage = {}
-    checkout = MagicMock()
-    checkout.is_shipping_required = MagicMock()
-    checkout.is_shipping_required.return_value = True
-    step = SummaryStep(request, storage, shipping_address, checkout)
-    assert step.forms_are_valid()
-    step.save()
-    saved_address = Address(**step.storage['billing_address'])
-    billing_address = Address(**billing_address_data)
-    assert Address.objects.are_identical(billing_address, saved_address)
+@pytest.mark.parametrize('user, address', [
+    (AnonymousUser(), None),
+    (Mock(default_billing_address='billing_address',
+          addresses=Mock(is_authenticated=Mock(return_value=True))), 'billing_address'),
+])
+def test_checkout_billing_address(user, address):
+    checkout = Checkout(Mock(), user, 'tracking_code')
+    assert checkout.billing_address == address
 
 
-def test_billing_step_choose_own_address(rf):
-    shipping_address = Address(**NEW_ADDRESS)
-    billing_address_data = dict(NEW_ADDRESS, first_name='Another address')
-    user = TestUser()
-    billing_address = Address(**billing_address_data)
-    billing_address.id = 13
-    user.addresses = [billing_address]
-    request = rf.post('/summary/', {'summary-address': '13'})
-    request.user = user
-    request.session = {STORAGE_SESSION_KEY: {}}
-    storage = {}
-    checkout = MagicMock()
-    checkout.is_shipping_required = MagicMock()
-    checkout.is_shipping_required.return_value = True
-    step = SummaryStep(request, storage, shipping_address, checkout)
-    assert step.forms_are_valid()
-    step.save()
-    saved_address = Address(**step.storage['billing_address'])
-    assert Address.objects.are_identical(billing_address, saved_address)
-
-
-def test_billing_step_provide_false_address(rf):
-    shipping_address = Address(**NEW_ADDRESS)
-    billing_address_data = dict(NEW_ADDRESS, first_name='Another address')
-    user = TestUser()
-    billing_address = Address(**billing_address_data)
-    billing_address.id = 13
-    user.addresses = [billing_address]
-    request = rf.post('/summary/', {'summary-address': '69'})
-    request.user = user
-    request.session = {STORAGE_SESSION_KEY: {}}
-    storage = {}
-    checkout = MagicMock()
-    checkout.is_shipping_required = MagicMock()
-    checkout.is_shipping_required.return_value = True
-    step = SummaryStep(request, storage, shipping_address, checkout)
-    assert not step.forms_are_valid()
-
-
-def test_billing_step_save_address_anonymous_user_without_shipping(rf):
-    data = get_address(NEW_ADDRESS, SUMMARY_PREFIX)
-    data['summary-address'] = 'new'
-    data['email'] = USER_EMAIL
-    request = rf.post('/summary/', data)
-    request.user = AnonymousUser()
-    request.session = {STORAGE_SESSION_KEY: {}}
-    storage = {}
-    checkout = MagicMock()
-    checkout.is_shipping_required = MagicMock()
-    checkout.is_shipping_required.return_value = False
-    step = SummaryStep(request, storage, shipping_address=None,
-                       checkout=checkout)
-    assert step.forms_are_valid()
-    step.save()
-    saved_address = Address(**step.storage['billing_address'])
-    billing_address = Address(**NEW_ADDRESS)
-    assert Address.objects.are_identical(billing_address, saved_address)
-    assert step.storage['email'] == USER_EMAIL
-
-
-def test_billing_step_anonymous_user_without_address_without_shipping(rf):
-    data = {'summary-address': 'new', 'email': USER_EMAIL}
-    request = rf.post('/summary/', data)
-    request.user = AnonymousUser()
-    request.session = {STORAGE_SESSION_KEY: {}}
-    storage = {}
-    checkout = MagicMock()
-    checkout.is_shipping_required = MagicMock()
-    checkout.is_shipping_required.return_value = False
-    step = SummaryStep(request, storage, shipping_address=None,
-                       checkout=checkout)
-    assert not step.forms_are_valid()
-
-
-def test_billing_step_anonymous_user_without_email_without_shipping(rf):
-    data = get_address(NEW_ADDRESS, SUMMARY_PREFIX)
-    data['summary-address'] = 'new'
-    request = rf.post('/summary/', data)
-    request.user = AnonymousUser()
-    request.session = {STORAGE_SESSION_KEY: {}}
-    storage = {}
-    checkout = MagicMock()
-    checkout.is_shipping_required = MagicMock()
-    checkout.is_shipping_required.return_value = False
-    step = SummaryStep(request, storage, shipping_address=None,
-                       checkout=checkout)
-    assert not step.forms_are_valid()
+@pytest.mark.parametrize('cart, status_code, url', [
+    (Mock(__len__=Mock(return_value=0)), 302, '/cart/'),
+    (Mock(__len__=Mock(return_value=1),
+          is_shipping_required=Mock(return_value=True)),
+     302, '/checkout/shipping-address/'),
+    (Mock(__len__=Mock(return_value=1),
+          is_shipping_required=Mock(return_value=False)),
+     302, '/checkout/summary/'),
+    (Mock(__len__=Mock(return_value=0),
+          is_shipping_required=Mock(return_value=False)), 302, '/cart/'),
+])
+def test_index_view(cart, status_code, url, rf):
+    checkout = Checkout(cart, AnonymousUser(), 'tracking_code')
+    request = rf.get('checkout:index')
+    request.user = checkout.user
+    request.cart = checkout.cart
+    request.session = {STORAGE_SESSION_KEY: checkout.for_storage()}
+    request.discounts = []
+    response = views.index_view(request, checkout)
+    assert response.status_code == status_code
+    assert response.url == url

@@ -1,7 +1,6 @@
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
-from ..core import load_checkout
 from ..forms import ShippingMethodForm
 from .validators import (
     validate_cart, validate_shipping_address,
@@ -11,14 +10,12 @@ from .summary import summary_with_shipping_view, anonymous_summary_without_shipp
     summary_without_shipping
 
 
-@load_checkout
 @validate_cart
 @validate_is_shipping_required
 def index_view(request, checkout):
     return redirect('checkout:shipping-address')
 
 
-@load_checkout
 @validate_cart
 @validate_is_shipping_required
 def shipping_address_view(request, checkout):
@@ -27,7 +24,6 @@ def shipping_address_view(request, checkout):
     return anonymous_user_shipping_address_view(request, checkout)
 
 
-@load_checkout
 @validate_cart
 @validate_is_shipping_required
 @validate_shipping_address
@@ -42,7 +38,6 @@ def shipping_method_view(request, checkout):
         'shipping_method_form': shipping_method_form, 'checkout': checkout})
 
 
-@load_checkout
 @validate_cart
 def summary_view(request, checkout):
     if checkout.is_shipping_required:
@@ -53,8 +48,3 @@ def summary_view(request, checkout):
         return summary_without_shipping(request, checkout)
     else:
         return anonymous_summary_without_shipping(request, checkout)
-
-
-
-
-
