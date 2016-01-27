@@ -1,6 +1,6 @@
 {% extends "checkout/details.html" %}
 {% load i18n %}
-{% load as_vertical_form from bootstrap %}
+{% load bootstrap_form from bootstrap3 %}
 
 
 {% block forms %}
@@ -8,9 +8,9 @@
         {% csrf_token %}
         <h4>{% trans "Payment" %}</h4>
         <p class="text-right">
-            {{ payment_form|as_vertical_form }}
+            {% bootstrap_form payment_form %}
 
-            {{ billing_address_form|as_vertical_form }}
+            {% bootstrap_form billing_address_form %}
             <button type="submit" class="btn btn-primary btn-lg">
                 {% trans "Place order" %}
             </button>

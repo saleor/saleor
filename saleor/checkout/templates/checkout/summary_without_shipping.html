@@ -1,6 +1,6 @@
 {% extends "checkout/details.html" %}
 {% load i18n %}
-{% load as_vertical_form from bootstrap %}
+{% load bootstrap_form from bootstrap3 %}
 
 
 {% block steps_menu %}{% endblock %}
@@ -13,7 +13,7 @@
         {% if request.user.is_authenticated %}
             {% include "checkout/snippets/addresses-form.html" with addresses_form=addresses_form addresses=additional_addresses address_form=address_form only %}
         {% else %}
-            {{ user_form|as_vertical_form }}
+            {% bootstrap_form user_form %}
             {% include "userprofile/snippets/address-form.html" with address_form=address_form only %}
         {% endif %}
 

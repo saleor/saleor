@@ -140,6 +140,7 @@ INSTALLED_APPS = [
     # External apps
     'versatileimagefield',
     'babeldjango',
+    'bootstrap3',
     'django_prices',
     'emailit',
     'mptt',

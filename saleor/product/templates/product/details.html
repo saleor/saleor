@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% load as_vertical_form from bootstrap %}
+{% load bootstrap_form from bootstrap3 %}
 {% load discounted_price_range price_difference from discount %}
 {% load i18n %}
 {% load gross from prices_i18n %}
@@ -62,7 +62,7 @@
                 {% block orderform %}
                 <form role="form" class="product-form form-vertical" method="post" action=".">
                     {% csrf_token %}
-                    {{ form|as_vertical_form }}
+                    {% bootstrap_form form %}
 
                     <div class="form-group">
                         <button class="btn btn-lg btn-block btn-primary">

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load as_vertical_form from bootstrap %}
+{% load bootstrap_form from bootstrap3 %}
 {% load i18n %}
 
 {% block title %}{% trans "Login" %} — {{ block.super }}{% endblock %}
@@ -13,7 +13,7 @@
                     {% csrf_token %}
                     <fieldset>
                         <legend>{% trans 'Log in' %}</legend>
-                        {{ form|as_vertical_form }}
+                        {% bootstrap_form form %}
                         <input type="hidden" name="next" value="{{ next }}" />
                     </fieldset>
 

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% load as_vertical_form from bootstrap %}
+{% load bootstrap_form from bootstrap3 %}
 {% load gross from prices_i18n %}
 {% load i18n %}
 {% load staticfiles %}
@@ -33,7 +33,7 @@
                                     <p>{% trans "We are currently waiting for an external service to authorize your payment for this order." %}</p>
                                     <p>{% trans "Current status" %}: <span class="label label-default">{{ waiting_payment.get_status_display }}</span></p>
                                     <p>{% trans "Unless you are absolutely sure that the process will not complete (for example you have closed the browser window before paying), you should wait before attempting a new payment. Please be warned that if you try again and the previous transaction succeeds you might end up being charged twice." %}</p>
-                                    {{ waiting_payment_form|as_vertical_form }}
+                                    {% bootstrap_form waiting_payment_form %}
                                     <button type="submit" class="btn btn-danger">{% trans "I understand, allow me to pay again" %}</button>
                                 </form>
                             </div>

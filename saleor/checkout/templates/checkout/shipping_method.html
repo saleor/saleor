@@ -1,8 +1,7 @@
 {% extends "checkout/details.html" %}
 {% load i18n %}
 {% load gross from prices_i18n %}
-
-{% load as_vertical_form from bootstrap %}
+{% load bootstrap_form from bootstrap3 %}
 
 
 {% block steps_menu %}
@@ -37,7 +36,7 @@
         {% csrf_token %}
         <h3>{% trans "Shipping method" %}</h3>
 
-        {{ shipping_method_form|as_vertical_form }}
+        {% bootstrap_form shipping_method_form show_label=False %}
 
         <p class="text-right">
             <button type="submit" class="btn btn-primary btn-lg">
