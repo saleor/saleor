@@ -86,18 +86,20 @@ class Checkout(object):
 
     @property
     def shipping_method(self):
-        shipping_method_country_id = self.storage.get('shipping_method_country_id')
-        if shipping_method_country_id is not None:
-            try:
-                shipping_method_country = ShippingMethodCountry.objects.get(
-                    id=shipping_method_country_id)
-            except ShippingMethodCountry.DoesNotExist:
-                return None
-            shipping_country_code = self.shipping_address.country.code
-            any_country = ShippingMethodCountry.ANY_COUNTRY
-            if (shipping_method_country.country_code == any_country
-                or shipping_method_country.country_code == shipping_country_code):
-                return shipping_method_country
+        shipping_address = self.shipping_address
+        if shipping_address is not None:
+            shipping_method_country_id = self.storage.get('shipping_method_country_id')
+            if shipping_method_country_id is not None:
+                try:
+                    shipping_method_country = ShippingMethodCountry.objects.get(
+                        id=shipping_method_country_id)
+                except ShippingMethodCountry.DoesNotExist:
+                    return None
+                shipping_country_code = shipping_address.country.code
+                any_country = ShippingMethodCountry.ANY_COUNTRY
+                if (shipping_method_country.country_code == any_country
+                    or shipping_method_country.country_code == shipping_country_code):
+                    return shipping_method_country
 
     @shipping_method.setter
     def shipping_method(self, shipping_method_country):
