@@ -15,6 +15,7 @@ cssutils==1.0.1           # via premailer
 dj-database-url==0.3.0
 dj-email-url==0.0.4
 django-absolute==0.3      # via django-emailit
+django-bootstrap3==6.2.2
 django-cache-url==1.0.0
 django-countries==3.4.1
 django-emailit==0.2.2

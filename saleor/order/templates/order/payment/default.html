@@ -1,5 +1,5 @@
 {% extends "order/payment/details.html" %}
-{% load as_vertical_form from bootstrap %}
+{% load bootstrap_form from bootstrap3 %}
 {% load i18n %}
 
 {% block forms %}
@@ -10,7 +10,7 @@
                 <form id="payment-form" method="{{ form.method }}"{% if form.action %} action="{{ form.action }}"{% endif %}>
                     {% csrf_token %}
                     {{ form.media }}
-                    {{ form|as_vertical_form }}
+                    {% bootstrap_form form %}
                     <div class="form-group">
                         <button type="submit" class="btn btn-primary">
                             {% trans "Save changes" %}
