@@ -7,8 +7,13 @@ from saleor.userprofile.models import Address
 
 def anonymous_user_shipping_address_view(request, checkout):
     data = request.POST or None
-    address_form = AddressForm(
-        data, instance=checkout.shipping_address, autocomplete_type='shipping')
+    shipping_address = checkout.shipping_address
+    if shipping_address is not None:
+        address_form = AddressForm(
+            data, instance=checkout.shipping_address, autocomplete_type='shipping')
+    else:
+        address_form = AddressForm(
+            data, autocomplete_type='shipping', initial={'country': request.country})
     user_form = AnonymousUserShippingForm(data, initial={'email': checkout.email})
     if user_form.is_valid() and address_form.is_valid():
         checkout.shipping_address = address_form.instance
@@ -26,12 +31,17 @@ def user_shipping_address_view(request, checkout):
     shipping_address = checkout.shipping_address
 
     if shipping_address is not None and shipping_address.id:
-        address_form = AddressForm(data, autocomplete_type='shipping')
+        address_form = AddressForm(
+            data, autocomplete_type='shipping', initial={'country': request.country})
         addresses_form = ShippingAddressesForm(
             data, additional_addresses=additional_addresses,
             initial={'address': shipping_address.id})
-    else:
+    elif shipping_address:
         address_form = AddressForm(data, instance=shipping_address)
+        addresses_form = ShippingAddressesForm(
+            data, additional_addresses=additional_addresses)
+    else:
+        address_form = AddressForm(data, initial={'country': request.country})
         addresses_form = ShippingAddressesForm(
             data, additional_addresses=additional_addresses)
 
