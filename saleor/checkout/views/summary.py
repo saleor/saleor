@@ -52,7 +52,8 @@ def summary_with_shipping_view(request, checkout):
         additional_addresses = Address.objects.none()
     address_form, addresses_form, address = get_billing_forms_with_shipping(
         request.POST or None, additional_addresses,
-        checkout.billing_address or Address(), checkout.shipping_address)
+        checkout.billing_address or Address(country=request.country),
+        checkout.shipping_address)
     if address is not None:
         checkout.billing_address = address
         order = create_order(checkout)
@@ -66,8 +67,13 @@ def summary_with_shipping_view(request, checkout):
 def anonymous_summary_without_shipping(request, checkout):
     user_form = AnonymousUserBillingForm(
         request.POST or None, initial={'email': checkout.email})
-    address_form = AddressForm(request.POST or None, autocomplete_type='billing',
-                               initial=checkout.billing_address)
+    billing_address = checkout.billing_address
+    if billing_address:
+        address_form = AddressForm(
+            request.POST or None, autocomplete_type='billing', instance=billing_address)
+    else:
+        address_form = AddressForm(request.POST or None, autocomplete_type='billing',
+                                   initial={'country': request.country})
     if user_form.is_valid() and address_form.is_valid():
         checkout.email = user_form.cleaned_data['email']
         checkout.billing_address = address_form.instance
@@ -81,10 +87,24 @@ def anonymous_summary_without_shipping(request, checkout):
 def summary_without_shipping(request, checkout):
     billing_address = checkout.billing_address
     user_addresses = request.user.addresses.all()
-    address_form = AddressForm(request.POST or None, autocomplete_type='billing')
-    addresses_form = BillingWithoutShippingAddressForm(
-        request.POST or None, additional_addresses=user_addresses,
-        initial={'address': billing_address.id})
+    if billing_address and billing_address.id:
+        address_form = AddressForm(
+            request.POST or None, autocomplete_type='billing',
+            initial={'country': request.country})
+        addresses_form = BillingWithoutShippingAddressForm(
+            request.POST or None, additional_addresses=user_addresses,
+            initial={'address': billing_address.id})
+    elif billing_address:
+        address_form = AddressForm(
+            request.POST or None, autocomplete_type='billing', instance=billing_address)
+        addresses_form = BillingWithoutShippingAddressForm(
+            request.POST or None, additional_addresses=user_addresses)
+    else:
+        address_form = AddressForm(
+            request.POST or None, autocomplete_type='billing',
+            initial={'country': request.country})
+        addresses_form = BillingWithoutShippingAddressForm(
+            request.POST or None, additional_addresses=user_addresses)
 
     if addresses_form.is_valid():
         address_id = addresses_form.cleaned_data['address']

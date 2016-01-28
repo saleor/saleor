@@ -86,18 +86,20 @@ class Checkout(object):
 
     @property
     def shipping_method(self):
-        shipping_method_country_id = self.storage.get('shipping_method_country_id')
-        if shipping_method_country_id is not None:
-            try:
-                shipping_method_country = ShippingMethodCountry.objects.get(
-                    id=shipping_method_country_id)
-            except ShippingMethodCountry.DoesNotExist:
-                return None
-            shipping_country_code = self.shipping_address.country.code
-            any_country = ShippingMethodCountry.ANY_COUNTRY
-            if (shipping_method_country.country_code == any_country
-                or shipping_method_country.country_code == shipping_country_code):
-                return shipping_method_country
+        shipping_address = self.shipping_address
+        if shipping_address is not None:
+            shipping_method_country_id = self.storage.get('shipping_method_country_id')
+            if shipping_method_country_id is not None:
+                try:
+                    shipping_method_country = ShippingMethodCountry.objects.get(
+                        id=shipping_method_country_id)
+                except ShippingMethodCountry.DoesNotExist:
+                    return None
+                shipping_country_code = shipping_address.country.code
+                any_country = ShippingMethodCountry.ANY_COUNTRY
+                if (shipping_method_country.country_code == any_country or
+                        shipping_method_country.country_code == shipping_country_code):
+                    return shipping_method_country
 
     @shipping_method.setter
     def shipping_method(self, shipping_method_country):
@@ -116,9 +118,12 @@ class Checkout(object):
     @property
     def billing_address(self):
         address = self._get_address_from_storage('billing_address')
-        if address is None and self.user.is_authenticated():
+        if address is not None:
+            return address
+        elif self.user.is_authenticated() and self.user.default_billing_address:
             return self.user.default_billing_address
-        return address
+        elif self.shipping_address:
+            return self.shipping_address
 
     @billing_address.setter
     def billing_address(self, address):

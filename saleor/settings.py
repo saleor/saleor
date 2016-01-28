@@ -109,7 +109,9 @@ MIDDLEWARE_CLASSES = [
     'babeldjango.middleware.LocaleMiddleware',
     'saleor.cart.middleware.CartMiddleware',
     'saleor.core.middleware.DiscountMiddleware',
-    'saleor.core.middleware.GoogleAnalytics'
+    'saleor.core.middleware.GoogleAnalytics',
+    'saleor.core.middleware.CountryMiddleware',
+    'saleor.core.middleware.CurrencyMiddleware'
 ]
 
 INSTALLED_APPS = [
@@ -208,6 +210,7 @@ AUTH_USER_MODEL = 'userprofile.User'
 LOGIN_URL = '/account/login'
 
 DEFAULT_CURRENCY = 'USD'
+AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 DEFAULT_WEIGHT = 'lb'
 
 ACCOUNT_ACTIVATION_DAYS = 3

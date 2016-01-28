@@ -70,7 +70,6 @@ def test_checkout_deliveries_with_shipping_method(monkeypatch):
         (partition, shipping_method_mock.get_total(), total)]
 
 
-
 @pytest.mark.parametrize('user, shipping', [
     (Mock(default_shipping_address='user_shipping'), 'user_shipping'),
     (AnonymousUser(), None),
@@ -101,12 +100,12 @@ def test_checkout_shipping_address_setter():
         'postal_code': u'', 'street_address_1': u'','street_address_2': u''}
 
 
-
 @pytest.mark.parametrize('shipping_address, shipping_method, value', [
     (Mock(country=Mock(code='PL')),
      Mock(country_code='PL', __eq__=lambda n, o: n.country_code == o.country_code),
      Mock(country_code='PL')),
     (Mock(country=Mock(code='DE')), Mock(country_code='PL'), None),
+    (None, Mock(country_code='PL'), None),
 ])
 def test_checkout_shipping_method(shipping_address, shipping_method, value, monkeypatch):
     queryset = Mock(get=Mock(return_value=shipping_method))

@@ -20,6 +20,8 @@ django-versatileimagefield>=1.0.1
 fake-factory>=0.3.2
 google-measurement-protocol>=0.1.2,<0.2a0
 jsonfield>=1.0.3
+python-geoip==1.2
+python-geoip-geolite2==2015.303
 Markdown>=2.4
 mock>=1.3.0
 prices>=0.5.5,<0.6a0
