@@ -97,8 +97,8 @@ class Checkout(object):
                     return None
                 shipping_country_code = shipping_address.country.code
                 any_country = ShippingMethodCountry.ANY_COUNTRY
-                if (shipping_method_country.country_code == any_country
-                    or shipping_method_country.country_code == shipping_country_code):
+                if (shipping_method_country.country_code == any_country or
+                        shipping_method_country.country_code == shipping_country_code):
                     return shipping_method_country
 
     @shipping_method.setter
