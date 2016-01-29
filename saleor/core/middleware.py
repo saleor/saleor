@@ -4,7 +4,7 @@ from django.conf import settings
 from django.utils.translation import get_language
 
 from . import analytics, get_country_by_ip, get_currency_for_country
-from ..product.models import Discount
+from ..discount.models import Sale
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class GoogleAnalytics(object):
 
 class DiscountMiddleware(object):
     def process_request(self, request):
-        discounts = Discount.objects.all()
+        discounts = Sale.objects.all()
         discounts = discounts.prefetch_related('products', 'categories')
         request.discounts = discounts
 
