@@ -3,14 +3,14 @@
 {% load prices_i18n %}
 {% load materializecss %}
 
-{% block title %}{% trans "Discounts" %} - {{ block.super }}{% endblock %}
+{% block title %}{% trans "Sales" %} - {{ block.super }}{% endblock %}
 
-{% block body_class %}body-discounts{% endblock %}
+{% block body_class %}body-sales{% endblock %}
 
 {% block header_extra %}
     <div class="fixed-action-btn">
         <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
-            href="{% url 'dashboard:discount-add' %}" title="{% trans "Add discount" %}">
+            href="{% url 'dashboard:sale-add' %}" title="{% trans "Add sale" %}">
             <i class="mdi-content-add"></i>
         </a>
     </div>
@@ -18,33 +18,33 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li>{% trans "Discounts" %}</li>
+        <li>{% trans "Sales" %}</li>
     </ul>
 {% endblock %}
 
-{% block menu_catalogue_class %} active{% endblock %}
+{% block menu_discounts_class %} active{% endblock %}
 
 {% block content %}
     <div class="row">
         <div class="col s12">
-            {% if discounts %}
+            {% if sales %}
                 <ul class="collection list list--attributes">
-                    {% for discount in discounts %}
+                    {% for sale in sales %}
                         <li class="collection-item list-item list--attributes-item list-item--two-lines">
-                            <a class="list-item-name" href="{% url 'dashboard:discount-update' pk=discount.pk %}">{{ discount }}</a>
+                            <a class="list-item-name" href="{% url 'dashboard:sale-update' pk=sale.pk %}">{{ sale }}</a>
                             <p class="list-item-desc">
-                                {% if discount.discount %}
-                                    {% gross discount.discount %}
+                                {% if sale.sale %}
+                                    {% gross sale.sale %}
                                 {% endif %}
-                                {% if discount.percentage_discount %}
-                                    {{ discount.percentage_discount }} %
+                                {% if sale.percentage_sale %}
+                                    {{ sale.percentage_sale }} %
                                 {% endif %}
                             </p>
                         </li>
                     {% endfor %}
                 </ul>
             {% else %}
-                <p>{% trans "No discounts found." %}</p>
+                <p>{% trans "No sales found." %}</p>
             {% endif %}
         </div>
     </div>

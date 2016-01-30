@@ -3,25 +3,25 @@
 {% load materializecss %}
 {% load static %}
 
-{% block title %}{% if discount.pk %}{{ discount }}{% else %}{% trans 'Add new discount' %}{% endif %} - {% trans "Discounts" %} - {{ block.super }}{% endblock %}
+{% block title %}{% if sale.pk %}{{ sale }}{% else %}{% trans 'Add new sale' %}{% endif %} - {% trans "Sales" %} - {{ block.super }}{% endblock %}
 
-{% block body_class %}body-discount{% endblock %}
+{% block body_class %}body-sale{% endblock %}
 
 {% block header_menu %}
-    {% url "dashboard:discount-list" as url %}
+    {% url "dashboard:sale-list" as url %}
     {% include "dashboard/includes/_back-link.html" with url=url %}
 {% endblock %}
 
 {% block header_extra %}
-    {% if discount.pk %}
-    <a class="dropdown-button" href="#" data-activates="discount-delete" data-constrainwidth="false">
+    {% if sale.pk %}
+    <a class="dropdown-button" href="#" data-activates="sale-delete" data-constrainwidth="false">
         <i class="mdi-navigation-more-vert"></i>
     </a>
-    <ul id="discount-delete" class="dropdown-content">
+    <ul id="sale-delete" class="dropdown-content">
         <li>
             <a class="modal-trigger-custom" href="#base-modal"
-                data-href="{% url 'dashboard:discount-delete' pk=discount.pk %}">
-                {% trans "Remove discount" %}
+                data-href="{% url 'dashboard:sale-delete' pk=sale.pk %}">
+                {% trans "Remove sale" %}
             </a>
         </li>
     </ul>
@@ -30,15 +30,15 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--with-menu">
-        <li><a href="{% url 'dashboard:discount-list' %}" class="breadcrumbs--ellipsed-item">{% trans "Discounts" %}</a></li>
-        <li><span class="breadcrumbs--ellipsed-item">{% if discount.pk %}{{ discount }}{% else %}{% trans 'Add new discount' %}{% endif %}</span></li>
+        <li><a href="{% url 'dashboard:sale-list' %}" class="breadcrumbs--ellipsed-item">{% trans "Discounts" %}</a></li>
+        <li><span class="breadcrumbs--ellipsed-item">{% if sale.pk %}{{ sale }}{% else %}{% trans 'Add new sale' %}{% endif %}</span></li>
     </ul>
 {% endblock %}
 
 {% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
-    <form method="post" enctype="multipart/form-data" id="form-discounts">
+    <form method="post" enctype="multipart/form-data" id="form-sales">
         <div class="row">
             <div class="col l8">
                 <div class="row">
@@ -59,7 +59,7 @@
 
         <div class="row">
             <div class="col l8 right-align">
-                {% if discount.pk %}
+                {% if sale.pk %}
                     <button type="submit" class="btn">{% trans "Update" %}</button>
                 {% else %}
                     <button type="submit" class="btn">{% trans "Create" %}</button>
