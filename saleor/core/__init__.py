@@ -4,16 +4,20 @@ from babel.numbers import get_territory_currencies
 from django.conf import settings
 from django_countries import countries
 from django_countries.fields import Country
-from geoip import geolite2
+from geolite2 import geolite2
 
 TOKEN_PATTERN = ('(?P<token>[0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}'
                  '-[0-9a-z]{12})')
 
 
 def get_country_by_ip(ip_address):
-    geo_data = geolite2.lookup(ip_address)
-    if geo_data and geo_data.country in countries:
-        return Country(geo_data.country)
+    reader = geolite2.reader()
+    geo_data = reader.get(ip_address)
+    geolite2.close()
+    if geo_data and 'country' in geo_data and 'iso_code' in geo_data['country']:
+        country_iso_code = geo_data['country']['iso_code']
+        if country_iso_code in countries:
+            return Country(country_iso_code)
 
 
 def get_currency_for_country(country):
