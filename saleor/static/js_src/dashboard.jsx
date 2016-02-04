@@ -181,3 +181,21 @@ function initSelects() {
   $('select:not(.browser-default):not([multiple])').material_select();
   $('select[multiple]').addClass('browser-default').select2();
 }
+
+// Coupon dynamic forms
+$(document).ready(() => {
+  let $voucherTypeInput = $('.body-vouchers [name="type"]');
+  if ($voucherTypeInput.length) {
+    let $discountValueType = $('[name="discount_value_type"]');
+    let $voucherForms = $('.voucher-form');
+    $voucherTypeInput.on('change', () => {
+      let type = $voucherTypeInput.val();
+      $voucherForms.each((index, form) => {
+        let $form = $(form);
+        let hideForm = $form.data('type') !== type;
+        $form.toggleClass('hide', hideForm);
+      });
+    });
+    $voucherTypeInput.trigger('change');
+  }
+});
