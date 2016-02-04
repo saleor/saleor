@@ -173,9 +173,9 @@ $('.switch-actions').on('change', function() {
 });
 $('.datepicker').pickadate({
   format: 'd mmmm yyyy',
-  formatSubmit: 'yyyy/mm/dd',
-  selectYears: 15,
-  selectMonths: true
+  formatSubmit: 'yyyy-mm-dd',
+  selectMonths: true,
+  hiddenName: true
 });
 function initSelects() {
   $('select:not(.browser-default):not([multiple])').material_select();
