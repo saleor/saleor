@@ -24,28 +24,59 @@
 
 {% block menu_discounts_class %} active{% endblock %}
 
+{#{% block content %}#}
+{#    <div class="row">#}
+{#        <div class="col s12">#}
+{#            {% if sales %}#}
+{#                <ul class="collection list list--attributes">#}
+{#                    {% for sale in sales %}#}
+{#                        <li class="collection-item list-item list--attributes-item list-item--two-lines">#}
+{#                            <a class="list-item-name" href="{% url 'dashboard:sale-update' pk=sale.pk %}">{{ sale }}</a>#}
+{#                            <p class="list-item-desc">#}
+{#                                {% if sale.sale %}#}
+{#                                    {% gross sale.sale %}#}
+{#                                {% endif %}#}
+{#                                {% if sale.percentage_sale %}#}
+{#                                    {{ sale.percentage_sale }} %#}
+{#                                {% endif %}#}
+{#                            </p>#}
+{#                        </li>#}
+{#                    {% endfor %}#}
+{#                </ul>#}
+{#            {% else %}#}
+{#                <p>{% trans "No sales found." %}</p>#}
+{#            {% endif %}#}
+{#        </div>#}
+{#    </div>#}
+{#{% endblock %}#}
+
 {% block content %}
-    <div class="row">
-        <div class="col s12">
-            {% if sales %}
-                <ul class="collection list list--attributes">
+    {% if sales %}
+        <div class="card">
+            <div class="data-table-container">
+                <table class="bordered hoverable responsive data-table">
+                    <thead>
+                    <tr>
+                        <th>{% trans "Name" %}</th>
+                        <th>{% trans "Discount" %}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
                     {% for sale in sales %}
-                        <li class="collection-item list-item list--attributes-item list-item--two-lines">
-                            <a class="list-item-name" href="{% url 'dashboard:sale-update' pk=sale.pk %}">{{ sale }}</a>
-                            <p class="list-item-desc">
-                                {% if sale.sale %}
-                                    {% gross sale.sale %}
-                                {% endif %}
-                                {% if sale.percentage_sale %}
-                                    {{ sale.percentage_sale }} %
-                                {% endif %}
-                            </p>
-                        </li>
+                        <tr>
+                            <td>
+                                <a href="{% url 'dashboard:sale-update' pk=sale.pk %}">{{ sale }}</a>
+                            </td>
+                            <td>{{ sale.value }}{{ sale.get_type_display }}</td>
+                        </tr>
                     {% endfor %}
-                </ul>
-            {% else %}
-                <p>{% trans "No sales found." %}</p>
-            {% endif %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
+
+        {% include "dashboard/includes/_pagination.html" %}
+    {% else %}
+        <p>{% trans "No sales found." %}</p>
+    {% endif %}
 {% endblock %}
