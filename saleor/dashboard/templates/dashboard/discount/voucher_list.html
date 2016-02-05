@@ -35,8 +35,9 @@
                         <th>{% trans "Discount" %}</th>
                         <th>{% trans "Start date" %}</th>
                         <th>{% trans "End date" %}</th>
-                        <th>{% trans "Usage limit" %}</th>
                         <th>{% trans "Used" %}</th>
+                        <th>{% trans "Apply to" %}</th>
+                        <th>{% trans "Limit" %}</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -45,11 +46,25 @@
                             <td>
                                 <a href="{% url 'dashboard:voucher-update' pk=voucher.pk %}">{{ voucher }}</a>
                             </td>
-                            <td>{{ voucher.discount_value }}{{ voucher.get_discount_value_type_display }}</td>
+                            <td>
+                                {{ voucher.discount_value }}{{ voucher.get_discount_value_type_display }}</td>
                             <td>{{ voucher.start_date }}</td>
                             <td>{{ voucher.end_date|default:"-" }}</td>
-                            <td>{{ voucher.usage_limit|default:_("unlimited") }}</td>
-                            <td>{{ voucher.used }}</td>
+                            <td>
+                                {% if voucher.usage_limit %}
+                                    {{ voucher.used }}/{{ voucher.usage_limit }}
+                                {% else %}
+                                    {{ voucher.used }}
+                                {% endif %}
+                            </td>
+                            <td>{{ voucher.get_apply_to_display|default:"-" }}</td>
+                            <td>
+                                {% if voucher.limit %}
+                                    {% gross voucher.limit %}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
                         </tr>
                     {% endfor %}
                     </tbody>

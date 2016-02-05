@@ -1,6 +1,8 @@
+import uuid
+
 from django import forms
 from django.conf import settings
-from django.utils.translation import pgettext_lazy
+from django.utils.translation import pgettext_lazy, gettext as _
 from django_prices.forms import PriceField
 
 from ...discount.models import Sale, Voucher
@@ -43,8 +45,16 @@ class VoucherForm(forms.ModelForm):
         instance = kwargs.get('instance')
         if instance and instance.type == Voucher.BASKET_TYPE and instance.limit is None:
             initial['type'] = VoucherForm.ALL_BASKETS
+        if instance and instance.id is None and not initial.get('code'):
+            initial['code'] = self._generate_code
         kwargs['initial'] = initial
         super(VoucherForm, self).__init__(*args, **kwargs)
+
+    def _generate_code(self):
+        while True:
+            code = str(uuid.uuid4()).replace('-', '').upper()[:12]
+            if not Voucher.objects.filter(code=code).exists():
+                return code
 
     def clean(self):
         cleaned_data = super(VoucherForm, self).clean()
@@ -87,7 +97,7 @@ class BasketVoucherForm(forms.ModelForm):
 
     limit = PriceField(
         min_value=0, required=True, currency = settings.DEFAULT_CURRENCY,
-        label=pgettext_lazy('voucher_form', 'Basket total equals or greater than'))
+        label=pgettext_lazy('voucher_form', 'Basket total equal or greater than'))
 
     class Meta:
         model = Voucher
@@ -102,17 +112,16 @@ class BasketVoucherForm(forms.ModelForm):
 
 class ProductVoucherForm(forms.ModelForm):
 
-    APPLY_TO_PRODUCT_CHOICES = (
-        (Voucher.APPLY_TO_ONE_PRODUCT,
-         pgettext_lazy('voucher_form', 'Apply only once')),
-        (Voucher.APPLY_TO_ALL_PRODUCTS,
-         pgettext_lazy('voucher_form', 'Apply to all matching products')))
-
-    apply_to = forms.ChoiceField(choices=APPLY_TO_PRODUCT_CHOICES, required=False)
+    apply_to = forms.ChoiceField(
+        choices=Voucher.APPLY_TO_PRODUCT_CHOICES, required=False)
 
     class Meta:
         model = Voucher
         fields = ['product', 'apply_to']
+
+    def __init__(self, *args, **kwargs):
+        super(ProductVoucherForm, self).__init__(*args, **kwargs)
+        self.fields['product'].required = True
 
     def save(self, commit=True):
         self.instance.category = None
@@ -120,11 +129,18 @@ class ProductVoucherForm(forms.ModelForm):
         return super(ProductVoucherForm, self).save(commit)
 
 
-class CategoryVoucherForm(ProductVoucherForm):
+class CategoryVoucherForm(forms.ModelForm):
+
+    apply_to = forms.ChoiceField(
+        choices=Voucher.APPLY_TO_PRODUCT_CHOICES, required=False)
 
     class Meta:
         model = Voucher
         fields = ['category', 'apply_to']
+
+    def __init__(self, *args, **kwargs):
+        super(CategoryVoucherForm, self).__init__(*args, **kwargs)
+        self.fields['category'].required = True
 
     def save(self, commit=True):
         self.instance.limit = None
