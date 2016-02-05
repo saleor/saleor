@@ -75,7 +75,7 @@
 
                     {% if voucher_form %}
                         <tr>
-                            {% if not voucher %}
+                            {% if voucher %}
                                 {% with discount=checkout.get_discount %}
                                     <td>
                                         <form action="{% url "checkout:add-voucher" %}?next={{ request.get_full_path }}"
