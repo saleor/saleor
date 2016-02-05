@@ -73,8 +73,7 @@ def voucher_edit(request, pk=None):
             prefix=Voucher.PRODUCT_TYPE),
         Voucher.CATEGORY_TYPE: forms.CategoryVoucherForm(
             request.POST or None, instance=instance,
-            prefix=Voucher.CATEGORY_TYPE),
-    }
+            prefix=Voucher.CATEGORY_TYPE)}
     if voucher_form.is_valid():
         voucher_type = voucher_form.cleaned_data['type']
         form_type = type_base_forms.get(voucher_type)

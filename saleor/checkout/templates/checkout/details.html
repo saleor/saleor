@@ -73,6 +73,27 @@
                         {% endfor %}
                     {% endfor %}
 
+                    <tr>
+                        <td>
+                            {% trans "Subtotal" %}
+                        </td>
+                        <td class="text-right">
+                            {% net checkout.get_subtotal %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            {% trans "Shipping" %}
+                        </td>
+                        <td class="text-right">
+                            {% if checkout.shipping_method %}
+                                {% net checkout.get_total_shipping %}
+                            {% else %}
+                                &mdash;
+                            {% endif %}
+                        </td>
+                    </tr>
+
                     {% if voucher_form %}
                         <tr>
                             {% if voucher %}
@@ -104,26 +125,6 @@
                     {% endif %}
 
                     {% with total=checkout.get_total %}
-                        <tr>
-                            <td>
-                                {% trans "Subtotal" %}
-                            </td>
-                            <td class="text-right">
-                                {% net checkout.get_subtotal %}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                {% trans "Shipping" %}
-                            </td>
-                            <td class="text-right">
-                                {% if checkout.shipping_method %}
-                                    {% net checkout.get_total_shipping %}
-                                {% else %}
-                                    &mdash;
-                                {% endif %}
-                            </td>
-                        </tr>
                         {% if total.tax or True %}
                             <tr>
                                 <td>

@@ -41,12 +41,14 @@ class Voucher(models.Model):
     VALUE_TYPE = 'value'
 
     TYPE_CHOICES = (
+        (VALUE_TYPE, pgettext_lazy('voucher', 'All purchases')),
         (PRODUCT_TYPE, pgettext_lazy('voucher', 'One product')),
-        (CATEGORY_TYPE, pgettext_lazy('voucherl', 'Category of products')),
-        (SHIPPING_TYPE, pgettext_lazy('voucher', 'Shipping')),
-        (VALUE_TYPE, pgettext_lazy('voucher', 'Purchases over certain value')))
+        (CATEGORY_TYPE, pgettext_lazy('voucherl', 'A category of products')),
+        (SHIPPING_TYPE, pgettext_lazy('voucher', 'Shipping')))
 
-    type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    type = models.CharField(
+        pgettext_lazy('voucher', 'discount for'), max_length=20,
+        choices=TYPE_CHOICES, default=VALUE_TYPE)
     name = models.CharField(
         pgettext_lazy('voucher', 'name'), max_length=255, null=True,
         blank=True)

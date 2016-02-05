@@ -28,14 +28,6 @@ class SaleForm(forms.ModelForm):
 
 class VoucherForm(forms.ModelForm):
 
-    ALL_PURCHASES = 'all_purchases'
-    DISCOUNT_TYPES = (
-        (ALL_PURCHASES, pgettext_lazy('voucher', 'All purchases')),
-    ) + Voucher.TYPE_CHOICES
-    type = forms.ChoiceField(
-        choices=DISCOUNT_TYPES, initial=ALL_PURCHASES,
-        label=pgettext_lazy('voucher', 'Discount for'))
-
     class Meta:
         model = Voucher
         exclude = ['limit', 'apply_to', 'product', 'category']
@@ -43,9 +35,6 @@ class VoucherForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         initial = kwargs.get('initial', {})
         instance = kwargs.get('instance')
-        if (instance and instance.type == Voucher.VALUE_TYPE and
-                instance.limit is None):
-            initial['type'] = VoucherForm.ALL_PURCHASES
         if instance and instance.id is None and not initial.get('code'):
             initial['code'] = self._generate_code
         kwargs['initial'] = initial
@@ -56,12 +45,6 @@ class VoucherForm(forms.ModelForm):
             code = str(uuid.uuid4()).replace('-', '').upper()[:12]
             if not Voucher.objects.filter(code=code).exists():
                 return code
-
-    def clean(self):
-        cleaned_data = super(VoucherForm, self).clean()
-        if cleaned_data['type'] == VoucherForm.ALL_PURCHASES:
-            cleaned_data['type'] = Voucher.VALUE_TYPE
-        return cleaned_data
 
 
 def country_choices():
@@ -96,9 +79,9 @@ class ShippingVoucherForm(forms.ModelForm):
 class ValueVoucherForm(forms.ModelForm):
 
     limit = PriceField(
-        min_value=0, required=True, currency=settings.DEFAULT_CURRENCY,
+        min_value=0, required=False, currency=settings.DEFAULT_CURRENCY,
         label=pgettext_lazy(
-            'voucher', 'Purchase value greater than or equal to'))
+            'voucher', 'Only if purchase value is greater than or equal to'))
 
     class Meta:
         model = Voucher
@@ -106,7 +89,7 @@ class ValueVoucherForm(forms.ModelForm):
 
     def save(self, commit=True):
         self.instance.category = None
-        self.instance.limit = None
+        self.instance.apply_to = None
         self.instance.product = None
         return super(ValueVoucherForm, self).save(commit)
 
