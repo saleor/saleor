@@ -36,7 +36,6 @@ funcsigs==0.4             # via mock
 google-i18n-address==1.0.7
 google-measurement-protocol==0.1.5
 idna==2.0                 # via cryptography
-ipaddr==2.1.11            # via maxminddb
 ipaddress==1.0.16         # via cryptography
 jsonfield==1.0.3
 lxml==3.5.0               # via premailer
