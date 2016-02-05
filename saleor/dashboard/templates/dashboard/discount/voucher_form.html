@@ -54,7 +54,6 @@
             <div class="col s12 l8">
                 <div class="row">
                     {{ form.code|materializecss }}
-                    {{ form.usage_limit|materializecss }}
                     {{ form.name|materializecss }}
                     {{ form.discount_value|materializecss:"s12 m8" }}
                     {{ form.discount_value_type|materializecss:"s12 m4" }}
@@ -73,6 +72,7 @@
                 <div class="row">
                     {{ form.start_date|materializecss:"input-field s12" }}
                     {{ form.end_date|materializecss:"input-field s12" }}
+                    {{ form.usage_limit|materializecss }}
                 </div>
             </div>
         </div>

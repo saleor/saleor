@@ -90,8 +90,14 @@
     }
   }
 
-  &#form-discounts {
+  &#form-sales {
     #id_name {
+      @extend %input-lg;
+    }
+  }
+
+  &#form-vouchers {
+    #id_code {
       @extend %input-lg;
     }
   }

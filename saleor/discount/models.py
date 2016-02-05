@@ -4,12 +4,10 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.db import models
-from django.utils.safestring import mark_safe
-from django.utils.translation import pgettext_lazy, gettext as _
+from django.utils.translation import pgettext, pgettext_lazy
 from django.utils.encoding import python_2_unicode_compatible
 from django_countries import countries
 from django_prices.models import PriceField
-from django_prices.templatetags.prices import gross
 from prices import FixedDiscount, percentage_discount, Price
 
 
@@ -25,43 +23,50 @@ class Voucher(models.Model):
 
     APPLY_TO_PRODUCT_CHOICES = (
         (APPLY_TO_ONE_PRODUCT,
-         pgettext_lazy('voucher_form', 'Apply only once')),
+         pgettext_lazy('voucher', 'Apply to a single item')),
         (APPLY_TO_ALL_PRODUCTS,
-         pgettext_lazy('voucher_form', 'Apply to all matching products')))
+         pgettext_lazy('voucher', 'Apply to all matching products')))
 
     DISCOUNT_VALUE_FIXED = 'fixed'
     DISCOUNT_VALUE_PERCENTAGE = 'percentage'
 
     DISCOUNT_VALUE_TYPE_CHOICES = (
-        (DISCOUNT_VALUE_FIXED, pgettext_lazy('voucher_model', settings.DEFAULT_CURRENCY)),  # noqa
-        (DISCOUNT_VALUE_PERCENTAGE, pgettext_lazy('voucher_model', '%')))
+        (DISCOUNT_VALUE_FIXED,
+         pgettext_lazy('voucher', settings.DEFAULT_CURRENCY)),  # noqa
+        (DISCOUNT_VALUE_PERCENTAGE, pgettext_lazy('voucher', '%')))
 
     PRODUCT_TYPE = 'product'
     CATEGORY_TYPE = 'category'
     SHIPPING_TYPE = 'shipping'
-    BASKET_TYPE = 'basket'
+    VALUE_TYPE = 'value'
 
     TYPE_CHOICES = (
-        (PRODUCT_TYPE, pgettext_lazy('voucher_model', 'Product')),
-        (CATEGORY_TYPE, pgettext_lazy('voucher_model', 'Category')),
-        (SHIPPING_TYPE, pgettext_lazy('voucher_model', 'Shipping')),
-        (BASKET_TYPE, pgettext_lazy('voucher_model', 'Baskets over'))
-    )
+        (PRODUCT_TYPE, pgettext_lazy('voucher', 'One product')),
+        (CATEGORY_TYPE, pgettext_lazy('voucherl', 'Category of products')),
+        (SHIPPING_TYPE, pgettext_lazy('voucher', 'Shipping')),
+        (VALUE_TYPE, pgettext_lazy('voucher', 'Purchases over certain value')))
 
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
-    name = models.CharField(max_length=255, null=True, blank=True)
-    code = models.CharField(max_length=12, unique=True, db_index=True)
+    name = models.CharField(
+        pgettext_lazy('voucher', 'name'), max_length=255, null=True,
+        blank=True)
+    code = models.CharField(
+        pgettext_lazy('voucher', 'code'), max_length=12, unique=True,
+        db_index=True)
     usage_limit = models.PositiveIntegerField(
-        null=True, blank=True,
-        help_text=pgettext_lazy('voucher_model', 'Unlimited if empty'))
+        pgettext_lazy('voucher', 'usage limit'), null=True, blank=True)
     used = models.PositiveIntegerField(default=0, editable=False)
-    start_date = models.DateField(default=date.today)
-    end_date = models.DateField(null=True, blank=True, help_text=pgettext_lazy(
-        'voucher_model', 'Never expire if empty'))
+    start_date = models.DateField(
+        pgettext_lazy('voucher', 'start date'), default=date.today)
+    end_date = models.DateField(
+        pgettext_lazy('voucher', 'end date'), null=True, blank=True)
 
     discount_value_type = models.CharField(
-        max_length=10, choices=DISCOUNT_VALUE_TYPE_CHOICES, default=DISCOUNT_VALUE_FIXED)
-    discount_value = models.DecimalField(max_digits=12, decimal_places=2)
+        pgettext_lazy('voucher', 'discount type'), max_length=10,
+        choices=DISCOUNT_VALUE_TYPE_CHOICES, default=DISCOUNT_VALUE_FIXED)
+    discount_value = models.DecimalField(
+        pgettext_lazy('voucher', 'discount value'), max_digits=12,
+        decimal_places=2)
 
     # not mandatory fields, usage depends on type
     product = models.ForeignKey('product.Product', blank=True, null=True)
@@ -72,8 +77,8 @@ class Voucher(models.Model):
 
     @property
     def is_free(self):
-        return (self.discount_value == Decimal(100)
-                and self.discount_value_type == Voucher.DISCOUNT_VALUE_PERCENTAGE)
+        return (self.discount_value == Decimal(100) and
+                self.discount_value_type == Voucher.DISCOUNT_VALUE_PERCENTAGE)
 
     def __str__(self):
         if self.name:
@@ -82,24 +87,25 @@ class Voucher(models.Model):
             self.discount_value, self.get_discount_value_type_display())
         if self.type == Voucher.SHIPPING_TYPE:
             if self.is_free:
-                return _('Free shipping')
+                return pgettext('voucher', 'Free shipping')
             else:
-                return _('%(discount)s off shipping') % {'discount': discount}
+                return pgettext('voucher', '%(discount)s off shipping') % {
+                    'discount': discount}
         if self.type == Voucher.PRODUCT_TYPE:
-            return _('%(discount)s off %(product)s') % {
+            return pgettext('voucher', '%(discount)s off %(product)s') % {
                 'discount': discount, 'product': self.product}
         if self.type == Voucher.CATEGORY_TYPE:
-            return _('%(discount)s off %(category)s') % {
+            return pgettext('voucher', '%(discount)s off %(category)s') % {
                 'discount': discount, 'category': self.category}
-        return _('%(discount)s off') % {'discount': discount}
-
+        return pgettext('voucher', '%(discount)s off') % {'discount': discount}
 
     def get_apply_to_display(self):
         if self.type == Voucher.SHIPPING_TYPE and self.apply_to:
             return countries.name(self.apply_to)
         if self.type == Voucher.SHIPPING_TYPE:
-            return _('Any country')
-        if self.apply_to and self.type in (Voucher.PRODUCT_TYPE, Voucher.CATEGORY_TYPE):
+            return pgettext('voucher', 'Any country')
+        if self.apply_to and self.type in {
+                Voucher.PRODUCT_TYPE, Voucher.CATEGORY_TYPE}:
             choices = dict(self.APPLY_TO_PRODUCT_CHOICES)
             return choices[self.apply_to]
 

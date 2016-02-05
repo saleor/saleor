@@ -52,7 +52,8 @@
 {% elif field|is_date_input %}
     <div class="input col {{ classes.label }}">
 
-        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        <label class="active{% if not field.field.required %} optional{% endif %}"
+               for="{{ field.auto_id }}">{{ field.label }}</label>
         <input type="date" id="{{ field.auto_id }}" class="datepicker"
                name="{{ field.name }}"
                value="{% if field.value %}{{ field.value }}{% endif %}"

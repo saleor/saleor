@@ -4,6 +4,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
+
 from ...discount.models import Sale, Voucher
 from . import forms
 
@@ -49,22 +50,30 @@ def sale_delete(request, pk):
 def voucher_list(request):
     vouchers = Voucher.objects.select_related('product', 'category')
     ctx = {'vouchers': vouchers}
-    return TemplateResponse(request, 'dashboard/discount/voucher_list.html', ctx)
+    return TemplateResponse(
+        request, 'dashboard/discount/voucher_list.html', ctx)
 
 
 @staff_member_required
 def voucher_edit(request, pk=None):
-    instance = get_object_or_404(Voucher, pk=pk) if pk is not None else Voucher()
+    if pk is not None:
+        instance = get_object_or_404(Voucher, pk=pk)
+    else:
+        instance = Voucher()
     voucher_form = forms.VoucherForm(request.POST or None, instance=instance)
     type_base_forms = {
         Voucher.SHIPPING_TYPE: forms.ShippingVoucherForm(
-            request.POST or None, instance=instance, prefix=Voucher.SHIPPING_TYPE),
-        Voucher.BASKET_TYPE: forms.BasketVoucherForm(
-            request.POST or None, instance=instance, prefix=Voucher.BASKET_TYPE),
+            request.POST or None, instance=instance,
+            prefix=Voucher.SHIPPING_TYPE),
+        Voucher.VALUE_TYPE: forms.ValueVoucherForm(
+            request.POST or None, instance=instance,
+            prefix=Voucher.VALUE_TYPE),
         Voucher.PRODUCT_TYPE: forms.ProductVoucherForm(
-            request.POST or None, instance=instance, prefix=Voucher.PRODUCT_TYPE),
+            request.POST or None, instance=instance,
+            prefix=Voucher.PRODUCT_TYPE),
         Voucher.CATEGORY_TYPE: forms.CategoryVoucherForm(
-            request.POST or None, instance=instance, prefix=Voucher.CATEGORY_TYPE),
+            request.POST or None, instance=instance,
+            prefix=Voucher.CATEGORY_TYPE),
     }
     if voucher_form.is_valid():
         voucher_type = voucher_form.cleaned_data['type']
@@ -81,7 +90,8 @@ def voucher_edit(request, pk=None):
     ctx = {
         'voucher': instance, 'default_currency': settings.DEFAULT_CURRENCY,
         'form': voucher_form, 'type_base_forms': type_base_forms}
-    return TemplateResponse(request, 'dashboard/discount/voucher_form.html', ctx)
+    return TemplateResponse(
+        request, 'dashboard/discount/voucher_form.html', ctx)
 
 
 @staff_member_required

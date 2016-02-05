@@ -2,7 +2,7 @@ import uuid
 
 from django import forms
 from django.conf import settings
-from django.utils.translation import pgettext_lazy, gettext as _
+from django.utils.translation import pgettext_lazy
 from django_prices.forms import PriceField
 
 from ...discount.models import Sale, Voucher
@@ -28,13 +28,13 @@ class SaleForm(forms.ModelForm):
 
 class VoucherForm(forms.ModelForm):
 
-    ALL_BASKETS = 'all_baskets'
+    ALL_PURCHASES = 'all_purchases'
     DISCOUNT_TYPES = (
-        (ALL_BASKETS, 'All baskets'),
+        (ALL_PURCHASES, pgettext_lazy('voucher', 'All purchases')),
     ) + Voucher.TYPE_CHOICES
     type = forms.ChoiceField(
-        choices=DISCOUNT_TYPES, initial=ALL_BASKETS,
-        label=pgettext_lazy('voucher_form', 'Discount for'))
+        choices=DISCOUNT_TYPES, initial=ALL_PURCHASES,
+        label=pgettext_lazy('voucher', 'Discount for'))
 
     class Meta:
         model = Voucher
@@ -43,8 +43,9 @@ class VoucherForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         initial = kwargs.get('initial', {})
         instance = kwargs.get('instance')
-        if instance and instance.type == Voucher.BASKET_TYPE and instance.limit is None:
-            initial['type'] = VoucherForm.ALL_BASKETS
+        if (instance and instance.type == Voucher.VALUE_TYPE and
+                instance.limit is None):
+            initial['type'] = VoucherForm.ALL_PURCHASES
         if instance and instance.id is None and not initial.get('code'):
             initial['code'] = self._generate_code
         kwargs['initial'] = initial
@@ -58,8 +59,8 @@ class VoucherForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super(VoucherForm, self).clean()
-        if cleaned_data['type'] == VoucherForm.ALL_BASKETS:
-            cleaned_data['type'] = Voucher.BASKET_TYPE
+        if cleaned_data['type'] == VoucherForm.ALL_PURCHASES:
+            cleaned_data['type'] = Voucher.VALUE_TYPE
         return cleaned_data
 
 
@@ -71,7 +72,8 @@ class CountriesField(forms.ChoiceField):
         country_codes = country_codes.distinct()
         country_dict = dict(ShippingMethodCountry.COUNTRY_CODE_CHOICES)
         kwargs['choices'] = [
-            (country_code, country_dict[country_code]) for country_code in country_codes]
+            (country_code, country_dict[country_code])
+            for country_code in country_codes]
         super(CountriesField, self).__init__(*args, **kwargs)
 
 
@@ -79,9 +81,9 @@ class ShippingVoucherForm(forms.ModelForm):
 
     limit = PriceField(
         min_value=0, required=False, currency=settings.DEFAULT_CURRENCY,
-        label=pgettext_lazy('voucher_form', 'Shipping cost equal or less than'),
-        help_text=pgettext_lazy('voucher_form', 'Any shipping if empty'))
-    apply_to = CountriesField(label='Country')
+        label=pgettext_lazy(
+            'voucher', 'Only if shipping cost is less than or equal to'))
+    apply_to = CountriesField(label=pgettext_lazy('voucher', 'Country'))
 
     class Meta:
         model = Voucher
@@ -93,11 +95,12 @@ class ShippingVoucherForm(forms.ModelForm):
         return super(ShippingVoucherForm, self).save(commit)
 
 
-class BasketVoucherForm(forms.ModelForm):
+class ValueVoucherForm(forms.ModelForm):
 
     limit = PriceField(
-        min_value=0, required=True, currency = settings.DEFAULT_CURRENCY,
-        label=pgettext_lazy('voucher_form', 'Basket total equal or greater than'))
+        min_value=0, required=True, currency=settings.DEFAULT_CURRENCY,
+        label=pgettext_lazy(
+            'voucher', 'Purchase value greater than or equal to'))
 
     class Meta:
         model = Voucher
@@ -107,7 +110,7 @@ class BasketVoucherForm(forms.ModelForm):
         self.instance.category = None
         self.instance.limit = None
         self.instance.product = None
-        return super(BasketVoucherForm, self).save(commit)
+        return super(ValueVoucherForm, self).save(commit)
 
 
 class ProductVoucherForm(forms.ModelForm):
