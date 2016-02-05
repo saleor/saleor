@@ -268,3 +268,13 @@ if AWS_MEDIA_BUCKET_NAME:
     THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
+    'defaults':  [
+        ('list_view', 'crop__100x100'),
+        ('dashboard', 'crop__400x400'),
+        ('product_page_mobile', 'crop__680x680'),
+        ('product_page_big', 'crop__750x750'),
+        ('product_page_thumb', 'crop__280x280')
+    ]
+}
