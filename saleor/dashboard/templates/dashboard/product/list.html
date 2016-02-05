@@ -47,7 +47,7 @@
                     {% for product in products %}
                         <li class="collection-item avatar list-item">
                             {% if product.images.exists %}
-                                <img src="{{ product.images.first.image.crop.50x50 }}" alt="" class="circle teal">
+                                <img src="{{ product.images.first.image.crop.100x100 }}" alt="" class="circle teal">
                             {% else %}
                                 <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
                             {% endif %}

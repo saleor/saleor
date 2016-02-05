@@ -33,7 +33,7 @@
                 <div class="card">
                     <div class="card-content">
                         {% if object.images.exists %}
-                            <img src="{{ product.images.first.image.crop.600x600 }}" alt="" class="responsive-img">
+                            <img src="{{ product.images.first.image.crop.400x400 }}" alt="" class="responsive-img">
                         {% else %}
                             <img src="{% static 'images/product-image-placeholder.png' %}" alt="" class="responsive-img">
                         {% endif %}
