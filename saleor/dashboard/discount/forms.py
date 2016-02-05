@@ -66,15 +66,16 @@ class VoucherForm(forms.ModelForm):
 
 class CountriesField(forms.ChoiceField):
 
-    def __init__(self, *args, **kwargs):
+    def _get_choices(self):
         country_codes = ShippingMethodCountry.objects.all()
         country_codes = country_codes.values_list('country_code', flat=True)
         country_codes = country_codes.distinct()
         country_dict = dict(ShippingMethodCountry.COUNTRY_CODE_CHOICES)
-        kwargs['choices'] = [
+        return [
             (country_code, country_dict[country_code])
             for country_code in country_codes]
-        super(CountriesField, self).__init__(*args, **kwargs)
+
+    choices = property(_get_choices, forms.ChoiceField._set_choices)
 
 
 class ShippingVoucherForm(forms.ModelForm):
