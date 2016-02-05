@@ -64,18 +64,14 @@ class VoucherForm(forms.ModelForm):
         return cleaned_data
 
 
-class CountriesField(forms.ChoiceField):
-
-    def _get_choices(self):
-        country_codes = ShippingMethodCountry.objects.all()
-        country_codes = country_codes.values_list('country_code', flat=True)
-        country_codes = country_codes.distinct()
-        country_dict = dict(ShippingMethodCountry.COUNTRY_CODE_CHOICES)
-        return [
-            (country_code, country_dict[country_code])
-            for country_code in country_codes]
-
-    choices = property(_get_choices, forms.ChoiceField._set_choices)
+def country_choices():
+    country_codes = ShippingMethodCountry.objects.all()
+    country_codes = country_codes.values_list('country_code', flat=True)
+    country_codes = country_codes.distinct()
+    country_dict = dict(ShippingMethodCountry.COUNTRY_CODE_CHOICES)
+    return [
+        (country_code, country_dict[country_code])
+        for country_code in country_codes]
 
 
 class ShippingVoucherForm(forms.ModelForm):
@@ -84,7 +80,8 @@ class ShippingVoucherForm(forms.ModelForm):
         min_value=0, required=False, currency=settings.DEFAULT_CURRENCY,
         label=pgettext_lazy(
             'voucher', 'Only if shipping cost is less than or equal to'))
-    apply_to = CountriesField(label=pgettext_lazy('voucher', 'Country'))
+    apply_to = forms.ChoiceField(
+        label=pgettext_lazy('voucher', 'Country'), choices=country_choices)
 
     class Meta:
         model = Voucher
