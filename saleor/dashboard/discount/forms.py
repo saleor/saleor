@@ -64,7 +64,8 @@ class ShippingVoucherForm(forms.ModelForm):
         label=pgettext_lazy(
             'voucher', 'Only if shipping cost is less than or equal to'))
     apply_to = forms.ChoiceField(
-        label=pgettext_lazy('voucher', 'Country'), choices=country_choices)
+        label=pgettext_lazy('voucher', 'Country'), choices=country_choices,
+        required=False)
 
     class Meta:
         model = Voucher
