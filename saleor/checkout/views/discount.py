@@ -10,7 +10,7 @@ def add_voucher_form(view):
         voucher = None
         initial = {'voucher': voucher}
         voucher_form = GetVoucherForm(
-            request.POST or None, prefix='discount', initial=initial)
+            None, prefix='discount', initial=initial)
         template_response = view(request, checkout)
         template_response.context_data['voucher_form'] = voucher_form
         template_response.context_data['voucher'] = voucher
@@ -24,4 +24,3 @@ def apply_voucher_view(request, checkout):
     if voucher_form.is_valid():
         voucher = voucher_form.cleaned_data['voucher']
     return redirect(next_url)
-

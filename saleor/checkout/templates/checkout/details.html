@@ -119,21 +119,33 @@
             {% endfor %}
 
             {% if voucher_form %}
-                <div class="panel panel-default">
-                    <div class="panel-heading">{% trans "Discount" %}</div>
-                    <div class="panel-body">
-                        {% if voucher %}
-                            {{ voucher }}
-                        {% else %}
-                            <form action="{% url "checkout:add-voucher" %}?next={{ request.get_full_path }}"
-                                  method="post" class="form-inline">
-                                {% csrf_token %}
-                                {% bootstrap_form voucher_form layout='inline' %}
-                                {% bootstrap_button _("Apply") button_type="submit" button_class="btn-default" %}
-                            </form>
-                        {% endif %}
-                    </div>
-                </div>
+                {% if voucher %}
+                    <form action="{% url "checkout:remove-voucher" %}?next={{ request.get_full_path }}"
+                          method="post" class="form">
+                            {% csrf_token %}
+                        <div class="row">
+                            <div class="col-sm-8">
+                                <strong>{{ voucher }}</strong>
+                            </div>
+                            <div class="col-sm-4">
+                                {% bootstrap_button _("Remove") button_type="submit" button_class="btn-block btn-danger" %}
+                            </div>
+                        </div>
+                    </form>
+                {% else %}
+                    <form action="{% url "checkout:add-voucher" %}?next={{ request.get_full_path }}"
+                          method="post" class="form">
+                            {% csrf_token %}
+                        <div class="row">
+                            <div class="col-sm-8">
+                                {% bootstrap_form voucher_form show_label=False %}
+                            </div>
+                            <div class="col-sm-4">
+                                {% bootstrap_button _("Apply") button_type="submit" button_class="btn-block btn-default" %}
+                            </div>
+                        </div>
+                    </form>
+                {% endif %}
             {% endif %}
 
             {% with total=checkout.get_total %}

@@ -8,6 +8,5 @@ class GetVoucherForm(forms.Form):
 
     voucher = forms.ModelChoiceField(
         queryset=Voucher.objects.all(), to_field_name='code',
-        label=pgettext_lazy('voucher_form', 'code'),
+        label=pgettext_lazy('voucher', 'Voucher code'),
         widget=forms.TextInput)
-
