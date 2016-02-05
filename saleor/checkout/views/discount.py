@@ -1,5 +1,7 @@
 from functools import wraps
+
 from django.shortcuts import redirect
+from django.template.response import TemplateResponse
 
 from ...discount.forms import GetVoucherForm
 
@@ -11,10 +13,11 @@ def add_voucher_form(view):
         initial = {'voucher': voucher}
         voucher_form = GetVoucherForm(
             None, prefix='discount', initial=initial)
-        template_response = view(request, checkout)
-        template_response.context_data['voucher_form'] = voucher_form
-        template_response.context_data['voucher'] = voucher
-        return template_response
+        response = view(request, checkout)
+        if isinstance(response, TemplateResponse):
+            response.context_data['voucher_form'] = voucher_form
+            response.context_data['voucher'] = voucher
+        return response
     return func
 
 

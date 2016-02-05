@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 
 {% load i18n %}
-{% load gross from prices_i18n %}
-{% load tax from prices_i18n %}
+{% load gross net tax from prices_i18n %}
 {% load bootstrap_form bootstrap_button from bootstrap3 %}
 
 
@@ -63,100 +62,89 @@
         </div>
 
         <div class="col-sm-4">
-            {% if checkout.is_shipping_required and checkout.shipping_address.country %}
-            <div class="panel panel-default">
-                <div class="panel-heading">{% trans "Shipping address" %}</div>
-                <div class="panel-body">
-                    {% include "userprofile/snippets/address-details.html" with address=checkout.shipping_address only %}
-                </div>
-            </div>
-            {% endif %}
-
-
-            {% for delivery, delivery_cost, total_with_delivery in checkout.deliveries %}
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        {% if delivery.is_shipping_required %}
-                            {% blocktrans with number=forloop.counter %}Shipment #{{ number }}{% endblocktrans %}
-                        {% else %}
-                            {% blocktrans with number=forloop.counter %}Digital delivery #{{ number }}{% endblocktrans %}
-                        {% endif %}
-                    </div>
-                    <table class="table">
-                        <thead>
+            <table class="table">
+                <tbody>
+                    {% for delivery, delivery_cost, total_with_delivery in checkout.deliveries %}
+                        {% for item in delivery %}
                             <tr>
-                                <th class="col-sm-6">{% trans "Item" %}</th>
-                                <th class="col-sm-3 text-right">{% trans "Price" %}</th>
-                                <th class="col-sm-3 text-right">{% trans "Subtotal" %}</th>
+                                <td>{{ item.product }}{% if item.quantity != 1 %} <span class="badge">×{{ item.quantity }}</span>{% endif %}</td>
+                                <td class="text-right">{% net item.get_total %}</td>
                             </tr>
-                        </thead>
-                        <tfoot>
-                            <tr>
-                                <th colspan="2">{% trans "Total" %}</th>
-                                <th class="text-right">{% gross total_with_delivery %}</th>
-                            </tr>
-                        </tfoot>
-                        <tbody>
-                            {% for item in delivery %}
-                                <tr>
-                                    <td>{{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}</td>
-                                    <td class="text-right">{% gross item.get_price_per_item %}</td>
-                                    <td class="text-right">{% gross item.get_total %}</td>
-                                </tr>
-                            {% endfor %}
-                            {% if delivery_cost.gross %}
-                                <tr>
+                        {% endfor %}
+                    {% endfor %}
+
+                    {% if voucher_form %}
+                        <tr>
+                            {% if not voucher %}
+                                {% with discount=checkout.get_discount %}
                                     <td>
-                                        {% trans "Shipping" %}
+                                        <form action="{% url "checkout:add-voucher" %}?next={{ request.get_full_path }}"
+                                              method="post" class="form-inline">
+                                            {% csrf_token %}
+                                            <span class="text-success">{{ discount.name }}</span>
+                                            <button type="submit" class="btn btn-link" aria-label="{% trans "Remove" %}"><span class="glyphicon glyphicon-remove-circle"></span></button>
+                                        </form>
                                     </td>
-                                    <td class="text-right">{% gross delivery_cost %}</td>
-                                    <td class="text-right">{% gross delivery_cost %}</td>
-                                </tr>
+                                    <td class="text-right">
+                                        {% net discount.amount %}
+                                    </td>
+                                {% endwith %}
+                            {% else %}
+                                <td colspan="2">
+                                    <form action="{% url "checkout:add-voucher" %}?next={{ request.get_full_path }}"
+                                          method="post" class="form-inline text-center">
+                                            {% csrf_token %}
+                                            {% bootstrap_form voucher_form layout="inline" %}
+                                            {% bootstrap_button _("Apply") button_type="submit" button_class="btn-primary" %}
+                                        </div>
+                                    </form>
+                                </td>
                             {% endif %}
-                        </tbody>
-                    </table>
-                </div>
-            {% endfor %}
-
-            {% if voucher_form %}
-                {% if voucher %}
-                    <form action="{% url "checkout:remove-voucher" %}?next={{ request.get_full_path }}"
-                          method="post" class="form">
-                            {% csrf_token %}
-                        <div class="row">
-                            <div class="col-sm-8">
-                                <strong>{{ voucher }}</strong>
-                            </div>
-                            <div class="col-sm-4">
-                                {% bootstrap_button _("Remove") button_type="submit" button_class="btn-block btn-danger" %}
-                            </div>
-                        </div>
-                    </form>
-                {% else %}
-                    <form action="{% url "checkout:add-voucher" %}?next={{ request.get_full_path }}"
-                          method="post" class="form">
-                            {% csrf_token %}
-                        <div class="row">
-                            <div class="col-sm-8">
-                                {% bootstrap_form voucher_form show_label=False %}
-                            </div>
-                            <div class="col-sm-4">
-                                {% bootstrap_button _("Apply") button_type="submit" button_class="btn-block btn-default" %}
-                            </div>
-                        </div>
-                    </form>
-                {% endif %}
-            {% endif %}
-
-            {% with total=checkout.get_total %}
-                <div class="alert alert-success">
-                    {% trans "Your total will be" %}:
-                    <strong>{% gross total %}</strong>
-                    {% if total.tax %}
-                        ({% blocktrans with tax=total.tax|floatformat:2 currency=total.currency %}includes {{ tax }} <span class="currency">{{ currency }}</span> tax{% endblocktrans %})
+                        </tr>
                     {% endif %}
-                </div>
-            {% endwith %}
+
+                    {% with total=checkout.get_total %}
+                        <tr>
+                            <td>
+                                {% trans "Subtotal" %}
+                            </td>
+                            <td class="text-right">
+                                {% net checkout.get_subtotal %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                {% trans "Shipping" %}
+                            </td>
+                            <td class="text-right">
+                                {% if checkout.shipping_method %}
+                                    {% net checkout.get_total_shipping %}
+                                {% else %}
+                                    &mdash;
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% if total.tax or True %}
+                            <tr>
+                                <td>
+                                    {% trans "Taxes" %}
+                                </td>
+                                <td class="text-right">
+                                    {% tax total %}
+                                </td>
+                            </tr>
+                        {% endif %}
+                        <tr>
+                            <th>
+                                {% trans "Total" %}
+                            </th>
+                            <td class="text-right">
+                                <strong>{% gross total %}</strong>
+                            </td>
+                        </tr>
+                    {% endwith %}
+                </tbody>
+            </table>
         </div>
     </div>
 {% endblock content %}

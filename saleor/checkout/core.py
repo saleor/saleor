@@ -4,7 +4,7 @@ from functools import wraps
 from django.conf import settings
 from django.db import transaction
 from django.forms.models import model_to_dict
-from prices import Price
+from prices import FixedDiscount, Price
 
 from ..cart import Cart
 from ..core import analytics
@@ -179,13 +179,34 @@ class Checkout(object):
 
         return order
 
+    def get_subtotal(self):
+        zero = Price(0, currency=settings.DEFAULT_CURRENCY)
+        cost_iterator = (
+            shipment.get_total()
+            for shipment, shipping_cost, total in self.deliveries)
+        total = sum(cost_iterator, zero)
+        return total
+
     def get_total(self):
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)
         cost_iterator = (
-            total_with_shipping for shipping, shipping_cost, total_with_shipping
-            in self.deliveries)
+            total
+            for shipment, shipping_cost, total in self.deliveries)
         total = sum(cost_iterator, zero)
         return total
+
+    def get_total_shipping(self):
+        zero = Price(0, currency=settings.DEFAULT_CURRENCY)
+        cost_iterator = (
+            shipping_cost
+            for shipment, shipping_cost, total in self.deliveries)
+        total = sum(cost_iterator, zero)
+        return total
+
+    def get_discount(self):
+        return FixedDiscount(
+            amount=Price(-10, currency=settings.DEFAULT_CURRENCY),
+            name='$10 OFF')
 
 
 def load_checkout(view):

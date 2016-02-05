@@ -1,8 +1,9 @@
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
-from saleor.checkout.forms import AnonymousUserShippingForm, ShippingAddressesForm
-from saleor.userprofile.forms import AddressForm
-from saleor.userprofile.models import Address
+
+from ..forms import AnonymousUserShippingForm, ShippingAddressesForm
+from ...userprofile.forms import AddressForm
+from ...userprofile.models import Address
 
 
 def anonymous_user_shipping_address_view(request, checkout):
