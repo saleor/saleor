@@ -4,7 +4,7 @@ from functools import wraps
 from django.conf import settings
 from django.db import transaction
 from django.forms.models import model_to_dict
-from prices import FixedDiscount, Price
+from prices import Price, FixedDiscount
 
 from ..cart import Cart
 from ..core import analytics
@@ -133,6 +133,50 @@ class Checkout(object):
         self.modified = True
 
     @property
+    def discount(self):
+        value = self.storage.get('discount_value')
+        currency = self.storage.get('discount_currency')
+        name = self.storage.get('discount_name')
+        if value is not None and name is not None and currency is not None:
+            amount = Price(value, currency=currency)
+            return FixedDiscount(amount, name)
+
+    @discount.setter
+    def discount(self, discount):
+        amount = discount.amount
+        self.storage['discount_value'] = str(amount.net)
+        self.storage['discount_currency'] = amount.currency
+        self.storage['discount_name'] = discount.name
+        self.modified = True
+
+    @discount.deleter
+    def discount(self):
+        if 'discount_value' in self.storage:
+            del self.storage['discount_value']
+            self.modified = True
+        if 'discount_currency' in self.storage:
+            del self.storage['discount_currency']
+            self.modified = True
+        if 'discount_name' in self.storage:
+            del self.storage['discount_name']
+            self.modified = True
+
+    @property
+    def voucher_code(self):
+        return self.storage.get('voucher_code')
+
+    @voucher_code.setter
+    def voucher_code(self, voucher_code):
+        self.storage['voucher_code'] = voucher_code
+        self.modified = True
+
+    @voucher_code.deleter
+    def voucher_code(self):
+        if 'voucher_code' in self.storage:
+            del self.storage['voucher_code']
+            self.modified = True
+
+    @property
     def is_shipping_same_as_billing(self):
         return Address.objects.are_identical(self.shipping_address, self.billing_address)
 
@@ -143,6 +187,7 @@ class Checkout(object):
         elif address.id is None:
             address.save()
         return address
+
 
     @transaction.atomic
     def create_order(self):
@@ -193,7 +238,7 @@ class Checkout(object):
             total
             for shipment, shipping_cost, total in self.deliveries)
         total = sum(cost_iterator, zero)
-        return total
+        return total if self.discount is None else self.discount.apply(total)
 
     def get_total_shipping(self):
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)
@@ -202,11 +247,6 @@ class Checkout(object):
             for shipment, shipping_cost, total in self.deliveries)
         total = sum(cost_iterator, zero)
         return total
-
-    def get_discount(self):
-        return FixedDiscount(
-            amount=Price(-10, currency=settings.DEFAULT_CURRENCY),
-            name='$10 OFF')
 
 
 def load_checkout(view):
