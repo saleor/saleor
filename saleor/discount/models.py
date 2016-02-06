@@ -18,6 +18,20 @@ class NotApplicable(ValueError):
     pass
 
 
+class VoucherQueryset(models.QuerySet):
+
+    def active(self):
+        today = date.today()
+        queryset = self.filter(
+            models.Q(usage_limit__isnull=True)
+            | models.Q(used__lt=models.F('usage_limit')))
+        queryset = queryset.filter(
+            models.Q(end_date__isnull=True)
+            | models.Q(end_date__gte=today))
+        queryset = queryset.filter(start_date__lte=today)
+        return queryset
+
+
 @python_2_unicode_compatible
 class Voucher(models.Model):
 
@@ -79,6 +93,8 @@ class Voucher(models.Model):
     apply_to = models.CharField(max_length=20, blank=True, null=True)
     limit = PriceField(max_digits=12, decimal_places=2, null=True,
                        blank=True, currency=settings.DEFAULT_CURRENCY)
+
+    objects = VoucherQueryset.as_manager()
 
     @property
     def is_free(self):

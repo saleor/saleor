@@ -97,9 +97,9 @@
                     {% if voucher_form %}
                         <tr>
                             {% if voucher %}
-                                {% with discount=checkout.get_discount %}
+                                {% with discount=checkout.discount %}
                                     <td>
-                                        <form action="{% url "checkout:add-voucher" %}?next={{ request.get_full_path }}"
+                                        <form action="{% url "checkout:remove-voucher" %}?next={{ request.get_full_path }}"
                                               method="post" class="form-inline">
                                             {% csrf_token %}
                                             <span class="text-success">{{ discount.name }}</span>
@@ -107,7 +107,7 @@
                                         </form>
                                     </td>
                                     <td class="text-right">
-                                        {% net discount.amount %}
+                                        -&nbsp;{% net discount.amount %}
                                     </td>
                                 {% endwith %}
                             {% else %}
