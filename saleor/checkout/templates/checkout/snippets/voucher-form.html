@@ -1,0 +1,33 @@
+{% load bootstrap_field bootstrap_button bootstrap_icon from bootstrap3 %}
+{% load trans from i18n %}
+{% load gross net tax from prices_i18n %}
+
+{% if form %}
+    <tr>
+        {% if discount %}
+            <td class="noborder">
+                <form action="{% url "checkout:remove-voucher" %}?next={{ request.path }}"
+                      method="post"
+                      class="form-inline">
+                    {% csrf_token %}
+                    <span class="text-success">{{ discount.name }}</span>
+                    <button type="submit"
+                            class="btn btn-link btn-xs"
+                            aria-label="{% trans "Remove" %}">
+                            {% bootstrap_icon "remove" %}
+                    </button>
+                </form>
+            </td>
+            <td class="noborder text-right">
+                -&nbsp;{% net discount.amount %}
+            </td>
+        {% else %}
+                <form action="{% url "checkout:add-voucher" %}?next={{ request.path }}"
+                      method="post" class="form-inline">
+                    {% csrf_token %}
+                    <td class="noborder form-group">{% bootstrap_field form.voucher show_label=False form_group_class="" %}</td>
+                    <td class="noborder text-right">{% bootstrap_button _("Apply") button_type="submit" button_class="btn-default" %}</td>
+                </form>
+        {% endif %}
+    </tr>
+{% endif %}
