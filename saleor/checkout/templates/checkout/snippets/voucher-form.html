@@ -22,7 +22,7 @@
                 -&nbsp;{% net discount.amount %}
             </td>
         {% else %}
-                <form action="{% url "checkout:add-voucher" %}?next={{ request.path }}"
+                <form action="{{ request.path }}?next={{ request.path }}"
                       method="post" class="form-inline">
                     {% csrf_token %}
                     <td class="noborder form-group">{% bootstrap_field form.voucher show_label=False form_group_class="" %}</td>

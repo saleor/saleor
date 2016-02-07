@@ -4,7 +4,6 @@ from django.views.decorators.http import require_POST
 from .core import load_checkout
 from . import views
 
-add_voucher_view = require_POST(views.discount.apply_voucher_view)
 remove_voucher_view = require_POST(views.discount.remove_voucher_view)
 
 
@@ -15,6 +14,5 @@ urlpatterns = [
     url(r'^shipping-method/', load_checkout(views.shipping_method_view),
         name='shipping-method'),
     url(r'^summary/', load_checkout(views.summary_view), name='summary'),
-    url(r'^add_voucher/', load_checkout(add_voucher_view), name='add-voucher'),
     url(r'^remove_voucher/', load_checkout(remove_voucher_view), name='remove-voucher')
 ]

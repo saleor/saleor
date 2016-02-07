@@ -1,5 +1,4 @@
 from functools import wraps
-from django.contrib import messages
 
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
@@ -10,42 +9,30 @@ from ...discount.forms import CheckoutDiscountForm
 def add_voucher_form(view):
     @wraps(view)
     def func(request, checkout):
+        prefix = 'discount'
+        data = {k: v for k, v in request.POST.items() if k.startswith(prefix)}
         voucher_form = CheckoutDiscountForm(
-            None, checkout=checkout, prefix='discount')
-        messages.get_messages(request)
-        response = view(request, checkout)
-        voucher_code = checkout.voucher_code
-        if voucher_code:
-            try:
-                voucher = Voucher.objects.get(code=voucher_code)
-            except Voucher.DoesNotExist:
-                checkout.voucher_code = None
-                voucher = None
-        else:
-            voucher = None
-        if voucher is not None:
-            try:
-                checkout.discount = voucher.get_discount_for_checkout(checkout)
-            except NotApplicable:
+            data or None, checkout=checkout, prefix=prefix)
+        if voucher_form.is_bound:
+            if voucher_form.is_valid():
+                voucher_form.apply_discount()
+                next_url = request.GET.get(
+                    'next', request.META['HTTP_REFERER'])
+                return redirect(next_url)
+            else:
                 del checkout.discount
                 del checkout.voucher_code
+                # if only discount form was used we clear post for other forms
+                request.POST = {}
+        else:
+            checkout.recalculate_discount()
+        response = view(request, checkout)
         if isinstance(response, TemplateResponse):
+            voucher = voucher_form.initial.get('voucher')
             response.context_data['voucher_form'] = voucher_form
             response.context_data['voucher'] = voucher
         return response
     return func
-
-
-def apply_voucher_view(request, checkout):
-    voucher_form = CheckoutDiscountForm(
-        request.POST or None, checkout=checkout, prefix='discount')
-    next_url = request.GET.get('next', request.META['HTTP_REFERER'])
-    if voucher_form.is_valid():
-        voucher_form.apply_discount()
-    else:
-        for error in voucher_form.errors['voucher']:
-            messages.error(request, error, extra_tags='discount')
-    return redirect(next_url)
 
 
 def remove_voucher_view(request, checkout):
