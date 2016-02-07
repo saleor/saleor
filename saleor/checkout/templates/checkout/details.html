@@ -113,7 +113,7 @@
                             {% else %}
                                 <td colspan="2">
                                     <form action="{% url "checkout:add-voucher" %}?next={{ request.get_full_path }}"
-                                          method="post" class="form-flex">
+                                          method="post" class="form-inline text-center">
                                             {% csrf_token %}
                                             {% bootstrap_form voucher_form layout="inline" %}
                                             {% bootstrap_button _("Apply") button_type="submit" button_class="btn-primary" %}
