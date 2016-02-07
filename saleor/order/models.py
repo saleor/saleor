@@ -19,6 +19,7 @@ from prices import Price
 from satchless.item import ItemLine, ItemSet
 
 from ..core.utils import build_absolute_uri
+from ..discount.models import Voucher
 from ..product.models import Product, ProductVariant
 from ..userprofile.models import Address
 
@@ -64,6 +65,12 @@ class Order(models.Model, ItemSet):
         pgettext_lazy('Order field', 'total'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
+    voucher = models.ForeignKey(
+        Voucher, null=True, related_name='+', on_delete=models.SET_NULL)
+    discount_amount = PriceField(
+        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
+        blank=True, null=True)
+    discount_name = models.CharField(max_length=255, default='', blank=True)
 
     class Meta:
         ordering = ('-last_status_change',)

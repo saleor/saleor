@@ -133,4 +133,24 @@
             </table>
         </div>
     {% endfor %}
+    {% if order.discount_amount %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                {{ order.discount_name }}
+            </div>
+            <div class="panel-body text-right">
+                <strong>-&nbsp;{% gross order.discount_amount %}</strong>
+            </div>
+        </div>
+    {% endif %}
+    {% if order.discount_amount or groups|length > 1 %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                {% trans "Total" %}
+            </div>
+            <div class="panel-body text-right">
+                <strong>{% gross order.total %}</strong>
+            </div>
+        </div>
+    {% endif %}
 {% endblock content %}

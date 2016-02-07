@@ -8,8 +8,8 @@ from prices import Price, FixedDiscount
 
 from ..cart import Cart
 from ..core import analytics
+from ..discount.models import Voucher, NotApplicable
 from ..order.models import Order
-from saleor.discount.models import Voucher, NotApplicable
 from ..shipping.models import ShippingMethodCountry
 from ..userprofile.models import Address, User
 
@@ -197,17 +197,29 @@ class Checkout(object):
                 self.shipping_address, is_shipping=True)
         else:
             shipping_address = None
-        billing_address = self._save_address(self.billing_address, is_billing=True)
+        billing_address = self._save_address(
+            self.billing_address, is_billing=True)
+
+        order_data = {
+            'billing_address': billing_address,
+            'shipping_address': shipping_address,
+            'tracking_client_id': self.tracking_code,
+            'total': self.get_total()}
+
         if self.user.is_authenticated():
-            order = Order.objects.create(
-                billing_address=billing_address, shipping_address=shipping_address,
-                user=self.user, total=self.get_total(),
-                tracking_client_id=self.tracking_code)
+            order_data['user'] = self.user
         else:
-            order = Order.objects.create(
-                billing_address=billing_address, shipping_address=shipping_address,
-                anonymous_user_email=self.email, total=self.get_total(),
-                tracking_client_id=self.tracking_code)
+            # TODO: we should always save email in order not only for anonymous
+            order_data['anonymous_user_email'] = self.email
+
+        voucher = self._get_voucher()
+        if voucher is not None:
+            discount = self.discount
+            order_data['voucher'] = voucher
+            order_data['discount_amount'] = discount.amount
+            order_data['discount_name'] = discount.name
+
+        order = Order.objects.create(**order_data)
 
         for partition in self.cart.partition():
             shipping_required = partition.is_shipping_required()
@@ -223,22 +235,31 @@ class Checkout(object):
                 shipping_method_name=shipping_method_name)
             group.add_items_from_partition(partition)
 
+        if voucher is not None:
+            voucher.used += 1
+            voucher.save(update_fields=['used'])
+
         return order
 
-    def recalculate_discount(self):
+    def _get_voucher(self):
         voucher_code = self.voucher_code
         if voucher_code is not None:
             try:
-                voucher = Voucher.objects.get(code=voucher_code)
+                return Voucher.objects.get(code=self.voucher_code)
             except Voucher.DoesNotExist:
-                del self.voucher_code
+                return None
+
+    def recalculate_discount(self):
+        voucher = self._get_voucher()
+        if voucher is not None:
+            try:
+                self.discount = voucher.get_discount_for_checkout(self)
+            except NotApplicable:
                 del self.discount
-            else:
-                try:
-                    self.discount = voucher.get_discount_for_checkout(self)
-                except NotApplicable:
-                    del self.discount
-                    del self.voucher_code
+                del self.voucher_code
+        else:
+            del self.discount
+            del self.voucher_code
 
     def get_subtotal(self):
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)
