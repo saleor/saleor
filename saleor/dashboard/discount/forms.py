@@ -111,6 +111,13 @@ class ProductVoucherForm(forms.ModelForm):
     def save(self, commit=True):
         self.instance.category = None
         self.instance.limit = None
+        # Apply to one with percentage discount is more complicated case.
+        # On which product we should apply it? On first, last or cheapest?
+        # Percentage case is limited to the all value and the apply_to field
+        # is not used in this case so we set it to None.
+        if (self.instance.discount_value_type
+                == Voucher.DISCOUNT_VALUE_PERCENTAGE):
+            self.instance.apply_to = None
         return super(ProductVoucherForm, self).save(commit)
 
 
@@ -130,4 +137,11 @@ class CategoryVoucherForm(forms.ModelForm):
     def save(self, commit=True):
         self.instance.limit = None
         self.instance.product = None
+        # Apply to one with percentage discount is more complicated case.
+        # On which product we should apply it? On first, last or cheapest?
+        # Percentage case is limited to the all value and the apply_to field
+        # is not used in this case so we set it to None.
+        if (self.instance.discount_value_type
+                == Voucher.DISCOUNT_VALUE_PERCENTAGE):
+            self.instance.apply_to = None
         return super(CategoryVoucherForm, self).save(commit)
