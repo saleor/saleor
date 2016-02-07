@@ -157,23 +157,36 @@ class Voucher(models.Model):
         if self.type == Voucher.VALUE_TYPE:
             cart_total = checkout.cart.get_total()
             limit = self.limit if self.limit is not None else cart_total
-            if limit < cart_total:
+            if cart_total < limit:
                 msg = pgettext('voucher', 'Discount applicable only for cart '
-                               'total equal or greater than %(cart_total)s')
-                raise NotApplicable(msg % {'cart_total': cart_total})
+                               'total equal or greater than %(amount)s'
+                               '%(currency)s')
+                raise NotApplicable(msg % {
+                    'amount': limit.net,
+                    'currency': limit.currency})
             return self.get_fixed_discount_for(cart_total)
 
         elif self.type == Voucher.SHIPPING_TYPE:
             if not checkout.is_shipping_required:
-                raise NotApplicable('Checkout is not shippable')
+                msg = pgettext('voucher', 'Checkout is not shippable')
+                raise NotApplicable(msg)
             shipping_method = checkout.shipping_method
             if not shipping_method:
-                raise NotApplicable('Select shipping method first')
+                msg = pgettext('voucher', 'Select shipping method first')
+                raise NotApplicable(msg)
             if (self.apply_to is not None and
                     shipping_method.country_code != self.apply_to):
-                msg = 'Discount apply only for %(country)s'
+                msg = pgettext(
+                    'voucher', 'Discount apply only for %(country)s')
                 raise NotApplicable(msg % {
                     'country': self.get_apply_to_display()})
+            if self.limit is not None and shipping_method.price > self.limit:
+                msg = pgettext(
+                    'voucher', 'Discount applicable only for shipping price '
+                               'equal or greater than %(amount)s%(currency)s')
+                raise NotApplicable(msg % {
+                    'amount': self.limit.net,
+                    'currency': self.limit.currency})
             return self.get_fixed_discount_for(shipping_method.price)
 
         elif self.type in (Voucher.PRODUCT_TYPE, Voucher.CATEGORY_TYPE):
@@ -186,7 +199,8 @@ class Voucher(models.Model):
                     (item[1] for item in get_category_variants_and_prices(
                         checkout.cart, self.category)))
             if len(prices) == 0:
-                msg = 'Any product in cart matches discount'
+                msg = pgettext(
+                    'voucher', 'Any product in cart matches discount')
                 raise NotApplicable(msg)
             if self.apply_to == Voucher.APPLY_TO_ALL_PRODUCTS:
                 discounts = (
