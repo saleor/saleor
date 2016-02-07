@@ -1,9 +1,10 @@
 from decimal import Decimal
-from prices import FixedDiscount, FractionalDiscount
+from mock import Mock
+from prices import FixedDiscount, FractionalDiscount, Price
 
 import pytest
 from ..product.models import ProductVariant, Product
-from .models import Sale
+from .models import Sale, Voucher, NotApplicable
 
 
 @pytest.fixture
@@ -59,3 +60,156 @@ def test_percentage_discounts(product_variant):
     applied_discount = final_price.history.right
     assert isinstance(applied_discount, FractionalDiscount)
     assert applied_discount.factor == Decimal('0.5')
+
+
+@pytest.mark.parametrize(
+    'total, discount_value, discount_type, limit, expected_value', [
+    ('100', 10, Voucher.DISCOUNT_VALUE_FIXED, None, 10),
+    ('100.05', 10, Voucher.DISCOUNT_VALUE_PERCENTAGE, 100, '10.01')])
+def test_value_voucher_checkout_discount(settings, total, discount_value,
+                                         discount_type, limit, expected_value):
+    settings.DEFAULT_CURRENCY = 'USD'
+    voucher = Voucher(
+        code='unique', type=Voucher.VALUE_TYPE,
+        discount_value_type=discount_type,
+        discount_value=discount_value,
+        limit=Price(limit, currency='USD') if limit is not None else None)
+    checkout = Mock(cart=Mock(get_total=Mock(
+        return_value=Price(total, currency='USD'))))
+    discount = voucher.get_discount_for_checkout(checkout)
+    assert discount.amount == Price(expected_value, currency='USD')
+
+
+def test_value_voucher_checkout_discount_not_applicable(settings):
+    settings.DEFAULT_CURRENCY = 'USD'
+    voucher = Voucher(
+        code='unique', type=Voucher.VALUE_TYPE,
+        discount_value_type=Voucher.DISCOUNT_VALUE_FIXED,
+        discount_value=10,
+        limit=100)
+    checkout = Mock(cart=Mock(get_total=Mock(
+        return_value=Price(10, currency='USD'))))
+    with pytest.raises(NotApplicable) as e:
+        voucher.get_discount_for_checkout(checkout)
+    assert str(e.value) == ('Discount applicable only for cart total '
+                            'equal or greater than 100USD')
+
+
+@pytest.mark.parametrize(
+    'shipping_cost, shipping_country_code, discount_value, discount_type, apply_to, expected_value', [  # noqa
+        (10, None, 50, Voucher.DISCOUNT_VALUE_PERCENTAGE, None, 5),
+        (10, None, 20, Voucher.DISCOUNT_VALUE_FIXED, None, 10),
+        (5, 'PL', 5, Voucher.DISCOUNT_VALUE_FIXED, 'PL', 5)])
+def test_shipping_voucher_checkout_discount(settings, shipping_cost,
+                                            shipping_country_code,
+                                            discount_value, discount_type,
+                                            apply_to, expected_value):
+    settings.DEFAULT_CURRENCY = 'USD'
+    checkout = Mock(
+        is_shipping_required=True, shipping_method=Mock(
+            price=Price(shipping_cost, currency='USD'),
+            country_code=shipping_country_code))
+    voucher = Voucher(
+        code='unique', type=Voucher.SHIPPING_TYPE,
+        discount_value_type=discount_type,
+        discount_value=discount_value,
+        apply_to=apply_to)
+    discount = voucher.get_discount_for_checkout(checkout)
+    assert discount.amount == Price(expected_value, currency='USD')
+
+
+@pytest.mark.parametrize(
+    'is_shipping_required, shipping_method, discount_value, discount_type, apply_to, limit, error_msg', [  # noqa
+        (True, Mock(country_code='PL'), 10, Voucher.DISCOUNT_VALUE_FIXED, 'US',
+         None, 'Discount apply only for United States of America'),
+        (True, None, 10, Voucher.DISCOUNT_VALUE_FIXED, None, None,
+         'Select shipping method first'),
+        (False, None, 10, Voucher.DISCOUNT_VALUE_FIXED, None, None,
+         'Checkout is not shippable'),
+        (True, Mock(price=Price(10, currency='USD')), 10,
+         Voucher.DISCOUNT_VALUE_FIXED, None, 5,
+         'Discount applicable only for shipping price equal or greater than 5USD')])  # noqa
+def test_shipping_voucher_checkout_discountnot_applicable(settings,
+                                                          is_shipping_required,
+                                                          shipping_method,
+                                                          discount_value,
+                                                          discount_type,
+                                                          apply_to, limit,
+                                                          error_msg):
+    settings.DEFAULT_CURRENCY = 'USD'
+    checkout = Mock(is_shipping_required=is_shipping_required,
+                    shipping_method=shipping_method)
+    voucher = Voucher(
+        code='unique', type=Voucher.SHIPPING_TYPE,
+        discount_value_type=discount_type,
+        discount_value=discount_value,
+        limit=Price(limit, currency='USD') if limit is not None else None,
+        apply_to=apply_to)
+    with pytest.raises(NotApplicable) as e:
+        voucher.get_discount_for_checkout(checkout)
+    assert str(e.value) == error_msg
+
+
+def test_product_voucher_checkout_discount_not_applicable(settings,
+                                                          monkeypatch):
+    monkeypatch.setattr(
+        'saleor.discount.models.get_product_variants_and_prices',
+        lambda cart, product: [])
+    settings.DEFAULT_CURRENCY = 'USD'
+    voucher = Voucher(
+        code='unique', type=Voucher.PRODUCT_TYPE,
+        discount_value_type=Voucher.DISCOUNT_VALUE_FIXED,
+        discount_value=10)
+    checkout = Mock(cart=Mock())
+    with pytest.raises(NotApplicable) as e:
+        voucher.get_discount_for_checkout(checkout)
+    assert str(e.value) == 'Any product in cart matches discount'
+
+
+def test_category_voucher_checkout_discount_not_applicable(settings,
+                                                           monkeypatch):
+    monkeypatch.setattr(
+        'saleor.discount.models.get_category_variants_and_prices',
+        lambda cart, product: [])
+    settings.DEFAULT_CURRENCY = 'USD'
+    voucher = Voucher(
+        code='unique', type=Voucher.CATEGORY_TYPE,
+        discount_value_type=Voucher.DISCOUNT_VALUE_FIXED,
+        discount_value=10)
+    checkout = Mock(cart=Mock())
+    with pytest.raises(NotApplicable) as e:
+        voucher.get_discount_for_checkout(checkout)
+    assert str(e.value) == 'Any product in cart matches discount'
+
+
+
+@pytest.mark.parametrize(
+    'prices, discount_value, discount_type, apply_to, expected_value', [
+        ([10], 10, Voucher.DISCOUNT_VALUE_FIXED, Voucher.APPLY_TO_ONE_PRODUCT, 10),  # noqa
+        ([5], 10, Voucher.DISCOUNT_VALUE_FIXED, Voucher.APPLY_TO_ONE_PRODUCT, 5),  # noqa
+        ([5, 5], 10, Voucher.DISCOUNT_VALUE_FIXED, Voucher.APPLY_TO_ONE_PRODUCT, 10),  # noqa
+        ([2, 3], 10, Voucher.DISCOUNT_VALUE_FIXED, Voucher.APPLY_TO_ONE_PRODUCT, 5),  # noqa
+
+        ([10, 10], 5, Voucher.DISCOUNT_VALUE_FIXED, Voucher.APPLY_TO_ALL_PRODUCTS, 10),  # noqa
+        ([5, 2], 5, Voucher.DISCOUNT_VALUE_FIXED, Voucher.APPLY_TO_ALL_PRODUCTS, 7),  # noqa
+        ([10, 10, 10], 5, Voucher.DISCOUNT_VALUE_FIXED, Voucher.APPLY_TO_ALL_PRODUCTS, 15),  # noqa
+
+        ([10], 10, Voucher.DISCOUNT_VALUE_PERCENTAGE, None, 1),
+        ([10, 10], 10, Voucher.DISCOUNT_VALUE_PERCENTAGE, None, 2),
+    ])
+def test_products_voucher_checkout_discount_not(settings, monkeypatch, prices,
+                                                discount_value, discount_type,
+                                                apply_to, expected_value):
+    monkeypatch.setattr(
+        'saleor.discount.models.get_product_variants_and_prices',
+        lambda cart, product: (
+            (None, Price(p, currency='USD')) for p in prices))
+    settings.DEFAULT_CURRENCY = 'USD'
+    voucher = Voucher(
+        code='unique', type=Voucher.PRODUCT_TYPE,
+        discount_value_type=discount_type,
+        discount_value=discount_value,
+        apply_to=apply_to)
+    checkout = Mock(cart=Mock())
+    discount = voucher.get_discount_for_checkout(checkout)
+    assert discount.amount == Price(expected_value, currency='USD')
