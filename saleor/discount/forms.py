@@ -25,6 +25,7 @@ class CheckoutDiscountForm(forms.Form):
         initial = kwargs.get('initial', {})
         if 'voucher' not in initial:
             initial['voucher'] = self.checkout.voucher_code
+        kwargs['initial'] = initial
         super(CheckoutDiscountForm, self).__init__(*args, **kwargs)
 
     def clean(self):
@@ -37,3 +38,9 @@ class CheckoutDiscountForm(forms.Form):
             except NotApplicable as e:
                 self.add_error('voucher', str(e))
         return cleaned_data
+
+    def apply_discount(self):
+        discount = self.cleaned_data['discount']
+        voucher = self.cleaned_data['voucher']
+        self.checkout.discount = discount
+        self.checkout.voucher_code = voucher.code

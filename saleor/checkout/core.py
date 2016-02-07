@@ -9,6 +9,7 @@ from prices import Price, FixedDiscount
 from ..cart import Cart
 from ..core import analytics
 from ..order.models import Order
+from saleor.discount.models import Voucher, NotApplicable
 from ..shipping.models import ShippingMethodCountry
 from ..userprofile.models import Address, User
 
@@ -223,6 +224,21 @@ class Checkout(object):
             group.add_items_from_partition(partition)
 
         return order
+
+    def recalculate_discount(self):
+        voucher_code = self.voucher_code
+        if voucher_code is not None:
+            try:
+                voucher = Voucher.objects.get(code=voucher_code)
+            except Voucher.DoesNotExist:
+                del self.voucher_code
+                del self.discount
+            else:
+                try:
+                    self.discount = voucher.get_discount_for_checkout(self)
+                except NotApplicable:
+                    del self.discount
+                    del self.voucher_code
 
     def get_subtotal(self):
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)

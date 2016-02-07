@@ -5,7 +5,6 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
 from ...discount.forms import CheckoutDiscountForm
-from ...discount.models import Voucher, NotApplicable
 
 
 def add_voucher_form(view):
@@ -42,10 +41,7 @@ def apply_voucher_view(request, checkout):
         request.POST or None, checkout=checkout, prefix='discount')
     next_url = request.GET.get('next', request.META['HTTP_REFERER'])
     if voucher_form.is_valid():
-        discount = voucher_form.cleaned_data['discount']
-        voucher = voucher_form.cleaned_data['voucher']
-        checkout.discount = discount
-        checkout.voucher_code = voucher.code
+        voucher_form.apply_discount()
     else:
         for error in voucher_form.errors['voucher']:
             messages.error(request, error, extra_tags='discount')
