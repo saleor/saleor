@@ -49,15 +49,15 @@
                             <td>
                                 {{ voucher.discount_value }}{{ voucher.get_discount_value_type_display }}</td>
                             <td>{{ voucher.start_date }}</td>
-                            <td>{{ voucher.end_date|default:"-" }}</td>
+                            <td>{{ voucher.end_date|default_if_none:"-" }}</td>
                             <td>
-                                {% if voucher.usage_limit %}
+                                {% if voucher.usage_limit or voucher.usage_limit == 0 %}
                                     {{ voucher.used }}/{{ voucher.usage_limit }}
                                 {% else %}
                                     {{ voucher.used }}
                                 {% endif %}
                             </td>
-                            <td>{{ voucher.get_apply_to_display|default:"-" }}</td>
+                            <td>{{ voucher.get_apply_to_display|default_if_none:"-" }}</td>
                             <td>
                                 {% if voucher.limit %}
                                     {% gross voucher.limit %}
