@@ -33,3 +33,14 @@ def test_address_form_for_country(country):
         assert 'postal_code' in errors
     else:
         assert 'postal_code' not in errors
+
+
+def test_address_form_postal_code_validation():
+    data = {
+        'first_name': 'John',
+        'last_name': 'Doe',
+        'country': 'PE',
+        'postal_code': 'XXX'}
+    form = forms.AddressForm(data)
+    errors = form.errors
+    assert 'postal_code' in errors

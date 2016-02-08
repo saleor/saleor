@@ -80,8 +80,7 @@ class AddressForm(forms.ModelForm):
             self.add_error('country_area', error)
         if 'postal_code' in errors:
             if errors['postal_code'] == 'invalid':
-                postal_code_example = validation_data[
-                    'postal_code_example']
+                postal_code_example = validation_data.postal_code_example
                 if postal_code_example:
                     error = _(
                         'Invalid postal code. Ex. %(example)s') % {
