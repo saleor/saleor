@@ -140,14 +140,10 @@ class Voucher(models.Model):
             discount = percentage_discount(
                 value=self.discount_value, name=smart_text(self))
             fixed_discount_value = amount - discount.apply(amount)
-            # todo: Fix prces to quantize this discount type
-            cent = Decimal('0.01')
-            fixed_discount_value = fixed_discount_value.quantize(cent)
             discount = FixedDiscount(
                 amount=fixed_discount_value, name=smart_text(self))
         else:
             raise NotImplementedError('Unknown discount value type')
-        # todo: Fix the price apply method to not return negative values
         if discount.amount > amount:
             return FixedDiscount(amount, name=smart_text(self))
         else:
@@ -271,11 +267,7 @@ class Sale(models.Model):
                 self._product_has_category_discount(
                     variant.product, discounted_categories)):
             raise NotApplicable('Discount too high for this product')
-        discount = self.get_discount()
-        after_discount = discount.apply(check_price)
-        if after_discount.gross <= 0:
-            raise NotApplicable('Discount too high for this product')
-        return discount
+        return self.get_discount()
 
 
 def get_variant_discounts(variant, discounts, **kwargs):

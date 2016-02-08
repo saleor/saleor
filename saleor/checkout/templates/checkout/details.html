@@ -61,6 +61,7 @@
         </div>
 
         <div class="col-sm-4">
+        {% with total=checkout.get_total %}
             <table class="table table-condensed">
                 <tbody>
                     {% for delivery, delivery_cost, total_with_delivery in checkout.deliveries %}
@@ -99,29 +100,27 @@
                             {% endif %}
                         </td>
                     </tr>
-
-                    {% with total=checkout.get_total %}
-                        {% if total.tax or True %}
-                            <tr>
-                                <td class="noborder">
-                                    {% trans "Taxes" %}
-                                </td>
-                                <td class="noborder text-right">
-                                    {% tax total %}
-                                </td>
-                            </tr>
-                        {% endif %}
+                    {% if total.tax or True %}
                         <tr>
-                            <th>
-                                {% trans "Total" %}
-                            </th>
-                            <td class="text-right">
-                                <strong>{% gross total %}</strong>
+                            <td class="noborder">
+                                {% trans "Taxes" %}
+                            </td>
+                            <td class="noborder text-right">
+                                {% tax total %}
                             </td>
                         </tr>
-                    {% endwith %}
+                    {% endif %}
+                    <tr>
+                        <th>
+                            {% trans "Total" %}
+                        </th>
+                        <td class="text-right">
+                            <strong>{% gross total %}</strong>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
+        {% endwith %}
         </div>
     </div>
 {% endblock content %}

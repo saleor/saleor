@@ -24,16 +24,19 @@ django-model-utils==2.4
 django-mptt==0.8.0
 django-offsite-storage==0.0.8
 django-payments==0.9.1
-django-prices==0.4.10
+django-prices==0.4.11
 django-redis==4.3.0
 django-selectable==0.9.0
 django-versatileimagefield==1.3
 django==1.9.2
 djangorestframework==3.3.2
+enum34==1.1.2             # via cryptography
 fake-factory==0.5.3
 google-i18n-address==1.0.7
 google-measurement-protocol==0.1.5
 idna==2.0                 # via cryptography
+ipaddr==2.1.11            # via maxminddb
+ipaddress==1.0.16         # via cryptography
 jsonfield==1.0.3
 lxml==3.5.0               # via premailer
 markdown==2.6.5
@@ -43,7 +46,7 @@ mock==1.3.0
 pbr==1.8.1                # via mock
 pillow==3.1.1             # via django-versatileimagefield
 premailer==2.9.7          # via django-emailit
-prices==0.5.5
+prices==0.5.7
 psycopg2==2.6.1
 purl==1.2
 py==1.4.31                # via pytest

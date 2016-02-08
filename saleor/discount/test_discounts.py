@@ -42,10 +42,10 @@ def test_variant_discounts(product_variant):
     high_discount.products.add(product)
     final_price = product_variant.get_price_per_item(
         discounts=Sale.objects.all())
-    assert final_price.gross == 2
+    assert final_price.gross == 0
     applied_discount = final_price.history.right
     assert isinstance(applied_discount, FixedDiscount)
-    assert applied_discount.amount.gross == 8
+    assert applied_discount.amount.gross == 50
 
 
 @pytest.mark.integration
@@ -65,7 +65,7 @@ def test_percentage_discounts(product_variant):
 @pytest.mark.parametrize(
     'total, discount_value, discount_type, limit, expected_value', [
     ('100', 10, Voucher.DISCOUNT_VALUE_FIXED, None, 10),
-    ('100.05', 10, Voucher.DISCOUNT_VALUE_PERCENTAGE, 100, '10.01')])
+    ('100.05', 10, Voucher.DISCOUNT_VALUE_PERCENTAGE, 100, 10)])
 def test_value_voucher_checkout_discount(settings, total, discount_value,
                                          discount_type, limit, expected_value):
     settings.DEFAULT_CURRENCY = 'USD'

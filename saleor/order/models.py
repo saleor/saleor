@@ -15,7 +15,7 @@ from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from payments import PurchasedItem
 from payments.models import BasePayment
-from prices import Price
+from prices import Price, FixedDiscount
 from satchless.item import ItemLine, ItemSet
 
 from ..core.utils import build_absolute_uri
@@ -108,6 +108,11 @@ class Order(models.Model, ItemSet):
 
     def __str__(self):
         return '#%d' % (self.id, )
+
+    @property
+    def discount(self):
+        return FixedDiscount(
+            amount=self.discount_amount, name=self.discount_name)
 
     def get_total(self):
         return self.total
