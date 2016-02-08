@@ -20,9 +20,8 @@ from satchless.item import InsufficientStock, Item, ItemRange
 from unidecode import unidecode
 from versatileimagefield.fields import VersatileImageField
 
-from prices import PriceRange
+from ...discount.models import get_variant_discounts
 from ..utils import get_attributes_display_map
-from .discounts import get_variant_discounts
 from .fields import WeightField
 
 

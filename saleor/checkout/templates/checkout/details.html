@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 
 {% load i18n %}
-{% load gross from prices_i18n %}
-{% load tax from prices_i18n %}
+{% load gross net tax from prices_i18n %}
 
 
 {% block title %}{% trans "Checkout" %} — {{ block.super }}{% endblock %}
@@ -62,70 +61,66 @@
         </div>
 
         <div class="col-sm-4">
-            {% if checkout.is_shipping_required and checkout.shipping_address.country %}
-            <div class="panel panel-default">
-                <div class="panel-heading">{% trans "Shipping address" %}</div>
-                <div class="panel-body">
-                    {% include "userprofile/snippets/address-details.html" with address=checkout.shipping_address only %}
-                </div>
-            </div>
-            {% endif %}
-
-
-            {% for delivery, delivery_cost, total_with_delivery in checkout.deliveries %}
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        {% if delivery.is_shipping_required %}
-                            {% blocktrans with number=forloop.counter %}Shipment #{{ number }}{% endblocktrans %}
-                        {% else %}
-                            {% blocktrans with number=forloop.counter %}Digital delivery #{{ number }}{% endblocktrans %}
-                        {% endif %}
-                    </div>
-                    <table class="table">
-                        <thead>
+        {% with total=checkout.get_total %}
+            <table class="table table-condensed">
+                <tbody>
+                    {% for delivery, delivery_cost, total_with_delivery in checkout.deliveries %}
+                        {% for item in delivery %}
                             <tr>
-                                <th class="col-sm-6">{% trans "Item" %}</th>
-                                <th class="col-sm-3 text-right">{% trans "Price" %}</th>
-                                <th class="col-sm-3 text-right">{% trans "Subtotal" %}</th>
+                                <td class="noborder">
+                                    {{ item.product.product }}{% if item.quantity != 1 %} <span class="badge">×{{ item.quantity }}</span>{% endif %}
+                                    <br>
+                                    <small>{{ item.product }}</small>
+                                </td>
+                                <td class="noborder text-right">{% net item.get_total %}</td>
                             </tr>
-                        </thead>
-                        <tfoot>
-                            <tr>
-                                <th colspan="2">{% trans "Total" %}</th>
-                                <th class="text-right">{% gross total_with_delivery %}</th>
-                            </tr>
-                        </tfoot>
-                        <tbody>
-                            {% for item in delivery %}
-                                <tr>
-                                    <td>{{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}</td>
-                                    <td class="text-right">{% gross item.get_price_per_item %}</td>
-                                    <td class="text-right">{% gross item.get_total %}</td>
-                                </tr>
-                            {% endfor %}
-                            {% if delivery_cost.gross %}
-                                <tr>
-                                    <td>
-                                        {% trans "Shipping" %}
-                                    </td>
-                                    <td class="text-right">{% gross delivery_cost %}</td>
-                                    <td class="text-right">{% gross delivery_cost %}</td>
-                                </tr>
+                        {% endfor %}
+                    {% endfor %}
+
+                    <tr>
+                        <td>
+                            {% trans "Subtotal" %}
+                        </td>
+                        <td class="text-right">
+                            {% net checkout.get_subtotal %}
+                        </td>
+                    </tr>
+
+                    {% include 'checkout/snippets/voucher-form.html' with discount=checkout.discount form=voucher_form %}
+
+                    <tr>
+                        <td class="noborder">
+                            {% trans "Shipping" %}
+                        </td>
+                        <td class="noborder text-right">
+                            {% if checkout.shipping_method %}
+                                {% net checkout.get_total_shipping %}
+                            {% else %}
+                                &mdash;
                             {% endif %}
-                        </tbody>
-                    </table>
-                </div>
-            {% endfor %}
-
-            {% with total=checkout.get_total %}
-                <div class="alert alert-success">
-                    {% trans "Your total will be" %}:
-                    <strong>{% gross total %}</strong>
-                    {% if total.tax %}
-                        ({% blocktrans with tax=total.tax|floatformat:2 currency=total.currency %}includes {{ tax }} <span class="currency">{{ currency }}</span> tax{% endblocktrans %})
+                        </td>
+                    </tr>
+                    {% if total.tax or True %}
+                        <tr>
+                            <td class="noborder">
+                                {% trans "Taxes" %}
+                            </td>
+                            <td class="noborder text-right">
+                                {% tax total %}
+                            </td>
+                        </tr>
                     {% endif %}
-                </div>
-            {% endwith %}
+                    <tr>
+                        <th>
+                            {% trans "Total" %}
+                        </th>
+                        <td class="text-right">
+                            <strong>{% gross total %}</strong>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        {% endwith %}
         </div>
     </div>
 {% endblock content %}

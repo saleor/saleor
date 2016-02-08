@@ -48,6 +48,9 @@
                     <span class="card-title black-text">Order summary</span>
 
                     <ul>
+                        {% if order.discount_amount %}
+                            <li>{{ order.discount_name }}: <strong>-&nbsp;{% gross order.discount_amount %}</strong></li>
+                        {% endif %}
                         <li class="text-lg">{% trans "Order total" %}: <strong>{% gross order.get_total %}</strong></li>
                         <li>
                             {% trans "Customer:" %}

@@ -32,6 +32,10 @@
 
 
 {% block forms %}
+    <h3>{% trans "Shipping address" %}</h3>
+
+    {% include "userprofile/snippets/address-details.html" with address=checkout.shipping_address only %}
+
     <form method="post" novalidate>
         {% csrf_token %}
         <h3>{% trans "Shipping method" %}</h3>

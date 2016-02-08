@@ -4,10 +4,12 @@ from functools import wraps
 from django.conf import settings
 from django.db import transaction
 from django.forms.models import model_to_dict
-from prices import Price
+from django.utils.encoding import smart_text
+from prices import Price, FixedDiscount
 
 from ..cart import Cart
 from ..core import analytics
+from ..discount.models import Voucher, NotApplicable
 from ..order.models import Order
 from ..shipping.models import ShippingMethodCountry
 from ..userprofile.models import Address, User
@@ -80,7 +82,7 @@ class Checkout(object):
     @shipping_address.setter
     def shipping_address(self, address):
         address_data = model_to_dict(address)
-        address_data['country'] = str(address_data['country'])
+        address_data['country'] = smart_text(address_data['country'])
         self.storage['shipping_address'] = address_data
         self.modified = True
 
@@ -128,9 +130,53 @@ class Checkout(object):
     @billing_address.setter
     def billing_address(self, address):
         address_data = model_to_dict(address)
-        address_data['country'] = str(address_data['country'])
+        address_data['country'] = smart_text(address_data['country'])
         self.storage['billing_address'] = address_data
         self.modified = True
+
+    @property
+    def discount(self):
+        value = self.storage.get('discount_value')
+        currency = self.storage.get('discount_currency')
+        name = self.storage.get('discount_name')
+        if value is not None and name is not None and currency is not None:
+            amount = Price(value, currency=currency)
+            return FixedDiscount(amount, name)
+
+    @discount.setter
+    def discount(self, discount):
+        amount = discount.amount
+        self.storage['discount_value'] = smart_text(amount.net)
+        self.storage['discount_currency'] = amount.currency
+        self.storage['discount_name'] = discount.name
+        self.modified = True
+
+    @discount.deleter
+    def discount(self):
+        if 'discount_value' in self.storage:
+            del self.storage['discount_value']
+            self.modified = True
+        if 'discount_currency' in self.storage:
+            del self.storage['discount_currency']
+            self.modified = True
+        if 'discount_name' in self.storage:
+            del self.storage['discount_name']
+            self.modified = True
+
+    @property
+    def voucher_code(self):
+        return self.storage.get('voucher_code')
+
+    @voucher_code.setter
+    def voucher_code(self, voucher_code):
+        self.storage['voucher_code'] = voucher_code
+        self.modified = True
+
+    @voucher_code.deleter
+    def voucher_code(self):
+        if 'voucher_code' in self.storage:
+            del self.storage['voucher_code']
+            self.modified = True
 
     @property
     def is_shipping_same_as_billing(self):
@@ -144,6 +190,7 @@ class Checkout(object):
             address.save()
         return address
 
+
     @transaction.atomic
     def create_order(self):
         if self.is_shipping_required:
@@ -151,23 +198,35 @@ class Checkout(object):
                 self.shipping_address, is_shipping=True)
         else:
             shipping_address = None
-        billing_address = self._save_address(self.billing_address, is_billing=True)
+        billing_address = self._save_address(
+            self.billing_address, is_billing=True)
+
+        order_data = {
+            'billing_address': billing_address,
+            'shipping_address': shipping_address,
+            'tracking_client_id': self.tracking_code,
+            'total': self.get_total()}
+
         if self.user.is_authenticated():
-            order = Order.objects.create(
-                billing_address=billing_address, shipping_address=shipping_address,
-                user=self.user, total=self.get_total(),
-                tracking_client_id=self.tracking_code)
+            order_data['user'] = self.user
         else:
-            order = Order.objects.create(
-                billing_address=billing_address, shipping_address=shipping_address,
-                anonymous_user_email=self.email, total=self.get_total(),
-                tracking_client_id=self.tracking_code)
+            # TODO: we should always save email in order not only for anonymous
+            order_data['anonymous_user_email'] = self.email
+
+        voucher = self._get_voucher()
+        if voucher is not None:
+            discount = self.discount
+            order_data['voucher'] = voucher
+            order_data['discount_amount'] = discount.amount
+            order_data['discount_name'] = discount.name
+
+        order = Order.objects.create(**order_data)
 
         for partition in self.cart.partition():
             shipping_required = partition.is_shipping_required()
             if shipping_required:
                 shipping_price = self.shipping_method.get_total()
-                shipping_method_name = str(self.shipping_method)
+                shipping_method_name = smart_text(self.shipping_method)
             else:
                 shipping_price = 0
                 shipping_method_name = None
@@ -177,13 +236,53 @@ class Checkout(object):
                 shipping_method_name=shipping_method_name)
             group.add_items_from_partition(partition)
 
+        if voucher is not None:
+            voucher.used += 1
+            voucher.save(update_fields=['used'])
+
         return order
+
+    def _get_voucher(self):
+        voucher_code = self.voucher_code
+        if voucher_code is not None:
+            try:
+                return Voucher.objects.get(code=self.voucher_code)
+            except Voucher.DoesNotExist:
+                return None
+
+    def recalculate_discount(self):
+        voucher = self._get_voucher()
+        if voucher is not None:
+            try:
+                self.discount = voucher.get_discount_for_checkout(self)
+            except NotApplicable:
+                del self.discount
+                del self.voucher_code
+        else:
+            del self.discount
+            del self.voucher_code
+
+    def get_subtotal(self):
+        zero = Price(0, currency=settings.DEFAULT_CURRENCY)
+        cost_iterator = (
+            shipment.get_total()
+            for shipment, shipping_cost, total in self.deliveries)
+        total = sum(cost_iterator, zero)
+        return total
 
     def get_total(self):
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)
         cost_iterator = (
-            total_with_shipping for shipping, shipping_cost, total_with_shipping
-            in self.deliveries)
+            total
+            for shipment, shipping_cost, total in self.deliveries)
+        total = sum(cost_iterator, zero)
+        return total if self.discount is None else self.discount.apply(total)
+
+    def get_total_shipping(self):
+        zero = Price(0, currency=settings.DEFAULT_CURRENCY)
+        cost_iterator = (
+            shipping_cost
+            for shipment, shipping_cost, total in self.deliveries)
         total = sum(cost_iterator, zero)
         return total
 

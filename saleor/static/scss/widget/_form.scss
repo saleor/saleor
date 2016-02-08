@@ -33,6 +33,7 @@
   p.help-block {
     margin: -7px 0 15px;
     font-size: $label-font-size;
+    clear: both;
   }
 
   %input-lg {
@@ -89,8 +90,14 @@
     }
   }
 
-  &#form-discounts {
+  &#form-sales {
     #id_name {
+      @extend %input-lg;
+    }
+  }
+
+  &#form-vouchers {
+    #id_code {
       @extend %input-lg;
     }
   }
