@@ -91,8 +91,7 @@ def test_value_voucher_checkout_discount_not_applicable(settings):
         return_value=Price(10, currency='USD'))))
     with pytest.raises(NotApplicable) as e:
         voucher.get_discount_for_checkout(checkout)
-    assert str(e.value) == ('Discount applicable only for cart total '
-                            'equal or greater than 100USD')
+    assert str(e.value) == 'This offer is only valid for orders over $100.00.'
 
 
 @pytest.mark.parametrize(
@@ -121,14 +120,14 @@ def test_shipping_voucher_checkout_discount(settings, shipping_cost,
 @pytest.mark.parametrize(
     'is_shipping_required, shipping_method, discount_value, discount_type, apply_to, limit, error_msg', [  # noqa
         (True, Mock(country_code='PL'), 10, Voucher.DISCOUNT_VALUE_FIXED, 'US',
-         None, 'Discount apply only for United States of America'),
+         None, 'This offer is only valid in United States of America.'),
         (True, None, 10, Voucher.DISCOUNT_VALUE_FIXED, None, None,
-         'Select shipping method first'),
+         'Please select a shipping method first.'),
         (False, None, 10, Voucher.DISCOUNT_VALUE_FIXED, None, None,
-         'Checkout is not shippable'),
+         'Your order does not require shipping.'),
         (True, Mock(price=Price(10, currency='USD')), 10,
          Voucher.DISCOUNT_VALUE_FIXED, None, 5,
-         'Discount applicable only for shipping price equal or greater than 5USD')])  # noqa
+         'This offer is only valid for shipping over $5.00.')])  # noqa
 def test_shipping_voucher_checkout_discountnot_applicable(settings,
                                                           is_shipping_required,
                                                           shipping_method,
@@ -163,7 +162,7 @@ def test_product_voucher_checkout_discount_not_applicable(settings,
     checkout = Mock(cart=Mock())
     with pytest.raises(NotApplicable) as e:
         voucher.get_discount_for_checkout(checkout)
-    assert str(e.value) == 'Any product in cart matches discount'
+    assert str(e.value) == 'This offer is only valid for selected items.'
 
 
 def test_category_voucher_checkout_discount_not_applicable(settings,
@@ -179,7 +178,7 @@ def test_category_voucher_checkout_discount_not_applicable(settings,
     checkout = Mock(cart=Mock())
     with pytest.raises(NotApplicable) as e:
         voucher.get_discount_for_checkout(checkout)
-    assert str(e.value) == 'Any product in cart matches discount'
+    assert str(e.value) == 'This offer is only valid for selected items.'
 
 
 
