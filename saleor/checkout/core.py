@@ -4,6 +4,7 @@ from functools import wraps
 from django.conf import settings
 from django.db import transaction
 from django.forms.models import model_to_dict
+from django.utils.encoding import smart_text
 from prices import Price, FixedDiscount
 
 from ..cart import Cart
@@ -81,7 +82,7 @@ class Checkout(object):
     @shipping_address.setter
     def shipping_address(self, address):
         address_data = model_to_dict(address)
-        address_data['country'] = str(address_data['country'])
+        address_data['country'] = smart_text(address_data['country'])
         self.storage['shipping_address'] = address_data
         self.modified = True
 
@@ -129,7 +130,7 @@ class Checkout(object):
     @billing_address.setter
     def billing_address(self, address):
         address_data = model_to_dict(address)
-        address_data['country'] = str(address_data['country'])
+        address_data['country'] = smart_text(address_data['country'])
         self.storage['billing_address'] = address_data
         self.modified = True
 
@@ -145,7 +146,7 @@ class Checkout(object):
     @discount.setter
     def discount(self, discount):
         amount = discount.amount
-        self.storage['discount_value'] = str(amount.net)
+        self.storage['discount_value'] = smart_text(amount.net)
         self.storage['discount_currency'] = amount.currency
         self.storage['discount_name'] = discount.name
         self.modified = True
@@ -225,7 +226,7 @@ class Checkout(object):
             shipping_required = partition.is_shipping_required()
             if shipping_required:
                 shipping_price = self.shipping_method.get_total()
-                shipping_method_name = str(self.shipping_method)
+                shipping_method_name = smart_text(self.shipping_method)
             else:
                 shipping_price = 0
                 shipping_method_name = None
