@@ -140,7 +140,7 @@ def create_payment(delivery_group):
     payment = Payment.objects.create(
         order=order,
         status=status,
-        variant='dummy',
+        variant='default',
         transaction_id=str(fake.random_int(1, 100000)),
         currency=settings.DEFAULT_CURRENCY,
         total=order.get_total().gross,
