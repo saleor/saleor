@@ -37,14 +37,14 @@ class ProductForm(AddToCartForm):
 
     def __init__(self, *args, **kwargs):
         super(ProductForm, self).__init__(*args, **kwargs)
-        variant = self.fields['variant']
-        variant.product_instance = self.product
-        variant.queryset = self.product.variants
-        variant.empty_label = None
+        variant_field = self.fields['variant']
+        variant_field.product_instance = self.product
+        variant_field.queryset = self.product.variants
+        variant_field.empty_label = None
         images_map = {variant.pk: [vi.image.image.url
                                    for vi in variant.variant_images.all()]
                       for variant in self.product.variants.all()}
-        variant.widget.attrs['data-images'] = json.dumps(images_map)
+        variant_field.widget.attrs['data-images'] = json.dumps(images_map)
 
     def get_variant(self, cleaned_data):
         return cleaned_data.get('variant')
