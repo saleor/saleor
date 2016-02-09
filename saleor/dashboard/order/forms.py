@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django import forms
 from django.conf import settings
+from django.db.models import F
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import pgettext_lazy
@@ -164,6 +165,14 @@ class ShipGroupForm(forms.ModelForm):
 
     def save(self):
         order = self.instance.order
+        for line in self.instance.items.all():
+            stock = line.stock
+            if stock is not None:
+                quantity = line.quantity
+                # remove and deallocate quantity
+                stock.quantity = F('quantity') - quantity
+                stock.quantity_allocated = F('quantity_allocated') - quantity
+                stock.save(update_fields=['quantity', 'quantity_allocated'])
         self.instance.change_status('shipped')
         statuses = [g.status for g in order.groups.all()]
         if 'shipped' in statuses and 'new' not in statuses:

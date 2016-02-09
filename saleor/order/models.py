@@ -9,6 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import F
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
@@ -231,8 +232,8 @@ class DeliveryGroup(models.Model, ItemSet):
                 stock=stock,
                 stock_location=stock.location if stock else None)
             if stock:
-                stock.quantity_allocated = (
-                    models.F('quantity_allocated') + quantity)
+                # allocate quantity to avoid overselling
+                stock.quantity_allocated = F('quantity_allocated') + quantity
                 stock.save(update_fields=['quantity_allocated'])
 
     def get_total_quantity(self):

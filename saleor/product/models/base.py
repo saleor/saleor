@@ -164,6 +164,8 @@ class ProductVariant(models.Model, Item):
             raise InsufficientStock(self)
 
     def get_stock_quantity(self):
+        if not len(self.stock.all()):
+            return 0
         return max([stock.quantity_available for stock in self.stock.all()])
 
     def get_price_per_item(self, discounts=None, **kwargs):
