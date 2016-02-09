@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django import forms
+from django.db import transaction
 from django.forms.models import inlineformset_factory, ModelChoiceIterator
 from django.utils.translation import pgettext_lazy
 
@@ -153,11 +154,12 @@ class ProductImageForm(forms.ModelForm):
     def save_variant_images(self, instance):
         variant_images = []
         # Clean up old mapping
-        instance.variant_images.all().delete()
-        for variant in self.cleaned_data['variants']:
-            variant_images.append(
-                VariantImage(variant=variant, image=instance))
-        VariantImage.objects.bulk_create(variant_images)
+        with transaction.atomic():
+            instance.variant_images.all().delete()
+            for variant in self.cleaned_data['variants']:
+                variant_images.append(
+                    VariantImage(variant=variant, image=instance))
+            VariantImage.objects.bulk_create(variant_images)
 
     def save(self, commit=True):
         instance = super(ProductImageForm, self).save(commit=commit)
