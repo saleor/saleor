@@ -134,7 +134,7 @@ class StockBulkDeleteForm(forms.Form):
 class ProductImageForm(forms.ModelForm):
     variants = forms.ModelMultipleChoiceField(
         queryset=ProductVariant.objects.none(),
-        widget=forms.CheckboxSelectMultiple)
+        widget=forms.CheckboxSelectMultiple, required=False)
 
     class Meta:
         model = ProductImage

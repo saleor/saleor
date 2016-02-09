@@ -1,3 +1,5 @@
+import json
+
 from django import forms
 from django.forms import ChoiceField
 from django.forms.models import ModelChoiceIterator
@@ -9,11 +11,12 @@ from ..cart.forms import AddToCartForm
 
 
 class VariantChoiceIterator(ModelChoiceIterator):
+    product_instance = None
+
     def __init__(self, field):
         super(VariantChoiceIterator, self).__init__(field)
-        self.product = self.queryset.instance if self.queryset else None
-        self.attributes = self.product.attributes.prefetch_related(
-            'values') if self.product else None
+        self.product = self.product_instance
+        self.attributes = self.product.attributes if self.product else None
 
     def choice(self, obj):
         label = obj.display_variant(self.attributes)
@@ -34,8 +37,14 @@ class ProductForm(AddToCartForm):
 
     def __init__(self, *args, **kwargs):
         super(ProductForm, self).__init__(*args, **kwargs)
-        self.fields['variant'].queryset = self.product.variants
-        self.fields['variant'].empty_label = None
+        variant = self.fields['variant']
+        variant.product_instance = self.product
+        variant.queryset = self.product.variants
+        variant.empty_label = None
+        images_map = {variant.pk: [vi.image.image.url
+                                   for vi in variant.variant_images.all()]
+                      for variant in self.product.variants.all()}
+        variant.widget.attrs['data-images'] = json.dumps(images_map)
 
     def get_variant(self, cleaned_data):
         return cleaned_data.get('variant')
