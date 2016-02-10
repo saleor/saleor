@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 from django import forms
 from django.conf import settings
-from django.db.models import F
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import pgettext_lazy
@@ -13,7 +12,7 @@ from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
 from ...order.models import DeliveryGroup, Order, OrderedItem, OrderNote
-from ...product.models import ProductVariant
+from ...product.models import ProductVariant, Stock
 
 
 class OrderNoteForm(forms.ModelForm):
@@ -111,7 +110,7 @@ class MoveItemsForm(forms.Form):
         choice = self.cleaned_data['target_group']
         old_group = self.item.delivery_group
         if choice == 'new':
-            # For new group we are set the same delivery name but with zero price
+            # For new group we use the same delivery name but zero price
             target_group = old_group.order.groups.create(
                 status=old_group.status,
                 shipping_method_name=old_group.shipping_method_name)
@@ -128,8 +127,9 @@ class ChangeQuantityForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ChangeQuantityForm, self).__init__(*args, **kwargs)
+        self.initial_quantity = self.instance.quantity
         self.fields['quantity'].widget.attrs.update({'min': 1})
-        self.fields['quantity'].initial = self.instance.quantity
+        self.fields['quantity'].initial = self.initial_quantity
 
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
@@ -145,6 +145,11 @@ class ChangeQuantityForm(forms.ModelForm):
 
     def save(self):
         quantity = self.cleaned_data['quantity']
+        stock = self.instance.stock
+        if stock is not None:
+            # update stock allocation
+            delta = quantity - self.initial_quantity
+            Stock.objects.allocate_stock(stock, delta)
         self.instance.change_quantity(quantity)
 
 
@@ -168,11 +173,8 @@ class ShipGroupForm(forms.ModelForm):
         for line in self.instance.items.all():
             stock = line.stock
             if stock is not None:
-                quantity = line.quantity
                 # remove and deallocate quantity
-                stock.quantity = F('quantity') - quantity
-                stock.quantity_allocated = F('quantity_allocated') - quantity
-                stock.save(update_fields=['quantity', 'quantity_allocated'])
+                Stock.objects.decrease_stock(stock, line.quantity)
         self.instance.change_status('shipped')
         statuses = [g.status for g in order.groups.all()]
         if 'shipped' in statuses and 'new' not in statuses:

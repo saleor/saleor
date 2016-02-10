@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
-from django.db.models import Q, Manager
+from django.db.models import F, Q, Manager
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
@@ -228,6 +228,22 @@ class ProductVariant(models.Model, Item):
             return stock.cost_price
 
 
+class StockManager(models.Manager):
+
+    def allocate_stock(self, stock, quantity):
+        stock.quantity_allocated = F('quantity_allocated') + quantity
+        stock.save(update_fields=['quantity_allocated'])
+
+    def deallocate_stock(self, stock, quantity):
+        stock.quantity_allocated = F('quantity_allocated') - quantity
+        stock.save(update_fields=['quantity_allocated'])
+
+    def decrease_stock(self, stock, quantity):
+        stock.quantity = F('quantity_allocated') - quantity
+        stock.quantity_allocated = F('quantity_allocated') - quantity
+        stock.save(update_fields=['quantity', 'quantity_allocated'])
+
+
 @python_2_unicode_compatible
 class Stock(models.Model):
     variant = models.ForeignKey(
@@ -245,6 +261,8 @@ class Stock(models.Model):
         pgettext_lazy('Stock item field', 'cost price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
+
+    objects = StockManager()
 
     class Meta:
         app_label = 'product'
