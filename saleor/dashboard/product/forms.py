@@ -2,11 +2,11 @@ from __future__ import unicode_literals
 
 from django import forms
 from django.db import transaction
-from django.forms.models import inlineformset_factory, ModelChoiceIterator
+from django.forms.models import ModelChoiceIterator, inlineformset_factory
 from django.utils.translation import pgettext_lazy
 
-from ...product.models import (ProductImage, Stock, ProductVariant, Product,
-                               ProductAttribute, AttributeChoiceValue,
+from ...product.models import (AttributeChoiceValue, Product, ProductAttribute,
+                               ProductImage, ProductVariant, Stock,
                                VariantImage)
 from .widgets import ImagePreviewWidget
 
@@ -151,15 +151,15 @@ class ProductImageForm(forms.ModelForm):
         if self.instance.image:
             self.fields['image'].widget = ImagePreviewWidget()
 
+    @transaction.atomic
     def save_variant_images(self, instance):
         variant_images = []
         # Clean up old mapping
-        with transaction.atomic():
-            instance.variant_images.all().delete()
-            for variant in self.cleaned_data['variants']:
-                variant_images.append(
-                    VariantImage(variant=variant, image=instance))
-            VariantImage.objects.bulk_create(variant_images)
+        instance.variant_images.all().delete()
+        for variant in self.cleaned_data['variants']:
+            variant_images.append(
+                VariantImage(variant=variant, image=instance))
+        VariantImage.objects.bulk_create(variant_images)
 
     def save(self, commit=True):
         instance = super(ProductImageForm, self).save(commit=commit)
