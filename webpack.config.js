@@ -22,13 +22,12 @@ configuration = {
     plugins: [
         new webpack.ProvidePlugin({
             $: 'jquery',
-            jQuery: 'jquery',
-            'window.jQuery': 'jquery'
-        }),
-        new webpack.ProvidePlugin({
             '_': 'underscore',
+            jQuery: 'jquery',
+            'window.jQuery': 'jquery',
             Backbone: 'backbone',
-            'window.Backbone': 'backbone'
+            'window.Backbone': 'backbone',
+            Hammer: 'hammerjs'
         }),
         new webpack.optimize.UglifyJsPlugin(),
         new webpack.optimize.DedupePlugin()

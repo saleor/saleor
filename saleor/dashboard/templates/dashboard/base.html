@@ -103,8 +103,6 @@
 
     <main class="main">
         <div class="container">
-            {% include "dashboard/includes/_messages.html" %}
-
             {% block content %}
             {% endblock %}
         </div>
@@ -118,6 +116,7 @@
     <!-- Core Scripts - Include with every page -->
     <script src="{% static "js/dashboard.js" %}"></script>
     <script src="{% static "versatileimagefield/js/versatileimagefield.js" %}"></script>
+    {% include "dashboard/includes/_messages.html" %}
 
     {% block custom_js %}{% endblock %}
 </body>
