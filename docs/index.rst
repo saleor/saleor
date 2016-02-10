@@ -8,6 +8,7 @@ Contents:
 
    install
    deploy
+   stock
 
 
 

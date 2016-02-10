@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
-from django.db.models import Q, Manager
+from django.db.models import F, Q, Manager
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
@@ -164,7 +164,9 @@ class ProductVariant(models.Model, Item):
             raise InsufficientStock(self)
 
     def get_stock_quantity(self):
-        return sum([stock.quantity for stock in self.stock.all()])
+        if not len(self.stock.all()):
+            return 0
+        return max([stock.quantity_available for stock in self.stock.all()])
 
     def get_price_per_item(self, discounts=None, **kwargs):
         price = self.price_override or self.product.price
@@ -193,7 +195,7 @@ class ProductVariant(models.Model, Item):
 
     def is_in_stock(self):
         return any(
-            [stock_item.quantity > 0 for stock_item in self.stock.all()])
+            [stock.quantity_available > 0 for stock in self.stock.all()])
 
     def get_attribute(self, pk):
         return self.attributes.get(str(pk))
@@ -211,10 +213,12 @@ class ProductVariant(models.Model, Item):
         return '%s (%s)' % (smart_text(self.product),
                             self.display_variant(attributes=attributes))
 
-    def select_stockrecord(self):
+    def select_stockrecord(self, quantity=1):
         # By default selects stock with lowest cost price
-        stock = sorted(self.stock.all(), key=lambda stock: stock.cost_price,
-                       reverse=True)
+        stock = filter(
+            lambda stock: stock.quantity_available >= quantity,
+            self.stock.all())
+        stock = sorted(stock, key=lambda stock: stock.cost_price, reverse=True)
         if stock:
             return stock[0]
 
@@ -222,6 +226,22 @@ class ProductVariant(models.Model, Item):
         stock = self.select_stockrecord()
         if stock:
             return stock.cost_price
+
+
+class StockManager(models.Manager):
+
+    def allocate_stock(self, stock, quantity):
+        stock.quantity_allocated = F('quantity_allocated') + quantity
+        stock.save(update_fields=['quantity_allocated'])
+
+    def deallocate_stock(self, stock, quantity):
+        stock.quantity_allocated = F('quantity_allocated') - quantity
+        stock.save(update_fields=['quantity_allocated'])
+
+    def decrease_stock(self, stock, quantity):
+        stock.quantity = F('quantity_allocated') - quantity
+        stock.quantity_allocated = F('quantity_allocated') - quantity
+        stock.save(update_fields=['quantity', 'quantity_allocated'])
 
 
 @python_2_unicode_compatible
@@ -234,10 +254,15 @@ class Stock(models.Model):
     quantity = models.IntegerField(
         pgettext_lazy('Stock item field', 'quantity'),
         validators=[MinValueValidator(0)], default=Decimal(1))
+    quantity_allocated = models.IntegerField(
+        pgettext_lazy('Stock item field', 'allocated quantity'),
+        validators=[MinValueValidator(0)], default=Decimal(0))
     cost_price = PriceField(
         pgettext_lazy('Stock item field', 'cost price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
+
+    objects = StockManager()
 
     class Meta:
         app_label = 'product'
@@ -245,6 +270,10 @@ class Stock(models.Model):
 
     def __str__(self):
         return '%s - %s' % (self.variant.name, self.location)
+
+    @property
+    def quantity_available(self):
+        return max(self.quantity - self.quantity_allocated, 0)
 
 
 @python_2_unicode_compatible

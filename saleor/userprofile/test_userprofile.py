@@ -1,7 +1,22 @@
+# encoding: utf-8
+from __future__ import unicode_literals
+
 import i18naddress
 import pytest
 
 from . import forms
+from . import models
+
+
+@pytest.fixture
+def billing_address(db):
+    return models.Address.objects.create(
+        first_name='John', last_name='Doe',
+        company_name='Mirumee Software',
+        street_address_1='Tęczowa 7',
+        city='Wrocław',
+        postal_code='53-601',
+        country='PL')
 
 
 @pytest.mark.parametrize('country', ['CN', 'PL', 'US'])

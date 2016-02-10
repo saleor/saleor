@@ -235,8 +235,9 @@
                                         <label for="select-all-stock"></label>
                                     </th>
                                     <th>{% trans "SKU" %}</th>
-                                    <th class="right-align">{% trans "Quantity" %}</th>
                                     <th class="wide">{% trans "Location" %}</th>
+                                    <th class="right-align">{% trans "Quantity" %}</th>
+                                    <th class="right-align">{% trans "Allocated" %}</th>
                                 </tr>
                             </thead>
 
@@ -251,8 +252,9 @@
                                                     href="{% url 'dashboard:product-stock-update' product_pk=product.pk stock_pk=item.pk %}">
                                             {{ item.variant.sku }}
                                         </a></td>
-                                        <td class="right-align">{{ item.quantity }}</td>
                                         <td>{{ item.location }}</td>
+                                        <td class="right-align">{{ item.quantity }}</td>
+                                        <td class="right-align">{{ item.quantity_allocated }}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>

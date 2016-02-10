@@ -20,7 +20,7 @@ from satchless.item import ItemLine, ItemSet
 
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
-from ..product.models import Product, ProductVariant
+from ..product.models import Product, Stock
 from ..userprofile.models import Address
 
 
@@ -28,14 +28,12 @@ from ..userprofile.models import Address
 class Order(models.Model, ItemSet):
     STATUS_CHOICES = (
         ('new', pgettext_lazy('Order status field value', 'Processing')),
-        ('cancelled', pgettext_lazy('Order status field value',
-                                    'Cancelled')),
+        ('cancelled', pgettext_lazy('Order status field value', 'Cancelled')),
         ('payment-pending', pgettext_lazy('Order status field value',
                                           'Waiting for payment')),
         ('fully-paid', pgettext_lazy('Order status field value',
                                      'Fully paid')),
-        ('shipped', pgettext_lazy('Order status field value',
-                                  'Shipped')))
+        ('shipped', pgettext_lazy('Order status field value', 'Shipped')))
     status = models.CharField(
         pgettext_lazy('Order field', 'order status'),
         max_length=32, choices=STATUS_CHOICES, default='new')
@@ -48,13 +46,14 @@ class Order(models.Model, ItemSet):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='orders',
         verbose_name=pgettext_lazy('Order field', 'user'))
-    tracking_client_id = models.CharField(max_length=36, blank=True,
-                                          editable=False)
-    billing_address = models.ForeignKey(Address, related_name='+',
-                                        editable=False)
-    shipping_address = models.ForeignKey(Address, related_name='+',
-                                         editable=False, null=True)
-    anonymous_user_email = models.EmailField(blank=True, default='', editable=False)
+    tracking_client_id = models.CharField(
+        max_length=36, blank=True, editable=False)
+    billing_address = models.ForeignKey(
+        Address, related_name='+', editable=False)
+    shipping_address = models.ForeignKey(
+        Address, related_name='+', editable=False, null=True)
+    anonymous_user_email = models.EmailField(
+        blank=True, default='', editable=False)
     token = models.CharField(
         pgettext_lazy('Order field', 'token'), max_length=36, unique=True)
     total_net = PriceField(
@@ -219,16 +218,20 @@ class DeliveryGroup(models.Model, ItemSet):
         for item_line in partition:
             product_variant = item_line.product
             price = item_line.get_price_per_item()
-            stock = product_variant.select_stockrecord()
+            quantity = item_line.get_quantity()
+            stock = product_variant.select_stockrecord(quantity)
             self.items.create(
                 product=product_variant.product,
-                quantity=item_line.get_quantity(),
+                quantity=quantity,
                 unit_price_net=price.net,
                 product_name=smart_text(product_variant),
                 product_sku=product_variant.sku,
                 unit_price_gross=price.gross,
                 stock=stock,
                 stock_location=stock.location if stock else None)
+            if stock:
+                # allocate quantity to avoid overselling
+                Stock.objects.allocate_stock(stock, quantity)
 
     def get_total_quantity(self):
         return sum([item.get_quantity() for item in self])
@@ -254,6 +257,7 @@ class OrderedItemManager(models.Manager):
                 delivery_group=target_group, product=item.product,
                 product_name=item.product_name, product_sku=item.product_sku,
                 quantity=quantity, unit_price_net=item.unit_price_net,
+                stock=item.stock,
                 unit_price_gross=item.unit_price_gross)
         else:
             target_item.quantity += quantity
