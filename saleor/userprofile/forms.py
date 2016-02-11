@@ -1,3 +1,6 @@
+# encoding: utf-8
+from __future__ import unicode_literals
+
 from collections import defaultdict
 
 from django import forms
@@ -66,25 +69,26 @@ class AddressForm(forms.ModelForm):
             error = error_messages[errors['street_address']] % {
                 'value': street_address}
             self.add_error('street_address_1', error)
-        if 'city' in errors:
+        if 'city' in errors and errors['city'] == 'required':
             error = error_messages[errors['city']] % {
                 'value': city}
             self.add_error('city', error)
-        if 'city_area' in errors:
+        if 'city_area' in errors and errors['city_area'] == 'required':
             error = error_messages[errors['city_area']] % {
                 'value': city_area}
             self.add_error('city_area', error)
-        if 'country_area' in errors:
+        if 'country_area' in errors and errors['country_area'] == 'required':
             error = error_messages[errors['country_area']] % {
                 'value': country_area}
             self.add_error('country_area', error)
         if 'postal_code' in errors:
             if errors['postal_code'] == 'invalid':
-                postal_code_example = validation_data.postal_code_example
-                if postal_code_example:
+                example = validation_data.postal_code_example
+                if example:
+                    example = example.replace(',', ', ')
                     error = _(
-                        'Invalid postal code. Ex. %(example)s') % {
-                            'example': postal_code_example}
+                        'Invalid postal code. Please follow the format: %(example)s') % {
+                            'example': example}
                 else:
                     error = _('Invalid postal code.')
             else:
