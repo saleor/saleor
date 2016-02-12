@@ -171,7 +171,7 @@ class Voucher(models.Model):
                 msg = pgettext(
                     'voucher', 'Please select a shipping method first.')
                 raise NotApplicable(msg)
-            if (self.apply_to is not None and
+            if (self.apply_to and
                     shipping_method.country_code != self.apply_to):
                 msg = pgettext(
                     'voucher', 'This offer is only valid in %(country)s.')

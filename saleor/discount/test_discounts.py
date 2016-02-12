@@ -98,6 +98,7 @@ def test_value_voucher_checkout_discount_not_applicable(settings):
     'shipping_cost, shipping_country_code, discount_value, discount_type, apply_to, expected_value', [  # noqa
         (10, None, 50, Voucher.DISCOUNT_VALUE_PERCENTAGE, None, 5),
         (10, None, 20, Voucher.DISCOUNT_VALUE_FIXED, None, 10),
+        (10, 'PL', 20, Voucher.DISCOUNT_VALUE_FIXED, '', 10),
         (5, 'PL', 5, Voucher.DISCOUNT_VALUE_FIXED, 'PL', 5)])
 def test_shipping_voucher_checkout_discount(settings, shipping_cost,
                                             shipping_country_code,
