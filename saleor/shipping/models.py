@@ -61,7 +61,7 @@ class ShippingMethodCountryQueryset(models.QuerySet):
 @python_2_unicode_compatible
 class ShippingMethodCountry(models.Model):
 
-    ANY_COUNTRY = None
+    ANY_COUNTRY = ''
     COUNTRY_CODE_CHOICES = [(ANY_COUNTRY, _('Any country'))] + list(COUNTRIES.items())
 
     country_code = models.CharField(
