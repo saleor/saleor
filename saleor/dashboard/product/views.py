@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.contrib import messages
+from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url
@@ -91,7 +92,9 @@ def stock_edit(request, product_pk, stock_pk=None):
     if form.is_valid():
         form.save()
         messages.success(request, _('Saved stock'))
-        success_url = request.POST['success_url']
+        product_url = reverse(
+            'dashboard:product-update', kwargs={'pk': product_pk})
+        success_url = request.POST.get('success_url', product_url)
         if is_safe_url(success_url, request.get_host()):
             return redirect(success_url)
     ctx = {'form': form, 'product': product, 'stock': stock}

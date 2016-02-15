@@ -27,7 +27,7 @@ class ProductClassForm(forms.Form):
 class StockForm(forms.ModelForm):
     class Meta:
         model = Stock
-        exclude = []
+        exclude = ['quantity_allocated']
 
     def __init__(self, *args, **kwargs):
         product = kwargs.pop('product')
