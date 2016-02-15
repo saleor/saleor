@@ -100,6 +100,8 @@ def confirm_email(request, token):
         except EmailConfirmationRequest.DoesNotExist:
             return TemplateResponse(request, 'registration/invalid_token.html')
         user = email_confirmation_request.get_authenticated_user()
+        if user is None:
+            return TemplateResponse(request, 'registration/invalid_token.html')
         email_confirmation_request.delete()
         auth_login(request, user)
         messages.success(request, _('You are now logged in.'))
