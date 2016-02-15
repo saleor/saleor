@@ -11,8 +11,9 @@ from payments.models import PAYMENT_STATUS_CHOICES
 from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
-from ...order.models import DeliveryGroup, Order, OrderedItem, OrderNote
+from ...order.models import DeliveryGroup, OrderedItem, OrderNote
 from ...product.models import ProductVariant, Stock
+from ...order import Status
 
 
 class OrderNoteForm(forms.ModelForm):
@@ -182,7 +183,7 @@ class ShipGroupForm(forms.ModelForm):
 
 
 ORDER_STATUS_CHOICES = (('', pgettext_lazy('Order status field value',
-                                           'All')),) + Order.STATUS_CHOICES
+                                           'All')),) + Status.CHOICES
 
 PAYMENT_STATUS_CHOICES = (('', pgettext_lazy('Payment status field value',
                                              'All')),) + PAYMENT_STATUS_CHOICES

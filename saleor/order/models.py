@@ -22,21 +22,13 @@ from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product, Stock
 from ..userprofile.models import Address
-
+from . import Status
 
 @python_2_unicode_compatible
 class Order(models.Model, ItemSet):
-    STATUS_CHOICES = (
-        ('new', pgettext_lazy('Order status field value', 'Processing')),
-        ('cancelled', pgettext_lazy('Order status field value', 'Cancelled')),
-        ('payment-pending', pgettext_lazy('Order status field value',
-                                          'Waiting for payment')),
-        ('fully-paid', pgettext_lazy('Order status field value',
-                                     'Fully paid')),
-        ('shipped', pgettext_lazy('Order status field value', 'Shipped')))
     status = models.CharField(
         pgettext_lazy('Order field', 'order status'),
-        max_length=32, choices=STATUS_CHOICES, default='new')
+        max_length=32, choices=Status.CHOICES, default=Status.NEW)
     created = models.DateTimeField(
         pgettext_lazy('Order field', 'created'),
         default=now, editable=False)
@@ -168,18 +160,14 @@ class Order(models.Model, ItemSet):
         self.total_net = price
         self.total_tax = Price(price.tax, currency=price.currency)
 
+    def can_cancel(self):
+        return self.status not in (Status.CANCELLED, Status.SHIPPED)
+
 
 class DeliveryGroup(models.Model, ItemSet):
-    STATUS_CHOICES = (
-        ('new',
-         pgettext_lazy('Delivery group status field value', 'Processing')),
-        ('cancelled', pgettext_lazy('Delivery group status field value',
-                                    'Cancelled')),
-        ('shipped', pgettext_lazy('Delivery group status field value',
-                                  'Shipped')))
     status = models.CharField(
         pgettext_lazy('Delivery group field', 'delivery status'),
-        max_length=32, default='new', choices=STATUS_CHOICES)
+        max_length=32, default=Status.NEW, choices=Status.CHOICES)
     order = models.ForeignKey(Order, related_name='groups', editable=False)
     shipping_price = PriceField(
         pgettext_lazy('Delivery group field', 'shipping price'),
@@ -380,7 +368,7 @@ class OrderHistoryEntry(models.Model):
     order = models.ForeignKey(Order, related_name='history')
     status = models.CharField(
         pgettext_lazy('Order field', 'order status'),
-        max_length=32, choices=Order.STATUS_CHOICES)
+        max_length=32, choices=Status.CHOICES)
     comment = models.CharField(max_length=100, default='', blank=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True)
 
