@@ -51,7 +51,10 @@ class EmailConfirmationRequest(AbstractToken):
 
     def get_authenticated_user(self):
         user, dummy_created = get_user_model().objects.get_or_create(
-            email=self.email)
+            email=self.email, defaults={'is_active': True})
+        if not user.is_active:
+            # you shouldn't be able to log in if your account is disabled
+            return
         return authenticate(user=user)
 
     def get_confirmation_url(self):
