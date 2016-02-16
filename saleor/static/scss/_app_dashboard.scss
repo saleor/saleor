@@ -292,6 +292,7 @@ table {
       width: 100%;
     }
   }
+  overflow: initial;
 }
 
 .no-margin {
@@ -312,9 +313,11 @@ table {
   font-size: 120%;
 }
 
-.order-summary {
-  td {
-    padding: 5px 5px;
+#order-details {
+  .order-summary {
+    td {
+      padding: 5px 5px;
+    }
   }
 }
 
