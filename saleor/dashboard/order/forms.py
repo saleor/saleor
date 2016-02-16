@@ -121,6 +121,18 @@ class MoveItemsForm(forms.Form):
         return target_group
 
 
+class CancelItemsForm(forms.Form):
+
+    def __init__(self, *args, **kwargs):
+        self.item = kwargs.pop('item')
+        super(CancelItemsForm, self).__init__(*args, **kwargs)
+
+    def cancel_item(self):
+        delivery_group = self.item.delivery_group
+        self.item.delete()
+        delivery_group.order.recalculate()
+
+
 class ChangeQuantityForm(forms.ModelForm):
     class Meta:
         model = OrderedItem
@@ -181,6 +193,22 @@ class ShipGroupForm(forms.ModelForm):
         statuses = [g.status for g in order.groups.all()]
         if 'shipped' in statuses and 'new' not in statuses:
             order.change_status('shipped')
+
+
+class CancelOrderForm(forms.Form):
+
+    def __init__(self, *args, **kwargs):
+        self.order = kwargs.pop('order')
+        super(CancelOrderForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        data = super(CancelOrderForm, self).clean()
+        if not self.order.can_cancel():
+            raise forms.ValidationError(_('This order can\'t be cancelled'))
+        return data
+
+    def cancel_order(self):
+        self.order.change_status(status=Status.CANCELLED)
 
 
 ORDER_STATUS_CHOICES = (('', pgettext_lazy('Order status field value',

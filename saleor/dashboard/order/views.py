@@ -16,7 +16,8 @@ from ..views import (StaffMemberOnlyMixin, FilterByStatusMixin,
                      staff_member_required)
 from .forms import (OrderNoteForm, MoveItemsForm,
                     ChangeQuantityForm, ShipGroupForm, CapturePaymentForm,
-                    ReleasePaymentForm, RefundPaymentForm)
+                    ReleasePaymentForm, RefundPaymentForm, CancelItemsForm,
+                    CancelOrderForm)
 
 
 class OrderListView(StaffMemberOnlyMixin, FilterByStatusMixin, ListView):
@@ -42,6 +43,7 @@ def order_details(request, order_pk):
     payment = order.payments.last()
     groups = list(order)
     captured = preauthorized = Price(0, currency=order.get_total().currency)
+    balance = captured - order.get_total()
     if payment:
         can_capture = (payment.status == 'preauth' and
                        order.status != 'cancelled')
@@ -50,13 +52,15 @@ def order_details(request, order_pk):
         preauthorized = payment.get_total_price()
         if payment.status == 'confirmed':
             captured = payment.get_captured_price()
+            balance = captured - order.get_total()
     else:
         can_capture = can_release = can_refund = False
 
     ctx = {'order': order, 'all_payments': all_payments, 'payment': payment,
            'notes': notes, 'groups': groups, 'captured': captured,
            'preauthorized': preauthorized, 'can_capture': can_capture,
-           'can_release': can_release, 'can_refund': can_refund}
+           'can_release': can_release, 'can_refund': can_refund,
+           'balance': balance}
     return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
 
 
@@ -193,6 +197,26 @@ def orderline_split(request, order_pk, line_pk):
 
 
 @staff_member_required
+def orderline_cancel(request, order_pk, line_pk):
+    order = get_object_or_404(Order, pk=order_pk)
+    item = get_object_or_404(OrderedItem.objects.filter(
+        delivery_group__order=order), pk=line_pk)
+    form = CancelItemsForm(data=request.POST or None, item=item)
+    status = 200
+    if form.is_valid():
+        msg = _('Cancelled item %s') % item
+        with transaction.atomic():
+            form.cancel_item()
+            order.create_history_entry(comment=msg, user=request.user)
+        return redirect('dashboard:order-details', order_pk=order.pk)
+    elif form.errors:
+        status = 400
+    ctx = {'order': order, 'item': item}
+    return TemplateResponse(request, 'dashboard/order/modal_cancel_line.html',
+                            ctx, status=status)
+
+
+@staff_member_required
 def ship_delivery_group(request, order_pk, group_pk):
     order = get_object_or_404(Order, pk=order_pk)
     group = get_object_or_404(order.groups.all(), pk=group_pk)
@@ -231,4 +255,24 @@ def address_view(request, order_pk, address_type):
         status = 400
     ctx = {'order': order, 'address_type': address_type, 'form': form}
     return TemplateResponse(request, 'dashboard/order/modal_address_edit.html',
+                            ctx, status=status)
+
+
+@staff_member_required
+def cancel_order(request, order_pk):
+    status = 200
+    order = get_object_or_404(Order, pk=order_pk)
+    form = CancelOrderForm(request.POST or None, order=order)
+    if form.is_valid():
+        msg = _('Cancelled order')
+        with transaction.atomic():
+            form.cancel_order()
+            order.create_history_entry(comment=msg, user=request.user)
+        messages.success(request, 'Order cancelled')
+        return redirect('dashboard:order-details', order_pk=order.pk)
+        # TODO: send status confirmation email
+    elif form.errors:
+        status = 400
+    ctx = {'order': order}
+    return TemplateResponse(request, 'dashboard/order/modal_cancel_order.html',
                             ctx, status=status)

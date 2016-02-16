@@ -96,6 +96,10 @@
                                 <td>{% trans "Captured amount" %}</td>
                                 <td class="right-align">{% gross captured %}</td>
                             </tr>
+                            <tr>
+                                <td>{% trans "Outstanding balance" %}</td>
+                                <td class="right-align">{% gross balance %}</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -242,7 +246,7 @@
                                                 </li>
                                                 <li>
                                                     <a href="#base-modal" data-href="{% url 'dashboard:orderline-cancel' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom"
-                                                        {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Cancel line" %}">
+                                                        title="{% trans "Cancel line" %}">
                                                         {% trans "Cancel line" %}
                                                     </a>
                                                 </li>
@@ -265,10 +269,6 @@
             {% endfor %}
 
             <div class="card" id="order-totals">
-                <div class="data-table-header">
-                        <h5 class="data-table-title">{% trans "Total" %}</h5>
-                </div>
-
                 <div class="data-table-container">
                     <table class="bordered hoverable responsive data-table">
                         <tfoot>

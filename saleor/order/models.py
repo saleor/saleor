@@ -329,9 +329,6 @@ class OrderedItem(models.Model, ItemLine):
         if not order.get_items():
             order.change_status('cancelled')
 
-    def can_cancel(self):
-        return self.status not in (Status.SHIPPED, Status.CANCELLED)
-
 
 class PaymentManager(models.Manager):
 
