@@ -152,6 +152,7 @@ class ChangeQuantityForm(forms.ModelForm):
             delta = quantity - self.initial_quantity
             Stock.objects.allocate_stock(stock, delta)
         self.instance.change_quantity(quantity)
+        self.instance.delivery_group.order.recalculate()
 
 
 class ShipGroupForm(forms.ModelForm):
