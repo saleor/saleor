@@ -24,6 +24,7 @@ from ..product.models import Product, Stock
 from ..userprofile.models import Address
 from . import Status
 
+
 @python_2_unicode_compatible
 class Order(models.Model, ItemSet):
     status = models.CharField(
@@ -163,6 +164,18 @@ class Order(models.Model, ItemSet):
     def can_cancel(self):
         return self.status not in (Status.CANCELLED, Status.SHIPPED)
 
+    def recalculate(self):
+        prices = [group.get_total() for group in self]
+        total_net = sum(p.net for p in prices)
+        total_gross = sum(p.gross for p in prices)
+        shipping = [group.shipping_price for group in self]
+        total_shipping = sum(shipping[1:], shipping[0])
+        total = Price(net=total_net, gross=total_gross,
+                      currency=settings.DEFAULT_CURRENCY)
+        total += total_shipping
+        self.total = total
+        self.save()
+
 
 class DeliveryGroup(models.Model, ItemSet):
     status = models.CharField(
@@ -197,6 +210,12 @@ class DeliveryGroup(models.Model, ItemSet):
     def change_status(self, status):
         self.status = status
         self.save()
+
+    def get_subtotal(self, item, **kwargs):
+        zero = Price(net=0, currency=settings.DEFAULT_CURRENCY)
+        if item.status != Status.CANCELLED:
+            return item.get_total(**kwargs)
+        return zero
 
     def get_total(self, **kwargs):
         subtotal = super(DeliveryGroup, self).get_total(**kwargs)
@@ -308,6 +327,9 @@ class OrderedItem(models.Model, ItemLine):
             self.delivery_group.delete()
         if not order.get_items():
             order.change_status('cancelled')
+
+    def can_cancel(self):
+        return self.status not in (Status.SHIPPED, Status.CANCELLED)
 
 
 class PaymentManager(models.Manager):
