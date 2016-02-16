@@ -3,6 +3,7 @@
 {% load i18n %}
 {% load materializecss %}
 {% load status %}
+{% load discount_amount_for from prices %}
 
 {% block title %}{{ order }} - {% trans "Orders" %} - {{ block.super }}{% endblock %}
 
@@ -11,6 +12,22 @@
 {% block header_menu %}
     {% url "dashboard:orders" as url %}
     {% include "dashboard/includes/_back-link.html" with url=url %}
+{% endblock %}
+
+{% block header_extra %}
+    {% if order.can_cancel %}
+        <a class="dropdown-button" href="#" data-activates="context-menu" data-constrainwidth="false">
+            <i class="mdi-navigation-more-vert"></i>
+        </a>
+        <ul id="context-menu" class="dropdown-content">
+            <li>
+                <a href="#base-modal" data-href="{% url "dashboard:order-cancel" order_pk=order.pk %}"
+                   class="modal-trigger-custom">
+                    {% trans "Cancel Order" %}
+                </a>
+            </li>
+        </ul>
+    {% endif %}
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -47,24 +64,57 @@
                 <div class="card-content">
                     <span class="card-title black-text">Order summary</span>
 
-                    <ul>
-                        {% if order.discount_amount %}
-                            <li>{{ order.discount_name }}: <strong>-&nbsp;{% gross order.discount_amount %}</strong></li>
-                        {% endif %}
-                        <li class="text-lg">{% trans "Order total" %}: <strong>{% gross order.get_total %}</strong></li>
-                        <li>
-                            {% trans "Customer:" %}
-                            {% if order.user %}
-                                <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a>
-                            {% else %}
-                                {% trans "Account" %}: {% trans "Guest" %}
-                            {% endif %}
-                        </li>
-                        <li>{% trans "Order date:" %}  {{ order.created }}</li>
-                        <li>{% trans "Order status:" %}  {% render_status order.status order.get_status_display %}</li>
-                        <li>{% trans "Payment status:" %}  {% if payment %}{% render_status payment.status payment.get_status_display %}{% else %}{% trans "N/A" %}{% endif %}</li>
-                    </ul>
+                    <table class="order-summary">
+                        <tbody>
+                            <tr>
+                                <td>{% trans "Account" %}</td>
+                                <td class="right-align">
+                                    {% if order.user %}
+                                        <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a>
+                                    {% else %}
+                                        {% trans "Guest" %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>{% trans "Order status" %}</td>
+                                <td class="right-align">{% render_status order.status order.get_status_display %}</td>
+                            </tr>
+                            <tr>
+                                <td>{% trans "Payment status:" %}</td>
+                                <td class="right-align">{% if payment %}{% render_status payment.status payment.get_status_display %}{% else %}{% trans "N/A" %}{% endif %}</td>
+                            </tr>
+                            <tr>
+                                <td>{% trans "Order total" %}</td>
+                                <td class="right-align"><strong>{% gross order.get_total %}</strong></td>
+                            </tr>
+                            <tr>
+                                <td>{% trans "Preauthorized amount" %}</td>
+                                <td class="right-align">{% if preauthorized %}{% gross preauthorized %}{% else %}{% trans "N/A" %}{% endif %}</td>
+                            </tr>
+                            <tr>
+                                <td>{% trans "Captured amount" %}</td>
+                                <td class="right-align">{% gross captured %}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
+
+                {% if can_capture or can_refund or can_release %}
+                    <div class="card-action">
+                        {% if can_capture %}
+                            <a href="#base-modal" data-href="{% url 'dashboard:capture-payment' order_pk=order.pk payment_pk=payment.pk %}"
+                               class="modal-trigger-custom">{% trans "Capture" %}</a>
+                        {% elif can_refund %}
+                            <a href="#base-modal" data-href="{% url 'dashboard:refund-payment' order_pk=order.pk payment_pk=payment.pk %}"
+                               class="modal-trigger-custom">{% trans "Refund" %}</a>
+                        {% endif %}
+                        {% if can_release %}
+                            <a href="#base-modal" data-href="{% url 'dashboard:release-payment' order_pk=order.pk payment_pk=payment.pk %}"
+                               class="modal-trigger-custom">{% trans "Release" %}</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
             </div>
 
             {% with order.shipping_address as address %}
@@ -117,10 +167,22 @@
             {% for group in groups %}
                 <div class="card">
                     <div class="data-table-header">
-                        <h5 class="data-table-title">
-                            {% blocktrans with shipment=group.id %}Shipment #{{ shipment }}{% endblocktrans %}
-                            {% render_status group.status group.get_status_display %}
-                        </h5>
+                            <h5 class="data-table-title">
+                                {% blocktrans with shipment=group.id %}Shipment #{{ shipment }}{% endblocktrans %}
+                                <a class="dropdown-button right" href="#" data-activates="group-actions-{{ group.pk }}" data-constrainwidth="false">
+                                    <i class="mdi-navigation-more-vert"></i>
+                                </a>
+                                {% render_status group.status group.get_status_display %}
+                            </h5>
+
+                            <ul id="group-actions-{{ group.pk }}" class="dropdown-content">
+                                <li>
+                                    <a href="#base-modal" data-href="#" class="modal-trigger-custom"
+                                        {% if group.status != 'shipped' %} disabled{% endif %} title="{% trans "Cancel group" %}">
+                                        {% trans "Cancel group" %}
+                                    </a>
+                                </li>
+                            </ul>
                     </div>
 
                     <div class="data-table-container">
@@ -148,13 +210,6 @@
                                         <td class="no-padded"></td>
                                     </tr>
                                 {% endif %}
-                                <tr>
-                                    <td colspan="4">{% trans "Total" %}</td>
-                                    <td class="right-align">
-                                        <strong>{% gross group.get_total %}</strong>
-                                    </td>
-                                    <td class="no-padded"></td>
-                                </tr>
                             </tfoot>
 
                             <tbody>
@@ -185,6 +240,12 @@
                                                         {% trans "Split order line" %}
                                                     </a>
                                                 </li>
+                                                <li>
+                                                    <a href="#base-modal" data-href="{% url 'dashboard:orderline-cancel' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom"
+                                                        {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Cancel line" %}">
+                                                        {% trans "Cancel line" %}
+                                                    </a>
+                                                </li>
                                             </ul>
                                         </td>
                                     </tr>
@@ -203,35 +264,69 @@
                 </div>
             {% endfor %}
 
-            <div class="card">
-                <div class="card-content">
-                    <span class="card-title black-text">{% trans "Manage payment" %}</span>
-
-                    {% if payment %}
-                        <p>{% trans "Preauthorized amount:" %} {% if preauthorized %}{% gross preauthorized %}{% else %}{% trans "N/A" %}{% endif %}</p>
-                        {% if captured %}
-                            <p>{% trans "Captured amount" %}: {% gross captured %}</p>
-                        {% endif %}
-                    {% else %}
-                        <p>{% trans "There are no payments assigned with this order." %}</p>
-                    {% endif %}
+            <div class="card" id="order-totals">
+                <div class="data-table-header">
+                        <h5 class="data-table-title">{% trans "Total" %}</h5>
                 </div>
 
-                {% if can_capture or can_refund or can_release %}
-                    <div class="card-action">
-                        {% if can_capture %}
-                            <a href="#base-modal" data-href="{% url 'dashboard:capture-payment' order_pk=order.pk payment_pk=payment.pk %}"
-                               class="modal-trigger-custom">{% trans "Capture" %}</a>
-                        {% elif can_refund %}
-                            <a href="#base-modal" data-href="{% url 'dashboard:refund-payment' order_pk=order.pk payment_pk=payment.pk %}"
-                               class="modal-trigger-custom">{% trans "Refund" %}</a>
-                        {% endif %}
-                        {% if can_release %}
-                            <a href="#base-modal" data-href="{% url 'dashboard:release-payment' order_pk=order.pk payment_pk=payment.pk %}"
-                               class="modal-trigger-custom">{% trans "Release" %}</a>
-                        {% endif %}
-                    </div>
-                {% endif %}
+                <div class="data-table-container">
+                    <table class="bordered hoverable responsive data-table">
+                        <tfoot>
+                            <tr>
+                                <td>
+                                    {% trans "Grand total" %}
+                                </td>
+                                <td>
+                                    {% gross order.get_total %}
+                                </td>
+                                <td class="no-padded"></td>
+                            </tr>
+                        </tfoot>
+
+                        <tbody>
+                            <tr>
+                                <td class="wide">
+                                    {% trans "Subtotal" %}
+                                </td>
+                                <td class="right-align">
+                                    {% gross order.get_subtotal_without_voucher %}
+                                </td>
+                                <td class="no-padded"></td>
+                            </tr>
+                            <tr>
+                                <td>{% trans "Shipping" %}</td>
+                                <td class="right-align">
+                                    {% gross order.get_total_shipping %}
+                                </td>
+                                <td class="no-padded"></td>
+                            </tr>
+                            {% if order.discount_amount %}
+                                <tr>
+                                    <td>
+                                        {% blocktrans with voucher=order.discount_name %}Voucher {{ voucher }}{% endblocktrans %}
+                                    </td>
+                                    <td class="right-align">
+                                        {% gross order.discount|discount_amount_for:order.total %}
+                                    </td>
+                                    <td class="no-padded">
+                                        <a class="dropdown-button" href="#" data-activates="voucher-actions" data-constrainwidth="false">
+                                            <i class="mdi-navigation-more-vert"></i>
+                                        </a>
+
+                                        <ul id="voucher-actions" class="dropdown-content">
+                                            <li>
+                                                <a href="#base-modal" data-href="#" class="modal-trigger-custom"
+                                                    title="{% trans "Remove voucher" %}">
+                                                    {% trans "Remove voucher" %}
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="card" id="order-notes">

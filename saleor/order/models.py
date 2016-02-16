@@ -161,6 +161,13 @@ class Order(models.Model, ItemSet):
         self.total_net = price
         self.total_tax = Price(price.tax, currency=price.currency)
 
+    def get_subtotal_without_voucher(self):
+        return super(Order, self).get_total()
+
+    def get_total_shipping(self):
+        costs = [group.shipping_price for group in self]
+        return sum(costs[1:], costs[0])
+
     def can_cancel(self):
         return self.status not in (Status.CANCELLED, Status.SHIPPED)
 
@@ -210,12 +217,6 @@ class DeliveryGroup(models.Model, ItemSet):
     def change_status(self, status):
         self.status = status
         self.save()
-
-    def get_subtotal(self, item, **kwargs):
-        zero = Price(net=0, currency=settings.DEFAULT_CURRENCY)
-        if item.status != Status.CANCELLED:
-            return item.get_total(**kwargs)
-        return zero
 
     def get_total(self, **kwargs):
         subtotal = super(DeliveryGroup, self).get_total(**kwargs)

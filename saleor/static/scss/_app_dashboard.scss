@@ -312,6 +312,12 @@ table {
   font-size: 120%;
 }
 
+.order-summary {
+  td {
+    padding: 5px 5px;
+  }
+}
+
 @import "widget/breadcrumbs";
 @import "widget/card";
 @import "widget/data-table";
