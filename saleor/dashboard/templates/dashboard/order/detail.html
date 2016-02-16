@@ -315,7 +315,7 @@
 
                                         <ul id="voucher-actions" class="dropdown-content">
                                             <li>
-                                                <a href="#base-modal" data-href="#" class="modal-trigger-custom"
+                                                <a href="#base-modal" data-href="{% url 'dashboard:order-remove-voucher' order_pk=order.pk %}" class="modal-trigger-custom"
                                                     title="{% trans "Remove voucher" %}">
                                                     {% trans "Remove voucher" %}
                                                 </a>

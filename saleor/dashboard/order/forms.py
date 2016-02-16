@@ -3,17 +3,17 @@ from __future__ import unicode_literals
 from django import forms
 from django.conf import settings
 from django.shortcuts import get_object_or_404
-from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import pgettext_lazy
+from django.utils.translation import ugettext_lazy as _
 from django_prices.forms import PriceField
 from payments import PaymentError
 from payments.models import PAYMENT_STATUS_CHOICES
 from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
+from ...order import Status
 from ...order.models import DeliveryGroup, OrderedItem, OrderNote
 from ...product.models import ProductVariant, Stock
-from ...order import Status
 
 
 class OrderNoteForm(forms.ModelForm):
@@ -210,6 +210,18 @@ class CancelOrderForm(forms.Form):
     def cancel_order(self):
         self.order.change_status(status=Status.CANCELLED)
 
+
+class RemoveVoucherForm(forms.Form):
+
+    def __init__(self, *args, **kwargs):
+        self.order = kwargs.pop('order')
+        super(RemoveVoucherForm, self).__init__(*args, **kwargs)
+
+    def remove_voucher(self):
+        self.order.discount_amount = 0
+        self.order.discount_name = ''
+        self.order.voucher = None
+        self.order.recalculate()
 
 ORDER_STATUS_CHOICES = (('', pgettext_lazy('Order status field value',
                                            'All')),) + Status.CHOICES

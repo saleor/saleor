@@ -12,12 +12,12 @@ from prices import Price
 
 from ...order.models import Order, OrderedItem, OrderNote
 from ...userprofile.forms import AddressForm
-from ..views import (StaffMemberOnlyMixin, FilterByStatusMixin,
+from ..views import (FilterByStatusMixin, StaffMemberOnlyMixin,
                      staff_member_required)
-from .forms import (OrderNoteForm, MoveItemsForm,
-                    ChangeQuantityForm, ShipGroupForm, CapturePaymentForm,
-                    ReleasePaymentForm, RefundPaymentForm, CancelItemsForm,
-                    CancelOrderForm)
+from .forms import (CancelItemsForm, CancelOrderForm, CapturePaymentForm,
+                    ChangeQuantityForm, MoveItemsForm, OrderNoteForm,
+                    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm,
+                    ShipGroupForm)
 
 
 class OrderListView(StaffMemberOnlyMixin, FilterByStatusMixin, ListView):
@@ -275,4 +275,24 @@ def cancel_order(request, order_pk):
         status = 400
     ctx = {'order': order}
     return TemplateResponse(request, 'dashboard/order/modal_cancel_order.html',
+                            ctx, status=status)
+
+
+
+def remove_order_voucher(request, order_pk):
+    status = 200
+    order = get_object_or_404(Order, pk=order_pk)
+    form = RemoveVoucherForm(request.POST or None, order=order)
+    if form.is_valid():
+        msg = _('Removed voucher from Order')
+        with transaction.atomic():
+            form.remove_voucher()
+            order.create_history_entry(comment=msg, user=request.user)
+        messages.success(request, 'Voucher removed')
+        return redirect('dashboard:order-details', order_pk=order.pk)
+    elif form.errors:
+        status = 400
+    ctx = {'order': order}
+    return TemplateResponse(request,
+                            'dashboard/order/modal_order_remove_voucher.html',
                             ctx, status=status)
