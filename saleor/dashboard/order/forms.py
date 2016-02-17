@@ -128,34 +128,12 @@ class CancelItemsForm(forms.Form):
         self.item = kwargs.pop('item')
         super(CancelItemsForm, self).__init__(*args, **kwargs)
 
-    def clean(self):
-        data = super(CancelItemsForm, self).clean()
-        # Check if this line is not the only line in this order
-        order = self.item.delivery_group.order
-        other_group_items = self.item.delivery_group.items.exclude(
-            pk=self.item.pk)
-        other_groups = order.groups.exclude(pk=self.item.delivery_group.pk)
-        if not other_group_items and not other_groups:
-            # There is only one group in this order and user wants
-            # to cancel this one line
-            # He should cancel whole order instead.
-            raise forms.ValidationError(
-                _('This is the only line in Order. '
-                  'You should cancel whole order instead.'))
-        return data
-
     def cancel_item(self):
-        delivery_group = self.item.delivery_group
-        Stock.objects.deallocate_stock(self.item.stock, self.item.quantity)
-        self.item.delete()
-        delivery_group = DeliveryGroup.objects.get(pk=delivery_group.pk)
-        order = delivery_group.order
-        if not delivery_group.items.exists():
-            # Should we cancel order after dropping this group?
-            if order.groups.exclude(pk=delivery_group.pk).exists():
-                # we have another delivery groups as well
-                delivery_group.delete()
-                Order.objects.recalculate_order(order)
+        if self.item.stock:
+            Stock.objects.deallocate_stock(self.item.stock, self.item.quantity)
+        order = self.item.delivery_group.order
+        OrderedItem.objects.remove_empty_groups(self.item, force=True)
+        Order.objects.recalculate_order(order)
 
 
 class ChangeQuantityForm(forms.ModelForm):
@@ -227,7 +205,8 @@ class CancelGroupForm(forms.Form):
 
     def cancel_group(self):
         for line in self.delivery_group:
-            Stock.objects.deallocate_stock(line.stock, line.quantity)
+            if line.stock:
+                Stock.objects.deallocate_stock(line.stock, line.quantity)
         self.delivery_group.status = Status.CANCELLED
         self.delivery_group.save()
         other_groups = self.delivery_group.order.groups.all()
