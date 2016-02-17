@@ -255,7 +255,6 @@ class CancelOrderForm(forms.Form):
             group_form.cancel_group()
 
 
-
 class RemoveVoucherForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
@@ -265,6 +264,9 @@ class RemoveVoucherForm(forms.Form):
     def remove_voucher(self):
         self.order.discount_amount = 0
         self.order.discount_name = ''
+        voucher = self.order.voucher
+        voucher.used -= 1
+        voucher.save(update_fields=['used'])
         self.order.voucher = None
         self.order.recalculate()
 
