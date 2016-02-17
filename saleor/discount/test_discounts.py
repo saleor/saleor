@@ -64,8 +64,9 @@ def test_percentage_discounts(product_variant):
 
 @pytest.mark.parametrize(
     'total, discount_value, discount_type, limit, expected_value', [
-    ('100', 10, Voucher.DISCOUNT_VALUE_FIXED, None, 10),
-    ('100.05', 10, Voucher.DISCOUNT_VALUE_PERCENTAGE, 100, 10)])
+        ('100', 10, Voucher.DISCOUNT_VALUE_FIXED, None, 10),
+        ('100.05', 10, Voucher.DISCOUNT_VALUE_PERCENTAGE, 100, 10)
+    ])
 def test_value_voucher_checkout_discount(settings, total, discount_value,
                                          discount_type, limit, expected_value):
     settings.DEFAULT_CURRENCY = 'USD'
@@ -180,7 +181,6 @@ def test_category_voucher_checkout_discount_not_applicable(settings,
     with pytest.raises(NotApplicable) as e:
         voucher.get_discount_for_checkout(checkout)
     assert str(e.value) == 'This offer is only valid for selected items.'
-
 
 
 @pytest.mark.parametrize(
