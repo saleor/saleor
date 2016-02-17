@@ -241,6 +241,12 @@ class RemoveVoucherForm(forms.Form):
         self.order = kwargs.pop('order')
         super(RemoveVoucherForm, self).__init__(*args, **kwargs)
 
+    def clean(self):
+        data = super(RemoveVoucherForm, self).clean()
+        if not self.order.voucher:
+            raise forms.ValidationError(_('This order has no voucher'))
+        return data
+
     def remove_voucher(self):
         self.order.discount_amount = 0
         self.order.discount_name = ''
