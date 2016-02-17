@@ -250,7 +250,10 @@ class CancelOrderForm(forms.Form):
         return data
 
     def cancel_order(self):
-        self.order.change_status(status=Status.CANCELLED)
+        for group in self.order.groups.all():
+            group_form = CancelGroupForm(delivery_group=group)
+            group_form.cancel_group()
+
 
 
 class RemoveVoucherForm(forms.Form):
