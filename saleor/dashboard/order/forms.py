@@ -270,8 +270,8 @@ class RemoveVoucherForm(forms.Form):
         self.order.voucher = None
         self.order.recalculate()
 
-ORDER_STATUS_CHOICES = (('', pgettext_lazy('Order status field value',
-                                           'All')),) + Status.CHOICES
+ORDER_STATUS_CHOICES = [('', pgettext_lazy('Order status field value',
+                                           'All'))] + Status.CHOICES
 
 PAYMENT_STATUS_CHOICES = (('', pgettext_lazy('Payment status field value',
                                              'All')),) + PAYMENT_STATUS_CHOICES

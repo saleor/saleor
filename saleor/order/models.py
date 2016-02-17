@@ -169,7 +169,7 @@ class Order(models.Model, ItemSet):
         return sum(costs[1:], costs[0])
 
     def can_cancel(self):
-        return self.status not in (Status.CANCELLED, Status.SHIPPED)
+        return self.status not in {Status.CANCELLED, Status.SHIPPED}
 
     def recalculate(self):
         prices = [group.get_total() for group in self
