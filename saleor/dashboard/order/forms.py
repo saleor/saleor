@@ -210,8 +210,8 @@ class CancelGroupForm(forms.Form):
         self.delivery_group.status = Status.CANCELLED
         self.delivery_group.save()
         other_groups = self.delivery_group.order.groups.all()
-        statuses = other_groups.values_list('status', flat=True)
-        if all(status == Status.CANCELLED for status in statuses):
+        statuses = set(other_groups.values_list('status', flat=True))
+        if statuses == {Status.CANCELLED}:
             # Cancel whole order
             self.delivery_group.order.status = Status.CANCELLED
             self.delivery_group.order.save(update_fields=['status'])
