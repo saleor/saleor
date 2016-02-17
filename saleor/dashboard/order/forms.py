@@ -127,11 +127,34 @@ class CancelItemsForm(forms.Form):
         self.item = kwargs.pop('item')
         super(CancelItemsForm, self).__init__(*args, **kwargs)
 
+    def clean(self):
+        data = super(CancelItemsForm, self).clean()
+        # Check if this line is not the only line in this order
+        order = self.item.delivery_group.order
+        other_group_items = self.item.delivery_group.items.exclude(
+            pk=self.item.pk)
+        other_groups = order.groups.exclude(pk=self.item.delivery_group.pk)
+        if not other_group_items and not other_groups:
+            # There is only one group in this order and user wants
+            # to cancel this one line
+            # He should cancel whole order instead.
+            raise forms.ValidationError(
+                _('This is the only line in Order. '
+                  'You should cancel whole order instead.'))
+        return data
+
     def cancel_item(self):
         delivery_group = self.item.delivery_group
         Stock.objects.deallocate_stock(self.item.stock, self.item.quantity)
         self.item.delete()
-        delivery_group.order.recalculate()
+        delivery_group = DeliveryGroup.objects.get(pk=delivery_group.pk)
+        order = delivery_group.order
+        if not delivery_group.items.exists():
+            # Should we cancel order after dropping this group?
+            if order.groups.exclude(pk=delivery_group.pk).exists():
+                # we have another delivery groups as well
+                delivery_group.delete()
+                order.recalculate()
 
 
 class ChangeQuantityForm(forms.ModelForm):

@@ -211,7 +211,7 @@ def orderline_cancel(request, order_pk, line_pk):
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400
-    ctx = {'order': order, 'item': item}
+    ctx = {'order': order, 'item': item, 'form': form}
     return TemplateResponse(request, 'dashboard/order/modal_cancel_line.html',
                             ctx, status=status)
 
@@ -296,7 +296,6 @@ def cancel_order(request, order_pk):
     ctx = {'order': order}
     return TemplateResponse(request, 'dashboard/order/modal_cancel_order.html',
                             ctx, status=status)
-
 
 
 def remove_order_voucher(request, order_pk):
