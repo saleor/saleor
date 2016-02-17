@@ -319,6 +319,10 @@ table {
       padding: 5px 5px;
     }
   }
+
+  #order-notes {
+    box-shadow: none;
+  }
 }
 
 @import "widget/breadcrumbs";
