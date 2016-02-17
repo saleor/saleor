@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 from django import forms
 from django.conf import settings
 from django.shortcuts import get_object_or_404
-from django.utils.translation import pgettext_lazy
 from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from django_prices.forms import PriceField
 from payments import PaymentError
 from payments.models import PAYMENT_STATUS_CHOICES
@@ -12,7 +12,7 @@ from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
 from ...order import Status
-from ...order.models import DeliveryGroup, OrderedItem, OrderNote
+from ...order.models import DeliveryGroup, Order, OrderedItem, OrderNote
 from ...product.models import ProductVariant, Stock
 
 
@@ -154,7 +154,7 @@ class CancelItemsForm(forms.Form):
             if order.groups.exclude(pk=delivery_group.pk).exists():
                 # we have another delivery groups as well
                 delivery_group.delete()
-                order.recalculate()
+                Order.objects.recalculate_order(order)
 
 
 class ChangeQuantityForm(forms.ModelForm):
@@ -188,7 +188,7 @@ class ChangeQuantityForm(forms.ModelForm):
             delta = quantity - self.initial_quantity
             Stock.objects.allocate_stock(stock, delta)
         self.instance.change_quantity(quantity)
-        self.instance.delivery_group.order.recalculate()
+        Order.objects.recalculate_order(self.instance.delivery_group.order)
 
 
 class ShipGroupForm(forms.ModelForm):
@@ -268,7 +268,7 @@ class RemoveVoucherForm(forms.Form):
         voucher.used -= 1
         voucher.save(update_fields=['used'])
         self.order.voucher = None
-        self.order.recalculate()
+        Order.objects.recalculate_order(self.order)
 
 ORDER_STATUS_CHOICES = [('', pgettext_lazy('Order status field value',
                                            'All'))] + Status.CHOICES
