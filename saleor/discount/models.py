@@ -24,11 +24,9 @@ class VoucherQueryset(models.QuerySet):
     def active(self):
         today = date.today()
         queryset = self.filter(
-            models.Q(usage_limit__isnull=True)
-            | models.Q(used__lt=models.F('usage_limit')))
+            models.Q(usage_limit__isnull=True) | models.Q(used__lt=models.F('usage_limit')))
         queryset = queryset.filter(
-            models.Q(end_date__isnull=True)
-            | models.Q(end_date__gte=today))
+            models.Q(end_date__isnull=True) | models.Q(end_date__gte=today))
         queryset = queryset.filter(start_date__lte=today)
         return queryset
 
@@ -262,9 +260,7 @@ class Sale(models.Model):
         discounted_categories = list(self.categories.all())
         if discounted_products and variant.pk not in discounted_products:
             raise NotApplicable('Discount not applicable for this product')
-        if (discounted_categories and not
-                self._product_has_category_discount(
-                    variant.product, discounted_categories)):
+        if discounted_categories and not self._product_has_category_discount(variant.product, discounted_categories):
             raise NotApplicable('Discount too high for this product')
         return self.get_discount()
 

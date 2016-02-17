@@ -190,7 +190,6 @@ class Checkout(object):
             address.save()
         return address
 
-
     @transaction.atomic
     def create_order(self):
         if self.is_shipping_required:

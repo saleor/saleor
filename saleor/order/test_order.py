@@ -1,9 +1,8 @@
 from prices import Price
 
 from ..cart import Cart, SessionCart
-from ..product.models import Stock
-from ..product.test_product import product_in_stock
-from ..userprofile.test_userprofile import billing_address
+from ..product.test_product import product_in_stock  # NOQA
+from ..userprofile.test_userprofile import billing_address  # NOQA
 from . import models
 
 

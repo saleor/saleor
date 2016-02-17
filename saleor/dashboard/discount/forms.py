@@ -115,8 +115,7 @@ class ProductVoucherForm(forms.ModelForm):
         # On which product we should apply it? On first, last or cheapest?
         # Percentage case is limited to the all value and the apply_to field
         # is not used in this case so we set it to None.
-        if (self.instance.discount_value_type
-                == Voucher.DISCOUNT_VALUE_PERCENTAGE):
+        if self.instance.discount_value_type == Voucher.DISCOUNT_VALUE_PERCENTAGE:
             self.instance.apply_to = None
         return super(ProductVoucherForm, self).save(commit)
 
@@ -141,7 +140,6 @@ class CategoryVoucherForm(forms.ModelForm):
         # On which product we should apply it? On first, last or cheapest?
         # Percentage case is limited to the all value and the apply_to field
         # is not used in this case so we set it to None.
-        if (self.instance.discount_value_type
-                == Voucher.DISCOUNT_VALUE_PERCENTAGE):
+        if self.instance.discount_value_type == Voucher.DISCOUNT_VALUE_PERCENTAGE:
             self.instance.apply_to = None
         return super(CategoryVoucherForm, self).save(commit)

@@ -30,4 +30,4 @@ def test_get_country_by_ip(reader, expected_country, monkeypatch):
 def test_get_currency_for_country(settings, country, expected_currency, monkeypatch):
     monkeypatch.setattr('saleor.core.settings', settings)
     currency = get_currency_for_country(country)
-    assert  currency == expected_currency
+    assert currency == expected_currency

@@ -9,4 +9,3 @@ urlpatterns = [
     url(r'^(?P<pk>\d+)/delete/$',
         views.shipping_method_delete, name='shipping-method-delete'),
 ]
-

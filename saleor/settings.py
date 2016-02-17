@@ -97,7 +97,7 @@ TEMPLATES = [{
         'string_if_invalid': '<< MISSING VARIABLE "%s" >>' if DEBUG else ''}}]
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = os.environ.get('SECRET_KEY')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'secret-key')
 
 MIDDLEWARE_CLASSES = [
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -271,7 +271,7 @@ if AWS_MEDIA_BUCKET_NAME:
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
-    'defaults':  [
+    'defaults': [
         ('list_view', 'crop__100x100'),
         ('dashboard', 'crop__400x400'),
         ('product_page_mobile', 'crop__680x680'),

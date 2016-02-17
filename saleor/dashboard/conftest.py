@@ -1,5 +1,6 @@
 import pytest
 
+
 @pytest.fixture()
 def admin_user(db, django_user_model, django_username_field):
     """A Django admin user.
