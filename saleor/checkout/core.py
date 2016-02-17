@@ -237,8 +237,7 @@ class Checkout(object):
             group.add_items_from_partition(partition)
 
         if voucher is not None:
-            voucher.used += 1
-            voucher.save(update_fields=['used'])
+            Voucher.objects.increase_usage(voucher)
 
         return order
 

@@ -22,21 +22,33 @@ from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product, Stock
 from ..userprofile.models import Address
+from . import Status
+
+
+class OrderManager(models.Manager):
+
+    def recalculate_order(self, order):
+        prices = [group.get_total() for group in order
+                  if group.status != Status.CANCELLED]
+        total_net = sum(p.net for p in prices)
+        total_gross = sum(p.gross for p in prices)
+        shipping = [group.shipping_price for group in order]
+        if shipping:
+            total_shipping = sum(shipping[1:], shipping[0])
+        else:
+            total_shipping = Price(0, currency=settings.DEFAULT_CURRENCY)
+        total = Price(net=total_net, gross=total_gross,
+                      currency=settings.DEFAULT_CURRENCY)
+        total += total_shipping
+        order.total = total
+        order.save()
 
 
 @python_2_unicode_compatible
 class Order(models.Model, ItemSet):
-    STATUS_CHOICES = (
-        ('new', pgettext_lazy('Order status field value', 'Processing')),
-        ('cancelled', pgettext_lazy('Order status field value', 'Cancelled')),
-        ('payment-pending', pgettext_lazy('Order status field value',
-                                          'Waiting for payment')),
-        ('fully-paid', pgettext_lazy('Order status field value',
-                                     'Fully paid')),
-        ('shipped', pgettext_lazy('Order status field value', 'Shipped')))
     status = models.CharField(
         pgettext_lazy('Order field', 'order status'),
-        max_length=32, choices=STATUS_CHOICES, default='new')
+        max_length=32, choices=Status.CHOICES, default=Status.NEW)
     created = models.DateTimeField(
         pgettext_lazy('Order field', 'created'),
         default=now, editable=False)
@@ -70,6 +82,8 @@ class Order(models.Model, ItemSet):
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
     discount_name = models.CharField(max_length=255, default='', blank=True)
+
+    objects = OrderManager()
 
     class Meta:
         ordering = ('-last_status_change',)
@@ -168,18 +182,25 @@ class Order(models.Model, ItemSet):
         self.total_net = price
         self.total_tax = Price(price.tax, currency=price.currency)
 
+    def get_subtotal_without_voucher(self):
+        if self.get_items():
+            return super(Order, self).get_total()
+        return Price(net=0, currency=settings.DEFAULT_CURRENCY)
+
+    def get_total_shipping(self):
+        costs = [group.shipping_price for group in self]
+        if costs:
+            return sum(costs[1:], costs[0])
+        return Price(net=0, currency=settings.DEFAULT_CURRENCY)
+
+    def can_cancel(self):
+        return self.status not in {Status.CANCELLED, Status.SHIPPED}
+
 
 class DeliveryGroup(models.Model, ItemSet):
-    STATUS_CHOICES = (
-        ('new',
-         pgettext_lazy('Delivery group status field value', 'Processing')),
-        ('cancelled', pgettext_lazy('Delivery group status field value',
-                                    'Cancelled')),
-        ('shipped', pgettext_lazy('Delivery group status field value',
-                                  'Shipped')))
     status = models.CharField(
         pgettext_lazy('Delivery group field', 'delivery status'),
-        max_length=32, default='new', choices=STATUS_CHOICES)
+        max_length=32, default=Status.NEW, choices=Status.CHOICES)
     order = models.ForeignKey(Order, related_name='groups', editable=False)
     shipping_price = PriceField(
         pgettext_lazy('Delivery group field', 'shipping price'),
@@ -242,12 +263,13 @@ class DeliveryGroup(models.Model, ItemSet):
     def can_ship(self):
         return self.is_shipping_required() and self.status == 'new'
 
+    def can_cancel(self):
+        return self.status != Status.CANCELLED
+
 
 class OrderedItemManager(models.Manager):
 
     def move_to_group(self, item, target_group, quantity):
-        source_group = item.delivery_group
-        order = target_group.order
         try:
             target_item = target_group.items.get(
                 product=item.product, product_name=item.product_name,
@@ -263,11 +285,16 @@ class OrderedItemManager(models.Manager):
             target_item.quantity += quantity
             target_item.save()
         item.quantity -= quantity
+        self.remove_empty_groups(item)
+
+    def remove_empty_groups(self, item, force=False):
+        source_group = item.delivery_group
+        order = source_group.order
         if item.quantity:
             item.save()
         else:
             item.delete()
-        if not source_group.get_total_quantity():
+        if not source_group.get_total_quantity() or force:
             source_group.delete()
         if not order.get_items():
             order.change_status('cancelled')
@@ -380,7 +407,7 @@ class OrderHistoryEntry(models.Model):
     order = models.ForeignKey(Order, related_name='history')
     status = models.CharField(
         pgettext_lazy('Order field', 'order status'),
-        max_length=32, choices=Order.STATUS_CHOICES)
+        max_length=32, choices=Status.CHOICES)
     comment = models.CharField(max_length=100, default='', blank=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True)
 

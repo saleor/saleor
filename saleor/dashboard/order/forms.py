@@ -11,6 +11,8 @@ from payments.models import PAYMENT_STATUS_CHOICES
 from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
+from ...discount.models import Voucher
+from ...order import Status
 from ...order.models import DeliveryGroup, Order, OrderedItem, OrderNote
 from ...product.models import ProductVariant, Stock
 
@@ -120,6 +122,20 @@ class MoveItemsForm(forms.Form):
         return target_group
 
 
+class CancelItemsForm(forms.Form):
+
+    def __init__(self, *args, **kwargs):
+        self.item = kwargs.pop('item')
+        super(CancelItemsForm, self).__init__(*args, **kwargs)
+
+    def cancel_item(self):
+        if self.item.stock:
+            Stock.objects.deallocate_stock(self.item.stock, self.item.quantity)
+        order = self.item.delivery_group.order
+        OrderedItem.objects.remove_empty_groups(self.item, force=True)
+        Order.objects.recalculate_order(order)
+
+
 class ChangeQuantityForm(forms.ModelForm):
     class Meta:
         model = OrderedItem
@@ -151,6 +167,7 @@ class ChangeQuantityForm(forms.ModelForm):
             delta = quantity - self.initial_quantity
             Stock.objects.allocate_stock(stock, delta)
         self.instance.change_quantity(quantity)
+        Order.objects.recalculate_order(self.instance.delivery_group.order)
 
 
 class ShipGroupForm(forms.ModelForm):
@@ -181,8 +198,65 @@ class ShipGroupForm(forms.ModelForm):
             order.change_status('shipped')
 
 
-ORDER_STATUS_CHOICES = (('', pgettext_lazy('Order status field value',
-                                           'All')),) + Order.STATUS_CHOICES
+class CancelGroupForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        self.delivery_group = kwargs.pop('delivery_group')
+        super(CancelGroupForm, self).__init__(*args, **kwargs)
+
+    def cancel_group(self):
+        for line in self.delivery_group:
+            if line.stock:
+                Stock.objects.deallocate_stock(line.stock, line.quantity)
+        self.delivery_group.status = Status.CANCELLED
+        self.delivery_group.save()
+        other_groups = self.delivery_group.order.groups.all()
+        statuses = set(other_groups.values_list('status', flat=True))
+        if statuses == {Status.CANCELLED}:
+            # Cancel whole order
+            self.delivery_group.order.status = Status.CANCELLED
+            self.delivery_group.order.save(update_fields=['status'])
+
+
+class CancelOrderForm(forms.Form):
+
+    def __init__(self, *args, **kwargs):
+        self.order = kwargs.pop('order')
+        super(CancelOrderForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        data = super(CancelOrderForm, self).clean()
+        if not self.order.can_cancel():
+            raise forms.ValidationError(_('This order can\'t be cancelled'))
+        return data
+
+    def cancel_order(self):
+        for group in self.order.groups.all():
+            group_form = CancelGroupForm(delivery_group=group)
+            group_form.cancel_group()
+
+
+class RemoveVoucherForm(forms.Form):
+
+    def __init__(self, *args, **kwargs):
+        self.order = kwargs.pop('order')
+        super(RemoveVoucherForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        data = super(RemoveVoucherForm, self).clean()
+        if not self.order.voucher:
+            raise forms.ValidationError(_('This order has no voucher'))
+        return data
+
+    def remove_voucher(self):
+        self.order.discount_amount = 0
+        self.order.discount_name = ''
+        voucher = self.order.voucher
+        Voucher.objects.decrease_usage(voucher)
+        self.order.voucher = None
+        Order.objects.recalculate_order(self.order)
+
+ORDER_STATUS_CHOICES = [('', pgettext_lazy('Order status field value',
+                                           'All'))] + Status.CHOICES
 
 PAYMENT_STATUS_CHOICES = (('', pgettext_lazy('Payment status field value',
                                              'All')),) + PAYMENT_STATUS_CHOICES

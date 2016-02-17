@@ -292,6 +292,7 @@ table {
       width: 100%;
     }
   }
+  overflow: initial;
 }
 
 .no-margin {
@@ -310,6 +311,18 @@ table {
 
 .text-lg {
   font-size: 120%;
+}
+
+#order-details {
+  .order-summary {
+    td {
+      padding: 5px 5px;
+    }
+  }
+
+  #order-notes {
+    box-shadow: none;
+  }
 }
 
 @import "widget/breadcrumbs";
