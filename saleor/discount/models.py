@@ -260,7 +260,9 @@ class Sale(models.Model):
         discounted_categories = list(self.categories.all())
         if discounted_products and variant.pk not in discounted_products:
             raise NotApplicable('Discount not applicable for this product')
-        if discounted_categories and not self._product_has_category_discount(variant.product, discounted_categories):
+        if (discounted_categories and not
+            self._product_has_category_discount(
+                variant.product, discounted_categories)):
             raise NotApplicable('Discount too high for this product')
         return self.get_discount()
 
