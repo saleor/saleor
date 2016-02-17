@@ -11,6 +11,7 @@ from payments.models import PAYMENT_STATUS_CHOICES
 from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
+from ...discount.models import Voucher
 from ...order import Status
 from ...order.models import DeliveryGroup, Order, OrderedItem, OrderNote
 from ...product.models import ProductVariant, Stock
@@ -265,8 +266,7 @@ class RemoveVoucherForm(forms.Form):
         self.order.discount_amount = 0
         self.order.discount_name = ''
         voucher = self.order.voucher
-        voucher.used -= 1
-        voucher.save(update_fields=['used'])
+        Voucher.objects.decrease_usage(voucher)
         self.order.voucher = None
         Order.objects.recalculate_order(self.order)
 

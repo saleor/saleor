@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.db import models
+from django.db.models import F
 from django.utils.translation import pgettext, pgettext_lazy
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django_countries import countries
@@ -31,6 +32,14 @@ class VoucherQueryset(models.QuerySet):
             | models.Q(end_date__gte=today))
         queryset = queryset.filter(start_date__lte=today)
         return queryset
+
+    def increase_usage(self, voucher):
+        voucher.used = F('used') + 1
+        voucher.save(update_fields=['used'])
+
+    def decrease_usage(self, voucher):
+        voucher.used = F('used') - 1
+        voucher.save(update_fields=['used'])
 
 
 @python_2_unicode_compatible
