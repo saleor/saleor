@@ -65,8 +65,7 @@ def test_percentage_discounts(product_variant):
 @pytest.mark.parametrize(
     'total, discount_value, discount_type, limit, expected_value', [
         ('100', 10, Voucher.DISCOUNT_VALUE_FIXED, None, 10),
-        ('100.05', 10, Voucher.DISCOUNT_VALUE_PERCENTAGE, 100, 10)
-    ])
+        ('100.05', 10, Voucher.DISCOUNT_VALUE_PERCENTAGE, 100, 10)])
 def test_value_voucher_checkout_discount(settings, total, discount_value,
                                          discount_type, limit, expected_value):
     settings.DEFAULT_CURRENCY = 'USD'
@@ -101,10 +100,9 @@ def test_value_voucher_checkout_discount_not_applicable(settings):
         (10, None, 20, Voucher.DISCOUNT_VALUE_FIXED, None, 10),
         (10, 'PL', 20, Voucher.DISCOUNT_VALUE_FIXED, '', 10),
         (5, 'PL', 5, Voucher.DISCOUNT_VALUE_FIXED, 'PL', 5)])
-def test_shipping_voucher_checkout_discount(settings, shipping_cost,
-                                            shipping_country_code,
-                                            discount_value, discount_type,
-                                            apply_to, expected_value):
+def test_shipping_voucher_checkout_discount(
+        settings, shipping_cost, shipping_country_code, discount_value,
+        discount_type, apply_to, expected_value):
     settings.DEFAULT_CURRENCY = 'USD'
     checkout = Mock(
         is_shipping_required=True, shipping_method=Mock(
@@ -130,13 +128,9 @@ def test_shipping_voucher_checkout_discount(settings, shipping_cost,
         (True, Mock(price=Price(10, currency='USD')), 10,
          Voucher.DISCOUNT_VALUE_FIXED, None, 5,
          'This offer is only valid for shipping over $5.00.')])  # noqa
-def test_shipping_voucher_checkout_discountnot_applicable(settings,
-                                                          is_shipping_required,
-                                                          shipping_method,
-                                                          discount_value,
-                                                          discount_type,
-                                                          apply_to, limit,
-                                                          error_msg):
+def test_shipping_voucher_checkout_discountnot_applicable(
+        settings, is_shipping_required, shipping_method, discount_value,
+        discount_type, apply_to, limit, error_msg):
     settings.DEFAULT_CURRENCY = 'USD'
     checkout = Mock(is_shipping_required=is_shipping_required,
                     shipping_method=shipping_method)
@@ -195,8 +189,7 @@ def test_category_voucher_checkout_discount_not_applicable(settings,
         ([10, 10, 10], 5, Voucher.DISCOUNT_VALUE_FIXED, Voucher.APPLY_TO_ALL_PRODUCTS, 15),  # noqa
 
         ([10], 10, Voucher.DISCOUNT_VALUE_PERCENTAGE, None, 1),
-        ([10, 10], 10, Voucher.DISCOUNT_VALUE_PERCENTAGE, None, 2),
-    ])
+        ([10, 10], 10, Voucher.DISCOUNT_VALUE_PERCENTAGE, None, 2)])
 def test_products_voucher_checkout_discount_not(settings, monkeypatch, prices,
                                                 discount_value, discount_type,
                                                 apply_to, expected_value):
