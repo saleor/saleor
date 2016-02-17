@@ -36,13 +36,13 @@ def test_checkout_clear_storage():
     checkout.storage['new'] = 1
     checkout.clear_storage()
     assert checkout.storage is None
-    assert checkout.modified == True
+    assert checkout.modified is True
 
 
 def test_checkout_is_shipping_required():
     cart = Mock(is_shipping_required=Mock(return_value=True))
     checkout = Checkout(cart, AnonymousUser(), 'tracking_code')
-    assert checkout.is_shipping_required == True
+    assert checkout.is_shipping_required is True
 
 
 def test_checkout_deliveries():
@@ -81,7 +81,7 @@ def test_checkout_shipping_address_with_anonymous_user(user, shipping):
 
 @pytest.mark.parametrize('address_objects, shipping', [
     (Mock(get=Mock(return_value='shipping')), 'shipping'),
-    (Mock(get=Mock(side_effect = Address.DoesNotExist)), None),
+    (Mock(get=Mock(side_effect=Address.DoesNotExist)), None),
 ])
 def test_checkout_shipping_address_with_storage(address_objects, shipping, monkeypatch):
     monkeypatch.setattr('saleor.checkout.core.Address.objects', address_objects)
@@ -97,7 +97,7 @@ def test_checkout_shipping_address_setter():
     assert checkout.storage['shipping_address'] == {
         'city': u'', 'city_area': u'', 'company_name': u'', 'country': '', 'phone': u'',
         'country_area': u'', 'first_name': 'Jan', 'id': None, 'last_name': 'Kowalski',
-        'postal_code': u'', 'street_address_1': u'','street_address_2': u''}
+        'postal_code': u'', 'street_address_1': u'', 'street_address_2': u''}
 
 
 @pytest.mark.parametrize('shipping_address, shipping_method, value', [
@@ -117,7 +117,7 @@ def test_checkout_shipping_method(shipping_address, shipping_method, value, monk
 
 
 def test_checkout_shipping_does_not_exists(monkeypatch):
-    queryset = Mock(get=Mock(side_effect = ShippingMethodCountry.DoesNotExist))
+    queryset = Mock(get=Mock(side_effect=ShippingMethodCountry.DoesNotExist))
     monkeypatch.setattr('saleor.checkout.core.ShippingMethodCountry.objects', queryset)
     checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
     checkout.storage['shipping_method_country_id'] = 1
@@ -127,9 +127,9 @@ def test_checkout_shipping_does_not_exists(monkeypatch):
 def test_checkout_shipping_method_setter():
     shipping_method = Mock(id=1)
     checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
-    assert checkout.modified == False
+    assert checkout.modified is False
     checkout.shipping_method = shipping_method
-    assert checkout.modified == True
+    assert checkout.modified is True
     assert checkout.storage['shipping_method_country_id'] == 1
 
 

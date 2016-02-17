@@ -1,11 +1,9 @@
 from django import forms
-from django.template.loader import get_template
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from django_prices.templatetags.prices_i18n import format_price
 
 from ..shipping.models import ShippingMethodCountry
-from ..userprofile.models import Address
 
 
 class CheckoutAddressField(forms.ChoiceField):
