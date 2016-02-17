@@ -1,0 +1,15 @@
+{% load i18n %}
+{% load materializecss %}
+
+<form id="ship-delivery-group-form" method="post" role="form" action="{% url 'dashboard:cancel-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="form-async">
+    {% csrf_token %}
+
+    <div class="modal-content">
+        <h5>{% trans "Cancel delivery group " %}</h5>
+    </div>
+
+    <div class="modal-footer">
+        <button type="submit" class="modal-action btn-flat red">{% trans "Cancel group" %}</button>
+        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+    </div>
+</form>

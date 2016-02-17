@@ -17,7 +17,7 @@ from ..views import (FilterByStatusMixin, StaffMemberOnlyMixin,
 from .forms import (CancelItemsForm, CancelOrderForm, CapturePaymentForm,
                     ChangeQuantityForm, MoveItemsForm, OrderNoteForm,
                     RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm,
-                    ShipGroupForm)
+                    ShipGroupForm, CancelGroupForm)
 
 
 class OrderListView(StaffMemberOnlyMixin, FilterByStatusMixin, ListView):
@@ -233,6 +233,26 @@ def ship_delivery_group(request, order_pk, group_pk):
         status = 400
     ctx = {'order': order, 'group': group, 'form': form}
     template = 'dashboard/order/modal_ship_delivery_group.html'
+    return TemplateResponse(request, template, ctx, status=status)
+
+
+@staff_member_required
+def cancel_delivery_group(request, order_pk, group_pk):
+    order = get_object_or_404(Order, pk=order_pk)
+    group = get_object_or_404(order.groups.all(), pk=group_pk)
+    form = CancelGroupForm(request.POST or None, delivery_group=group)
+    status = 200
+    if form.is_valid():
+        with transaction.atomic():
+            form.cancel_group()
+        msg = _('Cancelled %s') % group
+        messages.success(request, msg)
+        group.order.create_history_entry(comment=msg, user=request.user)
+        return redirect('dashboard:order-details', order_pk=order_pk)
+    elif form.errors:
+        status = 400
+    ctx = {'order': order, 'group': group}
+    template = 'dashboard/order/modal_cancel_delivery_group.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 

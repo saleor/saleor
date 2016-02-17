@@ -178,11 +178,10 @@
                                 </a>
                                 {% render_status group.status group.get_status_display %}
                             </h5>
-
                             <ul id="group-actions-{{ group.pk }}" class="dropdown-content">
                                 <li>
-                                    <a href="#base-modal" data-href="#" class="modal-trigger-custom"
-                                        {% if group.status != 'shipped' %} disabled{% endif %} title="{% trans "Cancel group" %}">
+                                    <a href="#base-modal" data-href="{% url 'dashboard:cancel-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="modal-trigger-custom"
+                                        title="{% trans "Cancel group" %}">
                                         {% trans "Cancel group" %}
                                     </a>
                                 </li>

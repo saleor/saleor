@@ -129,6 +129,7 @@ class CancelItemsForm(forms.Form):
 
     def cancel_item(self):
         delivery_group = self.item.delivery_group
+        Stock.objects.deallocate_stock(self.item.stock, self.item.quantity)
         self.item.delete()
         delivery_group.order.recalculate()
 
@@ -193,6 +194,24 @@ class ShipGroupForm(forms.ModelForm):
         statuses = [g.status for g in order.groups.all()]
         if 'shipped' in statuses and 'new' not in statuses:
             order.change_status('shipped')
+
+
+class CancelGroupForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        self.delivery_group = kwargs.pop('delivery_group')
+        super(CancelGroupForm, self).__init__(*args, **kwargs)
+
+    def cancel_group(self):
+        for line in self.delivery_group:
+            Stock.objects.deallocate_stock(line.stock, line.quantity)
+        self.delivery_group.status = Status.CANCELLED
+        self.delivery_group.save()
+        other_groups = self.delivery_group.order.groups.all()
+        statuses = other_groups.values_list('status', flat=True)
+        if all(status == Status.CANCELLED for status in statuses):
+            # Cancel whole order
+            self.delivery_group.order.status = Status.CANCELLED
+            self.delivery_group.order.save(update_fields=['status'])
 
 
 class CancelOrderForm(forms.Form):
