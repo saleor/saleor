@@ -173,9 +173,11 @@
                     <div class="data-table-header">
                             <h5 class="data-table-title">
                                 {% blocktrans with shipment=group.id %}Shipment #{{ shipment }}{% endblocktrans %}
-                                <a class="dropdown-button right" href="#" data-activates="group-actions-{{ group.pk }}" data-constrainwidth="false">
-                                    <i class="mdi-navigation-more-vert"></i>
-                                </a>
+                                {% if group.can_cancel %}
+                                    <a class="dropdown-button right" href="#" data-activates="group-actions-{{ group.pk }}" data-constrainwidth="false">
+                                        <i class="mdi-navigation-more-vert"></i>
+                                    </a>
+                                {% endif %}
                                 {% render_status group.status group.get_status_display %}
                             </h5>
                             <ul id="group-actions-{{ group.pk }}" class="dropdown-content">
@@ -226,30 +228,31 @@
                                         <td class="right-align">{{ item.quantity }}</td>
                                         <td class="right-align">{% gross item.get_total %}</td>
                                         <td class="right-align no-padded">
-                                            <a class="dropdown-button" href="#" data-activates="line-actions-{{ item.pk }}" data-constrainwidth="false">
-                                                <i class="mdi-navigation-more-vert"></i>
-                                            </a>
-
-                                            <ul id="line-actions-{{ item.pk }}" class="dropdown-content">
-                                                <li>
-                                                    <a href="#base-modal" data-href="{% url 'dashboard:orderline-change-quantity' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom"
-                                                        {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Change quantity" %}">
-                                                        {% trans "Change quantity" %}
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="#base-modal" data-href="{% url 'dashboard:orderline-split' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom"
-                                                        {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Split line" %}">
-                                                        {% trans "Split order line" %}
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a href="#base-modal" data-href="{% url 'dashboard:orderline-cancel' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom"
-                                                        title="{% trans "Cancel line" %}">
-                                                        {% trans "Cancel line" %}
-                                                    </a>
-                                                </li>
-                                            </ul>
+                                            {% if group.status != 'cancelled' %}
+                                                <a class="dropdown-button" href="#" data-activates="line-actions-{{ item.pk }}" data-constrainwidth="false">
+                                                    <i class="mdi-navigation-more-vert"></i>
+                                                </a>
+                                                <ul id="line-actions-{{ item.pk }}" class="dropdown-content">
+                                                    <li>
+                                                        <a href="#base-modal" data-href="{% url 'dashboard:orderline-change-quantity' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom"
+                                                            {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Change quantity" %}">
+                                                            {% trans "Change quantity" %}
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="#base-modal" data-href="{% url 'dashboard:orderline-split' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom"
+                                                            {% if group.status != 'new' %} disabled{% endif %} title="{% trans "Split line" %}">
+                                                            {% trans "Split order line" %}
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="#base-modal" data-href="{% url 'dashboard:orderline-cancel' order_pk=order.pk line_pk=item.pk %}" class="modal-trigger-custom"
+                                                            title="{% trans "Cancel line" %}">
+                                                            {% trans "Cancel line" %}
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            {% endif %}
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -299,7 +302,7 @@
                                 </td>
                                 <td class="no-padded"></td>
                             </tr>
-                            {% if order.discount_amount %}
+                            {% if order.discount_amount.gross %}
                                 <tr>
                                     <td>
                                         {% blocktrans with voucher=order.discount_name %}Voucher {{ voucher }}{% endblocktrans %}

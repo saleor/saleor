@@ -172,7 +172,8 @@ class Order(models.Model, ItemSet):
         return self.status not in (Status.CANCELLED, Status.SHIPPED)
 
     def recalculate(self):
-        prices = [group.get_total() for group in self]
+        prices = [group.get_total() for group in self
+                  if group.status != Status.CANCELLED]
         total_net = sum(p.net for p in prices)
         total_gross = sum(p.gross for p in prices)
         shipping = [group.shipping_price for group in self]
@@ -249,6 +250,9 @@ class DeliveryGroup(models.Model, ItemSet):
 
     def can_ship(self):
         return self.is_shipping_required() and self.status == 'new'
+
+    def can_cancel(self):
+        return self.status != Status.CANCELLED
 
 
 class OrderedItemManager(models.Manager):
