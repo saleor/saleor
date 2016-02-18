@@ -47,3 +47,9 @@ class ProductImage(models.Model):
         qs = self.get_ordering_queryset()
         qs.filter(order__gt=self.order).update(order=F('order') - 1)
         super(ProductImage, self).delete(*args, **kwargs)
+
+
+class VariantImage(models.Model):
+    variant = models.ForeignKey('ProductVariant',
+                                related_name='variant_images')
+    image = models.ForeignKey(ProductImage, related_name='variant_images')

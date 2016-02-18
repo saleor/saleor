@@ -146,7 +146,7 @@ class ProductVariant(models.Model, Item):
     product = models.ForeignKey(Product, related_name='variants')
     attributes = JSONField(pgettext_lazy('Variant field', 'attributes'),
                            default={})
-
+    images = models.ManyToManyField('ProductImage', through='VariantImage')
     objects = InheritanceManager()
 
     class Meta:

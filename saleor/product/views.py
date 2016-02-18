@@ -14,7 +14,9 @@ from ..core.utils import get_paginator_items
 def product_details(request, slug, product_id):
     products = Product.objects.get_available_products().select_subclasses()
     products = products.prefetch_related('categories', 'images',
-                                         'variants__stock')
+                                         'variants__stock',
+                                         'variants__variant_images__image',
+                                         'attributes__values')
     product = get_object_or_404(products, id=product_id)
     if product.get_slug() != slug:
         return HttpResponsePermanentRedirect(product.get_absolute_url())
