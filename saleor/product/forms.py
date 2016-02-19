@@ -1,8 +1,8 @@
+from __future__ import unicode_literals
+
 import json
 
 from django import forms
-from django.forms import ChoiceField
-from django.forms.models import ModelChoiceIterator
 from django.template.loader import render_to_string
 from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
@@ -10,26 +10,14 @@ from django_prices.templatetags.prices_i18n import gross
 from ..cart.forms import AddToCartForm
 
 
-class VariantChoiceIterator(ModelChoiceIterator):
-    product_instance = None
-
-    def __init__(self, field):
-        super(VariantChoiceIterator, self).__init__(field)
-        self.product = self.product_instance
-        self.attributes = self.product.attributes if self.product else None
-
-    def choice(self, obj):
-        label = obj.display_variant(self.attributes)
-        label += ' - ' + gross(obj.get_price())
-        return (self.field.prepare_value(obj), label)
-
-
 class VariantChoiceField(forms.ModelChoiceField):
-    def _get_choices(self):
-        if hasattr(self, '_choices'):
-            return self._choices
-        return VariantChoiceIterator(self)
-    choices = property(_get_choices, ChoiceField._set_choices)
+
+    def label_from_instance(self, obj):
+        attributes = obj.product.attributes.all()
+        variant_label = obj.display_variant(attributes)
+        label = '%(variant_label)s - %(price)s' % {
+            'variant_label': variant_label, 'price': gross(obj.get_price())}
+        return label
 
 
 class ProductForm(AddToCartForm):
@@ -38,7 +26,6 @@ class ProductForm(AddToCartForm):
     def __init__(self, *args, **kwargs):
         super(ProductForm, self).__init__(*args, **kwargs)
         variant_field = self.fields['variant']
-        variant_field.product_instance = self.product
         variant_field.queryset = self.product.variants
         variant_field.empty_label = None
         images_map = {variant.pk: [vi.image.image.url
