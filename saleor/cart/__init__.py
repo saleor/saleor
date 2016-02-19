@@ -35,8 +35,6 @@ class Cart(cart.Cart):
     This implementation depends on the database to implement its functionality.
     A lightweight SessionCart is kept internally for easy storage.
     """
-    timestamp = None
-    billing_address = None
 
     def __init__(self, session_cart, discounts=None):
         super(Cart, self).__init__()
