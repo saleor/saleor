@@ -115,8 +115,7 @@
     <div class="input input-field col {{ classes.label }}">
         <textarea id="{{ field.auto_id }}"
                   class="materialize-textarea {{ field.field.widget.attrs.class }}"
-                  name="{{ field.name }}">{% if field.value %}
-            {{ field.value }}{% endif %}</textarea>
+                  name="{{ field.name }}">{% if field.value %}{{ field.value }}{% endif %}</textarea>
         {% if field.auto_id %}
             <label class="active
                     {{ classes.label }}{% if not field.field.required %} optional{% endif %}"
