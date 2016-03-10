@@ -30,8 +30,17 @@ class AddressManager(models.Manager):
         return address
 
 
+class AddressCopyManager(AddressManager):
+
+    def copy_address(self, address):
+
+        data = self.as_data(address)
+        address_copy, dummy_created = self.get_or_create(**data)
+        return address_copy
+
+
 @python_2_unicode_compatible
-class Address(models.Model):
+class AddressBase(models.Model):
     first_name = models.CharField(
         pgettext_lazy('Address field', 'first name'),
         max_length=256)
@@ -67,6 +76,9 @@ class Address(models.Model):
 
     objects = AddressManager()
 
+    class Meta:
+        abstract = True
+
     @property
     def full_name(self):
         return '%s %s' % (self.first_name, self.last_name)
@@ -85,6 +97,16 @@ class Address(models.Model):
                 self.street_address_1, self.street_address_2, self.city,
                 self.postal_code, self.country, self.country_area,
                 self.phone))
+
+
+@python_2_unicode_compatible
+class Address(AddressBase):
+    pass
+
+
+@python_2_unicode_compatible
+class AddressCopy(AddressBase):
+    pass
 
 
 class UserManager(BaseUserManager):
