@@ -106,7 +106,7 @@ class Address(AddressBase):
 
 @python_2_unicode_compatible
 class AddressCopy(AddressBase):
-    pass
+    objects = AddressCopyManager()
 
 
 class UserManager(BaseUserManager):
