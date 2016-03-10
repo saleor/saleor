@@ -201,7 +201,7 @@ class Checkout(object):
             self.billing_address, is_billing=True)
 
         shipping_address_copy = AddressCopy.objects.copy_address(shipping_address)
-        billing_address_copy = AddressCopy.objects.copy_address(shipping_address)
+        billing_address_copy = AddressCopy.objects.copy_address(billing_address)
 
         order_data = {
             'billing_address': billing_address_copy,
