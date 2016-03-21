@@ -1,8 +1,6 @@
 from __future__ import unicode_literals
-from decimal import Decimal
 
 from mock import MagicMock
-from prices import Price
 import pytest
 from satchless.item import InsufficientStock
 
@@ -11,64 +9,7 @@ from . import forms
 from .forms import ReplaceCartLineForm, ReplaceCartLineFormSet
 from ..cart.utils import (
     contains_unavailable_products, remove_unavailable_products)
-from ..product.models import (ProductVariant, Product)
-
-
-class BigShipVariant(ProductVariant):
-
-    class Meta:
-        app_label = 'product'
-
-    def get_price_per_item(self, discounted=True, **kwargs):
-        return Price(10, currency='USD')
-
-    def get_stock_quantity(self):
-        return 10
-
-    @property
-    def product(self):
-        return BigShip(name='Big Ship', price=Price(10, currency='USD'),
-                       weight=Decimal(123))
-
-    def display_variant(self, attributes=None):
-        return 'BIG SHIP'
-
-
-class BigShip(Product):
-
-    class Meta:
-        app_label = 'product'
-
-    def get_slug(self):
-        return 'bigship'
-
-
-class ShipPhotoVariant(ProductVariant):
-
-    @property
-    def product(self):
-        return ShipPhoto(name='Ship Photo', price=Price(10, currency='USD'))
-
-    def check_quantity(self, quantity):
-        pass
-
-    def display_variant(self, attributes=None):
-        return 'SHIP PHOTO'
-
-    class Meta:
-        app_label = 'product'
-
-
-class ShipPhoto(Product):
-
-    def get_slug(self):
-        return 'bigship-photo'
-
-    def is_shipping_required(self):
-        return False
-
-    class Meta:
-        app_label = 'product'
+from ..product.models import ProductVariant
 
 
 class AddToCartForm(forms.AddToCartForm):
@@ -77,8 +18,8 @@ class AddToCartForm(forms.AddToCartForm):
         return self.product
 
 
-stocked_variant = BigShipVariant(name='Big Ship')
-non_stocked_variant = ShipPhotoVariant(name='Ship Photo')
+stocked_variant = ProductVariant(name='Big Ship')
+non_stocked_variant = ProductVariant(name='Ship Photo')
 
 
 def test_cart_checks_quantity():
@@ -197,9 +138,11 @@ def test_cart_contains_products_on_stock():
 
 
 def test_cart_doesnt_contain_empty_products():
-    stocked_variant = BigShipVariant(name='Big Ship')
+    stocked_variant = ProductVariant(name='Big Ship')
     stocked_variant.get_stock_quantity = MagicMock(return_value=0)
     cart = Cart(session_cart=SessionCart())
     cart.add(stocked_variant, quantity=10, check_quantity=False)
     remove_unavailable_products(cart)
     assert len(cart) == 0
+
+
