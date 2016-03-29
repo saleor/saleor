@@ -218,7 +218,7 @@ def test_checkout_whole_with_shipping_and_copying_address(
 
     # shipping address step
     shipping_address_url = reverse('checkout:shipping-address')
-    assert response.url == shipping_address_url
+    assert response.url.endswith(shipping_address_url)
     email = {'email': 'email@example.com'}
     data = dict(shipping_address_data.items() + email.items())
     response = client_with_cart.post(shipping_address_url, data)
@@ -226,14 +226,14 @@ def test_checkout_whole_with_shipping_and_copying_address(
 
     # shipping method step
     shipping_method_url = reverse('checkout:shipping-method')
-    assert shipping_method_url == response.url
+    assert response.url.endswith(shipping_method_url)
     data = {'method': shipping_method.id}
     response = client_with_cart.post(shipping_method_url, data=data)
     assert response.status_code == 302
 
     # billing address (summary) step
     summary_url = reverse('checkout:summary')
-    assert response.url == summary_url
+    assert response.url.endswith(summary_url)
     data = dict(
         billing_address_data.items() + update_billing_address_with.items())
     assert client_with_cart.session['cart']['items']
@@ -243,7 +243,7 @@ def test_checkout_whole_with_shipping_and_copying_address(
     # order
     order = Order.objects.get()
     order_url = reverse('order:payment', kwargs={'token': order.token})
-    assert response.url == order_url
+    assert response.url.endswith(order_url)
     assert not client_with_cart.session['cart']['items']
     ordered_item = order.get_items().get()
     ordered_item_sku = ordered_item.product_sku
@@ -273,7 +273,7 @@ def test_checkout_whole_without_shipping(client_with_cart,
     response = client_with_cart.get(url)
     assert response.status_code == 302
     summary_url = reverse('checkout:summary')
-    assert response.url == summary_url
+    assert response.url.endswith(summary_url)
     assert client_with_cart.session['cart']['items']
     email = {'email': 'email@example.com'}
     data = dict(ADDRESS_DATA.items() + email.items())
@@ -281,7 +281,7 @@ def test_checkout_whole_without_shipping(client_with_cart,
     order = Order.objects.get()
     order_url = reverse('order:payment', kwargs={'token': order.token})
     assert response.status_code == 302
-    assert response.url == order_url
+    assert response.url.endswith(order_url)
     assert not client_with_cart.session['cart']['items']
     ordered_item = order.get_items().get()
     ordered_item_sku = ordered_item.product_sku
@@ -356,7 +356,7 @@ def test_checkout_authorized_full_checkout_without_shipping(
 
     # billing address (summary) step
     summary_url = reverse('checkout:summary')
-    assert response.url == summary_url
+    assert response.url.endswith(summary_url)
 
     if use_default:
         billing_address_data = {'address': default_address.id}
@@ -389,7 +389,7 @@ def test_checkout_authorized_full_checkout_without_shipping(
     # order
     order = Order.objects.get()
     order_url = reverse('order:payment', kwargs={'token': order.token})
-    assert response.url == order_url
+    assert response.url.endswith(order_url)
     assert not authorized_client_with_cart.session['cart']['items']
     ordered_item = order.get_items().get()
     ordered_item_sku = ordered_item.product_sku
@@ -471,7 +471,7 @@ def test_checkout_authorized_full_checkout_with_shipping(
 
     # shipping address step
     shipping_address_url = reverse('checkout:shipping-address')
-    assert response.url == shipping_address_url
+    assert response.url.endswith(shipping_address_url)
 
     if use_default_shipping_for_shipping:
         shipping_address_data = {'address': default_shipping_address.id}
@@ -495,14 +495,14 @@ def test_checkout_authorized_full_checkout_with_shipping(
 
     # shipping method step
     shipping_method_url = reverse('checkout:shipping-method')
-    assert shipping_method_url == response.url
+    assert response.url.endswith(shipping_method_url)
     data = {'method': shipping_method.id}
     response = authorized_client_with_cart.post(shipping_method_url, data=data)
     assert response.status_code == 302
 
     # billing address (summary) step
     summary_url = reverse('checkout:summary')
-    assert response.url == summary_url
+    assert response.url.endswith(summary_url)
 
     if use_default_billing_for_billing:
         billing_address_data = {'address': default_billing_address.id}
@@ -542,7 +542,7 @@ def test_checkout_authorized_full_checkout_with_shipping(
     # order
     order = Order.objects.get()
     order_url = reverse('order:payment', kwargs={'token': order.token})
-    assert response.url == order_url
+    assert response.url.endswith(order_url)
     assert not authorized_client_with_cart.session['cart']['items']
     ordered_item = order.get_items().get()
     ordered_item_sku = ordered_item.product_sku
@@ -607,10 +607,10 @@ def test_checkout_fail_on_shipping_address(broken_address_data,
     response = client_with_cart.get(url)
     assert response.status_code == 302
     shipping_address_url = reverse('checkout:shipping-address')
-    assert response.url == shipping_address_url
+    assert response.url.endswith(shipping_address_url)
 
     response = client_with_cart.post(shipping_address_url,
-                                                data=broken_address_data)
+                                     data=broken_address_data)
     assert response.status_code == 200
     assert cart_dict == client_with_cart.session['cart']
 
@@ -632,7 +632,7 @@ def test_checkout_authorized_fail_on_shipping_address(
     response = authorized_client_with_cart.get(url)
     assert response.status_code == 302
     shipping_address_url = reverse('checkout:shipping-address')
-    assert response.url == shipping_address_url
+    assert response.url.endswith(shipping_address_url)
 
     response = authorized_client_with_cart.post(shipping_address_url,
                                                 data=broken_address_data)
@@ -647,7 +647,7 @@ def anonymous_client_with_shipping_address(client_with_cart):
                              'email': 'user@example.com'}
     shipping_address_data.update(ADDRESS_DATA)
     client_with_cart.post(shipping_address_url,
-                                     data=shipping_address_data)
+                          data=shipping_address_data)
     return client_with_cart
 
 
@@ -703,7 +703,7 @@ def anonymous_client_with_shipping_method(
     shipping_method_url = reverse('checkout:shipping-method')
     shipping_method_data = {'method': shipping_method.id}
     anonymous_client_with_shipping_address.post(shipping_method_url,
-                                     data=shipping_method_data)
+                                                data=shipping_method_data)
     return anonymous_client_with_shipping_address
 
 
@@ -736,7 +736,7 @@ def authorized_client_with_shipping_method(
     shipping_method_url = reverse('checkout:shipping-method')
     shipping_method_data = {'method': shipping_method.id}
     authorized_client_with_shipping_address.post(shipping_method_url,
-                                     data=shipping_method_data)
+                                                 data=shipping_method_data)
     return authorized_client_with_shipping_address
 
 
@@ -821,7 +821,7 @@ def test_checkout_redirections_without_cart(
         client, url, status_code, redirection, db):
     response = client.get(url)
     assert response.status_code == status_code
-    assert response.url == redirection
+    assert response.url.endswith(redirection)
 
 
 @pytest.mark.parametrize('url, redirection', [
@@ -837,7 +837,7 @@ def test_checkout_redirections_without_shipping_address(client_with_cart,
     if url == redirection:
         assert response.redirect_chain == []
     else:
-        assert response.redirect_chain[-1][0] == redirection
+        assert response.redirect_chain[-1][0].endswith(redirection)
     assert cart_dict == client_with_cart.session['cart']
 
 
@@ -856,7 +856,7 @@ def test_checkout_redirections_without_shipping_method(
     if url == redirection:
         assert response.redirect_chain == []
     else:
-        assert response.redirect_chain[-1][0] == redirection
+        assert response.redirect_chain[-1][0].endswith(redirection)
     assert cart_dict == anonymous_client_with_shipping_address.session['cart']
 
 
@@ -875,6 +875,5 @@ def test_checkout_redirections_without_billing_address(
     if url == redirection:
         assert response.redirect_chain == []
     else:
-        assert response.redirect_chain[-1][0] == redirection
-        assert response.url == redirection
+        assert response.url(redirection)
     assert cart_dict == anonymous_client_with_shipping_method.session['cart']
