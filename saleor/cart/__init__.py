@@ -25,7 +25,7 @@ class CartLine(cart.CartLine):
         return super(CartLine, self).get_price_per_item(**kwargs)
 
     def is_shipping_required(self):
-        return self.product.is_shipping_required()
+        return self.product.product.is_shipping_required()
 
 
 @python_2_unicode_compatible

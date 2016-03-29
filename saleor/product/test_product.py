@@ -31,7 +31,7 @@ def test_stock_selector(product_in_stock):
 @pytest.fixture
 def product_without_shipping(monkeypatch):
     monkeypatch.setattr(
-        'saleor.product.models.ProductVariant.is_shipping_required',
+        'saleor.product.models.Product.is_shipping_required',
         Mock(return_value=False))
 
 
