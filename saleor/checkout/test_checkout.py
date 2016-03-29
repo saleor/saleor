@@ -11,10 +11,11 @@ from .core import Checkout, STORAGE_SESSION_KEY
 from ..product.models import ProductVariant
 from ..order.models import Order
 from ..userprofile.test_userprofile import billing_address  # NOQA
-from ..shipping.models import ShippingMethodCountry, ShippingMethod
+from ..shipping.models import ShippingMethodCountry
 from ..userprofile.models import Address
 from . import views
-from ..product.test_product import product_in_stock  # NOQA
+from ..product.test_product import product_in_stock, product_without_shipping  # NOQA
+from ..shipping.test_shipping import shipping_method  # NOQA
 
 
 def test_checkout_version():
@@ -106,6 +107,7 @@ def test_checkout_shipping_address_setter():
         'postal_code': u'', 'street_address_1': u'', 'street_address_2': u''}
     assert checkout.modified
 
+
 @pytest.mark.parametrize('shipping_address, shipping_method, value', [
     (Mock(country=Mock(code='PL')),
      Mock(country_code='PL', __eq__=lambda n, o: n.country_code == o.country_code),
@@ -150,7 +152,7 @@ def test_checkout_billing_address(user, address):
 
 
 @pytest.mark.parametrize('cart, status_code, url', [
-    (Mock(__len__=Mock(return_value=0)) , 302, '/cart/'),
+    (Mock(__len__=Mock(return_value=0)), 302, '/cart/'),
     (Mock(__len__=Mock(return_value=1),
           is_shipping_required=Mock(return_value=True)),
      302, '/checkout/shipping-address/'),
@@ -172,38 +174,15 @@ def test_index_view(cart, status_code, url, rf):
     assert response.url == url
 
 
-empty_cart = Mock(__len__=Mock(return_value=0))
-cart_with_shipping = Mock(__len__=Mock(return_value=1),
-                          is_shipping_required=Mock(return_value=True))
-cart_without_shipping = Mock(__len__=Mock(return_value=1),
-                             is_shipping_required=Mock(return_value=False))
-
-
-@pytest.fixture
-def shipping_method(db):
-    shipping_method = ShippingMethod.objects.create(name='Shipping method')
-    shipping_method_country = ShippingMethodCountry.objects.create(
-        country_code='PL', shipping_method=shipping_method,
-        price=Price('3.0', currency=settings.DEFAULT_CURRENCY))
-    return shipping_method_country
-
-
 @pytest.fixture
 def client_with_cart(client, product_in_stock):
-    product_variant = ProductVariant.objects.get()
+    product_variant = ProductVariant.objects.last()
     url = product_variant.product.get_absolute_url()
     data = {
         'quantity': 2, 'variant': product_variant.id
     }
     client.post(url, data=data)
     return client
-
-
-@pytest.fixture
-def without_shipping(monkeypatch):
-    monkeypatch.setattr(
-        'saleor.product.models.ProductVariant.is_shipping_required',
-        Mock(return_value=False))
 
 
 ADDRESS_DATA = {
@@ -224,15 +203,11 @@ DIFFERENT_ADDRES_DATA = {
         (ADDRESS_DATA, DIFFERENT_ADDRES_DATA, {'address': 'new_address'}),
         (ADDRESS_DATA, {}, {'address': 'shipping_address'})
     ])
+@pytest.mark.integration
 def test_checkout_whole_with_shipping_and_copying_address(
         client_with_cart, shipping_method, shipping_address_data,
         billing_address_data, update_billing_address_with):
-    """
-    Anonymous user with product in cart
-    Provides valid shipping address and method
-    Chooses shipping address as billing or provides new one
-    Successful order creates
-    """
+
     cart_dict = client_with_cart.session['cart']
     variant_id = cart_dict['items'][0]['data']['variant_id']
     quantity = cart_dict['items'][0]['quantity']
@@ -287,14 +262,9 @@ def test_checkout_whole_with_shipping_and_copying_address(
     ordered_shipping_method = order.groups.get().shipping_method_name
     assert ordered_shipping_method == str(shipping_method)
 
-
+@pytest.mark.integration
 def test_checkout_whole_without_shipping(client_with_cart,
-                                         without_shipping):
-    """
-    Anonymous user with product in cart
-    Provides valid billing address
-    Successful order creates
-    """
+                                         product_without_shipping):
     cart_dict = client_with_cart.session['cart']
     variant_id = cart_dict['items'][0]['data']['variant_id']
     quantity = cart_dict['items'][0]['quantity']
@@ -356,17 +326,11 @@ def authorized_client_with_cart(client_with_cart):
         ({}, ADDRESS_DATA, False, True),
         ({}, {}, False, True),
     ])
+@pytest.mark.integration
 def test_checkout_authorized_full_checkout_without_shipping(
         default_address_data, stored_address_data, use_default, use_new,
         authorized_client_with_cart, even_different_address_data,
-        without_shipping,):
-    """
-    User addresses are created (2, 1 or any)
-    User with product in cart logs in
-    Provides new valid billing address or chooses from created
-    Successful order create
-    If user provides new address, it is stored in his addresses
-    """
+        product_without_shipping):
 
     user = authorized_client_with_cart.get('/').context['user']
     User = get_user_model()
@@ -405,7 +369,7 @@ def test_checkout_authorized_full_checkout_without_shipping(
         billing_address_data = {'address': stored_address.id}
         provided_address = stored_address
 
-    ###
+    ### TODO:
     # it fails when user have address but not default billing address
     # initial_address = authorized_client_with_cart.get(
     #     response.url).context['addresses_form'].initial['address']
@@ -476,20 +440,12 @@ def test_checkout_authorized_full_checkout_without_shipping(
         ({}, {}, False, False, False, False, False),
         ({}, {}, False, False, False, False, True),
     ])
+@pytest.mark.integration
 def test_checkout_authorized_full_checkout_with_shipping(
         default_shipping, default_billing,  use_default_shipping_for_shipping,
         use_default_billing_for_shipping,  use_default_billing_for_billing,
         use_default_shipping_for_billing, use_different, shipping_method,
         authorized_client_with_cart, even_different_address_data,):
-    """
-    User addresses are created (2, 1 or any)
-    User with product in cart logs in
-    Provides new valid shipping address or chooses from created
-    Provides shipping method
-    Provides new valid billing address, chooses from created or uses shipping address
-    Successful order create
-    If user provides new address, it is stored in his addresses
-    """
 
     user = authorized_client_with_cart.get('/').context['user']
     User = get_user_model()
@@ -512,7 +468,6 @@ def test_checkout_authorized_full_checkout_with_shipping(
     url = reverse('checkout:index')
     response = authorized_client_with_cart.get(url)
     assert response.status_code == 302
-
 
     # shipping address step
     shipping_address_url = reverse('checkout:shipping-address')
@@ -604,16 +559,17 @@ def test_checkout_authorized_full_checkout_with_shipping(
                                          provided_billing_address)
 
     after_order_user_addresses = user.addresses.all()
-    if not any([
-        use_default_billing_for_billing, use_default_shipping_for_billing,
-        use_default_billing_for_shipping, use_default_shipping_for_shipping]):
+    if not any([use_default_billing_for_billing,
+                use_default_shipping_for_billing,
+                use_default_billing_for_shipping,
+                use_default_shipping_for_shipping]):
         if use_different:
             assert len(after_order_user_addresses) - len(user_addresses) == 2
         else:
             assert len(after_order_user_addresses) - len(user_addresses) == 1
-    elif (use_default_billing_for_billing + use_default_shipping_for_billing
-              + use_default_billing_for_shipping
-              + use_default_shipping_for_shipping == 2):
+    elif sum([use_default_billing_for_billing, use_default_shipping_for_billing,
+              use_default_billing_for_shipping,
+              use_default_shipping_for_shipping]) == 2:
         assert len(after_order_user_addresses) - len(user_addresses) == 0
     elif provided_billing_address == provided_shipping_address:
         assert len(after_order_user_addresses) - len(user_addresses) == 0
@@ -642,11 +598,9 @@ def test_checkout_authorized_full_checkout_with_shipping(
         dict(ADDRESS_DATA.items() +
              {'address': 'new_address', 'email': 'invalid'}.items()),
         {}])
-def test_checkout_fail_on_shipping_address(
-        broken_address_data, client_with_cart):
-    """
-    Provides new invalid shipping address or tries to choose from created
-    """
+@pytest.mark.integration
+def test_checkout_fail_on_shipping_address(broken_address_data,
+                                           client_with_cart):
 
     cart_dict = client_with_cart.session['cart'].copy()
     url = reverse('checkout:index')
@@ -669,11 +623,9 @@ def test_checkout_fail_on_shipping_address(
         {'address': 12345},
         ADDRESS_DATA,
         {}])
+@pytest.mark.integration
 def test_checkout_authorized_fail_on_shipping_address(
         broken_address_data, authorized_client_with_cart):
-    """
-    Provides new invalid shipping address or tries to choose from created
-    """
 
     cart_dict = authorized_client_with_cart.session['cart'].copy()
     url = reverse('checkout:index')
@@ -704,12 +656,10 @@ def anonymous_client_with_shipping_address(client_with_cart):
         {'method': 123456},
         {'method': 'not_method_id'},
         {}])
+@pytest.mark.integration
 def test_checkout_fail_on_shipping_method(
-        anonymous_client_with_shipping_address,
-        broken_method_data):
-    """
-    Tries to choose invalid shipping method
-    """
+        anonymous_client_with_shipping_address, broken_method_data):
+
     cart_dict = anonymous_client_with_shipping_address.session['cart'].copy()
     url = reverse('checkout:shipping-method')
     response = anonymous_client_with_shipping_address.post(
@@ -733,12 +683,11 @@ def authorized_client_with_shipping_address(authorized_client_with_cart):
         {'method': 123456},
         {'method': 'not_method_id'},
         {}])
+@pytest.mark.integration
 def test_checkout_authorized_fail_on_shipping_method(
         broken_method_data, shipping_method,
         authorized_client_with_shipping_address):
-    """
-    Tries to choose invalid shipping method
-    """
+
     cart_dict = authorized_client_with_shipping_address.session['cart'].copy()
     url = reverse('checkout:shipping-method')
     response = authorized_client_with_shipping_address.post(
@@ -750,6 +699,7 @@ def test_checkout_authorized_fail_on_shipping_method(
 @pytest.fixture
 def anonymous_client_with_shipping_method(
         anonymous_client_with_shipping_address, shipping_method):
+
     shipping_method_url = reverse('checkout:shipping-method')
     shipping_method_data = {'method': shipping_method.id}
     anonymous_client_with_shipping_address.post(shipping_method_url,
@@ -765,11 +715,10 @@ def anonymous_client_with_shipping_method(
         {'address': 12345},
         ADDRESS_DATA,
         {}])
+@pytest.mark.integration
 def test_checkout_fail_on_summary_step(
         anonymous_client_with_shipping_method, broken_address_data):
-    """
-    Tries to choose or provide new invalid billing address
-    """
+
     cart_dict = anonymous_client_with_shipping_method.session['cart'].copy()
     previous_orders = list(Order.objects.all())
     url = reverse('checkout:summary')
@@ -783,6 +732,7 @@ def test_checkout_fail_on_summary_step(
 @pytest.fixture
 def authorized_client_with_shipping_method(
         authorized_client_with_shipping_address, shipping_method):
+
     shipping_method_url = reverse('checkout:shipping-method')
     shipping_method_data = {'method': shipping_method.id}
     authorized_client_with_shipping_address.post(shipping_method_url,
@@ -798,6 +748,7 @@ def authorized_client_with_shipping_method(
         {'address': 12345},
         ADDRESS_DATA,
         {}])
+@pytest.mark.integration
 def test_checkout_authorized_fail_on_summary_step(
         authorized_client_with_shipping_method, broken_address_data):
     """
@@ -824,11 +775,10 @@ def test_checkout_authorized_fail_on_summary_step(
         dict(ADDRESS_DATA.items() +
              {'address': 'new_address', 'email': 'invalid'}.items()),
         {}])
+@pytest.mark.integration
 def test_checkout_fail_on_summary_step_without_shipping(
-        client_with_cart, broken_address_data, without_shipping):
-    """
-    Tries to choose or provide new invalid billing address
-    """
+        client_with_cart, broken_address_data, product_without_shipping):
+
     cart_dict = client_with_cart.session['cart'].copy()
     previous_orders = list(Order.objects.all())
     url = reverse('checkout:summary')
@@ -847,11 +797,11 @@ def test_checkout_fail_on_summary_step_without_shipping(
         {'address': 12345},
         ADDRESS_DATA,
         {}])
+@pytest.mark.integration
 def test_checkout_authorized_faill_on_summary_step_without_shipping(
-        authorized_client_with_cart, broken_address_data, without_shipping):
-    """
-    Tries to choose invalid shipping method
-    """
+        authorized_client_with_cart, broken_address_data,
+        product_without_shipping):
+
     cart_dict = authorized_client_with_cart.session['cart'].copy()
     previous_orders = list(Order.objects.all())
     url = reverse('checkout:summary')
@@ -866,6 +816,7 @@ def test_checkout_authorized_faill_on_summary_step_without_shipping(
     (reverse('checkout:shipping-address'), 302, reverse('cart:index')),
     (reverse('checkout:shipping-method'), 302, reverse('cart:index')),
     (reverse('checkout:summary'), 302, reverse('cart:index'))])
+@pytest.mark.integration
 def test_checkout_redirections_without_cart(
         client, url, status_code, redirection, db):
     response = client.get(url)
@@ -878,6 +829,7 @@ def test_checkout_redirections_without_cart(
     (reverse('checkout:shipping-address'), reverse('checkout:shipping-address')),
     (reverse('checkout:shipping-method'), reverse('checkout:shipping-address')),
     (reverse('checkout:summary'), reverse('checkout:shipping-address'))])
+@pytest.mark.integration
 def test_checkout_redirections_without_shipping_address(client_with_cart,
                                                         url, redirection):
     cart_dict = client_with_cart.session['cart'].copy()
@@ -890,11 +842,13 @@ def test_checkout_redirections_without_shipping_address(client_with_cart,
 
 
 @pytest.mark.parametrize('url, redirection', [
+    ### TODO:
     # if user breaks checkout process should continue on last step
     # (reverse('checkout:index'), reverse('checkout:shipping-method')),
-    (reverse('checkout:shipping-address'), reverse('checkout:shippinqg-address')),
+    (reverse('checkout:shipping-address'), reverse('checkout:shipping-address')),
     (reverse('checkout:shipping-method'), reverse('checkout:shipping-method')),
     (reverse('checkout:summary'), reverse('checkout:shipping-method'))])
+@pytest.mark.integration
 def test_checkout_redirections_without_shipping_method(
         anonymous_client_with_shipping_address, url, redirection):
     cart_dict = anonymous_client_with_shipping_address.session['cart'].copy()
@@ -907,11 +861,13 @@ def test_checkout_redirections_without_shipping_method(
 
 
 @pytest.mark.parametrize('url, redirection', [
+    ### TODO:
     # if user breaks checkout process should continue on last step
     # (reverse('checkout:index'), reverse('checkout:summary')),
     (reverse('checkout:shipping-address'), reverse('checkout:shipping-address')),
     (reverse('checkout:shipping-method'), reverse('checkout:shipping-method')),
     (reverse('checkout:summary'), reverse('checkout:summary'))])
+@pytest.mark.integration
 def test_checkout_redirections_without_billing_address(
         anonymous_client_with_shipping_method, url, redirection):
     cart_dict = anonymous_client_with_shipping_method.session['cart'].copy()
