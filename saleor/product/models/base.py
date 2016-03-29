@@ -127,6 +127,9 @@ class Product(models.Model, ItemRange):
                 return category
         return None
 
+    def is_shipping_required(self):
+        return True
+
 
 @python_2_unicode_compatible
 class ProductVariant(models.Model, Item):
@@ -189,9 +192,6 @@ class ProductVariant(models.Model, Item):
             'product_id': self.product.pk,
             'variant_id': self.pk,
             'unit_price': str(self.get_price_per_item().gross)}
-
-    def is_shipping_required(self):
-        return True
 
     def is_in_stock(self):
         return any(
