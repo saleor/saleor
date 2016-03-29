@@ -220,7 +220,8 @@ def test_checkout_whole_with_shipping_and_copying_address(
     shipping_address_url = reverse('checkout:shipping-address')
     assert response.url.endswith(shipping_address_url)
     email = {'email': 'email@example.com'}
-    data = dict(shipping_address_data.items() + email.items())
+    data = shipping_address_data.copy()
+    data.update(email)
     response = client_with_cart.post(shipping_address_url, data)
     assert response.status_code == 302
 
@@ -234,8 +235,8 @@ def test_checkout_whole_with_shipping_and_copying_address(
     # billing address (summary) step
     summary_url = reverse('checkout:summary')
     assert response.url.endswith(summary_url)
-    data = dict(
-        billing_address_data.items() + update_billing_address_with.items())
+    data = billing_address_data.copy()
+    data.update(update_billing_address_with)
     assert client_with_cart.session['cart']['items']
     response = client_with_cart.post(summary_url, data=data)
     assert response.status_code == 302
@@ -276,7 +277,8 @@ def test_checkout_whole_without_shipping(client_with_cart,
     assert response.url.endswith(summary_url)
     assert client_with_cart.session['cart']['items']
     email = {'email': 'email@example.com'}
-    data = dict(ADDRESS_DATA.items() + email.items())
+    data = ADDRESS_DATA.copy()
+    data.update(email)
     response = client_with_cart.post(summary_url, data=data)
     order = Order.objects.get()
     order_url = reverse('order:payment', kwargs={'token': order.token})
@@ -595,8 +597,8 @@ def test_checkout_authorized_full_checkout_with_shipping(
         {'address': 'not_used_word'},
         {'address': 12345},
         ADDRESS_DATA,
-        dict(ADDRESS_DATA.items() +
-             {'address': 'new_address', 'email': 'invalid'}.items()),
+        dict(list(ADDRESS_DATA.items()) +
+             [('address', 'new_address'), ('email', 'invalid')]),
         {}])
 @pytest.mark.integration
 def test_checkout_fail_on_shipping_address(broken_address_data,
@@ -772,8 +774,8 @@ def test_checkout_authorized_fail_on_summary_step(
         {'address': 'shipping_address'},
         {'address': 12345},
         ADDRESS_DATA,
-        dict(ADDRESS_DATA.items() +
-             {'address': 'new_address', 'email': 'invalid'}.items()),
+        dict(list(ADDRESS_DATA.items()) +
+             [('address', 'new_address'), ('email', 'invalid')]),
         {}])
 @pytest.mark.integration
 def test_checkout_fail_on_summary_step_without_shipping(
