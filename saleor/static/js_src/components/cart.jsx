@@ -44,7 +44,6 @@ class CartItemAmountSelect extends Component {
     if (newValue < this.props.thresholdValue && this.state.renderSelect) {
       this.sendQuantity(newValue);
     }
-
     if (!this.state.renderSelect && !this.state.sending) {
       this.setState({renderSubmit: true});
     }
@@ -61,7 +60,7 @@ class CartItemAmountSelect extends Component {
   }
 
   sendQuantityWrapper() {
-    this.sendQuantity(this.refs.inputQuantity.props.value);
+    this.sendQuantity(this.state.value);
   }
 
   sendQuantity(quantity) {
@@ -128,7 +127,7 @@ class CartItemAmountSelect extends Component {
       {options}
     </select>;
     let input = <div className={classNamesInput.join(' ')}>
-      <input onKeyUp={this.checkKey.bind(this)} onChange={this.change.bind(this)} id="id_quantity" max={this.props.max} min="1" ref="inputQuantity" name="quantity" type="number" alue={this.state.value} />
+      <input onKeyUp={this.checkKey.bind(this)} onChange={this.change.bind(this)} id="id_quantity" max={this.props.max} min="1" ref="inputQuantity" name="quantity" type="number" value={this.state.value} />
       <span className="input-group-btn">
         <button onClick={this.sendQuantityWrapper.bind(this)} className="btn btn-info" type="submit">Update</button>
       </span>
