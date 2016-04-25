@@ -3,9 +3,17 @@ ENV PYTHONUNBUFFERED 1
 
 RUN \
  apt-get -y update && \
- apt-get install -y npm && \
- apt-get clean && \
- ln -s /usr/bin/nodejs /usr/bin/node
+ apt-get install -y apt-transport-https
+
+RUN \
+ apt-key adv --keyserver keyserver.ubuntu.com --recv 68576280 && \
+ echo 'deb https://deb.nodesource.com/node_5.x jessie main' | tee /etc/apt/sources.list.d/nodesource.list && \
+ echo 'deb-src https://deb.nodesource.com/node_5.x jessie main' | tee -a /etc/apt/sources.list.d/nodesource.list
+
+RUN \
+ apt-get -y update && \
+ apt-get install -y nodejs && \
+ apt-get clean
 
 ADD requirements.txt /app/requirements.txt
 RUN cd /app && pip install -r requirements.txt
