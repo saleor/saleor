@@ -1,6 +1,5 @@
 *.py[cod]
 .*
-!.buildpacks
 !.coveragerc
 !.dockerignore
 !.flowconfig
