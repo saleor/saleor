@@ -30,7 +30,7 @@ def get_currency_for_country(country):
     return settings.DEFAULT_CURRENCY
 
 
-@register(Tags.caches)
+@register()
 def my_check(app_configs, **kwargs):
     errors = []
     cached_engines = {
