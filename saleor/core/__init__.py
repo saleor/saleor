@@ -31,7 +31,7 @@ def get_currency_for_country(country):
 
 
 @register()
-def my_check(app_configs, **kwargs):
+def check_session_caching(app_configs, **kwargs):
     errors = []
     cached_engines = {
         'django.contrib.sessions.backends.cache',
