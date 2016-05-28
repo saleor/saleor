@@ -45,6 +45,7 @@ email_config = dj_email_url.parse(EMAIL_URL)
 
 vars().update(email_config)
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
+ORDER_FROM_EMAIL = os.getenv('ORDER_FROM_EMAIL', DEFAULT_FROM_EMAIL)
 
 
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media')

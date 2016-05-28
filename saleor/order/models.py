@@ -147,7 +147,9 @@ class Order(models.Model, ItemSet):
             reverse('order:details', kwargs={'token': self.token}))
         context = {'payment_url': payment_url}
 
-        emailit.api.send_mail(email, context, 'order/emails/confirm_email')
+        emailit.api.send_mail(
+                email, context, 'order/emails/confirm_email',
+                from_email=settings.ORDER_FROM_EMAIL)
 
     def get_last_payment_status(self):
         last_payment = self.payments.last()
@@ -377,7 +379,8 @@ class Payment(BasePayment):
             reverse('order:details', kwargs={'token': self.order.token}))
         context = {'order_url': order_url}
         emailit.api.send_mail(
-            email, context, 'order/payment/emails/confirm_email')
+            email, context, 'order/payment/emails/confirm_email',
+            from_email=settings.ORDER_FROM_EMAIL)
 
     def get_purchased_items(self):
         items = [PurchasedItem(
