@@ -59,7 +59,8 @@ First steps
 
 .. code::
 
- $ heroku create --buildpack https://github.com/ddollar/heroku-buildpack-multi.git
+ $ heroku create --buildpack https://github.com/mbuchetics/heroku-buildpack-nodejs-grunt.git
+ $ heroku buildpacks:add --index 1 https://github.com/heroku/heroku-buildpack-python.git
  $ heroku addons:add heroku-postgresql
  $ heroku addons:add heroku-redis
  $ heroku config:set SECRET_KEY='<your secret key here>'
