@@ -119,6 +119,12 @@ $transition-duration: .2s;
           font-size: 14px;
           line-height: 64px;
           margin: 0;
+          
+          .username {
+            display: inline-block;
+            width: 140px;
+            vertical-align: inherit;
+          }
 
           i {
             vertical-align: inherit;
