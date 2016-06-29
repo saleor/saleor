@@ -1,8 +1,9 @@
 from django.conf import settings
 from django.conf.urls import url, include
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
-from django.views.static import serve
+from django.contrib.staticfiles.views import serve
 
 from .cart.urls import urlpatterns as cart_urls
 from .checkout.urls import urlpatterns as checkout_urls
@@ -36,5 +37,5 @@ urlpatterns = [
 if settings.DEBUG:
     # static files (images, css, javascript, etc.)
     urlpatterns += [
-        url(r'^media/(?P<path>.*)$', serve,
-            {'document_root': settings.MEDIA_ROOT})]
+        url(r'^static/(?P<path>.*)$', serve)
+    ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 {% load i18n %}
 {% load staticfiles %}
+{% load render_bundle from webpack_loader %}
 
 <html lang="en" class="no-js">
     <head>
@@ -12,7 +13,8 @@
         <meta name="author" content="{% trans "Mirumee Software" %}">
         {% endblock meta %}
 
-        <link rel="stylesheet" type="text/css" href="{% static "css/storefront.css" %}">
+        {% render_bundle 'vendor' 'css' %}
+        {% render_bundle 'storefront' 'css' %}
 
         {% block stylesheet %}{% endblock stylesheet %}
 
@@ -115,7 +117,8 @@
             </footer>
         {% endblock %}
         {% block footer_scripts %}
-            <script src="{% static "js/storefront.js" %}"></script>
+            {% render_bundle 'vendor' 'js' %}
+            {% render_bundle 'storefront' 'js' %}
         {% endblock footer_scripts %}
     </body>
 </html>

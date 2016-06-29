@@ -9,6 +9,8 @@ import CartStore from './stores/cart-store';
 require('jquery.cookie');
 require('bootstrap-sass');
 
+require('../scss/storefront.scss');
+
 let textInput = [];
 let options = [1,2,3,4,5,6,7,8,9,10];
 let csrftoken = $.cookie('csrftoken');

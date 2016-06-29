@@ -29,6 +29,7 @@ django-prices==0.4.13
 django-redis==4.4.3
 django-selectable==0.9.0
 django-versatileimagefield==1.4
+django-webpack-loader==0.3.0
 Django==1.9.6             # via django-absolute, django-emailit, django-model-utils, django-mptt, django-offsite-storage, django-payments, django-prices, jsonfield
 djangorestframework==3.3.3
 fake-factory==0.5.7

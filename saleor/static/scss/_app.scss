@@ -1,6 +1,7 @@
-$icon-font-path: "../fonts/";
-@import "bootstrap-sass/assets/stylesheets/bootstrap";
-@import "font-awesome/scss/font-awesome";
+$icon-font-path: "~bootstrap-sass/assets/fonts/bootstrap/";
+@import "~bootstrap-sass/assets/stylesheets/bootstrap";
+$fa-font-path: "~font-awesome/fonts";
+@import "~font-awesome/scss/font-awesome";
 
 .table > tbody > tr > td.noborder {
   border-top: 1px solid transparent;

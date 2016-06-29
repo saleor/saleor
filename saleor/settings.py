@@ -151,6 +151,7 @@ INSTALLED_APPS = [
     'selectable',
     'materializecssform',
     'rest_framework',
+    'webpack_loader'
 ]
 
 LOGGING = {
@@ -276,6 +277,14 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
         ('dashboard', 'crop__400x400'),
         ('product_page_mobile', 'crop__680x680'),
         ('product_page_big', 'crop__750x750'),
-        ('product_page_thumb', 'crop__280x280')
-    ]
-}
+        ('product_page_thumb', 'crop__280x280')]}
+
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'CACHE': not DEBUG,
+        'BUNDLE_DIR_NAME': 'assets/',
+        'STATS_FILE': os.path.join(PROJECT_ROOT, 'webpack-bundle.json'),
+        'POLL_INTERVAL': 0.1,
+        'IGNORE': [
+            r'.+\.hot-update\.js',
+            r'.+\.map']}}

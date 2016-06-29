@@ -7,6 +7,8 @@ require('jquery-match-height');
 require('materialize-sass-origin');
 require('select2');
 
+require('../scss/dashboard.scss');
+
 $(document).ready(function() {
   initSelects();
   $('.button-collapse').sideNav();
@@ -87,10 +89,6 @@ $(document).ready(function() {
   }).on('click', '.modal-close', function() {
     $('.modal').closeModal();
   });
-
-  function isDesktop() {
-    return !$('.hide-on-large-only').is(':visible');
-  }
 
   function isTablet() {
     return !$('.hide-on-med-only').is(':visible');

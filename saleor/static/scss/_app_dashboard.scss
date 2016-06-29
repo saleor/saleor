@@ -5,10 +5,11 @@ $font-size-action-icon: 18px;
 $header-height: 60px;
 $transition-duration: .2s;
 
-@import "materialize-sass-origin/sass/materialize";
-@import "select2/src/scss/core";
-//@import "vendor/basic";
-@import "dropzone/dist/dropzone";
+$icons-font-path: "~materialize-sass-origin/font/material-design-icons/";
+$roboto-font-path: "~materialize-sass-origin/font/roboto/";
+@import "~materialize-sass-origin/sass/materialize";
+@import "~select2/src/scss/core";
+@import "~dropzone/dist/dropzone";
 
 .header {
   @media (min-width: $large-screen-up) {

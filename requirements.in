@@ -17,6 +17,7 @@ django-redis>=4.0.0
 djangorestframework>=3.1
 django-selectable>=0.8.0
 django-versatileimagefield>=1.0.1
+django-webpack-loader>=0.3.0
 fake-factory>=0.3.2
 google-measurement-protocol>=0.1.2,<0.2a0
 google-i18n-address>=1.0.1
