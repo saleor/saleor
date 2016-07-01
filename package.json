@@ -20,7 +20,7 @@
     "dropzone": "^4.2.0",
     "font-awesome": "^4.4.0",
     "hammerjs": "^2.0.4",
-    "jquery": "^2.1.4",
+    "jquery": "^2.2.4",
     "jquery-match-height": "~0.6.0",
     "jquery-ui": "^1.10.5",
     "jquery.cookie": "^1.4.1",
