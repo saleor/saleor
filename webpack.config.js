@@ -26,16 +26,13 @@ var providePlugin = new webpack.ProvidePlugin({
 
 var config = {
   entry: {
+    cart: './saleor/static/js/cart.js',
     dashboard: './saleor/static/js/dashboard.js',
     storefront: './saleor/static/js/storefront.js',
     vendor: [
       'bootstrap-sass',
       'jquery',
-      'jquery.cookie',
-      'react',
-      'react-dom',
-      'react-redux',
-      'redux'
+      'jquery.cookie'
     ]
   },
   output: {

@@ -1,21 +1,47 @@
 /* @flow */
 
-import {createStore} from 'redux';
+import { createStore } from 'redux';
 
-function updateCart(state = {total: 'N/A', subtotals: {}}, action) {
+type CartState = {
+  total: string;
+  subtotals: { [key: number]: string };
+};
+
+type CartUpdateTotal = {
+  type: 'UPDATE_TOTAL';
+  total: string
+};
+
+type CartUpdateSubtotal = {
+  type: 'UPDATE_SUBTOTAL';
+  productId: number;
+  subtotal: string
+};
+
+type CartAction = CartUpdateTotal | CartUpdateSubtotal;
+
+const defaultState: CartState = {
+  total: 'N/A',
+  subtotals: {}
+}
+
+const cart = (state: CartState = defaultState, action: CartAction) => {
   switch(action.type) {
     case ('UPDATE_TOTAL'):
-      return {...state, total: action.total};
+      return {
+        ...state,
+        total: action.total
+      }
     case ('UPDATE_SUBTOTAL'):
-      let {productId, subtotal} = action;
-      let subtotals = {...state.subtotals};
-      subtotals[productId] = subtotal;
-      return {...state, subtotals};
+      const { productId, subtotal } = action;
+      const subtotals = { ...state.subtotals, [productId]: subtotal }
+      return {
+        ...state,
+        subtotals
+      }
     default:
-      return state;
+      return state
   }
 }
 
-let store = createStore(updateCart);
-
-export default store;
+export default createStore(cart)
