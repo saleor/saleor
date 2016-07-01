@@ -53,7 +53,7 @@ var config = {
       {
         test: /\.scss$/,
         loader: ExtractTextPlugin.extract([
-          'css',
+          'css?sourceMap',
           'postcss',
           'sass'
         ])
