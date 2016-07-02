@@ -171,6 +171,7 @@ class CartItemAmountSelect extends Component {
     const input = (
       <div className={classNamesInput.join(' ')}>
         <input
+          className="form-control"
           id="id_quantity"
           max={this.props.max}
           min={1}

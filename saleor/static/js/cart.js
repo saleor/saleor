@@ -8,6 +8,8 @@ import { Provider } from 'react-redux'
 import { CartItemAmount, CartItemSubtotal, CartTotal } from './components/cart'
 import store from './stores/cart-store'
 
+import '../scss/cart.scss'
+
 const options = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 $('.cart-item-amount').each(function(index) {

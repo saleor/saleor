@@ -1,1 +1,159 @@
-@import "app";
+$icon-font-path: "~bootstrap-sass/assets/fonts/bootstrap/";
+@import "~bootstrap-sass/assets/stylesheets/bootstrap";
+$fa-font-path: "~font-awesome/fonts";
+@import "~font-awesome/scss/font-awesome";
+
+.table > tbody > tr > td.noborder {
+  border-top: 1px solid transparent;
+}
+
+.navbar {
+	margin-bottom: $grid-gutter-width;
+}
+
+.price {
+	&.undiscounted {
+		text-decoration: line-through;
+	}
+}
+
+.address-details {
+	border-bottom: 1px dashed;
+	color: #3a87ad;
+	cursor: pointer;
+}
+
+.popover {
+	min-width: 200px;
+}
+
+.product-list-item-name {
+	display: block;
+	margin-top: $grid-gutter-width/4;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.product-gallery {
+	margin-top: $grid-gutter-width;
+}
+
+.product-related {
+	.active {
+		border: 1px solid $btn-primary-border;
+		box-shadow: 0 0 5px $btn-primary-border;
+	}
+}
+
+.product-form {
+	.btn-group {
+		display: block;
+		overflow: hidden;
+	}
+}
+
+.breadcrumb {
+	> li+li {
+		&:before {
+			content: '/';
+		}
+	}
+}
+
+.nav {
+	> li {
+		> a {
+			@extend .text-info;
+		}
+
+		&.active {
+			> a, a:hover {
+				background-color: $brand-info;
+			}
+		}
+	}
+}
+
+.page-header {
+	&--order {
+		margin-top: $grid-gutter-width/3;
+	}
+}
+
+.js {
+	.js-hidden {
+		display: none;
+	}
+}
+
+.nav-pills {
+	&.nav-wizard {
+		> li {
+			position: relative;
+			overflow: visible;
+			border-right: 15px solid $body-bg;
+			border-left: 15px solid $body-bg;
+
+			&:first-child {
+				border-left: 0;
+
+				a {
+					border-radius:5px 0 0 5px;
+				}
+			}
+
+			&:last-child {
+				border-right: 0;
+
+				a {
+					border-radius:0 5px 5px 0;
+				}
+			}
+
+			a {
+				border-radius: 0;
+				background-color: $gray-lighter;
+			}
+
+			.nav-arrow {
+				position: absolute;
+				top: 0px;
+				right: -20px;
+				width: 0px;
+				height: 0px;
+				border-style: solid;
+				border-width: 20px 0 20px 20px;
+				border-color: transparent transparent transparent $gray-lighter;
+				z-index: 150;
+			}
+
+			.nav-wedge {
+				position: absolute;
+				top: 0px;
+				left: -20px;
+				width: 0px;
+				height: 0px;
+				border-style: solid;
+				border-width: 20px 0 20px 20px;
+				border-color: $gray-lighter $gray-lighter $gray-lighter transparent;
+				z-index: 150;
+			}
+
+			&.active {
+				.nav-arrow {
+					border-color: transparent transparent transparent $nav-pills-active-link-hover-bg;
+				}
+
+				.nav-wedge {
+					border-color: $nav-pills-active-link-hover-bg $nav-pills-active-link-hover-bg $nav-pills-active-link-hover-bg transparent;
+				}
+
+				a {
+					background-color: $nav-pills-active-link-hover-bg;
+					color: $nav-pills-active-link-hover-color;
+				}
+			}
+		}
+	}
+}
