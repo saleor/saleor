@@ -1,6 +1,6 @@
 {
   "name": "saleor",
-  "description": "A fork'n'play e-commerce in Django",
+  "description": "An e-commerce storefront for Python and Django",
   "repository": "https://github.com/mirumee/saleor",
   "website": "http://getsaleor.com/",
   "logo": "https://mirumee.com/img/opensource-saleor.png",

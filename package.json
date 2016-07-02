@@ -60,8 +60,8 @@
     "webpack-dev-server": "^1.14.1"
   },
   "scripts": {
-    "build-assets": "UV_THREADPOOL_SIZE=8 ./node_modules/.bin/webpack --progress --optimize-minimize --optimize-occurence-order --optimize-dedupe",
+    "build-assets": "UV_THREADPOOL_SIZE=8 webpack --progress --optimize-minimize --optimize-occurence-order --optimize-dedupe",
     "heroku-postbuild": "npm run build-assets",
-    "start": "UV_THREADPOOL_SIZE=8 ./node_modules/.bin/webpack --progress --debug --watch"
+    "start": "UV_THREADPOOL_SIZE=8 webpack -d --watch"
   }
 }
