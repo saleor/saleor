@@ -45,6 +45,7 @@
     "sass-loader": "^4.0.0",
     "select2": "^4.0.0",
     "sortablejs": "^1.4.2",
+    "underscore": "^1.8.3",
     "webpack": "^1.12.2",
     "webpack-bundle-tracker": "0.0.93",
     "webpack-dev-server": "^1.14.1"
