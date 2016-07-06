@@ -116,7 +116,7 @@ MIDDLEWARE_CLASSES = [
 
 INSTALLED_APPS = [
     # External apps that need to go before django's
-    'offsite_storage',
+    'storages',
 
     # Django modules
     'django.contrib.contenttypes',
@@ -256,17 +256,16 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # Amazon S3 configuration
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-AWS_STATIC_BUCKET_NAME = os.environ.get('AWS_STATIC_BUCKET_NAME')
-
-AWS_MEDIA_ACCESS_KEY_ID = os.environ.get('AWS_MEDIA_ACCESS_KEY_ID')
-AWS_MEDIA_SECRET_ACCESS_KEY = os.environ.get('AWS_MEDIA_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
 AWS_MEDIA_BUCKET_NAME = os.environ.get('AWS_MEDIA_BUCKET_NAME')
+AWS_QUERYSTRING_AUTH = ast.literal_eval(
+    os.environ.get('AWS_QUERYSTRING_AUTH', 'False'))
 
-if AWS_STATIC_BUCKET_NAME:
-    STATICFILES_STORAGE = 'offsite_storage.storages.CachedS3FilesStorage'
+if AWS_STORAGE_BUCKET_NAME:
+    STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 
 if AWS_MEDIA_BUCKET_NAME:
-    DEFAULT_FILE_STORAGE = 'offsite_storage.storages.S3MediaStorage'
+    DEFAULT_FILE_STORAGE = 'saleor.core.storages.S3MediaStorage'
     THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
