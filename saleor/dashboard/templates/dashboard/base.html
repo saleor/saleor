@@ -1,13 +1,16 @@
-<!DOCTYPE html>{% load staticfiles i18n %}
-<html class="no-js">
+<!DOCTYPE html>
+{% load staticfiles i18n %}
+{% load render_bundle from webpack_loader %}
 
+<html class="no-js">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
     <title>{% block title %}{% trans "Dashboard - Saleor" %}{% endblock %}</title>
 
-    <link rel="stylesheet" type="text/css" href="{% static "css/dashboard.css" %}">
+    {% render_bundle 'vendor' 'css' %}
+    {% render_bundle 'dashboard' 'css' %}
     <link rel="stylesheet" type="text/css" href="{% static "versatileimagefield/css/versatileimagefield.css" %}">
 
     {% block custom_css %}
@@ -112,7 +115,8 @@
     <div id="base-modal-fixed" class="modal modal-fixed-footer"></div>
 
     <!-- Core Scripts - Include with every page -->
-    <script src="{% static "js/dashboard.js" %}"></script>
+    {% render_bundle 'vendor' 'js' %}
+    {% render_bundle 'dashboard' 'js' %}
     <script src="{% static "versatileimagefield/js/versatileimagefield.js" %}"></script>
     {% include "dashboard/includes/_messages.html" %}
 

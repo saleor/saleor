@@ -39,7 +39,7 @@ Installation
     $ python manage.py migrate
 
 
-6. Install front-end dependencies.
+6. Install front-end dependencies:
 
    .. note::
     This step requires that you have Node.js installed. On Debian and Ubuntu systems you will also need to install the `nodejs-legacy` package.
@@ -49,11 +49,11 @@ Installation
     $ npm install
 
 
-7. Prepare assets:
+7. Prepare front-end assets:
 
    .. code:: bash
 
-    $ ./node_modules/.bin/grunt
+    $ npm run build-assets
 
 
 8. Run like a normal django project:

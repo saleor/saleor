@@ -1,0 +1,73 @@
+@import "~bootstrap-sass/assets/stylesheets/bootstrap/variables";
+
+.cart {
+	> tbody {
+		> .cart-item {
+			> td {
+				vertical-align: text-bottom;
+			}
+		}
+	}
+
+	&-item {
+		&-image {
+			display: inline-block;
+			max-width: 100%;
+		}
+
+		&-quantity {
+			input {
+				border-bottom-right-radius: 0;
+				border-top-right-radius: 0;
+			}
+
+			&-select {
+				display: inline-block;
+				width: calc(100% - 71px);
+
+				option {
+					&:last-child {
+						color: lighten($text-color, 33%);
+					}
+				}
+			}
+
+			&.has-error {
+				input {
+					border-color: $state-danger-text;
+				}
+			}
+		}
+
+		&-amount {
+			.input-group {
+				&.no-submit {
+					display: inline-block;
+					width: calc(100% - 71px);
+
+					input {
+						border-bottom-right-radius: $input-border-radius;
+						border-top-right-radius: $input-border-radius;
+					}
+
+					.btn {
+						display: none;
+					}
+				}
+			}
+
+			.fa {
+				margin-left: 6px;
+				padding-left: 1px;
+			}
+		}
+
+		&-remove {
+			padding-left: 0;
+		}
+
+		.error {
+			display: block;
+		}
+	}
+}

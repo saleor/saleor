@@ -27,7 +27,7 @@ ADD . /app
 WORKDIR /app
 
 ENV PATH $PATH:/app/node_modules/.bin
-RUN grunt
+RUN npm run build-assets
 RUN SECRET_KEY=tmpkey python manage.py collectstatic --noinput
 
 EXPOSE 8000

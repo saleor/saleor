@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% load gross from prices_i18n %}
 {% load i18n %}
-{% load staticfiles %}
+{% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
 
 {% block title %}{% trans "Your cart" %} — {{ block.super }}{% endblock %}
 
@@ -9,6 +10,16 @@
     {{ block.super }}
 <li><a href="{% url 'cart:index' %}">{% trans "Cart" %}</a></li>
 {% endblock breadcrumb %}
+
+{% block stylesheet %}
+  {{ block.super }}
+  {% render_bundle 'cart' 'css' %}
+{% endblock stylesheet %}
+
+{% block footer_scripts %}
+  {{ block.super }}
+  {% render_bundle 'cart' 'js' %}
+{% endblock footer_scripts %}
 
 {% block content %}
 {% if cart %}
