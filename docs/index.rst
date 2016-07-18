@@ -9,6 +9,8 @@ Contents:
    install
    deploy
    stock
+   social
+   reporting
 
 
 

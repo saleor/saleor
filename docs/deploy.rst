@@ -9,7 +9,7 @@ Local prerequisites
 *******************
 
 You will need to install Docker and
-`docker-compose <https://docs.docker.com/compose/install/>`__ before
+`docker-compose <https://docs.docker.com/compose/install/>`_ before
 performing the following steps.
 
 Usage
