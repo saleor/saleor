@@ -6,7 +6,6 @@ import 'jquery.cookie'
 
 import '../scss/storefront.scss'
 
-let options = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 let csrftoken = $.cookie('csrftoken')
 
 function csrfSafeMethod(method) {

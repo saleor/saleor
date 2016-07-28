@@ -220,7 +220,7 @@ class CartItemAmountSelect extends Component {
 
 const selectQuantities = (state) => ({}) // FIXME: move quantities to store
 
-export var CartItemAmount = connect(selectQuantities)(CartItemAmountSelect);
+export const CartItemAmount = connect(selectQuantities)(CartItemAmountSelect);
 
 const renderSubtotal = ({productId, subtotals}) => {
   let value;
@@ -234,7 +234,7 @@ const selectSubtotals = (state) => ({
   subtotals: state.subtotals
 })
 
-export var CartItemSubtotal = connect(selectSubtotals)(renderSubtotal)
+export const CartItemSubtotal = connect(selectSubtotals)(renderSubtotal)
 
 const renderTotal = ({value}) => <b>{value}</b>
 
@@ -242,4 +242,4 @@ const selectTotal = (state) => ({
   value: state.total
 })
 
-export var CartTotal = connect(selectTotal)(renderTotal)
+export const CartTotal = connect(selectTotal)(renderTotal)
