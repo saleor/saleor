@@ -58,7 +58,7 @@
     ]
   },
   "scripts": {
-    "build-assets": "UV_THREADPOOL_SIZE=8 webpack --progress --optimize-minimize --optimize-occurence-order --optimize-dedupe",
+    "build-assets": "UV_THREADPOOL_SIZE=8 webpack -p --progress",
     "heroku-postbuild": "npm run build-assets",
     "start": "UV_THREADPOOL_SIZE=8 webpack -d --watch"
   }
