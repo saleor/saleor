@@ -24,19 +24,19 @@ django-model-utils==2.5
 django-mptt==0.8.5
 django-payments==0.9.4
 django-prices==0.4.13
-django-redis==4.4.3
+django-redis==4.4.4
 django-selectable==0.9.0
 django-storages==1.4.1
 django-versatileimagefield==1.5
-django-webpack-loader==0.3.0
+django-webpack-loader==0.3.3
 Django==1.9.8             # via django-absolute, django-emailit, django-model-utils, django-payments, django-prices, jsonfield
-djangorestframework==3.4.0
+djangorestframework==3.4.1
 fake-factory==0.5.9
 google-i18n-address==1.0.8
 google-measurement-protocol==0.1.6
 idna==2.1                 # via cryptography
 jsonfield==1.0.3
-lxml==3.6.0               # via premailer
+lxml==3.6.1               # via premailer
 Markdown==2.6.6
 maxminddb-geolite2==2015.708
 maxminddb==1.2.1
