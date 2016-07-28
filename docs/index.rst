@@ -6,11 +6,12 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   install
-   deploy
+   installation
    stock
    social
    reporting
+   development
+   deploy
 
 
 
