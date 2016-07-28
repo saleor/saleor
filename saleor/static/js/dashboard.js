@@ -1,6 +1,6 @@
 import Dropzone from 'dropzone'
 import $ from 'jquery'
-import 'jquery-ui/datepicker'
+import 'jquery-ui/ui/widgets/datepicker'
 import 'jquery-match-height'
 import 'materialize-sass-origin'
 import 'select2'
