@@ -1,5 +1,7 @@
-Welcome to saleor's documentation!
-==================================
+Saleor
+======
+
+An open source storefront written in Python.
 
 Contents:
 
@@ -8,15 +10,15 @@ Contents:
 
    installation
    stock
+   payments
    social
    reporting
    development
    deploy
 
 
-
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
