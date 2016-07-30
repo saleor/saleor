@@ -86,3 +86,13 @@ Installation
    .. code:: bash
 
     $ python manage.py runserver
+
+
+Example data
+------------
+
+If you'd like some data to test your new storefront you can populate the database with example products and orders:
+
+.. code:: bash
+
+    $ python manage.py populatedb
