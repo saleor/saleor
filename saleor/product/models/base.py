@@ -213,6 +213,13 @@ class ProductVariant(models.Model, Item):
         return '%s (%s)' % (smart_text(self.product),
                             self.display_variant(attributes=attributes))
 
+    def get_first_image(self):
+        product_images = self.product.images.all()
+
+        if product_images:
+            return product_images[0].image
+        return None
+
     def select_stockrecord(self, quantity=1):
         # By default selects stock with lowest cost price
         stock = filter(

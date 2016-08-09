@@ -169,7 +169,7 @@ def create_delivery_group(order):
         status=random.choice(['new', 'shipped']),
         order=order,
         shipping_method_name=str(shipping_country),
-        shipping_price=shipping_country.get_total())
+        shipping_price=shipping_country.price)
     return delivery_group
 
 

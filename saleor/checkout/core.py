@@ -7,10 +7,11 @@ from django.forms.models import model_to_dict
 from django.utils.encoding import smart_text
 from prices import Price, FixedDiscount
 
-from ..cart import Cart
+from ..cart.models import Cart
 from ..core import analytics
 from ..discount.models import Voucher, NotApplicable
 from ..order.models import Order
+from ..order.utils import get_ip
 from ..shipping.models import ShippingMethodCountry
 from ..userprofile.models import Address, User
 
@@ -287,19 +288,46 @@ class Checkout(object):
 
 def load_checkout(view):
     @wraps(view)
-    def func(request):
+    def func(request, **kwargs):
+        # Work in progress
         try:
-            session_data = request.session[STORAGE_SESSION_KEY]
-        except KeyError:
-            session_data = ''
-        tracking_code = analytics.get_client_id(request)
-        cart = Cart.for_session_cart(
-            request.cart, discounts=request.discounts)
-        checkout = Checkout.from_storage(
-            session_data, cart, request.user, tracking_code)
-        response = view(request, checkout)
-        if checkout.modified:
-            request.session[STORAGE_SESSION_KEY] = checkout.for_storage()
-        return response
+            cart = Cart.objects.get(token=request.cart.token)
+        except Cart.DoesNotExist:
+            return redirect('cart:index')
+        else:
+            if cart.quantity:
+                checkout_data = cart.checkout_data
+                ip_address = get_ip(request)
+                checkout = Checkout.from_storage(
+                    checkout_data, cart, request.user, '',
+                    discounts=request.discounts)
+                if checkout.ip_address != ip_address:
+                    checkout.ip_address = ip_address
+                response = view(request, checkout, **kwargs)
+                if checkout.modified and cart.pk:
+                    cart.checkout_data = checkout.for_storage()
+                    cart.save(update_fields=['checkout_data'])
+
+                total = checkout.get_total()
+                zero = Price(0, currency=total.currency)
+                payments_variants = checkout.cart.payments.filter(
+                    variant__in=(
+                        Payment.PAYPAL_VARIANT, Payment.SAGE_PAY_VARIANT))
+                if total == zero:
+                    with transaction.atomic():
+                        capture_payments(checkout.cart)
+                        order = create_order(checkout)
+                    return redirect('checkout:thank-you', token=order.token)
+                elif total < zero:
+                    with transaction.atomic():
+                        capture_payments(checkout.cart)
+                        order = create_order(checkout)
+                    logger.error('Order #%s total is negative', order.id)
+                    return redirect('checkout:thank-you', token=order.token)
+
+                return response
+            else:
+                return redirect('cart:index')
 
     return func
+

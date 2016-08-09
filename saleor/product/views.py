@@ -7,7 +7,6 @@ from django.template.response import TemplateResponse
 
 from .forms import get_form_class_for_product
 from .models import Product, Category
-from ..cart import Cart
 from ..core.utils import get_paginator_items
 
 
@@ -21,8 +20,7 @@ def product_details(request, slug, product_id):
     if product.get_slug() != slug:
         return HttpResponsePermanentRedirect(product.get_absolute_url())
     form_class = get_form_class_for_product(product)
-    cart = Cart.for_session_cart(request.cart, discounts=request.discounts)
-    form = form_class(cart=cart, product=product,
+    form = form_class(cart=request.cart, product=product,
                       data=request.POST or None)
     if form.is_valid():
         form.save()
