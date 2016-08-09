@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, NON_FIELD_ERRORS
-from django.forms.formsets import BaseFormSet, DEFAULT_MAX_NUM
 from django.utils.translation import pgettext_lazy, ugettext_lazy
 from satchless.item import InsufficientStock
 
@@ -22,6 +21,9 @@ class AddToCartForm(forms.Form):
     """
     quantity = QuantityField(label=pgettext_lazy('Form field', 'Quantity'))
     error_messages = {
+        'not-available': ugettext_lazy(
+            'Sorry. This product is currently not available.'
+        ),
         'empty-stock': ugettext_lazy(
             'Sorry. This product is currently out of stock.'
         ),
@@ -36,6 +38,7 @@ class AddToCartForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.cart = kwargs.pop('cart')
         self.product = kwargs.pop('product')
+        self.discounts = kwargs.pop('discounts', ())
         super(AddToCartForm, self).__init__(*args, **kwargs)
 
     def clean(self):
@@ -53,8 +56,7 @@ class AddToCartForm(forms.Form):
             used_quantity = cart_line.quantity if cart_line else 0
             new_quantity = quantity + used_quantity
             try:
-                self.cart.check_quantity(
-                    product_variant, new_quantity, None)
+                product_variant.check_quantity(new_quantity)
             except InsufficientStock as e:
                 remaining = e.item.get_stock_quantity() - used_quantity
                 if remaining:
@@ -67,7 +69,8 @@ class AddToCartForm(forms.Form):
     def save(self):
         """Adds the selected product variant and quantity to the cart"""
         product_variant = self.get_variant(self.cleaned_data)
-        return self.cart.add(product_variant, self.cleaned_data['quantity'])
+        return self.cart.add(product=product_variant,
+                             quantity=self.cleaned_data['quantity'])
 
     def get_variant(self, cleaned_data):
         raise NotImplementedError()
@@ -87,7 +90,7 @@ class ReplaceCartLineForm(AddToCartForm):
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
         try:
-            self.cart.check_quantity(self.product, quantity, None)
+            self.product.check_quantity(quantity)
         except InsufficientStock as e:
             msg = self.error_messages['insufficient-stock']
             raise forms.ValidationError(msg % {
@@ -108,31 +111,3 @@ class ReplaceCartLineForm(AddToCartForm):
         product_variant = self.get_variant(self.cleaned_data)
         return self.cart.add(product_variant, self.cleaned_data['quantity'],
                              replace=True)
-
-
-class ReplaceCartLineFormSet(BaseFormSet):
-    absolute_max = 9999
-    can_delete = False
-    can_order = False
-    extra = 0
-    form = ReplaceCartLineForm
-    max_num = DEFAULT_MAX_NUM
-    validate_max = False
-    min_num = 0
-    validate_min = False
-
-    def __init__(self, *args, **kwargs):
-        self.cart = kwargs.pop('cart')
-        kwargs['initial'] = [{'quantity': cart_line.get_quantity()}
-                             for cart_line in self.cart
-                             if cart_line.get_quantity()]
-        super(ReplaceCartLineFormSet, self).__init__(*args, **kwargs)
-
-    def _construct_form(self, i, **kwargs):
-        kwargs['cart'] = self.cart
-        kwargs['product'] = self.cart[i].product
-        return super(ReplaceCartLineFormSet, self)._construct_form(i, **kwargs)
-
-    def save(self):
-        for form in self.forms:
-            form.save()

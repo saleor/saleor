@@ -1,3 +1,8 @@
+from __future__ import unicode_literals
+from . import logger
+
+from django.contrib import messages
+from django.utils.translation import ugettext_lazy as _
 from satchless.item import InsufficientStock
 
 
@@ -38,3 +43,23 @@ def get_category_variants_and_prices(cart, discounted_category):
     for product in discounted_products:
         for line in get_product_variants_and_prices(cart, product):
             yield line
+
+
+def check_product_availability_and_warn(request, cart):
+    if contains_unavailable_products(cart):
+        msg = _('Sorry. We don\'t have that many items in stock. '
+                'Quantity was set to maximum available for now.')
+        messages.warning(request, msg)
+        remove_unavailable_products(cart)
+
+
+def get_user_open_cart_token(user):
+    user_carts_tokens = list(
+        user.carts.open().values_list('token', flat=True))
+    if len(user_carts_tokens) > 1:
+        logger.warning('%s has more then one open basket')
+        from .models import Cart
+        user.carts.open().exclude(token=user_carts_tokens[0]).update(
+            status=Cart.CANCELED)
+    if user_carts_tokens:
+        return user_carts_tokens[0]

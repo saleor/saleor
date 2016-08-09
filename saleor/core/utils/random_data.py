@@ -10,15 +10,16 @@ from faker import Factory
 from faker.providers import BaseProvider
 from prices import Price
 
-from ...shipping.models import ShippingMethod, ShippingMethodCountry
+from ...shipping.models import ShippingMethod, ANY_COUNTRY
 from ...order.models import DeliveryGroup, Order, OrderedItem, Payment
-from ...product.models import Category, Product, ProductImage, ProductVariant, Stock
+from ...product.models import (Category, Product, ProductImage,
+                               ProductVariant, Stock)
 from ...userprofile.models import Address, User
 
 fake = Factory.create()
 STOCK_LOCATION = 'default'
 
-DELIVERY_REGIONS = [ShippingMethodCountry.ANY_COUNTRY, 'US', 'PL', 'DE', 'GB']
+DELIVERY_REGIONS = [ANY_COUNTRY, 'US', 'PL', 'DE', 'GB']
 
 
 class SaleorProvider(BaseProvider):
@@ -161,7 +162,7 @@ def create_payment(delivery_group):
 def create_delivery_group(order):
     region = order.shipping_address.country
     if region not in DELIVERY_REGIONS:
-        region = ShippingMethodCountry.ANY_COUNTRY
+        region = ANY_COUNTRY
     shipping_method = fake.shipping_method()
     shipping_country = shipping_method.price_per_country.get_or_create(
         country_code=region, defaults={'price': fake.price()})[0]
@@ -169,7 +170,7 @@ def create_delivery_group(order):
         status=random.choice(['new', 'shipped']),
         order=order,
         shipping_method_name=str(shipping_country),
-        shipping_price=shipping_country.get_total())
+        shipping_price=shipping_country.price)
     return delivery_group
 
 

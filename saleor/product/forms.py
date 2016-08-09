@@ -11,12 +11,14 @@ from ..cart.forms import AddToCartForm
 
 
 class VariantChoiceField(forms.ModelChoiceField):
+    discounts = None
 
     def label_from_instance(self, obj):
         attributes = obj.product.attributes.all()
         variant_label = obj.display_variant(attributes)
         label = '%(variant_label)s - %(price)s' % {
-            'variant_label': variant_label, 'price': gross(obj.get_price())}
+            'variant_label': variant_label,
+            'price': gross(obj.get_price(discounts=self.discounts))}
         return label
 
 
@@ -27,6 +29,7 @@ class ProductForm(AddToCartForm):
         super(ProductForm, self).__init__(*args, **kwargs)
         variant_field = self.fields['variant']
         variant_field.queryset = self.product.variants
+        variant_field.discounts = self.cart.discounts
         variant_field.empty_label = None
         images_map = {variant.pk: [vi.image.image.url
                                    for vi in variant.variant_images.all()]
