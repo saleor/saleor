@@ -71,11 +71,10 @@ def index(request, cart, product_id=None):
         return redirect('cart:index')
     select_country_form = SelectCountryForm(initial={
         'country_code': request.country})
-    cart_partitioner = cart.partition()
-    cart = cart_partitioner
     return TemplateResponse(
         request, 'cart/index.html', {
-            'cart': cart, 'cart_formset': cart_formset,
+            'cart': cart.partition(),
+            'cart_formset': cart_formset,
             'discounts': request.discounts,
             'shipping_methods': shipping_methods,
             'select_country_form': select_country_form})

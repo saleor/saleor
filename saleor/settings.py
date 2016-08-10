@@ -76,7 +76,9 @@ context_processors = [
     'django.contrib.messages.context_processors.messages',
     'django.template.context_processors.request',
     'saleor.core.context_processors.default_currency',
-    'saleor.core.context_processors.categories']
+    'saleor.core.context_processors.categories',
+    'saleor.cart.context_processors.cart_counter'
+]
 
 loaders = [
     'django.template.loaders.filesystem.Loader',
