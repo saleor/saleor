@@ -109,7 +109,6 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'babeldjango.middleware.LocaleMiddleware',
-    'saleor.cart.middleware.CartMiddleware',
     'saleor.core.middleware.DiscountMiddleware',
     'saleor.core.middleware.GoogleAnalytics',
     'saleor.core.middleware.CountryMiddleware',
