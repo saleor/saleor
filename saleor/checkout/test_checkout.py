@@ -158,9 +158,8 @@ def test_index_view(cart, status_code, url, rf):
     checkout = Checkout(cart, AnonymousUser(), 'tracking_code')
     request = rf.get('checkout:index')
     request.user = checkout.user
-    request.cart = checkout.cart
     request.session = {STORAGE_SESSION_KEY: checkout.for_storage()}
     request.discounts = []
-    response = views.index_view(request, checkout)
+    response = views.index_view(request, checkout, checkout.cart)
     assert response.status_code == status_code
     assert response.url == url
