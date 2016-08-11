@@ -8,11 +8,12 @@ from django.utils.encoding import smart_text
 from prices import Price, FixedDiscount
 
 from ..cart.models import Cart
+from ..cart.views import get_or_empty_db_cart
 from ..core import analytics
 from ..discount.models import Voucher, NotApplicable
 from ..order.models import Order
 from ..order.utils import get_ip
-from ..shipping.models import ShippingMethodCountry
+from ..shipping.models import ShippingMethodCountry, ANY_COUNTRY
 from ..userprofile.models import Address, User
 
 STORAGE_SESSION_KEY = 'checkout_storage'
@@ -99,8 +100,7 @@ class Checkout(object):
                 except ShippingMethodCountry.DoesNotExist:
                     return None
                 shipping_country_code = shipping_address.country.code
-                any_country = ShippingMethodCountry.ANY_COUNTRY
-                if (shipping_method_country.country_code == any_country or
+                if (shipping_method_country.country_code == ANY_COUNTRY or
                         shipping_method_country.country_code == shipping_country_code):
                     return shipping_method_country
 
@@ -288,46 +288,20 @@ class Checkout(object):
 
 def load_checkout(view):
     @wraps(view)
-    def func(request, **kwargs):
-        # Work in progress
+    @get_or_empty_db_cart
+    def func(request, cart):
+        # todo: check descounts
         try:
-            cart = Cart.objects.get(token=request.cart.token)
-        except Cart.DoesNotExist:
-            return redirect('cart:index')
-        else:
-            if cart.quantity:
-                checkout_data = cart.checkout_data
-                ip_address = get_ip(request)
-                checkout = Checkout.from_storage(
-                    checkout_data, cart, request.user, '',
-                    discounts=request.discounts)
-                if checkout.ip_address != ip_address:
-                    checkout.ip_address = ip_address
-                response = view(request, checkout, **kwargs)
-                if checkout.modified and cart.pk:
-                    cart.checkout_data = checkout.for_storage()
-                    cart.save(update_fields=['checkout_data'])
-
-                total = checkout.get_total()
-                zero = Price(0, currency=total.currency)
-                payments_variants = checkout.cart.payments.filter(
-                    variant__in=(
-                        Payment.PAYPAL_VARIANT, Payment.SAGE_PAY_VARIANT))
-                if total == zero:
-                    with transaction.atomic():
-                        capture_payments(checkout.cart)
-                        order = create_order(checkout)
-                    return redirect('checkout:thank-you', token=order.token)
-                elif total < zero:
-                    with transaction.atomic():
-                        capture_payments(checkout.cart)
-                        order = create_order(checkout)
-                    logger.error('Order #%s total is negative', order.id)
-                    return redirect('checkout:thank-you', token=order.token)
-
-                return response
-            else:
-                return redirect('cart:index')
+            session_data = request.session[STORAGE_SESSION_KEY]
+        except KeyError:
+            session_data = ''
+        tracking_code = analytics.get_client_id(request)
+        
+        checkout = Checkout.from_storage(
+            session_data, cart, request.user, tracking_code)
+        response = view(request, checkout, cart)
+        if checkout.modified:
+            request.session[STORAGE_SESSION_KEY] = checkout.for_storage()
+        return response
 
     return func
-

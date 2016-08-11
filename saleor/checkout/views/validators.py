@@ -6,8 +6,8 @@ from django.shortcuts import redirect
 
 def validate_cart(view):
     @wraps(view)
-    def func(request, checkout):
-        if request.cart:
+    def func(request, checkout, cart):
+        if cart:
             return view(request, checkout)
         else:
             return redirect('cart:index')
