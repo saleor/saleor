@@ -42,6 +42,7 @@ class AddToCartForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.cart = kwargs.pop('cart')
         self.product = kwargs.pop('product')
+        self.discounts = kwargs.pop('discounts', ())
         super(AddToCartForm, self).__init__(*args, **kwargs)
 
     def clean(self):
@@ -94,7 +95,7 @@ class ReplaceCartLineForm(AddToCartForm):
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
         try:
-            self.cart.check_quantity(self.product, quantity, None)
+            self.product.check_quantity(quantity)
         except InsufficientStock as e:
             msg = self.error_messages['insufficient-stock']
             raise forms.ValidationError(msg % {
@@ -115,28 +116,3 @@ class ReplaceCartLineForm(AddToCartForm):
         product_variant = self.get_variant(self.cleaned_data)
         return self.cart.add(product_variant, self.cleaned_data['quantity'],
                              replace=True)
-
-
-class CartLineForm(forms.ModelForm):
-    quantity = QuantityField()
-
-    class Meta:
-        fields = []
-        model = CartLine
-
-    def clean(self):
-        data = super(CartLineForm, self).clean()
-        quantity = data.get('quantity')
-        if quantity == 0:
-            data['DELETE'] = True
-        return data
-
-
-class CartBaseFormSet(forms.BaseInlineFormSet):
-    def save(self, commit=True):
-        super(CartBaseFormSet, self).save(commit)
-        self.instance.update_quantity()
-
-CartFormset = inlineformset_factory(
-    Cart, CartLine, form=CartLineForm, formset=CartBaseFormSet,
-    fields=('quantity',), extra=0)

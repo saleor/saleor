@@ -110,34 +110,3 @@ class ShippingCountryQueryset(models.QuerySet):
                 method = method_values[0]
             ids.append(method[1])
         return self.filter(id__in=ids)
-
-
-@python_2_unicode_compatible
-class ShippingCountryBase(models.Model):
-    # todo: refactor this
-    country_code = models.CharField(
-        choices=COUNTRY_CODE_CHOICES, max_length=2, blank=True,
-        default=ANY_COUNTRY)
-    price = PriceField(
-        pgettext_lazy('Shipping method region field', 'price'),
-        currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
-    shipping_method = models.ForeignKey(
-        ShippingMethod, related_name='price_per_country')
-
-    objects = ShippingCountryQueryset.as_manager()
-
-    class Meta:
-        ordering = ('shipping_method', )
-        unique_together = ('country_code', 'shipping_method')
-
-    def __str__(self):
-        # https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display  # noqa
-        return "%s %s" % (self.shipping_method, self.get_country_code_display())
-
-    def get_price(self, currency=None):
-        currency = currency or settings.DEFAULT_CURRENCY
-        price = self.price
-        if currency != price.currency:
-            price = exchange_currency(price, to_currency=currency)
-        quantize_to = get_quantize_value_for_currency(currency)
-        return price.quantize(quantize_to)

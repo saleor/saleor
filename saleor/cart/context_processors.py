@@ -1,15 +1,5 @@
 from .models import Cart
-
-
-def get_user_open_cart_token(user):
-    user_carts_tokens = list(
-        user.carts.open().values_list('token', flat=True))
-    if len(user_carts_tokens) > 1:
-        # logger.warning('%s has more then one open basket')
-        user.carts.open().exclude(token=user_carts_tokens[0]).update(
-            status=Cart.CANCELED)
-    if user_carts_tokens:
-        return user_carts_tokens[0]
+from .utils import get_user_open_cart_token
 
 
 def cart_counter(request):
@@ -25,7 +15,7 @@ def cart_counter(request):
 
     try:
         cart = cart_queryset.open().get(token=cart_token)
-    except Cart.DoesNotExist, TypeError:
+    except (Cart.DoesNotExist, TypeError, ValueError):
         return {'cart_counter': 0}
     else:
         return {'cart_counter': cart.quantity}

@@ -41,8 +41,7 @@
         </tr>
         </tfoot>
         <tbody>
-        {% for group in cart %}
-            {% for line in group %}
+            {% for line, form in cartlines %}
                 <tr class="cart-item">
                     <td class="hidden-xs">
                         <a href="{{ line.product.get_absolute_url }}">
@@ -61,14 +60,14 @@
                     <td>
                         <div class="cart-item-amount">
                             <form role="form" action="{% url "cart:update_line" product_id=line.product.pk %}" method="post" class="form-cart">
-                                <div class="input-group cart-item-quantity js-hidden{% if line.form.quantity.errors %} has-error{% endif %}">
-                                    {{ line.form.quantity }}
+                                <div class="input-group cart-item-quantity js-hidden{% if form.quantity.errors %} has-error{% endif %}">
+                                    {{ form.quantity }}
                                     <span class="input-group-btn">
                                         <button class="btn btn-info" type="submit">{% trans "Update" %}</button>
                                     </span>
                                 </div>
-                                {% if line.form.quantity.errors %}
-                                    {% for error in line.form.quantity.errors %}
+                                {% if form.quantity.errors %}
+                                    {% for error in form.quantity.errors %}
                                         <span class="text-danger">{{ error }}</span>
                                     {% endfor %}
                                 {% endif %}
@@ -85,7 +84,6 @@
                         {% gross line.get_total %}
                     </td>
                 </tr>
-                {% endfor %}
             {% endfor %}
         </tbody>
     </table>

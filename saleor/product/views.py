@@ -9,8 +9,11 @@ from .forms import get_form_class_for_product
 from .models import Product, Category
 from ..core.utils import get_paginator_items
 
+from ..cart.views import get_simple_cart
 
-def product_details(request, slug, product_id):
+
+@get_simple_cart
+def product_details(request, slug, product_id, simple_cart):
     products = Product.objects.get_available_products().select_subclasses()
     products = products.prefetch_related('categories', 'images',
                                          'variants__stock',
@@ -20,7 +23,7 @@ def product_details(request, slug, product_id):
     if product.get_slug() != slug:
         return HttpResponsePermanentRedirect(product.get_absolute_url())
     form_class = get_form_class_for_product(product)
-    form = form_class(cart=request.cart, product=product,
+    form = form_class(cart=simple_cart, product=product,
                       data=request.POST or None)
     if form.is_valid():
         form.save()
