@@ -3,6 +3,7 @@
 {% load i18n %}
 {% load static from staticfiles %}
 {% load render_bundle from webpack_loader %}
+{% load discount %}
 
 {% block title %}{% trans "Your cart" %} — {{ block.super }}{% endblock %}
 
@@ -37,7 +38,7 @@
         <tr>
             <td class="hidden-xs" colspan="2"></td>
             <td class="col-xs-9 col-md-9 text-right lead" colspan="2">{% trans "Total" %}:
-            <td class="col-xs-3 col-md-2 text-right lead"><b class="cart-total">{% gross cart.get_total %}</b></td>
+            <td class="col-xs-3 col-md-2 text-right lead"><b class="cart-total">{% gross_total cart discounts %}</b></td>
         </tr>
         </tfoot>
         <tbody>
@@ -79,9 +80,9 @@
                             </button>
                         </div>
                     </td>
-                    <td class="text-right hidden-xs">{% gross line.get_price_per_item %}</td>
+                    <td class="text-right hidden-xs">{% gross_per_item line discounts %}</td>
                     <td class="text-right cart-item-subtotal" data-product-id="{{ line.product.pk }}">
-                        {% gross line.get_total %}
+                        {% gross_total line discounts %}
                     </td>
                 </tr>
             {% endfor %}

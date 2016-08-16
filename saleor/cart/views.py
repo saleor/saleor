@@ -66,6 +66,7 @@ def index(request, cart, product_id=None):
 
     check_product_availability_and_warn(request, cart)
 
+    discounts = request.discounts
     cartlines = []
 
     for line in cart:
@@ -76,7 +77,8 @@ def index(request, cart, product_id=None):
         initial = {'quantity': line.get_quantity()}
 
         form = ReplaceCartLineForm(data, cart=cart, product=line.product,
-                                   initial=initial)
+                                   initial=initial, discounts=discounts)
+
 
         cartlines.append([line, form])
         if form.is_valid():
@@ -85,22 +87,22 @@ def index(request, cart, product_id=None):
                 response = {
                     'productId': line.product.pk,
                     'subtotal': currencyfmt(
-                        line.get_total().gross,
-                        line.get_total().currency),
+                        line.get_total(discounts=discounts).gross,
+                        line.get_total(discounts=discounts).currency),
                     'total': 0}
                 if cart:
                     response['total'] = currencyfmt(
-                        cart.get_total().gross, cart.get_total().currency)
+                        cart.get_total(discounts=discounts).gross,
+                        cart.get_total(discounts=discounts).currency)
                 return JsonResponse(response)
             return redirect('cart:index')
         elif data is not None:
             if request.is_ajax():
                 response = {'error': form.errors}
                 return JsonResponse(response, status=400)
-
     return TemplateResponse(
         request, 'cart/index.html',
-        {'cart': cart, 'cartlines': cartlines})
+        {'cart': cart, 'cartlines': cartlines, 'discounts': discounts})
 
 
 @get_or_create_db_cart
