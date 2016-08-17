@@ -120,12 +120,6 @@ class Cart(models.Model, ItemSet):
             self.last_status_change = now()
             self.save()
 
-    def get_items(self):
-        # todo: looks like copied from Order class - cart line has no
-        # delivery group.
-        # return CartLine.objects.filter(cart=self)
-        return CartLine.objects.filter(delivery_group__order=self)
-
     def is_shipping_required(self):
         return any(line.is_shipping_required() for line in self.lines.all())
 
@@ -176,7 +170,7 @@ class Cart(models.Model, ItemSet):
 
         # todo : when adding variant with too big quantity
         # Cartline is created. Is it created on purpose?
-        if not cart_line.quantity and not created:
+        if not cart_line.quantity:
             cart_line.delete()
         else:
             cart_line.save(update_fields=['quantity'])
@@ -186,14 +180,6 @@ class Cart(models.Model, ItemSet):
         grouper = (
             lambda p: 'physical' if p.is_shipping_required() else 'digital')
         return partition(self, grouper, ProductGroup)
-
-    @property
-    def vouchers_applicable(self):
-        # Vouchers are applicable only when cart contains products other than
-        # vouchers
-        return not all(line.product.product.is_voucher or
-                       line.product.product.is_gift_voucher
-                       for line in self.lines.all())
 
 
 @python_2_unicode_compatible
