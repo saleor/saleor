@@ -63,14 +63,13 @@ def get_or_empty_db_cart(view):
 
 @get_or_empty_db_cart
 def index(request, cart, product_id=None):
-    # todo: fix discounts
     if product_id is not None:
         product_id = int(product_id)
 
     check_product_availability_and_warn(request, cart)
 
     discounts = request.discounts
-    cartlines = []
+    cart_lines = []
 
     for line in cart:
         data = None
@@ -82,30 +81,54 @@ def index(request, cart, product_id=None):
         form = ReplaceCartLineForm(data, cart=cart, product=line.product,
                                    initial=initial, discounts=discounts)
 
-
-        cartlines.append([line, form])
         if form.is_valid():
             form.save()
-            if request.is_ajax():
-                response = {
-                    'productId': line.product.pk,
-                    'subtotal': currencyfmt(
-                        line.get_total(discounts=discounts).gross,
-                        line.get_total(discounts=discounts).currency),
-                    'total': 0}
-                if cart:
-                    response['total'] = currencyfmt(
-                        cart.get_total(discounts=discounts).gross,
-                        cart.get_total(discounts=discounts).currency)
-                return JsonResponse(response)
-            return redirect('cart:index')
+
+            if not request.is_ajax():
+                return redirect('cart:index')
+
+            response = {
+                'productId': product_id,
+                'subtotal': 0,
+                'total': 0
+            }
+
+            updated_line = cart.get_line(form.cart_line.product)
+
+            if updated_line:
+                response['subtotal'] = currencyfmt(
+                    updated_line.get_total(discounts=discounts).gross,
+                    updated_line.get_total(discounts=discounts).currency)
+
+            if cart:
+                response['total'] = currencyfmt(
+                    cart.get_total(discounts=discounts).gross,
+                    cart.get_total(discounts=discounts).currency)
+
+            return JsonResponse(response)
+
         elif data is not None:
             if request.is_ajax():
                 response = {'error': form.errors}
                 return JsonResponse(response, status=400)
+
+        cart_lines.append(
+            {
+                'product': line.product,
+                'get_price_per_item': line.get_price_per_item(discounts),
+                'get_total': line.get_total(discounts=discounts),
+                'form': form
+            }
+        )
+
+    cart_total = None
+    if cart:
+        cart_total = cart.get_total(discounts=discounts)
+
     return TemplateResponse(
         request, 'cart/index.html',
-        {'cart': cart, 'cartlines': cartlines, 'discounts': discounts})
+        {'cart_lines': cart_lines,
+         'cart_total': cart_total})
 
 
 @get_or_create_db_cart

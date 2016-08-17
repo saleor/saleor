@@ -23,7 +23,7 @@
 {% endblock footer_scripts %}
 
 {% block content %}
-{% if cart %}
+{% if cart_lines %}
     <table class="table table-striped cart" id="cart-items">
         <thead>
         <tr>
@@ -38,11 +38,11 @@
         <tr>
             <td class="hidden-xs" colspan="2"></td>
             <td class="col-xs-9 col-md-9 text-right lead" colspan="2">{% trans "Total" %}:
-            <td class="col-xs-3 col-md-2 text-right lead"><b class="cart-total">{% gross_total cart discounts %}</b></td>
+            <td class="col-xs-3 col-md-2 text-right lead"><b class="cart-total">{% gross cart_total %}</b></td>
         </tr>
         </tfoot>
         <tbody>
-            {% for line, form in cartlines %}
+            {% for line in cart_lines %}
                 <tr class="cart-item">
                     <td class="hidden-xs">
                         <a href="{{ line.product.get_absolute_url }}">
@@ -62,12 +62,12 @@
                         <div class="cart-item-amount">
                             <form role="form" action="{% url "cart:update_line" product_id=line.product.pk %}" method="post" class="form-cart">
                                 <div class="input-group cart-item-quantity js-hidden{% if form.quantity.errors %} has-error{% endif %}">
-                                    {{ form.quantity }}
+                                    {{ line.form.quantity }}
                                     <span class="input-group-btn">
                                         <button class="btn btn-info" type="submit">{% trans "Update" %}</button>
                                     </span>
                                 </div>
-                                {% if form.quantity.errors %}
+                                {% if line.form.quantity.errors %}
                                     {% for error in form.quantity.errors %}
                                         <span class="text-danger">{{ error }}</span>
                                     {% endfor %}
@@ -80,10 +80,8 @@
                             </button>
                         </div>
                     </td>
-                    <td class="text-right hidden-xs">{% gross_per_item line discounts %}</td>
-                    <td class="text-right cart-item-subtotal" data-product-id="{{ line.product.pk }}">
-                        {% gross_total line discounts %}
-                    </td>
+                    <td class="text-right hidden-xs">{% gross line.get_price_per_item %}</td>
+                    <td class="text-right cart-item-subtotal" data-product-id="{{ line.product.pk }}">{% gross line.get_total %}</td>
                 </tr>
             {% endfor %}
         </tbody>
