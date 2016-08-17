@@ -54,6 +54,9 @@ def get_or_empty_db_cart(view):
             cart = queryset.open().get(token=simple_cart.token)
         except Cart.DoesNotExist:
             cart = Cart()
+
+        cart.discounts = request.discounts
+
         return view(request, cart, *args, **kwargs)
     return func
 

@@ -29,6 +29,7 @@ class Checkout(object):
         self.storage = {'version': self.VERSION}
         self.tracking_code = tracking_code
         self.user = user
+        self.discounts = cart.discounts
 
     @classmethod
     def from_storage(cls, storage_data, cart, user, tracking_code):
@@ -71,7 +72,14 @@ class Checkout(object):
                 shipping_cost = self.shipping_method.get_total()
             else:
                 shipping_cost = Price(0, currency=settings.DEFAULT_CURRENCY)
-            total_with_shipping = partition.get_total() + shipping_cost
+            total_with_shipping = partition.get_total(discounts=self.discounts) + shipping_cost
+
+            partition = [
+                (item,
+                 item.get_price_per_item(discounts=self.discounts),
+                 item.get_total(discounts=self.discounts))
+                for item in partition]
+
             yield partition, shipping_cost, total_with_shipping
 
     @property
@@ -264,7 +272,7 @@ class Checkout(object):
     def get_subtotal(self):
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)
         cost_iterator = (
-            shipment.get_total()
+            total - shipping_cost
             for shipment, shipping_cost, total in self.deliveries)
         total = sum(cost_iterator, zero)
         return total
