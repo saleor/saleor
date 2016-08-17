@@ -10,53 +10,97 @@ from django.template.response import TemplateResponse
 from babeldjango.templatetags.babel import currencyfmt
 
 from .core import set_cart_cookie
-from .decorators import get_simple_cart
-from .models import Cart
 from .forms import ReplaceCartLineForm
-from .utils import check_product_availability_and_warn
-from ..cart.utils import check_product_availability_and_warn
+from .models import Cart
+from .utils import check_product_availability_and_warn, get_user_open_cart_token
 from ..product.forms import get_form_class_for_product
 from ..product.models import Product
 
 
+def get_new_cart_data(cart_queryset=None):
+    cart_queryset = cart_queryset or Cart.objects
+    cart = cart_queryset.create()
+    cart_data = {
+        'token': cart.token,
+        'total': cart.total,
+        'quantity': cart.quantity,
+        'current_quantity': 0}
+    return cart_data
+
+
+def assign_anonymous_cart(view):
+    """If user is authenticated, assign cart from current session"""
+
+    @wraps(view)
+    def func(request, *args, **kwargs):
+        response = view(request, *args, **kwargs)
+        if request.user.is_authenticated():
+            cookie = request.get_signed_cookie(Cart.COOKIE_NAME, default=None)
+            if cookie:
+                try:
+                    cart = Cart.objects.open().get(token=cookie)
+                except Cart.DoesNotExist:
+                    pass
+                else:
+                    if cart.user is None:
+                        request.user.carts.open().update(status=Cart.CANCELED)
+                        cart.user = request.user
+                        cart.save(update_fields=['user'])
+                response.delete_cookie(Cart.COOKIE_NAME)
+
+        return response
+    return func
+
+
+def get_cart_from_request(request, create=False):
+    """Returns Cart object for current user. If create option is True,
+    new cart will be saved to db"""
+
+    cookie_token = request.get_signed_cookie(
+        Cart.COOKIE_NAME, default=None)
+
+    if request.user.is_authenticated():
+        user = request.user
+        queryset = user.carts.open()
+        token = get_user_open_cart_token(request.user)
+
+    else:
+        user = None
+        queryset = Cart.objects.anonymous()
+        token = cookie_token
+
+    try:
+        cart = queryset.open().get(token=token)
+    except Cart.DoesNotExist:
+        if create:
+            cart = Cart.objects.create(
+                user=user,
+                token=cookie_token)
+        else:
+            cart = Cart()
+
+    cart.discounts = request.discounts
+    return cart
+
 
 def get_or_create_db_cart(view):
     @wraps(view)
-    @get_simple_cart
     def func(request, *args, **kwargs):
-        user = request.user
-        simple_cart = kwargs.pop('simple_cart')
-        if user.is_authenticated():
-            cart, created = Cart.objects.open().get_or_create(
-                token=simple_cart.token, user=user)
-        else:
-            cart, created = Cart.objects.open().anonymous().get_or_create(
-                token=simple_cart.token)
+        cart = get_cart_from_request(request, create=True)
+
         response = view(request, cart, *args, **kwargs)
-        if not user.is_authenticated():
+
+        if not request.user.is_authenticated():
             # save basket for anonymous user
-            set_cart_cookie(simple_cart, response)
+            set_cart_cookie(cart, response)
         return response
     return func
 
 
 def get_or_empty_db_cart(view):
     @wraps(view)
-    @get_simple_cart
     def func(request, *args, **kwargs):
-        user = request.user
-        simple_cart = kwargs.pop('simple_cart')
-        if user.is_authenticated():
-            queryset = user.carts
-        else:
-            queryset = Cart.objects.anonymous()
-        try:
-            cart = queryset.open().get(token=simple_cart.token)
-        except Cart.DoesNotExist:
-            cart = Cart()
-
-        cart.discounts = request.discounts
-
+        cart = get_cart_from_request(request)
         return view(request, cart, *args, **kwargs)
     return func
 

@@ -11,6 +11,7 @@ from . import utils
 
 from ..product.models import Product, ProductVariant
 from prices import Price
+from decimal import Decimal
 
 
 @pytest.fixture
@@ -54,8 +55,10 @@ def test_adding_zero_quantity(cart, variant):
 def test_adding_same_variant(cart, variant):
     cart.add(variant, 1)
     cart.add(variant, 2)
+    price_total = 10 * 3
     assert len(cart) == 1
     assert cart.count() == {'total_quantity': 3}
+    assert cart.get_total().gross == price_total
 
 
 def test_replacing_same_variant(cart, variant):

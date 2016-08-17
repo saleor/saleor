@@ -298,7 +298,6 @@ def load_checkout(view):
     @wraps(view)
     @get_or_empty_db_cart
     def func(request, cart):
-        # todo: check descounts
         try:
             session_data = request.session[STORAGE_SESSION_KEY]
         except KeyError:

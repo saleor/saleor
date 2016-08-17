@@ -168,8 +168,6 @@ class Cart(models.Model, ItemSet):
 
         cart_line.quantity = new_quantity
 
-        # todo : when adding variant with too big quantity
-        # Cartline is created. Is it created on purpose?
         if not cart_line.quantity:
             cart_line.delete()
         else:

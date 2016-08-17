@@ -9,11 +9,11 @@ from .forms import get_form_class_for_product
 from .models import Product, Category
 from ..core.utils import get_paginator_items
 
-from ..cart.views import get_simple_cart
+from ..cart.views import get_cart_from_request
 
 
-@get_simple_cart
-def product_details(request, slug, product_id, simple_cart):
+def product_details(request, slug, product_id):
+    simple_cart = get_cart_from_request(request)
     products = Product.objects.get_available_products().select_subclasses()
     products = products.prefetch_related('categories', 'images',
                                          'variants__stock',
