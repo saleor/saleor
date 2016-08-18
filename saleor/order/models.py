@@ -235,10 +235,10 @@ class DeliveryGroup(models.Model, ItemSet):
         subtotal = super(DeliveryGroup, self).get_total(**kwargs)
         return subtotal + self.shipping_price
 
-    def add_items_from_partition(self, partition):
+    def add_items_from_partition(self, partition, discounts=None):
         for item_line in partition:
             product_variant = item_line.product
-            price = item_line.get_price_per_item()
+            price = item_line.get_price_per_item(discounts)
             quantity = item_line.get_quantity()
             stock = product_variant.select_stockrecord(quantity)
             self.items.create(

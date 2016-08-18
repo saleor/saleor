@@ -72,12 +72,12 @@ class Checkout(object):
                 shipping_cost = self.shipping_method.get_total()
             else:
                 shipping_cost = Price(0, currency=settings.DEFAULT_CURRENCY)
-            total_with_shipping = partition.get_total(discounts=self.discounts) + shipping_cost
+            total_with_shipping = partition.get_total(discounts=self.cart.discounts) + shipping_cost
 
             partition = [
                 (item,
-                 item.get_price_per_item(discounts=self.discounts),
-                 item.get_total(discounts=self.discounts))
+                 item.get_price_per_item(discounts=self.cart.discounts),
+                 item.get_total(discounts=self.cart.discounts))
                 for item in partition]
 
             yield partition, shipping_cost, total_with_shipping
@@ -242,7 +242,7 @@ class Checkout(object):
                 shipping_required=shipping_required,
                 shipping_price=shipping_price,
                 shipping_method_name=shipping_method_name)
-            group.add_items_from_partition(partition)
+            group.add_items_from_partition(partition, discounts=self.cart.discounts)
 
         if voucher is not None:
             Voucher.objects.increase_usage(voucher)
