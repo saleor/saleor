@@ -1,3 +1,5 @@
+from . import logger
+
 from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from satchless.item import InsufficientStock
@@ -55,7 +57,7 @@ def get_user_open_cart_token(user):
         user.carts.open().values_list('token', flat=True))
     if len(user_carts_tokens) > 1:
         logger.warning('%s has more then one open basket')
-        fixme
+        from .models import Cart
         user.carts.open().exclude(token=user_carts_tokens[0]).update(
             status=Cart.CANCELED)
     if user_carts_tokens:
