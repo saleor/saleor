@@ -73,8 +73,7 @@ class AddToCartForm(forms.Form):
     def save(self):
         """Adds the selected product variant and quantity to the cart"""
         product_variant = self.get_variant(self.cleaned_data)
-        real_cart = Cart.objects.get_or_create(token=self.cart.token)[0]
-        return real_cart.add(product=product_variant,
+        return self.cart.add(product=product_variant,
                              quantity=self.cleaned_data['quantity'])
 
     def get_variant(self, cleaned_data):

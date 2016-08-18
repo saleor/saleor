@@ -13,7 +13,6 @@ from ..cart.views import get_cart_from_request
 
 
 def product_details(request, slug, product_id):
-    simple_cart = get_cart_from_request(request)
     products = Product.objects.get_available_products().select_subclasses()
     products = products.prefetch_related('categories', 'images',
                                          'variants__stock',
@@ -23,7 +22,8 @@ def product_details(request, slug, product_id):
     if product.get_slug() != slug:
         return HttpResponsePermanentRedirect(product.get_absolute_url())
     form_class = get_form_class_for_product(product)
-    form = form_class(cart=simple_cart, product=product,
+    cart = get_cart_from_request(request)
+    form = form_class(cart=cart, product=product,
                       data=request.POST or None)
     if form.is_valid():
         form.save()
