@@ -61,7 +61,7 @@ def get_cart_from_request(request, create=False):
 
     if request.user.is_authenticated():
         user = request.user
-        queryset = user.carts.open()
+        queryset = user.carts
         token = get_user_open_cart_token(request.user)
 
     else:
