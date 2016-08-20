@@ -1,3 +1,4 @@
+from mock import Mock
 import pytest
 
 from . import models
@@ -21,7 +22,16 @@ def product_in_stock(db):
 
 
 @pytest.mark.django_db
-def test_stock_slector(product_in_stock):
+def test_stock_selector(product_in_stock):
     variant = product_in_stock.variants.get()
     preferred_stock = variant.select_stockrecord(5)
     assert preferred_stock.quantity_available >= 5
+
+
+@pytest.fixture
+def product_without_shipping(monkeypatch):
+    monkeypatch.setattr(
+        'saleor.product.models.Product.is_shipping_required',
+        Mock(return_value=False))
+
+
