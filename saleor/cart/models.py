@@ -11,13 +11,10 @@ from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from jsonfield import JSONField
-from prices import Price
 from satchless.item import ItemLine, ItemSet, ItemList, partition
 
 from ..discount.models import Voucher
-# todo: fix problems with dependencies
-# from ..product.models import ProductVariant, Stock
-from ..userprofile.models import Address
+from ..product.models import ProductVariant
 
 CENTS = Decimal('0.01')
 
@@ -185,7 +182,7 @@ class CartLine(models.Model, ItemLine):
 
     cart = models.ForeignKey(Cart, related_name='lines')
     product = models.ForeignKey(
-        'product.ProductVariant', related_name='+',
+        ProductVariant, related_name='+',
         verbose_name=pgettext_lazy('Cart line', 'product'))
     quantity = models.PositiveIntegerField(
         pgettext_lazy('Cart line', 'quantity'),

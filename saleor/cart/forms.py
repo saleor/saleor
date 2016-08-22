@@ -1,13 +1,9 @@
 from __future__ import unicode_literals
-import json
 
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, NON_FIELD_ERRORS
-from django.forms import inlineformset_factory
 from django.utils.translation import pgettext_lazy, ugettext_lazy
 from satchless.item import InsufficientStock
-
-from .models import Cart, CartLine
 
 
 class QuantityField(forms.IntegerField):
