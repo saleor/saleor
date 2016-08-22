@@ -102,7 +102,9 @@ def test_cart_counter(db, monkeypatch):
 def test_get_product_variants_and_prices():
     product = Mock(product_id=1, id=1)
     cart = MagicMock()
-    cart.__iter__.return_value = [Mock(quantity=1, product=product, get_price_per_item=Mock(return_value=10))]
+    cart.__iter__.return_value = [
+        Mock(quantity=1, product=product,
+             get_price_per_item=Mock(return_value=10))]
     products = list(utils.get_product_variants_and_prices(cart, product))
     assert products == [(product, 10)]
 
@@ -110,16 +112,19 @@ def test_get_product_variants_and_prices():
 def test_get_user_open_cart_token():
     cart = Mock()
     carts = []
-    user = Mock(carts=Mock(open=Mock(return_value=Mock(values_list=Mock(return_value=carts)))))
-    assert utils.get_user_open_cart_token(user) == None
+    user = Mock(carts=Mock(open=Mock(return_value=Mock(
+        values_list=Mock(return_value=carts)))))
+    assert utils.get_user_open_cart_token(user) is None
 
     carts.append(cart)
-    user = Mock(carts=Mock(open=Mock(return_value=Mock(values_list=Mock(return_value=carts)))))
+    user = Mock(carts=Mock(open=Mock(return_value=Mock(
+        values_list=Mock(return_value=carts)))))
     assert utils.get_user_open_cart_token(user) == cart
 
 
 def test_contains_unavailable_products():
-    missing_product = Mock(check_quantity=Mock(side_effect=InsufficientStock('')))
+    missing_product = Mock(
+        check_quantity=Mock(side_effect=InsufficientStock('')))
     cart = MagicMock()
     cart.__iter__.return_value = [Mock(product=missing_product)]
     assert utils.contains_unavailable_products(cart)
@@ -151,7 +156,7 @@ def test_check_product_availability_and_warn(monkeypatch, cart, variant):
 def test_add_to_cart_form():
     cart_lines = []
     cart = Mock(add=lambda product, quantity: cart_lines.append(product),
-        get_line=Mock(return_value=Mock(quantity=1)))
+                get_line=Mock(return_value=Mock(quantity=1)))
     data = {'quantity': 1}
     form = forms.AddToCartForm(data=data, cart=cart, product=Mock())
 
@@ -171,7 +176,7 @@ def test_add_to_cart_form():
 def test_form_when_variant_does_not_exist():
     cart_lines = []
     cart = Mock(add=lambda product, quantity: cart_lines.append(Mock()),
-        get_line=Mock(return_value=Mock(quantity=1)))
+                get_line=Mock(return_value=Mock(quantity=1)))
 
     form = forms.AddToCartForm(data={'quantity': 1}, cart=cart, product=Mock())
     form.get_variant = Mock(side_effect=ObjectDoesNotExist)
@@ -181,7 +186,7 @@ def test_form_when_variant_does_not_exist():
 def test_add_to_cart_form_when_empty_stock():
     cart_lines = []
     cart = Mock(add=lambda product, quantity: cart_lines.append(Mock()),
-        get_line=Mock(return_value=Mock(quantity=1)))
+                get_line=Mock(return_value=Mock(quantity=1)))
 
     form = forms.AddToCartForm(data={'quantity': 1}, cart=cart, product=Mock())
     exception_mock = InsufficientStock(
@@ -194,7 +199,7 @@ def test_add_to_cart_form_when_empty_stock():
 def test_add_to_cart_form_when_insufficient_stock():
     cart_lines = []
     cart = Mock(add=lambda product, quantity: cart_lines.append(product),
-        get_line=Mock(return_value=Mock(quantity=1)))
+                get_line=Mock(return_value=Mock(quantity=1)))
 
     form = forms.AddToCartForm(data={'quantity': 1}, cart=cart, product=Mock())
     exception_mock = InsufficientStock(
@@ -234,7 +239,8 @@ def test_replace_cartline_form_when_insufficient_stock(monkeypatch, cart,
     assert cart.quantity == initial_quantity
 
 def test_get_new_cart_data():
-    cart_dict = {'token': 'randomtoken', 'total': 1, 'quantity': 1, 'current_quantity': 0}
+    cart_dict = {'token': 'randomtoken', 'total': 1, 'quantity': 1,
+                 'current_quantity': 0}
     cart = Mock(**cart_dict)
     queryset_mock = Mock(create=Mock(return_value=cart))
     assert views.get_new_cart_data(queryset_mock) == cart_dict
@@ -269,7 +275,8 @@ def test_get_new_cart_from_request_when_authenticated(db, monkeypatch):
     user_mock = Mock(
         is_authenticated=Mock(return_value=True),
         get_signed_cookie=Mock(return_value=None),
-        carts=Mock(open=Mock(return_value=Mock(get=Mock(side_effect=Cart.DoesNotExist))))
+        carts=Mock(open=Mock(return_value=Mock(get=Mock(
+            side_effect=Cart.DoesNotExist))))
     )
 
     request = Mock(user=user_mock)
@@ -292,7 +299,7 @@ def test_create_new_cart_from_request_when_anonymous(db, monkeypatch):
         is_authenticated=Mock(return_value=False),
         get_signed_cookie=Mock(return_value=None),
         carts=Mock(open=Mock(return_value=Mock(
-            get=Mock(side_effect=Cart.DoesNotExist))))
+                   get=Mock(side_effect=Cart.DoesNotExist))))
     )
 
     request = Mock(user=user_mock,

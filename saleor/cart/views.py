@@ -12,7 +12,8 @@ from babeldjango.templatetags.babel import currencyfmt
 from .core import set_cart_cookie
 from .forms import ReplaceCartLineForm
 from .models import Cart
-from .utils import check_product_availability_and_warn, get_user_open_cart_token
+from .utils import (check_product_availability_and_warn,
+                    get_user_open_cart_token)
 from ..product.forms import get_form_class_for_product
 from ..product.models import Product
 

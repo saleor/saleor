@@ -7,12 +7,10 @@ from django.forms.models import model_to_dict
 from django.utils.encoding import smart_text
 from prices import Price, FixedDiscount
 
-from ..cart.models import Cart
 from ..cart.views import get_or_empty_db_cart
 from ..core import analytics
 from ..discount.models import Voucher, NotApplicable
 from ..order.models import Order
-from ..order.utils import get_ip
 from ..shipping.models import ShippingMethodCountry, ANY_COUNTRY
 from ..userprofile.models import Address, User
 
@@ -72,7 +70,8 @@ class Checkout(object):
                 shipping_cost = self.shipping_method.get_total()
             else:
                 shipping_cost = Price(0, currency=settings.DEFAULT_CURRENCY)
-            total_with_shipping = partition.get_total(discounts=self.cart.discounts) + shipping_cost
+            total_with_shipping = partition.get_total(
+                discounts=self.cart.discounts) + shipping_cost
 
             partition = [
                 (item,
@@ -100,7 +99,8 @@ class Checkout(object):
     def shipping_method(self):
         shipping_address = self.shipping_address
         if shipping_address is not None:
-            shipping_method_country_id = self.storage.get('shipping_method_country_id')
+            shipping_method_country_id = self.storage.get(
+                'shipping_method_country_id')
             if shipping_method_country_id is not None:
                 try:
                     shipping_method_country = ShippingMethodCountry.objects.get(
@@ -189,7 +189,8 @@ class Checkout(object):
 
     @property
     def is_shipping_same_as_billing(self):
-        return Address.objects.are_identical(self.shipping_address, self.billing_address)
+        return Address.objects.are_identical(
+            self.shipping_address, self.billing_address)
 
     def _save_address(self, address, is_billing=False, is_shipping=False):
         if self.user.is_authenticated() and address.id is None:
@@ -218,7 +219,8 @@ class Checkout(object):
         if self.user.is_authenticated():
             order_data['user'] = self.user
         else:
-            # TODO: we should always save email in order not only for anonymous
+            # TODO: we should always save email in order not only
+            # for anonymous
             order_data['anonymous_user_email'] = self.email
 
         voucher = self._get_voucher()
@@ -242,7 +244,8 @@ class Checkout(object):
                 shipping_required=shipping_required,
                 shipping_price=shipping_price,
                 shipping_method_name=shipping_method_name)
-            group.add_items_from_partition(partition, discounts=self.cart.discounts)
+            group.add_items_from_partition(
+                partition, discounts=self.cart.discounts)
 
         if voucher is not None:
             Voucher.objects.increase_usage(voucher)

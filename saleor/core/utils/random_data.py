@@ -10,9 +10,10 @@ from faker import Factory
 from faker.providers import BaseProvider
 from prices import Price
 
-from ...shipping.models import ShippingMethod, ShippingMethodCountry, ANY_COUNTRY
+from ...shipping.models import ShippingMethod, ANY_COUNTRY
 from ...order.models import DeliveryGroup, Order, OrderedItem, Payment
-from ...product.models import Category, Product, ProductImage, ProductVariant, Stock
+from ...product.models import (Category, Product, ProductImage,
+                               ProductVariant, Stock)
 from ...userprofile.models import Address, User
 
 fake = Factory.create()
