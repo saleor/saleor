@@ -65,14 +65,14 @@
             <table class="table table-condensed">
                 <tbody>
                     {% for delivery, delivery_cost, total_with_delivery in checkout.deliveries %}
-                        {% for item in delivery %}
+                        {% for item, item_price_per_item, item_price_total in delivery %}
                             <tr>
                                 <td class="noborder">
                                     {{ item.product.product }}{% if item.quantity != 1 %} <span class="badge">×{{ item.quantity }}</span>{% endif %}
                                     <br>
                                     <small>{{ item.product }}</small>
                                 </td>
-                                <td class="noborder text-right">{% net item.get_total %}</td>
+                                <td class="noborder text-right">{% net item_price_total %}</td>
                             </tr>
                         {% endfor %}
                     {% endfor %}

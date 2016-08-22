@@ -7,11 +7,11 @@ from django.forms.models import model_to_dict
 from django.utils.encoding import smart_text
 from prices import Price, FixedDiscount
 
-from ..cart import Cart
+from ..cart.views import get_or_empty_db_cart
 from ..core import analytics
 from ..discount.models import Voucher, NotApplicable
 from ..order.models import Order
-from ..shipping.models import ShippingMethodCountry
+from ..shipping.models import ShippingMethodCountry, ANY_COUNTRY
 from ..userprofile.models import Address, User
 
 STORAGE_SESSION_KEY = 'checkout_storage'
@@ -27,6 +27,7 @@ class Checkout(object):
         self.storage = {'version': self.VERSION}
         self.tracking_code = tracking_code
         self.user = user
+        self.discounts = cart.discounts
 
     @classmethod
     def from_storage(cls, storage_data, cart, user, tracking_code):
@@ -69,7 +70,15 @@ class Checkout(object):
                 shipping_cost = self.shipping_method.get_total()
             else:
                 shipping_cost = Price(0, currency=settings.DEFAULT_CURRENCY)
-            total_with_shipping = partition.get_total() + shipping_cost
+            total_with_shipping = partition.get_total(
+                discounts=self.cart.discounts) + shipping_cost
+
+            partition = [
+                (item,
+                 item.get_price_per_item(discounts=self.cart.discounts),
+                 item.get_total(discounts=self.cart.discounts))
+                for item in partition]
+
             yield partition, shipping_cost, total_with_shipping
 
     @property
@@ -90,7 +99,8 @@ class Checkout(object):
     def shipping_method(self):
         shipping_address = self.shipping_address
         if shipping_address is not None:
-            shipping_method_country_id = self.storage.get('shipping_method_country_id')
+            shipping_method_country_id = self.storage.get(
+                'shipping_method_country_id')
             if shipping_method_country_id is not None:
                 try:
                     shipping_method_country = ShippingMethodCountry.objects.get(
@@ -98,8 +108,7 @@ class Checkout(object):
                 except ShippingMethodCountry.DoesNotExist:
                     return None
                 shipping_country_code = shipping_address.country.code
-                any_country = ShippingMethodCountry.ANY_COUNTRY
-                if (shipping_method_country.country_code == any_country or
+                if (shipping_method_country.country_code == ANY_COUNTRY or
                         shipping_method_country.country_code == shipping_country_code):
                     return shipping_method_country
 
@@ -180,7 +189,8 @@ class Checkout(object):
 
     @property
     def is_shipping_same_as_billing(self):
-        return Address.objects.are_identical(self.shipping_address, self.billing_address)
+        return Address.objects.are_identical(
+            self.shipping_address, self.billing_address)
 
     def _save_address(self, address, is_billing=False, is_shipping=False):
         if self.user.is_authenticated() and address.id is None:
@@ -209,7 +219,8 @@ class Checkout(object):
         if self.user.is_authenticated():
             order_data['user'] = self.user
         else:
-            # TODO: we should always save email in order not only for anonymous
+            # TODO: we should always save email in order not only
+            # for anonymous
             order_data['anonymous_user_email'] = self.email
 
         voucher = self._get_voucher()
@@ -233,7 +244,8 @@ class Checkout(object):
                 shipping_required=shipping_required,
                 shipping_price=shipping_price,
                 shipping_method_name=shipping_method_name)
-            group.add_items_from_partition(partition)
+            group.add_items_from_partition(
+                partition, discounts=self.cart.discounts)
 
         if voucher is not None:
             Voucher.objects.increase_usage(voucher)
@@ -263,7 +275,7 @@ class Checkout(object):
     def get_subtotal(self):
         zero = Price(0, currency=settings.DEFAULT_CURRENCY)
         cost_iterator = (
-            shipment.get_total()
+            total - shipping_cost
             for shipment, shipping_cost, total in self.deliveries)
         total = sum(cost_iterator, zero)
         return total
@@ -287,17 +299,17 @@ class Checkout(object):
 
 def load_checkout(view):
     @wraps(view)
-    def func(request):
+    @get_or_empty_db_cart
+    def func(request, cart):
         try:
             session_data = request.session[STORAGE_SESSION_KEY]
         except KeyError:
             session_data = ''
         tracking_code = analytics.get_client_id(request)
-        cart = Cart.for_session_cart(
-            request.cart, discounts=request.discounts)
+        
         checkout = Checkout.from_storage(
             session_data, cart, request.user, tracking_code)
-        response = view(request, checkout)
+        response = view(request, checkout, cart)
         if checkout.modified:
             request.session[STORAGE_SESSION_KEY] = checkout.for_storage()
         return response

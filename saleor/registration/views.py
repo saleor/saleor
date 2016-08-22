@@ -19,10 +19,12 @@ from django.utils.translation import ugettext_lazy as _
 from . import forms
 from .models import EmailConfirmationRequest, EmailChangeRequest
 from . import utils
+from ..cart.views import assign_anonymous_cart
 
 now = timezone.now
 
 
+@assign_anonymous_cart
 def login(request):
     local_host = utils.get_local_host(request)
     ctx = {
