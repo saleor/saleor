@@ -70,7 +70,7 @@ class ShippingMethodCountry(models.Model):
     price = PriceField(
         pgettext_lazy('Shipping method region field', 'price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
-    shipping_method = models.ForeignKey(ShippingMethod, related_name='price_per_country_old') # fixme: related name changed!
+    shipping_method = models.ForeignKey(ShippingMethod, related_name='price_per_country')
 
     objects = ShippingMethodCountryQueryset.as_manager()
 

@@ -60,7 +60,7 @@
                     </td>
                     <td>
                         <div class="cart-item-amount">
-                            <form role="form" action="{% url "cart:update_line" product_id=line.product.pk %}" method="post" class="form-cart">
+                            <form role="form" action="{% url "cart:update-line" product_id=line.product.pk %}" method="post" class="form-cart">
                                 <div class="input-group cart-item-quantity js-hidden{% if form.quantity.errors %} has-error{% endif %}">
                                     {{ line.form.quantity }}
                                     <span class="input-group-btn">

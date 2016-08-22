@@ -214,10 +214,10 @@ class ProductVariant(models.Model, Item):
                             self.display_variant(attributes=attributes))
 
     def get_first_image(self):
-        product_images = self.product.images.all()
+        first_image = self.product.images.first()
 
-        if product_images:
-            return product_images[0].image
+        if first_image:
+            return first_image.image
         return None
 
     def select_stockrecord(self, quantity=1):
