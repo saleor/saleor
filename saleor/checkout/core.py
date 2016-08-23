@@ -243,8 +243,9 @@ class Checkout(object):
     def _get_voucher(self):
         voucher_code = self.voucher_code
         if voucher_code is not None:
+            vouchers = Voucher.objects.active().select_for_update()
             try:
-                return Voucher.objects.get(code=self.voucher_code)
+                return vouchers.get(code=self.voucher_code)
             except Voucher.DoesNotExist:
                 return None
 
