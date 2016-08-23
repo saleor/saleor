@@ -7,8 +7,8 @@ RUN \
 
 RUN \
  apt-key adv --keyserver keyserver.ubuntu.com --recv 68576280 && \
- echo 'deb https://deb.nodesource.com/node_5.x jessie main' | tee /etc/apt/sources.list.d/nodesource.list && \
- echo 'deb-src https://deb.nodesource.com/node_5.x jessie main' | tee -a /etc/apt/sources.list.d/nodesource.list
+ echo 'deb https://deb.nodesource.com/node_6.x jessie main' | tee /etc/apt/sources.list.d/nodesource.list && \
+ echo 'deb-src https://deb.nodesource.com/node_6.x jessie main' | tee -a /etc/apt/sources.list.d/nodesource.list
 
 RUN \
  apt-get -y update && \
