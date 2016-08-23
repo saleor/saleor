@@ -48,7 +48,6 @@ def index(request, product_id=None):
             if request.is_ajax():
                 response = {'error': form.errors}
                 return JsonResponse(response, status=400)
-    cart_partitioner = cart.partition()
     return TemplateResponse(
         request, 'cart/index.html', {
-            'cart': cart_partitioner})
+            'cart': cart})

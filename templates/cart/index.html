@@ -41,8 +41,7 @@
         </tr>
         </tfoot>
         <tbody>
-        {% for group in cart %}
-            {% for line in group %}
+            {% for line in cart %}
                 <tr class="cart-item">
                     <td class="hidden-xs">
                         <a href="{{ line.product.get_absolute_url }}">
@@ -85,7 +84,6 @@
                         {% gross line.get_total %}
                     </td>
                 </tr>
-                {% endfor %}
             {% endfor %}
         </tbody>
     </table>
