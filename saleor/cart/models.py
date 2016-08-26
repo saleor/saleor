@@ -122,7 +122,7 @@ class Cart(models.Model, ItemSet):
 
     #Satchless
     def __repr__(self):
-        return 'Cart(%r)' % (list(self),)
+        return 'Cart(quantity=%s)' % (self.quantity,)
 
     def __iter__(self):
         return iter(self.lines.select_related('product').all())
