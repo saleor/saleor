@@ -230,7 +230,6 @@ class Checkout(object):
                 shipping_price = 0
                 shipping_method_name = None
             group = order.groups.create(
-                shipping_required=shipping_required,
                 shipping_price=shipping_price,
                 shipping_method_name=shipping_method_name)
             group.add_items_from_partition(partition)
