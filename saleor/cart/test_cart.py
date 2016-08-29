@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 from decimal import Decimal
+import json
 
 from prices import Price
 import pytest
@@ -312,3 +313,63 @@ def test_create_new_cart_from_request_when_anonymous(db, monkeypatch):
     assert len(returned_cart) == 0
     assert returned_cart.user is None
     assert Cart.objects.open().count() == carts_before + 1
+
+
+def test_view_empty_cart(monkeypatch, client, cart):
+    monkeypatch.setattr(
+        views, 'get_cart_from_request',
+        lambda request: cart
+    )
+    request = client.get('/cart/')
+    request.discounts = None
+    response = views.index(request)
+    assert response.status_code == 200
+
+
+def test_view_cart(monkeypatch, client, cart, variant):
+    cart.add(variant, 1)
+    monkeypatch.setattr(
+        views, 'get_cart_from_request',
+        lambda request: cart
+    )
+    request = client.get('/cart/')
+    request.discounts = None
+    response = views.index(request)
+    assert response.status_code == 200
+
+
+def test_view_update_cart_quantity(monkeypatch, client, cart, variant):
+    cart.add(variant, 1)
+    monkeypatch.setattr(
+        views, 'get_cart_from_request',
+        lambda request: cart
+    )
+    request = client.post('/cart/update/{}'.format(variant.pk), {'quantity': 3})    
+    request.discounts = None
+    request.POST = {'quantity': 3}
+    request.is_ajax = lambda: True
+    response = views.index(request, variant.pk)
+    assert response.status_code == 200
+    assert cart.quantity == 3
+
+    request.POST = {'quantity': 5}
+    request.is_ajax = lambda: False
+    response = views.index(request, variant.pk)
+    assert response.status_code == 302
+    assert cart.quantity == 5
+
+
+def test_view_invalid_update_cart(monkeypatch, client, cart, variant):
+    cart.add(variant, 1)
+    monkeypatch.setattr(
+        views, 'get_cart_from_request',
+        lambda request: cart
+    )
+    request = client.post('/cart/update/{}'.format(variant.pk), {})
+    request.discounts = None
+    request.POST = {}
+    request.is_ajax = lambda: True
+    response = views.index(request, variant.pk)
+    assert response.status_code == 400
+    assert 'error' in json.loads(response.content).keys() 
+    assert cart.quantity == 1
