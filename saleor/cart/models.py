@@ -125,7 +125,7 @@ class Cart(models.Model, ItemSet):
         return 'Cart(quantity=%s)' % (self.quantity,)
 
     def __iter__(self):
-        return iter(self.lines.select_related('product').all())
+        return iter(self.lines.all())
 
     def __len__(self):
         return self.lines.count()
