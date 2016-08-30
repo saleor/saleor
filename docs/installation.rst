@@ -18,9 +18,9 @@ Before you are ready to run Saleor you will need certain software installed on y
 
 #. `webpack module bundler <https://webpack.github.io/>`_ installed globally with:
 
-   .. code:: bash
+   .. code-block:: bash
 
-       $ npm i webpack -g
+    $ npm i webpack -g
 
 We also strongly recommend creating a virtual environment before proceeding with installation.
 
@@ -30,23 +30,23 @@ Installation
 
 #. Clone the repository (or use your fork):
 
-   .. code:: bash
+   .. code-block:: bash
 
-       $ git clone https://github.com/mirumee/saleor.git
+    $ git clone https://github.com/mirumee/saleor.git
 
 
 #. Enter the directory:
 
-   .. code:: bash
+   .. code-block:: bash
 
-       $ cd saleor/
+    $ cd saleor/
 
 
 #. Install all dependencies:
 
-   .. code:: bash
+   .. code-block:: bash
 
-       $ pip install -r requirements.txt
+    $ pip install -r requirements.txt
 
 
 #. Set `SECRET_KEY` environmental variable.
@@ -55,35 +55,35 @@ Installation
 
        Secret key has to be unique and must not be shared with anybody.
 
-   .. code:: bash
+   .. code-block:: bash
 
-       $ export SECRET_KEY='mysecretkey'
+    $ export SECRET_KEY='mysecretkey'
 
 
 #. Prepare the database:
 
-   .. code:: bash
+   .. code-block:: bash
 
-       $ python manage.py migrate
+    $ python manage.py migrate
 
 
 #. Install front-end dependencies:
 
-   .. code:: bash
+   .. code-block:: bash
 
-       $ npm install
+    $ npm install
 
 
 #. Prepare front-end assets:
 
-   .. code:: bash
+   .. code-block:: bash
 
     $ npm run build-assets
 
 
 #. Run like a normal django project:
 
-   .. code:: bash
+   .. code-block:: bash
 
     $ python manage.py runserver
 
@@ -93,6 +93,6 @@ Example data
 
 If you'd like some data to test your new storefront you can populate the database with example products and orders:
 
-.. code:: bash
+.. code-block:: bash
 
-    $ python manage.py populatedb
+ $ python manage.py populatedb

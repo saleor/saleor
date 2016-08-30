@@ -10,14 +10,14 @@ You will need to install Docker first.
 
 Before building the image make sure you have all of the front-end assets prepared for production:
 
-.. code::
+.. code-block:: bash
 
  $ npm run build-assets
  $ python manage.py collectstatic
 
 Then use Docker to build the image:
 
-.. code::
+.. code-block:: bash
 
  $ docker build -t mystorefront .
 
@@ -28,7 +28,7 @@ Heroku
 First steps
 ***********
 
-.. code::
+.. code-block:: bash
 
  $ heroku create --buildpack https://github.com/heroku/heroku-buildpack-nodejs.git
  $ heroku buildpacks:add https://github.com/heroku/heroku-buildpack-python.git
@@ -45,7 +45,7 @@ First steps
 Deploy
 ******
 
-.. code::
+.. code-block:: bash
 
  $ git push heroku master
 
@@ -53,6 +53,6 @@ Deploy
 Prepare the database
 ********************
 
-.. code::
+.. code-block:: bash
 
  $ heroku run python manage.py migrate

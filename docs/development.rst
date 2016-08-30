@@ -27,7 +27,7 @@ This will also enable *source maps* that are extremely helpful when debugging.
 
 To run webpack in *watch* mode run:
 
-.. code:: bash
+.. code-block:: bash
 
     $ npm start
 
@@ -36,7 +36,7 @@ To run webpack in *watch* mode run:
     Files produced this way are not ready for production use.
     To prepare static assets for deployment run:
 
-    .. code:: bash
+    .. code-block:: bash
 
         $ npm run build-assets
 
@@ -62,7 +62,7 @@ The project currently contains very little front-end code so the test suite only
 
 To run backend tests use `pytest <http://docs.pytest.org/en/latest/>`_:
 
-.. code:: bash
+.. code-block:: bash
 
     $ py.test
 
@@ -70,7 +70,7 @@ You can also test against all supported versions of Django and Python.
 This is usually only required if you want to contribute your changes back to Saleor.
 To do so you can use `Tox <https://tox.readthedocs.io/en/latest/>`_:
 
-.. code:: bash
+.. code-block:: bash
 
     $ tox
 
@@ -106,14 +106,14 @@ Usage
 
 1. Build the containers using ``docker-compose``
 
-   .. code::
+   .. code-block:: bash
 
     $ docker-compose build
 
 
 2. Prepare the database
 
-   .. code::
+   .. code-block:: bash
 
     $ docker-compose run web python manage.py migrate
     $ docker-compose run web python manage.py populatedb --createsuperuser
@@ -124,7 +124,7 @@ Usage
 
 3. Run the containers
 
-   .. code::
+   .. code-block:: bash
 
     $ docker-compose up
 
