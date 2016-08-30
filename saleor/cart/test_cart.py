@@ -373,3 +373,36 @@ def test_view_invalid_update_cart(monkeypatch, client, cart, variant):
     assert response.status_code == 400
     assert 'error' in json.loads(response.content).keys() 
     assert cart.quantity == 1
+
+
+def test_view_invalid_add_to_cart(monkeypatch, client, cart, variant):
+    initial_quantity = 1
+    cart.add(variant, initial_quantity)
+    monkeypatch.setattr(
+        views, 'get_cart_from_request',
+        lambda request, create: cart
+    )
+    request = client.post('/cart/add/{}'.format(variant.pk), {})
+    request.discounts = None
+    request.POST = {}
+    request.user = Mock(is_authenticated=lambda: False)
+    response = views.add_to_cart(request, variant.pk)
+    assert response.status_code == 302
+    assert cart.quantity == initial_quantity
+
+
+def test_view_add_to_cart(db, monkeypatch, client, cart, variant):
+    initial_quantity = 1
+    cart.add(variant, initial_quantity)
+    monkeypatch.setattr(
+        views, 'get_cart_from_request',
+        lambda request, create: cart
+    )
+
+    request = client.post('/cart/add/{}'.format(variant.pk), {})
+    request.discounts = None
+    request.POST = {'quantity': 1, 'variant': variant.pk}
+    request.user = Mock(is_authenticated=lambda: False)
+    response = views.add_to_cart(request, variant.pk)
+    assert response.status_code == 302
+    assert cart.quantity == initial_quantity + 1
