@@ -3,11 +3,11 @@ machine:
     version: "6.1.0"
   python:
     version: "3.5.1"
+  environment:
+    SECRET_KEY: irrelevant
 test:
   pre:
     - "npm run build-assets"
     - "./manage.py collectstatic --no-input"
-        environment:
-          SECRET_KEY: irrelevant
   override:
     - "pytest"
