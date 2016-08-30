@@ -73,3 +73,60 @@ To do so you can use `Tox <https://tox.readthedocs.io/en/latest/>`_:
 .. code:: bash
 
     $ tox
+
+
+Continuous integration
+----------------------
+
+The storefront ships with a working `CircleCI <https://circleci.com/>`_ configuration file.
+To use it log into your CircleCI account and enable your repository.
+
+
+Docker
+------
+
+Using Docker to build software allows you to run and test code without having to worry about external dependencies such as cache servers and databases.
+
+.. warning::
+
+  The following setup is only meant for local development.
+  See :ref:`docker` for production use of Docker.
+
+
+Local prerequisites
+*******************
+
+You will need to install Docker and
+`docker-compose <https://docs.docker.com/compose/install/>`_ before
+performing the following steps.
+
+
+Usage
+*****
+
+1. Build the containers using ``docker-compose``
+
+   .. code::
+
+    $ docker-compose build
+
+
+2. Prepare the database
+
+   .. code::
+
+    $ docker-compose run web python manage.py migrate
+    $ docker-compose run web python manage.py populatedb --createsuperuser
+
+   The ``--createsuperuser`` switch creates an admin account for
+    ``admin@example.com`` with the password set to ``admin``.
+
+
+3. Run the containers
+
+   .. code::
+
+    $ docker-compose up
+
+
+By default, the application is started in debug mode, will automaticall reload code and is configured to listen on port ``8000``.

@@ -1,46 +1,25 @@
 Deployment
 ==========
 
+.. _docker:
+
 Docker
 ------
 
+You will need to install Docker first.
 
-Local prerequisites
-*******************
+Before building the image make sure you have all of the front-end assets prepared for production:
 
-You will need to install Docker and
-`docker-compose <https://docs.docker.com/compose/install/>`_ before
-performing the following steps.
+.. code::
 
-Usage
-*****
+ $ npm run build-assets
+ $ python manage.py collectstatic
 
-1. Build ``Saleor`` with ``docker-compose``
+Then use Docker to build the image:
 
-   .. code::
+.. code::
 
-    $ docker-compose build
-
-
-2. Prepare the database
-
-   .. code::
-
-    $ docker-compose run web python manage.py migrate
-    $ docker-compose run web python manage.py populatedb --createsuperuser
-
-   The ``--createsuperuser`` switch creates an admin account for
-    ``admin@example.com`` with the password set to ``admin``.
-
-
-3. Run ``Saleor``
-
-   .. code::
-
-    $ docker-compose up
-
-
-By default, the application is configured to listen on port ``8000``.
+ $ docker build -t mystorefront .
 
 
 Heroku
