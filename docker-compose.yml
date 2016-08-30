@@ -11,10 +11,12 @@ mailcatcher:
     - '1080:1080'
 web:
   build: .
+  command: python manage.py runserver 0.0.0.0:8000
   environment:
     - DATABASE_URL=postgres://saleor:saleor@db/saleor
-    - DEFAULT_FROM_EMAIL=info@getsaleor.com
-    - REDIS_URL=redis://redis/
+    - DEFAULT_FROM_EMAIL=noreply@example.com
+    - EMAIL_URL=smtp://:@mailcatcher:1025/
+    - REDIS_URL=redis://redis:6379/0
     - SECRET_KEY=changeme
   links:
     - db
@@ -23,4 +25,4 @@ web:
   ports:
     - '8000:8000'
   volumes:
-    - .:/app
+    - .:/app:Z
