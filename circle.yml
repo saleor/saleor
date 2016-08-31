@@ -3,16 +3,12 @@ machine:
     version: "6.1.0"
   python:
     version: "3.5.1"
-  services:
-    - docker
   environment:
     SECRET_KEY: irrelevant
 dependencies:
   post:
     - npm run build-assets
     - ./manage.py collectstatic --no-input
-    - docker build -t storefront .
-    - docker save storefront > $CIRCLE_ARTIFACTS/docker-image.tar
 test:
   override:
     - pytest
