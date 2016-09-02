@@ -29,7 +29,7 @@ django-selectable==0.9.0
 django-storages==1.5.0
 django-versatileimagefield==1.6
 django-webpack-loader==0.3.3
-Django==1.10              # via django-absolute, django-emailit, django-model-utils, django-payments, django-prices, jsonfield
+Django==1.10.1            # via django-absolute, django-emailit, django-model-utils, django-payments, django-prices, jsonfield
 djangorestframework==3.4.6
 fake-factory==0.6.0
 google-i18n-address==1.0.8
@@ -52,7 +52,7 @@ pyasn1==0.1.9             # via cryptography
 pycparser==2.14           # via cffi
 PyJWT==1.4.2              # via django-payments
 pytest-django==3.0.0
-pytest==3.0.1
+pytest==3.0.2
 python-dateutil==2.5.3    # via fake-factory
 pytz==2016.6.1            # via babel
 redis==2.10.5             # via django-redis
