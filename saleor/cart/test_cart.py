@@ -344,7 +344,7 @@ def test_view_update_cart_quantity(monkeypatch, client, cart, variant):
         views, 'get_cart_from_request',
         lambda request: cart
     )
-    request = client.post('/cart/update/{}'.format(variant.pk), {'quantity': 3})    
+    request = client.post('/cart/update/{}'.format(variant.pk), {'quantity': 3})
     request.discounts = None
     request.POST = {'quantity': 3}
     request.is_ajax = lambda: True
@@ -370,8 +370,9 @@ def test_view_invalid_update_cart(monkeypatch, client, cart, variant):
     request.POST = {}
     request.is_ajax = lambda: True
     response = views.index(request, variant.pk)
+    resp_decoded = json.loads(response.content.decode('utf-8'))
     assert response.status_code == 400
-    assert 'error' in json.loads(response.content).keys() 
+    assert 'error' in resp_decoded.keys()
     assert cart.quantity == 1
 
 
