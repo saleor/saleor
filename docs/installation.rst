@@ -80,6 +80,9 @@ Installation
 
     $ npm install
 
+   .. note::
+
+       If this step fails go back and make sure you're using new enough versions of Node.js and npm.
 
 #. Prepare front-end assets:
 
