@@ -6,9 +6,11 @@ Prerequisites
 
 Before you are ready to run Saleor you will need certain software installed on your computer.
 
-#. `Python <https://www.python.org/>`_ version 3.5 or 2.7
+#. `Python <https://www.python.org/>`_ version 3.5.x or 2.7.x
 
 #. `pip <https://pip.pypa.io/en/stable/installing/>`_ if you're using an older release of Python 2.7
+
+#. ``wheel`` Python package if you're using pip older than 8.1.2
 
 #. `Node.js <https://nodejs.org/>`_ version 4 or above
 
@@ -28,7 +30,7 @@ We also strongly recommend creating a virtual environment before proceeding with
 Installation
 ------------
 
-#. Clone the repository (or use your fork):
+#. Clone the repository (or use your own fork):
 
    .. code-block:: bash
 
@@ -53,11 +55,16 @@ Installation
 
    .. note::
 
-       Secret key has to be unique and must not be shared with anybody.
+       Secret key should be a unique string only your team knows.
+       It's serious as this key is used to ensure security of your installation.
+       Consult `Django's documentation <https://docs.djangoproject.com/el/1.10/ref/settings/#secret-key>`_ for details.
+
+       We try to provide usable default values for all of the settings.
+       We've decided not to provide a default for ``SECRET_KEY`` as we fear someone would inevitably ship a project with the default value left in code.
 
    .. code-block:: bash
 
-    $ export SECRET_KEY='mysecretkey'
+    $ export SECRET_KEY='<mysecretkey>'
 
 
 #. Prepare the database:
