@@ -57,7 +57,7 @@ Installation
 
        Secret key should be a unique string only your team knows.
        It's serious as this key is used to ensure security of your installation.
-       Consult `Django's documentation <https://docs.djangoproject.com/el/1.10/ref/settings/#secret-key>`_ for details.
+       Consult `Django's documentation <https://docs.djangoproject.com/en/1.10/ref/settings/#secret-key>`_ for details.
 
        We try to provide usable default values for all of the settings.
        We've decided not to provide a default for ``SECRET_KEY`` as we fear someone would inevitably ship a project with the default value left in code.

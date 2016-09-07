@@ -11,7 +11,7 @@ Contents:
    installation
    stock
    payments
-   social
+   configuration
    reporting
    development
    deploy
