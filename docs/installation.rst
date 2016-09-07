@@ -51,7 +51,7 @@ Installation
     $ pip install -r requirements.txt
 
 
-#. Set `SECRET_KEY` environmental variable.
+#. Set ``SECRET_KEY`` environment variable.
 
    .. note::
 
