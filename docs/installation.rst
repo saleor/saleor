@@ -88,7 +88,7 @@ Installation
 
    .. code-block:: bash
 
-    $ npm run build-assets
+    $ npm run build
 
 
 #. Run like a normal django project:
