@@ -45,7 +45,7 @@ Fraud protection
 ----------------
 
 Some of the payment backends provide automatic fraud protection heuristics.
-If such information is available Saleor will show it in order management panel.
+If such information is available Saleor will show it in the order management panel.
 
 
 Authorisation and capture
