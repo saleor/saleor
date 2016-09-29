@@ -67,7 +67,7 @@
                             {% else %}
                                 <div>{% trans "Account" %}: {% trans "Guest" %}</div>
                             {% endif %}
-                            <div><i class="mdi-content-mail"></i> <a href="mailto:{{ payment.order.get_user_email }}">{{ payment.order.get_user_email }}</a></div>
+                            <div><i class="material-icons">email</i> <a href="mailto:{{ payment.order.get_user_email }}">{{ payment.order.get_user_email }}</a></div>
                             <div>Customer IP: {{ payment.customer_ip_address }}</div>
                         </div>
                     </div>

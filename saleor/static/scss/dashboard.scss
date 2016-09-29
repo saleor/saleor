@@ -1,15 +1,22 @@
-$roboto-font-path: "../fonts/";
-$icons-font-path: $roboto-font-path;
-
 $font-size-action-icon: 18px;
 $header-height: 60px;
 $transition-duration: .2s;
 
-$icons-font-path: "~materialize-sass-origin/font/material-design-icons/";
-$roboto-font-path: "~materialize-sass-origin/font/roboto/";
-@import "~materialize-sass-origin/sass/materialize";
-@import "~select2/src/scss/core";
+$roboto-font-path: "~materialize-css/fonts/roboto/";
+@import "~materialize-css/sass/materialize";
 @import "~dropzone/dist/dropzone";
+
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url('~material-design-icons/iconfont/MaterialIcons-Regular.eot'); /* For IE6-8 */
+  src: local('Material Icons'),
+       local('MaterialIcons-Regular'),
+       url('~material-design-icons/iconfont/MaterialIcons-Regular.woff2') format('woff2'),
+       url('~material-design-icons/iconfont/MaterialIcons-Regular.woff') format('woff'),
+       url('~material-design-icons/iconfont/MaterialIcons-Regular.ttf') format('truetype');
+}
 
 .header {
   @media (min-width: $large-screen-up) {
@@ -66,16 +73,6 @@ $roboto-font-path: "~materialize-sass-origin/font/roboto/";
       display: block;
       padding: 0;
 
-      &:after {
-        @extend .divider;
-        content: "";
-        display: block;
-      }
-
-      li:after {
-        content: none;
-      }
-
       .body-home &.nav-home {
         @extend .active;
       }
@@ -94,88 +91,21 @@ $roboto-font-path: "~materialize-sass-origin/font/roboto/";
         top: 0;
         width: 100%;
 
-        &:hover {
-          background: none;
-        }
-
-        &:after {
-          content: none;
-        }
-
         a {
           display: block;
           height: $header-height;
           padding: 0;
           text-align: center;
 
+          &:hover {
+            background: none;
+          }
+
           img {
             height: 100%;
             padding: 15px 0;
           }
         }
-      }
-
-      &.side-nav-user {
-        a {
-          font-size: 14px;
-          line-height: 64px;
-          margin: 0;
-
-          i {
-            vertical-align: inherit;
-            width: auto;
-            margin: 0 5px;
-
-            &:last-child {
-              margin-right: 0;
-            }
-          }
-        }
-
-        ul ul {
-          li {
-            a {
-              line-height: 52px;
-            }
-          }
-        }
-      }
-
-      ul ul {
-        li {
-          a {
-            background: map-get($grey, lighten-5);
-            height: 52px;
-            line-height: 52px;
-            padding-left: 30px;
-            transition: background-color $transition-duration;
-
-            &:hover, &:focus {
-              background-color: #ddd;
-            }
-          }
-        }
-      }
-
-      .collapsible-header {
-        margin: 0;
-      }
-
-      .collapsible-body {
-        a {
-          margin: 0;
-        }
-      }
-
-      i {
-        display: inline-block;
-        float: none;
-      }
-    }
-
-    > li {
-      &:hover {
-        background: none;
       }
     }
   }
@@ -326,6 +256,30 @@ table {
   }
 }
 
+.material-icons {
+  direction: ltr;
+  display: inline-block;
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  letter-spacing: normal;
+  text-transform: none;
+  vertical-align: middle;
+  word-wrap: normal;
+  white-space: nowrap;
+
+  /* Support for all WebKit browsers. */
+  -webkit-font-smoothing: antialiased;
+  /* Support for Safari and Chrome. */
+  text-rendering: optimizeLegibility;
+
+  /* Support for Firefox. */
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Support for IE. */
+  font-feature-settings: 'liga';
+}
+
 @import "widget/breadcrumbs";
 @import "widget/card";
 @import "widget/data-table";
@@ -334,6 +288,5 @@ table {
 @import "widget/list";
 @import "widget/product-gallery";
 @import "widget/ppoi";
-@import "widget/select2";
 @import "widget/tabs";
 @import "widget/toast";

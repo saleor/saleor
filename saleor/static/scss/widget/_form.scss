@@ -1,7 +1,5 @@
 @mixin form {
   .select-wrapper {
-    margin-top: -3px;
-
     &.invalid {
       input {
         @extend .invalid;
@@ -12,14 +10,6 @@
   label {
     @extend .active;
     display: block;
-
-    &.optional {
-      &:before {
-        content: "(optional)";
-        float: right;
-        margin-left: 3px;
-      }
-    }
   }
 
   input[type=radio] {

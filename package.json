@@ -16,6 +16,24 @@
     "node": "5.10.x"
   },
   "dependencies": {
+    "bootstrap-sass": "^3.3.7",
+    "dropzone": "^4.2.0",
+    "font-awesome": "^4.4.0",
+    "jquery": "^2.1.4",
+    "jquery-match-height": "^0.7.0",
+    "jquery-ui": "^1.12.1",
+    "jquery.cookie": "^1.4.1",
+    "material-design-icons": "^3.0.1",
+    "materialize-css": "^0.97.7",
+    "modernizr": "^3.2.0",
+    "react": "^0.14.3",
+    "react-dom": "^0.14.3",
+    "react-redux": "~4.0.0",
+    "redux": "~3.0.4",
+    "sortablejs": "^1.4.2",
+    "underscore": "^1.8.3"
+  },
+  "devDependencies": {
     "autoprefixer": "^6.4.1",
     "babel-core": "^6.14.0",
     "babel-loader": "^6.2.5",
@@ -24,30 +42,13 @@
     "babel-preset-es2015": "^6.14.0",
     "babel-preset-react": "^6.0.15",
     "babel-preset-stage-0": "^6.0.15",
-    "bootstrap-sass": "^3.3.7",
     "css-loader": "^0.25.0",
-    "dropzone": "^4.2.0",
     "extract-text-webpack-plugin": "^1.0.1",
     "file-loader": "^0.9.0",
-    "font-awesome": "^4.4.0",
-    "hammerjs": "^2.0.4",
-    "jquery": "^3.1.1",
-    "jquery-match-height": "^0.7.0",
-    "jquery-ui": "^1.12.1",
-    "jquery.cookie": "^1.4.1",
-    "materialize-sass-origin": "git+https://github.com/mociepka/materialize-sass-origin.git",
-    "modernizr": "^3.2.0",
     "node-sass": "^3.10.0",
-    "postcss": "^5.2.0",
+    "postcss": "^5.2.3",
     "postcss-loader": "^0.13.0",
-    "react": "^0.14.3",
-    "react-dom": "^0.14.3",
-    "react-redux": "~4.0.0",
-    "redux": "~3.0.4",
     "sass-loader": "^4.0.2",
-    "select2": "^4.0.0",
-    "sortablejs": "^1.4.2",
-    "underscore": "^1.8.3",
     "webpack": "^1.13.2",
     "webpack-bundle-tracker": "0.0.93",
     "webpack-dev-server": "^1.16.1"
@@ -60,8 +61,8 @@
     ]
   },
   "scripts": {
-    "build-assets": "UV_THREADPOOL_SIZE=8 webpack -p",
+    "build-assets": "UV_THREADPOOL_SIZE=8 node ./node_modules/webpack/bin/webpack.js -p",
     "heroku-postbuild": "npm run build-assets",
-    "start": "UV_THREADPOOL_SIZE=8 webpack -d --watch"
+    "start": "UV_THREADPOOL_SIZE=8 node ./node_modules/webpack/bin/webpack.js -d --watch"
   }
 }

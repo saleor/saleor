@@ -20,8 +20,7 @@ var providePlugin = new webpack.ProvidePlugin({
   jQuery: 'jquery',
   'window.jQuery': 'jquery',
   Backbone: 'backbone',
-  'window.Backbone': 'backbone',
-  Hammer: 'hammerjs'
+  'window.Backbone': 'backbone'
 });
 
 var config = {
@@ -78,6 +77,11 @@ var config = {
   ],
   postcss: function() {
     return [autoprefixer];
+  },
+  resolve: {
+    aliast: {
+      'jquery': path.resolve(__dirname, '/jquery/dist/jquery.js')
+    }
   },
   sassLoader: {
     sourceMap: true

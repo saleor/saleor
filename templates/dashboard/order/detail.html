@@ -17,7 +17,7 @@
 {% block header_extra %}
     {% if order.can_cancel %}
         <a class="dropdown-button" href="#" data-activates="context-menu" data-constrainwidth="false">
-            <i class="mdi-navigation-more-vert"></i>
+            <i class="material-icons">more_vert</i>
         </a>
         <ul id="context-menu" class="dropdown-content">
             <li>
@@ -132,7 +132,7 @@
                                     {% include 'dashboard/includes/_address.html' with address=address only %}
 
                                     <div>
-                                        <i class="mdi-content-mail"></i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
+                                        <i class="material-icons">email</i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
                                     </div>
                                 </div>
 
@@ -152,7 +152,7 @@
 
                                     {% include 'dashboard/includes/_address.html' with address=address only %}
                                     <div>
-                                        <i class="mdi-content-mail"></i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
+                                        <i class="material-icons">email</i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
                                     </div>
                                 {% endwith %}
                             </div>
@@ -175,7 +175,7 @@
                                 {% blocktrans with shipment=group.id %}Shipment #{{ shipment }}{% endblocktrans %}
                                 {% if group.can_cancel %}
                                     <a class="dropdown-button right" href="#" data-activates="group-actions-{{ group.pk }}" data-constrainwidth="false">
-                                        <i class="mdi-navigation-more-vert"></i>
+                                        <i class="material-icons">more_vert</i>
                                     </a>
                                 {% endif %}
                                 {% render_status group.status group.get_status_display %}
@@ -230,7 +230,7 @@
                                         <td class="right-align no-padded">
                                             {% if group.status != 'cancelled' %}
                                                 <a class="dropdown-button" href="#" data-activates="line-actions-{{ item.pk }}" data-constrainwidth="false">
-                                                    <i class="mdi-navigation-more-vert"></i>
+                                                    <i class="material-icons">more_vert</i>
                                                 </a>
                                                 <ul id="line-actions-{{ item.pk }}" class="dropdown-content">
                                                     <li>
@@ -312,7 +312,7 @@
                                     </td>
                                     <td class="no-padded">
                                         <a class="dropdown-button" href="#" data-activates="voucher-actions" data-constrainwidth="false">
-                                            <i class="mdi-navigation-more-vert"></i>
+                                            <i class="material-icons">more_vert</i>
                                         </a>
 
                                         <ul id="voucher-actions" class="dropdown-content">

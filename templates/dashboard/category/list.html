@@ -24,13 +24,13 @@
     <div class="fixed-action-btn">
         <a class="btn-fab btn-floating btn-large waves-effect waves-light teal" title="{% trans "Add category" %}"
             href="{% if root %}{% url 'dashboard:category-add' root_pk=root.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}">
-            <i class="mdi-content-add"></i>
+            <i class="material-icons">add</i>
         </a>
     </div>
 
     {% if root %}
     <a class="dropdown-button" href="#" data-activates="category-delete" data-constrainwidth="false">
-        <i class="mdi-navigation-more-vert"></i>
+        <i class="material-icons">more_vert</i>
     </a>
     <ul id="category-delete" class="dropdown-content">
         <li>
@@ -101,7 +101,7 @@
                             </span></p>
 
                             {% if node.hidden %}
-                                <span class="list-item-icon"><i class="mdi-action-visibility-off"></i></span>
+                                <span class="list-item-icon"><i class="material-icons">visibility_off</i></span>
                             {% endif %}
                         </li>
                     {% endfor %}

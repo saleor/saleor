@@ -17,11 +17,28 @@
     line-height: $header-height/2;
 
     @media (min-width: $medium-screen-up) {
-      display: inline;
+      display: inline-block;
     }
 
     &:last-child {
-      display: inline;
+      display: inline-block;
+    }
+
+    &:before {
+      content: '\E5CC';
+      color: rgba(255,255,255, .7);
+      vertical-align: top;
+      display: inline-block;
+      font-family: 'Material Icons';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 25px;
+      margin: 0 10px 0 8px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    &:first-child:before {
+      display: none;
     }
 
     &:hover {
@@ -38,19 +55,6 @@
       &:hover {
         color: white;
       }
-
-      &:after {
-        content: "\e8a9";
-        color: map-get($materialize-red, lighten-4);
-        display: inline-block;
-        font-family: "Material-Design-Icons", sans-serif;
-        margin-left: 5px;
-        vertical-align: bottom;
-      }
-    }
-
-    [class^=mdi-] {
-      display: inline;
     }
   }
 
