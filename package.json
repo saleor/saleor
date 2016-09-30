@@ -30,6 +30,7 @@
     "react-dom": "^0.14.3",
     "react-redux": "~4.0.0",
     "redux": "~3.0.4",
+    "select2": "^4.0.3",
     "sortablejs": "^1.4.2",
     "underscore": "^1.8.3"
   },

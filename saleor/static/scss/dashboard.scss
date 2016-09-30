@@ -5,6 +5,7 @@ $transition-duration: .2s;
 $roboto-font-path: "~materialize-css/fonts/roboto/";
 @import "~materialize-css/sass/materialize";
 @import "~dropzone/dist/dropzone";
+@import "~select2/src/scss/core";
 
 @font-face {
   font-family: 'Material Icons';
@@ -288,5 +289,6 @@ table {
 @import "widget/list";
 @import "widget/product-gallery";
 @import "widget/ppoi";
+@import "widget/select2";
 @import "widget/tabs";
 @import "widget/toast";

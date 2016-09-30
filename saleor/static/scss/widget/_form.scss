@@ -16,6 +16,10 @@
     @extend .with-gap;
   }
 
+  select[multiple] {
+    display: initial;
+  }
+
   .price-wrapper {
     overflow: hidden;
   }
