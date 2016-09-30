@@ -79,8 +79,8 @@ var config = {
     return [autoprefixer];
   },
   resolve: {
-    aliast: {
-      'jquery': path.resolve(__dirname, '/jquery/dist/jquery.js')
+    alias: {
+      'jquery': path.resolve(__dirname, 'node_modules/jquery/dist/jquery.js')
     }
   },
   sassLoader: {
