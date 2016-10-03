@@ -4,7 +4,7 @@ import json
 
 from prices import Price
 import pytest
-from mock import Mock, MagicMock
+from mock import Mock, MagicMock, patch
 from satchless.item import InsufficientStock
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -13,6 +13,7 @@ from .context_processors import cart_counter
 from . import forms
 from . import utils
 from . import views
+from . import decorators
 from ..product.models import Product, ProductVariant
 
 
@@ -110,17 +111,28 @@ def test_get_product_variants_and_prices():
     assert products == [(product, 10)]
 
 
-def test_get_user_open_cart_token():
-    cart = Mock()
-    carts = []
-    user = Mock(carts=Mock(open=Mock(return_value=Mock(
-        values_list=Mock(return_value=carts)))))
-    assert utils.get_user_open_cart_token(user) is None
+def test_get_user_open_cart_token(monkeypatch):
+    monkeypatch.setattr('saleor.cart.models.Cart.get_user_open_cart',
+                        staticmethod(lambda x: None))
+    assert decorators.get_user_open_cart_token(Mock()) is None
 
-    carts.append(cart)
-    user = Mock(carts=Mock(open=Mock(return_value=Mock(
-        values_list=Mock(return_value=carts)))))
-    assert utils.get_user_open_cart_token(user) == cart
+    token = 42
+    monkeypatch.setattr('saleor.cart.models.Cart.get_user_open_cart',
+                        staticmethod(lambda x: Mock(token=token)))
+    assert decorators.get_user_open_cart_token(Mock()) == token
+
+
+def test_find_and_assign_cart(monkeypatch, cart, django_user_model):
+    credentials = {'email': 'admin@example.com', 'password': 'admin'}
+    user, created = django_user_model.objects.get_or_create(
+        email=credentials['email'], defaults={
+            'is_active': True, 'is_staff': True, 'is_superuser': True})
+    request = Mock(user=user, get_signed_cookie=lambda x, default: cart.token)
+    response = Mock()
+
+    assert cart not in user.carts.all()
+    decorators.find_and_assign_cart(request, response)
+    assert cart in user.carts.all()
 
 
 def test_contains_unavailable_products():
@@ -239,19 +251,12 @@ def test_replace_cartline_form_when_insufficient_stock(monkeypatch, cart,
         form.save()
     assert cart.quantity == initial_quantity
 
-def test_get_new_cart_data():
-    cart_dict = {'token': 'randomtoken', 'total': 1, 'quantity': 1,
-                 'current_quantity': 0}
-    cart = Mock(**cart_dict)
-    queryset_mock = Mock(create=Mock(return_value=cart))
-    assert views.get_new_cart_data(queryset_mock) == cart_dict
-
 
 def test_get_old_cart_from_request_when_authenticated(db, monkeypatch):
     cart = Cart.objects.create()
 
     monkeypatch.setattr(
-        views, 'get_user_open_cart_token',
+        decorators, 'get_user_open_cart_token',
         lambda user: cart.token
     )
 
@@ -262,14 +267,14 @@ def test_get_old_cart_from_request_when_authenticated(db, monkeypatch):
 
     request = Mock(user=user_mock)
 
-    views.get_cart_from_request(request)
+    decorators.get_cart_from_request(request)
 
     assert True
 
 
 def test_get_new_cart_from_request_when_authenticated(db, monkeypatch):
     monkeypatch.setattr(
-        views, 'get_user_open_cart_token',
+        decorators, 'get_user_open_cart_token',
         lambda user: None
     )
 
@@ -283,7 +288,7 @@ def test_get_new_cart_from_request_when_authenticated(db, monkeypatch):
     request = Mock(user=user_mock)
 
     carts_before = Cart.objects.open().count()
-    returned_cart = views.get_cart_from_request(request, create=False)
+    returned_cart = decorators.get_cart_from_request(request, create=False)
 
     assert isinstance(returned_cart, Cart)
     assert len(returned_cart) == 0
@@ -292,7 +297,7 @@ def test_get_new_cart_from_request_when_authenticated(db, monkeypatch):
 
 def test_create_new_cart_from_request_when_anonymous(db, monkeypatch):
     monkeypatch.setattr(
-        views, 'get_user_open_cart_token',
+        decorators, 'get_user_open_cart_token',
         lambda user: None
     )
 
@@ -307,7 +312,7 @@ def test_create_new_cart_from_request_when_anonymous(db, monkeypatch):
                    get_signed_cookie=Mock(return_value=None))
 
     carts_before = Cart.objects.open().count()
-    returned_cart = views.get_cart_from_request(request, create=True)
+    returned_cart = decorators.get_cart_from_request(request, create=True)
 
     assert isinstance(returned_cart, Cart)
     assert len(returned_cart) == 0
@@ -317,7 +322,7 @@ def test_create_new_cart_from_request_when_anonymous(db, monkeypatch):
 
 def test_view_empty_cart(monkeypatch, client, cart):
     monkeypatch.setattr(
-        views, 'get_cart_from_request',
+        decorators, 'get_cart_from_request',
         lambda request: cart
     )
     request = client.get('/cart/')
@@ -329,7 +334,7 @@ def test_view_empty_cart(monkeypatch, client, cart):
 def test_view_cart(monkeypatch, client, cart, variant):
     cart.add(variant, 1)
     monkeypatch.setattr(
-        views, 'get_cart_from_request',
+        decorators, 'get_cart_from_request',
         lambda request: cart
     )
     request = client.get('/cart/')
@@ -341,35 +346,29 @@ def test_view_cart(monkeypatch, client, cart, variant):
 def test_view_update_cart_quantity(monkeypatch, client, cart, variant):
     cart.add(variant, 1)
     monkeypatch.setattr(
-        views, 'get_cart_from_request',
+        decorators, 'get_cart_from_request',
         lambda request: cart
     )
     request = client.post('/cart/update/{}'.format(variant.pk), {'quantity': 3})
     request.discounts = None
     request.POST = {'quantity': 3}
     request.is_ajax = lambda: True
-    response = views.index(request, variant.pk)
+    response = views.update(request, variant.pk)
     assert response.status_code == 200
     assert cart.quantity == 3
-
-    request.POST = {'quantity': 5}
-    request.is_ajax = lambda: False
-    response = views.index(request, variant.pk)
-    assert response.status_code == 302
-    assert cart.quantity == 5
 
 
 def test_view_invalid_update_cart(monkeypatch, client, cart, variant):
     cart.add(variant, 1)
     monkeypatch.setattr(
-        views, 'get_cart_from_request',
+        decorators, 'get_cart_from_request',
         lambda request: cart
     )
     request = client.post('/cart/update/{}'.format(variant.pk), {})
     request.discounts = None
     request.POST = {}
     request.is_ajax = lambda: True
-    response = views.index(request, variant.pk)
+    response = views.update(request, variant.pk)
     resp_decoded = json.loads(response.content.decode('utf-8'))
     assert response.status_code == 400
     assert 'error' in resp_decoded.keys()
@@ -380,7 +379,7 @@ def test_view_invalid_add_to_cart(monkeypatch, client, cart, variant):
     initial_quantity = 1
     cart.add(variant, initial_quantity)
     monkeypatch.setattr(
-        views, 'get_cart_from_request',
+        decorators, 'get_cart_from_request',
         lambda request, create: cart
     )
     request = client.post('/cart/add/{}'.format(variant.pk), {})
@@ -396,7 +395,7 @@ def test_view_add_to_cart(db, monkeypatch, client, cart, variant):
     initial_quantity = 1
     cart.add(variant, initial_quantity)
     monkeypatch.setattr(
-        views, 'get_cart_from_request',
+        decorators, 'get_cart_from_request',
         lambda request, create: cart
     )
 

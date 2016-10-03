@@ -1,4 +1,6 @@
 from __future__ import unicode_literals
+from . import logger
+
 from collections import namedtuple
 from uuid import uuid4
 
@@ -116,6 +118,22 @@ class Cart(models.Model, ItemSet):
             self.status = status
             self.last_status_change = now()
             self.save()
+
+    def change_user(self, user):
+        open_cart = Cart.get_user_open_cart(user)
+        if open_cart is not None:
+            open_cart.change_status(status=Cart.CANCELED)
+        self.user = user
+        self.save(update_fields=['user'])
+
+    @staticmethod
+    def get_user_open_cart(user):
+        carts = user.carts.open()
+        if len(carts) > 1:
+            logger.warning('%s has more then one open basket', user)
+            for cart in carts[1:]:
+                cart.change_status(Cart.CANCELED)
+        return carts.first()
 
     def is_shipping_required(self):
         return any(line.is_shipping_required() for line in self.lines.all())
