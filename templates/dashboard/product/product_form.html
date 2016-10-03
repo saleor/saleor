@@ -17,7 +17,7 @@
 {% block header_extra %}
     {% if product.pk %}
     <a class="dropdown-button" href="#" data-activates="context-menu" data-constrainwidth="false">
-        <i class="mdi-navigation-more-vert"></i>
+        <i class="material-icons">more_vert</i>
     </a>
     <ul id="context-menu" class="dropdown-content">
         <li>
@@ -52,28 +52,28 @@
                     <li class="tab col s3" role="presentation">
                         <a href="#details" class="active" role="tab">
                             <span>{% trans "Details" %}</span>
-                            <i class="mdi-content-create"></i>
+                            <i class="material-icons">edit</i>
                         </a>
                     </li>
 
                     <li class="tab col s3" role="presentation">
                         <a href="#variants" role="tab">
                             <span>{% trans "Variants" %}</span>
-                            <i class="mdi-image-style"></i>
+                            <i class="material-icons">style</i>
                         </a>
                     </li>
 
                     <li class="tab col s3" role="presentation">
                         <a href="#stock" role="tab">
                             <span>{% trans "Stock" %}</span>
-                            <i class="mdi-action-store"></i>
+                            <i class="material-icons">store</i>
                         </a>
                     </li>
 
                     <li class="tab col s3" role="presentation">
                         <a href="#images" role="tab">
                             <span>{% trans "Images" %}</span>
-                            <i class="mdi-image-collections"></i>
+                            <i class="material-icons">collections</i>
                         </a>
                     </li>
                 </ul>
@@ -365,7 +365,7 @@
         <div class="fixed-action-btn">
             <a class="btn-fab btn-fab-hidden btn-floating btn-large waves-effect waves-light teal" id="images-btn"
                href="{% url 'dashboard:product-image-add' product_pk=product.pk %}" title="{% trans "Add image" %}">
-                <i class="mdi-content-add"></i>
+                <i class="material-icons">add</i>
             </a>
         </div>
     {% endif %}

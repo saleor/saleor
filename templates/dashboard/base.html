@@ -23,7 +23,7 @@
             <div class="container">
                 <div class="nav-wrapper">
                     {% block header_menu %}
-                        <a href="#" data-activates="side-menu" class="button-collapse header-button"><i class="mdi-navigation-menu"></i></a>
+                        <a href="#" data-activates="side-menu" class="button-collapse header-button"><i class="material-icons">menu</i></a>
                     {% endblock %}
                     {% block breadcrumbs %}
                         <ul class="breadcrumbs">
@@ -34,11 +34,16 @@
                 </div>
             </div>
             <ul class="side-nav fixed" id="side-menu">
+                <li class="brand-logo">
+                    <a href="{% url 'dashboard:index' %}">
+                        <img src="{% static "img/dashboard-logo.svg" %}" alt="Saleor">
+                    </a>
+                </li>
                 <li class="side-nav-user">
                     <ul class="collapsible collapsible-accordion">
                         <li>
                             <a class="waves-effect waves-teal collapsible-header">
-                                <i class="mdi-action-account-circle"></i>{{ request.user }} <i class="mdi-navigation-arrow-drop-down"></i>
+                                <i class="material-icons">account_circle</i>{{ request.user }}
                             </a>
                             <div class="collapsible-body">
                                 <ul>
@@ -48,11 +53,6 @@
                             </div>
                         </li>
                     </ul>
-                </li>
-                <li class="brand-logo">
-                    <a href="{% url 'dashboard:index' %}">
-                        <img src="{% static "img/dashboard-logo.svg" %}" alt="Saleor">
-                    </a>
                 </li>
                 <li class="nav-home"><a href="{% url 'dashboard:index' %}">{% trans "Home" %}</a></li>
                 <li>
@@ -68,8 +68,6 @@
                             </div>
                         </li>
 
-                        <li class="divider"></li>
-
                         <li>
                             <a class="waves-effect waves-teal collapsible-header{% block menu_discounts_class %}{% endblock %}">{% trans "Discounts" %}</a>
                             <div class="collapsible-body">
@@ -79,8 +77,6 @@
                                 </ul>
                             </div>
                         </li>
-
-                        <li class="divider"></li>
 
                         <li>
                             <a class="waves-effect waves-teal collapsible-header{% block menu_sales_class %}{% endblock %}">{% trans "Sales" %}</a>
@@ -92,8 +88,6 @@
                                 </ul>
                             </div>
                         </li>
-
-                        <li class="divider"></li>
 
                         <li class="{% block menu_delivery_class %}{% endblock %}"><a href="{% url 'dashboard:shipping-methods' %}">{% trans "Shipping methods" %}</a></li>
                     </ul>

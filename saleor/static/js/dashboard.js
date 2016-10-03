@@ -1,12 +1,11 @@
 import Dropzone from 'dropzone'
 import $ from 'jquery'
-import 'jquery-ui/ui/widgets/datepicker'
-import 'jquery-match-height'
-import 'materialize-sass-origin'
+import 'materialize-css/dist/js/materialize'
 import 'select2'
 import Sortable from 'sortablejs'
 
 import '../scss/dashboard.scss'
+
 
 $(document).ready(function() {
   initSelects()
@@ -176,7 +175,7 @@ $('.datepicker').pickadate({
 })
 function initSelects() {
   $('select:not(.browser-default):not([multiple])').material_select()
-  $('select[multiple]').addClass('browser-default').select2()
+  $('select[multiple]:not(.browser-default)').select2()
 }
 
 // Coupon dynamic forms

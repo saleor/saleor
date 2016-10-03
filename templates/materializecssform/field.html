@@ -1,3 +1,4 @@
+{% load i18n %}
 {% load materializecss %}
 {% load utils %}
 
@@ -30,7 +31,7 @@
 
         {% if field.auto_id %}
             <label class="control-label
-                    {{ classes.label }}{% if not field.field.required %} optional{% endif %}">{{ field.label }}</label>
+                    {{ classes.label }}">{{ field.label }}{% if not field.field.required %} ({% trans 'optional' %}){% endif %}</label>
         {% endif %}
         {% for choice in field %}
             <p>
