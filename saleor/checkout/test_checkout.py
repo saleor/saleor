@@ -45,6 +45,7 @@ def test_checkout_is_shipping_required():
     checkout = Checkout(cart, AnonymousUser(), 'tracking_code')
     assert checkout.is_shipping_required is True
 
+
 def test_checkout_deliveries():
     partition = Mock(
         get_total=Mock(return_value=Price(10, currency=settings.DEFAULT_CURRENCY)),
