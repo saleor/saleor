@@ -12,7 +12,7 @@ from ..core import analytics
 from ..discount.models import Voucher, NotApplicable
 from ..order.models import Order
 from ..shipping.models import ShippingMethodCountry
-from ..userprofile.models import Address, User
+from ..userprofile.models import Address, User, AddressCopy
 
 STORAGE_SESSION_KEY = 'checkout_storage'
 
@@ -200,9 +200,12 @@ class Checkout(object):
         billing_address = self._save_address(
             self.billing_address, is_billing=True)
 
+        shipping_address_copy = AddressCopy.objects.copy_address(shipping_address)
+        billing_address_copy = AddressCopy.objects.copy_address(billing_address)
+
         order_data = {
-            'billing_address': billing_address,
-            'shipping_address': shipping_address,
+            'billing_address': billing_address_copy,
+            'shipping_address': shipping_address_copy,
             'tracking_client_id': self.tracking_code,
             'total': self.get_total()}
 

@@ -21,7 +21,7 @@ from satchless.item import ItemLine, ItemSet
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product, Stock
-from ..userprofile.models import Address
+from ..userprofile.models import AddressCopy
 from . import Status
 
 
@@ -61,9 +61,9 @@ class Order(models.Model, ItemSet):
     tracking_client_id = models.CharField(
         max_length=36, blank=True, editable=False)
     billing_address = models.ForeignKey(
-        Address, related_name='+', editable=False)
+        AddressCopy, related_name='+', editable=False)
     shipping_address = models.ForeignKey(
-        Address, related_name='+', editable=False, null=True)
+        AddressCopy, related_name='+', editable=False, null=True)
     anonymous_user_email = models.EmailField(
         blank=True, default='', editable=False)
     token = models.CharField(
