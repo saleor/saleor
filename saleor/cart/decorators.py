@@ -7,7 +7,7 @@ from .models import Cart
 
 def get_user_open_cart_token(user):
     cart = Cart.get_user_open_cart(user)
-    if cart:
+    if cart is not None:
         return cart.token
 
 
@@ -32,7 +32,6 @@ def get_cart_from_request(request, create=False):
         user = request.user
         queryset = user.carts
         token = get_user_open_cart_token(request.user)
-
     else:
         user = None
         queryset = Cart.objects.anonymous()
