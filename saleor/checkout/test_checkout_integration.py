@@ -9,6 +9,15 @@ from ..order import Status as OrderStatus
 from ..order.models import Order
 
 
+def assert_redirect(response, expected_url):
+    assert response.status_code == 302
+    # Due to Django 1.8 compatibility, we have to handle both cases
+    location = response['Location']
+    if location.startswith('http'):
+        location = location.split('http://testserver')[1]
+    assert location == expected_url
+
+
 def test_checkout_flow(product, variant, client):
     """
     Basic test case that confirms if core checkout flow works
@@ -39,9 +48,8 @@ def test_checkout_flow(product, variant, client):
     assert cart_lines[0]['product'] == variant
     # Enter checkout
     checkout_index = client.get(urls['checkout_index'])
-    assert checkout_index.status_code == 302
     # Checkout index redirects directly to shipping address step
-    assert checkout_index['Location'] == urls['checkout_shipping_address']
+    assert_redirect(checkout_index, urls['checkout_shipping_address'])
     shipping_address = client.get(urls['checkout_shipping_address'])
     assert shipping_address.status_code == 200
     # Enter shipping address data
@@ -59,23 +67,20 @@ def test_checkout_flow(product, variant, client):
     shipping_response = client.post(
         urls['checkout_shipping_address'], data=shipping_data)
     # Select shipping method
-    assert shipping_response.status_code == 302
-    assert shipping_response['Location'] == urls['checkout_shipping_method']
+    assert_redirect(shipping_response, urls['checkout_shipping_method'])
     shipping_method_page = client.get(urls['checkout_shipping_method'])
     assert shipping_method_page.status_code == 200
     # Redirect to summary after shipping method selection
     shipping_method_response = client.post(
         urls['checkout_shipping_method'], data={'method': shipping_method.pk})
-    assert shipping_method_response.status_code == 302
-    assert shipping_method_response['Location'] == urls['checkout_summary']
+    assert_redirect(shipping_method_response, urls['checkout_summary'])
     # Summary page asks for Billing address, default is the same as shipping
     summary_response = client.post(urls['checkout_summary'],
                                    data={'address': 'shipping_address'})
-    assert summary_response.status_code == 302
     # After summary step, order is created and it waits for payment
     order = Order.objects.latest('pk')
     order_payment_url = reverse('order:payment', kwargs={'token': order.token})
-    assert summary_response['Location'] == order_payment_url
+    assert_redirect(summary_response, order_payment_url)
     payment_method_page = client.get(order_payment_url)
     assert payment_method_page.status_code == 200
     # Select payment method

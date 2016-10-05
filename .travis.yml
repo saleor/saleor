@@ -13,7 +13,7 @@ script:
   - tox
 env:
   global:
-    - SECRET_KEY=irrelevant
+    - DJANGO_SETTINGS_MODULE=saleor.test_settings
   matrix:
     - TOXENV=py27-django18
     - TOXENV=py27-django19
