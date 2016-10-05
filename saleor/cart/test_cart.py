@@ -17,8 +17,6 @@ from . import decorators
 from ..product.models import Product, ProductVariant
 
 
-
-
 @pytest.fixture
 def cart(db):
     return Cart.objects.create()
@@ -30,6 +28,7 @@ def product(db):
                       weight=Decimal(123))
     product.save()
     return product
+
 
 @pytest.fixture
 def variant(db, monkeypatch, product):
@@ -250,74 +249,6 @@ def test_replace_cartline_form_when_insufficient_stock(monkeypatch, cart,
     with pytest.raises(KeyError):
         form.save()
     assert cart.quantity == initial_quantity
-
-
-def test_get_old_cart_from_request_when_authenticated(db, monkeypatch):
-    cart = Cart.objects.create()
-
-    monkeypatch.setattr(
-        decorators, 'get_user_open_cart_token',
-        lambda user: cart.token
-    )
-
-    user_mock = Mock(
-        is_authenticated=Mock(return_value=True),
-        get_signed_cookie=Mock(return_value=cart.token)
-    )
-
-    request = Mock(user=user_mock)
-
-    decorators.get_cart_from_request(request)
-
-    assert True
-
-
-def test_get_new_cart_from_request_when_authenticated(db, monkeypatch):
-    monkeypatch.setattr(
-        decorators, 'get_user_open_cart_token',
-        lambda user: None
-    )
-
-    user_mock = Mock(
-        is_authenticated=Mock(return_value=True),
-        get_signed_cookie=Mock(return_value=None),
-        carts=Mock(open=Mock(return_value=Mock(get=Mock(
-            side_effect=Cart.DoesNotExist))))
-    )
-
-    request = Mock(user=user_mock)
-
-    carts_before = Cart.objects.open().count()
-    returned_cart = decorators.get_cart_from_request(request, create=False)
-
-    assert isinstance(returned_cart, Cart)
-    assert len(returned_cart) == 0
-    assert Cart.objects.open().count() == carts_before
-
-
-def test_create_new_cart_from_request_when_anonymous(db, monkeypatch):
-    monkeypatch.setattr(
-        decorators, 'get_user_open_cart_token',
-        lambda user: None
-    )
-
-    user_mock = Mock(
-        is_authenticated=Mock(return_value=False),
-        get_signed_cookie=Mock(return_value=None),
-        carts=Mock(open=Mock(return_value=Mock(
-                   get=Mock(side_effect=Cart.DoesNotExist))))
-    )
-
-    request = Mock(user=user_mock,
-                   get_signed_cookie=Mock(return_value=None))
-
-    carts_before = Cart.objects.open().count()
-    returned_cart = decorators.get_cart_from_request(request, create=True)
-
-    assert isinstance(returned_cart, Cart)
-    assert len(returned_cart) == 0
-    assert returned_cart.user is None
-    assert Cart.objects.open().count() == carts_before + 1
 
 
 def test_view_empty_cart(monkeypatch, client, cart):

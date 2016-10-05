@@ -24,7 +24,6 @@ def test_checkout_version():
     ({}, {'version': Checkout.VERSION}),
     (None, {'version': Checkout.VERSION}),
 ])
-
 def test_checkout_version_with_from_storage(storage_data, expected_storage):
     checkout = Checkout.from_storage(
         storage_data, Mock(), AnonymousUser(), 'tracking_code')
