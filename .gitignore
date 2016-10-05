@@ -6,6 +6,7 @@
 !.flowconfig
 !.gitignore
 !.travis*
+!.nvmrc
 *.css
 *.log
 *.pot
