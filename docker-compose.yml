@@ -9,6 +9,10 @@ redis:
   image: redis
   ports:
     - '6379:6379'
+search:
+  image: elasticsearch:2.4
+  ports:
+    - '9200:9200'
 web:
   build: .
   command: python manage.py runserver 0.0.0.0:8000
