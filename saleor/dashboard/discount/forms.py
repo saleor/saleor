@@ -6,7 +6,7 @@ from django.utils.translation import pgettext_lazy
 from django_prices.forms import PriceField
 
 from ...discount.models import Sale, Voucher
-from ...shipping.models import ShippingMethodCountry
+from ...shipping.models import ShippingMethodCountry, COUNTRY_CODE_CHOICES
 
 
 class SaleForm(forms.ModelForm):
@@ -51,7 +51,7 @@ def country_choices():
     country_codes = ShippingMethodCountry.objects.all()
     country_codes = country_codes.values_list('country_code', flat=True)
     country_codes = country_codes.distinct()
-    country_dict = dict(ShippingMethodCountry.COUNTRY_CODE_CHOICES)
+    country_dict = dict(COUNTRY_CODE_CHOICES)
     return [
         (country_code, country_dict[country_code])
         for country_code in country_codes]

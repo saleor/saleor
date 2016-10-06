@@ -12,18 +12,21 @@ install:
 script:
   - tox
 env:
-  - TOXENV=py27-django18
-  - TOXENV=py27-django19
-  - TOXENV=py27-django110
-  - TOXENV=py27-django_master
-  - TOXENV=py34-django18
-  - TOXENV=py34-django19
-  - TOXENV=py34-django110
-  - TOXENV=py34-django_master
-  - TOXENV=py35-django18
-  - TOXENV=py35-django19
-  - TOXENV=py35-django110
-  - TOXENV=py35-django_master
+  global:
+    - DJANGO_SETTINGS_MODULE=saleor.test_settings
+  matrix:
+    - TOXENV=py27-django18
+    - TOXENV=py27-django19
+    - TOXENV=py27-django110
+    - TOXENV=py27-django_master
+    - TOXENV=py34-django18
+    - TOXENV=py34-django19
+    - TOXENV=py34-django110
+    - TOXENV=py34-django_master
+    - TOXENV=py35-django18
+    - TOXENV=py35-django19
+    - TOXENV=py35-django110
+    - TOXENV=py35-django_master
 matrix:
   allow_failures:
     - env: TOXENV=py27-django_master

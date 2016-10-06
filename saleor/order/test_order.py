@@ -1,6 +1,6 @@
 from prices import Price
 
-from ..cart import Cart, SessionCart
+from ..cart.models import Cart
 from ..product.test_product import product_in_stock  # NOQA
 from ..userprofile.test_userprofile import billing_address  # NOQA
 from . import models
@@ -28,7 +28,8 @@ def test_total_setter():
 
 def test_stock_allocation(billing_address, product_in_stock):
     variant = product_in_stock.variants.get()
-    cart = Cart(session_cart=SessionCart())
+    cart = Cart()
+    cart.save()
     cart.add(variant, quantity=2)
     order = models.Order.objects.create(billing_address=billing_address)
     delivery_group = models.DeliveryGroup.objects.create(order=order)

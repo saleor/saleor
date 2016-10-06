@@ -1,53 +1,89 @@
 from __future__ import unicode_literals
-from babeldjango.templatetags.babel import currencyfmt
+
+from itertools import chain
 
 from django.contrib import messages
 from django.http import JsonResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.template.response import TemplateResponse
-from django.utils.translation import ugettext as _
+from babeldjango.templatetags.babel import currencyfmt
 
-from . import Cart
 from .forms import ReplaceCartLineForm
-from ..cart.utils import (
-    contains_unavailable_products, remove_unavailable_products)
+from .decorators import get_or_create_db_cart, get_or_empty_db_cart
+from .utils import check_product_availability_and_warn
+from ..product.forms import get_form_class_for_product
+from ..product.models import Product, ProductVariant
 
 
-def index(request, product_id=None):
-    if product_id is not None:
-        product_id = int(product_id)
-    cart = Cart.for_session_cart(request.cart, discounts=request.discounts)
-    if contains_unavailable_products(cart):
-        msg = _('Sorry. We don\'t have that many items in stock. '
-                'Quantity was set to maximum available for now.')
-        messages.warning(request, msg)
-        remove_unavailable_products(cart)
+@get_or_empty_db_cart
+def index(request, cart):
+    cart_lines = cart.lines.select_related('product')
+    check_product_availability_and_warn(request, cart_lines)
+    discounts = request.discounts
+    cart_lines = []
+
     for line in cart:
-        data = None
-        if line.product.pk == product_id:
-            data = request.POST
         initial = {'quantity': line.get_quantity()}
-        form = ReplaceCartLineForm(data, cart=cart, product=line.product,
-                                   initial=initial)
-        line.form = form
-        if form.is_valid():
-            form.save()
-            if request.is_ajax():
-                response = {
-                    'productId': line.product.pk,
-                    'subtotal': currencyfmt(
-                        line.get_total().gross,
-                        line.get_total().currency),
-                    'total': 0}
-                if cart:
-                    response['total'] = currencyfmt(
-                        cart.get_total().gross, cart.get_total().currency)
-                return JsonResponse(response)
-            return redirect('cart:index')
-        elif data is not None:
-            if request.is_ajax():
-                response = {'error': form.errors}
-                return JsonResponse(response, status=400)
+        form = ReplaceCartLineForm(None, cart=cart, product=line.product,
+                                   initial=initial, discounts=discounts)
+        cart_lines.append({
+            'product': line.product,
+            'get_price_per_item': line.get_price_per_item(discounts),
+            'get_total': line.get_total(discounts=discounts),
+            'form': form})
+
+    cart_total = None
+    if cart:
+        cart_total = cart.get_total(discounts=discounts)
+
     return TemplateResponse(
-        request, 'cart/index.html', {
-            'cart': cart})
+        request, 'cart/index.html',
+        {'cart_lines': cart_lines,
+         'cart_total': cart_total})
+
+
+@get_or_create_db_cart
+def add_to_cart(request, cart, product_id):
+    product = get_object_or_404(Product, pk=product_id)
+    form_class = get_form_class_for_product(product)
+
+    form = form_class(
+        data=request.POST or None, product=product, cart=cart,
+        discounts=request.discounts)
+    if form.is_valid():
+        form.save()
+    else:
+        flat_error_list = chain(*form.errors.values())
+        for error_msg in flat_error_list:
+            messages.error(request, error_msg)
+    return redirect('cart:index')
+
+
+@get_or_empty_db_cart
+def update(request, cart, product_id):
+    if not request.is_ajax():
+        return redirect('cart:index')
+    product = get_object_or_404(ProductVariant, pk=product_id)
+    discounts = request.discounts
+    status = None
+    form = ReplaceCartLineForm(request.POST, cart=cart, product=product,
+                               discounts=discounts)
+    if form.is_valid():
+        form.save()
+        response = {'productId': product_id,
+                    'subtotal': 0,
+                    'total': 0}
+        updated_line = cart.get_line(form.cart_line.product)
+        if updated_line:
+            response['subtotal'] = currencyfmt(
+                updated_line.get_total(discounts=discounts).gross,
+                updated_line.get_total(discounts=discounts).currency)
+        if cart:
+            response['total'] = currencyfmt(
+                cart.get_total(discounts=discounts).gross,
+                cart.get_total(discounts=discounts).currency)
+        status = 200
+    elif request.POST is not None:
+        response = {'error': form.errors}
+        status = 400
+    return JsonResponse(response, status=status)
