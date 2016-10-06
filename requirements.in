@@ -39,3 +39,4 @@ unidecode
 uwsgi>=2.0.0
 django-haystack==2.5.0
 Whoosh==2.7.4
+elasticsearch==2.4.0
