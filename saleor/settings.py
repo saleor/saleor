@@ -150,6 +150,7 @@ INSTALLED_APPS = [
     'saleor.order',
     'saleor.dashboard',
     'saleor.shipping',
+    'saleor.search',
 
     # External apps
     'versatileimagefield',
@@ -163,6 +164,8 @@ INSTALLED_APPS = [
     'selectable',
     'materializecssform',
     'rest_framework',
+    'webpack_loader',
+    'haystack'
     'webpack_loader',
     'allauth',
     'allauth.account',
@@ -307,6 +310,15 @@ WEBPACK_LOADER = {
         'IGNORE': [
             r'.+\.hot-update\.js',
             r'.+\.map']}}
+
+
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://127.0.0.1:9200/',
+        'INDEX_NAME': 'saleor',
+    },
+}
 
 
 ACCOUNT_AUTHENTICATION_METHOD = 'email'

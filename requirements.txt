@@ -21,6 +21,7 @@ django-bootstrap3==7.1.0
 django-cache-url==1.3.0
 django-countries==4.0
 django-emailit==0.2.2
+django-haystack==2.5.0
 django-materializecss-form==1.0.1
 django-mptt==0.8.6
 django-payments==0.9.5
@@ -33,10 +34,14 @@ django-versatileimagefield==1.6
 django-webpack-loader==0.4.1
 django==1.10.3
 djangorestframework==3.5.2
+elasticsearch==2.4.0
+enum34==1.1.6             # via cryptography
 fake-factory==0.7.2
+funcsigs==1.0.2           # via mock
 google-i18n-address==2.0.0
 google-measurement-protocol==0.1.6
 idna==2.1                 # via cryptography
+ipaddress==1.0.17         # via cryptography, fake-factory, maxminddb
 jsonfield==1.0.3
 lxml==3.6.4               # via premailer
 markdown==2.6.7
@@ -67,6 +72,7 @@ six==1.10.0               # via cryptography, fake-factory, mock, purl, python-d
 stripe==1.41.1            # via django-payments
 suds-jurko==0.6           # via django-payments
 unidecode==0.4.19
+urllib3==1.18             # via elasticsearch
 uwsgi==2.0.14
 xmltodict==0.10.2         # via django-payments
 
