@@ -57,8 +57,8 @@
                for="{{ field.auto_id }}">{{ field.label }}</label>
         <input type="date" id="{{ field.auto_id }}" class="datepicker"
                name="{{ field.name }}"
-               value="{% if field.value %}{{ field.value }}{% endif %}"
-               data-value="{{ field.value|date:"Y-m-d" }}">
+               value="{% if field.value %}{{ field.value|date:"Y-m-d" }}{% endif %}"
+               data-value="{% if field.value %}{{ field.value|date:"Y-m-d" }}{% endif %}">
         {% for error in field.errors %}
             <p class="help-block materialize-red-text">{{ error }}</p>
         {% endfor %}
