@@ -42,6 +42,10 @@
                                 </a>
                                 <p class="list-item-price">
                                     <small>Customer: {{ result.object.get_user_email }}</small>
+                                    <small>
+                                        Placed: {{ result.object.created }}
+                                    </small>
+
                                 </p>
                             {% elif result.model_name == 'user' %}
                                 <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
