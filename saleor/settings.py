@@ -311,14 +311,24 @@ WEBPACK_LOADER = {
             r'.+\.hot-update\.js',
             r'.+\.map']}}
 
+ENABLE_ELASTICSEARCH = ast.literal_eval(os.environ.get('ENABLE_ELASTICSEARCH', 'False'))
 
-HAYSTACK_CONNECTIONS = {
-    'default': {
-        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
-        'URL': os.environ.get('ELASTICSEARCH_URL', 'http://127.0.0.1:9200/'),
-        'INDEX_NAME': os.environ.get('ELASTICSEARCH_INDEX_NAME', 'saleor'),
-    },
-}
+if ENABLE_ELASTICSEARCH:
+    HAYSTACK_CONNECTIONS = {
+        'default': {
+            'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+            'URL': os.environ.get('ELASTICSEARCH_URL',
+                                  'http://127.0.0.1:9200/'),
+            'INDEX_NAME': os.environ.get('ELASTICSEARCH_INDEX_NAME', 'saleor')
+        },
+    }
+else:
+    HAYSTACK_CONNECTIONS = {
+        'default': {
+            'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+            'PATH': os.path.join(os.path.dirname(__file__), 'whoosh_index'),
+        },
+    }
 
 
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
