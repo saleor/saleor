@@ -1,4 +1,0 @@
-{{ object.name }}
-{{ object.product.name }}
-{{ object.product.description }}
-{{ object.sku }}

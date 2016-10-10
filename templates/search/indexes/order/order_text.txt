@@ -1,2 +1,0 @@
-{{ object.anonymous_user_email }}
-{{ object.user.email }}
