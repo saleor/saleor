@@ -171,7 +171,10 @@ $('.datepicker').pickadate({
   format: 'd mmmm yyyy',
   formatSubmit: 'yyyy-mm-dd',
   selectMonths: true,
-  hiddenName: true
+  hiddenName: true,
+  onClose: function() {
+        $(document.activeElement).blur();
+    }
 })
 function initSelects() {
   $('select:not(.browser-default):not([multiple])').material_select()
