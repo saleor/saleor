@@ -14,12 +14,16 @@ from .forms import CategoryForm
 def category_list(request, root_pk=None):
     root = None
     path = None
+    products = []
     categories = Category.tree.root_nodes()
     if root_pk:
+        qs = Category.objects.prefetch_related('products', 'products__main_image')
         root = get_object_or_404(Category, pk=root_pk)
         path = root.get_ancestors(include_self=True) if root else []
         categories = root.get_children()
-    ctx = {'categories': categories, 'path': path, 'root': root}
+        products = sorted(root.products.all(), key=lambda product: product)
+    ctx = {'categories': categories, 'path': path, 'root': root, 
+           'products': products}
     return TemplateResponse(request, 'dashboard/category/list.html', ctx)
 
 
