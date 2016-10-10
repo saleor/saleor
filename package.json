@@ -13,7 +13,7 @@
   },
   "homepage": "http://getsaleor.com/",
   "engines": {
-    "node": "5.10.x"
+    "node": "6.x"
   },
   "dependencies": {
     "bootstrap-sass": "^3.3.7",

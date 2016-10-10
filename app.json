@@ -13,6 +13,7 @@
   "env": {
     "DJANGO_SETTINGS_MODULE": "saleor.settings",
     "DEBUG": "False",
+    "NPM_CONFIG_PRODUCTION": "false",
     "ALLOWED_HOSTS": {
       "description": "Comma-separated list of hosts",
       "value": ".herokuapp.com"
