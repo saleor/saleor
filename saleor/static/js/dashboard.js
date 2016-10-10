@@ -125,7 +125,7 @@ Dropzone.options.productImageForm = {
 var el = document.getElementById('product-gallery')
 if (el) {
   Sortable.create(el, {
-    handle: '.card-image',
+    handle: '.sortable__handle',
     onUpdate: function () {
       $.ajax({
         dataType: 'json',
