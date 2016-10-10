@@ -1,10 +1,10 @@
 from django.core.paginator import Paginator, InvalidPage
 from django.http import Http404
 from django.shortcuts import render
-
 from haystack.forms import SearchForm
-from ..product.models import ProductVariant, Product
+
 from ..order.models import Order
+from ..product.models import Product
 from ..userprofile.models import User
 
 
@@ -25,8 +25,9 @@ def search_for_model(request, models):
 
 
 def search(request):
-    search_data = search_for_model(request, models=[ProductVariant])
+    search_data = search_for_model(request, models=[Product])
     ctx = {
+        'query': search_data['query'],
         'results': search_data['page'],
         'query_string': '?q=%s' % search_data['query']}
     return render(request, 'search/results.html', ctx)
