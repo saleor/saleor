@@ -173,8 +173,8 @@ $('.datepicker').pickadate({
   selectMonths: true,
   hiddenName: true,
   onClose: function() {
-        $(document.activeElement).blur();
-    }
+    $(document.activeElement).blur();
+  }
 })
 function initSelects() {
   $('select:not(.browser-default):not([multiple])').material_select()
