@@ -59,7 +59,7 @@
                                     <li><a href="{% url "profile:orders" %}">{% trans "Your orders" %}</a></li>
                                     {% if user.is_staff %}
                                         <li class="divider"></li>
-                                        <li><a href="{% url "dashboard:index" %}">{% trans "Dashboard" %}</a></li>
+                                        <li><a href="{% url "dashboard:index" %}" traget="_blank">{% trans "Dashboard" %}</a></li>
                                     {% endif %}
                                     <li class="divider"></li>
                                     <li><a href="{% url "registration:logout" %}">{% trans "Log out" %}</a></li>
