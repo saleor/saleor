@@ -52,7 +52,7 @@ class OrderIndex(indexes.SearchIndex, indexes.Indexable):
 
 class UserIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.MultiValueField(document=True)
-
+    
     def get_model(self):
         return User
 
