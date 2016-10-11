@@ -1,3 +1,4 @@
+from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator, InvalidPage
 from django.http import Http404
 from django.shortcuts import render
@@ -33,6 +34,7 @@ def search(request):
     return render(request, 'search/results.html', ctx)
 
 
+@staff_member_required
 def dashboard_search(request):
     search_data = search_for_model(request, models=[Order, Product, User])
     ctx = {
