@@ -3,6 +3,8 @@ db:
   environment:
     - POSTGRES_USER=saleor
     - POSTGRES_PASSWORD=saleor
+  ports:
+    - '5432:5432'
 redis:
   image: redis
 web:
