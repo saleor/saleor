@@ -5,22 +5,16 @@ db:
     - POSTGRES_PASSWORD=saleor
 redis:
   image: redis
-mailcatcher:
-  image: schickling/mailcatcher
-  ports:
-    - '1080:1080'
 web:
   build: .
   command: python manage.py runserver 0.0.0.0:8000
   environment:
     - DATABASE_URL=postgres://saleor:saleor@db/saleor
     - DEFAULT_FROM_EMAIL=noreply@example.com
-    - EMAIL_URL=smtp://:@mailcatcher:1025/
     - REDIS_URL=redis://redis:6379/0
     - SECRET_KEY=changeme
   links:
     - db
-    - mailcatcher
     - redis
   ports:
     - '8000:8000'
