@@ -6,6 +6,23 @@ import Sortable from 'sortablejs'
 
 import '../scss/dashboard.scss'
 
+function openModal() {
+  $('.modal-trigger-custom').on('click', function (e) {
+    var that = this
+    $.ajax({
+      url: $(this).data('href'),
+      method: 'get',
+      success: function (response) {
+        var $modal = $($(that).attr('href'))
+        $modal.html(response)
+        initSelects()
+        $modal.openModal()
+      }
+    })
+
+    e.preventDefault()
+  })
+}
 
 $(document).ready(function() {
   initSelects()
@@ -27,23 +44,7 @@ $(document).ready(function() {
 
     $tabs.find('a.active').parent().click()
   }
-
-  $('.modal-trigger-custom').on('click', function (e) {
-    var that = this
-    $.ajax({
-      url: $(this).data('href'),
-      method: 'get',
-      success: function (response) {
-        var $modal = $($(that).attr('href'))
-        $modal.html(response)
-        initSelects()
-        $modal.openModal()
-      }
-    })
-
-    e.preventDefault()
-  })
-
+  openModal()
   var $messages = $('.message')
   var timeout = 0
   var offset = 100
@@ -114,11 +115,13 @@ Dropzone.options.productImageForm = {
       editLinkHref[editLinkHref.length - 2] = response.id
       $(e.previewElement).find('.card-action-edit').attr('href', editLinkHref.join('/'))
       $(e.previewElement).find('.card-action-edit').show()
-      var deleteLinkHref = $(e.previewElement).find('.card-action-delete').attr('href')
+      var deleteLinkHref = $(e.previewElement).find('.card-action-delete').attr('data-href')
       deleteLinkHref = deleteLinkHref.split('/')
       deleteLinkHref[deleteLinkHref.length - 3] = response.id
-      $(e.previewElement).find('.card-action-delete').attr('href', deleteLinkHref.join('/'))
+      $(e.previewElement).find('.card-action-delete').attr('data-href', deleteLinkHref.join('/'))
       $(e.previewElement).find('.card-action-delete').show()
+      $('.no-images').addClass('hide')
+      openModal()
     })
   }
 }
