@@ -206,3 +206,20 @@ def test_products_voucher_checkout_discount_not(settings, monkeypatch, prices,
     checkout = Mock(cart=Mock())
     discount = voucher.get_discount_for_checkout(checkout)
     assert discount.amount == Price(expected_value, currency='USD')
+
+
+@pytest.mark.django_db
+def test_sale_applies_to_correct_products():
+    product = Product.objects.create(name='Test Product', price=10, weight=1,
+                                     description='', pk=10)
+    variant = ProductVariant.objects.create(product=product, sku='firstvar')
+    product2 = Product.objects.create(name='Second product', price=15, weight=1,
+                                      description='')
+    sec_variant = ProductVariant.objects.create(product=product2, sku='secvar',
+                                                pk=10)
+    sale = Sale.objects.create(name='Test sale', value=5, type=Sale.FIXED)
+    sale.products.add(product)
+    assert product2 not in sale.products.all()
+    assert sale.modifier_for_variant(variant).amount == Price(net=5, currency='USD')
+    with pytest.raises(NotApplicable):
+        sale.modifier_for_variant(sec_variant)
