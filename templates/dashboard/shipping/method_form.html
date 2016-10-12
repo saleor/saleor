@@ -52,9 +52,9 @@
             {% for form in price_per_country_formset %}
                 <div class="row">
                     {{ form.id }}
-                    {{ form.country_code|materializecss:"input-field s12 l6" }}
+                    {{ form.country_code|materializecss:"input-field s12 l5" }}
                     {{ form.price|materializecss:"input-field s12 l5" }}
-                    {{ form.DELETE|materializecss:"input-field s12 l1" }}
+                    {{ form.DELETE|materializecss:"input-field s12 l2" }}
                 </div>
                 {% if form.non_field_errors %}
                     {% for error in form.non_field_errors %}

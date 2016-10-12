@@ -19,8 +19,8 @@ $roboto-font-path: "~materialize-css/fonts/roboto/";
        url('~material-design-icons/iconfont/MaterialIcons-Regular.ttf') format('truetype');
 }
 
-.header {
-  @media (min-width: $large-screen-up) {
+.header, main {
+  @media (min-width: $medium-screen-up) {
     margin-left: 240px;
   }
 
@@ -147,14 +147,17 @@ $roboto-font-path: "~materialize-css/fonts/roboto/";
   }
 }
 
-table {
-  .row {
-    .col {
-      float: none;
-      padding: $gutter-width/2;
+.data-table-container {
+  overflow: auto;
+  table {  
+    .row {
+      .col {
+        float: none;
+        padding: $gutter-width/2;
 
-      .responsive-img {
-        display: block;
+        .responsive-img {
+          display: block;
+        }
       }
     }
   }

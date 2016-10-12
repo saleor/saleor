@@ -19,9 +19,6 @@
     }
 
     &-image {
-      img {
-        cursor: move;
-      }
 
       &--ghost {
         background: map_get($grey, lighten-5);
@@ -57,6 +54,16 @@
       text-align: left;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+  }
+  .sortable__drag-area {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: .5rem 1rem;
+    cursor: move;
+    i {
+      font-size: 1.5rem;
     }
   }
 
