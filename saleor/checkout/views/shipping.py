@@ -11,18 +11,23 @@ def anonymous_user_shipping_address_view(request, checkout):
     shipping_address = checkout.shipping_address
     if shipping_address is not None:
         address_form = AddressForm(
-            data, instance=checkout.shipping_address, autocomplete_type='shipping')
+            data, instance=checkout.shipping_address,
+            autocomplete_type='shipping')
     else:
         address_form = AddressForm(
-            data, autocomplete_type='shipping', initial={'country': request.country})
-    user_form = AnonymousUserShippingForm(data, initial={'email': checkout.email})
+            data, autocomplete_type='shipping', country=request.country,
+            initial={'country': request.country})
+    user_form = AnonymousUserShippingForm(
+        data, initial={'email': checkout.email})
+
     if user_form.is_valid() and address_form.is_valid():
         checkout.shipping_address = address_form.instance
         checkout.email = user_form.cleaned_data['email']
         return redirect('checkout:shipping-method')
     return TemplateResponse(
         request, 'checkout/shipping_address.html', context={
-            'address_form': address_form, 'user_form': user_form, 'checkout': checkout})
+            'address_form': address_form, 'user_form': user_form,
+            'checkout': checkout})
 
 
 def user_shipping_address_view(request, checkout):
