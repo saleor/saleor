@@ -130,6 +130,14 @@ def test_contains_unavailable_variants():
     assert not utils.contains_unavailable_variants(cart)
 
 
+def test_remove_unavailable_variants(cart, product_in_stock):
+    variant = product_in_stock.variants.get()
+    cart.add(variant, 1)
+    variant.stock.update(quantity=0)
+    utils.remove_unavailable_variants(cart)
+    assert len(cart) == 0
+
+
 def test_check_product_availability_and_warn(
         monkeypatch, cart, product_in_stock):
     variant = product_in_stock.variants.get()
