@@ -1,8 +1,3 @@
-<strong>{{ address.first_name }} {{ address.last_name }}</strong><br>
-{{ address.street_address_1 }}<br>
-{% if address.street_address_2 %}
-    {{ address.street_address_2 }}<br>
-{% endif %}
-{{ address.postal_code }} {{ address.city }}<br>
-{% if address.country_area %}{{ address.country_area }}, {% endif %}{{ address.get_country_display }}<br>
-{{ address.phone }}
+{% load format_address from i18n_address_tags %}
+
+{% format_address address %}
