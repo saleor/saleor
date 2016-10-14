@@ -13,7 +13,7 @@ from saleor.cart.models import Cart
 
 
 @pytest.fixture
-def cart(db):  # pylint: disable=I0011, W0613
+def cart(db):  # pylint: disable=W0613
     return Cart.objects.create()
 
 
@@ -242,11 +242,10 @@ def test_replace_cartline_form_when_insufficient_stock(
 def test_view_empty_cart(monkeypatch, client, cart):
     monkeypatch.setattr(
         decorators, 'get_cart_from_request',
-        lambda request: cart
-    )
+        lambda request: cart)
     request = client.get('/cart/')
     request.discounts = None
-    response = views.index(request)  # pylint: disable=I0011, E1120
+    response = views.index(request)  # pylint: disable=E1120
     assert response.status_code == 200
 
 
@@ -255,11 +254,10 @@ def test_view_cart(monkeypatch, client, cart, product_in_stock):
     cart.add(variant, 1)
     monkeypatch.setattr(
         decorators, 'get_cart_from_request',
-        lambda request: cart
-    )
+        lambda request: cart)
     request = client.get('/cart/')
     request.discounts = None
-    response = views.index(request)  # pylint: disable=I0011, E1120
+    response = views.index(request)  # pylint: disable=E1120
     assert response.status_code == 200
 
 
@@ -275,7 +273,7 @@ def test_view_update_cart_quantity(
     request.discounts = None
     request.POST = {'quantity': 3}
     request.is_ajax = lambda: True
-    # pylint: disable=I0011, E1120
+    # pylint: disable=E1120
     response = views.update(request, variant.pk)
     assert response.status_code == 200
     assert cart.quantity == 3
@@ -286,13 +284,12 @@ def test_view_invalid_update_cart(monkeypatch, client, cart, product_in_stock):
     cart.add(variant, 1)
     monkeypatch.setattr(
         decorators, 'get_cart_from_request',
-        lambda request: cart
-    )
+        lambda request: cart)
     request = client.post('/cart/update/{}'.format(variant.pk), {})
     request.discounts = None
     request.POST = {}
     request.is_ajax = lambda: True
-    # pylint: disable=I0011, E1120
+    # pylint: disable=E1120
     response = views.update(request, variant.pk)
     resp_decoded = json.loads(response.content.decode('utf-8'))
     assert response.status_code == 400
@@ -306,13 +303,12 @@ def test_view_invalid_add_to_cart(monkeypatch, client, cart, product_in_stock):
     cart.add(variant, initial_quantity)
     monkeypatch.setattr(
         decorators, 'get_cart_from_request',
-        lambda request, create: cart
-    )
+        lambda request, create: cart)
     request = client.post('/cart/add/{}'.format(variant.pk), {})
     request.discounts = None
     request.POST = {}
     request.user = Mock(is_authenticated=lambda: False)
-    # pylint: disable=I0011, E1120
+    # pylint: disable=E1120
     response = views.add_to_cart(request, variant.pk)
     assert response.status_code == 302
     assert cart.quantity == initial_quantity
@@ -325,12 +321,11 @@ def test_view_add_to_cart(monkeypatch, client, cart, product_in_stock):
     monkeypatch.setattr(
         decorators, 'get_cart_from_request',
         lambda request, create: cart)
-
     request = client.post('/cart/add/{}'.format(variant.pk), {})
     request.discounts = None
     request.POST = {'quantity': 1, 'variant': variant.pk}
     request.user = Mock(is_authenticated=lambda: False)
-    # pylint: disable=I0011, E1120
+    # pylint: disable=E1120
     response = views.add_to_cart(request, variant.pk)
     assert response.status_code == 302
     assert cart.quantity == initial_quantity + 1

@@ -5,7 +5,7 @@ from saleor.userprofile.models import Address
 
 
 @pytest.fixture
-def billing_address(db):  # pylint: disable=I0011, W0613
+def billing_address(db):  # pylint: disable=W0613
     return Address.objects.create(
         first_name='John', last_name='Doe',
         company_name='Mirumee Software',
@@ -16,7 +16,7 @@ def billing_address(db):  # pylint: disable=I0011, W0613
 
 
 @pytest.fixture
-def product_in_stock(db):  # pylint: disable=I0011, W0613
+def product_in_stock(db):  # pylint: disable=W0613
     product = Product.objects.create(
         name='Test product', price=10, weight=1)
     variant = ProductVariant.objects.create(product=product, sku='123')

@@ -2,4 +2,4 @@
 load-plugins=pylint_django
 
 [MESSAGES CONTROL]
-disable = C0103, C0111, W0621
+disable = C0103, C0111, I0011, W0621
