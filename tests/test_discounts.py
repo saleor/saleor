@@ -8,40 +8,23 @@ from saleor.discount.models import NotApplicable, Sale, Voucher
 from saleor.product.models import Product, ProductVariant
 
 
-@pytest.fixture
-def product():
-    return Product.objects.create(
-        name='test product',
-        description='test description',
-        price=10,
-        weight=1)
-
-
-@pytest.fixture
-def product_variant(product):
-    return ProductVariant.objects.create(
-        product=product,
-        sku='TESTSKU',
-        name='variant')
-
-
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
-def test_variant_discounts(product_variant):
-    product = product_variant.product
+def test_variant_discounts(product_in_stock):
+    variant = product_in_stock.variants.get()
     low_discount = Sale.objects.create(
         type=Sale.FIXED,
         value=5)
-    low_discount.products.add(product)
+    low_discount.products.add(product_in_stock)
     discount = Sale.objects.create(
         type=Sale.FIXED,
         value=8)
-    discount.products.add(product)
+    discount.products.add(product_in_stock)
     high_discount = Sale.objects.create(
         type=Sale.FIXED,
         value=50)
-    high_discount.products.add(product)
-    final_price = product_variant.get_price_per_item(
+    high_discount.products.add(product_in_stock)
+    final_price = variant.get_price_per_item(
         discounts=Sale.objects.all())
     assert final_price.gross == 0
     applied_discount = final_price.history.right
@@ -51,12 +34,13 @@ def test_variant_discounts(product_variant):
 
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
-def test_percentage_discounts(product_variant):
+def test_percentage_discounts(product_in_stock):
+    variant = product_in_stock.variants.get()
     discount = Sale.objects.create(
         type=Sale.PERCENTAGE,
         value=50)
-    discount.products.add(product_variant.product)
-    final_price = product_variant.get_price_per_item(discounts=[discount])
+    discount.products.add(product_in_stock)
+    final_price = variant.get_price_per_item(discounts=[discount])
     assert final_price.gross == 5
     applied_discount = final_price.history.right
     assert isinstance(applied_discount, FractionalDiscount)
@@ -211,16 +195,17 @@ def test_products_voucher_checkout_discount_not(settings, monkeypatch, prices,
 
 @pytest.mark.django_db
 def test_sale_applies_to_correct_products():
-    product = Product.objects.create(name='Test Product', price=10, weight=1,
-                                     description='', pk=10)
+    product = Product.objects.create(
+        name='Test Product', price=10, weight=1, description='', pk=10)
     variant = ProductVariant.objects.create(product=product, sku='firstvar')
-    product2 = Product.objects.create(name='Second product', price=15, weight=1,
-                                      description='')
-    sec_variant = ProductVariant.objects.create(product=product2, sku='secvar',
-                                                pk=10)
+    product2 = Product.objects.create(
+        name='Second product', price=15, weight=1, description='')
+    sec_variant = ProductVariant.objects.create(
+        product=product2, sku='secvar', pk=10)
     sale = Sale.objects.create(name='Test sale', value=5, type=Sale.FIXED)
     sale.products.add(product)
     assert product2 not in sale.products.all()
-    assert sale.modifier_for_variant(variant).amount == Price(net=5, currency='USD')
+    assert sale.modifier_for_variant(variant).amount == Price(net=5,
+                                                              currency='USD')
     with pytest.raises(NotApplicable):
         sale.modifier_for_variant(sec_variant)
