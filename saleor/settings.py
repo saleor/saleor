@@ -43,7 +43,13 @@ USE_L10N = True
 USE_TZ = True
 
 
-EMAIL_URL = os.environ.get('EMAIL_URL', 'console://')
+SENDGRID_USERNAME = os.environ.get('SENDGRID_USERNAME')
+SENDGRID_PASSWORD = os.environ.get('SENDGRID_PASSWORD')
+if SENDGRID_USERNAME and SENDGRID_PASSWORD:
+    EMAIL_URL = 'smtp://%s:%s@smtp.sendgrid.net:587/?tls=True' % (
+        SENDGRID_USERNAME, SENDGRID_PASSWORD)
+else:
+    EMAIL_URL = os.environ.get('EMAIL_URL', 'console://')
 email_config = dj_email_url.parse(EMAIL_URL)
 
 EMAIL_FILE_PATH = email_config['EMAIL_FILE_PATH']
