@@ -4,22 +4,27 @@ from django.template.response import TemplateResponse
 from ..forms import AnonymousUserShippingForm, ShippingAddressesForm
 from ...userprofile.forms import AddressForm
 from ...userprofile.models import Address
+from ...i18n_address_forms.forms import COUNTRY_FORMS
 
 
 def anonymous_user_shipping_address_view(request, checkout):
     data = request.POST or None
     shipping_address = checkout.shipping_address
+    country_code = request.country.code if request.country else 'US'
+
+    address_form_class = COUNTRY_FORMS[country_code]
+
     if shipping_address is not None:
-        address_form = AddressForm(
+        address_form_class = COUNTRY_FORMS[shipping_address.country.code]
+        address_form = address_form_class(
             data, instance=checkout.shipping_address,
             autocomplete_type='shipping')
     else:
-        address_form = AddressForm(
-            data, autocomplete_type='shipping', country=request.country,
-            initial={'country': request.country})
+        address_form = address_form_class(
+            data, autocomplete_type='shipping',
+            initial={'country': country_code})
     user_form = AnonymousUserShippingForm(
         data, initial={'email': checkout.email})
-
     if user_form.is_valid() and address_form.is_valid():
         checkout.shipping_address = address_form.instance
         checkout.email = user_form.cleaned_data['email']
