@@ -1,0 +1,184 @@
+from collections import defaultdict
+
+import i18naddress
+from django import forms
+from django.utils.translation import pgettext_lazy
+from django_countries.data import COUNTRIES
+
+from .models import Address
+
+COUNTRY_FORMS = {}
+
+AREA_TYPE_TRANSLATIONS = {
+    'area': pgettext_lazy('Address field', 'Area'),
+    'county': pgettext_lazy('Address field', 'County'),
+    'department': pgettext_lazy('Address field', 'Department'),
+    'district': pgettext_lazy('Address field', 'District'),
+    'do_si': pgettext_lazy('Address field', 'Do/si'),
+    'emirate': pgettext_lazy('Address field', 'Emirate'),
+    'island': pgettext_lazy('Address field', 'Island'),
+    'neighborhood': pgettext_lazy('Address field', 'Neighborhood'),
+    'oblast': pgettext_lazy('Address field', 'Oblast'),
+    'parish': pgettext_lazy('Address field', 'Parish'),
+    'pin': pgettext_lazy('Address field', 'PIN'),
+    'postal': pgettext_lazy('Address field', 'Postal code'),
+    'prefecture': pgettext_lazy('Address field', 'Prefecture'),
+    'province': pgettext_lazy('Address field', 'Province'),
+    'state': pgettext_lazy('Address field', 'State'),
+    'suburb': pgettext_lazy('Address field', 'Suburb'),
+    'townland': pgettext_lazy('Address field', 'Townland'),
+    'village_township': pgettext_lazy('Address field', 'Village/township'),
+    'zip': pgettext_lazy('Address field', 'ZIP code')}
+
+
+class AddressMetaForm(forms.ModelForm):
+    preview = forms.BooleanField(initial=False, required=False)
+
+    class Meta:
+        model = Address
+        fields = ['country', 'preview']
+
+    def clean(self):
+        data = super(AddressMetaForm, self).clean()
+        if data.get('preview'):
+            self.data = self.data.copy()
+            self.data['preview'] = False
+        return data
+
+
+class AddressForm(forms.ModelForm):
+
+    AUTOCOMPLETE_MAPPING = (
+        ('first_name', 'given-name'),
+        ('last_name', 'family-name'),
+        ('company_name', 'organization'),
+        ('street_address_1', 'address-line1'),
+        ('street_address_2', 'address-line2'),
+        ('city', 'address-level2'),
+        ('postal_code', 'postal-code'),
+        ('country_area', 'address-level1'),
+        ('country', 'country'),
+        ('city_area', 'address-level3'),
+        ('phone', 'tel'),
+        ('email', 'email')
+    )
+
+    class Meta:
+        model = Address
+        exclude = []
+
+    def __init__(self, *args, **kwargs):
+        autocomplete_type = kwargs.pop('autocomplete_type', None)
+        super(AddressForm, self).__init__(*args, **kwargs)
+        autocomplete_dict = defaultdict(
+            lambda: 'off', self.AUTOCOMPLETE_MAPPING)
+        for field_name, field in self.fields.items():
+            if autocomplete_type:
+                autocomplete = '%s %s' % (
+                    autocomplete_type, autocomplete_dict[field_name])
+            else:
+                autocomplete = autocomplete_dict[field_name]
+            field.widget.attrs['autocomplete'] = autocomplete
+
+
+class CountryAwareAddressForm(AddressForm):
+
+    I18N_MAPPING = (
+        ('name', ['first_name', 'last_name']),
+        ('street_address', ['street_address_1', 'street_address_2']),
+        ('city_area', ['city_area']),
+        ('country_area', ['country_area']),
+        ('company_name', ['company_name']),
+        ('postal_code', ['postal_code']),
+        ('city', ['city']),
+        ('sorting_code', ['sorting_code']),
+        ('country_code', ['country_code'])
+    )
+
+    class Meta:
+        model = Address
+        exclude = []
+
+    def add_field_errors(self, errors):
+        field_mapping = dict(self.I18N_MAPPING)
+        for field_name, error_code in errors.items():
+            local_fields = field_mapping[field_name]
+            for field in local_fields:
+                try:
+                    error_msg = self.fields[field].error_messages[error_code]
+                except KeyError:
+                    error_msg = pgettext_lazy(
+                        'Address form',
+                        'This value is invalid for selected country')
+                self.add_error(field, error_msg)
+
+    def validate_address(self, data):
+        try:
+            data['country_code'] = data['country']
+            data = i18naddress.normalize_address(data)
+            del data['sorting_code']
+        except i18naddress.InvalidAddress as exc:
+            self.add_field_errors(exc.errors)
+        import ipdb;ipdb.set_trace()
+        return data
+
+    def clean(self):
+        data = super(AddressForm, self).clean()
+        return self.validate_address(data)
+
+
+def get_address_form_class(country_code):
+    return COUNTRY_FORMS[country_code]
+
+
+def get_form_18n_lines(form_instance):
+    country_code = form_instance.i18n_country_code
+    fields_order = i18naddress.get_fields_order({'country_code': country_code})
+    field_mapping = dict(form_instance.I18N_MAPPING)
+
+    def _convert_to_bound_fields(form, i18n_field_names):
+        bound_fields = []
+        for field_name in i18n_field_names:
+            local_fields = field_mapping[field_name]
+            for local_name in local_fields:
+                local_field = form_instance.fields[local_name]
+                bound_field = local_field.get_bound_field(form, local_name)
+                bound_fields.append(bound_field)
+        return bound_fields
+
+    if fields_order:
+        return [_convert_to_bound_fields(form_instance, line)
+                for line in fields_order]
+
+
+def update_base_fields(form_class, i18n_rules):
+    labels_map = {
+        'country_area': i18n_rules.country_area_type,
+        'postal_code': i18n_rules.postal_code_type,
+        'city_area': i18n_rules.city_area_type}
+
+    for field_name, area_type in labels_map.items():
+        field = form_class.base_fields[field_name]
+        field.label = AREA_TYPE_TRANSLATIONS[area_type]
+
+
+def construct_address_form(country_code, i18n_rules):
+    class_name = 'AddressForm%s' % country_code
+    base_class = CountryAwareAddressForm
+    form_kwargs = {
+        'Meta': type(str('Meta'), (base_class.Meta, object), {}),
+        'formfield_callback': None,}
+    class_ = type(base_class)(str(class_name), (base_class,), form_kwargs)
+    update_base_fields(class_, i18n_rules)
+    class_.i18n_country_code = country_code
+    class_.i18n_fields_order = property(get_form_18n_lines)
+    return class_
+
+
+for country in COUNTRIES.keys():
+    try:
+        country_rules = i18naddress.get_validation_rules({'country_code': country})
+    except ValueError:
+        country_rules = i18naddress.get_validation_rules({})
+
+    COUNTRY_FORMS[country] = construct_address_form(country, country_rules)
