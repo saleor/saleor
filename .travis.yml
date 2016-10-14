@@ -1,13 +1,15 @@
 language: python
 cache:
+  pip: true
   directories:
-    - $HOME/.cache/pip
+    - node_modules
 sudo: false
 install:
   - pip install -U pip setuptools wheel
   - pip install tox codecov
   - nvm install 4.4.7
   - npm install
+  - npm prune
   - npm run build-assets
 script:
   - tox
