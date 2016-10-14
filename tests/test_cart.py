@@ -1,55 +1,36 @@
 from __future__ import unicode_literals
-from decimal import Decimal
+
 import json
 
-from prices import Price
 import pytest
-from mock import Mock, MagicMock, patch
+from django.core.exceptions import ObjectDoesNotExist
+from mock import MagicMock, Mock
 from satchless.item import InsufficientStock
 
-from django.core.exceptions import ObjectDoesNotExist
-from .models import Cart
-from .context_processors import cart_counter
-from . import forms
-from . import utils
-from . import views
-from . import decorators
-from ..product.models import Product, ProductVariant
+from saleor.cart import decorators, forms, utils, views
+from saleor.cart.context_processors import cart_counter
+from saleor.cart.models import Cart
 
 
 @pytest.fixture
-def cart(db):
+def cart(db):  # pylint: disable=I0011, W0613
     return Cart.objects.create()
 
 
-@pytest.fixture
-def product(db):
-    product = Product(name='Big Ship', price=Price(10, currency='USD'),
-                      weight=Decimal(123))
-    product.save()
-    return product
-
-
-@pytest.fixture
-def variant(db, monkeypatch, product):
-    variant = ProductVariant(name='Big Ship', product=product)
-    variant.save()
-    monkeypatch.setattr('saleor.product.models.ProductVariant.check_quantity',
-                        Mock())
-    return variant
-
-
-def test_adding_without_checking(cart, variant):
+def test_adding_without_checking(cart, product_in_stock):
+    variant = product_in_stock.variants.get()
     cart.add(variant, 1000, check_quantity=False)
     assert len(cart) == 1
 
 
-def test_adding_zero_quantity(cart, variant):
+def test_adding_zero_quantity(cart, product_in_stock):
+    variant = product_in_stock.variants.get()
     cart.add(variant, 0)
     assert len(cart) == 0
 
 
-def test_adding_same_variant(cart, variant):
+def test_adding_same_variant(cart, product_in_stock):
+    variant = product_in_stock.variants.get()
     cart.add(variant, 1)
     cart.add(variant, 2)
     price_total = 10 * 3
@@ -58,21 +39,23 @@ def test_adding_same_variant(cart, variant):
     assert cart.get_total().gross == price_total
 
 
-def test_replacing_same_variant(cart, variant):
+def test_replacing_same_variant(cart, product_in_stock):
+    variant = product_in_stock.variants.get()
     cart.add(variant, 1, replace=True)
     cart.add(variant, 2, replace=True)
     assert len(cart) == 1
     assert cart.count() == {'total_quantity': 2}
 
 
-def test_adding_invalid_quantity(cart, variant):
+def test_adding_invalid_quantity(cart, product_in_stock):
+    variant = product_in_stock.variants.get()
     with pytest.raises(ValueError):
         cart.add(variant, -1)
 
 
-def test_getting_line(cart, variant):
+def test_getting_line(cart, product_in_stock):
+    variant = product_in_stock.variants.get()
     assert cart.get_line(variant) is None
-
     line = cart.create_line(variant, 1, None)
     assert line == cart.get_line(variant)
 
@@ -87,13 +70,14 @@ def test_change_status(cart):
     assert cart.status == Cart.CANCELED
 
 
-def test_shipping_detection(cart, variant):
+def test_shipping_detection(cart, product_in_stock):
+    variant = product_in_stock.variants.get()
     assert not cart.is_shipping_required()
     cart.add(variant, 1, replace=True)
     assert cart.is_shipping_required()
 
 
-def test_cart_counter(db, monkeypatch):
+def test_cart_counter(monkeypatch):
     monkeypatch.setattr('saleor.cart.context_processors.get_cart_from_request',
                         Mock(return_value=Mock(quantity=4)))
     ret = cart_counter(Mock())
@@ -121,9 +105,9 @@ def test_get_user_open_cart_token(monkeypatch):
     assert decorators.get_user_open_cart_token(Mock()) == token
 
 
-def test_find_and_assign_cart(monkeypatch, cart, django_user_model):
+def test_find_and_assign_cart(cart, django_user_model):
     credentials = {'email': 'admin@example.com', 'password': 'admin'}
-    user, created = django_user_model.objects.get_or_create(
+    user, _created = django_user_model.objects.get_or_create(
         email=credentials['email'], defaults={
             'is_active': True, 'is_staff': True, 'is_superuser': True})
     request = Mock(user=user, get_signed_cookie=lambda x, default: cart.token)
@@ -146,7 +130,9 @@ def test_contains_unavailable_variants():
     assert not utils.contains_unavailable_variants(cart)
 
 
-def test_check_product_availability_and_warn(monkeypatch, cart, variant):
+def test_check_product_availability_and_warn(
+        monkeypatch, cart, product_in_stock):
+    variant = product_in_stock.variants.get()
     cart.add(variant, 1)
     monkeypatch.setattr('django.contrib.messages.warning',
                         Mock(warning=Mock()))
@@ -221,7 +207,8 @@ def test_add_to_cart_form_when_insufficient_stock():
     assert not form.is_valid()
 
 
-def test_replace_cart_line_form(cart, variant):
+def test_replace_cart_line_form(cart, product_in_stock):
+    variant = product_in_stock.variants.get()
     initial_quantity = 1
     replaced_quantity = 4
 
@@ -233,8 +220,9 @@ def test_replace_cart_line_form(cart, variant):
     assert cart.quantity == replaced_quantity
 
 
-def test_replace_cartline_form_when_insufficient_stock(monkeypatch, cart,
-                                                       variant):
+def test_replace_cartline_form_when_insufficient_stock(
+        monkeypatch, cart, product_in_stock):
+    variant = product_in_stock.variants.get()
     initial_quantity = 1
     replaced_quantity = 4
 
@@ -258,11 +246,12 @@ def test_view_empty_cart(monkeypatch, client, cart):
     )
     request = client.get('/cart/')
     request.discounts = None
-    response = views.index(request)
+    response = views.index(request)  # pylint: disable=I0011, E1120
     assert response.status_code == 200
 
 
-def test_view_cart(monkeypatch, client, cart, variant):
+def test_view_cart(monkeypatch, client, cart, product_in_stock):
+    variant = product_in_stock.variants.get()
     cart.add(variant, 1)
     monkeypatch.setattr(
         decorators, 'get_cart_from_request',
@@ -270,26 +259,30 @@ def test_view_cart(monkeypatch, client, cart, variant):
     )
     request = client.get('/cart/')
     request.discounts = None
-    response = views.index(request)
+    response = views.index(request)  # pylint: disable=I0011, E1120
     assert response.status_code == 200
 
 
-def test_view_update_cart_quantity(monkeypatch, client, cart, variant):
+def test_view_update_cart_quantity(
+        monkeypatch, client, cart, product_in_stock):
+    variant = product_in_stock.variants.get()
     cart.add(variant, 1)
     monkeypatch.setattr(
         decorators, 'get_cart_from_request',
-        lambda request: cart
-    )
-    request = client.post('/cart/update/{}'.format(variant.pk), {'quantity': 3})
+        lambda request: cart)
+    request = client.post(
+        '/cart/update/{}'.format(variant.pk), {'quantity': 3})
     request.discounts = None
     request.POST = {'quantity': 3}
     request.is_ajax = lambda: True
+    # pylint: disable=I0011, E1120
     response = views.update(request, variant.pk)
     assert response.status_code == 200
     assert cart.quantity == 3
 
 
-def test_view_invalid_update_cart(monkeypatch, client, cart, variant):
+def test_view_invalid_update_cart(monkeypatch, client, cart, product_in_stock):
+    variant = product_in_stock.variants.get()
     cart.add(variant, 1)
     monkeypatch.setattr(
         decorators, 'get_cart_from_request',
@@ -299,6 +292,7 @@ def test_view_invalid_update_cart(monkeypatch, client, cart, variant):
     request.discounts = None
     request.POST = {}
     request.is_ajax = lambda: True
+    # pylint: disable=I0011, E1120
     response = views.update(request, variant.pk)
     resp_decoded = json.loads(response.content.decode('utf-8'))
     assert response.status_code == 400
@@ -306,7 +300,8 @@ def test_view_invalid_update_cart(monkeypatch, client, cart, variant):
     assert cart.quantity == 1
 
 
-def test_view_invalid_add_to_cart(monkeypatch, client, cart, variant):
+def test_view_invalid_add_to_cart(monkeypatch, client, cart, product_in_stock):
+    variant = product_in_stock.variants.get()
     initial_quantity = 1
     cart.add(variant, initial_quantity)
     monkeypatch.setattr(
@@ -317,23 +312,25 @@ def test_view_invalid_add_to_cart(monkeypatch, client, cart, variant):
     request.discounts = None
     request.POST = {}
     request.user = Mock(is_authenticated=lambda: False)
+    # pylint: disable=I0011, E1120
     response = views.add_to_cart(request, variant.pk)
     assert response.status_code == 302
     assert cart.quantity == initial_quantity
 
 
-def test_view_add_to_cart(db, monkeypatch, client, cart, variant):
+def test_view_add_to_cart(monkeypatch, client, cart, product_in_stock):
+    variant = product_in_stock.variants.get()
     initial_quantity = 1
     cart.add(variant, initial_quantity)
     monkeypatch.setattr(
         decorators, 'get_cart_from_request',
-        lambda request, create: cart
-    )
+        lambda request, create: cart)
 
     request = client.post('/cart/add/{}'.format(variant.pk), {})
     request.discounts = None
     request.POST = {'quantity': 1, 'variant': variant.pk}
     request.user = Mock(is_authenticated=lambda: False)
+    # pylint: disable=I0011, E1120
     response = views.add_to_cart(request, variant.pk)
     assert response.status_code == 302
     assert cart.quantity == initial_quantity + 1

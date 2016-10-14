@@ -3,8 +3,6 @@ from __future__ import unicode_literals
 from django.core.urlresolvers import reverse
 import pytest
 
-from ...product.test_product import product_in_stock  # NOQA
-
 
 @pytest.mark.integration
 @pytest.mark.django_db

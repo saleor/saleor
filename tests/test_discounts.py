@@ -1,10 +1,11 @@
 from decimal import Decimal
+
+import pytest
 from mock import Mock
 from prices import FixedDiscount, FractionalDiscount, Price
 
-import pytest
-from ..product.models import ProductVariant, Product
-from .models import Sale, Voucher, NotApplicable
+from saleor.discount.models import NotApplicable, Sale, Voucher
+from saleor.product.models import Product, ProductVariant
 
 
 @pytest.fixture

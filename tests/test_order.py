@@ -1,9 +1,7 @@
 from prices import Price
 
-from ..cart.models import Cart
-from ..product.test_product import product_in_stock  # NOQA
-from ..userprofile.test_userprofile import billing_address  # NOQA
-from . import models
+from saleor.cart.models import Cart
+from saleor.order import models
 
 
 def test_total_property():

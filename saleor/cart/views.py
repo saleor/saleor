@@ -2,17 +2,17 @@ from __future__ import unicode_literals
 
 from itertools import chain
 
+from babeldjango.templatetags.babel import currencyfmt
 from django.contrib import messages
 from django.http import JsonResponse
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from babeldjango.templatetags.babel import currencyfmt
 
-from .forms import ReplaceCartLineForm
-from .decorators import get_or_create_db_cart, get_or_empty_db_cart
-from .utils import check_product_availability_and_warn
 from ..product.forms import get_form_class_for_product
 from ..product.models import Product, ProductVariant
+from .decorators import get_or_create_db_cart, get_or_empty_db_cart
+from .forms import ReplaceCartLineForm
+from .utils import check_product_availability_and_warn
 
 
 @get_or_empty_db_cart
