@@ -39,6 +39,7 @@ class CountryAwareAddressForm(AddressForm):
 
     def validate_address(self, data):
         try:
+            data['country_code'] = data['country']
             i18naddress.normalize_address(data)
         except i18naddress.InvalidAddress as exc:
             self.add_field_errors(exc.errors)
