@@ -5,8 +5,9 @@
 !.dockerignore
 !.flowconfig
 !.gitignore
-!.travis*
 !.nvmrc
+!.pylintrc
+!.travis*
 *.css
 *.log
 *.pot
