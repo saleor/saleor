@@ -66,7 +66,7 @@ class Category(MPTTModel):
 
 class ProductManager(InheritanceManager):
     def get_available_products(self):
-        today = datetime.datetime.today()
+        today = datetime.date.today()
         return self.get_queryset().filter(
             Q(available_on__lte=today) | Q(available_on__isnull=True))
 
