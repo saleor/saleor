@@ -224,7 +224,7 @@ AUTH_USER_MODEL = 'userprofile.User'
 
 LOGIN_URL = '/account/login'
 
-DEFAULT_COUNTRY = 'PL'
+DEFAULT_COUNTRY = 'US'
 DEFAULT_CURRENCY = 'USD'
 DEFAULT_WEIGHT = 'lb'
 
