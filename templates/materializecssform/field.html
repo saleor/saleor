@@ -9,8 +9,7 @@
             <p>
                 {% if field.auto_id %}
                     {{ field }}
-                    <label for="{{ field.auto_id }}"
-                           {% if field.field.required and form.required_css_class %}class="{{ form.required_css_class }}"{% endif %}>
+                    <label for="{{ field.auto_id }}">
                         {{ field.label }}
                     </label>
                 {% endif %}
@@ -73,8 +72,7 @@
     <div class="input col {{ classes.label }}">
         {% if field|is_checkbox_select_multiple %}
             {% if field.auto_id %}
-                <label class="control-label {{ classes.label }}
-                        {% if field.field.required %}{{ form.required_css_class }}{% endif %}">{{ field.label }}</label>
+                <label class="control-label {{ classes.label }}">{{ field.label }}</label>
             {% endif %}
             <div class="{{ classes.value }}">
                 {% for choice in field %}
@@ -138,8 +136,7 @@
     <div class="input col {{ classes.label }}">
         <p>
             {% if field.auto_id %}
-                <label class="{{ classes.label }}
-                        {% if field.field.required %}{{ form.required_css_class }}{% endif %}"
+                <label class="{{ classes.label }}"
                        for="{{ field.auto_id }}">{{ field.label }}</label><br>
             {% endif %}
             {{ field }}
@@ -160,7 +157,7 @@
                    name="{{ field.name }}_1" type="hidden">
         </div>
         <div class="file-path-wrapper">
-            <input class="file-path validate" type="text">
+            <input class="file-path" type="text">
         </div>
         {% for error in field.errors %}
             <p class="help-block materialize-red-text">{{ error }}</p>
@@ -176,13 +173,11 @@
 {% else %}
 
     <div class="input input-field col {{ classes.label }}">
-        <div class="price-wrapper">
-            {{ field }}
-            {% if field.auto_id %}
-                <label class="active{% if not field.field.required %} optional{% endif %}"
-                       for="{{ field.auto_id }}">{{ field.label }}</label>
-            {% endif %}
-        </div>
+        {% if field.auto_id %}
+            <label class="active{% if not field.field.required %} optional{% endif %}"
+                    for="{{ field.auto_id }}">{{ field.label }}</label>
+        {% endif %}
+        {{ field }}
 
         {% for error in field.errors %}
             <p class="help-block materialize-red-text">{{ error }}</p>

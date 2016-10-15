@@ -36,7 +36,7 @@
                     {% if user.default_billing_address == address %}
                     <span class="label label-default">{% trans "Default" %}</span>
                     {% else %}
-                    <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="billing" %}" class="form-inline form-horizontal">
+                    <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="billing" %}" class="form-inline form-horizontal" novalidate>
                         {% csrf_token %}
                         <button type="submit" class="btn btn-default btn-sm">{% trans "Make default" %}</button>
                     </form>
@@ -46,7 +46,7 @@
                     {% if user.default_shipping_address == address %}
                     <span class="label label-default">{% trans "Default" %}</span>
                     {% else %}
-                    <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="shipping" %}" class="form-inline form-horizontal">
+                    <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="shipping" %}" class="form-inline form-horizontal" novalidate>
                         {% csrf_token %}
                         <button type="submit" class="btn btn-default btn-sm">{% trans "Make default" %}</button>
                     </form>

@@ -1,7 +1,7 @@
 {% load i18n %}
 {% load mptt_tags %}
 
-<form method="post" id="form-category" class="form-async" action="{% url 'dashboard:category-delete' pk=category.pk %}">
+<form method="post" id="form-category" class="form-async" action="{% url 'dashboard:category-delete' pk=category.pk %}" novalidate>
     {% csrf_token %}
     <div class="modal-content">
         <div class="row">

@@ -1,7 +1,7 @@
 {% load i18n %}
 {% load materializecss %}
 
-<form id="ship-delivery-group-form" method="post" role="form" action="{% url 'dashboard:cancel-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="form-async">
+<form id="ship-delivery-group-form" method="post" role="form" action="{% url 'dashboard:cancel-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="form-async" novalidate>
     {% csrf_token %}
 
     <div class="modal-content">

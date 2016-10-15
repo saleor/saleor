@@ -1,6 +1,6 @@
 {% load i18n %}
 
-<form action="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=product_image.pk %}" method="post">
+<form action="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=product_image.pk %}" method="post" novalidate>
     {% csrf_token %}
     <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#images">
 

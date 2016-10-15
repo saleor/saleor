@@ -82,7 +82,7 @@
     {% endif %}
 
     <div class="row tab-content" id="details">
-        <form method="post" id="form-product" enctype="multipart/form-data">
+        <form method="post" id="form-product" enctype="multipart/form-data" novalidate>
             {% csrf_token %}
             {{ product_form.name|materializecss:"s12 m8" }}
             {{ product_form.price|materializecss:"s12 m4" }}
@@ -116,7 +116,7 @@
 
     {% if product.pk %}
         <div id="variants" class="card tab-content">
-            <form method="post" action="{% url 'dashboard:variant-bulk-delete' product_pk=product.pk %}">
+            <form method="post" action="{% url 'dashboard:variant-bulk-delete' product_pk=product.pk %}" novalidate>
                 {% csrf_token %}
                 <div class="data-table-header">
                     <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
@@ -198,7 +198,7 @@
         </div>
 
         <div id="stock" class="card tab-content">
-            <form method="post" action="{% url 'dashboard:stock-bulk-delete' product_pk=product.pk %}">
+            <form method="post" action="{% url 'dashboard:stock-bulk-delete' product_pk=product.pk %}" novalidate>
                 {% csrf_token %}
                 <div class="data-table-header">
                     <a href="{% url 'dashboard:product-stock-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
@@ -273,10 +273,10 @@
             </form>
         </div>
 
-        <div id="images" class="tab-content">            
+        <div id="images" class="tab-content">
                 <div class="row">
                     <div class="col l12">
-                        <form action="{% url 'dashboard:product-images-upload' product_pk=product.pk %}" class="dropzone" id="product-image-form">
+                        <form action="{% url 'dashboard:product-images-upload' product_pk=product.pk %}" class="dropzone" id="product-image-form" novalidate>
                             <div class="dz-message"></div>
                             {% csrf_token %}
                             <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#images">
@@ -324,7 +324,7 @@
                             </ul>
                         </form>
                     </div>
-                </div>              
+                </div>
 
             <script type="application/template" id="template">
                 <li class="col s6 m3 card product-gallery-item dz-preview dz-file-preview" data-id="{{ image.pk }}">

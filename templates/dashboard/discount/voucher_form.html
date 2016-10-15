@@ -41,7 +41,7 @@
 {% block menu_discounts_class %} active{% endblock %}
 
 {% block content %}
-    <form method="post" enctype="multipart/form-data" id="form-vouchers">
+    <form method="post" enctype="multipart/form-data" id="form-vouchers" novalidate>
         {% csrf_token %}
         {% if form.non_field_errors %}
             <blockquote>

@@ -2,7 +2,7 @@
 {% load prices_i18n %}
 {% load staticfiles %}
 
-<form action="{% url "dashboard:product-delete" pk=product.pk %}" method="post">
+<form action="{% url "dashboard:product-delete" pk=product.pk %}" method="post" novalidate>
     {% csrf_token %}
     <div class="modal-content">
         <div class="row">

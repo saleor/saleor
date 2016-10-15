@@ -11,7 +11,7 @@
 
 <div class="modal-footer">
     <form id="release-form" method="post" role="form" class="form-async"
-          action="{% url 'dashboard:order-remove-voucher' order_pk=order.pk %}">
+          action="{% url 'dashboard:order-remove-voucher' order_pk=order.pk %}" novalidate>
         {% csrf_token %}
         <button type="submit" class="modal-action btn-flat red-text">{% trans "Remove voucher" %}</button>
         <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Abort" %}</a>
