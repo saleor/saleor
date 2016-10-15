@@ -18,7 +18,6 @@
   "dependencies": {
     "bootstrap-sass": "^3.3.7",
     "dropzone": "^4.2.0",
-    "font-awesome": "^4.4.0",
     "jquery": "^2.1.4",
     "jquery-match-height": "^0.7.0",
     "jquery-ui": "^1.12.1",

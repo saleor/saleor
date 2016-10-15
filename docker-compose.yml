@@ -15,6 +15,7 @@ web:
   environment:
     - DATABASE_URL=postgres://saleor:saleor@db/saleor
     - DEFAULT_FROM_EMAIL=noreply@example.com
+    - OPENEXCHANGERATES_API_KEY
     - REDIS_URL=redis://redis:6379/0
     - SECRET_KEY=changeme
   links:

@@ -102,7 +102,7 @@ class CartItemAmountSelect extends Component {
           })
         }
         if (response.hasOwnProperty('variantId')) {
-          const { variantId, subtotal, total } = response
+          const { variantId, subtotal, total, localTotal } = response
           this.props.dispatch({
             type: 'UPDATE_SUBTOTAL',
             variantId,
@@ -110,7 +110,8 @@ class CartItemAmountSelect extends Component {
           })
           this.props.dispatch({
             type: 'UPDATE_TOTAL',
-            total
+            total,
+            localTotal
           })
         }
         this.setState({
@@ -197,7 +198,7 @@ class CartItemAmountSelect extends Component {
       <div className={classNames.join(' ')}>
         {this.state.renderSelect ? select : input}
         {this.state.sending && this.state.result !== 'error' ? (
-          <i className="fa fa-circle-o-notch fa-spin"></i>
+          <i className="glyphicon glyphicon-time"></i>
         ) : undefined}
         {this.state.result === 'error' ? (
           <span className="error text-danger">
@@ -236,10 +237,15 @@ const selectSubtotals = (state) => ({
 
 export const CartItemSubtotal = connect(selectSubtotals)(renderSubtotal)
 
-const renderTotal = ({value}) => <b>{value}</b>
+const renderTotal = ({total, localTotal}) => <span>
+  {total}
+  {localTotal ? <br/> : undefined}
+  {localTotal ? <small className="text-info">&asymp; {localTotal}</small> : undefined}
+</span>
 
 const selectTotal = (state) => ({
-  value: state.total
+  total: state.total,
+  localTotal: state.localTotal
 })
 
 export const CartTotal = connect(selectTotal)(renderTotal)

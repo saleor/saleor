@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 
+from ..core.utils import to_local_currency
 from ..product.forms import get_form_class_for_product
 from ..product.models import Product, ProductVariant
 from .decorators import get_or_create_db_cart, get_or_empty_db_cart
@@ -33,13 +34,17 @@ def index(request, cart):
             'form': form})
 
     cart_total = None
+    local_cart_total = None
     if cart:
         cart_total = cart.get_total(discounts=discounts)
+        local_cart_total = to_local_currency(cart_total, request.currency)
 
     return TemplateResponse(
         request, 'cart/index.html',
-        {'cart_lines': cart_lines,
-         'cart_total': cart_total})
+        {
+            'cart_lines': cart_lines,
+            'cart_total': cart_total,
+            'local_cart_total': local_cart_total})
 
 
 @get_or_create_db_cart
@@ -79,9 +84,15 @@ def update(request, cart, variant_id):
                 updated_line.get_total(discounts=discounts).gross,
                 updated_line.get_total(discounts=discounts).currency)
         if cart:
+            cart_total = cart.get_total(discounts=discounts)
             response['total'] = currencyfmt(
-                cart.get_total(discounts=discounts).gross,
-                cart.get_total(discounts=discounts).currency)
+                cart_total.gross,
+                cart_total.currency)
+            local_cart_total = to_local_currency(cart_total, request.currency)
+            if local_cart_total:
+                response['localTotal'] = currencyfmt(
+                    local_cart_total.gross,
+                    local_cart_total.currency)
         status = 200
     elif request.POST is not None:
         response = {'error': form.errors}

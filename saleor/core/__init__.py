@@ -24,9 +24,7 @@ def get_country_by_ip(ip_address):
 def get_currency_for_country(country):
     currencies = get_territory_currencies(country.code)
     if len(currencies):
-        main_currency = currencies[0]
-        if main_currency in settings.AVAILABLE_CURRENCIES:
-            return main_currency
+        return currencies[0]
     return settings.DEFAULT_CURRENCY
 
 

@@ -9,7 +9,8 @@ type CartState = {
 
 type CartUpdateTotal = {
   type: 'UPDATE_TOTAL';
-  total: string
+  total: string,
+  localTotal: string
 };
 
 type CartUpdateSubtotal = {
@@ -22,6 +23,7 @@ type CartAction = CartUpdateTotal | CartUpdateSubtotal;
 
 const defaultState: CartState = {
   total: 'N/A',
+  localTotal: undefined,
   subtotals: {}
 }
 
@@ -30,7 +32,8 @@ const cart = (state: CartState = defaultState, action: CartAction) => {
     case ('UPDATE_TOTAL'):
       return {
         ...state,
-        total: action.total
+        total: action.total,
+        localTotal: action.localTotal
       }
     case ('UPDATE_SUBTOTAL'):
       const { variantId, subtotal } = action;

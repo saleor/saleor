@@ -37,7 +37,20 @@
         <tr>
             <td class="hidden-xs" colspan="2"></td>
             <td class="col-xs-9 col-md-9 text-right lead" colspan="2">{% trans "Total" %}:
-            <td class="col-xs-3 col-md-2 text-right lead"><b class="cart-total">{% gross cart_total %}</b></td>
+            <td class="col-xs-3 col-md-2 text-right lead">
+                <span class="cart-total" data-value="{% gross cart_total %}"{% if local_cart_total %} data-value-local="{% gross local_cart_total %}"{% endif %}>
+                    {% spaceless %}
+                        {% gross cart_total html=True %}
+                        {% if local_cart_total %}
+                            <br>
+                            <small class="text-info">
+                                &asymp;
+                                {% gross local_cart_total html=True %}
+                            </small>
+                        {% endif %}
+                    {% endspaceless %}
+                </span>
+            </td>
         </tr>
         </tfoot>
         <tbody>
@@ -79,8 +92,8 @@
                             </button>
                         </div>
                     </td>
-                    <td class="text-right hidden-xs">{% gross line.get_price_per_item %}</td>
-                    <td class="text-right cart-item-subtotal" data-product-id="{{ line.variant.pk }}">{% gross line.get_total %}</td>
+                    <td class="text-right hidden-xs">{% gross line.get_price_per_item html=True %}</td>
+                    <td class="text-right cart-item-subtotal" data-product-id="{{ line.variant.pk }}">{% gross line.get_total html=True %}</td>
                 </tr>
             {% endfor %}
         </tbody>

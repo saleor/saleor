@@ -1,7 +1,5 @@
 $icon-font-path: "~bootstrap-sass/assets/fonts/bootstrap/";
 @import "~bootstrap-sass/assets/stylesheets/bootstrap";
-$fa-font-path: "~font-awesome/fonts";
-@import "~font-awesome/scss/font-awesome";
 
 .table > tbody > tr > td.noborder {
   border-top: 1px solid transparent;
@@ -13,7 +11,17 @@ $fa-font-path: "~font-awesome/fonts";
 
 .price {
 	&.undiscounted {
-		text-decoration: line-through;
+		position: relative;
+    &:before {
+      border-top: 1px solid;
+      border-color: inherit;
+      content: "";
+      left: 0;
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: rotate(-5deg);
+    }
 	}
 }
 

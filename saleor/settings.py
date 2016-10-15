@@ -157,6 +157,7 @@ INSTALLED_APPS = [
     'babeldjango',
     'bootstrap3',
     'django_prices',
+    'django_prices_openexchangerates',
     'emailit',
     'mptt',
     'payments',
@@ -223,9 +224,11 @@ AUTH_USER_MODEL = 'userprofile.User'
 
 LOGIN_URL = '/account/login'
 
+DEFAULT_COUNTRY = 'PL'
 DEFAULT_CURRENCY = 'USD'
-AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 DEFAULT_WEIGHT = 'lb'
+
+OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')
 
 ACCOUNT_ACTIVATION_DAYS = 3
 
