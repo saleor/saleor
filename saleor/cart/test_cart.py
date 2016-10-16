@@ -101,13 +101,13 @@ def test_cart_counter(db, monkeypatch):
 
 
 def test_get_product_variants_and_prices():
-    product = Mock(product_id=1, id=1)
+    variant = Mock(product_id=1, id=1)
     cart = MagicMock()
     cart.__iter__.return_value = [
-        Mock(quantity=1, product=product,
+        Mock(quantity=1, variant=variant,
              get_price_per_item=Mock(return_value=10))]
-    products = list(utils.get_product_variants_and_prices(cart, product))
-    assert products == [(product, 10)]
+    variants = list(utils.get_product_variants_and_prices(cart, variant))
+    assert variants == [(variant, 10)]
 
 
 def test_get_user_open_cart_token(monkeypatch):
@@ -134,31 +134,31 @@ def test_find_and_assign_cart(monkeypatch, cart, django_user_model):
     assert cart in user.carts.all()
 
 
-def test_contains_unavailable_products():
-    missing_product = Mock(
+def test_contains_unavailable_variants():
+    missing_variant = Mock(
         check_quantity=Mock(side_effect=InsufficientStock('')))
     cart = MagicMock()
-    cart.__iter__.return_value = [Mock(product=missing_product)]
-    assert utils.contains_unavailable_products(cart)
+    cart.__iter__.return_value = [Mock(variant=missing_variant)]
+    assert utils.contains_unavailable_variants(cart)
 
-    product = Mock(check_quantity=Mock())
-    cart.__iter__.return_value = [Mock(product=product)]
-    assert not utils.contains_unavailable_products(cart)
+    variant = Mock(check_quantity=Mock())
+    cart.__iter__.return_value = [Mock(variant=variant)]
+    assert not utils.contains_unavailable_variants(cart)
 
 
 def test_check_product_availability_and_warn(monkeypatch, cart, variant):
     cart.add(variant, 1)
     monkeypatch.setattr('django.contrib.messages.warning',
                         Mock(warning=Mock()))
-    monkeypatch.setattr('saleor.cart.utils.contains_unavailable_products',
+    monkeypatch.setattr('saleor.cart.utils.contains_unavailable_variants',
                         Mock(return_value=False))
 
     utils.check_product_availability_and_warn(MagicMock(), cart)
     assert len(cart) == 1
 
-    monkeypatch.setattr('saleor.cart.utils.contains_unavailable_products',
+    monkeypatch.setattr('saleor.cart.utils.contains_unavailable_variants',
                         Mock(return_value=True))
-    monkeypatch.setattr('saleor.cart.utils.remove_unavailable_products',
+    monkeypatch.setattr('saleor.cart.utils.remove_unavailable_variants',
                         lambda c: c.add(variant, 0, replace=True))
 
     utils.check_product_availability_and_warn(MagicMock(), cart)
@@ -167,7 +167,7 @@ def test_check_product_availability_and_warn(monkeypatch, cart, variant):
 
 def test_add_to_cart_form():
     cart_lines = []
-    cart = Mock(add=lambda product, quantity: cart_lines.append(product),
+    cart = Mock(add=lambda variant, quantity: cart_lines.append(variant),
                 get_line=Mock(return_value=Mock(quantity=1)))
     data = {'quantity': 1}
     form = forms.AddToCartForm(data=data, cart=cart, product=Mock())
@@ -187,7 +187,7 @@ def test_add_to_cart_form():
 
 def test_form_when_variant_does_not_exist():
     cart_lines = []
-    cart = Mock(add=lambda product, quantity: cart_lines.append(Mock()),
+    cart = Mock(add=lambda variant, quantity: cart_lines.append(Mock()),
                 get_line=Mock(return_value=Mock(quantity=1)))
 
     form = forms.AddToCartForm(data={'quantity': 1}, cart=cart, product=Mock())
@@ -197,7 +197,7 @@ def test_form_when_variant_does_not_exist():
 
 def test_add_to_cart_form_when_empty_stock():
     cart_lines = []
-    cart = Mock(add=lambda product, quantity: cart_lines.append(Mock()),
+    cart = Mock(add=lambda variant, quantity: cart_lines.append(Mock()),
                 get_line=Mock(return_value=Mock(quantity=1)))
 
     form = forms.AddToCartForm(data={'quantity': 1}, cart=cart, product=Mock())
@@ -210,7 +210,7 @@ def test_add_to_cart_form_when_empty_stock():
 
 def test_add_to_cart_form_when_insufficient_stock():
     cart_lines = []
-    cart = Mock(add=lambda product, quantity: cart_lines.append(product),
+    cart = Mock(add=lambda variant, quantity: cart_lines.append(variant),
                 get_line=Mock(return_value=Mock(quantity=1)))
 
     form = forms.AddToCartForm(data={'quantity': 1}, cart=cart, product=Mock())
@@ -227,7 +227,7 @@ def test_replace_cart_line_form(cart, variant):
 
     cart.add(variant, initial_quantity)
     data = {'quantity': replaced_quantity}
-    form = forms.ReplaceCartLineForm(data=data, cart=cart, product=variant)
+    form = forms.ReplaceCartLineForm(data=data, cart=cart, variant=variant)
     assert form.is_valid()
     form.save()
     assert cart.quantity == replaced_quantity
@@ -244,7 +244,7 @@ def test_replace_cartline_form_when_insufficient_stock(monkeypatch, cart,
     monkeypatch.setattr('saleor.product.models.ProductVariant.check_quantity',
                         Mock(side_effect=exception_mock))
     data = {'quantity': replaced_quantity}
-    form = forms.ReplaceCartLineForm(data=data, cart=cart, product=variant)
+    form = forms.ReplaceCartLineForm(data=data, cart=cart, variant=variant)
     assert not form.is_valid()
     with pytest.raises(KeyError):
         form.save()
