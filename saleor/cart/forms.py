@@ -69,7 +69,7 @@ class AddToCartForm(forms.Form):
     def save(self):
         """Adds the selected product variant and quantity to the cart"""
         product_variant = self.get_variant(self.cleaned_data)
-        return self.cart.add(product=product_variant,
+        return self.cart.add(variant=product_variant,
                              quantity=self.cleaned_data['quantity'])
 
     def get_variant(self, cleaned_data):
@@ -82,15 +82,17 @@ class ReplaceCartLineForm(AddToCartForm):
     Similar to AddToCartForm but its save method replaces the quantity.
     """
     def __init__(self, *args, **kwargs):
+        self.variant = kwargs.pop('variant')
+        kwargs['product'] = self.variant.product
         super(ReplaceCartLineForm, self).__init__(*args, **kwargs)
-        self.cart_line = self.cart.get_line(self.product)
+        self.cart_line = self.cart.get_line(self.variant)
         self.fields['quantity'].widget.attrs = {
-            'min': 1, 'max': self.product.get_stock_quantity()}
+            'min': 1, 'max': self.variant.get_stock_quantity()}
 
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
         try:
-            self.product.check_quantity(quantity)
+            self.variant.check_quantity(quantity)
         except InsufficientStock as e:
             msg = self.error_messages['insufficient-stock']
             raise forms.ValidationError(msg % {
@@ -103,8 +105,7 @@ class ReplaceCartLineForm(AddToCartForm):
         return super(AddToCartForm, self).clean()
 
     def get_variant(self, cleaned_data):
-        """In cart formsets product is already the variant we want"""
-        return self.product
+        return self.variant
 
     def save(self):
         """Replaces the selected product's quantity in cart"""

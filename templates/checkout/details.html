@@ -68,9 +68,9 @@
                         {% for item, item_price_per_item, item_price_total in delivery %}
                             <tr>
                                 <td class="noborder">
-                                    {{ item.product.product }}{% if item.quantity != 1 %} <span class="badge">×{{ item.quantity }}</span>{% endif %}
+                                    {{ item.variant.product }}{% if item.quantity != 1 %} <span class="badge">×{{ item.quantity }}</span>{% endif %}
                                     <br>
-                                    <small>{{ item.product }}</small>
+                                    <small>{{ item.variant }}</small>
                                 </td>
                                 <td class="noborder text-right">{% net item_price_total %}</td>
                             </tr>

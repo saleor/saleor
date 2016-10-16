@@ -14,7 +14,7 @@ type CartUpdateTotal = {
 
 type CartUpdateSubtotal = {
   type: 'UPDATE_SUBTOTAL';
-  productId: number;
+  variantId: number;
   subtotal: string
 };
 
@@ -33,8 +33,8 @@ const cart = (state: CartState = defaultState, action: CartAction) => {
         total: action.total
       }
     case ('UPDATE_SUBTOTAL'):
-      const { productId, subtotal } = action;
-      const subtotals = { ...state.subtotals, [productId]: subtotal }
+      const { variantId, subtotal } = action;
+      const subtotals = { ...state.subtotals, [variantId]: subtotal }
       return {
         ...state,
         subtotals

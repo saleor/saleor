@@ -155,20 +155,20 @@ class Cart(models.Model, ItemSet):
     def clear(self):
         self.delete()
 
-    def create_line(self, product, quantity, data):
-        line = self.lines.create(product=product, quantity=quantity, data=data)
+    def create_line(self, variant, quantity, data):
+        line = self.lines.create(variant=variant, quantity=quantity, data=data)
         return line
 
-    def get_line(self, product, data=None):
+    def get_line(self, variant, data=None):
         try:
-            return self.lines.get(product=product)
+            return self.lines.get(variant=variant)
         except CartLine.DoesNotExist:
             return None
 
-    def add(self, product, quantity=1, data=None, replace=False,
+    def add(self, variant, quantity=1, data=None, replace=False,
             check_quantity=True):
         cart_line, created = self.lines.get_or_create(
-            product=product, defaults={'quantity': 0, 'data': data})
+            variant=variant, defaults={'quantity': 0, 'data': data})
         if replace:
             new_quantity = quantity
         else:
@@ -179,7 +179,7 @@ class Cart(models.Model, ItemSet):
                 quantity, new_quantity))
 
         if check_quantity:
-            product.check_quantity(new_quantity)
+            variant.check_quantity(new_quantity)
 
         cart_line.quantity = new_quantity
 
@@ -199,7 +199,7 @@ class Cart(models.Model, ItemSet):
 class CartLine(models.Model, ItemLine):
 
     cart = models.ForeignKey(Cart, related_name='lines')
-    product = models.ForeignKey(
+    variant = models.ForeignKey(
         ProductVariant, related_name='+',
         verbose_name=pgettext_lazy('Cart line', 'product'))
     quantity = models.PositiveIntegerField(
@@ -209,17 +209,17 @@ class CartLine(models.Model, ItemLine):
 
 
     class Meta:
-        unique_together = ('cart', 'product', 'data')
+        unique_together = ('cart', 'variant', 'data')
 
     def __str__(self):
-        return smart_str(self.product)
+        return smart_str(self.variant)
 
     # Satchless
     def __eq__(self, other):
         if not isinstance(other, CartLine):
             return NotImplemented
 
-        return (self.product == other.product and
+        return (self.variant == other.variant and
                 self.quantity == other.quantity and
                 self.data == other.data)
 
@@ -227,14 +227,14 @@ class CartLine(models.Model, ItemLine):
         return not self == other  # pragma: no cover
 
     def __repr__(self):
-        return 'CartLine(product=%r, quantity=%r, data=%r)' % (
-            self.product, self.quantity, self.data)
+        return 'CartLine(variant=%r, quantity=%r, data=%r)' % (
+            self.variant, self.quantity, self.data)
 
     def __getstate__(self):
-        return self.product, self.quantity, self.data
+        return self.variant, self.quantity, self.data
 
     def __setstate__(self, data):
-        self.product, self.quantity, self.data = data
+        self.variant, self.quantity, self.data = data
 
     def get_total(self, **kwargs):
         amount = super(CartLine, self).get_total(**kwargs)
@@ -244,7 +244,7 @@ class CartLine(models.Model, ItemLine):
         return self.quantity
 
     def get_price_per_item(self, discounts=None, **kwargs):
-        return self.product.get_price_per_item(discounts=discounts, **kwargs)
+        return self.variant.get_price_per_item(discounts=discounts, **kwargs)
 
     def is_shipping_required(self):
-        return self.product.is_shipping_required()
+        return self.variant.is_shipping_required()
