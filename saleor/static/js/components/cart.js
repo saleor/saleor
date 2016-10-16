@@ -101,11 +101,11 @@ class CartItemAmountSelect extends Component {
             $(this).remove()
           })
         }
-        if (response.hasOwnProperty('productId')) {
-          const { productId, subtotal, total } = response
+        if (response.hasOwnProperty('variantId')) {
+          const { variantId, subtotal, total } = response
           this.props.dispatch({
             type: 'UPDATE_SUBTOTAL',
-            productId,
+            variantId,
             subtotal
           })
           this.props.dispatch({
@@ -222,10 +222,10 @@ const selectQuantities = (state) => ({}) // FIXME: move quantities to store
 
 export const CartItemAmount = connect(selectQuantities)(CartItemAmountSelect);
 
-const renderSubtotal = ({productId, subtotals}) => {
+const renderSubtotal = ({variantId, subtotals}) => {
   let value;
-  if (subtotals.hasOwnProperty(productId)) {
-    value = subtotals[productId]
+  if (subtotals.hasOwnProperty(variantId)) {
+    value = subtotals[variantId]
   }
   return <span>{value}</span>
 }

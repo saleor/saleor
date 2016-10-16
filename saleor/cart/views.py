@@ -60,17 +60,17 @@ def add_to_cart(request, cart, product_id):
 
 
 @get_or_empty_db_cart
-def update(request, cart, product_id):
+def update(request, cart, variant_id):
     if not request.is_ajax():
         return redirect('cart:index')
-    variant = get_object_or_404(ProductVariant, pk=product_id)
+    variant = get_object_or_404(ProductVariant, pk=variant_id)
     discounts = request.discounts
     status = None
     form = ReplaceCartLineForm(request.POST, cart=cart, variant=variant,
                                discounts=discounts)
     if form.is_valid():
         form.save()
-        response = {'productId': product_id,
+        response = {'productId': variant_id,
                     'subtotal': 0,
                     'total': 0}
         updated_line = cart.get_line(form.cart_line.variant)
