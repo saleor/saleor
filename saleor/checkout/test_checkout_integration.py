@@ -45,7 +45,7 @@ def test_checkout_flow(product, variant, client):
     cart_page = client.get(urls['cart'])
     cart_lines = cart_page.context['cart_lines']
     assert len(cart_lines) == cart.lines.count()
-    assert cart_lines[0]['product'] == variant
+    assert cart_lines[0]['variant'] == variant
     # Enter checkout
     checkout_index = client.get(urls['checkout_index'])
     # Checkout index redirects directly to shipping address step

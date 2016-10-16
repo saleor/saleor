@@ -17,17 +17,17 @@ from ..product.models import Product, ProductVariant
 
 @get_or_empty_db_cart
 def index(request, cart):
-    cart_lines = cart.lines.select_related('product')
+    cart_lines = cart.lines.select_related('variant')
     check_product_availability_and_warn(request, cart_lines)
     discounts = request.discounts
     cart_lines = []
 
     for line in cart:
         initial = {'quantity': line.get_quantity()}
-        form = ReplaceCartLineForm(None, cart=cart, product=line.product,
+        form = ReplaceCartLineForm(None, cart=cart, variant=line.variant,
                                    initial=initial, discounts=discounts)
         cart_lines.append({
-            'product': line.product,
+            'variant': line.variant,
             'get_price_per_item': line.get_price_per_item(discounts),
             'get_total': line.get_total(discounts=discounts),
             'form': form})
@@ -63,17 +63,17 @@ def add_to_cart(request, cart, product_id):
 def update(request, cart, product_id):
     if not request.is_ajax():
         return redirect('cart:index')
-    product = get_object_or_404(ProductVariant, pk=product_id)
+    variant = get_object_or_404(ProductVariant, pk=product_id)
     discounts = request.discounts
     status = None
-    form = ReplaceCartLineForm(request.POST, cart=cart, product=product,
+    form = ReplaceCartLineForm(request.POST, cart=cart, variant=variant,
                                discounts=discounts)
     if form.is_valid():
         form.save()
         response = {'productId': product_id,
                     'subtotal': 0,
                     'total': 0}
-        updated_line = cart.get_line(form.cart_line.product)
+        updated_line = cart.get_line(form.cart_line.variant)
         if updated_line:
             response['subtotal'] = currencyfmt(
                 updated_line.get_total(discounts=discounts).gross,
