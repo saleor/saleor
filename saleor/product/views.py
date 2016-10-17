@@ -34,7 +34,7 @@ def product_details(request, slug, product_id):
     templates = [template_name, 'product/details.html']
     return TemplateResponse(
         request, templates,
-        {'product': product, 'form': form, 'is_available': is_visible})
+        {'product': product, 'form': form, 'is_visible': is_visible})
 
 
 def category_index(request, path, category_id):
