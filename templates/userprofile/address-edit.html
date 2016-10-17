@@ -17,7 +17,7 @@
 {% block content %}
 <div class="row">
     <div class="col-sm-8 col-sm-push-2">
-        <form action="." method="post" novalidate>
+        <form method="post" novalidate>
             {% csrf_token %}
             <h4>{% trans "Address" %}</h4>
             <br>

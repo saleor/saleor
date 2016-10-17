@@ -1,6 +1,6 @@
 {% load i18n %}
 
-<form action="{% url "dashboard:sale-delete" pk=sale.pk %}" method="post">
+<form action="{% url "dashboard:sale-delete" pk=sale.pk %}" method="post" novalidate>
     {% csrf_token %}
     <div class="modal-content">
         <h5>{% trans "Are you sure?" %}</h5>

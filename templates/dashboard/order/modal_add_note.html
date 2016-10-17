@@ -1,7 +1,7 @@
 {% load i18n %}
 {% load materializecss %}
 
-<form role="form" method="post" action="{% url 'dashboard:order-add-note' order_pk=order.pk %}" class="form-async">
+<form role="form" method="post" action="{% url 'dashboard:order-add-note' order_pk=order.pk %}" class="form-async" novalidate>
     {% csrf_token %}
     <div class="modal-content">
         <h5>{% trans "Add note" %}</h5>

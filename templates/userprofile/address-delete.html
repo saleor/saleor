@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <form action="." method="post">
+    <form method="post" novalidate>
         {% csrf_token %}
         <button type="submit" class="btn btn-danger">{% trans "Delete" %}</button>
         <a href="{% url 'profile:details' %}" class="btn btn-link">{% trans "Cancel" %}</a>

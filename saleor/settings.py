@@ -241,23 +241,24 @@ GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
 PAYMENT_MODEL = 'order.Payment'
 
 PAYMENT_VARIANTS = {
-    'default': ('payments.dummy.DummyProvider', {})
-}
+    'default': ('payments.dummy.DummyProvider', {})}
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 CHECKOUT_PAYMENT_CHOICES = [
-    ('default', 'Dummy provider')
-]
+    ('default', 'Dummy provider')]
 
 MESSAGE_TAGS = {
-    messages.ERROR: 'danger',
-}
+    messages.ERROR: 'danger'}
 
 LOW_STOCK_THRESHOLD = 10
 
 PAGINATE_BY = 16
+
+BOOTSTRAP3 = {
+    'set_required': False,
+    'success_css_class': ''}
 
 TEST_RUNNER = ''
 

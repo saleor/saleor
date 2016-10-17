@@ -30,7 +30,7 @@
 {% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
-    <form method="post" id="form-category" enctype="multipart/form-data">
+    <form method="post" id="form-category" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
         <div class="row">
             <div class="col l8">

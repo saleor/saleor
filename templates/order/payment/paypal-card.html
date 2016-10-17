@@ -5,7 +5,7 @@
 {% load i18n %}
 
 {% block forms %}
-    <form method="post" class="form-horizontal">
+    <form method="post" class="form-horizontal" novalidate>
         {% csrf_token %}
         {% bootstrap_form form layout='horizontal' %}
         <div class="form-group">

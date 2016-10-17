@@ -9,7 +9,7 @@
     <div class="col-sm-6">
         <div class="panel panel-default">
             <div class="panel-body">
-                <form method="post" action="{% url 'registration:login' %}">
+                <form method="post" action="{% url 'registration:login' %}" novalidate>
                     {% csrf_token %}
                     <fieldset>
                         <legend>{% trans 'Log in' %}</legend>

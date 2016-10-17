@@ -12,7 +12,7 @@
 
 {% block content %}
     <p>{% trans "Are you sure you want to delete the following attribute?" %}</p>
-    <form method="post">
+    <form method="post" novalidate>
         {% csrf_token %}
         <div class="row">
             <ul class="collection">

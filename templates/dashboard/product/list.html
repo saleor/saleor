@@ -16,7 +16,7 @@
                 <i class="material-icons">add</i>
             </a>
         {% else %}
-            <form method="post" action=".">
+            <form method="post" novalidate>
                 <div hidden>
                     {% csrf_token %}
                     {{ form }}
@@ -66,7 +66,7 @@
     </div>
     <div id="modal-product-class" class="modal">
         <div class="modal-content">
-            <form method="post" action=".">
+            <form method="post" novalidate>
                 {% csrf_token %}
                 <div class="row">
                     {{ form|materializecss }}

@@ -9,7 +9,7 @@
 
 <div class="modal-footer">
     <form id="release-form" method="post" role="form" class="form-async"
-          action="{% url 'dashboard:release-payment' order_pk=order.pk payment_pk=payment.pk %}">
+          action="{% url 'dashboard:release-payment' order_pk=order.pk payment_pk=payment.pk %}" novalidate>
         {% csrf_token %}
 
         <button type="submit" class="modal-action btn-flat blue-text">{% trans "Release" %}</button>
