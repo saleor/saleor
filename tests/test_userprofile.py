@@ -24,9 +24,10 @@ def test_address_form_for_country(country):
         'first_name': 'John',
         'last_name': 'Doe',
         'country': country}
-    form = forms.AddressForm(data)
+    form = forms.get_address_form(data, country_code=country)[0]
     errors = form.errors
-    required = i18naddress.validate_areas(country)[0]
+    rules = i18naddress.get_validation_rules({'country_code': country})
+    required = rules.required_fields
     if 'street_address' in required:
         assert 'street_address_1' in errors
     else:
@@ -53,8 +54,8 @@ def test_address_form_postal_code_validation():
     data = {
         'first_name': 'John',
         'last_name': 'Doe',
-        'country': 'PE',
+        'country': 'PL',
         'postal_code': 'XXX'}
-    form = forms.AddressForm(data)
+    form = forms.get_address_form(data, country_code='PL')[0]
     errors = form.errors
     assert 'postal_code' in errors

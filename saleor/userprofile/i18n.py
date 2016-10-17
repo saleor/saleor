@@ -115,8 +115,9 @@ class CountryAwareAddressForm(AddressForm):
     def validate_address(self, data):
         try:
             data['country_code'] = data['country']
-            data['street_address'] = '%s\n%s' % (
-                data['street_address_1'], data['street_address_2'])
+            if data['street_address_1'] or data['street_address_2']:
+                data['street_address'] = '%s\n%s' % (
+                    data['street_address_1'], data['street_address_2'])
             data = i18naddress.normalize_address(data)
             del data['sorting_code']
         except i18naddress.InvalidAddress as exc:
@@ -134,7 +135,7 @@ def get_address_form_class(country_code):
 
 def get_form_18n_lines(form_instance):
     country_code = form_instance.i18n_country_code
-    fields_order = i18naddress.get_fields_order({'country_code': country_code})
+    fields_order = i18naddress.get_field_order({'country_code': country_code})
     field_mapping = dict(form_instance.I18N_MAPPING)
 
     def _convert_to_bound_fields(form, i18n_field_names):
