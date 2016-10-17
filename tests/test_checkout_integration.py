@@ -2,11 +2,10 @@ from django.contrib.sites.models import Site
 from django.core import signing
 from django.core.urlresolvers import reverse
 
-from ..cart.test_cart import variant, product  #    noqa
-from ..cart.models import Cart
-from ..shipping.models import ShippingMethod
-from ..order import Status as OrderStatus
-from ..order.models import Order
+from saleor.cart.models import Cart
+from saleor.order import Status as OrderStatus
+from saleor.order.models import Order
+from saleor.shipping.models import ShippingMethod
 
 
 def assert_redirect(response, expected_url):
@@ -18,12 +17,12 @@ def assert_redirect(response, expected_url):
     assert location == expected_url
 
 
-def test_checkout_flow(product, variant, client):
+def test_checkout_flow(product_in_stock, client):
     """
     Basic test case that confirms if core checkout flow works
     """
+    variant = product_in_stock.variants.get()
     # Prepare some data
-    variant.stock.create(quantity=100, location='Warehouse')
     cart = Cart.objects.create()
     cart.add(variant)
     shipping_method = ShippingMethod.objects.create(name='DHL')

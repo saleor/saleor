@@ -15,7 +15,7 @@ script:
   - tox
 env:
   global:
-    - DJANGO_SETTINGS_MODULE=saleor.test_settings
+    - DJANGO_SETTINGS_MODULE=tests.settings
   matrix:
     - TOXENV=py27-django18
     - TOXENV=py27-django110

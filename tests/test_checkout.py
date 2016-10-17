@@ -1,14 +1,13 @@
-from mock import Mock, MagicMock
-
+import pytest
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from mock import MagicMock, Mock
 from prices import Price
-import pytest
 
-from .core import Checkout, STORAGE_SESSION_KEY
-from ..shipping.models import ShippingMethodCountry
-from ..userprofile.models import Address
-from . import views
+from saleor.checkout import views
+from saleor.checkout.core import STORAGE_SESSION_KEY, Checkout
+from saleor.shipping.models import ShippingMethodCountry
+from saleor.userprofile.models import Address
 
 
 def test_checkout_version():

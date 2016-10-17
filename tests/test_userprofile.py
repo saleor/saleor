@@ -4,8 +4,7 @@ from __future__ import unicode_literals
 import i18naddress
 import pytest
 
-from . import forms
-from . import models
+from saleor.userprofile import forms, models
 
 
 @pytest.fixture

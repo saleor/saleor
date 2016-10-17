@@ -1,7 +1,7 @@
-from mock import Mock
 import pytest
+from mock import Mock
 
-from . import get_country_by_ip, get_currency_for_country, Country
+from saleor.core import Country, get_country_by_ip, get_currency_for_country
 
 
 @pytest.mark.parametrize('reader, expected_country', [

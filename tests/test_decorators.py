@@ -2,9 +2,9 @@ import pytest
 from django.contrib.auth.models import AnonymousUser
 from mock import Mock
 
-from .core import get_or_empty_db_cart
-from ..cart import decorators
-from ..cart.models import Cart
+from saleor.cart import decorators
+from saleor.cart.decorators import get_or_empty_db_cart
+from saleor.cart.models import Cart
 
 
 def get_request(django_user_model, cookie_token, authenticated=True):

@@ -1,24 +1,18 @@
 from unittest import TestCase
 
-from django.core.urlresolvers import resolve
+import pytest
 from django.conf import settings
+from django.core.urlresolvers import resolve
 from django.http import HttpRequest
 from django.test import override_settings
-from mock import call, Mock, MagicMock, patch, sentinel
+from mock import MagicMock, Mock, call, patch, sentinel
 from purl import URL
-import pytest
 
-from .forms import OAuth2CallbackForm
-from .utils import (
-    FACEBOOK,
-    FacebookClient,
-    GOOGLE,
-    GoogleClient,
-    OAuth2RequestAuthorizer,
-    OAuth2Client,
-    parse_response)
-from .views import oauth_callback, change_email
-
+from saleor.registration.forms import OAuth2CallbackForm
+from saleor.registration.utils import (FACEBOOK, GOOGLE, FacebookClient,
+                                       GoogleClient, OAuth2Client,
+                                       OAuth2RequestAuthorizer, parse_response)
+from saleor.registration.views import change_email, oauth_callback
 
 JSON_MIME_TYPE = 'application/json; charset=UTF-8'
 URLENCODED_MIME_TYPE = 'application/x-www-form-urlencoded; charset=UTF-8'

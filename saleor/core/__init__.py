@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 from babel.numbers import get_territory_currencies
 from django.conf import settings
-from django.core.checks import register, Tags, Warning
+from django.core.checks import register, Warning
 from django_countries import countries
 from django_countries.fields import Country
 from geolite2 import geolite2
