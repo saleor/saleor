@@ -21,6 +21,11 @@
 {% endblock breadcrumb %}
 
 {% block outercontent %}
+{% if not is_visible %}
+    <div class="alert alert-warning" role="alert">
+        {% blocktrans with date=product.available_on|date %}<strong>Warning!</strong> You are previewing a product that will become visible on <strong>{{ date }}</strong>.{% endblocktrans %}
+    </div>
+{% endif %}
 <div itemscope itemtype="http://schema.org/Product">
     <div class="row">
         <div class="col-sm-6 col-sm-push-6">
@@ -58,7 +63,7 @@
                 <hr>
             </div>
 
-            {% if product.is_in_stock %}
+            {% if is_visible and product.is_in_stock %}
                 {% block orderform %}
                 <form role="form" class="product-form form-vertical" method="post"
                  action="{% url 'cart:add-to-cart' product_id=product.pk %}?next={{ product.get_absolute_url }}" novalidate>

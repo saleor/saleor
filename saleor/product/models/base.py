@@ -21,7 +21,7 @@ from unidecode import unidecode
 from versatileimagefield.fields import VersatileImageField
 
 from ...discount.models import get_variant_discounts
-from ..utils import get_attributes_display_map
+from .utils import get_attributes_display_map
 from .fields import WeightField
 
 
@@ -66,7 +66,7 @@ class Category(MPTTModel):
 
 class ProductManager(InheritanceManager):
     def get_available_products(self):
-        today = datetime.datetime.today()
+        today = datetime.date.today()
         return self.get_queryset().filter(
             Q(available_on__lte=today) | Q(available_on__isnull=True))
 
