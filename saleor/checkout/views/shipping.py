@@ -2,7 +2,7 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
 from ..forms import AnonymousUserShippingForm, ShippingAddressesForm
-from ...userprofile.forms import AddressForm, get_address_form
+from ...userprofile.forms import get_address_form
 from ...userprofile.models import Address
 
 
@@ -34,21 +34,26 @@ def user_shipping_address_view(request, checkout):
     shipping_address = checkout.shipping_address
 
     if shipping_address is not None and shipping_address.id:
-        address_form = AddressForm(
-            data, autocomplete_type='shipping', initial={'country': request.country})
+        address_form, preview = get_address_form(
+            data, country_code=request.country.code,
+            initial={'country': request.country})
         addresses_form = ShippingAddressesForm(
             data, additional_addresses=additional_addresses,
             initial={'address': shipping_address.id})
     elif shipping_address:
-        address_form = AddressForm(data, instance=shipping_address)
+        address_form, preview = get_address_form(
+            data, country_code=shipping_address.country.code,
+            instance=shipping_address)
         addresses_form = ShippingAddressesForm(
             data, additional_addresses=additional_addresses)
     else:
-        address_form = AddressForm(data, initial={'country': request.country})
+        address_form, preview = get_address_form(
+            data, initial={'country': request.country},
+            country_code=request.country.code)
         addresses_form = ShippingAddressesForm(
             data, additional_addresses=additional_addresses)
 
-    if addresses_form.is_valid():
+    if addresses_form.is_valid() and not preview:
         if addresses_form.cleaned_data['address'] != ShippingAddressesForm.NEW_ADDRESS:
             address_id = addresses_form.cleaned_data['address']
             checkout.shipping_address = Address.objects.get(id=address_id)

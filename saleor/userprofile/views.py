@@ -7,7 +7,7 @@ from django.template.response import TemplateResponse
 from django.views.decorators.http import require_POST
 from django.utils.translation import ugettext as _
 
-from .forms import AddressForm
+from .forms import get_address_form
 
 
 @login_required
@@ -25,8 +25,10 @@ def orders(request):
 @login_required
 def address_edit(request, pk):
     address = get_object_or_404(request.user.addresses, pk=pk)
-    address_form = AddressForm(request.POST or None, instance=address)
-    if address_form.is_valid():
+    address_form, preview = get_address_form(
+        request.POST or None, instance=address,
+        country_code=address.country.code)
+    if address_form.is_valid() and not preview:
         address_form.save()
         message = _('Address successfully updated.')
         messages.success(request, message)
@@ -39,9 +41,10 @@ def address_edit(request, pk):
 @login_required
 def address_create(request):
     user = request.user
-    address_form = AddressForm(
-        request.POST or None, initial={'country': request.country})
-    if address_form.is_valid():
+    address_form, preview = get_address_form(
+        request.POST or None, initial={'country': request.country},
+        country_code=request.country.code)
+    if address_form.is_valid() and not preview:
         address = address_form.save()
         user.addresses.add(address)
         user.default_shipping_address = address
