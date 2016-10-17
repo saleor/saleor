@@ -115,11 +115,12 @@ class CountryAwareAddressForm(AddressForm):
     def validate_address(self, data):
         try:
             data['country_code'] = data['country']
+            data['street_address'] = '%s\n%s' % (
+                data['street_address_1'], data['street_address_2'])
             data = i18naddress.normalize_address(data)
             del data['sorting_code']
         except i18naddress.InvalidAddress as exc:
             self.add_field_errors(exc.errors)
-        import ipdb;ipdb.set_trace()
         return data
 
     def clean(self):

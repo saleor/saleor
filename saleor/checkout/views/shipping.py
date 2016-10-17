@@ -2,30 +2,22 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
 from ..forms import AnonymousUserShippingForm, ShippingAddressesForm
-from ...userprofile.forms import AddressForm
+from ...userprofile.forms import AddressForm, get_address_form
 from ...userprofile.models import Address
-from ...i18n_address_forms.forms import COUNTRY_FORMS
 
 
 def anonymous_user_shipping_address_view(request, checkout):
-    data = request.POST or None
-    shipping_address = checkout.shipping_address
-    country_code = request.country.code if request.country else 'US'
 
-    address_form_class = COUNTRY_FORMS[country_code]
+    address_form, preview = get_address_form(
+        request.POST or None, country_code=request.country.code,
+        autocomplete_type='shipping',
+        initial={'country': request.country.code},
+        instance=checkout.shipping_address)
 
-    if shipping_address is not None:
-        address_form_class = COUNTRY_FORMS[shipping_address.country.code]
-        address_form = address_form_class(
-            data, instance=checkout.shipping_address,
-            autocomplete_type='shipping')
-    else:
-        address_form = address_form_class(
-            data, autocomplete_type='shipping',
-            initial={'country': country_code})
     user_form = AnonymousUserShippingForm(
-        data, initial={'email': checkout.email})
-    if user_form.is_valid() and address_form.is_valid():
+        not preview and request.POST or None, initial={'email': checkout.email}
+        if not preview else request.POST.dict())
+    if all([user_form.is_valid(), address_form.is_valid()]):
         checkout.shipping_address = address_form.instance
         checkout.email = user_form.cleaned_data['email']
         return redirect('checkout:shipping-method')

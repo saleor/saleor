@@ -3,7 +3,7 @@ from django.template.response import TemplateResponse
 
 from ..forms import (
     AnonymousUserBillingForm, BillingAddressesForm, BillingWithoutShippingAddressForm)
-from ...userprofile.forms import AddressForm
+from ...userprofile.forms import AddressForm, get_address_form
 from ...userprofile.models import Address
 
 
@@ -18,13 +18,20 @@ def create_order(checkout):
 
 def get_billing_forms_with_shipping(data, addresses, billing_address, shipping_address):
     if Address.objects.are_identical(billing_address, shipping_address):
-        address_form = AddressForm(data, autocomplete_type='billing')
+        address_form = get_address_form(
+            data, country_code=shipping_address.country.code,
+            autocomplete_type='billing',
+            initial={'country': shipping_address.country.code},
+            instance=None)[0]
         addresses_form = BillingAddressesForm(
             data, additional_addresses=addresses, initial={
                 'address': BillingAddressesForm.SHIPPING_ADDRESS})
     elif billing_address.id is None:
-        address_form = AddressForm(
-            data, instance=billing_address, autocomplete_type='billing')
+        address_form = get_address_form(
+            data, country_code=billing_address.country.code,
+            autocomplete_type='billing',
+            initial={'country': billing_address.country.code},
+            instance=billing_address)[0]
         addresses_form = BillingAddressesForm(
             data, additional_addresses=addresses, initial={
                 'address': BillingAddressesForm.NEW_ADDRESS})
@@ -96,7 +103,8 @@ def summary_without_shipping(request, checkout):
             initial={'address': billing_address.id})
     elif billing_address:
         address_form = AddressForm(
-            request.POST or None, autocomplete_type='billing', instance=billing_address)
+            request.POST or None, autocomplete_type='billing',
+            instance=billing_address)
         addresses_form = BillingWithoutShippingAddressForm(
             request.POST or None, additional_addresses=user_addresses)
     else:
