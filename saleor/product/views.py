@@ -10,20 +10,12 @@ from django.template.response import TemplateResponse
 from ..cart.decorators import get_cart_from_request
 from ..core.utils import get_paginator_items
 from .forms import get_form_class_for_product
-from .models import Category, Product
+from .models import Category
+from .utils import products_with_details
 
 
 def product_details(request, slug, product_id):
-    if (request.user.is_authenticated() and
-            request.user.is_active and request.user.is_staff):
-        products = Product.objects.all()
-    else:
-        products = Product.objects.get_available_products()
-    products = products.select_subclasses()
-    products = products.prefetch_related('categories', 'images',
-                                         'variants__stock',
-                                         'variants__variant_images__image',
-                                         'attributes__values')
+    products = products_with_details(user=request.user)
     product = get_object_or_404(products, id=product_id)
     if product.get_slug() != slug:
         return HttpResponsePermanentRedirect(product.get_absolute_url())

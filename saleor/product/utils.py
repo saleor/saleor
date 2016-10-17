@@ -1,12 +1,19 @@
-def get_attributes_display_map(variant, attributes):
-    display = {}
-    for attribute in attributes:
-        value = variant.get_attribute(attribute.pk)
-        if value:
-            choices = {a.pk: a for a in attribute.values.all()}
-            attr = choices.get(value)
-            if attr:
-                display[attribute.pk] = attr
-            else:
-                display[attribute.pk] = value
-    return display
+from .models import Product
+
+
+def products_visible_to_user(user):
+    if (user.is_authenticated() and
+            user.is_active and user.is_staff):
+        return Product.objects.all()
+    else:
+        return Product.objects.get_available_products()
+
+
+def products_with_details(user):
+    products = products_visible_to_user(user)
+    products = products.select_subclasses()
+    products = products.prefetch_related('categories', 'images',
+                                         'variants__stock',
+                                         'variants__variant_images__image',
+                                         'attributes__values')
+    return products

@@ -21,7 +21,7 @@ from unidecode import unidecode
 from versatileimagefield.fields import VersatileImageField
 
 from ...discount.models import get_variant_discounts
-from ..utils import get_attributes_display_map
+from .utils import get_attributes_display_map
 from .fields import WeightField
 
 
