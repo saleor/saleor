@@ -4,7 +4,32 @@ from __future__ import unicode_literals
 import pytest
 
 from saleor.product.models import Product, ProductVariant, Stock
-from saleor.userprofile.models import Address
+from saleor.userprofile.models import Address, User
+
+
+@pytest.fixture()
+def admin_user(db):
+    """A Django admin user.
+
+    This uses an existing user with username "admin", or creates a new one with
+    password "password".
+    """
+    try:
+        user = User.objects.get(email='admin@example.com')
+    except User.DoesNotExist:
+        user = User.objects.create_superuser(
+            'admin@example.com', 'password')
+    return user
+
+
+@pytest.fixture()
+def admin_client(db, admin_user):
+    """A Django test client logged in as an admin user."""
+    from django.test.client import Client
+
+    client = Client()
+    client.login(username=admin_user.email, password='password')
+    return client
 
 
 @pytest.fixture

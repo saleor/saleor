@@ -22,9 +22,9 @@
 
 {% block outercontent %}
 {% if not is_visible %}
-<div class="alert alert-warning" role="alert">
-    {% blocktrans with date=product.available_on|date %}<strong>Warning!</strong> You are previewing a product that will become visible on <strong>{{ date }}</strong>.{% endblocktrans %}
-</div>
+    <div class="alert alert-warning" role="alert">
+        {% blocktrans with date=product.available_on|date %}<strong>Warning!</strong> You are previewing a product that will become visible on <strong>{{ date }}</strong>.{% endblocktrans %}
+    </div>
 {% endif %}
 <div itemscope itemtype="http://schema.org/Product">
     <div class="row">
