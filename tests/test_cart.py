@@ -1,18 +1,15 @@
 from __future__ import unicode_literals
 
 import json
-from decimal import Decimal
 
 import pytest
 from django.core.exceptions import ObjectDoesNotExist
 from mock import MagicMock, Mock
-from prices import Price
-from satchless.item import InsufficientStock
 
-from saleor.cart import decorators, forms, utils, views
+from saleor.cart import decorators, forms, utils
 from saleor.cart.context_processors import cart_counter
 from saleor.cart.models import Cart
-from saleor.product.models import Product, ProductVariant
+from satchless.item import InsufficientStock
 
 
 @pytest.fixture
