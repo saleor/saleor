@@ -13,5 +13,8 @@
         {% endfor %}
     {% endif %}
 {% endwith %}
+{% for field in address_form.hidden_fields %}
+    {{ field }}
+{% endfor %}
 {% bootstrap_field address_form.country %}
 <input type="checkbox" name="preview">

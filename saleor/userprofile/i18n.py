@@ -163,13 +163,18 @@ def update_base_fields(form_class, i18n_rules):
         field = form_class.base_fields[field_name]
         field.label = AREA_TYPE_TRANSLATIONS[area_type]
 
+    hidden_fields = i18naddress.KNOWN_FIELDS - i18n_rules.allowed_fields
+    for field_name in hidden_fields:
+        if field_name in form_class.base_fields:
+            form_class.base_fields[field_name].widget = forms.HiddenInput()
+
 
 def construct_address_form(country_code, i18n_rules):
     class_name = 'AddressForm%s' % country_code
     base_class = CountryAwareAddressForm
     form_kwargs = {
         'Meta': type(str('Meta'), (base_class.Meta, object), {}),
-        'formfield_callback': None,}
+        'formfield_callback': None}
     class_ = type(base_class)(str(class_name), (base_class,), form_kwargs)
     update_base_fields(class_, i18n_rules)
     class_.i18n_country_code = country_code
@@ -179,7 +184,8 @@ def construct_address_form(country_code, i18n_rules):
 
 for country in COUNTRIES.keys():
     try:
-        country_rules = i18naddress.get_validation_rules({'country_code': country})
+        country_rules = i18naddress.get_validation_rules(
+            {'country_code': country})
     except ValueError:
         country_rules = i18naddress.get_validation_rules({})
 
