@@ -1,8 +1,11 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
+import urllib
+
 import i18naddress
 import pytest
+from django.http import QueryDict
 
 from saleor.userprofile import forms, models
 
@@ -59,3 +62,30 @@ def test_address_form_postal_code_validation():
     form = forms.get_address_form(data, country_code='PL')[0]
     errors = form.errors
     assert 'postal_code' in errors
+
+@pytest.mark.parametrize('form_data, form_valid, expected_preview, expected_country',[
+    ({'preview': True}, False, True, 'PL'),
+    ({'preview': False,
+      'street_address_1': 'Foo bar',
+      'postal_code': '00-123',
+      'city': 'Warsaw'
+      }, True, False, 'PL'),
+    ({'preview': True, 'country': 'US'}, False, True, 'US'),
+    ({'preview': False,
+      'street_address_1': 'Foo bar',
+      'postal_code': '0213',
+      'city': 'Warsaw'
+      }, False, False, 'PL'),
+])
+def test_get_address_form(form_data, form_valid, expected_preview, expected_country):
+    data = {
+        'first_name': 'John',
+        'last_name': 'Doe',
+        'country': 'PL'}
+    data.update(form_data)
+    query_dict = urllib.urlencode(data)
+    form, preview = forms.get_address_form(
+        data=QueryDict(query_dict), country_code=data['country'])
+    assert preview is expected_preview
+    assert form.is_valid() is form_valid
+    assert form.i18n_country_code == expected_country
