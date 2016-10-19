@@ -25,7 +25,10 @@ def test_product_page_redirects_to_correct_slug(client, product_in_stock):
     uri = uri.replace(product_in_stock.get_slug(), 'spanish-inquisition')
     response = client.get(uri)
     assert response.status_code == 301
-    assert response['location'] == product_in_stock.get_absolute_url()
+    location = response['location']
+    if location.startswith('http'):
+        location = location.split('http://testserver')[1]
+    assert location == product_in_stock.get_absolute_url()
 
 
 def test_product_preview(admin_client, client, product_in_stock):
