@@ -17,6 +17,14 @@ def cart(db):  # pylint: disable=W0613
     return Cart.objects.create()
 
 
+@pytest.fixture
+def request_cart(cart, monkeypatch):
+    monkeypatch.setattr(
+        decorators, 'get_cart_from_request',
+        lambda request, create=False: cart)
+    return cart
+
+
 def test_adding_without_checking(cart, product_in_stock):
     variant = product_in_stock.variants.get()
     cart.add(variant, 1000, check_quantity=False)
@@ -247,45 +255,32 @@ def test_replace_cartline_form_when_insufficient_stock(
     assert cart.quantity == initial_quantity
 
 
-def test_view_empty_cart(cart, client, monkeypatch):
-    monkeypatch.setattr(
-        decorators, 'get_cart_from_request',
-        lambda request: cart)
+def test_view_empty_cart(client, request_cart):
     response = client.get('/cart/')
     assert response.status_code == 200
 
 
-def test_view_cart(cart, client, monkeypatch, product_in_stock):
+def test_view_cart(client, product_in_stock, request_cart):
     variant = product_in_stock.variants.get()
-    cart.add(variant, 1)
-    monkeypatch.setattr(
-        decorators, 'get_cart_from_request',
-        lambda request: cart)
+    request_cart.add(variant, 1)
     response = client.get('/cart/')
     assert response.status_code == 200
 
 
-def test_view_update_cart_quantity(
-        monkeypatch, client, cart, product_in_stock):
+def test_view_update_cart_quantity(client, product_in_stock, request_cart):
     variant = product_in_stock.variants.get()
-    cart.add(variant, 1)
-    monkeypatch.setattr(
-        decorators, 'get_cart_from_request',
-        lambda request: cart)
+    request_cart.add(variant, 1)
     response = client.post(
         '/cart/update/%s/' % (variant.pk,),
         {'quantity': 3},
         HTTP_X_REQUESTED_WITH='XMLHttpRequest')
     assert response.status_code == 200
-    assert cart.quantity == 3
+    assert request_cart.quantity == 3
 
 
-def test_view_invalid_update_cart(cart, client, monkeypatch, product_in_stock):
+def test_view_invalid_update_cart(client, product_in_stock, request_cart):
     variant = product_in_stock.variants.get()
-    cart.add(variant, 1)
-    monkeypatch.setattr(
-        decorators, 'get_cart_from_request',
-        lambda request: cart)
+    request_cart.add(variant, 1)
     response = client.post(
         '/cart/update/%s/' % (variant.pk,),
         {},
@@ -293,28 +288,50 @@ def test_view_invalid_update_cart(cart, client, monkeypatch, product_in_stock):
     resp_decoded = json.loads(response.content.decode('utf-8'))
     assert response.status_code == 400
     assert 'error' in resp_decoded.keys()
-    assert cart.quantity == 1
+    assert request_cart.quantity == 1
 
 
-def test_view_invalid_add_to_cart(cart, client, monkeypatch, product_in_stock):
+def test_view_invalid_add_to_cart(client, product_in_stock, request_cart):
     variant = product_in_stock.variants.get()
-    cart.add(variant, 2)
-    monkeypatch.setattr(
-        decorators, 'get_cart_from_request',
-        lambda request, create: cart)
+    request_cart.add(variant, 2)
     response = client.post('/cart/add/%s/' % (variant.product_id,), {})
     assert response.status_code == 302
-    assert cart.quantity == 2
+    assert request_cart.quantity == 2
 
 
-def test_view_add_to_cart(cart, client, monkeypatch, product_in_stock):
+def test_view_add_to_cart(client, product_in_stock, request_cart):
     variant = product_in_stock.variants.get()
-    cart.add(variant, 1)
-    monkeypatch.setattr(
-        decorators, 'get_cart_from_request',
-        lambda request, create: cart)
+    request_cart.add(variant, 1)
     response = client.post(
         '/cart/add/%s/' % (variant.product_id,),
         {'quantity': 1, 'variant': variant.pk})
     assert response.status_code == 302
-    assert cart.quantity == 2
+    assert request_cart.quantity == 2
+
+
+def test_cart_page_without_openexchagerates(
+        client, product_in_stock, request_cart, settings):
+    settings.OPENEXCHANGERATES_API_KEY = None
+    variant = product_in_stock.variants.get()
+    request_cart.add(variant, 1)
+    response = client.get('/cart/')
+    context = response.context
+    assert context['local_cart_total'] is None
+
+
+def test_cart_page_with_openexchagerates(
+        client, monkeypatch, product_in_stock, request_cart, settings):
+    settings.DEFAULT_CURRENCY = 'USD'
+    settings.DEFAULT_COUNTRY = 'PL'
+    settings.OPENEXCHANGERATES_API_KEY = 'fake-key'
+    variant = product_in_stock.variants.get()
+    request_cart.add(variant, 1)
+    response = client.get('/cart/')
+    context = response.context
+    assert context['local_cart_total'] is None
+    monkeypatch.setattr(
+        'django_prices_openexchangerates.models.get_rates',
+        lambda c: {'PLN': Mock(rate=2)})
+    response = client.get('/cart/')
+    context = response.context
+    assert context['local_cart_total'].currency == 'PLN'
