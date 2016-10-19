@@ -125,7 +125,7 @@ class CountryAwareAddressForm(AddressForm):
         return data
 
     def clean(self):
-        data = super(AddressForm, self).clean()
+        data = super(CountryAwareAddressForm, self).clean()
         return self.validate_address(data)
 
 
@@ -135,7 +135,11 @@ def get_address_form_class(country_code):
 
 def get_form_18n_lines(form_instance):
     country_code = form_instance.i18n_country_code
-    fields_order = i18naddress.get_field_order({'country_code': country_code})
+    try:
+        fields_order = i18naddress.get_field_order(
+            {'country_code': country_code})
+    except ValueError:
+        fields_order = i18naddress.get_field_order({})
     field_mapping = dict(form_instance.I18N_MAPPING)
 
     def _convert_to_bound_fields(form, i18n_field_names):

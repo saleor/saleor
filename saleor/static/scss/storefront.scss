@@ -31,6 +31,19 @@ $icon-font-path: "~bootstrap-sass/assets/fonts/bootstrap/";
 	cursor: pointer;
 }
 
+.i18n-address {
+  .row {
+    @media (min-width: $screen-sm-min) {
+      display: flex;
+
+      .col-sm-4 {
+        float: none;
+        flex: 1;
+      }
+    }
+  }
+}
+
 .popover {
 	min-width: 200px;
 }
