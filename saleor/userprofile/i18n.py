@@ -92,7 +92,7 @@ class CountryAwareAddressForm(AddressForm):
         ('postal_code', ['postal_code']),
         ('city', ['city']),
         ('sorting_code', ['sorting_code']),
-        ('country_code', ['country_code'])
+        ('country_code', ['country'])
     )
 
     class Meta:
@@ -114,7 +114,7 @@ class CountryAwareAddressForm(AddressForm):
 
     def validate_address(self, data):
         try:
-            data['country_code'] = data['country']
+            data['country_code'] = data.get('country', '')
             if data['street_address_1'] or data['street_address_2']:
                 data['street_address'] = '%s\n%s' % (
                     data['street_address_1'], data['street_address_2'])
