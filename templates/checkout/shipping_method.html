@@ -32,7 +32,9 @@
 
 
 {% block forms %}
-    <h3>{% trans "Shipping address" %}</h3>
+    <div class="page-header">
+        <h3>{% trans "Shipping address" %}</h3>
+    </div>
 
     {% include "userprofile/snippets/address-details.html" with address=checkout.shipping_address only %}
 
