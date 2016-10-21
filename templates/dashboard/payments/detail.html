@@ -8,6 +8,8 @@
 
 {% block body_class %}body-payments{% endblock %}
 
+{% block menu_payments_class %}active{% endblock %}
+
 {% block header_menu %}
     {% url "dashboard:payments" as url %}
     {% include "dashboard/includes/_back-link.html" with url=url %}
@@ -15,7 +17,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li><a href="{% url "dashboard:payments" %}">{% trans "Payments" %}</a></li>
+        <li><a href="{% url "dashboard:payments" %}"><i class="material-icons">first_page</i></a></li>
         <li>#{{ payment.id }}</li>
     </ul>
 {% endblock %}

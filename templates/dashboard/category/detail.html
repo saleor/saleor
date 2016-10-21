@@ -7,6 +7,8 @@
 
 {% block body_class %}body-categories{% endblock %}
 
+{% block menu_categories_class %}active{% endblock %}
+
 {% block page_title %}{% if category.pk %}{{ category }}{% else %}{% trans 'Add new category' %}{% endif %}{% endblock %}
 
 {% block breadcrumbs %}

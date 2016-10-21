@@ -18,83 +18,78 @@
 </head>
 
 <body class="{% block body_class %}body-home{% endblock %}">
-    <header class="header">
-        <nav class="top-nav">
-            <div class="container">
-                <div class="nav-wrapper">
-                    {% block header_menu %}
-                        <a href="#" data-activates="side-menu" class="button-collapse header-button"><i class="material-icons">menu</i></a>
-                    {% endblock %}
-                    {% block breadcrumbs %}
-                        <ul class="breadcrumbs">
-                            <li>{% trans "Dashboard" %}</li>
-                        </ul>
-                    {% endblock %}
-                    {% block header_extra %}{% endblock %}
-                </div>
-            </div>
-            <ul class="side-nav fixed" id="side-menu">
-                <li class="brand-logo">
-                    <a href="{% url 'dashboard:index' %}">
-                        <img src="{% static "img/dashboard-logo.svg" %}" alt="Saleor">
-                    </a>
-                </li>
-                <li class="side-nav-user">
-                    <ul class="collapsible collapsible-accordion">
-                        <li>
-                            <a class="waves-effect waves-teal collapsible-header">
-                                <i class="material-icons">account_circle</i>{{ request.user }}
-                            </a>
-                            <div class="collapsible-body">
-                                <ul>
-                                    <li><a href="/" target="_blank" class="waves-effect waves-teal">{% trans "Visit storefront" %}</a></li>
-                                    <li><a href="{% url 'account_logout' %}" class="waves-effect waves-teal">{% trans "Log out" %}</a></li>
-                                </ul>
-                            </div>
-                        </li>
-                    </ul>
-                </li>
-                <li class="nav-home"><a href="{% url 'dashboard:index' %}">{% trans "Home" %}</a></li>
-                <li>
-                    <ul class="collapsible collapsible-accordion" data-collapsible="accordion">
-                        <li>
-                            <a class="waves-effect waves-teal collapsible-header{% block menu_catalogue_class %}{% endblock %}">{% trans "Catalogue" %}</a>
-                            <div class="collapsible-body">
-                                <ul>
-                                    <li class="subnav-products"><a href="{% url 'dashboard:product-list' %}">{% trans "Products" %}</a></li>
-                                    <li class="subnav-attributes"><a href="{% url 'dashboard:product-attributes' %}">{% trans "Attributes" %}</a></li>
-                                    <li class="subnav-categories"><a href="{% url 'dashboard:category-list' %}">{% trans "Categories" %}</a></li>
-                                </ul>
-                            </div>
-                        </li>
-
-                        <li>
-                            <a class="waves-effect waves-teal collapsible-header{% block menu_discounts_class %}{% endblock %}">{% trans "Discounts" %}</a>
-                            <div class="collapsible-body">
-                                <ul>
-                                    <li class="subnav-sales"><a href="{% url 'dashboard:sale-list' %}">{% trans "Sales" %}</a></li>
-                                    <li class="subnav-vouchers"><a href="{% url 'dashboard:voucher-list' %}">{% trans "Vouchers" %}</a></li>
-                                </ul>
-                            </div>
-                        </li>
-
-                        <li>
-                            <a class="waves-effect waves-teal collapsible-header{% block menu_sales_class %}{% endblock %}">{% trans "Sales" %}</a>
-                            <div class="collapsible-body">
-                                <ul>
-                                    <li class="subnav-orders"><a href="{% url 'dashboard:orders' %}">{% trans "Orders" %}</a></li>
-                                    <li class="subnav-customers"><a href="{% url 'dashboard:customers' %}">{% trans "Customers" %}</a></li>
-                                    <li class="subnav-payments"><a href="{% url 'dashboard:payments' %}">{% trans "Payments" %}</a></li>
-                                </ul>
-                            </div>
-                        </li>
-
-                        <li class="{% block menu_delivery_class %}{% endblock %}"><a href="{% url 'dashboard:shipping-methods' %}">{% trans "Shipping methods" %}</a></li>
-                    </ul>
-                </li>
+    <header>
+      <nav class="top-nav">
+        <div class="nav-wrapper">
+          <div class="right">
+            <ul id="user-action" class="dropdown-content">
+              <li class="user-name">{{ request.user }}</li>
+              <li class="divider"></li>
+              <li><a href="/" target="_blank" class="waves-effect waves-teal">{% trans "Visit storefront" %}</a></li>
+              <li><a href="{% url 'registration:logout' %}" class="waves-effect waves-teal">{% trans "Log out" %}</a></li>
             </ul>
-        </nav>
+            <a class="dropdown-button" data-constrainwidth="false" href="#" data-activates="user-action"><i class="material-icons">account_circle</i><i class="mdi-navigation-arrow-drop-down right"></i></a>
+          </div>
+          <ul class="side-nav" id="main-nav">
+            <li class="nav-home"><a href="{% url 'dashboard:index' %}">{% trans "Home" %}</a></li>
+            <li class="side-nav-section" id="first">
+              <p>Catalogue</p>
+              <ul>
+                <li class="{% block menu_products_class %}{% endblock %}"><a href="{% url 'dashboard:product-list' %}">{% trans "Products" %}</a></li>
+                <li class="{% block menu_attributes_class %}{% endblock %}"><a href="{% url 'dashboard:product-attributes' %}">{% trans "Attributes" %}</a></li>
+                <li class="{% block menu_categories_class %}{% endblock %}"><a href="{% url 'dashboard:category-list' %}">{% trans "Categories" %}</a></li>
+              </ul>
+            </li>
+            <li class="side-nav-section">
+              <p>Discounts</p>
+              <ul>
+                <li class="{% block menu_sales_class %}{% endblock %}"><a href="{% url 'dashboard:sale-list' %}">{% trans "Sales" %}</a></li>
+                <li class="{% block menu_vouchers_class %}{% endblock %}"><a href="{% url 'dashboard:voucher-list' %}">{% trans "Vouchers" %}</a></li>
+              </ul>
+            </li>
+            <li class="side-nav-section">
+              <p>Sales</p>
+              <ul>
+                <li class="{% block menu_orders_class %}{% endblock %}"><a href="{% url 'dashboard:orders' %}">{% trans "Orders" %}</a></li>
+                <li class="{% block menu_customers_class %}{% endblock %}"><a href="{% url 'dashboard:customers' %}">{% trans "Customers" %}</a></li>
+                <li class="{% block menu_payments_class %}{% endblock %}"><a href="{% url 'dashboard:payments' %}">{% trans "Payments" %}</a></li>
+              </ul>
+            </li>
+            <li class="{% block menu_delivery_class %}{% endblock %}"><a href="{% url 'dashboard:shipping-methods' %}">{% trans "Shipping methods" %}</a></li>
+          </ul>
+          <ul>
+            <li class="fixed menu-toggle">
+              <ul>
+                <li><a href="#" id="open-menu" class="show-on-large"><i class="material-icons">menu</i></a></li>
+                <li><a href="#" id="close-menu" class="show-on-large hide"><i class="material-icons">clear</i></a></li>
+                <li><a href="{% url 'dashboard:index' %}" class="logo">
+                  <img src="{% static "img/dashboard-logo.svg" %}" alt="Saleor">
+                </a></li>
+              </ul>
+            </li>
+            <li class="global-search">
+              <form method="get" action="{% url "search:dashboard-search" %}">
+                <input id="icon_prefix" type="text" class="validate" placeholder="Search" name="q" value="{% if query %}{{ query }}{% endif %}">
+                <button class="btn-flat" type="submit">
+                  <i class="material-icons left ">search</i>
+                </button>
+              </form>
+            </li>
+          </ul>
+        </div>
+      </nav>
     </header>
+
+    <div class="subheader top-nav">
+      <div class="nav-wrapper container">
+        {% block breadcrumbs %}
+          <ul class="breadcrumbs">
+              <li><a href="#">{% trans "Home" %}</a></li>
+          </ul>
+        {% endblock %}
+        {% block header_extra %}{% endblock %}
+      </div>
+    </div>
 
     <main class="main">
         <div class="container">

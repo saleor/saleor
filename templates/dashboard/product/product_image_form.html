@@ -13,14 +13,16 @@
 
 {% block body_class %}body-store body-products{% endblock %}
 
+{% block menu_products_class %}active{% endblock %}
+
 {% block header_menu %}
     {% url "dashboard:product-update" pk=product.pk as url %}
     {% include "dashboard/includes/_back-link.html" with url=url hash="#images" %}
 {% endblock %}
 
 {% block breadcrumbs %}
-    <ul class="breadcrumbs">
-        <li><a href="{% url "dashboard:product-list" %}">{% trans "Products" %}</a></li>
+    <ul class="breadcrumbs breadcrumbs--history">
+        <li><a href="{% url "dashboard:product-list" %}"><i class="material-icons">keyboard_arrow_left</i></a></li>
         <li><a href="{% url "dashboard:product-update" pk=product.pk %}#images">{{ product }}</a></li>
         {% if product_image.pk %}
             <li>{{ product_image.image }}</li>

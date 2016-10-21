@@ -7,6 +7,8 @@
 
 {% block body_class %}body-customers{% endblock %}
 
+{% block menu_customers_class %}active{% endblock %}
+
 {% block header_menu %}
     {% url "dashboard:customers" as url %}
     {% include "dashboard/includes/_back-link.html" with url=url %}
@@ -14,7 +16,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li><a href="{% url "dashboard:customers" %}">{% trans "Customers" %}</a></li>
+        <li><a href="{% url "dashboard:customers" %}"><i class="material-icons">first_page</i></a></li>
         <li>{{ customer }}</li>
     </ul>
 {% endblock %}

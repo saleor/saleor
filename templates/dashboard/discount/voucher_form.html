@@ -8,6 +8,8 @@
 
 {% block body_class %}body-vouchers{% endblock %}
 
+{% block menu_vouchers_class %}active{% endblock %}
+
 {% block header_menu %}
     {% url "dashboard:voucher-list" as url %}
     {% include "dashboard/includes/_back-link.html" with url=url %}
@@ -17,7 +19,7 @@
     {% if voucher.pk %}
         <a class="dropdown-button" href="#" data-activates="voucher-delete"
            data-constrainwidth="false">
-            <i class="material-icons">more_vert</i>
+            <i class="material-icons">arrow_drop_down</i>
         </a>
         <ul id="voucher-delete" class="dropdown-content">
             <li>
@@ -32,7 +34,7 @@
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--with-menu">
         <li><a href="{% url 'dashboard:voucher-list' %}"
-               class="breadcrumbs--ellipsed-item">{% trans "Vouchers" %}</a></li>
+               class="breadcrumbs--ellipsed-item"><i class="material-icons">first_page</i></a></li>
         <li><span class="breadcrumbs--ellipsed-item">{% if voucher.pk %}
             {{ voucher }}{% else %}{% trans 'Add new voucher' %}{% endif %}</span></li>
     </ul>

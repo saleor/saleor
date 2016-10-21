@@ -25,8 +25,43 @@ function openModal() {
 }
 
 $(document).ready(function() {
+  function openMenu(a) {
+    $('#main-nav').animate({
+      'left': '250px'
+    },a)
+    if ($(window).width() < 1650 && $(window).width() > 991) {
+      $('main .container, .subheader .nav-wrapper').animate({
+        'marginLeft': '250px'
+      },a)
+    } 
+    $('#open-menu').addClass('hide');
+    $('#close-menu').removeClass('hide');
+    $('.menu-toggle').addClass('fixed');
+    $.cookie('openmenu', true);
+  }
+  $('#open-menu').click(function() {
+    openMenu(400)
+  })
+  $('#close-menu').click(function() {
+    $('#main-nav').animate({
+      'left': '0'
+    })
+    if($(window).width() < 1650) {
+      $('main .container, .subheader .nav-wrapper').css({
+        'margin-left': 'auto'
+      })
+    }
+    $('#close-menu').addClass('hide');
+    $('#open-menu').removeClass('hide');
+    $('.menu-toggle').removeClass('fixed')
+    $.cookie('openmenu', false)
+  })
+  if ($.cookie('openmenu') == 'true') {
+    openMenu(0)
+  } else {
+    $('#close-menu').click();
+  }
   initSelects()
-  $('.button-collapse').sideNav()
   $('.modal-trigger').leanModal()
 
   if (isTablet()) {
