@@ -8,6 +8,8 @@ from django_countries.data import COUNTRIES
 from .models import Address
 
 COUNTRY_FORMS = {}
+UNKNOWN_COUNTRIES = set()
+
 
 AREA_TYPE_TRANSLATIONS = {
     'area': pgettext_lazy('Address field', 'Area'),
@@ -172,6 +174,9 @@ def update_base_fields(form_class, i18n_rules):
         if field_name in form_class.base_fields:
             form_class.base_fields[field_name].widget = forms.HiddenInput()
 
+    country_field = form_class.base_fields['country']
+    country_field.choices = COUNTRY_CHOICES
+
 
 def construct_address_form(country_code, i18n_rules):
     class_name = 'AddressForm%s' % country_code
@@ -192,5 +197,13 @@ for country in COUNTRIES.keys():
             {'country_code': country})
     except ValueError:
         country_rules = i18naddress.get_validation_rules({})
+        UNKNOWN_COUNTRIES.add(country)
 
+COUNTRY_CHOICES = [(code, label) for code, label in COUNTRIES.items()
+                   if code not in UNKNOWN_COUNTRIES]
+# Sort choices list by country name
+COUNTRY_CHOICES = sorted(COUNTRY_CHOICES, key=lambda choice: choice[1])
+
+for country, label in COUNTRY_CHOICES:
+    country_rules = i18naddress.get_validation_rules({'country_code': country})
     COUNTRY_FORMS[country] = construct_address_form(country, country_rules)
