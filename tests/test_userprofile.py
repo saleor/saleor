@@ -7,8 +7,7 @@ import i18naddress
 import pytest
 from django.http import QueryDict
 
-from saleor.userprofile import forms, models
-
+from saleor.userprofile import forms, models, i18n
 
 @pytest.fixture
 def billing_address(db):
@@ -89,3 +88,15 @@ def test_get_address_form(form_data, form_valid, expected_preview, expected_coun
     assert preview is expected_preview
     assert form.is_valid() is form_valid
     assert form.i18n_country_code == expected_country
+
+
+def test_country_aware_form_has_only_supported_countries():
+
+    default_form = i18n.COUNTRY_FORMS['US']
+    instance = default_form()
+    country_field = instance.fields['country']
+    country_choices = [code for code, label in country_field.choices]
+
+    for country in i18n.UNKNOWN_COUNTRIES:
+        assert country not in i18n.COUNTRY_FORMS
+        assert country not in country_choices
