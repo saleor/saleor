@@ -165,8 +165,7 @@ INSTALLED_APPS = [
     'materializecssform',
     'rest_framework',
     'webpack_loader',
-    'haystack'
-    'webpack_loader',
+    'haystack',
     'allauth',
     'allauth.account',
     'allauth.socialaccount'
