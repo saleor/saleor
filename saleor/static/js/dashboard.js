@@ -25,41 +25,63 @@ function openModal() {
 }
 
 $(document).ready(function() {
+  var $mainNav = $('#main-nav')
+  var $windowWidth = $(window).width()
+  var $menuToggle = $('.menu-toggle')
+  var $closeMenu = $('#close-menu')
+  var $openMenu = $('#open-menu')
   function openMenu(a) {
-    $('#main-nav').animate({
+    $mainNav.animate({
       'left': '250px'
     },a)
-    if ($(window).width() < 1650 && $(window).width() > 991) {
+    if ($windowWidth < 1650 && $windowWidth > 991) {
       $('main .container, .subheader .nav-wrapper').animate({
         'marginLeft': '250px'
       },a)
     } 
-    $('#open-menu').addClass('hide');
-    $('#close-menu').removeClass('hide');
-    $('.menu-toggle').addClass('fixed');
-    $.cookie('openmenu', true);
+    $openMenu.addClass('hide')
+    $closeMenu.removeClass('hide')
+    $menuToggle.addClass('fixed')
+    if ( $windowWidth > 990 ) {
+      $.cookie('openmenu', true)
+    }
   }
-  $('#open-menu').click(function() {
-    openMenu(400)
-  })
-  $('#close-menu').click(function() {
-    $('#main-nav').animate({
+  function closeMenu() {
+    $mainNav.animate({
       'left': '0'
     })
-    if($(window).width() < 1650) {
+    $closeMenu.addClass('hide')
+    $openMenu.removeClass('hide')
+    $menuToggle.removeClass('fixed')
+    if ( $windowWidth > 990 ) {
+      $.cookie('openmenu', false)
+    }
+  }
+  $openMenu.click(function() {
+    openMenu(400)
+  })
+  $closeMenu.click(function() {
+    closeMenu()
+    closeMenu()
+    if($windowWidth < 1650) {
       $('main .container, .subheader .nav-wrapper').css({
         'margin-left': 'auto'
       })
     }
-    $('#close-menu').addClass('hide');
-    $('#open-menu').removeClass('hide');
-    $('.menu-toggle').removeClass('fixed')
-    $.cookie('openmenu', false)
   })
+  if ($windowWidth < 991) {
+    $(window).click(function() {
+      closeMenu()
+    });
+    $openMenu.click(function(event) {
+        event.stopPropagation();
+    });
+  }
+
   if ($.cookie('openmenu') == 'true') {
     openMenu(0)
   } else {
-    $('#close-menu').click();
+    closeMenu()
   }
   initSelects()
   $('.modal-trigger').leanModal()
