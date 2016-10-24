@@ -48,10 +48,14 @@
                             {% endfor %}
                         </ul>
                         <ul class="nav navbar-nav navbar-right">
-                            <form action="{% url "search:search" %}" method="get">
-                                <input type="text" name="q">
-                                <input type="submit" value="Search">
-                            </form>
+                            <li>
+                                <form action="{% url "search:search" %}" method="get" class="navbar-form navbar-right">
+                                    <div class="form-group">
+                                        <input class="form-control" type="text" name="q">
+                                    </div>
+                                    <input type="submit" class="btn btn-default" value="Search">
+                                </form>
+                            </li>
                             <li>
                                 <a href="{% url "cart:index" %}"><i class="glyphicon glyphicon-shopping-cart"></i> {% trans "Cart" %}</a>
                             </li>
