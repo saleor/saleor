@@ -13,7 +13,9 @@ class ProductIndex(indexes.SearchIndex, indexes.Indexable):
         return Product
 
     def index_queryset(self, using=None):
-        return self.get_model().objects.prefetch_related('categories')
+        qs = self.get_model().objects.get_available_products()
+        qs = qs.prefetch_related('categories')
+        return qs
 
     def prepare_categories(self, obj):
         return list(obj.categories.values_list('name', flat=True))
@@ -43,7 +45,7 @@ class OrderIndex(indexes.SearchIndex, indexes.Indexable):
 
 class UserIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.MultiValueField(document=True)
-    
+
     def get_model(self):
         return User
 
