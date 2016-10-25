@@ -94,9 +94,8 @@ class CountryAwareAddressForm(AddressForm):
         ('company_name', ['company_name']),
         ('postal_code', ['postal_code']),
         ('city', ['city']),
-        ('sorting_code', ['sorting_code']),
-        ('country_code', ['country'])
-    )
+        ('sorting_code', []),
+        ('country_code', ['country']))
 
     class Meta:
         model = Address
@@ -136,7 +135,7 @@ def get_address_form_class(country_code):
     return COUNTRY_FORMS[country_code]
 
 
-def get_form_18n_lines(form_instance):
+def get_form_i18n_lines(form_instance):
     country_code = form_instance.i18n_country_code
     try:
         fields_order = i18naddress.get_field_order(
@@ -188,7 +187,7 @@ def construct_address_form(country_code, i18n_rules):
     class_ = type(base_class)(str(class_name), (base_class,), form_kwargs)
     update_base_fields(class_, i18n_rules)
     class_.i18n_country_code = country_code
-    class_.i18n_fields_order = property(get_form_18n_lines)
+    class_.i18n_fields_order = property(get_form_i18n_lines)
     return class_
 
 
