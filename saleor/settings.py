@@ -226,6 +226,7 @@ LOGIN_URL = '/account/login'
 
 DEFAULT_COUNTRY = 'US'
 DEFAULT_CURRENCY = 'USD'
+AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 DEFAULT_WEIGHT = 'lb'
 
 OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')
@@ -303,3 +304,10 @@ WEBPACK_LOADER = {
         'IGNORE': [
             r'.+\.hot-update\.js',
             r'.+\.map']}}
+
+
+BOOTSTRAP3 = {
+    'set_placeholder': False,
+    'success_css_class': '',
+
+}

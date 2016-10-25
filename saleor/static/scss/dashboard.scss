@@ -149,7 +149,7 @@ $roboto-font-path: "~materialize-css/fonts/roboto/";
 
 .data-table-container {
   overflow: auto;
-  table {  
+  table {
     .row {
       .col {
         float: none;
@@ -282,6 +282,10 @@ $roboto-font-path: "~materialize-css/fonts/roboto/";
 
   /* Support for IE. */
   font-feature-settings: 'liga';
+}
+
+.formatted-address {
+  white-space: pre-wrap;
 }
 
 @import "widget/breadcrumbs";

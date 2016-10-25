@@ -39,3 +39,16 @@ $(function() {
     $img.attr('src', dataSrc)
   })
 })
+
+$(function() {
+  const $i18nAddresses = $('.i18n-address')
+  $i18nAddresses.each(function () {
+    const $form = $(this).closest('form')
+    const $countryField = $form.find('select[name=country]')
+    const $previewField = $form.find('input.preview')
+    $countryField.on('change', () => {
+      $previewField.val('on')
+      $form.submit()
+    })
+  })
+})

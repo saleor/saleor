@@ -32,7 +32,9 @@
 {% block forms %}
     <form method="post" novalidate>
         {% csrf_token %}
-        <h3>{% trans "Billing address" %}</h3>
+        <div class="page-header">
+            <h3>{% trans "Billing address" %}</h3>
+        </div>
 
         {% include "checkout/snippets/addresses-form.html" with addresses_form=addresses_form addresses=additional_addresses address_form=address_form only %}
 

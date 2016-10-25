@@ -2,8 +2,9 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
 from ..forms import (
-    AnonymousUserBillingForm, BillingAddressesForm, BillingWithoutShippingAddressForm)
-from ...userprofile.forms import AddressForm
+    AnonymousUserBillingForm, BillingAddressesForm,
+    BillingWithoutShippingAddressForm)
+from ...userprofile.forms import get_address_form
 from ...userprofile.models import Address
 
 
@@ -18,22 +19,32 @@ def create_order(checkout):
 
 def get_billing_forms_with_shipping(data, addresses, billing_address, shipping_address):
     if Address.objects.are_identical(billing_address, shipping_address):
-        address_form = AddressForm(data, autocomplete_type='billing')
+        address_form, preview = get_address_form(
+            data, country_code=shipping_address.country.code,
+            autocomplete_type='billing',
+            initial={'country': shipping_address.country.code},
+            instance=None)
         addresses_form = BillingAddressesForm(
             data, additional_addresses=addresses, initial={
                 'address': BillingAddressesForm.SHIPPING_ADDRESS})
     elif billing_address.id is None:
-        address_form = AddressForm(
-            data, instance=billing_address, autocomplete_type='billing')
+        address_form, preview = get_address_form(
+            data, country_code=billing_address.country.code,
+            autocomplete_type='billing',
+            initial={'country': billing_address.country.code},
+            instance=billing_address)
         addresses_form = BillingAddressesForm(
             data, additional_addresses=addresses, initial={
                 'address': BillingAddressesForm.NEW_ADDRESS})
     else:
-        address_form = AddressForm(data, autocomplete_type='billing')
+        address_form, preview = get_address_form(
+            data, country_code=billing_address.country.code,
+            autocomplete_type='billing',
+            initial={'country': billing_address.country})
         addresses_form = BillingAddressesForm(
             data, additional_addresses=addresses, initial={
                 'address': billing_address.id})
-    if addresses_form.is_valid():
+    if addresses_form.is_valid() and not preview:
         address_id = addresses_form.cleaned_data['address']
         if address_id == BillingAddressesForm.SHIPPING_ADDRESS:
             return address_form, addresses_form, shipping_address
@@ -69,40 +80,47 @@ def anonymous_summary_without_shipping(request, checkout):
         request.POST or None, initial={'email': checkout.email})
     billing_address = checkout.billing_address
     if billing_address:
-        address_form = AddressForm(
-            request.POST or None, autocomplete_type='billing', instance=billing_address)
+        address_form, preview = get_address_form(
+            request.POST or None, country_code=billing_address.country.code,
+            autocomplete_type='billing', instance=billing_address)
     else:
-        address_form = AddressForm(request.POST or None, autocomplete_type='billing',
-                                   initial={'country': request.country})
-    if user_form.is_valid() and address_form.is_valid():
+        address_form, preview = get_address_form(
+            request.POST or None, country_code=request.country.code,
+            autocomplete_type='billing', initial={'country': request.country})
+    if all([user_form.is_valid(), address_form.is_valid()]) and not preview:
         checkout.email = user_form.cleaned_data['email']
         checkout.billing_address = address_form.instance
         order = create_order(checkout)
         return redirect('order:payment', token=order.token)
     return TemplateResponse(
         request, 'checkout/summary_without_shipping.html', context={
-            'user_form': user_form, 'address_form': address_form, 'checkout': checkout})
+            'user_form': user_form, 'address_form': address_form,
+            'checkout': checkout})
 
 
 def summary_without_shipping(request, checkout):
     billing_address = checkout.billing_address
     user_addresses = request.user.addresses.all()
     if billing_address and billing_address.id:
-        address_form = AddressForm(
+        address_form, preview = get_address_form(
             request.POST or None, autocomplete_type='billing',
-            initial={'country': request.country})
+            initial={'country': request.country},
+            country_code=billing_address.country.code,
+            instance=billing_address)
         addresses_form = BillingWithoutShippingAddressForm(
             request.POST or None, additional_addresses=user_addresses,
             initial={'address': billing_address.id})
     elif billing_address:
-        address_form = AddressForm(
-            request.POST or None, autocomplete_type='billing', instance=billing_address)
+        address_form, preview = get_address_form(
+            request.POST or None, autocomplete_type='billing',
+            instance=billing_address, country_code=billing_address.country.code)
         addresses_form = BillingWithoutShippingAddressForm(
             request.POST or None, additional_addresses=user_addresses)
     else:
-        address_form = AddressForm(
+        address_form, preview = get_address_form(
             request.POST or None, autocomplete_type='billing',
-            initial={'country': request.country})
+            initial={'country': request.country},
+            country_code=request.country.code)
         addresses_form = BillingWithoutShippingAddressForm(
             request.POST or None, additional_addresses=user_addresses)
 
@@ -112,7 +130,7 @@ def summary_without_shipping(request, checkout):
             checkout.billing_address = user_addresses.get(id=address_id)
             order = create_order(checkout)
             return redirect('order:payment', token=order.token)
-        elif address_form.is_valid():
+        elif address_form.is_valid() and not preview:
             checkout.billing_address = address_form.instance
             order = create_order(checkout)
             return redirect('order:payment', token=order.token)

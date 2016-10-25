@@ -13,7 +13,7 @@ cryptography==1.5.1       # via django-payments
 cssselect==0.9.2          # via premailer
 cssutils==1.0.1           # via premailer
 dj-database-url==0.4.1
-dj-email-url==0.0.8
+dj-email-url==0.0.10
 django-absolute==0.3      # via django-emailit
 django-bootstrap3==7.1.0
 django-cache-url==1.2.0
@@ -32,10 +32,13 @@ django-versatileimagefield==1.6
 django-webpack-loader==0.3.3
 Django==1.10.1            # via django-absolute, django-emailit, django-model-utils, django-payments, django-prices, django-prices-openexchangerates, jsonfield
 djangorestframework==3.4.7
+enum34==1.1.6             # via cryptography
 fake-factory==0.7.2
-google-i18n-address==1.0.8
+funcsigs==1.0.2           # via mock
+google-i18n-address==2.0.0
 google-measurement-protocol==0.1.6
 idna==2.1                 # via cryptography
+ipaddress==1.0.17         # via cryptography, fake-factory, maxminddb
 jsonfield==1.0.3
 lxml==3.6.4               # via premailer
 Markdown==2.6.6

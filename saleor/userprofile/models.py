@@ -32,11 +32,11 @@ class AddressManager(models.Manager):
 @python_2_unicode_compatible
 class Address(models.Model):
     first_name = models.CharField(
-        pgettext_lazy('Address field', 'first name'),
-        max_length=256)
+        pgettext_lazy('Address field', 'given name'),
+        max_length=256, blank=True)
     last_name = models.CharField(
-        pgettext_lazy('Address field', 'last name'),
-        max_length=256)
+        pgettext_lazy('Address field', 'family name'),
+        max_length=256, blank=True)
     company_name = models.CharField(
         pgettext_lazy('Address field', 'company or organization'),
         max_length=256, blank=True)
@@ -63,7 +63,6 @@ class Address(models.Model):
     phone = models.CharField(
         pgettext_lazy('Address field', 'phone number'),
         max_length=30, blank=True)
-
     objects = AddressManager()
 
     @property
