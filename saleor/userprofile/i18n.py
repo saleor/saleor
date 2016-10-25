@@ -2,6 +2,7 @@ from collections import defaultdict
 
 import i18naddress
 from django import forms
+from django.forms.forms import BoundField
 from django.utils.translation import pgettext_lazy
 from django_countries.data import COUNTRIES
 
@@ -150,7 +151,7 @@ def get_form_18n_lines(form_instance):
             local_fields = field_mapping[field_name]
             for local_name in local_fields:
                 local_field = form_instance.fields[local_name]
-                bound_field = local_field.get_bound_field(form, local_name)
+                bound_field = BoundField(form, local_field, local_name)
                 bound_fields.append(bound_field)
         return bound_fields
 
