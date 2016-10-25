@@ -36,12 +36,3 @@ def order_status_change(sender, instance, **kwargs):
         except Exception:
             # Analytics failing should not abort the checkout flow
             logger.exception('Recording order in analytics failed')
-
-
-def get_ip(request):
-    ip = request.META.get('HTTP_X_FORWARDED_FOR', None)
-    if ip:
-        ip = ip.split(', ')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR', '')
-    return ip
