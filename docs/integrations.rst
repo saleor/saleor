@@ -16,6 +16,16 @@ Export the following environment variable:
 ``OPENEXCHANGERATES_API_KEY``
   Your store's Open Exchange Rates “App ID.”
 
+To update the exchange rates run the following command at least once per day:
+
+.. code-block:: bash
+
+    $ python manage.py update_exchange_rates --all
+
+.. note::
+
+    Heroku users can use the `Scheduler add-on <https://elements.heroku.com/addons/scheduler>`_ to automatically call the command daily at a predefined time.
+
 
 Log in using Facebook
 ---------------------
