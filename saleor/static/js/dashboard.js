@@ -33,18 +33,18 @@ $(document).ready(function() {
   function openMenu(a) {
     $mainNav.animate({
       'left': '250px'
-    },a)
+    }, a)
     if ($windowWidth < 1650 && $windowWidth > 991) {
       $('main .container, .subheader .nav-wrapper').animate({
         'marginLeft': '250px'
-      },a)
+      }, a)
     } 
     $openMenu.addClass('hide')
     $closeMenu.removeClass('hide')
     $menuToggle.addClass('fixed')
     if ( $windowWidth > 990 ) {
-      $.cookie('openmenu', true)
-    }
+      $.cookie('menu', 'open', { path: '/' })
+    }  
   }
   function closeMenu() {
     $mainNav.animate({
@@ -53,8 +53,13 @@ $(document).ready(function() {
     $closeMenu.addClass('hide')
     $openMenu.removeClass('hide')
     $menuToggle.removeClass('fixed')
-    if ( $windowWidth > 990 ) {
-      $.cookie('openmenu', false)
+    if ($windowWidth > 990) {
+      $.removeCookie('menu', { path: '/' })
+    }
+    if ($windowWidth < 1650) {
+      $('main .container, .subheader .nav-wrapper').css({
+        'margin-left': 'auto'
+      })
     }
   }
   $openMenu.click(function() {
@@ -62,12 +67,6 @@ $(document).ready(function() {
   })
   $closeMenu.click(function() {
     closeMenu()
-    closeMenu()
-    if($windowWidth < 1650) {
-      $('main .container, .subheader .nav-wrapper').css({
-        'margin-left': 'auto'
-      })
-    }
   })
   if ($windowWidth < 991) {
     $(window).click(function() {
@@ -77,8 +76,7 @@ $(document).ready(function() {
         event.stopPropagation();
     });
   }
-
-  if ($.cookie('openmenu') == 'true') {
+  if ($.cookie('menu') == 'open') {
     openMenu(0)
   } else {
     closeMenu()
