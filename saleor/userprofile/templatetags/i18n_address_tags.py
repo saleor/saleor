@@ -14,5 +14,4 @@ def format_address(address, latin=False):
     address_data['street_address'] = ('%(street_address_1)s\n'
                                      '%(street_address_2)s' % address_data)
     formatted_address = i18naddress.format_address(address_data, latin)
-    formatted_address = formatted_address.replace('\n', '<br>')
     return mark_safe(formatted_address)
