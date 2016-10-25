@@ -34,8 +34,8 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li><a href="{% url "dashboard:orders" %}"><i class="material-icons">first_page</i></a></li>
-        <li>{{ order }}</li>
+        <li class="back-mobile"><a href="{% url "dashboard:orders" %}"><i class="material-icons">first_page</i></a></li>
+        <li><span>{{ order }}</span></li>
     </ul>
 {% endblock %}
 

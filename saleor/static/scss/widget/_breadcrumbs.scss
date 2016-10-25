@@ -38,8 +38,13 @@
       display: inline-block;
     }
 
-    &:last-child {
+    &:last-child, &.back-mobile {
       display: inline-block;
+      &:not(.category-breadcrumb) {
+        &:before {
+          display: none;
+        }
+      }
     }
 
     &:hover {
@@ -57,12 +62,14 @@
         color: white;
       }
     }
+    * {
+      display: inline-block;
+      overflow: hidden;
+    }
   }
 
   &--ellipsed {
     &-item {
-      display: inline-block;
-      overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       max-width: 14em;

@@ -32,7 +32,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--with-menu">
-        <li><a href="{% url 'dashboard:product-attributes' %}" class="breadcrumbs--ellipsed-item"><i class="material-icons">first_page</i></a></li>
+        <li class="back-mobile"><a href="{% url 'dashboard:product-attributes' %}" class="breadcrumbs--ellipsed-item"><i class="material-icons">first_page</i></a></li>
         <li><span class="breadcrumbs--ellipsed-item">{% if attribute.pk %}{{ attribute }}{% else %}{% trans 'Add new attribute' %}{% endif %}</span></li>
     </ul>
 {% endblock %}
@@ -42,7 +42,7 @@
 {% block content %}
     <form method="post" enctype="multipart/form-data" id="form-attributes" novalidate>
         <div class="row">
-            <div class="col l8">
+            <div class="col s12 l8">
                 <div class="row">
                     {% csrf_token %}
                     {{ form.display|materializecss }}
@@ -81,7 +81,7 @@
         </div>
 
         <div class="row">
-            <div class="col l8 right-align">
+            <div class="col s12 l8 right-align">
                 {% if attribute.pk %}
                     <button type="submit" class="btn">{% trans "Update" %}</button>
                 {% else %}

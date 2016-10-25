@@ -17,8 +17,8 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li><a href="{% url "dashboard:payments" %}"><i class="material-icons">first_page</i></a></li>
-        <li>#{{ payment.id }}</li>
+        <li class="back-mobile"><a href="{% url "dashboard:payments" %}"><i class="material-icons">first_page</i></a></li>
+        <li><span>#{{ payment.id }}</span></li>
     </ul>
 {% endblock %}
 

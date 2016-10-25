@@ -52,10 +52,10 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--with-menu breadcrumbs--ellipsed breadcrumbs--history">
-       <li>
+       <li class="back-mobile">
        {% if path %}
-            <a href="{% url 'dashboard:category-list' %}" class="breadcrumbs--ellipsed-item">
-                <i class="material-icons">keyboard_arrow_left</i>
+            <a href="{% url 'dashboard:category-list' %}">
+                <i class="material-icons">first_page</i>
             </a>
         {% else %}
             <span class="breadcrumbs--ellipsed-item">{% trans "Categories" %}</span>
@@ -70,11 +70,12 @@
                         </span>
                     </li>
                 {% else %}
-                    <li>
+                    <li class="category-breadcrumb">
                         <a title="{{ node.name }}" href="{% url 'dashboard:category-list' root_pk=node.pk %}" class="breadcrumbs--ellipsed-item">
                             {{ node.name }}
                         </a>
                     </li>
+                    <li class="back-mobile"><a href="{% url 'dashboard:category-list' root_pk=node.pk %}"><i class="material-icons">chevron_left</i></a></li>
                 {% endif %}
             {% endfor %}
         {% endif %}
