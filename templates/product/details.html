@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
 {% load bootstrap_form from bootstrap3 %}
-{% load discounted_price_range price_difference from discount %}
 {% load i18n %}
 {% load gross from prices_i18n %}
 {% load markdown from markdown %}
@@ -34,21 +33,19 @@
             </h1>
 
             {% if product.is_in_stock %}
-                {% with price_range=product|discounted_price_range:request.discounts undiscounted=product.get_price_range %}
-                    {% with discount=undiscounted.min_price|price_difference:price_range.min_price %}
-                        <p class="lead" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-                            {% if undiscounted.min_price != price_range.min_price %}
-                                <span class="price undiscounted">{% price_range undiscounted %}</span>
-                                <br>
-                                <span class="price">{% price_range price_range %}</span>
-                                <br>
-                                <small class="label label-success">{% trans "You save" %} {% gross discount %}</small>
-                            {% else %}
-                                <span class="price">{% price_range price_range %}</span>
-                            {% endif %}
-                        </p>
-                    {% endwith %}
-                {% endwith %}
+                <p class="lead" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+                    <span class="price">{% price_range price_range %}</span>
+                    {% if discount %}
+                        <small class="price undiscounted text-muted">{% gross undiscounted_price_range.min_price html=True %}</small>
+                    {% endif %}
+                    {% if local_price_range %}
+                        <br>
+                        <small class="text-info">
+                            &asymp;
+                            {% gross local_price_range.min_price html=True %}
+                        </small>
+                    {% endif %}
+                </p>
             {% endif %}
 
             <hr>
@@ -59,7 +56,6 @@
                 {% else %}
                     <img src="{% static 'images/product-image-placeholder.png' %}" alt="" class="img-responsive">
                 {% endif %}
-
                 <hr>
             </div>
 

@@ -49,7 +49,7 @@
                         </ul>
                         <ul class="nav navbar-nav navbar-right">
                             <li>
-                                <a href="{% url "cart:index" %}"><i class="fa fa-shopping-cart"></i> {% trans "Cart" %} {% if cart_counter %}<span class="badge">{{ cart_counter }}</span>{% endif %}</a>
+                                <a href="{% url "cart:index" %}"><i class="glyphicon glyphicon-shopping-cart"></i> {% trans "Cart" %} {% if cart_counter %}<span class="badge">{{ cart_counter }}</span>{% endif %}</a>
                             </li>
                             {% if user.is_authenticated %}
                             <li class="dropdown">

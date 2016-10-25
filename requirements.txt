@@ -23,13 +23,14 @@ django-materializecss-form==1.0.1
 django-model-utils==2.6
 django-mptt==0.8.6
 django-payments==0.9.5
+django-prices-openexchangerates==0.1.12
 django-prices==0.4.13
 django-redis==4.5.0
 django-selectable==0.9.0
 django-storages==1.5.1
 django-versatileimagefield==1.6
 django-webpack-loader==0.3.3
-Django==1.10.1            # via django-absolute, django-emailit, django-model-utils, django-payments, django-prices, jsonfield
+Django==1.10.1            # via django-absolute, django-emailit, django-model-utils, django-payments, django-prices, django-prices-openexchangerates, jsonfield
 djangorestframework==3.4.7
 fake-factory==0.7.2
 google-i18n-address==1.0.8

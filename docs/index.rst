@@ -9,10 +9,10 @@ Contents:
    :maxdepth: 2
 
    installation
+   configuration
    stock
    payments
-   configuration
-   reporting
+   integrations
    development
    deploy
 

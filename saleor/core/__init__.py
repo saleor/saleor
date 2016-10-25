@@ -24,14 +24,12 @@ def get_country_by_ip(ip_address):
 def get_currency_for_country(country):
     currencies = get_territory_currencies(country.code)
     if len(currencies):
-        main_currency = currencies[0]
-        if main_currency in settings.AVAILABLE_CURRENCIES:
-            return main_currency
+        return currencies[0]
     return settings.DEFAULT_CURRENCY
 
 
 @register()
-def check_session_caching(app_configs, **kwargs):
+def check_session_caching(app_configs, **kwargs):  # pragma: no cover
     errors = []
     cached_engines = {
         'django.contrib.sessions.backends.cache',

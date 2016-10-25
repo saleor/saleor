@@ -39,11 +39,13 @@ $('.cart-item-amount').each(function(index) {
 })
 
 let $cartTotal = $('.cart-total')
-let cartTotalValue = $cartTotal.text()
+let cartTotalValue = $cartTotal.data('value')
+let cartLocalTotalValue = $cartTotal.data('value-local')
 if ($cartTotal.length) {
   store.dispatch({
     type: 'UPDATE_TOTAL',
-    total: cartTotalValue
+    total: cartTotalValue,
+    localTotal: cartLocalTotalValue
   })
   render(
     <Provider store={store}>

@@ -19,15 +19,10 @@ def test_get_country_by_ip(reader, expected_country, monkeypatch):
     assert country == expected_country
 
 
-@pytest.mark.parametrize('settings, country, expected_currency', [
-    (Mock(AVAILABLE_CURRENCIES=['GBP', 'PLN'], DEFAULT_CURRENCY='PLN'),
-     Country('PL'), 'PLN'),
-    (Mock(AVAILABLE_CURRENCIES=['GBP', 'PLN'], DEFAULT_CURRENCY='PLN'),
-     Country('USA'), 'PLN'),
-    (Mock(AVAILABLE_CURRENCIES=['GBP', 'PLN'], DEFAULT_CURRENCY='PLN'),
-     Country('GB'), 'GBP')
-])
-def test_get_currency_for_country(settings, country, expected_currency, monkeypatch):
-    monkeypatch.setattr('saleor.core.settings', settings)
+@pytest.mark.parametrize('country, expected_currency', [
+    (Country('PL'), 'PLN'),
+    (Country('USA'), 'USD'),
+    (Country('GB'), 'GBP')])
+def test_get_currency_for_country(country, expected_currency, monkeypatch):
     currency = get_currency_for_country(country)
     assert currency == expected_currency
