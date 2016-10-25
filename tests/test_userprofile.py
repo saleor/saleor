@@ -1,7 +1,12 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-import urllib
+try:
+    # Python 3
+    from urllib.parse import urlencode
+except ImportError:
+    # Python 2
+    from urllib import urlencode
 
 import i18naddress
 import pytest
@@ -82,7 +87,7 @@ def test_get_address_form(form_data, form_valid, expected_preview, expected_coun
         'last_name': 'Doe',
         'country': 'PL'}
     data.update(form_data)
-    query_dict = urllib.urlencode(data)
+    query_dict = urlencode(data)
     form, preview = forms.get_address_form(
         data=QueryDict(query_dict), country_code=data['country'])
     assert preview is expected_preview
