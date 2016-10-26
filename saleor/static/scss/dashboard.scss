@@ -31,8 +31,7 @@ header {
     }
     .menu-toggle {    
       background-color: $primary-color;
-      transition: all 0.5s ease;
-      position: absolute;
+      position: absolute;      
       width: 237px;
       z-index: 999;
       &.fixed {
