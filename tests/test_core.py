@@ -1,20 +1,20 @@
 import pytest
 from mock import Mock
 
-from saleor.core import Country, get_country_by_ip, get_currency_for_country
+from saleor.core.utils import (
+    Country, get_country_by_ip, get_currency_for_country)
 
 
-@pytest.mark.parametrize('reader, expected_country', [
-    (Mock(return_value=Mock(get=Mock(return_value={
-        'country': {'iso_code': 'PL'}}))), Country('PL')),
-    (Mock(return_value=Mock(get=Mock(return_value={
-        'country': {'iso_code': 'UNKNOWN'}}))), None),
-    (Mock(return_value=Mock(get=Mock(return_value=None))), None),
-    (Mock(return_value=Mock(get=Mock(return_value={}))), None),
-    (Mock(return_value=Mock(get=Mock(return_value={'country': {}}))), None),
-])
-def test_get_country_by_ip(reader, expected_country, monkeypatch):
-    monkeypatch.setattr('saleor.core.geolite2.reader', reader)
+@pytest.mark.parametrize('ip_data, expected_country', [
+    ({'country': {'iso_code': 'PL'}}, Country('PL')),
+    ({'country': {'iso_code': 'UNKNOWN'}}, None),
+    (None, None),
+    ({}, None),
+    ({'country': {}}, None)])
+def test_get_country_by_ip(ip_data, expected_country, monkeypatch):
+    monkeypatch.setattr(
+        'saleor.core.utils.geolite2.reader',
+        Mock(return_value=Mock(get=Mock(return_value=ip_data))))
     country = get_country_by_ip('127.0.0.1')
     assert country == expected_country
 
