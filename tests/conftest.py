@@ -3,9 +3,24 @@ from __future__ import unicode_literals
 
 import pytest
 
+from saleor.cart import decorators
+from saleor.cart.models import Cart
 from saleor.product.models import Product, ProductVariant, Stock
 from saleor.userprofile.models import Address, User
 
+
+
+@pytest.fixture
+def cart(db):  # pylint: disable=W0613
+    return Cart.objects.create()
+
+
+@pytest.fixture
+def request_cart(cart, monkeypatch):
+    monkeypatch.setattr(
+        decorators, 'get_cart_from_request',
+        lambda request, create=False: cart)
+    return cart
 
 @pytest.fixture()
 def admin_user(db):

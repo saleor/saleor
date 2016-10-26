@@ -10,15 +10,10 @@ from saleor.shipping.models import ShippingMethod
 
 
 @pytest.fixture
-def client_with_cart(product_in_stock, client):
+def client_with_cart(product_in_stock, request_cart, client):
     variant = product_in_stock.variants.get()
     # Prepare some data
-    base_cart = Cart.objects.create()
-    base_cart.add(variant)
-
-    value = signing.get_cookie_signer(salt=Cart.COOKIE_NAME).sign(base_cart.token)
-    client.cookies[Cart.COOKIE_NAME] = value
-    client.cart = base_cart
+    request_cart.add(variant)
     return client
 
 
@@ -178,14 +173,12 @@ def test_summary_without_shipping_method(client_with_cart, monkeypatch):
     assert_redirect(response, reverse('checkout:shipping-method'))
 
 
-def test_client_login(client_with_cart, admin_user, monkeypatch):
+def test_client_login(request_cart, client_with_cart, admin_user):
     data = {
         'username': admin_user.email,
         'password': 'password'
     }
-    assert Cart.objects.filter(user=admin_user).count() == 0
     response = client_with_cart.post(reverse('registration:login'), data=data)
     assert_redirect(response, '/')
-    assert Cart.objects.filter(user=admin_user).count() == 1
     response = client_with_cart.get(reverse('checkout:shipping-address'))
-    assert response.context['checkout'].cart.token == client_with_cart.cart.token
+    assert response.context['checkout'].cart.token == request_cart.token
