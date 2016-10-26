@@ -1,3 +1,4 @@
+import pytest
 from django.contrib.sites.models import Site
 from django.core import signing
 from django.core.urlresolvers import reverse
@@ -6,6 +7,27 @@ from saleor.cart.models import Cart
 from saleor.order import Status as OrderStatus
 from saleor.order.models import Order
 from saleor.shipping.models import ShippingMethod
+
+# Resolve urls
+urls = {
+    'cart': reverse('cart:index'),
+    'checkout_index': reverse('checkout:index'),
+    'checkout_shipping_address': reverse('checkout:shipping-address'),
+    'checkout_shipping_method': reverse('checkout:shipping-method'),
+    'checkout_summary': reverse('checkout:summary')}
+
+
+@pytest.fixture
+def client_with_cart(product_in_stock, client):
+    variant = product_in_stock.variants.get()
+    # Prepare some data
+    base_cart = Cart.objects.create()
+    base_cart.add(variant)
+
+    value = signing.get_cookie_signer(salt=Cart.COOKIE_NAME).sign(base_cart.token)
+    client.cookies[Cart.COOKIE_NAME] = value
+    client.cart = base_cart
+    return client
 
 
 def assert_redirect(response, expected_url):
@@ -28,13 +50,6 @@ def test_checkout_flow(product_in_stock, client):
     shipping_method = ShippingMethod.objects.create(name='DHL')
     shipping_variant = shipping_method.price_per_country.create(price=10)
 
-    # Resolve urls
-    urls = {
-        'cart': reverse('cart:index'),
-        'checkout_index': reverse('checkout:index'),
-        'checkout_shipping_address': reverse('checkout:shipping-address'),
-        'checkout_shipping_method': reverse('checkout:shipping-method'),
-        'checkout_summary': reverse('checkout:summary')}
 
     # This is anonymous checkout, so cart token in stored in signed cookie
     value = signing.get_cookie_signer(salt=Cart.COOKIE_NAME).sign(cart.token)
@@ -110,3 +125,85 @@ def test_checkout_flow(product_in_stock, client):
     payment = order.payments.latest('pk')
     assert payment.status == 'preauth'
     assert order.status == OrderStatus.NEW
+
+
+def test_address_without_shipping(client_with_cart, monkeypatch):
+    """
+    user tries to get shipping address step in checkout without shipping -
+     if is redirected to summary step
+    """
+
+    monkeypatch.setattr('saleor.checkout.core.Checkout.is_shipping_required',
+                        False)
+
+    response = client_with_cart.get(urls['checkout_shipping_address'])
+    assert response.status_code == 302
+    assert response.url == urls['checkout_summary']
+
+
+def test_shipping_method_without_shipping(client_with_cart, monkeypatch):
+    """
+    user tries to get shipping method step in checkout without shipping -
+     if is redirected to summary step
+    """
+
+    monkeypatch.setattr('saleor.checkout.core.Checkout.is_shipping_required',
+                        False)
+
+    response = client_with_cart.get(urls['checkout_shipping_method'])
+    assert response.status_code == 302
+    assert response.url == urls['checkout_summary']
+
+
+def test_shipping_method_without_address(client_with_cart):
+    """
+    user tries to get shipping method step without saved shipping address -
+     if is redirected to shipping address step
+    """
+
+    response = client_with_cart.get(urls['checkout_shipping_method'])
+    assert response.status_code == 302
+    assert response.url == urls['checkout_shipping_address']
+
+
+def test_summary_without_address(client_with_cart):
+    """
+    user tries to get summary step without saved shipping method -
+     if is redirected to shipping method step
+    """
+
+    response = client_with_cart.get(urls['checkout_summary'])
+    assert response.status_code == 302
+    assert response.url == urls['checkout_shipping_method']
+
+
+def test_summary_without_shipping_method(client_with_cart, monkeypatch):
+    """
+    user tries to get summary step without saved shipping method -
+     if is redirected to shipping method step
+    """
+    #address test return true
+    monkeypatch.setattr('saleor.checkout.core.Checkout.email',
+                        True)
+
+    response = client_with_cart.get(urls['checkout_summary'])
+    assert response.status_code == 302
+    assert response.url == urls['checkout_shipping_method']
+
+
+def test_client_login(client_with_cart, admin_user, monkeypatch):
+    data = {
+        'username': admin_user.email,
+        'password': 'password'
+    }
+    url = '{url}?next={next}'.format(url=reverse('registration:login'),
+                                     next=urls['checkout_index'])
+
+    assert Cart.objects.filter(user=admin_user).count() == 0
+
+    response = client_with_cart.post(url, data=data)
+    assert response.status_code == 302
+    assert response.url == urls['checkout_index'] #success!
+
+    assert Cart.objects.filter(user=admin_user).count() == 1
+    assert Cart.objects.all()[0].token == client_with_cart.cart.token
