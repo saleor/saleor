@@ -114,6 +114,8 @@ def test_checkout_flow(product_in_stock, client):
     payment = order.payments.latest('pk')
     assert payment.status == 'preauth'
     assert order.status == OrderStatus.NEW
+    latest_address = Address.objects.latest('pk')
+    assert Address.objects.are_identical(order.shipping_address, latest_address)
 
 
 def test_checkout_flow_authenticated_user(product_in_stock, client,
