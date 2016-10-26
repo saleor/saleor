@@ -3,29 +3,26 @@
 
 
 {% block steps_menu %}
-    <ul class="nav nav-pills nav-justified nav-wizard">
-        <li>
-            <a href="{% url "cart:index" %}">{% trans "Cart" %}</a>
-
+    <div class="nav nav-pills nav-justified nav-wizard">
+        <a href="{% url "cart:index" %}">
+            {% trans "Cart" %}
             <div class="nav-arrow"></div>
-        </li>
-        <li>
+        </a>
+        <a href="{% url "checkout:shipping-address" %}">
             <div class="nav-wedge"></div>
-            <a href="{% url "checkout:shipping-address" %}">{% trans "Shipping address" %}</a>
-
+            {% trans "Shipping address" %}
             <div class="nav-arrow"></div>
-        </li>
-        <li>
+        </a>
+        <a href="{% url "checkout:shipping-method" %}">
             <div class="nav-wedge"></div>
-            <a href="{% url "checkout:shipping-method" %}">{% trans "Shipping method" %}</a>
-
+            {% trans "Shipping method" %}
             <div class="nav-arrow"></div>
-        </li>
-        <li class="active">
+        </a>
+        <a class="active" href="{% url "checkout:summary" %}">
             <div class="nav-wedge"></div>
-            <a href="{% url "checkout:summary" %}">{% trans "Summary" %}</a>
-        </li>
-    </ul>
+            {% trans "Summary" %}
+        </a>
+    </div>
 {% endblock steps_menu %}
 
 

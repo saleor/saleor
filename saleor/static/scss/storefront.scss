@@ -110,72 +110,77 @@ $icon-font-path: "~bootstrap-sass/assets/fonts/bootstrap/";
 
 .nav-pills {
 	&.nav-wizard {
-		> li {
-			position: relative;
+    display: table;
+    a {
+      position: relative;
 			overflow: visible;
 			border-right: 15px solid $body-bg;
 			border-left: 15px solid $body-bg;
+      display: block;
+      width: 100%;
+      padding-top: 10px;
+      margin-top: 5px;
+      @media (min-width: $screen-xs-max) {
+        display: table-cell;
+        width: 25%;
+        padding-top: 0;
+        vertical-align: middle;
+      }
+      border-radius: 0;
+      background-color: $gray-lighter;
+      height: 40px;
+      text-align: center;
+      
+      &:first-of-type {
+        border-left: 0;
+        border-radius:5px 0 0 5px;
+      }
+      
+      &:last-of-type {
+        border-right: 0;
+        border-radius:0 5px 5px 0;
+      }
+      
+      &:hover {
+        text-decoration: none;
+      }
+    }
 
-			&:first-child {
-				border-left: 0;
+    .nav-arrow {
+      position: absolute;
+      top: 0px;
+      right: -20px;
+      width: 0px;
+      height: 0px;
+      border-style: solid;
+      border-width: 20px 0 20px 20px;
+      border-color: transparent transparent transparent $gray-lighter;
+      z-index: 150;
+    }
 
-				a {
-					border-radius:5px 0 0 5px;
-				}
-			}
+    .nav-wedge {
+      position: absolute;
+      top: 0px;
+      left: -20px;
+      width: 0px;
+      height: 0px;
+      border-style: solid;
+      border-width: 20px 0 20px 20px;
+      border-color: $gray-lighter $gray-lighter $gray-lighter transparent;
+      z-index: 150;
+    }
 
-			&:last-child {
-				border-right: 0;
+    .active {
+      .nav-arrow {
+        border-color: transparent transparent transparent $nav-pills-active-link-hover-bg;
+      }
 
-				a {
-					border-radius:0 5px 5px 0;
-				}
-			}
+      .nav-wedge {
+        border-color: $nav-pills-active-link-hover-bg $nav-pills-active-link-hover-bg $nav-pills-active-link-hover-bg transparent;
+      }
 
-			a {
-				border-radius: 0;
-				background-color: $gray-lighter;
-        height: 40px;
-			}
-
-			.nav-arrow {
-				position: absolute;
-				top: 0px;
-				right: -20px;
-				width: 0px;
-				height: 0px;
-				border-style: solid;
-				border-width: 20px 0 20px 20px;
-				border-color: transparent transparent transparent $gray-lighter;
-				z-index: 150;
-			}
-
-			.nav-wedge {
-				position: absolute;
-				top: 0px;
-				left: -20px;
-				width: 0px;
-				height: 0px;
-				border-style: solid;
-				border-width: 20px 0 20px 20px;
-				border-color: $gray-lighter $gray-lighter $gray-lighter transparent;
-				z-index: 150;
-			}
-
-			&.active {
-				.nav-arrow {
-					border-color: transparent transparent transparent $nav-pills-active-link-hover-bg;
-				}
-
-				.nav-wedge {
-					border-color: $nav-pills-active-link-hover-bg $nav-pills-active-link-hover-bg $nav-pills-active-link-hover-bg transparent;
-				}
-
-				a {
-					background-color: $nav-pills-active-link-hover-bg;
-					color: $nav-pills-active-link-hover-color;
-				}
-			}
-		}
+        background-color: $nav-pills-active-link-hover-bg;
+        color: $nav-pills-active-link-hover-color;
+    }
 	}
 }
