@@ -192,23 +192,29 @@ class Checkout(object):
         return Address.objects.are_identical(
             self.shipping_address, self.billing_address)
 
-    def _save_address(self, address, is_billing=False, is_shipping=False):
+    def _save_address(self, address, is_billing=False, is_shipping=False,
+                      create_copy=False):
         if self.user.is_authenticated() and address.id is None:
             address = User.objects.store_address(
                 self.user, address, shipping=is_shipping, billing=is_billing)
         elif address.id is None:
             address.save()
+        if create_copy:
+            address.pk = None
+            address.user = None
+            address.save()
+            return address
         return address
 
     @transaction.atomic
     def create_order(self):
         if self.is_shipping_required:
             shipping_address = self._save_address(
-                self.shipping_address, is_shipping=True)
+                self.shipping_address, is_shipping=True, create_copy=True)
         else:
             shipping_address = None
         billing_address = self._save_address(
-            self.billing_address, is_billing=True)
+            self.billing_address, is_billing=True, create_copy=True)
 
         order_data = {
             'billing_address': billing_address,
@@ -306,7 +312,7 @@ def load_checkout(view):
         except KeyError:
             session_data = ''
         tracking_code = analytics.get_client_id(request)
-        
+
         checkout = Checkout.from_storage(
             session_data, cart, request.user, tracking_code)
         response = view(request, checkout, cart)
