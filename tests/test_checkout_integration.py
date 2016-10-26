@@ -10,11 +10,11 @@ from saleor.shipping.models import ShippingMethod
 
 
 @pytest.fixture
-def client_with_cart(product_in_stock, request_cart, client):
+def cart_with_item(product_in_stock, request_cart):
     variant = product_in_stock.variants.get()
     # Prepare some data
     request_cart.add(variant)
-    return client
+    return request_cart
 
 
 def assert_redirect(response, expected_url):
@@ -114,7 +114,7 @@ def test_checkout_flow(product_in_stock, client):
     assert order.status == OrderStatus.NEW
 
 
-def test_address_without_shipping(client_with_cart, monkeypatch):
+def test_address_without_shipping(cart_with_item, client, monkeypatch):
     """
     user tries to get shipping address step in checkout without shipping -
      if is redirected to summary step
@@ -123,11 +123,11 @@ def test_address_without_shipping(client_with_cart, monkeypatch):
     monkeypatch.setattr('saleor.checkout.core.Checkout.is_shipping_required',
                         False)
 
-    response = client_with_cart.get(reverse('checkout:shipping-address'))
+    response = client.get(reverse('checkout:shipping-address'))
     assert_redirect(response, reverse('checkout:summary'))
 
 
-def test_shipping_method_without_shipping(client_with_cart, monkeypatch):
+def test_shipping_method_without_shipping(cart_with_item, client, monkeypatch):
     """
     user tries to get shipping method step in checkout without shipping -
      if is redirected to summary step
@@ -136,31 +136,31 @@ def test_shipping_method_without_shipping(client_with_cart, monkeypatch):
     monkeypatch.setattr('saleor.checkout.core.Checkout.is_shipping_required',
                         False)
 
-    response = client_with_cart.get(reverse('checkout:shipping-method'))
+    response = client.get(reverse('checkout:shipping-method'))
     assert_redirect(response, reverse('checkout:summary'))
 
 
-def test_shipping_method_without_address(client_with_cart):
+def test_shipping_method_without_address(cart_with_item, client):
     """
     user tries to get shipping method step without saved shipping address -
      if is redirected to shipping address step
     """
 
-    response = client_with_cart.get(reverse('checkout:shipping-method'))
+    response = client.get(reverse('checkout:shipping-method'))
     assert_redirect(response, reverse('checkout:shipping-address'))
 
 
-def test_summary_without_address(client_with_cart):
+def test_summary_without_address(cart_with_item, client):
     """
     user tries to get summary step without saved shipping method -
      if is redirected to shipping method step
     """
 
-    response = client_with_cart.get(reverse('checkout:summary'))
+    response = client.get(reverse('checkout:summary'))
     assert_redirect(response, reverse('checkout:shipping-method'))
 
 
-def test_summary_without_shipping_method(client_with_cart, monkeypatch):
+def test_summary_without_shipping_method(cart_with_item, client, monkeypatch):
     """
     user tries to get summary step without saved shipping method -
      if is redirected to shipping method step
@@ -169,16 +169,16 @@ def test_summary_without_shipping_method(client_with_cart, monkeypatch):
     monkeypatch.setattr('saleor.checkout.core.Checkout.email',
                         True)
 
-    response = client_with_cart.get(reverse('checkout:summary'))
+    response = client.get(reverse('checkout:summary'))
     assert_redirect(response, reverse('checkout:shipping-method'))
 
 
-def test_client_login(request_cart, client_with_cart, admin_user):
+def test_client_login(cart_with_item, client, admin_user):
     data = {
         'username': admin_user.email,
         'password': 'password'
     }
-    response = client_with_cart.post(reverse('registration:login'), data=data)
+    response = client.post(reverse('registration:login'), data=data)
     assert_redirect(response, '/')
-    response = client_with_cart.get(reverse('checkout:shipping-address'))
-    assert response.context['checkout'].cart.token == request_cart.token
+    response = client.get(reverse('checkout:shipping-address'))
+    assert response.context['checkout'].cart.token == cart_with_item.token
