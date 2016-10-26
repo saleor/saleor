@@ -28,12 +28,14 @@ header {
     line-height: 0;
     .user-name {
       padding: (($dropdown-item-height - 22) / 2) 16px;
+      white-space: normal;
+      max-width: 90vw;
     }
     .menu-toggle {    
       background-color: $primary-color;
       position: absolute;      
       width: 237px;
-      z-index: 999;
+      z-index: 2;
       &.fixed {
         position: fixed;
         box-shadow: 2px 0px 5px 0px rgba(0, 0, 0, 0.20);
