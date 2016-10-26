@@ -25,24 +25,26 @@ function openModal() {
 }
 
 $(document).ready(function() {
+  var tabletScreen = 990
+  var wideScreen = 1650
+  var navWidth = '250px'
   var $mainNav = $('#main-nav')
-  var $windowWidth = $(window).width()
   var $menuToggle = $('.menu-toggle')
   var $closeMenu = $('#close-menu')
   var $openMenu = $('#open-menu')
-  function openMenu(a) {
+  function openMenu(animationSpeed) {
     $mainNav.animate({
-      'left': '250px'
-    }, a)
-    if ($windowWidth < 1650 && $windowWidth > 991) {
+      'left': navWidth
+    }, animationSpeed)
+    if ($(window).width() < wideScreen && $(window).width() >= tabletScreen) {
       $('main .container, .subheader .nav-wrapper').animate({
-        'marginLeft': '250px'
-      }, a)
+        'marginLeft': navWidth
+      }, animationSpeed)
     } 
     $openMenu.addClass('hide')
     $closeMenu.removeClass('hide')
     $menuToggle.addClass('fixed')
-    if ( $windowWidth > 990 ) {
+    if ($(window).width() > tabletScreen) {
       $.cookie('menu', 'open', { path: '/' })
     }  
   }
@@ -53,10 +55,8 @@ $(document).ready(function() {
     $closeMenu.addClass('hide')
     $openMenu.removeClass('hide')
     $menuToggle.removeClass('fixed')
-    if ($windowWidth > 990) {
-      $.removeCookie('menu', { path: '/' })
-    }
-    if ($windowWidth < 1650) {
+    $.removeCookie('menu', { path: '/' })
+    if ($(window).width() < wideScreen) {
       $('main .container, .subheader .nav-wrapper').css({
         'margin-left': 'auto'
       })
@@ -68,7 +68,7 @@ $(document).ready(function() {
   $closeMenu.click(function() {
     closeMenu()
   })
-  if ($windowWidth < 991) {
+  if ($(window).width() <= tabletScreen) {
     $(window).click(function() {
       closeMenu()
     });
