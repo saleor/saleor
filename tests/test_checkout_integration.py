@@ -1,6 +1,9 @@
 from django.core.urlresolvers import reverse
 from payments import FraudStatus, PaymentStatus
 
+from saleor.order.models import Order
+from saleor.shipping.models import ShippingMethod
+from saleor.userprofile.models import User
 from tests.utils import get_redirect_location
 
 
@@ -33,7 +36,7 @@ def test_checkout_flow(request_cart_with_item, client, shipping_method):  # pyli
     shipping_method_page = client.get(shipping_response.request['PATH_INFO'])
 
     # Redirect to summary after shipping method selection
-    shipping_method_data = {'method': shipping_method.pk}
+    shipping_method_data = {'method': shipping_method.price_per_country.first().pk}
     shipping_method_response = client.post(shipping_method_page.request['PATH_INFO'],
                                            data=shipping_method_data, follow=True)
 
@@ -85,7 +88,7 @@ def test_checkout_flow_authenticated_user(authorized_client, billing_address,  #
                                                   data=shipping_data, follow=True)
 
     # Select shipping method
-    shipping_method_data = {'method': shipping_method.pk}
+    shipping_method_data = {'method': shipping_method.price_per_country.first().pk}
     shipping_method_response = authorized_client.post(shipping_method_page.request['PATH_INFO'],
                                                       data=shipping_method_data, follow=True)
 
@@ -200,7 +203,7 @@ def test_email_is_saved_in_order(authorized_client, billing_address, customer_us
                                                   data=shipping_data, follow=True)
 
     # Select shipping method
-    shipping_method_data = {'method': shipping_method.pk}
+    shipping_method_data = {'method': shipping_method.price_per_country.first().pk}
     shipping_method_response = authorized_client.post(shipping_method_page.request['PATH_INFO'],
                                                       data=shipping_method_data, follow=True)
 
@@ -242,9 +245,8 @@ def test_voucher_invalid(client, request_cart_with_item, shipping_method, vouche
 
     # Select shipping method
     shipping_method_page = client.get(shipping_response.request['PATH_INFO'])
-
     # Redirect to summary after shipping method selection
-    shipping_method_data = {'method': shipping_method.pk}
+    shipping_method_data = {'method': shipping_method.price_per_country.first().pk}
     shipping_method_response = client.post(shipping_method_page.request['PATH_INFO'],
                                            data=shipping_method_data, follow=True)
 
@@ -290,7 +292,7 @@ def test_remove_voucher(client, request_cart_with_item, shipping_method, voucher
     shipping_method_page = client.get(shipping_response.request['PATH_INFO'])
 
     # Redirect to summary after shipping method selection
-    shipping_method_data = {'method': shipping_method.pk}
+    shipping_method_data = {'method': shipping_method.price_per_country.first().pk}
     shipping_method_response = client.post(shipping_method_page.request['PATH_INFO'],
                                            data=shipping_method_data, follow=True)
 

@@ -78,7 +78,7 @@ def test_percentage_discounts(product_in_stock):
     'total, discount_value, discount_type, limit, expected_value', [
         ('100', 10, Voucher.DISCOUNT_VALUE_FIXED, None, 10),
         ('100.05', 10, Voucher.DISCOUNT_VALUE_PERCENTAGE, 100, 10)])
-def test_value_voucher_checkout_discount(settings, total, discount_value,
+def test_value_voucher_checkout_discount(settings, total, discount_value,  #pylint: disable=too-many-arguments
                                          discount_type, limit, expected_value):
     voucher = Voucher(
         code='unique', type=Voucher.VALUE_TYPE,
@@ -105,12 +105,12 @@ def test_value_voucher_checkout_discount_not_applicable(settings):
 
 
 @pytest.mark.parametrize(
-    'shipping_cost, shipping_country_code, discount_value, discount_type, apply_to, expected_value', [  # noqa
+    'shipping_cost, shipping_country_code, discount_value, discount_type, apply_to, expected_value', [  # noqa  pylint: disable=line-too-long
         (10, None, 50, Voucher.DISCOUNT_VALUE_PERCENTAGE, None, 5),
         (10, None, 20, Voucher.DISCOUNT_VALUE_FIXED, None, 10),
         (10, 'PL', 20, Voucher.DISCOUNT_VALUE_FIXED, '', 10),
         (5, 'PL', 5, Voucher.DISCOUNT_VALUE_FIXED, 'PL', 5)])
-def test_shipping_voucher_checkout_discount(
+def test_shipping_voucher_checkout_discount(  #pylint: disable=too-many-arguments
         settings, shipping_cost, shipping_country_code, discount_value,
         discount_type, apply_to, expected_value):
     checkout = Mock(
@@ -214,7 +214,8 @@ def test_invalid_checkout_discount_form(monkeypatch, voucher):
 
         ([10], 10, Voucher.DISCOUNT_VALUE_PERCENTAGE, None, 1),
         ([10, 10], 10, Voucher.DISCOUNT_VALUE_PERCENTAGE, None, 2)])
-def test_products_voucher_checkout_discount_not(settings, monkeypatch, prices,
+def test_products_voucher_checkout_discount_not(settings,  #pylint: disable=too-many-arguments
+                                                monkeypatch, prices,
                                                 discount_value, discount_type,
                                                 apply_to, expected_value):
     monkeypatch.setattr(

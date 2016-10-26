@@ -1,18 +1,66 @@
 import pytest
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from mock import MagicMock, Mock
+from django.forms import model_to_dict
+from mock import Mock
 from prices import Price
+from satchless.item import partition
 
+from saleor.cart.models import ProductGroup, Cart, CartLine
 from saleor.checkout import views
 from saleor.checkout.core import STORAGE_SESSION_KEY, Checkout
 from saleor.shipping.models import ShippingMethodCountry
 from saleor.userprofile.models import Address
 
 
-def test_checkout_version():
-    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
-    storage = checkout.for_storage()
+@pytest.fixture
+def anonymous_checkout():
+    return Checkout(Mock(), AnonymousUser(), 'tracking_code')
+
+
+@pytest.fixture
+def cart_with_partition_factory(cart, monkeypatch, product_in_stock):
+    def generate_cart(items):
+        partitions = []
+        for item in items:
+            is_shipping_required = item.get('is_shipping_required', True)
+            money_function_mock = Mock(return_value=Price(item['cost'],
+                                                          currency=settings.DEFAULT_CURRENCY))
+            item = Mock(spec=CartLine,
+                        get_total=money_function_mock,
+                        get_price_per_item=money_function_mock)
+
+            partition = Mock(spec=ProductGroup,
+                             is_shipping_required=Mock(return_value=is_shipping_required),
+                             get_total=money_function_mock,
+                             get_price_per_item=money_function_mock,
+                             item=item)  # this is for assertion purpose only
+
+            partition.__iter__ = Mock(return_value=iter([item]))
+            partitions.append(partition)
+
+        mock = Mock(spec=Cart,
+                    partition=Mock(return_value=partitions),
+                    currency=settings.DEFAULT_CURRENCY,
+                    discounts=None)
+        return mock
+
+    return generate_cart
+
+
+@pytest.fixture
+def shipping_method_factory(monkeypatch):
+    def generate_shipping_method(shipping_cost):
+        shipping_method_mock = Mock(spec=['get_total'],
+                                    get_total=lambda: Price(shipping_cost,
+                                                            currency=settings.DEFAULT_CURRENCY))
+        monkeypatch.setattr(Checkout, 'shipping_method', shipping_method_mock)
+
+    return generate_shipping_method
+
+
+def test_checkout_version(anonymous_checkout):
+    storage = anonymous_checkout.for_storage()
     assert storage['version'] == Checkout.VERSION
 
 
@@ -30,65 +78,40 @@ def test_checkout_version_with_from_storage(storage_data, expected_storage):
     assert storage == expected_storage
 
 
-def test_checkout_clear_storage():
-    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
-    checkout.storage['new'] = 1
-    checkout.clear_storage()
-    assert checkout.storage is None
-    assert checkout.modified is True
+def test_checkout_clear_storage(anonymous_checkout):
+    anonymous_checkout.storage['new'] = 1
+    anonymous_checkout.clear_storage()
+    assert anonymous_checkout.storage is None
+    assert anonymous_checkout.modified is True
 
 
-def test_checkout_is_shipping_required():
-    cart = Mock(is_shipping_required=Mock(return_value=True))
-    checkout = Checkout(cart, AnonymousUser(), 'tracking_code')
-    assert checkout.is_shipping_required is True
+def test_checkout_is_shipping_required(anonymous_checkout):
+    anonymous_checkout.cart = Mock(is_shipping_required=Mock(return_value=True))
+    assert anonymous_checkout.is_shipping_required is True
 
 
-def test_checkout_deliveries():
-    partition = Mock(
-        get_total=Mock(return_value=Price(10, currency=settings.DEFAULT_CURRENCY)),
-        get_price_per_item=Mock(return_value=Price(10, currency=settings.DEFAULT_CURRENCY)))
-
-    def f():
-        yield partition
-
-    partition.__iter__ = Mock(return_value=f())
-    cart = Mock(partition=Mock(return_value=[partition]),
-                currency=settings.DEFAULT_CURRENCY)
-    checkout = Checkout(
-        cart, AnonymousUser(), 'tracking_code')
-    deliveries = list(checkout.deliveries)
+def test_checkout_deliveries(anonymous_checkout, cart_with_partition_factory):
+    anonymous_checkout.cart = cart_with_partition_factory(items=[{'cost': 10}])
+    partition = anonymous_checkout.cart.partition()[0]
+    deliveries = list(anonymous_checkout.deliveries)
     assert deliveries[0][1] == Price(0, currency=settings.DEFAULT_CURRENCY)
     assert deliveries[0][2] == partition.get_total()
-    assert deliveries[0][0][0][0] == partition
+    assert deliveries[0][0][0][0] == partition.item
 
 
-def test_checkout_deliveries_with_shipping_method(monkeypatch):
+def test_checkout_deliveries_with_shipping_method(anonymous_checkout, cart_with_partition_factory,
+                                                  shipping_method_factory):
     shipping_cost = 5
     items_cost = 5
 
-    partition = Mock(
-        is_shipping_required=MagicMock(return_value=True),
-        get_total=Mock(return_value=Price(items_cost, currency=settings.DEFAULT_CURRENCY)),
-        get_price_per_item=Mock(return_value=Price(items_cost, currency=settings.DEFAULT_CURRENCY)))
+    anonymous_checkout.cart = cart_with_partition_factory(items=[{'cost': items_cost}])
+    partition = anonymous_checkout.cart.partition()[0]
+    shipping_method_factory(shipping_cost=shipping_cost)
 
-    def f():
-        yield partition
-
-    partition.__iter__ = Mock(return_value=f())
-    cart = Mock(partition=Mock(return_value=[partition]),
-                currency=settings.DEFAULT_CURRENCY)
-
-    shipping_method_mock = Mock(get_total=Mock(return_value=Price(shipping_cost, currency=settings.DEFAULT_CURRENCY)))
-    monkeypatch.setattr(Checkout, 'shipping_method', shipping_method_mock)
-
-    checkout = Checkout(
-        cart, AnonymousUser(), 'tracking_code')
-
-    deliveries = list(checkout.deliveries)
+    deliveries = list(anonymous_checkout.deliveries)
     assert deliveries[0][1] == Price(shipping_cost, currency=settings.DEFAULT_CURRENCY)
     assert deliveries[0][2] == Price(items_cost + shipping_cost, currency=settings.DEFAULT_CURRENCY)
-    assert deliveries[0][0][0][0] == partition
+    assert deliveries[0][0][0][0] == partition.item
 
 
 @pytest.mark.parametrize('user, shipping', [
@@ -106,23 +129,19 @@ def test_checkout_shipping_address_with_anonymous_user(user, shipping):
     (Mock(get=Mock(return_value='shipping')), 'shipping'),
     (Mock(get=Mock(side_effect=Address.DoesNotExist)), None),
 ])
-def test_checkout_shipping_address_with_storage(address_objects, shipping, monkeypatch):
+def test_checkout_shipping_address_with_storage(address_objects, shipping,
+                                                monkeypatch, anonymous_checkout):
     monkeypatch.setattr('saleor.checkout.core.Address.objects', address_objects)
-    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
-    checkout.storage['shipping_address'] = {'id': 1}
-    assert checkout.shipping_address == shipping
+    anonymous_checkout.storage['shipping_address'] = {'id': 1}
+    assert anonymous_checkout.shipping_address == shipping
 
 
-def test_checkout_shipping_address_setter():
-    address = Address(first_name='Jan', last_name='Kowalski')
-    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
-    assert checkout._shipping_address is None
-    checkout.shipping_address = address
-    assert checkout._shipping_address == address
-    assert checkout.storage['shipping_address'] == {
-        'city': u'', 'city_area': u'', 'company_name': u'', 'country': '', 'phone': u'',
-        'country_area': u'', 'first_name': 'Jan', 'id': None, 'last_name': 'Kowalski',
-        'postal_code': u'', 'street_address_1': u'', 'street_address_2': u''}
+def test_checkout_shipping_address_setter(anonymous_checkout, billing_address):
+    assert anonymous_checkout._shipping_address is None
+    anonymous_checkout.shipping_address = billing_address
+    assert anonymous_checkout._shipping_address == billing_address
+    for key in anonymous_checkout.storage['shipping_address'].keys():
+        assert  anonymous_checkout.storage['shipping_address'][key] == getattr(billing_address, key)
 
 
 @pytest.mark.parametrize('shipping_address, shipping_method, value', [
@@ -132,34 +151,34 @@ def test_checkout_shipping_address_setter():
     (Mock(country=Mock(code='DE')), Mock(country_code='PL'), None),
     (None, Mock(country_code='PL'), None),
 ])
-def test_checkout_shipping_method(shipping_address, shipping_method, value, monkeypatch):
+def test_checkout_shipping_method(shipping_address, shipping_method,
+                                  value, monkeypatch, anonymous_checkout):
     queryset = Mock(get=Mock(return_value=shipping_method))
     monkeypatch.setattr(Checkout, 'shipping_address', shipping_address)
     monkeypatch.setattr('saleor.checkout.core.ShippingMethodCountry.objects', queryset)
-    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
-    checkout.storage['shipping_method_country_id'] = 1
-    assert checkout._shipping_method is None
-    assert checkout.shipping_method == value
-    assert checkout._shipping_method == value
+    anonymous_checkout.storage['shipping_method_country_id'] = 1
+    assert anonymous_checkout.shipping_method == value
+    assert anonymous_checkout._shipping_method is None
+    assert anonymous_checkout.shipping_method == value
+    assert anonymous_checkout._shipping_method == value
 
 
-def test_checkout_shipping_does_not_exists(monkeypatch):
+def test_checkout_shipping_does_not_exists(monkeypatch, anonymous_checkout):
     queryset = Mock(get=Mock(side_effect=ShippingMethodCountry.DoesNotExist))
     monkeypatch.setattr('saleor.checkout.core.ShippingMethodCountry.objects', queryset)
-    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
-    checkout.storage['shipping_method_country_id'] = 1
-    assert checkout.shipping_method is None
+    anonymous_checkout.storage['shipping_method_country_id'] = 1
+    assert anonymous_checkout.shipping_method is None
 
 
-def test_checkout_shipping_method_setter():
+def test_checkout_shipping_method_setter(anonymous_checkout):
     shipping_method = Mock(id=1)
-    checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
-    assert checkout.modified is False
-    assert checkout._shipping_method is None
-    checkout.shipping_method = shipping_method
-    assert checkout._shipping_method == shipping_method
-    assert checkout.modified is True
-    assert checkout.storage['shipping_method_country_id'] == 1
+    assert anonymous_checkout.modified is False
+    assert anonymous_checkout._shipping_method is None
+    assert anonymous_checkout.modified is False
+    anonymous_checkout.shipping_method = shipping_method
+    assert anonymous_checkout._shipping_method == shipping_method
+    assert anonymous_checkout.modified is True
+    assert anonymous_checkout.storage['shipping_method_country_id'] == 1
 
 
 @pytest.mark.parametrize('user, address', [
@@ -201,3 +220,95 @@ def test_checkout_discount(request_cart, sale, product_in_stock):
     request_cart.add(variant, 1)
     checkout = Checkout(request_cart, AnonymousUser(), 'tracking_code')
     assert checkout.get_total() == Price(currency="USD", net=5)
+
+
+def test_address_shipping_is_same_as_billing(anonymous_checkout, billing_address):
+    """
+    pass the same address twice and check method is_shipping_same_as_billing
+    """
+    anonymous_checkout.shipping_address = billing_address
+    anonymous_checkout.billing_address = billing_address
+
+    assert anonymous_checkout.is_shipping_same_as_billing
+
+
+def test_address_shipping_isnt_same_as_billing(anonymous_checkout, billing_address):
+    """
+     pass two different addresses and check method is_shipping_same_as_billing
+    """
+    anonymous_checkout.billing_address = billing_address
+    shipping_address = billing_address
+    shipping_address.id = None
+    shipping_address.city = 'Warszawa'
+    shipping_address.save()
+    anonymous_checkout.shipping_address = shipping_address
+    assert not anonymous_checkout.is_shipping_same_as_billing
+
+
+def test_set_shipping_address(anonymous_checkout, billing_address):
+    """
+    set shipping address and check if checkout object is modified
+    """
+    assert anonymous_checkout.modified is False
+    anonymous_checkout.shipping_address = billing_address
+    assert anonymous_checkout.modified is True
+    assert anonymous_checkout.storage['shipping_address'] == model_to_dict(billing_address)
+
+
+def test_set_billing_address(anonymous_checkout, billing_address):
+    """
+    set billing address and check if checkout object is modified
+    """
+    assert anonymous_checkout.modified is False
+    anonymous_checkout.billing_address = billing_address
+    assert anonymous_checkout.modified is True
+    assert anonymous_checkout.storage['billing_address'] == model_to_dict(billing_address)
+
+
+def test_set_email_address(anonymous_checkout):
+    """
+     set email address and check if checkout object is modified
+    """
+    assert anonymous_checkout.modified is False
+    anonymous_checkout.email = 'test@example.com'
+    assert anonymous_checkout.modified is True
+    assert anonymous_checkout.storage['email'] == 'test@example.com'
+
+
+@pytest.mark.parametrize('items, subtotal', [
+    ([{'cost': 10}, {'cost': 20}], 30),
+    ([{'cost': 10}], 10),
+])
+def test_get_subtotal(anonymous_checkout, cart_with_partition_factory, items, subtotal):
+    """
+    mock cart object (with partition) and check test method get_subtotal
+    """
+    anonymous_checkout.cart = cart_with_partition_factory(items=items)
+    assert anonymous_checkout.get_subtotal() == Price(subtotal, currency=settings.DEFAULT_CURRENCY)
+
+
+@pytest.mark.parametrize('items, total', [
+    ([{'cost': 10}, {'cost': 20}], 30),
+    ([{'cost': 10}], 10),
+])
+def test_get_total(anonymous_checkout, cart_with_partition_factory, items, total):
+    """
+    mock cart object (with partition) and check test method get_total
+    """
+    anonymous_checkout.cart = cart_with_partition_factory(items=items)
+    assert anonymous_checkout.get_total() == Price(total, currency=settings.DEFAULT_CURRENCY)
+
+
+@pytest.mark.parametrize('items, total_shipping', [
+    ([{'cost': 10}, {'cost': 20}], 10),
+    ([{'cost': 10}], 5),
+])
+def test_get_total_shipping(anonymous_checkout, cart_with_partition_factory,
+                            shipping_method_factory, items, total_shipping):
+    """
+    mock cart object (with partition) and check test method get_total_shipping
+    """
+    shipping_method_factory(shipping_cost=5)
+    anonymous_checkout.cart = cart_with_partition_factory(items=items)
+    assert anonymous_checkout.get_total_shipping() == Price(total_shipping,
+                                                            currency=settings.DEFAULT_CURRENCY)

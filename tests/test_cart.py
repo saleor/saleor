@@ -497,7 +497,7 @@ def test_replace_cartline_form_when_insufficient_stock(
     assert cart.quantity == initial_quantity
 
 
-def test_view_empty_cart(client, request_cart):
+def test_view_empty_cart(client, request_cart):  # pylint: disable=W0613
     response = client.get('/cart/')
     assert response.status_code == 200
 
