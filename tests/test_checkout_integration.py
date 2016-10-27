@@ -3,18 +3,10 @@ from django.core.urlresolvers import reverse
 from tests.utils import get_redirect_location
 
 
-def test_checkout_flow(cart_with_item, product_in_stock, client, shipping_method):
+def test_checkout_flow(cart_with_item, client, shipping_method):  # pylint: disable=W0613
     """
     Basic test case that confirms if core checkout flow works
     """
-    # Prepare some data
-    variant = product_in_stock.variants.get()
-
-    # Go to cart page
-    cart_page = client.get(reverse('cart:index'))
-    cart_lines = cart_page.context['cart_lines']
-    assert len(cart_lines) == cart_with_item.lines.count()
-    assert cart_lines[0]['variant'] == variant
 
     # Enter checkout
     checkout_index = client.get(reverse('checkout:index'), follow=True)
@@ -71,21 +63,15 @@ def test_checkout_flow(cart_with_item, product_in_stock, client, shipping_method
 
 
 def test_checkout_flow_authenticated_user(authorized_client, billing_address, cart_with_item,
-                                          normal_user, product_in_stock, shipping_method):
+                                          normal_user, shipping_method):
     """
     Checkout with authenticated user and previously saved address
     """
-    variant = product_in_stock.variants.get()
     # Prepare some data
     normal_user.addresses.add(billing_address)
     cart_with_item.user = normal_user
     cart_with_item.save()
 
-    # Go to cart page
-    cart_page = authorized_client.get(reverse('cart:index'))
-    cart_lines = cart_page.context['cart_lines']
-    assert len(cart_lines) == cart_with_item.lines.count()
-    assert cart_lines[0]['variant'] == variant
     # Enter checkout
     # Checkout index redirects directly to shipping address step
     shipping_address = authorized_client.get(reverse('checkout:index'), follow=True)
