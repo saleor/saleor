@@ -9,7 +9,7 @@ from ...product.models import (AttributeChoiceValue, Product, ProductAttribute,
                                ProductImage, ProductVariant, Stock,
                                VariantImage, StockLocation)
 from .widgets import ImagePreviewWidget
-from ...search.utils import update_object
+from ...search.utils import update_product
 
 PRODUCT_CLASSES = {Product: 'Default'}
 
@@ -59,7 +59,7 @@ class ProductForm(forms.ModelForm):
 
     def save(self, *args, **kwargs):
         instance = super(ProductForm, self).save(*args, **kwargs)
-        update_object(instance)
+        update_product(instance)
         return instance
 
 

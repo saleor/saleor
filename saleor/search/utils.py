@@ -1,14 +1,13 @@
-import logging
-from haystack import connections
-
-logger = logging.getLogger(__name__)
+from . import search_indexes
 
 
-def update_object(instance, using='default'):
-    all_indexes = connections[using].get_unified_index().get_indexes()
-    index = all_indexes.get(instance.__class__)
-    if index:
-        index.update_object(instance)
-    else:
-        logger.warning('Tried to index object without matching index',
-                       extra={'instance': instance, 'all_indexes': all_indexes})
+def update_product(instance):
+    search_indexes.ProductIndex().update_object(instance)
+
+
+def update_order(instance):
+    search_indexes.OrderIndex().update_object(instance)
+
+
+def update_user(instance):
+    search_indexes.UserIndex().update_object(instance)
