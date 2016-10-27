@@ -6,6 +6,7 @@ from ..userprofile.models import User
 
 class ProductIndex(indexes.SearchIndex, indexes.Indexable):
     name = indexes.CharField(model_attr='name')
+    available_on = indexes.DateField(model_attr='available_on', null=True)
     text = indexes.MultiValueField(document=True)
     categories = indexes.MultiValueField()
 
@@ -13,7 +14,7 @@ class ProductIndex(indexes.SearchIndex, indexes.Indexable):
         return Product
 
     def index_queryset(self, using=None):
-        qs = self.get_model().objects.get_available_products()
+        qs = self.get_model().objects.all()
         qs = qs.prefetch_related('categories')
         return qs
 
