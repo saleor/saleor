@@ -6,12 +6,21 @@ import pytest
 from saleor.cart import decorators
 from saleor.cart.models import Cart
 from saleor.product.models import Product, ProductVariant, Stock
-from saleor.userprofile.models import Address, User
+from saleor.shipping.models import ShippingMethod
+from saleor.userprofile.models import Address
 
 
 @pytest.fixture
 def cart(db):  # pylint: disable=W0613
     return Cart.objects.create()
+
+
+@pytest.fixture
+def cart_with_item(product_in_stock, request_cart):
+    variant = product_in_stock.variants.get()
+    # Prepare some data
+    request_cart.add(variant)
+    return request_cart
 
 
 @pytest.fixture
@@ -22,28 +31,35 @@ def request_cart(cart, monkeypatch):
     return cart
 
 
+@pytest.fixture
+def normal_user(django_user_model):
+    return django_user_model.objects.create_user('test@example.com',
+                                                 'password', is_active=True)
+
+
 @pytest.fixture()
-def admin_user(db):
+def admin_user(django_user_model):
     """A Django admin user.
 
     This uses an existing user with username "admin", or creates a new one with
     password "password".
     """
-    try:
-        user = User.objects.get(email='admin@example.com')
-    except User.DoesNotExist:
-        user = User.objects.create_superuser(
-            'admin@example.com', 'password')
-    return user
+    return django_user_model.objects.create_superuser('test@example.com',
+                                                      'password', is_active=True)
 
 
 @pytest.fixture()
-def admin_client(db, admin_user):
+def admin_client(admin_user):
     """A Django test client logged in as an admin user."""
     from django.test.client import Client
-
     client = Client()
     client.login(username=admin_user.email, password='password')
+    return client
+
+
+@pytest.fixture()
+def authorized_client(client, normal_user):
+    client.login(username=normal_user.email, password='password')
     return client
 
 
@@ -56,6 +72,13 @@ def billing_address(db):  # pylint: disable=W0613
         city='Wrocław',
         postal_code='53-601',
         country='PL')
+
+
+@pytest.fixture
+def shipping_method():
+    shipping_method = ShippingMethod.objects.create(name='DHL')
+    shipping_method.price_per_country.create(price=10)
+    return shipping_method
 
 
 @pytest.fixture
