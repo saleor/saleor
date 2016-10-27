@@ -190,7 +190,7 @@ def test_summary_without_shipping_method(cart_with_item, client, monkeypatch):  
     assert get_redirect_location(response) == reverse('checkout:shipping-method')
 
 
-def test_client_login(cart_with_item, client, admin_user):  # pylint: disable=W0613
+def test_client_login(cart_with_item, client, admin_user):
     data = {
         'username': admin_user.email,
         'password': 'password'

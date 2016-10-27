@@ -7,7 +7,7 @@ from saleor.cart import decorators
 from saleor.cart.models import Cart
 from saleor.product.models import Product, ProductVariant, Stock
 from saleor.shipping.models import ShippingMethod
-from saleor.userprofile.models import Address
+from saleor.userprofile.models import Address, User
 
 
 @pytest.fixture
@@ -32,20 +32,15 @@ def request_cart(cart, monkeypatch):
 
 
 @pytest.fixture
-def normal_user(django_user_model):
-    return django_user_model.objects.create_user('test@example.com',
-                                                 'password', is_active=True)
+def normal_user(db):
+    return User.objects.create_user('test@example.com', 'password')
 
 
 @pytest.fixture()
-def admin_user(django_user_model):
+def admin_user(db):
     """A Django admin user.
-
-    This uses an existing user with username "admin", or creates a new one with
-    password "password".
     """
-    return django_user_model.objects.create_superuser('test@example.com',
-                                                      'password', is_active=True)
+    return User.objects.create_superuser('admin@example.com', 'password')
 
 
 @pytest.fixture()
@@ -75,7 +70,7 @@ def billing_address(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def shipping_method():
+def shipping_method(db):
     shipping_method = ShippingMethod.objects.create(name='DHL')
     shipping_method.price_per_country.create(price=10)
     return shipping_method
