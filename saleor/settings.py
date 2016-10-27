@@ -1,12 +1,11 @@
 from __future__ import unicode_literals
 
 import ast
+import os.path
 try:
     from urllib.parse import urlparse
 except ImportError:
     from urlparse import urlparse
-
-import os.path
 
 import dj_database_url
 import dj_email_url
