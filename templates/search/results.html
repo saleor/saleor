@@ -20,18 +20,7 @@
 {% endblock breadcrumb %}
 
 {% block content %}
-    <div class="well">
-        <form action="{% url "search:search" %}"  method="get">
-            <div class="input-group">
-                <input type="text" class="form-control"  name="q"  placeholder="Search..." value="{% if query %}{{ query }}{% endif %}">
-                <span class="input-group-btn">
-                    <button class="btn btn-default">
-                        <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-                    </button>
-                </span>
-            </div>
-        </form>
-    </div>
+    {% include "search/search_form.html" with query=query only %}
     <div class="row">
         {% if query and results %}
             {% include "search/_items.html" %}
