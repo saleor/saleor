@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from tests.utils import get_redirect_location
 
 
-def test_checkout_flow(cart_with_item, client, shipping_method):  # pylint: disable=W0613
+def test_checkout_flow(request_cart_with_item, client, shipping_method):  # pylint: disable=W0613
     """
     Basic test case that confirms if core checkout flow works
     """
@@ -62,15 +62,15 @@ def test_checkout_flow(cart_with_item, client, shipping_method):  # pylint: disa
     assert get_redirect_location(payment_response) == order_details
 
 
-def test_checkout_flow_authenticated_user(authorized_client, billing_address, cart_with_item,
+def test_checkout_flow_authenticated_user(authorized_client, billing_address, request_cart_with_item,
                                           normal_user, shipping_method):
     """
     Checkout with authenticated user and previously saved address
     """
     # Prepare some data
     normal_user.addresses.add(billing_address)
-    cart_with_item.user = normal_user
-    cart_with_item.save()
+    request_cart_with_item.user = normal_user
+    request_cart_with_item.save()
 
     # Enter checkout
     # Checkout index redirects directly to shipping address step
@@ -112,7 +112,7 @@ def test_checkout_flow_authenticated_user(authorized_client, billing_address, ca
     assert get_redirect_location(payment_response) == order_details
 
 
-def test_address_without_shipping(cart_with_item, client, monkeypatch):  # pylint: disable=W0613
+def test_address_without_shipping(request_cart_with_item, client, monkeypatch):  # pylint: disable=W0613
     """
     user tries to get shipping address step in checkout without shipping -
      if is redirected to summary step
@@ -126,7 +126,7 @@ def test_address_without_shipping(cart_with_item, client, monkeypatch):  # pylin
     assert get_redirect_location(response) == reverse('checkout:summary')
 
 
-def test_shipping_method_without_shipping(cart_with_item, client, monkeypatch):  # pylint: disable=W0613
+def test_shipping_method_without_shipping(request_cart_with_item, client, monkeypatch):  # pylint: disable=W0613
     """
     user tries to get shipping method step in checkout without shipping -
      if is redirected to summary step
@@ -140,7 +140,7 @@ def test_shipping_method_without_shipping(cart_with_item, client, monkeypatch): 
     assert get_redirect_location(response) == reverse('checkout:summary')
 
 
-def test_shipping_method_without_address(cart_with_item, client):  # pylint: disable=W0613
+def test_shipping_method_without_address(request_cart_with_item, client):  # pylint: disable=W0613
     """
     user tries to get shipping method step without saved shipping address -
      if is redirected to shipping address step
@@ -151,7 +151,7 @@ def test_shipping_method_without_address(cart_with_item, client):  # pylint: dis
     assert get_redirect_location(response) == reverse('checkout:shipping-address')
 
 
-def test_summary_without_address(cart_with_item, client):  # pylint: disable=W0613
+def test_summary_without_address(request_cart_with_item, client):  # pylint: disable=W0613
     """
     user tries to get summary step without saved shipping method -
      if is redirected to shipping method step
@@ -162,7 +162,7 @@ def test_summary_without_address(cart_with_item, client):  # pylint: disable=W06
     assert get_redirect_location(response) == reverse('checkout:shipping-method')
 
 
-def test_summary_without_shipping_method(cart_with_item, client, monkeypatch):  # pylint: disable=W0613
+def test_summary_without_shipping_method(request_cart_with_item, client, monkeypatch):  # pylint: disable=W0613
     """
     user tries to get summary step without saved shipping method -
      if is redirected to shipping method step
@@ -176,7 +176,7 @@ def test_summary_without_shipping_method(cart_with_item, client, monkeypatch):  
     assert get_redirect_location(response) == reverse('checkout:shipping-method')
 
 
-def test_client_login(cart_with_item, client, admin_user):
+def test_client_login(request_cart_with_item, client, admin_user):
     data = {
         'username': admin_user.email,
         'password': 'password'
@@ -185,4 +185,4 @@ def test_client_login(cart_with_item, client, admin_user):
     assert response.status_code == 302
     assert get_redirect_location(response) == '/'
     response = client.get(reverse('checkout:shipping-address'))
-    assert response.context['checkout'].cart.token == cart_with_item.token
+    assert response.context['checkout'].cart.token == request_cart_with_item.token

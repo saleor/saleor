@@ -16,11 +16,8 @@ def cart(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def cart_with_item(product_in_stock, request_cart):
-    variant = product_in_stock.variants.get()
-    # Prepare some data
-    request_cart.add(variant)
-    return request_cart
+def normal_user(db):
+    return User.objects.create_user('test@example.com', 'password')
 
 
 @pytest.fixture
@@ -32,8 +29,11 @@ def request_cart(cart, monkeypatch):
 
 
 @pytest.fixture
-def normal_user(db):
-    return User.objects.create_user('test@example.com', 'password')
+def request_cart_with_item(product_in_stock, request_cart):
+    variant = product_in_stock.variants.get()
+    # Prepare some data
+    request_cart.add(variant)
+    return request_cart
 
 
 @pytest.fixture()
