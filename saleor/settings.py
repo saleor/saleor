@@ -322,8 +322,9 @@ BONSAI_URL = os.environ.get('BONSAI_URL')
 ES_PARAMS = urlparse(ELASTICSEARCH_URL or SEARCHBOX_URL or BONSAI_URL or '')
 
 if ES_PARAMS.hostname:
+    default_port = '80' if ES_PARAMS.scheme == 'http' else '443'
     es_url = '%s://%s:%s' % (
-        ES_PARAMS.scheme, ES_PARAMS.hostname, ES_PARAMS.port)
+        ES_PARAMS.scheme, ES_PARAMS.hostname, ES_PARAMS.port or default_port)
     if ES_PARAMS.username and ES_PARAMS.password:
         connection_kwargs = {'http_auth': '%s:%s' % (
             ES_PARAMS.username, ES_PARAMS.password)}
