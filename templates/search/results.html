@@ -20,25 +20,17 @@
 {% endblock breadcrumb %}
 
 {% block content %}
-    <h3>{% blocktrans %}Search results for {{ query }}{% endblocktrans %}</h3>
-    <div class="row">
-        <div class="col-md-3">
-            <ul class="list-group">
-                {% for category in children_categories %}
-                    <li class="list-group-item">
-                        <a href="{{ category.get_absolute_url }}">
-                            {{ category }}
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
+    {% if query %}
+        <div class="col-md-12">
+            <h3>{% blocktrans %}Search results for: {{ query }}{% endblocktrans %}</h3>
         </div>
-
-        <div class="col-md-9">
-            <div class="row">
-                {% include "search/_items.html" %}
-            </div>
+        {% include "search/_items.html" %}
+        <div class="col-md-12">
             {% bootstrap_pagination results url=query_string %}
         </div>
-    </div>
+    {% else %}
+        <div class="col-md-12">
+            <h3>{% blocktrans %}No results found{% endblocktrans %}</h3>
+        </div>
+    {% endif %}
 {% endblock content %}
