@@ -317,9 +317,9 @@ SEARCHBOX_URL = os.environ.get('SEARCHBOX_URL')
 BONSAI_URL = os.environ.get('BONSAI_URL')
 # We'll support couple of elasticsearch add-ons, but finally we'll use single
 # variable
-ES_PARAMS = urlparse(ELASTICSEARCH_URL or SEARCHBOX_URL or BONSAI_URL)
+ES_PARAMS = urlparse(ELASTICSEARCH_URL or SEARCHBOX_URL or BONSAI_URL or '')
 
-if ES_PARAMS:
+if ES_PARAMS.hostname:
     es_url = '%s://%s:%s' % (
         ES_PARAMS.scheme, ES_PARAMS.hostname, ES_PARAMS.port)
     if ES_PARAMS.username and ES_PARAMS.password:
