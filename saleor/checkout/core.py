@@ -13,7 +13,7 @@ from ..discount.models import Voucher, NotApplicable
 from ..order.models import Order
 from ..shipping.models import ShippingMethodCountry, ANY_COUNTRY
 from ..userprofile.models import Address, User
-from ..search.utils import update_object
+from ..search.utils import update_order, update_user
 
 STORAGE_SESSION_KEY = 'checkout_storage'
 
@@ -267,9 +267,9 @@ class Checkout(object):
 
         if voucher is not None:
             Voucher.objects.increase_usage(voucher)
-        update_object(order)
+        update_order(order)
         if order.user:
-            update_object(order.user)
+            update_user(order.user)
         return order
 
     def _get_voucher(self, vouchers=None):
