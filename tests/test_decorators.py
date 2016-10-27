@@ -71,7 +71,6 @@ def test_find_and_assign_cart(django_user_model):
 def test_find_and_assign_cart_cart_missing(token, django_user_model):
     request = get_request(django_user_model, authenticated=True,
                           cookie_token=token)
-    # import ipdb;ipdb.set_trace()
     decorators.find_and_assign_cart(request, response=Mock())
     assert Cart.objects.filter(user=request.user).exists() is False
 

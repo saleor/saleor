@@ -12,19 +12,6 @@ from saleor.cart.models import Cart
 from satchless.item import InsufficientStock
 
 
-@pytest.fixture
-def cart(db):  # pylint: disable=W0613
-    return Cart.objects.create()
-
-
-@pytest.fixture
-def request_cart(cart, monkeypatch):
-    monkeypatch.setattr(
-        decorators, 'get_cart_from_request',
-        lambda request, create=False: cart)
-    return cart
-
-
 def test_adding_without_checking(cart, product_in_stock):
     variant = product_in_stock.variants.get()
     cart.add(variant, 1000, check_quantity=False)
