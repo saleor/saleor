@@ -1,6 +1,8 @@
 from __future__ import unicode_literals
 
 import ast
+from urlparse import urlparse
+
 import os.path
 
 import dj_database_url
@@ -310,24 +312,36 @@ WEBPACK_LOADER = {
             r'.+\.hot-update\.js',
             r'.+\.map']}}
 
-ENABLE_ELASTICSEARCH = ast.literal_eval(os.environ.get('ENABLE_ELASTICSEARCH', 'False'))
+ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
+SEARCHBOX_URL = os.environ.get('SEARCHBOX_URL')
+BONSAI_URL = os.environ.get('BONSAI_URL')
+# We'll support couple of elasticsearch add-ons, but finally we'll use single
+# variable
+ES_PARAMS = urlparse(ELASTICSEARCH_URL or SEARCHBOX_URL or BONSAI_URL)
 
-if ENABLE_ELASTICSEARCH:
+if ES_PARAMS:
+    es_url = '%s://%s:%s' % (
+        ES_PARAMS.scheme, ES_PARAMS.hostname, ES_PARAMS.port)
+    if ES_PARAMS.username and ES_PARAMS.password:
+        connection_kwargs = {'http_auth': '%s:%s' % (
+            ES_PARAMS.username, ES_PARAMS.password)}
+    else:
+        connection_kwargs = {}
+
     HAYSTACK_CONNECTIONS = {
         'default': {
             'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
-            'URL': os.environ.get('ELASTICSEARCH_URL',
-                                  'http://127.0.0.1:9200/'),
-            'INDEX_NAME': os.environ.get('ELASTICSEARCH_INDEX_NAME', 'saleor')
-        },
-    }
+            'URL': es_url,
+            'INDEX_NAME': os.environ.get(
+                'ELASTICSEARCH_INDEX_NAME', 'storefront'),
+            'KWARGS': connection_kwargs
+        }}
 else:
     HAYSTACK_CONNECTIONS = {
         'default': {
             'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
             'PATH': os.path.join(os.path.dirname(__file__), 'whoosh_index'),
-        },
-    }
+        }}
 
 
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
