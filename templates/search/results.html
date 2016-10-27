@@ -20,17 +20,28 @@
 {% endblock breadcrumb %}
 
 {% block content %}
-    {% if query %}
-        <div class="col-md-12">
-            <h3>{% blocktrans %}Search results for: {{ query }}{% endblocktrans %}</h3>
-        </div>
-        {% include "search/_items.html" %}
-        <div class="col-md-12">
-            {% bootstrap_pagination results url=query_string %}
-        </div>
-    {% else %}
-        <div class="col-md-12">
-            <h3>{% blocktrans %}No results found{% endblocktrans %}</h3>
-        </div>
-    {% endif %}
+    <div class="well">
+        <form action="{% url "search:search" %}"  method="get">
+            <div class="input-group">
+                <input type="text" class="form-control"  name="q"  placeholder="Search..." value="{% if query %}{{ query }}{% endif %}">
+                <span class="input-group-btn">
+                    <button class="btn btn-default">
+                        <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                    </button>
+                </span>
+            </div>
+        </form>
+    </div>
+    <div class="row">
+        {% if query and results %}
+            {% include "search/_items.html" %}
+            <div class="col-md-12">
+                {% bootstrap_pagination results url=query_string %}
+            </div>
+        {% else %}
+            <div class="col-md-12">
+                <h3>{% blocktrans %}No results found{% endblocktrans %}</h3>
+            </div>
+        {% endif %}
+    </div>
 {% endblock content %}

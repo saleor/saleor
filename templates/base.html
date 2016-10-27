@@ -107,6 +107,18 @@
             <div class="row">
                 <div class="col-sm-12">
                     {% block content %}
+                        <div class="well">
+                            <form action="{% url "search:search" %}"  method="get">
+                                <div class="input-group">
+                                    <input type="text" class="form-control"  name="q"  placeholder="Search..." value="{% if query %}{{ query }}{% endif %}">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default">
+                                            <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                                        </button>
+                                    </span>
+                                </div>
+                            </form>
+                        </div>
                         <div class="row">
                             {% include "category/_items.html" %}
                         </div>
