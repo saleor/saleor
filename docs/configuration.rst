@@ -49,6 +49,6 @@ Environment variables
 ``SECRET_KEY``
   Controls `Django's secret key <https://docs.djangoproject.com/en/1.10/ref/settings/#secret-key>`_ setting.
 
-``ENABLE_ELASTICSEARCH``
-  Controls optional `Elasticsearch <https://www.elastic.co/products/elasticsearch>`_ integration. (see :doc:`elasticsearch`) Defaults to ``False``.
+``ELASTICSEARCH_URL``
+  Controls optional `Elasticsearch <https://www.elastic.co/products/elasticsearch>`_ integration. (see :doc:`elasticsearch`) Defaults to ``None``.
   Saleor uses `Whoosh <https://whoosh.readthedocs.io/en/latest/>`_ as a default search engine.

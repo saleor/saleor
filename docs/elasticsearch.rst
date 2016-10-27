@@ -7,12 +7,7 @@ Installation
 
 Elasticsearch requires separated service enabled (there is a development environment on docker container delivered with saleor).
 Integration can be configured with set of environment variables.
-You have to install elasticsearch client library before you start using this integration:
-
-.. code-block:: bash
-
-    $ pip install elasticsearch
-
+Elasticsearch client is installed by default. You may also use external add-ons that deliver elasticsearch service, like Searchbox or Bonsai.
 
 Environment variables
 ---------------------
@@ -20,10 +15,16 @@ Environment variables
 ``ELASTICSEARCH_URL``
   Contains URL address to the elasticsearch cluster. Defaults to ``http://127.0.0.1:9200/``.
 
+``BONSAI_URL``
+  Contains URL to Bonsai elasticsearch add-on on Heroku
+
+``SEARCHBOX_URL``
+  Contains URL to Searchbox elasticsearch add-on on Heroku
+
 ``ELASTICSEARCH_INDEX_NAME``
-  Controls elasticsearch index name where all searchable documents will be stored. Defaults to ``saleor``.
+  Controls elasticsearch index name where all searchable documents will be stored. Defaults to ``storefront``.
 
-
+Note that you can only use one Elasticsearch backend at once so if you set ``ELASTICSEARCH_URL`` variable, other URLs will be ignored.
 
 Data indexing
 -------------
