@@ -1,4 +1,3 @@
-from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 
 from tests.utils import get_redirect_location
@@ -67,11 +66,8 @@ def test_checkout_flow(cart_with_item, product_in_stock, client, shipping_method
         'verification_result': 'waiting'}
     payment_response = client.post(payment_page_url, data=payment_data)
     assert payment_response.status_code == 302
-    # Target page contains full URL with domain from Site object
     order_details = reverse('order:details', kwargs={'token': order.token})
-    site = Site.objects.get_current()
-    expected_url = 'http://%s%s' % (site, order_details)
-    assert payment_response['Location'] == expected_url
+    assert get_redirect_location(payment_response) == order_details
 
 
 def test_checkout_flow_authenticated_user(authorized_client, billing_address, cart_with_item,
@@ -126,11 +122,8 @@ def test_checkout_flow_authenticated_user(authorized_client, billing_address, ca
                                               data=payment_data)
 
     assert payment_response.status_code == 302
-    # Target page contains full URL with domain from Site object
     order_details = reverse('order:details', kwargs={'token': order.token})
-    site = Site.objects.get_current()
-    expected_url = 'http://%s%s' % (site, order_details)
-    assert payment_response['Location'] == expected_url
+    assert get_redirect_location(payment_response) == order_details
 
 
 def test_address_without_shipping(cart_with_item, client, monkeypatch):  # pylint: disable=W0613
