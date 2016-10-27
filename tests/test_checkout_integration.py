@@ -1,92 +1,52 @@
-import pytest
-from django.contrib.sites.models import Site
-from django.core import signing
 from django.core.urlresolvers import reverse
 
-from saleor.cart.models import Cart
-from saleor.order import Status as OrderStatus
-from saleor.order.models import Order
-from saleor.shipping.models import ShippingMethod
+from tests.utils import get_redirect_location
 
 
-@pytest.fixture
-def cart_with_item(product_in_stock, request_cart):
-    variant = product_in_stock.variants.get()
-    # Prepare some data
-    request_cart.add(variant)
-    return request_cart
-
-
-def assert_redirect(response, expected_url):
-    assert response.status_code == 302
-    # Due to Django 1.8 compatibility, we have to handle both cases
-    location = response['Location']
-    if location.startswith('http'):
-        location = location.split('http://testserver')[1]
-    assert location == expected_url
-
-
-def test_checkout_flow(product_in_stock, client):
+def test_checkout_flow(request_cart_with_item, client, shipping_method):  # pylint: disable=W0613
     """
     Basic test case that confirms if core checkout flow works
     """
-    variant = product_in_stock.variants.get()
-    # Prepare some data
-    cart = Cart.objects.create()
-    cart.add(variant)
-    shipping_method = ShippingMethod.objects.create(name='DHL')
-    shipping_variant = shipping_method.price_per_country.create(price=10)
 
-
-    # This is anonymous checkout, so cart token in stored in signed cookie
-    value = signing.get_cookie_signer(salt=Cart.COOKIE_NAME).sign(cart.token)
-    client.cookies[Cart.COOKIE_NAME] = value
-
-    # Go to cart page
-    cart_page = client.get(reverse('cart:index'))
-    cart_lines = cart_page.context['cart_lines']
-    assert len(cart_lines) == cart.lines.count()
-    assert cart_lines[0]['variant'] == variant
     # Enter checkout
-    checkout_index = client.get(reverse('checkout:index'))
+    checkout_index = client.get(reverse('checkout:index'), follow=True)
     # Checkout index redirects directly to shipping address step
-    assert_redirect(checkout_index, reverse('checkout:shipping-address'))
-    shipping_address = client.get(reverse('checkout:shipping-address'))
-    assert shipping_address.status_code == 200
+    shipping_address = client.get(checkout_index.request['PATH_INFO'])
+
     # Enter shipping address data
     shipping_data = {
         'email': 'test@example.com',
         'first_name': 'John',
         'last_name': 'Doe',
-        'street_address_1': 'Some street',
+        'street_address_1': 'Aleje Jerozolimskie 2',
         'street_address_2': '',
-        'city': 'Somewhere',
+        'city': 'Warszawa',
         'city_area': '',
         'country_area': '',
-        'postal_code': '50-123',
+        'postal_code': '00-374',
         'country': 'PL'}
-    shipping_response = client.post(
-        reverse('checkout:shipping-address'), data=shipping_data)
+    shipping_response = client.post(shipping_address.request['PATH_INFO'],
+                                    data=shipping_data, follow=True)
+
     # Select shipping method
-    assert_redirect(shipping_response, reverse('checkout:shipping-method'))
-    shipping_method_page = client.get(reverse('checkout:shipping-method'))
-    assert shipping_method_page.status_code == 200
+    shipping_method_page = client.get(shipping_response.request['PATH_INFO'])
+
     # Redirect to summary after shipping method selection
-    shipping_method_response = client.post(
-        reverse('checkout:shipping-method'), data={'method': shipping_method.pk})
-    assert_redirect(shipping_method_response, reverse('checkout:summary'))
+    shipping_method_data = {'method': shipping_method.pk}
+    shipping_method_response = client.post(shipping_method_page.request['PATH_INFO'],
+                                           data=shipping_method_data, follow=True)
+
     # Summary page asks for Billing address, default is the same as shipping
-    summary_response = client.post(reverse('checkout:summary'),
-                                   data={'address': 'shipping_address'})
+    address_data = {'address': 'shipping_address'}
+    summary_response = client.post(shipping_method_response.request['PATH_INFO'],
+                                   data=address_data, follow=True)
+
     # After summary step, order is created and it waits for payment
-    order = Order.objects.latest('pk')
-    order_payment_url = reverse('order:payment', kwargs={'token': order.token})
-    assert_redirect(summary_response, order_payment_url)
-    payment_method_page = client.get(order_payment_url)
-    assert payment_method_page.status_code == 200
+    order = summary_response.context['order']
+
     # Select payment method
-    payment_page = client.post(order_payment_url, data={'method': 'default'},
-                               follow=True)
+    payment_page = client.post(summary_response.request['PATH_INFO'],
+                               data={'method': 'default'}, follow=True)
     assert len(payment_page.redirect_chain) == 1
     assert payment_page.status_code == 200
     # Go to payment details page, enter payment data
@@ -98,23 +58,61 @@ def test_checkout_flow(product_in_stock, client):
         'verification_result': 'waiting'}
     payment_response = client.post(payment_page_url, data=payment_data)
     assert payment_response.status_code == 302
-    # Target page contains full URL with domain from Site object
-    site = Site.objects.get_current()
     order_details = reverse('order:details', kwargs={'token': order.token})
-    expected_url = 'http://%s%s' % (site, order_details)
-    assert payment_response['Location'] == expected_url
-    order_details_page = client.get(order_details)
-    assert order_details_page.status_code == 200
-    # Check if order has correct totals and payments
-    expected_total = variant.get_price() + shipping_variant.price
-    assert order.total == expected_total
-    assert order.payments.exists()
-    payment = order.payments.latest('pk')
-    assert payment.status == 'preauth'
-    assert order.status == OrderStatus.NEW
+    assert get_redirect_location(payment_response) == order_details
 
 
-def test_address_without_shipping(cart_with_item, client, monkeypatch):
+def test_checkout_flow_authenticated_user(authorized_client, billing_address, request_cart_with_item,
+                                          normal_user, shipping_method):
+    """
+    Checkout with authenticated user and previously saved address
+    """
+    # Prepare some data
+    normal_user.addresses.add(billing_address)
+    request_cart_with_item.user = normal_user
+    request_cart_with_item.save()
+
+    # Enter checkout
+    # Checkout index redirects directly to shipping address step
+    shipping_address = authorized_client.get(reverse('checkout:index'), follow=True)
+
+    # Enter shipping address data
+    shipping_data = {'address': billing_address.pk}
+    shipping_method_page = authorized_client.post(shipping_address.request['PATH_INFO'],
+                                                  data=shipping_data, follow=True)
+
+    # Select shipping method
+    shipping_method_data = {'method': shipping_method.pk}
+    shipping_method_response = authorized_client.post(shipping_method_page.request['PATH_INFO'],
+                                                      data=shipping_method_data, follow=True)
+
+    # Summary page asks for Billing address, default is the same as shipping
+    payment_method_data = {'address': 'shipping_address'}
+    payment_method_page = authorized_client.post(shipping_method_response.request['PATH_INFO'],
+                                                 data=payment_method_data, follow=True)
+
+    # After summary step, order is created and it waits for payment
+    order = payment_method_page.context['order']
+
+    # Select payment method
+    payment_page = authorized_client.post(payment_method_page.request['PATH_INFO'],
+                                          data={'method': 'default'}, follow=True)
+
+    # Go to payment details page, enter payment data
+    payment_data = {
+        'status': 'preauth',
+        'fraud_status': 'unknown',
+        'gateway_response': '3ds-disabled',
+        'verification_result': 'waiting'}
+    payment_response = authorized_client.post(payment_page.request['PATH_INFO'],
+                                              data=payment_data)
+
+    assert payment_response.status_code == 302
+    order_details = reverse('order:details', kwargs={'token': order.token})
+    assert get_redirect_location(payment_response) == order_details
+
+
+def test_address_without_shipping(request_cart_with_item, client, monkeypatch):  # pylint: disable=W0613
     """
     user tries to get shipping address step in checkout without shipping -
      if is redirected to summary step
@@ -124,10 +122,11 @@ def test_address_without_shipping(cart_with_item, client, monkeypatch):
                         False)
 
     response = client.get(reverse('checkout:shipping-address'))
-    assert_redirect(response, reverse('checkout:summary'))
+    assert response.status_code == 302
+    assert get_redirect_location(response) == reverse('checkout:summary')
 
 
-def test_shipping_method_without_shipping(cart_with_item, client, monkeypatch):
+def test_shipping_method_without_shipping(request_cart_with_item, client, monkeypatch):  # pylint: disable=W0613
     """
     user tries to get shipping method step in checkout without shipping -
      if is redirected to summary step
@@ -137,30 +136,33 @@ def test_shipping_method_without_shipping(cart_with_item, client, monkeypatch):
                         False)
 
     response = client.get(reverse('checkout:shipping-method'))
-    assert_redirect(response, reverse('checkout:summary'))
+    assert response.status_code == 302
+    assert get_redirect_location(response) == reverse('checkout:summary')
 
 
-def test_shipping_method_without_address(cart_with_item, client):
+def test_shipping_method_without_address(request_cart_with_item, client):  # pylint: disable=W0613
     """
     user tries to get shipping method step without saved shipping address -
      if is redirected to shipping address step
     """
 
     response = client.get(reverse('checkout:shipping-method'))
-    assert_redirect(response, reverse('checkout:shipping-address'))
+    assert response.status_code == 302
+    assert get_redirect_location(response) == reverse('checkout:shipping-address')
 
 
-def test_summary_without_address(cart_with_item, client):
+def test_summary_without_address(request_cart_with_item, client):  # pylint: disable=W0613
     """
     user tries to get summary step without saved shipping method -
      if is redirected to shipping method step
     """
 
     response = client.get(reverse('checkout:summary'))
-    assert_redirect(response, reverse('checkout:shipping-method'))
+    assert response.status_code == 302
+    assert get_redirect_location(response) == reverse('checkout:shipping-method')
 
 
-def test_summary_without_shipping_method(cart_with_item, client, monkeypatch):
+def test_summary_without_shipping_method(request_cart_with_item, client, monkeypatch):  # pylint: disable=W0613
     """
     user tries to get summary step without saved shipping method -
      if is redirected to shipping method step
@@ -170,15 +172,17 @@ def test_summary_without_shipping_method(cart_with_item, client, monkeypatch):
                         True)
 
     response = client.get(reverse('checkout:summary'))
-    assert_redirect(response, reverse('checkout:shipping-method'))
+    assert response.status_code == 302
+    assert get_redirect_location(response) == reverse('checkout:shipping-method')
 
 
-def test_client_login(cart_with_item, client, admin_user):
+def test_client_login(request_cart_with_item, client, admin_user):
     data = {
         'username': admin_user.email,
         'password': 'password'
     }
     response = client.post(reverse('registration:login'), data=data)
-    assert_redirect(response, '/')
+    assert response.status_code == 302
+    assert get_redirect_location(response) == '/'
     response = client.get(reverse('checkout:shipping-address'))
-    assert response.context['checkout'].cart.token == cart_with_item.token
+    assert response.context['checkout'].cart.token == request_cart_with_item.token

@@ -6,12 +6,18 @@ import pytest
 from saleor.cart import decorators
 from saleor.cart.models import Cart
 from saleor.product.models import Product, ProductVariant, Stock
+from saleor.shipping.models import ShippingMethod
 from saleor.userprofile.models import Address, User
 
 
 @pytest.fixture
 def cart(db):  # pylint: disable=W0613
     return Cart.objects.create()
+
+
+@pytest.fixture
+def normal_user(db):
+    return User.objects.create_user('test@example.com', 'password')
 
 
 @pytest.fixture
@@ -22,28 +28,33 @@ def request_cart(cart, monkeypatch):
     return cart
 
 
+@pytest.fixture
+def request_cart_with_item(product_in_stock, request_cart):
+    variant = product_in_stock.variants.get()
+    # Prepare some data
+    request_cart.add(variant)
+    return request_cart
+
+
 @pytest.fixture()
 def admin_user(db):
     """A Django admin user.
-
-    This uses an existing user with username "admin", or creates a new one with
-    password "password".
     """
-    try:
-        user = User.objects.get(email='admin@example.com')
-    except User.DoesNotExist:
-        user = User.objects.create_superuser(
-            'admin@example.com', 'password')
-    return user
+    return User.objects.create_superuser('admin@example.com', 'password')
 
 
 @pytest.fixture()
-def admin_client(db, admin_user):
+def admin_client(admin_user):
     """A Django test client logged in as an admin user."""
     from django.test.client import Client
-
     client = Client()
     client.login(username=admin_user.email, password='password')
+    return client
+
+
+@pytest.fixture()
+def authorized_client(client, normal_user):
+    client.login(username=normal_user.email, password='password')
     return client
 
 
@@ -56,6 +67,13 @@ def billing_address(db):  # pylint: disable=W0613
         city='Wrocław',
         postal_code='53-601',
         country='PL')
+
+
+@pytest.fixture
+def shipping_method(db):
+    shipping_method = ShippingMethod.objects.create(name='DHL')
+    shipping_method.price_per_country.create(price=10)
+    return shipping_method
 
 
 @pytest.fixture
