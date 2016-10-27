@@ -21,15 +21,19 @@ Environment variables
 ``SEARCHBOX_URL``
   Contains URL to Searchbox elasticsearch add-on on Heroku
 
+**Example:** ``https://user:password@my-3rdparty-es.com:9200``
+
+  .. warning::
+
+      Note that you can only use one Elasticsearch backend at once so if you set ``ELASTICSEARCH_URL`` variable, other URLs will be ignored.
+
 ``ELASTICSEARCH_INDEX_NAME``
   Controls elasticsearch index name where all searchable documents will be stored. Defaults to ``storefront``.
-
-Note that you can only use one Elasticsearch backend at once so if you set ``ELASTICSEARCH_URL`` variable, other URLs will be ignored.
 
 Data indexing
 -------------
 
-Saleor uses `django-haystack <http://haystacksearch.org/>`_ to provide search engine, please refer to haystack documentation to get familiar with implementation details.
+Saleor uses `Haystack <http://haystacksearch.org/>`_ to provide search, please refer to Haystack documentation to get familiar with implementation details.
 Initial search indexing can be done with following command:
 
 .. code-block:: bash
