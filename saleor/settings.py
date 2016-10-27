@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 
 import ast
-from urlparse import urlparse
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 import os.path
 
