@@ -5,8 +5,8 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext
 
-from ...discount.models import Voucher
 from ...discount.forms import CheckoutDiscountForm
+from ...discount.models import Voucher
 
 
 def add_voucher_form(view):

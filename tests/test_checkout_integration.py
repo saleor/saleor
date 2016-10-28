@@ -65,8 +65,9 @@ def test_checkout_flow(request_cart_with_item, client, shipping_method):  # pyli
     assert get_redirect_location(payment_response) == order_details
 
 
-def test_checkout_flow_authenticated_user(authorized_client, billing_address, request_cart_with_item,  # pylint: disable=R0914
-                                          customer_user, shipping_method):
+def test_checkout_flow_authenticated_user(authorized_client, billing_address,  # pylint: disable=R0914
+                                          request_cart_with_item, customer_user,
+                                          shipping_method):
     """
     Checkout with authenticated user and previously saved address
     """
