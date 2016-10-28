@@ -39,7 +39,7 @@ First steps
 
 
 .. note::
- Heroku's storage is volatile. This means that all instances of your application will have separate disks and will lose all changes made to the local disk each time the application is restarted. The best approach is to use cloud storage such as [[Amazon S3|Storage: Amazon S3]].
+ Heroku's storage is volatile. This means that all instances of your application will have separate disks and will lose all changes made to the local disk each time the application is restarted. The best approach is to use cloud storage such as `Amazon S3 <http://aws.amazon.com/s3/>`_.
 
 
 Deploy
