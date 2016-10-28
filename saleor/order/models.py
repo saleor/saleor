@@ -64,7 +64,7 @@ class Order(models.Model, ItemSet):
         Address, related_name='+', editable=False)
     shipping_address = models.ForeignKey(
         Address, related_name='+', editable=False, null=True)
-    anonymous_user_email = models.EmailField(
+    user_email = models.EmailField(
         blank=True, default='', editable=False)
     token = models.CharField(
         pgettext_lazy('Order field', 'token'), max_length=36, unique=True)
@@ -108,11 +108,6 @@ class Order(models.Model, ItemSet):
         total = self.get_total()
         return total_paid >= total.gross
 
-    def get_user_email(self):
-        if self.user:
-            return self.user.email
-        return self.anonymous_user_email
-
     def __iter__(self):
         return iter(self.groups.all())
 
@@ -142,7 +137,7 @@ class Order(models.Model, ItemSet):
                    Price(0, currency=settings.DEFAULT_CURRENCY))
 
     def send_confirmation_email(self):
-        email = self.get_user_email()
+        email = self.user_email
         payment_url = build_absolute_uri(
             reverse('order:details', kwargs={'token': self.token}))
         context = {'payment_url': payment_url}
@@ -374,7 +369,7 @@ class Payment(BasePayment):
             reverse('order:details', kwargs={'token': self.order.token}))
 
     def send_confirmation_email(self):
-        email = self.order.get_user_email()
+        email = self.order.user_email
         order_url = build_absolute_uri(
             reverse('order:details', kwargs={'token': self.order.token}))
         context = {'order_url': order_url}
