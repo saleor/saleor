@@ -284,6 +284,7 @@ def test_voucher_invalid(client, request_cart_with_item, shipping_method, vouche
     voucher.used = 3
     voucher.save()
     address_data = {'address': 'shipping_address'}
+    assert url == reverse('checkout:summary')
     summary_response = client.post(url, data=address_data, follow=True)
     assert summary_response.context['checkout'].voucher_code is None
 
