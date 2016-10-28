@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
@@ -10,11 +11,20 @@ from ...userprofile.models import Address
 
 def create_order(checkout):
     order = checkout.create_order()
+    if not order:
+        return None, redirect('checkout:summary')
     checkout.clear_storage()
     checkout.cart.clear()
     order.create_history_entry()
     order.send_confirmation_email()
-    return order
+    return order, redirect('order:payment', token=order.token)
+
+
+def handle_order_placement(request, checkout):
+    order, success_redirect = create_order(checkout)
+    if not order:
+        messages.warning(request, 'Please review your checkout.')
+    return success_redirect
 
 
 def get_billing_forms_with_shipping(data, addresses, billing_address, shipping_address):
@@ -67,8 +77,7 @@ def summary_with_shipping_view(request, checkout):
         checkout.shipping_address)
     if address is not None:
         checkout.billing_address = address
-        order = create_order(checkout)
-        return redirect('order:payment', token=order.token)
+        return handle_order_placement(request, checkout)
     return TemplateResponse(
         request, 'checkout/summary.html', context={
             'addresses_form': addresses_form, 'address_form': address_form,
@@ -90,8 +99,7 @@ def anonymous_summary_without_shipping(request, checkout):
     if all([user_form.is_valid(), address_form.is_valid()]) and not preview:
         checkout.email = user_form.cleaned_data['email']
         checkout.billing_address = address_form.instance
-        order = create_order(checkout)
-        return redirect('order:payment', token=order.token)
+        return handle_order_placement(request, checkout)
     return TemplateResponse(
         request, 'checkout/summary_without_shipping.html', context={
             'user_form': user_form, 'address_form': address_form,
@@ -128,12 +136,10 @@ def summary_without_shipping(request, checkout):
         address_id = addresses_form.cleaned_data['address']
         if address_id != BillingWithoutShippingAddressForm.NEW_ADDRESS:
             checkout.billing_address = user_addresses.get(id=address_id)
-            order = create_order(checkout)
-            return redirect('order:payment', token=order.token)
+            return handle_order_placement(request, checkout)
         elif address_form.is_valid() and not preview:
             checkout.billing_address = address_form.instance
-            order = create_order(checkout)
-            return redirect('order:payment', token=order.token)
+            return handle_order_placement(request, checkout)
     return TemplateResponse(
         request, 'checkout/summary_without_shipping.html', context={
             'addresses_form': addresses_form, 'address_form': address_form,
