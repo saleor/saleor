@@ -1,6 +1,8 @@
 from django.core.urlresolvers import reverse
-from payments import FraudStatus, PaymentStatus
+from django.forms import model_to_dict
 
+from payments import FraudStatus, PaymentStatus
+from saleor.userprofile.models import User
 from tests.utils import get_redirect_location
 
 
@@ -180,6 +182,72 @@ def test_summary_without_shipping_method(request_cart_with_item, client, monkeyp
     assert get_redirect_location(response) == reverse('checkout:shipping-method')
 
 
+def test_client_login(request_cart_with_item, client, admin_user):
+    data = {
+        'username': admin_user.email,
+        'password': 'password'
+    }
+    response = client.post(reverse('registration:login'), data=data)
+    assert response.status_code == 302
+    assert get_redirect_location(response) == '/'
+    response = client.get(reverse('checkout:shipping-address'))
+    assert response.context['checkout'].cart.token == request_cart_with_item.token
+
+
+def test_unauthorized_email_is_saved_shipping(client, customer_user,  # pylint: disable=W0613
+                                              request_cart_with_item, shipping_method):  # pylint: disable=W0613
+    """
+     unauthorized user provide valid email address in shipping step -
+      if is save in order
+      if is save in session storage
+    """
+
+    # Enter checkout
+    checkout_index = client.get(reverse('checkout:index'), follow=True)
+    # Checkout index redirects directly to shipping address step
+    shipping_address = client.get(checkout_index.request['PATH_INFO'])
+
+    # Enter shipping address data
+    shipping_data = {
+        'email': 'test@example.com',
+        'first_name': 'John',
+        'last_name': 'Doe',
+        'street_address_1': 'Aleje Jerozolimskie 2',
+        'street_address_2': '',
+        'city': 'Warszawa',
+        'city_area': '',
+        'country_area': '',
+        'postal_code': '00-374',
+        'country': 'PL'}
+    shipping_response = client.post(shipping_address.request['PATH_INFO'],
+                                    data=shipping_data, follow=True)
+
+    # Select shipping method
+    shipping_method_page = client.get(shipping_response.request['PATH_INFO'])
+
+    # Redirect to summary after shipping method selection
+    shipping_method_data = {'method': shipping_method.pk}
+    shipping_method_response = client.post(shipping_method_page.request['PATH_INFO'],
+                                           data=shipping_method_data, follow=True)
+
+    # Summary page asks for Billing address, default is the same as shipping
+    address_data = {'country_form': 'true', 'preview': 'true'}
+    summary_response = client.post(shipping_method_response.request['PATH_INFO'],
+                                   data=address_data, follow=True)
+
+    # After summary step, order is created and it waits for payment
+    checkout = summary_response.context['checkout']
+    assert checkout.storage['email'] == 'test@example.com'
+
+
+    # Summary page asks for Billing address, default is the same as shipping
+    address_data = {'address': 'shipping_address'}
+    summary_response = client.post(shipping_method_response.request['PATH_INFO'],
+                                   data=address_data, follow=True)
+    order = summary_response.context['order']
+    assert order.user_email == 'test@example.com'
+
+
 def test_email_is_saved_in_order(authorized_client, billing_address, customer_user,  # pylint: disable=R0914
                                  request_cart_with_item, shipping_method):
     """
@@ -305,6 +373,229 @@ def test_remove_voucher(client, request_cart_with_item, shipping_method, voucher
                                    follow=True, HTTP_REFERER=url)
     assert voucher_response.status_code == 200
     assert voucher_response.context['checkout'].voucher_code is None
+
+
+def test_user_pass_new_valid_shipping_address(authorized_client, customer_user,  # pylint: disable=W0613,R0914
+                                              request_cart_with_item, shipping_method):  # pylint: disable=W0613
+    """
+     user pass new valid shipping address
+      - if is save in session storage
+      - if is save in order object, after finish checkout
+      - if is add to authorized user (ass default shipping address)
+      user pass new valid shipping address, and use it as billing address
+      - if is save in order
+      - if is save in as default
+    """
+
+    # Enter checkout
+    checkout_index = authorized_client.get(reverse('checkout:index'), follow=True)
+    # Checkout index redirects directly to shipping address step
+    shipping_address = authorized_client.get(checkout_index.request['PATH_INFO'])
+
+    # Enter shipping address data
+    shipping_data = {
+        'first_name': 'John',
+        'last_name': 'Doe',
+        'street_address_1': 'Aleje Jerozolimskie 2',
+        'street_address_2': '',
+        'city': 'Warszawa',
+        'company_name': 'Mirumee',
+        'city_area': '',
+        'country_area': '',
+        'postal_code': '00-374',
+        'phone': '',
+        'country': 'PL'}
+    shipping_data_prepared = shipping_data.copy()
+    shipping_data_prepared['address'] = 'new_address'
+    shipping_response = authorized_client.post(shipping_address.request['PATH_INFO'],
+                                               data=shipping_data_prepared, follow=True)
+    # Select shipping method
+    shipping_method_page = authorized_client.get(shipping_response.request['PATH_INFO'])
+
+    # Redirect to summary after shipping method selection
+    shipping_method_data = {'method': shipping_method.pk}
+    shipping_method_response = authorized_client.post(shipping_method_page.request['PATH_INFO'],
+                                                      data=shipping_method_data, follow=True)
+
+    # Summary page asks for Billing address, default is the same as shipping
+    address_data = {'country_form': 'true', 'preview': 'true'}
+    summary_response = authorized_client.post(shipping_method_response.request['PATH_INFO'],
+                                              data=address_data, follow=True)
+
+    # After summary step, order is created and it waits for payment
+    checkout = summary_response.context['checkout']
+    del checkout.storage['shipping_address']['id']
+    assert checkout.storage['shipping_address'] == shipping_data
+
+
+    # Summary page asks for Billing address, default is the same as shipping
+    address_data = {'address': 'shipping_address'}
+    summary_response = authorized_client.post(shipping_method_response.request['PATH_INFO'],
+                                              data=address_data, follow=True)
+    order = summary_response.context['order']
+    order_dict = model_to_dict(order.shipping_address, exclude=['id'])
+    assert order_dict == shipping_data
+
+    user = User.objects.get(pk=customer_user.pk)
+    assert model_to_dict(user.default_shipping_address, exclude=['id']) == \
+           model_to_dict(order.shipping_address, exclude=['id'])
+
+
+def test_user_pass_new_valid_billing_address(authorized_client, customer_user,  # pylint: disable=W0613,R0914
+                                             request_cart_with_item, shipping_method):  # pylint: disable=W0613
+    """
+     user pass new valid billing address
+      - if is save in session storage
+      - if is save in order object, after finish checkout
+      - if is add to authorized user (ass default billing address)
+     """
+
+    # Enter checkout
+    checkout_index = authorized_client.get(reverse('checkout:index'), follow=True)
+    # Checkout index redirects directly to shipping address step
+    shipping_address = authorized_client.get(checkout_index.request['PATH_INFO'])
+
+    # Enter shipping address data
+    shipping_data = {
+        'first_name': 'John',
+        'last_name': 'Doe',
+        'street_address_1': 'Aleje Jerozolimskie 2',
+        'street_address_2': '',
+        'city': 'Warszawa',
+        'company_name': 'Mirumee',
+        'city_area': '',
+        'country_area': '',
+        'postal_code': '00-374',
+        'phone': '',
+        'country': 'PL'}
+    shipping_data_prepared = shipping_data.copy()
+    shipping_data_prepared['address'] = 'new_address'
+    shipping_response = authorized_client.post(shipping_address.request['PATH_INFO'],
+                                               data=shipping_data_prepared, follow=True)
+    # Select shipping method
+    shipping_method_page = authorized_client.get(shipping_response.request['PATH_INFO'])
+
+    # Redirect to summary after shipping method selection
+    shipping_method_data = {'method': shipping_method.pk}
+    shipping_method_response = authorized_client.post(shipping_method_page.request['PATH_INFO'],
+                                                      data=shipping_method_data, follow=True)
+
+    # Summary page asks for Billing address, default is the same as shipping
+    billing_data = {
+        'first_name': 'John',
+        'last_name': 'Doe',
+        'street_address_1': 'Aleje Jerozolimskie 2',
+        'street_address_2': '',
+        'city': 'Warszawa',
+        'company_name': 'Mirumee',
+        'city_area': '',
+        'country_area': '',
+        'postal_code': '00-374',
+        'phone': '',
+        'country': 'PL'}
+    billing_data_prepared = billing_data.copy()
+    billing_data_prepared['address'] = 'new_address'
+    summary_response = authorized_client.post(shipping_method_response.request['PATH_INFO'],
+                                              data=billing_data_prepared, follow=True)
+    order = summary_response.context['order']
+    order_dict = model_to_dict(order.billing_address, exclude=['id'])
+    assert order_dict == billing_data
+
+    user = User.objects.get(pk=customer_user.pk)
+    assert model_to_dict(user.default_billing_address, exclude=['id']) == \
+           model_to_dict(order.billing_address, exclude=['id'])
+
+
+def test_user_choose_existing_shipping_address(authorized_client, billing_address, customer_user,  # pylint: disable=W0613,R0914
+                                               request_cart_with_item, shipping_method):  # pylint: disable=W0613
+    """
+     user choose existing shipping address
+      - it is save in session storage
+      - it is save in order
+      - it is save ass default shipping address
+      - if is not save as new address (duplicate)
+    """
+    customer_user.addresses.add(billing_address)
+
+    # Enter checkout
+    checkout_index = authorized_client.get(reverse('checkout:index'), follow=True)
+    # Checkout index redirects directly to shipping address step
+    shipping_address = authorized_client.get(checkout_index.request['PATH_INFO'])
+
+    # Enter shipping address data
+    shipping_data = {'address': billing_address.pk}
+    shipping_response = authorized_client.post(shipping_address.request['PATH_INFO'],
+                                               data=shipping_data, follow=True)
+    # Select shipping method
+    shipping_method_page = authorized_client.get(shipping_response.request['PATH_INFO'])
+
+    # Redirect to summary after shipping method selection
+    shipping_method_data = {'method': shipping_method.pk}
+    shipping_method_response = authorized_client.post(shipping_method_page.request['PATH_INFO'],
+                                                      data=shipping_method_data, follow=True)
+
+    # Summary page asks for Billing address, default is the same as shipping
+    address_data = {'address': 'shipping_address'}
+    summary_response = authorized_client.post(shipping_method_response.request['PATH_INFO'],
+                                              data=address_data, follow=True)
+    order = summary_response.context['order']
+    order_dict = model_to_dict(billing_address, exclude=['id'])
+    assert order_dict == model_to_dict(order.shipping_address, exclude=['id'])
+
+    user = User.objects.get(pk=customer_user.pk)
+    assert model_to_dict(user.default_shipping_address, exclude=['id']) == \
+           model_to_dict(order.shipping_address, exclude=['id'])
+
+
+def test_user_choose_existing_billing_address(authorized_client, billing_address, customer_user,  # pylint: disable=R0914
+                                              request_cart_with_item, shipping_method):  # pylint: disable=W0613
+    """
+     user choose existing billing address
+      - if is save in session storage
+      - if is save in order
+      - if is save as default billing address
+     """
+    customer_user.addresses.add(billing_address)
+
+    # Enter checkout
+    checkout_index = authorized_client.get(reverse('checkout:index'), follow=True)
+    # Checkout index redirects directly to shipping address step
+    shipping_address = authorized_client.get(checkout_index.request['PATH_INFO'])
+    # Enter shipping address data
+    shipping_data = {
+        'address': 'new_address',
+        'first_name': 'John',
+        'last_name': 'Doe',
+        'street_address_1': 'Aleje Jerozolimskie 2',
+        'street_address_2': '',
+        'city': 'Warszawa',
+        'company_name': 'Mirumee',
+        'city_area': '',
+        'country_area': '',
+        'postal_code': '00-374',
+        'phone': '',
+        'country': 'PL'}
+    shipping_response = authorized_client.post(shipping_address.request['PATH_INFO'],
+                                               data=shipping_data, follow=True)
+    # Select shipping method
+    shipping_method_page = authorized_client.get(shipping_response.request['PATH_INFO'])
+
+    # Redirect to summary after shipping method selection
+    shipping_method_data = {'method': shipping_method.pk}
+    shipping_method_response = authorized_client.post(shipping_method_page.request['PATH_INFO'],
+                                                      data=shipping_method_data, follow=True)
+
+    # Summary page asks for Billing address, default is the same as shipping
+    address_data = {'address': billing_address.pk}
+    summary_response = authorized_client.post(shipping_method_response.request['PATH_INFO'],
+                                              data=address_data, follow=True)
+    order = summary_response.context['order']
+    order_dict = model_to_dict(order.billing_address, exclude=['id'])
+    assert order_dict == model_to_dict(billing_address, exclude=['id'])
+
+    user = User.objects.get(pk=customer_user.pk)
+    assert model_to_dict(user.default_billing_address, exclude=['id']) ==\
+           model_to_dict(billing_address, exclude=['id'])
 
 
 def test_language_is_saved_in_order(authorized_client, billing_address, customer_user,  # pylint: disable=R0913, R0914
