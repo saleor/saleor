@@ -1,5 +1,8 @@
 from django.core.urlresolvers import reverse
 
+from saleor.order.models import Order
+from saleor.registration.models import EmailChangeRequest
+from saleor.userprofile.models import User
 from tests.utils import get_redirect_location
 
 
@@ -63,13 +66,13 @@ def test_checkout_flow(request_cart_with_item, client, shipping_method):  # pyli
 
 
 def test_checkout_flow_authenticated_user(authorized_client, billing_address, request_cart_with_item,
-                                          normal_user, shipping_method):
+                                          customer_user, shipping_method):
     """
     Checkout with authenticated user and previously saved address
     """
     # Prepare some data
-    normal_user.addresses.add(billing_address)
-    request_cart_with_item.user = normal_user
+    customer_user.addresses.add(billing_address)
+    request_cart_with_item.user = customer_user
     request_cart_with_item.save()
 
     # Enter checkout
@@ -186,3 +189,53 @@ def test_client_login(request_cart_with_item, client, admin_user):
     assert get_redirect_location(response) == '/'
     response = client.get(reverse('checkout:shipping-address'))
     assert response.context['checkout'].cart.token == request_cart_with_item.token
+
+
+def test_email_is_saved_in_order(authorized_client, billing_address, customer_user,  # pylint: disable=R0914
+                                 request_cart_with_item, shipping_method):
+    """
+    authorized user change own email after checkout - if is not changed in order
+    """
+    # Prepare some data
+    customer_user.addresses.add(billing_address)
+    request_cart_with_item.user = customer_user
+    request_cart_with_item.save()
+
+    # Enter checkout
+    # Checkout index redirects directly to shipping address step
+    shipping_address = authorized_client.get(reverse('checkout:index'), follow=True)
+
+    # Enter shipping address data
+    shipping_data = {'address': billing_address.pk}
+    shipping_method_page = authorized_client.post(shipping_address.request['PATH_INFO'],
+                                                  data=shipping_data, follow=True)
+
+    # Select shipping method
+    shipping_method_data = {'method': shipping_method.pk}
+    shipping_method_response = authorized_client.post(shipping_method_page.request['PATH_INFO'],
+                                                      data=shipping_method_data, follow=True)
+
+    # Summary page asks for Billing address, default is the same as shipping
+    payment_method_data = {'address': 'shipping_address'}
+    payment_method_page = authorized_client.post(shipping_method_response.request['PATH_INFO'],
+                                                 data=payment_method_data, follow=True)
+
+    # After summary step, order is created and it waits for payment
+    order = payment_method_page.context['order']
+    assert order.user_email == customer_user.email
+
+    # User change email
+
+    authorized_client.post(reverse('registration:request_email_change'),
+                           data={'email': 'new@example.com'})
+
+    #get token:
+    token = EmailChangeRequest.objects.get(email='new@example.com').token
+    url = reverse('registration:change_email', args=[token])
+    authorized_client.get(url)
+
+    updated_user = User.objects.get(pk=customer_user.pk)
+    order = Order.objects.get(pk=order.pk)
+    assert updated_user.email != customer_user.email
+    assert order.user_email == customer_user.email
+    assert order.get_user_current_email() == updated_user.email

@@ -205,7 +205,7 @@ def create_fake_order():
         user_data = {
             'billing_address': address,
             'shipping_address': address,
-            'anonymous_user_email': get_email(
+            'user_email': get_email(
                 address.first_name, address.last_name)}
     order = Order.objects.create(**user_data)
     order.change_status('payment-pending')

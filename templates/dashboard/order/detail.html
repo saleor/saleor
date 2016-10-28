@@ -132,7 +132,7 @@
                                     {% include 'dashboard/includes/_address.html' with address=address only %}
 
                                     <div>
-                                        <i class="material-icons">email</i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
+                                        <i class="material-icons">email</i> <a href="mailto:{{ order.user_email }}">{{ order.user_email }}</a>
                                     </div>
                                 </div>
 
@@ -152,7 +152,7 @@
 
                                     {% include 'dashboard/includes/_address.html' with address=address only %}
                                     <div>
-                                        <i class="material-icons">email</i> <a href="mailto:{{ order.get_user_email }}">{{ order.get_user_email }}</a>
+                                        <i class="material-icons">email</i> <a href="mailto:{{ order.user_email }}">{{ order.user_email }}</a>
                                     </div>
                                 {% endwith %}
                             </div>

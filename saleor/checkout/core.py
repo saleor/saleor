@@ -231,10 +231,10 @@ class Checkout(object):
 
         if self.user.is_authenticated():
             order_data['user'] = self.user
+            order_data['user_email'] = self.user.email
+
         else:
-            # TODO: we should always save email in order not only
-            # for anonymous
-            order_data['anonymous_user_email'] = self.email
+            order_data['user_email'] = self.email
 
         voucher = self._get_voucher()
         if voucher is not None:
