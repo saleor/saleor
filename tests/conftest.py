@@ -16,7 +16,7 @@ def cart(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def normal_user(db):
+def customer_user(db):
     return User.objects.create_user('test@example.com', 'password')
 
 
@@ -53,8 +53,8 @@ def admin_client(admin_user):
 
 
 @pytest.fixture()
-def authorized_client(client, normal_user):
-    client.login(username=normal_user.email, password='password')
+def authorized_client(client, customer_user):
+    client.login(username=customer_user.email, password='password')
     return client
 
 

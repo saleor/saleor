@@ -108,6 +108,12 @@ class Order(models.Model, ItemSet):
         total = self.get_total()
         return total_paid >= total.gross
 
+    def get_user_current_email(self):
+        if self.user:
+            return self.user.email
+        else:
+            return self.user_email
+
     def __iter__(self):
         return iter(self.groups.all())
 
@@ -137,7 +143,7 @@ class Order(models.Model, ItemSet):
                    Price(0, currency=settings.DEFAULT_CURRENCY))
 
     def send_confirmation_email(self):
-        email = self.user_email
+        email = self.get_user_current_email()
         payment_url = build_absolute_uri(
             reverse('order:details', kwargs={'token': self.token}))
         context = {'payment_url': payment_url}
@@ -369,7 +375,7 @@ class Payment(BasePayment):
             reverse('order:details', kwargs={'token': self.order.token}))
 
     def send_confirmation_email(self):
-        email = self.order.user_email
+        email = self.order.get_user_current_email()
         order_url = build_absolute_uri(
             reverse('order:details', kwargs={'token': self.order.token}))
         context = {'order_url': order_url}

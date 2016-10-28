@@ -66,13 +66,13 @@ def test_checkout_flow(request_cart_with_item, client, shipping_method):  # pyli
 
 
 def test_checkout_flow_authenticated_user(authorized_client, billing_address, request_cart_with_item,
-                                          normal_user, shipping_method):
+                                          customer_user, shipping_method):
     """
     Checkout with authenticated user and previously saved address
     """
     # Prepare some data
-    normal_user.addresses.add(billing_address)
-    request_cart_with_item.user = normal_user
+    customer_user.addresses.add(billing_address)
+    request_cart_with_item.user = customer_user
     request_cart_with_item.save()
 
     # Enter checkout
@@ -191,14 +191,14 @@ def test_client_login(request_cart_with_item, client, admin_user):
     assert response.context['checkout'].cart.token == request_cart_with_item.token
 
 
-def test_email_is_saved_in_order(authorized_client, billing_address, normal_user,  # pylint: disable=R0914
+def test_email_is_saved_in_order(authorized_client, billing_address, customer_user,  # pylint: disable=R0914
                                  request_cart_with_item, shipping_method):
     """
     authorized user change own email after checkout - if is not changed in order
     """
     # Prepare some data
-    normal_user.addresses.add(billing_address)
-    request_cart_with_item.user = normal_user
+    customer_user.addresses.add(billing_address)
+    request_cart_with_item.user = customer_user
     request_cart_with_item.save()
 
     # Enter checkout
@@ -222,7 +222,7 @@ def test_email_is_saved_in_order(authorized_client, billing_address, normal_user
 
     # After summary step, order is created and it waits for payment
     order = payment_method_page.context['order']
-    assert order.user_email == normal_user.email
+    assert order.user_email == customer_user.email
 
     # User change email
 
@@ -234,8 +234,8 @@ def test_email_is_saved_in_order(authorized_client, billing_address, normal_user
     url = reverse('registration:change_email', args=[token])
     authorized_client.get(url)
 
-    updated_user = User.objects.get(pk=normal_user.pk)
+    updated_user = User.objects.get(pk=customer_user.pk)
     order = Order.objects.get(pk=order.pk)
-    assert updated_user.email != normal_user.email
-    assert updated_user.email == 'new@example.com'
-    assert order.user_email == normal_user.email
+    assert updated_user.email != customer_user.email
+    assert order.user_email == customer_user.email
+    assert order.get_user_current_email() == updated_user.email
