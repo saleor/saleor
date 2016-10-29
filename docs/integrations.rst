@@ -1,6 +1,30 @@
 Integrations
 ============
 
+Static file and media storage using Amazon S3
+---------------------------------------------
+
+If you're using containers for deployment (including Docker and Heroku) you'll want to avoid storing files in the container's volatile filesystem. This integration allows you to delegate storing such files to `Amazon's S3 service <https://aws.amazon.com/s3/>`_.
+
+Set the following environment variables to use S3 to store and serve media files:
+
+``AWS_ACCESS_KEY_ID``
+  Your AWS access key.
+
+``AWS_SECRET_ACCESS_KEY``
+  Your AWS secret access key.
+
+``AWS_MEDIA_BUCKET_NAME``
+  The S3 bucket name to use for media files.
+
+By default static files (such as CSS and JS files required to display your pages) will be served by the application server.
+
+If you intend to use S3 for your static files as well, set an additional environment variable:
+
+``AWS_STATIC_BUCKET_NAME``
+  The S3 bucket name to use for static files.
+
+
 Converting prices to local currencies using Open Exchange Rates
 ---------------------------------------------------------------
 
