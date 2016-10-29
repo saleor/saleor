@@ -6,7 +6,7 @@ from saleor.userprofile.models import User
 from tests.utils import get_redirect_location
 
 
-def test_checkout_flow(request_cart_with_item, client, shipping_method):  # pylint: disable=W0613
+def test_checkout_flow(request_cart_with_item, client, shipping_method):  # pylint: disable=W0613,R0914
     """
     Basic test case that confirms if core checkout flow works
     """
@@ -65,8 +65,9 @@ def test_checkout_flow(request_cart_with_item, client, shipping_method):  # pyli
     assert get_redirect_location(payment_response) == order_details
 
 
-def test_checkout_flow_authenticated_user(authorized_client, billing_address, request_cart_with_item,
-                                          customer_user, shipping_method):
+def test_checkout_flow_authenticated_user(authorized_client, billing_address,  # pylint: disable=R0914
+                                          request_cart_with_item, customer_user,
+                                          shipping_method):
     """
     Checkout with authenticated user and previously saved address
     """
@@ -239,3 +240,54 @@ def test_email_is_saved_in_order(authorized_client, billing_address, customer_us
     assert updated_user.email != customer_user.email
     assert order.user_email == customer_user.email
     assert order.get_user_current_email() == updated_user.email
+
+
+def test_voucher_invalid(client, request_cart_with_item, shipping_method, voucher):  # pylint: disable=W0613,R0914
+    """
+    Look: #549 #544
+    """
+    voucher.usage_limit = 3
+    voucher.save()
+    # Enter checkout
+    checkout_index = client.get(reverse('checkout:index'), follow=True)
+    # Checkout index redirects directly to shipping address step
+    shipping_address = client.get(checkout_index.request['PATH_INFO'])
+
+    # Enter shipping address data
+    shipping_data = {
+        'email': 'test@example.com',
+        'first_name': 'John',
+        'last_name': 'Doe',
+        'street_address_1': 'Aleje Jerozolimskie 2',
+        'street_address_2': '',
+        'city': 'Warszawa',
+        'city_area': '',
+        'country_area': '',
+        'postal_code': '00-374',
+        'country': 'PL'}
+    shipping_response = client.post(shipping_address.request['PATH_INFO'],
+                                    data=shipping_data, follow=True)
+
+    # Select shipping method
+    shipping_method_page = client.get(shipping_response.request['PATH_INFO'])
+
+    # Redirect to summary after shipping method selection
+    shipping_method_data = {'method': shipping_method.pk}
+    shipping_method_response = client.post(shipping_method_page.request['PATH_INFO'],
+                                           data=shipping_method_data, follow=True)
+
+    # Summary page asks for Billing address, default is the same as shipping
+    url = shipping_method_response.request['PATH_INFO']
+    discount_data = {'discount-voucher': voucher.code}
+    voucher_response = client.post('{url}?next={url}'.format(url=url),
+                                   follow=True, data=discount_data, HTTP_REFERER=url)
+    assert voucher_response.context['checkout'].voucher_code == voucher.code
+    voucher.used = 3
+    voucher.save()
+    address_data = {'address': 'shipping_address'}
+    assert url == reverse('checkout:summary')
+    summary_response = client.post(url, data=address_data, follow=True)
+    assert summary_response.context['checkout'].voucher_code is None
+
+    summary_response = client.post(url, data=address_data, follow=True)
+    assert summary_response.context['order'].voucher is None

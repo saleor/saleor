@@ -2,7 +2,7 @@ from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
 from ..forms import ShippingMethodForm
-from .discount import add_voucher_form
+from .discount import add_voucher_form, validate_voucher
 from .validators import (
     validate_cart, validate_shipping_address,
     validate_shipping_method, validate_is_shipping_required)
@@ -17,6 +17,7 @@ def index_view(request, checkout):
     return redirect('checkout:shipping-address')
 
 
+@validate_voucher
 @validate_cart
 @validate_is_shipping_required
 @add_voucher_form
@@ -26,6 +27,7 @@ def shipping_address_view(request, checkout):
     return anonymous_user_shipping_address_view(request, checkout)
 
 
+@validate_voucher
 @validate_cart
 @validate_is_shipping_required
 @validate_shipping_address
@@ -41,6 +43,7 @@ def shipping_method_view(request, checkout):
         'shipping_method_form': shipping_method_form, 'checkout': checkout})
 
 
+@validate_voucher
 @validate_cart
 @add_voucher_form
 def summary_view(request, checkout):

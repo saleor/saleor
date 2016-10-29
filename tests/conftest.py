@@ -2,9 +2,13 @@
 from __future__ import unicode_literals
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
+from mock import Mock
 
 from saleor.cart import decorators
 from saleor.cart.models import Cart
+from saleor.checkout.core import Checkout
+from saleor.discount.models import Voucher
 from saleor.product.models import Product, ProductVariant, Stock
 from saleor.shipping.models import ShippingMethod
 from saleor.userprofile.models import Address, User
@@ -16,7 +20,7 @@ def cart(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def customer_user(db):
+def customer_user(db):  # pylint: disable=W0613
     return User.objects.create_user('test@example.com', 'password')
 
 
@@ -37,7 +41,7 @@ def request_cart_with_item(product_in_stock, request_cart):
 
 
 @pytest.fixture()
-def admin_user(db):
+def admin_user(db):  # pylint: disable=W0613
     """A Django admin user.
     """
     return User.objects.create_superuser('admin@example.com', 'password')
@@ -70,7 +74,7 @@ def billing_address(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def shipping_method(db):
+def shipping_method(db):  # pylint: disable=W0613
     shipping_method = ShippingMethod.objects.create(name='DHL')
     shipping_method.price_per_country.create(price=10)
     return shipping_method
@@ -91,3 +95,13 @@ def product_in_stock(db):  # pylint: disable=W0613
         variant=variant, cost_price=10, quantity=5, quantity_allocated=0,
         location='Warehouse 3')
     return product
+
+
+@pytest.fixture
+def anonymous_checkout():
+    return Checkout(Mock(), AnonymousUser(), 'tracking_code')
+
+
+@pytest.fixture
+def voucher(db):  # pylint: disable=W0613
+    return Voucher.objects.create(code='mirumee', discount_value=20)

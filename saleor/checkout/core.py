@@ -213,6 +213,12 @@ class Checkout(object):
 
     @transaction.atomic
     def create_order(self):
+        voucher = self._get_voucher(
+            vouchers=Voucher.objects.active().select_for_update())
+        if self.voucher_code is not None and voucher is None:
+            # Voucher expired in meantime, abort order placement
+            return
+
         if self.is_shipping_required:
             shipping_address = self._save_order_shipping_address()
             self._add_to_user_address_book(
@@ -236,7 +242,6 @@ class Checkout(object):
         else:
             order_data['user_email'] = self.email
 
-        voucher = self._get_voucher()
         if voucher is not None:
             discount = self.discount
             order_data['voucher'] = voucher
@@ -264,10 +269,11 @@ class Checkout(object):
 
         return order
 
-    def _get_voucher(self):
+    def _get_voucher(self, vouchers=None):
         voucher_code = self.voucher_code
         if voucher_code is not None:
-            vouchers = Voucher.objects.active().select_for_update()
+            if vouchers is None:
+                vouchers = Voucher.objects.active()
             try:
                 return vouchers.get(code=self.voucher_code)
             except Voucher.DoesNotExist:
