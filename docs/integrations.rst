@@ -1,6 +1,8 @@
 Integrations
 ============
 
+.. _amazon_s3:
+
 Static file and media storage using Amazon S3
 ---------------------------------------------
 
