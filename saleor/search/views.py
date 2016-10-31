@@ -1,13 +1,11 @@
 import datetime
-from django.contrib.admin.views.decorators import staff_member_required
+
 from django.core.paginator import Paginator, InvalidPage
 from django.http import Http404
 from django.shortcuts import render
 from haystack.forms import SearchForm
 
-from ..order.models import Order
 from ..product.models import Product
-from ..userprofile.models import User
 
 
 def paginate_results(results, get_data, paginate_by=25):
@@ -35,19 +33,3 @@ def search(request):
         'results': page,
         'query_string': '?q=%s' % query}
     return render(request, 'search/results.html', ctx)
-
-
-@staff_member_required
-def dashboard_search(request):
-    form = SearchForm(data=request.GET or None, load_all=True)
-    if form.is_valid():
-        results = form.search().models(Order, Product, User)
-        page = paginate_results(results, request.GET, 25)
-    else:
-        page = form.no_query_found()
-    query = form.cleaned_data['q']
-    ctx = {
-        'query': query,
-        'results': page,
-        'query_string': '?q=%s' % query}
-    return render(request, 'search/dashboard_results.html', ctx)

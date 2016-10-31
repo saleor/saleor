@@ -17,7 +17,7 @@
 {% block content %}
     <div class="row">
         <div class="col s12">
-          <form class="hide-on-med-and-up row" method="get" action="{% url "search:dashboard-search" %}">
+          <form class="hide-on-med-and-up row" method="get" action="{% url "dashboard:search" %}">
             <input id="icon_prefix" type="text" class="validate col s10" placeholder="Search" name="q" value="{% if query %}{{ query }}{% endif %}">
             <button class="btn-flat search-button col s2" type="submit">
               <i class="material-icons left right">search</i>
