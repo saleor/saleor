@@ -47,7 +47,7 @@
                                     <span class="list-item-name">Order #{{ result.object.pk }}</span>
                                 </a>
                                 <p class="list-item-price">
-                                    <small>Customer: {{ result.object.get_user_email }}</small>
+                                    <small>Customer: {{ result.object.user_email }}</small>
                                     <small>
                                         Placed: {{ result.object.created }}
                                     </small>

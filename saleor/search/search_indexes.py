@@ -38,9 +38,9 @@ class OrderIndex(indexes.SearchIndex, indexes.Indexable):
     def prepare_text(self, obj):
         billing = obj.billing_address
         shipping = obj.shipping_address
-        email_parts = obj.get_user_email().split('@')
+        email_parts = obj.user_email.split('@')
 
-        return [obj.get_user_email(),
+        return [obj.user_email,
                 billing.phone, shipping.phone] + email_parts
 
 
