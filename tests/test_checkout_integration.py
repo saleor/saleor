@@ -3,6 +3,7 @@ from django.forms import model_to_dict
 from django.utils.encoding import smart_text
 
 from payments import FraudStatus, PaymentStatus
+from saleor.shipping.models import ShippingMethod
 from saleor.userprofile.models import User
 from tests.utils import get_redirect_location
 
@@ -605,6 +606,7 @@ def test_user_choose_existing_shipping_method(authorized_client, billing_address
     user choose existing shipping method
     - if is save in session storage
     - if is save in order
+    - after checkout method it is removed - if chosen is save in order
     """
     customer_user.addresses.add(billing_address)
 
@@ -648,12 +650,71 @@ def test_user_choose_existing_shipping_method(authorized_client, billing_address
                                               data=address_data, follow=True)
     order = summary_response.context['order']
     assert order.groups.count() == 1
-    assert order.groups.all()[0].shipping_method_name == smart_text(shipping_method.price_per_country.all()[0])
+    name = order.groups.all()[0].shipping_method_name
+    assert name == smart_text(shipping_method.price_per_country.all()[0])
 
-    user = User.objects.get(pk=customer_user.pk)
-    assert model_to_dict(user.default_billing_address, exclude=['id']) ==\
-           model_to_dict(billing_address, exclude=['id'])
+    shipping_method.delete()
+    assert order.groups.all()[0].shipping_method_name == name
 
+
+def test_user_choose_existing_shipping_method_then_change_it(authorized_client, billing_address, customer_user,  # pylint: disable=R0914
+                                              request_cart_with_item, shipping_method):  # pylint: disable=W0613
+    """
+    user choose existing shipping method, then change it
+     - if new one is save in session storage
+     - if new one is save in order
+    """
+    customer_user.addresses.add(billing_address)
+
+    # Enter checkout
+    checkout_index = authorized_client.get(reverse('checkout:index'), follow=True)
+    # Checkout index redirects directly to shipping address step
+    shipping_address = authorized_client.get(checkout_index.request['PATH_INFO'])
+    # Enter shipping address data
+    shipping_data = {
+        'address': 'new_address',
+        'first_name': 'John',
+        'last_name': 'Doe',
+        'street_address_1': 'Aleje Jerozolimskie 2',
+        'street_address_2': '',
+        'city': 'Warszawa',
+        'company_name': 'Mirumee',
+        'city_area': '',
+        'country_area': '',
+        'postal_code': '00-374',
+        'phone': '',
+        'country': 'PL'}
+    shipping_response = authorized_client.post(shipping_address.request['PATH_INFO'],
+                                               data=shipping_data, follow=True)
+    # Select shipping method
+    shipping_method_page = authorized_client.get(shipping_response.request['PATH_INFO'])
+
+    # Redirect to summary after shipping method selection
+    shipping_method_data = {'method': shipping_method.pk}
+    shipping_method_response = authorized_client.post(shipping_method_page.request['PATH_INFO'],
+                                                      data=shipping_method_data, follow=True)
+
+    shipping_method = ShippingMethod.objects.create(name='Post')
+    shipping_method.price_per_country.create(price=10)
+
+    shipping_method_data = {'method': shipping_method.pk}
+    shipping_method_response = authorized_client.post(shipping_method_page.request['PATH_INFO'],
+                                                      data=shipping_method_data, follow=True)
+
+    # Summary page asks for Billing address, default is the same as shipping
+    address_data = {'country_form': 'true', 'preview': 'true'}
+    summary_response = authorized_client.post(shipping_method_response.request['PATH_INFO'],
+                                              data=address_data, follow=True)
+
+    assert summary_response.context['checkout'].shipping_method == shipping_method.price_per_country.all()[0]
+
+    address_data = {'address': billing_address.pk}
+    summary_response = authorized_client.post(shipping_method_response.request['PATH_INFO'],
+                                              data=address_data, follow=True)
+    order = summary_response.context['order']
+    assert order.groups.count() == 1
+    name = order.groups.all()[0].shipping_method_name
+    assert name == smart_text(shipping_method.price_per_country.all()[0])
 
 
 def test_language_is_saved_in_order(authorized_client, billing_address, customer_user,  # pylint: disable=R0913, R0914
