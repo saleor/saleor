@@ -261,6 +261,7 @@ LOW_STOCK_THRESHOLD = 10
 PAGINATE_BY = 16
 
 BOOTSTRAP3 = {
+    'set_placeholder': False,
     'set_required': False,
     'success_css_class': ''}
 
@@ -304,10 +305,3 @@ WEBPACK_LOADER = {
         'IGNORE': [
             r'.+\.hot-update\.js',
             r'.+\.map']}}
-
-
-BOOTSTRAP3 = {
-    'set_placeholder': False,
-    'success_css_class': '',
-
-}
