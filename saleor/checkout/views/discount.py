@@ -56,7 +56,7 @@ def validate_voucher(view):
     return func
 
 
-def remove_voucher_view(request, checkout):
+def remove_voucher_view(request, checkout, cart):
     next_url = request.GET.get('next', request.META['HTTP_REFERER'])
     del checkout.discount
     del checkout.voucher_code
