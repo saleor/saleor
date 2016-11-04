@@ -51,17 +51,14 @@
 {% endblock %}
 
 {% block breadcrumbs %}
-    <ul class="breadcrumbs breadcrumbs--with-menu breadcrumbs--ellipsed breadcrumbs--history">
-       <li class="back-mobile">
-       {% if path %}
-            <a href="{% url 'dashboard:category-list' %}">
-                <i class="material-icons">first_page</i>
-            </a>
-        {% else %}
-            <span class="breadcrumbs--ellipsed-item">{% trans "Categories" %}</span>
-        {% endif %} 
-        </li>
+    <ul class="breadcrumbs breadcrumbs--history">
         {% if path %}
+          <li><a href="{% url 'dashboard:category-list' %}">{% trans "Categories" %}</a></li>
+        {% else %}
+          <li class="visible-s"><span>{% trans "Categories" %}</span></li>
+        {% endif %} 
+        {% if path %}
+            <li class="back-mobile"><a href="{% url 'dashboard:category-list' %}"><i class="material-icons">arrow_back</i></a></li>
             {% for node in path %}
                 {% if forloop.last %}
                     <li title="{{ node.name }}">
@@ -70,12 +67,11 @@
                         </span>
                     </li>
                 {% else %}
-                    <li class="category-breadcrumb">
+                    <li class="hide-on-med-and-down">
                         <a title="{{ node.name }}" href="{% url 'dashboard:category-list' root_pk=node.pk %}" class="breadcrumbs--ellipsed-item">
                             {{ node.name }}
                         </a>
                     </li>
-                    <li class="back-mobile"><a href="{% url 'dashboard:category-list' root_pk=node.pk %}"><i class="material-icons">chevron_left</i></a></li>
                 {% endif %}
             {% endfor %}
         {% endif %}

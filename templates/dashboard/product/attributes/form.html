@@ -31,8 +31,9 @@
 {% endblock %}
 
 {% block breadcrumbs %}
-    <ul class="breadcrumbs breadcrumbs--with-menu">
-        <li class="back-mobile"><a href="{% url 'dashboard:product-attributes' %}" class="breadcrumbs--ellipsed-item"><i class="material-icons">first_page</i></a></li>
+    <ul class="breadcrumbs breadcrumbs--history">
+        <li><a href="{% url 'dashboard:product-attributes' %}" class="breadcrumbs--ellipsed-item">{% trans "Attributes" %}</a></li>
+        <li class="back-mobile"><a href="{% url 'dashboard:product-attributes' %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a></li>
         <li><span class="breadcrumbs--ellipsed-item">{% if attribute.pk %}{{ attribute }}{% else %}{% trans 'Add new attribute' %}{% endif %}</span></li>
     </ul>
 {% endblock %}

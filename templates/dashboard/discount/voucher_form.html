@@ -32,8 +32,9 @@
 {% endblock %}
 
 {% block breadcrumbs %}
-    <ul class="breadcrumbs breadcrumbs--with-menu">
-        <li class="back-mobile"><a href="{% url 'dashboard:voucher-list' %}"><i class="material-icons">first_page</i></a></li>
+    <ul class="breadcrumbs breadcrumbs--history">
+        <li><a href="{% url 'dashboard:voucher-list' %}">{% trans "Vouchers" %}</a></li>
+        <li class="back-mobile"><a href="{% url 'dashboard:voucher-list' %}"><i class="material-icons">arrow_back</i></a></li>
         <li><span class="breadcrumbs--ellipsed-item">{% if voucher.pk %}
             {{ voucher }}{% else %}{% trans 'Add new voucher' %}{% endif %}</span></li>
     </ul>
