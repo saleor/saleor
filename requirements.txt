@@ -9,7 +9,7 @@ BabelDjango==0.2.2        # via django-prices
 boto==2.43.0
 braintree==3.30.0         # via django-payments
 cffi==1.8.3               # via cryptography
-cryptography==1.5.2       # via django-payments
+cryptography==1.5.3       # via django-payments
 cssselect==1.0.0          # via premailer
 cssutils==1.0.1           # via premailer
 dj-database-url==0.4.1
@@ -25,11 +25,11 @@ django-mptt==0.8.6
 django-payments==0.9.5
 django-prices-openexchangerates==0.1.12
 django-prices==0.4.13
-django-redis==4.5.0
+django-redis==4.6.0
 django-selectable==0.9.0
 django-storages==1.5.1
 django-versatileimagefield==1.6
-django-webpack-loader==0.3.3
+django-webpack-loader==0.4.1
 Django==1.10.3            # via django-absolute, django-emailit, django-model-utils, django-payments, django-prices, django-prices-openexchangerates, jsonfield
 djangorestframework==3.5.2
 fake-factory==0.7.2
