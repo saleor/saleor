@@ -21,7 +21,7 @@ def test_get_country_by_ip(ip_data, expected_country, monkeypatch):
 
 @pytest.mark.parametrize('country, expected_currency', [
     (Country('PL'), 'PLN'),
-    (Country('USA'), 'USD'),
+    (Country('US'), 'USD'),
     (Country('GB'), 'GBP')])
 def test_get_currency_for_country(country, expected_currency, monkeypatch):
     currency = get_currency_for_country(country)
