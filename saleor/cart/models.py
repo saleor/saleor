@@ -130,7 +130,7 @@ class Cart(models.Model, ItemSet):
     def get_user_open_cart(user):
         carts = user.carts.open()
         if len(carts) > 1:
-            logger.warning('%s has more then one open basket', user)
+            logger.warning('%s has more than one open basket', user)
             for cart in carts[1:]:
                 cart.change_status(Cart.CANCELED)
         return carts.first()
