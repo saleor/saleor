@@ -158,15 +158,18 @@ class Voucher(models.Model):
         else:
             return discount
 
+    def validate_limit(self, value):
+        limit = self.limit if self.limit is not None else value
+        if value < limit:
+            msg = pgettext(
+                'voucher',
+                'This offer is only valid for orders over %(amount)s.')
+            raise NotApplicable(msg % {'amount': net(limit)})
+
     def get_discount_for_checkout(self, checkout):
         if self.type == Voucher.VALUE_TYPE:
             cart_total = checkout.cart.get_total()
-            limit = self.limit if self.limit is not None else cart_total
-            if cart_total < limit:
-                msg = pgettext(
-                    'voucher',
-                    'This offer is only valid for orders over %(amount)s.')
-                raise NotApplicable(msg % {'amount': net(limit)})
+            self.validate_limit(cart_total)
             return self.get_fixed_discount_for(cart_total)
 
         elif self.type == Voucher.SHIPPING_TYPE:
@@ -185,11 +188,8 @@ class Voucher(models.Model):
                     'voucher', 'This offer is only valid in %(country)s.')
                 raise NotApplicable(msg % {
                     'country': self.get_apply_to_display()})
-            if self.limit is not None and shipping_method.price > self.limit:
-                msg = pgettext(
-                    'voucher',
-                    'This offer is only valid for shipping over %(amount)s.')
-                raise NotApplicable(msg % {'amount': net(self.limit)})
+            cart_total = checkout.cart.get_total()
+            self.validate_limit(cart_total)
             return self.get_fixed_discount_for(shipping_method.price)
 
         elif self.type in (Voucher.PRODUCT_TYPE, Voucher.CATEGORY_TYPE):
