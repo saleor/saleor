@@ -82,8 +82,9 @@ def create_variant(product, **kwargs):
 
 
 def create_product_image(product, placeholder_dir):
+    placeholder_root = os.path.join(settings.PROJECT_ROOT, placeholder_dir)
     img_path = '%s/%s' % (placeholder_dir,
-                          random.choice(os.listdir(placeholder_dir)))
+                          random.choice(os.listdir(placeholder_root)))
     image = ProductImage(
         product=product,
         image=File(open(img_path, 'rb'))).save()
