@@ -1,23 +1,22 @@
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
-from haystack.forms import SearchForm
 
-from ...order.models import Order
-from ...product.models import Product
 from ...search.views import paginate_results
-from ...userprofile.models import User
+from .forms import ModelFilteredSearchForm
 
 
 @staff_member_required
 def search(request):
-    form = SearchForm(data=request.GET or None, load_all=True)
+    form = ModelFilteredSearchForm(data=request.GET or None, load_all=True)
+    query = ''
     if form.is_valid():
-        results = form.search().models(Order, Product, User)
+        results = form.search()
         page = paginate_results(results, request.GET, 25)
+        query = form.cleaned_data['q']
     else:
         page = form.no_query_found()
-    query = form.cleaned_data['q']
     ctx = {
+        'form': form,
         'query': query,
         'results': page,
         'query_string': '?q=%s' % query}

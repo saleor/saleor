@@ -17,12 +17,27 @@
 {% block content %}
     <div class="row">
         <div class="col s12">
-          <form class="hide-on-med-and-up row" method="get" action="{% url "dashboard:search" %}">
-            <input id="icon_prefix" type="text" class="validate col s10" placeholder="Search" name="q" value="{% if query %}{{ query }}{% endif %}">
-            <button class="btn-flat search-button col s2" type="submit">
-              <i class="material-icons left right">search</i>
-            </button>
-          </form>
+            <form class="hide-on-med-and-up row" method="get" action="{% url "dashboard:search" %}">
+                <input id="icon_prefix" type="text" class="validate col s10" placeholder="Search" name="q" value="{% if query %}{{ query }}{% endif %}">
+                <button class="btn-flat search-button col s2" type="submit">
+                    <i class="material-icons left right">search</i>
+                </button>
+            </form>
+            <div class="row">
+                <div class="col s12">
+                    <form class="row" method="get" action="{% url "dashboard:search" %}">
+                        <input type="hidden" class="validate" name="q" value="{% if query %}{{ query }}{% endif %}">
+                        <div class="row">
+                            {{ form.models|materializecss:"s8 m4" }}
+                            <div class="col s4 m2 left-align">
+                                <button type="submit" class="btn btn--inline">
+                                    {% trans "Filter" %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
             {% if results %}
                 <ul class="collection list">
                     {% for result in results %}
@@ -66,8 +81,8 @@
                     {% endfor %}
                 </ul>
                 {% include "dashboard/includes/_pagination.html" with page_obj=results %}
-            {% else %}
-                <p>{% trans "No products found." %}</p>
+            {% elif query %}
+                <p>{% trans "No results for query " %}"{{ query }}".</p>
             {% endif %}
         </div>
     </div>
