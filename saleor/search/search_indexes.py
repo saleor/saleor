@@ -38,10 +38,11 @@ class OrderIndex(indexes.SearchIndex, indexes.Indexable):
     def prepare_text(self, obj):
         billing = obj.billing_address
         shipping = obj.shipping_address
-        email_parts = obj.user_email.split('@')
-
-        return [obj.user_email,
-                billing.phone, shipping.phone] + email_parts
+        email = obj.user_email
+        if not email and obj.user:
+            email = obj.user.email
+        email_parts = email.split('@')
+        return [email, billing.phone, shipping.phone] + email_parts
 
 
 class UserIndex(indexes.SearchIndex, indexes.Indexable):
