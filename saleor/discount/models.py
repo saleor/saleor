@@ -168,7 +168,7 @@ class Voucher(models.Model):
 
     def get_discount_for_checkout(self, checkout):
         if self.type == Voucher.VALUE_TYPE:
-            cart_total = checkout.cart.get_total()
+            cart_total = checkout.get_subtotal()
             self.validate_limit(cart_total)
             return self.get_fixed_discount_for(cart_total)
 
@@ -188,7 +188,7 @@ class Voucher(models.Model):
                     'voucher', 'This offer is only valid in %(country)s.')
                 raise NotApplicable(msg % {
                     'country': self.get_apply_to_display()})
-            cart_total = checkout.cart.get_total()
+            cart_total = checkout.get_subtotal()
             self.validate_limit(cart_total)
             return self.get_fixed_discount_for(shipping_method.price)
 
