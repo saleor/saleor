@@ -33,7 +33,8 @@ if os.environ.get('REDIS_URL'):
         'LOCATION': os.environ.get('REDIS_URL')}
 
 SQLITE_DB_URL = 'sqlite:///' + os.path.join(PROJECT_ROOT, 'dev.sqlite')
-DATABASES = {'default': dj_database_url.config(default=SQLITE_DB_URL)}
+DATABASES = {
+    'default': dj_database_url.config(default=SQLITE_DB_URL, conn_max_age=600)}
 
 
 TIME_ZONE = 'America/Chicago'
