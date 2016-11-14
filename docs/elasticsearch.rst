@@ -12,16 +12,12 @@ Elasticsearch client is installed by default. You may also use external add-ons 
 Environment variables
 ---------------------
 
-``ELASTICSEARCH_URL``
-  Contains URL address to the elasticsearch cluster. Defaults to ``http://127.0.0.1:9200/``.
+``ELASTICSEARCH_URL`` or ``BONSAI_URL`` or ``SEARCHBOX_URL``
+  URL to elasticsearch engine. Defaults to WhooshEngine.
 
-``BONSAI_URL``
-  Contains URL to Bonsai elasticsearch add-on on Heroku
+  Usage of elasticsearch is recomended. Heroku's add-ons will export this setting automatically.
 
-``SEARCHBOX_URL``
-  Contains URL to Searchbox elasticsearch add-on on Heroku
-
-**Example:** ``https://user:password@my-3rdparty-es.com:9200``
+  **Example:** ``https://user:password@my-3rdparty-es.com:9200``
 
   .. warning::
 
