@@ -291,3 +291,45 @@ def test_voucher_invalid(client, request_cart_with_item, shipping_method, vouche
 
     summary_response = client.post(url, data=address_data, follow=True)
     assert summary_response.context['order'].voucher is None
+
+
+def test_remove_voucher(client, request_cart_with_item, shipping_method, voucher):  # pylint: disable=W0613,R0914
+    # Enter checkout
+    checkout_index = client.get(reverse('checkout:index'), follow=True)
+    # Checkout index redirects directly to shipping address step
+    shipping_address = client.get(checkout_index.request['PATH_INFO'])
+
+    # Enter shipping address data
+    shipping_data = {
+        'email': 'test@example.com',
+        'first_name': 'John',
+        'last_name': 'Doe',
+        'street_address_1': 'Aleje Jerozolimskie 2',
+        'street_address_2': '',
+        'city': 'Warszawa',
+        'city_area': '',
+        'country_area': '',
+        'postal_code': '00-374',
+        'country': 'PL'}
+    shipping_response = client.post(shipping_address.request['PATH_INFO'],
+                                    data=shipping_data, follow=True)
+
+    # Select shipping method
+    shipping_method_page = client.get(shipping_response.request['PATH_INFO'])
+
+    # Redirect to summary after shipping method selection
+    shipping_method_data = {'method': shipping_method.pk}
+    shipping_method_response = client.post(shipping_method_page.request['PATH_INFO'],
+                                           data=shipping_method_data, follow=True)
+
+    # Summary page asks for Billing address, default is the same as shipping
+    url = shipping_method_response.request['PATH_INFO']
+    discount_data = {'discount-voucher': voucher.code}
+    voucher_response = client.post('{url}?next={url}'.format(url=url),
+                                   follow=True, data=discount_data, HTTP_REFERER=url)
+    assert voucher_response.context['checkout'].voucher_code is not None
+    # Remove voucher from checkout
+    voucher_response = client.post(reverse('checkout:remove-voucher'),
+                                   follow=True, HTTP_REFERER=url)
+    assert voucher_response.status_code == 200
+    assert voucher_response.context['checkout'].voucher_code is None
