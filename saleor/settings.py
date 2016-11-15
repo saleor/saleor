@@ -153,6 +153,7 @@ INSTALLED_APPS = [
     'saleor.dashboard',
     'saleor.shipping',
     'saleor.search',
+    'saleor.integrations',
 
     # External apps
     'versatileimagefield',
