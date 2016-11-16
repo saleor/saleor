@@ -17,6 +17,8 @@ try:
 except ImportError:
     from urlparse import urljoin
 
+georeader = geolite2.reader()
+
 
 class CategoryChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
@@ -50,9 +52,7 @@ def get_client_ip(request):
 
 
 def get_country_by_ip(ip_address):
-    reader = geolite2.reader()
-    geo_data = reader.get(ip_address)
-    geolite2.close()
+    geo_data = georeader.get(ip_address)
     if geo_data and 'country' in geo_data and 'iso_code' in geo_data['country']:
         country_iso_code = geo_data['country']['iso_code']
         if country_iso_code in countries:
