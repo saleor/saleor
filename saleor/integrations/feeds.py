@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from os import path
+
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import Site
@@ -78,10 +80,12 @@ class GoogleProductFeedGenerator(Atom1Feed):
 
 class GoogleProductFeed(StaticFeed):
     """
-    Basic Google feed class. To adjust feed to your needs inherit from this class.
+    Basic Google feed class. To adjust feed to your needs inherit from
+    this class.
 
-    Depending on target country and law changes required fields can change, please validate
-    your feed at Google Merchant dashboard and override missing methods.
+    Depending on target country and law changes required fields can change,
+    please validate your feed at Google Merchant dashboard and override
+    missing methods.
 
     Google feeds dashboard:
     https://merchants.google.com/mc/feeds/dashboard
@@ -92,6 +96,8 @@ class GoogleProductFeed(StaticFeed):
     feed_type = GoogleProductFeedGenerator
     link = '/'
     title = 'Google Product Feed'
+    url = ''
+    file_path = path.join(settings.INTEGRATIONS_DIR, 'google-feed.xml')
 
     def __init__(self):
         self.categories = Category.objects.none()
@@ -234,7 +240,7 @@ class GoogleProductFeed(StaticFeed):
         if sale_price != price:
             product_data['sale_price'] = sale_price
 
-        tax = self.item_tax(self, item)
+        tax = self.item_tax(item)
         if tax:
             product_data['tax'] = tax
 
@@ -253,6 +259,8 @@ class SaleorFeed(GoogleProductFeed):
     """
     Example of using GoogleProductFeed.
     """
+    url = 'integrations:saleor-feed'
+    file_path = path.join(settings.INTEGRATIONS_DIR, 'saleor-feed.xml')
 
     def item_shipping(self, item):
         """Flat shipping price"""
