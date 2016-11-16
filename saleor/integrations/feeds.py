@@ -6,6 +6,7 @@ from django.contrib.sites.models import Site
 from django.contrib.syndication.views import Feed, add_domain
 from django.utils.encoding import smart_text
 from django.utils.feedgenerator import Atom1Feed
+from prices import Price
 
 from ..product.models import ProductVariant, Category
 
@@ -246,3 +247,22 @@ class GoogleProductFeed(StaticFeed):
             product_data['brand'] = brand
 
         return product_data
+
+
+class SaleorFeed(GoogleProductFeed):
+    """
+    Example of using GoogleProductFeed.
+    """
+
+    def item_shipping(self, item):
+        """Flat shipping price"""
+        price = Price(5, currency=settings.DEFAULT_CURRENCY)
+        return '%s %s' % (price.gross, price.currency)
+
+    def item_tax(self, item):
+        """No taxes on products"""
+        price = Price(0, currency=settings.DEFAULT_CURRENCY)
+        return '%s %s' % (price.gross, price.currency)
+
+    def item_brand(self, item):
+        return 'Saleor'
