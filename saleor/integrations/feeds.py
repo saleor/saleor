@@ -24,10 +24,11 @@ GOOGLE_ATTRIBUTES = ['id', 'title', 'description', 'product_type',
 class StaticFeed(Feed):
     def get_feed(self, obj=None, request=None, feed_url_name=''):
         current_site = Site.objects.get_current()
-        link = add_domain(current_site.domain, '', False)  # todo: check if this should be secure
+        link = add_domain(current_site.domain, '',
+                          settings.INTEGRATIONS_ENABLE_SSL)
         feed_url = add_domain(current_site.domain,
                               reverse(feed_url_name) if feed_url_name else '',
-                              False)  # todo: check if this should be secure
+                              settings.INTEGRATIONS_ENABLE_SSL)
         feed = self.feed_type(title=self.title,
                               link=link,
                               description='',
@@ -41,7 +42,7 @@ class StaticFeed(Feed):
             description = self.item_description(item)
             link = add_domain(current_site.domain,
                               self.item_link(item),
-                              False)  # todo: check if this should be secure
+                              settings.INTEGRATIONS_ENABLE_SSL)
             enclosures = self.item_enclosures(item)
             feed.add_item(title=title,
                           link=link,

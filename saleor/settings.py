@@ -236,6 +236,8 @@ ACCOUNT_ACTIVATION_DAYS = 3
 LOGIN_REDIRECT_URL = 'home'
 
 INTEGRATIONS_DIR = os.environ.get('INTEGRATIONS_DIR', '')
+INTEGRATIONS_ENABLE_SSL = ast.literal_eval(
+    os.environ.get('INTEGRATIONS_ENABLE_SSL', 'False'))
 
 FACEBOOK_APP_ID = os.environ.get('FACEBOOK_APP_ID')
 FACEBOOK_SECRET = os.environ.get('FACEBOOK_SECRET')
