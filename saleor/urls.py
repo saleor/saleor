@@ -11,7 +11,6 @@ from .core.sitemaps import sitemaps
 from .core.urls import urlpatterns as core_urls
 from .order.urls import urlpatterns as order_urls
 from .product.urls import urlpatterns as product_urls
-from .registration.urls import urlpatterns as registration_urls
 from .userprofile.urls import urlpatterns as userprofile_urls
 from .dashboard.urls import urlpatterns as dashboard_urls
 
