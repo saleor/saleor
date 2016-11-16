@@ -26,14 +26,16 @@
                             {% trans "Sign in" %}
                         </button>
                     </div>
-                    <hr>
+                    {% get_providers as socialaccount_providers %}
+                    {% if socialaccount_providers %}
+                        <hr>
                         <p>{% trans "Want to use your social profile?" %}</p>
                         <p>
-                            {% get_providers as socialaccount_providers %}
                             <a class="btn btn-default" href="{% provider_login_url "facebook" method="oauth2" %}">{% trans "Sign in using Facebook" %}</a>
                             <a class="btn btn-default" href="{% provider_login_url "google" %}">{% trans "Sign in using Google" %}</a>
                         </p>
-                        <hr>
+                    {% endif %}
+                    <hr>
                     <div class="form-group">
                         <p>{% trans "Don't have an account yet?" %} <a class="btn btn-secondary" href="{{ signup_url }}">{% trans "Sign up" %}</a></p>
                     </div>
