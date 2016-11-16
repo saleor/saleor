@@ -1,7 +1,6 @@
 from django.core.urlresolvers import reverse
 
 from saleor.order.models import Order
-from saleor.registration.models import EmailChangeRequest
 from saleor.userprofile.models import User
 from tests.utils import get_redirect_location
 
@@ -180,18 +179,6 @@ def test_summary_without_shipping_method(request_cart_with_item, client, monkeyp
     assert get_redirect_location(response) == reverse('checkout:shipping-method')
 
 
-def test_client_login(request_cart_with_item, client, admin_user):
-    data = {
-        'username': admin_user.email,
-        'password': 'password'
-    }
-    response = client.post(reverse('registration:login'), data=data)
-    assert response.status_code == 302
-    assert get_redirect_location(response) == '/'
-    response = client.get(reverse('checkout:shipping-address'))
-    assert response.context['checkout'].cart.token == request_cart_with_item.token
-
-
 def test_email_is_saved_in_order(authorized_client, billing_address, customer_user,  # pylint: disable=R0914
                                  request_cart_with_item, shipping_method):
     """
@@ -224,22 +211,6 @@ def test_email_is_saved_in_order(authorized_client, billing_address, customer_us
     # After summary step, order is created and it waits for payment
     order = payment_method_page.context['order']
     assert order.user_email == customer_user.email
-
-    # User change email
-
-    authorized_client.post(reverse('registration:request_email_change'),
-                           data={'email': 'new@example.com'})
-
-    #get token:
-    token = EmailChangeRequest.objects.get(email='new@example.com').token
-    url = reverse('registration:change_email', args=[token])
-    authorized_client.get(url)
-
-    updated_user = User.objects.get(pk=customer_user.pk)
-    order = Order.objects.get(pk=order.pk)
-    assert updated_user.email != customer_user.email
-    assert order.user_email == customer_user.email
-    assert order.get_user_current_email() == updated_user.email
 
 
 def test_voucher_invalid(client, request_cart_with_item, shipping_method, voucher):  # pylint: disable=W0613,R0914
