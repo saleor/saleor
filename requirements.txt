@@ -15,6 +15,7 @@ cssutils==1.0.1           # via premailer
 dj-database-url==0.4.1
 dj-email-url==0.0.10
 django-absolute==0.3      # via django-emailit
+django-allauth==0.28.0
 django-bootstrap3==7.1.0
 django-cache-url==1.3.0
 django-countries==4.0
@@ -30,18 +31,22 @@ django-selectable==0.9.0
 django-storages==1.5.1
 django-versatileimagefield==1.6
 django-webpack-loader==0.4.1
-Django==1.10.3            # via django-absolute, django-emailit, django-model-utils, django-payments, django-prices, django-prices-openexchangerates, jsonfield
+Django==1.10.3            # via django-absolute, django-allauth, django-emailit, django-model-utils, django-payments, django-prices, django-prices-openexchangerates, jsonfield
 djangorestframework==3.5.2
+enum34==1.1.6             # via cryptography
 fake-factory==0.7.2
+funcsigs==1.0.2           # via mock
 google-i18n-address==2.0.0
 google-measurement-protocol==0.1.6
 idna==2.1                 # via cryptography
+ipaddress==1.0.17         # via cryptography, fake-factory, maxminddb
 jsonfield==1.0.3
 lxml==3.6.4               # via premailer
 Markdown==2.6.7
 maxminddb-geolite2==2015.708
 maxminddb==1.2.1
 mock==2.0.0
+oauthlib==2.0.0           # via requests-oauthlib
 pbr==1.10.0               # via mock
 Pillow==3.4.2             # via django-versatileimagefield
 premailer==3.0.1          # via django-emailit
@@ -55,8 +60,10 @@ PyJWT==1.4.2              # via django-payments
 pytest-django==3.0.0
 pytest==3.0.3
 python-dateutil==2.5.3    # via fake-factory
+python-openid==2.2.5      # via django-allauth
 pytz==2016.7              # via babel
 redis==2.10.5             # via django-redis
+requests-oauthlib==0.7.0  # via django-allauth
 requests==2.11.1
 satchless==1.1.3
 six==1.10.0               # via cryptography, fake-factory, mock, purl, python-dateutil

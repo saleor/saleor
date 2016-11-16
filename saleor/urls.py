@@ -20,7 +20,7 @@ admin.autodiscover()
 
 urlpatterns = [
     url(r'^', include(core_urls)),
-    url(r'^account/', include(registration_urls, namespace='registration')),
+    url(r'^accounts/', include('allauth.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^cart/', include(cart_urls, namespace='cart')),
     url(r'^checkout/', include(checkout_urls, namespace='checkout')),
