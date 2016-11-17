@@ -23,10 +23,10 @@ GOOGLE_ATTRIBUTES = ['id', 'title', 'description', 'product_type',
 
 class StaticFeed(Feed):
     def get_feed(self, obj=None, request=None, feed_url_name=''):
-        current_site = Site.objects.get_current()
-        link = add_domain(current_site.domain, '',
+        self.current_site = Site.objects.get_current()
+        link = add_domain(self.current_site.domain, '',
                           settings.INTEGRATIONS_ENABLE_SSL)
-        feed_url = add_domain(current_site.domain,
+        feed_url = add_domain(self.current_site.domain,
                               reverse(feed_url_name) if feed_url_name else '',
                               settings.INTEGRATIONS_ENABLE_SSL)
         feed = self.feed_type(title=self.title,
@@ -38,19 +38,7 @@ class StaticFeed(Feed):
                               **self.feed_extra_kwargs(obj))
 
         for item in self.items():
-            title = self.item_title(item)
-            description = self.item_description(item)
-            link = add_domain(current_site.domain,
-                              self.item_link(item),
-                              settings.INTEGRATIONS_ENABLE_SSL)
-            enclosures = self.item_enclosures(item)
-            feed.add_item(title=title,
-                          link=link,
-                          description=description,
-                          unique_id=self.item_guid(item),
-                          unique_id_is_permalink=False,
-                          enclosures=enclosures,
-                          **self.item_extra_kwargs(item))
+            feed.add_item(**self.item_extra_kwargs(item))
         return feed
 
 
@@ -122,7 +110,6 @@ class GoogleProductFeed(StaticFeed):
     def items(self):
         self.discounts = None
         self.categories = Category.objects.all()
-        self.current_site = Site.objects.get_current()
         return ProductVariant.objects.all().select_related(
             'product'
         ).prefetch_related(
@@ -143,7 +130,9 @@ class GoogleProductFeed(StaticFeed):
         return False
 
     def item_link(self, item):
-        return item.get_absolute_url()
+        return add_domain(self.current_site.domain,
+                          item.get_absolute_url(),
+                          settings.INTEGRATIONS_ENABLE_SSL)
 
     def item_title(self, item):
         return item.display_product()
@@ -224,11 +213,16 @@ class GoogleProductFeed(StaticFeed):
     def item_extra_kwargs(self, item):
         product_data = {
             'id': self.item_id(item),
+            'title': self.item_title(item),
+            'description': self.item_description(item),
             'condition': self.item_condition(item),
             'mpn': self.item_mpn(item),
             'item_group_id': self.item_group_id(item),
             'availability': self.item_availability(item),
-            'google_product_category': self.item_google_product_category(item)
+            'google_product_category': self.item_google_product_category(item),
+            'link': self.item_link(item),
+            'unique_id': self.item_guid(item),
+            'unique_id_is_permalink': self.item_guid_is_permalink(item)
         }
 
         image_link = self.item_image_link(item)
