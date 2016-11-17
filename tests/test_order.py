@@ -1,6 +1,7 @@
 from prices import Price
 
 from saleor.cart.models import Cart
+from saleor.dashboard.order.forms import ChangeQuantityForm
 from saleor.order import models
 
 
@@ -35,3 +36,42 @@ def test_stock_allocation(billing_address, product_in_stock):
     order_line = delivery_group.items.get()
     stock = order_line.stock
     assert stock.quantity_allocated == 2
+
+
+def test_dashboard_change_quantity_form(billing_address, product_in_stock):
+    start_quantity = 1
+    variant = product_in_stock.variants.get()
+    cart = Cart()
+    cart.save()
+    cart.add(variant, quantity=start_quantity)
+    order = models.Order.objects.create(billing_address=billing_address)
+    group = models.DeliveryGroup.objects.create(order=order)
+    group.add_items_from_partition(cart)
+    order_line = group.items.get()
+    expected_quantity = order_line.stock.quantity_allocated
+
+    # Check available quantity validation
+    form = ChangeQuantityForm({'quantity': 9999},
+                              instance=order_line)
+    assert not form.is_valid()
+    assert group.items.get().stock.quantity_allocated == expected_quantity
+    # Save same quantity
+    form = ChangeQuantityForm({'quantity': start_quantity},
+                              instance=order_line)
+    assert form.is_valid()
+    form.save()
+    assert group.items.get().stock.quantity_allocated == expected_quantity
+    # Increase quantity
+    expected_quantity += 1
+    form = ChangeQuantityForm({'quantity': start_quantity + 1},
+                              instance=order_line)
+    assert form.is_valid()
+    form.save()
+    assert group.items.get().stock.quantity_allocated == expected_quantity
+    # Decrease quantity
+    expected_quantity -= 1
+    form = ChangeQuantityForm({'quantity': start_quantity},
+                              instance=order_line)
+    assert form.is_valid()
+    form.save()
+    assert group.items.get().stock.quantity_allocated == expected_quantity
