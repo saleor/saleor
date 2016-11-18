@@ -1,0 +1,43 @@
+.home {
+  text-align: center;
+  color: $white;
+  h1 {
+    font-family: "Lato-Black";
+    font-size: $font-size-h1 * 1.3;
+  }
+  h2 {
+    font-weight: 400;
+  }
+  &__block1 {
+    background-image: url('../../img/block1.jpg');
+    padding: $global-padding * 15 0 $global-padding * 12;
+    background-size: cover;
+    h1 {
+      text-transform: uppercase;
+    }
+  }
+  &__block2 {
+    @include media-breakpoint-up(md) {
+      padding: 0 $global-padding 0 0;
+    }
+    padding: 0;
+    margin-top: $global-margin * 2;
+    div {
+      background-image: url('../../img/block2.jpg');
+      background-size: cover;
+      padding: $global-padding * 10 0 $global-padding * 8
+    }
+  }
+  &__block3 {
+    @include media-breakpoint-up(md) {
+      padding: 0 0 0 $global-padding;
+    }
+    padding: 0;
+    margin-top: $global-margin * 2;
+    div {
+      background-image: url('../../img/block3.jpg');
+      background-size: cover;
+      padding: $global-padding * 10 0 $global-padding * 8;
+    }
+  }
+}

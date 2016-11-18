@@ -1,0 +1,36 @@
+<div class="panel panel-default">
+    <div class="panel-heading" role="tab" id="address{{ radio_value }}">
+        <h4 class="radio panel-title">
+            <label role="button" data-toggle="collapse"
+                   data-parent="#{{ parent_element_id }}"
+                   data-target="#collapse{{ radio_value }}" aria-expanded="true"
+                   aria-controls="collapse{{ value }}" for="address_{{ radio_value }}">
+                <input type="radio"
+                       name="{{ radio_name }}"
+                       value="{{ radio_value }}"
+                       id="address_{{ radio_value }}"
+                       {% if radio_value == value %}checked{% endif %}>
+                {% if address %}
+                    {{ address }}, {{ address.street_address_1 }} {{ address.street_address_2 }}
+                    {{ address.city }}
+                {% else %}
+                    {{ label }}
+                {% endif %}
+            </label>
+        </h4>
+    </div>
+    <div id="collapse{{ radio_value }}"
+         class="panel-collapse collapse{% if radio_value == value %} in{% endif %}"
+         role="tabpanel"
+         aria-labelledby="headingOne">
+        {% if address %}
+            <div class="panel-body">
+                {% include "userprofile/snippets/address-details.html" with address=address only %}
+            </div>
+        {% elif address_form %}
+            <div class="panel-body">
+                {% include "userprofile/snippets/address-form.html" with address_form=address_form only %}
+            </div>
+        {% endif %}
+    </div>
+</div>

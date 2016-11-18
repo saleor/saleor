@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load gross from prices_i18n %}
+{% load i18n %}
+{% load static from staticfiles %}
+{% load render_bundle from webpack_loader %}
+
+{% block title %}{% trans "Your cart" %} — {{ block.super }}{% endblock %}
+
+{% block breadcrumb %}
+    {{ block.super }}
+<li><a href="{% url 'cart:index' %}">{% trans "Cart" %}</a></li>
+{% endblock breadcrumb %}
+
+{% block stylesheet %}
+  {{ block.super }}
+  {% render_bundle 'cart' 'css' %}
+{% endblock stylesheet %}
+
+{% block footer_scripts %}
+  {{ block.super }}
+  {% render_bundle 'cart' 'js' %}
+{% endblock footer_scripts %}
+
+{% block content %}
+{% if cart_lines %}
+    <table class="table table-striped cart" id="cart-items">
+        <thead>
+        <tr>
+            <th class="col-xs-5 col-sm-2 col-md-1">{% trans "Product" %}</th>
+            <th class="col-sm-5 hidden-xs"></th>
+            <th class="col-xs-6 col-sm-3 col-md-2">{% trans "Quantity" %}</th>
+            <th class="col-sm-1 hidden-xs text-right">{% trans "Price" %}</th>
+            <th class="col-xs-1 text-right">{% trans "Subtotal" %}</th>
+        </tr>
+        </thead>
+        <tfoot>
+        <tr>
+            <td class="hidden-xs" colspan="2"></td>
+            <td class="col-xs-9 col-md-9 text-right lead" colspan="2">{% trans "Total" %}:
+            <td class="col-xs-3 col-md-2 text-right lead">
+                <span class="cart-total" data-value="{% gross cart_total %}"{% if local_cart_total %} data-value-local="{% gross local_cart_total %}"{% endif %}>
+                    {% spaceless %}
+                        {% gross cart_total html=True %}
+                        {% if local_cart_total %}
+                            <br>
+                            <small class="text-info">
+                                &asymp;
+                                {% gross local_cart_total html=True %}
+                            </small>
+                        {% endif %}
+                    {% endspaceless %}
+                </span>
+            </td>
+        </tr>
+        </tfoot>
+        <tbody>
+            {% for line in cart_lines %}
+                <tr class="cart-item">
+                    <td class="hidden-xs">
+                        <a href="{{ line.variant.get_absolute_url }}">
+                            {% if line.variant.product.images.first %}
+                                <img class="cart-item-image" itemprop="image" src="{{ line.variant.product.images.first.image.crop.100x100 }}" alt="">
+                            {% else %}
+                                <img class="cart-item-image" src="{% static 'images/product-image-placeholder-small.png' %}" alt="">
+                            {% endif %}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{{ line.variant.get_absolute_url }}">
+                            {{ line.variant.product }} - {{ line.variant.display_variant }}
+                        </a>
+                    </td>
+                    <td>
+                        <div class="cart-item-amount">
+                            <form role="form" action="{% url "cart:update-line" variant_id=line.variant.pk %}" method="post" class="form-cart">
+                                <div class="input-group cart-item-quantity js-hidden{% if form.quantity.errors %} has-error{% endif %}">
+                                    {{ line.form.quantity }}
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-info" type="submit">{% trans "Update" %}</button>
+                                    </span>
+                                </div>
+                                {% if line.form.quantity.errors %}
+                                    {% for error in form.quantity.errors %}
+                                        <span class="text-danger">{{ error }}</span>
+                                    {% endfor %}
+                                {% endif %}
+                                {% csrf_token %}
+                            </form>
+
+                            <button type="submit" class="btn btn-link btn-sm cart-item-remove">
+                                <span class="text-muted">{% trans "Remove from cart" %}</span>
+                            </button>
+                        </div>
+                    </td>
+                    <td class="text-right hidden-xs">{% gross line.get_price_per_item html=True %}</td>
+                    <td class="text-right cart-item-subtotal" data-product-id="{{ line.variant.pk }}">{% gross line.get_total html=True %}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="form-group">
+        <div>
+            <a href="{% url "checkout:index" %}" class="btn btn-primary btn-lg pull-right">{% trans "Proceed to checkout" %}</a>
+        </div>
+    </div>
+{% else %}
+<p>
+    {% trans 'Your cart is empty' %}
+</p>
+{% endif %}
+{% endblock content %}
