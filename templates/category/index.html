@@ -2,6 +2,12 @@
 {% load slice from shop %}
 {% load static from staticfiles %}
 {% load bootstrap_pagination from bootstrap3 %}
+{% load render_bundle from webpack_loader %}
+
+{% block footer_scripts %}
+  {{ block.super }}
+  {% render_bundle 'products_search' 'js' %}
+{% endblock footer_scripts %}
 
 {% block title %}{{ category }} — {{ block.super }}{% endblock %}
 
@@ -34,6 +40,11 @@
                     </li>
                 {% endfor %}
             </ul>
+            <button class="btn btn-danger fetch_data" data-color="red">Red</button>
+            <button class="btn btn-success fetch_data" data-color="green">Green</button>
+            <button class="btn btn-default fetch_data" data-color="">Cancel</button>
+            <div id="productList"></div>
+
         </div>
 
         <div class="col-md-9">

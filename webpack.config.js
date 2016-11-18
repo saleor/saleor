@@ -20,12 +20,14 @@ var providePlugin = new webpack.ProvidePlugin({
   jQuery: 'jquery',
   'window.jQuery': 'jquery',
   Backbone: 'backbone',
-  'window.Backbone': 'backbone'
+  'window.Backbone': 'backbone',
+  'axios': 'axios'
 });
 
 var config = {
   entry: {
     cart: './saleor/static/js/cart.js',
+    products_search: './saleor/static/js/products_search.js',
     dashboard: './saleor/static/js/dashboard.js',
     storefront: './saleor/static/js/storefront.js',
     vendor: [
