@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete address" %} — {{ block.super }}{% endblock %}
+
+{% block breadcrumb %}
+    {{ block.super }}
+    <li><a href="{% url 'profile:details' %}">{% trans "Your profile" %}</a></li>
+    <li><a href=".">{% trans "Delete address" %}</a></li>
+{% endblock breadcrumb %}
+
+{% block content %}
+    <h2>{% trans "Are you sure you want to delete the following address?" %}</h2>
+
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    {{ address }}
+                </div>
+                <div class="panel-body">
+                    <address>{% include "userprofile/snippets/address-details.html" with address=address %}</address>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">{% trans "Delete" %}</button>
+        <a href="{% url 'profile:details' %}" class="btn btn-link">{% trans "Cancel" %}</a>
+    </form>
+{% endblock content %}

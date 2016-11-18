@@ -16,6 +16,7 @@
     "node": "6.x"
   },
   "dependencies": {
+    "bootstrap": "^4.0.0-alpha.5",
     "bootstrap-sass": "^3.3.7",
     "dropzone": "^4.2.0",
     "jquery": "^2.1.4",

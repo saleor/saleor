@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+
+{% block title %}{% trans "Edit Address" %} — {{ block.super }}{% endblock %}
+
+{% block breadcrumb %}
+    {{ block.super }}
+    <li><a href="{% url 'profile:details' %}">{% trans "Your profile" %}</a></li>
+{% if address_form.instance.pk %}
+    <li><a href=".">{% trans "Edit address" %}</a></li>
+{% else %}
+    <li><a href=".">{% trans "New address" %}</a></li>
+{% endif %}
+{% endblock breadcrumb %}
+
+{% block content %}
+<div class="row">
+    <div class="col-sm-8 col-sm-push-2">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <h4>{% trans "Address" %}</h4>
+            <br>
+            {% include "userprofile/snippets/address-form.html" %}
+            <p class="text-right">
+                <button type="submit" class="btn btn-primary">{% trans "Save changes" %}</button>
+            </p>
+        </form>
+    </div>
+</div>
+{% endblock content %}

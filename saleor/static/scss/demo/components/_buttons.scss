@@ -1,0 +1,15 @@
+.btn {
+  &.home__button {
+    border-radius: 0;
+    text-transform: uppercase;
+    color: $white;
+    background-color: transparent;
+    border: 1px solid $white;
+    transition: 0.3s;
+    padding: $global-padding $global-padding * 2;
+    &:hover {
+      background-color: $white;
+      color: $body-color;
+    }
+  }
+}

@@ -28,6 +28,7 @@ var config = {
     cart: './saleor/static/js/cart.js',
     dashboard: './saleor/static/js/dashboard.js',
     storefront: './saleor/static/js/storefront.js',
+    demo: './saleor/static/js/demo/storefront.js',
     vendor: [
       'bootstrap-sass',
       'jquery',
@@ -58,7 +59,7 @@ var config = {
         ])
       },
       {
-        test: /\.(eot|otf|png|svg|ttf|woff|woff2)(\?v=[0-9.]+)?$/,
+        test: /\.(eot|otf|png|svg|jpg|ttf|woff|woff2)(\?v=[0-9.]+)?$/,
         loader: 'file?name=[name].[hash].[ext]',
         include: [
           path.resolve(__dirname, 'node_modules'),

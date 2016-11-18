@@ -1,0 +1,11 @@
+<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+    {% if addresses_form.SHIPPING_ADDRESS %}
+        {% include "checkout/snippets/addresses-form-panel.html" with parent_element_id="accordion" radio_name=addresses_form.address.html_name radio_value=addresses_form.SHIPPING_ADDRESS label=_('Same as shipping') value=addresses_form.address.value only %}
+    {% endif %}
+    {% for address in addresses %}
+        {% include "checkout/snippets/addresses-form-panel.html" with parent_element_id="accordion" radio_name=addresses_form.address.html_name radio_value=address.id label=address value=addresses_form.address.value address=address only %}
+    {% endfor %}
+    {% if addresses_form.NEW_ADDRESS and address_form %}
+        {% include "checkout/snippets/addresses-form-panel.html" with parent_element_id="accordion" radio_name=addresses_form.address.html_name radio_value=addresses_form.NEW_ADDRESS label=_('Enter a new address') value=addresses_form.address.value address_form=address_form only %}
+    {% endif %}
+</div>
