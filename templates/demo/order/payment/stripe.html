@@ -1,0 +1,14 @@
+{% extends "order/payment/details.html" %}
+{% load bootstrap_form from bootstrap3 %}
+{% load i18n %}
+
+{% block forms %}
+<form method="{{ form.method }}" class="form-horizontal"{% if form.action %} action="{{ form.action }}"{% endif %} novalidate>
+    {% csrf_token %}
+    {{ form.media }}
+    {% bootstrap_form form layout='horizontal' %}
+    {% if form.errors %}
+    <a class="btn" href="{% url "order:details" token=payment.order.token %}">{% trans "Change payment method" %}</a>
+    {% endif %}
+</form>
+{% endblock forms %}
