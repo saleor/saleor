@@ -1,0 +1,50 @@
+{% extends "checkout/details.html" %}
+{% load i18n %}
+{% load gross from prices_i18n %}
+{% load bootstrap_form from bootstrap3 %}
+
+
+{% block steps_menu %}
+    <div class="nav nav-pills nav-justified nav-wizard">
+        <a href="{% url "cart:index" %}">
+            {% trans "Cart" %}
+            <div class="nav-arrow"></div>
+        </a>
+        <a href="{% url "checkout:shipping-address" %}">
+            <div class="nav-wedge"></div>
+            {% trans "Shipping address" %}
+            <div class="nav-arrow"></div>
+        </a>
+        <a class="active" href="{% url "checkout:shipping-method" %}">
+            <div class="nav-wedge"></div>
+            {% trans "Shipping method" %}
+            <div class="nav-arrow"></div>
+        </a>
+        <a>
+            <div class="nav-wedge"></div>
+            {% trans "Summary" %}
+        </a>
+    </div>
+{% endblock steps_menu %}
+
+
+{% block forms %}
+    <div class="page-header">
+        <h3>{% trans "Shipping address" %}</h3>
+    </div>
+
+    {% include "userprofile/snippets/address-details.html" with address=checkout.shipping_address only %}
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <h3>{% trans "Shipping method" %}</h3>
+
+        {% bootstrap_form shipping_method_form show_label=False %}
+
+        <p class="text-right">
+            <button type="submit" class="btn btn-primary btn-lg">
+                {% trans "Continue to payment" %}
+            </button>
+        </p>
+    </form>
+{% endblock %}

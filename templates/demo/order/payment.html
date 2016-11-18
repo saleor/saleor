@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% load bootstrap_form from bootstrap3 %}
+{% load gross from prices_i18n %}
+{% load discount_amount_for from prices %}
+{% load i18n %}
+{% load staticfiles %}
+
+{% block title %}{% trans "Pay for order" %} {{ order }} — {{ block.super }}{% endblock %}
+
+{% block outerbreadcrumb %}
+    {% if order.user == user %}
+    <ul class="breadcrumb" itemprop="breadcrumb">
+        <li><a href="/">{% trans "Home" %}</a></li>
+        <li><a href="{% url 'profile:orders' %}">{% trans "Your orders" %}</a></li>
+        <li><a href="{% url 'order:details' token=order.token %}">{{ order }}</a></li>
+    </ul>
+    {% endif %}
+{% endblock outerbreadcrumb %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-sm-8">
+            {% if order.user == user or not order.is_fully_paid %}
+                {% if not order.is_fully_paid %}
+                    <div class="panel panel-info">
+                        {% if waiting_payment %}
+                            <div class="panel-heading">
+                                {% trans "Payment pending" %}
+                            </div>
+                            <div class="panel-body">
+                                <form method="post" action="{% url 'order:cancel-payment' token=order.token %}">
+                                    {% csrf_token %}
+                                    <p>{% trans "We are currently waiting for an external service to authorize your payment for this order." %}</p>
+                                    <p>{% trans "Current status" %}: <span class="label label-default">{{ waiting_payment.get_status_display }}</span></p>
+                                    <p>{% trans "Unless you are absolutely sure that the process will not complete (for example you have closed the browser window before paying), you should wait before attempting a new payment. Please be warned that if you try again and the previous transaction succeeds you might end up being charged twice." %}</p>
+                                    {% bootstrap_form waiting_payment_form %}
+                                    <button type="submit" class="btn btn-danger">{% trans "I understand, allow me to pay again" %}</button>
+                                </form>
+                            </div>
+                        {% elif payment_form %}
+                            <div class="panel-heading">
+                                {% trans "Pay for order" %} {{ order }}
+                            </div>
+                            <div class="panel-body">
+                                <form method="post" action="{% url "order:payment" token=order.token %}">
+                                    {% csrf_token %}
+                                    {{ payment_form }}
+                                    <div class="form-group text-right">
+                                        {% block form_submit %}
+                                            <button type="submit" class="btn btn-primary">
+                                                {% trans "Proceed to payment" %}
+                                            </button>
+                                        {% endblock %}
+                                    </div>
+                                </form>
+                            </div>
+                        {% else %}
+                            <div class="panel-body alert-info">
+                                <span>{% trans "You've authorized transaction. Order is in processing" %}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        {% if order.user == user %}
+            <div class="col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        {% trans "Billing address" %}
+                    </div>
+                    <div class="panel-body">
+                        <address>{% include "userprofile/snippets/address-details.html" with address=order.billing_address %}</address>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6">
+                {% if order.is_shipping_required %}
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            {% trans "Shipping address" %}
+                        </div>
+                        <div class="panel-body">
+                            <address>{% include "userprofile/snippets/address-details.html" with address=order.shipping_address %}</address>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    {% for group in groups %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                {% blocktrans with number=forloop.counter %}Shipment #{{ number }}{% endblocktrans %}
+            </div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th class="col-sm-6">{% trans "Name" %}</th>
+                        <th class="col-sm-3 text-right">{% trans "Price" %}</th>
+                        <th class="col-sm-3 text-right">{% trans "Subtotal" %}</th>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <th colspan="2">{% trans "Total" %}</th>
+                        <th class="text-right">{% gross group.get_total %}</th>
+                    </tr>
+                </tfoot>
+                <tbody>
+                    {% for item in group %}
+                        <tr>
+                            <td>{{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}</td>
+                            <td class="text-right">{% gross item.get_price_per_item %}</td>
+                            <td class="text-right">{% gross item.get_total %}</td>
+                        </tr>
+                    {% endfor %}
+                    {% if group.shipping_price.gross %}
+                        <tr>
+                            <td class="col-sm-4">
+                                {% trans "Shipping" %}
+                            </td>
+                            <td class="text-right">{% gross group.shipping_price %}</td>
+                            <td class="text-right">{% gross group.shipping_price %}</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    {% endfor %}
+    {% if order.discount_amount %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                {{ order.discount_name }}
+            </div>
+            <div class="panel-body text-right">
+                <strong>{% gross order.discount|discount_amount_for:order.total %}</strong>
+            </div>
+        </div>
+    {% endif %}
+    {% if order.discount_amount or groups|length > 1 %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                {% trans "Total" %}
+            </div>
+            <div class="panel-body text-right">
+                <strong>{% gross order.total %}</strong>
+            </div>
+        </div>
+    {% endif %}
+{% endblock content %}
