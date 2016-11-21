@@ -1,8 +1,8 @@
 .navbar {
   padding: 0;
-  @include media-breakpoint-down(md) {
+  @include media-breakpoint-down(sm) {
     img {
-      max-height: 30px;
+      max-height: 22px;
     }
   }
   &__login {
@@ -48,8 +48,17 @@
           height: 30px;
           text-align: center;
           line-height: 2;
+          @include media-breakpoint-down(sm) {
+            font-size: 0.8rem;
+            width: 25px;
+            height: 25px;
+            line-height: 2.1;
+          }
         }
       }
+    }
+    &__menu-toggle {
+      max-height: 22px;
     }
   }
   &__menu {
@@ -69,11 +78,13 @@
         + .nav-item {
           margin-left: 0;
         }
-        &:last-of-type {
-          a {
-            color: $red;
-            &:hover {
-              color: rgba($red, 0.6);
+        &:not(.login-item) {
+          &:last-of-type {
+            a {
+              color: $red;
+              &:hover {
+                color: rgba($red, 0.6);
+              }
             }
           }
         }
@@ -83,6 +94,25 @@
           &:hover {
             color: rgba($body-color, 0.6);
           }
+        }
+      }
+    }
+    @include media-breakpoint-down(sm) {
+      .navigation {
+        position: absolute;
+        left: -180px;
+        height: 100vh;
+        width: 180px;
+        z-index: 100;
+        background-color: $white;
+        padding-left: $global-padding * 1.5;
+        transition: 0.3s ease-in-out;
+        li {
+          width: 100%;
+          text-align: left;
+        }
+        &.open {
+          left: 0;
         }
       }
     }
