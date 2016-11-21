@@ -27,9 +27,9 @@
     <body itemscope itemtype="http://schema.org/WebPage">
         {% block header %}
             <header class="navbar navbar-default navbar-inverse navbar-static-top" role="navigation">
-              <div class="navbar__login">
+              <div class="navbar__login hidden-sm-down">
                 <div class="container">
-                  <p class="float-xs-left hidden-sm-down">{% trans "Test Saleor in Testeor - a sample shop!" %}</p>
+                  <p class="float-xs-left">{% trans "Test Saleor in Testeor - a sample shop!" %}</p>
                   <p class="float-xs-right">
                     {% if user.is_authenticated %}
                       {% if user.is_staff %}
@@ -45,12 +45,12 @@
               </div>
               <div class="navbar__brand">
                 <div class="container">
-                  <img class="hidden-md-up" src="{% static "img/mobile-bar.svg" %}">
-                  <a href="/">
+                  <img class="hidden-md-up navbar__brand__menu-toggle closed open" src="{% static "img/mobile-bar.svg" %}">
+                  <a href="{% url "demo" %}">
                     <img src="{% static "img/testeor-logo.svg" %}" alt="Testeor - Saleor demo store">
                   </a>
                   <div class="float-xs-right">
-                    <img class="hidden-md-up" src="{% static "img/search-icon.svg" %}">
+                    <img class="hidden-md-up " src="{% static "img/search-icon.svg" %}">
                     <div class="navbar__brand__basket float-xs-right">
                       <a href="{% url "cart:index" %}">
                         <span class="hidden-sm-down">{% trans "Your basket" %}</span>
@@ -63,8 +63,7 @@
               </div>
               <div class="navbar__menu">
                 <div class="container">
-                  <nav class="navbar">
-                    <div class="collapse navbar-toggleable-sm" id="navbarResponsive">
+                  <nav class="navigation">
                       <ul class="nav navbar-nav">
                         {% for category in categories %}
                             <li class="nav-item">
@@ -74,7 +73,6 @@
                             </li>
                         {% endfor %}
                       </ul>
-                    </div>
                   </nav>
                 </div>
               </div>
@@ -109,7 +107,7 @@
                 <div class="container">
                   <div class="row">
                     <div class="col-md-3">
-                      <a href="/">
+                      <a href="{% url "demo" %}">
                         <img class="footer__logo" src="{% static "img/testeor-logo-white.svg" %}" alt="Testeor - Saleor demo store">
                       </a>
                     </div>
@@ -166,7 +164,8 @@
         {% endblock %}
         {% block footer_scripts %}
             {% render_bundle 'vendor' 'js' %}
-            {% render_bundle 'storefront' 'js' %}
+            {% render_bundle 'demo' 'js' %}
         {% endblock footer_scripts %}
     </body>
 </html>
+
