@@ -29,6 +29,7 @@ class GoogleProductFeed(object):
     """
     file_path = path.join(settings.INTEGRATIONS_DIR, 'google-feed.csv.gz')
     file_url = settings.STATIC_URL + file_path
+    compression = True
     attributes = ['id', 'title', 'product_type', 'google_product_category',
                   'link', 'image_link', 'condition', 'availability',
                   'price', 'tax', 'shipping', 'sale_price',
