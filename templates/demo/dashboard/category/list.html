@@ -1,0 +1,120 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load mptt_tags %}
+{% load materializecss %}
+
+{% block title %}{% trans "Categories" %} - {{ block.super }}{% endblock %}
+
+{% block body_class %}body-categories{% endblock %}
+
+{% block header_menu %}
+    {% if root %}
+        {% if root.parent %}
+            {% url 'dashboard:category-list' root_pk=root.parent.pk as url %}
+        {% else %}
+            {% url 'dashboard:category-list' as url %}
+        {% endif %}
+        {% include "dashboard/includes/_back-link.html" with url=url %}
+    {% else %}
+        {{ block.super }}
+    {% endif %}
+{% endblock %}
+
+{% block header_extra %}
+    <div class="fixed-action-btn">
+        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal" title="{% trans "Add category" %}"
+            href="{% if root %}{% url 'dashboard:category-add' root_pk=root.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}">
+            <i class="material-icons">add</i>
+        </a>
+    </div>
+
+    {% if root %}
+    <a class="dropdown-button" href="#" data-activates="category-delete" data-constrainwidth="false">
+        <i class="material-icons">more_vert</i>
+    </a>
+    <ul id="category-delete" class="dropdown-content">
+        <li>
+            <a class="modal-trigger-custom" data-href="{% url 'dashboard:category-edit' root_pk=root.pk %}" href="#base-modal">
+                {% trans "Edit category" %}
+            </a>
+        </li>
+
+        <li>
+            <a class="modal-trigger-custom" data-href="{% url 'dashboard:category-delete' pk=root.pk %}" href="#base-modal">
+                {% trans "Remove category" %}
+            </a>
+        </li>
+    </ul>
+    {% endif %}
+{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs breadcrumbs--with-menu breadcrumbs--ellipsed">
+        <li>
+        {% if path %}
+            <a href="{% url 'dashboard:category-list' %}" class="breadcrumbs--ellipsed-item">
+                {% trans "Categories" %}
+            </a>
+        {% else %}
+            <span class="breadcrumbs--ellipsed-item">{% trans "Categories" %}</span>
+        {% endif %}
+        </li>
+        {% if path %}
+            {% for node in path %}
+                {% if forloop.last %}
+                    <li title="{{ node.name }}">
+                        <span class="breadcrumbs--ellipsed-item">
+                            {{ node.name }}
+                        </span>
+                    </li>
+                {% else %}
+                    <li>
+                        <a title="{{ node.name }}" href="{% url 'dashboard:category-list' root_pk=node.pk %}" class="breadcrumbs--ellipsed-item">
+                            {{ node.name }}
+                        </a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </ul>
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col s12">
+            <ul class="collection list">
+                {% if categories %}
+                    {% for node in categories %}
+                        <li class="collection-item list-item list-item--two-lines">
+                            <a class="list-item-name" href="{% url 'dashboard:category-list' root_pk=node.pk %}">
+                                {{ node.name }}
+                            </a>
+
+                            <p class="list-item-desc"><span>
+                                {% if node.description %}
+                                    {{ node.description }}
+                                {% else %}
+                                    &nbsp;
+                                {% endif %}
+                            </span></p>
+
+                            {% if node.hidden %}
+                                <span class="list-item-icon"><i class="material-icons">visibility_off</i></span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <p>
+                        {% if root %}
+                            {% trans "No subcategories." %}
+                        {% else %}
+                            {% trans "No categories." %}
+                        {% endif %}
+                    </p>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+{% endblock %}

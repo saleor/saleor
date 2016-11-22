@@ -24,7 +24,8 @@ var providePlugin = new webpack.ProvidePlugin({
   jQuery: 'jquery',
   'window.jQuery': 'jquery',
   Backbone: 'backbone',
-  'window.Backbone': 'backbone'
+  'window.Backbone': 'backbone',
+  "window.Tether": 'tether'
 });
 
 var config = {
@@ -34,7 +35,7 @@ var config = {
     storefront: './saleor/static/js/storefront.js',
     demo: './saleor/static/js/demo/storefront.js',
     vendor: [
-      'bootstrap-sass',
+      'bootstrap',
       'jquery',
       'jquery.cookie'
     ]

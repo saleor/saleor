@@ -1,0 +1,20 @@
+{% load i18n %}
+{% load materializecss %}
+
+<form id="ship-delivery-group-form" method="post" role="form" action="{% url 'dashboard:ship-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="form-async" novalidate>
+    {% csrf_token %}
+
+    <div class="modal-content">
+        <h5>{% trans "Ship delivery group " %}</h5>
+        <p>{% trans "Ship selected delivery group to the following address:" %}</p>
+        {% include 'dashboard/includes/_address.html' with address=group.order.shipping_address only %}
+        <div class="row">
+            {{ form|materializecss }}
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="submit" class="modal-action btn-flat blue-text">{% trans "Ship" %}</button>
+        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+    </div>
+</form>

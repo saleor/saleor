@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+{% load staticfiles i18n %}
+{% load render_bundle from webpack_loader %}
+
+<html class="no-js">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <title>{% block title %}{% trans "Dashboard - Saleor" %}{% endblock %}</title>
+
+    {% render_bundle 'vendor' 'css' %}
+    {% render_bundle 'dashboard' 'css' %}
+    <link rel="stylesheet" type="text/css" href="{% static "versatileimagefield/css/versatileimagefield.css" %}">
+
+    {% block custom_css %}
+    {% endblock %}
+</head>
+
+<body class="{% block body_class %}body-home{% endblock %}">
+    <header class="header">
+        <nav class="top-nav">
+            <div class="container">
+                <div class="nav-wrapper">
+                    {% block header_menu %}
+                        <a href="#" data-activates="side-menu" class="button-collapse header-button"><i class="material-icons">menu</i></a>
+                    {% endblock %}
+                    {% block breadcrumbs %}
+                        <ul class="breadcrumbs">
+                            <li>{% trans "Dashboard" %}</li>
+                        </ul>
+                    {% endblock %}
+                    {% block header_extra %}{% endblock %}
+                </div>
+            </div>
+            <ul class="side-nav fixed" id="side-menu">
+                <li class="brand-logo">
+                    <a href="{% url 'dashboard:index' %}">
+                        <img src="{% static "img/dashboard-logo.svg" %}" alt="Saleor">
+                    </a>
+                </li>
+                <li class="side-nav-user">
+                    <ul class="collapsible collapsible-accordion">
+                        <li>
+                            <a class="waves-effect waves-teal collapsible-header">
+                                <i class="material-icons">account_circle</i>{{ request.user }}
+                            </a>
+                            <div class="collapsible-body">
+                                <ul>
+                                    <li><a href="/" target="_blank" class="waves-effect waves-teal">{% trans "Visit storefront" %}</a></li>
+                                    <li><a href="{% url 'registration:logout' %}" class="waves-effect waves-teal">{% trans "Log out" %}</a></li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-home"><a href="{% url 'dashboard:index' %}">{% trans "Home" %}</a></li>
+                <li>
+                    <ul class="collapsible collapsible-accordion" data-collapsible="accordion">
+                        <li>
+                            <a class="waves-effect waves-teal collapsible-header{% block menu_catalogue_class %}{% endblock %}">{% trans "Catalogue" %}</a>
+                            <div class="collapsible-body">
+                                <ul>
+                                    <li class="subnav-products"><a href="{% url 'dashboard:product-list' %}">{% trans "Products" %}</a></li>
+                                    <li class="subnav-attributes"><a href="{% url 'dashboard:product-attributes' %}">{% trans "Attributes" %}</a></li>
+                                    <li class="subnav-categories"><a href="{% url 'dashboard:category-list' %}">{% trans "Categories" %}</a></li>
+                                </ul>
+                            </div>
+                        </li>
+
+                        <li>
+                            <a class="waves-effect waves-teal collapsible-header{% block menu_discounts_class %}{% endblock %}">{% trans "Discounts" %}</a>
+                            <div class="collapsible-body">
+                                <ul>
+                                    <li class="subnav-sales"><a href="{% url 'dashboard:sale-list' %}">{% trans "Sales" %}</a></li>
+                                    <li class="subnav-vouchers"><a href="{% url 'dashboard:voucher-list' %}">{% trans "Vouchers" %}</a></li>
+                                </ul>
+                            </div>
+                        </li>
+
+                        <li>
+                            <a class="waves-effect waves-teal collapsible-header{% block menu_sales_class %}{% endblock %}">{% trans "Sales" %}</a>
+                            <div class="collapsible-body">
+                                <ul>
+                                    <li class="subnav-orders"><a href="{% url 'dashboard:orders' %}">{% trans "Orders" %}</a></li>
+                                    <li class="subnav-customers"><a href="{% url 'dashboard:customers' %}">{% trans "Customers" %}</a></li>
+                                    <li class="subnav-payments"><a href="{% url 'dashboard:payments' %}">{% trans "Payments" %}</a></li>
+                                </ul>
+                            </div>
+                        </li>
+
+                        <li class="{% block menu_delivery_class %}{% endblock %}"><a href="{% url 'dashboard:shipping-methods' %}">{% trans "Shipping methods" %}</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <div class="hide-on-med-only"></div>
+    <div class="hide-on-large-only"></div>
+    <div id="base-modal" class="modal"></div>
+    <div id="base-modal-fixed" class="modal modal-fixed-footer"></div>
+
+    <!-- Core Scripts - Include with every page -->
+    {% render_bundle 'vendor' 'js' %}
+    {% render_bundle 'dashboard' 'js' %}
+    <script src="{% static "versatileimagefield/js/versatileimagefield.js" %}"></script>
+    {% include "dashboard/includes/_messages.html" %}
+
+    {% block custom_js %}{% endblock %}
+</body>
+</html>

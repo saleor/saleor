@@ -10,7 +10,6 @@
     p {
       margin: $global-margin / 2 0;
       font-size: $small-font-size;
-      font-family: 'Lato-Regular';
       &.float-xs-left {
         color: $white;
       }
@@ -63,17 +62,21 @@
   }
   &__menu {
     ul {
-      text-align: justify;
+      border-bottom: 1px solid $gray;
+      margin-bottom: $global-margin;
+      @include media-breakpoint-down(sm), &.no-border {
+        border-bottom: 0;
+        margin-bottom: 0;
+      }
       &:after {
         content: "";
-      	width: 100%;
+        width: 100%;
       	display: inline-block;
       }
       .nav-item {
         width: 20%;
-        font-family: 'Lato-Bold';
+        font-weight: 700;
         display: inline-block;
-        vertical-align: top;
         text-align: center;
         + .nav-item {
           margin-left: 0;
