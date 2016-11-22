@@ -28,6 +28,7 @@ class GoogleProductFeed(object):
     https://support.google.com/merchants/answer/7052112?visit_id=1-636148270257062854-1147518273&rd=1
     """
     file_path = path.join(settings.INTEGRATIONS_DIR, 'google-feed.csv.gz')
+    file_url = settings.STATIC_URL + file_path
     attributes = ['id', 'title', 'product_type', 'google_product_category',
                   'link', 'image_link', 'condition', 'availability',
                   'price', 'tax', 'shipping', 'sale_price',
@@ -199,6 +200,7 @@ class SaleorFeed(GoogleProductFeed):
     Example of using GoogleProductFeed.
     """
     file_path = path.join(settings.INTEGRATIONS_DIR, 'saleor-feed.csv.gz')
+    file_url = settings.MEDIA_URL + file_path
 
     def item_shipping(self, item):
         """Flat shipping price"""
