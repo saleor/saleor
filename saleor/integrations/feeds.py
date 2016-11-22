@@ -3,71 +3,16 @@ from __future__ import unicode_literals
 from os import path
 
 from django.conf import settings
-from django.core.urlresolvers import reverse
 from django.contrib.sites.models import Site
-from django.contrib.syndication.views import Feed, add_domain
-from django.utils.encoding import smart_text
-from django.utils.feedgenerator import Atom1Feed
+from django.contrib.syndication.views import add_domain
 from prices import Price
 
 from ..product.models import ProductVariant, Category
 
 CATEGORY_SEPARATOR = ' > '
 
-GOOGLE_ATTRIBUTES = ['id', 'title', 'description', 'product_type',
-                     'google_product_category', 'link', 'image_link',
-                     'condition', 'availability', 'price', 'sale_price',
-                     'mpn', 'brand', 'item_group_id', 'gender', 'age_group',
-                     'color', 'size']
 
-
-class StaticFeed(Feed):
-    def get_feed(self, obj=None, request=None, feed_url_name=''):
-        self.current_site = Site.objects.get_current()
-        link = add_domain(self.current_site.domain, '',
-                          settings.INTEGRATIONS_ENABLE_SSL)
-        feed_url = add_domain(self.current_site.domain,
-                              reverse(feed_url_name) if feed_url_name else '',
-                              settings.INTEGRATIONS_ENABLE_SSL)
-        feed = self.feed_type(title=self.title,
-                              link=link,
-                              description='',
-                              language=settings.LANGUAGE_CODE,
-                              feed_url=feed_url,
-                              categories=self.categories,
-                              **self.feed_extra_kwargs(obj))
-
-        for item in self.items():
-            feed.add_item(**self.item_extra_kwargs(item))
-        return feed
-
-
-class GoogleProductFeedGenerator(Atom1Feed):
-
-    def root_attributes(self):
-        attrs = super(GoogleProductFeedGenerator, self).root_attributes()
-        attrs['xmlns:g'] = 'http://base.google.com/ns/1.0'
-        attrs['xmlns:c'] = 'http://base.google.com/cns/1.0'
-        return attrs
-
-    def add_item_elements(self, handler, item):
-        for key, value in item.items():
-            if key in GOOGLE_ATTRIBUTES and value is not None:
-                if isinstance(value, list):
-                    for list_item in value:
-                        handler.addQuickElement("g:%s" % key, list_item)
-                else:
-                    handler.addQuickElement("g:%s" % key, smart_text(value))
-
-        # Setting description to None prevents the super.add_item_elements
-        # method from adding <summary> tag, which is not supported by Google
-        # Merchants. Item's description is represented by g:description tag.
-        item['description'] = None
-        super(GoogleProductFeedGenerator, self).add_item_elements(handler,
-                                                                  item)
-
-
-class GoogleProductFeed(StaticFeed):
+class GoogleProductFeed(object):
     """
     Basic Google feed class. To adjust feed to your needs inherit from
     this class.
@@ -82,16 +27,18 @@ class GoogleProductFeed(StaticFeed):
     For more info check Google support pages:
     https://support.google.com/merchants/answer/7052112?visit_id=1-636148270257062854-1147518273&rd=1
     """
-    feed_type = GoogleProductFeedGenerator
-    link = '/'
-    title = 'Google Product Feed'
-    url = ''
-    file_path = path.join(settings.INTEGRATIONS_DIR, 'google-feed.xml')
+    file_path = path.join(settings.INTEGRATIONS_DIR, 'google-feed.csv.gz')
+    attributes = ['id', 'title', 'product_type', 'google_product_category',
+                  'link', 'image_link', 'condition', 'availability',
+                  'price', 'tax', 'shipping', 'sale_price',
+                  'mpn', 'brand', 'item_group_id', 'gender', 'age_group',
+                  'color', 'size', 'description']
 
     def __init__(self):
         self.categories = Category.objects.none()
         self.discounts = None
         self.category_paths = {}
+        self.current_site = Site.objects.get_current()
 
     def get_full_category_name_path(self, category):
         if category.pk in self.category_paths:
@@ -126,9 +73,6 @@ class GoogleProductFeed(StaticFeed):
     def item_guid(self, item):
         return item.sku
 
-    def item_guid_is_permalink(self, item):
-        return False
-
     def item_link(self, item):
         return add_domain(self.current_site.domain,
                           item.get_absolute_url(),
@@ -138,7 +82,7 @@ class GoogleProductFeed(StaticFeed):
         return item.display_product()
 
     def item_description(self, item):
-        return item.product.description
+        return item.product.description[:100]
 
     def item_condition(self, item):
         """
@@ -210,7 +154,7 @@ class GoogleProductFeed(StaticFeed):
         sale_price = item.get_price_per_item(discounts=self.discounts)
         return '%s %s' % (sale_price.gross, sale_price.currency)
 
-    def item_extra_kwargs(self, item):
+    def item_attributes(self, item):
         product_data = {
             'id': self.item_id(item),
             'title': self.item_title(item),
@@ -221,8 +165,8 @@ class GoogleProductFeed(StaticFeed):
             'availability': self.item_availability(item),
             'google_product_category': self.item_google_product_category(item),
             'link': self.item_link(item),
-            'unique_id': self.item_guid(item),
-            'unique_id_is_permalink': self.item_guid_is_permalink(item)
+            'tax': self.item_tax(item),
+            'shipping': self.item_shipping(item)
         }
 
         image_link = self.item_image_link(item)
@@ -254,18 +198,16 @@ class SaleorFeed(GoogleProductFeed):
     """
     Example of using GoogleProductFeed.
     """
-    url = 'integrations:saleor-feed'
-    file_path = path.join(settings.INTEGRATIONS_DIR, 'saleor-feed.xml')
+    file_path = path.join(settings.INTEGRATIONS_DIR, 'saleor-feed.csv.gz')
 
     def item_shipping(self, item):
         """Flat shipping price"""
         price = Price(5, currency=settings.DEFAULT_CURRENCY)
-        return '%s %s' % (price.gross, price.currency)
+        return 'US:::%s %s' % (price.gross, price.currency)
 
     def item_tax(self, item):
         """No taxes on products"""
-        price = Price(0, currency=settings.DEFAULT_CURRENCY)
-        return '%s %s' % (price.gross, price.currency)
+        return 'US::0:y'
 
     def item_brand(self, item):
         return 'Saleor'
