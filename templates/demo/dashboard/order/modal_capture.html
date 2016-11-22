@@ -1,0 +1,28 @@
+{% load i18n %}
+{% load babel %}
+{% load materializecss %}
+{% load prices_i18n %}
+
+<form role="form" method="post" action="{% url 'dashboard:capture-payment' order_pk=order.pk payment_pk=payment.pk %}" class="form-async" novalidate>
+    {% csrf_token %}
+
+    <div class="modal-content">
+        <h5>{% trans "Capture payment" %}</h5>
+
+        <div class="row">
+            {{ form|materializecss }}
+        </div>
+
+        <h5>{% trans "Before this action" %}</h5>
+
+        <ul class="list">
+            <li class="list-item">{% trans "Order total: " %}{% gross payment.order.get_total %}</li>
+            <li class="list-item">{% trans "Captured amount: " %}{{ captured|currencyfmt:currency }} </li>
+        </ul>
+    </div>
+
+    <div class="modal-footer">
+        <button type="submit" class="modal-action btn-flat blue-text">{% trans 'Capture' %}</button>
+        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+    </div>
+</form>

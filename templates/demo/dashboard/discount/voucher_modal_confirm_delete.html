@@ -1,0 +1,17 @@
+{% load i18n %}
+
+<form action="{% url "dashboard:voucher-delete" pk=voucher.pk %}" method="post" novalidate>
+    {% csrf_token %}
+    <div class="modal-content">
+        <h5>{% trans "Are you sure?" %}</h5>
+
+        <p>
+            {% blocktrans %}You are about to delete <strong>{{ voucher }}</strong>.{% endblocktrans %}
+        </p>
+    </div>
+
+    <div class="modal-footer">
+        <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
+        <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+    </div>
+</form>

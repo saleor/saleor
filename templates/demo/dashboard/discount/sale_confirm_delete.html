@@ -1,0 +1,32 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete sale" %} - {{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs breadcrumbs--with-menu">
+        <li><a href="{% url 'dashboard:product-attributes' %}" class="breadcrumbs--ellipsed-item">{% trans "Discounts" %}</a></li>
+        <li><span class="breadcrumbs--ellipsed-item">{% trans "Delete sale" %}</span></li>
+    </ul>
+{% endblock %}
+
+{% block content %}
+    <p>{% trans "Are you sure you want to delete the following sale?" %}</p>
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="row">
+            <ul class="collection">
+                <li class="collection-item">
+                    {{ sale }}
+                </li>
+            </ul>
+        </div>
+
+        <div class="row">
+            <div class="col m6 l4 offset-m3 offset-l4 right-align">
+                <a href="{% url 'dashboard:sale-list' %}" class="btn-flat"><i class="material-icons">clear</i> {% trans "Cancel" %}</a>
+                <button type="submit" class="btn materialize-red"><i class="material-icons">delete_forever</i> {% trans "Delete" %}</button>
+            </div>
+        </div>
+    </form>
+{% endblock %}

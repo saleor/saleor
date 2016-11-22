@@ -1,0 +1,23 @@
+{% if messages %}
+<script>
+    {% for message in messages %}
+        {% if 'safe' in message.tags %}
+            Materialize.toast('{{ message|safe|escapejs }}', 5000);
+        {% else %}
+            Materialize.toast('{{ message|escapejs }}', 5000);
+        {% endif %}
+    {% endfor %}
+</script>
+{% endif %}
+
+{% if form.non_field_errors %}
+<script>
+    {% for message in form.non_field_errors %}
+        {% if 'safe' in message.tags %}
+            Materialize.toast('{{ message|safe|escapejs }}', 5000);
+        {% else %}
+            Materialize.toast('{{ message|escapejs }}', 5000);
+        {% endif %}
+    {% endfor %}
+</script>
+{% endif %}

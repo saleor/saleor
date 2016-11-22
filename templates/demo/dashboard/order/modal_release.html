@@ -1,0 +1,18 @@
+{% load i18n %}
+{% load materializecss %}
+
+<div class="modal-content">
+    <h5>{% trans "Release payment" %}</h5>
+
+    <p>{% trans "Do you want to release the payment?" %}</p>
+</div>
+
+<div class="modal-footer">
+    <form id="release-form" method="post" role="form" class="form-async"
+          action="{% url 'dashboard:release-payment' order_pk=order.pk payment_pk=payment.pk %}" novalidate>
+        {% csrf_token %}
+
+        <button type="submit" class="modal-action btn-flat blue-text">{% trans "Release" %}</button>
+        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+    </form>
+</div>

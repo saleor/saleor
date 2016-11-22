@@ -1,0 +1,101 @@
+{% extends "dashboard/base.html" %}
+{% load prices_i18n %}
+{% load i18n %}
+{% load status %}
+
+{% block title %}{{ customer }} - {% trans "Customers" %} - {{ block.super }}{% endblock %}
+
+{% block body_class %}body-customers{% endblock %}
+
+{% block header_menu %}
+    {% url "dashboard:customers" as url %}
+    {% include "dashboard/includes/_back-link.html" with url=url %}
+{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs">
+        <li><a href="{% url "dashboard:customers" %}">{% trans "Customers" %}</a></li>
+        <li>{{ customer }}</li>
+    </ul>
+{% endblock %}
+
+{% block menu_sales_class %} active{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col s12 l8">
+        <div class="card">
+            <div class="data-table-header{% if not customer_orders %} data-table-header--no-data{% endif %}">
+                <span class="card-title black-text">{% trans "Order history" %}</span>
+            </div>
+
+            {% if customer_orders %}
+                <div class="data-table-container">
+                    <table class="bordered hoverable responsive data-table">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Number" %}</th>
+                                <th>{% trans "Placed on" %}</th>
+                                <th>{% trans "Payment" %}</th>
+                                <th>{% trans "Order status" %}</th>
+                                <th>{% trans "Total" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in customer_orders %}
+                                <tr>
+                                    <td><a href="{% url 'dashboard:order-details' order_pk=order.pk %}">{{ order }}</a></td>
+                                    <td>{{ order.created }}</td>
+                                    <td>{% render_status order.get_last_payment_status order.get_last_payment_status_display %}</td>
+                                    <td>{% render_status order.status order.get_status_display %}</td>
+                                    <td>{% gross order.get_total %}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="card-content card-content--no-data">
+                    <p>{% trans "No orders found." %}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col s12 l4">
+        <div class="row">
+            <div class="col s12 m6 l12">
+                <div class="card equal-height-on-med">
+                    <div class="card-content">
+                        <span class="card-title black-text">{% trans "Default shipping address" %}</span>
+
+                        {% if customer.default_shipping_address %}
+                            {% with customer.default_shipping_address as address %}
+                                {% include 'dashboard/includes/_address.html' with address=address only %}
+                            {% endwith %}
+                        {% else %}
+                            <span>{% trans "No default shipping address." %}</span>
+                        {% endif %}
+                        <i class="material-icons">email</i> <a href="mailto:{{ customer.email }}">{{ customer.email }}</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col s12 m6 l12">
+                <div class="card equal-height-on-med">
+                    <div class="card-content">
+                        <span class="card-title black-text">{% trans "Default billing address" %}</span>
+
+                        {% if customer.default_billing_address %}
+                            {% with customer.default_billing_address as address %}
+                                {% include 'dashboard/includes/_address.html' with address=address only %}
+                            {% endwith %}
+                        {% else %}
+                            <span>{% trans "No default billing address." %}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
