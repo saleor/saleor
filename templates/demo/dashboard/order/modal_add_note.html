@@ -1,0 +1,18 @@
+{% load i18n %}
+{% load materializecss %}
+
+<form role="form" method="post" action="{% url 'dashboard:order-add-note' order_pk=order.pk %}" class="form-async" novalidate>
+    {% csrf_token %}
+    <div class="modal-content">
+        <h5>{% trans "Add note" %}</h5>
+
+        <div class="row">
+            {{ form|materializecss }}
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="submit" class="modal-action btn-flat blue-text btn-">{% trans "Save note" %}</button>
+        <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+    </div>
+</form>

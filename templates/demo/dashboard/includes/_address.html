@@ -1,0 +1,7 @@
+{% load format_address from i18n_address_tags %}
+<div class="address">
+    <div class="formatted-address">{% format_address address latin=True %}</div>
+    {% if address.phone %}
+        <div><i class="material-icons">contact_phone</i> <a href="tel:{{ address.phone }}">{{ address.phone }}</a></div>
+    {% endif %}
+</div>

@@ -1,0 +1,43 @@
+{% load i18n %}
+{% load materializecss %}
+{% load prices_i18n %}
+
+<form class="form-async" role="form" method="post" action="{% url 'dashboard:orderline-cancel' order_pk=order.pk line_pk=item.pk %}" novalidate>
+    {% csrf_token %}
+    <div class="modal-content">
+        <h5>{% trans "Cancer order line?" %}</h5>
+        <p>
+            {% blocktrans with order=order%}
+                Are you sure, you want cancel this order line?
+            {% endblocktrans %}
+        </p>
+        {{ form|materializecss }}
+        <table>
+             <thead>
+                <tr>
+                    <th class="wide">{% trans "Item" %}</th>
+                    <th>{% trans "SKU" %}</th>
+                    <th class="right-align">{% trans "Price" %}</th>
+                    <th class="right-align">{% trans "Quantity" %}</th>
+                    <th class="right-align">{% trans "Total" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        {{ item.product_name }}<br>
+                    </td>
+                    <td>{{ item.product_sku }}</td>
+                    <td class="right-align">{% gross item.get_price_per_item %}</td>
+                    <td class="right-align">{{ item.quantity }}</td>
+                    <td class="right-align">{% gross item.get_total %}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="modal-footer">
+            <button type="submit" class="modal-action btn-flat red-text">{% trans "Cancel Line" %}</button>
+            <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Abort" %}</a>
+    </div>
+</form>

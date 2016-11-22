@@ -1,0 +1,57 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load mptt_tags %}
+
+{% block title %}{% trans "Delete category" %} - {{ block.super }}{% endblock %}
+
+{% block body_class %}body-categories{% endblock %}
+
+{% block content %}
+    <form class="form form-horizontal" action="" method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">
+                    {% blocktrans with category=category %}
+                        Are you sure you want to delete the category {{ category }}?
+                    {% endblocktrans %}
+                </h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12">
+                {% if descendants %}
+                    {% trans 'The following child categories will be deleted:' %}
+                    <ul>
+                        {% recursetree descendants %}
+                            <li>{{ node.name }}
+                                {% if not node.is_leaf_node %}
+                                    <ul class="children">
+                                        {{ children }}
+                                    </ul>
+                                {% endif %}
+                            </li>
+                        {% endrecursetree %}
+                    </ul>
+                {% endif %}
+
+                {% if products_count %}
+                    {% blocktrans count counter=products_count %}
+                        There is one product in this category that will be deleted.
+                    {% plural %}
+                        There are {{ counter }} products in this category that will be deleted.
+                    {% endblocktrans %}
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-6">
+                <button class="btn btn-danger" type="submit"><i class="glyphicon glyphicon-trash"></i> {% trans "Delete" %}</button>
+                <a class="btn btn-default" href="{% url 'dashboard:category-list' root_pk=category.pk %}"><i class="glyphicon glyphicon-remove"></i> {% trans "Cancel" %}</a>
+            </div>
+        </div>
+    </form>
+{% endblock %}
