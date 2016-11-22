@@ -1,0 +1,25 @@
+{% load materializecss %}
+{% load i18n %}
+{% load mptt_tags %}
+
+<form method="post" id="form-category" class="form-async" action="{% url 'dashboard:category-edit' root_pk=category.pk %}" novalidate>
+    {% csrf_token %}
+    <div class="modal-content">
+        <div class="row">
+            <div class="col s12">
+                <h5>{% trans "Edit" %} {{ category }}</h5>
+            </div>
+        </div>
+
+        <div class="row">
+            {{ form.name|materializecss:"s8 m10" }}
+            {{ form.hidden|materializecss:"s4 m2" }}
+            {{ form.description|materializecss }}
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="submit" class="modal-action btn-flat blue-text">{% trans "Update" %}</button>
+        <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+    </div>
+</form>

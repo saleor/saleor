@@ -1,0 +1,19 @@
+{% load i18n %}
+{% load materializecss %}
+
+<form method="post" role="form" class="form-async"
+      action="{% url 'dashboard:orderline-split' order_pk=order.pk line_pk=line_pk %}" novalidate>
+    {% csrf_token %}
+    <div class="modal-content">
+        <h5>{% trans "Split order line " %}</h5>
+
+        <div class="row">
+            {{ form|materializecss:"s12 m6" }}
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="submit" class="modal-action btn-flat blue-text"> {% trans "Split" %}</button>
+        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+    </div>
+</form>

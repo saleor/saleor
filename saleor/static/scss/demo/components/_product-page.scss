@@ -1,0 +1,35 @@
+.product {
+  &__info {
+    &__name {
+      font-weight: 900;
+      margin-bottom: $global-margin * 2;
+    }
+  }
+  &__gallery {
+    .carousel-control {
+      &.right, &.left {
+        background-image: none;
+      }
+      &.left {
+        img {
+          transform: rotate(180deg);
+        }
+      }
+    }
+    .carousel-indicators {
+      top: 100%;
+      width: auto;
+      left: 0;
+      margin-left: 0;
+      li {
+        display: inline;
+        &.active {
+          margin: 1px;
+          img {
+            opacity: 0.5;  
+          }
+        }
+      }
+    }
+  }
+}

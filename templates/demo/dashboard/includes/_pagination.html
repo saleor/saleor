@@ -1,0 +1,31 @@
+{% load i18n %}
+{% load utils %}
+{% if page_obj.paginator.num_pages > 1 %}
+    <ul class="pagination">
+        <li{% if not page_obj.has_previous %} class="disabled"{% endif %}>
+            {% if page_obj.has_previous %}
+                <a href="{% construct_get_query page=page_obj.previous_page_number %}">
+                    <i class="material-icons">chevron_left</i>
+                </a>
+            {% else %}
+                <span><i class="material-icons">chevron_left</i></span>
+            {% endif %}
+        </li>
+        {% for page in page_obj.paginator.page_range %}
+            <li class="{% if page == page_obj.number %}active{% else %}waves-effect{% endif %}">
+                <a href="{% construct_get_query page=page %}">
+                    {{ page }}
+                </a>
+            </li>
+        {% endfor %}
+        <li{% if not page_obj.has_next %} class="disabled"{% endif %}>
+            {% if page_obj.has_next %}
+                <a href="{% construct_get_query page=page_obj.next_page_number %}">
+                    <i class="material-icons">chevron_right</i>
+                </a>
+            {% else %}
+                <span><i class="material-icons">chevron_right</i></span>
+            {% endif %}
+        </li>
+    </ul>
+{% endif %}

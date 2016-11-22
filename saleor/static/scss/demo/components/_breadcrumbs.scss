@@ -1,0 +1,14 @@
+.breadcrumbs {
+  margin-bottom: $global-margin * 1.5;
+  li {
+    display: inline;
+    &:not(:last-of-type):after {
+      content: '/';
+      display: inline-block;
+      margin-left: $global-margin / 3;
+    }
+    a {
+      color: $body-color;
+    }
+  }
+}

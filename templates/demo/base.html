@@ -26,7 +26,7 @@
 
     <body itemscope itemtype="http://schema.org/WebPage">
         {% block header %}
-            <header class="navbar navbar-default navbar-inverse navbar-static-top" role="navigation">
+            <header class="navbar" role="navigation">
               <div class="navbar__login hidden-sm-down">
                 <div class="container">
                   <p class="float-xs-left">{% trans "Test Saleor in Testeor - a sample shop!" %}</p>
@@ -46,7 +46,7 @@
               <div class="navbar__brand">
                 <div class="container">
                   <img class="hidden-md-up navbar__brand__menu-toggle closed open" src="{% static "img/mobile-bar.svg" %}">
-                  <a href="{% url "demo" %}">
+                  <a href="/">
                     <img src="{% static "img/testeor-logo.svg" %}" alt="Testeor - Saleor demo store">
                   </a>
                   <div class="float-xs-right">
@@ -64,7 +64,8 @@
               <div class="navbar__menu">
                 <div class="container">
                   <nav class="navigation">
-                      <ul class="nav navbar-nav">
+                      {% url 'home' as home_url %}
+                      <ul class="nav navbar-nav{% if request.get_full_path == home_url %} no-border{% endif %}" > 
                         {% for category in categories %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ category.get_absolute_url }}">
@@ -89,17 +90,9 @@
         </div>
         {% endif %}
         <div class="container">
-            {% block outerbreadcrumb %}
-            <!-- <ul class="breadcrumb" itemprop="breadcrumb">
-                {% block breadcrumb %}
-                <li>
-                    <a href="/">{% trans "Home" %}</a>
-                </li>
-                {% endblock breadcrumb %}
-            </ul> -->
-            {% endblock outerbreadcrumb %}
+            {% block breadcrumb %}
+            {% endblock breadcrumb %}
             {% block content %}
-
             {% endblock content %}
         </div>
         {% block footer %}
@@ -107,7 +100,7 @@
                 <div class="container">
                   <div class="row">
                     <div class="col-md-3">
-                      <a href="{% url "demo" %}">
+                      <a href="/">
                         <img class="footer__logo" src="{% static "img/testeor-logo-white.svg" %}" alt="Testeor - Saleor demo store">
                       </a>
                     </div>

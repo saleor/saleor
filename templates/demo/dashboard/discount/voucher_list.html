@@ -1,0 +1,79 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load prices_i18n %}
+{% load materializecss %}
+
+{% block title %}{% trans "Vouchers" %} - {{ block.super }}{% endblock %}
+
+{% block body_class %}body-vouchers{% endblock %}
+
+{% block header_extra %}
+    <div class="fixed-action-btn">
+        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
+           href="{% url 'dashboard:voucher-add' %}" title="{% trans "Add voucher" %}">
+            <i class="material-icons">add</i>
+        </a>
+    </div>
+{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs">
+        <li>{% trans "Vouchers" %}</li>
+    </ul>
+{% endblock %}
+
+{% block menu_discounts_class %} active{% endblock %}
+
+{% block content %}
+    {% if vouchers %}
+        <div class="card">
+            <div class="data-table-container">
+                <table class="bordered hoverable responsive data-table">
+                    <thead>
+                    <tr>
+                        <th class="wide">{% trans "Name" %}</th>
+                        <th>{% trans "Discount" %}</th>
+                        <th>{% trans "Start date" %}</th>
+                        <th>{% trans "End date" %}</th>
+                        <th>{% trans "Used" %}</th>
+                        <th>{% trans "Apply to" %}</th>
+                        <th>{% trans "Limit" %}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for voucher in vouchers %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'dashboard:voucher-update' pk=voucher.pk %}">{{ voucher }}</a>
+                            </td>
+                            <td>
+                                {{ voucher.discount_value }}{{ voucher.get_discount_value_type_display }}</td>
+                            <td>{{ voucher.start_date }}</td>
+                            <td>{{ voucher.end_date|default_if_none:"-" }}</td>
+                            <td>
+                                {% if voucher.usage_limit or voucher.usage_limit == 0 %}
+                                    {{ voucher.used }}/{{ voucher.usage_limit }}
+                                {% else %}
+                                    {{ voucher.used }}
+                                {% endif %}
+                            </td>
+                            <td>{{ voucher.get_apply_to_display|default_if_none:"-" }}</td>
+                            <td>
+                                {% if voucher.limit %}
+                                    {% gross voucher.limit %}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% include "dashboard/includes/_pagination.html" %}
+    {% else %}
+        <p>{% trans "No vouchers found." %}</p>
+    {% endif %}
+{% endblock %}
