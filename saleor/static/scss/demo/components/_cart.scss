@@ -40,4 +40,13 @@
       margin-bottom: 0;
     }
   }
+  &__empty {
+    text-align: center;
+    img {
+      margin: $global-margin * 2 0;
+    }
+    .btn {
+      margin: $global-margin * 2 0 $global-margin * 5;
+    }
+  }
 }
