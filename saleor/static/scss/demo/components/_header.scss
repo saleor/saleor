@@ -64,7 +64,7 @@
     ul {
       border-bottom: 1px solid $gray;
       margin-bottom: $global-margin;
-      @include media-breakpoint-down(sm), &.no-border {
+      &.no-border {
         border-bottom: 0;
         margin-bottom: 0;
       }
