@@ -21,7 +21,7 @@
 {% block content %}
 <div class="cart">
   {% if cart_lines %}
-    <div class="cart__table-header">
+    <div class="cart__table-header hidden-sm-down">
       <div class="row">
         <div class="col-md-6">
           <small>{% trans "Product" %}</small>
@@ -50,7 +50,7 @@
               <h3>{{ line.variant.product }} - {{ line.variant.display_variant }}</h3>
             </a>
           </div>
-          <div class="col-md-2 cart-item-amount">
+          <div class="col-md-2 col-xs-6 cart-item-amount">
             <form role="form" action="{% url "cart:update-line" variant_id=line.variant.pk %}" method="post" class="form-cart">
                 <div class="input-group cart-item-quantity js-hidden{% if form.quantity.errors %} has-error{% endif %}">
                     {{ line.form.quantity }}
@@ -79,11 +79,11 @@
     {% endfor %}
     <div class="cart__total">
       <div class="row">
-        <div class="col-md-6">
+        <div class="col-xs-6">
           <h3>{% trans "Subtotal" %}</h3>
           <p>({% trans "Delivery claculated on checkout" %})</p>
         </div>
-        <div class="col-md-2 offset-md-2">
+        <div class="col-md-2 offset-md-2 col-xs-6">
           <h3 class="cart-total" data-value="{% gross cart_total %}"{% if local_cart_total %} data-value-local="{% gross local_cart_total %}"{% endif %}>
               {% spaceless %}
                   {% gross cart_total html=True %}
@@ -105,9 +105,11 @@
       </div>
     </div>
     {% else %}
-    <p>
-        {% trans 'Your cart is empty' %}
-    </p>
+      <div class="cart__empty">
+        <img src="{% static 'img/pirate_cart.png' %}" srcset="{% static 'img/pirate_cart.png' %} 1x, {% static 'img/pirate_cart2x.png' %} 2x">
+        <h2>{% trans "There are no products in your shopping cart." %}</h2>
+        <a href="/" class="btn primary">{% trans "Check out Our sales" %}</a>
+      </div>
     {% endif %}
   </div>
 {% endblock content %}
