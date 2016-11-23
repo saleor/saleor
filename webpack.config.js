@@ -27,7 +27,7 @@ var providePlugin = new webpack.ProvidePlugin({
 var config = {
   entry: {
     cart: './saleor/static/js/cart.js',
-    products_search: './saleor/static/js/products_search.js',
+    category: './saleor/static/js/category.js',
     dashboard: './saleor/static/js/dashboard.js',
     storefront: './saleor/static/js/storefront.js',
     vendor: [
