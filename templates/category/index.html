@@ -6,7 +6,7 @@
 
 {% block footer_scripts %}
   {{ block.super }}
-  {% render_bundle 'products_search' 'js' %}
+  {% render_bundle 'category' 'js' %}
 {% endblock footer_scripts %}
 
 {% block title %}{{ category }} — {{ block.super }}{% endblock %}
@@ -25,13 +25,13 @@
 {% endblock breadcrumb %}
 
 {% block content %}
+    <div id="category-page"></div>
     <div class="row">
         <div class="col-md-3">
             <ul class="list-group">
                 <li class="list-group-item active">
                     {{ category }}
                 </li>
-
                 {% for category in children_categories %}
                     <li class="list-group-item">
                         <a href="{{ category.get_absolute_url }}">
@@ -40,11 +40,6 @@
                     </li>
                 {% endfor %}
             </ul>
-            <button class="btn btn-danger fetch_data" data-color="red">Red</button>
-            <button class="btn btn-success fetch_data" data-color="green">Green</button>
-            <button class="btn btn-default fetch_data" data-color="">Cancel</button>
-            <div id="productList"></div>
-
         </div>
 
         <div class="col-md-9">
