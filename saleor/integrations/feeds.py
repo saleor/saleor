@@ -7,6 +7,7 @@ from django.contrib.sites.models import Site
 from django.contrib.syndication.views import add_domain
 from prices import Price
 
+from saleor.discount.models import Sale
 from ..product.models import ProductVariant, Category
 
 CATEGORY_SEPARATOR = ' > '
@@ -37,28 +38,23 @@ class GoogleProductFeed(object):
                   'color', 'size', 'description']
 
     def __init__(self):
-        self.categories = Category.objects.none()
-        self.discounts = None
+        self.categories = Category.objects.all()
+        self.discounts = Sale.objects.all().prefetch_related(
+            'products', 'categories')
         self.category_paths = {}
         self.current_site = Site.objects.get_current()
 
     def get_full_category_name_path(self, category):
         if category.pk in self.category_paths:
             return self.category_paths[category.pk]
-        ancestors = []
-        for c in self.categories:
-            if c.is_ancestor_of(category):
-                ancestors.append(c)
-        ancestors.append(category)
-        ancestors = sorted(ancestors, key=lambda c: c.pk)
         ret = CATEGORY_SEPARATOR.join(
-            [category.name for category in ancestors])
+            [category.name for category
+             in list(category.get_ancestors()) + [category]])
         self.category_paths[category.pk] = ret
         return ret
 
     def items(self):
         self.discounts = None
-        self.categories = Category.objects.all()
         return ProductVariant.objects.all().select_related(
             'product'
         ).prefetch_related(
