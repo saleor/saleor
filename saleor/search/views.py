@@ -1,6 +1,7 @@
 import datetime
 
 from django.core.paginator import Paginator, InvalidPage
+from django.conf import settings
 from django.http import Http404
 from django.shortcuts import render
 from haystack.forms import SearchForm
@@ -24,7 +25,7 @@ def search(request):
     if form.is_valid():
         results = form.search().models(Product)
         results = results.filter_or(available_on__lte=today)
-        page = paginate_results(results, request.GET, 25)
+        page = paginate_results(results, request.GET, settings.PAGINATE_BY)
     else:
         page = form.no_query_found()
     query = form.cleaned_data['q']
