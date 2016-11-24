@@ -148,6 +148,7 @@ INSTALLED_APPS = [
     'saleor.cart',
     'saleor.checkout',
     'saleor.core',
+    'saleor.graphql',
     'saleor.order',
     'saleor.registration',
     'saleor.dashboard',
@@ -160,6 +161,7 @@ INSTALLED_APPS = [
     'django_prices',
     'django_prices_openexchangerates',
     'emailit',
+    'graphene_django',
     'mptt',
     'payments',
     'selectable',
@@ -306,3 +308,11 @@ WEBPACK_LOADER = {
         'IGNORE': [
             r'.+\.hot-update\.js',
             r'.+\.map']}}
+
+
+GRAPHENE = {
+    'SCHEMA': 'saleor.graphql.schema.schema',
+    'MIDDLEWARE': [
+        'graphene_django.debug.DjangoDebugMiddleware'
+    ]
+}
