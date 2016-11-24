@@ -15,7 +15,7 @@ class ProductIndex(indexes.SearchIndex, indexes.Indexable):
 
     def index_queryset(self, using=None):
         qs = self.get_model().objects.all()
-        qs = qs.prefetch_related('categories')
+        qs = qs.prefetch_related('categories', 'images')
         return qs
 
     def prepare_categories(self, obj):
