@@ -12,15 +12,9 @@ from .forms import get_address_form
 
 @login_required
 def details(request):
-    ctx = {'addresses': request.user.addresses.all()}
+    ctx = {'addresses': request.user.addresses.all(),
+           'orders': request.user.orders.prefetch_related('groups__items')}
     return TemplateResponse(request, 'userprofile/details.html', ctx)
-
-
-@login_required
-def orders(request):
-    ctx = {'orders': request.user.orders.prefetch_related('groups__items')}
-    return TemplateResponse(request, 'userprofile/orders.html', ctx)
-
 
 @login_required
 def address_edit(request, pk):
