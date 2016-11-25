@@ -5,25 +5,34 @@
 {% block title %}{% trans "Edit Address" %} — {{ block.super }}{% endblock %}
 
 {% block breadcrumb %}
-    {{ block.super }}
+  <ul class="breadcrumbs list-unstyled">
+    <li><a href="/">{% trans "Home" %}</a></li>
     <li><a href="{% url 'profile:details' %}">{% trans "Your profile" %}</a></li>
-{% if address_form.instance.pk %}
-    <li><a href=".">{% trans "Edit address" %}</a></li>
-{% else %}
-    <li><a href=".">{% trans "New address" %}</a></li>
-{% endif %}
+    {% if address_form.instance.pk %}
+        <li><a href=".">{% trans "Edit address" %}</a></li>
+    {% else %}
+        <li><a href=".">{% trans "New address" %}</a></li>
+    {% endif %}
+  </ul>
 {% endblock breadcrumb %}
 
 {% block content %}
-<div class="row">
-    <div class="col-sm-8 col-sm-push-2">
+<div class="row userprofile__address-edit">
+    <div class="col-sm-8 col-md-6 offset-sm-2 offset-md-3">
         <form method="post" novalidate>
             {% csrf_token %}
-            <h4>{% trans "Address" %}</h4>
-            <br>
-            {% include "userprofile/snippets/address-form.html" %}
+            <h1 class="text-xs-center">
+              {% if address_form.instance.pk %}
+                {% trans "Edit address" %}
+              {% else %}
+                {% trans "New address" %}
+              {% endif %}
+            </h1>
+            <div class="userprofile__address-edit__form">
+              {% include "userprofile/snippets/address-form.html" %}
+            </div>
             <p class="text-right">
-                <button type="submit" class="btn btn-primary">{% trans "Save changes" %}</button>
+                <button type="submit" class="btn primary">{% trans "Save changes" %}</button>
             </p>
         </form>
     </div>

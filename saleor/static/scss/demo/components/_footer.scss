@@ -1,7 +1,7 @@
 .footer {
   background-color: $gray;
   padding: $global-padding * 2 0;
-  margin-top: $global-margin * 2;
+  margin-top: $global-margin * 8;
   @include media-breakpoint-down(xs) {
     text-align: center;
   }
@@ -26,4 +26,9 @@
       margin-right: $global-margin;
     }
   }
+}
+
+//make footer stick to the bottom
+.maincontent {
+  min-height: calc(100vh - 294px - 191px - 30px);
 }

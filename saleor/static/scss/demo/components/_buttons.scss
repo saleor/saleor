@@ -21,4 +21,13 @@
       background-color: $darkgreen
     }
   }
+  &.danger {
+    background-color: $red;
+    color: $white;
+    padding: $global-padding $global-padding * 4;
+    font-size: $font-size-h5;
+    &:hover {
+      background-color: $darkred
+    }
+  }
 }
