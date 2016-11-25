@@ -65,4 +65,9 @@
       }
     }
   }
+  &__address-edit {
+    &__form {
+      margin-bottom: $global-margin * 2;
+    }
+  }
 }
