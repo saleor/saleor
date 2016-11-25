@@ -37,4 +37,12 @@
       padding: $global-padding * 10 0 $global-padding * 8;
     }
   }
+  &__featured {
+    h3 {
+      text-transform: uppercase;
+      font-weight: 700;
+      color: $body-color;
+      margin-top: $global-margin * 4;
+    }
+  }
 }
