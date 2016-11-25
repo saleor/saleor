@@ -33,6 +33,14 @@
           </div>
         </div>
       </div>
+      <div class="row home__featured">
+        <h3 class="text-xs-center">{% trans "Featured products" %}</h3>
+          <div class="col-sm-12">
+              <div class="row">
+                  {% include "category/_items.html" %}
+              </div>
+          </div>
+      </div>
     </div>
 
 {% endblock %}
