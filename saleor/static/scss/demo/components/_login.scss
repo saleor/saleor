@@ -1,0 +1,27 @@
+.login {
+  margin: $global-margin * 3 0;
+  fieldset {
+    margin-bottom: $global-margin;
+    h1 {
+      margin-bottom: $global-margin;
+    }
+  }
+  p, a {
+    color: $gray;  
+  }
+  a {
+    text-decoration: underline;
+  }
+  .btn {
+    margin-right: $global-margin;
+  }
+  &__register-link {
+    margin-top: $global-margin * 3;
+  }
+  &__btn-group {
+    a {
+      margin-top: $global-margin;
+      display: block;
+    }
+  }
+}
