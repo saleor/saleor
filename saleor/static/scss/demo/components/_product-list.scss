@@ -1,0 +1,15 @@
+.product-list {
+  text-align: center;
+  img {
+    max-width: 100%;
+  }
+  a {
+    color: $body-color;
+    &:hover {
+      text-decoration: none;
+    }
+  }
+  &__name {
+    font-weight: 700;
+  }
+}
