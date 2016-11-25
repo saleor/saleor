@@ -24,7 +24,14 @@
           color: rgba($body-color, 0.6);
         }
         h3 {
-          display: inline;
+          display: inline-block;
+          margin-top: $global-margin;
+          small {
+            color: $gray;
+          }
+        }
+        img {
+          vertical-align: top;
         }
       }
     }

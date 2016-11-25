@@ -51,10 +51,10 @@
                   </a>
                   <div class="float-xs-right">
                     <img class="hidden-md-up " src="{% static "img/search-icon.svg" %}">
-                    <div class="navbar__brand__basket float-xs-right">
+                    <div class="navbar__brand__cart float-xs-right">
                       <a href="{% url "cart:index" %}">
-                        <span class="hidden-sm-down">{% trans "Your basket" %}</span>
-                        <img src="{% static "img/basket.svg" %}" alt="Basket"> 
+                        <span class="hidden-sm-down">{% trans "Your cart" %}</span>
+                        <img src="{% static "img/cart.svg" %}" alt="Cart"> 
                         {% if cart_counter %}<span class="badge">{{ cart_counter }}</span>{% endif %}
                       </a>
                     </div>
