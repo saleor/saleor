@@ -353,7 +353,7 @@ else:
 
 
 GRAPHENE = {
-    'SCHEMA': 'saleor.graphql.schema.schema',
+    'SCHEMA': 'saleor.graphql.query.schema',
     'MIDDLEWARE': [
         'graphene_django.debug.DjangoDebugMiddleware'
     ]

@@ -5,6 +5,7 @@ from graphene import relay
 from graphene_django.debug import DjangoDebug
 
 from ..product.models import Category, Product
+from .product_schema import CategoryType, ProductType, ProductVariantType
 
 
 class ProductQuery(graphene.AbstractType):
