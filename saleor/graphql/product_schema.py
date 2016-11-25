@@ -38,12 +38,17 @@ class ProductType(DjangoObjectType):
     pk = graphene.Int()
     url = graphene.String()
     price = graphene.Field(PriceType)
-    images = relay.ConnectionField(ProductImageType)
-    variants = relay.ConnectionField(ProductVariantType)
+    image_url = graphene.String()
+    images = graphene.List(ProductImageType)
+    variants = graphene.List(ProductVariantType)
 
     class Meta:
         model = Product
         interfaces = (relay.Node, )
+
+    @graphene.resolve_only_args
+    def resolve_image_url(self):
+        return self.images.first().image.crop['400x400'].url
 
     @graphene.resolve_only_args
     def resolve_images(self):

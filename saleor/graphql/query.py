@@ -1,6 +1,5 @@
 import graphene
 
-from django.conf import settings
 from graphene import relay
 from graphene_django.debug import DjangoDebug
 
@@ -8,32 +7,28 @@ from ..product.models import Category, Product
 from .product_schema import CategoryType, ProductType, ProductVariantType
 
 
-class ProductQuery(graphene.AbstractType):
+class Viewer(graphene.ObjectType):
     category = relay.Node.Field(CategoryType)
     categories = relay.ConnectionField(CategoryType)
     product = relay.Node.Field(ProductType)
     products = relay.ConnectionField(ProductType)
     variant = relay.Node.Field(ProductVariantType)
 
-    @graphene.resolve_only_args
-    def resolve_categories(self):
+    def resolve_categories(self, args, context, info):
         return Category.objects.all()
 
-    @graphene.resolve_only_args
-    def resolve_products(self):
+    def resolve_products(self, args, context, info):
         return Product.objects.prefetch_related(
             'categories', 'images', 'variants').all()
 
 
-class Query(ProductQuery, graphene.ObjectType):
-    pass
-
-
-class DebugQuery(ProductQuery, graphene.ObjectType):
+class Query(graphene.ObjectType):
+    viewer = graphene.Field(Viewer)
+    node = relay.Node.Field()
     debug = graphene.Field(DjangoDebug, name='__debug')
 
+    def resolve_viewer(self, args, context, info):
+        return Viewer()
 
-if settings.DEBUG:
-    schema = graphene.Schema(query=DebugQuery)
-else:
-    schema = graphene.Schema(Query)
+
+schema = graphene.Schema(Query)
