@@ -22,7 +22,7 @@
   }
   &__brand {
     padding: $global-padding * 2 0;
-    &__basket {
+    &__cart {
       @include media-breakpoint-up(md) {
         margin-top: $global-margin / 2;
       }
