@@ -1,47 +1,57 @@
 {% extends "base.html" %}
 {% load bootstrap_form from bootstrap3 %}
+{% load staticfiles %}
 {% load i18n %}
 
 {% block title %}{% trans "Login" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
 <div class="row login">
-  <div class="col-sm-6 offset-sm-3 col-md-4 offset-md-4">
-    <form method="post" action="{% url 'registration:login' %}" novalidate>
-      {% csrf_token %}
-      <fieldset>
-        <h1 class="text-xs-center">{% trans 'Log in' %}</h1>
-        {% bootstrap_form form %}
-        <input type="hidden" name="next" value="{{ next }}" />
-      </fieldset>
-      <div class="row login__btn-group">
-        <div class="col-lg-6">
-          <button class="btn primary">
-            {% trans "Log in" %}
-          </button>
-        </div>
-        <div class="col-lg-6">
-          <a href="{% url 'registration:request_email_confirmation' %}">{% trans "Forgot password?" %}</a>
+  <div class="col-sm-8 offset-sm-2 col-md-10 offset-md-1">
+    <div class="row">
+      <div class="col-md-6">
+        <form method="post" action="{% url 'registration:login' %}" novalidate>
+          {% csrf_token %}
+          <fieldset>
+            <h2>{% trans 'Log in' %}</h2>
+            {% bootstrap_form form %}
+            <input type="hidden" name="next" value="{{ next }}" />
+          </fieldset>
+          <div class="row login__btn-group">
+            <div class="col-lg-6">
+              <button class="btn primary">
+                {% trans "Log in" %}
+              </button>
+            </div>
+            <div class="col-lg-6">
+              <a href="{% url 'registration:request_email_confirmation' %}">{% trans "Forgot password?" %}</a>
+            </div>
+          </div>
+          {% if facebook_login_url or google_login_url %}
+          <p>{% trans "Want to use your social profile?" %}</p>
+          <p>
+            {% if facebook_login_url %}
+            <a class="btn btn-default" href="{{ facebook_login_url }}">
+              {% trans "Log in using Facebook" %}
+            </a>
+            {% endif %}
+            {% if google_login_url %}
+            <a class="btn btn-default" href="{{ google_login_url }}"> {% trans "Log in using Google" %}</a>
+            {% endif %}
+          </p>
+          {% endif %}
+
+        </form>
+      </div>
+      <div class="col-md-6">
+        <div class="login__register-link">
+          <h2>{% trans "Don't have an account yet?" %}</h2>
+          <img src="{% static 'img/pirate_login.png' %}" srcset="{% static 'img/pirate_login.png' %} 1x, {% static 'img/pirate_login2x.png' %} 2x">
+          <p><a href="{% url 'registration:request_email_confirmation' %}" class="btn secondary">{% trans "Register" %}</a></p>
         </div>
       </div>
-      {% if facebook_login_url or google_login_url %}
-      <p>{% trans "Want to use your social profile?" %}</p>
-      <p>
-        {% if facebook_login_url %}
-        <a class="btn btn-default" href="{{ facebook_login_url }}">
-          {% trans "Log in using Facebook" %}
-        </a>
-        {% endif %}
-        {% if google_login_url %}
-        <a class="btn btn-default" href="{{ google_login_url }}"> {% trans "Log in using Google" %}</a>
-        {% endif %}
-      </p>
-      {% endif %}
-      <div class="login__register-link">
-        <hr>
-        <p>{% trans "Don't have an account yet?" %}<br><a href="{% url 'registration:request_email_confirmation' %}">{% trans "Register" %}</a></p>
-      </div>
-    </form>
+    </div>
+    
   </div>
 </div>
 {% endblock %}

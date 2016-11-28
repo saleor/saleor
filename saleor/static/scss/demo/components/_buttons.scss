@@ -21,6 +21,14 @@
       background-color: $darkgreen
     }
   }
+  &.secondary {
+    border: 1px solid $gray;
+    padding: $global-padding $global-padding * 2;
+    &:hover {
+      border-color: $body-color;
+      color: $body-color;
+    }
+  }
   &.danger {
     background-color: $red;
     color: $white;
