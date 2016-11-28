@@ -38,6 +38,7 @@
                       <a href="{% url "profile:details" %}">{% trans "My account" %}</a> |
                       <a href="{% url "registration:logout" %}">{% trans "Log out" %}</a>
                     {% else %}
+                      <a href="{% url "registration:request_email_confirmation" %}">{% trans "Register" %}</a> |
                       <a href="{% url "registration:login" %}">{% trans "Log in" %}</a>
                     {% endif %}
                   </p>
@@ -118,11 +119,6 @@
                     <div class="col-md-3 col-sm-6">
                       <ul>
                         <li>
-                          <a href="{% url "profile:details" %}">
-                            {% trans "My account" %}
-                          </a>
-                        </li>
-                        <li>
                           <a href="{% url "cart:index" %}">
                             {% trans "Cart" %}
                           </a>
@@ -134,9 +130,17 @@
                               </li>
                           {% endif %}
                           <li>
+                            <a href="{% url "profile:details" %}">
+                              {% trans "My account" %}
+                            </a>
+                          </li>
+                          <li>
                             <a href="{% url "registration:logout" %}">{% trans "Log out" %}</a>
                           </li>
                         {% else %}
+                          <li>
+                            <a href="{% url "registration:request_email_confirmation" %}">{% trans "Register" %}</a>
+                          </li>
                           <li>
                             <a href="{% url "registration:login" %}">{% trans "Log in" %}</a>
                           </li>

@@ -9,14 +9,25 @@
   p, a {
     color: $gray;  
   }
-  a {
+  a:not(.btn) {
     text-decoration: underline;
   }
   .btn {
     margin-right: $global-margin;
   }
   &__register-link {
-    margin-top: $global-margin * 3;
+    text-align: center;
+    padding-top: $global-padding * 2;
+    margin-top: $global-margin * 2;
+    border-top: 1px solid $gray;
+    @include media-breakpoint-up(md) {
+      border-top: 0;
+      border-left: 1px solid $gray;
+      margin-top: 0;
+    }
+    img {
+      margin: $global-margin 0;
+    }
   }
   &__btn-group {
     a {
