@@ -4,6 +4,9 @@ import Relay from 'react-relay';
 
 import CategoryPage from './components/CategoryPage'
 
+const categoryPage = document.getElementById('category-page');
+const categoryData = JSON.parse(categoryPage.getAttribute('data-category'));
+
 
 Relay.injectNetworkLayer(
     new Relay.DefaultNetworkLayer('/graphql/', {
@@ -13,26 +16,30 @@ Relay.injectNetworkLayer(
 
 class App extends React.Component {
   render() {
-    return <CategoryPage products={ this.props.viewer.products.edges } />
+    return <CategoryPage products={ this.props.viewer.category.products.edges } />
   }
 }
 
 const RelayApp = Relay.createContainer(App, {
+  initialVariables: {
+    categoryId: categoryData.id
+  },
   fragments: {
     viewer: () => Relay.QL`
       fragment on Viewer {
-        products(first: 20) {
-          edges {
-            node {
-              id,
-              name,
-              description,
-              imageUrl,
-              price {
-                gross,
-                currency
-              },
-              url
+        category(pk: $categoryId) {
+          products(first: 20) {
+            edges {
+              node {
+                id,
+                name,
+                imageUrl,
+                price {
+                  gross,
+                  currency
+                },
+                url
+              }
             }
           }
         }
