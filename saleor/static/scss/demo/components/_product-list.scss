@@ -11,5 +11,7 @@
   }
   &__name {
     font-weight: 700;
+    margin-top: $global-margin / 2;
+    display: block;
   }
 }
