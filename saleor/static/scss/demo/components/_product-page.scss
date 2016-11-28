@@ -2,7 +2,15 @@
   &__info {
     &__name {
       font-weight: 900;
-      margin-bottom: $global-margin * 2;
+      @include media-breakpoint-up(md) {
+        margin-bottom: $global-margin * 2;
+      }
+    }
+    &__price {
+      &__undiscounted {
+        color: $gray;
+        text-decoration: line-through;
+      }
     }
   }
   &__gallery {
