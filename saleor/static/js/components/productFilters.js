@@ -1,18 +1,28 @@
 import React, { Component, findDOMNode, PropTypes } from 'react'
 
-import { ProductList } from './productList'
 
-export class ProductFilters extends Component {
+export default class ProductFilters extends Component {
+
+	static propTypes = {
+		categories: PropTypes.array,
+		categoryName: PropTypes.string
+	};
 
 	render() {
+		const { categories, categoryName } = this.props;
 		return(
 			<div>
-				<button className="btn btn-danger">Red</button>
-            	<button className="btn btn-success">Green</button>
-            	<button className="btn btn-default">Cancel</button>
+				<h2>Filters:</h2>
+				<ul className="categories list-group">
+					<li className="list-group-item active">{categoryName}</li>
+					{categories.map((item) => {
+						const category = item.node;
+						return (
+							<li key={category.id} className="list-group-item"><a href={category.name}>{category.name}</a></li>
+						);
+					})}
+				</ul>
 			</div>
 		)
-
 	}
-
 }

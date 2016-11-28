@@ -25,21 +25,7 @@
 {% endblock breadcrumb %}
 
 {% block content %}
-    <div id="category-page" data-category='{"id":{{category.id}},"name":"{{category}}"}'></div>
-    <div class="row">
-        <div class="col-md-3">
-            <ul class="list-group">
-                <li class="list-group-item active">
-                    {{ category }}
-                </li>
-                {% for category in children_categories %}
-                    <li class="list-group-item">
-                        <a href="{{ category.get_absolute_url }}">
-                            {{ category }}
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-    </div>
+
+    <div id="category-page" data-category='{"id":{{category.id}}}'></div>
+
 {% endblock content %}
