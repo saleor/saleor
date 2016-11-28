@@ -68,6 +68,9 @@
         border-bottom: 0;
         margin-bottom: 0;
       }
+      @include media-breakpoint-down(sm) {
+        border-bottom: 0;
+      }
       &:after {
         content: "";
         width: 100%;

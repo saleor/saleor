@@ -19,7 +19,7 @@ $.ajaxSetup({
 
 var $toogleIcon = $('.navbar__brand__menu-toggle');
 var $mobileNav = $('nav');
-if ($(window).width() < 768) {
+if ($(window).width() < 767) {
   $mobileNav.append('<ul class="nav navbar-nav navbar__menu__login"></ul>');
   $('.navbar__login a').appendTo('.navbar__menu__login')
                        .wrap( '<li class="nav-item login-item"></li>')

@@ -29,10 +29,30 @@
     {% endif %}
     <div itemscope itemtype="http://schema.org/Product">
         <div class="row product">
-            <div class="col-sm-7 product__gallery">
+            <div class="col-xs-12 col-md-5 float-md-right text-xs-center text-md-left">
+              <h1 itemprop="name" class="product__info__name">
+                  {{ product }}
+              </h1>
+              {% if product.is_in_stock %}
+                  <h2 itemprop="offers" class="product__info__price" itemscope itemtype="http://schema.org/Offer">
+                      <span>{% price_range price_range %}</span>
+                      {% if discount %}
+                          <small class="product__info__price__undiscounted">{% gross undiscounted_price_range.min_price html=True %}</small>
+                      {% endif %}
+                      {% if local_price_range %}
+                          <br>
+                          <small>
+                              &asymp;
+                              {% gross local_price_range.min_price html=True %}
+                          </small>
+                      {% endif %}
+                  </h2>
+              {% endif %}
+            </div>
+            <div class="col-md-7 col-xs-12 product__gallery">
               {% with images=product.images.all %}
               <div id="carousel-example-generic" class="carousel slide">
-                <ol class="carousel-indicators hidden-xs-down">
+                <ol class="carousel-indicators hidden-sm-down">
                   {% for image in images %}
                   <li data-target="#carousel-example-generic" data-slide-to="{{ forloop.counter0 }}">
                     <img src="{{ image.image.crop.60x60 }}" alt="">
@@ -55,25 +75,7 @@
               </div>
               {% endwith %}
             </div>
-            <div class="col-sm-5 product__info">
-                <h1 itemprop="name" class="product__info__name">
-                    {{ product }}
-                </h1>
-                {% if product.is_in_stock %}
-                    <h2 itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-                        <span class="product__info__price">{% price_range price_range %}</span>
-                        {% if discount %}
-                            <small class="price undiscounted text-muted">{% gross undiscounted_price_range.min_price html=True %}</small>
-                        {% endif %}
-                        {% if local_price_range %}
-                            <br>
-                            <small class="text-info">
-                                &asymp;
-                                {% gross local_price_range.min_price html=True %}
-                            </small>
-                        {% endif %}
-                    </h2>
-                {% endif %}
+            <div class="col-md-5 product__info">
                 {% if is_visible and product.is_in_stock %}
                     {% block orderform %}
                     <form role="form" class="product-form form-vertical" method="post"
