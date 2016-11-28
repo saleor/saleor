@@ -4,22 +4,42 @@ from graphene import relay
 from graphene_django.debug import DjangoDebug
 
 from ..product.models import Category, Product
-from .product_schema import CategoryType, ProductType, ProductVariantType
+from .product_schema import CategoryType, ProductType
+from .utils import get_object_or_none
 
 
 class Viewer(graphene.ObjectType):
-    category = relay.Node.Field(CategoryType)
+    category = graphene.Field(
+        CategoryType, pk=graphene.Argument(graphene.Int, required=True))
+    product = graphene.Field(
+        ProductType, pk=graphene.Argument(graphene.Int, required=True))
     categories = relay.ConnectionField(CategoryType)
-    product = relay.Node.Field(ProductType)
     products = relay.ConnectionField(ProductType)
-    variant = relay.Node.Field(ProductVariantType)
+
+    def categories_queryset(self):
+        return Category.objects.prefetch_related(
+            'products__images', 'products__variants',
+            'products__variants__stock')
+
+    def products_queryset(self):
+        return Product.objects.prefetch_related(
+            'images', 'categories', 'variants', 'variants__stock')
+
+    def resolve_category(self, args, context, info):
+        qs = self.categories_queryset()
+        return get_object_or_none(qs, pk=args.get('pk'))
+
+    def resolve_product(self, args, context, info):
+        qs = self.products_queryset()
+        return get_object_or_none(qs, pk=args.get('pk'))
 
     def resolve_categories(self, args, context, info):
-        return Category.objects.all()
+        qs = self.categories_queryset()
+        return qs.all()
 
     def resolve_products(self, args, context, info):
-        return Product.objects.prefetch_related(
-            'categories', 'images', 'variants').all()
+        qs = self.products_queryset()
+        return qs.all()
 
 
 class Query(graphene.ObjectType):
