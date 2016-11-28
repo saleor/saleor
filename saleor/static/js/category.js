@@ -16,7 +16,13 @@ Relay.injectNetworkLayer(
 
 class App extends React.Component {
   render() {
-    return <CategoryPage products={ this.props.viewer.category.products.edges } />
+    return (
+        <CategoryPage 
+          products={ this.props.viewer.category.products.edges }
+          categoryName = { this.props.viewer.category.name }
+          categories= { this.props.viewer.category.children.edges }
+        />
+      );
   }
 }
 
@@ -28,6 +34,17 @@ const RelayApp = Relay.createContainer(App, {
     viewer: () => Relay.QL`
       fragment on Viewer {
         category(pk: $categoryId) {
+          id,
+          name,
+          children(first: 20) {
+            edges {
+              node {
+                id,
+                name,
+                slug
+              }
+            }
+          },
           products(first: 20) {
             edges {
               node {
@@ -63,5 +80,5 @@ ReactDOM.render(
     Component={RelayApp}
     route={Viewer}
     />,
-  document.getElementById('category-page'),
+  categoryPage,
 );
