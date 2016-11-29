@@ -4,7 +4,8 @@ import graphene
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from ..product.models import Category, Product, ProductImage, ProductVariant
+from ..product.models import (AttributeChoiceValue, Category, Product,
+    ProductAttribute, ProductImage, ProductVariant)
 from .utils import DjangoPkInterface
 
 
@@ -79,3 +80,21 @@ class CategoryType(DjangoObjectType):
     class Meta:
         model = Category
         interfaces = (relay.Node, DjangoPkInterface)
+
+
+class ProductAttributeValue(DjangoObjectType):
+    class Meta:
+        model = AttributeChoiceValue
+        interfaces = (relay.Node, DjangoPkInterface)
+
+
+class ProductAttributeType(DjangoObjectType):
+    values = graphene.List(ProductAttributeValue)
+
+    class Meta:
+        model = ProductAttribute
+        interfaces = (relay.Node, DjangoPkInterface)
+
+    @graphene.resolve_only_args
+    def resolve_values(self):
+        return self.values.all()
