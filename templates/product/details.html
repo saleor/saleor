@@ -47,7 +47,9 @@
                     {% endif %}
                 </p>
             {% endif %}
-
+            {% if user.is_staff %}
+                <a href="{% url "dashboard:product-update" pk=product.pk %}">{% trans "Edit in dashboard" %}</a>
+            {% endif %}
             <hr>
 
             <div class="visible-xs">
