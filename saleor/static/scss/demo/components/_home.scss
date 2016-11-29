@@ -38,10 +38,10 @@
     }
   }
   &__featured {
+    color: $body-color;
     h3 {
       text-transform: uppercase;
       font-weight: 700;
-      color: $body-color;
       margin: $global-margin * 4 0 $global-margin * 2;
     }
   }
