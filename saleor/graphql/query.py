@@ -3,8 +3,8 @@ import graphene
 from graphene import relay
 from graphene_django.debug import DjangoDebug
 
-from ..product.models import Category, Product
-from .product_schema import CategoryType, ProductType
+from ..product.models import Category, Product, ProductAttribute
+from .product_schema import CategoryType, ProductAttributeType, ProductType
 from .utils import get_object_or_none
 
 
@@ -13,6 +13,7 @@ class Viewer(graphene.ObjectType):
         CategoryType, pk=graphene.Argument(graphene.Int, required=True))
     product = graphene.Field(
         ProductType, pk=graphene.Argument(graphene.Int, required=True))
+    attributes = graphene.List(ProductAttributeType)
     categories = relay.ConnectionField(CategoryType)
     products = relay.ConnectionField(ProductType)
 
@@ -32,6 +33,9 @@ class Viewer(graphene.ObjectType):
     def resolve_product(self, args, context, info):
         qs = self.products_queryset()
         return get_object_or_none(qs, pk=args.get('pk'))
+
+    def resolve_attributes(self, args, context, info):
+        return ProductAttribute.objects.prefetch_related('values').all()
 
     def resolve_categories(self, args, context, info):
         qs = self.categories_queryset()
