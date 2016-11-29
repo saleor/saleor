@@ -7,17 +7,19 @@ import ProductFilters from './ProductFilters'
 export default class CategoryPage extends Component {
 
 	static propTypes = {
-		products: PropTypes.array,
-		categories: PropTypes.array,
-		categoryName: PropTypes.string
+		data: PropTypes.object,
 	}
 
 	render() {
-		const { products, categories, categoryName } = this.props;
+
+		const category = this.props.data.category;
+		const products = this.props.data.category.products.edges;
+		const attributes = this.props.data.attributes;
+
 		return (
 			<div className="row">	
 				<div className="col-md-3">
-					<ProductFilters categories={categories} categoryName={categoryName} />
+					<ProductFilters categories={category} attributes={attributes} />
 				</div>
 				<div className="col-md-9">
 					<div className="row">
