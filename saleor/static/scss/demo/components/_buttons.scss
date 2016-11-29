@@ -24,6 +24,8 @@
   &.secondary {
     border: 1px solid $gray;
     padding: $global-padding $global-padding * 2;
+    font-size: $font-size-h5;
+    background-color: transparent;
     &:hover {
       border-color: $body-color;
       color: $body-color;

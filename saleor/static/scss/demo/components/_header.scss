@@ -22,19 +22,26 @@
   }
   &__brand {
     padding: $global-padding * 2 0;
+    .container {
+      position: relative;
+    }
     &__cart {
+      &:hover .cart-dropdown {
+        display: block;
+      }
       @include media-breakpoint-up(md) {
         margin-top: $global-margin / 2;
+      }
+      &__icon {
+        margin-left: $global-margin;
       }
       margin-right: 15px;
       a {
         color: $body-color;
         position: relative;
+        z-index: 4;
         &:hover {
           text-decoration: none;
-        }
-        img {
-          margin-left: $global-margin;
         }
         .badge {
           position: absolute;

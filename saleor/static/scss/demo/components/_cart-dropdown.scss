@@ -1,0 +1,50 @@
+.cart-dropdown {
+  position: absolute;
+  width: 460px;
+  top: 0;
+  padding-top: 50px;
+  right: 15px;
+  z-index: 3;
+  display: none;
+  .container {
+    background-color: $light-gray;
+    padding-top: $global-padding * 2;
+    padding-bottom: $global-padding * 2;
+    box-shadow: 3px 3px 3px 0px rgba($gray, 0.75);
+  }
+  a {
+    color: $body-color;
+    &:hover {
+      text-decoration: none;
+    }
+  }
+  &__image {
+    float: left;
+    width: 60px;
+    height: 60px;
+    margin-right: $global-margin / 2;
+  }
+  &__delete {
+    margin-bottom: $global-margin;
+    display: block;
+  }
+  &__actions {
+    margin-top: $global-margin * 2;
+  }
+  &:before {
+    content: '';
+    display: block;
+    width: 15px;
+    height: 10px;
+    position: absolute;
+    top: 40px;
+    right: 25px;
+    background-color: $light-gray;
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  }
+  &__empty {
+    img {
+      margin: $global-margin 0;
+    }
+  }
+}
