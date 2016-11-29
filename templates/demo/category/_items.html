@@ -23,7 +23,7 @@
                         {% with discount=undiscounted.min_price|price_difference:price_range.min_price %}
                             {% price_range price_range %}
                             {% if undiscounted.min_price != price_range.min_price %}
-                                <span class="label label-success">{% trans "Discount!" %}</span>
+                                <div class="product-list__sale"><span>{% trans "Sale" %}</span></div>
                             {% endif %}
                         {% endwith %}
                     {% endwith %}
