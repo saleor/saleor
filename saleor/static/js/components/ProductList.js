@@ -10,7 +10,7 @@ export default class ProductList extends Component {
 		const { products } = this.props;
 		return (
 			<div>
-				{products.map((item) => {
+				{products ? (products.map((item) => {
 					const product = item.node;
 					return (
 						<div key={product.id} className="col-xs-12 col-sm-6 col-md-4 col-lg-3" itemScope itemType="https://schema.org/Product">
@@ -29,7 +29,8 @@ export default class ProductList extends Component {
 							</div>
 						</div>
 					);
-				})}
+				})
+				) : (null)}
 			</div>
 		)
 	}

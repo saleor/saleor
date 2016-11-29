@@ -18,9 +18,7 @@ class App extends React.Component {
   render() {
     return (
         <CategoryPage 
-          products={ this.props.viewer.category.products.edges }
-          categoryName = { this.props.viewer.category.name }
-          categories= { this.props.viewer.category.children.edges }
+          data={ this.props.viewer }
         />
       );
   }
@@ -33,6 +31,15 @@ const RelayApp = Relay.createContainer(App, {
   fragments: {
     viewer: () => Relay.QL`
       fragment on Viewer {
+        attributes {
+          id,
+          pk,
+          name,
+          values {
+            id,
+            display
+          }
+        }
         category(pk: $categoryId) {
           id,
           name,
