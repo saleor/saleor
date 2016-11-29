@@ -1,5 +1,6 @@
 .product-list {
   text-align: center;
+  margin-bottom: $global-margin * 2;
   img {
     max-width: 100%;
   }
@@ -13,5 +14,23 @@
     font-weight: 700;
     margin-top: $global-margin / 2;
     display: block;
+  }
+  &__sale {
+    clip-path: polygon(0 37%, 37% 0, 100% 0, 0% 100%);
+    background-color: $red;
+    position: absolute;
+    top: 0;
+    left: 15px;
+    width: 55px;
+    height: 55px;
+    span {
+      position: absolute;
+      top: 7px;
+      left: 3px;
+      color: $white;
+      text-transform: uppercase;
+      transform: rotate(-45deg);
+      font-weight: 700;
+    }
   }
 }

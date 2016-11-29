@@ -42,7 +42,7 @@
       text-transform: uppercase;
       font-weight: 700;
       color: $body-color;
-      margin-top: $global-margin * 4;
+      margin: $global-margin * 4 0 $global-margin * 2;
     }
   }
 }
