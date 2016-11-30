@@ -38,7 +38,7 @@ def test_stock_allocation(billing_address, product_in_stock):
     assert stock.quantity_allocated == 2
 
 
-def test_dashboard_change_quantity_form(request_cart_with_item,order):
+def test_dashboard_change_quantity_form(request_cart_with_item, order):
     cart = request_cart_with_item
     group = models.DeliveryGroup.objects.create(order=order)
     group.add_items_from_partition(cart)
