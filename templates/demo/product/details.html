@@ -51,28 +51,36 @@
             </div>
             <div class="col-md-7 col-xs-12 product__gallery">
               {% with images=product.images.all %}
-              <div id="carousel-example-generic" class="carousel slide">
-                <ol class="carousel-indicators hidden-sm-down">
-                  {% for image in images %}
-                  <li data-target="#carousel-example-generic" data-slide-to="{{ forloop.counter0 }}">
-                    <img src="{{ image.image.crop.60x60 }}" alt="">
-                  </li>
-                  {% endfor %}
-                </ol>
-                <div class="carousel-inner" role="listbox">
-                  {% for image in images %}
-                  <div class="carousel-item{% if forloop.first %} active{% endif %}">
-                    <img src="{{ image.image.crop.750x750 }}" alt="">
+                {% if images %}
+                <div id="carousel-example-generic" class="carousel slide">
+                  <ol class="carousel-indicators hidden-sm-down">
+                    {% for image in images %}
+                      {% if images|length > 1 %}
+                        <li data-target="#carousel-example-generic" data-slide-to="{{ forloop.counter0 }}">
+                          <img src="{{ image.image.crop.60x60 }}" alt="">
+                        </li>
+                      {% endif %}
+                    {% endfor %}
+                  </ol>
+                  <div class="carousel-inner" role="listbox">
+                    {% for image in images %}
+                    <div class="carousel-item{% if forloop.first %} active{% endif %}">
+                      <img src="{{ image.image.crop.750x750 }}" alt="">
+                    </div>
+                    {% endfor %}
                   </div>
-                  {% endfor %}
+                  {% if images|length > 1 %}
+                    <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+                      <img class="icon-next" src="{% static "img/gallery-arrow.svg" %}">
+                    </a>
+                    <a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
+                      <img class="icon-next" src="{% static "img/gallery-arrow.svg" %}">
+                    </a>
+                  {% endif %}
                 </div>
-                <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
-                  <img class="icon-next" src="{% static "img/gallery-arrow.svg" %}">
-                </a>
-                <a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
-                  <img class="icon-next" src="{% static "img/gallery-arrow.svg" %}">
-                </a>
-              </div>
+                {% else %}
+                  <img src="{% static 'images/product-image-placeholder.png' %}" alt="" class="img-fluid">
+                {% endif %}
               {% endwith %}
             </div>
             <div class="col-md-5 product__info">
