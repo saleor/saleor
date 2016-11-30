@@ -48,7 +48,9 @@
                 </p>
             {% endif %}
             {% if user.is_staff %}
-                <a href="{% url "dashboard:product-update" pk=product.pk %}">{% trans "Edit in dashboard" %}</a>
+                <p>
+                    <a href="{% url "dashboard:product-update" pk=product.pk %}">{% trans "Edit in dashboard" %}</a>
+                </p>
             {% endif %}
             <hr>
 
