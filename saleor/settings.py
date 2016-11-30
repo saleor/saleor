@@ -140,6 +140,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django.contrib.auth',
+    'django.contrib.postgres',
 
     # Local apps
     'saleor.userprofile',

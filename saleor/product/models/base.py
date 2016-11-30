@@ -12,7 +12,7 @@ from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
-from jsonfield import JSONField
+from django.contrib.postgres.fields import HStoreField
 from model_utils.managers import InheritanceManager
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
@@ -144,8 +144,8 @@ class ProductVariant(models.Model, Item):
         unit=settings.DEFAULT_WEIGHT, max_digits=6, decimal_places=2,
         blank=True, null=True)
     product = models.ForeignKey(Product, related_name='variants')
-    attributes = JSONField(pgettext_lazy('Variant field', 'attributes'),
-                           default={})
+    attributes = HStoreField(pgettext_lazy('Variant field', 'attributes'),
+        default='')
     images = models.ManyToManyField('ProductImage', through='VariantImage')
     objects = InheritanceManager()
 
