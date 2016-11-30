@@ -2,6 +2,7 @@
 {% load staticfiles %}
 {% load price_range from price_ranges %}
 {% load discounted_price_range price_difference from discount %}
+{% load pricing_info_for_product from product_tags %}
 {% load product_first_image from product_images %}
 
 {% for product in products %}
@@ -16,14 +17,11 @@
 
             <div class="panel-footer">
                 {% if product.is_in_stock %}
-                    {% with price_range=product|discounted_price_range:request.discounts undiscounted=product.get_price_range %}
-                        {% with discount=undiscounted.min_price|price_difference:price_range.min_price %}
-                            {% price_range price_range %}
-                            {% if undiscounted.min_price != price_range.min_price %}
-                                <span class="label label-success">{% trans "Discount!" %}</span>
-                            {% endif %}
-                        {% endwith %}
-                    {% endwith %}
+                    {% pricing_info_for_product product request.discounts as pricing_info %}
+                    {% price_range pricing_info.price_range %}
+                    {% if pricing_info.discount %}
+                        <span class="label label-success">{% trans "Discount!" %}</span>
+                    {% endif %}
                 {% else %}
                     &nbsp;
                 {% endif %}

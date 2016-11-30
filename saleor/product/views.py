@@ -11,7 +11,8 @@ from ..cart.decorators import get_cart_from_request
 from ..core.utils import get_paginator_items, to_local_currency
 from .forms import get_form_class_for_product
 from .models import Category
-from .utils import products_with_details, get_product_images
+from .utils import (products_with_details,
+                    get_pricing_info, get_product_images)
 
 
 def product_details(request, slug, product_id):
@@ -61,14 +62,8 @@ def product_details(request, slug, product_id):
         form.save()
         return redirect('cart:index')
 
-    # price handling
-    price_range = product.get_price_range(discounts=request.discounts)
-    undiscounted_price_range = product.get_price_range()
-    if undiscounted_price_range.min_price > price_range.min_price:
-        discount = undiscounted_price_range.min_price - price_range.min_price
-    else:
-        discount = None
-    local_price_range = to_local_currency(price_range, request.currency)
+    pricing_info = get_pricing_info(product, discounts=request.discounts,
+                                    local_currency=request.currency)
 
     template_name = 'product/details_%s.html' % (
         type(product).__name__.lower(),)
@@ -77,14 +72,11 @@ def product_details(request, slug, product_id):
     return TemplateResponse(
         request, templates,
         {
-            'discount': discount,
+            'pricing_info': pricing_info,
+            'product_images': product_images,
             'form': form,
             'is_visible': is_visible,
-            'local_price_range': local_price_range,
-            'price_range': price_range,
-            'product': product,
-            'undiscounted_price_range': undiscounted_price_range,
-            'product_images': product_images})
+            'product': product})
 
 
 def category_index(request, path, category_id):
