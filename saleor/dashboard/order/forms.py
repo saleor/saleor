@@ -149,10 +149,11 @@ class ChangeQuantityForm(forms.ModelForm):
 
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
+        delta = quantity - self.initial_quantity
         variant = get_object_or_404(
             ProductVariant, sku=self.instance.product_sku)
         try:
-            variant.check_quantity(quantity)
+            variant.check_quantity(delta)
         except InsufficientStock as e:
             raise forms.ValidationError(
                 _('Only %(remaining)d remaining in stock.') % {
