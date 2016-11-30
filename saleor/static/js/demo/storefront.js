@@ -17,21 +17,36 @@ $.ajaxSetup({
 
 // Mobile menu
 
-var $toogleIcon = $('.navbar__brand__menu-toggle');
-var $mobileNav = $('nav');
+var $toogleIcon = $('.navbar__brand__menu-toggle')
+var $mobileNav = $('nav')
 if ($(window).width() < 767) {
-  $mobileNav.append('<ul class="nav navbar-nav navbar__menu__login"></ul>');
+  $mobileNav.append('<ul class="nav navbar-nav navbar__menu__login"></ul>')
   $('.navbar__login a').appendTo('.navbar__menu__login')
                        .wrap( '<li class="nav-item login-item"></li>')
                        .addClass('nav-link');
 }
 $toogleIcon.click((e) => {
-  $mobileNav.toggleClass('open');
-});
+  $mobileNav.toggleClass('open')
+  event.stopPropagation()
+})
 $(document).click((e) => {
   $mobileNav.removeClass('open');
-});
-$toogleIcon.click((e) => {
-   event.stopPropagation();
-});
+})
 
+// New address dropdown
+
+var $addressShow = $('.address_show')
+var $addressHide = $('.address_hide')
+var $addressForm = $('.checkout__new-address')
+var $initialValue = $('#address_new_address').prop('checked')
+$addressShow.click((e) => {
+  $addressForm.slideDown('slow')
+})
+$addressHide.click((e) => {
+  $addressForm.slideUp('slow')
+})
+if ($initialValue) {
+  $addressForm.slideDown(0)
+} else {
+  $addressForm.slideUp(0)
+}

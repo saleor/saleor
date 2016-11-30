@@ -40,4 +40,14 @@
       background-color: $darkred
     }
   }
+  &.checkout {
+    background-color: $gray;
+    border: 0;
+    padding: $global-padding / 2 $global-padding * 2;
+  }
+  &.btn-link {
+    padding: 0;
+    vertical-align: baseline;
+    color: $gray;
+  }
 }

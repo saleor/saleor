@@ -1,0 +1,58 @@
+.checkout {
+  &__header {
+    background-color: $gray;
+    padding: $global-padding 0;
+    margin-bottom: $global-margin * 4;
+    img {
+      float: left;
+    }
+    h1 {
+      display: inline-block;
+      color: $white;
+      margin-left: $global-margin;
+    }
+  }
+  &__review {
+    background-color: $light-gray;
+    padding: $global-padding * 2;
+    &__section {
+      border-top: 1px solid $gray;
+      padding-top: $global-padding;
+    }
+    &__tittle {
+      margin-bottom: $global-margin * 2;
+    }
+    &__variant {
+      color: $gray;
+    }
+    &__voucher {
+      position: relative;
+      button {
+        position: absolute;
+        top: 1px;
+        right: 0;
+      }
+      &-form {
+        margin-bottom: $global-margin;
+      }
+    }
+  }
+  &__shipping {
+    h1 {
+      margin-bottom: $global-margin * 2;
+    }
+    &__form {
+      label {
+        margin-bottom: $global-margin;
+        input {
+          display: inline-block;
+          vertical-align: top;
+          margin: $global-margin / 4 $global-margin / 2 0 0;
+        }
+        span {
+          display: inline-block;
+        }
+      }
+    }
+  }
+}
