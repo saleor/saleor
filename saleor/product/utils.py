@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from django_prices_openexchangerates import exchange_currency
+from ..core.utils import to_local_currency
 from .models import Product
 
 
@@ -45,11 +45,11 @@ def get_pricing_info(product, discounts=None, local_currency=None):
 
     # Local currency
     if local_currency:
-        price_range_local = exchange_currency(
+        price_range_local = to_local_currency(
             price_range, local_currency)
-        undiscounted_local = exchange_currency(
+        undiscounted_local = to_local_currency(
             uncdiscounted, local_currency)
-        if undiscounted_local.min_price > price_range_local.min_price:
+        if undiscounted_local and undiscounted_local.min_price > price_range_local.min_price:
             discount_local_currency = (
                 undiscounted_local.min_price - price_range_local.min_price)
         else:

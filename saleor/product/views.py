@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 
 from ..cart.decorators import get_cart_from_request
-from ..core.utils import get_paginator_items, to_local_currency
+from ..core.utils import get_paginator_items
 from .forms import get_form_class_for_product
 from .models import Category
 from .utils import (products_with_details,
