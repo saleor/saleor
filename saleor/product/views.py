@@ -87,19 +87,9 @@ def product_details(request, slug, product_id):
 
 def category_index(request, path, category_id):
     category = get_object_or_404(Category, id=category_id)
-    children_categories = category.get_children()
-    breadcrumbs = category.get_ancestors(include_self=True)
     actual_path = category.get_full_path()
     if actual_path != path:
         return redirect('product:category', permanent=True, path=actual_path,
                         category_id=category_id)
-    products = category.products.get_available_products().select_subclasses()
-    products = products.prefetch_related(
-        'images', 'variants', 'variants__stock')
-    products = get_paginator_items(
-        products, settings.PAGINATE_BY, request.GET.get('page'))
-    return TemplateResponse(
-        request, 'category/index.html',
-        {'products': products, 'category': category,
-         'children_categories': children_categories,
-         'breadcrumbs': breadcrumbs})
+    return TemplateResponse(request, 'category/index.html',
+                            {'category': category})
