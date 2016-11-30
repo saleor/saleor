@@ -3,7 +3,7 @@ import datetime
 from mock import Mock
 
 from saleor.product import models
-
+from saleor.product.utils import get_pricing_info
 
 def test_stock_selector(product_in_stock):
     variant = product_in_stock.variants.get()
@@ -63,3 +63,14 @@ def test_product_page_with_openexchagerates(
     response = client.get(product_in_stock.get_absolute_url())
     context = response.context
     assert context['local_price_range'].min_price.currency == 'PLN'
+
+
+def test_pricing_info(product_in_stock, monkeypatch):
+    pricing_info = get_pricing_info(product_in_stock)
+    assert pricing_info.price_range == product_in_stock.get_price_range()
+    assert pricing_info.price_range_local_currency is None
+    monkeypatch.setattr(
+        'django_prices_openexchangerates.models.get_rates',
+        lambda c: {'PLN': Mock(rate=2)})
+    pricing_info = get_pricing_info(product_in_stock, local_currency='PLN')
+    assert pricing_info.price_range_local_currency.min_price.currency == 'PLN'
