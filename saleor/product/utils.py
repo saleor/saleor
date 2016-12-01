@@ -17,3 +17,10 @@ def products_with_details(user):
                                          'variants__variant_images__image',
                                          'attributes__values')
     return products
+
+
+def get_product_images(product):
+    """
+    Returns list of product images that will be placed in product gallery
+    """
+    return list(product.images.all())
