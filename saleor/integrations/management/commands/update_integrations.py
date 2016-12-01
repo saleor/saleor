@@ -2,19 +2,20 @@ from __future__ import unicode_literals
 
 from django.core.management import CommandError, BaseCommand
 
-from saleor.integrations.feeds import SaleorFeed
-from saleor.integrations import utils
+from ....integrations.feeds import SaleorFeed
+from ....integrations import utils
 
 
 class Command(BaseCommand):
-    help = 'Updates integration feeds. '
+    help = ('Updates integration feeds.'
+            'If feed name not provided, updates all available feeds')
     feed_classes = {'saleor': SaleorFeed}
 
     def add_arguments(self, parser):
-        parser.add_argument('feed_name', nargs='+', type=str)
+        parser.add_argument('feed_name', nargs='*', type=str, default=None)
 
     def handle(self, *args, **options):
-        feed_names = options['feed_name'] or self.feed_classes.keys()
+        feed_names = options.get('feed_name') or self.feed_classes.keys()
         for feed_name in feed_names:
             feed = self.feed_classes.get(feed_name)
             if feed is None:
