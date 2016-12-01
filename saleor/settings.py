@@ -312,7 +312,7 @@ WEBPACK_LOADER = {
 
 
 GRAPHENE = {
-    'SCHEMA': 'saleor.graphql.query.schema',
+    'SCHEMA': 'saleor.graphql.api.schema',
     'MIDDLEWARE': [
         'graphene_django.debug.DjangoDebugMiddleware'
     ]
