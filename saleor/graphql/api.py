@@ -7,20 +7,8 @@ from graphene_django.debug import DjangoDebug
 
 from ..product.models import (AttributeChoiceValue, Category, Product,
                               ProductAttribute, ProductImage, ProductVariant)
+from .scalars import FilterScalar
 from .utils import DjangoPkInterface, get_object_or_none
-
-
-def filter_products(queryset, filter):
-    if filter:
-        filter_obj = {}
-        for attr_pk, attr_val_pk in filter.items():
-            try:
-                attr_pk, attr_val_pk = int(attr_pk), int(attr_val_pk)
-                filter_obj['variants__attributes__%s' % attr_pk] = attr_val_pk
-            except ValueError:
-                pass
-        queryset = queryset.filter(**filter_obj)
-    return queryset
 
 
 class ProductType(DjangoObjectType):
@@ -59,15 +47,25 @@ class ProductType(DjangoObjectType):
 
 class CategoryType(DjangoObjectType):
     products = relay.ConnectionField(
-        ProductType, filter=graphene.types.json.JSONString())
+        ProductType, filter=graphene.List(FilterScalar))
 
     class Meta:
         model = Category
         interfaces = (relay.Node, DjangoPkInterface)
 
     def resolve_products(self, args, context, info):
-        return filter_products(
-            self.products.prefetch_for_api(), args.get('filter'))
+        qs = self.products.prefetch_for_api()
+        filter = args.get('filter')
+        if filter:
+            filter_obj = {}
+            for attr_pk, attr_val_pk in filter:
+                try:
+                    attr_pk, attr_val_pk = int(attr_pk), int(attr_val_pk)
+                    filter_obj['variants__attributes__%s' % attr_pk] = attr_val_pk
+                except ValueError:
+                    pass
+            qs = qs.filter(**filter_obj)
+        return qs
 
 
 class ProductVariantType(DjangoObjectType):
@@ -128,12 +126,6 @@ class Viewer(graphene.ObjectType):
         ProductType, pk=graphene.Argument(graphene.Int, required=True))
     attributes = graphene.List(ProductAttributeType)
     categories = relay.ConnectionField(CategoryType)
-    products = relay.ConnectionField(
-        ProductType, filter=graphene.types.json.JSONString())
-
-    def resolve_products(self, args, context, info):
-        return filter_products(
-            Product.objects.prefetch_for_api(), args.get('filter'))
 
     def resolve_category(self, args, context, info):
         return get_object_or_none(
