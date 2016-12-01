@@ -12,8 +12,9 @@ from prices import Price
 
 from ...shipping.models import ShippingMethod, ANY_COUNTRY
 from ...order.models import DeliveryGroup, Order, OrderedItem, Payment
-from ...product.models import (Category, Product, ProductImage,
-                               ProductVariant, Stock)
+from ...product.models import (AttributeChoiceValue, Category, Product,
+                               ProductImage, ProductVariant, ProductAttribute,
+                               Stock)
 from ...userprofile.models import Address, User
 
 fake = Factory.create()
@@ -96,7 +97,23 @@ def create_product_images(product, how_many, placeholder_dir):
         create_product_image(product, placeholder_dir)
 
 
+def create_attributes():
+    color_attr = ProductAttribute.objects.get_or_create(
+        name="color", display="Color")[0]
+    size_attr = ProductAttribute.objects.get_or_create(
+        name="size", display="Size")[0]
+    if not color_attr.values.exists():
+        color_attr.values.create(display="red")
+        color_attr.values.create(display="green")
+        color_attr.values.create(display="blue")
+    if not size_attr.values.exists():
+        size_attr.values.create(display="S")
+        size_attr.values.create(display="M")
+        size_attr.values.create(display="L")
+
+
 def create_items(placeholder_dir, how_many=10, create_images=True):
+    create_attributes()
     default_category = get_or_create_category('Default')
 
     for dummy in range(how_many):
