@@ -26,6 +26,14 @@ from .utils import get_attributes_display_map
 from ...search import index
 
 
+class CategoryManager(Manager):
+
+    def prefetch_for_api(self):
+        return self.get_queryset().prefetch_related(
+            'products__images', 'products__variants',
+            'products__variants__stock')
+
+
 @python_2_unicode_compatible
 class Category(MPTTModel):
     name = models.CharField(
@@ -40,7 +48,7 @@ class Category(MPTTModel):
     hidden = models.BooleanField(
         pgettext_lazy('Category field', 'hidden'), default=False)
 
-    objects = Manager()
+    objects = CategoryManager()
     tree = TreeManager()
 
     def __str__(self):
@@ -88,10 +96,15 @@ class ProductClass(models.Model):
 
 
 class ProductManager(models.Manager):
+
     def get_available_products(self):
         today = datetime.date.today()
         return self.get_queryset().filter(
             Q(available_on__lte=today) | Q(available_on__isnull=True))
+
+    def prefetch_for_api(self):
+        return self.get_queryset().prefetch_related(
+            'images', 'categories', 'variants', 'variants__stock')
 
 
 @python_2_unicode_compatible
