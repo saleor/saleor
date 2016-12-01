@@ -10,14 +10,17 @@ from ..product.models import (AttributeChoiceValue, Category, Product,
 from .utils import DjangoPkInterface, get_object_or_none
 
 
-def resolve_products(root, args, context, info):
-    pass
-
-
-class CategoryType(DjangoObjectType):
-    class Meta:
-        model = Category
-        interfaces = (relay.Node, DjangoPkInterface)
+def filter_products(queryset, filter):
+    if filter:
+        filter_obj = {}
+        for attr_pk, attr_val_pk in filter.items():
+            try:
+                attr_pk, attr_val_pk = int(attr_pk), int(attr_val_pk)
+                filter_obj['variants__attributes__%s' % attr_pk] = attr_val_pk
+            except ValueError:
+                pass
+        queryset = queryset.filter(**filter_obj)
+    return queryset
 
 
 class ProductType(DjangoObjectType):
@@ -52,6 +55,19 @@ class ProductType(DjangoObjectType):
     @graphene.resolve_only_args
     def resolve_url(self):
         return self.get_absolute_url()
+
+
+class CategoryType(DjangoObjectType):
+    products = relay.ConnectionField(
+        ProductType, filter=graphene.types.json.JSONString())
+
+    class Meta:
+        model = Category
+        interfaces = (relay.Node, DjangoPkInterface)
+
+    def resolve_products(self, args, context, info):
+        return filter_products(
+            self.products.prefetch_for_api(), args.get('filter'))
 
 
 class ProductVariantType(DjangoObjectType):
@@ -112,35 +128,26 @@ class Viewer(graphene.ObjectType):
         ProductType, pk=graphene.Argument(graphene.Int, required=True))
     attributes = graphene.List(ProductAttributeType)
     categories = relay.ConnectionField(CategoryType)
-    products = relay.ConnectionField(ProductType)
+    products = relay.ConnectionField(
+        ProductType, filter=graphene.types.json.JSONString())
 
-    def categories_queryset(self):
-        return Category.objects.prefetch_related(
-            'products__images', 'products__variants',
-            'products__variants__stock')
-
-    def products_queryset(self):
-        return Product.objects.prefetch_related(
-            'images', 'categories', 'variants', 'variants__stock')
+    def resolve_products(self, args, context, info):
+        return filter_products(
+            Product.objects.prefetch_for_api(), args.get('filter'))
 
     def resolve_category(self, args, context, info):
-        qs = self.categories_queryset()
-        return get_object_or_none(qs, pk=args.get('pk'))
+        return get_object_or_none(
+            Category.objects.prefetch_for_api(), pk=args.get('pk'))
 
     def resolve_product(self, args, context, info):
-        qs = self.products_queryset()
+        qs = self.get_products()
         return get_object_or_none(qs, pk=args.get('pk'))
 
     def resolve_attributes(self, args, context, info):
         return ProductAttribute.objects.prefetch_related('values').all()
 
     def resolve_categories(self, args, context, info):
-        qs = self.categories_queryset()
-        return qs.all()
-
-    def resolve_products(self, args, context, info):
-        qs = self.products_queryset()
-        return qs.all()
+        return Category.objects.prefetch_for_api()
 
 
 class Query(graphene.ObjectType):
