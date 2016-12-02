@@ -1,0 +1,6 @@
+.form-control {
+  color: $body-color;
+  &:focus {
+    color: $body-color;
+  }
+}

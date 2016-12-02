@@ -196,24 +196,26 @@ class CartItemAmountSelect extends Component {
     )
     return (
       <div className={classNames.join(' ')}>
-        {this.state.renderSelect ? select : input}
-        {this.state.sending && this.state.result !== 'error' ? (
-          <i className="glyphicon glyphicon-time"></i>
-        ) : undefined}
-        {this.state.result === 'error' ? (
-          <span className="error text-danger">
-            {this.state.error}
-          </span>
-        ) : undefined}
-        <button
-          className="btn btn-link btn-sm cart-item-remove"
-          onClick={this.removeFromCart.bind(this)}
-          type="submit"
-        >
-          <span className="text-muted">
-            Remove from cart
-          </span>
-        </button>
+        <div className="col-md-2 col-xs-4">
+          {this.state.renderSelect ? select : input}
+          {this.state.sending && this.state.result !== 'error' ? (
+            <i className="glyphicon glyphicon-time"></i>
+          ) : undefined}
+          {this.state.result === 'error' ? (
+            <span className="error text-danger">
+              {this.state.error}
+            </span>
+          ) : undefined}
+        </div>
+        <div className="col-md-2 col-xs-6 push-md-2 push-xs-6">
+          <button
+            className="btn btn-link btn-sm cart-item-remove"
+            onClick={this.removeFromCart.bind(this)}
+            type="submit"
+          >
+            <img src="/static/img/icon_delete.svg" />
+          </button>
+        </div>
       </div>
     )
   }
@@ -228,7 +230,11 @@ const renderSubtotal = ({variantId, subtotals}) => {
   if (subtotals.hasOwnProperty(variantId)) {
     value = subtotals[variantId]
   }
-  return <span>{value}</span>
+  return (
+    <div className="col-md-2 col-xs-6 pull-md-2 pull-xs-6">
+       <span className="float-xs-left float-md-right">{value}</span>
+    </div>
+  )
 }
 
 const selectSubtotals = (state) => ({
