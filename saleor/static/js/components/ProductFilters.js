@@ -70,8 +70,3 @@ export default Relay.createContainer(ProductFilters, {
     `,
   },
 });
-
-
-
-
-
