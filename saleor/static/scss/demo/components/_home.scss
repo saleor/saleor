@@ -26,7 +26,7 @@
     div {
       background-image: url('../../img/block2.jpg');
       background-size: cover;
-      padding: $global-padding * 10 0 $global-padding * 8
+      padding: $global-padding * 10 $global-padding $global-padding * 8;
     }
   }
   &__block3 {
@@ -34,7 +34,7 @@
     div {
       background-image: url('../../img/block3.jpg');
       background-size: cover;
-      padding: $global-padding * 10 0 $global-padding * 8;
+      padding: $global-padding * 10 $global-padding $global-padding * 8;
     }
   }
   &__featured {

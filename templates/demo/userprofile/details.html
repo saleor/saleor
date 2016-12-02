@@ -16,7 +16,7 @@
 {% block content %}
   <div class="userprofile">
     <div class="row">
-      <div class="col-md-10 offset-md-1">
+      <div class="col-lg-10 offset-lg-1">
         <h3>{{ user }}</h3>
         <p>
             <a href="{% url 'registration:change_password' %}">{% trans 'Change your password' %}</a>
@@ -24,47 +24,49 @@
         </p>
       </div>
     </div>
-    <div class="userprofile__nav">
-      <div class="row">
-        <ul class="nav nav-tabs col-md-10 offset-md-1" role="tablist">
-          <li class="nav-item">
-            <a class="nav-link active" data-toggle="tab" href="#addresses" role="tab"><h3>{% trans "Addresses" %}</h3></a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" data-toggle="tab" href="#orders" role="tab"><h3>{% trans "Last orders" %}</h3></a>
-          </li>
-        </ul>
-      </div>
+    <div class="userprofile__nav row">
+      <ul class="nav nav-tabs col-lg-10 offset-lg-1" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active" data-toggle="tab" href="#addresses" role="tab"><h3>{% trans "Addresses" %}</h3></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-toggle="tab" href="#orders" role="tab"><h3>{% trans "Last orders" %}</h3></a>
+        </li>
+      </ul>
     </div>
     <div class="row">
-    <div class="tab-content col-md-10 offset-md-1">
+    <div class="tab-content col-lg-10 offset-lg-1">
       <div class="tab-pane active" id="addresses" role="tabpanel">
         {% for address in addresses %}
           <div class="row userprofile__address-row">
-            <div class="col-md-6">
+            <div class="col-xs-5">
               {{ address }}
             </div>
-            <div class="col-md-2">
-              {% if user.default_billing_address == address %}
-              <span class="label label-default">{% trans "Billing" %}</span>
-              {% else %}
-              <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="billing" %}" class="form-inline form-horizontal" novalidate>
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-default btn-sm">{% trans "Billing" %}</button>
-              </form>
-              {% endif %}
+            <div class="col-xs-3 col-md-4">
+              <div class="row">
+                <div class="col-md-6">
+                  {% if user.default_billing_address == address %}
+                  <span class="label label-default">{% trans "Billing" %}</span>
+                  {% else %}
+                  <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="billing" %}" class="form-inline form-horizontal" novalidate>
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-default btn-sm">{% trans "Billing" %}</button>
+                  </form>
+                  {% endif %}
+                </div>
+                <div class="col-md-6">
+                  {% if user.default_shipping_address == address %}
+                  <span class="label label-default">{% trans "Shipping" %}</span>
+                  {% else %}
+                  <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="shipping" %}" class="form-inline form-horizontal" novalidate>
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-default btn-sm">{% trans "Shipping" %}</button>
+                  </form>
+                  {% endif %}
+                </div>
+              </div>
             </div>
-            <div class="col-md-2">
-              {% if user.default_shipping_address == address %}
-              <span class="label label-default">{% trans "Shipping" %}</span>
-              {% else %}
-              <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="shipping" %}" class="form-inline form-horizontal" novalidate>
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-default btn-sm">{% trans "Shipping" %}</button>
-              </form>
-              {% endif %}
-            </div>
-            <div class="col-md-2">
+            <div class="col-md-2 col-xs-4">
               <a href="{% url 'profile:address-edit' pk=address.pk %}"><img src="{% static 'img/icon_edit.svg' %}"></a>
               <a href="{% url 'profile:address-delete' pk=address.pk %}"><img src="{% static 'img/icon_delete.svg' %}"></a>
             </div>
@@ -76,23 +78,22 @@
         <div id="accordion" role="tablist" aria-multiselectable="true">
           {% for order in orders %}
           <div class="card userprofile__orders">
-              <a data-toggle="collapse" data-parent="#accordion" href="#collapse{{ forloop.counter0 }}" aria-expanded="true" aria-controls="collapse{{ forloop.counter0 }}">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapse{{ forloop.counter0 }}" aria-expanded="true" aria-controls="collapse{{ forloop.counter0 }}"{% if forloop.counter0 > 0 %} class="collapsed"{% endif %}>
             <div class="card-header" role="tab" id="head{{ forloop.counter0 }}">
-            
               <div class="row">
-                <div class="col-md-2 col-xs-2">
+                <div class="col-md-2 col-xs-5">
                     <strong>{{ order }}</strong>
                 </div>
-                <div class="col-md-3 col-xs-7">
+                <div class="col-md-4 col-xs-6">
                   {{ order.created }}
                 </div>
-                <div class="col-md-3 col-xs-3">
+                <div class="col-md-3 col-xs-5">
                   {% gross order.get_total %}
                 </div>
-                <div class="col-md-3 col-xs-6">
+                <div class="col-md-2 col-xs-6">
                   <span class="label label-default">{{ order.get_status_display }}</span>
                 </div>
-                <div class="col-md-1 col-xs-6">
+                <div class="col-md-1 col-xs-1">
                   <img class="userprofile__orders__arrow-icon float-xs-right" src="{% static 'img/gallery-arrow.svg' %}">
                 </div>
               </div>

@@ -22,6 +22,12 @@
   }
   &__brand {
     padding: $global-padding * 2 0;
+    @include media-breakpoint-down(sm) {
+      position: fixed;
+      width: 100vw;
+      background-color: $white;
+      z-index: 4;
+    }
     .container {
       position: relative;
     }
@@ -65,6 +71,11 @@
     }
     &__menu-toggle {
       max-height: 22px;
+      padding-right: $global-padding * 1.5;
+      padding-left: $global-padding;
+    }
+    &__shadow {
+      box-shadow: 1px 1px 10px 1px $gray;
     }
   }
   &__menu {
@@ -112,13 +123,16 @@
     }
     @include media-breakpoint-down(sm) {
       .navigation {
-        position: absolute;
+        position: fixed;
         left: -180px;
+        top: 75px;
         height: 100vh;
         width: 180px;
-        z-index: 100;
+        z-index: 3;
         background-color: $white;
-        padding-left: $global-padding * 1.5;
+        padding-left: $global-padding * 2;
+        padding-right: $global-padding * 3;
+        padding-top: $global-padding;
         transition: 0.3s ease-in-out;
         li {
           width: 100%;
