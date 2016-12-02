@@ -5,6 +5,7 @@ from os import path
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.contrib.syndication.views import add_domain
+from django.core.files.storage import default_storage
 
 from saleor.discount.models import Sale
 from ..product.models import ProductVariant, Category
@@ -28,7 +29,7 @@ class GoogleProductFeed(object):
     https://support.google.com/merchants/answer/7052112?visit_id=1-636148270257062854-1147518273&rd=1
     """
     file_path = path.join(settings.INTEGRATIONS_DIR, 'google-feed.csv.gz')
-    file_url = settings.STATIC_URL + file_path
+    file_url = default_storage.url(file_path)
     compression = True
     attributes = ['id', 'title', 'product_type', 'google_product_category',
                   'link', 'image_link', 'condition', 'availability',
@@ -127,7 +128,7 @@ class GoogleProductFeed(object):
         Read more:
         https://support.google.com/merchants/answer/7050921
         """
-        return None
+        return ''
 
     def item_google_product_category(self, item):
         """
@@ -196,7 +197,7 @@ class SaleorFeed(GoogleProductFeed):
     Example of using GoogleProductFeed.
     """
     file_path = path.join(settings.INTEGRATIONS_DIR, 'saleor-feed.csv.gz')
-    file_url = settings.MEDIA_URL + file_path
+    file_url = default_storage.url(file_path)
 
     def item_tax(self, item):
         """No taxes on products"""
