@@ -7,7 +7,7 @@ from django.forms.models import model_to_dict
 from django.utils.encoding import smart_text
 from prices import Price, FixedDiscount
 
-from ..cart.views import get_or_empty_db_cart
+from ..cart.decorators import get_or_empty_db_cart
 from ..core import analytics
 from ..discount.models import Voucher, NotApplicable
 from ..order.models import Order

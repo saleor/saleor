@@ -11,19 +11,18 @@ from django.template.response import TemplateResponse
 from ..core.utils import to_local_currency
 from ..product.forms import get_form_class_for_product
 from ..product.models import Product, ProductVariant
-from .decorators import get_or_create_db_cart, get_or_empty_db_cart
+from . import decorators
 from .forms import ReplaceCartLineForm
 from .utils import check_product_availability_and_warn
 
 
-@get_or_empty_db_cart
+@decorators.get_or_empty_db_cart_witch_product_data
 def index(request, cart):
-    cart_lines = cart.lines.select_related('variant')
-    check_product_availability_and_warn(request, cart_lines)
     discounts = request.discounts
     cart_lines = []
+    check_product_availability_and_warn(request, cart)
 
-    for line in cart:
+    for line in cart.lines.all():
         initial = {'quantity': line.get_quantity()}
         form = ReplaceCartLineForm(None, cart=cart, variant=line.variant,
                                    initial=initial, discounts=discounts)
@@ -47,7 +46,7 @@ def index(request, cart):
             'local_cart_total': local_cart_total})
 
 
-@get_or_create_db_cart
+@decorators.get_or_create_db_cart
 def add_to_cart(request, cart, product_id):
     product = get_object_or_404(Product, pk=product_id)
     form_class = get_form_class_for_product(product)
@@ -64,7 +63,7 @@ def add_to_cart(request, cart, product_id):
     return redirect('cart:index')
 
 
-@get_or_empty_db_cart
+@decorators.get_or_empty_db_cart
 def update(request, cart, variant_id):
     if not request.is_ajax():
         return redirect('cart:index')

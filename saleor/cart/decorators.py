@@ -21,10 +21,9 @@ def find_and_assign_cart(request, response):
         response.delete_cookie(Cart.COOKIE_NAME)
 
 
-def get_cart_from_request(request, create=False):
+def get_cart_from_request(request, create=False, prefetch_product_data=False):
     """Returns Cart object for current user. If create option is True,
     new cart will be saved to db"""
-
     cookie_token = request.get_signed_cookie(
         Cart.COOKIE_NAME, default=None)
 
@@ -36,7 +35,8 @@ def get_cart_from_request(request, create=False):
         user = None
         queryset = Cart.objects.anonymous()
         token = cookie_token
-
+    if prefetch_product_data:
+        queryset = queryset.with_products_data()
     try:
         cart = queryset.open().get(token=token)
     except Cart.DoesNotExist:
@@ -68,6 +68,16 @@ def get_or_empty_db_cart(view):
     @wraps(view)
     def func(request, *args, **kwargs):
         cart = get_cart_from_request(request)
+        return view(request, cart, *args, **kwargs)
+    return func
+
+
+def get_or_empty_db_cart_with_product_data(view):
+    """Get user cart if exists"""
+    @wraps(view)
+    def func(request, *args, **kwargs):
+        cart = get_cart_from_request(
+            request, prefetch_product_data=True)
         return view(request, cart, *args, **kwargs)
     return func
 

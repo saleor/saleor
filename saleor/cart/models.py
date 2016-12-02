@@ -52,6 +52,12 @@ class CartQueryset(models.QuerySet):
     def save(self):
         self.update(status=Cart.SAVED)
 
+    def with_products_data(self):
+        return self.prefetch_related(
+            'lines', 'lines__variant', 'lines__variant__product__attributes',
+            'lines__variant__stock', 'lines__variant__product__images',
+            'lines__variant__product')
+
 
 class Cart(models.Model):
 
@@ -213,7 +219,6 @@ class CartLine(models.Model, ItemLine):
         pgettext_lazy('Cart line', 'quantity'),
         validators=[MinValueValidator(0), MaxValueValidator(999)])
     data = JSONField(blank=True, default={})
-
 
     class Meta:
         unique_together = ('cart', 'variant', 'data')

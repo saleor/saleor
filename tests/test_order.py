@@ -32,7 +32,7 @@ def test_stock_allocation(billing_address, product_in_stock):
     cart.add(variant, quantity=2)
     order = models.Order.objects.create(billing_address=billing_address)
     delivery_group = models.DeliveryGroup.objects.create(order=order)
-    delivery_group.add_items_from_partition(cart)
+    delivery_group.add_items_from_partition(cart.lines.all())
     order_line = delivery_group.items.get()
     stock = order_line.stock
     assert stock.quantity_allocated == 2
@@ -41,7 +41,7 @@ def test_stock_allocation(billing_address, product_in_stock):
 def test_dashboard_change_quantity_form(request_cart_with_item, order):
     cart = request_cart_with_item
     group = models.DeliveryGroup.objects.create(order=order)
-    group.add_items_from_partition(cart)
+    group.add_items_from_partition(cart.lines.all())
     order_line = group.items.get()
 
     # Check available quantity validation
