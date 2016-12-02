@@ -1,15 +1,12 @@
-import React from 'react'
+import React, { PropTypes } from 'react'
 import ReactDOM from 'react-dom'
 import Relay from 'react-relay'
-
-//import AppRoute from './components/AppRoute'
 
 import CategoryPage from './components/CategoryPage'
 import ProductFilters from './components/ProductFilters'
 
 const categoryPage = document.getElementById('category-page');
 const categoryData = JSON.parse(categoryPage.getAttribute('data-category'));
-
 
 Relay.injectNetworkLayer(
     new Relay.DefaultNetworkLayer('/graphql/', {
@@ -18,6 +15,11 @@ Relay.injectNetworkLayer(
 );
 
 class App extends React.Component {
+
+  static propTypes = {
+    viewer: PropTypes.object
+  }
+
   render() {
     return (
         <CategoryPage 
@@ -46,8 +48,7 @@ const RelayApp = Relay.createContainer(App, {
   },
 });
 
-
-const Viewer = {
+const AppRoute = {
   queries: {
     viewer: () => Relay.QL`
       query { viewer }
@@ -58,9 +59,6 @@ const Viewer = {
 };
 
 ReactDOM.render(
-  <Relay.RootContainer
-    Component={RelayApp}
-    route={Viewer}
-    />,
+  <Relay.RootContainer Component={RelayApp} route={AppRoute} />,
   categoryPage,
 );

@@ -12,11 +12,9 @@ class CategoryPage extends Component {
 	}
 
 	render() {
-
 		const category = this.props.category;
 		const attributes = this.props.attributes;
 		const products = this.props.category.products;
-		
 
 		return (
 			<div className="row">
@@ -31,7 +29,6 @@ class CategoryPage extends Component {
 			</div>
 		)
 	}
-
 }
 
 export default Relay.createContainer(CategoryPage, {
@@ -39,19 +36,19 @@ export default Relay.createContainer(CategoryPage, {
     category: () => Relay.QL`
       fragment on CategoryType {
         id,
-          name,
-          children(first: 20) {
-            edges {
-              node {
-                id,
-                name,
-                slug
-              }
+        name,
+        children(first: 20) {
+          edges {
+            node {
+              id,
+              name,
+              slug
             }
           }
-          products (first: 20) {
-        	${ProductList.getFragment('products')}
-    	}
+        }
+        products (first: 20) {
+          ${ProductList.getFragment('products')}
+        }
       }
     `,
   },
