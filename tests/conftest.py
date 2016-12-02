@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from decimal import Decimal
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from mock import Mock
@@ -123,7 +124,8 @@ def product_class(color_attribute, size_attribute):
 @pytest.fixture
 def product_in_stock(product_class, default_category):
     product = Product.objects.create(
-        name='Test product', price=10, weight=1, product_class=product_class)
+        name='Test product', price=Decimal('10.00'), weight=1,
+        product_class=product_class)
     product.categories.add(default_category)
     variant = ProductVariant.objects.create(product=product, sku='123')
     warehouse_1 = StockLocation.objects.create(name='Warehouse 1')
