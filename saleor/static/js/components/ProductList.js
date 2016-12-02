@@ -1,13 +1,13 @@
 import React, { Component, PropTypes } from 'react'
-
-export default class ProductList extends Component {
+import Relay from 'react-relay'
+class ProductList extends Component {
 
 	static propTypes = {
-		products: PropTypes.array
+		products: PropTypes.object
 	};
 
 	render() {
-		const { products } = this.props;
+		const products = this.props.products.edges;
 		return (
 			<div>
 				{products ? (products.map((item) => {
@@ -35,3 +35,25 @@ export default class ProductList extends Component {
 		)
 	}
 }
+
+export default Relay.createContainer(ProductList, {
+  fragments: {
+    products: () => Relay.QL`
+      fragment on ProductTypeConnection {
+	        edges {
+	        	node {
+	        		id
+		            name
+		            price {
+		              gross
+		              net
+		              currency
+		            }
+		            imageUrl
+		            url
+	        	}
+	        }
+      }
+    `,
+  },
+});
