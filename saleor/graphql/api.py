@@ -128,8 +128,7 @@ class Viewer(graphene.ObjectType):
     categories = relay.ConnectionField(CategoryType)
 
     def resolve_category(self, args, context, info):
-        return get_object_or_none(
-            Category.objects.prefetch_for_api(), pk=args.get('pk'))
+        return get_object_or_none(Category, pk=args.get('pk'))
 
     def resolve_product(self, args, context, info):
         qs = self.get_products()
@@ -139,7 +138,7 @@ class Viewer(graphene.ObjectType):
         return ProductAttribute.objects.prefetch_related('values').all()
 
     def resolve_categories(self, args, context, info):
-        return Category.objects.prefetch_for_api()
+        return Category.objects.all()
 
 
 class Query(graphene.ObjectType):
