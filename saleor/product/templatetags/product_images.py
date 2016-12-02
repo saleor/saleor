@@ -22,7 +22,7 @@ AVAILABLE_SIZES = get_available_sizes()
 
 
 @register.simple_tag()
-def product_image(instance, size, method='crop'):
+def get_thumbnail(instance, size, method='crop'):
     if instance:
         size_name = '%s__%s' % (method, size)
         if (size_name not in AVAILABLE_SIZES and not
@@ -40,4 +40,14 @@ def product_image(instance, size, method='crop'):
                              extra={'instance': instance, 'size': size})
         else:
             return thumbnail.url
-    return static('dist/images/product-image-placeholder.png')
+    return static('images/product-image-placeholder.png')
+
+
+@register.simple_tag()
+def product_first_image(product, size, method='crop'):
+    """
+    Returns main product image
+    """
+    all_images = product.images.all()
+    main_image = all_images[0].image if all_images else None
+    return get_thumbnail(main_image, size, method)
