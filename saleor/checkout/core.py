@@ -318,7 +318,7 @@ class Checkout(object):
 
 def load_checkout(view):
     @wraps(view)
-    @get_or_empty_db_cart
+    @get_or_empty_db_cart()
     def func(request, cart):
         try:
             session_data = request.session[STORAGE_SESSION_KEY]
