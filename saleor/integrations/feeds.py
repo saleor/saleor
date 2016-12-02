@@ -74,7 +74,7 @@ class GoogleProductFeed(object):
     def item_link(self, item):
         return add_domain(self.current_site.domain,
                           item.get_absolute_url(),
-                          settings.INTEGRATIONS_ENABLE_SSL)
+                          not settings.DEBUG)
 
     def item_title(self, item):
         return item.display_product()
