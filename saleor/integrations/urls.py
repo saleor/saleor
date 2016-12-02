@@ -1,9 +1,9 @@
 from django.conf.urls import url
 from django.views.generic.base import RedirectView
 
-from .feeds import SaleorFeed
+from .feeds import SaleorGoogleMerchant
 
 urlpatterns = [
-    url(r'saleor-feed/$', RedirectView.as_view(url=SaleorFeed.file_url),
+    url(r'saleor-feed/$', RedirectView.as_view(url=SaleorGoogleMerchant.file_url),
         name='saleor-feed'),
 ]

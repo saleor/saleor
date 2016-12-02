@@ -7,13 +7,13 @@ except ImportError:
     from io import StringIO
 
 from saleor.product.models import Category
-from saleor.integrations.feeds import SaleorFeed
+from saleor.integrations.feeds import SaleorGoogleMerchant
 from saleor.integrations.utils import update_feed
 
 
 def test_saleor_feed_items(product_in_stock):
     valid_variant = product_in_stock.variants.first()
-    feed = SaleorFeed()
+    feed = SaleorGoogleMerchant()
     items = feed.items()
     assert len(items) == 1
     attributes = feed.item_attributes(items[0])
@@ -22,7 +22,7 @@ def test_saleor_feed_items(product_in_stock):
 
 
 def test_category_formatter(db):
-    feed = SaleorFeed()
+    feed = SaleorGoogleMerchant()
     main_category = Category(name='Main', slug='main')
     main_category.save()
     sub_category = Category(name='Sub', slug='sub', parent=main_category)
@@ -39,7 +39,7 @@ def test_feed_updater(product_in_stock, monkeypatch):
     fake_file.__enter__ = lambda: fake_file
     monkeypatch.setattr('saleor.integrations.utils.default_storage.open',
                         lambda path, mode: fake_file)
-    feed = SaleorFeed()
+    feed = SaleorGoogleMerchant()
     feed.compression = False
     update_feed(feed)
     fake_file.seek(0)

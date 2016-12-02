@@ -7,13 +7,13 @@ from django.contrib.sites.models import Site
 from django.contrib.syndication.views import add_domain
 from django.core.files.storage import default_storage
 
-from saleor.discount.models import Sale
+from ..discount.models import Sale
 from ..product.models import ProductVariant, Category
 
 CATEGORY_SEPARATOR = ' > '
 
 
-class GoogleProductFeed(object):
+class GoogleMerchant(object):
     """
     Basic Google feed class. To adjust feed to your needs inherit from
     this class.
@@ -28,7 +28,7 @@ class GoogleProductFeed(object):
     For more info check Google support pages:
     https://support.google.com/merchants/answer/7052112?visit_id=1-636148270257062854-1147518273&rd=1
     """
-    file_path = path.join(settings.INTEGRATIONS_DIR, 'google-feed.csv.gz')
+    file_path = path.join(settings.INTEGRATIONS_DIR, 'google-merchant.csv.gz')
     file_url = default_storage.url(file_path)
     compression = True
     attributes = ['id', 'title', 'product_type', 'google_product_category',
@@ -192,9 +192,9 @@ class GoogleProductFeed(object):
         return product_data
 
 
-class SaleorFeed(GoogleProductFeed):
+class SaleorGoogleMerchant(GoogleMerchant):
     """
-    Example of using GoogleProductFeed.
+    Example of using GoogleMerchant.
     """
     file_path = path.join(settings.INTEGRATIONS_DIR, 'saleor-feed.csv.gz')
     file_url = default_storage.url(file_path)
