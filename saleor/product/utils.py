@@ -11,7 +11,6 @@ def products_visible_to_user(user):
 
 def products_with_details(user):
     products = products_visible_to_user(user)
-    products = products.select_subclasses()
     products = products.prefetch_related('categories', 'images',
                                          'variants__stock',
                                          'variants__variant_images__image',
