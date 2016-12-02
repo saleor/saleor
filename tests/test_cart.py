@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import json
 
 import pytest
+from babeldjango.templatetags.babel import currencyfmt
 from django.core.exceptions import ObjectDoesNotExist
 from mock import MagicMock, Mock
 
@@ -314,3 +315,25 @@ def test_cart_page_with_openexchagerates(
     response = client.get('/cart/')
     context = response.context
     assert context['local_cart_total'].currency == 'PLN'
+
+
+def test_cart_summary_page(client, product_in_stock, request_cart):
+    variant = product_in_stock.variants.get()
+    request_cart.add(variant, 1)
+    response = client.get('/cart/summary/')
+    assert response.status_code == 200
+    content = response.json()
+    assert content['quantity'] == request_cart.quantity
+    cart_total = request_cart.get_total()
+    assert content['total'] == currencyfmt(
+        cart_total.gross, cart_total.currency)
+    assert len(content['lines']) == 1
+    cart_line = content['lines'][0]
+    assert cart_line['variant'] == variant.name
+    assert cart_line['quantity'] == 1
+
+
+def test_cart_summary_page_empty_cart(client, request_cart):
+    response = client.get('/cart/summary/')
+    assert response.status_code == 200
+    assert response.json() == {}

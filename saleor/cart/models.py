@@ -55,6 +55,7 @@ class CartQueryset(models.QuerySet):
     def with_products_data(self):
         return self.prefetch_related(
             'lines', 'lines__variant', 'lines__variant__product__attributes',
+            'lines__variant__product__attributes__values',
             'lines__variant__stock', 'lines__variant__product__images',
             'lines__variant__product')
 

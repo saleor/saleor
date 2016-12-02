@@ -4,19 +4,20 @@ from itertools import chain
 
 from babeldjango.templatetags.babel import currencyfmt
 from django.contrib import messages
+from django.core.urlresolvers import reverse
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 
+from . import decorators
 from ..core.utils import to_local_currency
 from ..product.forms import get_form_class_for_product
 from ..product.models import Product, ProductVariant
-from . import decorators
 from .forms import ReplaceCartLineForm
 from .utils import check_product_availability_and_warn
 
 
-@decorators.get_or_empty_db_cart_witch_product_data
+@decorators.get_or_empty_db_cart_with_product_data
 def index(request, cart):
     discounts = request.discounts
     cart_lines = []
@@ -97,3 +98,35 @@ def update(request, cart, variant_id):
         response = {'error': form.errors}
         status = 400
     return JsonResponse(response, status=status)
+
+
+@decorators.get_or_empty_db_cart_with_product_data
+def summary(request, cart):
+
+    def prepare_line_data(line):
+        attributes = line.variant.product.attributes.all()
+        first_image = line.variant.get_first_image()
+        price_per_item = line.get_price_per_item(discounts=request.discounts)
+        line_total = line.get_total(discounts=request.discounts)
+        return {
+            'variant': line.variant.name,
+            'quantity': line.quantity,
+            'attributes': line.variant.display_variant(attributes),
+            'image': first_image.url if first_image else None,
+            'price_per_item': currencyfmt(
+                price_per_item.gross, price_per_item.currency),
+            'line_total': currencyfmt(line_total.gross, line_total.currency),
+            'update_url': reverse('cart:update-line',
+                                  kwargs={'variant_id': line.variant_id}),
+            'variant_url': line.variant.get_absolute_url()
+        }
+    if cart.quantity == 0:
+        data = {}
+    else:
+        cart_total = cart.get_total(discounts=request.discounts)
+        data = {
+            'quantity': cart.quantity,
+            'total': currencyfmt(cart_total.gross, cart_total.currency),
+            'lines': [prepare_line_data(line) for line in cart.lines.all()]}
+
+    return JsonResponse(data)
