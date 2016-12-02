@@ -30,7 +30,7 @@ def request_cart(cart, monkeypatch):
     # FIXME: Fixtures should not have any side effects
     monkeypatch.setattr(
         decorators, 'get_cart_from_request',
-        lambda request, create=False, prefetch_product_data=False: cart)
+        lambda request, create=False, cart_queryset=None: cart)
     return cart
 
 

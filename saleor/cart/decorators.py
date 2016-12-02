@@ -21,7 +21,8 @@ def find_and_assign_cart(request, response):
         response.delete_cookie(Cart.COOKIE_NAME)
 
 
-def get_cart_from_request(request, create=False, prefetch_product_data=False):
+def get_cart_from_request(request, cart_queryset=Cart.objects.all(),
+                          create=False):
     """Returns Cart object for current user. If create option is True,
     new cart will be saved to db"""
     cookie_token = request.get_signed_cookie(
@@ -29,14 +30,12 @@ def get_cart_from_request(request, create=False, prefetch_product_data=False):
 
     if request.user.is_authenticated():
         user = request.user
-        queryset = user.carts
+        queryset = cart_queryset.filter(user=user)
         token = get_user_open_cart_token(request.user)
     else:
         user = None
-        queryset = Cart.objects.anonymous()
+        queryset = cart_queryset.filter(user=None)
         token = cookie_token
-    if prefetch_product_data:
-        queryset = queryset.with_products_data()
     try:
         cart = queryset.open().get(token=token)
     except Cart.DoesNotExist:
@@ -51,35 +50,30 @@ def get_cart_from_request(request, create=False, prefetch_product_data=False):
     return cart
 
 
-def get_or_create_db_cart(view):
-    @wraps(view)
-    def func(request, *args, **kwargs):
-        cart = get_cart_from_request(request, create=True)
-        response = view(request, cart, *args, **kwargs)
-        if not request.user.is_authenticated():
-            # save basket for anonymous user
-            set_cart_cookie(cart, response)
-        return response
-    return func
+def get_or_create_db_cart(cart_queryset=Cart.objects.all()):
+    def get_cart(view):
+        @wraps(view)
+        def func(request, *args, **kwargs):
+            cart = get_cart_from_request(request, cart_queryset=cart_queryset,
+                                         create=True)
+            response = view(request, cart, *args, **kwargs)
+            if not request.user.is_authenticated():
+                # save basket for anonymous user
+                set_cart_cookie(cart, response)
+            return response
+        return func
+    return get_cart
 
 
-def get_or_empty_db_cart(view):
-    """Get user cart if exists"""
-    @wraps(view)
-    def func(request, *args, **kwargs):
-        cart = get_cart_from_request(request)
-        return view(request, cart, *args, **kwargs)
-    return func
-
-
-def get_or_empty_db_cart_with_product_data(view):
-    """Get user cart if exists"""
-    @wraps(view)
-    def func(request, *args, **kwargs):
-        cart = get_cart_from_request(
-            request, prefetch_product_data=True)
-        return view(request, cart, *args, **kwargs)
-    return func
+def get_or_empty_db_cart(cart_queryset=Cart.objects.all()):
+    def get_cart(view):
+        """Get user cart if exists"""
+        @wraps(view)
+        def func(request, *args, **kwargs):
+            cart = get_cart_from_request(request, cart_queryset=cart_queryset)
+            return view(request, cart, *args, **kwargs)
+        return func
+    return get_cart
 
 
 def assign_anonymous_cart(view):

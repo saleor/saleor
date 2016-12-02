@@ -14,10 +14,11 @@ from ..core.utils import to_local_currency
 from ..product.forms import get_form_class_for_product
 from ..product.models import Product, ProductVariant
 from .forms import ReplaceCartLineForm
+from .models import Cart
 from .utils import check_product_availability_and_warn
 
 
-@decorators.get_or_empty_db_cart_with_product_data
+@decorators.get_or_empty_db_cart(cart_queryset=Cart.objects.with_products_data())
 def index(request, cart):
     discounts = request.discounts
     cart_lines = []
@@ -47,7 +48,7 @@ def index(request, cart):
             'local_cart_total': local_cart_total})
 
 
-@decorators.get_or_create_db_cart
+@decorators.get_or_create_db_cart()
 def add_to_cart(request, cart, product_id):
     product = get_object_or_404(Product, pk=product_id)
     form_class = get_form_class_for_product(product)
@@ -64,7 +65,7 @@ def add_to_cart(request, cart, product_id):
     return redirect('cart:index')
 
 
-@decorators.get_or_empty_db_cart
+@decorators.get_or_empty_db_cart()
 def update(request, cart, variant_id):
     if not request.is_ajax():
         return redirect('cart:index')
@@ -100,7 +101,7 @@ def update(request, cart, variant_id):
     return JsonResponse(response, status=status)
 
 
-@decorators.get_or_empty_db_cart_with_product_data
+@decorators.get_or_empty_db_cart(cart_queryset=Cart.objects.with_products_data())
 def summary(request, cart):
 
     def prepare_line_data(line):
