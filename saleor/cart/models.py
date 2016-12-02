@@ -53,7 +53,7 @@ class CartQueryset(models.QuerySet):
         self.update(status=Cart.SAVED)
 
 
-class Cart(models.Model, ItemSet):
+class Cart(models.Model):
 
     COOKIE_NAME = 'cart'
 
@@ -142,11 +142,18 @@ class Cart(models.Model, ItemSet):
     def __repr__(self):
         return 'Cart(quantity=%s)' % (self.quantity,)
 
-    def __iter__(self):
-        return iter(self.lines.all())
-
     def __len__(self):
         return self.lines.count()
+
+    def get_subtotal(self, item, **kwargs):
+        return item.get_total(**kwargs)
+
+    def get_total(self, **kwargs):
+        subtotals = [self.get_subtotal(item, **kwargs)
+                     for item in self.lines.all()]
+        if not subtotals:
+            raise AttributeError('Calling get_total() on an empty item set')
+        return sum(subtotals[1:], subtotals[0])
 
     def count(self):
         lines = self.lines.all()
@@ -160,10 +167,10 @@ class Cart(models.Model, ItemSet):
         return line
 
     def get_line(self, variant, data=None):
-        try:
-            return self.lines.get(variant=variant)
-        except CartLine.DoesNotExist:
-            return None
+        all_lines = self.lines.all()
+        line = [line for line in all_lines if line.variant_id == variant.id]
+        if line:
+            return line[0]
 
     def add(self, variant, quantity=1, data=None, replace=False,
             check_quantity=True):
@@ -192,7 +199,7 @@ class Cart(models.Model, ItemSet):
     def partition(self):
         grouper = (
             lambda p: 'physical' if p.is_shipping_required() else 'digital')
-        return partition(self, grouper, ProductGroup)
+        return partition(self.lines.all(), grouper, ProductGroup)
 
 
 @python_2_unicode_compatible

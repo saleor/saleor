@@ -7,14 +7,15 @@ from satchless.item import InsufficientStock
 
 def contains_unavailable_variants(cart):
     try:
-        [line.variant.check_quantity(line.quantity) for line in cart]
+        [line.variant.check_quantity(line.quantity)
+         for line in cart.lines.all()]
     except InsufficientStock:
         return True
     return False
 
 
 def remove_unavailable_variants(cart):
-    for line in cart:
+    for line in cart.lines.all():
         try:
             cart.add(line.variant, quantity=line.quantity, replace=True)
         except InsufficientStock as e:

@@ -117,11 +117,11 @@ def test_contains_unavailable_variants():
     missing_variant = Mock(
         check_quantity=Mock(side_effect=InsufficientStock('')))
     cart = MagicMock()
-    cart.__iter__.return_value = [Mock(variant=missing_variant)]
+    cart.lines.all.return_value = [Mock(variant=missing_variant)]
     assert utils.contains_unavailable_variants(cart)
 
     variant = Mock(check_quantity=Mock())
-    cart.__iter__.return_value = [Mock(variant=variant)]
+    cart.lines.all.return_value = [Mock(variant=variant)]
     assert not utils.contains_unavailable_variants(cart)
 
 
