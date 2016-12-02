@@ -3,13 +3,24 @@
     background-color: $gray;
     padding: $global-padding 0;
     margin-bottom: $global-margin * 4;
+    @include media-breakpoint-down(sm) {
+      margin-bottom: $global-margin * 2;
+    }
     img {
       float: left;
+      @include media-breakpoint-down(sm) {
+        max-height: 22px;
+        margin-top: $global-margin / 2;
+      }
     }
     h1 {
       display: inline-block;
       color: $white;
       margin-left: $global-margin;
+      @include media-breakpoint-down(sm) {
+        font-size: $font-size-h2;
+        margin-top: $global-margin / 2;
+      }
     }
   }
   &__review {

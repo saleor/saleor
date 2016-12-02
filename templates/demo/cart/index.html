@@ -40,7 +40,7 @@
     {% for line in cart_lines %}
       <div class="cart__line">
         <div class="row">
-          <div class="col-md-6 cart__line__product">
+          <div class="col-md-6 col-xs-8 cart__line__product">
             <a href="{{ line.variant.get_absolute_url }}">
               {% if line.variant.product.images.first %}
                   <img class="cart-item-image" itemprop="image" src="{{ line.variant.product.images.first.image.crop.60x60 }}" alt="">
@@ -51,7 +51,7 @@
                 <br><small>{{ line.variant.display_variant }}</small></h3>
             </a>
           </div>
-          <div class="col-md-2 col-xs-6 cart-item-amount">
+          <div class="cart-item-amount">
             <form role="form" action="{% url "cart:update-line" variant_id=line.variant.pk %}" method="post" class="form-cart">
                 <div class="input-group cart-item-quantity js-hidden{% if form.quantity.errors %} has-error{% endif %}">
                     {{ line.form.quantity }}
@@ -67,13 +67,8 @@
                 {% csrf_token %}
             </form>
           </div>
-          <div class="col-md-2 cart-item-subtotal" data-product-id="{{ line.variant.pk }}">
+          <div class="cart-item-subtotal" data-product-id="{{ line.variant.pk }}">
             <h3>{% gross line.get_total html=True %}</h3>
-          </div>
-          <div class="col-md-2">
-            <button type="submit" class="btn btn-link btn-sm cart-item-remove">
-                <img src="{% static "img/icon_delete.svg" %}">
-            </button>
           </div>
         </div>
       </div>
