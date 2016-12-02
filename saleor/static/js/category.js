@@ -1,8 +1,11 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import Relay from 'react-relay';
+import Relay from 'react-relay'
+
+//import AppRoute from './components/AppRoute'
 
 import CategoryPage from './components/CategoryPage'
+import ProductFilters from './components/ProductFilters'
 
 const categoryPage = document.getElementById('category-page');
 const categoryData = JSON.parse(categoryPage.getAttribute('data-category'));
@@ -18,7 +21,8 @@ class App extends React.Component {
   render() {
     return (
         <CategoryPage 
-          data={ this.props.viewer }
+          category = {this.props.viewer.category}
+          attributes = {this.props.viewer.attributes}
         />
       );
   }
@@ -31,46 +35,17 @@ const RelayApp = Relay.createContainer(App, {
   fragments: {
     viewer: () => Relay.QL`
       fragment on Viewer {
-        attributes {
-          id,
-          pk,
-          name,
-          values {
-            id,
-            display
-          }
-        }
         category(pk: $categoryId) {
-          id,
-          name,
-          children(first: 20) {
-            edges {
-              node {
-                id,
-                name,
-                slug
-              }
-            }
-          },
-          products(first: 20) {
-            edges {
-              node {
-                id,
-                name,
-                imageUrl,
-                price {
-                  gross,
-                  currency
-                },
-                url
-              }
-            }
-          }
+          ${CategoryPage.getFragment('category')}
+        }
+        attributes {
+          ${ProductFilters.getFragment('attributes')}
         }
       }
     `,
   },
 });
+
 
 const Viewer = {
   queries: {
