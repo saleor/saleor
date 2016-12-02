@@ -96,6 +96,33 @@ $icon-font-path: "~bootstrap-sass/assets/fonts/bootstrap/";
 	}
 }
 
+.product-filters {
+  .attribute {
+    h3 {
+      font-size: 1.5rem;
+    }
+    ul {
+      padding-left: 0;
+      .item {
+        min-width: 5rem;
+        display: inline-block;
+        border: solid 1px #999;
+        border-radius: 2rem;
+        padding: 0.5rem 1rem;
+        margin: 0 0.5rem;
+        text-align: center;
+        
+      }
+      &.color {
+        .item {
+          color: #000;
+        }
+      }
+
+    }
+  }
+}
+
 .page-header {
 	&--order {
 		margin-top: $grid-gutter-width/3;
