@@ -2,7 +2,7 @@ from graphene.types import Scalar
 from graphql.language import ast
 
 
-class FilterScalar(Scalar):
+class AttributesFilterScalar(Scalar):
 
     @staticmethod
     def coerce_filter(value):

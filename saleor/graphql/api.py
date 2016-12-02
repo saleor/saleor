@@ -7,7 +7,7 @@ from graphene_django.debug import DjangoDebug
 
 from ..product.models import (AttributeChoiceValue, Category, Product,
                               ProductAttribute, ProductImage, ProductVariant)
-from .scalars import FilterScalar
+from .scalars import AttributesFilterScalar
 from .utils import DjangoPkInterface, get_object_or_none
 
 
@@ -47,7 +47,9 @@ class ProductType(DjangoObjectType):
 
 class CategoryType(DjangoObjectType):
     products = relay.ConnectionField(
-        ProductType, filter=graphene.List(FilterScalar))
+        ProductType,
+        attributes=graphene.List(AttributesFilterScalar),
+        order_by=graphene.String())
 
     class Meta:
         model = Category
@@ -55,8 +57,8 @@ class CategoryType(DjangoObjectType):
 
     def resolve_products(self, args, context, info):
         qs = self.products.prefetch_for_api()
-        filter = args.get('filter')
-        if filter:
+        attributes_filter = args.get('attributes')
+        if attributes_filter:
             filter_obj = {}
             for attr_pk, attr_val_pk in filter:
                 try:
@@ -65,6 +67,10 @@ class CategoryType(DjangoObjectType):
                 except ValueError:
                     pass
             qs = qs.filter(**filter_obj)
+
+        order_by = args.get('order_by')
+        if order_by:
+            qs = qs.order_by(order_by)
         return qs
 
 
