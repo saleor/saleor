@@ -1,9 +1,9 @@
 import logging
 import warnings
 
-from django.template.context_processors import static
 from django import template
 from django.conf import settings
+from django.contrib.staticfiles.templatetags.staticfiles import static
 
 logger = logging.getLogger(__name__)
 register = template.Library()
