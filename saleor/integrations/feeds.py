@@ -5,7 +5,6 @@ from os import path
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.contrib.syndication.views import add_domain
-from prices import Price
 
 from saleor.discount.models import Sale
 from ..product.models import ProductVariant, Category
@@ -199,14 +198,11 @@ class SaleorFeed(GoogleProductFeed):
     file_path = path.join(settings.INTEGRATIONS_DIR, 'saleor-feed.csv.gz')
     file_url = settings.MEDIA_URL + file_path
 
-    def item_shipping(self, item):
-        """Flat shipping price"""
-        price = Price(5, currency=settings.DEFAULT_CURRENCY)
-        return 'US:::%s %s' % (price.gross, price.currency)
-
     def item_tax(self, item):
         """No taxes on products"""
-        return 'US::0:y'
+        price = item.get_price_per_item(discounts=self.discounts)
+        tax = price.gross - price.gross
+        return 'US::%s:y' % tax
 
     def item_brand(self, item):
         return 'Saleor'
