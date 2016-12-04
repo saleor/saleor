@@ -46,6 +46,7 @@ class ProductType(DjangoObjectType):
 
 
 class CategoryType(DjangoObjectType):
+    url = graphene.String()
     products = relay.ConnectionField(
         ProductType,
         attributes=graphene.List(AttributesFilterScalar),
@@ -54,6 +55,10 @@ class CategoryType(DjangoObjectType):
     class Meta:
         model = Category
         interfaces = (relay.Node, DjangoPkInterface)
+
+    @graphene.resolve_only_args
+    def resolve_url(self):
+        return self.get_absolute_url()
 
     def resolve_products(self, args, context, info):
         qs = self.products.prefetch_for_api()
