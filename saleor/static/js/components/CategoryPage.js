@@ -7,23 +7,33 @@ import ProductFilters from './ProductFilters'
 class CategoryPage extends Component {
 
 	static propTypes = {
+		attributes: PropTypes.array,
 		category: PropTypes.object,
-		attributes: PropTypes.array
+    relay: PropTypes.object
 	}
+
+  onFilterChanged = (enabled) => {
+    this.props.relay.setVariables({
+      attributesFilter: enabled
+    })
+  }
 
 	render() {
 		const category = this.props.category;
 		const attributes = this.props.attributes;
-		const products = this.props.category.products;
 
 		return (
 			<div className="row">
 				<div className="col-md-3">
-					<ProductFilters categories={category} attributes={attributes} />
+					<ProductFilters
+            attributes={attributes}
+            categories={category}
+            onFilterChanged={this.onFilterChanged}
+          />
 				</div>
 				<div className="col-md-9">
 					<div className="row">
-						<ProductList products={products} />
+						<ProductList products={category.products} />
 					</div>
 				</div>		
 			</div>
@@ -32,21 +42,25 @@ class CategoryPage extends Component {
 }
 
 export default Relay.createContainer(CategoryPage, {
+  initialVariables: {
+    attributesFilter: []
+  },
   fragments: {
     category: () => Relay.QL`
       fragment on CategoryType {
-        id,
-        name,
+        id
+        name
+        url
         children(first: 20) {
           edges {
             node {
-              id,
-              name,
-              slug
+              id
+              name
+              url
             }
           }
         }
-        products (first: 20) {
+        products (first: 20, attributes: $attributesFilter) {
           ${ProductList.getFragment('products')}
         }
       }

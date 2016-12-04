@@ -5,12 +5,30 @@ import Relay from 'react-relay';
 class ProductFilters extends Component {
 
 	static propTypes = {
+		attributes: PropTypes.array,
 		categories: PropTypes.object,
-		attributes: PropTypes.array
+		onFilterChanged: PropTypes.func.isRequired
 	};
 
-	render() {
+	constructor(props) {
+    super(props);
+    this.state = {
+			filters: {}
+		};
+  }
 
+	onClick = (attribute, value) => {
+		const attrValue = `${attribute}:${value}`;
+		this.setState({
+			filters: Object.assign(
+				this.state.filters,
+				{[attrValue]: !this.state.filters[attrValue]})
+		});
+		const enabled = Object.keys(this.state.filters).filter(key => this.state.filters[key] === true);
+		this.props.onFilterChanged(enabled);
+	}
+
+	render() {
 		const categoryName = this.props.categories.name;
 		const subCategories  = this.props.categories.children.edges;
 		const { attributes } = this.props;
@@ -20,15 +38,15 @@ class ProductFilters extends Component {
 				<h2>Filters:</h2>
 				<ul className="categories list-group">
 					<li className="list-group-item active">{categoryName}</li>
-					{subCategories ? (subCategories.map((item) => {
+					{subCategories && (subCategories.map((item) => {
 							const category = item.node;
 							return (
-								<li key={category.id} className="list-group-item"><a href={category.name}>{category.name}</a></li>
+								<li key={category.id} className="list-group-item"><a href={category.url}>{category.name}</a></li>
 							);
 						})
-					) : (null)}
+					)}
 				</ul>
-				{attributes ? (attributes.map((attribute) => {
+				{attributes && (attributes.map((attribute) => {
 					return (
 						<div key={attribute.id} className="attribute">
 							<ul className={attribute.name}>
@@ -38,17 +56,16 @@ class ProductFilters extends Component {
 										backgroundColor: value.color
 									}
 									return (
-										<li key={value.id} className="item" style={colorStyle}>
+										<button key={value.id} className="item" style={colorStyle} onClick={() => this.onClick(attribute.pk, value.pk)}>
 											{value.display}
-										</li>
+										</button>
 									)
 								})}
 							</ul>
 						</div>
 					)
 				})
-				) : (null)}
-				
+				)}
 			</div>
 		)
 	}
@@ -59,10 +76,12 @@ export default Relay.createContainer(ProductFilters, {
     attributes: () => Relay.QL`
       fragment on ProductAttributeType @relay(plural: true) {
 	      id
+				pk
 	      name
 	      display
 	      values {
 	        id
+					pk
 	        display
 	        color
 	      }
