@@ -59,15 +59,12 @@ class CategoryType(DjangoObjectType):
         qs = self.products.prefetch_for_api()
         attributes_filter = args.get('attributes')
         if attributes_filter:
-            filter_obj = {}
-            for attr_pk, attr_val_pk in filter:
+            for attr_pk, attr_val_pk in attributes_filter:
                 try:
                     attr_pk, attr_val_pk = int(attr_pk), int(attr_val_pk)
-                    filter_obj['variants__attributes__%s' % attr_pk] = attr_val_pk
+                    qs = qs.filter(**{'variants__attributes__%s' % attr_pk: attr_val_pk})
                 except ValueError:
                     pass
-            qs = qs.filter(**filter_obj)
-
         order_by = args.get('order_by')
         if order_by:
             qs = qs.order_by(order_by)
