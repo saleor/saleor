@@ -158,7 +158,7 @@ class ProductVariant(models.Model, Item):
         blank=True, null=True)
     product = models.ForeignKey(Product, related_name='variants')
     attributes = HStoreField(pgettext_lazy('Variant field', 'attributes'),
-        default='')
+        default={})
     images = models.ManyToManyField('ProductImage', through='VariantImage')
     objects = InheritanceManager()
 
