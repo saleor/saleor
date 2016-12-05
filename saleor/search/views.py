@@ -1,4 +1,4 @@
-import datetime
+from __future__ import unicode_literals
 
 from django.core.paginator import Paginator, InvalidPage
 from django.conf import settings
@@ -7,6 +7,7 @@ from django.shortcuts import render
 from haystack.forms import SearchForm
 
 from ..product.models import Product
+from .utils import visible_search_results
 
 
 def paginate_results(results, get_data, paginate_by=25):
@@ -15,16 +16,15 @@ def paginate_results(results, get_data, paginate_by=25):
     try:
         page = paginator.page(page_number)
     except InvalidPage:
-        raise Http404("No such page!")
+        raise Http404('No such page!')
     return page
 
 
 def search(request):
     form = SearchForm(data=request.GET or None, load_all=True)
-    today = datetime.date.today()
     if form.is_valid():
         results = form.search().models(Product)
-        results = results.filter_or(available_on__lte=today)
+        results = visible_search_results(results)
         page = paginate_results(results, request.GET, settings.PAGINATE_BY)
     else:
         page = form.no_query_found()
