@@ -8,6 +8,7 @@ except ImportError:
     from io import StringIO
 
 from django.contrib.sites.models import Site
+from django.core.files import File
 
 from saleor.discount.models import Sale
 from saleor.product.models import Category
@@ -48,23 +49,23 @@ def test_category_formatter(db):
 
 def test_feed_updater(product_in_stock, monkeypatch):
     variant = product_in_stock.variants.first()
-    fake_file = StringIO()
-    fake_file.__exit__ = lambda x, y, z: None
-    fake_file.close = lambda: None
-    fake_file.__enter__ = lambda: fake_file
+    buffer = StringIO()
+    fake_file = Mock(spec=File,
+                     __enter__=lambda x: buffer,
+                     __exit__=lambda x, y, z, a: None)
     monkeypatch.setattr(
         'saleor.data_feeds.google_merchant.default_storage.open',
         lambda path, mode: fake_file)
     monkeypatch.setattr(
         'saleor.data_feeds.google_merchant.COMPRESSION', False)
     update_feed()
-    fake_file.seek(0)
+    buffer.seek(0)
     categories = Category.objects.all()
     discounts = Sale.objects.all().prefetch_related('products',
                                                     'categories')
     category_paths = {}
     current_site = Site.objects.get_current()
-    reader = csv.DictReader(fake_file, dialect=csv.excel_tab)
+    reader = csv.DictReader(buffer, dialect=csv.excel_tab)
     for generated_item in reader:
         attributes = item_attributes(variant, categories, category_paths,
                                      current_site, discounts)
