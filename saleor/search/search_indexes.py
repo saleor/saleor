@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from haystack import indexes
 from ..product.models import Product
 from ..order.models import Order
@@ -15,14 +17,18 @@ class ProductIndex(indexes.SearchIndex, indexes.Indexable):
 
     def index_queryset(self, using=None):
         qs = self.get_model().objects.all()
-        qs = qs.prefetch_related('categories', 'images')
+        qs = qs.prefetch_related('categories', 'images', 'variants')
         return qs
 
     def prepare_categories(self, obj):
         return list(obj.categories.values_list('name', flat=True))
 
     def prepare_text(self, obj):
-        return [obj.name, obj.description]
+        text_to_index = [obj.name, obj.description]
+        for variant in obj.variants.all():
+            text_to_index.append(variant.name)
+            text_to_index.append(variant.sku)
+        return text_to_index
 
 
 class OrderIndex(indexes.SearchIndex, indexes.Indexable):
@@ -41,8 +47,7 @@ class OrderIndex(indexes.SearchIndex, indexes.Indexable):
         email = obj.user_email
         if not email and obj.user:
             email = obj.user.email
-        email_parts = email.split('@')
-        return [email, billing.phone, shipping.phone] + email_parts
+        return [email, billing.phone, shipping.phone]
 
 
 class UserIndex(indexes.SearchIndex, indexes.Indexable):
@@ -51,6 +56,13 @@ class UserIndex(indexes.SearchIndex, indexes.Indexable):
     def get_model(self):
         return User
 
+    def index_queryset(self, using=None):
+        return self.get_model().objects.prefetch_related('addresses')
+
     def prepare_text(self, obj):
-        email_parts = obj.email.split('@')
-        return [obj.email] + email_parts
+        data = [obj.email]
+        for address in obj.addresses.all():
+            data.append(address.first_name)
+            data.append(address.last_name)
+            data.append(address.phone)
+        return data
