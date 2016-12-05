@@ -47,7 +47,7 @@ class OrderIndex(indexes.SearchIndex, indexes.Indexable):
         email = obj.user_email
         if not email and obj.user:
             email = obj.user.email
-        return [email, billing.phone, shipping.phone]
+        return [obj.pk, email, billing.phone, shipping.phone]
 
 
 class UserIndex(indexes.SearchIndex, indexes.Indexable):
