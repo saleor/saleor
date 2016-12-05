@@ -47,6 +47,7 @@ def test_adding_invalid_quantity(cart, product_in_stock):
     with pytest.raises(ValueError):
         cart.add(variant, -1)
 
+
 @pytest.mark.parametrize('create_line_data, get_line_data, lines_equal', [
     (None, None, True),
     ({'gift-wrap': True}, None, False),

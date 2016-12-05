@@ -176,7 +176,8 @@ class Cart(models.Model):
     def get_line(self, variant, data=None):
         all_lines = self.lines.all()
         line = [line for line in all_lines
-                if line.variant_id == variant.id and line.data == data]
+                if line.variant_id == variant.id and
+                (line.data == data or line.data is data)]
         if line:
             return line[0]
 
