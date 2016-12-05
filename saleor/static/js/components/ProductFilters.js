@@ -17,8 +17,9 @@ class ProductFilters extends Component {
 		};
   }
 
-	onClick = (attribute, value) => {
+	onClick = (attribute, value, event) => {
 		const attrValue = `${attribute}:${value}`;
+		const element = event.target;
 		this.setState({
 			filters: Object.assign(
 				this.state.filters,
@@ -26,6 +27,12 @@ class ProductFilters extends Component {
 		});
 		const enabled = Object.keys(this.state.filters).filter(key => this.state.filters[key] === true);
 		this.props.onFilterChanged(enabled);
+		if (element.classList.contains("active")) {
+			element.classList.remove("active");
+		} else {
+			element.classList.add("active");
+		}
+		
 	}
 
 	render() {
@@ -56,7 +63,7 @@ class ProductFilters extends Component {
 										backgroundColor: value.color
 									}
 									return (
-										<button key={value.id} className="item" style={colorStyle} onClick={() => this.onClick(attribute.pk, value.pk)}>
+										<button key={value.id} className="item" style={colorStyle} onClick={(event) => this.onClick(attribute.pk, value.pk, event)}>
 											{value.display}
 										</button>
 									)
