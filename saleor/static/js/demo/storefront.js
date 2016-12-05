@@ -17,33 +17,16 @@ $.ajaxSetup({
 
 // Mobile menu
 
-$(document).ready((e) => {
-  
-  var supportsPassive = false;
-  function onScroll(func) {
-    window.addEventListener('scroll', func, supportsPassive ? {passive: true} : false);
-  }
-  
+$(document).ready((e) => {  
   var $toogleIcon = $('.navbar__brand__menu-toggle')
   var $mobileNav = $('nav')
-  var startScroll = 10
-  var $navBar = $('.navbar__brand')
   var windowWidth = $(window).width()
   
   if (windowWidth < 767) {
     $mobileNav.append('<ul class="nav navbar-nav navbar__menu__login"></ul>')
     $('.navbar__login a').appendTo('.navbar__menu__login')
                          .wrap( '<li class="nav-item login-item"></li>')
-                         .addClass('nav-link')
-    
-    onScroll((e) => {
-      if ($(window).scrollTop() > startScroll) {
-        console.log('wow')
-          $navBar.addClass('navbar__brand__shadow')
-      } else {
-          $navBar.removeClass('navbar__brand__shadow')
-      }              
-    }) 
+                         .addClass('nav-link') 
   }
   
   $toogleIcon.click((e) => {

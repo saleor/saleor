@@ -27,6 +27,7 @@
       width: 100vw;
       background-color: $white;
       z-index: 4;
+      border-bottom: 1px solid $gray;
     }
     .container {
       position: relative;
@@ -73,9 +74,6 @@
       max-height: 22px;
       padding-right: $global-padding * 1.5;
       padding-left: $global-padding;
-    }
-    &__shadow {
-      box-shadow: 1px 1px 10px 1px $gray;
     }
   }
   &__menu {
@@ -140,6 +138,7 @@
         }
         &.open {
           left: 0;
+          box-shadow: 1px 1px 10px 1px $gray;
         }
       }
     }
