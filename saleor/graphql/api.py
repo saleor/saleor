@@ -8,7 +8,7 @@ from graphene_django.debug import DjangoDebug
 from ..product.models import (AttributeChoiceValue, Category, Product,
                               ProductAttribute, ProductImage, ProductVariant)
 from .scalars import AttributesFilterScalar
-from .utils import DjangoPkInterface, get_object_or_none
+from .utils import DjangoPkInterface, connection_with_count, get_object_or_none
 
 
 class ProductType(DjangoObjectType):
@@ -43,6 +43,9 @@ class ProductType(DjangoObjectType):
     @graphene.resolve_only_args
     def resolve_url(self):
         return self.get_absolute_url()
+
+
+ProductType.Connection = connection_with_count(ProductType)
 
 
 class CategoryType(DjangoObjectType):

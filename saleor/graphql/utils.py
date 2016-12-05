@@ -1,4 +1,5 @@
 import graphene
+
 from django.shortcuts import _get_queryset
 
 
@@ -24,3 +25,17 @@ class DjangoPkInterface(graphene.Interface):
 
     def resolve_pk(self, args, context, info):
         return self.pk
+
+
+def connection_with_count(_type):
+    class Connection(graphene.relay.Connection):
+        total_count = graphene.Int()
+
+        class Meta:
+            name = _type._meta.name + 'Connection'
+            node = _type
+
+        def resolve_total_count(self, args, context, info):
+            return len(self.edges)
+
+    return Connection
