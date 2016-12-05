@@ -322,7 +322,8 @@ def test_cart_summary_page(client, product_in_stock, request_cart):
     request_cart.add(variant, 1)
     response = client.get('/cart/summary/')
     assert response.status_code == 200
-    content = response.json()
+    content = response.content.decode('utf-8')
+    content = json.loads(content)
     assert content['quantity'] == request_cart.quantity
     cart_total = request_cart.get_total()
     assert content['total'] == currencyfmt(
@@ -336,4 +337,5 @@ def test_cart_summary_page(client, product_in_stock, request_cart):
 def test_cart_summary_page_empty_cart(client, request_cart):
     response = client.get('/cart/summary/')
     assert response.status_code == 200
-    assert response.json() == {}
+    content = response.content.decode('utf-8')
+    assert json.loads(content) == {}
