@@ -32,6 +32,6 @@
 .maincontent {
   min-height: calc(100vh - 294px - 191px - 30px);
   @include media-breakpoint-down(sm) {
-    margin-top: 85px;
+    margin-top: 100px;
   }
 }
