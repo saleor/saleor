@@ -154,6 +154,7 @@ INSTALLED_APPS = [
     'saleor.shipping',
     'saleor.search',
     'saleor.integrations',
+    'saleor.data_feeds',
 
     # External apps
     'versatileimagefield',
