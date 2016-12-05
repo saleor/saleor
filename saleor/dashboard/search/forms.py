@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django import forms
 from django.template.defaultfilters import capfirst
 from django.utils.encoding import smart_text
@@ -12,7 +14,7 @@ from ...userprofile.models import User
 
 
 class ModelFilteredSearchForm(SearchForm):
-    MODELS_EMPTY_LABEL = _('All models')
+    MODELS_EMPTY_LABEL = _('All')
     INDEXED_MODELS = [Order, User, Product]
 
     def __init__(self, *args, **kwargs):
