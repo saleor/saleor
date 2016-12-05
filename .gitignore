@@ -24,4 +24,3 @@ dist/
 /static/
 /saleor/static/assets/
 webpack-bundle.json
-/saleor/whoosh_index/
