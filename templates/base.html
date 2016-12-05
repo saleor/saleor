@@ -79,6 +79,7 @@
                             </li>
                             {% endif %}
                         </ul>
+                        {% include "search/search_form.html" %}
                     </div>
                 </nav>
             </header>
@@ -107,7 +108,6 @@
             <div class="row">
                 <div class="col-sm-12">
                     {% block content %}
-                        {% include "search/search_form.html" %}
                         <div class="row">
                             {% include "category/_items.html" %}
                         </div>

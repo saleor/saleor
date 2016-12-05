@@ -20,7 +20,6 @@
 {% endblock breadcrumb %}
 
 {% block content %}
-    {% include "search/search_form.html" with query=query only %}
     <div class="row">
         {% if query and results %}
             {% include "search/_items.html" %}

@@ -1,5 +1,5 @@
-<form action="{% url "search:search" %}"  method="get">
-    <div class="input-group input-group-lg">
+<form action="{% url "search:search" %}"  method="get" class="navbar-form navbar-right">
+    <div class="input-group">
         <input type="text" class="form-control"  name="q"  placeholder="Search..." value="{% if query %}{{ query }}{% endif %}" autofocus>
         <span class="input-group-btn">
             <button class="btn btn-default">
@@ -8,4 +8,3 @@
         </span>
     </div>
 </form>
-<hr>
