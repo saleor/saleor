@@ -26,12 +26,13 @@ ATTRIBUTES = ['id', 'title', 'product_type', 'google_product_category',
 
 
 def get_feed_items():
-    return ProductVariant.objects.all().select_related(
-        'product'
-    ).prefetch_related(
-        'images', 'stock',
-        'product__attributes', 'product__categories', 'product__images',
+    items = ProductVariant.objects.all()
+    items = items.select_related('product')
+    items = items.prefetch_related(
+        'images', 'stock', 'product__attributes', 'product__categories',
+        'product__images',
     )
+    return items
 
 
 def item_id(item):
@@ -85,8 +86,7 @@ def item_tax(item, discounts):
     https://support.google.com/merchants/answer/6324454
     """
     price = item.get_price_per_item(discounts=discounts)
-    tax = price.gross - price.gross
-    return 'US::%s:y' % tax
+    return 'US::%s:y' % price.tax
 
 
 def item_group_id(item):
