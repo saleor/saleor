@@ -49,10 +49,20 @@ class CategoryType(DjangoObjectType):
     url = graphene.String()
     products = relay.ConnectionField(
         ProductType,
-        attributes=graphene.List(AttributesFilterScalar),
-        order_by=graphene.String(),
-        price_lte=graphene.Float(),
-        price_gte=graphene.Float())
+        attributes=graphene.Argument(
+            graphene.List(AttributesFilterScalar),
+            description="""A list of attribute:value pairs to filter
+                the products by"""),
+        order_by=graphene.Argument(
+            graphene.String,
+            description="""A name of field to sort the products by. The negative
+                sign in front of name implies descending order."""),
+        price_lte=graphene.Argument(
+            graphene.Float, description="""Get the products with price lower
+                than or equal to the given value"""),
+        price_gte=graphene.Argument(
+            graphene.Float, description="""Get the products with price greater
+                than or equal to the given value"""))
 
     class Meta:
         model = Category
