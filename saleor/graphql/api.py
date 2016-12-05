@@ -1,6 +1,8 @@
 import datetime
 import graphene
+import operator
 
+from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoObjectType
 from graphene_django.debug import DjangoDebug
@@ -82,20 +84,35 @@ class CategoryType(DjangoObjectType):
         price_lte = args.get('price_lte')
         price_gte = args.get('price_gte')
         if attributes_filter:
+            queries = {}
+            # Convert attribute:value pairs into a dictionary where
+            # attributes are keys and values are grouped in lists
             for attr_pk, attr_val_pk in attributes_filter:
                 try:
                     attr_pk, attr_val_pk = int(attr_pk), int(attr_val_pk)
-                    qs = qs.filter(
-                        **{'variants__attributes__%s' % attr_pk: attr_val_pk})
                 except ValueError:
                     pass
+                else:
+                    key = 'variants__attributes__%s' % attr_pk
+                    if key not in queries:
+                        queries[key] = [attr_val_pk]
+                    else:
+                        queries[key].append(attr_val_pk)
+            if queries:
+                # Combine filters of the same attribute with OR operator
+                # and then combine full query with AND operator.
+                combine_and = [reduce(operator.or_, [
+                    Q(**{key: v}) for v in values])
+                        for key, values in queries.items()]
+                query = reduce(operator.and_, combine_and)
+                qs = qs.filter(query)
         if order_by:
             qs = qs.order_by(order_by)
         if price_lte:
             qs = qs.filter(price__lte=price_lte)
         if price_gte:
             qs = qs.filter(price__gte=price_gte)
-        return qs
+        return qs.distinct()
 
 
 class ProductVariantType(DjangoObjectType):
