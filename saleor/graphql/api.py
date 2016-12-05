@@ -50,7 +50,9 @@ class CategoryType(DjangoObjectType):
     products = relay.ConnectionField(
         ProductType,
         attributes=graphene.List(AttributesFilterScalar),
-        order_by=graphene.String())
+        order_by=graphene.String(),
+        price_lte=graphene.Float(),
+        price_gte=graphene.Float())
 
     class Meta:
         model = Category
@@ -63,16 +65,23 @@ class CategoryType(DjangoObjectType):
     def resolve_products(self, args, context, info):
         qs = self.products.prefetch_for_api()
         attributes_filter = args.get('attributes')
+        order_by = args.get('order_by')
+        price_lte = args.get('price_lte')
+        price_gte = args.get('price_gte')
         if attributes_filter:
             for attr_pk, attr_val_pk in attributes_filter:
                 try:
                     attr_pk, attr_val_pk = int(attr_pk), int(attr_val_pk)
-                    qs = qs.filter(**{'variants__attributes__%s' % attr_pk: attr_val_pk})
+                    qs = qs.filter(
+                        **{'variants__attributes__%s' % attr_pk: attr_val_pk})
                 except ValueError:
                     pass
-        order_by = args.get('order_by')
         if order_by:
             qs = qs.order_by(order_by)
+        if price_lte:
+            qs = qs.filter(price__lte=price_lte)
+        if price_gte:
+            qs = qs.filter(price__gte=price_gte)
         return qs
 
 
