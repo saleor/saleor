@@ -3,6 +3,8 @@ import Relay from 'react-relay'
 import ProductList from './ProductList'
 import ProductFilters from './ProductFilters'
 
+const PAGINATE_BY = 20;
+
 
 class CategoryPage extends Component {
 
@@ -15,6 +17,12 @@ class CategoryPage extends Component {
   onFilterChanged = (enabled) => {
     this.props.relay.setVariables({
       attributesFilter: enabled
+    })
+  }
+
+  onLoadMore = () => {
+    this.props.relay.setVariables({
+      count: this.props.relay.variables.count + PAGINATE_BY
     })
   }
 
@@ -33,7 +41,10 @@ class CategoryPage extends Component {
 				</div>
 				<div className="col-md-9">
 					<div className="row">
-						<ProductList products={category.products} />
+						<ProductList
+              onLoadMore={this.onLoadMore}
+              products={category.products}
+            />
 					</div>
 				</div>		
 			</div>
@@ -43,7 +54,8 @@ class CategoryPage extends Component {
 
 export default Relay.createContainer(CategoryPage, {
   initialVariables: {
-    attributesFilter: []
+    attributesFilter: [],
+    count: PAGINATE_BY
   },
   fragments: {
     category: () => Relay.QL`
@@ -60,7 +72,7 @@ export default Relay.createContainer(CategoryPage, {
             }
           }
         }
-        products (first: 20, attributes: $attributesFilter) {
+        products (first: $count, attributes: $attributesFilter) {
           ${ProductList.getFragment('products')}
         }
       }
