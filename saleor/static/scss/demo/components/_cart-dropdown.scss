@@ -25,8 +25,10 @@
     margin-right: $global-margin / 2;
   }
   &__delete {
-    margin-bottom: $global-margin;
     display: block;
+    img {
+      margin-bottom: $global-margin;
+    }
   }
   &__actions {
     margin-top: $global-margin * 2;
@@ -46,5 +48,8 @@
     img {
       margin: $global-margin 0;
     }
+  }
+  &.show {
+    display: block;
   }
 }

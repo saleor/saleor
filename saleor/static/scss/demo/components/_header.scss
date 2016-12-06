@@ -33,9 +33,6 @@
       position: relative;
     }
     &__cart {
-      &:hover .cart-dropdown {
-        display: block;
-      }
       @include media-breakpoint-up(md) {
         margin-top: $global-margin / 2;
       }
