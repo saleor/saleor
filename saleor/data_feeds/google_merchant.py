@@ -9,6 +9,7 @@ from django.contrib.sites.models import Site
 from django.contrib.syndication.views import add_domain
 from django.core.files.storage import default_storage
 
+from saleor.shipping.models import ShippingMethodCountry
 from ..discount.models import Sale
 from ..product.models import ProductVariant, Category
 
@@ -109,12 +110,22 @@ def item_availability(item):
 
 def item_shipping(item):
     """
-    You can set one shipping cost in feed settings or precise shipping cost
-    for every item.
+    You can set one shipping cost in feed settings (in Google Merchant
+    dashboard) or precise shipping cost for every item.
     Read more:
     https://support.google.com/merchants/answer/7050921
     """
-    return ''
+    if not item.is_shipping_required():
+        return '%s:::0 %s' % (settings.DEFAULT_COUNTRY,
+                              settings.DEFAULT_CURRENCY)
+
+    shipping_method = ShippingMethodCountry.objects.unique_for_country_code(
+        settings.DEFAULT_COUNTRY).order_by('price').first()
+    if shipping_method is None:
+        return ''
+    shipping_cost = shipping_method.price
+    return '%s:::%s %s' % (settings.DEFAULT_COUNTRY, shipping_cost.gross,
+                           shipping_cost.currency)
 
 
 def item_google_product_category(item, category_paths):
