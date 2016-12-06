@@ -1,11 +1,8 @@
 {% load i18n %}
 {% load staticfiles %}
 {% load price_range from price_ranges %}
-{% load discounted_price_range price_difference from discount %}
-{% load pricing_info_for_product from product_tags %}
-{% load product_first_image from product_images %}
 
-{% for product in products %}
+{% for product, availability in products %}
     <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3" itemscope itemtype="https://schema.org/Product">
         <div class="panel panel-default text-center">
             <div class="panel-body">
@@ -16,9 +13,8 @@
             </div>
 
             <div class="panel-footer">
-                {% if product.is_in_stock %}
-                    {% pricing_info_for_product product request.discounts as pricing_info %}
-                    {% price_range pricing_info.price_range %}
+                {% if availability.available %}
+                    {% price_range availability.price_range %}
                     {% if pricing_info.discount %}
                         <span class="label label-success">{% trans "Discount!" %}</span>
                     {% endif %}

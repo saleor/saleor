@@ -11,8 +11,8 @@ from ..cart.decorators import get_cart_from_request
 from ..core.utils import get_paginator_items
 from .forms import get_form_class_for_product
 from .models import Category
-from .utils import (products_with_details,
-                    get_pricing_info, get_product_images)
+from .utils import (products_with_details, get_availability,
+                    products_with_availability, get_product_images)
 
 
 def product_details(request, slug, product_id):
@@ -62,7 +62,7 @@ def product_details(request, slug, product_id):
         form.save()
         return redirect('cart:index')
 
-    pricing_info = get_pricing_info(product, discounts=request.discounts,
+    pricing_info = get_availability(product, discounts=request.discounts,
                                     local_currency=request.currency)
 
     template_name = 'product/details_%s.html' % (
@@ -90,10 +90,13 @@ def category_index(request, path, category_id):
     products = category.products.get_available_products()
     products = products.prefetch_related(
         'images', 'variants', 'variants__stock')
-    products = get_paginator_items(
+    products_page = get_paginator_items(
         products, settings.PAGINATE_BY, request.GET.get('page'))
+    products = products_with_availability(
+        products_page, discounts=request.discounts, local_currency=request.currency)
     return TemplateResponse(
         request, 'category/index.html',
         {'products': products, 'category': category,
          'children_categories': children_categories,
-         'breadcrumbs': breadcrumbs})
+         'breadcrumbs': breadcrumbs,
+         'products_page': products_page})

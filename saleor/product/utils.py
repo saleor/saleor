@@ -28,13 +28,18 @@ def get_product_images(product):
     return list(product.images.all())
 
 
-PricingInfo = namedtuple(
-    'PricingInfo', ('price_range', 'discount',
-                    'price_range_local_currency',
-                    'discount_local_currency'))
+def products_with_availability(products, discounts, local_currency):
+    for product in products:
+        yield (product, get_availability(product, discounts, local_currency))
 
 
-def get_pricing_info(product, discounts=None, local_currency=None):
+ProductAvailability = namedtuple(
+    'ProductAvailability', (
+        'available', 'price_range', 'discount',
+        'price_range_local_currency', 'discount_local_currency'))
+
+
+def get_availability(product, discounts=None, local_currency=None):
     # In default currency
     price_range = product.get_price_range(discounts=discounts)
     uncdiscounted = product.get_price_range()
@@ -58,7 +63,11 @@ def get_pricing_info(product, discounts=None, local_currency=None):
         price_range_local = None
         discount_local_currency = None
 
-    return PricingInfo(price_range=price_range,
-                       discount=discount,
-                       price_range_local_currency=price_range_local,
-                       discount_local_currency=discount_local_currency)
+    is_available = product.is_in_stock() and product.is_available()
+
+    return ProductAvailability(
+        available=is_available,
+        price_range=price_range,
+        discount=discount,
+        price_range_local_currency=price_range_local,
+        discount_local_currency=discount_local_currency)

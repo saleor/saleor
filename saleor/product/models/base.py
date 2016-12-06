@@ -126,6 +126,10 @@ class Product(models.Model, ItemRange):
                 return category
         return None
 
+    def is_available(self):
+        today = datetime.date.today()
+        return self.available_on is None or self.available_on <= today
+
     def get_first_image(self):
         first_image = self.images.first()
 
