@@ -6,44 +6,44 @@ import ProductItem from './ProductItem';
 
 class ProductList extends Component {
 
-	static propTypes = {
-		onLoadMore: PropTypes.func.isRequired,
-		products: PropTypes.object
-	};
+  static propTypes = {
+    onLoadMore: PropTypes.func.isRequired,
+    products: PropTypes.object
+  };
 
-	onLoadMore = () => this.props.onLoadMore();
+  onLoadMore = () => this.props.onLoadMore();
 
-	render() {
-		const { edges, pageInfo: { hasNextPage } } = this.props.products;
-		return (
-			<div>
-				<div>
-					{edges && (edges.map((edge, i) => (
-						<ProductItem key={i} product={edge.node} />
-					)))}
-				</div>
-				<div>
-					{hasNextPage && (
-						<button onClick={this.onLoadMore}>Load more</button>
-					)}
-				</div>
-			</div>
-		)
-	}
+  render() {
+    const { edges, pageInfo: { hasNextPage } } = this.props.products;
+    return (
+      <div>
+        <div>
+          {edges && (edges.map((edge, i) => (
+            <ProductItem key={i} product={edge.node} />
+          )))}
+        </div>
+        <div>
+          {hasNextPage && (
+            <button onClick={this.onLoadMore}>Load more</button>
+          )}
+        </div>
+      </div>
+    )
+  }
 }
 
 export default Relay.createContainer(ProductList, {
   fragments: {
     products: () => Relay.QL`
       fragment on ProductTypeConnection {
-				edges {
-					node {
-						${ProductItem.getFragment('product')}
-					}
-				}
-				pageInfo {
-					hasNextPage
-				}
+        edges {
+          node {
+            ${ProductItem.getFragment('product')}
+          }
+        }
+        pageInfo {
+          hasNextPage
+        }
       }
     `,
   },

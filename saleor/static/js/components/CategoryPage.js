@@ -8,11 +8,11 @@ const PAGINATE_BY = 20;
 
 class CategoryPage extends Component {
 
-	static propTypes = {
-		attributes: PropTypes.array,
-		category: PropTypes.object,
+  static propTypes = {
+    attributes: PropTypes.array,
+    category: PropTypes.object,
     relay: PropTypes.object
-	}
+  }
 
   onFilterChanged = (attributes) => {
     if (attributes) {
@@ -35,31 +35,31 @@ class CategoryPage extends Component {
     })
   }
 
-	render() {
-		const category = this.props.category;
-		const attributes = this.props.attributes;
+  render() {
+    const category = this.props.category;
+    const attributes = this.props.attributes;
 
-		return (
-			<div className="row">
-				<div className="col-md-3">
-					<ProductFilters
+    return (
+      <div className="row">
+        <div className="col-md-3">
+          <ProductFilters
             attributes={attributes}
             categories={category}
             onFilterChanged={this.onFilterChanged}
             onPriceFilterChanged={this.onPriceFilterChanged}
           />
-				</div>
-				<div className="col-md-9">
-					<div className="row">
-						<ProductList
+        </div>
+        <div className="col-md-9">
+          <div className="row">
+            <ProductList
               onLoadMore={this.onLoadMore}
               products={category.products}
             />
-					</div>
-				</div>		
-			</div>
-		)
-	}
+          </div>
+        </div>    
+      </div>
+    )
+  }
 }
 
 export default Relay.createContainer(CategoryPage, {
