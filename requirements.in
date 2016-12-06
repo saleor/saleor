@@ -10,7 +10,6 @@ django-cache-url>=1.0.0
 django-countries>=3.4
 django-emailit>=0.2.2
 django-materializecss-form>=0.1
-django-model-utils>=2.3
 django-mptt>=0.7.1
 django-payments>=0.9.0,<0.10a0
 django-prices>=0.4.11,<0.5a0

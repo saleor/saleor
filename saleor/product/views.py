@@ -93,7 +93,7 @@ def category_index(request, path, category_id):
     if actual_path != path:
         return redirect('product:category', permanent=True, path=actual_path,
                         category_id=category_id)
-    products = category.products.get_available_products().select_subclasses()
+    products = category.products.get_available_products()
     products = products.prefetch_related(
         'images', 'variants', 'variants__stock')
     products = get_paginator_items(

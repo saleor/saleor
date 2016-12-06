@@ -23,8 +23,8 @@ def test_get_cart_from_request_anonymous(monkeypatch):
     qs_mock = Mock(return_value=[empty_cart])
     qs_mock.get.return_value = empty_cart
     qs_mock.open.return_value = qs_mock
-    monkeypatch.setattr(Cart.objects, 'anonymous', lambda: qs_mock)
-    cart = decorators.get_cart_from_request(request)
+    qs_mock.filter.return_value = qs_mock
+    cart = decorators.get_cart_from_request(request, cart_queryset=qs_mock)
     assert cart.pk == empty_cart.pk
 
 
@@ -50,8 +50,8 @@ def test_get_or_create_db_cart(monkeypatch, django_user_model):
     request = get_request(django_user_model, authenticated=True,
                           cookie_token=empty_cart.token)
     monkeypatch.setattr(decorators, 'get_cart_from_request',
-                        lambda r, create: empty_cart)
-    decorated_view = decorators.get_or_create_db_cart(lambda r, c: c)
+                        lambda r, cart_queryset, create: empty_cart)
+    decorated_view = decorators.get_or_create_db_cart()(lambda r, c: c)
     response_cart = decorated_view(request)
     assert response_cart.token == empty_cart.token
 
@@ -79,8 +79,8 @@ def test_get_or_empty_db_cart(rf, monkeypatch):
     request = rf.get('/')
     empty_cart = Cart()
     monkeypatch.setattr(decorators, 'get_cart_from_request',
-                        lambda req: empty_cart)
-    decorated_view = get_or_empty_db_cart(lambda req, cart: cart)
+                        lambda req, cart_queryset: empty_cart)
+    decorated_view = get_or_empty_db_cart()(lambda req, cart: cart)
     view_cart = decorated_view(request)
     assert view_cart.pk == empty_cart.pk
 

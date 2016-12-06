@@ -3,11 +3,11 @@ from __future__ import unicode_literals
 import json
 
 import pytest
+from babeldjango.templatetags.babel import currencyfmt
 from django.core.exceptions import ObjectDoesNotExist
 from mock import MagicMock, Mock
 
 from saleor.cart import decorators, forms, utils
-from saleor.cart.context_processors import cart_counter
 from saleor.cart.models import Cart
 from satchless.item import InsufficientStock
 
@@ -48,11 +48,19 @@ def test_adding_invalid_quantity(cart, product_in_stock):
         cart.add(variant, -1)
 
 
-def test_getting_line(cart, product_in_stock):
+@pytest.mark.parametrize('create_line_data, get_line_data, lines_equal', [
+    (None, None, True),
+    ({'gift-wrap': True}, None, False),
+    ({'gift-wrap': True}, {'gift-wrap': True}, True)
+])
+def test_getting_line(create_line_data, get_line_data, lines_equal,
+                      cart, product_in_stock):
     variant = product_in_stock.variants.get()
     assert cart.get_line(variant) is None
-    line = cart.create_line(variant, 1, None)
-    assert line == cart.get_line(variant)
+    line = cart.create_line(variant, 1, create_line_data)
+    fetched_line = cart.get_line(variant, data=get_line_data)
+    lines_are_equal = fetched_line == line
+    assert lines_equal is lines_are_equal
 
 
 def test_change_status(cart):
@@ -70,13 +78,6 @@ def test_shipping_detection(cart, product_in_stock):
     assert not cart.is_shipping_required()
     cart.add(variant, 1, replace=True)
     assert cart.is_shipping_required()
-
-
-def test_cart_counter(monkeypatch):
-    monkeypatch.setattr('saleor.cart.context_processors.get_cart_from_request',
-                        Mock(return_value=Mock(quantity=4)))
-    ret = cart_counter(Mock())
-    assert ret == {'cart_counter': 4}
 
 
 def test_get_product_variants_and_prices():
@@ -117,11 +118,11 @@ def test_contains_unavailable_variants():
     missing_variant = Mock(
         check_quantity=Mock(side_effect=InsufficientStock('')))
     cart = MagicMock()
-    cart.__iter__.return_value = [Mock(variant=missing_variant)]
+    cart.lines.all.return_value = [Mock(variant=missing_variant)]
     assert utils.contains_unavailable_variants(cart)
 
     variant = Mock(check_quantity=Mock())
-    cart.__iter__.return_value = [Mock(variant=variant)]
+    cart.lines.all.return_value = [Mock(variant=variant)]
     assert not utils.contains_unavailable_variants(cart)
 
 
@@ -322,3 +323,27 @@ def test_cart_page_with_openexchagerates(
     response = client.get('/cart/')
     context = response.context
     assert context['local_cart_total'].currency == 'PLN'
+
+
+def test_cart_summary_page(client, product_in_stock, request_cart):
+    variant = product_in_stock.variants.get()
+    request_cart.add(variant, 1)
+    response = client.get('/cart/summary/')
+    assert response.status_code == 200
+    content = response.content.decode('utf-8')
+    content = json.loads(content)
+    assert content['quantity'] == request_cart.quantity
+    cart_total = request_cart.get_total()
+    assert content['total'] == currencyfmt(
+        cart_total.gross, cart_total.currency)
+    assert len(content['lines']) == 1
+    cart_line = content['lines'][0]
+    assert cart_line['variant'] == variant.name
+    assert cart_line['quantity'] == 1
+
+
+def test_cart_summary_page_empty_cart(client, request_cart):
+    response = client.get('/cart/summary/')
+    assert response.status_code == 200
+    content = response.content.decode('utf-8')
+    assert json.loads(content) == {}

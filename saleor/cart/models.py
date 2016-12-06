@@ -52,8 +52,15 @@ class CartQueryset(models.QuerySet):
     def save(self):
         self.update(status=Cart.SAVED)
 
+    def for_display(self):
+        return self.prefetch_related(
+            'lines', 'lines__variant', 'lines__variant__product__attributes',
+            'lines__variant__product__attributes__values',
+            'lines__variant__stock', 'lines__variant__product__images',
+            'lines__variant__product')
 
-class Cart(models.Model, ItemSet):
+
+class Cart(models.Model):
 
     COOKIE_NAME = 'cart'
 
@@ -142,11 +149,18 @@ class Cart(models.Model, ItemSet):
     def __repr__(self):
         return 'Cart(quantity=%s)' % (self.quantity,)
 
-    def __iter__(self):
-        return iter(self.lines.all())
-
     def __len__(self):
         return self.lines.count()
+
+    def get_subtotal(self, item, **kwargs):
+        return item.get_total(**kwargs)
+
+    def get_total(self, **kwargs):
+        subtotals = [self.get_subtotal(item, **kwargs)
+                     for item in self.lines.all()]
+        if not subtotals:
+            raise AttributeError('Calling get_total() on an empty item set')
+        return sum(subtotals[1:], subtotals[0])
 
     def count(self):
         lines = self.lines.all()
@@ -156,19 +170,23 @@ class Cart(models.Model, ItemSet):
         self.delete()
 
     def create_line(self, variant, quantity, data):
-        line = self.lines.create(variant=variant, quantity=quantity, data=data)
+        line = self.lines.create(variant=variant, quantity=quantity,
+                                 data=data or {})
         return line
 
     def get_line(self, variant, data=None):
-        try:
-            return self.lines.get(variant=variant)
-        except CartLine.DoesNotExist:
-            return None
+        all_lines = self.lines.all()
+        if data is None:
+            data = {}
+        line = [line for line in all_lines
+                if line.variant_id == variant.id and line.data == data]
+        if line:
+            return line[0]
 
     def add(self, variant, quantity=1, data=None, replace=False,
             check_quantity=True):
         cart_line, created = self.lines.get_or_create(
-            variant=variant, defaults={'quantity': 0, 'data': data})
+            variant=variant, defaults={'quantity': 0, 'data': data or {}})
         if replace:
             new_quantity = quantity
         else:
@@ -192,7 +210,7 @@ class Cart(models.Model, ItemSet):
     def partition(self):
         grouper = (
             lambda p: 'physical' if p.is_shipping_required() else 'digital')
-        return partition(self, grouper, ProductGroup)
+        return partition(self.lines.all(), grouper, ProductGroup)
 
 
 @python_2_unicode_compatible
@@ -206,7 +224,6 @@ class CartLine(models.Model, ItemLine):
         pgettext_lazy('Cart line', 'quantity'),
         validators=[MinValueValidator(0), MaxValueValidator(999)])
     data = JSONField(blank=True, default={})
-
 
     class Meta:
         unique_together = ('cart', 'variant', 'data')

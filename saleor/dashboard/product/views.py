@@ -17,7 +17,7 @@ from ..views import staff_member_required
 
 @staff_member_required
 def product_list(request):
-    products = Product.objects.prefetch_related('images').select_subclasses()
+    products = Product.objects.prefetch_related('images')
     form = forms.ProductClassForm(request.POST or None)
     if form.is_valid():
         return redirect('dashboard:product-add')
@@ -43,11 +43,11 @@ def product_create(request):
 @staff_member_required
 def product_edit(request, pk):
     product = get_object_or_404(
-        Product.objects.select_subclasses().prefetch_related(
+        Product.objects.prefetch_related(
             'images', 'variants'), pk=pk)
     attributes = product.attributes.prefetch_related('values')
     images = product.images.all()
-    variants = product.variants.select_subclasses()
+    variants = product.variants.all()
     stock_items = Stock.objects.filter(
         variant__in=variants).select_related('variant')
 
@@ -173,11 +173,11 @@ def product_image_delete(request, product_pk, img_pk):
 
 @staff_member_required
 def variant_edit(request, product_pk, variant_pk=None):
-    product = get_object_or_404(Product.objects.select_subclasses(),
+    product = get_object_or_404(Product.objects.all(),
                                 pk=product_pk)
     form_initial = {}
     if variant_pk:
-        variant = get_object_or_404(product.variants.select_subclasses(),
+        variant = get_object_or_404(product.variants.all(),
                                     pk=variant_pk)
     else:
         variant = ProductVariant(product=product)

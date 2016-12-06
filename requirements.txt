@@ -22,7 +22,6 @@ django-cache-url==1.3.0
 django-countries==4.0
 django-emailit==0.2.2
 django-materializecss-form==1.0.1
-django-model-utils==2.6
 django-mptt==0.8.6
 django-payments==0.9.5
 django-prices-openexchangerates==0.1.12
