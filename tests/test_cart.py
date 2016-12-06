@@ -51,7 +51,7 @@ def test_adding_invalid_quantity(cart, product_in_stock):
 @pytest.mark.parametrize('create_line_data, get_line_data, lines_equal', [
     (None, None, True),
     ({'gift-wrap': True}, None, False),
-    ({'gift-wrap': True}, {'gift-wrap': True}, True),
+    ({'gift-wrap': True}, {'gift-wrap': True}, True)
 ])
 def test_getting_line(create_line_data, get_line_data, lines_equal,
                       cart, product_in_stock):

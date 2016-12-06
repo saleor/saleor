@@ -170,21 +170,23 @@ class Cart(models.Model):
         self.delete()
 
     def create_line(self, variant, quantity, data):
-        line = self.lines.create(variant=variant, quantity=quantity, data=data)
+        line = self.lines.create(variant=variant, quantity=quantity,
+                                 data=data or {})
         return line
 
     def get_line(self, variant, data=None):
         all_lines = self.lines.all()
+        if data is None:
+            data = {}
         line = [line for line in all_lines
-                if line.variant_id == variant.id and
-                (line.data == data or line.data is data)]
+                if line.variant_id == variant.id and line.data == data]
         if line:
             return line[0]
 
     def add(self, variant, quantity=1, data=None, replace=False,
             check_quantity=True):
         cart_line, created = self.lines.get_or_create(
-            variant=variant, defaults={'quantity': 0, 'data': data})
+            variant=variant, defaults={'quantity': 0, 'data': data or {}})
         if replace:
             new_quantity = quantity
         else:
