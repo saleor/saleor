@@ -30,7 +30,7 @@ def get_product_images(product):
 
 def products_with_availability(products, discounts, local_currency):
     for product in products:
-        yield (product, get_availability(product, discounts, local_currency))
+        yield product, get_availability(product, discounts, local_currency)
 
 
 ProductAvailability = namedtuple(
