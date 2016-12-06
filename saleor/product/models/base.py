@@ -240,6 +240,15 @@ class ProductVariant(models.Model, Item):
             return stock.cost_price
 
 
+@python_2_unicode_compatible
+class StockLocation(models.Model):
+    location = models.CharField(
+        pgettext_lazy('Stock item field', 'location'), max_length=100)
+
+    def __str__(self):
+        return self.location
+
+
 class StockManager(models.Manager):
 
     def allocate_stock(self, stock, quantity):
@@ -261,8 +270,7 @@ class Stock(models.Model):
     variant = models.ForeignKey(
         ProductVariant, related_name='stock',
         verbose_name=pgettext_lazy('Stock item field', 'variant'))
-    location = models.CharField(
-        pgettext_lazy('Stock item field', 'location'), max_length=100)
+    location = models.ForeignKey(StockLocation)
     quantity = models.IntegerField(
         pgettext_lazy('Stock item field', 'quantity'),
         validators=[MinValueValidator(0)], default=Decimal(1))
