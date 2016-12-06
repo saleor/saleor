@@ -56,9 +56,11 @@
                       <a href="{% url "cart:index" %}">
                         <span class="hidden-sm-down">{% trans "Your cart" %}</span>
                         <img class="navbar__brand__cart__icon" src="{% static "img/cart.svg" %}" alt="Cart"> 
-                        {% if cart_counter %}<span class="badge">{{ cart_counter }}</span>{% endif %}  
+                        <span class="badge {% if not cart_counter %}hidden-xs-up{% endif %}">{{ cart_counter }}</span>
                       </a>
+                      <div class="cart-dropdown hidden-md-down">
                       {% include 'cart-dropdown.html' %}
+                      </div>
                     </div>
                   </div>
                 </div>
