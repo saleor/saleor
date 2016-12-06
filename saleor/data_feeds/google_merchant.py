@@ -30,8 +30,7 @@ def get_feed_items():
     items = items.select_related('product')
     items = items.prefetch_related(
         'images', 'stock', 'product__attributes', 'product__categories',
-        'product__images',
-    )
+        'product__images')
     return items
 
 
@@ -162,8 +161,7 @@ def item_attributes(item, categories, category_paths, current_site,
             item, category_paths),
         'link': item_link(item, current_site),
         'shipping': item_shipping(item),
-        'brand': item_brand(item)
-    }
+        'brand': item_brand(item)}
 
     image_link = item_image_link(item, current_site)
     if image_link:
@@ -211,9 +209,9 @@ def update_feed():
         current_site = Site.objects.get_current()
 
         for item in get_feed_items():
-            writer.writerow(
-                item_attributes(item, categories, category_paths,
-                                current_site, discounts))
+            item_data = item_attributes(item, categories, category_paths,
+                                        current_site, discounts)
+            writer.writerow(item_data)
 
         if COMPRESSION:
             output.close()
