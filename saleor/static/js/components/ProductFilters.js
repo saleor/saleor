@@ -22,7 +22,6 @@ class ProductFilters extends Component {
   }
 
 	onClick = (attribute, value, event) => {
-
 		const attrValue = `${attribute}:${value}`;
 		let url = '';
 		const element = event.target;
@@ -36,33 +35,30 @@ class ProductFilters extends Component {
 		this.props.onFilterChanged(enabled);
 
 		enabled.map((param, index) => {
-			param = param.replace(':',"=")
+			param = param.replace(':', '=');
 			if (index == 0) {
-				url += '?'+param
+				url += '?' + param;
 			} else {
-				url += '&'+param
+				url += '&' + param;
 			}
-		})
+		});
 
 		if (enabled.length == 0) {
-			url = location.href.split("?")[0];
+			url = location.href.split('?')[0];
 		}
 
 		history.pushState({}, null , url); 
 
-		if (element.classList.contains("active")) {
-			element.classList.remove("active");
+		if (element.classList.contains('active')) {
+			element.classList.remove('active');
 		} else {
-			element.classList.add("active");
+			element.classList.add('active');
 		}
-		
 	}
 
 	componentDidMount() {
-
 		let url_params = queryString.parse(location.search);
-		
-		Object.keys(url_params).map((params, index) => {
+		Object.keys(url_params).map((params) => {
 			let attrValue = '';
 			if (Array.isArray(url_params[params])) {
 				url_params[params].map((param) => {
@@ -73,7 +69,7 @@ class ProductFilters extends Component {
 							{[attrValue]: true})
 					});
 					const elementID = 'attr'+params+param;
-					document.getElementById(elementID).classList.add("active");
+					document.getElementById(elementID).classList.add('active');
 				})
 			} else {
 				attrValue = `${params}:${url_params[params]}`;
@@ -83,13 +79,12 @@ class ProductFilters extends Component {
 						{[attrValue]: true})
 				});
 				const elementID = 'attr'+params+url_params[params];
-				document.getElementById(elementID).classList.add("active");
+				document.getElementById(elementID).classList.add('active');
 			}
 		})
 
 		const enabled = Object.keys(this.state.filters).filter(key => this.state.filters[key] === true);
 		this.props.onFilterChanged(enabled);
-
 	}
 
 	onPriceFilterChanged = (minPrice, maxPrice) => {
@@ -124,7 +119,13 @@ class ProductFilters extends Component {
 										backgroundColor: value.color
 									}
 									return (
-										<button id={"attr"+attribute.pk+value.pk} key={value.id} className="item" style={colorStyle} onClick={(event) => this.onClick(attribute.pk, value.pk, event)}>
+										<button
+                      id={'attr' + attribute.pk+value.pk}
+                      key={value.id}
+                      className="item"
+                      style={colorStyle}
+                      onClick={(event) => this.onClick(attribute.pk, value.pk, event)}
+                    >
 											{value.display}
 										</button>
 									)
