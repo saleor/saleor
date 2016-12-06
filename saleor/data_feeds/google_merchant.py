@@ -8,8 +8,9 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.contrib.syndication.views import add_domain
 from django.core.files.storage import default_storage
+from django.utils import six
 
-from saleor.shipping.models import ShippingMethodCountry
+from ..shipping.models import ShippingMethodCountry
 from ..discount.models import Sale
 from ..product.models import ProductVariant, Category
 
@@ -17,7 +18,6 @@ CATEGORY_SEPARATOR = ' > '
 
 FILE_PATH = path.join(settings.INTEGRATIONS_DIR, 'saleor-feed.csv.gz')
 FILE_URL = default_storage.url(FILE_PATH)
-COMPRESSION = False
 
 ATTRIBUTES = ['id', 'title', 'product_type', 'google_product_category',
               'link', 'image_link', 'condition', 'availability',
@@ -199,30 +199,32 @@ def item_attributes(item, categories, category_paths, current_site,
     return product_data
 
 
-def update_feed():
-    with default_storage.open(FILE_PATH, 'wb') as output_file:
-        if COMPRESSION:
-            try:
-                output = gzip.open(output_file, 'wt')
-            except TypeError:
-                output = gzip.GzipFile(fileobj=output_file, mode='w')
+def write_feed(file_obj):
+    """
+    Writes feed contents info provided file object
+    """
+    writer = csv.DictWriter(file_obj, ATTRIBUTES, dialect=csv.excel_tab)
+    writer.writeheader()
+    categories = Category.objects.all()
+    discounts = Sale.objects.all().prefetch_related('products',
+                                                    'categories')
+    category_paths = {}
+    current_site = Site.objects.get_current()
+    for item in get_feed_items():
+        item_data = item_attributes(item, categories, category_paths,
+                                    current_site, discounts)
+        writer.writerow(item_data)
+
+
+def update_feed(file_path=FILE_PATH):
+    """
+    Save updated feed into path provided as argument. Default path is defined in
+    module as FILE_PATH.
+    """
+    with default_storage.open(file_path, 'wb') as output_file:
+        if six.PY3:
+            output = gzip.open(output_file, 'wt')
         else:
-            output = output_file
-
-        writer = csv.DictWriter(output, ATTRIBUTES,
-                                dialect=csv.excel_tab)
-        writer.writeheader()
-
-        categories = Category.objects.all()
-        discounts = Sale.objects.all().prefetch_related('products',
-                                                        'categories')
-        category_paths = {}
-        current_site = Site.objects.get_current()
-
-        for item in get_feed_items():
-            item_data = item_attributes(item, categories, category_paths,
-                                        current_site, discounts)
-            writer.writerow(item_data)
-
-        if COMPRESSION:
-            output.close()
+            output = gzip.GzipFile(fileobj=output_file, mode='w')
+        write_feed(output)
+        output.close()
