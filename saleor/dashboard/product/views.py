@@ -11,7 +11,7 @@ from django.views.decorators.http import require_http_methods
 from . import forms
 from ...core.utils import get_paginator_items
 from ...product.models import (Product, ProductAttribute, ProductImage,
-                               ProductVariant, Stock)
+                               ProductVariant, Stock, StockLocation)
 from ..views import staff_member_required
 
 
@@ -274,3 +274,11 @@ def attribute_delete(request, pk):
     ctx = {'attribute': attribute}
     return TemplateResponse(
         request, 'dashboard/product/attributes/modal_confirm_delete.html', ctx)
+
+
+@staff_member_required
+def stock_location_list(request):
+    stock_locations = StockLocation.objects.all()
+    ctx = {'locations': stock_locations}
+    return TemplateResponse(
+        request, 'dashboard/product/stock_locations/list.html', ctx)
