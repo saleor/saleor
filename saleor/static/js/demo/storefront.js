@@ -55,3 +55,40 @@ if ($initialValue) {
 } else {
   $addressForm.slideUp(0)
 }
+
+//Cart dropdown
+
+var summaryLink = "/cart/summary"
+var $cartDropdown = $(".cart-dropdown")
+$.get(summaryLink, (data) => {
+    $cartDropdown.html(data)
+})
+$('.navbar__brand__cart').hover((e) => {
+  $cartDropdown.addClass("show");
+}, (e) => {
+  $cartDropdown.removeClass("show");
+})
+$('.product-form button').click((e) => {
+  e.preventDefault()
+  var quantity = $('#id_quantity').val()
+  var variant = $('#id_variant').val()
+  $.ajax ({
+    url: $(this).attr('action'),
+    type: 'POST',
+    data: {
+      variant: variant, 
+      quantity: quantity
+    },
+    success: function() {
+      $.get(summaryLink, (data) => {
+          $cartDropdown.html(data)
+          var newQunatity = $('.cart-dropdown__total').data('quantity')
+          $('.badge').html(newQunatity).removeClass('hidden-xs-up')
+          $cartDropdown.addClass("show")
+          setTimeout((e) => {
+            $cartDropdown.removeClass('show');
+          }, 2000)
+      })
+    }
+  })
+});
