@@ -14,10 +14,19 @@ class CategoryPage extends Component {
     relay: PropTypes.object
 	}
 
-  onFilterChanged = (enabled) => {
+  onFilterChanged = (attributes) => {
+    if (attributes) {
+      this.props.relay.setVariables({
+        attributesFilter: attributes
+      });
+    }
+  }
+
+  onPriceFilterChanged = (minPrice, maxPrice) => {
     this.props.relay.setVariables({
-      attributesFilter: enabled
-    })
+      minPrice: minPrice,
+      maxPrice: maxPrice
+    });
   }
 
   onLoadMore = () => {
@@ -37,6 +46,7 @@ class CategoryPage extends Component {
             attributes={attributes}
             categories={category}
             onFilterChanged={this.onFilterChanged}
+            onPriceFilterChanged={this.onPriceFilterChanged}
           />
 				</div>
 				<div className="col-md-9">
@@ -55,7 +65,9 @@ class CategoryPage extends Component {
 export default Relay.createContainer(CategoryPage, {
   initialVariables: {
     attributesFilter: [],
-    count: PAGINATE_BY
+    count: PAGINATE_BY,
+    minPrice: null,
+    maxPrice: null
   },
   fragments: {
     category: () => Relay.QL`
@@ -72,7 +84,7 @@ export default Relay.createContainer(CategoryPage, {
             }
           }
         }
-        products (first: $count, attributes: $attributesFilter) {
+        products (first: $count, attributes: $attributesFilter, priceGte: $minPrice, priceLte: $maxPrice) {
           ${ProductList.getFragment('products')}
         }
       }

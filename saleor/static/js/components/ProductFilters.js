@@ -2,18 +2,22 @@ import React, { Component, PropTypes } from 'react'
 import Relay from 'react-relay';
 import queryString from 'query-string';
 
+import PriceFilter from './PriceFilter';
+
+
 class ProductFilters extends Component {
 
 	static propTypes = {
 		attributes: PropTypes.array,
 		categories: PropTypes.object,
-		onFilterChanged: PropTypes.func.isRequired
+		onFilterChanged: PropTypes.func.isRequired,
+		onPriceFilterChanged: PropTypes.func.isRequired
 	};
 
 	constructor(props) {
-	    super(props);
-	    this.state = {
-			filters: {}
+    super(props);
+    this.state = {
+      filters: {}
 		};
   }
 
@@ -88,6 +92,10 @@ class ProductFilters extends Component {
 
 	}
 
+	onPriceFilterChanged = (minPrice, maxPrice) => {
+		this.props.onPriceFilterChanged(minPrice, maxPrice)
+	}
+
 	render() {
 		const categoryName = this.props.categories.name;
 		const subCategories  = this.props.categories.children.edges;
@@ -124,8 +132,9 @@ class ProductFilters extends Component {
 							</ul>
 						</div>
 					)
-				})
-				)}
+				}))}
+				<h3>Price range</h3>
+				<PriceFilter onFilterChanged={this.onPriceFilterChanged} />
 			</div>
 		)
 	}
@@ -136,7 +145,7 @@ export default Relay.createContainer(ProductFilters, {
     attributes: () => Relay.QL`
       fragment on ProductAttributeType @relay(plural: true) {
 	      id
-				pk
+		    pk
 	      name
 	      display
 	      values {
