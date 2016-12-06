@@ -149,7 +149,6 @@ INSTALLED_APPS = [
     'saleor.checkout',
     'saleor.core',
     'saleor.order',
-    'saleor.registration',
     'saleor.dashboard',
     'saleor.shipping',
 
@@ -165,7 +164,10 @@ INSTALLED_APPS = [
     'selectable',
     'materializecssform',
     'rest_framework',
-    'webpack_loader'
+    'webpack_loader',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount'
 ]
 
 LOGGING = {
@@ -214,12 +216,6 @@ LOGGING = {
         }
     }
 }
-
-AUTHENTICATION_BACKENDS = (
-    'saleor.registration.backends.EmailPasswordBackend',
-    'saleor.registration.backends.ExternalLoginBackend',
-    'saleor.registration.backends.TrivialBackend'
-)
 
 AUTH_USER_MODEL = 'userprofile.User'
 
@@ -306,3 +302,12 @@ WEBPACK_LOADER = {
         'IGNORE': [
             r'.+\.hot-update\.js',
             r'.+\.map']}}
+
+
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_USERNAME_REQUIRED = False
+SOCIALACCOUNT_EMAIL_VERIFICATION = False
+ACCOUNT_LOGOUT_ON_GET = True

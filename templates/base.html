@@ -62,12 +62,12 @@
                                         <li><a href="{% url "dashboard:index" %}" traget="_blank">{% trans "Dashboard" %}</a></li>
                                     {% endif %}
                                     <li class="divider"></li>
-                                    <li><a href="{% url "registration:logout" %}">{% trans "Log out" %}</a></li>
+                                    <li><a href="{% url "account_logout" %}">{% trans "Log out" %}</a></li>
                                   </ul>
                             </li>
                             {% else %}
                             <li>
-                                <a href="{% url "registration:login" %}">Sign in</a>
+                                <a href="{% url "account_login" %}">Sign in</a>
                             </li>
                             {% endif %}
                         </ul>

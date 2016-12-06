@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load bootstrap_form from bootstrap3 %}
+{% load account socialaccount %}
+{% load i18n %}
+
+{% block title %}{% trans "Sign In" %} — {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-sm-6">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form method="post" action="{% url 'account_login' %}" novalidate>
+                    {% csrf_token %}
+                    <fieldset>
+                        <legend>{% trans 'Sign in' %}</legend>
+                        {% bootstrap_form form %}
+                        {% if redirect_field_value %}
+                            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                        {% endif %}
+                    </fieldset>
+
+                    <div class="form-group text-right">
+                        <a class="btn btn-secondary" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
+                        <button class="btn btn-primary">
+                            {% trans "Sign in" %}
+                        </button>
+                    </div>
+                    {% get_providers as socialaccount_providers %}
+                    {% if socialaccount_providers %}
+                        <hr>
+                        <p>{% trans "Want to use your social profile?" %}</p>
+                        <p>
+                            <a class="btn btn-default" href="{% provider_login_url "facebook" method="oauth2" %}">{% trans "Sign in using Facebook" %}</a>
+                            <a class="btn btn-default" href="{% provider_login_url "google" %}">{% trans "Sign in using Google" %}</a>
+                        </p>
+                    {% endif %}
+                    <hr>
+                    <div class="form-group">
+                        <p>{% trans "Don't have an account yet?" %} <a class="btn btn-secondary" href="{{ signup_url }}">{% trans "Sign up" %}</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

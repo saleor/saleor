@@ -11,8 +11,7 @@
 {% block content %}
     <h2>{% trans "Profile" %}</h2>
     <p>
-        <a href="{% url 'registration:change_password' %}" class="btn btn-default">{% trans 'Change your password' %}</a>
-        <a href="{% url 'registration:request_email_change' %}" class="btn btn-default">{% trans 'Change your email address' %}</a>
+        <a href="{% url 'account_change_password' %}" class="btn btn-default">{% trans 'Change your password' %}</a>
     </p>
 
 

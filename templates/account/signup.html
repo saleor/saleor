@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load bootstrap_form from bootstrap3 %}
+{% load i18n %}
+
+{% block title %}{% trans "Sign Up" %} — {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-sm-6">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form method="post" action="{% url 'account_signup' %}">
+                  {% csrf_token %}
+                    {% bootstrap_form form %}
+                    <input type="hidden" name="next" value="{{ next }}" />
+
+                <div class="form-group text-right">
+                    <button type="submit" class="btn btn-primary">{% trans "Sign Up" %} &raquo;</button>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
