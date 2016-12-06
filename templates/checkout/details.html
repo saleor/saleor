@@ -86,8 +86,6 @@
                         </td>
                     </tr>
 
-                    {% include 'checkout/snippets/voucher-form.html' with discount=checkout.discount form=voucher_form %}
-
                     <tr>
                         <td class="noborder">
                             {% trans "Shipping" %}
@@ -100,7 +98,10 @@
                             {% endif %}
                         </td>
                     </tr>
-                    {% if total.tax or True %}
+
+                    {% include 'checkout/snippets/voucher-form.html' with discount=checkout.discount form=voucher_form %}
+
+                    {% if total.tax%}
                         <tr>
                             <td class="noborder">
                                 {% trans "Taxes" %}

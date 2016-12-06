@@ -62,7 +62,7 @@ class ShippingVoucherForm(forms.ModelForm):
     limit = PriceField(
         min_value=0, required=False, currency=settings.DEFAULT_CURRENCY,
         label=pgettext_lazy(
-            'voucher', 'Only if shipping cost is less than or equal to'))
+            'voucher', 'Only if order is over or equal to'))
     apply_to = forms.ChoiceField(
         label=pgettext_lazy('voucher', 'Country'), choices=country_choices,
         required=False)
