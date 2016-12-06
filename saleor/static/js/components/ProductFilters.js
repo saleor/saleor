@@ -45,6 +45,12 @@ class ProductFilters extends Component {
 		}
 
 		history.pushState({}, null , url); 
+
+		if (element.classList.contains("active")) {
+			element.classList.remove("active");
+		} else {
+			element.classList.add("active");
+		}
 		
 	}
 
@@ -62,6 +68,8 @@ class ProductFilters extends Component {
 							this.state.filters,
 							{[attrValue]: true})
 					});
+					const elementID = 'attr'+params+param;
+					document.getElementById(elementID).classList.add("active");
 				})
 			} else {
 				attrValue = `${params}:${url_params[params]}`;
@@ -70,6 +78,8 @@ class ProductFilters extends Component {
 						this.state.filters,
 						{[attrValue]: true})
 				});
+				const elementID = 'attr'+params+url_params[params];
+				document.getElementById(elementID).classList.add("active");
 			}
 		})
 
@@ -106,7 +116,7 @@ class ProductFilters extends Component {
 										backgroundColor: value.color
 									}
 									return (
-										<button key={value.id} className="item" style={colorStyle} onClick={(event) => this.onClick(attribute.pk, value.pk, event)}>
+										<button id={"attr"+attribute.pk+value.pk} key={value.id} className="item" style={colorStyle} onClick={(event) => this.onClick(attribute.pk, value.pk, event)}>
 											{value.display}
 										</button>
 									)
