@@ -18,7 +18,7 @@ from .models import Cart
 from .utils import check_product_availability_and_warn
 
 
-@decorators.get_or_empty_db_cart(cart_queryset=Cart.objects.with_products_data())
+@decorators.get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
 def index(request, cart):
     discounts = request.discounts
     cart_lines = []
@@ -101,7 +101,7 @@ def update(request, cart, variant_id):
     return JsonResponse(response, status=status)
 
 
-@decorators.get_or_empty_db_cart(cart_queryset=Cart.objects.with_products_data())
+@decorators.get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
 def summary(request, cart):
 
     def prepare_line_data(line):
@@ -119,8 +119,7 @@ def summary(request, cart):
             'line_total': currencyfmt(line_total.gross, line_total.currency),
             'update_url': reverse('cart:update-line',
                                   kwargs={'variant_id': line.variant_id}),
-            'variant_url': line.variant.get_absolute_url()
-        }
+            'variant_url': line.variant.get_absolute_url()}
     if cart.quantity == 0:
         data = {}
     else:

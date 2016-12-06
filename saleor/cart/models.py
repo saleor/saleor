@@ -52,7 +52,7 @@ class CartQueryset(models.QuerySet):
     def save(self):
         self.update(status=Cart.SAVED)
 
-    def with_products_data(self):
+    def for_display(self):
         return self.prefetch_related(
             'lines', 'lines__variant', 'lines__variant__product__attributes',
             'lines__variant__product__attributes__values',
