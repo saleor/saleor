@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from babeldjango.templatetags.babel import currencyfmt
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 
 from . import decorators
@@ -101,7 +101,7 @@ def summary(request, cart):
                                   kwargs={'variant_id': line.variant_id}),
             'variant_url': line.variant.get_absolute_url()}
     if cart.quantity == 0:
-        data = {}
+        data = {'quantity': 0}
     else:
         cart_total = cart.get_total(discounts=request.discounts)
         data = {
@@ -109,4 +109,4 @@ def summary(request, cart):
             'total': currencyfmt(cart_total.gross, cart_total.currency),
             'lines': [prepare_line_data(line) for line in cart.lines.all()]}
 
-    return JsonResponse(data)
+    return render(request, 'cart-dropdown.html', data)
