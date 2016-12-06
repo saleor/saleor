@@ -2,20 +2,20 @@ from __future__ import unicode_literals
 
 import csv
 from mock import Mock
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
 
 from django.contrib.sites.models import Site
-from django.core.files import File
+from django.utils import six
+if six.PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 from saleor.discount.models import Sale
 from saleor.product.models import Category
 from saleor.data_feeds.google_merchant import (get_feed_items,
                                                item_attributes,
                                                item_google_product_category,
-                                               update_feed)
+                                               write_feed)
 
 
 def test_saleor_feed_items(product_in_stock):
@@ -47,19 +47,12 @@ def test_category_formatter(db):
         sub_category_item, {}) == 'Main > Sub'
 
 
-def test_feed_updater(product_in_stock, monkeypatch):
+def test_write_feed(product_in_stock, monkeypatch):
     variant = product_in_stock.variants.first()
     buffer = StringIO()
-    fake_file = Mock(spec=File,
-                     __enter__=lambda x: buffer,
-                     __exit__=lambda x, y, z, a: None)
-    monkeypatch.setattr(
-        'saleor.data_feeds.google_merchant.default_storage.open',
-        lambda path, mode: fake_file)
-    monkeypatch.setattr(
-        'saleor.data_feeds.google_merchant.COMPRESSION', False)
-    update_feed()
+    write_feed(buffer)
     buffer.seek(0)
+    assert csv.Sniffer().has_header(buffer.getvalue())
     categories = Category.objects.all()
     discounts = Sale.objects.all().prefetch_related('products',
                                                     'categories')
