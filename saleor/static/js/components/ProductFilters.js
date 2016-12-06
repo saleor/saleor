@@ -13,14 +13,16 @@ class ProductFilters extends Component {
 	constructor(props) {
 	    super(props);
 	    this.state = {
-			filters: {},
-			params: {}
+			filters: {}
 		};
   }
 
 	onClick = (attribute, value, event) => {
+
 		const attrValue = `${attribute}:${value}`;
+		let url = '';
 		const element = event.target;
+
 		this.setState({
 			filters: Object.assign(
 				this.state.filters,
@@ -28,28 +30,9 @@ class ProductFilters extends Component {
 		});
 		const enabled = Object.keys(this.state.filters).filter(key => this.state.filters[key] === true);
 		this.props.onFilterChanged(enabled);
-		if (element.classList.contains("active")) {
-			element.classList.remove("active");
-		} else {
-			element.classList.add("active");
-		}
-		this.setUrlParams(attribute, value);
-		
-	}
 
-	setUrlParams(attribute, value) {
-
-		const attrValue = `${attribute}=${value}`;
-		let url = '';
-		this.setState({
-			params: Object.assign(
-				this.state.params,
-				{[attrValue]: !this.state.params[attrValue]})
-		});
-
-		const activeParams = Object.keys(this.state.params).filter(key => this.state.params[key] === true);
-
-		activeParams.map((param, index) => {
+		enabled.map((param, index) => {
+			param = param.replace(':',"=")
 			if (index == 0) {
 				url += '?'+param
 			} else {
@@ -57,13 +40,13 @@ class ProductFilters extends Component {
 			}
 		})
 
-		if (activeParams.length == 0) {
+		if (enabled.length == 0) {
 			url = location.href.split("?")[0];
 		}
-		
-		history.pushState({}, null , url); 
-	}
 
+		history.pushState({}, null , url); 
+		
+	}
 
 	componentDidMount() {
 
