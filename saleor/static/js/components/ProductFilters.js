@@ -1,6 +1,6 @@
 import React, { Component, PropTypes } from 'react'
 import Relay from 'react-relay';
-
+import queryString from 'query-string';
 
 class ProductFilters extends Component {
 
@@ -11,9 +11,10 @@ class ProductFilters extends Component {
 	};
 
 	constructor(props) {
-    super(props);
-    this.state = {
-			filters: {}
+	    super(props);
+	    this.state = {
+			filters: {},
+			params: {}
 		};
   }
 
@@ -32,7 +33,66 @@ class ProductFilters extends Component {
 		} else {
 			element.classList.add("active");
 		}
+		this.setUrlParams(attribute, value);
 		
+	}
+
+	setUrlParams(attribute, value) {
+
+		const attrValue = `${attribute}=${value}`;
+		let url = '';
+		this.setState({
+			params: Object.assign(
+				this.state.params,
+				{[attrValue]: !this.state.params[attrValue]})
+		});
+
+		const activeParams = Object.keys(this.state.params).filter(key => this.state.params[key] === true);
+
+		activeParams.map((param, index) => {
+			if (index == 0) {
+				url += '?'+param
+			} else {
+				url += '&'+param
+			}
+		})
+
+		if (activeParams.length == 0) {
+			url = location.href.split("?")[0];
+		}
+		
+		history.pushState({}, null , url); 
+	}
+
+
+	componentDidMount() {
+
+		let url_params = queryString.parse(location.search);
+		
+		Object.keys(url_params).map((params, index) => {
+			let attrValue = '';
+			if (Array.isArray(url_params[params])) {
+				url_params[params].map((param) => {
+					attrValue = `${params}:${param}`;
+					this.setState({
+						filters: Object.assign(
+							this.state.filters,
+							{[attrValue]: true})
+					});
+				})
+			} else {
+				attrValue = `${params}:${url_params[params]}`;
+				this.setState({
+					filters: Object.assign(
+						this.state.filters,
+						{[attrValue]: true})
+				});
+			}
+		})
+
+		const enabled = Object.keys(this.state.filters).filter(key => this.state.filters[key] === true);
+		this.props.onFilterChanged(enabled);
+
 	}
 
 	render() {
