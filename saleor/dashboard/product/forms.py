@@ -7,7 +7,7 @@ from django.utils.translation import pgettext_lazy
 
 from ...product.models import (AttributeChoiceValue, Product, ProductAttribute,
                                ProductImage, ProductVariant, Stock,
-                               VariantImage)
+                               VariantImage, StockLocation)
 from .widgets import ImagePreviewWidget
 
 PRODUCT_CLASSES = {Product: 'Default'}
@@ -171,6 +171,12 @@ class ProductAttributeForm(forms.ModelForm):
     class Meta:
         model = ProductAttribute
         exclude = []
+
+
+class StockLocationForm(forms.ModelForm):
+    class Meta:
+        model = StockLocation
+        fields = '__all__'
 
 
 AttributeChoiceValueFormset = inlineformset_factory(

@@ -10,7 +10,7 @@
 {% block header_extra %}
     <div class="fixed-action-btn">
         <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
-            href="{% url 'dashboard:product-attribute-add' %}" title="{% trans "Add stock location" %}">
+            href="{% url 'dashboard:product-stock-location-add' %}" title="{% trans "Add stock location" %}">
             <i class="material-icons">add</i>
         </a>
     </div>
@@ -32,7 +32,7 @@
                 <ul class="collection list list--attributes">
                     {% for location in locations %}
                         <li class="collection-item list-item list--attributes-item list-item--two-lines">
-                            <a class="list-item-name" href="">{{ location }}</a>
+                            <a class="list-item-name" href="{% url 'dashboard:product-stock-location-edit' location.pk %}">{{ location }}</a>
                         </li>
                     {% endfor %}
                 </ul>

@@ -282,3 +282,20 @@ def stock_location_list(request):
     ctx = {'locations': stock_locations}
     return TemplateResponse(
         request, 'dashboard/product/stock_locations/list.html', ctx)
+
+
+@staff_member_required
+def stock_location_edit(request, location_pk=None):
+    if location_pk:
+        location = get_object_or_404(StockLocation, pk=location_pk)
+    else:
+        location = StockLocation()
+    form = forms.StockLocationForm(request.POST or None, instance=location)
+    if form.is_valid():
+        location = form.save()
+        msg = _('Updated location') if location_pk else _('Added location')
+        messages.success(request, msg)
+        return redirect('dashboard:product-stock-location-list')
+    ctx = {'form': form, 'location': location}
+    return TemplateResponse(
+        request, 'dashboard/product/stock_locations/form.html', ctx)

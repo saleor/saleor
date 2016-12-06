@@ -54,4 +54,8 @@ urlpatterns = [
 
     url(r'stocklocations/$', views.stock_location_list,
         name='product-stock-location-list'),
+    url(r'stocklocations/add/$', views.stock_location_edit,
+        name='product-stock-location-add'),
+    url(r'stocklocations/(?P<location_pk>[0-9]+)/$', views.stock_location_edit,
+        name='product-stock-location-edit'),
 ]
