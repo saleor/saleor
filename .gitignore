@@ -8,6 +8,7 @@
 !.nvmrc
 !.pylintrc
 !.travis*
+!.eslintrc.json
 *.css
 *.log
 *.pot

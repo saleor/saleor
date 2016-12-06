@@ -1,0 +1,18 @@
+{
+  "env": {
+    "browser": true
+  },
+  "plugins": [
+    "react"
+  ],
+  "extends": [
+    "eslint:recommended", "plugin:react/recommended"
+  ],
+  "parser": "babel-eslint",
+  "rules": {
+    "quotes": [1, "single"],
+    "strict": [2, "never"],
+    "comma-dangle": ["error", "only-multiline"],
+    "react/jsx-no-bind": ["error"]
+  }
+}
