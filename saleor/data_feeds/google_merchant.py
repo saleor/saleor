@@ -10,20 +10,18 @@ from django.contrib.syndication.views import add_domain
 from django.core.files.storage import default_storage
 from django.utils import six
 
-from ..shipping.models import ShippingMethodCountry
 from ..discount.models import Sale
 from ..product.models import ProductVariant, Category
 
 CATEGORY_SEPARATOR = ' > '
 
-FILE_PATH = path.join(settings.INTEGRATIONS_DIR, 'saleor-feed.csv.gz')
+FILE_PATH = path.join('google-feed.csv.gz')
 FILE_URL = default_storage.url(FILE_PATH)
 
 ATTRIBUTES = ['id', 'title', 'product_type', 'google_product_category',
               'link', 'image_link', 'condition', 'availability',
-              'price', 'tax', 'shipping', 'sale_price',
-              'mpn', 'brand', 'item_group_id', 'gender', 'age_group',
-              'color', 'size', 'description']
+              'price', 'tax', 'sale_price', 'mpn', 'brand', 'item_group_id',
+              'gender', 'age_group', 'color', 'size', 'description']
 
 
 def get_feed_items():
@@ -108,26 +106,6 @@ def item_availability(item):
         return 'out of stock'
 
 
-def item_shipping(item):
-    """
-    You can set one shipping cost in feed settings (in Google Merchant
-    dashboard) or precise shipping cost for every item.
-    Read more:
-    https://support.google.com/merchants/answer/7050921
-    """
-    if not item.is_shipping_required():
-        return '%s:::0 %s' % (settings.DEFAULT_COUNTRY,
-                              settings.DEFAULT_CURRENCY)
-
-    shipping_method = ShippingMethodCountry.objects.unique_for_country_code(
-        settings.DEFAULT_COUNTRY).order_by('price').first()
-    if shipping_method is None:
-        return ''
-    shipping_cost = shipping_method.price
-    return '%s:::%s %s' % (settings.DEFAULT_COUNTRY, shipping_cost.gross,
-                           shipping_cost.currency)
-
-
 def item_google_product_category(item, category_paths):
     """
     To have your categories accepted, please use names accepted by Google or
@@ -171,7 +149,6 @@ def item_attributes(item, categories, category_paths, current_site,
         'google_product_category': item_google_product_category(
             item, category_paths),
         'link': item_link(item, current_site),
-        'shipping': item_shipping(item),
         'brand': item_brand(item)}
 
     image_link = item_image_link(item, current_site)
@@ -187,10 +164,6 @@ def item_attributes(item, categories, category_paths, current_site,
     tax = item_tax(item, discounts)
     if tax:
         product_data['tax'] = tax
-
-    shipping = item_shipping(item)
-    if shipping:
-        product_data['shipping'] = shipping
 
     brand = item_brand(item)
     if brand:
