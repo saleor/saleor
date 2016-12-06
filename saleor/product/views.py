@@ -62,7 +62,7 @@ def product_details(request, slug, product_id):
         form.save()
         return redirect('cart:index')
 
-    pricing_info = get_availability(product, discounts=request.discounts,
+    availability = get_availability(product, discounts=request.discounts,
                                     local_currency=request.currency)
 
     template_name = 'product/details_%s.html' % (
@@ -72,7 +72,7 @@ def product_details(request, slug, product_id):
     return TemplateResponse(
         request, templates,
         {
-            'pricing_info': pricing_info,
+            'availability': availability,
             'product_images': product_images,
             'form': form,
             'is_visible': is_visible,
