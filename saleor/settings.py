@@ -219,7 +219,7 @@ LOGGING = {
 
 AUTH_USER_MODEL = 'userprofile.User'
 
-LOGIN_URL = '/accounts/login'
+LOGIN_URL = '/account/login'
 
 DEFAULT_COUNTRY = 'US'
 DEFAULT_CURRENCY = 'USD'
