@@ -16,7 +16,7 @@
             <div class="panel-footer">
                 {% if availability.available %}
                     {% price_range availability.price_range %}
-                    {% if pricing_info.discount %}
+                    {% if availability.discount %}
                         <span class="label label-success">{% trans "Discount!" %}</span>
                     {% endif %}
                 {% else %}
