@@ -52,7 +52,7 @@ def product_details(request, slug, product_id):
     is_visible = (
         product.available_on is None or product.available_on <= today)
     form_class = get_form_class_for_product(product)
-    cart = get_cart_from_request(request, create=True)
+    cart = get_cart_from_request(request)
 
     # add to cart handling
     form = form_class(cart=cart, product=product,
