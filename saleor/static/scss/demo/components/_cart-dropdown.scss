@@ -1,9 +1,9 @@
 .cart-dropdown {
   position: absolute;
-  width: 460px;
+  width: 33rem;
   top: 0;
-  padding-top: 50px;
-  right: 15px;
+  padding-top: $global-padding * 4;
+  right: $global-padding;
   z-index: 3;
   display: none;
   .container {
@@ -39,7 +39,7 @@
     width: 15px;
     height: 10px;
     position: absolute;
-    top: 40px;
+    top: 47px;
     right: 25px;
     background-color: $light-gray;
     clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
