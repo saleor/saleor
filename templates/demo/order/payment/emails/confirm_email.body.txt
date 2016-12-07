@@ -1,9 +1,0 @@
-{% load i18n %}
-
-{% block content %}{% blocktrans %}Hi!
-
-Thank you for your payment. To see your payment details please visit:
-{{ order_url }}
-
-Sincerely,
-Saleor Team{% endblocktrans %}{% endblock %}
