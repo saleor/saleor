@@ -1,0 +1,50 @@
+.product-filters {
+	h3 {
+		padding-bottom: $global-padding;
+	}
+	ul {
+		padding: $global-padding/2 0;
+	}
+	.item {
+		min-width: 4rem;
+		background: $white;
+		border-radius: 1rem;
+		border: solid 1px $gray;
+		padding: $global-padding/2;
+		margin: 0 $global-margin/2;
+		outline: 0;
+		cursor: pointer;
+		&.active {
+			background: $gray;
+		}
+	}
+	.price-range {
+		input {
+			width: 7.6rem;
+			display: inline-block;
+		}
+		span {
+			margin: 0 $global-margin;
+		}
+		button {
+			width: 18rem;
+			margin-top: $global-margin;
+		}
+	}
+}
+
+.load-more {
+	clear: both;
+	button {
+		width: 20rem;
+		margin: 0 auto;
+		display: block;
+		color: $white;
+		font-size: 2rem;
+		cursor: pointer;
+		outline: 0;
+		&:hover {
+			background: darken($gray, 10%);
+		}
+	}
+}

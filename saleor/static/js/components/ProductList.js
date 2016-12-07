@@ -22,9 +22,9 @@ class ProductList extends Component {
             <ProductItem key={i} product={edge.node} />
           )))}
         </div>
-        <div>
+        <div className="load-more">
           {hasNextPage && (
-            <button onClick={this.onLoadMore}>Load more</button>
+            <button className="btn" onClick={this.onLoadMore}>Load more</button>
           )}
         </div>
       </div>
