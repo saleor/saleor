@@ -14,7 +14,7 @@
         {% endblock meta %}
 
         {% render_bundle 'vendor' 'css' %}
-        {% render_bundle 'storefront' 'css' %}
+        {% render_bundle 'demo' 'css' %}
 
         {% block stylesheet %}{% endblock stylesheet %}
 
@@ -26,53 +26,60 @@
 
     <body itemscope itemtype="http://schema.org/WebPage">
         {% block header %}
-            <header class="navbar navbar-default navbar-inverse navbar-static-top" role="navigation">
-                <nav class="container">
-                    <div class="navbar-header">
-                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
-                            <span class="sr-only">Toggle navigation</span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                        </button>
-                        <a class="navbar-brand" href="/">Saleor</a>
+            <header class="navbar" role="navigation">
+              <div class="navbar__login hidden-sm-down">
+                <div class="container">
+                  <p class="float-xs-left">{% trans "Test Saleor in Testeor - a sample shop!" %}</p>
+                  <p class="float-xs-right">
+                    {% if user.is_authenticated %}
+                      {% if user.is_staff %}
+                          <a href="{% url "dashboard:index" %}" traget="_blank">{% trans "Dashboard" %}</a> |
+                      {% endif %}
+                      <a href="{% url "profile:details" %}">{% trans "My account" %}</a> |
+                      <a href="{% url "account_logout" %}">{% trans "Log out" %}</a>
+                    {% else %}
+                      <a href="{% url "account_login" %}">{% trans "Log in" %}</a>
+                    {% endif %}
+                  </p>
+                </div>
+              </div>
+              <div class="navbar__brand">
+                <div class="container">
+                  <img class="hidden-md-up navbar__brand__menu-toggle closed open" src="{% static "img/mobile-bar.svg" %}">
+                  <a href="/">
+                    <img src="{% static "img/testeor-logo.svg" %}" alt="Testeor - Saleor demo store">
+                  </a>
+                  <div class="float-xs-right">
+                    <img class="hidden-md-up" src="{% static "img/search-icon.svg" %}">
+                    <div class="navbar__brand__cart float-xs-right">
+                      <a href="{% url "cart:index" %}">
+                        <span class="hidden-sm-down">{% trans "Your cart" %}</span>
+                        <img class="navbar__brand__cart__icon" src="{% static "img/cart.svg" %}" alt="Cart">
+                        <span class="badge {% if not cart_counter %}hidden-xs-up{% endif %}">{{ cart_counter }}</span>
+                      </a>
+                      <div class="cart-dropdown hidden-md-down">
+                      {% include 'cart-dropdown.html' %}
+                      </div>
                     </div>
-                    <div class="collapse navbar-collapse navbar-ex1-collapse">
-                        <ul class="nav navbar-nav">
-                            {% for category in categories %}
-                                <li>
-                                    <a href="{{ category.get_absolute_url }}">
-                                        {{ category }}
-                                    </a>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                        <ul class="nav navbar-nav navbar-right">
-                            <li>
-                                <a href="{% url "cart:index" %}"><i class="glyphicon glyphicon-shopping-cart"></i> {% trans "Cart" %} {% if cart_counter %}<span class="badge">{{ cart_counter }}</span>{% endif %}</a>
+                  </div>
+                </div>
+              </div>
+              <div class="navbar__menu">
+                <div class="container">
+                  <nav class="navigation">
+                      {% url 'home' as home_url %}
+                      <ul class="nav navbar-nav{% if request.get_full_path == home_url %} no-border{% endif %}" >
+                        {% for category in categories %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ category.get_absolute_url }}">
+                                    {{ category }}
+                                </a>
                             </li>
-                            {% if user.is_authenticated %}
-                            <li class="dropdown">
-                                <a data-toggle="dropdown" class="dropdown-toggle" href=".">{% blocktrans %}Hello, {{ user }}{% endblocktrans %} <b class="caret"></b></a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="{% url "profile:details" %}">{% trans "Your profile" %}</a></li>
-                                    <li><a href="{% url "profile:orders" %}">{% trans "Your orders" %}</a></li>
-                                    {% if user.is_staff %}
-                                        <li class="divider"></li>
-                                        <li><a href="{% url "dashboard:index" %}" traget="_blank">{% trans "Dashboard" %}</a></li>
-                                    {% endif %}
-                                    <li class="divider"></li>
-                                    <li><a href="{% url "account_logout" %}">{% trans "Log out" %}</a></li>
-                                  </ul>
-                            </li>
-                            {% else %}
-                            <li>
-                                <a href="{% url "account_login" %}">Sign in</a>
-                            </li>
-                            {% endif %}
-                        </ul>
-                    </div>
-                </nav>
+                        {% endfor %}
+                      </ul>
+                  </nav>
+                </div>
+              </div>
             </header>
         {% endblock %}
         {% if messages %}
@@ -85,40 +92,76 @@
             {% endfor %}
         </div>
         {% endif %}
-        <div class="container">
-            {% block outerbreadcrumb %}
-            <ul class="breadcrumb" itemprop="breadcrumb">
-                {% block breadcrumb %}
-                <li>
-                    <a href="/">{% trans "Home" %}</a>
-                </li>
-                {% endblock breadcrumb %}
-            </ul>
-            {% endblock outerbreadcrumb %}
-            {% block outercontent %}
-            <div class="row">
-                <div class="col-sm-12">
-                    {% block content %}
-                        <div class="row">
-                            {% include "category/_items.html" %}
-                        </div>
-                    {% endblock content %}
-                </div>
-            </div>
-            {% endblock outercontent %}
+        <div class="container maincontent">
+            {% block breadcrumb %}
+            {% endblock breadcrumb %}
+            {% block content %}
+            {% endblock content %}
         </div>
         {% block footer %}
-            <footer>
+            <footer class="footer">
                 <div class="container">
-                    <p class="pull-right">
-                        &copy; Mirumee Software 2016
-                    </p>
+                  <div class="row">
+                    <div class="col-md-3">
+                      <a href="/">
+                        <img class="footer__logo" src="{% static "img/testeor-logo-white.svg" %}" alt="Testeor - Saleor demo store">
+                      </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                      <ul>
+                        {% for category in categories %}
+                            <li>
+                                <a href="{{ category.get_absolute_url }}">
+                                    {{ category }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                      </ul>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                      <ul>
+                        <li>
+                          <a href="{% url "cart:index" %}">
+                            {% trans "Cart" %}
+                          </a>
+                        </li>
+                        {% if user.is_authenticated %}
+                          {% if user.is_staff %}
+                              <li>
+                                <a href="{% url "dashboard:index" %}" traget="_blank">{% trans "Dashboard" %}</a>
+                              </li>
+                          {% endif %}
+                          <li>
+                            <a href="{% url "profile:details" %}">
+                              {% trans "My account" %}
+                            </a>
+                          </li>
+                          <li>
+                            <a href="{% url "account_logout" %}">{% trans "Log out" %}</a>
+                          </li>
+                        {% else %}
+                          <li>
+                            <a href="{% url "account_login" %}">{% trans "Log in" %}</a>
+                          </li>
+                        {% endif %}
+                      </ul>
+                    </div>
+                    <div class="col-md-3 col-sm-12">
+                      <a target="_blank" class="github-footer" href="https://github.com/mirumee/saleor">
+                        <img src="{% static "img/github_logo.svg" %}">
+                      </a>
+                      <a target="_blank" href="https://twitter.com/getsaleor">
+                        <img src="{% static "img/twitter_logo.svg" %}">
+                      </a>
+                    </div>
+                  </div>
                 </div>
             </footer>
         {% endblock %}
         {% block footer_scripts %}
             {% render_bundle 'vendor' 'js' %}
-            {% render_bundle 'storefront' 'js' %}
+            {% render_bundle 'demo' 'js' %}
         {% endblock footer_scripts %}
     </body>
 </html>
+

@@ -1,0 +1,73 @@
+.userprofile {
+  &__nav {
+    background-color: $light-gray;
+    padding: $global-padding 0;
+    margin-bottom: $global-margin;
+    .nav-link {
+      color: $gray;
+      border-bottom: 0;
+      &:first-of-type {
+        margin-right: $global-margin * 3;
+      }
+      &.active, &.active:hover, &.active:focus {
+        background-color: transparent;
+        border: 0;
+        color: $body-color;
+      }
+    }
+    ul {
+      border-bottom: 0;
+    }
+  }
+  &__address-row {
+    padding: $global-padding 0;
+    border-bottom: 1px solid $light-gray;
+    &:last-of-type {
+      margin-bottom: $global-margin * 2;
+    }
+    img {
+      margin-left: $global-margin;
+    }
+  }
+  &__orders {
+    border: 0;
+    a {
+      color: $body-color;
+    }
+    .card-header {
+      background-color: transparent;
+      border: 0;
+      border-bottom: 1px solid $light-gray;
+      padding-left: 0;
+      padding-right: 0;
+    }
+    .collapsed {
+      .card-header {
+        border-color: $gray;
+        .userprofile__orders__arrow-icon {
+          transform: rotate(90deg);
+        }
+      }
+    }
+    &__arrow-icon {
+      width: 10px;
+      transform: rotate(270deg);
+      transition: 0.3s;
+      margin-right: $global-margin / 2;
+    }
+    .card-block {
+      padding-left: 0;
+      padding-right: 0;
+    }
+    &__details {
+      address {
+        color: $gray;
+      }
+    }
+  }
+  &__address-edit {
+    &__form {
+      margin-bottom: $global-margin * 2;
+    }
+  }
+}

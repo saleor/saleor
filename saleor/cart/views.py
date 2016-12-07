@@ -110,6 +110,7 @@ def summary(request, cart):
         price_per_item = line.get_price_per_item(discounts=request.discounts)
         line_total = line.get_total(discounts=request.discounts)
         return {
+            'product': line.variant.product,
             'variant': line.variant.name,
             'quantity': line.quantity,
             'attributes': line.variant.display_variant(attributes),

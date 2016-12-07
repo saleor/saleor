@@ -1,69 +1,189 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load static from staticfiles %}
+{% load gross from prices_i18n %}
+{% load discount_amount_for from prices %}
 
 {% block title %}{% trans "Your profile" %} — {{ block.super }}{% endblock %}
 
 {% block breadcrumb %}
-    {{ block.super }}
-    <li><a href="{% url 'profile:details' %}">{% trans "Your profile" %}</a></li>
+  <ul class="breadcrumbs list-unstyled">
+    <li><a href="/">{% trans "Home" %}</a></li>
+    <li><a href="{% url 'profile:details' %}">{% trans "Your account" %}</a></li>
+  </ul>
 {% endblock breadcrumb %}
 
 {% block content %}
-    <h2>{% trans "Profile" %}</h2>
-    <p>
-        <a href="{% url 'account_change_password' %}" class="btn btn-default">{% trans 'Change your password' %}</a>
-    </p>
-
-
-    <h3>{% trans "Your address book" %}</h3>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th class="col-sm-6">{% trans "Addressee" %}</th>
-                <th class="col-sm-2">{% trans "Billing" %}</th>
-                <th class="col-sm-2">{% trans "Shipping" %}</th>
-                <th class="col-sm-2"></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for address in addresses %}
-            <tr>
-                <th class="col-sm-6">
-                    {{ address }}
-                </th>
-                <td class="col-sm-2">
-                    {% if user.default_billing_address == address %}
-                    <span class="label label-default">{% trans "Default" %}</span>
-                    {% else %}
-                    <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="billing" %}" class="form-inline form-horizontal" novalidate>
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-default btn-sm">{% trans "Make default" %}</button>
-                    </form>
-                    {% endif %}
-                </td>
-                <td class="col-sm-2">
-                    {% if user.default_shipping_address == address %}
-                    <span class="label label-default">{% trans "Default" %}</span>
-                    {% else %}
-                    <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="shipping" %}" class="form-inline form-horizontal" novalidate>
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-default btn-sm">{% trans "Make default" %}</button>
-                    </form>
-                    {% endif %}
-                </td>
-                <td class="col-sm-2">
-                    <a href="{% url 'profile:address-edit' pk=address.pk %}" class="btn btn-default btn-sm"><i class="glyphicon glyphicon-edit"></i> {% trans "Edit" %}</a>
-                    <a href="{% url 'profile:address-delete' pk=address.pk %}" class="btn btn-danger btn-sm"><i class="glyphicon glyphicon-remove"></i> {% trans "Delete" %}</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <div>
-        <a href="{% url 'profile:address-create' %}" class="btn btn-default"><i class="glyphicon glyphicon-plus-sign"></i> {% trans "Add new address" %}</a>
+  <div class="userprofile">
+    <div class="row">
+      <div class="col-lg-10 offset-lg-1">
+        <h3>{{ user }}</h3>
+        <p>
+            <a href="{% url 'account_change_password' %}">{% trans 'Change your password' %}</a>
+        </p>
+      </div>
     </div>
+    <div class="userprofile__nav row">
+      <ul class="nav nav-tabs col-lg-10 offset-lg-1" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active" data-toggle="tab" href="#addresses" role="tab"><h3>{% trans "Addresses" %}</h3></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-toggle="tab" href="#orders" role="tab"><h3>{% trans "Last orders" %}</h3></a>
+        </li>
+      </ul>
+    </div>
+    <div class="row">
+    <div class="tab-content col-lg-10 offset-lg-1">
+      <div class="tab-pane active" id="addresses" role="tabpanel">
+        {% for address in addresses %}
+          <div class="row userprofile__address-row">
+            <div class="col-xs-5">
+              {{ address }}
+            </div>
+            <div class="col-xs-3 col-md-4">
+              <div class="row">
+                <div class="col-md-6">
+                  {% if user.default_billing_address == address %}
+                  <span class="label label-default">{% trans "Billing" %}</span>
+                  {% else %}
+                  <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="billing" %}" class="form-inline form-horizontal" novalidate>
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-default btn-sm">{% trans "Billing" %}</button>
+                  </form>
+                  {% endif %}
+                </div>
+                <div class="col-md-6">
+                  {% if user.default_shipping_address == address %}
+                  <span class="label label-default">{% trans "Shipping" %}</span>
+                  {% else %}
+                  <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="shipping" %}" class="form-inline form-horizontal" novalidate>
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-default btn-sm">{% trans "Shipping" %}</button>
+                  </form>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            <div class="col-md-2 col-xs-4">
+              <a href="{% url 'profile:address-edit' pk=address.pk %}"><img src="{% static 'img/icon_edit.svg' %}"></a>
+              <a href="{% url 'profile:address-delete' pk=address.pk %}"><img src="{% static 'img/icon_delete.svg' %}"></a>
+            </div>
+          </div>
+        {% endfor %}
+        <a href="{% url 'profile:address-create' %}" class="btn primary ">{% trans "Add new address" %}</a>
+      </div>
+      <div class="tab-pane" id="orders" role="tabpanel">
+        <div id="accordion" role="tablist" aria-multiselectable="true">
+          {% for order in orders %}
+          <div class="card userprofile__orders">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapse{{ forloop.counter0 }}" aria-expanded="true" aria-controls="collapse{{ forloop.counter0 }}"{% if forloop.counter0 > 0 %} class="collapsed"{% endif %}>
+            <div class="card-header" role="tab" id="head{{ forloop.counter0 }}">
+              <div class="row">
+                <div class="col-md-2 col-xs-5">
+                    <strong>{{ order }}</strong>
+                </div>
+                <div class="col-md-4 col-xs-6">
+                  {{ order.created }}
+                </div>
+                <div class="col-md-3 col-xs-5">
+                  {% gross order.get_total %}
+                </div>
+                <div class="col-md-2 col-xs-6">
+                  <span class="label label-default">{{ order.get_status_display }}</span>
+                </div>
+                <div class="col-md-1 col-xs-1">
+                  <img class="userprofile__orders__arrow-icon float-xs-right" src="{% static 'img/gallery-arrow.svg' %}">
+                </div>
+              </div>
+            </div>
+            </a>
+            <div id="collapse{{ forloop.counter0 }}" class="collapse{% if forloop.counter0 == 0 %} in{% endif %} userprofile__orders__details" role="tabpanel" aria-labelledby="head{{ forloop.counter0 }}">
+              <div class="card-block">
+                <div class="row">
+                    <div class="col-md-3 col-xs-6">
+                      <h3>{% trans "Shipping address" %}</h3>
+                      <address>{% include "userprofile/snippets/address-details.html" with address=order.shipping_address %}</address>
+                    </div>
+                    <div class="col-md-3 col-xs-6">
+                      <h3>{% trans "Billing address" %}</h3>
+                      <address>{% include "userprofile/snippets/address-details.html" with address=order.billing_address %}</address>
+                    </div>
+                </div>
+                <!--  {% for group in groups %}
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            {% blocktrans with number=forloop.counter %}Shipment #{{ number }}{% endblocktrans %}
+                            <span class="pull-right">
+                                <span class="label label-default">{{ group.get_status_display }}</span>
+                            </span>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th class="col-sm-6">{% trans "Name" %}</th>
+                                    <th class="col-sm-3 text-right">{% trans "Price" %}</th>
+                                    <th class="col-sm-3 text-right">{% trans "Subtotal" %}</th>
+                                </tr>
+                            </thead>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="2">{% trans "Total" %}</th>
+                                    <th class="text-right">{% gross group.get_total %}</th>
+                                </tr>
+                            </tfoot>
+                            <tbody>
+                                {% for item in group %}
+                                    <tr>
+                                        <td>{{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}</td>
+                                        <td class="text-right">{% gross item.get_price_per_item %}</td>
+                                        <td class="text-right">{% gross item.get_total %}</td>
+                                    </tr>
+                                {% endfor %}
+                                {% if group.shipping_price.gross %}
+                                    <tr>
+                                        <td class="col-sm-4">
+                                            {% trans "Shipping" %}
+                                        </td>
+                                        <td class="text-right">{% gross group.shipping_price %}</td>
+                                        <td class="text-right">{% gross group.shipping_price %}</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endfor %}
+                {% if order.discount_amount %}
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            {{ order.discount_name }}
+                        </div>
+                        <div class="panel-body text-right">
+                            <strong>{% gross order.discount|discount_amount_for:order.total %}</strong>
+                        </div>
+                    </div>
+                {% endif %}
+                {% if order.discount_amount or groups|length > 1 %}
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            {% trans "Total" %}
+                        </div>
+                        <div class="panel-body text-right">
+                            <strong>{% gross order.total %}</strong>
+                        </div>
+                    </div>
+                {% endif %}
+                -->
+              </div>
+            </div>
+          </div>
+          {% endfor %}
 
+        </div>
 
+      </div>
+    </div>
+  </div>
+  </div>
 {% endblock content %}
 
