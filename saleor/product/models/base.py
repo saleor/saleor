@@ -270,7 +270,7 @@ class Stock(models.Model):
     variant = models.ForeignKey(
         ProductVariant, related_name='stock',
         verbose_name=pgettext_lazy('Stock item field', 'variant'))
-    location = models.ForeignKey(StockLocation)
+    location = models.ForeignKey(StockLocation, null=True)
     quantity = models.IntegerField(
         pgettext_lazy('Stock item field', 'quantity'),
         validators=[MinValueValidator(0)], default=Decimal(1))
