@@ -58,4 +58,6 @@ urlpatterns = [
         name='product-stock-location-add'),
     url(r'stocklocations/(?P<location_pk>[0-9]+)/$', views.stock_location_edit,
         name='product-stock-location-edit'),
+    url(r'stocklocations/((?P<location_pk>[0-9]+))/delete/$',
+        views.stock_location_delete, name='product-stock-location-delete'),
 ]

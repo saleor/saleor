@@ -16,8 +16,8 @@
     <ul id="attribute-delete" class="dropdown-content">
         <li>
             <a class="modal-trigger-custom" href="#base-modal"
-                data-href="{% url 'dashboard:product-attribute-delete' pk=location.pk %}">
-                {% trans "Remove stock location" %}
+                data-href="{% url 'dashboard:product-stock-location-delete' location.pk %}">
+                {% trans "Remove attribute" %}
             </a>
         </li>
     </ul>

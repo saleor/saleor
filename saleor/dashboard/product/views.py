@@ -299,3 +299,17 @@ def stock_location_edit(request, location_pk=None):
     ctx = {'form': form, 'location': location}
     return TemplateResponse(
         request, 'dashboard/product/stock_locations/form.html', ctx)
+
+
+@staff_member_required
+def stock_location_delete(request, location_pk):
+    location = get_object_or_404(StockLocation, pk=location_pk)
+    if request.method == 'POST':
+        location.delete()
+        messages.success(
+            request, _('Deleted location %s') % location)
+        return redirect('dashboard:product-stock-location-list')
+    ctx = {'location': location}
+    return TemplateResponse(
+        request, 'dashboard/product/stock_locations/modal_confirm_delete.html',
+        ctx)
