@@ -4,18 +4,11 @@
 	}
 	ul {
 		padding: $global-padding/2 0;
-	}
-	.item {
-		min-width: 4rem;
-		background: $white;
-		border-radius: 1rem;
-		border: solid 1px $gray;
-		padding: $global-padding/2;
-		margin: 0 $global-margin/2;
-		outline: 0;
-		cursor: pointer;
-		&.active {
-			background: $gray;
+		list-style: none;
+		li {
+			input {
+				margin-right: $global-margin;
+			}
 		}
 	}
 	.price-range {

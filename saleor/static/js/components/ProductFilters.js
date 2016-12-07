@@ -44,12 +44,6 @@ class ProductFilters extends Component {
     }
 
     history.pushState({}, null , url); 
-
-    if (element.classList.contains('active')) {
-      element.classList.remove('active');
-    } else {
-      element.classList.add('active');
-    }
   }
 
   componentDidMount() {
@@ -65,7 +59,7 @@ class ProductFilters extends Component {
               {[attrValue]: true})
           });
           const elementID = 'attr'+params+param;
-          document.getElementById(elementID).classList.add('active');
+          document.getElementById(elementID).checked = true;
         })
       } else {
         attrValue = `${params}:${url_params[params]}`;
@@ -75,7 +69,7 @@ class ProductFilters extends Component {
             {[attrValue]: true})
         });
         const elementID = 'attr'+params+url_params[params];
-        document.getElementById(elementID).classList.add('active');
+        document.getElementById(elementID).checked = true;
       }
     })
 
@@ -93,19 +87,13 @@ class ProductFilters extends Component {
               <ul className={attribute.name}>
                 <h3>{attribute.display}</h3>
                 {attribute.values.map((value) => {
-                  const colorStyle = {
-                    backgroundColor: value.color
-                  }
                   return (
-                    <button
-                      id={'attr' + attribute.pk+value.pk}
-                      key={value.id}
-                      className="item"
-                      style={colorStyle}
-                      onClick={(event) => this.onClick(attribute.pk, value.pk, event)}
-                    >
-                      {value.display}
-                    </button>
+                    <li key={value.id}>
+                        <label >
+                          <input id={"attr"+attribute.pk+value.pk} type="checkbox" value="" onClick={(event) => this.onClick(attribute.pk, value.pk, event)} />
+                          {value.display}
+                        </label>
+                    </li>
                   )
                 })}
               </ul>
