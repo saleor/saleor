@@ -2,16 +2,12 @@ import React, { Component, PropTypes } from 'react'
 import Relay from 'react-relay';
 import queryString from 'query-string';
 
-import PriceFilter from './PriceFilter';
-
 
 class ProductFilters extends Component {
 
   static propTypes = {
     attributes: PropTypes.array,
-    categories: PropTypes.object,
     onFilterChanged: PropTypes.func.isRequired,
-    onPriceFilterChanged: PropTypes.func.isRequired
   };
 
   constructor(props) {
@@ -87,28 +83,10 @@ class ProductFilters extends Component {
     this.props.onFilterChanged(enabled);
   }
 
-  onPriceFilterChanged = (minPrice, maxPrice) => {
-    this.props.onPriceFilterChanged(minPrice, maxPrice)
-  }
-
   render() {
-    const categoryName = this.props.categories.name;
-    const subCategories  = this.props.categories.children.edges;
     const { attributes } = this.props;
-
     return (
-      <div className="product-filters">
-        <h2>Filters:</h2>
-        <ul className="categories list-group">
-          <li className="list-group-item active">{categoryName}</li>
-          {subCategories && (subCategories.map((item) => {
-              const category = item.node;
-              return (
-                <li key={category.id} className="list-group-item"><a href={category.url}>{category.name}</a></li>
-              );
-            })
-          )}
-        </ul>
+      <div>
         {attributes && (attributes.map((attribute) => {
           return (
             <div key={attribute.id} className="attribute">
@@ -134,8 +112,6 @@ class ProductFilters extends Component {
             </div>
           )
         }))}
-        <h3>Price range</h3>
-        <PriceFilter onFilterChanged={this.onPriceFilterChanged} />
       </div>
     )
   }

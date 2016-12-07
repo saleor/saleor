@@ -51,7 +51,7 @@ ProductType.Connection = connection_with_count(ProductType)
 
 
 class CategoryType(DjangoObjectType):
-    url = graphene.String()
+    children = graphene.List(lambda: CategoryType)
     products = relay.ConnectionField(
         ProductType,
         attributes=graphene.Argument(
@@ -68,14 +68,15 @@ class CategoryType(DjangoObjectType):
         price_gte=graphene.Argument(
             graphene.Float, description="""Get the products with price greater
                 than or equal to the given value"""))
+    products_count = graphene.Int()
+    url = graphene.String()
 
     class Meta:
         model = Category
         interfaces = (relay.Node, DjangoPkInterface)
 
-    @graphene.resolve_only_args
-    def resolve_url(self):
-        return self.get_absolute_url()
+    def resolve_children(self, args, context, info):
+        return self.children.all()
 
     def resolve_products(self, args, context, info):
         qs = self.products.prefetch_for_api()
@@ -113,6 +114,13 @@ class CategoryType(DjangoObjectType):
         if price_gte:
             qs = qs.filter(price__gte=price_gte)
         return qs.distinct()
+
+    def resolve_products_count(self, args, context, info):
+        return self.products.count()
+
+    @graphene.resolve_only_args
+    def resolve_url(self):
+        return self.get_absolute_url()
 
 
 class ProductVariantType(DjangoObjectType):
@@ -172,7 +180,7 @@ class Viewer(graphene.ObjectType):
     product = graphene.Field(
         ProductType, pk=graphene.Argument(graphene.Int, required=True))
     attributes = graphene.List(ProductAttributeType)
-    categories = relay.ConnectionField(CategoryType)
+    categories = graphene.List(CategoryType)
 
     def resolve_category(self, args, context, info):
         return get_object_or_none(Category, pk=args.get('pk'))

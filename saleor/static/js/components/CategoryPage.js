@@ -1,7 +1,10 @@
-import React, { Component, PropTypes } from 'react'
-import Relay from 'react-relay'
-import ProductList from './ProductList'
-import ProductFilters from './ProductFilters'
+import React, { Component, PropTypes } from 'react';
+import Relay from 'react-relay';
+
+import CategoryFilter from './CategoryFilter';
+import PriceFilter from './PriceFilter';
+import ProductFilters from './ProductFilters';
+import ProductList from './ProductList';
 
 const PAGINATE_BY = 20;
 
@@ -14,45 +17,49 @@ class CategoryPage extends Component {
     relay: PropTypes.object
   }
 
-  onFilterChanged = (attributes) => {
-    if (attributes) {
-      this.props.relay.setVariables({
-        attributesFilter: attributes
-      });
-    }
+  loadMore = () => {
+    this.props.relay.setVariables({
+      count: this.props.relay.variables.count + PAGINATE_BY
+    })
   }
 
-  onPriceFilterChanged = (minPrice, maxPrice) => {
+  setAttributesFilter = (attributes) => {
+    this.props.relay.setVariables({
+      attributesFilter: attributes
+    });
+  }
+
+  setPriceFilter = (minPrice, maxPrice) => {
     this.props.relay.setVariables({
       minPrice: minPrice,
       maxPrice: maxPrice
     });
   }
 
-  onLoadMore = () => {
-    this.props.relay.setVariables({
-      count: this.props.relay.variables.count + PAGINATE_BY
-    })
-  }
-
   render() {
     const category = this.props.category;
     const attributes = this.props.attributes;
-
     return (
       <div className="row">
         <div className="col-md-3">
-          <ProductFilters
-            attributes={attributes}
-            categories={category}
-            onFilterChanged={this.onFilterChanged}
-            onPriceFilterChanged={this.onPriceFilterChanged}
-          />
+          <h2>Filters:</h2>
+          <div className="product-filters">
+            <CategoryFilter
+              category={category}
+            />
+            <ProductFilters
+              attributes={attributes}
+              onFilterChanged={this.setAttributesFilter}
+            />
+            <PriceFilter
+              onFilterChanged={this.setPriceFilter}
+            />
+          </div>
         </div>
         <div className="col-md-9">
           <div className="row">
             <ProductList
-              onLoadMore={this.onLoadMore}
+              onLoadMore={this.loadMore}
               products={category.products}
             />
           </div>
@@ -72,17 +79,13 @@ export default Relay.createContainer(CategoryPage, {
   fragments: {
     category: () => Relay.QL`
       fragment on CategoryType {
-        id
+        pk
         name
         url
-        children(first: 20) {
-          edges {
-            node {
-              id
-              name
-              url
-            }
-          }
+        children {
+          pk
+          name
+          url
         }
         products (first: $count, attributes: $attributesFilter, priceGte: $minPrice, priceLte: $maxPrice) {
           ${ProductList.getFragment('products')}

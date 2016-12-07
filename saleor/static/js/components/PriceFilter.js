@@ -47,28 +47,29 @@ export default class PriceFilter extends Component {
   render() {
     return (
       <div className="price-range">
-          <input
-            id="minPrice"
-            className="form-control"
-            name="minPrice"
-            onChange={this.onChange}
-            onKeyUp={this.checkKey}
-            placeholder="min"
-            type="number"
-            value={this.state.minPrice}
-          />
-          <span>&#8212;</span>
-          <input
-            id="maxPrice"
-            name="maxPrice"
-            className="form-control"
-            onChange={this.onChange}
-            onKeyUp={this.checkKey}
-            placeholder="max"
-            type="number"
-            value={this.state.maxPrice}
-          />
-          <button className="btn" onClick={this.updateFilter}>Update</button>
+        <h3>Price range</h3>
+        <input
+          id="minPrice"
+          className="form-control"
+          name="minPrice"
+          onChange={this.onChange}
+          onKeyUp={this.checkKey}
+          placeholder="min"
+          type="number"
+          value={this.state.minPrice}
+        />
+        <span>&#8212;</span>
+        <input
+          id="maxPrice"
+          name="maxPrice"
+          className="form-control"
+          onChange={this.onChange}
+          onKeyUp={this.checkKey}
+          placeholder="max"
+          type="number"
+          value={this.state.maxPrice}
+        />
+        <button className="btn" onClick={this.updateFilter}>Update</button>
       </div>
     );
   }
