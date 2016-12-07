@@ -19,8 +19,7 @@
       <div class="col-lg-10 offset-lg-1">
         <h3>{{ user }}</h3>
         <p>
-            <a href="{% url 'registration:change_password' %}">{% trans 'Change your password' %}</a>
-            <a href="{% url 'registration:request_email_change' %}">{% trans 'Change your email address' %}</a>
+            <a href="{% url 'account_change_password' %}">{% trans 'Change your password' %}</a>
         </p>
       </div>
     </div>
