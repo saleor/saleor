@@ -22,7 +22,7 @@
     {% if not user.is_authenticated %}
         <p class="alert alert-info">
             {% trans "Already have an account?" %}
-            <a href="{% url "registration:login" %}?next={{ request.get_full_path }}">
+            <a href="{% url "account_login" %}?next={{ request.get_full_path }}">
                 {% trans "Sign in" %}
             </a>
         </p>
