@@ -3,7 +3,7 @@ import datetime
 from mock import Mock
 
 from saleor.product import models
-
+from saleor.product.utils import get_availability
 
 def test_stock_selector(product_in_stock):
     variant = product_in_stock.variants.get()
@@ -41,25 +41,16 @@ def test_product_preview(admin_client, client, product_in_stock):
     assert response.status_code == 200
 
 
-def test_product_page_without_openexchagerates(
-        client, product_in_stock, settings):
-    settings.OPENEXCHANGERATES_API_KEY = None
-    response = client.get(product_in_stock.get_absolute_url())
-    context = response.context
-    assert context['local_price_range'] is None
-
-
-def test_product_page_with_openexchagerates(
-        client, monkeypatch, product_in_stock, settings):
-    settings.DEFAULT_CURRENCY = 'USD'
-    settings.DEFAULT_COUNTRY = 'PL'
-    settings.OPENEXCHANGERATES_API_KEY = 'fake-key'
-    response = client.get(product_in_stock.get_absolute_url())
-    context = response.context
-    assert context['local_price_range'] is None
+def test_availability(product_in_stock, monkeypatch, settings):
+    availability = get_availability(product_in_stock)
+    assert availability.price_range == product_in_stock.get_price_range()
+    assert availability.price_range_local_currency is None
     monkeypatch.setattr(
         'django_prices_openexchangerates.models.get_rates',
         lambda c: {'PLN': Mock(rate=2)})
-    response = client.get(product_in_stock.get_absolute_url())
-    context = response.context
-    assert context['local_price_range'].min_price.currency == 'PLN'
+    settings.DEFAULT_CURRENCY = 'USD'
+    settings.DEFAULT_COUNTRY = 'PL'
+    settings.OPENEXCHANGERATES_API_KEY = 'fake-key'
+    availability = get_availability(product_in_stock, local_currency='PLN')
+    assert availability.price_range_local_currency.min_price.currency == 'PLN'
+    assert availability.available

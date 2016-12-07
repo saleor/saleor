@@ -33,17 +33,17 @@
                 {{ product }}
             </h1>
 
-            {% if product.is_in_stock %}
+            {% if availability.available %}
                 <p class="lead" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-                    <span class="price">{% price_range price_range %}</span>
-                    {% if discount %}
-                        <small class="price undiscounted text-muted">{% gross undiscounted_price_range.min_price html=True %}</small>
+                    <span class="price">{% price_range availability.price_range %}</span>
+                    {% if availability.discount %}
+                        <small class="price undiscounted text-muted">{% gross availability.undiscounted_price_range.min_price html=True %}</small>
                     {% endif %}
-                    {% if local_price_range %}
+                    {% if availability.price_range_local_currency %}
                         <br>
                         <small class="text-info">
                             &asymp;
-                            {% gross local_price_range.min_price html=True %}
+                            {% gross availability.price_range_local_currency.min_price html=True %}
                         </small>
                     {% endif %}
                 </p>
