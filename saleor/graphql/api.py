@@ -51,7 +51,6 @@ ProductType.Connection = connection_with_count(ProductType)
 
 
 class CategoryType(DjangoObjectType):
-    children = graphene.List(lambda: CategoryType)
     products = relay.ConnectionField(
         ProductType,
         attributes=graphene.Argument(
@@ -70,6 +69,8 @@ class CategoryType(DjangoObjectType):
                 than or equal to the given value"""))
     products_count = graphene.Int()
     url = graphene.String()
+    children = graphene.List(lambda: CategoryType)
+    siblings = graphene.List(lambda: CategoryType)
 
     class Meta:
         model = Category
@@ -77,6 +78,9 @@ class CategoryType(DjangoObjectType):
 
     def resolve_children(self, args, context, info):
         return self.children.all()
+
+    def resolve_siblings(self, args, context, info):
+        return self.get_siblings()
 
     def resolve_products(self, args, context, info):
         qs = self.products.prefetch_for_api()
