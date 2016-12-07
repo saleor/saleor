@@ -73,7 +73,7 @@ $('.product-form button').click((e) => {
   var quantity = $('#id_quantity').val()
   var variant = $('#id_variant').val()
   $.ajax ({
-    url: $(this).attr('action'),
+    url: $('.product-form').attr('action'),
     type: 'POST',
     data: {
       variant: variant, 
@@ -87,7 +87,7 @@ $('.product-form button').click((e) => {
           $cartDropdown.addClass("show")
           setTimeout((e) => {
             $cartDropdown.removeClass('show')
-          }, 2000)
+          }, 2500)
       })
     }
   })
