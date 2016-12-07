@@ -292,7 +292,7 @@ def stock_location_edit(request, location_pk=None):
         location = StockLocation()
     form = forms.StockLocationForm(request.POST or None, instance=location)
     if form.is_valid():
-        location = form.save()
+        form.save()
         msg = _('Updated location') if location_pk else _('Added location')
         messages.success(request, msg)
         return redirect('dashboard:product-stock-location-list')
