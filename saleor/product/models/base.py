@@ -126,6 +126,13 @@ class Product(models.Model, ItemRange):
                 return category
         return None
 
+    def get_first_image(self):
+        first_image = self.images.first()
+
+        if first_image:
+            return first_image.image
+        return None
+
 
 @python_2_unicode_compatible
 class ProductVariant(models.Model, Item):
@@ -212,11 +219,7 @@ class ProductVariant(models.Model, Item):
                             self.display_variant(attributes=attributes))
 
     def get_first_image(self):
-        first_image = self.product.images.first()
-
-        if first_image:
-            return first_image.image
-        return None
+        return self.product.get_first_image()
 
     def select_stockrecord(self, quantity=1):
         # By default selects stock with lowest cost price

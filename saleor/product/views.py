@@ -11,7 +11,7 @@ from ..cart.decorators import get_cart_from_request
 from ..core.utils import get_paginator_items, to_local_currency
 from .forms import get_form_class_for_product
 from .models import Category
-from .utils import products_with_details
+from .utils import products_with_details, get_product_images
 
 
 def product_details(request, slug, product_id):
@@ -73,6 +73,7 @@ def product_details(request, slug, product_id):
     template_name = 'product/details_%s.html' % (
         type(product).__name__.lower(),)
     templates = [template_name, 'product/details.html']
+    product_images = get_product_images(product)
     return TemplateResponse(
         request, templates,
         {
@@ -82,7 +83,8 @@ def product_details(request, slug, product_id):
             'local_price_range': local_price_range,
             'price_range': price_range,
             'product': product,
-            'undiscounted_price_range': undiscounted_price_range})
+            'undiscounted_price_range': undiscounted_price_range,
+            'product_images': product_images})
 
 
 def category_index(request, path, category_id):

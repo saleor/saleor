@@ -292,6 +292,12 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
         ('product_page_big', 'crop__750x750'),
         ('product_page_thumb', 'crop__280x280')]}
 
+VERSATILEIMAGEFIELD_SETTINGS = {
+    # Images should be pre-generated on Production environment
+    'create_images_on_demand': ast.literal_eval(
+        os.environ.get('CREATE_IMAGES_ON_DEMAND', 'True')),
+}
+
 WEBPACK_LOADER = {
     'DEFAULT': {
         'CACHE': not DEBUG,
