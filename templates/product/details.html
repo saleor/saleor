@@ -11,16 +11,18 @@
 {% block title %}{{ product }} — {{ block.super }}{% endblock %}
 
 {% block breadcrumb %}
-    {{ block.super }}
-    {% with product.get_first_category as category %}
-        {% if category %}
-            <li><a href="{{ category.get_absolute_url }}">{{ category }}</a></li>
-        {% endif %}
-    {% endwith %}
-    <li><a href="{{ product.get_absolute_url }}">{{ product }}</a></li>
+    <ul class="breadcrumbs list-unstyled hidden-sm-down">
+        <li><a href="/">{% trans "Home" %}</a></li>
+        {% with product.get_first_category as category %}
+            {% if category %}
+                <li><a href="{{ category.get_absolute_url }}">{{ category }}</a></li>
+            {% endif %}
+        {% endwith %}
+        <li><a href="{{ product.get_absolute_url }}">{{ product }}</a></li>
+    </ul>
 {% endblock breadcrumb %}
 
-{% block outercontent %}
+{% block content %}
 {% if not is_visible %}
     <div class="alert alert-warning" role="alert">
         {% blocktrans with date=product.available_on|date %}<strong>Warning!</strong> You are previewing a product that will become visible on <strong>{{ date }}</strong>.{% endblocktrans %}
@@ -37,7 +39,7 @@
                 <p class="lead" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
                     <span class="price">{% price_range availability.price_range %}</span>
                     {% if availability.discount %}
-                        <small class="price undiscounted text-muted">{% gross availability.price_range_undiscounted.min_price html=True %}</small>
+                        <small class="price undiscounted text-muted">{% gross availability.undiscounted_price_range.min_price html=True %}</small>
                     {% endif %}
                     {% if availability.price_range_local_currency %}
                         <br>
@@ -59,32 +61,32 @@
                 <img class="img-responsive" src="{%  product_first_image product method="crop" size="680x680" %}" alt="">
                 <hr>
             </div>
+            <div class="col-md-5 col-xs-12 product__info">
+                {% if is_visible and product.is_in_stock %}
+                    {% block orderform %}
+                        <form role="form" class="product-form form-vertical" method="post"
+                         action="{% url 'cart:add-to-cart' product_id=product.pk %}?next={{ product.get_absolute_url }}" novalidate>
+                            {% csrf_token %}
+                            {% bootstrap_form form %}
+                            <div class="form-group">
+                                <button class="btn primary">
+                                    {% trans "Add to cart" %}
+                                </button>
+                            </div>
+                        </form>
+                    {% endblock %}
+                {% else %}
+                    <p class="alert alert-warning">{% trans "This product is currently <strong>unavailable</strong>." %}</p>
+                {% endif %}
 
-            {% if is_visible and product.is_in_stock %}
-                {% block orderform %}
-                <form role="form" class="product-form form-vertical" method="post"
-                 action="{% url 'cart:add-to-cart' product_id=product.pk %}?next={{ product.get_absolute_url }}" novalidate>
-                    {% csrf_token %}
-                    {% bootstrap_form form %}
+                <hr>
 
-                    <div class="form-group">
-                        <button class="btn btn-lg btn-block btn-primary">
-                            {% trans "Add to cart" %}
-                        </button>
-                    </div>
-                </form>
-                {% endblock %}
-            {% else %}
-                <p class="alert alert-warning">{% trans "This product is currently <strong>unavailable</strong>." %}</p>
-            {% endif %}
+                <div itemprop="product__info__description">
+                    <p><strong>{% trans "Description" %}</strong></p>
+                    {{ product.description|markdown }}
+                </div>
 
-            <hr>
-
-            <div itemprop="description">
-                {{ product.description|markdown }}
             </div>
-
-        </div>
 
         {% with images=product_images %}
         <div class="col-sm-6 col-sm-pull-6">
@@ -133,4 +135,4 @@
         {% endwith %}
     </div>
 </div>
-{% endblock outercontent %}
+{% endblock content %}
