@@ -11,9 +11,9 @@ class ProductItem extends Component {
   render() {
     const { product } = this.props;
     return (
-      <div className="col-xs-12 col-sm-6 col-md-4 col-lg-3" itemScope itemType="https://schema.org/Product">
-        <div className="panel panel-default text-center">
-          <div className="panel-body">
+      <div className="col-xs-6 col-md-4 product-list" itemScope itemType="https://schema.org/Product">
+        <div className="text-center">
+          <div>
             <a itemProp="url" href={product.url}>
               <img itemProp="image" className="img-responsive" src={product.imageUrl} alt="" />
               <span className="product-list-item-name" itemProp="name" title={product.name}>{product.name}</span>
