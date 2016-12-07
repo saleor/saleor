@@ -10,7 +10,6 @@ if six.PY3:
 else:
     from StringIO import StringIO
 
-from saleor.discount.models import Sale
 from saleor.product.models import Category
 from saleor.data_feeds.google_merchant import (get_feed_items,
                                                item_attributes,
@@ -48,19 +47,18 @@ def test_category_formatter(db):
 
 
 def test_write_feed(product_in_stock, monkeypatch):
-    variant = product_in_stock.variants.first()
     buffer = StringIO()
     write_feed(buffer)
     buffer.seek(0)
+    dialect = csv.Sniffer().sniff(buffer.getvalue())
+    assert dialect.delimiter == csv.excel_tab.delimiter
+    assert dialect.quotechar == csv.excel_tab.quotechar
+    assert dialect.escapechar == csv.excel_tab.escapechar
     assert csv.Sniffer().has_header(buffer.getvalue())
-    categories = Category.objects.all()
-    discounts = Sale.objects.all().prefetch_related('products',
-                                                    'categories')
-    category_paths = {}
-    current_site = Site.objects.get_current()
-    reader = csv.DictReader(buffer, dialect=csv.excel_tab)
-    for generated_item in reader:
-        attributes = item_attributes(variant, categories, category_paths,
-                                     current_site, discounts)
-        for key in attributes.keys():
-            assert attributes[key] == generated_item[key]
+    lines = [line for line in csv.reader(buffer, dialect=csv.excel_tab)]
+    assert len(lines) == 2
+    header = lines[0]
+    google_required_fields = ['id', 'title', 'link', 'image_link',
+                              'availability', 'price', 'condition']
+    for field in google_required_fields:
+        assert field in header

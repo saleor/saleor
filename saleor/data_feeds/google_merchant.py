@@ -15,7 +15,7 @@ from ..product.models import ProductVariant, Category
 
 CATEGORY_SEPARATOR = ' > '
 
-FILE_PATH = path.join('google-feed.csv.gz')
+FILE_PATH = 'google-feed.csv.gz'
 FILE_URL = default_storage.url(FILE_PATH)
 
 ATTRIBUTES = ['id', 'title', 'product_type', 'google_product_category',

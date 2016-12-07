@@ -117,6 +117,8 @@ To generate feed use command:
 
     $ python manage.py update_feeds
 
+It's recommended to run this command periodically. 
+
 Merchant Center has few country dependent settings, so please validate your feed at Google dashboard. You can also specify there your shipping cost, which is required feed parameter in many countries. More info be found at `Google Support pages <https://support.google.com/merchants>`_.
 
 Feed can be downloaded from url: ``http://<yourserver>/feeds/google/``
