@@ -36,7 +36,7 @@ def product_class_create(request):
         product_class = form.save()
         msg = _('Added product class %s') % product_class
         messages.success(request, msg)
-        return redirect('dashboard:product-class-add')
+        return redirect('dashboard:product-class-list')
     ctx = {'form': form, 'product_class': product_class}
     return TemplateResponse(
         request, 'dashboard/product/product_class_form.html', ctx)
