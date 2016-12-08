@@ -10,7 +10,7 @@ def forward_transfer_locations(apps, schema_editor):
     StockLocation = apps.get_model('product', 'StockLocation')
     for stock in Stock.objects.all():
         location = StockLocation.objects.get_or_create(
-            location=stock.location)[0]
+            name=stock.location)[0]
         stock.location_link = location
         stock.save()
 
@@ -19,7 +19,7 @@ def reverse_transfer_locations(apps, schema_editor):
     Stock = apps.get_model('product', 'Stock')
     for stock in Stock.objects.all():
         if stock.location_link:
-            location = stock.location_link.location
+            location = stock.location_link.name
             stock.location = location
             stock.save()
 
