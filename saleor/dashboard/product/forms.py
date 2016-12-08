@@ -176,7 +176,7 @@ class ProductAttributeForm(forms.ModelForm):
 class StockLocationForm(forms.ModelForm):
     class Meta:
         model = StockLocation
-        fields = '__all__'
+        exclude = []
 
 
 AttributeChoiceValueFormset = inlineformset_factory(
