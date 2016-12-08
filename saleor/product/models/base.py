@@ -246,7 +246,7 @@ class StockLocation(models.Model):
         pgettext_lazy('Stock item field', 'location'), max_length=100)
 
     def __str__(self):
-        return self.location
+        return self.name
 
 
 class StockManager(models.Manager):

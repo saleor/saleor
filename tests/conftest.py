@@ -92,9 +92,9 @@ def product_in_stock(db):  # pylint: disable=W0613
     product = Product.objects.create(
         name='Test product', price=10, weight=1)
     variant = ProductVariant.objects.create(product=product, sku='123')
-    warehouse_1 = StockLocation.objects.create(location='Warehouse 1')
-    warehouse_2 = StockLocation.objects.create(location='Warehouse 2')
-    warehouse_3 = StockLocation.objects.create(location='Warehouse 3')
+    warehouse_1 = StockLocation.objects.create(name='Warehouse 1')
+    warehouse_2 = StockLocation.objects.create(name='Warehouse 2')
+    warehouse_3 = StockLocation.objects.create(name='Warehouse 3')
     Stock.objects.create(
         variant=variant, cost_price=1, quantity=5, quantity_allocated=5,
         location=warehouse_1)

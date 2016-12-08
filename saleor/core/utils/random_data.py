@@ -63,7 +63,7 @@ def create_product(**kwargs):
 
 def create_stock(variant, **kwargs):
     default_location = StockLocation.objects.get_or_create(
-        location=STOCK_LOCATION)[0]
+        name=STOCK_LOCATION)[0]
     defaults = {
         'variant': variant,
         'location': default_location,
