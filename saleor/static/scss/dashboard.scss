@@ -70,44 +70,7 @@ header {
       right: 0;
       white-space: nowrap;
     }
-    
-    .global-search {
-      margin-left: 250px;
-      width: 50%;
-      margin-top: $sidenav-padding/2;
-      input {
-        padding-left: $sidenav-padding;
-        display: inline-block;
-        width: 70%;
-        background-color: rgba(255, 255, 255, 0.2);
-        border-bottom: 0;
-        margin-bottom: 0;
-        border-radius: 4px;
-        &:focus, &:visited, &:active, &:hover {
-          box-shadow: none;
-          border-bottom: 0;
-        }
-      }
-      @media (max-width: $small-screen) {
-        float: right;
-        width: auto;
-        margin-top: $sidenav-padding;
-        input {
-          display: none;
-        }
-      }
-      button {
-        display: inline-block;
-        padding: 0;
-      }
-      .btn-flat:hover {
-        background-color: transparent;
-      }
-      i {
-        color: white;
-        margin-top: -1rem;
-      }
-    }
+  
     .logo {
       img {
         max-height: $header-height;
