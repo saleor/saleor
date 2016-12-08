@@ -242,7 +242,7 @@ class ProductVariant(models.Model, Item):
 
 @python_2_unicode_compatible
 class StockLocation(models.Model):
-    location = models.CharField(
+    name = models.CharField(
         pgettext_lazy('Stock item field', 'location'), max_length=100)
 
     def __str__(self):
