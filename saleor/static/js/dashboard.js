@@ -29,6 +29,7 @@ $(document).ready(function() {
   var wideScreen = 1650
   var navWidth = '250px'
   var $mainNav = $('#main-nav')
+  var mainNavTop = $mainNav.offset().top
   var $menuToggle = $('.menu-toggle')
   var $closeMenu = $('#close-menu')
   var $openMenu = $('#open-menu')
@@ -43,7 +44,9 @@ $(document).ready(function() {
     } 
     $openMenu.addClass('hide')
     $closeMenu.removeClass('hide')
-    $menuToggle.addClass('fixed')
+    $(window).scroll(function() {
+      $mainNav.toggleClass('sticky', $(window).scrollTop() > mainNavTop)
+    })
     if ($(window).width() > tabletScreen) {
       $.cookie('menu', 'open', { path: '/' })
     }  
@@ -54,7 +57,6 @@ $(document).ready(function() {
     })
     $closeMenu.addClass('hide')
     $openMenu.removeClass('hide')
-    $menuToggle.removeClass('fixed')
     $.removeCookie('menu', { path: '/' })
     if ($(window).width() < wideScreen) {
       $('main .container, .subheader .nav-wrapper').css({

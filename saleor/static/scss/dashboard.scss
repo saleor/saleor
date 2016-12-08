@@ -36,10 +36,6 @@ header {
       position: absolute;      
       width: 237px;
       z-index: 2;
-      &.fixed {
-        position: fixed;
-        box-shadow: 2px 0px 5px 0px rgba(0, 0, 0, 0.20);
-      }
       i {
         color: white;
       }
@@ -125,7 +121,9 @@ header {
 
   .side-nav {
     width: 250px;
-    margin-top: $header-height;
+    position: absolute;
+    top: $header-height + $subheader-height;
+    height: 100vh;
     &-section {
       p {
         line-height: 1;
@@ -139,6 +137,10 @@ header {
       &#first{
         border-top: 1px solid map-get($grey, lighten-2);
       }
+    }
+    &.sticky {
+      position: fixed;
+      top: 0;
     }
     li {
       display: block;
