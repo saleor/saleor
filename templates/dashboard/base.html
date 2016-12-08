@@ -26,7 +26,7 @@
               <li class="user-name">{{ request.user }}</li>
               <li class="divider"></li>
               <li><a href="/" target="_blank" class="waves-effect waves-teal">{% trans "Visit storefront" %}</a></li>
-              <li><a href="{% url 'registration:logout' %}" class="waves-effect waves-teal">{% trans "Log out" %}</a></li>
+              <li><a href="{% url 'account_logout' %}" class="waves-effect waves-teal">{% trans "Log out" %}</a></li>
             </ul>
             <a class="dropdown-button" data-constrainwidth="false" href="#" data-activates="user-action"><i class="material-icons">account_circle</i><i class="mdi-navigation-arrow-drop-down right"></i></a>
           </div>
@@ -66,14 +66,6 @@
                   <img src="{% static "img/dashboard-logo.svg" %}" alt="Saleor">
                 </a></li>
               </ul>
-            </li>
-            <li class="global-search">
-              <form method="get" action="{% url "search:dashboard-search" %}">
-                <input id="icon_prefix" type="text" class="validate" placeholder="Search" name="q" value="{% if query %}{{ query }}{% endif %}">
-                <button class="btn-flat" type="submit">
-                  <i class="material-icons left ">search</i>
-                </button>
-              </form>
             </li>
           </ul>
         </div>
