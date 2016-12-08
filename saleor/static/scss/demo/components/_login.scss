@@ -28,6 +28,11 @@
     }
     img {
       margin: $global-margin * 2.5 0;
+      @include media-breakpoint-up(md) {
+        &.singup-img {
+          margin-bottom: $global-margin * 5;
+        }
+      }
     }
   }
   &__btn-group {

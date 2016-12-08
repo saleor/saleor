@@ -1,25 +1,35 @@
 {% extends "base.html" %}
 {% load bootstrap_form from bootstrap3 %}
+{% load staticfiles %}
 {% load i18n %}
 
 {% block title %}{% trans "Sign Up" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-sm-6">
-        <div class="panel panel-default">
-            <div class="panel-body">
-                <form method="post" action="{% url 'account_signup' %}">
-                  {% csrf_token %}
-                    {% bootstrap_form form %}
-                    <input type="hidden" name="next" value="{{ next }}" />
-
-                <div class="form-group text-right">
-                    <button type="submit" class="btn btn-primary">{% trans "Sign Up" %} &raquo;</button>
-                </div>
-                </form>
-            </div>
+<div class="row login">
+  <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2">
+    <div class="row">
+      <div class="col-md-6">
+        <form method="post" action="{% url 'account_signup' %}">
+          <fieldset>
+            <h2>{% trans 'Create an account' %}</h2>
+            {% csrf_token %}
+            {% bootstrap_form form %}
+            <input type="hidden" name="next" value="{{ next }}" />
+          </fieldset>
+          <div class="form-group text-right">
+              <button type="submit" class="btn btn primary">{% trans "Create an account" %}</button>
+          </div>
+        </form>
+      </div>
+      <div class="col-md-6">
+        <div class="login__register-link">
+          <h2>{% trans "Already have an account?" %}</h2>
+          <img class="singup-img" src="{% static 'img/pirate_login.png' %}" srcset="{% static 'img/pirate_login.png' %} 1x, {% static 'img/pirate_login2x.png' %} 2x">
+          <p><a href="{% url 'account_login' %}" class="btn secondary">{% trans "Log in" %}</a></p>
         </div>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}
