@@ -1,43 +1,66 @@
-.product-filters {
-	h3 {
+#category-page {
+	h2 {
+		font-weight: bold;
 		padding-bottom: $global-padding;
 	}
-	ul {
-		padding: $global-padding/2 0;
-		list-style: none;
-		li {
+	.product-filters {
+		h3 {
+			padding-bottom: $global-padding;
+		}
+		ul {
+			padding: $global-padding/2 0;
+			list-style: none;
+			li {
+				input {
+					margin-right: $global-margin;
+				}
+			}
+		}
+		.price-range {
 			input {
-				margin-right: $global-margin;
+				width: 7.6rem;
+				display: inline-block;
+			}
+			span {
+				margin: 0 $global-margin;
+			}
+			button {
+				width: 18rem;
+				margin-top: $global-margin;
+			}
+		}
+		.categories {
+			ul {
+				list-style: circle;
+				padding-left: $global-padding;
+				li {
+					a {
+						font-size: 1.2rem;
+						color: $body-color;
+						padding-right: $global-padding/2;
+					}
+					span {
+						color: $gray;
+						font-size: 1.1rem;
+					}
+				}
 			}
 		}
 	}
-	.price-range {
-		input {
-			width: 7.6rem;
-			display: inline-block;
-		}
-		span {
-			margin: 0 $global-margin;
-		}
-		button {
-			width: 18rem;
-			margin-top: $global-margin;
-		}
-	}
-}
 
-.load-more {
-	clear: both;
-	button {
-		width: 20rem;
-		margin: 0 auto;
-		display: block;
-		color: $white;
-		font-size: 2rem;
-		cursor: pointer;
-		outline: 0;
-		&:hover {
-			background: darken($gray, 10%);
+	.load-more {
+		clear: both;
+		button {
+			width: 20rem;
+			margin: 0 auto;
+			display: block;
+			color: $white;
+			font-size: 2rem;
+			cursor: pointer;
+			outline: 0;
+			&:hover {
+				background: darken($gray, 10%);
+			}
 		}
 	}
 }
