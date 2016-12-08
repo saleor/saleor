@@ -54,8 +54,13 @@ class CartQueryset(models.QuerySet):
 
     def for_display(self):
         return self.prefetch_related(
-            'lines', 'lines__variant', 'lines__variant__product__attributes',
-            'lines__variant__product__attributes__values',
+            'lines', 'lines__variant',
+            'lines__variant__product__product_class__product_attributes',
+            'lines__variant__product__product_class__'
+            'product_attributes__values',
+            'lines__variant__product__product_class__'
+            'variant_attributes',
+            'lines__variant__product__product_class__variant_attributes__values',
             'lines__variant__stock', 'lines__variant__product__images',
             'lines__variant__product')
 
