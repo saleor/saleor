@@ -16,6 +16,16 @@
 				}
 			}
 		}
+		.attributes {
+			ul {
+				li {
+					label {
+						cursor: pointer;
+						outline: 0;
+					}
+				}
+			}
+		}
 		.price-range {
 			input {
 				width: 7.6rem;

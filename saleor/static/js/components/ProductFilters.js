@@ -80,16 +80,16 @@ class ProductFilters extends Component {
   render() {
     const { attributes } = this.props;
     return (
-      <div>
+      <div className="attributes">
         {attributes && (attributes.map((attribute) => {
           return (
-            <div key={attribute.id} className="attribute">
-              <ul className={attribute.name}>
+            <div key={attribute.id} className={attribute.name}>
+              <ul>
                 <h3>{attribute.display}</h3>
                 {attribute.values.map((value) => {
                   return (
-                    <li key={value.id}>
-                        <label >
+                    <li key={value.id} className="item">
+                        <label>
                           <input id={"attr"+attribute.pk+value.pk} type="checkbox" value="" onClick={(event) => this.onClick(attribute.pk, value.pk, event)} />
                           {value.display}
                         </label>
