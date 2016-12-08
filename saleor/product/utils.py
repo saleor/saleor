@@ -1,5 +1,7 @@
 from collections import namedtuple
 
+from django.db.models import Q
+
 from ..core.utils import to_local_currency
 from .models import Product
 
@@ -72,3 +74,9 @@ def get_availability(product, discounts=None, local_currency=None):
         discount=discount,
         price_range_local_currency=price_range_local,
         discount_local_currency=discount_local_currency)
+
+
+def filter_by_attribute(queryset, key, value):
+    in_product = Q(attributes__contains={key.pk: value.pk})
+    in_variant = Q(variants__attributes__contains={key.pk: value.pk})
+    return queryset.filter(in_product | in_variant)

@@ -14,7 +14,7 @@ class VariantChoiceField(forms.ModelChoiceField):
     discounts = None
 
     def label_from_instance(self, obj):
-        attributes = obj.product.attributes.all()
+        attributes = obj.product.variant_attributes.all()
         variant_label = obj.display_variant(attributes)
         label = '%(variant_label)s - %(price)s' % {
             'variant_label': variant_label,
