@@ -1,0 +1,69 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load prices_i18n %}
+{% load materializecss %}
+{% load staticfiles %}
+
+{% block title %}{% trans "Product classes" %} - {{ block.super }}{% endblock %}
+
+{% block body_class %}body-products{% endblock %}
+
+{% block menu_product_classes_class %}active{% endblock %}
+
+
+{% block header_extra %}
+    <div class="fixed-action-btn">
+        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal" title="{% trans "Add product class" %}"
+            href="{% url 'dashboard:product-class-add' %}">
+            <i class="material-icons">add</i>
+        </a>
+    </div>
+{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs">
+        <li>{% trans "Product classes" %}</li>
+    </ul>
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col s12">
+            {% if product_classes %}
+                <ul class="collection list">
+                    {% for product_class in product_classes %}
+                        <li class="collection-item list-item">
+                            <a class="title" href="{% url 'dashboard:product-class-update' pk=product_class.pk %}">
+                                <span class="list-item-name">{{ product_class.name }}</span>
+                            </a>
+                            <p>{% trans 'Variants' %}: {% if product_class.has_variants %}{% trans 'Yes' %}{% else %}{% trans 'No' %}{% endif %}</p>
+                        </li>
+                    {% endfor %}
+                </ul>
+                {% include "dashboard/includes/_pagination.html" with page_obj=product_classes %}
+            {% else %}
+                <p>{% trans "No product classes found." %}</p>
+            {% endif %}
+        </div>
+    </div>
+    <div id="modal-product-class" class="modal">
+        <div class="modal-content">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="row">
+                    {{ form|materializecss }}
+                </div>
+
+                <div class="row">
+                    <div class="col s12">
+                        <button class="btn" type="submit">
+                            <i class="material-icons left">create</i> {% trans "Create new" %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

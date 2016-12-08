@@ -11,31 +11,111 @@ from django.views.decorators.http import require_http_methods
 from . import forms
 from ...core.utils import get_paginator_items
 from ...product.models import (Product, ProductAttribute, ProductImage,
-                               ProductVariant, Stock, StockLocation)
+                               ProductVariant, Stock, ProductClass,
+                               StockLocation)
 from ..views import staff_member_required
+
+
+@staff_member_required
+def product_class_list(request):
+    classes = ProductClass.objects.all()
+    form = forms.ProductClassForm(request.POST or None)
+    if form.is_valid():
+        return redirect('dashboard:product-class-add')
+    classes = get_paginator_items(classes, 30, request.GET.get('page'))
+    ctx = {'form': form, 'product_classes': classes}
+    return TemplateResponse(request, 'dashboard/product/class_list.html', ctx)
+
+
+@staff_member_required
+def product_class_create(request):
+    product_class = ProductClass()
+    form = forms.ProductClassForm(request.POST or None,
+                                  instance=product_class)
+    if form.is_valid():
+        product_class = form.save()
+        msg = _('Added product class %s') % product_class
+        messages.success(request, msg)
+        return redirect('dashboard:product-class-add')
+    ctx = {'form': form, 'product_class': product_class}
+    return TemplateResponse(
+        request, 'dashboard/product/product_class_form.html', ctx)
+
+
+@staff_member_required
+def product_class_edit(request, pk):
+    product_class = get_object_or_404(
+        ProductClass, pk=pk)
+    form = forms.ProductClassForm(request.POST or None,
+                                  instance=product_class)
+    if form.is_valid():
+        product_class = form.save()
+        msg = _('Updated product class %s') % product_class
+        messages.success(request, msg)
+        return redirect('dashboard:product-class-update', pk=pk)
+    ctx = {'form': form, 'product_class': product_class}
+    return TemplateResponse(
+        request, 'dashboard/product/product_class_form.html', ctx)
+
+
+@staff_member_required
+def product_class_delete(request, pk):
+    product_class = get_object_or_404(ProductClass, pk=pk)
+    products = [str(p) for p in product_class.products.all()]
+    if request.method == 'POST':
+        product_class.delete()
+        messages.success(request,
+                         _('Deleted product class %s') % product_class)
+        return redirect('dashboard:product-class-list')
+    return TemplateResponse(
+        request,
+        'dashboard/product/modal_product_class_confirm_delete.html',
+        {'product_class': product_class, 'products': products})
+
 
 
 @staff_member_required
 def product_list(request):
     products = Product.objects.prefetch_related('images')
-    form = forms.ProductClassForm(request.POST or None)
+    form = forms.ProductClassSelectorForm(
+        request.POST or None, product_classes=ProductClass.objects.all())
     if form.is_valid():
-        return redirect('dashboard:product-add')
+        return redirect('dashboard:product-add',
+                        class_pk=form.cleaned_data['product_cls'])
     products = get_paginator_items(products, 30, request.GET.get('page'))
     ctx = {'form': form, 'products': products}
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
 
 
 @staff_member_required
-def product_create(request):
+def product_create(request, class_pk):
+    product_class = get_object_or_404(ProductClass, pk=class_pk)
+    create_variant = not product_class.has_variants
     product = Product()
-    form = forms.ProductForm(request.POST or None, instance=product)
-    if form.is_valid():
-        product = form.save()
+    product.product_class = product_class
+    product_form = forms.ProductForm(request.POST or None, instance=product)
+    if create_variant:
+        variant = ProductVariant(product=product)
+        variant_form = forms.ProductVariantForm(request.POST or None,
+                                                instance=variant,
+                                                prefix='variant')
+        variant_errors = not variant_form.is_valid()
+    else:
+        variant_form = None
+        variant_errors = False
+
+    if product_form.is_valid() and not variant_errors:
+        product = product_form.save()
+        if create_variant:
+            variant.product = product
+            variant_form.save()
         msg = _('Added product %s') % product
         messages.success(request, msg)
-        return redirect('dashboard:variant-add', product_pk=product.pk)
-    ctx = {'product_form': form, 'product': product}
+        return redirect('dashboard:product-update',
+                        pk=product.pk)
+
+    ctx = {'product_form': product_form, 'variant_form': variant_form,
+           'product': product}
     return TemplateResponse(
         request, 'dashboard/product/product_form.html', ctx)
 
@@ -45,7 +125,8 @@ def product_edit(request, pk):
     product = get_object_or_404(
         Product.objects.prefetch_related(
             'images', 'variants'), pk=pk)
-    attributes = product.attributes.prefetch_related('values')
+    edit_variant = not product.product_class.has_variants
+    attributes = product.variant_attributes.prefetch_related('values')
     images = product.images.all()
     variants = product.variants.all()
     stock_items = Stock.objects.filter(
@@ -55,7 +136,16 @@ def product_edit(request, pk):
     variants_delete_form = forms.VariantBulkDeleteForm()
     stock_delete_form = forms.StockBulkDeleteForm()
 
-    if form.is_valid():
+    if edit_variant:
+        variant = variants.first()
+        variant_form = forms.ProductVariantForm(
+            request.POST or None, instance=variant, prefix='variant')
+        variant_errors = not variant_form.is_valid()
+    else:
+        variant_form = None
+        variant_errors = False
+
+    if form.is_valid() and not variant_errors:
         product = form.save()
         msg = _('Updated product %s') % product
         messages.success(request, msg)
@@ -63,7 +153,8 @@ def product_edit(request, pk):
     ctx = {'attributes': attributes, 'images': images, 'product_form': form,
            'product': product, 'stock_delete_form': stock_delete_form,
            'stock_items': stock_items, 'variants': variants,
-           'variants_delete_form': variants_delete_form}
+           'variants_delete_form': variants_delete_form,
+           'variant_form': variant_form}
     return TemplateResponse(
         request, 'dashboard/product/product_form.html', ctx)
 

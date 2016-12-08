@@ -35,6 +35,7 @@
             <li class="side-nav-section" id="first">
               <p>Catalogue</p>
               <ul>
+                <li class="{% block menu_product_classes_class %}{% endblock %}"><a href="{% url 'dashboard:product-class-list' %}">{% trans "Product classes" %}</a></li>
                 <li class="{% block menu_products_class %}{% endblock %}"><a href="{% url 'dashboard:product-list' %}">{% trans "Products" %}</a></li>
                 <li class="{% block menu_attributes_class %}{% endblock %}"><a href="{% url 'dashboard:product-attributes' %}">{% trans "Attributes" %}</a></li>
                 <li class="{% block menu_categories_class %}{% endblock %}"><a href="{% url 'dashboard:category-list' %}">{% trans "Categories" %}</a></li>

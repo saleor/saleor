@@ -58,14 +58,14 @@
                             <i class="material-icons">edit</i>
                         </a>
                     </li>
-
-                    <li class="tab col s3" role="presentation">
-                        <a href="#variants" role="tab">
-                            <span>{% trans "Variants" %}</span>
-                            <i class="material-icons">style</i>
-                        </a>
-                    </li>
-
+                    {% if product.product_class.has_variants %}
+                        <li class="tab col s3" role="presentation">
+                            <a href="#variants" role="tab">
+                                <span>{% trans "Variants" %}</span>
+                                <i class="material-icons">style</i>
+                            </a>
+                        </li>
+                    {% endif %}
                     <li class="tab col s3" role="presentation">
                         <a href="#stock" role="tab">
                             <span>{% trans "Stock" %}</span>
@@ -92,15 +92,20 @@
 
             <div class="col s12 l8" >
                 <div class="row">
+                    {% for attribute_field in product_form.iter_attribute_fields %}
+                        {{ attribute_field|materializecss }}
+                    {% endfor %}
                     {{ product_form.description|materializecss }}
                 </div>
             </div>
 
             <div class="col s12 l4">
                 <div class="row">
+                    {% if not product.product_class.has_variants %}
+                        {{ variant_form.sku|materializecss:"input-field s12" }}
+                    {% endif %}
                     {{ product_form.weight|materializecss:"input-field s12" }}
                     {{ product_form.categories|materializecss:"input-field s12" }}
-                    {{ product_form.attributes|materializecss:"input-field s12" }}
                     {{ product_form.available_on|materializecss:"input-field s12" }}
                 </div>
             </div>
@@ -117,88 +122,87 @@
         </form>
     </div>
 
-    {% if product.pk %}
-        <div id="variants" class="card tab-content">
-            <form method="post" action="{% url 'dashboard:variant-bulk-delete' product_pk=product.pk %}" novalidate>
-                {% csrf_token %}
-                <div class="data-table-header">
-                    <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
-                        {% trans "Add" %}
-                    </a>
+    {% if product.pk  %}
+        {% if product.product_class.has_variants %}
+            <div id="variants" class="card tab-content">
+                <form method="post" action="{% url 'dashboard:variant-bulk-delete' product_pk=product.pk %}" novalidate>
+                    {% csrf_token %}
+                    <div class="data-table-header">
+                        <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
+                            {% trans "Add" %}
+                        </a>
 
-                    <a href="#modal-product-variant-delete" class="modal-trigger btn-data-table btn-show-when-checked blue-text" hidden>
-                        {% trans "Delete" %}
-                    </a>
+                        <a href="#modal-product-variant-delete" class="modal-trigger btn-data-table btn-show-when-checked blue-text" hidden>
+                            {% trans "Delete" %}
+                        </a>
 
-                    <div class="modal" id="modal-product-variant-delete">
-                        <div class="modal-content">
-                            <h5>{% trans "Are you sure?" %}</h5>
+                        <div class="modal" id="modal-product-variant-delete">
+                            <div class="modal-content">
+                                <h5>{% trans "Are you sure?" %}</h5>
+                                <p>{% blocktrans %}You are about to delete variants of this product.{% endblocktrans %}</p>
+                            </div>
 
-                            <p>
-                                {% blocktrans %}You are about to delete variants of this product.{% endblocktrans %}
-                            </p>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
-                            <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+                            <div class="modal-footer">
+                                <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
+                                <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="data-table-container">
-                    <table class="bordered hoverable responsive data-table">
-                        {% if variants %}
-                            <thead>
-                                <tr>
-                                    <th class="bulk-checkbox">
-                                        <input type="checkbox" id="select-all-variants" class="filled-in select-all switch-actions">
-                                        <label for="select-all-variants"></label>
-                                    </th>
-                                    <th>{% trans "SKU" %}</th>
-                                    {% for attribute in attributes %}
-                                        <th>{{ attribute.display|capfirst }}</th>
-                                    {% endfor %}
-                                    <th class="wide">{% trans "Variant name" %}</th>
-                                    <th class="right-align">{% trans "Price" %}</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {% for variant in variants %}
+                    <div class="data-table-container">
+                        <table class="bordered hoverable responsive data-table">
+                            {% if variants %}
+                                <thead>
                                     <tr>
-                                        <td class="bulk-checkbox">
-                                            <input id="id_variants_{{ variant.id }}" name="items" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
-                                            <label for="id_variants_{{ variant.id }}"></label>
-                                        </td>
-                                        <td><a class="light-blue-text text-lighten-1" title="{% trans "Edit variant" %}"
-                                                    href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}">
-                                            {{ variant.sku }}
-                                        </a></td>
-                                        {% for attr_display in variant|attributes_values_with_empty:attributes %}
-                                            <td>
-                                                {{ attr_display }}
-                                            </td>
+                                        <th class="bulk-checkbox">
+                                            <input type="checkbox" id="select-all-variants" class="filled-in select-all switch-actions">
+                                            <label for="select-all-variants"></label>
+                                        </th>
+                                        <th>{% trans "SKU" %}</th>
+                                        {% for attribute in attributes %}
+                                            <th>{{ attribute.display|capfirst }}</th>
                                         {% endfor %}
-                                        <td>{{ variant.name }}</td>
-                                        <td class="right-align">{% gross variant.get_price_per_item %}</td>
+                                        <th class="wide">{% trans "Variant name" %}</th>
+                                        <th class="right-align">{% trans "Price" %}</th>
                                     </tr>
-                                {% endfor %}
-                            </tbody>
-                        {% else %}
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <span>{% trans "There are no variants for this product" %}</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        {% endif %}
-                    </table>
-                </div>
-                <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#variants">
-            </form>
-        </div>
+                                </thead>
+
+                                <tbody>
+                                    {% for variant in variants %}
+                                        <tr>
+                                            <td class="bulk-checkbox">
+                                                <input id="id_variants_{{ variant.id }}" name="items" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
+                                                <label for="id_variants_{{ variant.id }}"></label>
+                                            </td>
+                                            <td><a class="light-blue-text text-lighten-1" title="{% trans "Edit variant" %}"
+                                                        href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}">
+                                                {{ variant.sku }}
+                                            </a></td>
+                                            {% for attr_display in variant|attributes_values_with_empty:attributes %}
+                                                <td>
+                                                    {{ attr_display }}
+                                                </td>
+                                            {% endfor %}
+                                            <td>{{ variant.name }}</td>
+                                            <td class="right-align">{% gross variant.get_price_per_item %}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            {% else %}
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <span>{% trans "There are no variants for this product" %}</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            {% endif %}
+                        </table>
+                    </div>
+                    <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#variants">
+                </form>
+            </div>
+        {% endif %}
 
         <div id="stock" class="card tab-content">
             <form method="post" action="{% url 'dashboard:stock-bulk-delete' product_pk=product.pk %}" novalidate>
