@@ -12,8 +12,8 @@ from prices import Price
 
 from ...shipping.models import ShippingMethod, ANY_COUNTRY
 from ...order.models import DeliveryGroup, Order, OrderedItem, Payment
-from ...product.models import (Category, Product, ProductImage,
-                               ProductVariant, Stock, StockLocation)
+from ...product.models import (Category, Product, ProductImage, Stock,
+                               ProductVariant, ProductClass, StockLocation)
 from ...userprofile.models import Address, User
 
 fake = Factory.create()
@@ -49,6 +49,11 @@ def get_or_create_category(name, **kwargs):
     defaults['slug'] = fake.slug(name)
 
     return Category.objects.get_or_create(name=name, defaults=defaults)[0]
+
+
+def get_or_create_product_class(name, **kwargs):
+    defaults = kwargs
+    return ProductClass.objects.get_or_create(name=name, defaults=defaults)[0]
 
 
 def create_product(**kwargs):
@@ -100,9 +105,10 @@ def create_product_images(product, how_many, placeholder_dir):
 
 def create_items(placeholder_dir, how_many=10, create_images=True):
     default_category = get_or_create_category('Default')
+    default_product_class = get_or_create_product_class('Default')
 
     for dummy in range(how_many):
-        product = create_product()
+        product = create_product(product_class=default_product_class)
         product.categories.add(default_category)
         if create_images:
             create_product_images(
