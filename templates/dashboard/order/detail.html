@@ -9,6 +9,8 @@
 
 {% block body_class %}body-orders{% endblock %}
 
+{% block menu_orders_class %}active{% endblock %}
+
 {% block header_menu %}
     {% url "dashboard:orders" as url %}
     {% include "dashboard/includes/_back-link.html" with url=url %}
@@ -17,7 +19,7 @@
 {% block header_extra %}
     {% if order.can_cancel %}
         <a class="dropdown-button" href="#" data-activates="context-menu" data-constrainwidth="false">
-            <i class="material-icons">more_vert</i>
+            <i class="material-icons">arrow_drop_down</i>
         </a>
         <ul id="context-menu" class="dropdown-content">
             <li>
@@ -31,27 +33,26 @@
 {% endblock %}
 
 {% block breadcrumbs %}
-    <ul class="breadcrumbs">
-        <li><a href="{% url "dashboard:orders" %}">{% trans "Orders" %}</a></li>
-        <li>{{ order }}</li>
+    <ul class="breadcrumbs breadcrumbs--history">
+        <li><a href="{% url "dashboard:orders" %}">Orders</a></li>
+        <li class="back-mobile"><a href="{% url "dashboard:orders" %}"><i class="material-icons">arrow_back</i></a></li>
+        <li><span>{{ order }}</span></li>
     </ul>
 {% endblock %}
-
-{% block menu_sales_class %} active{% endblock %}
 
 {% block content %}
     <div class="row">
         <div class="col s12">
             <ul class="tabs" role="tablist">
-                <li role="presentation" class="tab">
+                <li role="presentation" class="tab col s4">
                     <a href="#order-details" role="tab" class="active">{% trans "Details" %}</a>
                 </li>
 
-                <li role="presentation" class="tab">
+                <li role="presentation" class="tab col s4">
                     <a href="#payment-history" role="tab">{% trans "Payments" %}</a>
                 </li>
 
-                <li role="presentation" class="tab">
+                <li role="presentation" class="tab col s4">
                     <a href="#order-history" role="tab">{% trans "History" %}</a>
                 </li>
             </ul>
@@ -70,7 +71,7 @@
                                 <td>{% trans "Account" %}</td>
                                 <td class="right-align">
                                     {% if order.user %}
-                                        <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a>
+                                        <a class="order-user" href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a>
                                     {% else %}
                                         {% trans "Guest" %}
                                     {% endif %}

@@ -13,21 +13,24 @@
 
 {% block body_class %}body-store body-products{% endblock %}
 
+{% block menu_products_class %}active{% endblock %}
+
 {% block header_menu %}
     {% url "dashboard:product-update" pk=product.pk as url %}
     {% include "dashboard/includes/_back-link.html" with url=url hash="#stock" %}
 {% endblock %}
 
 {% block breadcrumbs %}
-    <ul class="breadcrumbs breadcrumbs--with-menu">
-        <li><a href="{% url "dashboard:product-list" %}" class="breadcrumbs--ellipsed-item">{% trans "Products" %}</a></li>
+    <ul class="breadcrumbs breadcrumbs--history">
+        <li><a href="{% url "dashboard:product-list" %}" class="breadcrumbs--ellipsed-item"><i class="material-icons">first_page</i></a></li>
         <li><a href="{% url "dashboard:product-update" pk=product.pk %}#stock" class="breadcrumbs--ellipsed-item">{{ product }}</a></li>
+        <li class="back-mobile"><a href="{% url "dashboard:product-update" pk=product.pk %}#stock"><i class="material-icons">chevron_left</i></a></li>
         {% if stock.pk %}
             <li><span class="breadcrumbs--ellipsed-item">{% trans "Stock" %} {{ stock.variant }}</span></li>
         {% else %}
             <li>
-                <span class="hide-on-med-and-down">{% trans "Add stock" %}</span>
-                <span class="hide-on-large-only">{% blocktrans %}Add stock for {{ product }}{% endblocktrans %}</span>
+                <span class="hide-on-med-and-down breadcrumbs--ellipsed-item">{% trans "Add stock" %}</span>
+                <span class="hide-on-large-only breadcrumbs--ellipsed-item">{% blocktrans %}Add stock for {{ product }}{% endblocktrans %}</span>
             </li>
         {% endif %}
     </ul>

@@ -6,6 +6,8 @@
 
 {% block body_class %}body-attributes{% endblock %}
 
+{% block menu_attributes_class %}active{% endblock %}
+
 {% block header_extra %}
     <div class="fixed-action-btn">
         <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
@@ -17,7 +19,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li>{% trans "Attributes" %}</li>
+        <li class="visible-s">{% trans "Attributes" %}</li>
     </ul>
 {% endblock %}
 

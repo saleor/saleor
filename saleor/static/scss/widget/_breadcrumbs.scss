@@ -2,51 +2,68 @@
   display: block;
   float: left;
   font-size: $h5-fontsize;
-  line-height: $header-height;
+  line-height: $subheader-height;
   white-space: nowrap;
-
+  margin-bottom: 0;
   @media (max-width: $medium-screen) {
-    width: calc(100% - 38px - 1.5rem);
     overflow: hidden;
     text-overflow: ellipsis;
   }
-
+  &--history {
+    li {
+      &:before {
+        content: '\E5CC';
+        vertical-align: top;
+        display: inline-block;
+        font-family: 'Material Icons';
+        font-weight: normal;
+        font-style: normal;
+        font-size: 25px;
+        margin: 0 10px 0 8px;
+        -webkit-font-smoothing: antialiased;
+      }
+      &:first-child:before {
+        display: none;
+      }
+    }
+  } 
   li {
-    display: none;
     float: none;
-    line-height: $header-height/2;
-
+    line-height: $subheader-height;
+    color: white;
+    display: inline-block;
+    @media (max-width: $medium-screen-up) { 
+      &:first-of-type:not(.visible-s) {
+        display: none;
+        &:before {
+          display: none;
+        }
+      }
+      &:nth-of-type(2) {
+        &:before {
+          display: none;
+        }
+      }
+      &:before {
+        display: none;
+      }
+      &.back-mobile {
+        display: inline-block;
+      }
+    }
     @media (min-width: $medium-screen-up) {
-      display: inline-block;
+      &:first-of-type {
+        display: inline-block;
+      }
+      &.back-mobile {
+        display: none;
+      }
     }
-
-    &:last-child {
-      display: inline-block;
-    }
-
-    &:before {
-      content: '\E5CC';
-      color: rgba(255,255,255, .7);
-      vertical-align: top;
-      display: inline-block;
-      font-family: 'Material Icons';
-      font-weight: normal;
-      font-style: normal;
-      font-size: 25px;
-      margin: 0 10px 0 8px;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    &:first-child:before {
-      display: none;
-    }
-
     &:hover {
       background: none;
     }
-
     a {
-      color: map-get($materialize-red, lighten-4);
+      color: white;
       display: inline-block;
       font-size: $h5-fontsize;
       padding: 0;
@@ -56,25 +73,19 @@
         color: white;
       }
     }
-  }
-
-  &--with-menu {
-    width: calc(100% - 38px - 1.5rem);
-
-    @media (max-width: $medium-screen) {
-      width: calc(100% - 76px - 3rem);
+    * {
+      display: inline-block;
+      overflow: hidden;
     }
   }
 
   &--ellipsed {
     &-item {
-      @media (min-width: $large-screen) {
-        display: inline-block;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 55vw;
+      @media (min-width: $medium-screen-up) {
         max-width: 14em;
-        vertical-align: middle;
       }
     }
   }
@@ -82,4 +93,5 @@
 
 .breadcrumbs {
   @include breadcrumbs;
+  margin-top: 0;
 }

@@ -7,13 +7,13 @@
 
 {% block body_class %}body-payments{% endblock %}
 
+{% block menu_payments_class %}active{% endblock %}
+
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li>{% trans "Payments" %}</li>
+        <li class="visible-s">{% trans "Payments" %}</li>
     </ul>
 {% endblock %}
-
-{% block menu_sales_class %} active{% endblock %}
 
 {% block content %}
     {% include "dashboard/includes/_status_filters.html" %}

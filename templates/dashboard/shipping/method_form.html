@@ -23,10 +23,9 @@
 {% endif %}{% endblock %}
 
 {% block breadcrumbs %}
-    <ul class="breadcrumbs breadcrumbs--with-menu">
-        <li><a href="{% url 'dashboard:shipping-methods' %}"
-               class="breadcrumbs--ellipsed-item">{% trans "Shipping methods" %}</a>
-        </li>
+    <ul class="breadcrumbs breadcrumbs--history">
+        <li><a href="{% url 'dashboard:shipping-methods' %}">{% trans "Shipping methods" %}</a></li>
+        <li class="back-mobile"><a href="{% url 'dashboard:shipping-methods' %}"><i class="material-icons">arrow_back</i></a></li>
         <li>
             {% if shipping_method.pk %}
                 <span class="breadcrumbs--ellipsed-item">{{ shipping_method }}</span>

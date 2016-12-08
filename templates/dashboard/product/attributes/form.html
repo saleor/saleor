@@ -7,6 +7,8 @@
 
 {% block body_class %}body-attributes{% endblock %}
 
+{% block menu_attributes_class %}active{% endblock %}
+
 {% block header_menu %}
     {% url "dashboard:product-attributes" as url %}
     {% include "dashboard/includes/_back-link.html" with url=url %}
@@ -15,7 +17,7 @@
 {% block header_extra %}
     {% if attribute.pk %}
     <a class="dropdown-button" href="#" data-activates="attribute-delete" data-constrainwidth="false">
-        <i class="material-icons">more_vert</i>
+        <i class="material-icons">arrow_drop_down</i>
     </a>
     <ul id="attribute-delete" class="dropdown-content">
         <li>
@@ -29,8 +31,9 @@
 {% endblock %}
 
 {% block breadcrumbs %}
-    <ul class="breadcrumbs breadcrumbs--with-menu">
+    <ul class="breadcrumbs breadcrumbs--history">
         <li><a href="{% url 'dashboard:product-attributes' %}" class="breadcrumbs--ellipsed-item">{% trans "Attributes" %}</a></li>
+        <li class="back-mobile"><a href="{% url 'dashboard:product-attributes' %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a></li>
         <li><span class="breadcrumbs--ellipsed-item">{% if attribute.pk %}{{ attribute }}{% else %}{% trans 'Add new attribute' %}{% endif %}</span></li>
     </ul>
 {% endblock %}
@@ -40,7 +43,7 @@
 {% block content %}
     <form method="post" enctype="multipart/form-data" id="form-attributes" novalidate>
         <div class="row">
-            <div class="col l8">
+            <div class="col s12 l8">
                 <div class="row">
                     {% csrf_token %}
                     {{ form.display|materializecss }}
@@ -79,7 +82,7 @@
         </div>
 
         <div class="row">
-            <div class="col l8 right-align">
+            <div class="col s12 l8 right-align">
                 {% if attribute.pk %}
                     <button type="submit" class="btn">{% trans "Update" %}</button>
                 {% else %}

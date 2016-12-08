@@ -25,8 +25,65 @@ function openModal() {
 }
 
 $(document).ready(function() {
+  var tabletScreen = 990
+  var wideScreen = 1650
+  var navWidth = '250px'
+  var $mainNav = $('#main-nav')
+  var mainNavTop = $mainNav.offset().top
+  var $menuToggle = $('.menu-toggle')
+  var $closeMenu = $('#close-menu')
+  var $openMenu = $('#open-menu')
+  function openMenu(animationSpeed) {
+    $mainNav.animate({
+      'left': navWidth
+    }, animationSpeed)
+    if ($(window).width() < wideScreen && $(window).width() >= tabletScreen) {
+      $('main .container, .subheader .nav-wrapper').animate({
+        'marginLeft': navWidth
+      }, animationSpeed)
+    } 
+    $openMenu.addClass('hide')
+    $closeMenu.removeClass('hide')
+    $(window).scroll(function() {
+      $mainNav.toggleClass('sticky', $(window).scrollTop() > mainNavTop)
+    })
+    if ($(window).width() > tabletScreen) {
+      $.cookie('menu', 'open', { path: '/' })
+    }  
+  }
+  function closeMenu() {
+    $mainNav.animate({
+      'left': '0'
+    })
+    $closeMenu.addClass('hide')
+    $openMenu.removeClass('hide')
+    $.removeCookie('menu', { path: '/' })
+    if ($(window).width() < wideScreen) {
+      $('main .container, .subheader .nav-wrapper').css({
+        'margin-left': 'auto'
+      })
+    }
+  }
+  $openMenu.click(function() {
+    openMenu(400)
+  })
+  $closeMenu.click(function() {
+    closeMenu()
+  })
+  if ($(window).width() <= tabletScreen) {
+    $(window).click(function() {
+      closeMenu()
+    });
+    $openMenu.click(function(event) {
+        event.stopPropagation();
+    });
+  }
+  if ($.cookie('menu') == 'open') {
+    openMenu(0)
+  } else {
+    closeMenu()
+  }
   initSelects()
-  $('.button-collapse').sideNav()
   $('.modal-trigger').leanModal()
 
   if (isTablet()) {

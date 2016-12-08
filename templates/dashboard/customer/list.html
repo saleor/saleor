@@ -7,13 +7,13 @@
 
 {% block body_class %}body-customers{% endblock %}
 
+{% block menu_customers_class %}active{% endblock %}
+
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li>{% trans "Customers" %}</li>
+        <li class="visible-s">{% trans "Customers" %}</li>
     </ul>
 {% endblock %}
-
-{% block menu_sales_class %} active{% endblock %}
 
 {% block content %}
     <form method="get" novalidate>
