@@ -295,6 +295,13 @@ header {
     td {
       padding: 5px 5px;
     }
+    .order-user {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100px;
+      min-width: 100%;
+    }
   }
 
   #order-notes {

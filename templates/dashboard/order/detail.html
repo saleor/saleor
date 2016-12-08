@@ -71,7 +71,7 @@
                                 <td>{% trans "Account" %}</td>
                                 <td class="right-align">
                                     {% if order.user %}
-                                        <a href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a>
+                                        <a class="order-user" href="{% url "dashboard:customer-details" pk=order.user.pk %}">{{ order.user }}</a>
                                     {% else %}
                                         {% trans "Guest" %}
                                     {% endif %}
