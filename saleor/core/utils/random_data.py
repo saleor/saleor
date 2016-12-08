@@ -13,7 +13,7 @@ from prices import Price
 from ...shipping.models import ShippingMethod, ANY_COUNTRY
 from ...order.models import DeliveryGroup, Order, OrderedItem, Payment
 from ...product.models import (Category, Product, ProductImage,
-                               ProductVariant, Stock)
+                               ProductVariant, Stock, StockLocation)
 from ...userprofile.models import Address, User
 
 fake = Factory.create()
@@ -62,9 +62,11 @@ def create_product(**kwargs):
 
 
 def create_stock(variant, **kwargs):
+    default_location = StockLocation.objects.get_or_create(
+        name=STOCK_LOCATION)[0]
     defaults = {
         'variant': variant,
-        'location': STOCK_LOCATION,
+        'location': default_location,
         'quantity': fake.random_int(1, 50)}
     defaults.update(kwargs)
     return Stock.objects.create(**defaults)

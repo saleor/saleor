@@ -10,7 +10,7 @@ from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
 from saleor.discount.models import Voucher
 from saleor.order.models import Order
-from saleor.product.models import Product, ProductVariant, Stock
+from saleor.product.models import Product, ProductVariant, Stock, StockLocation
 from saleor.shipping.models import ShippingMethod
 from saleor.userprofile.models import Address, User
 
@@ -92,15 +92,18 @@ def product_in_stock(db):  # pylint: disable=W0613
     product = Product.objects.create(
         name='Test product', price=10, weight=1)
     variant = ProductVariant.objects.create(product=product, sku='123')
+    warehouse_1 = StockLocation.objects.create(name='Warehouse 1')
+    warehouse_2 = StockLocation.objects.create(name='Warehouse 2')
+    warehouse_3 = StockLocation.objects.create(name='Warehouse 3')
     Stock.objects.create(
         variant=variant, cost_price=1, quantity=5, quantity_allocated=5,
-        location='Warehouse 1')
+        location=warehouse_1)
     Stock.objects.create(
         variant=variant, cost_price=100, quantity=5, quantity_allocated=5,
-        location='Warehouse 2')
+        location=warehouse_2)
     Stock.objects.create(
         variant=variant, cost_price=10, quantity=5, quantity_allocated=0,
-        location='Warehouse 3')
+        location=warehouse_3)
     return product
 
 

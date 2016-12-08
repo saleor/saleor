@@ -16,7 +16,7 @@ def test_stock_record_update_works(admin_client, product_in_stock):
             'product_pk': product_in_stock.pk,
             'stock_pk': stock.pk})
     admin_client.post(url, {
-        'variant': stock.variant_id, 'location': stock.location,
+        'variant': stock.variant_id, 'location': stock.location.id,
         'cost_price': stock.cost_price.net,
         'quantity': quantity + 5})
     new_stock = variant.stock.get(pk=stock.pk)

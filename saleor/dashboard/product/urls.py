@@ -51,4 +51,13 @@ urlpatterns = [
         views.attribute_edit, name='product-attribute-add'),
     url(r'attributes/(?P<pk>[0-9]+)/delete/$',
         views.attribute_delete, name='product-attribute-delete'),
+
+    url(r'stocklocations/$', views.stock_location_list,
+        name='product-stock-location-list'),
+    url(r'stocklocations/add/$', views.stock_location_edit,
+        name='product-stock-location-add'),
+    url(r'stocklocations/(?P<location_pk>[0-9]+)/$', views.stock_location_edit,
+        name='product-stock-location-edit'),
+    url(r'stocklocations/(?P<location_pk>[0-9]+)/delete/$',
+        views.stock_location_delete, name='product-stock-location-delete'),
 ]

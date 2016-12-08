@@ -11,7 +11,7 @@ from django.views.decorators.http import require_http_methods
 from . import forms
 from ...core.utils import get_paginator_items
 from ...product.models import (Product, ProductAttribute, ProductImage,
-                               ProductVariant, Stock)
+                               ProductVariant, Stock, StockLocation)
 from ..views import staff_member_required
 
 
@@ -274,3 +274,43 @@ def attribute_delete(request, pk):
     ctx = {'attribute': attribute}
     return TemplateResponse(
         request, 'dashboard/product/attributes/modal_confirm_delete.html', ctx)
+
+
+@staff_member_required
+def stock_location_list(request):
+    stock_locations = StockLocation.objects.all()
+    ctx = {'locations': stock_locations}
+    return TemplateResponse(
+        request, 'dashboard/product/stock_locations/list.html', ctx)
+
+
+@staff_member_required
+def stock_location_edit(request, location_pk=None):
+    if location_pk:
+        location = get_object_or_404(StockLocation, pk=location_pk)
+    else:
+        location = StockLocation()
+    form = forms.StockLocationForm(request.POST or None, instance=location)
+    if form.is_valid():
+        form.save()
+        msg = _('Updated location') if location_pk else _('Added location')
+        messages.success(request, msg)
+        return redirect('dashboard:product-stock-location-list')
+    ctx = {'form': form, 'location': location}
+    return TemplateResponse(
+        request, 'dashboard/product/stock_locations/form.html', ctx)
+
+
+@staff_member_required
+def stock_location_delete(request, location_pk):
+    location = get_object_or_404(StockLocation, pk=location_pk)
+    stock_count = location.stock_set.count()
+    if request.method == 'POST':
+        location.delete()
+        messages.success(
+            request, _('Deleted location %s') % location)
+        return redirect('dashboard:product-stock-location-list')
+    ctx = {'location': location, 'stock_count': stock_count}
+    return TemplateResponse(
+        request, 'dashboard/product/stock_locations/modal_confirm_delete.html',
+        ctx)
