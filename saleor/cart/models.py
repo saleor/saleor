@@ -12,6 +12,7 @@ from django.utils.encoding import python_2_unicode_compatible, smart_str
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
+from django.contrib.postgres.fields import JSONField as postgres_JSONField
 from jsonfield import JSONField
 from satchless.item import ItemLine, ItemSet, ItemList, partition
 
@@ -101,6 +102,7 @@ class Cart(models.Model):
     voucher = models.ForeignKey(
         Voucher, null=True, related_name='+', on_delete=models.SET_NULL)
     checkout_data = JSONField(null=True, editable=False)
+    checkout_data_postgres = postgres_JSONField(null=True, editable=False)
 
     total = PriceField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
@@ -229,6 +231,7 @@ class CartLine(models.Model, ItemLine):
         pgettext_lazy('Cart line', 'quantity'),
         validators=[MinValueValidator(0), MaxValueValidator(999)])
     data = JSONField(blank=True, default={})
+    data_postgres = postgres_JSONField(blank=True, default={})
 
     class Meta:
         unique_together = ('cart', 'variant', 'data')
