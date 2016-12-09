@@ -62,6 +62,9 @@ def add_to_cart(request, cart, product_id):
         flat_error_list = chain(*form.errors.values())
         for error_msg in flat_error_list:
             messages.error(request, error_msg)
+        return redirect(reverse(
+            'product:details', kwargs={'product_id': product_id,
+                                       'slug': product.get_slug()}))
     return redirect('cart:index')
 
 
