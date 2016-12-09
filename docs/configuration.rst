@@ -24,9 +24,7 @@ Environment variables
 
 
 ``DATABASE_URL``
-  The URL of the main SQL database. Defaults to an SQLite file.
-
-  PostgreSQL is recommended. Most Heroku databases will export this setting automatically.
+  The URL of the main SQL database. Defaults to an PostgreSQL database created by Docker Compose.
 
   **Example:** ``postgres://user:password@psql.example.com/database``
 
