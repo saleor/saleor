@@ -10,6 +10,7 @@ Contents:
 
    installation
    configuration
+   products
    stock
    payments
    integrations
