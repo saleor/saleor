@@ -43,9 +43,9 @@ class ProductClassForm(forms.ModelForm):
 
     def clean(self):
         data = super(ProductClassForm, self).clean()
-        has_variants = self.cleaned_data.get('product_attributes')
-        product_attr = set(self.cleaned_data.get('product_attributes', []))
-        variant_attr = set(self.cleaned_data.get('variant_attributes', []))
+        has_variants = self.cleaned_data['has_variants']
+        product_attr = set(self.cleaned_data['product_attributes'])
+        variant_attr = set(self.cleaned_data['variant_attributes'])
         if not has_variants and len(variant_attr) > 0:
             msg = pgettext_lazy(
                 "Product Class Errors",
