@@ -5,7 +5,7 @@ import json
 import pytest
 from babeldjango.templatetags.babel import currencyfmt
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import reverse
+from django.core.urlresolvers import reverse
 from mock import MagicMock, Mock
 
 from saleor.cart import decorators, forms, utils
