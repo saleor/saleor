@@ -48,13 +48,14 @@ class ProductClassForm(forms.ModelForm):
         variant_attr = set(self.cleaned_data['variant_attributes'])
         if not has_variants and len(variant_attr) > 0:
             msg = pgettext_lazy(
-                "Product Class Errors",
-                "This class has no variants options selected.")
+                'Product Class Errors',
+                'Product variants are disabled.')
             self.add_error('variant_attributes', msg)
         if len(product_attr & variant_attr) > 0:
             msg = pgettext_lazy(
-                "Product Class Errors",
-                "Do not use same attributes in both product and variant.")
+                'Product Class Errors',
+                'A single attribute can\'t belong to both a product '
+                'and its variant.')
             self.add_error('variant_attributes', msg)
         return data
 
