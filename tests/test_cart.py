@@ -5,6 +5,7 @@ import json
 import pytest
 from babeldjango.templatetags.babel import currencyfmt
 from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import reverse
 from mock import MagicMock, Mock
 
 from saleor.cart import decorators, forms, utils
@@ -295,8 +296,9 @@ def test_view_negative_add_to_cart(client, product_in_stock, request_cart):
     assert response.status_code == 302
     assert request_cart.quantity == 2
     location = response['Location']
-    assert location == '/products/%s-%d/' % (product_in_stock.get_slug(),
-                                            product_in_stock.id)
+    assert location == reverse('product:details',
+                               kwargs={'slug': product_in_stock.get_slug(),
+                                       'product_id': product_in_stock.id})
 
 
 def test_view_add_to_cart(client, product_in_stock, request_cart):
