@@ -8,7 +8,6 @@ django-bootstrap3>=6.2.0
 django-cache-url>=1.0.0
 django-countries>=3.4
 django-emailit>=0.2.2
-django-haystack>=2.5.1
 django-materializecss-form>=0.1
 django-mptt>=0.7.1
 django-payments>=0.9.0,<0.10a0
@@ -39,4 +38,3 @@ requests>=1.2.0
 satchless>=1.1.2,<1.2a0
 unidecode
 uwsgi>=2.0.0
-Whoosh==2.7.4

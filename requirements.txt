@@ -4,8 +4,8 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
-Babel==2.3.4              # via babeldjango, django-prices
-BabelDjango==0.2.2        # via django-prices
+babel==2.3.4
+babeldjango==0.2.2
 boto==2.43.0
 braintree==3.32.0         # via django-payments
 cffi==1.9.1               # via cryptography
@@ -21,7 +21,6 @@ django-bootstrap3==7.1.0
 django-cache-url==1.3.1
 django-countries==4.0
 django-emailit==0.2.2
-django-haystack==2.5.1
 django-materializecss-form==1.0.1
 django-mptt==0.8.6
 django-payments==0.9.6
@@ -32,7 +31,7 @@ django-selectable==0.9.0
 django-storages==1.5.1
 django-versatileimagefield==1.6.1
 django-webpack-loader==0.4.1
-Django==1.10.4            # via django-absolute, django-allauth, django-emailit, django-haystack, django-payments, django-prices, django-prices-openexchangerates, jsonfield
+django==1.10.4
 djangorestframework==3.5.3
 elasticsearch==2.4.0
 fake-factory==0.7.2
@@ -41,13 +40,13 @@ google-measurement-protocol==0.1.6
 idna==2.1                 # via cryptography
 jsonfield==1.0.3
 lxml==3.6.4               # via premailer
-Markdown==2.6.7
+markdown==2.6.7
 maxminddb-geolite2==2015.708
 maxminddb==1.2.2
 mock==2.0.0
 oauthlib==2.0.1           # via requests-oauthlib
 pbr==1.10.0               # via mock
-Pillow==3.3.3             # via django-versatileimagefield
+pillow==3.3.3             # via django-versatileimagefield
 premailer==3.0.1          # via django-emailit
 prices==0.5.8
 psycopg2==2.6.2
@@ -55,7 +54,7 @@ purl==1.3
 py==1.4.31                # via pytest
 pyasn1==0.1.9             # via cryptography
 pycparser==2.17           # via cffi
-PyJWT==1.4.2              # via django-payments
+pyjwt==1.4.2              # via django-payments
 pytest-django==3.1.2
 pytest==3.0.5
 python-dateutil==2.6.0    # via fake-factory
@@ -71,7 +70,6 @@ suds-jurko==0.6           # via django-payments
 unidecode==0.4.19
 urllib3==1.19.1           # via elasticsearch
 uwsgi==2.0.14
-Whoosh==2.7.4
 xmltodict==0.10.2         # via django-payments
 
 # The following packages are considered to be unsafe in a requirements file:
