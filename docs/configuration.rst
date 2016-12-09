@@ -24,7 +24,9 @@ Environment variables
 
 
 ``DATABASE_URL``
-  The URL of the main SQL database. Defaults to an PostgreSQL database created by Docker Compose.
+  Defaults to a local PostgreSQL instance. See :ref:`docker-compose` for how to get a local database running inside a Docker container.
+
+  Most Heroku databases will export this setting automatically.
 
   **Example:** ``postgres://user:password@psql.example.com/database``
 
