@@ -2,18 +2,18 @@ from __future__ import unicode_literals
 from . import logger
 
 from collections import namedtuple
+from decimal import Decimal
+from satchless.item import ItemLine, ItemList, partition
 from uuid import uuid4
 
-from decimal import Decimal
 from django.conf import settings
+from django.contrib.postgres.fields import JSONField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible, smart_str
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
-from django.contrib.postgres.fields import JSONField
-from satchless.item import ItemLine, ItemList, partition
 
 from ..discount.models import Voucher
 from ..product.models import ProductVariant
@@ -54,15 +54,17 @@ class CartQueryset(models.QuerySet):
 
     def for_display(self):
         return self.prefetch_related(
-            'lines', 'lines__variant',
+            'lines',
+            'lines__variant',
+            'lines__variant__product',
+            'lines__variant__product__images',
             'lines__variant__product__product_class__product_attributes',
             'lines__variant__product__product_class__'
             'product_attributes__values',
+            'lines__variant__product__product_class__variant_attributes',
             'lines__variant__product__product_class__'
-            'variant_attributes',
-            'lines__variant__product__product_class__variant_attributes__values',
-            'lines__variant__stock', 'lines__variant__product__images',
-            'lines__variant__product')
+            'variant_attributes__values',
+            'lines__variant__stock')
 
 
 class Cart(models.Model):
