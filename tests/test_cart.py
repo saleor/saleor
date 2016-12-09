@@ -287,6 +287,18 @@ def test_view_invalid_add_to_cart(client, product_in_stock, request_cart):
     assert request_cart.quantity == 2
 
 
+def test_view_negative_add_to_cart(client, product_in_stock, request_cart):
+    variant = product_in_stock.variants.get()
+    request_cart.add(variant, 2)
+    response = client.post('/cart/add/%s/' % (variant.product_id,),
+                           {'variant': variant.pk, 'quantity': -3})
+    assert response.status_code == 302
+    assert request_cart.quantity == 2
+    location = response['Location']
+    assert location == '/products/%s-%d/' % (product_in_stock.get_slug(),
+                                            product_in_stock.id)
+
+
 def test_view_add_to_cart(client, product_in_stock, request_cart):
     variant = product_in_stock.variants.get()
     request_cart.add(variant, 1)
