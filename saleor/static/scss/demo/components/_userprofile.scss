@@ -5,7 +5,7 @@
     margin-bottom: $global-margin;
     .nav-link {
       color: $gray;
-      border-bottom: 0;
+      border: 0;
       &:first-of-type {
         margin-right: $global-margin * 3;
       }
@@ -56,12 +56,35 @@
       margin-right: $global-margin / 2;
     }
     .card-block {
-      padding-left: 0;
-      padding-right: 0;
+      padding-left: $global-padding;
+      padding-right: $global-padding * 2;
+      background-color: #F9F9F9;
+      margin-left: -$global-margin;
+      margin-right: -$global-margin;
     }
     &__details {
       address {
-        color: $gray;
+        margin-top: $global-margin;
+      }
+      &__products {
+        @include media-breakpoint-down(sm) {
+          padding-left: $global-padding * 2;
+        }
+        span {
+          color: $gray;
+        }
+        img {
+          margin-right: $global-margin;
+        }
+        .row {
+          padding-top: $global-padding;
+          &:not(:last-of-type) {
+            border-bottom: 1px solid $light-gray;
+          }
+          &:nth-last-of-type(2) {
+            border-bottom: 1px solid $gray;
+          }
+        }
       }
     }
   }
