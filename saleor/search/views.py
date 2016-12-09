@@ -4,10 +4,8 @@ from django.core.paginator import Paginator, InvalidPage
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import render
-from haystack.forms import SearchForm
-
-from ..product.models import Product
-from .utils import visible_search_results
+from .forms import SearchForm
+from ..product.utils import products_with_details
 
 
 def paginate_results(results, get_data, paginate_by=25):
@@ -21,10 +19,11 @@ def paginate_results(results, get_data, paginate_by=25):
 
 
 def search(request):
-    form = SearchForm(data=request.GET or None, load_all=True)
+    form = SearchForm(data=request.GET or None)
     if form.is_valid():
-        results = form.search().models(Product)
-        results = visible_search_results(results)
+        visible_products = products_with_details(request.user)
+        results = form.search(model_or_queryset=visible_products)
+        # results = visible_search_results(results)
         page = paginate_results(results, request.GET, settings.PAGINATE_BY)
     else:
         page = form.no_query_found()
