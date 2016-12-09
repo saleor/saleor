@@ -1,15 +1,25 @@
 import React, { Component, PropTypes } from 'react';
 import Relay from 'react-relay';
+import queryString from 'query-string';
 
 import CategoryFilter from './CategoryFilter';
 import PriceFilter from './PriceFilter';
 import ProductFilters from './ProductFilters';
 import ProductList from './ProductList';
 
+
 const PAGINATE_BY = 20;
 
 
 class CategoryPage extends Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      attributesFilters: [],
+      priceFilters: []
+    };
+  }
 
   static propTypes = {
     attributes: PropTypes.array,
@@ -27,14 +37,73 @@ class CategoryPage extends Component {
     this.props.relay.setVariables({
       attributesFilter: attributes
     });
+    this.setState({
+      attributesFilters: attributes
+    }, () => {
+      this.setUrlParams();
+    });
+    
   }
 
   setPriceFilter = (minPrice, maxPrice) => {
+    let enabled = [];
+
     this.props.relay.setVariables({
       minPrice: minPrice,
       maxPrice: maxPrice
     });
+
+    if (minPrice && maxPrice) {
+      enabled = [`minPrice=${minPrice}`, `maxPrice=${maxPrice}`]
+    } else {
+      if (minPrice) {
+        enabled = [`minPrice=${minPrice}`]
+      } else if (maxPrice) {
+        enabled = [`maxPrice=${maxPrice}`]
+      }
+    }
+
+    this.setState({
+      priceFilters: enabled
+    }, () => {
+      this.setUrlParams();
+    });
   }
+
+  setUrlParams = () => {
+    let url = '';
+    let attributesFilter = this.state.attributesFilters;
+    let priceFilters = this.state.priceFilters;
+
+    if (attributesFilter) {
+      attributesFilter.map((param, index) => {
+          param = param.replace(':', '=');
+          if (index == 0) {
+            url += '?' + param;
+          } else {
+            url += '&' + param;
+          }
+      })
+    }
+
+    if (priceFilters) {
+      priceFilters.map((param, index) => {
+          if (index == 0) {
+            url += '?' + param;
+          } else {
+            url += '&' + param;
+          }
+      })
+    }
+
+    if (attributesFilter.length == 0 && priceFilters.length == 0) {
+      url = location.href.split('?')[0];
+    }
+
+    history.pushState({}, null , url);
+
+  }
+
 
   render() {
     const category = this.props.category;
@@ -50,9 +119,11 @@ class CategoryPage extends Component {
             <ProductFilters
               attributes={attributes}
               onFilterChanged={this.setAttributesFilter}
+              urlParams = {this.setUrlParams}
             />
             <PriceFilter
               onFilterChanged={this.setPriceFilter}
+              urlParams = {this.setUrlParams}
             />
           </div>
         </div>

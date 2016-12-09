@@ -8,6 +8,7 @@ class ProductFilters extends Component {
   static propTypes = {
     attributes: PropTypes.array,
     onFilterChanged: PropTypes.func.isRequired,
+    urlParams: PropTypes.func.isRequired
   };
 
   constructor(props) {
@@ -19,7 +20,6 @@ class ProductFilters extends Component {
 
   onClick = (attribute, value, event) => {
     const attrValue = `${attribute}:${value}`;
-    let url = '';
     const element = event.target;
 
     this.setState({
@@ -29,25 +29,11 @@ class ProductFilters extends Component {
     });
     const enabled = Object.keys(this.state.filters).filter(key => this.state.filters[key] === true);
     this.props.onFilterChanged(enabled);
-
-    enabled.map((param, index) => {
-      param = param.replace(':', '=');
-      if (index == 0) {
-        url += '?' + param;
-      } else {
-        url += '&' + param;
-      }
-    });
-
-    if (enabled.length == 0) {
-      url = location.href.split('?')[0];
-    }
-
-    history.pushState({}, null , url); 
+  
   }
 
   componentDidMount() {
-    let url_params = queryString.parse(location.search);
+    /*let url_params = queryString.parse(location.search);
     Object.keys(url_params).map((params) => {
       let attrValue = '';
       if (Array.isArray(url_params[params])) {
@@ -74,7 +60,7 @@ class ProductFilters extends Component {
     })
 
     const enabled = Object.keys(this.state.filters).filter(key => this.state.filters[key] === true);
-    this.props.onFilterChanged(enabled);
+    this.props.onFilterChanged(enabled);*/
   }
 
   render() {

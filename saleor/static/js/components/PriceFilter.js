@@ -1,17 +1,19 @@
 import React, { Component, PropTypes } from 'react';
-
+import queryString from 'query-string';
 
 export default class PriceFilter extends Component {
 
   static propTypes = {
-    onFilterChanged: PropTypes.func.isRequired
+    onFilterChanged: PropTypes.func.isRequired,
+    urlParams: PropTypes.func.isRequired
   }
 
   constructor(props) {
     super(props);
     this.state = {
       minPrice: null,
-      maxPrice: null
+      maxPrice: null,
+      filters: []
     }
   }
 
@@ -41,6 +43,7 @@ export default class PriceFilter extends Component {
     let { minPrice, maxPrice } = this.state;
     minPrice = this.parseValue(minPrice);
     maxPrice = this.parseValue(maxPrice);
+
     this.props.onFilterChanged(minPrice, maxPrice);
   }
 
