@@ -14,7 +14,7 @@ export default class CategoryFilter extends Component {
         <h3>Categories:</h3>
         <ul>
           <li className="current">
-            <a href={category.url}>{category.name}</a>
+            <a href={category.url}><strong>{category.name}</strong></a>
             <span>{category.productsCount}</span>
           </li>
           {category.siblings && (category.siblings.map((sibling) => {
