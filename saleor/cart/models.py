@@ -100,7 +100,7 @@ class Cart(models.Model):
                              primary_key=True, default=uuid4, editable=False)
     voucher = models.ForeignKey(
         Voucher, null=True, related_name='+', on_delete=models.SET_NULL)
-    checkout_data = JSONField(null=True, editable=False)
+    checkout_data_postgres = JSONField(null=True, editable=False)
 
     total = PriceField(
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
@@ -228,10 +228,10 @@ class CartLine(models.Model, ItemLine):
     quantity = models.PositiveIntegerField(
         pgettext_lazy('Cart line', 'quantity'),
         validators=[MinValueValidator(0), MaxValueValidator(999)])
-    data = JSONField(blank=True, default={})
+    data_postgres = JSONField(blank=True, default={})
 
     class Meta:
-        unique_together = ('cart', 'variant', 'data')
+        unique_together = ('cart', 'variant', 'data_postgres')
 
     def __str__(self):
         return smart_str(self.variant)
