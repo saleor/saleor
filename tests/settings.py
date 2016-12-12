@@ -5,7 +5,8 @@ SECRET_KEY = 'NOTREALLY'
 
 DEFAULT_CURRENCY = 'USD'
 
-DATABASES['default']['TEST'] = {  # noqa
-    'SERIALIZE': False,
-    'NAME': ':memory:',
-    'MIRROR': None}
+if 'sqlite' in DATABASES['default']['ENGINE']:
+    DATABASES['default']['TEST'] = {  # noqa
+        'SERIALIZE': False,
+        'NAME': ':memory:',
+        'MIRROR': None}
