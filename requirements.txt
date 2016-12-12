@@ -37,7 +37,6 @@ fake-factory==0.7.2
 google-i18n-address==2.0.0
 google-measurement-protocol==0.1.6
 idna==2.1                 # via cryptography
-jsonfield==1.0.3
 lxml==3.6.4               # via premailer
 markdown==2.6.7
 maxminddb-geolite2==2015.708
