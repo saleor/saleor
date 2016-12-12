@@ -17,8 +17,9 @@ class ProductFilters extends Component {
     };
   }
 
-  onClick = (attribute, value) => {
-    const attrValue = `${attribute}:${value}`;
+  onClick = (event) => {
+    const { name, value } = event.target;
+    const attrValue = `${name}:${value}`;
     this.setState({
       filters: Object.assign(
         this.state.filters,
@@ -26,7 +27,6 @@ class ProductFilters extends Component {
     });
     const enabled = Object.keys(this.state.filters).filter(key => this.state.filters[key] === true);
     this.props.onFilterChanged(enabled);
-  
   }
 
   render() {
@@ -42,7 +42,7 @@ class ProductFilters extends Component {
                   return (
                     <li key={value.id} className="item">
                         <label>
-                          <input id={'attr' + attribute.pk + value.pk} type="checkbox" value="" onClick={() => this.onClick(attribute.pk, value.pk)} />
+                          <input name={attribute.name} type="checkbox" value={value.slug} onClick={this.onClick} />
                           {value.display}
                         </label>
                     </li>
@@ -67,7 +67,7 @@ export default Relay.createContainer(ProductFilters, {
         display
         values {
           id
-          pk
+          slug
           display
           color
         }

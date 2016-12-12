@@ -89,26 +89,41 @@ class CategoryType(DjangoObjectType):
         price_lte = args.get('price_lte')
         price_gte = args.get('price_gte')
         if attributes_filter:
+
+            attributes = ProductAttribute.objects.prefetch_related('values')
+            attributes_map = {attribute.name: attribute.pk
+                              for attribute in attributes}
+            values_map = {attr.name: {value.slug: value.pk
+                                      for value in attr.values.all()}
+                          for attr in attributes}
+
             queries = {}
             # Convert attribute:value pairs into a dictionary where
             # attributes are keys and values are grouped in lists
-            for attr_pk, attr_val_pk in attributes_filter:
+            for attr_name, val_slug in attributes_filter:
                 try:
-                    attr_pk, attr_val_pk = int(attr_pk), int(attr_val_pk)
-                except ValueError:
-                    pass
+                    attr_pk = attributes_map[attr_name]
+                except KeyError:
+                    raise ValueError("Invalid attribute name: %s" % attr_name)
                 else:
-                    key = 'variants__attributes__%s' % attr_pk
-                    if key not in queries:
-                        queries[key] = [attr_val_pk]
+                    try:
+                        attr_val_pk = values_map[attr_name][val_slug]
+                    except KeyError:
+                        raise ValueError("Invalid attribute value: %s" %
+                                         val_slug)
                     else:
-                        queries[key].append(attr_val_pk)
+                        key = 'variants__attributes__%s' % attr_pk
+                        if key not in queries:
+                            queries[key] = [attr_val_pk]
+                        else:
+                            queries[key].append(attr_val_pk)
+
             if queries:
                 # Combine filters of the same attribute with OR operator
                 # and then combine full query with AND operator.
-                combine_and = [reduce(operator.or_, [
-                    Q(**{key: v}) for v in values])
-                        for key, values in queries.items()]
+                combine_and = [reduce(operator.or_, [Q(**{key: v})
+                                                     for v in values])
+                               for key, values in queries.items()]
                 query = reduce(operator.and_, combine_and)
                 qs = qs.filter(query)
         if order_by:
