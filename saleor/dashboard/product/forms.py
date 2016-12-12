@@ -4,7 +4,11 @@ from django import forms
 from django.db import transaction
 from django.db.models import Count
 from django.forms.models import ModelChoiceIterator, inlineformset_factory
+<<<<<<< cde2a43135fcf2854d71c205d2760ccee15530ad
 from django.utils.encoding import smart_text
+=======
+from django.utils.text import slugify
+>>>>>>> Add slug field in AttributeChoiceValue model
 from django.utils.translation import pgettext_lazy
 
 from ...product.models import (AttributeChoiceValue, Product, ProductAttribute,
@@ -270,5 +274,23 @@ class StockLocationForm(forms.ModelForm):
         exclude = []
 
 
+class AttributeChoiceValueForm(forms.ModelForm):
+    class Meta:
+        model = AttributeChoiceValue
+        exclude = ('slug', )
+
+    def clean_display(self):
+        display = self.cleaned_data['display']
+        if (not self.instance.pk and
+                self.instance.attribute.values.filter(slug=slugify(display))):
+            raise forms.ValidationError("Name already exists")
+        return display
+
+    def save(self, commit=True):
+        self.instance.slug = slugify(self.instance.display)
+        return super(AttributeChoiceValueForm, self).save(commit=commit)
+
+
 AttributeChoiceValueFormset = inlineformset_factory(
-    ProductAttribute, AttributeChoiceValue, exclude=(), extra=1)
+    ProductAttribute, AttributeChoiceValue, form=AttributeChoiceValueForm,
+    extra=1)

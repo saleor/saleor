@@ -373,6 +373,7 @@ class AttributeChoiceValue(models.Model):
     display = models.CharField(
         pgettext_lazy('Attribute choice value field', 'display name'),
         max_length=100)
+    slug = models.SlugField()
     color = models.CharField(
         pgettext_lazy('Attribute choice value field', 'color'),
         max_length=7,
