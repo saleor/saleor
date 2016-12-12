@@ -8,8 +8,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 
 from ..cart.decorators import get_cart_from_request
+from ..cart.utils import process_purchase
 from ..core.utils import get_paginator_items
-from .forms import get_form_class_for_product
 from .models import Category
 from .utils import (products_with_details, get_availability,
                     products_with_availability, get_product_images)
@@ -52,14 +52,10 @@ def product_details(request, slug, product_id):
     today = datetime.date.today()
     is_visible = (
         product.available_on is None or product.available_on <= today)
-    form_class = get_form_class_for_product(product)
     cart = get_cart_from_request(request)
 
-    # add to cart handling
-    form = form_class(cart=cart, product=product,
-                      data=request.POST or None)
+    form = process_purchase(request, cart, product)
     if form.is_valid():
-        form.save()
         return redirect('cart:index')
 
     availability = get_availability(product, discounts=request.discounts,

@@ -11,11 +11,10 @@ from django.template.response import TemplateResponse
 
 from . import decorators
 from ..core.utils import to_local_currency
-from ..product.forms import get_form_class_for_product
 from ..product.models import Product, ProductVariant
 from .forms import ReplaceCartLineForm
 from .models import Cart
-from .utils import check_product_availability_and_warn
+from .utils import check_product_availability_and_warn, process_purchase
 
 
 @decorators.get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
@@ -51,14 +50,8 @@ def index(request, cart):
 @decorators.get_or_create_db_cart()
 def add_to_cart(request, cart, product_id):
     product = get_object_or_404(Product, pk=product_id)
-    form_class = get_form_class_for_product(product)
-
-    form = form_class(
-        data=request.POST or None, product=product, cart=cart,
-        discounts=request.discounts)
-    if form.is_valid():
-        form.save()
-    else:
+    form = process_purchase(request, cart, product)
+    if not form.is_valid():
         flat_error_list = chain(*form.errors.values())
         for error_msg in flat_error_list:
             messages.error(request, error_msg)

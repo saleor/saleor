@@ -4,6 +4,8 @@ from django.contrib import messages
 from django.utils.translation import ugettext_lazy as _
 from satchless.item import InsufficientStock
 
+from ..product.forms import get_form_class_for_product
+
 
 def contains_unavailable_variants(cart):
     try:
@@ -51,3 +53,12 @@ def check_product_availability_and_warn(request, cart):
                 'Quantity was set to maximum available for now.')
         messages.warning(request, msg)
         remove_unavailable_variants(cart)
+
+
+def process_purchase(request, cart, product):
+    form_class = get_form_class_for_product(product)
+    form = form_class(cart=cart, product=product,
+                      data=request.POST or None, discounts=request.discounts)
+    if form.is_valid():
+        form.save()
+    return form
