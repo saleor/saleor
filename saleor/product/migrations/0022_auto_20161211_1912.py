@@ -9,7 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('product', '0015_auto_20161212_0301'),
+        ('product', '0021_auto_20161212_0301'),
     ]
 
     operations = [

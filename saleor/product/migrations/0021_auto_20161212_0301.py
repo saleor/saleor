@@ -10,7 +10,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('product', '0014_attribute_data_to_class'),
+        ('product', '0020_attribute_data_to_class'),
     ]
 
     operations = [
