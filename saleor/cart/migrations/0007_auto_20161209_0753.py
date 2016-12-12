@@ -8,7 +8,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        # ('product', '0014_auto_20161209_0546'),
         ('cart', '0006_auto_20161209_0750'),
     ]
 

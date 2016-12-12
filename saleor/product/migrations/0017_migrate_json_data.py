@@ -9,10 +9,7 @@ def move_data(apps, schema_editor):
     ProductVariant = apps.get_model('product', 'ProductVariant')
 
     for variant in ProductVariant.objects.all():
-        if isinstance(variant.attributes, dict):
-            variant.attributes_postgres = variant.attributes
-        else:
-            variant.attributes_postgres = json.loads(variant.attributes)
+        variant.attributes_postgres = json.loads(variant.attributes)
         variant.save()
 
 
