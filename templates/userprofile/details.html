@@ -37,7 +37,7 @@
         {% for address in addresses %}
           <div class="row userprofile__address-row">
             <div class="col-xs-5">
-              {{ address }}
+              {% include "userprofile/snippets/address-short.html" %}
             </div>
             <div class="col-xs-3 col-md-4">
               <div class="row">
