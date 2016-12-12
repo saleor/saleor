@@ -24,7 +24,7 @@ Before you are ready to run Saleor you will need certain software installed on y
 
     $ npm i webpack -g
 
-#. `posgresql <https://www.postgresql.org/>`_ version 9 or above
+#. `PostgreSQL <https://www.postgresql.org/>`_ version 9 or above
 
 We also strongly recommend creating a virtual environment before proceeding with installation.
 
