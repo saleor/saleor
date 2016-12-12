@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 
 from ..cart.decorators import get_cart_from_request
-from ..cart.utils import process_purchase
+from ..cart.utils import process_cart_form
 from ..core.utils import get_paginator_items
 from .models import Category
 from .utils import (products_with_details, get_availability,
@@ -54,7 +54,7 @@ def product_details(request, slug, product_id):
         product.available_on is None or product.available_on <= today)
     cart = get_cart_from_request(request)
 
-    form = process_purchase(request, cart, product)
+    form = process_cart_form(request, cart, product)
     if form.is_valid():
         return redirect('cart:index')
 

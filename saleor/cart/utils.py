@@ -55,7 +55,7 @@ def check_product_availability_and_warn(request, cart):
         remove_unavailable_variants(cart)
 
 
-def process_purchase(request, cart, product):
+def process_cart_form(request, cart, product):
     form_class = get_form_class_for_product(product)
     form = form_class(cart=cart, product=product,
                       data=request.POST or None, discounts=request.discounts)
