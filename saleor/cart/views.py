@@ -1,9 +1,6 @@
 from __future__ import unicode_literals
 
-from itertools import chain
-
 from babeldjango.templatetags.babel import currencyfmt
-from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -11,10 +8,10 @@ from django.template.response import TemplateResponse
 
 from . import decorators
 from ..core.utils import to_local_currency
-from ..product.models import Product, ProductVariant
+from ..product.models import ProductVariant
 from .forms import ReplaceCartLineForm
 from .models import Cart
-from .utils import check_product_availability_and_warn, process_purchase
+from .utils import check_product_availability_and_warn
 
 
 @decorators.get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
@@ -45,17 +42,6 @@ def index(request, cart):
             'cart_lines': cart_lines,
             'cart_total': cart_total,
             'local_cart_total': local_cart_total})
-
-
-@decorators.get_or_create_db_cart()
-def add_to_cart(request, cart, product_id):
-    product = get_object_or_404(Product, pk=product_id)
-    form = process_purchase(request, cart, product)
-    if not form.is_valid():
-        flat_error_list = chain(*form.errors.values())
-        for error_msg in flat_error_list:
-            messages.error(request, error_msg)
-    return redirect('cart:index')
 
 
 @decorators.get_or_empty_db_cart()

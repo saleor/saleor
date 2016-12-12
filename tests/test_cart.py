@@ -279,24 +279,6 @@ def test_view_invalid_update_cart(client, product_in_stock, request_cart):
     assert request_cart.quantity == 1
 
 
-def test_view_invalid_add_to_cart(client, product_in_stock, request_cart):
-    variant = product_in_stock.variants.get()
-    request_cart.add(variant, 2)
-    response = client.post('/cart/add/%s/' % (variant.product_id,), {})
-    assert response.status_code == 302
-    assert request_cart.quantity == 2
-
-
-def test_view_add_to_cart(client, product_in_stock, request_cart):
-    variant = product_in_stock.variants.get()
-    request_cart.add(variant, 1)
-    response = client.post(
-        '/cart/add/%s/' % (variant.product_id,),
-        {'quantity': 1, 'variant': variant.pk})
-    assert response.status_code == 302
-    assert request_cart.quantity == 2
-
-
 def test_cart_page_without_openexchagerates(
         client, product_in_stock, request_cart, settings):
     settings.OPENEXCHANGERATES_API_KEY = None
