@@ -16,11 +16,9 @@
 {% block content %}
   <div class="userprofile">
     <div class="row">
-      <div class="col-lg-10 offset-lg-1">
-        <h3>{{ user }}</h3>
-        <p>
-            <a href="{% url 'account_change_password' %}">{% trans 'Change your password' %}</a>
-        </p>
+      <div class="col-lg-10 offset-lg-1 userprofile__user">
+        <h2 class="float-xs-left">{{ user }}</h2>
+        <a href="{% url 'account_change_password' %}"><img src="{% static 'img/icon_edit.svg' %}"></a>
       </div>
     </div>
     <div class="userprofile__nav row">
