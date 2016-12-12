@@ -16,7 +16,7 @@ def move_data(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('product', '0022_auto_20161211_1912'),
+        ('product', '0023_auto_20161211_1912'),
     ]
 
     operations = [
