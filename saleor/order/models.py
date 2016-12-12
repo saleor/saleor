@@ -18,6 +18,7 @@ from payments.models import BasePayment
 from prices import Price, FixedDiscount
 from satchless.item import ItemLine, ItemSet
 
+from saleor.search import index
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product, Stock
@@ -45,7 +46,7 @@ class OrderManager(models.Manager):
 
 
 @python_2_unicode_compatible
-class Order(models.Model, ItemSet):
+class Order(models.Model, ItemSet, index.Indexed):
     status = models.CharField(
         pgettext_lazy('Order field', 'order status'),
         max_length=32, choices=Status.CHOICES, default=Status.NEW)
@@ -84,6 +85,11 @@ class Order(models.Model, ItemSet):
     discount_name = models.CharField(max_length=255, default='', blank=True)
 
     objects = OrderManager()
+
+    search_fields = [
+        index.SearchField('id'),
+        index.SearchField('get_user_current_email')
+    ]
 
     class Meta:
         ordering = ('-last_status_change',)

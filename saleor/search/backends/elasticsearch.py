@@ -2,7 +2,6 @@ from __future__ import absolute_import, unicode_literals
 
 import copy
 import json
-import warnings
 
 from django.db import models
 from django.utils.crypto import get_random_string
@@ -10,7 +9,6 @@ from django.utils.six.moves.urllib.parse import urlparse
 from elasticsearch import Elasticsearch, NotFoundError
 from elasticsearch.helpers import bulk
 
-# from wagtail.utils.utils import deep_update
 from .base import (
     BaseSearchBackend, BaseSearchQuery, BaseSearchResults)
 from ..index import (
@@ -445,7 +443,6 @@ class ElasticsearchSearchResults(BaseSearchResults):
         # Add size if set
         if self.stop is not None:
             params['size'] = self.stop - self.start
-
         # Send to Elasticsearch
         hits = self.backend.es.search(**params)
 
@@ -763,7 +760,6 @@ class ElasticsearchSearchBackend(BaseSearchBackend):
                 })
 
         self.settings = copy.deepcopy(self.settings)
-        # self.settings = self.settings.update(params.pop("INDEX_SETTINGS", {}))
 
         # Get Elasticsearch interface
         # Any remaining params are passed into the Elasticsearch constructor

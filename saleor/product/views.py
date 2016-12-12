@@ -58,9 +58,9 @@ def product_details(request, slug, product_id):
     # add to cart handling
     form = form_class(cart=cart, product=product,
                       data=request.POST or None)
-    if form.is_valid():
-        form.save()
-        return redirect('cart:index')
+    # if form.is_valid():
+    #     form.save()
+    #     return redirect('cart:index')
 
     availability = get_availability(product, discounts=request.discounts,
                                     local_currency=request.currency)
