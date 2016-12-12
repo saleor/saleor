@@ -57,26 +57,27 @@
     }
     .card-block {
       padding-left: $global-padding;
-      padding-right: $global-padding * 2;
+      padding-right: $global-padding;
       background-color: #F9F9F9;
-      margin-left: -$global-margin;
-      margin-right: -$global-margin;
     }
     &__details {
       address {
         margin-top: $global-margin;
       }
       &__products {
-        @include media-breakpoint-down(sm) {
-          padding-left: $global-padding * 2;
-        }
         span {
           color: $gray;
         }
         img {
           margin-right: $global-margin;
+          @include media-breakpoint-down(md) {
+            margin-bottom: $global-margin;
+          }
         }
         .row {
+          @include media-breakpoint-up(md) {
+            margin-right: 0;
+          }
           padding-top: $global-padding;
           &:not(:last-of-type) {
             border-bottom: 1px solid $light-gray;
