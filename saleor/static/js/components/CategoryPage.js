@@ -1,6 +1,5 @@
 import React, { Component, PropTypes } from 'react';
 import Relay from 'react-relay';
-import queryString from 'query-string';
 
 import CategoryFilter from './CategoryFilter';
 import PriceFilter from './PriceFilter';

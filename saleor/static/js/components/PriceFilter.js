@@ -1,5 +1,4 @@
 import React, { Component, PropTypes } from 'react';
-import queryString from 'query-string';
 
 export default class PriceFilter extends Component {
 

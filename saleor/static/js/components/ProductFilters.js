@@ -1,6 +1,5 @@
 import React, { Component, PropTypes } from 'react'
 import Relay from 'react-relay';
-import queryString from 'query-string';
 
 
 class ProductFilters extends Component {
@@ -18,10 +17,8 @@ class ProductFilters extends Component {
     };
   }
 
-  onClick = (attribute, value, event) => {
+  onClick = (attribute, value) => {
     const attrValue = `${attribute}:${value}`;
-    const element = event.target;
-
     this.setState({
       filters: Object.assign(
         this.state.filters,
@@ -30,37 +27,6 @@ class ProductFilters extends Component {
     const enabled = Object.keys(this.state.filters).filter(key => this.state.filters[key] === true);
     this.props.onFilterChanged(enabled);
   
-  }
-
-  componentDidMount() {
-    /*let url_params = queryString.parse(location.search);
-    Object.keys(url_params).map((params) => {
-      let attrValue = '';
-      if (Array.isArray(url_params[params])) {
-        url_params[params].map((param) => {
-          attrValue = `${params}:${param}`;
-          this.setState({
-            filters: Object.assign(
-              this.state.filters,
-              {[attrValue]: true})
-          });
-          const elementID = 'attr'+params+param;
-          document.getElementById(elementID).checked = true;
-        })
-      } else {
-        attrValue = `${params}:${url_params[params]}`;
-        this.setState({
-          filters: Object.assign(
-            this.state.filters,
-            {[attrValue]: true})
-        });
-        const elementID = 'attr'+params+url_params[params];
-        document.getElementById(elementID).checked = true;
-      }
-    })
-
-    const enabled = Object.keys(this.state.filters).filter(key => this.state.filters[key] === true);
-    this.props.onFilterChanged(enabled);*/
   }
 
   render() {
@@ -76,7 +42,7 @@ class ProductFilters extends Component {
                   return (
                     <li key={value.id} className="item">
                         <label>
-                          <input id={"attr"+attribute.pk+value.pk} type="checkbox" value="" onClick={(event) => this.onClick(attribute.pk, value.pk, event)} />
+                          <input id={'attr' + attribute.pk + value.pk} type="checkbox" value="" onClick={() => this.onClick(attribute.pk, value.pk)} />
                           {value.display}
                         </label>
                     </li>

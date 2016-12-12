@@ -1,5 +1,4 @@
 import React, { Component, PropTypes } from 'react'
-import Relay from 'react-relay';
 
 export default class CategoryFilter extends Component {
 
