@@ -1,27 +1,29 @@
 Product management
 ==================
 
-Before filling your shop with products we need to introduce 3 product concepts - ProductClass, Product, ProductVariant.
+Before filling your shop with products we need to introduce 3 product concepts - *product classes*, *products*, *product variants*.
 
-**Example:** Book store - one of Products would be "Introduction to Saleor". Book is available in hard and soft cover, so there would be 2 ProductVariants. Type of cover is only attribute which creates separate variants in our store, so we use ProductClass named "Book" with activated variants and 'Cover type' variant attribute.
+**Example:** Book store - one of *products* would be "Introduction to Saleor". The book is available in hard and soft cover, so there would be 2 *product variants*. Type of cover is only attribute which creates separate variants in our store, so we use *product class* named "Book" with activated variants and 'Cover type' variant attribute.
 
 
-ProductVariant
---------------
+Product variant
+---------------
 
-It's most important object in shop. All cart and stock operations use variants. Even if your Product don't have multiple variants, we create one under the hood.
+It's most important object in shop. All cart and stock operations use variants. Even if your *product* don't have multiple variants, we create one under the hood.
 
 Product
 -------
 
-Describes common details of few ProductVariants. When shop displays category view, items on the list are distinct Products. If variant has no overrode property (example: price), default value is taken from Product.
+Describes common details of few *product variants*. When shop displays category view, items on the list are distinct *products*. If variant has no overrode property (example: price), default value is taken from *product*.
 
 
-ProductClass
-------------
+Product class
+-------------
 
 Think about it as template for your products. You can describe here attributes and change number of variants.
 
-**Warning:** Changing ProductClass has effect on all created with it Products.
+.. warning::
+    Changing a *product class* affects all *products* of this class.
 
-**Warning:** You can't remove ProductClass if it has any Products.
+.. warning::
+    You can't remove *product class* if it has any *products*.
