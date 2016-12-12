@@ -1,4 +1,14 @@
 .userprofile {
+  &__user {
+    h2 {
+      margin-right: $global-margin;
+      margin-bottom: $global-margin * 2;
+    }
+    img {
+      margin-top: $global-margin / 2;
+    }
+    
+  }
   &__nav {
     background-color: $light-gray;
     padding: $global-padding 0;
@@ -93,5 +103,14 @@
     &__form {
       margin-bottom: $global-margin * 2;
     }
+  }
+}
+
+.account-edit {
+  &__tittle {
+    margin: $global-margin * 2 0;
+  }
+  .btn {
+    margin-top: $global-margin;
   }
 }
