@@ -111,47 +111,45 @@
                     </div>
                     <div class="col-md-6 col-xs-12 userprofile__orders__details__products">
                       {% for item in order %}
-                      <div class="container">
                         {% for item_line in item %}
                           <div class="row">
-                            <div class="col-xs-8">
+                            <div class="col-xs-9">
                               <img src="{{ item_line.product.images.first.image.crop.60x60 }}" class="float-xs-left">
                               <p>{{ item_line.product }}<br>
                               <span>{{ item_line.product_name }}</span><br>
                               x {{ item_line.quantity }}</p>
                             </div>
-                            <div class="col-xs-4">
+                            <div class="col-xs-3">
                               <p class="float-xs-right">{% gross item_line.get_total %}</p>
                             </div>
                           </div>
                         {% endfor %}
                         <div class="row">
-                          <div class="col-xs-8">
+                          <div class="col-xs-9">
                             <p>{% trans "Delivery" %} ({{ item.shipping_method_name }})</p>
                           </div>
-                          <div class="col-xs-4">
+                          <div class="col-xs-3">
                             <p class="float-xs-right">{% gross item.shipping_price %}</p>
                           </div>
                         </div>
                         {% if order.discount_amount %}
                           <div class="row">
-                            <div class="col-xs-8">
+                            <div class="col-xs-9">
                               <p>{{ order.discount_name }}</p>
                             </div>
-                            <div class="col-xs-4">
+                            <div class="col-xs-3">
                               <p class="float-xs-right">{% gross order.discount|discount_amount_for:order.total %}</p>
                             </div>
                           </div>
                         {% endif %}
                         <div class="row">
-                          <div class="col-xs-8">
+                          <div class="col-xs-9">
                             <p><strong>{% trans "Total" %}</strong></p>
                           </div>
-                          <div class="col-xs-4">
+                          <div class="col-xs-3">
                             <p class="float-xs-right"><strong>{% gross order.total %}</strong></p>
                           </div>
                         </div>
-                      </div>
                       {% endfor %}
                     </div>
                 </div>
