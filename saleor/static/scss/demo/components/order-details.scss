@@ -1,0 +1,34 @@
+.order-details {
+  &__header {
+    margin: $global-margin * 2 0;
+  }
+  &__table-header {
+    color: $gray;
+    border-bottom: 1px solid $light-gray;
+    padding-bottom: $global-padding / 2;
+    margin-top: $global-margin * 2;
+    .col-md-3 {
+      text-align: right;
+    }
+  }
+  &__table {
+    span {
+      color: $gray;
+    }
+    img {
+      margin-right: $global-margin;
+    }
+    p {
+      margin: $global-margin / 2 0;
+    }
+    .col-xs-3 {
+      padding: 0;
+    }
+    .row {
+      padding: $global-padding / 2 0;
+      &:not(:last-of-type) {
+        border-bottom: 1px solid $light-gray;
+      }      
+    }
+  }
+}
