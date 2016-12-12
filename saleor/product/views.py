@@ -93,7 +93,8 @@ def category_index(request, path, category_id):
     products_page = get_paginator_items(
         products, settings.PAGINATE_BY, request.GET.get('page'))
     products = products_with_availability(
-        products_page, discounts=request.discounts, local_currency=request.currency)
+        products_page, discounts=request.discounts,
+        local_currency=request.currency)
     return TemplateResponse(
         request, 'category/index.html',
         {'products': products, 'category': category,

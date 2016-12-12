@@ -152,7 +152,7 @@ class Cart(models.Model):
     def is_shipping_required(self):
         return any(line.is_shipping_required() for line in self.lines.all())
 
-    #Satchless
+    # Satchless
     def __repr__(self):
         return 'Cart(quantity=%s)' % (self.quantity,)
 

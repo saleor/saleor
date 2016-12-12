@@ -75,9 +75,6 @@ class ProductForm(forms.ModelForm):
         field = self.fields['categories']
         field.widget.attrs['data-placeholder'] = pgettext_lazy(
             'Product form labels', 'Search')
-        field = self.fields['variant_attributes']
-        field.widget.attrs['data-placeholder'] = pgettext_lazy(
-            'Product form labels', 'Search')
         self.product_attributes = \
             self.instance.product_class.product_attributes.all()
         self.product_attributes = self.product_attributes.prefetch_related(

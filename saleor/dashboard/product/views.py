@@ -73,12 +73,12 @@ def product_class_delete(request, pk):
         {'product_class': product_class, 'products': products})
 
 
-
 @staff_member_required
 def product_list(request):
     products = Product.objects.prefetch_related('images')
+    product_classes = ProductClass.objects.all()
     form = forms.ProductClassSelectorForm(
-        request.POST or None, product_classes=ProductClass.objects.all())
+        request.POST or None, product_classes=product_classes)
     if form.is_valid():
         return redirect('dashboard:product-add',
                         class_pk=form.cleaned_data['product_cls'])
@@ -126,7 +126,8 @@ def product_edit(request, pk):
         Product.objects.prefetch_related(
             'images', 'variants'), pk=pk)
     edit_variant = not product.product_class.has_variants
-    attributes = product.variant_attributes.prefetch_related('values')
+    attributes = product.product_class.variant_attributes.prefetch_related(
+        'values')
     images = product.images.all()
     variants = product.variants.all()
     stock_items = Stock.objects.filter(

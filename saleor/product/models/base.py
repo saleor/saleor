@@ -69,7 +69,7 @@ class ProductClass(models.Model):
         pgettext_lazy('Product field', 'name'), max_length=128)
     has_variants = models.BooleanField(default=True)
     product_attributes = models.ManyToManyField(
-         'ProductAttribute', related_name='products_class', blank=True)
+        'ProductAttribute', related_name='products_class', blank=True)
     variant_attributes = models.ManyToManyField(
         'ProductAttribute', related_name='product_variants_class', blank=True)
 
@@ -110,12 +110,8 @@ class Product(models.Model, ItemRange):
         max_digits=6, decimal_places=2)
     available_on = models.DateField(
         pgettext_lazy('Product field', 'available on'), blank=True, null=True)
-    product_attributes = models.ManyToManyField(
-        'ProductAttribute', related_name='products', blank=True)
     attributes = JSONField(pgettext_lazy('Product field', 'attributes'),
                            default={})
-    variant_attributes = models.ManyToManyField(
-        'ProductAttribute', related_name='product_variants', blank=True)
     updated_at = models.DateTimeField(
         pgettext_lazy('Product field', 'updated at'), auto_now=True, null=True)
 
@@ -247,7 +243,7 @@ class ProductVariant(models.Model, Item):
 
     def display_variant(self, attributes=None):
         if attributes is None:
-            attributes = self.product.variant_attributes.all()
+            attributes = self.product.product_class.variant_attributes.all()
         values = get_attributes_display_map(self, attributes).values()
         if values:
             return ', '.join([smart_text(value) for value in values])
