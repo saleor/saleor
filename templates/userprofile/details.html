@@ -37,7 +37,7 @@
       <div class="tab-pane active" id="addresses" role="tabpanel">
         {% for address in addresses %}
           <div class="row userprofile__address-row">
-            <div class="col-xs-5">
+            <div class="col-xs-6">
               {% include "userprofile/snippets/address-short.html" %}
             </div>
             <div class="col-xs-3 col-md-4">
@@ -65,17 +65,18 @@
               </div>
             </div>
             <div class="col-md-2 col-xs-4">
+              <a data-toggle="modal" data-target=".modal-address-delete" href="{% url 'profile:address-delete' pk=address.pk %}"><img src="{% static 'img/icon_delete.svg' %}"></a>
               <a href="{% url 'profile:address-edit' pk=address.pk %}"><img src="{% static 'img/icon_edit.svg' %}"></a>
-              <a href="{% url 'profile:address-delete' pk=address.pk %}"><img src="{% static 'img/icon_delete.svg' %}"></a>
             </div>
           </div>
+          {% include "userprofile/address-delete.html" %}
         {% endfor %}
         {% if addresses|length == 0 %}
           <div class="userprofile__address-empty">
             <p>{% trans "Add shipping and billing addresses for better shopping experience." %}</p>
           </div>
         {% endif %}
-        <a href="{% url 'profile:address-create' %}" class="btn primary ">{% trans "Add new address" %}</a>
+        <a href="{% url 'profile:address-create' %}" class="btn primary">{% trans "Add new address" %}</a>
       </div>
       <div class="tab-pane" id="orders" role="tabpanel">
         <div id="accordion" role="tablist" aria-multiselectable="true">
