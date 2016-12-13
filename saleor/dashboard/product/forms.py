@@ -12,16 +12,17 @@ from .widgets import ImagePreviewWidget
 
 
 class ProductClassSelectorForm(forms.Form):
-    product_cls = forms.ChoiceField(
-        label=pgettext_lazy('Product class form label', 'Product class'),
-        widget=forms.RadioSelect,
-        choices=[])
-
     def __init__(self, *args, **kwargs):
         product_classes = kwargs.pop('product_classes', [])
         super(ProductClassSelectorForm, self).__init__(*args, **kwargs)
-        self.fields['product_cls'].choices = [(obj.pk, obj.name)
-                                              for obj in product_classes]
+        choices = [(obj.pk, obj.name) for obj in product_classes]
+        if len(product_classes) > 5:
+            widget = forms.Select
+        else:
+            widget = forms.RadioSelect
+        self.fields['product_cls'] = forms.ChoiceField(
+            label=pgettext_lazy('Product class form label', 'Product class'),
+            choices=choices, widget=widget)
 
 
 class StockForm(forms.ModelForm):
