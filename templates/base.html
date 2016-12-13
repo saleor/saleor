@@ -35,7 +35,7 @@
                       {% if user.is_staff %}
                           <a href="{% url "dashboard:index" %}" traget="_blank">{% trans "Dashboard" %}</a> |
                       {% endif %}
-                      <a href="{% url "profile:details" %}">{% trans "My account" %}</a> |
+                      <a href="{% url "profile:details" %}">{% trans "Your account" %}</a> |
                       <a href="{% url "account_logout" %}">{% trans "Log out" %}</a>
                     {% else %}
                       <a href="{% url "account_login" %}">{% trans "Log in" %}</a>
@@ -133,7 +133,7 @@
                           {% endif %}
                           <li>
                             <a href="{% url "profile:details" %}">
-                              {% trans "My account" %}
+                              {% trans "Your account" %}
                             </a>
                           </li>
                           <li>
