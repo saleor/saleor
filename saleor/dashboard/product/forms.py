@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django import forms
 from django.db import transaction
+from django.db.models import Count
 from django.forms.models import ModelChoiceIterator, inlineformset_factory
 from django.utils.translation import pgettext_lazy
 
@@ -62,6 +63,20 @@ class ProductClassForm(forms.ModelForm):
                 'A single attribute can\'t belong to both a product '
                 'and its variant.')
             self.add_error('variant_attributes', msg)
+
+        if self.instance.pk:
+            variants_changed = not (self.fields['has_variants'].initial ==
+                                    has_variants)
+            if variants_changed:
+                query = self.instance.products.all()
+                query = query.annotate(variants_counter=Count('variants'))
+                query = query.filter(variants_counter__gt=1)
+                if query.exists():
+                    msg = pgettext_lazy(
+                        'Product Class Errors',
+                        'Products based on this class have more than '
+                        'one variant.')
+                    self.add_error('has_variants', msg)
         return data
 
 
