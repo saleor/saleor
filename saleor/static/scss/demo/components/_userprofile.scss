@@ -29,6 +29,9 @@
       border-bottom: 0;
     }
   }
+  &__address-empty {
+    margin: $global-margin 0 $global-margin * 2;
+  }
   &__address-row {
     padding: $global-padding 0;
     border-bottom: 1px solid $light-gray;
