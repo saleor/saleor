@@ -3,6 +3,7 @@
 {% load static from staticfiles %}
 {% load gross from prices_i18n %}
 {% load discount_amount_for from prices %}
+{% load status %}
 
 {% block title %}{% trans "Your profile" %} — {{ block.super }}{% endblock %}
 
@@ -43,7 +44,7 @@
               <div class="row">
                 <div class="col-md-6">
                   {% if user.default_billing_address == address %}
-                  <span class="label label-default">{% trans "Billing" %}</span>
+                  <span>{% trans "Billing" %}</span>
                   {% else %}
                   <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="billing" %}" class="form-inline form-horizontal" novalidate>
                       {% csrf_token %}
@@ -53,7 +54,7 @@
                 </div>
                 <div class="col-md-6">
                   {% if user.default_shipping_address == address %}
-                  <span class="label label-default">{% trans "Shipping" %}</span>
+                  <span>{% trans "Shipping" %}</span>
                   {% else %}
                   <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="shipping" %}" class="form-inline form-horizontal" novalidate>
                       {% csrf_token %}
@@ -88,7 +89,7 @@
                   {% gross order.get_total %}
                 </div>
                 <div class="col-md-2 col-xs-6">
-                  <span class="label label-default">{{ order.get_status_display }}</span>
+                  {% render_status order.status order.get_status_display %}
                 </div>
                 <div class="col-md-1 col-xs-1">
                   <img class="userprofile__orders__arrow-icon float-xs-right" src="{% static 'img/gallery-arrow.svg' %}">
