@@ -25,25 +25,20 @@ class ProductType(DjangoObjectType):
         model = Product
         interfaces = (relay.Node, DjangoPkInterface)
 
-    @graphene.resolve_only_args
-    def resolve_is_available(self):
+    def resolve_is_available(self, args, context, info):
         today = datetime.date.today()
         return self.available_on is None or self.available_on >= today
 
-    @graphene.resolve_only_args
-    def resolve_image_url(self):
+    def resolve_image_url(self, args, context, info):
         return self.images.first().image.crop['400x400'].url
 
-    @graphene.resolve_only_args
-    def resolve_images(self):
+    def resolve_images(self, args, context, info):
         return self.images.all()
 
-    @graphene.resolve_only_args
-    def resolve_variants(self):
+    def resolve_variants(self, args, context, info):
         return self.variants.all()
 
-    @graphene.resolve_only_args
-    def resolve_url(self):
+    def resolve_url(self, args, context, info):
         return self.get_absolute_url()
 
 
@@ -137,8 +132,7 @@ class CategoryType(DjangoObjectType):
     def resolve_products_count(self, args, context, info):
         return self.products.count()
 
-    @graphene.resolve_only_args
-    def resolve_url(self):
+    def resolve_url(self, args, context, info):
         return self.get_absolute_url()
 
 
@@ -150,8 +144,7 @@ class ProductVariantType(DjangoObjectType):
         model = ProductVariant
         interfaces = (relay.Node, DjangoPkInterface)
 
-    @graphene.resolve_only_args
-    def resolve_stock_quantity(self):
+    def resolve_stock_quantity(self, args, context, info):
         return self.get_stock_quantity()
 
 
@@ -182,8 +175,7 @@ class ProductAttributeType(DjangoObjectType):
         model = ProductAttribute
         interfaces = (relay.Node, DjangoPkInterface)
 
-    @graphene.resolve_only_args
-    def resolve_values(self):
+    def resolve_values(self, args, context, info):
         return self.values.all()
 
 
