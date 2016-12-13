@@ -52,8 +52,7 @@ def get_or_create_category(name, **kwargs):
 
 
 def get_or_create_product_class(name, **kwargs):
-    defaults = kwargs
-    return ProductClass.objects.get_or_create(name=name, defaults=defaults)[0]
+    return ProductClass.objects.get_or_create(name=name, defaults=kwargs)[0]
 
 
 def create_product(**kwargs):

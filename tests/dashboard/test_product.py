@@ -4,7 +4,6 @@ from django.core.urlresolvers import reverse
 import pytest
 
 from saleor.dashboard.product.forms import ProductClassForm
-from saleor.product.models import ProductClass
 
 
 @pytest.mark.integration
@@ -57,4 +56,3 @@ def test_variantless_product_class_form(color_attribute, size_attribute):
             'has_variants': False}
     form = ProductClassForm(data)
     assert not form.is_valid()
-

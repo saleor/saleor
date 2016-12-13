@@ -10,9 +10,9 @@ from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
 from saleor.discount.models import Voucher
 from saleor.order.models import Order
-from saleor.product.models import (Product, ProductVariant, Stock, ProductClass,
+from saleor.product.models import (Product, ProductVariant, ProductClass,
                                    AttributeChoiceValue, ProductAttribute,
-                                   StockLocation)
+                                   Stock, StockLocation)
 from saleor.shipping.models import ShippingMethod
 from saleor.userprofile.models import Address, User
 
@@ -107,7 +107,7 @@ def size_attribute(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def product_class(db, color_attribute, size_attribute):  # pylint: disable=W0613
+def product_class(color_attribute, size_attribute):
     product_class = ProductClass.objects.create(name='Default Class',
                                                 has_variants=False)
     product_class.product_attributes.add(color_attribute)
@@ -116,7 +116,7 @@ def product_class(db, color_attribute, size_attribute):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def product_in_stock(db, product_class):  # pylint: disable=W0613
+def product_in_stock(product_class):
     product = Product.objects.create(
         name='Test product', price=10, weight=1, product_class=product_class)
     variant = ProductVariant.objects.create(product=product, sku='123')
