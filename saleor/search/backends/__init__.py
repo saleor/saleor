@@ -20,9 +20,7 @@ def get_search_backend_config():
 
     # Make sure the default backend is always defined
     search_backends.setdefault('default', {
-        # 'BACKEND': 'saleor.search.backends.db',
-        # 'BACKEND': 'saleor.search.backends.elasticsearch2',
-        'BACKEND': 'saleor.search.backends.dashboard',
+        'BACKEND': 'saleor.search.backends.elasticsearch2',
         'URLS': ['http://localhost:9200'],
         'INDEX': 'test-wagtail3',
         'TIMEOUT': 5,

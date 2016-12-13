@@ -354,3 +354,17 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_USERNAME_REQUIRED = False
 SOCIALACCOUNT_EMAIL_VERIFICATION = False
 ACCOUNT_LOGOUT_ON_GET = True
+
+
+SEARCH_BACKENDS = {
+    'default': {
+        'BACKEND': 'saleor.search.backends.elasticsearch2',
+        'URLS': ['http://localhost:9200'],
+        'INDEX': 'test-wagtail3',
+        'TIMEOUT': 5},
+    'dashboard': {
+        'BACKEND': 'saleor.search.backends.dashboard',
+        'URLS': ['http://localhost:9200'],
+        'INDEX': 'test-wagtail3',
+        'TIMEOUT': 5}
+}

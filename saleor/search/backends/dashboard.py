@@ -92,8 +92,7 @@ class DashboardSearchResults(elasticsearch2.Elasticsearch2SearchResults):
                 all_results.append(hit)
         sorted_results = sorted(
             all_results, key=lambda h: h.search_score, reverse=True)
-
-        return sorted_results
+        return list(sorted_results)
 
     def _get_es_body(self, for_count=False):
         body = {

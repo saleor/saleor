@@ -1,18 +1,16 @@
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
 
-from saleor.product.models import Product
-from ...search.forms import SearchForm
+from .forms import DashboardSearchForm
 from ...search.views import paginate_results
-from .forms import ModelFilteredSearchForm
 
 
 @staff_member_required
 def search(request):
-    form = SearchForm(data=request.GET or None)
+    form = DashboardSearchForm(data=request.GET or None)
     query = ''
     if form.is_valid():
-        results = form.search(model_or_queryset=Product.objects.all())
+        results = form.search()
         page = paginate_results(results, request.GET, 25)
         query = form.cleaned_data['q']
     else:
