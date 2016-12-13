@@ -80,82 +80,23 @@
       <div class="tab-pane" id="orders" role="tabpanel">
         <div id="accordion" role="tablist" aria-multiselectable="true">
           {% for order in orders %}
-          <div class="card userprofile__orders">
-              <a data-toggle="collapse" data-parent="#accordion" href="#collapse{{ forloop.counter0 }}" aria-expanded="true" aria-controls="collapse{{ forloop.counter0 }}"{% if forloop.counter0 > 0 %} class="collapsed"{% endif %}>
-            <div class="card-header" role="tab" id="head{{ forloop.counter0 }}">
+          <div class="userprofile__orders">
+            <div class="userprofile__orders__row">
               <div class="row">
                 <div class="col-md-2 col-xs-5">
-                    <strong>{{ order }}</strong>
+                  {{ order }}
                 </div>
                 <div class="col-md-4 col-xs-6">
                   {{ order.created }}
                 </div>
-                <div class="col-md-3 col-xs-5">
-                  {% gross order.get_total %}
+                <div class="col-md-1 col-xs-5">
+                  <span class="float-md-right">{% gross order.get_total %}</span>
                 </div>
-                <div class="col-md-2 col-xs-6">
+                <div class="col-md-2 col-xs-5 offset-md-1">
                   {% render_status order.status order.get_status_display %}
                 </div>
-                <div class="col-md-1 col-xs-1">
-                  <img class="userprofile__orders__arrow-icon float-xs-right" src="{% static 'img/gallery-arrow.svg' %}">
-                </div>
-              </div>
-            </div>
-            </a>
-            <div id="collapse{{ forloop.counter0 }}" class="collapse{% if forloop.counter0 == 0 %} in{% endif %} userprofile__orders__details" role="tabpanel" aria-labelledby="head{{ forloop.counter0 }}">
-              <div class="card-block">
-                <div class="row">
-                    <div class="col-md-3 col-xs-6">
-                      <h3>{% trans "Shipping address" %}</h3>
-                      <address>{% include "userprofile/snippets/address-short.html" with address=order.shipping_address %}</address>
-                    </div>
-                    <div class="col-md-3 col-xs-6">
-                      <h3>{% trans "Billing address" %}</h3>
-                      <address>{% include "userprofile/snippets/address-short.html" with address=order.billing_address %}</address>
-                    </div>
-                    <div class="col-md-6 col-xs-12 userprofile__orders__details__products">
-                      {% for item in order %}
-                        {% for item_line in item %}
-                          <div class="row">
-                            <div class="col-xs-9">
-                              <img src="{{ item_line.product.images.first.image.crop.60x60 }}" class="float-xs-left">
-                              <p>{{ item_line.product }}<br>
-                              <span>{{ item_line.product_name }}</span><br>
-                              x {{ item_line.quantity }}</p>
-                            </div>
-                            <div class="col-xs-3">
-                              <p class="float-xs-right">{% gross item_line.get_total %}</p>
-                            </div>
-                          </div>
-                        {% endfor %}
-                        <div class="row">
-                          <div class="col-xs-9">
-                            <p>{% trans "Delivery" %} ({{ item.shipping_method_name }})</p>
-                          </div>
-                          <div class="col-xs-3">
-                            <p class="float-xs-right">{% gross item.shipping_price %}</p>
-                          </div>
-                        </div>
-                        {% if order.discount_amount %}
-                          <div class="row">
-                            <div class="col-xs-9">
-                              <p>{{ order.discount_name }}</p>
-                            </div>
-                            <div class="col-xs-3">
-                              <p class="float-xs-right">{% gross order.discount|discount_amount_for:order.total %}</p>
-                            </div>
-                          </div>
-                        {% endif %}
-                        <div class="row">
-                          <div class="col-xs-9">
-                            <p><strong>{% trans "Total" %}</strong></p>
-                          </div>
-                          <div class="col-xs-3">
-                            <p class="float-xs-right"><strong>{% gross order.total %}</strong></p>
-                          </div>
-                        </div>
-                      {% endfor %}
-                    </div>
+                <div class="col-md-2 col-xs-2">
+                  <a href="{{ order.get_absolute_url }}"><small class="float-xs-right">{% trans "Details" %}</small></a>
                 </div>
               </div>
             </div>
