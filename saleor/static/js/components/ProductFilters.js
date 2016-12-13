@@ -1,4 +1,4 @@
-import React, { Component, PropTypes } from 'react'
+import React, { Component, PropTypes } from 'react';
 import Relay from 'react-relay';
 
 
@@ -46,14 +46,14 @@ class ProductFilters extends Component {
                           {value.display}
                         </label>
                     </li>
-                  )
+                  );
                 })}
               </ul>
             </div>
-          )
+          );
         }))}
       </div>
-    )
+    );
   }
 }
 

@@ -1,17 +1,17 @@
-import React, { PropTypes } from 'react'
-import ReactDOM from 'react-dom'
-import Relay from 'react-relay'
+import React, { PropTypes } from 'react';
+import ReactDOM from 'react-dom';
+import Relay from 'react-relay';
 
-import CategoryPage from './components/CategoryPage'
-import ProductFilters from './components/ProductFilters'
+import CategoryPage from './components/CategoryPage';
+import ProductFilters from './components/ProductFilters';
 
 const categoryPage = document.getElementById('category-page');
 const categoryData = JSON.parse(categoryPage.getAttribute('data-category'));
 
 Relay.injectNetworkLayer(
-    new Relay.DefaultNetworkLayer('/graphql/', {
-        credentials: 'same-origin',
-    })
+  new Relay.DefaultNetworkLayer('/graphql/', {
+    credentials: 'same-origin',
+  })
 );
 
 class App extends React.Component {
@@ -22,11 +22,11 @@ class App extends React.Component {
 
   render() {
     return (
-        <CategoryPage 
-          category = {this.props.viewer.category}
-          attributes = {this.props.viewer.attributes}
-        />
-      );
+      <CategoryPage
+        category={this.props.viewer.category}
+        attributes={this.props.viewer.attributes}
+      />
+    );
   }
 }
 

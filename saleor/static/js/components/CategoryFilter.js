@@ -1,4 +1,4 @@
-import React, { Component, PropTypes } from 'react'
+import React, { Component, PropTypes } from 'react';
 
 export default class CategoryFilter extends Component {
 
@@ -17,14 +17,13 @@ export default class CategoryFilter extends Component {
             <span>{category.productsCount}</span>
           </li>
           {category.siblings && (category.siblings.map((sibling) => {
-              return (
-                <li key={sibling.pk} className="item">
-                  <a href={sibling.url}>{sibling.name}</a>
-                  <span>{sibling.productsCount}</span>
-                </li>
-              );
-            })
-          )}
+            return (
+              <li key={sibling.pk} className="item">
+                <a href={sibling.url}>{sibling.name}</a>
+                <span>{sibling.productsCount}</span>
+              </li>
+            );
+          }))}
         </ul>
       </div>
     );

@@ -2,17 +2,17 @@
   "env": {
     "browser": true
   },
-  "plugins": [
-    "react"
-  ],
-  "extends": [
-    "eslint:recommended", "plugin:react/recommended"
-  ],
+  "extends": ["eslint:recommended", "plugin:react/recommended"],
+  "plugins": ["react"],
   "parser": "babel-eslint",
   "rules": {
-    "quotes": [1, "single"],
-    "strict": [2, "never"],
     "comma-dangle": ["error", "only-multiline"],
-    "react/jsx-no-bind": ["error"]
+    "indent": ["error", 2],
+    "no-trailing-spaces": ["warn"],
+    "no-undef": ["error"],
+    "react/jsx-no-bind": ["error"],
+    "semi": ["error", "always"],
+    "strict": ["error", "never"],
+    "quotes": ["warn", "single"]
   }
 }

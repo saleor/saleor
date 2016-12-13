@@ -13,18 +13,18 @@ export default class PriceFilter extends Component {
       minPrice: null,
       maxPrice: null,
       filters: []
-    }
+    };
   }
 
   checkKey = (event) => {
     if (event.key === 'Enter') {
-      this.updateFilter()
+      this.updateFilter();
     }
   };
 
   onChange = (event) => {
     const { name, value } = event.target;
-    this.setState({[name]: value})
+    this.setState({[name]: value});
   }
 
   parseValue = (value) => {

@@ -29,7 +29,7 @@ class CategoryPage extends Component {
   loadMore = () => {
     this.props.relay.setVariables({
       count: this.props.relay.variables.count + PAGINATE_BY
-    })
+    });
   }
 
   setAttributesFilter = (attributes) => {
@@ -41,7 +41,6 @@ class CategoryPage extends Component {
     }, () => {
       this.setUrlParams();
     });
-    
   }
 
   setPriceFilter = (minPrice, maxPrice) => {
@@ -53,12 +52,12 @@ class CategoryPage extends Component {
     });
 
     if (minPrice && maxPrice) {
-      enabled = [`minPrice=${minPrice}`, `maxPrice=${maxPrice}`]
+      enabled = [`minPrice=${minPrice}`, `maxPrice=${maxPrice}`];
     } else {
       if (minPrice) {
-        enabled = [`minPrice=${minPrice}`]
+        enabled = [`minPrice=${minPrice}`];
       } else if (maxPrice) {
-        enabled = [`maxPrice=${maxPrice}`]
+        enabled = [`maxPrice=${maxPrice}`];
       }
     }
 
@@ -76,23 +75,23 @@ class CategoryPage extends Component {
 
     if (attributesFilter) {
       attributesFilter.map((param, index) => {
-          param = param.replace(':', '=');
-          if (index == 0) {
-            url += '?' + param;
-          } else {
-            url += '&' + param;
-          }
-      })
+        param = param.replace(':', '=');
+        if (index == 0) {
+          url += '?' + param;
+        } else {
+          url += '&' + param;
+        }
+      });
     }
 
     if (priceFilters) {
       priceFilters.map((param, index) => {
-          if (index == 0) {
-            url += '?' + param;
-          } else {
-            url += '&' + param;
-          }
-      })
+        if (index == 0) {
+          url += '?' + param;
+        } else {
+          url += '' + param;
+        }
+      });
     }
 
     if (attributesFilter.length == 0 && priceFilters.length == 0) {
@@ -133,9 +132,9 @@ class CategoryPage extends Component {
               products={category.products}
             />
           </div>
-        </div>    
+        </div>
       </div>
-    )
+    );
   }
 }
 
