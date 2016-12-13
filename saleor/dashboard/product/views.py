@@ -83,7 +83,8 @@ def product_list(request):
         return redirect('dashboard:product-add',
                         class_pk=form.cleaned_data['product_cls'])
     products = get_paginator_items(products, 30, request.GET.get('page'))
-    ctx = {'form': form, 'products': products}
+    ctx = {'form': form, 'products': products,
+           'product_classes': product_classes}
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
 
 
