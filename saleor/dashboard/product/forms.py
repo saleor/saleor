@@ -33,8 +33,12 @@ class StockForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         product = kwargs.pop('product')
         super(StockForm, self).__init__(*args, **kwargs)
+        if not product.product_class.has_variants:
+            initial = product.variants.first()
+        else:
+            initial = None
         self.fields['variant'] = forms.ModelChoiceField(
-            queryset=product.variants)
+            queryset=product.variants, initial=initial)
 
 
 class ProductClassForm(forms.ModelForm):
@@ -196,7 +200,8 @@ class ProductImageForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ProductImageForm, self).__init__(*args, **kwargs)
-        if self.instance.product:
+        show_variants = self.instance.product.product_class.has_variants
+        if self.instance.product and show_variants:
             variants = self.fields['variants']
             variants.queryset = self.instance.product.variants.all()
             variants.initial = self.instance.variant_images.values_list(

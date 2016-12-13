@@ -230,6 +230,7 @@ def product_image_edit(request, product_pk, img_pk=None):
         product_image = get_object_or_404(product.images, pk=img_pk)
     else:
         product_image = ProductImage(product=product)
+    show_variants = product.product_class.has_variants
     form = forms.ProductImageForm(request.POST or None, request.FILES or None,
                                   instance=product_image)
     if form.is_valid():
@@ -242,7 +243,8 @@ def product_image_edit(request, product_pk, img_pk=None):
         success_url = request.POST['success_url']
         if is_safe_url(success_url, request.get_host()):
             return redirect(success_url)
-    ctx = {'form': form, 'product': product, 'product_image': product_image}
+    ctx = {'form': form, 'product': product, 'product_image': product_image,
+           'show_variants': show_variants}
     return TemplateResponse(
         request, 'dashboard/product/product_image_form.html', ctx)
 
