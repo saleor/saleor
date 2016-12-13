@@ -16,6 +16,7 @@ script:
 env:
   global:
     - DJANGO_SETTINGS_MODULE=tests.settings
+    - DATABASE_URL='postgres://postgres@localhost:5432/saleor'
   matrix:
     - TOXENV=py27-django18
     - TOXENV=py27-django110
@@ -40,3 +41,5 @@ addons:
     packages:
       - python3.5
       - python3.5-dev
+services:
+  - postgresql
