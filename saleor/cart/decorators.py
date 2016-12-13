@@ -40,9 +40,7 @@ def get_cart_from_request(request, cart_queryset=Cart.objects.all(),
         cart = queryset.open().get(token=token)
     except Cart.DoesNotExist:
         if create:
-            cart = Cart.objects.create(
-                user=user,
-                token=cookie_token)
+            cart = Cart.objects.create(user=user, token=token)
         else:
             cart = Cart()
 
