@@ -70,6 +70,11 @@
             </div>
           </div>
         {% endfor %}
+        {% if addresses|length == 0 %}
+          <div class="userprofile__address-empty">
+            <p>{% trans "Add shipping and billing addresses for better shopping experience." %}</p>
+          </div>
+        {% endif %}
         <a href="{% url 'profile:address-create' %}" class="btn primary ">{% trans "Add new address" %}</a>
       </div>
       <div class="tab-pane" id="orders" role="tabpanel">
