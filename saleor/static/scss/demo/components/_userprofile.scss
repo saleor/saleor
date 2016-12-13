@@ -35,12 +35,13 @@
   &__address-row {
     padding: $global-padding 0;
     border-bottom: 1px solid $light-gray;
-    &:last-of-type {
-      margin-bottom: $global-margin * 2;
-    }
     img {
       margin-left: $global-margin;
+      float: right;
     }
+  }
+  .primary {
+    margin-top: $global-margin;
   }
   &__orders {
     small {
@@ -65,5 +66,19 @@
   }
   .btn {
     margin-top: $global-margin;
+  }
+}
+
+.modal-address-delete {
+  .modal-header {
+    padding-top: $global-padding * 2;
+    border-bottom: 0;
+  }
+  .modal-footer {
+    border-top: 0;
+    padding-bottom: $global-padding;
+    button {
+      margin-left: $global-margin * 2;
+    }
   }
 }
