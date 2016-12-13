@@ -1,21 +1,54 @@
 from . import elasticsearch2
+from .base import BaseSearchQuery
 
 
-class DashboardSearchQuery(elasticsearch2.Elasticsearch2SearchQuery):
+class DashboardSearchQuery(BaseSearchQuery):
 
-    def __init__(self, *args, **kwargs):
-        super(DashboardSearchQuery, self).__init__(*args, **kwargs)
+    def __init__(self, query_string,
+                 fields=None, operator=None, order_by_relevance=True):
+        super(DashboardSearchQuery, self).__init__(
+            query_string=query_string, queryset=None, fields=fields,
+            operator=operator, order_by_relevance=order_by_relevance)
 
-    def get_filters(self):
-        # Don't apply content type filter
+    def get_inner_query(self):
+        if self.query_string is not None:
+            fields = self.fields or ['_all', '_partials']
 
-        filters = []
-        # Apply filters from queryset
-        queryset_filters = self._get_filters_from_queryset()
-        if queryset_filters:
-            filters.append(queryset_filters)
+            if len(fields) == 1:
+                if self.operator == 'or':
+                    query = {
+                        'match': {
+                            fields[0]: self.query_string,
+                        }
+                    }
+                else:
+                    query = {
+                        'match': {
+                            fields[0]: {
+                                'query': self.query_string,
+                                'operator': self.operator,
+                            }
+                        }
+                    }
+            else:
+                query = {
+                    'multi_match': {
+                        'query': self.query_string,
+                        'fields': fields,
+                    }
+                }
 
-        return filters
+                if self.operator != 'or':
+                    query['multi_match']['operator'] = self.operator
+        else:
+            query = {
+                'match_all': {}
+            }
+
+        return query
+
+    def get_query(self):
+        return self.get_inner_query()
 
 
 class DashboardSearchResults(elasticsearch2.Elasticsearch2SearchResults):
@@ -62,23 +95,30 @@ class DashboardSearchResults(elasticsearch2.Elasticsearch2SearchResults):
 
         return sorted_results
 
+    def _get_es_body(self, for_count=False):
+        body = {
+            'query': self.query.get_query()
+        }
+
+        if not for_count:
+            sort = None
+
+            if sort is not None:
+                body['sort'] = sort
+
+        return body
+
 
 class DashboardMultiTypeSearchBackend(elasticsearch2.Elasticsearch2SearchBackend):
     results_class = DashboardSearchResults
     query_class = DashboardSearchQuery
 
-    def search(self, query_string, model_or_queryset=None, fields=None, filters=None,
+    def search(self, query_string,
+               model_or_queryset=None, fields=None, filters=None,
                prefetch_related=None, operator=None, order_by_relevance=True):
-        if model_or_queryset:
-            return super(DashboardMultiTypeSearchBackend, self).search(
-                query_string, model_or_queryset, fields, filters, prefetch_related,
-                operator, order_by_relevance)
-        else:
-            # Here comes the fun, search by all models
-            search_query = self.query_class(
-                None, query_string, fields=fields, operator=operator,
-                order_by_relevance=order_by_relevance
-            )
-            return self.results_class(self, search_query)
+        search_query = self.query_class(
+            query_string=query_string, fields=fields, operator=operator,
+            order_by_relevance=order_by_relevance)
+        return self.results_class(self, search_query)
 
 SearchBackend = DashboardMultiTypeSearchBackend
