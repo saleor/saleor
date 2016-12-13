@@ -43,66 +43,13 @@
     }
   }
   &__orders {
-    border: 0;
-    a {
+    small {
+      text-decoration: underline;
       color: $body-color;
     }
-    .card-header {
-      background-color: transparent;
-      border: 0;
+    &__row {
       border-bottom: 1px solid $light-gray;
-      padding-left: 0;
-      padding-right: 0;
-    }
-    .collapsed {
-      .card-header {
-        border-color: $gray;
-        .userprofile__orders__arrow-icon {
-          transform: rotate(90deg);
-        }
-      }
-    }
-    &__arrow-icon {
-      width: 10px;
-      transform: rotate(270deg);
-      transition: 0.3s;
-      margin-right: $global-margin / 2;
-    }
-    .card-block {
-      padding-left: $global-padding;
-      padding-right: $global-padding;
-      background-color: #F9F9F9;
-      .col-md-3 {
-        margin-top: $global-margin;
-      }
-    }
-    &__details {
-      address {
-        margin-top: $global-margin;
-      }
-      &__products {
-        span {
-          color: $gray;
-        }
-        img {
-          margin-right: $global-margin;
-          @include media-breakpoint-down(md) {
-            margin-bottom: $global-margin;
-          }
-        }
-        .row {
-          @include media-breakpoint-up(md) {
-            margin-right: 0;
-          }
-          padding-top: $global-padding;
-          &:not(:last-of-type) {
-            border-bottom: 1px solid $light-gray;
-          }
-          &:nth-last-of-type(2) {
-            border-bottom: 1px solid $gray;
-          }
-        }
-      }
+      padding: $global-padding 0;
     }
   }
   &__address-edit {

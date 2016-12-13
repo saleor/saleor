@@ -8,11 +8,19 @@
 {% block title %}{% trans "Order" %} {{ order }} — {{ block.super }}{% endblock %}
 
 {% block breadcrumb %}
+    {% if order.user == user %}
+      <ul class="breadcrumbs list-unstyled">
+        <li><a href="/">{% trans "Home" %}</a></li>
+        <li><a href="{% url 'profile:details' %}">{% trans "Your account" %}</a></li>
+        <li><a href="{{ order.get_absolute_url }}">{% trans "Order" %} {{ order }}</a></li>
+      </ul>
+    {% endif %}
 {% endblock breadcrumb %}
 
 {% block content %}
     {# This view is available by just knowing url,          #}
     {# so we don't show all details (like delivery address) #}
+    {# unless current user is owner of the order.           #}
 
     <div class="row order-details">
         <div class="col-lg-10 offset-lg-1">
@@ -27,6 +35,18 @@
                     {% endif %}
                 {% endif %}
             </h2>
+            {% if order.user == user %}
+              <div class="row">
+                <div class="col-xs-6">
+                  <h3>{% trans "Shipping address" %}</h3>
+                  <address>{% include "userprofile/snippets/address-short.html" with address=order.shipping_address %}</address>
+                </div>
+                <div class="col-xs-6">
+                  <h3>{% trans "Billing address" %}</h3>
+                  <address>{% include "userprofile/snippets/address-short.html" with address=order.billing_address %}</address>
+                </div>
+              </div>
+            {% endif %}
             <div class="row order-details__table-header hidden-sm-down">
               <div class="col-md-6">
                 <small>{% trans "Product" %}</small>
