@@ -38,7 +38,7 @@ def get_category_variants_and_prices(cart, discounted_category):
         for category in product.categories.all():
             is_descendant = category.is_descendant_of(
                 discounted_category, include_self=True)
-            if is_descendant:
+            if is_descendant and product not in discounted_products:
                 discounted_products.append(product)
     for product in discounted_products:
         for line in get_product_variants_and_prices(cart, product):
