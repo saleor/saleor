@@ -86,12 +86,12 @@ class CategoryPage extends Component {
 
     if (priceFilters) {
       priceFilters.map((param, index) => {
-          if (index == 0 && attributesFilter == 0) {
-            url += '?' + param;
-          } else {
-            url += '&' + param;
-          }
-      })
+        if (index == 0 && attributesFilter == 0) {
+          url += '?' + param;
+        } else {
+          url += '&' + param;
+        }
+      });
     }
 
     if (attributesFilter.length == 0 && priceFilters.length == 0) {

@@ -42,7 +42,6 @@ export default class PriceFilter extends Component {
     let { minPrice, maxPrice } = this.state;
     minPrice = this.parseValue(minPrice);
     maxPrice = this.parseValue(maxPrice);
-
     this.props.onFilterChanged(minPrice, maxPrice);
   }
 

@@ -15,7 +15,13 @@ class ProductFilters extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {};
+    let initialState = {};
+    props.attributes.forEach(attribute => {
+      attribute.values.forEach(value => {
+        initialState[this.getFilterKey(attribute.name, value.slug)] = false;
+      });
+    });
+    this.state = initialState;
   }
 
   getFilterKey(attributeName, valueSlug) {
@@ -36,7 +42,9 @@ class ProductFilters extends Component {
 
   toggleFilter(attributeName, valueSlug) {
     const key = this.getFilterKey(attributeName, valueSlug);
-    this.setState(Object.assign(this.state, {[key]: !this.state[key]}));
+    if (key in this.state) {
+      this.setState(Object.assign(this.state, {[key]: !this.state[key]}));
+    }
   }
 
   componentDidMount() {
