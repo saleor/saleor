@@ -8,8 +8,8 @@ from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
 
 from ...product.models import (AttributeChoiceValue, Product, ProductAttribute,
-                               ProductImage, ProductVariant, Stock,
-                               VariantImage, ProductClass, StockLocation)
+                               ProductClass, ProductImage, ProductVariant,
+                               Stock, StockLocation, VariantImage)
 from .widgets import ImagePreviewWidget
 
 

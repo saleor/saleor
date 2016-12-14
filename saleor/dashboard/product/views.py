@@ -10,8 +10,8 @@ from django.views.decorators.http import require_http_methods
 
 from . import forms
 from ...core.utils import get_paginator_items
-from ...product.models import (Product, ProductAttribute, ProductImage,
-                               ProductVariant, Stock, ProductClass,
+from ...product.models import (Product, ProductAttribute, ProductClass,
+                               ProductImage, ProductVariant, Stock,
                                StockLocation)
 from ..views import staff_member_required
 

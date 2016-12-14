@@ -1,12 +1,8 @@
 from __future__ import unicode_literals
-from . import logger
 
 from collections import namedtuple
 from decimal import Decimal
 from uuid import uuid4
-
-from jsonfield import JSONField
-from satchless.item import ItemLine, ItemList, partition
 
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -15,7 +11,10 @@ from django.utils.encoding import python_2_unicode_compatible, smart_str
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
+from jsonfield import JSONField
+from satchless.item import ItemLine, ItemList, partition
 
+from . import logger
 from ..discount.models import Voucher
 from ..product.models import ProductVariant
 

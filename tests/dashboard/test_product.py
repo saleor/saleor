@@ -1,12 +1,13 @@
 from __future__ import unicode_literals
 
 import pytest
-from mock import Mock
-
 from django import forms
 from django.core.urlresolvers import reverse
+from mock import Mock
+
 from saleor.dashboard.product.forms import (ProductClassForm,
-                                            ProductClassSelectorForm)
+                                            ProductClassSelectorForm,
+                                            ProductForm)
 from saleor.product.models import Product, ProductClass, ProductVariant
 
 

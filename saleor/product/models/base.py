@@ -4,15 +4,15 @@ import datetime
 from decimal import Decimal
 
 from django.conf import settings
+from django.contrib.postgres.fields import HStoreField
 from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
-from django.db.models import F, Q, Manager
+from django.db.models import F, Manager, Q
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
-from django.contrib.postgres.fields import HStoreField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from satchless.item import InsufficientStock, Item, ItemRange
@@ -20,8 +20,8 @@ from unidecode import unidecode
 from versatileimagefield.fields import VersatileImageField
 
 from ...discount.models import get_variant_discounts
-from .utils import get_attributes_display_map
 from .fields import WeightField
+from .utils import get_attributes_display_map
 
 
 @python_2_unicode_compatible

@@ -10,9 +10,9 @@ from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
 from saleor.discount.models import Voucher
 from saleor.order.models import Order
-from saleor.product.models import (Product, ProductVariant, ProductClass,
-                                   AttributeChoiceValue, ProductAttribute,
-                                   Stock, StockLocation)
+from saleor.product.models import (AttributeChoiceValue, Product,
+                                   ProductAttribute, ProductClass,
+                                   ProductVariant, Stock, StockLocation)
 from saleor.shipping.models import ShippingMethod
 from saleor.userprofile.models import Address, User
 
