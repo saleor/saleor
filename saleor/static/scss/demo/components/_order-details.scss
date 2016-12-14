@@ -15,11 +15,17 @@
     span {
       color: $gray;
     }
-    img {
-      margin-right: $global-margin;
-    }
-    p {
-      margin: $global-margin / 2 0;
+    a {
+      img {
+        margin-right: $global-margin;
+      }
+      p {
+        margin: $global-margin / 2 0;
+        color: $body-color;
+      }
+      &:hover, &:focus {
+        text-decoration: none;
+      }
     }
     .col-xs-3 {
       padding: 0;

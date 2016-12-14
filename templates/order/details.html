@@ -63,9 +63,11 @@
                 {% for item_line in item %}
                   <div class="row">
                     <div class="col-md-6 col-xs-9">
-                      <img src="{{ item_line.product.images.first.image.crop.60x60 }}" class="float-xs-left">
-                      <p>{{ item_line.product }}<br>
-                      <span>{{ item_line.product_name }}</span></p>
+                      <a href="{{ item_line.product.get_absolute_url }}">
+                        <img src="{{ item_line.product.images.first.image.crop.60x60 }}" class="float-xs-left">
+                        <p>{{ item_line.product }}<br>
+                        <span>{{ item_line.product_name }}</span></p>
+                      </a>
                     </div>
                     <div class="col-md-6 col-xs-3">
                       <div class="col-md-6 col-xs-12">
