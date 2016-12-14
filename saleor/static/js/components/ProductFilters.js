@@ -1,5 +1,8 @@
+import queryString from 'query-string';
 import React, { Component, PropTypes } from 'react';
 import Relay from 'react-relay';
+
+import AttributeInput from './AttributeInput';
 
 
 class ProductFilters extends Component {
@@ -12,21 +15,44 @@ class ProductFilters extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {
-      filters: {}
-    };
+    this.state = {};
   }
 
-  onClick = (event) => {
-    const { name, value } = event.target;
-    const attrValue = `${name}:${value}`;
-    this.setState({
-      filters: Object.assign(
-        this.state.filters,
-        {[attrValue]: !this.state.filters[attrValue]})
+  getFilterKey(attributeName, valueSlug) {
+    // Returns a key that identifies a filter in the state.
+    return `${attributeName}:${valueSlug}`;
+  }
+
+  filterChangedCallback() {
+    const checked = Object.keys(this.state).filter(
+      key => this.state[key] === true);
+    this.props.onFilterChanged(checked);
+  }
+
+  onClick = (name, value) => {
+    this.toggleFilter(name, value);
+    this.filterChangedCallback();
+  };
+
+  toggleFilter(attributeName, valueSlug) {
+    const key = this.getFilterKey(attributeName, valueSlug);
+    this.setState(Object.assign(this.state, {[key]: !this.state[key]}));
+  }
+
+  componentDidMount() {
+    let urlParams = queryString.parse(location.search);
+    Object.keys(urlParams).map((attributeName) => {
+      if (Array.isArray(urlParams[attributeName])) {
+        const values = urlParams[attributeName];
+        values.map((valueSlug) => {
+          this.toggleFilter(attributeName, valueSlug);
+        });
+      } else {
+        const valueSlug = urlParams[attributeName];
+        this.toggleFilter(attributeName, valueSlug);
+      }
     });
-    const enabled = Object.keys(this.state.filters).filter(key => this.state.filters[key] === true);
-    this.props.onFilterChanged(enabled);
+    this.filterChangedCallback();
   }
 
   render() {
@@ -39,12 +65,16 @@ class ProductFilters extends Component {
               <ul>
                 <h3>{attribute.display}</h3>
                 {attribute.values.map((value) => {
+                  const key = this.getFilterKey(attribute.name, value.slug);
+                  const checked = this.state[key];
                   return (
                     <li key={value.id} className="item">
-                        <label>
-                          <input name={attribute.name} type="checkbox" value={value.slug} onClick={this.onClick} />
-                          {value.display}
-                        </label>
+                      <AttributeInput
+                        attribute={attribute}
+                        checked={checked}
+                        onClick={this.onClick}
+                        value={value}
+                      />
                     </li>
                   );
                 })}

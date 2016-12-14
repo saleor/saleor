@@ -10,6 +10,7 @@
     "indent": ["error", 2],
     "no-trailing-spaces": ["warn"],
     "no-undef": ["error"],
+    "no-unused-vars": ["warn"],
     "react/jsx-no-bind": ["error"],
     "semi": ["error", "always"],
     "strict": ["error", "never"],
