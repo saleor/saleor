@@ -77,11 +77,11 @@ def get_availability(product, discounts=None, local_currency=None):
         discount_local_currency=discount_local_currency)
 
 
-def product_display(request, product, create=False):
+def product_display(request, product, create_cart=False):
     today = datetime.date.today()
     is_visible = (
         product.available_on is None or product.available_on <= today)
-    cart = get_cart_from_request(request, create=create)
+    cart = get_cart_from_request(request, create=create_cart)
 
     form_class = get_form_class_for_product(product)
     form = form_class(cart=cart, product=product,

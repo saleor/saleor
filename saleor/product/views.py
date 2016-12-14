@@ -62,7 +62,8 @@ def product_add_to_cart(request, slug, product_id):
     products = products_with_details(user=request.user)
     product = get_object_or_404(products, pk=product_id)
 
-    data, templates, cart = product_display(request, product, create=True)
+    data, templates, cart = product_display(request, product,
+                                            create_cart=True)
     form = data['form']
     if form.is_valid():
         form.save()
