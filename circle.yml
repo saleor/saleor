@@ -12,4 +12,5 @@ dependencies:
     - ./manage.py collectstatic --no-input
 test:
   override:
-    - pytest
+    - mkdir -p $CIRCLE_TEST_REPORTS/pytest
+    - pytest --junitxml=$CIRCLE_TEST_REPORTS/pytest/junit.xml
