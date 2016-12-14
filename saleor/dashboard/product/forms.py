@@ -4,6 +4,7 @@ from django import forms
 from django.db import transaction
 from django.db.models import Count
 from django.forms.models import ModelChoiceIterator, inlineformset_factory
+from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
 
 from ...product.models import (AttributeChoiceValue, Product, ProductAttribute,
@@ -120,10 +121,12 @@ class ProductForm(forms.ModelForm):
 
     def save(self, commit=True):
         attributes = {}
-        for attribute in self.product_attributes:
-            value = self.cleaned_data.pop(attribute.get_formfield_name())
-            if value is not None:
-                attributes[attribute.pk] = value.pk
+        for attr in self.product_attributes:
+            value = self.cleaned_data.pop(attr.get_formfield_name())
+            if isinstance(value, AttributeChoiceValue):
+                attributes[smart_text(attr.pk)] = smart_text(value.pk)
+            else:
+                attributes[smart_text(attr.pk)] = value
         self.instance.attributes = attributes
         return super(ProductForm, self).save(commit=commit)
 
@@ -182,7 +185,10 @@ class VariantAttributeForm(forms.ModelForm):
         attributes = {}
         for attr in self.available_attrs:
             value = self.cleaned_data.pop(attr.get_formfield_name())
-            attributes[attr.pk] = value.pk if hasattr(value, 'pk') else value
+            if isinstance(value, AttributeChoiceValue):
+                attributes[smart_text(attr.pk)] = smart_text(value.pk)
+            else:
+                attributes[smart_text(attr.pk)] = value
         self.instance.attributes = attributes
         return super(VariantAttributeForm, self).save(commit=commit)
 
