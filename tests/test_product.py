@@ -3,7 +3,11 @@ import datetime
 from mock import Mock
 
 from saleor.product import models
-from saleor.product.utils import get_availability
+from saleor.product.models import Product
+from saleor.product.models import ProductClass
+from saleor.product.models import ProductVariant
+from saleor.product.utils import get_availability, filter_by_attribute
+
 
 def test_stock_selector(product_in_stock):
     variant = product_in_stock.variants.get()
@@ -54,3 +58,42 @@ def test_availability(product_in_stock, monkeypatch, settings):
     availability = get_availability(product_in_stock, local_currency='PLN')
     assert availability.price_range_local_currency.min_price.currency == 'PLN'
     assert availability.available
+
+
+def test_filtering_by_attribute(db, color_attribute):
+    product_class_a = ProductClass.objects.create(
+        name='New class', has_variants=True)
+    product_class_a.product_attributes.add(color_attribute)
+    product_class_b = ProductClass.objects.create(name='New class',
+                                                  has_variants=True)
+    product_class_b.variant_attributes.add(color_attribute)
+    product_a = Product.objects.create(
+        name='Test product a', price=10, weight=1,
+        product_class=product_class_a)
+    variant_a = ProductVariant.objects.create(product=product_a, sku='1234')
+    product_b = Product.objects.create(
+        name='Test product b', price=10, weight=1,
+        product_class=product_class_b)
+    variant_b = ProductVariant.objects.create(product=product_b, sku='12345')
+    color = color_attribute.values.first()
+    color_2 = color_attribute.values.last()
+    product_a.set_attribute(color_attribute.pk, color.pk)
+    product_a.save()
+    variant_b.set_attribute(color_attribute.pk, color.pk)
+    variant_b.save()
+
+    filtered = filter_by_attribute(Product.objects.all(), color_attribute,
+                                   color)
+    assert product_a in filtered
+    assert product_b in filtered
+
+    product_a.set_attribute(color_attribute.pk, color_2.pk)
+    product_a.save()
+    filtered = filter_by_attribute(Product.objects.all(), color_attribute,
+                                   color)
+    assert product_a not in filtered
+    assert product_b in filtered
+    filtered = filter_by_attribute(Product.objects.all(), color_attribute,
+                                   color_2)
+    assert product_a in filtered
+    assert product_b not in filtered
