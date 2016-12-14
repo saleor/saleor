@@ -12,23 +12,11 @@
 
 {% block header_extra %}
     <div class="fixed-action-btn">
-        {% if form.product_cls.1 %}
+        {% if product_classes %}
             <a class="btn-fab btn-floating btn-large waves-effect waves-light teal modal-trigger"
                 href="#modal-product-class" title="{% trans "Add product" %}">
                 <i class="material-icons">add</i>
             </a>
-        {% else %}
-            <form method="post" novalidate>
-                <div hidden>
-                    {% csrf_token %}
-                    {{ form }}
-                </div>
-
-                <button type="submit" class="btn-fab btn-floating btn-large waves-effect waves-light teal"
-                    title="{% trans "Add product" %}">
-                    <i class="material-icons">add</i>
-                </button>
-            </form>
         {% endif %}
     </div>
 {% endblock %}
@@ -63,6 +51,9 @@
                 {% include "dashboard/includes/_pagination.html" with page_obj=products %}
             {% else %}
                 <p>{% trans "No products found." %}</p>
+                {% if not product_classes %}
+                    <p>{% trans "Create product class first." %}</p>
+                {% endif %}
             {% endif %}
         </div>
     </div>

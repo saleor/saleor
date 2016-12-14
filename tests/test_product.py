@@ -4,6 +4,8 @@ from mock import Mock
 
 from saleor.product import models
 from saleor.product.utils import get_availability
+from tests.utils import filter_products_by_attribute
+
 
 def test_stock_selector(product_in_stock):
     variant = product_in_stock.variants.get()
@@ -54,3 +56,43 @@ def test_availability(product_in_stock, monkeypatch, settings):
     availability = get_availability(product_in_stock, local_currency='PLN')
     assert availability.price_range_local_currency.min_price.currency == 'PLN'
     assert availability.available
+
+
+def test_filtering_by_attribute(db, color_attribute):
+    product_class_a = models.ProductClass.objects.create(
+        name='New class', has_variants=True)
+    product_class_a.product_attributes.add(color_attribute)
+    product_class_b = models.ProductClass.objects.create(name='New class',
+                                                         has_variants=True)
+    product_class_b.variant_attributes.add(color_attribute)
+    product_a = models.Product.objects.create(
+        name='Test product a', price=10, weight=1,
+        product_class=product_class_a)
+    models.ProductVariant.objects.create(product=product_a, sku='1234')
+    product_b = models.Product.objects.create(
+        name='Test product b', price=10, weight=1,
+        product_class=product_class_b)
+    variant_b = models.ProductVariant.objects.create(product=product_b,
+                                                     sku='12345')
+    color = color_attribute.values.first()
+    color_2 = color_attribute.values.last()
+    product_a.set_attribute(color_attribute.pk, color.pk)
+    product_a.save()
+    variant_b.set_attribute(color_attribute.pk, color.pk)
+    variant_b.save()
+
+    filtered = filter_products_by_attribute(models.Product.objects.all(),
+                                            color_attribute.pk, color.pk)
+    assert product_a in list(filtered)
+    assert product_b in list(filtered)
+
+    product_a.set_attribute(color_attribute.pk, color_2.pk)
+    product_a.save()
+    filtered = filter_products_by_attribute(models.Product.objects.all(),
+                                            color_attribute.pk, color.pk)
+    assert product_a not in list(filtered)
+    assert product_b in list(filtered)
+    filtered = filter_products_by_attribute(models.Product.objects.all(),
+                                            color_attribute.pk, color_2.pk)
+    assert product_a in list(filtered)
+    assert product_b not in list(filtered)

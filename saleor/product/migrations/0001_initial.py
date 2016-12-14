@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 from django.db import models, migrations
 import versatileimagefield.fields
-import jsonfield.fields
 from decimal import Decimal
 import saleor.product.models.fields
 import django.core.validators
@@ -97,7 +96,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=100, verbose_name='variant name', blank=True)),
                 ('price_override', django_prices.models.PriceField(decimal_places=2, currency=b'USD', max_digits=12, blank=True, null=True, verbose_name='price override')),
                 ('weight_override', saleor.product.models.fields.WeightField(decimal_places=2, max_digits=6, blank=True, null=True, verbose_name='weight override', unit=b'lb')),
-                ('attributes', jsonfield.fields.JSONField(default={}, verbose_name='attributes')),
+                ('attributes', models.TextField(default='{}', verbose_name='attributes')),
                 ('product', models.ForeignKey(related_name='variants', to='product.Product')),
             ],
             bases=(models.Model, satchless.item.Item),

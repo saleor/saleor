@@ -225,12 +225,14 @@ def test_products_voucher_checkout_discount_not(settings, monkeypatch, prices,
 
 
 @pytest.mark.django_db
-def test_sale_applies_to_correct_products():
+def test_sale_applies_to_correct_products(product_class):
     product = Product.objects.create(
-        name='Test Product', price=10, weight=1, description='', pk=10)
+        name='Test Product', price=10, weight=1, description='', pk=10,
+        product_class=product_class)
     variant = ProductVariant.objects.create(product=product, sku='firstvar')
     product2 = Product.objects.create(
-        name='Second product', price=15, weight=1, description='')
+        name='Second product', price=15, weight=1, description='',
+        product_class=product_class)
     sec_variant = ProductVariant.objects.create(
         product=product2, sku='secvar', pk=10)
     sale = Sale.objects.create(name='Test sale', value=5, type=Sale.FIXED)

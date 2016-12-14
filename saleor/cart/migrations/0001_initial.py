@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-import jsonfield.fields
 import django.db.models.deletion
 from django.conf import settings
 import django.core.validators
@@ -28,7 +27,7 @@ class Migration(migrations.Migration):
                 ('last_status_change', models.DateTimeField(auto_now_add=True, verbose_name='last status change')),
                 ('email', models.EmailField(max_length=254, null=True, blank=True)),
                 ('token', models.UUIDField(primary_key=True, default=uuid.uuid4, serialize=False, editable=False, verbose_name='token')),
-                ('checkout_data', jsonfield.fields.JSONField(null=True, editable=False)),
+                ('checkout_data', models.TextField(null=True, editable=False)),
                 ('total', django_prices.models.PriceField(default=0, currency='USD', max_digits=12, decimal_places=2)),
                 ('quantity', models.PositiveIntegerField(default=0)),
                 ('user', models.ForeignKey(related_name='carts', verbose_name='user', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
@@ -44,7 +43,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('quantity', models.PositiveIntegerField(verbose_name='quantity', validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(999)])),
-                ('data', jsonfield.fields.JSONField(default={}, blank=True)),
+                ('data', models.TextField(default='{}', blank=True)),
                 ('cart', models.ForeignKey(related_name='lines', to='cart.Cart')),
                 ('product', models.ForeignKey(related_name='+', verbose_name='product', to='product.ProductVariant')),
             ],

@@ -1,10 +1,9 @@
 from __future__ import unicode_literals
-from . import logger
 
 from collections import namedtuple
+from decimal import Decimal
 from uuid import uuid4
 
-from decimal import Decimal
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -13,8 +12,9 @@ from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from jsonfield import JSONField
-from satchless.item import ItemLine, ItemSet, ItemList, partition
+from satchless.item import ItemLine, ItemList, partition
 
+from . import logger
 from ..discount.models import Voucher
 from ..product.models import ProductVariant
 
@@ -54,10 +54,15 @@ class CartQueryset(models.QuerySet):
 
     def for_display(self):
         return self.prefetch_related(
-            'lines', 'lines__variant', 'lines__variant__product__attributes',
-            'lines__variant__product__attributes__values',
-            'lines__variant__stock', 'lines__variant__product__images',
-            'lines__variant__product')
+            'lines',
+            'lines__variant',
+            'lines__variant__product',
+            'lines__variant__product__images',
+            'lines__variant__product__product_class__product_attributes',
+            'lines__variant__product__product_class__product_attributes__values',  # noqa
+            'lines__variant__product__product_class__variant_attributes',
+            'lines__variant__product__product_class__variant_attributes__values',  # noqa
+            'lines__variant__stock')
 
 
 class Cart(models.Model):
@@ -145,7 +150,6 @@ class Cart(models.Model):
     def is_shipping_required(self):
         return any(line.is_shipping_required() for line in self.lines.all())
 
-    #Satchless
     def __repr__(self):
         return 'Cart(quantity=%s)' % (self.quantity,)
 
@@ -231,7 +235,6 @@ class CartLine(models.Model, ItemLine):
     def __str__(self):
         return smart_str(self.variant)
 
-    # Satchless
     def __eq__(self, other):
         if not isinstance(other, CartLine):
             return NotImplemented

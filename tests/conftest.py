@@ -10,7 +10,9 @@ from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
 from saleor.discount.models import Voucher
 from saleor.order.models import Order
-from saleor.product.models import Product, ProductVariant, Stock, StockLocation
+from saleor.product.models import (AttributeChoiceValue, Category, Product,
+                                   ProductAttribute, ProductClass,
+                                   ProductVariant, Stock, StockLocation)
 from saleor.shipping.models import ShippingMethod
 from saleor.userprofile.models import Address, User
 
@@ -88,9 +90,41 @@ def shipping_method(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def product_in_stock(db):  # pylint: disable=W0613
+def color_attribute(db):  # pylint: disable=W0613
+    attribute = ProductAttribute.objects.create(name='color',
+                                                display='Display')
+    AttributeChoiceValue.objects.create(display='Red', attribute=attribute)
+    AttributeChoiceValue.objects.create(display='Blue', attribute=attribute)
+    return attribute
+
+
+@pytest.fixture
+def size_attribute(db):  # pylint: disable=W0613
+    attribute = ProductAttribute.objects.create(name='size', display='Size')
+    AttributeChoiceValue.objects.create(display='Small', attribute=attribute)
+    AttributeChoiceValue.objects.create(display='Big', attribute=attribute)
+    return attribute
+
+
+@pytest.fixture
+def default_category(db):  # pylint: disable=W0613
+    return Category.objects.create(name='Default', slug='default')
+
+
+@pytest.fixture
+def product_class(color_attribute, size_attribute):
+    product_class = ProductClass.objects.create(name='Default Class',
+                                                has_variants=False)
+    product_class.product_attributes.add(color_attribute)
+    product_class.variant_attributes.add(size_attribute)
+    return product_class
+
+
+@pytest.fixture
+def product_in_stock(product_class, default_category):
     product = Product.objects.create(
-        name='Test product', price=10, weight=1)
+        name='Test product', price=10, weight=1, product_class=product_class)
+    product.categories.add(default_category)
     variant = ProductVariant.objects.create(product=product, sku='123')
     warehouse_1 = StockLocation.objects.create(name='Warehouse 1')
     warehouse_2 = StockLocation.objects.create(name='Warehouse 2')

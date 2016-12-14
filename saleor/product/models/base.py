@@ -4,15 +4,15 @@ import datetime
 from decimal import Decimal
 
 from django.conf import settings
+from django.contrib.postgres.fields import HStoreField
 from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
-from django.db.models import F, Q, Manager
+from django.db.models import F, Manager, Q
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
-from jsonfield import JSONField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from satchless.item import InsufficientStock, Item, ItemRange
@@ -20,8 +20,8 @@ from unidecode import unidecode
 from versatileimagefield.fields import VersatileImageField
 
 from ...discount.models import get_variant_discounts
-from .utils import get_attributes_display_map
 from .fields import WeightField
+from .utils import get_attributes_display_map
 
 
 @python_2_unicode_compatible
@@ -63,6 +63,28 @@ class Category(MPTTModel):
         self.get_descendants().update(hidden=hidden)
 
 
+@python_2_unicode_compatible
+class ProductClass(models.Model):
+    name = models.CharField(
+        pgettext_lazy('Product field', 'name'), max_length=128)
+    has_variants = models.BooleanField(default=True)
+    product_attributes = models.ManyToManyField(
+        'ProductAttribute', related_name='products_class', blank=True)
+    variant_attributes = models.ManyToManyField(
+        'ProductAttribute', related_name='product_variants_class', blank=True)
+
+    class Meta:
+        app_label = 'product'
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        class_ = type(self)
+        return '<%s.%s(pk=%r, name=%r)>' % (
+            class_.__module__, class_.__name__, self.pk, self.name)
+
+
 class ProductManager(models.Manager):
     def get_available_products(self):
         today = datetime.date.today()
@@ -72,6 +94,7 @@ class ProductManager(models.Manager):
 
 @python_2_unicode_compatible
 class Product(models.Model, ItemRange):
+    product_class = models.ForeignKey(ProductClass, related_name='products')
     name = models.CharField(
         pgettext_lazy('Product field', 'name'), max_length=128)
     description = models.TextField(
@@ -87,8 +110,8 @@ class Product(models.Model, ItemRange):
         max_digits=6, decimal_places=2)
     available_on = models.DateField(
         pgettext_lazy('Product field', 'available on'), blank=True, null=True)
-    attributes = models.ManyToManyField(
-        'ProductAttribute', related_name='products', blank=True)
+    attributes = HStoreField(pgettext_lazy('Product field', 'attributes'),
+                             default={})
     updated_at = models.DateTimeField(
         pgettext_lazy('Product field', 'updated at'), auto_now=True, null=True)
 
@@ -137,6 +160,12 @@ class Product(models.Model, ItemRange):
             return first_image.image
         return None
 
+    def get_attribute(self, pk):
+        return self.attributes.get(smart_text(pk))
+
+    def set_attribute(self, pk, value_pk):
+        self.attributes[smart_text(pk)] = smart_text(value_pk)
+
 
 @python_2_unicode_compatible
 class ProductVariant(models.Model, Item):
@@ -154,8 +183,8 @@ class ProductVariant(models.Model, Item):
         unit=settings.DEFAULT_WEIGHT, max_digits=6, decimal_places=2,
         blank=True, null=True)
     product = models.ForeignKey(Product, related_name='variants')
-    attributes = JSONField(pgettext_lazy('Variant field', 'attributes'),
-                           default={})
+    attributes = HStoreField(pgettext_lazy('Variant field', 'attributes'),
+                             default={})
     images = models.ManyToManyField('ProductImage', through='VariantImage')
 
     class Meta:
@@ -207,11 +236,14 @@ class ProductVariant(models.Model, Item):
             [stock.quantity_available > 0 for stock in self.stock.all()])
 
     def get_attribute(self, pk):
-        return self.attributes.get(str(pk))
+        return self.attributes.get(smart_text(pk))
+
+    def set_attribute(self, pk, value_pk):
+        self.attributes[smart_text(pk)] = smart_text(value_pk)
 
     def display_variant(self, attributes=None):
         if attributes is None:
-            attributes = self.product.attributes.all()
+            attributes = self.product.product_class.variant_attributes.all()
         values = get_attributes_display_map(self, attributes).values()
         if values:
             return ', '.join([smart_text(value) for value in values])
