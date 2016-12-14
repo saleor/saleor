@@ -22,6 +22,7 @@ from versatileimagefield.fields import VersatileImageField
 from ...discount.models import get_variant_discounts
 from .utils import get_attributes_display_map
 from .fields import WeightField
+from ...search import index
 
 
 @python_2_unicode_compatible
@@ -71,7 +72,7 @@ class ProductManager(models.Manager):
 
 
 @python_2_unicode_compatible
-class Product(models.Model, ItemRange):
+class Product(models.Model, ItemRange, index.Indexed):
     name = models.CharField(
         pgettext_lazy('Product field', 'name'), max_length=128)
     description = models.TextField(
@@ -93,6 +94,12 @@ class Product(models.Model, ItemRange):
         pgettext_lazy('Product field', 'updated at'), auto_now=True, null=True)
 
     objects = ProductManager()
+
+    search_fields = [
+        index.SearchField('name', partial_match=True),
+        index.SearchField('description'),
+        index.FilterField('available_on')
+    ]
 
     class Meta:
         app_label = 'product'

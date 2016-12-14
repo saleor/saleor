@@ -2,6 +2,10 @@ from __future__ import unicode_literals
 
 import ast
 import os.path
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 import dj_database_url
 import dj_email_url
@@ -150,6 +154,7 @@ INSTALLED_APPS = [
     'saleor.order',
     'saleor.dashboard',
     'saleor.shipping',
+    'saleor.search',
 
     # External apps
     'versatileimagefield',
@@ -164,6 +169,7 @@ INSTALLED_APPS = [
     'materializecssform',
     'rest_framework',
     'webpack_loader',
+    # 'haystack',
     'allauth',
     'allauth.account',
     'allauth.socialaccount'
@@ -308,6 +314,38 @@ WEBPACK_LOADER = {
             r'.+\.hot-update\.js',
             r'.+\.map']}}
 
+ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
+SEARCHBOX_URL = os.environ.get('SEARCHBOX_URL')
+BONSAI_URL = os.environ.get('BONSAI_URL')
+# We'll support couple of elasticsearch add-ons, but finally we'll use single
+# variable
+ES_PARAMS = urlparse(ELASTICSEARCH_URL or SEARCHBOX_URL or BONSAI_URL or '')
+
+if ES_PARAMS.hostname:
+    default_port = '80' if ES_PARAMS.scheme == 'http' else '443'
+    es_url = '%s://%s:%s' % (
+        ES_PARAMS.scheme, ES_PARAMS.hostname, ES_PARAMS.port or default_port)
+    if ES_PARAMS.username and ES_PARAMS.password:
+        connection_kwargs = {'http_auth': '%s:%s' % (
+            ES_PARAMS.username, ES_PARAMS.password)}
+    else:
+        connection_kwargs = {}
+
+    HAYSTACK_CONNECTIONS = {
+        'default': {
+            'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+            'URL': es_url,
+            'INDEX_NAME': os.environ.get(
+                'ELASTICSEARCH_INDEX_NAME', 'storefront'),
+            'KWARGS': connection_kwargs
+        }}
+else:
+    HAYSTACK_CONNECTIONS = {
+        'default': {
+            'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+            'PATH': os.path.join(os.path.dirname(__file__), 'whoosh_index'),
+        }}
+
 
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
@@ -316,3 +354,19 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_USERNAME_REQUIRED = False
 SOCIALACCOUNT_EMAIL_VERIFICATION = False
 ACCOUNT_LOGOUT_ON_GET = True
+
+
+SEARCH_BACKENDS = {
+    'default': {
+        'BACKEND': 'saleor.search.backends.elasticsearch2',
+        'URLS': ['http://localhost:9200'],
+        'INDEX': 'test-wagtail3',
+        'TIMEOUT': 5,
+        'AUTO_UPDATE': True},
+    'dashboard': {
+        'BACKEND': 'saleor.search.backends.dashboard',
+        'URLS': ['http://localhost:9200'],
+        'INDEX': 'test-wagtail3',
+        'TIMEOUT': 5,
+        'AUTO_UPDATE': False}
+}

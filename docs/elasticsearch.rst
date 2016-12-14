@@ -1,0 +1,51 @@
+Elasticsearch
+=============
+
+
+Installation
+------------
+
+Elasticsearch search backend requires an Elasticsearch server. For development purposes docker-compose will create a Docker container running an Elasticsearch server instance.
+
+Integration can be configured with set of environment variables.
+
+When you're deploying on Heroku - you can use add-on that provides Elasticsearch as a service.
+Services available on Heroku:
+
+ - https://elements.heroku.com/addons/searchbox
+ - https://elements.heroku.com/addons/bonsai
+
+If you're deploying somewhere else, you can use one of following services:
+
+ - http://www.searchly.com/
+ - https://www.elastic.co/cloud
+
+
+Environment variables
+---------------------
+
+``ELASTICSEARCH_URL`` or ``BONSAI_URL`` or ``SEARCHBOX_URL``
+  URL to elasticsearch engine. If it's empty - Whoosh backend will be used (default)
+
+  **Example:** ``https://user:password@my-3rdparty-es.com:9200``
+
+.. warning::
+
+    Whoosh is not recommended for production use.
+    To use search in production you should use Elasticsearch.
+
+
+``ELASTICSEARCH_INDEX_NAME``
+  Controls elasticsearch index name where all searchable documents will be stored. Defaults to ``storefront``. Index will be created automatically with first indexing.
+
+Data indexing
+-------------
+
+Saleor uses `Haystack <http://haystacksearch.org/>`_ to provide search, please refer to Haystack documentation to get familiar with implementation details.
+Initial search index can be created with following command:
+
+.. code-block:: bash
+
+    $ python manage.py rebuild_index
+
+By default products are reindexed after saving forms in the dashboard. Orders are updated after they're placed.

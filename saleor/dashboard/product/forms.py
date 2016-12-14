@@ -9,6 +9,7 @@ from ...product.models import (AttributeChoiceValue, Product, ProductAttribute,
                                ProductImage, ProductVariant, Stock,
                                VariantImage, StockLocation)
 from .widgets import ImagePreviewWidget
+from ...search import index as search_index
 
 PRODUCT_CLASSES = {Product: 'Default'}
 
@@ -55,6 +56,11 @@ class ProductForm(forms.ModelForm):
         field = self.fields['attributes']
         field.widget.attrs['data-placeholder'] = pgettext_lazy(
             'Product form labels', 'Search')
+
+    def save(self, *args, **kwargs):
+        instance = super(ProductForm, self).save(*args, **kwargs)
+        search_index.insert_or_update_object(instance)
+        return instance
 
 
 class ProductVariantForm(forms.ModelForm):

@@ -5,6 +5,7 @@ from django.template.response import TemplateResponse
 from ..forms import (
     AnonymousUserBillingForm, BillingAddressesForm,
     BillingWithoutShippingAddressForm)
+from ...search import index as search_index
 from ...userprofile.forms import get_address_form
 from ...userprofile.models import Address
 
@@ -17,6 +18,9 @@ def create_order(checkout):
     checkout.cart.clear()
     order.create_history_entry()
     order.send_confirmation_email()
+    search_index.insert_or_update_object(order)
+    if order.user:
+        search_index.insert_or_update_object(order.user)
     return order, redirect('order:payment', token=order.token)
 
 

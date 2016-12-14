@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load slice from shop %}
+{% load static from staticfiles %}
+{% load bootstrap_pagination from bootstrap3 %}
+
+{% block title %}{% trans "Search results" %} {{ block.super }}{% endblock %}
+
+{% block breadcrumb %}
+    {{ block.super }}
+    {% for breadcrumb in breadcrumbs %}
+        <li{% if forloop.last %} class="active"{% endif %}>
+            {% if not forloop.last %}
+                <a href="{{ breadcrumb.get_absolute_url }}">{{ breadcrumb }}</a>
+            {% else %}
+                <span>{{ breadcrumb }}</span>
+            {% endif %}
+        </li>
+    {% endfor %}
+{% endblock breadcrumb %}
+
+{% block content %}
+    <div class="row">
+        {% if query and results %}
+            {% include "search/_items.html" %}
+            <div class="col-md-12">
+                {% bootstrap_pagination results url=query_string %}
+            </div>
+        {% else %}
+            <div class="col-md-12">
+                <h3>{% blocktrans %}No results found{% endblocktrans %}</h3>
+            </div>
+        {% endif %}
+    </div>
+{% endblock content %}

@@ -266,7 +266,6 @@ class Checkout(object):
 
         if voucher is not None:
             Voucher.objects.increase_usage(voucher)
-
         return order
 
     def _get_voucher(self, vouchers=None):

@@ -9,18 +9,24 @@ redis:
   image: redis
   ports:
     - '6379:6379'
+search:
+  image: elasticsearch:2.4
+  ports:
+    - '9200:9200'
 web:
   build: .
   command: python manage.py runserver 0.0.0.0:8000
   environment:
     - DATABASE_URL=postgres://saleor:saleor@db/saleor
     - DEFAULT_FROM_EMAIL=noreply@example.com
+    - ELASTICSEARCH_URL=http://search:9200/
     - OPENEXCHANGERATES_API_KEY
     - REDIS_URL=redis://redis:6379/0
     - SECRET_KEY=changeme
   links:
     - db
     - redis
+    - search
   ports:
     - '8000:8000'
   volumes:

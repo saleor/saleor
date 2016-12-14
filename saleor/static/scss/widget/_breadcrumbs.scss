@@ -26,13 +26,13 @@
         display: none;
       }
     }
-  } 
+  }
   li {
     float: none;
     line-height: $subheader-height;
     color: white;
     display: inline-block;
-    @media (max-width: $medium-screen-up) { 
+    @media (max-width: $medium-screen-up) {
       &:first-of-type:not(.visible-s) {
         display: none;
         &:before {
