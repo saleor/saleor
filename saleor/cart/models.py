@@ -150,7 +150,6 @@ class Cart(models.Model):
     def is_shipping_required(self):
         return any(line.is_shipping_required() for line in self.lines.all())
 
-    # Satchless
     def __repr__(self):
         return 'Cart(quantity=%s)' % (self.quantity,)
 
@@ -236,7 +235,6 @@ class CartLine(models.Model, ItemLine):
     def __str__(self):
         return smart_str(self.variant)
 
-    # Satchless
     def __eq__(self, other):
         if not isinstance(other, CartLine):
             return NotImplemented

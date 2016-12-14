@@ -77,7 +77,7 @@ class ProductClassForm(forms.ModelForm):
                 if query.exists():
                     msg = pgettext_lazy(
                         'Product Class Errors',
-                        'Products based on this class have more than '
+                        'Some products based on this class have more than '
                         'one variant.')
                     self.add_error('has_variants', msg)
         return data
@@ -98,18 +98,18 @@ class ProductForm(forms.ModelForm):
         field = self.fields['categories']
         field.widget.attrs['data-placeholder'] = pgettext_lazy(
             'Product form labels', 'Search')
-        self.product_attributes = \
-            self.instance.product_class.product_attributes.all()
+        product_class = self.instance.product_class
+        self.product_attributes = product_class.product_attributes.all()
         self.product_attributes = self.product_attributes.prefetch_related(
             'values')
         self.prepare_fields_for_attributes()
 
     def prepare_fields_for_attributes(self):
         for attribute in self.product_attributes:
-            field_defaults = {'label': attribute.display,
-                              'required': False,
-                              'initial': self.instance.get_attribute(
-                                  attribute.pk)}
+            field_defaults = {
+                'label': attribute.display,
+                'required': False,
+                'initial': self.instance.get_attribute(attribute.pk)}
             if attribute.has_values():
                 field = CachingModelChoiceField(
                     queryset=attribute.values.all(), **field_defaults)
