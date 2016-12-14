@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
-
+from ..search import index
 
 class AddressManager(models.Manager):
 
@@ -116,7 +116,7 @@ class UserManager(BaseUserManager):
         return entry
 
 
-class User(PermissionsMixin, AbstractBaseUser):
+class User(PermissionsMixin, AbstractBaseUser, index.Indexed):
     email = models.EmailField(unique=True)
     addresses = models.ManyToManyField(Address, blank=True)
     is_staff = models.BooleanField(
@@ -140,6 +140,10 @@ class User(PermissionsMixin, AbstractBaseUser):
     USERNAME_FIELD = 'email'
 
     objects = UserManager()
+
+    search_fields = [
+        index.SearchField('email')
+    ]
 
     def get_full_name(self):
         return self.email
