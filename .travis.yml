@@ -8,8 +8,8 @@ install:
   - pip install -U pip setuptools wheel
   - pip install tox codecov
   - nvm install 4.4.7
-  - npm install
-  - npm prune
+  - npm install -g yarn
+  - yarn install
   - npm run build-assets
 script:
   - tox
