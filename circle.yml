@@ -4,6 +4,7 @@ machine:
   python:
     version: "3.5.1"
   environment:
+    DATABASE_URL: postgres://ubuntu:@127.0.0.1:5432/circle_test
     SECRET_KEY: irrelevant
 dependencies:
   post:
