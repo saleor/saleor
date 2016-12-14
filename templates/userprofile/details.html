@@ -65,11 +65,11 @@
               </div>
             </div>
             <div class="col-md-2 col-xs-4">
-              <a data-toggle="modal" data-target=".modal-address-delete" href="{% url 'profile:address-delete' pk=address.pk %}"><img src="{% static 'img/icon_delete.svg' %}"></a>
+              <a data-toggle="modal" data-target=".modal-address-delete"><img src="{% static 'img/icon_delete.svg' %}"></a>
               <a href="{% url 'profile:address-edit' pk=address.pk %}"><img src="{% static 'img/icon_edit.svg' %}"></a>
             </div>
           </div>
-          {% include "userprofile/address-delete.html" %}
+          {% include "userprofile/address-delete.html" with pk=address.pk %}
         {% endfor %}
         {% if addresses|length == 0 %}
           <div class="userprofile__address-empty">
