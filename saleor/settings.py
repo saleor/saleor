@@ -361,10 +361,12 @@ SEARCH_BACKENDS = {
         'BACKEND': 'saleor.search.backends.elasticsearch2',
         'URLS': ['http://localhost:9200'],
         'INDEX': 'test-wagtail3',
-        'TIMEOUT': 5},
+        'TIMEOUT': 5,
+        'AUTO_UPDATE': True},
     'dashboard': {
         'BACKEND': 'saleor.search.backends.dashboard',
         'URLS': ['http://localhost:9200'],
         'INDEX': 'test-wagtail3',
-        'TIMEOUT': 5}
+        'TIMEOUT': 5,
+        'AUTO_UPDATE': False}
 }

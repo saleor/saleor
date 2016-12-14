@@ -23,7 +23,6 @@ def search(request):
     if form.is_valid():
         visible_products = products_with_details(request.user)
         results = form.search(model_or_queryset=visible_products)
-        # results = visible_search_results(results)
         page = paginate_results(results, request.GET, settings.PAGINATE_BY)
     else:
         page = form.no_query_found()
