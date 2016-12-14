@@ -88,11 +88,21 @@ class Order(models.Model, ItemSet, index.Indexed):
 
     search_fields = [
         index.SearchField('id'),
-        index.SearchField('get_user_current_email')
+        index.SearchField('get_user_current_email'),
+        index.SearchField('_index_billing_phone'),
+        index.SearchField('_index_shipping_phone'),
+
     ]
 
     class Meta:
         ordering = ('-last_status_change',)
+
+    def _index_billing_phone(self):
+        billing_address = self.billing_address
+        return billing_address.phone
+
+    def _index_shipping_phone(self):
+        return self.shipping_address.phone
 
     def save(self, *args, **kwargs):
         if not self.token:

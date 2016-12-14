@@ -96,7 +96,8 @@ class Product(models.Model, ItemRange, index.Indexed):
     objects = ProductManager()
 
     search_fields = [
-        index.SearchField('name'),
+        index.SearchField('name', partial_match=True),
+        index.SearchField('description'),
         index.FilterField('available_on')
     ]
 
