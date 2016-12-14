@@ -3,7 +3,8 @@ import datetime
 from mock import Mock
 
 from saleor.product import models
-from saleor.product.utils import get_availability, filter_by_attribute
+from saleor.product.utils import get_availability
+from tests.utils import filter_products_by_attribute
 
 
 def test_stock_selector(product_in_stock):
@@ -80,18 +81,18 @@ def test_filtering_by_attribute(db, color_attribute):
     variant_b.set_attribute(color_attribute.pk, color.pk)
     variant_b.save()
 
-    filtered = filter_by_attribute(models.Product.objects.all(),
-                                   color_attribute, color)
-    assert product_a in filtered
-    assert product_b in filtered
+    filtered = filter_products_by_attribute(models.Product.objects.all(),
+                                            color_attribute.pk, color.pk)
+    assert product_a in list(filtered)
+    assert product_b in list(filtered)
 
     product_a.set_attribute(color_attribute.pk, color_2.pk)
     product_a.save()
-    filtered = filter_by_attribute(models.Product.objects.all(),
-                                   color_attribute, color)
-    assert product_a not in filtered
-    assert product_b in filtered
-    filtered = filter_by_attribute(models.Product.objects.all(),
-                                   color_attribute, color_2)
-    assert product_a in filtered
-    assert product_b not in filtered
+    filtered = filter_products_by_attribute(models.Product.objects.all(),
+                                            color_attribute.pk, color.pk)
+    assert product_a not in list(filtered)
+    assert product_b in list(filtered)
+    filtered = filter_products_by_attribute(models.Product.objects.all(),
+                                            color_attribute.pk, color_2.pk)
+    assert product_a in list(filtered)
+    assert product_b not in list(filtered)

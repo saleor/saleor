@@ -161,10 +161,10 @@ class Product(models.Model, ItemRange):
         return None
 
     def get_attribute(self, pk):
-        return self.attributes.get(str(pk))
+        return self.attributes.get(smart_text(pk))
 
     def set_attribute(self, pk, value_pk):
-        self.attributes[str(pk)] = value_pk
+        self.attributes[smart_text(pk)] = smart_text(value_pk)
 
 
 @python_2_unicode_compatible
@@ -236,10 +236,10 @@ class ProductVariant(models.Model, Item):
             [stock.quantity_available > 0 for stock in self.stock.all()])
 
     def get_attribute(self, pk):
-        return self.attributes.get(str(pk))
+        return self.attributes.get(smart_text(pk))
 
     def set_attribute(self, pk, value_pk):
-        self.attributes[str(pk)] = value_pk
+        self.attributes[smart_text(pk)] = smart_text(value_pk)
 
     def display_variant(self, attributes=None):
         if attributes is None:
