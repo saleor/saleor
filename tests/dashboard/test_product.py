@@ -4,6 +4,7 @@ from django.core.urlresolvers import reverse
 import pytest
 
 from saleor.dashboard.product.forms import ProductClassForm
+from saleor.product.models import Product, ProductClass, ProductVariant
 
 
 @pytest.mark.integration
@@ -56,3 +57,40 @@ def test_variantless_product_class_form(color_attribute, size_attribute):
             'has_variants': False}
     form = ProductClassForm(data)
     assert not form.is_valid()
+
+
+def test_edit_used_product_class(db):
+    product_class = ProductClass.objects.create(name='New class',
+                                                has_variants=True)
+    product = Product.objects.create(
+        name='Test product', price=10, weight=1, product_class=product_class)
+    ProductVariant.objects.create(product=product, sku='1234')
+
+    # When all products have only one variant you can change
+    # has_variants to false
+    assert product.variants.all().count() == 1
+    data = {'name': product_class.name,
+            'product_attributes': product_class.product_attributes.all(),
+            'variant_attributes': product_class.variant_attributes.all(),
+            'has_variants': False}
+    form = ProductClassForm(data, instance=product_class)
+    assert form.is_valid()
+
+    data = {'name': product_class.name,
+            'product_attributes': product_class.product_attributes.all(),
+            'variant_attributes': product_class.variant_attributes.all(),
+            'has_variants': True}
+    form = ProductClassForm(data, instance=product_class)
+    assert form.is_valid()
+
+    # Test has_variants validator which prevents turning off when product
+    # has multiple variants
+    ProductVariant.objects.create(product=product, sku='12345')
+    assert product.variants.all().count() == 2
+    data = {'name': product_class.name,
+            'product_attributes': product_class.product_attributes.all(),
+            'variant_attributes': product_class.variant_attributes.all(),
+            'has_variants': False}
+    form = ProductClassForm(data, instance=product_class)
+    assert not form.is_valid()
+    assert 'has_variants' in form.errors.keys()
