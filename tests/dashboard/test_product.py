@@ -3,12 +3,14 @@ from __future__ import unicode_literals
 import pytest
 from django import forms
 from django.core.urlresolvers import reverse
+from django.utils.encoding import smart_text
 from mock import Mock
 
 from saleor.dashboard.product.forms import (ProductClassForm,
                                             ProductClassSelectorForm,
                                             ProductForm)
-from saleor.product.models import Product, ProductClass, ProductVariant
+from saleor.product.models import (Product, ProductAttribute, ProductClass,
+                                   ProductVariant)
 
 
 @pytest.mark.integration
@@ -110,3 +112,28 @@ def test_product_selector_form():
     form_select = ProductClassSelectorForm(product_classes=items)
     assert isinstance(form_select.fields['product_cls'].widget,
                       forms.widgets.Select)
+
+
+def test_change_attributes_in_product_form(db, product_in_stock,
+                                           color_attribute):
+    product = product_in_stock
+    product_class = product.product_class
+    text_attribute = ProductAttribute.objects.create(name='author',
+                                                     display='Author')
+    product_class.product_attributes.add(text_attribute)
+    color_value = color_attribute.values.first()
+    new_author = 'Main Tester'
+    new_color = color_value.pk
+    data = {'name': product.name,
+            'price': product.price.gross,
+            'weight': product.weight,
+            'categories': [c.pk for c in product.categories.all()],
+            'description': 'description',
+            'attribute-author': new_author,
+            'attribute-color': new_color}
+
+    form = ProductForm(data, instance=product)
+    assert form.is_valid()
+    product = form.save()
+    assert product.get_attribute(color_attribute.pk) == smart_text(new_color)
+    assert product.get_attribute(text_attribute.pk) == new_author
