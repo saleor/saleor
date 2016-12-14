@@ -54,7 +54,7 @@ def product_details(request, slug, product_id):
 
 
 def product_add_to_cart(request, slug, product_id):
-    if not request.method == "POST":
+    if not request.method == 'POST':
         return redirect(reverse(
             'product:details',
             kwargs={'product_id': product_id, 'slug': slug}))
