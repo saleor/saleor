@@ -14,11 +14,13 @@ from .widgets import ImagePreviewWidget
 
 
 class ProductClassSelectorForm(forms.Form):
+    MAX_RADIO_SELECT_ITEMS = 5
+
     def __init__(self, *args, **kwargs):
         product_classes = kwargs.pop('product_classes', [])
         super(ProductClassSelectorForm, self).__init__(*args, **kwargs)
         choices = [(obj.pk, obj.name) for obj in product_classes]
-        if len(product_classes) > 5:
+        if len(product_classes) > self.MAX_RADIO_SELECT_ITEMS:
             widget = forms.Select
         else:
             widget = forms.RadioSelect

@@ -1,9 +1,12 @@
 from __future__ import unicode_literals
 
-from django.core.urlresolvers import reverse
 import pytest
+from mock import Mock
 
-from saleor.dashboard.product.forms import ProductClassForm
+from django import forms
+from django.core.urlresolvers import reverse
+from saleor.dashboard.product.forms import (ProductClassForm,
+                                            ProductClassSelectorForm)
 from saleor.product.models import Product, ProductClass, ProductVariant
 
 
@@ -94,3 +97,15 @@ def test_edit_used_product_class(db):
     form = ProductClassForm(data, instance=product_class)
     assert not form.is_valid()
     assert 'has_variants' in form.errors.keys()
+
+
+def test_product_selector_form():
+    items = [Mock() for pk
+             in range(ProductClassSelectorForm.MAX_RADIO_SELECT_ITEMS)]
+    form_radio = ProductClassSelectorForm(product_classes=items)
+    assert isinstance(form_radio.fields['product_cls'].widget,
+                      forms.widgets.RadioSelect)
+    items.append(Mock())
+    form_select = ProductClassSelectorForm(product_classes=items)
+    assert isinstance(form_select.fields['product_cls'].widget,
+                      forms.widgets.Select)
