@@ -124,7 +124,7 @@ class User(PermissionsMixin, AbstractBaseUser):
         default=False)
     is_active = models.BooleanField(
         pgettext_lazy('User field', 'active'),
-        default=False)
+        default=True)
     date_joined = models.DateTimeField(
         pgettext_lazy('User field', 'date joined'),
         default=timezone.now, editable=False)

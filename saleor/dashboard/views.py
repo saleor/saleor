@@ -12,7 +12,7 @@ from .order.forms import OrderFilterForm
 
 
 def staff_member_required(f):
-    return _staff_member_required(f, login_url='registration:login')
+    return _staff_member_required(f, login_url='account_login')
 
 
 class StaffMemberOnlyMixin(object):

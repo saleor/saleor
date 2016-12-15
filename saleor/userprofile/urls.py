@@ -5,7 +5,6 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.details, name='details'),
-    url(r'^orders/$', views.orders, name='orders'),
     url(r'^address/create/$', views.address_create,
         name='address-create'),
     url(r'^address/(?P<pk>\d+)/edit/$', views.address_edit,

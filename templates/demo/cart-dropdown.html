@@ -1,0 +1,51 @@
+{% load i18n %}
+{% load staticfiles %}
+{% load gross from prices_i18n %}
+
+<div class="cart-dropdown hidden-md-down">
+  <div class="container">
+    <!--
+    <div class="row">
+      <div class="col-md-6">
+        <a href="/">
+          <img class="cart-dropdown__image" src="{% static 'images/product-image-placeholder-small.png' %}" alt="">
+          <h3>Jeans
+          <br><small>Blue, S<br>
+          x 3</small>
+          </h3>
+        </a>
+      </div>
+      <div class="col-md-6">
+        <div class="float-xs-right">
+          <a class="cart-dropdown__delete" href="/">
+              <img src="{% static "img/icon_delete.svg" %}">
+          </a>
+          <h3>$ 127</h3>
+        </div>
+      </div>
+    </div>
+    <hr>
+    <div class="row">
+      <div class="col-md-6">
+        <h3>{% trans "Subtotal" %}</h3>
+      </div>
+      <div class="col-md-6">
+        <h3 class="float-md-right"><strong>$ 127</strong></h3>
+      </div>
+    </div>
+    <div class="row cart-dropdown__actions">
+      <div class="col-md-6">
+        <a href="{% url "checkout:index" %}" class="btn primary">{% trans "Checkout" %}</a>
+      </div>
+      <div class="col-md-6">
+        <a href="{% url "cart:index" %}" class="btn secondary float-md-right">{% trans "Go to cart" %}</a>
+      </div>
+    </div>
+    -->
+    <div class="text-md-center cart-dropdown__empty">
+      <h3>{% trans "There are no products in your shopping cart." %}</h3>
+      <img src="{% static 'img/pirate_cart.png' %}" srcset="{% static 'img/pirate_cart.png' %} 1x, {% static 'img/pirate_cart2x.png' %} 2x">
+      <a href="/" class="btn primary">{% trans "Check out Our sales" %}</a>
+    </div>
+  </div>
+</div>

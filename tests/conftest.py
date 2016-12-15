@@ -9,6 +9,7 @@ from saleor.cart import decorators
 from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
 from saleor.discount.models import Voucher
+from saleor.order.models import Order
 from saleor.product.models import Product, ProductVariant, Stock
 from saleor.shipping.models import ShippingMethod
 from saleor.userprofile.models import Address, User
@@ -26,9 +27,10 @@ def customer_user(db):  # pylint: disable=W0613
 
 @pytest.fixture
 def request_cart(cart, monkeypatch):
+    # FIXME: Fixtures should not have any side effects
     monkeypatch.setattr(
         decorators, 'get_cart_from_request',
-        lambda request, create=False: cart)
+        lambda request, create=False, cart_queryset=None: cart)
     return cart
 
 
@@ -38,6 +40,11 @@ def request_cart_with_item(product_in_stock, request_cart):
     # Prepare some data
     request_cart.add(variant)
     return request_cart
+
+
+@pytest.fixture
+def order(billing_address):
+    return Order.objects.create(billing_address=billing_address)
 
 
 @pytest.fixture()

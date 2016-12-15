@@ -1,0 +1,44 @@
+{% extends "dashboard/base.html" %}
+{% load materializecss %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete" %} {{ shipping_method }}{% endblock %}
+
+{% block body_class %}body-shipping-methods{% endblock %}
+
+{% block page_title %}{% trans "Delete" %} {{ shipping_method }}{% endblock %}
+
+{% block menu_delivery_class %}active{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs breadcrumbs--with-menu">
+        <li><a href="{% url 'dashboard:shipping-methods' %}"
+               class="breadcrumbs--ellipsed-item">{% trans "Subscription methods" %}</a>
+        </li>
+        <li><a href="{% url 'dashboard:shipping-method-detail' pk=shipping_method.pk %}"
+               class="breadcrumbs--ellipsed-item">{{ shipping_method }}</a>
+        </li>
+        <li>
+            <span class="breadcrumbs--ellipsed-item">{% trans "Delete" %}</span>
+        </li>
+    </ul>
+{% endblock %}
+
+{% block menu_shipping_class %} active{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col s12 m5">
+            <div class="card-panel">
+              {% blocktrans with shipping_method_name=shipping_method %}
+              Are you sure you want to delete the {{ shipping_method_name }} method?
+              {% endblocktrans %}
+            </div>
+        </div>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn red">{% trans "Delete" %}</button>
+        </div>
+    </form>
+{% endblock %}

@@ -36,7 +36,7 @@ class CheckoutDiscountForm(forms.Form):
                 discount = voucher.get_discount_for_checkout(self.checkout)
                 cleaned_data['discount'] = discount
             except NotApplicable as e:
-                self.add_error('voucher', str(e))
+                self.add_error('voucher', unicode(e))
         return cleaned_data
 
     def apply_discount(self):

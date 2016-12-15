@@ -1,0 +1,49 @@
+{% load i18n %}
+{% load mptt_tags %}
+
+<form method="post" id="form-category" class="form-async" action="{% url 'dashboard:category-delete' pk=category.pk %}" novalidate>
+    {% csrf_token %}
+    <div class="modal-content">
+        <div class="row">
+            <div class="col s12">
+                <h5>
+                    {% blocktrans with category=category %}
+                        Are you sure you want to delete the category {{ category }}?
+                    {% endblocktrans %}
+                </h5>
+            </div>
+        </div>
+
+        {% if descendants %}
+            <div class="row">
+                <div class="col s12">
+                    {% trans 'The following child categories will be deleted:' %}
+                    <ul>
+                        {% recursetree descendants %}
+                            <li>{{ node.name }}
+                                {% if not node.is_leaf_node %}
+                                    <ul class="children">
+                                        {{ children }}
+                                    </ul>
+                                {% endif %}
+                            </li>
+                        {% endrecursetree %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if products_count %}
+            {% blocktrans count counter=products_count %}
+                There is one product in this category that will be deleted.
+            {% plural %}
+                There are {{ counter }} products in this category that will be deleted.
+            {% endblocktrans %}
+        {% endif %}
+    </div>
+
+    <div class="modal-footer">
+        <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
+        <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+    </div>
+</form>

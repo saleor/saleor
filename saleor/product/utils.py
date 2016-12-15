@@ -11,9 +11,15 @@ def products_visible_to_user(user):
 
 def products_with_details(user):
     products = products_visible_to_user(user)
-    products = products.select_subclasses()
     products = products.prefetch_related('categories', 'images',
                                          'variants__stock',
                                          'variants__variant_images__image',
                                          'attributes__values')
     return products
+
+
+def get_product_images(product):
+    """
+    Returns list of product images that will be placed in product gallery
+    """
+    return list(product.images.all())

@@ -1,0 +1,69 @@
+.checkout {
+  &__header {
+    background-color: $gray;
+    padding: $global-padding 0;
+    margin-bottom: $global-margin * 4;
+    @include media-breakpoint-down(sm) {
+      margin-bottom: $global-margin * 2;
+    }
+    img {
+      float: left;
+      @include media-breakpoint-down(sm) {
+        max-height: 22px;
+        margin-top: $global-margin / 2;
+      }
+    }
+    h1 {
+      display: inline-block;
+      color: $white;
+      margin-left: $global-margin;
+      @include media-breakpoint-down(sm) {
+        font-size: $font-size-h2;
+        margin-top: $global-margin / 2;
+      }
+    }
+  }
+  &__review {
+    background-color: $light-gray;
+    padding: $global-padding * 2;
+    &__section {
+      border-top: 1px solid $gray;
+      padding-top: $global-padding;
+    }
+    &__tittle {
+      margin-bottom: $global-margin * 2;
+    }
+    &__variant {
+      color: $gray;
+    }
+    &__voucher {
+      position: relative;
+      button {
+        position: absolute;
+        top: 1px;
+        right: 0;
+      }
+      &-form {
+        margin-bottom: $global-margin;
+      }
+    }
+  }
+  &__shipping {
+    h1 {
+      margin-bottom: $global-margin * 2;
+    }
+    &__form {
+      label {
+        margin-bottom: $global-margin;
+        input {
+          display: inline-block;
+          vertical-align: top;
+          margin: $global-margin / 4 $global-margin / 2 0 0;
+        }
+        span {
+          display: inline-block;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{% load i18n %}
+{% load materializecss %}
+
+<form method="post" role="form" action="{% url 'dashboard:orderline-change-quantity' order_pk=order.pk line_pk=object.pk %}" class="form-async" novalidate>
+    {% csrf_token %}
+    <div class="modal-content">
+        <h5>{% trans "Change quantity" %}</h5>
+
+        <div class="row">
+            {{ form|materializecss:"s12 m6" }}
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="submit" class="modal-action btn-flat blue-text">{% trans "Update" %}</button>
+        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+    </div>
+</form>

@@ -1,0 +1,20 @@
+{% load i18n %}
+{% load materializecss %}
+
+<form id="ship-delivery-group-form" method="post" role="form" action="{% url 'dashboard:cancel-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="form-async" novalidate>
+    {% csrf_token %}
+
+    <div class="modal-content">
+        <h5>{% trans "Cancel delivery group?" %}</h5>
+        <p>
+            {% blocktrans %}
+                After this action, {{ group }} will be cancelled. Ordered items will be returned to stock.
+            {% endblocktrans %}
+        </p>
+    </div>
+
+    <div class="modal-footer">
+        <button type="submit" class="modal-action btn-flat red-text">{% trans "Cancel group" %}</button>
+        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+    </div>
+</form>

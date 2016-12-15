@@ -1,0 +1,26 @@
+{% extends "checkout/details.html" %}
+{% load i18n %}
+{% load bootstrap_form from bootstrap3 %}
+
+
+{% block steps_menu %}{% endblock %}
+
+
+{% block forms %}
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <h3>{% trans "Billing address" %}</h3>
+        {% if request.user.is_authenticated %}
+            {% include "checkout/snippets/addresses-form.html" with addresses_form=addresses_form addresses=additional_addresses address_form=address_form only %}
+        {% else %}
+            {% bootstrap_form user_form %}
+            {% include "userprofile/snippets/address-form.html" with address_form=address_form only %}
+        {% endif %}
+
+        <p class="text-right">
+            <button type="submit" class="btn btn-primary btn-lg">
+                {% trans "Place order" %}
+            </button>
+        </p>
+    </form>
+{% endblock forms %}

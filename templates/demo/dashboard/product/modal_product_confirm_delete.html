@@ -1,0 +1,33 @@
+{% load i18n %}
+{% load prices_i18n %}
+{% load staticfiles %}
+
+<form action="{% url "dashboard:product-delete" pk=product.pk %}" method="post" novalidate>
+    {% csrf_token %}
+    <div class="modal-content">
+        <div class="row">
+            <div class="col s12">
+                <h5>{% trans "Are you sure?" %}</h5>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col s12 center-align">
+                {% if product.images.exists %}
+                    <img src="{{ product.images.first.image.crop.400x400 }}" alt="" class="responsive-img">
+                {% else %}
+                    <img src="{% static 'images/product-image-placeholder.png' %}" alt="" class="responsive-img">
+                {% endif %}
+            </div>
+        </div>
+
+        <p>
+            {% blocktrans %}If you remove <strong>{{ product }}</strong> you will lose all data related to this product.{% endblocktrans %}
+        </p>
+    </div>
+
+    <div class="modal-footer">
+        <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
+        <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+    </div>
+</form>

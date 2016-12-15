@@ -1,0 +1,46 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete stock" %} - {{ block.super }}{% endblock %}
+
+{% block body_class %}body-store body-products{% endblock %}
+
+{% block header_menu %}
+    {% url "dashboard:product-update" pk=product.pk as url %}
+    {% include "dashboard/includes/_back-link.html" with url=url hash="#stock" %}
+{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs breadcrumbs--with-menu">
+        <li><a href="{% url "dashboard:product-list" %}" class="breadcrumbs--ellipsed-item">{% trans "Products" %}</a></li>
+        <li><a href="{% url "dashboard:product-update" pk=product.pk %}#stock" class="breadcrumbs--ellipsed-item">{{ product }}</a></li>
+        <li>
+            <span class="hide-on-med-and-down">{% trans "Delete stock" %}</span>
+            <span class="hide-on-large-only">{% blocktrans %}Delete stock for {{ product }}{% endblocktrans %}</span>
+        </li>
+    </ul>
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
+{% block content %}
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#stock">
+        <div class="row">
+            <div class="col m6 l4">
+                <div class="card">
+                    <div class="card-content">
+                        <h5>
+                            {{ stock.variant.sku }} ({{ stock.variant.name }}) &ndash; {{ stock.location }}
+                        </h5>
+                    </div>
+
+                    <div class="card-action">
+                        <button type="submit" class="card-link blue-text">{% trans "Delete" %}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+{% endblock %}

@@ -4,26 +4,27 @@ from itertools import chain
 
 from babeldjango.templatetags.babel import currencyfmt
 from django.contrib import messages
+from django.core.urlresolvers import reverse
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 
+from . import decorators
 from ..core.utils import to_local_currency
 from ..product.forms import get_form_class_for_product
 from ..product.models import Product, ProductVariant
-from .decorators import get_or_create_db_cart, get_or_empty_db_cart
 from .forms import ReplaceCartLineForm
+from .models import Cart
 from .utils import check_product_availability_and_warn
 
 
-@get_or_empty_db_cart
+@decorators.get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
 def index(request, cart):
-    cart_lines = cart.lines.select_related('variant')
-    check_product_availability_and_warn(request, cart_lines)
     discounts = request.discounts
     cart_lines = []
+    check_product_availability_and_warn(request, cart)
 
-    for line in cart:
+    for line in cart.lines.all():
         initial = {'quantity': line.get_quantity()}
         form = ReplaceCartLineForm(None, cart=cart, variant=line.variant,
                                    initial=initial, discounts=discounts)
@@ -47,7 +48,7 @@ def index(request, cart):
             'local_cart_total': local_cart_total})
 
 
-@get_or_create_db_cart
+@decorators.get_or_create_db_cart()
 def add_to_cart(request, cart, product_id):
     product = get_object_or_404(Product, pk=product_id)
     form_class = get_form_class_for_product(product)
@@ -64,7 +65,7 @@ def add_to_cart(request, cart, product_id):
     return redirect('cart:index')
 
 
-@get_or_empty_db_cart
+@decorators.get_or_empty_db_cart()
 def update(request, cart, variant_id):
     if not request.is_ajax():
         return redirect('cart:index')
@@ -98,3 +99,35 @@ def update(request, cart, variant_id):
         response = {'error': form.errors}
         status = 400
     return JsonResponse(response, status=status)
+
+
+@decorators.get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
+def summary(request, cart):
+
+    def prepare_line_data(line):
+        attributes = line.variant.product.attributes.all()
+        first_image = line.variant.get_first_image()
+        price_per_item = line.get_price_per_item(discounts=request.discounts)
+        line_total = line.get_total(discounts=request.discounts)
+        return {
+            'product': line.variant.product,
+            'variant': line.variant.name,
+            'quantity': line.quantity,
+            'attributes': line.variant.display_variant(attributes),
+            'image': first_image.url if first_image else None,
+            'price_per_item': currencyfmt(
+                price_per_item.gross, price_per_item.currency),
+            'line_total': currencyfmt(line_total.gross, line_total.currency),
+            'update_url': reverse('cart:update-line',
+                                  kwargs={'variant_id': line.variant_id}),
+            'variant_url': line.variant.get_absolute_url()}
+    if cart.quantity == 0:
+        data = {'quantity': 0}
+    else:
+        cart_total = cart.get_total(discounts=request.discounts)
+        data = {
+            'quantity': cart.quantity,
+            'total': currencyfmt(cart_total.gross, cart_total.currency),
+            'lines': [prepare_line_data(line) for line in cart.lines.all()]}
+
+    return render(request, 'cart-dropdown.html', data)

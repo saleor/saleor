@@ -1,0 +1,35 @@
+<svg width="21" height="20" viewBox="0 0 21 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:figma="http://www.figma.com/figma/ns">
+<title>icon_pen_03 2</title>
+<desc>Created using Figma</desc>
+<g id="Canvas" transform="translate(-3658 -3610)" figma:type="canvas">
+<rect x="3658" y="3610" width="21" height="20" fill="#E5E5E5"/>
+<mask id="mask0_alpha" mask-type="alpha">
+<path d="M 2790 3078L 3930 3078L 3930 4099L 2790 4099L 2790 3078Z" fill="#FFFFFF"/>
+</mask>
+<g id="My Account" style="mix-blend-mode:normal;" mask="url(#mask0_alpha)" figma:type="frame">
+<path d="M 2790 3078L 3930 3078L 3930 4099L 2790 4099L 2790 3078Z" fill="#FFFFFF"/>
+<g id="icon_pen_03 2" style="mix-blend-mode:normal;" figma:type="frame">
+<g id="Group" style="mix-blend-mode:normal;" figma:type="frame">
+<g id="Vector" style="mix-blend-mode:normal;" figma:type="vector">
+<use xlink:href="#path0_fill" transform="translate(3658.01 3627.71)" fill="#828282" style="mix-blend-mode:normal;"/>
+</g>
+<g id="Vector" style="mix-blend-mode:normal;" figma:type="vector">
+<use xlink:href="#path1_fill" transform="translate(3659.03 3624.49)" fill="#828282" style="mix-blend-mode:normal;"/>
+</g>
+<g id="Vector" style="mix-blend-mode:normal;" figma:type="vector">
+<use xlink:href="#path2_fill" transform="matrix(-0.707329 -0.70697 0.707229 -0.707071 3664 3627.6)" fill="#828282" style="mix-blend-mode:normal;"/>
+</g>
+<g id="Vector" style="mix-blend-mode:normal;" figma:type="vector">
+<use xlink:href="#path3_fill" transform="translate(3672.61 3610)" fill="#828282" style="mix-blend-mode:normal;"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+<defs>
+<path id="path0_fill" d="M -3.14582e-08 2.28841L 2.28925 1.52341L 0.765282 -9.55979e-07L -3.14582e-08 2.28841Z"/>
+<path id="path1_fill" d="M 1.79555 4.48889L 4.49164 3.5887L 0.900526 -4.02517e-07L -3.25068e-08 2.69399L 1.79555 4.48889Z"/>
+<path id="path2_fill" d="M 5.07676 0L 0 0L 0 16.5748L 5.07676 16.5748L 5.07676 0Z"/>
+<path id="path3_fill" d="M 3.59111 5.40451L 5.24372 3.7536C 5.24372 3.7536 5.72312 3.27438 5.00402 2.55664L 2.85002 0.403419C 2.85002 0.403419 2.13201 -0.31432 1.65261 0.164906L -4.27831e-07 1.81582L 3.59111 5.40451Z"/>
+</defs>
+</svg>

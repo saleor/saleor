@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+{% load i18n %}
+{% load staticfiles %}
+{% load render_bundle from webpack_loader %}
+
+<html lang="en" class="no-js">
+    <head>
+        <title>{% block title %}Saleor{% endblock %}</title>
+        {% block meta %}
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="{% block meta_description %}{% endblock %}">
+        <meta name="author" content="{% trans "Mirumee Software" %}">
+        {% endblock meta %}
+
+        {% render_bundle 'vendor' 'css' %}
+        {% render_bundle 'demo' 'css' %}
+
+        {% block stylesheet %}{% endblock stylesheet %}
+
+        <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+        <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+    </head>
+
+    <body itemscope itemtype="http://schema.org/WebPage">
+        {% block header %}
+            <header class="navbar" role="navigation">
+              <div class="navbar__login hidden-sm-down">
+                <div class="container">
+                  <p class="float-xs-left">{% trans "Test Saleor in Testeor - a sample shop!" %}</p>
+                  <p class="float-xs-right">
+                    {% if user.is_authenticated %}
+                      {% if user.is_staff %}
+                          <a href="{% url "dashboard:index" %}" traget="_blank">{% trans "Dashboard" %}</a> |
+                      {% endif %}
+                      <a href="{% url "profile:details" %}">{% trans "My account" %}</a> |
+                      <a href="{% url "registration:logout" %}">{% trans "Log out" %}</a>
+                    {% else %}
+                      <a href="{% url "registration:request_email_confirmation" %}">{% trans "Register" %}</a> |
+                      <a href="{% url "registration:login" %}">{% trans "Log in" %}</a>
+                    {% endif %}
+                  </p>
+                </div>
+              </div>
+              <div class="navbar__brand">
+                <div class="container">
+                  <img class="hidden-md-up navbar__brand__menu-toggle closed open" src="{% static "img/mobile-bar.svg" %}">
+                  <a href="/">
+                    <img src="{% static "img/testeor-logo.svg" %}" alt="Testeor - Saleor demo store">
+                  </a>
+                  <div class="float-xs-right">
+                    <img class="hidden-md-up" src="{% static "img/search-icon.svg" %}">
+                    <div class="navbar__brand__cart float-xs-right">
+                      <a href="{% url "cart:index" %}">
+                        <span class="hidden-sm-down">{% trans "Your cart" %}</span>
+                        <img class="navbar__brand__cart__icon" src="{% static "img/cart.svg" %}" alt="Cart"> 
+                        {% if cart_counter %}<span class="badge">{{ cart_counter }}</span>{% endif %}  
+                      </a>
+                      {% include 'cart-dropdown.html' %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="navbar__menu">
+                <div class="container">
+                  <nav class="navigation">
+                      {% url 'home' as home_url %}
+                      <ul class="nav navbar-nav{% if request.get_full_path == home_url %} no-border{% endif %}" > 
+                        {% for category in categories %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ category.get_absolute_url }}">
+                                    {{ category }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                      </ul>
+                  </nav>
+                </div>
+              </div>
+            </header>
+        {% endblock %}
+        {% if messages %}
+        <div class="container">
+            {% for message in messages %}
+            <div class="alert{% if message.tags %} alert-{{ message.tags }}{% endif %}">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <div class="container maincontent">
+            {% block breadcrumb %}
+            {% endblock breadcrumb %}
+            {% block content %}
+            {% endblock content %}
+        </div>
+        {% block footer %}
+            <footer class="footer">
+                <div class="container">
+                  <div class="row">
+                    <div class="col-md-3">
+                      <a href="/">
+                        <img class="footer__logo" src="{% static "img/testeor-logo-white.svg" %}" alt="Testeor - Saleor demo store">
+                      </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                      <ul>
+                        {% for category in categories %}
+                            <li>
+                                <a href="{{ category.get_absolute_url }}">
+                                    {{ category }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                      </ul>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                      <ul>
+                        <li>
+                          <a href="{% url "cart:index" %}">
+                            {% trans "Cart" %}
+                          </a>
+                        </li>
+                        {% if user.is_authenticated %}
+                          {% if user.is_staff %}
+                              <li>
+                                <a href="{% url "dashboard:index" %}" traget="_blank">{% trans "Dashboard" %}</a>
+                              </li>
+                          {% endif %}
+                          <li>
+                            <a href="{% url "profile:details" %}">
+                              {% trans "My account" %}
+                            </a>
+                          </li>
+                          <li>
+                            <a href="{% url "registration:logout" %}">{% trans "Log out" %}</a>
+                          </li>
+                        {% else %}
+                          <li>
+                            <a href="{% url "registration:request_email_confirmation" %}">{% trans "Register" %}</a>
+                          </li>
+                          <li>
+                            <a href="{% url "registration:login" %}">{% trans "Log in" %}</a>
+                          </li>
+                        {% endif %}
+                      </ul>
+                    </div>
+                    <div class="col-md-3 col-sm-12">
+                      <a target="_blank" class="github-footer" href="https://github.com/mirumee/saleor">
+                        <img src="{% static "img/github_logo.svg" %}">
+                      </a>
+                      <a target="_blank" href="https://twitter.com/getsaleor">
+                        <img src="{% static "img/twitter_logo.svg" %}">
+                      </a>
+                    </div>
+                  </div>
+                </div>
+            </footer>
+        {% endblock %}
+        {% block footer_scripts %}
+            {% render_bundle 'vendor' 'js' %}
+            {% render_bundle 'demo' 'js' %}
+        {% endblock footer_scripts %}
+    </body>
+</html>
+

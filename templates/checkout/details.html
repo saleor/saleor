@@ -1,20 +1,17 @@
 {% extends "base.html" %}
 
 {% load i18n %}
+{% load staticfiles %}
 {% load gross net tax from prices_i18n %}
-
 
 {% block title %}{% trans "Checkout" %} — {{ block.super }}{% endblock %}
 
-{% block outerbreadcrumb %}{% endblock %}
-
 {% block header %}
-    <header class="navbar navbar-default navbar-static-top" role="navigation">
-        <nav class="container">
-            <div class="navbar-header">
-                <a class="navbar-brand" href="/">Saleor</a>
-            </div>
-        </nav>
+    <header class="checkout__header">
+      <div class="container">
+        <img src="{% static "img/testeor-logo-white.svg" %}" alt="Testeor - Saleor demo store">
+        <h1>{% trans "Easy chekout" %}</h1>
+      </div>
     </header>
 {% endblock %}
 
@@ -25,102 +22,60 @@
     {% if not user.is_authenticated %}
         <p class="alert alert-info">
             {% trans "Already have an account?" %}
-            <a href="{% url "registration:login" %}?next={{ request.get_full_path }}">
+            <a href="{% url "account_login" %}?next={{ request.get_full_path }}">
                 {% trans "Sign in" %}
             </a>
         </p>
     {% endif %}
-    {% block step_info %}{% endblock %}
-
     <div class="row">
-        <div class="col-sm-8">
-            {% block steps_menu %}
-            <ul class="nav nav-pills nav-justified nav-wizard">
-                <li>
-                    <a href="{% url "cart:index" %}">{% trans "Cart" %}</a>
-                    <div class="nav-arrow"></div>
-                </li>
-                <li>
-                    <div class="nav-wedge"></div>
-                    <a href="{% url "checkout:shipping-address" %}">{% trans "Shipping address" %}</a>
-                    <div class="nav-arrow"></div>
-                </li>
-                <li>
-                    <div class="nav-wedge"></div>
-                    <a href="{% url "checkout:shipping-method" %}">{% trans "Shipping method" %}</a>
-                    <div class="nav-arrow"></div>
-                </li>
-                <li>
-                    <div class="nav-wedge"></div>
-                    <a href="{% url "checkout:summary" %}">{% trans "Summary" %}</a>
-                </li>
-            </ul>
-            {% endblock steps_menu %}
-
-            {% block forms %}{% endblock %}
-        </div>
-
-        <div class="col-sm-4">
+      <div class="col-md-7 offset-lg-1">
+        {% block forms %}{% endblock %}
+      </div>
+      <div class="col-md-5 col-lg-4">
         {% with total=checkout.get_total %}
-            <table class="table table-condensed">
-                <tbody>
-                    {% for delivery, delivery_cost, total_with_delivery in checkout.deliveries %}
-                        {% for item, item_price_per_item, item_price_total in delivery %}
-                            <tr>
-                                <td class="noborder">
-                                    {{ item.variant.product }}{% if item.quantity != 1 %} <span class="badge">×{{ item.quantity }}</span>{% endif %}
-                                    <br>
-                                    <small>{{ item.variant }}</small>
-                                </td>
-                                <td class="noborder text-right">{% net item_price_total %}</td>
-                            </tr>
-                        {% endfor %}
-                    {% endfor %}
-
-                    <tr>
-                        <td>
-                            {% trans "Subtotal" %}
-                        </td>
-                        <td class="text-right">
-                            {% net checkout.get_subtotal %}
-                        </td>
-                    </tr>
-
-                    {% include 'checkout/snippets/voucher-form.html' with discount=checkout.discount form=voucher_form %}
-
-                    <tr>
-                        <td class="noborder">
-                            {% trans "Shipping" %}
-                        </td>
-                        <td class="noborder text-right">
-                            {% if checkout.shipping_method %}
-                                {% net checkout.get_total_shipping %}
-                            {% else %}
-                                &mdash;
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% if total.tax or True %}
-                        <tr>
-                            <td class="noborder">
-                                {% trans "Taxes" %}
-                            </td>
-                            <td class="noborder text-right">
-                                {% tax total %}
-                            </td>
-                        </tr>
-                    {% endif %}
-                    <tr>
-                        <th>
-                            {% trans "Total" %}
-                        </th>
-                        <td class="text-right">
-                            <strong>{% gross total %}</strong>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+          <div class="checkout__review">
+            <h3 class="checkout__review__tittle">{% trans "Order review" %}</h3>
+            {% for delivery, delivery_cost, total_with_delivery in checkout.deliveries %}
+                {% for item, item_price_per_item, item_price_total in delivery %}
+                    <div class="row">
+                      <div class="col-xs-8">
+                        <p><strong>{{ item.variant.product }}</strong> x {{ item.quantity }}<br>
+                          <span class="checkout__review__variant">{{ item.variant }}</span></p>
+                      </div>
+                      <div class="col-xs-4">
+                        <p class="float-xs-right">{% net item_price_total %}</p>
+                      </div>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+            <div class="row checkout__review__section">
+              <div class="col-xs-8">
+                <p>{% trans "Delivery" %}</p>
+              </div>
+              <div class="col-xs-4">
+                <p class="float-xs-right">{% if checkout.shipping_method %}
+                    {% net checkout.get_total_shipping %}
+                {% else %}
+                    &mdash;
+                {% endif %}</p>
+              </div>
+            </div>
+            <div class="row checkout__review__section">
+              <div class="col-xs-12">
+                <h3>{% trans "Promo code" %}</h3>
+                {% include 'checkout/snippets/voucher-form.html' with discount=checkout.discount form=voucher_form %}
+              </div>
+            </div>
+            <div class="row checkout__review__section">
+              <div class="col-xs-8">
+                <h3>{% trans "Total" %}</h3>
+              </div>
+              <div class="col-xs-4">
+                <h3 class="float-xs-right">{% gross total %}</h3>
+              </div>
+            </div>
+          </div>
         {% endwith %}
-        </div>
+      </div>
     </div>
 {% endblock content %}

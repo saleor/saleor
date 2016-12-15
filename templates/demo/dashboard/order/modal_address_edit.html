@@ -1,0 +1,23 @@
+{% load i18n %}
+{% load materializecss %}
+
+<form class="form-async" role="form" method="post" action="{% url 'dashboard:address-edit' order_pk=order.pk address_type=address_type %}" novalidate>
+    {% csrf_token %}
+    <div class="modal-content">
+        <h5>
+            {% if address_type == "shipping" %}
+                {% trans "Edit shipping address" %}
+            {% else %}
+                {% trans "Edit billing address" %}
+            {% endif %}
+        </h5>
+
+        <div class="row">
+            {{ form|materializecss }}
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="submit" class="modal-action btn-flat blue-text"> {% trans "Update" %}</button>
+        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+    </div>
+</form>
