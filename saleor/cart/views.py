@@ -1,7 +1,9 @@
 from __future__ import unicode_literals
 
+from allauth.utils import get_request_param
 from babeldjango.templatetags.babel import currencyfmt
 from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -44,7 +46,7 @@ def index(request, cart):
             'local_cart_total': local_cart_total})
 
 
-@decorators.get_or_empty_db_cart()
+@decorators.get_or_create_db_cart()
 def update(request, cart, variant_id):
     if not request.is_ajax():
         return redirect('cart:index')
@@ -110,3 +112,13 @@ def summary(request, cart):
             'lines': [prepare_line_data(line) for line in cart.lines.all()]}
 
     return JsonResponse(data)
+
+
+def assign_cart_and_redirect_view(request):
+    decorators.find_and_assign_cart(request)
+    redirect_to = get_request_param(request, "next")
+    if redirect_to is None:
+        redirect_to = '/'
+    response = HttpResponseRedirect(redirect_to)
+    response.delete_cookie(Cart.COOKIE_NAME)
+    return response
