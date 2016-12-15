@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-
+import datetime
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponsePermanentRedirect
@@ -12,10 +12,11 @@ from ..core.utils import get_paginator_items
 from .models import Category
 from .utils import (products_with_details,
                     products_with_availability,
-                    product_display)
+                    handle_cart_form, get_availability,
+                    get_product_images)
 
 
-def product_details(request, slug, product_id):
+def product_details(request, slug, product_id, form=None):
     """Product details page
 
     The following variables are available to the template:
@@ -49,8 +50,26 @@ def product_details(request, slug, product_id):
     product = get_object_or_404(products, id=product_id)
     if product.get_slug() != slug:
         return HttpResponsePermanentRedirect(product.get_absolute_url())
-    data, templates, _ = product_display(request, product)
-    return TemplateResponse(request, templates, data)
+    today = datetime.date.today()
+    is_visible = (
+        product.available_on is None or product.available_on <= today)
+    if form is None:
+        form = handle_cart_form(request, product, create_cart=False)[0]
+
+    availability = get_availability(product, discounts=request.discounts,
+                                    local_currency=request.currency)
+
+    template_name = 'product/details_%s.html' % (
+        type(product).__name__.lower(),)
+    templates = [template_name, 'product/details.html']
+    product_images = get_product_images(product)
+    return TemplateResponse(
+        request, templates,
+        {'is_visible': is_visible,
+         'form': form,
+         'availability': availability,
+         'product_images': product_images,
+         'product': product})
 
 
 def product_add_to_cart(request, slug, product_id):
@@ -61,15 +80,12 @@ def product_add_to_cart(request, slug, product_id):
 
     products = products_with_details(user=request.user)
     product = get_object_or_404(products, pk=product_id)
-
-    data, templates, cart = product_display(request, product,
-                                            create_cart=True)
-    form = data['form']
+    form, cart = handle_cart_form(request, product, create_cart=True)
     if form.is_valid():
         form.save()
         response = redirect('cart:index')
     else:
-        response = TemplateResponse(request, templates, data)
+        response = product_details(request, slug, product_id, form)
     if not request.user.is_authenticated():
         set_cart_cookie(cart, response)
     return response

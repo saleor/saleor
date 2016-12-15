@@ -1,4 +1,3 @@
-import datetime
 from collections import namedtuple
 
 from ..cart.decorators import get_cart_from_request
@@ -77,26 +76,9 @@ def get_availability(product, discounts=None, local_currency=None):
         discount_local_currency=discount_local_currency)
 
 
-def product_display(request, product, create_cart=False):
-    today = datetime.date.today()
-    is_visible = (
-        product.available_on is None or product.available_on <= today)
+def handle_cart_form(request, product, create_cart=False):
     cart = get_cart_from_request(request, create=create_cart)
-
     form_class = get_form_class_for_product(product)
     form = form_class(cart=cart, product=product,
                       data=request.POST or None, discounts=request.discounts)
-
-    availability = get_availability(product, discounts=request.discounts,
-                                    local_currency=request.currency)
-
-    template_name = 'product/details_%s.html' % (
-        type(product).__name__.lower(),)
-    templates = [template_name, 'product/details.html']
-    product_images = get_product_images(product)
-    return ({'is_visible': is_visible,
-             'form': form,
-             'availability': availability,
-             'product_images': product_images,
-             'product': product},
-            templates, cart)
+    return form, cart
