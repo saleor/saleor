@@ -19,14 +19,6 @@
 {% endblock %}
 
 {% block content %}
-    {% if not user.is_authenticated %}
-        <p class="alert alert-info">
-            {% trans "Already have an account?" %}
-            <a href="{% url "account_login" %}?next={{ request.get_full_path }}">
-                {% trans "Sign in" %}
-            </a>
-        </p>
-    {% endif %}
     <div class="row">
       <div class="col-md-7 offset-lg-1">
         {% block forms %}{% endblock %}
