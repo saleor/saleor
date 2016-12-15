@@ -17,6 +17,28 @@ const getVarFromQueryString = (key, defaultValue = null) => {
 };
 
 
+const getAttributesFromQueryString = (exclude) => {
+  // Exclude parameter is used to exclude other query string parameters than
+  // product attribute filters.
+  const urlParams = queryString.parse(location.search);
+  let attributes = [];
+  Object.keys(urlParams).forEach(key => {
+    if (!exclude.includes(key)) {
+      if (Array.isArray(urlParams[key])) {
+        const values = urlParams[key];
+        values.map((valueSlug) => {
+          attributes.push(`${key}:${valueSlug}`);
+        });
+      } else {
+        const valueSlug = urlParams[key];
+        attributes.push(`${key}:${valueSlug}`);
+      }
+    }
+  });
+  return attributes;
+};
+
+
 const floatOrNull = (value) => {
   const parsed = parseFloat(value);
   return isNaN(parsed) ? null : parsed;
@@ -37,8 +59,19 @@ class CategoryPage extends Component {
     });
   }
 
-  updateAttributesFilter = (attributes) => {
-    this.props.relay.setVariables({attributesFilter: attributes});
+  updateAttributesFilter = (key) => {
+    // Create a new attributesFilter array by cloning the current one to make
+    // Relay refetch products with new attributes. Passing the same array (even
+    // if it's modified) would not result in new query, but would return cached
+    // results.
+    const attributesFilter = this.props.relay.variables.attributesFilter.slice(0);
+    const index = attributesFilter.indexOf(key);
+    if (index < 0) {
+      attributesFilter.push(key);
+    } else {
+      attributesFilter.splice(index, 1);
+    }
+    this.props.relay.setVariables({ attributesFilter });
   }
 
   updatePriceFilter = (minPrice, maxPrice) => {
@@ -93,6 +126,7 @@ class CategoryPage extends Component {
             />
             <ProductFilters
               attributes={attributes}
+              checkedAttributes={variables.attributesFilter}
               onFilterChanged={this.updateAttributesFilter}
             />
             <PriceFilter
@@ -118,7 +152,7 @@ class CategoryPage extends Component {
 
 export default Relay.createContainer(CategoryPage, {
   initialVariables: {
-    attributesFilter: [],
+    attributesFilter: getAttributesFromQueryString(['count', 'minPrice', 'maxPrice']),
     count: floatOrNull(getVarFromQueryString('count', PAGINATE_BY)),
     minPrice: floatOrNull(getVarFromQueryString('minPrice')),
     maxPrice: floatOrNull(getVarFromQueryString('maxPrice'))

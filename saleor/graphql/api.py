@@ -84,7 +84,6 @@ class CategoryType(DjangoObjectType):
         price_lte = args.get('price_lte')
         price_gte = args.get('price_gte')
         if attributes_filter:
-
             attributes = ProductAttribute.objects.prefetch_related('values')
             attributes_map = {attribute.name: attribute.pk
                               for attribute in attributes}
