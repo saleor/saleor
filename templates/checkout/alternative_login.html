@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load bootstrap_form from bootstrap3 %}
 {% load staticfiles %}
 {% load account socialaccount %}
 {% load i18n %}
@@ -14,6 +15,7 @@
           {% csrf_token %}
           <fieldset>
             <h2>{% trans 'Log in' %}</h2>
+              {% bootstrap_form form %}
               <input type="hidden" name="next" name="next" value="{% url 'checkout:index' %}" />
           </fieldset>
           <div class="row login__btn-group">
