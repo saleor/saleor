@@ -3,17 +3,9 @@ import React, { Component, PropTypes } from 'react';
 export default class PriceFilter extends Component {
 
   static propTypes = {
-    onFilterChanged: PropTypes.func.isRequired,
-    urlParams: PropTypes.func.isRequired
-  }
-
-  constructor(props) {
-    super(props);
-    this.state = {
-      minPrice: null,
-      maxPrice: null,
-      filters: []
-    };
+    minPrice: PropTypes.number,
+    maxPrice: PropTypes.number,
+    onFilterChanged: PropTypes.func.isRequired
   }
 
   checkKey = (event) => {
@@ -22,53 +14,35 @@ export default class PriceFilter extends Component {
     }
   };
 
-  onChange = (event) => {
-    const { name, value } = event.target;
-    this.setState({[name]: value});
-  }
-
-  parseValue = (value) => {
-    if (value) {
-      try {
-        return parseFloat(value);
-      } catch (error) {
-        return null;
-      }
-    }
-    return null;
-  }
-
   updateFilter = () => {
-    let { minPrice, maxPrice } = this.state;
-    minPrice = this.parseValue(minPrice);
-    maxPrice = this.parseValue(maxPrice);
+    const minPrice = this.minPriceInput.value;
+    const maxPrice = this.maxPriceInput.value;
     this.props.onFilterChanged(minPrice, maxPrice);
   }
 
   render() {
+    const { maxPrice, minPrice } = this.props;
     return (
       <div className="price-range">
         <h3>Price range</h3>
         <input
-          id="minPrice"
           className="form-control"
-          name="minPrice"
-          onChange={this.onChange}
+          defaultValue={minPrice}
+          min="0"
           onKeyUp={this.checkKey}
           placeholder="min"
+          ref={input => this.minPriceInput = input}
           type="number"
-          value={this.state.minPrice}
         />
         <span>&#8212;</span>
         <input
-          id="maxPrice"
-          name="maxPrice"
           className="form-control"
-          onChange={this.onChange}
+          defaultValue={maxPrice}
+          min="0"
           onKeyUp={this.checkKey}
           placeholder="max"
+          ref={input => this.maxPriceInput = input}
           type="number"
-          value={this.state.maxPrice}
         />
         <button className="btn" onClick={this.updateFilter}>Update</button>
       </div>

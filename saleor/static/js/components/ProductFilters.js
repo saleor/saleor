@@ -9,8 +9,7 @@ class ProductFilters extends Component {
 
   static propTypes = {
     attributes: PropTypes.array,
-    onFilterChanged: PropTypes.func.isRequired,
-    urlParams: PropTypes.func.isRequired
+    onFilterChanged: PropTypes.func.isRequired
   };
 
   constructor(props) {

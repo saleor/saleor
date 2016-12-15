@@ -11,7 +11,7 @@
     "no-trailing-spaces": ["warn"],
     "no-undef": ["error"],
     "no-unused-vars": ["warn"],
-    "react/jsx-no-bind": ["error"],
+    "react/jsx-no-bind": ["error", {"ignoreRefs": true}],
     "semi": ["error", "always"],
     "strict": ["error", "never"],
     "quotes": ["warn", "single"]

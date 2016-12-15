@@ -1,3 +1,4 @@
+import queryString from 'query-string';
 import React, { Component, PropTypes } from 'react';
 import Relay from 'react-relay';
 
@@ -10,15 +11,19 @@ import ProductList from './ProductList';
 const PAGINATE_BY = 20;
 
 
-class CategoryPage extends Component {
+const getVarFromQueryString = (key, defaultValue = null) => {
+  let value = queryString.parse(location.search)[key];
+  return value ? value : defaultValue;
+};
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      attributesFilters: [],
-      priceFilters: []
-    };
-  }
+
+const floatOrNull = (value) => {
+  const parsed = parseFloat(value);
+  return isNaN(parsed) ? null : parsed;
+};
+
+
+class CategoryPage extends Component {
 
   static propTypes = {
     attributes: PropTypes.array,
@@ -26,86 +31,58 @@ class CategoryPage extends Component {
     relay: PropTypes.object
   }
 
-  loadMore = () => {
+  incrementProductsCount = () => {
     this.props.relay.setVariables({
       count: this.props.relay.variables.count + PAGINATE_BY
     });
   }
 
-  setAttributesFilter = (attributes) => {
+  updateAttributesFilter = (attributes) => {
+    this.props.relay.setVariables({attributesFilter: attributes});
+  }
+
+  updatePriceFilter = (minPrice, maxPrice) => {
     this.props.relay.setVariables({
-      attributesFilter: attributes
-    });
-    this.setState({
-      attributesFilters: attributes
-    }, () => {
-      this.setUrlParams();
+      minPrice: floatOrNull(minPrice),
+      maxPrice: floatOrNull(maxPrice)
     });
   }
 
-  setPriceFilter = (minPrice, maxPrice) => {
-    let enabled = [];
-
-    this.props.relay.setVariables({
-      minPrice: minPrice,
-      maxPrice: maxPrice
-    });
-
-    if (minPrice && maxPrice) {
-      enabled = [`minPrice=${minPrice}`, `maxPrice=${maxPrice}`];
-    } else {
-      if (minPrice) {
-        enabled = [`minPrice=${minPrice}`];
-      } else if (maxPrice) {
-        enabled = [`maxPrice=${maxPrice}`];
+  persistStateInUrl() {
+    const { attributesFilter, count, maxPrice, minPrice } = this.props.relay.variables;
+    let urlParams = {};
+    if (minPrice) {
+      urlParams['minPrice'] = minPrice;
+    }
+    if (maxPrice) {
+      urlParams['maxPrice'] = maxPrice;
+    }
+    if (count > PAGINATE_BY) {
+      urlParams['count'] = count;
+    }
+    attributesFilter.forEach(filter => {
+      const [ attributeName, valueSlug ] = filter.split(':');
+      if (attributeName in urlParams) {
+        urlParams[attributeName].push(valueSlug);
+      } else {
+        urlParams[attributeName] = [valueSlug];
       }
-    }
-
-    this.setState({
-      priceFilters: enabled
-    }, () => {
-      this.setUrlParams();
     });
-  }
-
-  setUrlParams = () => {
-    let url = '';
-    let attributesFilter = this.state.attributesFilters;
-    let priceFilters = this.state.priceFilters;
-
-    if (attributesFilter) {
-      attributesFilter.map((param, index) => {
-        param = param.replace(':', '=');
-        if (index == 0) {
-          url += '?' + param;
-        } else {
-          url += '&' + param;
-        }
-      });
-    }
-
-    if (priceFilters) {
-      priceFilters.map((param, index) => {
-        if (index == 0 && attributesFilter == 0) {
-          url += '?' + param;
-        } else {
-          url += '&' + param;
-        }
-      });
-    }
-
-    if (attributesFilter.length == 0 && priceFilters.length == 0) {
-      url = location.href.split('?')[0];
-    }
-
+    const url = Object.keys(urlParams).length ?
+      '?' + queryString.stringify(urlParams) :
+      location.href.split('?')[0];
     history.pushState({}, null , url);
-
   }
 
+  componentDidUpdate() {
+    // Persist current state of relay variables as query string. Current
+    // variables are available in props after component rerenders, so it has to
+    // be called inside componentDidUpdate method.
+    this.persistStateInUrl();
+  }
 
   render() {
-    const category = this.props.category;
-    const attributes = this.props.attributes;
+    const { attributes, category, relay: { variables } } = this.props;
     return (
       <div className="row">
         <div className="col-md-3">
@@ -116,19 +93,19 @@ class CategoryPage extends Component {
             />
             <ProductFilters
               attributes={attributes}
-              onFilterChanged={this.setAttributesFilter}
-              urlParams = {this.setUrlParams}
+              onFilterChanged={this.updateAttributesFilter}
             />
             <PriceFilter
-              onFilterChanged={this.setPriceFilter}
-              urlParams = {this.setUrlParams}
+              onFilterChanged={this.updatePriceFilter}
+              maxPrice={variables.maxPrice}
+              minPrice={variables.minPrice}
             />
           </div>
         </div>
         <div className="col-md-9">
           <div className="row">
             <ProductList
-              onLoadMore={this.loadMore}
+              onLoadMore={this.incrementProductsCount}
               products={category.products}
             />
           </div>
@@ -138,12 +115,13 @@ class CategoryPage extends Component {
   }
 }
 
+
 export default Relay.createContainer(CategoryPage, {
   initialVariables: {
     attributesFilter: [],
-    count: PAGINATE_BY,
-    minPrice: null,
-    maxPrice: null
+    count: floatOrNull(getVarFromQueryString('count', PAGINATE_BY)),
+    minPrice: floatOrNull(getVarFromQueryString('minPrice')),
+    maxPrice: floatOrNull(getVarFromQueryString('maxPrice'))
   },
   fragments: {
     category: () => Relay.QL`
