@@ -29,6 +29,9 @@
               <li><a href="{% url 'account_logout' %}" class="waves-effect waves-teal">{% trans "Log out" %}</a></li>
             </ul>
             <a class="dropdown-button" data-constrainwidth="false" href="#" data-activates="user-action"><i class="material-icons">account_circle</i><i class="mdi-navigation-arrow-drop-down right"></i></a>
+            {% if SEARCH_IS_ENABLED %}
+              <a href="{% url "dashboard:search" %}" class="hide-on-med-and-up dropdown-button"><i class="material-icons">search</i></a>
+            {% endif %}
           </div>
           <ul class="side-nav" id="main-nav">
             <li class="nav-home"><a href="{% url 'dashboard:index' %}">{% trans "Home" %}</a></li>
@@ -66,12 +69,24 @@
           </ul>
           <ul>
             <li class="menu-toggle">
-              <ul>
+              <ul class="left">
                 <li><a href="#" id="open-menu" class="show-on-large"><i class="material-icons">menu</i></a></li>
                 <li><a href="#" id="close-menu" class="show-on-large hide"><i class="material-icons">clear</i></a></li>
                 <li><a href="{% url 'dashboard:index' %}" class="logo">
                   <img src="{% static "img/dashboard-logo.svg" %}" alt="Saleor">
                 </a></li>
+                <li class="search">
+                  {% if SEARCH_IS_ENABLED %}
+                    <form method="get" action="{% url "dashboard:search" %}" class="hide-on-small-only">
+                        <div class="input-field">
+                            <input id="search" type="search" class="validate" placeholder="Order, product, customer" name="q" value="{% if query %}{{ query }}{% endif %}">
+                            <button type="submit" class="right search-icon">
+                                <i class="material-icons">search</i>
+                            </button>
+                        </div>
+                    </form>
+                  {% endif %}
+                </li>
               </ul>
             </li>
           </ul>
@@ -92,21 +107,6 @@
 
     <main class="main">
         <div class="container">
-            {% if SEARCH_IS_ENABLED %}
-                <div class="row">
-                     <form class="col s12" method="get" action="{% url "dashboard:search" %}">
-                         <div class="row">
-                             <div class="input-field col s6">
-                                 <i class="material-icons prefix">search</i>
-                                 <input id="icon_prefix" type="text" class="validate" placeholder="Order, product, customer" name="q" value="{% if query %}{{ query }}{% endif %}">
-                             </div>
-                             <button class="btn waves-effect waves-light"  type="submit" style="margin-top: 1.75rem">Search
-                                 <i class="material-icons right">search</i>
-                             </button>
-                         </div>
-                     </form>
-                 </div>
-            {% endif %}
             {% block content %}
             {% endblock %}
         </div>
