@@ -344,5 +344,3 @@ if ES_URL:
     }
 else:
     SEARCH_BACKENDS = {}
-
-SEARCH_IS_ENABLED = bool(SEARCH_BACKENDS)

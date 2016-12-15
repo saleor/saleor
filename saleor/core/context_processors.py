@@ -24,4 +24,4 @@ def categories(request):
 
 
 def search_enabled(request):
-    return get_setting_as_dict('SEARCH_IS_ENABLED')
+    return {'SEARCH_IS_ENABLED': bool(settings.SEARCH_BACKENDS)}
