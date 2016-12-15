@@ -34,7 +34,7 @@ django-webpack-loader==0.4.1
 django==1.10.3
 djangorestframework==3.5.2
 fake-factory==0.7.2
-google-i18n-address==2.0.0
+google-i18n-address==2.0.1
 google-measurement-protocol==0.1.6
 idna==2.1                 # via cryptography
 jsonfield==1.0.3
