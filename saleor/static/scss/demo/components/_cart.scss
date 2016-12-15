@@ -47,6 +47,19 @@
       margin-bottom: 0;
     }
   }
+  &__delivery-info {
+    h3 {
+      display: inline-block;
+      border-bottom: 1px solid $gray;
+      padding-bottom: $global-padding
+    }
+    .custom-select {
+      max-width: 100%;
+      display: inline-block;
+      color: $body-color;
+      margin-left: $global-margin / 2;
+    }
+  }
   &__empty {
     text-align: center;
     img {

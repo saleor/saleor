@@ -100,6 +100,23 @@
           <a href="{% url "checkout:login" %}" class="btn primary float-md-right">{% trans "Checkout" %}</a>
       </div>
     </div>
+    <div class="col-md-5 cart__delivery-info">
+        <h3>{% trans "Delivery options to" %} 
+            <select class="custom-select">
+              {% for country in country_choices %}
+                <option>{{ country }}</option>
+              {% endfor %}
+            </select>
+        </h3>
+        <div class="row">
+          <div class="col-md-6">
+            <p>DHL to Poland</p>
+          </div>
+          <div class="col-md-6">
+              <p class="float-xs-right">$10</p>
+          </div>
+        </div>
+    </div>
     {% else %}
       <div class="cart__empty">
         <img src="{% static 'img/pirate_cart.png' %}" srcset="{% static 'img/pirate_cart.png' %} 1x, {% static 'img/pirate_cart2x.png' %} 2x">
