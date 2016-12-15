@@ -50,4 +50,4 @@ Environment variables
   Controls `Django's secret key <https://docs.djangoproject.com/en/1.10/ref/settings/#secret-key>`_ setting.
 
 ``ELASTICSEARCH_URL``
-  Controls optional `Elasticsearch <https://www.elastic.co/products/elasticsearch>`_ integration. (see :doc:`elasticsearch`) Defaults to ``None``.
+  Controls optional `Elasticsearch <https://www.elastic.co/products/elasticsearch>`_ integration (see :doc:`elasticsearch`). Defaults to ``None``.
