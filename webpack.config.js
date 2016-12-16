@@ -14,9 +14,9 @@ var commonsChunkPlugin = new webpack.optimize.CommonsChunkPlugin({
   names: 'vendor'
 });
 
-var extractTextPlugin = new ExtractTextPlugin(
-  '[name].[chunkhash].css'
-);
+var occurenceOrderPlugin = new webpack.optimize.OccurenceOrderPlugin();
+
+var extractTextPlugin = new ExtractTextPlugin('[name].[contenthash].css');
 
 var providePlugin = new webpack.ProvidePlugin({
   $: 'jquery',
@@ -77,6 +77,7 @@ var config = {
     bundleTrackerPlugin,
     commonsChunkPlugin,
     extractTextPlugin,
+    occurenceOrderPlugin,
     providePlugin
   ],
   postcss: function() {
