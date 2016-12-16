@@ -187,23 +187,13 @@ class PriceType(graphene.ObjectType):
 class Viewer(graphene.ObjectType):
     category = graphene.Field(
         CategoryType, pk=graphene.Argument(graphene.Int, required=True))
-    product = graphene.Field(
-        ProductType, pk=graphene.Argument(graphene.Int, required=True))
     attributes = graphene.List(ProductAttributeType)
-    categories = graphene.List(CategoryType)
 
     def resolve_category(self, args, context, info):
         return get_object_or_none(Category, pk=args.get('pk'))
 
-    def resolve_product(self, args, context, info):
-        qs = self.get_products()
-        return get_object_or_none(qs, pk=args.get('pk'))
-
     def resolve_attributes(self, args, context, info):
         return ProductAttribute.objects.prefetch_related('values').all()
-
-    def resolve_categories(self, args, context, info):
-        return Category.objects.all()
 
 
 class Query(graphene.ObjectType):
