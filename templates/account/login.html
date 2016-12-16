@@ -21,12 +21,10 @@
             {% endif %}
           </fieldset>
           <div class="row login__btn-group">
-            <div class="col-lg-6">
+            <div class="col-sm-12">
               <button class="btn primary">
                 {% trans "Log in" %}
               </button>
-            </div>
-            <div class="col-lg-6">
               <a href="{% url 'account_reset_password' %}">{% trans "Forgot password?" %}</a>
             </div>
           </div>
