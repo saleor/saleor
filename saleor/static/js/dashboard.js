@@ -41,7 +41,7 @@ $(document).ready(function() {
       $('main .container, .subheader .nav-wrapper').animate({
         'marginLeft': navWidth
       }, animationSpeed)
-    } 
+    }
     $openMenu.addClass('hide')
     $closeMenu.removeClass('hide')
     $(window).scroll(function() {
@@ -49,7 +49,7 @@ $(document).ready(function() {
     })
     if ($(window).width() > tabletScreen) {
       $.cookie('menu', 'open', { path: '/' })
-    }  
+    }
   }
   function closeMenu() {
     $mainNav.animate({
