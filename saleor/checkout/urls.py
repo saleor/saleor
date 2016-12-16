@@ -15,5 +15,5 @@ urlpatterns = [
         name='shipping-method'),
     url(r'^summary/', load_checkout(views.summary_view), name='summary'),
     url(r'^remove_voucher/', load_checkout(remove_voucher_view), name='remove-voucher'),
-    url(r'^login/', load_checkout(views.alternative_login), name='login'),
+    url(r'^login/', load_checkout(views.login), name='login'),
 ]

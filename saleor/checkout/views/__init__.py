@@ -59,9 +59,9 @@ def summary_view(request, checkout):
 
 
 @validate_cart
-def alternative_login(request, checkout):
+def login(request, checkout):
     if request.user.is_authenticated:
         return redirect('checkout:index')
     form = LoginForm()
     ctx = {'form': form}
-    return TemplateResponse(request, 'checkout/alternative_login.html', ctx)
+    return TemplateResponse(request, 'checkout/login.html', ctx)
