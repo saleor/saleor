@@ -19,12 +19,10 @@
               <input type="hidden" name="next" name="next" value="{% url 'checkout:index' %}" />
           </fieldset>
           <div class="row login__btn-group">
-            <div class="col-lg-6">
+            <div class="col-sm-12">
               <button class="btn primary">
                 {% trans "Log in" %}
               </button>
-            </div>
-            <div class="col-lg-6">
               <a href="{% url 'account_reset_password' %}">{% trans "Forgot password?" %}</a>
             </div>
           </div>
@@ -48,7 +46,7 @@
         <div class="login__register-link">
           <h2>{% trans "New customer?" %}</h2>
           <h6>{% trans "Registration is not required!" %}</h6>
-          <img src="{% static 'img/pirate_login.png' %}" srcset="{% static 'img/pirate_cart.png' %} 1x, {% static 'img/pirate_login2x.png' %} 2x">
+          <img class="checkout-pirate" src="{% static 'img/pirate_login.png' %}" srcset="{% static 'img/pirate-checkout.png' %} 1x, {% static 'img/pirate-checkout2x.png' %} 2x">
           <p><a href="{% url 'checkout:index' %}" class="btn secondary">{% trans "Continue" %}</a></p>
         </div>
       </div>
