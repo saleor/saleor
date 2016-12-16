@@ -1,9 +1,13 @@
+from __future__ import unicode_literals
+
+import uuid
 import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.http import HttpRequest
 from mock import Mock
 
 from saleor.cart import decorators
-from saleor.cart.decorators import get_or_empty_db_cart
+from saleor.cart.decorators import get_or_empty_db_cart, get_cart_from_request
 from saleor.cart.models import Cart
 
 
@@ -37,12 +41,16 @@ def test_get_cart_from_request_authenticated(django_user_model):
     assert cart.token == user_cart.token
 
 
+@pytest.mark.integration
 def test_get_cart_from_request_authenticated_no_cart(django_user_model):
-    token = Cart().token
-    request = get_request(django_user_model, authenticated=True,
-                          cookie_token=token)
-    user_cart = decorators.get_cart_from_request(request, create=True)
-    assert user_cart.token == token
+    user = django_user_model.objects.get_or_create(
+        email='user@example.com', defaults={'is_active': True})[0]
+    anonymous_token = uuid.uuid4()
+    Cart.objects.create(status=Cart.OPEN, token=anonymous_token, user=None)
+    request = Mock(spec=HttpRequest, discounts=[], user=user,
+                   get_signed_cookie=Mock(return_value=anonymous_token))
+    cart = get_cart_from_request(request, create=True)
+    assert cart.token != anonymous_token
 
 
 def test_get_or_create_db_cart(monkeypatch, django_user_model):
@@ -65,9 +73,7 @@ def test_find_and_assign_cart(django_user_model):
     assert cart.user == request.user
 
 
-@pytest.mark.parametrize('token', [
-    Cart().token, None
-])
+@pytest.mark.parametrize('token', [Cart().token, None])
 def test_find_and_assign_cart_cart_missing(token, django_user_model):
     request = get_request(django_user_model, authenticated=True,
                           cookie_token=token)
