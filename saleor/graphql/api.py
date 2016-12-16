@@ -90,7 +90,6 @@ class CategoryType(DjangoObjectType):
         order_by = args.get('order_by')
         price_lte = args.get('price_lte')
         price_gte = args.get('price_gte')
-        subcategories_filter = args.get('subcategories')
         if attributes_filter:
             attributes = ProductAttribute.objects.prefetch_related('values')
             attributes_map = {attribute.name: attribute.pk
@@ -134,8 +133,6 @@ class CategoryType(DjangoObjectType):
             qs = qs.filter(price__lte=price_lte)
         if price_gte:
             qs = qs.filter(price__gte=price_gte)
-        if subcategories_filter:
-            qs = qs.filter(categories__slug__in=subcategories_filter)
         return qs.distinct()
 
     def resolve_products_count(self, args, context, info):
