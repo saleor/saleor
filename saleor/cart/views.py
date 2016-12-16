@@ -13,7 +13,6 @@ from . import decorators
 from ..core.utils import to_local_currency, get_default_country
 from ..product.forms import get_form_class_for_product
 from ..product.models import Product, ProductVariant
-from ..shipping.utils import assign_shipment_to_country
 from .forms import ReplaceCartLineForm, CountryForm
 from .models import Cart
 from .utils import check_product_availability_and_warn
@@ -37,7 +36,6 @@ def index(request, cart):
 
     cart_total = None
     local_cart_total = None
-    shipment_by_country = assign_shipment_to_country()
     if cart:
         cart_total = cart.get_total(discounts=discounts)
         local_cart_total = to_local_currency(cart_total, request.currency)
@@ -52,8 +50,7 @@ def index(request, cart):
             'cart_lines': cart_lines,
             'cart_total': cart_total,
             'local_cart_total': local_cart_total,
-            'country_form': country_form,
-            'shipment_by_country': shipment_by_country})
+            'country_form': country_form})
 
 
 @decorators.get_or_create_db_cart()
