@@ -4,7 +4,7 @@ from django import forms
 from django.core.exceptions import ObjectDoesNotExist, NON_FIELD_ERRORS
 from django.utils.translation import pgettext_lazy, ugettext_lazy
 from satchless.item import InsufficientStock
-from ..shipping.models import COUNTRY_CODE_CHOICES
+from ..shipping.models import COUNTRY_CODE_CHOICES, ShippingMethodCountry
 
 
 class QuantityField(forms.IntegerField):
@@ -117,3 +117,7 @@ class ReplaceCartLineForm(AddToCartForm):
 
 class CountryForm(forms.Form):
     country = forms.ChoiceField(choices=COUNTRY_CODE_CHOICES)
+
+    def get_shipment_options(self):
+        code = self.country
+        return ShippingMethodCountry.objects.filter(country_code=code)
