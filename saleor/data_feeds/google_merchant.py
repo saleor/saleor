@@ -11,7 +11,7 @@ from django.core.files.storage import default_storage
 from django.utils import six
 
 from ..discount.models import Sale
-from ..product.models import ProductVariant, Category
+from ..product.models import Category, ProductAttribute, ProductVariant
 
 CATEGORY_SEPARATOR = ' > '
 
@@ -31,8 +31,9 @@ def get_feed_items():
     items = ProductVariant.objects.all()
     items = items.select_related('product')
     items = items.prefetch_related(
-        'images', 'stock', 'product__attributes', 'product__categories',
-        'product__images')
+        'images', 'stock', 'product__categories',
+        'product__images', 'product__product_class__product_attributes',
+        'product__product_class__variant_attributes')
     return items
 
 
@@ -71,13 +72,16 @@ def item_condition(item):
     return 'new'
 
 
-def item_brand(item):
+def item_brand(item, brand_attribute_pk):
     """
     This field is required.
     Read more:
     https://support.google.com/merchants/answer/6324351?hl=en&ref_topic=6324338
     """
-    return 'Saleor'
+    brand = item.get_attribute(brand_attribute_pk)
+    if brand is None:
+        brand = item.product.get_attribute(brand_attribute_pk)
+    return brand
 
 
 def item_tax(item, discounts):
@@ -140,7 +144,7 @@ def item_sale_price(item, discounts):
 
 
 def item_attributes(item, categories, category_paths, current_site,
-                    discounts):
+                    discounts, attributes_dict):
     product_data = {
         'id': item_id(item),
         'title': item_title(item),
@@ -151,8 +155,7 @@ def item_attributes(item, categories, category_paths, current_site,
         'availability': item_availability(item),
         'google_product_category': item_google_product_category(
             item, category_paths),
-        'link': item_link(item, current_site),
-        'brand': item_brand(item)}
+        'link': item_link(item, current_site)}
 
     image_link = item_image_link(item, current_site)
     if image_link:
@@ -168,9 +171,11 @@ def item_attributes(item, categories, category_paths, current_site,
     if tax:
         product_data['tax'] = tax
 
-    brand = item_brand(item)
-    if brand:
-        product_data['brand'] = brand
+    brand_attribute_pk = attributes_dict.get('brand')
+    if brand_attribute_pk:
+        brand = item_brand(item, brand_attribute_pk)
+        if brand:
+            product_data['brand'] = brand
 
     return product_data
 
@@ -184,11 +189,12 @@ def write_feed(file_obj):
     categories = Category.objects.all()
     discounts = Sale.objects.all().prefetch_related('products',
                                                     'categories')
+    attributes_dict = {a.name: a.pk for a in ProductAttribute.objects.all()}
     category_paths = {}
     current_site = Site.objects.get_current()
     for item in get_feed_items():
         item_data = item_attributes(item, categories, category_paths,
-                                    current_site, discounts)
+                                    current_site, discounts, attributes_dict)
         writer.writerow(item_data)
 
 

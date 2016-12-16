@@ -24,9 +24,10 @@ def test_saleor_feed_items(product_in_stock):
     categories = Category.objects.all()
     discounts = []
     category_paths = {}
+    attributes_dict = {}
     current_site = Site.objects.get_current()
     attributes = item_attributes(items[0], categories, category_paths,
-                                 current_site, discounts)
+                                 current_site, discounts, attributes_dict)
     assert attributes.get('mpn') == valid_variant.sku
     assert attributes.get('availability') == 'in stock'
 
