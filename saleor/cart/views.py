@@ -42,7 +42,7 @@ def index(request, cart):
 
     if country_form.is_valid():
         shipments = country_form.get_shipment_options()
-        return JsonResponse({'options': shipments})
+        return JsonResponse({'options': list(shipments)})
 
     return TemplateResponse(
         request, 'cart/index.html',
