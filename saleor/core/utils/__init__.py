@@ -89,3 +89,11 @@ def to_local_currency(price, currency):
             return exchange_currency(price, currency)
         except ValueError:
             pass
+
+
+def get_default_country(request):
+    if request.user.is_authenticated():
+        default_shipping = request.user.default_shipping_address
+        if default_shipping:
+            return default_shipping.country
+    return request.country
