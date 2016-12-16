@@ -67,12 +67,16 @@ class CategoryType(DjangoObjectType):
                 subcategories slugs to filter the products by""")))
     products_count = graphene.Int()
     url = graphene.String()
+    ancestors = graphene.List(lambda: CategoryType)
     children = graphene.List(lambda: CategoryType)
     siblings = graphene.List(lambda: CategoryType)
 
     class Meta:
         model = Category
         interfaces = (relay.Node, DjangoPkInterface)
+
+    def resolve_ancestors(self, args, context, info):
+        return self.get_ancestors()
 
     def resolve_children(self, args, context, info):
         return self.children.all()
