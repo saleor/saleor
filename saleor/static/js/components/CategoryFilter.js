@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from 'react';
+import AttributeInput from './AttributeInput';
 
 export default class CategoryFilter extends Component {
 
@@ -16,11 +17,15 @@ export default class CategoryFilter extends Component {
             <a href={category.url}><strong>{category.name}</strong></a>
             <span>{category.productsCount}</span>
           </li>
-          {category.siblings && (category.siblings.map((sibling) => {
+          {category.children && (category.children.map((child) => {
             return (
-              <li key={sibling.pk} className="item">
-                <a href={sibling.url}>{sibling.name}</a>
-                <span>{sibling.productsCount}</span>
+              <li key={child.pk} className="item">
+                <input
+                  name={child.slug}
+                  type="checkbox"
+                  value={child.slug}
+                />
+                {child.name}
               </li>
             );
           }))}

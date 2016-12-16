@@ -41,17 +41,12 @@
 		}
 		.categories {
 			ul {
-				list-style: circle;
-				padding-left: $global-padding;
+				list-style: none;
 				li {
 					a {
 						font-size: 1.2rem;
 						color: $body-color;
 						padding-right: $global-padding/2;
-					}
-					span {
-						color: $gray;
-						font-size: 1.1rem;
 					}
 				}
 			}

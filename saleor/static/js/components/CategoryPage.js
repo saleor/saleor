@@ -164,11 +164,12 @@ export default Relay.createContainer(CategoryPage, {
         name
         url
         productsCount
-        siblings {
+        children {
           name
           pk
           url
           productsCount
+          slug
         }
         products (first: $count, attributes: $attributesFilter, priceGte: $minPrice, priceLte: $maxPrice) {
           ${ProductList.getFragment('products')}
