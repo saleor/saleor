@@ -4,11 +4,15 @@ var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var path = require('path');
 var webpack = require('webpack');
 
+var resolve = path.resolve.bind(path, __dirname);
+
 var bundleTrackerPlugin = new BundleTracker({
   filename: 'webpack-bundle.json'
 });
 
-var commonsChunkPlugin = new webpack.optimize.CommonsChunkPlugin('vendor', '[name].[chunkhash].js');
+var commonsChunkPlugin = new webpack.optimize.CommonsChunkPlugin({
+  names: 'vendor'
+});
 
 var extractTextPlugin = new ExtractTextPlugin(
   '[name].[chunkhash].css'
@@ -35,7 +39,7 @@ var config = {
     ]
   },
   output: {
-    path: path.resolve(__dirname, 'saleor/static/assets/'),
+    path: resolve('saleor/static/assets/'),
     filename: '[name].[chunkhash].js'
   },
   module: {
@@ -61,10 +65,10 @@ var config = {
         test: /\.(eot|otf|png|svg|ttf|woff|woff2)(\?v=[0-9.]+)?$/,
         loader: 'file?name=[name].[hash].[ext]',
         include: [
-          path.resolve(__dirname, 'node_modules'),
-          path.resolve(__dirname, 'saleor/static/fonts'),
-          path.resolve(__dirname, 'saleor/static/images'),
-          path.resolve(__dirname, 'saleor/static/img')
+          resolve('node_modules'),
+          resolve('saleor/static/fonts'),
+          resolve('saleor/static/images'),
+          resolve('saleor/static/img')
         ]
       }
     ]
@@ -80,7 +84,7 @@ var config = {
   },
   resolve: {
     alias: {
-      'jquery': path.resolve(__dirname, 'node_modules/jquery/dist/jquery.js')
+      'jquery': resolve('node_modules/jquery/dist/jquery.js')
     }
   },
   sassLoader: {
