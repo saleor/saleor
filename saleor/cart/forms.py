@@ -119,5 +119,5 @@ class CountryForm(forms.Form):
     country = forms.ChoiceField(choices=COUNTRY_CODE_CHOICES)
 
     def get_shipment_options(self):
-        code = self.country
+        code = self.cleaned_data['country']
         return ShippingMethodCountry.objects.filter(country_code=code)
