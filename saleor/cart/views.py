@@ -37,12 +37,7 @@ def index(request, cart):
         local_cart_total = to_local_currency(cart_total, request.currency)
 
     default_country = get_user_shipping_country(request)
-    country_form = CountryForm(request.POST or None,
-                               initial={'country': default_country})
-
-    if country_form.is_valid():
-        shipments = country_form.get_shipment_options()
-        return JsonResponse({'options': list(shipments)})
+    country_form = CountryForm(initial={'country': default_country})
 
     return TemplateResponse(
         request, 'cart/index.html',
