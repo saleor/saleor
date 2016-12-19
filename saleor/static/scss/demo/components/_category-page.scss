@@ -62,7 +62,16 @@
 	.sort-by {
 		text-align: right;
 		position: relative;
+		button {
+			color: $body-color;
+		}
 		ul {
+			&.hide {
+				display: none;
+			}
+			&.show {
+				display: block;
+			}
 			list-style: none;
 			border: solid 1px $gray;
 			border-radius: 0.5rem;
