@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 
 from . import decorators
-from ..core.utils import to_local_currency, get_default_country
+from ..core.utils import to_local_currency, get_user_shipping_country
 from ..product.models import ProductVariant
 from .forms import ReplaceCartLineForm, CountryForm
 from .models import Cart
@@ -36,7 +36,7 @@ def index(request, cart):
         cart_total = cart.get_total(discounts=discounts)
         local_cart_total = to_local_currency(cart_total, request.currency)
 
-    default_country = get_default_country(request)
+    default_country = get_user_shipping_country(request)
     country_form = CountryForm(request.POST or None,
                                initial={'country': default_country})
 
