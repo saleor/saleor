@@ -33,12 +33,16 @@
         <div class="col s12">
             {% if product_classes %}
                 <ul class="collection list">
-                    {% for product_class in product_classes %}
+                    {% for pk, name, has_variants, product_attributes, variant_attributes in product_classes %}
                         <li class="collection-item list-item">
-                            <a class="title" href="{% url 'dashboard:product-class-update' pk=product_class.pk %}">
-                                <span class="list-item-name">{{ product_class.name }}</span>
+                            <a class="title" href="{% url 'dashboard:product-class-update' pk=pk %}">
+                                <span class="list-item-name">{{ name }}</span>
                             </a>
-                            <p>{% trans 'Variants' %}: {% if product_class.has_variants %}{% trans 'Yes' %}{% else %}{% trans 'No' %}{% endif %}</p>
+                            <p>
+                                {% trans 'Variants' %}: {% if has_variants %}{% trans 'Yes' %}{% else %}{% trans 'No' %}{% endif %}
+                                {% if variant_attributes %} | {% trans 'Variant attributes' %}: {{ variant_attributes|join:", " }}{% endif %}
+                                {% if product_attributes %} | {% trans 'Product attributes' %}: {{ product_attributes|join:", " }}{% endif %}
+                            </p>
                         </li>
                     {% endfor %}
                 </ul>

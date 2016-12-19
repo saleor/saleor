@@ -18,11 +18,16 @@ from ..views import staff_member_required
 
 @staff_member_required
 def product_class_list(request):
-    classes = ProductClass.objects.all()
+    classes = ProductClass.objects.all().prefetch_related(
+        'product_attributes', 'variant_attributes')
     form = forms.ProductClassForm(request.POST or None)
     if form.is_valid():
         return redirect('dashboard:product-class-add')
     classes = get_paginator_items(classes, 30, request.GET.get('page'))
+    classes.object_list = [
+        (pc.pk, pc.name, pc.has_variants, pc.product_attributes.all(),
+         pc.variant_attributes.all())
+        for pc in classes.object_list]
     ctx = {'form': form, 'product_classes': classes}
     return TemplateResponse(request, 'dashboard/product/class_list.html', ctx)
 
