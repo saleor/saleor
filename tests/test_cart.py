@@ -5,8 +5,8 @@ from uuid import uuid4
 
 import pytest
 from babeldjango.templatetags.babel import currencyfmt
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpRequest
 from mock import MagicMock, Mock
 from satchless.item import InsufficientStock
 
@@ -18,6 +18,20 @@ from saleor.cart.decorators import (find_and_assign_cart,
                                     get_or_create_cart_from_request,
                                     get_or_create_user_cart, get_user_cart)
 from saleor.cart.models import Cart
+
+
+@pytest.fixture()
+def cart_request_factory(rf, monkeypatch):
+    def create_request(user=None, token=None):
+        request = rf.get('/')
+        if user is None:
+            request.user = AnonymousUser()
+        else:
+            request.user = user
+        monkeypatch.setattr(request, 'get_signed_cookie',
+                            Mock(return_value=token))
+        return request
+    return create_request
 
 
 @pytest.fixture()
@@ -37,7 +51,8 @@ def opened_user_cart(customer_user):
 
 @pytest.fixture()
 def cancelled_user_cart(customer_user):
-    return Cart.objects.get_or_create(user=customer_user, status=Cart.CANCELED)[0]
+    return Cart.objects.get_or_create(user=customer_user,
+                                      status=Cart.CANCELED)[0]
 
 
 def test_get_or_create_anonymous_cart_from_token(opened_anonymous_cart,
@@ -135,11 +150,11 @@ def test_get_user_cart(opened_anonymous_cart, cancelled_anonymous_cart,
     assert cart is None
 
 
-def test_get_or_create_cart_from_request(monkeypatch, customer_user):
+def test_get_or_create_cart_from_request(cart_request_factory, monkeypatch,
+                                         customer_user):
     token = uuid4()
     queryset = Cart.objects.all()
-    request = Mock(spec=HttpRequest, user=customer_user,
-                   get_signed_cookie=Mock(return_value=token))
+    request = cart_request_factory(user=customer_user, token=token)
     user_cart = Cart(user=customer_user)
     anonymous_cart = Cart()
     mock_get_for_user = Mock(return_value=user_cart)
@@ -153,17 +168,17 @@ def test_get_or_create_cart_from_request(monkeypatch, customer_user):
     mock_get_for_user.assert_called_once_with(customer_user, queryset)
     assert returned_cart == user_cart
 
-    request.user = Mock(is_authenticated=Mock(return_value=False))
+    request = cart_request_factory(user=None, token=token)
     returned_cart = get_or_create_cart_from_request(request, queryset)
     mock_get_for_anonymous.assert_called_once_with(token, queryset)
     assert returned_cart == anonymous_cart
 
 
-def test_get_cart_from_request(monkeypatch, customer_user):
+def test_get_cart_from_request(monkeypatch, customer_user,
+                               cart_request_factory):
     queryset = Cart.objects.all()
     token = uuid4()
-    request = Mock(spec=HttpRequest, user=customer_user,
-                   get_signed_cookie=Mock(return_value=token))
+    request = cart_request_factory(user=customer_user, token=token)
     user_cart = Cart(user=customer_user)
     mock_get_for_user = Mock(return_value=user_cart)
     monkeypatch.setattr('saleor.cart.decorators.get_user_cart',
@@ -184,7 +199,7 @@ def test_get_cart_from_request(monkeypatch, customer_user):
     monkeypatch.setattr(
         'saleor.cart.decorators.get_anonymous_cart_from_token',
         mock_get_for_anonymous)
-    request.user = Mock(is_authenticated=Mock(return_value=False))
+    request = cart_request_factory(user=None, token=token)
     returned_cart = get_cart_from_request(request, queryset)
     mock_get_for_user.assert_called_once_with(customer_user, queryset)
     assert returned_cart == anonymous_cart
@@ -199,20 +214,19 @@ def test_get_cart_from_request(monkeypatch, customer_user):
 
 def test_find_and_assign_cart(opened_anonymous_cart, cancelled_anonymous_cart,
                               opened_user_cart, cancelled_user_cart,
-                              customer_user):
-    request = Mock(spec=HttpRequest, user=customer_user,
-                   get_signed_cookie=Mock(return_value=None))
+                              customer_user, cart_request_factory):
+    request = cart_request_factory(user=customer_user, token=None)
     anonymous_carts = Cart.objects.filter(user=None).count()
     find_and_assign_cart(request)
     assert Cart.objects.filter(user=None).count() == anonymous_carts
 
 
 def test_find_and_assign_cart_and_close_opened(customer_user, opened_user_cart,
-                                               opened_anonymous_cart):
+                                               opened_anonymous_cart,
+                                               cart_request_factory):
     token = opened_anonymous_cart.token
     token_user = opened_user_cart.token
-    request = Mock(spec=HttpRequest, user=customer_user,
-                   get_signed_cookie=Mock(return_value=token))
+    request = cart_request_factory(user=customer_user, token=token)
     find_and_assign_cart(request)
     token_cart = Cart.objects.filter(token=token).first()
     user_cart = Cart.objects.filter(token=token_user).first()
