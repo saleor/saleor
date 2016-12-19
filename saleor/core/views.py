@@ -4,9 +4,9 @@ from ..product.utils import products_with_availability, products_with_details
 
 
 def home(request):
-    products = Product.objects.get_available_products()[:6]
-    products = products.prefetch_related('categories', 'images',
-                                         'variants__stock')
+    products = products_with_details(request.user)[:6]
+    products = products_with_availability(
+        products, discounts=request.discounts, local_currency=request.currency)
     return TemplateResponse(
         request, 'home.html',
         {'products': products, 'parent': None})
