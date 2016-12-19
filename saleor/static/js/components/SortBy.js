@@ -11,7 +11,7 @@ export default class sortBy extends Component {
 
   static propTypes = {
     setSorting: PropTypes.func,
-    sortingValue: PropTypes.string
+    sortedValue: PropTypes.string
   }
 
   setSorting = (event) => {
@@ -26,12 +26,12 @@ export default class sortBy extends Component {
   }
 
   render() {
-    const { sortingValue } = this.props;
+    const { sortedValue } = this.props;
     const { visibility } = this.state;
     return (
       <div className="sort-by">
         <button className="btn btn-link" onClick={this.changeVisibility}>
-          <span>Sort by: <strong>{sortingValue}</strong></span>
+          <span>Sort by: <strong>{sortedValue}</strong></span>
         </button>
         {visibility ? (
         <ul className="sort-list">

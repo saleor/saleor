@@ -152,7 +152,7 @@ class CategoryPage extends Component {
             <ProductList
               onLoadMore={this.incrementProductsCount}
               products={category.products}
-              sortingValue={variables.sortBy}
+              sortedValue={variables.sortBy}
               setSorting={this.setSorting}
             />
           </div>

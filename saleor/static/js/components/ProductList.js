@@ -9,7 +9,7 @@ class ProductList extends Component {
   static propTypes = {
     onLoadMore: PropTypes.func.isRequired,
     products: PropTypes.object,
-    sortingValue: PropTypes.string,
+    sortedValue: PropTypes.string,
     setSorting: PropTypes.func
   };
 
@@ -20,7 +20,7 @@ class ProductList extends Component {
     const { edges, pageInfo: { hasNextPage } } = this.props.products;
     return (
       <div>
-        <SortBy sortingValue={this.props.sortingValue} setSorting={this.setSorting} />
+        <SortBy sortedValue={this.props.sortedValue} setSorting={this.setSorting} />
         <div>
           {edges && (edges.map((edge, i) => (
             <ProductItem key={i} product={edge.node} />
