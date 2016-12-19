@@ -46,24 +46,26 @@
                                     </p>
                                 {% endwith %}
                             {% elif result.content_type == 'order_order' %}
-                                <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
+                                <i class="small material-icons circle teal">payment</i>
                                 <a class="title" href="{% url 'dashboard:order-details' order_pk=result.pk %}">
-                                    <span class="list-item-name">Order #{{ result.pk }}</span>
+                                    <span class="list-item-name">{% blocktrans with order_number=result.pk %}Order #{{ order_number }}{% endblocktrans %}</span>
                                 </a>
                                 <p class="list-item-price">
-                                    <small>Customer: {{ result.user_email }}</small>
+                                    <small>{% blocktrans with email=result.user_email %}Customer: {{ email }}{% endblocktrans %}</small>
                                     <small>
-                                        Placed: {{ result.created }}
+                                        {% blocktrans with placed=result.created %}Placed on: {{ placed }}{% endblocktrans %}
                                     </small>
 
                                 </p>
                             {% elif result.content_type == 'userprofile_user' %}
-                                <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
+                                <i class="small material-icons circle teal">perm_identity</i>
                                 <a class="title" href="{% url 'dashboard:order-details' order_pk=result.pk %}">
-                                    <span class="list-item-name">User {{ result.get_full_name }}</span>
+                                    <span class="list-item-name">
+                                        {% blocktrans with full_name=result.get_full_name %}User {{ full_name }}{% endblocktrans %}
+                                    </span>
                                 </a>
                                 <p class="list-item-price">
-                                    <small>Customer</small>
+                                    <small>{% trans "Customer" %}</small>
                                 </p>
                             {% endif %}
                         </li>
