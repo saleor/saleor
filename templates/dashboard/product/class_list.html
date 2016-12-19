@@ -4,7 +4,7 @@
 {% load materializecss %}
 {% load staticfiles %}
 
-{% block title %}{% trans "Product classes" %} - {{ block.super }}{% endblock %}
+{% block title %}{% trans "Product types" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-products{% endblock %}
 
@@ -13,7 +13,7 @@
 
 {% block header_extra %}
     <div class="fixed-action-btn">
-        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal" title="{% trans "Add product class" %}"
+        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal" title="{% trans "Add product type" %}"
             href="{% url 'dashboard:product-class-add' %}">
             <i class="material-icons">add</i>
         </a>
@@ -22,7 +22,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li>{% trans "Product classes" %}</li>
+        <li>{% trans "Product types" %}</li>
     </ul>
 {% endblock %}
 
@@ -48,7 +48,7 @@
                 </ul>
                 {% include "dashboard/includes/_pagination.html" with page_obj=product_classes %}
             {% else %}
-                <p>{% trans "No product classes found." %}</p>
+                <p>{% trans "No product types found." %}</p>
             {% endif %}
         </div>
     </div>

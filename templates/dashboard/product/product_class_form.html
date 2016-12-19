@@ -5,7 +5,7 @@
 {% load static %}
 {% load attributes %}
 
-{% block title %}{% if product_class.pk %}{{ product_class }}{% else %}{% trans 'Add new product class' %}{% endif %} - {% trans "Products" %} - {{ block.super }}{% endblock %}
+{% block title %}{% if product_class.pk %}{{ product_class }}{% else %}{% trans 'Add new product type' %}{% endif %} - {% trans "Products" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-products{% endblock %}
 
@@ -18,9 +18,9 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--history">
-        <li><a href="{% url "dashboard:product-class-list" %}" class="breadcrumb">{% trans "Product classes" %}</a></li>
+        <li><a href="{% url "dashboard:product-class-list" %}" class="breadcrumb">{% trans "Product types" %}</a></li>
         <li class="back-mobile"><a href="{% url "dashboard:product-class-list" %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a></li>
-        <li><span class="breadcrumbs--ellipsed-item">{% if product_class.pk %}{{ product_class }}{% else %}{% trans 'Add new product class' %}{% endif %}</span></li>
+        <li><span class="breadcrumbs--ellipsed-item">{% if product_class.pk %}{{ product_class }}{% else %}{% trans 'Add new product type' %}{% endif %}</span></li>
     </ul>
 {% endblock %}
 
@@ -34,7 +34,7 @@
         <li>
             <a href="#base-modal" data-href="{% url 'dashboard:product-class-delete' pk=product_class.pk %}"
                class="modal-trigger-custom">
-                {% trans "Remove product class" %}
+                {% trans "Remove product type" %}
             </a>
         </li>
     </ul>
