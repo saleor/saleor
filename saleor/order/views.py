@@ -9,7 +9,7 @@ from django.utils.translation import ugettext as _
 from django.template.response import TemplateResponse
 from payments import RedirectNeeded
 
-from .forms import PaymentDeleteForm, PaymentMethodsForm
+from .forms import PaymentDeleteForm, PaymentMethodsForm, PasswordForm
 from .models import Order, Payment
 from ..core.utils import get_client_ip
 from .utils import check_order_status
@@ -117,4 +117,13 @@ def cancel_payment(request, order):
 def create_password(request, token):
     if request.user.is_authenticated():
         return redirect('order:details', kwargs={'token': token})
-    return TemplateResponse(request, 'order/create_password.html')
+    order = get_object_or_404(Order, token=token)
+    email = order.user_email
+    form = PasswordForm(initial={'email': email})
+    if form.is_valid():
+        user = form.save(request)
+        if not user.email == email:
+            user.email = email
+            user.save()
+    ctx = {'form': form}
+    return TemplateResponse(request, 'order/create_password.html', ctx)
