@@ -35,7 +35,7 @@ def products_with_availability(products, discounts, local_currency):
 
 ProductAvailability = namedtuple(
     'ProductAvailability', (
-        'available', 'price_range', 'discount',
+        'available', 'price_range', 'price_range_undiscounted', 'discount',
         'price_range_local_currency', 'discount_local_currency'))
 
 
@@ -69,6 +69,7 @@ def get_availability(product, discounts=None, local_currency=None):
     return ProductAvailability(
         available=is_available,
         price_range=price_range,
+        price_range_undiscounted=undiscounted,
         discount=discount,
         price_range_local_currency=price_range_local,
         discount_local_currency=discount_local_currency)
