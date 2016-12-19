@@ -86,4 +86,6 @@ def handle_cart_form(request, product, create_cart=False):
 
 def products_for_cart(user):
     products = products_visible_to_user(user)
+    products = products.prefetch_related(
+        'variants', 'variants__variant_images__image')
     return products
