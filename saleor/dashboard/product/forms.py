@@ -52,10 +52,10 @@ class ProductClassForm(forms.ModelForm):
         labels = {
             'product_attributes': pgettext_lazy(
                 'Product class form label',
-                'Attributes specific for each variant'),
+                'Attributes specific to each variant'),
             'variant_attributes': pgettext_lazy(
                 'Product class form label',
-                'Attributes common for all variants')}
+                'Attributes common to all variants')}
 
     def clean(self):
         data = super(ProductClassForm, self).clean()
