@@ -1,54 +1,69 @@
 /* @flow */
 
-import 'bootstrap-sass'
-import $ from 'jquery'
-import 'jquery.cookie'
+import 'bootstrap-sass';
+import $ from 'jquery';
+import 'jquery.cookie';
+import React from 'react';
+import ReactDOM from 'react-dom';
 
-import '../scss/storefront.scss'
+import '../scss/storefront.scss';
+import VariantPicker from './components/variantPicker/VariantPicker';
 
-let csrftoken = $.cookie('csrftoken')
+let csrftoken = $.cookie('csrftoken');
 
 function csrfSafeMethod(method) {
-  return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method)
+  return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method);
 }
 
 $.ajaxSetup({
   beforeSend: function(xhr, settings) {
     if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-      xhr.setRequestHeader('X-CSRFToken', csrftoken)
+      xhr.setRequestHeader('X-CSRFToken', csrftoken);
     }
   }
-})
+});
 
 $(function() {
-  const $carousel = $('.carousel')
-  const $items = $('.product-gallery-item')
-  const $modal = $('.modal')
+  const $carousel = $('.carousel');
+  const $items = $('.product-gallery-item');
+  const $modal = $('.modal');
 
   $items.on('click', function(e) {
     if ($carousel.is(':visible')) {
-      e.preventDefault()
+      e.preventDefault();
     }
-    const index = $(this).index()
-    $carousel.carousel(index)
-  })
+    const index = $(this).index();
+    $carousel.carousel(index);
+  });
 
   $modal.on('show.bs.modal', function() {
-    const $img = $(this).find('.modal-body img')
-    const dataSrc = $img.attr('data-src')
-    $img.attr('src', dataSrc)
-  })
-})
+    const $img = $(this).find('.modal-body img');
+    const dataSrc = $img.attr('data-src');
+    $img.attr('src', dataSrc);
+  });
+});
 
 $(function() {
-  const $i18nAddresses = $('.i18n-address')
+  const $i18nAddresses = $('.i18n-address');
   $i18nAddresses.each(function () {
-    const $form = $(this).closest('form')
-    const $countryField = $form.find('select[name=country]')
-    const $previewField = $form.find('input.preview')
+    const $form = $(this).closest('form');
+    const $countryField = $form.find('select[name=country]');
+    const $previewField = $form.find('input.preview');
     $countryField.on('change', () => {
-      $previewField.val('on')
-      $form.submit()
-    })
-  })
-})
+      $previewField.val('on');
+      $form.submit();
+    });
+  });
+});
+
+
+const variantPicker = document.getElementById('variant-picker');
+const variantPickerData = JSON.parse(variantPicker.dataset.variantPickerData);
+
+ReactDOM.render(
+  <VariantPicker
+    attributes={variantPickerData.attributes}
+    variants={variantPickerData.variants}
+  />,
+  variantPicker
+);

@@ -62,17 +62,17 @@
 
             {% if is_visible and product.is_in_stock %}
                 {% block orderform %}
-                <form role="form" class="product-form form-vertical" method="post"
-                 action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}" novalidate>
-                    {% csrf_token %}
-                    {% bootstrap_form form %}
+                    <div id="variant-picker" data-variant-picker-data="{{ variant_picker_data }}"></div>
+                    {% comment %}<form role="form" class="product-form form-vertical" method="post" action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}" novalidate>
+                        {% csrf_token %}
+                        {% bootstrap_form form %}
 
-                    <div class="form-group">
-                        <button class="btn btn-lg btn-block btn-primary">
-                            {% trans "Add to cart" %}
-                        </button>
-                    </div>
-                </form>
+                        <div class="form-group">
+                            <button class="btn btn-lg btn-block btn-primary">
+                                {% trans "Add to cart" %}
+                            </button>
+                        </div>
+                    </form>{% endcomment %}
                 {% endblock %}
             {% else %}
                 <p class="alert alert-warning">{% trans "This product is currently <strong>unavailable</strong>." %}</p>

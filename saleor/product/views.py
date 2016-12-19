@@ -1,6 +1,8 @@
 from __future__ import unicode_literals
 
 import datetime
+import json
+
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponsePermanentRedirect
@@ -13,7 +15,7 @@ from .models import Category
 from .utils import (products_with_details, products_for_cart,
                     products_with_availability,
                     handle_cart_form, get_availability,
-                    get_product_images)
+                    get_product_images, get_variant_picker_data)
 
 
 def product_details(request, slug, product_id, form=None):
@@ -55,21 +57,21 @@ def product_details(request, slug, product_id, form=None):
         product.available_on is None or product.available_on <= today)
     if form is None:
         form = handle_cart_form(request, product, create_cart=False)[0]
-
     availability = get_availability(product, discounts=request.discounts,
                                     local_currency=request.currency)
-
     template_name = 'product/details_%s.html' % (
         type(product).__name__.lower(),)
     templates = [template_name, 'product/details.html']
     product_images = get_product_images(product)
+    variant_picker_data = get_variant_picker_data(product.variants.all())
     return TemplateResponse(
         request, templates,
         {'is_visible': is_visible,
          'form': form,
          'availability': availability,
          'product_images': product_images,
-         'product': product})
+         'product': product,
+         'variant_picker_data': json.dumps(variant_picker_data)})
 
 
 def product_add_to_cart(request, slug, product_id):
