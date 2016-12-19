@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django import forms
+from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist, NON_FIELD_ERRORS
 from django.utils.translation import pgettext_lazy, ugettext_lazy
 from satchless.item import InsufficientStock
@@ -121,4 +122,4 @@ class CountryForm(forms.Form):
     def get_shipment_options(self):
         code = self.cleaned_data['country']
         return ShippingMethodCountry.objects.filter(
-            country_code=code).order_by('price')
+            Q(country_code=code) | Q(country_code='')).order_by('price')
