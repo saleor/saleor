@@ -120,4 +120,5 @@ class CountryForm(forms.Form):
 
     def get_shipment_options(self):
         code = self.cleaned_data['country']
-        return ShippingMethodCountry.objects.filter(country_code=code)
+        return ShippingMethodCountry.objects.filter(
+            country_code=code).order_by('price')
