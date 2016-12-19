@@ -112,3 +112,9 @@ def cancel_payment(request, order):
             form.save()
         return redirect('order:payment', token=order.token)
     return HttpResponseForbidden()
+
+
+def create_password(request, token):
+    if request.user.is_authenticated():
+        return redirect('order:details', kwargs={'token': token})
+    return TemplateResponse(request, 'order/create_password.html')
