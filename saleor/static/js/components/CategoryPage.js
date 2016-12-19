@@ -59,7 +59,7 @@ class CategoryPage extends Component {
     });
   }
 
-  sortBy = (event) => {
+  setSorting = (event) => {
     this.props.relay.setVariables({
       sortBy: event.target.className
     });
@@ -152,7 +152,8 @@ class CategoryPage extends Component {
             <ProductList
               onLoadMore={this.incrementProductsCount}
               products={category.products}
-              sortBy={this.sortBy}
+              sortingValue={variables.sortBy}
+              setSorting={this.setSorting}
             />
           </div>
         </div>

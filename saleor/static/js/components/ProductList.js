@@ -8,18 +8,19 @@ class ProductList extends Component {
 
   static propTypes = {
     onLoadMore: PropTypes.func.isRequired,
-    sortBy: PropTypes.func,
-    products: PropTypes.object
+    products: PropTypes.object,
+    sortingValue: PropTypes.string,
+    setSorting: PropTypes.func
   };
 
   onLoadMore = () => this.props.onLoadMore();
-  sortBy = (event) => this.props.sortBy(event);
+  setSorting = (event) => this.props.setSorting(event);
 
   render() {
     const { edges, pageInfo: { hasNextPage } } = this.props.products;
     return (
       <div>
-        <SortBy sortBy={this.sortBy} />
+        <SortBy sortingValue={this.props.sortingValue} setSorting={this.setSorting} />
         <div>
           {edges && (edges.map((edge, i) => (
             <ProductItem key={i} product={edge.node} />

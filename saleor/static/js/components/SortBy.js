@@ -5,20 +5,17 @@ export default class sortBy extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      sortedElement: '',
       visibility: false
     };
   }
 
   static propTypes = {
-    sortBy: PropTypes.func,
+    setSorting: PropTypes.func,
+    sortingValue: PropTypes.string
   }
 
   setSorting = (event) => {
-    this.props.sortBy(event);
-    this.setState({
-      sortedElement: event.target.classList
-    });
+    this.props.setSorting(event);
     this.changeVisibility();
   }
 
@@ -29,11 +26,12 @@ export default class sortBy extends Component {
   }
 
   render() {
-    const { sortedElement, visibility } = this.state;
+    const { sortingValue } = this.props;
+    const { visibility } = this.state;
     return (
       <div className="sort-by">
         <button className="btn btn-link" onClick={this.changeVisibility}>
-          <span>Sort by: <strong>{sortedElement}</strong></span>
+          <span>Sort by: <strong>{sortingValue}</strong></span>
         </button>
         {visibility ? (
         <ul className="sort-list">
