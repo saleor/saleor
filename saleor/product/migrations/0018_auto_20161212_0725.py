@@ -20,5 +20,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(create_slugs),
+        migrations.RunPython(create_slugs, migrations.RunPython.noop),
     ]
