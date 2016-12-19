@@ -59,6 +59,35 @@
 		}
 	}
 
+	.sort-by {
+		text-align: right;
+		position: relative;
+		ul {
+			list-style: none;
+			border: solid 1px $gray;
+			border-radius: 0.5rem;
+			background: $white;
+			position: absolute;
+			top: 2rem;
+			right: 0;
+			z-index: 999;
+			padding-left: $global-padding/2;
+			padding-bottom: $global-padding/2;
+			li {
+				width: 15rem;
+				text-align: left;
+				padding-top: $global-padding/2;
+				overflow: hidden;
+				span {
+					&:hover {
+						cursor: pointer;
+						text-decoration: underline;
+					}
+				}
+			}
+		}
+	}
+
 	.load-more {
 		clear: both;
 		button {

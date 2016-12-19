@@ -59,6 +59,12 @@ class CategoryPage extends Component {
     });
   }
 
+  orderBy = (event) => {
+    this.props.relay.setVariables({
+      orderBy: event.target.className
+    });
+  }
+
   updateAttributesFilter = (key) => {
     // Create a new attributesFilter array by cloning the current one to make
     // Relay refetch products with new attributes. Passing the same array (even
@@ -82,7 +88,7 @@ class CategoryPage extends Component {
   }
 
   persistStateInUrl() {
-    const { attributesFilter, count, maxPrice, minPrice } = this.props.relay.variables;
+    const { attributesFilter, count, maxPrice, minPrice, orderBy } = this.props.relay.variables;
     let urlParams = {};
     if (minPrice) {
       urlParams['minPrice'] = minPrice;
@@ -92,6 +98,9 @@ class CategoryPage extends Component {
     }
     if (count > PAGINATE_BY) {
       urlParams['count'] = count;
+    }
+    if (orderBy) {
+      urlParams['orderBy'] = orderBy;
     }
     attributesFilter.forEach(filter => {
       const [ attributeName, valueSlug ] = filter.split(':');
@@ -143,6 +152,7 @@ class CategoryPage extends Component {
             <ProductList
               onLoadMore={this.incrementProductsCount}
               products={category.products}
+              orderBy={this.orderBy}
             />
           </div>
         </div>
@@ -154,10 +164,11 @@ class CategoryPage extends Component {
 
 export default Relay.createContainer(CategoryPage, {
   initialVariables: {
-    attributesFilter: getAttributesFromQueryString(['count', 'minPrice', 'maxPrice']),
+    attributesFilter: getAttributesFromQueryString(['count', 'minPrice', 'maxPrice', 'orderBy']),
     count: floatOrNull(getVarFromQueryString('count', PAGINATE_BY)),
     minPrice: floatOrNull(getVarFromQueryString('minPrice')),
-    maxPrice: floatOrNull(getVarFromQueryString('maxPrice'))
+    maxPrice: floatOrNull(getVarFromQueryString('maxPrice')),
+    orderBy: getVarFromQueryString('orderBy')
   },
   fragments: {
     category: () => Relay.QL`
@@ -185,7 +196,7 @@ export default Relay.createContainer(CategoryPage, {
             slug
           }
         }
-        products (first: $count, attributes: $attributesFilter, priceGte: $minPrice, priceLte: $maxPrice) {
+        products (first: $count, attributes: $attributesFilter, priceGte: $minPrice, priceLte: $maxPrice, orderBy: $orderBy) {
           ${ProductList.getFragment('products')}
         }
       }
