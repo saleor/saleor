@@ -119,7 +119,7 @@ def create_password(request, token):
         return redirect('order:details', kwargs={'token': token})
     order = get_object_or_404(Order, token=token)
     email = order.user_email
-    form = PasswordForm(initial={'email': email})
+    form = PasswordForm(request.POST or None, initial={'email': email})
     if form.is_valid():
         user = form.save(request)
         if not user.email == email:
