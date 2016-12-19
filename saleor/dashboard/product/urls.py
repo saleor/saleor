@@ -11,7 +11,7 @@ urlpatterns = [
         views.product_edit, name='product-update'),
     url(r'^(?P<pk>[0-9]+)/delete/$',
         views.product_delete, name='product-delete'),
-    url(r'^base/(?P<class_pk>[0-9]+)/add/$',
+    url(r'^add/(?P<class_pk>[0-9]+)/$',
         views.product_create, name='product-add'),
 
     url(r'^classes/$',
