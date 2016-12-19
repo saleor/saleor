@@ -10,7 +10,7 @@ from django.template.response import TemplateResponse
 from ..cart.core import set_cart_cookie
 from ..core.utils import get_paginator_items
 from .models import Category
-from .utils import (products_with_details,
+from .utils import (products_with_details, products_for_cart,
                     products_with_availability,
                     handle_cart_form, get_availability,
                     get_product_images)
@@ -78,7 +78,7 @@ def product_add_to_cart(request, slug, product_id):
             'product:details',
             kwargs={'product_id': product_id, 'slug': slug}))
 
-    products = products_with_details(user=request.user)
+    products = products_for_cart(user=request.user)
     product = get_object_or_404(products, pk=product_id)
     form, cart = handle_cart_form(request, product, create_cart=True)
     if form.is_valid():

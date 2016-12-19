@@ -82,3 +82,8 @@ def handle_cart_form(request, product, create_cart=False):
     form = form_class(cart=cart, product=product,
                       data=request.POST or None, discounts=request.discounts)
     return form, cart
+
+
+def products_for_cart(user):
+    products = products_visible_to_user(user)
+    return products
