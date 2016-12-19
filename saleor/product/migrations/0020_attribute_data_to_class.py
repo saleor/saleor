@@ -16,7 +16,7 @@ def move_data(apps, schema_editor):
         product_class = product_class.first()
         if product_class is None:
             product_class = ProductClass.objects.create(
-                name='Migrated Product Class',
+                name='Unnamed product type',
                 has_variants=True)
             product_class.variant_attributes = attributes
             product_class.save()
