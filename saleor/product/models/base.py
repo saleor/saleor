@@ -360,9 +360,6 @@ class AttributeChoiceValue(models.Model):
         max_length=7,
         validators=[RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')],
         blank=True)
-    image = VersatileImageField(
-        pgettext_lazy('Attribute choice value field', 'image'),
-        upload_to='attributes', blank=True, null=True)
     attribute = models.ForeignKey(ProductAttribute, related_name='values')
 
     def __str__(self):
