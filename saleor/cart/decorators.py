@@ -23,7 +23,8 @@ def find_and_assign_cart(request, queryset=Cart.objects.all()):
     carts_to_close.update(status=Cart.CANCELED, last_status_change=now())
 
 
-def get_or_create_anonymous_cart_from_token(token, cart_queryset=Cart.objects.all()):
+def get_or_create_anonymous_cart_from_token(token,
+                                            cart_queryset=Cart.objects.all()):
     """Returns open anonymous cart with given token or creates new.
     :type cart_queryset: django.db.models.manager.ManagerFromCartQueryset
     :type token: string
@@ -66,8 +67,7 @@ def get_or_create_cart_from_request(request, cart_queryset=Cart.objects.all()):
     if request.user.is_authenticated():
         return get_or_create_user_cart(request.user, cart_queryset)
     else:
-        token = request.get_signed_cookie(Cart.COOKIE_NAME,
-                                                 default=None)
+        token = request.get_signed_cookie(Cart.COOKIE_NAME, default=None)
         return get_or_create_anonymous_cart_from_token(token, cart_queryset)
 
 
