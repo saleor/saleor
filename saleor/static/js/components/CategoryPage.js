@@ -119,11 +119,13 @@ class CategoryPage extends Component {
     return (
       <div className="row">
         <div className="col-md-3">
-          <h2>Filters:</h2>
           <div className="product-filters">
             <CategoryFilter
               category={category}
             />
+          </div>
+          <h2>Filters:</h2>
+          <div className="product-filters">
             <ProductFilters
               attributes={attributes}
               checkedAttributes={variables.attributesFilter}
@@ -164,12 +166,24 @@ export default Relay.createContainer(CategoryPage, {
         name
         url
         productsCount
+        ancestors {
+          name
+          pk
+          url
+        }
         children {
           name
           pk
           url
           productsCount
           slug
+          children {
+            name
+            pk
+            url
+            productsCount
+            slug
+          }
         }
         products (first: $count, attributes: $attributesFilter, priceGte: $minPrice, priceLte: $maxPrice) {
           ${ProductList.getFragment('products')}

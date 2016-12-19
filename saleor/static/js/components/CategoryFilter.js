@@ -11,25 +11,37 @@ export default class CategoryFilter extends Component {
     const { category } = this.props;
     return (
       <div className="categories">
-        <h3>Categories:</h3>
-        <ul>
+        <ul className="parents">
+          {category.ancestors.map((ancestor) => {
+            return (
+              <li key={ancestor.pk}><a href={ancestor.url}><strong>{ancestor.name} / </strong></a></li>
+            );
+          })}
           <li className="current">
             <a href={category.url}><strong>{category.name}</strong></a>
             <span>{category.productsCount}</span>
           </li>
-          {category.children && (category.children.map((child) => {
-            return (
-              <li key={child.pk} className="item">
-                <input
-                  name={child.slug}
-                  type="checkbox"
-                  value={child.slug}
-                />
-                {child.name}
-              </li>
-            );
-          }))}
         </ul>
+        {category.children && (category.children.map((child) => {
+          return (
+            <ul key={child.pk} className="childs">
+              <li className="item">
+                <a href={child.url}>{child.name}</a>
+                <span>{child.productsCount}</span>
+              </li>
+              {child.children && (child.children.map((child) => {
+                return (
+                  <ul key={child.pk} className="childs">
+                    <li className="item">
+                      <a href={child.url}>{child.name}</a>
+                      <span>{child.productsCount}</span>
+                    </li>
+                  </ul>
+                );
+              }))}
+            </ul>
+          );
+        }))}
       </div>
     );
   }

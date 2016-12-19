@@ -40,8 +40,14 @@
 			}
 		}
 		.categories {
+			padding-bottom: $global-padding*2;;
 			ul {
 				list-style: none;
+				padding: 0 $global-padding;
+				margin-bottom: 0;
+				&.parents {
+					padding-left: 0;
+				}
 				li {
 					a {
 						font-size: 1.2rem;
