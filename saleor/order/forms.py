@@ -4,6 +4,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from .models import Payment
 
+from allauth.account.forms import SignupForm
+
 
 class PaymentMethodsForm(forms.Form):
     method = forms.ChoiceField(
@@ -35,3 +37,9 @@ class PaymentDeleteForm(forms.Form):
         payment = self.cleaned_data['payment']
         payment.status = 'rejected'
         payment.save()
+
+
+class PasswordForm(SignupForm):
+    def __init__(self, *args, **kwargs):
+        super(PasswordForm, self).__init__(*args, **kwargs)
+        self.fields['email'].widget = forms.HiddenInput()
