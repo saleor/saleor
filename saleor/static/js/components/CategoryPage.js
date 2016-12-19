@@ -177,7 +177,6 @@ export default Relay.createContainer(CategoryPage, {
         pk
         name
         url
-        productsCount
         ancestors {
           name
           pk
@@ -187,13 +186,11 @@ export default Relay.createContainer(CategoryPage, {
           name
           pk
           url
-          productsCount
           slug
           children {
             name
             pk
             url
-            productsCount
             slug
           }
         }

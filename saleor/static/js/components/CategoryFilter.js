@@ -19,7 +19,6 @@ export default class CategoryFilter extends Component {
           })}
           <li className="current">
             <a href={category.url}><strong>{category.name}</strong></a>
-            <span>{category.productsCount}</span>
           </li>
         </ul>
         {category.children && (category.children.map((child) => {
@@ -27,14 +26,12 @@ export default class CategoryFilter extends Component {
             <ul key={child.pk} className="childs">
               <li className="item">
                 <a href={child.url}>{child.name}</a>
-                <span>{child.productsCount}</span>
               </li>
               {child.children && (child.children.map((child) => {
                 return (
                   <ul key={child.pk} className="childs">
                     <li className="item">
                       <a href={child.url}>{child.name}</a>
-                      <span>{child.productsCount}</span>
                     </li>
                   </ul>
                 );
