@@ -6,6 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist, NON_FIELD_ERRORS
 from django.utils.translation import pgettext_lazy, ugettext_lazy
 from satchless.item import InsufficientStock
 from ..shipping.models import COUNTRY_CODE_CHOICES, ShippingMethodCountry
+from ..shipping.utils import get_shipment_options
 
 
 class QuantityField(forms.IntegerField):
@@ -121,5 +122,4 @@ class CountryForm(forms.Form):
 
     def get_shipment_options(self):
         code = self.cleaned_data['country']
-        return ShippingMethodCountry.objects.filter(
-            Q(country_code=code) | Q(country_code='')).order_by('price')
+        return get_shipment_options(code)
