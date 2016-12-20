@@ -84,7 +84,7 @@ class ProductClassForm(forms.ModelForm):
                 if query.exists():
                     msg = pgettext_lazy(
                         'Product Class Errors',
-                        'Some products based on this type have more than '
+                        'Some products of this type have more than '
                         'one variant.')
                     self.add_error('has_variants', msg)
         return data
