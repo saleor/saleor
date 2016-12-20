@@ -30,12 +30,12 @@
         <div class="col s12">
             {% if attributes %}
                 <ul class="collection list list--attributes">
-                    {% for attribute in attributes %}
+                    {% for pk, display, values in attributes %}
                         <li class="collection-item list-item list--attributes-item list-item--two-lines">
-                            <a class="list-item-name" href="{% url 'dashboard:product-attribute-update' pk=attribute.pk %}">{{ attribute.display }}</a>
+                            <a class="list-item-name" href="{% url 'dashboard:product-attribute-update' pk=pk %}">{{ display }}</a>
 
                             <p class="list-item-desc">
-                                    {% for value in attribute.values.all %}
+                                    {% for value in values %}
                                     {{ value }}{% if not forloop.last %}, {% endif %}
                                 {% endfor %}
                             </p>
