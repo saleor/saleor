@@ -27,7 +27,6 @@ export default class AttributeSelectionWidget extends Component {
                   onChange={this.handleChange}
                   type="radio"
                   value={value.pk}
-                  disabled={false}
                 />
                 {value.display}
               </label>

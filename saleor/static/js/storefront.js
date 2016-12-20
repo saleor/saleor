@@ -57,12 +57,14 @@ $(function() {
 });
 
 
+const productForm = $('#product-form');
 const variantPicker = document.getElementById('variant-picker');
 const variantPickerData = JSON.parse(variantPicker.dataset.variantPickerData);
 
 ReactDOM.render(
   <VariantPicker
     attributes={variantPickerData.attributes}
+    url={productForm.attr('action')}
     variants={variantPickerData.variants}
   />,
   variantPicker

@@ -44,6 +44,25 @@ def index(request, cart):
             'local_cart_total': local_cart_total})
 
 
+@decorators.get_or_create_db_cart()
+def add_to_cart(request, cart, product_id):
+    if not request.is_ajax():
+        return redirect('cart:index')
+    product = get_object_or_404(Product, pk=product_id)
+    form_class = get_form_class_for_product(product)
+    form = form_class(
+        data=request.POST or None, product=product, cart=cart,
+        discounts=request.discounts)
+    if form.is_valid():
+        form.save()
+        response = {'next': reverse('cart:index')}
+        status = 200
+    else:
+        response = {'error': form.errors}
+        status = 400
+    return JsonResponse(response, status=status)
+
+
 @decorators.get_or_empty_db_cart()
 def update(request, cart, variant_id):
     if not request.is_ajax():

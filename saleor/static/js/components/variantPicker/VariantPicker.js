@@ -1,27 +1,57 @@
 import _ from 'lodash';
+import $ from 'jquery';
 import classNames from 'classnames';
 import React, { Component, PropTypes } from 'react';
 
 import AttributeSelectionWidget from './AttributeSelectionWidget';
+import QuantityInput from './QuantityInput';
 
 
 export default class VariantPicker extends Component {
 
   static propTypes = {
     attributes: PropTypes.array.isRequired,
+    url: PropTypes.string.isRequired,
     variants: PropTypes.array.isRequired
   }
 
   constructor(props) {
     super(props);
     this.state = {
+      errors: {},
       quantity: 1,
       selection: {},
       variant: null
     };
   }
 
-  handleAddToCart = () => {}
+  handleAddToCart = () => {
+    const { quantity, variant } = this.state;
+    if (quantity > 0 && variant) {
+      $.ajax({
+        url: this.props.url,
+        method: 'post',
+        data: {
+          quantity: quantity,
+          variant: variant.id
+        },
+        success: (response) => {
+          const { next } = response;
+          if (next) {
+            window.location = next;
+          } else {
+            location.reload();
+          }
+        },
+        error: (response) => {
+          const { error } = response.responseJSON;
+          if (error) {
+            this.setState({ errors: response.responseJSON.error });
+          }
+        }
+      });
+    }
+  }
 
   handleAttributeChange = (attrId, valueId) => {
     this.setState({
@@ -38,12 +68,12 @@ export default class VariantPicker extends Component {
   }
 
   handleQuantityChange = (event) => {
-    this.setState({quantity: event.target.value});
+    this.setState({quantity: parseInt(event.target.value)});
   }
 
   render() {
     const { attributes } = this.props;
-    const { quantity, variant } = this.state;
+    const { quantity, variant, errors } = this.state;
 
     const addToCartBtnClasses = classNames({
       'btn btn-lg btn-block btn-primary': true,
@@ -59,19 +89,11 @@ export default class VariantPicker extends Component {
             key={i}
           />
         )}
-        <div className="form-group">
-          <label className="control-label" htmlFor="id_quantity">Quantity</label>
-          <input
-            className="form-control"
-            id="id_quantity"
-            max="999"
-            min="0"
-            name="quantity"
-            onChange={this.handleQuantityChange}
-            type="number"
-            value={quantity}
-          />
-        </div>
+        <QuantityInput
+          errors={errors.quantity}
+          handleChange={this.handleQuantityChange}
+          quantity={quantity}
+        />
         <div className="form-group">
           <button
             className={addToCartBtnClasses}
