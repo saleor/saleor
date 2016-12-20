@@ -33,31 +33,36 @@
           <ul class="side-nav" id="main-nav">
             <li class="nav-home"><a href="{% url 'dashboard:index' %}">{% trans "Home" %}</a></li>
             <li class="side-nav-section" id="first">
-              <p>Catalogue</p>
+              <p>{% trans "Catalogue" %}</p>
               <ul>
-                <li class="{% block menu_product_classes_class %}{% endblock %}"><a href="{% url 'dashboard:product-class-list' %}">{% trans "Product classes" %}</a></li>
                 <li class="{% block menu_products_class %}{% endblock %}"><a href="{% url 'dashboard:product-list' %}">{% trans "Products" %}</a></li>
-                <li class="{% block menu_attributes_class %}{% endblock %}"><a href="{% url 'dashboard:product-attributes' %}">{% trans "Attributes" %}</a></li>
                 <li class="{% block menu_categories_class %}{% endblock %}"><a href="{% url 'dashboard:category-list' %}">{% trans "Categories" %}</a></li>
                 <li class="{% block menu_location_class %}{% endblock %}"><a href="{% url 'dashboard:product-stock-location-list' %}">{% trans "Stock locations" %}</a></li>
               </ul>
             </li>
             <li class="side-nav-section">
-              <p>Discounts</p>
+              <p>{% trans "Discounts" %}</p>
               <ul>
                 <li class="{% block menu_sales_class %}{% endblock %}"><a href="{% url 'dashboard:sale-list' %}">{% trans "Sales" %}</a></li>
                 <li class="{% block menu_vouchers_class %}{% endblock %}"><a href="{% url 'dashboard:voucher-list' %}">{% trans "Vouchers" %}</a></li>
               </ul>
             </li>
             <li class="side-nav-section">
-              <p>Sales</p>
+              <p>{% trans "Sales" %}</p>
               <ul>
                 <li class="{% block menu_orders_class %}{% endblock %}"><a href="{% url 'dashboard:orders' %}">{% trans "Orders" %}</a></li>
                 <li class="{% block menu_customers_class %}{% endblock %}"><a href="{% url 'dashboard:customers' %}">{% trans "Customers" %}</a></li>
                 <li class="{% block menu_payments_class %}{% endblock %}"><a href="{% url 'dashboard:payments' %}">{% trans "Payments" %}</a></li>
               </ul>
             </li>
-            <li class="{% block menu_delivery_class %}{% endblock %}"><a href="{% url 'dashboard:shipping-methods' %}">{% trans "Shipping methods" %}</a></li>
+            <li class="side-nav-section">
+              <p>{% trans "Configuration" %}</p>
+              <ul>
+                <li class="{% block menu_product_classes_class %}{% endblock %}"><a href="{% url 'dashboard:product-class-list' %}">{% trans "Product classes" %}</a></li>
+                <li class="{% block menu_attributes_class %}{% endblock %}"><a href="{% url 'dashboard:product-attributes' %}">{% trans "Attributes" %}</a></li>
+                <li class="{% block menu_delivery_class %}{% endblock %}"><a href="{% url 'dashboard:shipping-methods' %}">{% trans "Shipping methods" %}</a></li>
+              </ul>
+            </li>  
           </ul>
           <ul>
             <li class="menu-toggle">

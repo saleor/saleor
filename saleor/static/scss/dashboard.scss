@@ -94,8 +94,9 @@ header {
         margin-left: $gutter-width;
         font-size: 85%;
       }
-      
-      border-bottom: 1px solid map-get($grey, lighten-2);
+      &:not(:last-of-type) {
+        border-bottom: 1px solid map-get($grey, lighten-2);
+      }
       padding-top: $gutter-width / 2;
       &#first{
         border-top: 1px solid map-get($grey, lighten-2);
