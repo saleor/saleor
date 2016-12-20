@@ -48,7 +48,7 @@ class Command(BaseCommand):
         for msg in create_shipping_methods():
             self.stdout.write(msg)
         if options['real_data']:
-            create_items_by_schema(REAL_DATA, self.placeholders_dir, 40, create_images)
+            create_items_by_schema(REAL_DATA, self.placeholders_dir, 10, create_images, stdout=self.stdout)
         else:
             for msg in create_items(self.placeholders_dir, 40, create_images):
                 self.stdout.write(msg)

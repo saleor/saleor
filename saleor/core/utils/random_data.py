@@ -4,6 +4,9 @@ import os
 import random
 import unicodedata
 
+from collections import defaultdict
+
+import itertools
 from django.conf import settings
 from django.core.files import File
 from django.template.defaultfilters import slugify
@@ -33,7 +36,7 @@ REAL_DATA = {
         'variant_attributes': {
             'Size': ['XS', 'S', 'M', 'L', 'XL', 'XXL']
         },
-        'images_dir': 't-shirts/'
+        'images_dir': 't-shirts/',
     },
     'Mugs': {
         'product_attributes': {},
@@ -48,7 +51,7 @@ REAL_DATA = {
             'Box Size': ['100g', '250g', '500g', '1kg']
         },
         'different_variant_prices': True,
-        'images_dir': 'coffee/'
+        'images_dir': 'coffee/',
     }
 }
 
@@ -96,15 +99,43 @@ def set_product_attributes(product, product_class):
 
 def set_variant_attributes(variant, product_class):
     attr_dict = {}
+    existing_variants = variant.product.variants.values_list(
+        'attributes', flat=True)
+    existing_variant_attributes = defaultdict(list)
+    for variant_attrs in existing_variants:
+        for attr_id, value_id in variant_attrs.items():
+            existing_variant_attributes[attr_id].append(value_id)
+
     for product_attribute in product_class.variant_attributes.all():
-        value = random.choice(product_attribute.values.all())
+        available_values = product_attribute.values.exclude(
+            pk__in=[int(pk) for pk in existing_variant_attributes[str(product_attribute.pk)]])
+        if not available_values:
+            return
+        value = random.choice(available_values)
         attr_dict[str(product_attribute.pk)] = str(value.pk)
     variant.attributes = attr_dict
     variant.save(update_fields=['attributes'])
 
 
+def get_variant_combinations(product):
+    # Returns all possible variant combinations
+    # For example: product class has two variant attributes: Size, Color
+    # Size has available values: [S, M], Color has values [Red, Green]
+    # All combinations will be generated (S, Red), (S, Green), (M, Red),
+    # (M, Green)
+    # Output is list of dicts, where key is product attribute id and value is
+    # attribute value id. Casted to string.
+    variant_attr_map = {attr: attr.values.all()
+                        for attr in product.product_class.variant_attributes.all()}
+    all_combinations = itertools.product(*variant_attr_map.values())
+    return [{str(attr_value.attribute.pk): str(attr_value.pk)}
+            for combination in all_combinations
+            for attr_value in combination]
+
+
 def create_items_by_class(product_class, schema,
-                          placeholder_dir, how_many=10, create_images=True):
+                          placeholder_dir, how_many=10, create_images=True,
+                          stdout=None):
     default_category = get_or_create_category('Default')
 
     for dummy in range(how_many):
@@ -116,18 +147,22 @@ def create_items_by_class(product_class, schema,
                 placeholder_dir, schema['images_dir'])
             create_product_images(
                 product, random.randrange(1, 5), class_placeholders)
-        num_variants = random.randrange(3, 10)
-        for _ in range(num_variants):
-            variant = create_variant(product)
-            set_variant_attributes(variant, product_class)
-        print('Product: %s (%s), %s variant(s)' % (product, product_class.name, num_variants))
+        variant_combinations = get_variant_combinations(product)
+        for attr_combination in variant_combinations:
+            create_variant(product, attributes=attr_combination)
+        if not variant_combinations:
+            # Create min one variant for products without variant level attrs
+            create_variant(product)
+        if stdout is not None:
+            stdout.write('Product: %s (%s), %s variant(s)' % (
+                product, product_class.name, len(variant_combinations) or 1))
 
 
-def create_items_by_schema(schema, placeholder_dir, how_many, create_images):
+def create_items_by_schema(schema, placeholder_dir, how_many, create_images, stdout):
     for product_class, class_schema in create_real_product_classes(schema):
         create_items_by_class(
             product_class, class_schema, placeholder_dir,
-            how_many=how_many, create_images=create_images)
+            how_many=how_many, create_images=create_images, stdout=stdout)
 
 
 class SaleorProvider(BaseProvider):
