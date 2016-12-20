@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 import gzip
 import csv
-from os import path
 
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -72,15 +71,26 @@ def item_condition(item):
     return 'new'
 
 
-def item_brand(item, brand_attribute_pk):
+def item_brand(item, attributes_dict):
     """
     This field is required.
     Read more:
     https://support.google.com/merchants/answer/6324351?hl=en&ref_topic=6324338
     """
-    brand = item.get_attribute(brand_attribute_pk)
-    if brand is None:
-        brand = item.product.get_attribute(brand_attribute_pk)
+    brand = None
+    brand_attribute_pk = attributes_dict.get('brand')
+    publisher_attribute_pk = attributes_dict.get('publisher')
+
+    if brand_attribute_pk:
+        brand = item.get_attribute(brand_attribute_pk)
+        if brand is None:
+            brand = item.product.get_attribute(brand_attribute_pk)
+
+    if brand is None and publisher_attribute_pk is not None:
+        brand = item.get_attribute(publisher_attribute_pk)
+        if brand is None:
+            brand = item.product.get_attribute(publisher_attribute_pk)
+
     return brand
 
 
@@ -171,11 +181,9 @@ def item_attributes(item, categories, category_paths, current_site,
     if tax:
         product_data['tax'] = tax
 
-    brand_attribute_pk = attributes_dict.get('brand')
-    if brand_attribute_pk:
-        brand = item_brand(item, brand_attribute_pk)
-        if brand:
-            product_data['brand'] = brand
+    brand = item_brand(item, attributes_dict)
+    if brand:
+        product_data['brand'] = brand
 
     return product_data
 
