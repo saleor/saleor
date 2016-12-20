@@ -5,7 +5,8 @@ export default class AttributeSelectionWidget extends Component {
 
   static propTypes = {
     attribute: PropTypes.object.isRequired,
-    handleChange: PropTypes.func.isRequired
+    handleChange: PropTypes.func.isRequired,
+    selected: PropTypes.string.isRequired
   };
 
   handleChange = (event) => {
@@ -14,7 +15,7 @@ export default class AttributeSelectionWidget extends Component {
   }
 
   render() {
-    const { display, pk, values } = this.props.attribute;
+    const { attribute: { display, pk, values }, selected } = this.props;
     return (
       <div className="form-group">
         <label className="control-label">{display}</label>
@@ -25,6 +26,7 @@ export default class AttributeSelectionWidget extends Component {
                 <input
                   name={pk}
                   onChange={this.handleChange}
+                  defaultChecked={selected === value.pk.toString()}
                   type="radio"
                   value={value.pk}
                 />

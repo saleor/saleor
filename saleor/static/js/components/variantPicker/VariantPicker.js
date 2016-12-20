@@ -17,11 +17,14 @@ export default class VariantPicker extends Component {
 
   constructor(props) {
     super(props);
+    const { variants } = this.props;
+    const matchedVariant = variants.length ? variants[0] : null;
+    const selection = matchedVariant ? matchedVariant.attributes : {};
     this.state = {
       errors: {},
       quantity: 1,
-      selection: {},
-      variant: null
+      variant: matchedVariant,
+      selection: selection
     };
   }
 
@@ -55,15 +58,9 @@ export default class VariantPicker extends Component {
 
   handleAttributeChange = (attrId, valueId) => {
     this.setState({
-      selection: Object.assign(this.state.selection, { [attrId]: valueId })
+      selection: Object.assign({}, this.state.selection, { [attrId]: valueId })
     }, () => {
-      let matchedVariant = null;
-      this.props.variants.forEach(variant => {
-        if (_.isEqual(this.state.selection, variant.attributes)) {
-          matchedVariant = variant;
-        }
-      });
-      this.setState({variant: matchedVariant});
+      this.matchVariantFromSelection();
     });
   }
 
@@ -71,9 +68,19 @@ export default class VariantPicker extends Component {
     this.setState({quantity: parseInt(event.target.value)});
   }
 
+  matchVariantFromSelection() {
+    let matchedVariant = null;
+    this.props.variants.forEach(variant => {
+      if (_.isEqual(this.state.selection, variant.attributes)) {
+        matchedVariant = variant;
+      }
+    });
+    this.setState({ variant: matchedVariant });
+  }
+
   render() {
     const { attributes } = this.props;
-    const { quantity, variant, errors } = this.state;
+    const { errors, selection, quantity, variant } = this.state;
 
     const addToCartBtnClasses = classNames({
       'btn btn-lg btn-block btn-primary': true,
@@ -87,6 +94,7 @@ export default class VariantPicker extends Component {
             attribute={attribute}
             handleChange={this.handleAttributeChange}
             key={i}
+            selected={selection[attribute.pk]}
           />
         )}
         <QuantityInput
