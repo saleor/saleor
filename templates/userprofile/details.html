@@ -4,6 +4,7 @@
 {% load gross from prices_i18n %}
 {% load discount_amount_for from prices %}
 {% load status %}
+{% load bootstrap_form from bootstrap3 %}
 
 {% block title %}{% trans "Your profile" %} — {{ block.super }}{% endblock %}
 
@@ -19,66 +20,24 @@
     <div class="row">
       <div class="col-lg-10 offset-lg-1 userprofile__user">
         <h2 class="float-xs-left">{{ user }}</h2>
-        <a href="{% url 'account_change_password' %}"><img src="{% static 'img/icon_edit.svg' %}"></a>
       </div>
     </div>
     <div class="userprofile__nav container">
       <ul class="nav nav-tabs col-lg-10 offset-lg-1" role="tablist">
         <li class="nav-item">
-          <a class="nav-link active" data-toggle="tab" href="#addresses" role="tab"><h3>{% trans "Addresses" %}</h3></a>
+          <a class="nav-link active" data-toggle="tab" href="#orders" role="tab"><h3>{% trans "Orders" %}</h3></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" data-toggle="tab" href="#orders" role="tab"><h3>{% trans "Last orders" %}</h3></a>
+          <a class="nav-link " data-toggle="tab" href="#account" role="tab"><h3>{% trans "Account & Password" %}</h3></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-toggle="tab" href="#addresses" role="tab"><h3>{% trans "Addresses" %}</h3></a>
         </li>
       </ul>
     </div>
     <div class="row">
     <div class="tab-content col-lg-10 offset-lg-1">
-      <div class="tab-pane active" id="addresses" role="tabpanel">
-        {% for address in addresses %}
-          <div class="row userprofile__address-row">
-            <div class="col-xs-6">
-              {% include "userprofile/snippets/address-short.html" %}
-            </div>
-            <div class="col-xs-3 col-md-4">
-              <div class="row">
-                <div class="col-md-6">
-                  {% if user.default_billing_address == address %}
-                  <span>{% trans "Billing" %}</span>
-                  {% else %}
-                  <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="billing" %}" class="form-inline form-horizontal" novalidate>
-                      {% csrf_token %}
-                      <button type="submit" class="btn btn-default btn-sm">{% trans "Billing" %}</button>
-                  </form>
-                  {% endif %}
-                </div>
-                <div class="col-md-6">
-                  {% if user.default_shipping_address == address %}
-                  <span>{% trans "Shipping" %}</span>
-                  {% else %}
-                  <form method="post" action="{% url "profile:address-make-default" pk=address.pk purpose="shipping" %}" class="form-inline form-horizontal" novalidate>
-                      {% csrf_token %}
-                      <button type="submit" class="btn btn-default btn-sm">{% trans "Shipping" %}</button>
-                  </form>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-            <div class="col-md-2 col-xs-4">
-              <a data-toggle="modal" data-target=".modal-address-delete"><img src="{% static 'img/icon_delete.svg' %}"></a>
-              <a href="{% url 'profile:address-edit' pk=address.pk %}"><img src="{% static 'img/icon_edit.svg' %}"></a>
-            </div>
-          </div>
-          {% include "userprofile/address-delete.html" with pk=address.pk %}
-        {% endfor %}
-        {% if addresses|length == 0 %}
-          <div class="userprofile__address-empty">
-            <p>{% trans "Add shipping and billing addresses for better shopping experience." %}</p>
-          </div>
-        {% endif %}
-        <a href="{% url 'profile:address-create' %}" class="btn primary">{% trans "Add new address" %}</a>
-      </div>
-      <div class="tab-pane" id="orders" role="tabpanel">
+      <div class="tab-pane active" id="orders" role="tabpanel">
         <div id="accordion" role="tablist" aria-multiselectable="true">
           {% for order in orders %}
           <div class="userprofile__orders">
@@ -104,6 +63,27 @@
           </div>
           {% endfor %}
         </div>
+      </div>
+      <div class="tab-pane" id="account" role="tabpanel">
+        
+      </div>
+      <div class="tab-pane" id="addresses" role="tabpanel">
+        {% for address in addresses %}
+          <div class="row userprofile__address-row">
+            <div class="col-xs-6">
+              {% include "userprofile/snippets/address-short.html" %}
+            </div>
+            <div class="col-md-2 col-xs-4">
+              <a data-toggle="modal" data-target=".modal-address-delete"><img src="{% static 'img/icon_delete.svg' %}"></a>
+            </div>
+          </div>
+          {% include "userprofile/address-delete.html" with pk=address.pk %}
+        {% endfor %}
+        {% if addresses|length == 0 %}
+          <div class="userprofile__address-empty">
+            <p></p>
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>
