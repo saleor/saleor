@@ -1,27 +1,29 @@
-db:
-  image: postgres
-  environment:
-    - POSTGRES_USER=saleor
-    - POSTGRES_PASSWORD=saleor
-  ports:
-    - '5432:5432'
-redis:
-  image: redis
-  ports:
-    - '6379:6379'
-web:
-  build: .
-  command: python manage.py runserver 0.0.0.0:8000
-  environment:
-    - DATABASE_URL=postgres://saleor:saleor@db/saleor
-    - DEFAULT_FROM_EMAIL=noreply@example.com
-    - OPENEXCHANGERATES_API_KEY
-    - REDIS_URL=redis://redis:6379/0
-    - SECRET_KEY=changeme
-  links:
-    - db
-    - redis
-  ports:
-    - '8000:8000'
-  volumes:
-    - .:/app:Z
+version: '2'
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=saleor
+      - POSTGRES_PASSWORD=saleor
+    ports:
+      - '5432:5432'
+  redis:
+    image: redis
+    ports:
+      - '6379:6379'
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      - DATABASE_URL=postgres://saleor:saleor@db/saleor
+      - DEFAULT_FROM_EMAIL=noreply@example.com
+      - OPENEXCHANGERATES_API_KEY
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=changeme
+    depends_on:
+      - db
+      - redis
+    ports:
+      - '8000:8000'
+    volumes:
+      - .:/app:Z
