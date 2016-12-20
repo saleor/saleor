@@ -120,8 +120,10 @@ def create_password(request, token):
     order = get_object_or_404(Order, token=token)
     email = order.user_email
     form_data = request.POST.copy()
-    form_data.update({'email': email})
+    if form_data:
+        form_data.update({'email': email})
     form = PasswordForm(form_data or None)
+
     if form.is_valid():
         with transaction.atomic():
             user = form.save(request)
