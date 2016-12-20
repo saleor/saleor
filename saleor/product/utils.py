@@ -3,7 +3,7 @@ from collections import namedtuple
 from ..cart.decorators import get_cart_from_request
 from ..core.utils import to_local_currency
 from .forms import get_form_class_for_product
-from .models import Product, ProductAttribute
+from .models import Product
 
 
 def products_visible_to_user(user):
@@ -92,8 +92,7 @@ def products_for_cart(user):
     return products
 
 
-def get_variant_picker_data(variants):
-    attributes = ProductAttribute.objects.prefetch_related('values')
+def get_variant_picker_data(variants, attributes):
     data = {'attributes': [], 'variants': []}
     for attribute in attributes:
         data['attributes'].append({
