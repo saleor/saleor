@@ -470,7 +470,6 @@ class ElasticsearchSearchResults(BaseSearchResults):
             index=self.backend.get_index_for_model(self.query.queryset.model).name,
             body=self._get_es_body(for_count=True),
         )['count']
-
         # Add limits
         hit_count -= self.start
         if self.stop is not None:

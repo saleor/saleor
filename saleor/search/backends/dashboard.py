@@ -1,4 +1,4 @@
-from . import elasticsearch2
+from . import elasticsearch5
 from .base import BaseSearchQuery
 from ..index import get_indexed_models
 
@@ -64,7 +64,7 @@ class DashboardSearchQuery(BaseSearchQuery):
         return self.get_inner_query()
 
 
-class DashboardSearchResults(elasticsearch2.Elasticsearch2SearchResults):
+class DashboardSearchResults(elasticsearch5.Elasticsearch5SearchResults):
 
     def _do_search(self):
         # Params for elasticsearch query
@@ -118,8 +118,20 @@ class DashboardSearchResults(elasticsearch2.Elasticsearch2SearchResults):
 
         return body
 
+    def _do_count(self):
+        # Get count
+        hit_count = self.backend.es.count(
+            body=self._get_es_body(for_count=True),
+        )['count']
+        # Add limits
+        hit_count -= self.start
+        if self.stop is not None:
+            hit_count = min(hit_count, self.stop - self.start)
 
-class DashboardMultiTypeSearchBackend(elasticsearch2.Elasticsearch2SearchBackend):
+        return max(hit_count, 0)
+
+
+class DashboardMultiTypeSearchBackend(elasticsearch5.Elasticsearch5SearchBackend):
     results_class = DashboardSearchResults
     query_class = DashboardSearchQuery
 
