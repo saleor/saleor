@@ -292,7 +292,7 @@ class StockManager(models.Manager):
         stock.save(update_fields=['quantity_allocated'])
 
     def decrease_stock(self, stock, quantity):
-        stock.quantity = F('quantity_allocated') - quantity
+        stock.quantity = F('quantity') - quantity
         stock.quantity_allocated = F('quantity_allocated') - quantity
         stock.save(update_fields=['quantity', 'quantity_allocated'])
 

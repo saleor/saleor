@@ -22,6 +22,28 @@ def test_stock_allocator(product_in_stock):
     assert stock.quantity_allocated == 1
 
 
+def test_decrease_stock(product_in_stock):
+    stock = product_in_stock.variants.first().stock.first()
+    stock.quantity = 100
+    stock.quantity_allocated = 80
+    stock.save()
+    models.Stock.objects.decrease_stock(stock, 50)
+    stock.refresh_from_db()
+    assert stock.quantity == 50
+    assert stock.quantity_allocated == 30
+
+
+def test_deallocate_stock(product_in_stock):
+    stock = product_in_stock.variants.first().stock.first()
+    stock.quantity = 100
+    stock.quantity_allocated = 80
+    stock.save()
+    models.Stock.objects.deallocate_stock(stock, 50)
+    stock.refresh_from_db()
+    assert stock.quantity == 100
+    assert stock.quantity_allocated == 30
+
+
 def test_product_page_redirects_to_correct_slug(client, product_in_stock):
     uri = product_in_stock.get_absolute_url()
     uri = uri.replace(product_in_stock.get_slug(), 'spanish-inquisition')
