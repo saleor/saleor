@@ -123,6 +123,9 @@ def create_password(request, token):
     form_data.update({'email': email})
     form = PasswordForm(form_data or None)
     if form.is_valid():
-        user = form.save(request)
+        with transaction.atomic():
+            user = form.save(request)
+            order.user = user
+            order.save(update_fields=['user'])
     ctx = {'form': form, 'email': email}
     return TemplateResponse(request, 'order/create_password.html', ctx)
