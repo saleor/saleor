@@ -115,7 +115,7 @@ def summary(request, cart):
 
 
 def assign_cart_and_redirect_view(request):
-    decorators.find_and_assign_cart(request)
+    decorators.find_and_assign_anonymous_cart(request)
     redirect_to = get_request_param(request, "next")
     if redirect_to is None:
         redirect_to = '/'

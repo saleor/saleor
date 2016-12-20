@@ -11,7 +11,7 @@ from mock import MagicMock, Mock
 from satchless.item import InsufficientStock
 
 from saleor.cart import forms, utils
-from saleor.cart.decorators import (find_and_assign_cart,
+from saleor.cart.decorators import (find_and_assign_anonymous_cart,
                                     get_anonymous_cart_from_token,
                                     get_cart_from_request,
                                     get_or_create_anonymous_cart_from_token,
@@ -212,22 +212,24 @@ def test_get_cart_from_request(monkeypatch, customer_user,
     assert not Cart.objects.filter(token=returned_cart.token).exists()
 
 
-def test_find_and_assign_cart(opened_anonymous_cart, cancelled_anonymous_cart,
-                              opened_user_cart, cancelled_user_cart,
-                              customer_user, cart_request_factory):
+def test_find_and_assign_anonymous_cart(opened_anonymous_cart, 
+                                        cancelled_anonymous_cart,
+                                        opened_user_cart, cancelled_user_cart,
+                                        customer_user, cart_request_factory):
     request = cart_request_factory(user=customer_user, token=None)
     anonymous_carts = Cart.objects.filter(user=None).count()
-    find_and_assign_cart(request)
+    find_and_assign_anonymous_cart(request)
     assert Cart.objects.filter(user=None).count() == anonymous_carts
 
 
-def test_find_and_assign_cart_and_close_opened(customer_user, opened_user_cart,
-                                               opened_anonymous_cart,
-                                               cart_request_factory):
+def test_find_and_assign_anonymous_cart_and_close_opened(customer_user,
+                                                         opened_user_cart,
+                                                         opened_anonymous_cart,
+                                                         cart_request_factory):
     token = opened_anonymous_cart.token
     token_user = opened_user_cart.token
     request = cart_request_factory(user=customer_user, token=token)
-    find_and_assign_cart(request)
+    find_and_assign_anonymous_cart(request)
     token_cart = Cart.objects.filter(token=token).first()
     user_cart = Cart.objects.filter(token=token_user).first()
     assert token_cart.user.pk == customer_user.pk
