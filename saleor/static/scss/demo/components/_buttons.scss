@@ -26,6 +26,7 @@
     padding: $global-padding $global-padding * 2;
     font-size: $font-size-h5;
     background-color: transparent;
+    color: $body-color;
     &:hover {
       border-color: $body-color;
       color: $body-color;
