@@ -126,5 +126,5 @@ def create_password(request, token):
         if not user.email == email:
             user.email = email
             user.save()
-    ctx = {'form': form}
+    ctx = {'form': form, 'email': email}
     return TemplateResponse(request, 'order/create_password.html', ctx)
