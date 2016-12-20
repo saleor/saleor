@@ -9,6 +9,7 @@ from django.template.response import TemplateResponse
 from . import decorators
 from ..core.utils import to_local_currency, get_user_shipping_country
 from ..product.models import ProductVariant
+from ..shipping.utils import get_shipment_options
 from .forms import ReplaceCartLineForm, CountryForm
 from .models import Cart
 from .utils import check_product_availability_and_warn
@@ -38,6 +39,7 @@ def index(request, cart):
 
     default_country = get_user_shipping_country(request)
     country_form = CountryForm(initial={'country': default_country})
+    default_country_options = get_shipment_options(default_country)
 
     return TemplateResponse(
         request, 'cart/index.html',
@@ -45,7 +47,8 @@ def index(request, cart):
             'cart_lines': cart_lines,
             'cart_total': cart_total,
             'local_cart_total': local_cart_total,
-            'country_form': country_form})
+            'country_form': country_form,
+            'default_country_options': default_country_options})
 
 
 @decorators.get_or_empty_db_cart()
