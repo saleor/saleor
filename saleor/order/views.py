@@ -1,7 +1,7 @@
 import logging
 
 from django.conf import settings
-from django.contrib import messages
+from django.contrib import messages, auth
 from django.db import transaction
 from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
@@ -125,10 +125,13 @@ def create_password(request, token):
     form = PasswordForm(form_data or None)
 
     if form.is_valid():
-        with transaction.atomic():
-            user = form.save(request)
-            order.user = user
-            order.save(update_fields=['user'])
-            return redirect('order:payment', token=token)
+        user = form.save(request)
+        order.user = user
+        order.save(update_fields=['user'])
+        password = form_data.get('password1')
+        auth_user = auth.authenticate(email=email, password=password)
+        if auth_user is not None:
+            auth.login(request, auth_user)
+        return redirect('order:payment', token=token)
     ctx = {'form': form, 'email': email}
     return TemplateResponse(request, 'order/create_password.html', ctx)
