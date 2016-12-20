@@ -119,12 +119,10 @@ def create_password(request, token):
         return redirect('order:details', kwargs={'token': token})
     order = get_object_or_404(Order, token=token)
     email = order.user_email
-    form_data = request.POST or None
-    form = PasswordForm(form_data, initial={'email': email})
+    form_data = request.POST.copy()
+    form_data.update({'email': email})
+    form = PasswordForm(form_data or None)
     if form.is_valid():
         user = form.save(request)
-        if not user.email == email:
-            user.email = email
-            user.save()
     ctx = {'form': form, 'email': email}
     return TemplateResponse(request, 'order/create_password.html', ctx)
