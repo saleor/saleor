@@ -1,6 +1,8 @@
+from collections import defaultdict
+
 from . import elasticsearch5
-from .base import BaseSearchQuery
 from ..index import get_indexed_models
+from .base import BaseSearchQuery
 
 CONTENT_TYPES_MAP = {
     model.indexed_get_content_type(): model
@@ -80,7 +82,6 @@ class DashboardSearchResults(elasticsearch5.Elasticsearch5SearchResults):
             params['size'] = self.stop - self.start
         # Send to Elasticsearch
         hits = self.backend.es.search(**params)
-        from collections import defaultdict
         search_hits = defaultdict(list)
         scores = {}
         for hit in hits['hits']['hits']:
