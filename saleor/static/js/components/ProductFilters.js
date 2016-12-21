@@ -6,11 +6,18 @@ import AttributeInput from './AttributeInput';
 
 class ProductFilters extends Component {
 
+  constructor(props) {
+    super(props);
+    this.state = {
+      visibility: {}
+    };
+  }
+
   static propTypes = {
     attributes: PropTypes.array,
     checkedAttributes: PropTypes.array,
     onFilterChanged: PropTypes.func.isRequired
-  };
+  }
 
   getFilterKey(attributeName, valueSlug) {
     return `${attributeName}:${valueSlug}`;
@@ -18,17 +25,37 @@ class ProductFilters extends Component {
 
   onClick = (attributeName, valueSlug) => {
     this.props.onFilterChanged(this.getFilterKey(attributeName, valueSlug));
-  };
+  }
+
+  changeVisibility = (target) => {
+    this.setState({
+      visibility: Object.assign(this.state.visibility, {[target] : !this.state.visibility[target]})
+    });
+  }
+
+  componentWillMount() {
+    this.props.attributes.map((attribute) => {
+      const attrValue = `${attribute.name}`;
+      this.setState({
+        visibility: Object.assign(this.state.visibility, {[attrValue] : true})
+      });
+    })
+  }
 
   render() {
     const { attributes, checkedAttributes } = this.props;
+    const { visibility } = this.state;
     return (
       <div className="attributes">
         {attributes && (attributes.map((attribute) => {
           return (
-            <div key={attribute.id} className={attribute.name}>
-              <ul>
-                <h3>{attribute.display}</h3>
+            <div key={attribute.id}>
+              <h3 className={attribute.name}>
+                {attribute.display}
+                <i className={visibility[attribute.name] ? ('fa fa-chevron-up pull-right') : ('fa fa-chevron-down pull-right')} aria-hidden="true" onClick={() => this.changeVisibility(attribute.name)}></i>
+              </h3>
+              {visibility[attribute.name] ? (
+              <ul id={attribute.name}>
                 {attribute.values.map((value) => {
                   const key = this.getFilterKey(attribute.name, value.slug);
                   return (
@@ -43,6 +70,7 @@ class ProductFilters extends Component {
                   );
                 })}
               </ul>
+              ) : (null)}
             </div>
           );
         }))}

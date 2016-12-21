@@ -1,16 +1,29 @@
 #category-page {
 	h2 {
+		font-size: 1rem;
+		color: $gray;
 		font-weight: bold;
-		padding-bottom: $global-padding;
+		padding-bottom: $global-padding/2;
 	}
 	.product-filters {
+		.hide {
+			display: none;
+		}
 		h3 {
-			padding-bottom: $global-padding;
+			background: $light-gray;
+			padding: $global-padding;
+			font-size: 1rem;
+			font-weight: bold;
+			i {
+				cursor: pointer;
+			}
 		}
 		ul {
 			padding: $global-padding/2 0;
 			list-style: none;
+			margin-bottom: 0;
 			li {
+				padding-left: $global-padding;
 				input {
 					margin-right: $global-margin;
 				}
@@ -27,6 +40,12 @@
 			}
 		}
 		.price-range {
+			h3 {
+				margin-bottom: $global-margin;
+				span {
+					margin: 0;
+				}
+			}
 			input {
 				width: 7.6rem;
 				display: inline-block;
