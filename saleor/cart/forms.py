@@ -119,7 +119,7 @@ class ReplaceCartLineForm(AddToCartForm):
 class CountryForm(forms.Form):
 
     country = forms.ChoiceField(
-        choices=sorted(COUNTRY_CODE_CHOICES, key=lambda t: t[1]), label='')
+        choices=COUNTRY_CODE_CHOICES, label='')
 
     def get_shipment_options(self):
         code = self.cleaned_data['country']
