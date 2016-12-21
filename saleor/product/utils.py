@@ -3,6 +3,7 @@ from collections import namedtuple
 from ..cart.decorators import get_cart_from_request
 from ..core.utils import to_local_currency
 from .forms import get_form_class_for_product
+from .models.utils import get_attributes_display_map
 from .models import Product
 
 
@@ -112,3 +113,12 @@ def get_variant_picker_data(variants, attributes):
         }
         data['variants'].append(variant_data)
     return data
+
+
+def get_product_attributes_data(product):
+    attributes = product.product_class.product_attributes.prefetch_related(
+        'values')
+    attributes_map = {attribute.pk: attribute for attribute in attributes}
+    values_map = get_attributes_display_map(product, attributes)
+    return {attributes_map.get(attr_pk): value_obj
+            for (attr_pk, value_obj) in values_map.items()}

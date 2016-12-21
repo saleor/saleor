@@ -62,6 +62,12 @@
 
             {% if is_visible and product.is_in_stock %}
                 {% block orderform %}
+                    {% for attribute, value in product_attributes.items %}
+                        <div className="form-group">
+                            <label className="control-label">{{ attribute }}</label>
+                            <p>{{ value }}</p>
+                        </div>
+                    {% endfor %}
                     <div id="variant-picker" data-variant-picker-data="{{ variant_picker_data }}"></div>
                     <form id="product-form" role="form" class="product-form form-vertical" method="post"
                      action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}" novalidate>

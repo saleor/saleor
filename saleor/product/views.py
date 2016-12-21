@@ -15,7 +15,8 @@ from .models import Category
 from .utils import (products_with_details, products_for_cart,
                     products_with_availability,
                     handle_cart_form, get_availability,
-                    get_product_images, get_variant_picker_data)
+                    get_product_images, get_variant_picker_data,
+                    get_product_attributes_data)
 
 
 def product_details(request, slug, product_id, form=None):
@@ -66,13 +67,15 @@ def product_details(request, slug, product_id, form=None):
     variant_picker_data = get_variant_picker_data(
         product.variants.all(),
         product.product_class.variant_attributes.prefetch_related('values'))
+    product_attributes = get_product_attributes_data(product)
     return TemplateResponse(
         request, templates,
         {'is_visible': is_visible,
          'form': form,
          'availability': availability,
-         'product_images': product_images,
          'product': product,
+         'product_attributes': product_attributes,
+         'product_images': product_images,
          'variant_picker_data': json.dumps(variant_picker_data)})
 
 
