@@ -5,8 +5,8 @@
 {% load gross from prices_i18n %}
 {% load markdown from markdown %}
 {% load price_range from price_ranges %}
-{% load product_first_image get_thumbnail from product_images %}
 {% load static from staticfiles %}
+{% load get_thumbnail from product_images %}
 
 {% block title %}{{ product }} — {{ block.super }}{% endblock %}
 
@@ -23,57 +23,81 @@
 {% endblock breadcrumb %}
 
 {% block content %}
-{% if not is_visible %}
-    <div class="alert alert-warning" role="alert">
-        {% blocktrans with date=product.available_on|date %}<strong>Warning!</strong> You are previewing a product that will become visible on <strong>{{ date }}</strong>.{% endblocktrans %}
-    </div>
-{% endif %}
-<div itemscope itemtype="http://schema.org/Product">
-    <div class="row">
-        <div class="col-sm-6 col-sm-push-6">
-            <h1 itemprop="name">
-                {{ product }}
-            </h1>
-
-            {% if availability.available %}
-                <p class="lead" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
-                    <span class="price">{% price_range availability.price_range %}</span>
-                    {% if availability.discount %}
-                        <small class="price undiscounted text-muted">{% gross availability.undiscounted_price_range.min_price html=True %}</small>
-                    {% endif %}
-                    {% if availability.price_range_local_currency %}
-                        <br>
-                        <small class="text-info">
-                            &asymp;
-                            {% gross availability.price_range_local_currency.min_price html=True %}
-                        </small>
-                    {% endif %}
-                </p>
-            {% endif %}
-            {% if user.is_staff %}
-                <p>
-                    <a href="{% url "dashboard:product-update" pk=product.pk %}">{% trans "Edit in dashboard" %}</a>
-                </p>
-            {% endif %}
-            <hr>
-
-            <div class="visible-xs">
-                <img class="img-responsive" src="{%  product_first_image product method="crop" size="680x680" %}" alt="">
-                <hr>
+    {% if not is_visible %}
+        <div class="alert alert-warning" role="alert">
+            {% blocktrans with date=product.available_on|date %}<strong>Warning!</strong> You are previewing a product that will become visible on <strong>{{ date }}</strong>.{% endblocktrans %}
+        </div>
+    {% endif %}
+    <div itemscope itemtype="http://schema.org/Product">
+        <div class="row product">
+            <div class="col-xs-12 col-md-5 float-md-right text-xs-center text-md-left">
+              <h1 itemprop="name" class="product__info__name">
+                  {{ product }}
+              </h1>
+              {% if availability.available %}
+                  <h2 itemprop="offers" class="product__info__price" itemscope itemtype="http://schema.org/Offer">
+                      <span>{% price_range availability.price_range %}</span>
+                      {% if availability.discount %}
+                          <small class="product__info__price__undiscounted">{% gross availability.price_range_undiscounted.min_price html=True %}</small>
+                      {% endif %}
+                      {% if availability.price_range_local_currency %}
+                          <br>
+                          <small>
+                              &asymp;
+                              {% gross availability.price_range_local_currency.min_price html=True %}
+                          </small>
+                      {% endif %}
+                  </h2>
+              {% endif %}
+            </div>
+            <div class="col-md-7 col-xs-12 product__gallery">
+              {% with images=product_images %}
+                {% if images %}
+                <div id="carousel-example-generic" class="carousel slide">
+                  <ol class="carousel-indicators hidden-sm-down">
+                    {% for image in images %}
+                      {% if images|length > 1 %}
+                        <li data-target="#carousel-example-generic" data-slide-to="{{ forloop.counter0 }}">
+                          <img src="{% get_thumbnail image.image method="crop" size="60x60" %}" alt="">
+                        </li>
+                      {% endif %}
+                    {% endfor %}
+                  </ol>
+                  <div class="carousel-inner" role="listbox">
+                    {% for image in images %}
+                    <div class="carousel-item{% if forloop.first %} active{% endif %}">
+                      <img src="{% get_thumbnail image.image method="crop" size="750x750" %}" alt="">
+                    </div>
+                    {% endfor %}
+                  </div>
+                  {% if images|length > 1 %}
+                    <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+                      <img class="icon-next" src="{% static "img/gallery-arrow.svg" %}">
+                    </a>
+                    <a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
+                      <img class="icon-next" src="{% static "img/gallery-arrow.svg" %}">
+                    </a>
+                  {% endif %}
+                </div>
+                {% else %}
+                  <img src="{% static 'images/product-image-placeholder.png' %}" alt="" class="img-fluid">
+                {% endif %}
+              {% endwith %}
             </div>
             <div class="col-md-5 col-xs-12 product__info">
                 {% if is_visible and product.is_in_stock %}
                     {% block orderform %}
-                        <form role="form" class="product-form form-vertical" method="post"
-                         action="{% url 'cart:add-to-cart' product_id=product.pk %}?next={{ product.get_absolute_url }}" novalidate>
-                            {% csrf_token %}
-                            {% bootstrap_form form %}
-                            <div class="form-group">
-                                <button class="btn primary">
-                                    {% trans "Add to cart" %}
-                                </button>
-                            </div>
-                        </form>
+                    <form role="form" class="product-form form-vertical" method="post"
+                     action="{% url 'cart:add-to-cart' product_id=product.pk %}?next={{ product.get_absolute_url }}" novalidate>
+                        {% csrf_token %}
+                        {% bootstrap_form form %}
+
+                        <div class="form-group">
+                            <button class="btn primary">
+                                {% trans "Add to cart" %}
+                            </button>
+                        </div>
+                    </form>
                     {% endblock %}
                 {% else %}
                     <p class="alert alert-warning">{% trans "This product is currently <strong>unavailable</strong>." %}</p>
@@ -87,52 +111,6 @@
                 </div>
 
             </div>
-
-        {% with images=product_images %}
-        <div class="col-sm-6 col-sm-pull-6">
-            <div id="product-carousel" class="carousel slide panel panel-default hidden-xs" data-ride="carousel">
-                <div class="carousel-inner">
-                    {% for image in images %}
-                    <div class="item{% if forloop.first %} active{% endif %}">
-                        <a href="#" data-toggle="modal" data-target="#modal-{{ forloop.counter }}">
-                            <img class="img-responsive" src="{%  get_thumbnail image.image method="crop" size="750x750" %}" alt="">
-                        </a>
-                    </div>
-                    {% empty %}
-                        <div class="item active">
-                            <img src="{% static 'images/product-image-placeholder.png' %}" alt="" class="img-responsive">
-                        </div>
-                    {% endfor %}
-                </div>
-
-                {% for image in images %}
-                <div class="modal fade" id="modal-{{ forloop.counter }}"
-                     tabindex="-1" role="dialog" aria-labelledby="myModalLabel{{ forloop.counter }}" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                <h4 class="modal-title" id="myModalLabel{{ forloop.counter }}">{{ product }}</h4>
-                            </div>
-
-                            <div class="modal-body">
-                                <img class="img-responsive" src="" data-src="{{ image.image.url }}" alt="">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-
-            <div class="product-gallery row">
-                {% for image in images %}
-                <a href="{{ image.image.url }}" target="_blank" class="product-gallery-item col-xs-6 col-md-3">
-                    <img class="thumbnail img-responsive" src="{% get_thumbnail image.image method="crop" size="280x280" %}" alt="">
-                </a>
-                {% endfor %}
-            </div>
         </div>
-        {% endwith %}
     </div>
-</div>
 {% endblock content %}
