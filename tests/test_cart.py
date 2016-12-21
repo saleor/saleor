@@ -5,11 +5,13 @@ import json
 import pytest
 from babeldjango.templatetags.babel import currencyfmt
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
 from mock import MagicMock, Mock
 
 from saleor.cart import decorators, forms, utils
 from saleor.cart.models import Cart
 from satchless.item import InsufficientStock
+from .utils import get_redirect_location
 
 
 def test_adding_without_checking(cart, product_in_stock):
@@ -285,6 +287,19 @@ def test_view_invalid_add_to_cart(client, product_in_stock, request_cart):
     response = client.post('/cart/add/%s/' % (variant.product_id,), {})
     assert response.status_code == 302
     assert request_cart.quantity == 2
+
+
+def test_view_negative_add_to_cart(client, product_in_stock, request_cart):
+    variant = product_in_stock.variants.get()
+    request_cart.add(variant, 2)
+    response = client.post('/cart/add/%s/' % (variant.product_id,),
+                           {'variant': variant.pk, 'quantity': -3})
+    assert response.status_code == 302
+    assert request_cart.quantity == 2
+    location = get_redirect_location(response)
+    assert location == reverse('product:details',
+                               kwargs={'slug': product_in_stock.get_slug(),
+                                       'product_id': product_in_stock.id})
 
 
 def test_view_add_to_cart(client, product_in_stock, request_cart):
