@@ -11,6 +11,7 @@ from mock import MagicMock, Mock
 from satchless.item import InsufficientStock
 
 from saleor.cart import forms, utils
+from saleor.cart.core import set_cart_cookie
 from saleor.cart.decorators import (find_and_assign_anonymous_cart,
                                     get_anonymous_cart_from_token,
                                     get_cart_from_request,
@@ -212,7 +213,7 @@ def test_get_cart_from_request(monkeypatch, customer_user,
     assert not Cart.objects.filter(token=returned_cart.token).exists()
 
 
-def test_find_and_assign_anonymous_cart(opened_anonymous_cart, 
+def test_find_and_assign_anonymous_cart(opened_anonymous_cart,
                                         cancelled_anonymous_cart,
                                         opened_user_cart, cancelled_user_cart,
                                         customer_user, cart_request_factory):
@@ -552,3 +553,109 @@ def test_cart_summary_page_empty_cart(client, request_cart):
     assert response.status_code == 200
     content = response.content.decode('utf-8')
     assert json.loads(content) == {}
+
+
+def test_adding_to_cart_with_current_user_token(admin_user, admin_client,
+                                                product_in_stock):
+    client = admin_client
+    key = Cart.COOKIE_NAME
+    cart = Cart.objects.create(user=admin_user)
+    variant = product_in_stock.variants.first()
+    cart.add(variant, 1)
+
+    response = client.get('/cart/')
+    set_cart_cookie(cart, response)
+    client.cookies[key] = response.cookies[key]
+
+    client.post(
+        '/cart/add/%s/' % (variant.product_id,),
+        {'quantity': 1, 'variant': variant.pk})
+
+    assert Cart.objects.count() == 1
+    assert Cart.objects.get(user=admin_user).pk == cart.pk
+
+
+def test_adding_to_cart_with_another_user_token(admin_user, admin_client,
+                                                product_in_stock,
+                                                customer_user):
+    client = admin_client
+    key = Cart.COOKIE_NAME
+    cart = Cart.objects.create(user=customer_user)
+    variant = product_in_stock.variants.first()
+    cart.add(variant, 1)
+
+    response = client.get('/cart/')
+    set_cart_cookie(cart, response)
+    client.cookies[key] = response.cookies[key]
+
+    client.post(
+        '/cart/add/%s/' % (variant.product_id,),
+        {'quantity': 1, 'variant': variant.pk})
+
+
+    assert Cart.objects.count() == 2
+    assert Cart.objects.get(user=admin_user).pk != cart.pk
+
+
+def test_anonymous_adding_to_cart_with_another_user_token(client,
+                                                          product_in_stock,
+                                                          customer_user):
+    key = Cart.COOKIE_NAME
+    cart = Cart.objects.create(user=customer_user)
+    variant = product_in_stock.variants.first()
+    cart.add(variant, 1)
+
+    response = client.get('/cart/')
+    set_cart_cookie(cart, response)
+    client.cookies[key] = response.cookies[key]
+
+    client.post(
+        '/cart/add/%s/' % (variant.product_id,),
+        {'quantity': 1, 'variant': variant.pk})
+
+    assert Cart.objects.count() == 2
+    assert Cart.objects.get(user=None).pk != cart.pk
+
+
+def test_adding_to_cart_with_deleted_cart_token(admin_user, admin_client,
+                                                product_in_stock):
+    client = admin_client
+    key = Cart.COOKIE_NAME
+    cart = Cart.objects.create(user=admin_user)
+    old_token = cart.token
+    variant = product_in_stock.variants.first()
+    cart.add(variant, 1)
+
+    response = client.get('/cart/')
+    set_cart_cookie(cart, response)
+    client.cookies[key] = response.cookies[key]
+    cart.delete()
+
+    client.post(
+        '/cart/add/%s/' % (variant.product_id,),
+        {'quantity': 1, 'variant': variant.pk})
+
+    assert Cart.objects.count() == 1
+    assert not Cart.objects.filter(token=old_token).exists()
+
+
+def test_adding_to_cart_with_closed_cart_token(admin_user, admin_client,
+                                               product_in_stock):
+    client = admin_client
+    key = Cart.COOKIE_NAME
+    cart = Cart.objects.create(user=admin_user)
+    variant = product_in_stock.variants.first()
+    cart.add(variant, 1)
+    cart.change_status(Cart.ORDERED)
+
+    response = client.get('/cart/')
+    set_cart_cookie(cart, response)
+    client.cookies[key] = response.cookies[key]
+
+    client.post(
+        '/cart/add/%s/' % (variant.product_id,),
+        {'quantity': 1, 'variant': variant.pk})
+
+    assert Cart.objects.filter(user=admin_user, status=Cart.OPEN).count() == 1
+    assert Cart.objects.filter(
+        user=admin_user, status=Cart.ORDERED).count() == 1
