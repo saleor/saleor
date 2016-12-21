@@ -9,6 +9,10 @@ Elasticsearch search backend requires an Elasticsearch server. For development p
 
 Integration can be configured with set of environment variables.
 
+  .. warning::
+
+      Saleor requires Elasticsearch 5.1 or higher.
+
 When you're deploying on Heroku - you can use add-on that provides Elasticsearch as a service.
 Services available on Heroku:
 

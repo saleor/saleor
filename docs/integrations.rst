@@ -104,3 +104,15 @@ To get it working you need to export the following environment variable:
 
 ``GOOGLE_ANALYTICS_TRACKING_ID``
   Your page's Google “Tracking ID.“
+
+
+Full text search with Elasticsearch
+-----------------------------------
+
+You can use optional `Elasticsearch <https://www.elastic.co/products/elasticsearch>`_ integration.
+To get it working you need to export following environment variable:
+
+``ELASTICSEARCH_URL``
+  URL to Elasticsearch server, for example: `"http://localhost:9200"`. Defaults to ``None``
+
+For more details see :doc:`elasticsearch`
