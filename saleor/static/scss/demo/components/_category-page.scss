@@ -83,36 +83,52 @@
 		position: relative;
 		button {
 			color: $body-color;
+			padding-right: $global-padding;
+			i {
+				padding-left: $global-padding/2;
+			}
 		}
 		ul {
-			&.hide {
-				display: none;
-			}
-			&.show {
-				display: block;
-			}
 			list-style: none;
-			border: solid 1px $gray;
-			border-radius: 0.5rem;
-			background: $white;
+			background: $light-gray;
+			box-shadow: 3px 3px 3px 0px rgba($gray, 0.75);
 			position: absolute;
-			top: 2rem;
+			top: 2.5rem;
 			right: 0;
 			z-index: 999;
-			padding-left: $global-padding/2;
-			padding-bottom: $global-padding/2;
+			padding: $global-padding $global-padding*2;
 			li {
-				width: 15rem;
+				width: 16rem;
 				text-align: left;
 				padding-top: $global-padding/2;
 				overflow: hidden;
+				border-bottom: solid 1px $gray;
+				padding-bottom: $global-padding;
 				span {
 					&:hover {
 						cursor: pointer;
 						text-decoration: underline;
 					}
 				}
+				i {
+					padding-top: $global-padding/3;
+				}
+				&:last-child {
+					border: none;
+					padding-bottom: 0;
+				}
 			}
+			 &:before {
+			    content: '';
+			    display: block;
+			    width: 15px;
+			    height: 10px;
+			    position: absolute;
+			    top: -10px;
+			    right: 15px;
+			    background-color: $light-gray;
+			    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+			  }
 		}
 	}
 
