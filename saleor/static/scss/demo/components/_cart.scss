@@ -48,21 +48,34 @@
     }
   }
   &__delivery-info {
+    margin-top: $global-margin * 2;
     h3 {
       display: inline-block;
       border-bottom: 1px solid $gray;
       padding-bottom: $global-padding
     }
     select {
+      border-color: $gray;
       color: $body-color;
       margin-left: $global-margin / 2;
       background-color: $white;
       &:focus {
         outline: none;
       }
+      @include media-breakpoint-down(sm) {
+        margin-left: 0;
+        margin-top: $global-margin / 2;
+        display:block;
+        width:100%;
+      }
     }
     &__price {
       text-align: right;
+    }
+    &__list {
+      .col-xs-6 {
+        padding: 0;
+      }
     }
   }
   &__empty {
