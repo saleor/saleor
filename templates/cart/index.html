@@ -100,22 +100,24 @@
           <a href="{% url "checkout:login" %}" class="btn primary float-md-right">{% trans "Checkout" %}</a>
       </div>
     </div>
-    <div class="col-md-5 cart__delivery-info">
-        <h3>{% trans "Delivery options to" %} 
-            <select class="custom-select">
-              {% for country in country_choices %}
-                <option>{{ country }}</option>
-              {% endfor %}
-            </select>
-        </h3>
-        <div class="row">
-          <div class="col-md-6">
-            <p>DHL to Poland</p>
+    <div class="cart__delivery-info">
+      <div class="deliveryform" data-csrf="{{ csrf_token }}">
+        <h3>{% trans "Delivery options to" %} {{ country_form }}</h3>
+      </div>
+      <div class="col-md-5 ">
+        <div class="cart__delivery-list row">
+          <div class="col-md-6 cart__delivery-info__method">
+            {% for option in default_country_options %} 
+              <p>{{ option.shipping_method__name }}</p>
+            {% endfor %}
           </div>
-          <div class="col-md-6">
-              <p class="float-xs-right">$10</p>
+          <div class="col-md-6 cart__delivery-info__price">
+            {% for option in default_country_options %} 
+              <p>{% gross option.price %}</p>
+            {% endfor %}
           </div>
         </div>
+      </div>
     </div>
     {% else %}
       <div class="cart__empty">

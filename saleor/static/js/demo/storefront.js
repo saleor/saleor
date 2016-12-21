@@ -92,3 +92,30 @@ $('.product-form button').click((e) => {
     }
   })
 })
+
+// Delivery information
+
+var $deliveryForm = $('.deliveryform')
+var crsfToken = $deliveryForm.data('crsf')
+var $countrySelect = $('#id_country')
+var $newMethod = $('.cart__delivery-info__method')
+var $newPrice = $('.cart__delivery-info__price')
+$countrySelect.on('change', (e) => {
+  var newCountry = $countrySelect.val()
+  $.ajax({
+    url: "/cart/shipingoptions/",
+    type: 'POST',
+    data: {
+      'csrfmiddlewaretoken': crsfToken,
+      'country': newCountry
+    },
+    success: (data) => {
+      $newMethod.empty()
+      $newPrice.empty()
+      $.each(data.options, (key, val) => {
+          $newMethod.append('<p>' + val.shipping_method__name + '</p>')
+          $newPrice.append('<p>$' + val.price[1] + '</p>')
+      })
+    }
+  })
+})
