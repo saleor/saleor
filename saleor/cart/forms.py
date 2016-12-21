@@ -1,11 +1,10 @@
 from __future__ import unicode_literals
 
 from django import forms
-from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist, NON_FIELD_ERRORS
 from django.utils.translation import pgettext_lazy, ugettext_lazy
 from satchless.item import InsufficientStock
-from ..shipping.models import COUNTRY_CODE_CHOICES, ShippingMethodCountry
+from ..shipping.models import COUNTRY_CODE_CHOICES
 from ..shipping.utils import get_shipment_options
 
 
