@@ -13,11 +13,11 @@
 *.pot
 *.pyc
 local_settings.py
-dev.sqlite
+__pycache__/
 build/
 dist/
 *\.egg*
-#data
+# data
 /docs/_build/
 /media/
 /node_modules/
