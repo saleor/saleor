@@ -52,7 +52,17 @@ DEFAULT_SCHEMA = {
         },
         'different_variant_prices': True,
         'images_dir': 'coffee/',
-    }
+    },
+    'Candy': {
+        'product_attributes': {
+            'Flavor': ['Sour', 'Sweet']
+        },
+        'variant_attributes': {
+            'Candy Box Size': ['100g', '250g', '500g']
+        },
+        'images_dir': 'candy/',
+        'different_variant_prices': True
+    },
 }
 
 
