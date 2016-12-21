@@ -11,13 +11,6 @@ from mock import MagicMock, Mock
 from satchless.item import InsufficientStock
 
 from saleor.cart import forms, utils
-from saleor.cart.core import set_cart_cookie
-from saleor.cart.decorators import (find_and_assign_anonymous_cart,
-                                    get_anonymous_cart_from_token,
-                                    get_cart_from_request,
-                                    get_or_create_anonymous_cart_from_token,
-                                    get_or_create_cart_from_request,
-                                    get_or_create_user_cart, get_user_cart)
 from saleor.cart.models import Cart
 
 
@@ -62,12 +55,12 @@ def test_get_or_create_anonymous_cart_from_token(opened_anonymous_cart,
                                                  cancelled_user_cart):
     queryset = Cart.objects.all()
     carts = list(queryset)
-    cart = get_or_create_anonymous_cart_from_token(opened_anonymous_cart.token)
+    cart = utils.get_or_create_anonymous_cart_from_token(opened_anonymous_cart.token)
     assert Cart.objects.all().count() == 4
     assert cart == opened_anonymous_cart
 
     # test against getting closed carts
-    cart = get_or_create_anonymous_cart_from_token(
+    cart = utils.get_or_create_anonymous_cart_from_token(
         cancelled_anonymous_cart.token)
     assert Cart.objects.all().count() == 5
     assert cart not in carts
@@ -76,7 +69,7 @@ def test_get_or_create_anonymous_cart_from_token(opened_anonymous_cart,
     cart.delete()
 
     # test against new token
-    cart = get_or_create_anonymous_cart_from_token(uuid4())
+    cart = utils.get_or_create_anonymous_cart_from_token(uuid4())
     assert Cart.objects.all().count() == 5
     assert cart not in carts
     assert cart.user is None
@@ -84,7 +77,7 @@ def test_get_or_create_anonymous_cart_from_token(opened_anonymous_cart,
     cart.delete()
 
     # test against getting cart assigned to user
-    cart = get_or_create_anonymous_cart_from_token(opened_user_cart.token)
+    cart = utils.get_or_create_anonymous_cart_from_token(opened_user_cart.token)
     assert Cart.objects.all().count() == 5
     assert cart not in carts
     assert cart.user is None
@@ -95,7 +88,7 @@ def test_get_or_create_anonymous_cart_from_token(opened_anonymous_cart,
 def test_get_or_create_user_cart(customer_user, opened_anonymous_cart,
                                  cancelled_anonymous_cart, opened_user_cart,
                                  cancelled_user_cart, admin_user):
-    cart = get_or_create_user_cart(customer_user)
+    cart = utils.get_or_create_user_cart(customer_user)
     assert Cart.objects.all().count() == 4
     assert cart == opened_user_cart
 
@@ -103,7 +96,7 @@ def test_get_or_create_user_cart(customer_user, opened_anonymous_cart,
     Cart.objects.create(user=admin_user, status=Cart.CANCELED)
     queryset = Cart.objects.all()
     carts = list(queryset)
-    cart = get_or_create_user_cart(admin_user)
+    cart = utils.get_or_create_user_cart(admin_user)
     assert Cart.objects.all().count() == 6
     assert cart not in carts
     assert cart.user is admin_user
@@ -115,22 +108,22 @@ def test_get_anonymous_cart_from_token(opened_anonymous_cart,
                                        cancelled_anonymous_cart,
                                        opened_user_cart,
                                        cancelled_user_cart):
-    cart = get_anonymous_cart_from_token(opened_anonymous_cart.token)
+    cart = utils.get_anonymous_cart_from_token(opened_anonymous_cart.token)
     assert Cart.objects.all().count() == 4
     assert cart == opened_anonymous_cart
 
     # test against getting closed carts
-    cart = get_anonymous_cart_from_token(cancelled_anonymous_cart.token)
+    cart = utils.get_anonymous_cart_from_token(cancelled_anonymous_cart.token)
     assert Cart.objects.all().count() == 4
     assert cart is None
 
     # test against new token
-    cart = get_anonymous_cart_from_token(uuid4())
+    cart = utils.get_anonymous_cart_from_token(uuid4())
     assert Cart.objects.all().count() == 4
     assert cart is None
 
     # test against getting cart assigned to user
-    cart = get_anonymous_cart_from_token(opened_user_cart.token)
+    cart = utils.get_anonymous_cart_from_token(opened_user_cart.token)
     assert Cart.objects.all().count() == 4
     assert cart is None
 
@@ -138,7 +131,7 @@ def test_get_anonymous_cart_from_token(opened_anonymous_cart,
 def test_get_user_cart(opened_anonymous_cart, cancelled_anonymous_cart,
                        opened_user_cart, cancelled_user_cart, admin_user,
                        customer_user):
-    cart = get_user_cart(customer_user)
+    cart = utils.get_user_cart(customer_user)
     assert Cart.objects.all().count() == 4
     assert cart == opened_user_cart
 
@@ -146,7 +139,7 @@ def test_get_user_cart(opened_anonymous_cart, cancelled_anonymous_cart,
     Cart.objects.create(user=admin_user, status=Cart.CANCELED)
     queryset = Cart.objects.all()
     carts = list(queryset)
-    cart = get_user_cart(admin_user)
+    cart = utils.get_user_cart(admin_user)
     assert Cart.objects.all().count() == 5
     assert cart is None
 
@@ -160,17 +153,17 @@ def test_get_or_create_cart_from_request(cart_request_factory, monkeypatch,
     anonymous_cart = Cart()
     mock_get_for_user = Mock(return_value=user_cart)
     mock_get_for_anonymous = Mock(return_value=anonymous_cart)
-    monkeypatch.setattr('saleor.cart.decorators.get_or_create_user_cart',
+    monkeypatch.setattr('saleor.cart.utils.get_or_create_user_cart',
                         mock_get_for_user)
     monkeypatch.setattr(
-        'saleor.cart.decorators.get_or_create_anonymous_cart_from_token',
+        'saleor.cart.utils.get_or_create_anonymous_cart_from_token',
         mock_get_for_anonymous)
-    returned_cart = get_or_create_cart_from_request(request, queryset)
+    returned_cart = utils.get_or_create_cart_from_request(request, queryset)
     mock_get_for_user.assert_called_once_with(customer_user, queryset)
     assert returned_cart == user_cart
 
     request = cart_request_factory(user=None, token=token)
-    returned_cart = get_or_create_cart_from_request(request, queryset)
+    returned_cart = utils.get_or_create_cart_from_request(request, queryset)
     mock_get_for_anonymous.assert_called_once_with(token, queryset)
     assert returned_cart == anonymous_cart
 
@@ -182,34 +175,34 @@ def test_get_cart_from_request(monkeypatch, customer_user,
     request = cart_request_factory(user=customer_user, token=token)
     user_cart = Cart(user=customer_user)
     mock_get_for_user = Mock(return_value=user_cart)
-    monkeypatch.setattr('saleor.cart.decorators.get_user_cart',
+    monkeypatch.setattr('saleor.cart.utils.get_user_cart',
                         mock_get_for_user)
-    returned_cart = get_cart_from_request(request, queryset)
+    returned_cart = utils.get_cart_from_request(request, queryset)
     mock_get_for_user.assert_called_once_with(customer_user, queryset)
     assert returned_cart == user_cart
 
     mock_get_for_user = Mock(return_value=None)
-    monkeypatch.setattr('saleor.cart.decorators.get_user_cart',
+    monkeypatch.setattr('saleor.cart.utils.get_user_cart',
                         mock_get_for_user)
-    returned_cart = get_cart_from_request(request, queryset)
+    returned_cart = utils.get_cart_from_request(request, queryset)
     mock_get_for_user.assert_called_once_with(customer_user, queryset)
     assert not Cart.objects.filter(token=returned_cart.token).exists()
 
     anonymous_cart = Cart()
     mock_get_for_anonymous = Mock(return_value=anonymous_cart)
     monkeypatch.setattr(
-        'saleor.cart.decorators.get_anonymous_cart_from_token',
+        'saleor.cart.utils.get_anonymous_cart_from_token',
         mock_get_for_anonymous)
     request = cart_request_factory(user=None, token=token)
-    returned_cart = get_cart_from_request(request, queryset)
+    returned_cart = utils.get_cart_from_request(request, queryset)
     mock_get_for_user.assert_called_once_with(customer_user, queryset)
     assert returned_cart == anonymous_cart
 
     mock_get_for_anonymous = Mock(return_value=None)
     monkeypatch.setattr(
-        'saleor.cart.decorators.get_anonymous_cart_from_token',
+        'saleor.cart.utils.get_anonymous_cart_from_token',
         mock_get_for_anonymous)
-    returned_cart = get_cart_from_request(request, queryset)
+    returned_cart = utils.get_cart_from_request(request, queryset)
     assert not Cart.objects.filter(token=returned_cart.token).exists()
 
 
@@ -219,7 +212,7 @@ def test_find_and_assign_anonymous_cart(opened_anonymous_cart,
                                         customer_user, cart_request_factory):
     request = cart_request_factory(user=customer_user, token=None)
     anonymous_carts = Cart.objects.filter(user=None).count()
-    find_and_assign_anonymous_cart(request)
+    utils.find_and_assign_anonymous_cart(request)
     assert Cart.objects.filter(user=None).count() == anonymous_carts
 
 
@@ -230,7 +223,7 @@ def test_find_and_assign_anonymous_cart_and_close_opened(customer_user,
     token = opened_anonymous_cart.token
     token_user = opened_user_cart.token
     request = cart_request_factory(user=customer_user, token=token)
-    find_and_assign_anonymous_cart(request)
+    utils.find_and_assign_anonymous_cart(request)
     token_cart = Cart.objects.filter(token=token).first()
     user_cart = Cart.objects.filter(token=token_user).first()
     assert token_cart.user.pk == customer_user.pk
@@ -492,7 +485,7 @@ def test_view_invalid_add_to_cart(client, product_in_stock, request_cart):
 def test_view_add_to_cart(monkeypatch, client, product_in_stock,
                           opened_anonymous_cart):
     monkeypatch.setattr(
-        'saleor.cart.decorators.get_or_create_cart_from_request',
+        'saleor.cart.utils.get_or_create_cart_from_request',
         Mock(return_value=opened_anonymous_cart))
     variant = product_in_stock.variants.get()
     opened_anonymous_cart.add(variant, 1)
@@ -564,7 +557,7 @@ def test_adding_to_cart_with_current_user_token(admin_user, admin_client,
     cart.add(variant, 1)
 
     response = client.get('/cart/')
-    set_cart_cookie(cart, response)
+    utils.set_cart_cookie(cart, response)
     client.cookies[key] = response.cookies[key]
 
     client.post(
@@ -585,7 +578,7 @@ def test_adding_to_cart_with_another_user_token(admin_user, admin_client,
     cart.add(variant, 1)
 
     response = client.get('/cart/')
-    set_cart_cookie(cart, response)
+    utils.set_cart_cookie(cart, response)
     client.cookies[key] = response.cookies[key]
 
     client.post(
@@ -606,7 +599,7 @@ def test_anonymous_adding_to_cart_with_another_user_token(client,
     cart.add(variant, 1)
 
     response = client.get('/cart/')
-    set_cart_cookie(cart, response)
+    utils.set_cart_cookie(cart, response)
     client.cookies[key] = response.cookies[key]
 
     client.post(
@@ -627,7 +620,7 @@ def test_adding_to_cart_with_deleted_cart_token(admin_user, admin_client,
     cart.add(variant, 1)
 
     response = client.get('/cart/')
-    set_cart_cookie(cart, response)
+    utils.set_cart_cookie(cart, response)
     client.cookies[key] = response.cookies[key]
     cart.delete()
 
@@ -649,7 +642,7 @@ def test_adding_to_cart_with_closed_cart_token(admin_user, admin_client,
     cart.change_status(Cart.ORDERED)
 
     response = client.get('/cart/')
-    set_cart_cookie(cart, response)
+    utils.set_cart_cookie(cart, response)
     client.cookies[key] = response.cookies[key]
 
     client.post(

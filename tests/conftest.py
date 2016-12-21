@@ -5,7 +5,7 @@ import pytest
 from django.contrib.auth.models import AnonymousUser
 from mock import Mock
 
-from saleor.cart import decorators
+from saleor.cart import utils
 from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
 from saleor.discount.models import Voucher
@@ -31,7 +31,7 @@ def customer_user(db):  # pylint: disable=W0613
 def request_cart(cart, monkeypatch):
     # FIXME: Fixtures should not have any side effects
     monkeypatch.setattr(
-        decorators, 'get_cart_from_request',
+        utils, 'get_cart_from_request',
         lambda request, cart_queryset=None: cart)
     return cart
 
