@@ -1,0 +1,54 @@
+.btn {
+  transition: 0.3s;
+  &.home__button {
+    border-radius: 0;
+    text-transform: uppercase;
+    color: $white;
+    background-color: transparent;
+    border: 1px solid $white;
+    padding: $global-padding $global-padding * 2;
+    &:hover {
+      background-color: $white;
+      color: $body-color;
+    }
+  }
+  &.primary {
+    background-color: $green;
+    color: $white;
+    padding: $global-padding $global-padding * 4;
+    font-size: $font-size-h5;
+    &:hover {
+      background-color: $darkgreen
+    }
+  }
+  &.secondary {
+    border: 1px solid $gray;
+    padding: $global-padding $global-padding * 2;
+    font-size: $font-size-h5;
+    background-color: transparent;
+    color: $body-color;
+    &:hover {
+      border-color: $body-color;
+      color: $body-color;
+    }
+  }
+  &.danger {
+    background-color: $red;
+    color: $white;
+    padding: $global-padding $global-padding * 4;
+    font-size: $font-size-h5;
+    &:hover {
+      background-color: $darkred
+    }
+  }
+  &.checkout {
+    background-color: $gray;
+    border: 0;
+    padding: $global-padding / 2 $global-padding * 2;
+  }
+  &.btn-link {
+    padding: 0;
+    vertical-align: baseline;
+    color: $gray;
+  }
+}

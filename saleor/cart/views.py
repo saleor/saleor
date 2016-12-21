@@ -6,14 +6,15 @@ from babeldjango.templatetags.babel import currencyfmt
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 
 from . import decorators
-from ..core.utils import to_local_currency
+from ..core.utils import to_local_currency, get_user_shipping_country
 from ..product.forms import get_form_class_for_product
 from ..product.models import Product, ProductVariant
-from .forms import ReplaceCartLineForm
+from ..shipping.utils import get_shipment_options
+from .forms import ReplaceCartLineForm, CountryForm
 from .models import Cart
 from .utils import check_product_availability_and_warn
 
@@ -40,12 +41,25 @@ def index(request, cart):
         cart_total = cart.get_total(discounts=discounts)
         local_cart_total = to_local_currency(cart_total, request.currency)
 
+    default_country = get_user_shipping_country(request)
+    country_form = CountryForm(initial={'country': default_country})
+    default_country_options = get_shipment_options(default_country)
+
     return TemplateResponse(
         request, 'cart/index.html',
         {
             'cart_lines': cart_lines,
             'cart_total': cart_total,
-            'local_cart_total': local_cart_total})
+            'local_cart_total': local_cart_total,
+            'country_form': country_form,
+            'default_country_options': default_country_options})
+
+
+def get_shipping_options(request):
+    country_form = CountryForm(request.POST or None)
+    if country_form.is_valid():
+        shipments = country_form.get_shipment_options()
+        return JsonResponse({'options': list(shipments)})
 
 
 @decorators.get_or_create_db_cart()
@@ -111,6 +125,7 @@ def summary(request, cart):
         price_per_item = line.get_price_per_item(discounts=request.discounts)
         line_total = line.get_total(discounts=request.discounts)
         return {
+            'product': line.variant.product,
             'variant': line.variant.name,
             'quantity': line.quantity,
             'attributes': line.variant.display_variant(attributes),
@@ -122,7 +137,7 @@ def summary(request, cart):
                                   kwargs={'variant_id': line.variant_id}),
             'variant_url': line.variant.get_absolute_url()}
     if cart.quantity == 0:
-        data = {}
+        data = {'quantity': 0}
     else:
         cart_total = cart.get_total(discounts=request.discounts)
         data = {
@@ -130,4 +145,4 @@ def summary(request, cart):
             'total': currencyfmt(cart_total.gross, cart_total.currency),
             'lines': [prepare_line_data(line) for line in cart.lines.all()]}
 
-    return JsonResponse(data)
+    return render(request, 'cart-dropdown.html', data)

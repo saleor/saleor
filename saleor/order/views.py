@@ -1,7 +1,7 @@
 import logging
 
 from django.conf import settings
-from django.contrib import messages
+from django.contrib import messages, auth
 from django.db import transaction
 from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
@@ -9,7 +9,7 @@ from django.utils.translation import ugettext as _
 from django.template.response import TemplateResponse
 from payments import RedirectNeeded
 
-from .forms import PaymentDeleteForm, PaymentMethodsForm
+from .forms import PaymentDeleteForm, PaymentMethodsForm, PasswordForm
 from .models import Order, Payment
 from ..core.utils import get_client_ip
 from .utils import check_order_status
@@ -112,3 +112,26 @@ def cancel_payment(request, order):
             form.save()
         return redirect('order:payment', token=order.token)
     return HttpResponseForbidden()
+
+
+def create_password(request, token):
+    if request.user.is_authenticated():
+        return redirect('order:detials', token=token)
+    order = get_object_or_404(Order, token=token)
+    email = order.user_email
+    form_data = request.POST.copy()
+    if form_data:
+        form_data.update({'email': email})
+    form = PasswordForm(form_data or None)
+
+    if form.is_valid():
+        user = form.save(request)
+        order.user = user
+        order.save(update_fields=['user'])
+        password = form_data.get('password1')
+        auth_user = auth.authenticate(email=email, password=password)
+        if auth_user is not None:
+            auth.login(request, auth_user)
+        return redirect('order:details', token=token)
+    ctx = {'form': form, 'email': email}
+    return TemplateResponse(request, 'order/create_password.html', ctx)

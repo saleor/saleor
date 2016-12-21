@@ -1,0 +1,143 @@
+.navbar {
+  padding: 0;
+  @include media-breakpoint-down(sm) {
+    img {
+      max-height: 22px;
+    }
+  }
+  &__login {
+    background-color: $gray;
+    p {
+      margin: $global-margin / 2 0;
+      font-size: $small-font-size;
+      &.float-xs-left {
+        color: $white;
+      }
+      &.float-xs-right {
+        a {
+          color: $body-color;
+        }
+      }
+    }
+  }
+  &__brand {
+    padding: $global-padding * 2 0;
+    @include media-breakpoint-down(sm) {
+      position: fixed;
+      width: 100vw;
+      background-color: $white;
+      z-index: 4;
+      border-bottom: 1px solid $gray;
+    }
+    .container {
+      position: relative;
+    }
+    &__cart {
+      @include media-breakpoint-up(md) {
+        margin-top: $global-margin / 2;
+      }
+      &__icon {
+        margin-left: $global-margin;
+      }
+      margin-right: $global-margin;
+      a {
+        color: $body-color;
+        position: relative;
+        z-index: 4;
+        &:hover {
+          text-decoration: none;
+        }
+        .badge {
+          position: absolute;
+          right: -15px;
+          top: -15px;
+          background-color: $red;
+          border-radius: 100px;
+          color: $white;
+          width: 30px;
+          height: 30px;
+          text-align: center;
+          line-height: 2;
+          @include media-breakpoint-down(sm) {
+            font-size: 0.8rem;
+            width: 25px;
+            height: 25px;
+            line-height: 2.1;
+          }
+        }
+      }
+    }
+    &__menu-toggle {
+      max-height: 22px;
+      padding-right: $global-padding * 1.5;
+      padding-left: $global-padding;
+    }
+  }
+  &__menu {
+    ul {
+      border-bottom: 1px solid $gray;
+      margin-bottom: $global-margin;
+      &.no-border {
+        border-bottom: 0;
+        margin-bottom: 0;
+      }
+      @include media-breakpoint-down(sm) {
+        border-bottom: 0;
+      }
+      &:after {
+        content: "";
+        width: 100%;
+      	display: inline-block;
+      }
+      .nav-item {
+        width: 20%;
+        font-weight: 700;
+        display: inline-block;
+        text-align: center;
+        + .nav-item {
+          margin-left: 0;
+        }
+        &:not(.login-item) {
+          &:last-of-type {
+            a {
+              color: $red;
+              &:hover {
+                color: rgba($red, 0.6);
+              }
+            }
+          }
+        }
+        a {
+          color: $body-color;
+          transition: 0.3s;
+          &:hover {
+            color: rgba($body-color, 0.6);
+          }
+        }
+      }
+    }
+    @include media-breakpoint-down(sm) {
+      .navigation {
+        position: fixed;
+        left: -180px;
+        top: 75px;
+        height: 100vh;
+        width: 180px;
+        z-index: 3;
+        background-color: $white;
+        padding-left: $global-padding * 2;
+        padding-right: $global-padding * 3;
+        padding-top: $global-padding;
+        transition: 0.3s ease-in-out;
+        li {
+          width: 100%;
+          text-align: left;
+        }
+        &.open {
+          left: 0;
+          box-shadow: 1px 1px 10px 1px $gray;
+        }
+      }
+    }
+  }
+}

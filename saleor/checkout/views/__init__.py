@@ -10,6 +10,7 @@ from .shipping import anonymous_user_shipping_address_view, user_shipping_addres
 from .summary import summary_with_shipping_view, anonymous_summary_without_shipping, \
     summary_without_shipping
 
+from allauth.account.forms import LoginForm
 
 @validate_cart
 @validate_is_shipping_required
@@ -55,3 +56,12 @@ def summary_view(request, checkout):
         return summary_without_shipping(request, checkout)
     else:
         return anonymous_summary_without_shipping(request, checkout)
+
+
+@validate_cart
+def login(request, checkout):
+    if request.user.is_authenticated:
+        return redirect('checkout:index')
+    form = LoginForm()
+    ctx = {'form': form}
+    return TemplateResponse(request, 'checkout/login.html', ctx)

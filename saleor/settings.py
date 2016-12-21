@@ -89,6 +89,7 @@ context_processors = [
     'django.template.context_processors.request',
     'saleor.core.context_processors.default_currency',
     'saleor.core.context_processors.categories',
+    'saleor.cart.context_processors.cart_counter'
 ]
 
 loaders = [
@@ -102,7 +103,7 @@ if not DEBUG:
 
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
-    'DIRS': [os.path.join(PROJECT_ROOT, 'templates')],
+    'DIRS': [os.path.join(PROJECT_ROOT, 'templates'), os.path.join(PROJECT_ROOT, 'templates')],
     'OPTIONS': {
         'debug': DEBUG,
         'context_processors': context_processors,

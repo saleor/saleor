@@ -1,0 +1,84 @@
+.userprofile {
+  &__user {
+    h2 {
+      margin-right: $global-margin;
+      margin-bottom: $global-margin * 2;
+    }
+    img {
+      margin-top: $global-margin / 2;
+    }
+    
+  }
+  &__nav {
+    background-color: $light-gray;
+    padding: $global-padding 0;
+    margin-bottom: $global-margin;
+    .nav-link {
+      color: $gray;
+      border: 0;
+      &:first-of-type {
+        margin-right: $global-margin * 3;
+      }
+      &.active, &.active:hover, &.active:focus {
+        background-color: transparent;
+        border: 0;
+        color: $body-color;
+      }
+    }
+    ul {
+      border-bottom: 0;
+    }
+  }
+  &__address-empty {
+    margin: $global-margin 0 $global-margin * 2;
+  }
+  &__address-row {
+    padding: $global-padding 0;
+    border-bottom: 1px solid $light-gray;
+    img {
+      margin-left: $global-margin;
+      float: right;
+    }
+  }
+  .primary {
+    margin-top: $global-margin;
+  }
+  &__orders {
+    small {
+      text-decoration: underline;
+      color: $body-color;
+    }
+    &__row {
+      border-bottom: 1px solid $light-gray;
+      padding: $global-padding 0;
+    }
+  }
+  &__address-edit {
+    &__form {
+      margin-bottom: $global-margin * 2;
+    }
+  }
+}
+
+.account-edit {
+  &__tittle {
+    margin: $global-margin * 2 0;
+  }
+  .btn {
+    margin-top: $global-margin;
+  }
+}
+
+.modal-address-delete {
+  .modal-header {
+    padding-top: $global-padding * 2;
+    border-bottom: 0;
+  }
+  .modal-footer {
+    border-top: 0;
+    padding-bottom: $global-padding;
+    button {
+      margin-left: $global-margin * 2;
+    }
+  }
+}

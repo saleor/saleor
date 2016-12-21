@@ -16,7 +16,7 @@ function openModal() {
         var $modal = $($(that).attr('href'))
         $modal.html(response)
         initSelects()
-        $modal.openModal()
+        $modal.modal()
       }
     })
 
@@ -84,7 +84,7 @@ $(document).ready(function() {
     closeMenu()
   }
   initSelects()
-  $('.modal-trigger').leanModal()
+  $('.modal').modal()
 
   if (isTablet()) {
     $('.equal-height-on-med').matchHeight()
@@ -143,7 +143,7 @@ $(document).ready(function() {
     })
     e.preventDefault()
   }).on('click', '.modal-close', function() {
-    $('.modal').closeModal()
+    $('.modal').modal('close')
   })
 
   function isTablet() {

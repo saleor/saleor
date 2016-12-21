@@ -1,0 +1,52 @@
+{% load i18n %}
+{% load staticfiles %}
+{% load gross from prices_i18n %}
+
+<div class="container">
+  {% if quantity > 0 %}
+    {% for line in lines %}  
+      <div class="row">
+        <div class="col-md-10">
+          <a href="{{ line.variant_url }}">
+            <img class="cart-dropdown__image" src="{{ line.image }}" alt="">
+            <h3>{{ line.product }}
+              <br><small>{{ line.variant }}<br>
+                x {{ line.quantity }}</small>
+            </h3>
+          </a>
+        </div>
+        <div class="col-md-2">
+          <div class="float-xs-right">
+            <a class="cart-dropdown__delete" href="/">
+              <img class="float-md-right" src="{% static 'img/icon_delete.svg' %}">
+            </a>
+            <h3>{{ line.line_total }}</h3>
+          </div>
+        </div>
+      </div>
+      <hr>
+    {% endfor %}
+    <div class="row">
+      <div class="col-md-6">
+        <h3>{% trans "Subtotal" %}</h3>
+      </div>
+      <div class="col-md-6">
+        <h3 class="float-md-right cart-dropdown__total" data-quantity="{{ quantity }}"><strong>{{ total }}</strong></h3>
+      </div>
+    </div>
+    <div class="row cart-dropdown__actions">
+      <div class="col-md-6">
+        <a href="{% url "checkout:login" %}" class="btn primary">{% trans "Checkout" %}</a>
+      </div>
+      <div class="col-md-6">
+        <a href="{% url "cart:index" %}" class="btn secondary float-md-right">{% trans "Go to cart" %}</a>
+      </div>
+    </div>
+  {% else %}
+    <div class="text-md-center cart-dropdown__empty">
+      <h3>{% trans "There are no products in your shopping cart." %}</h3>
+      <img src="{% static 'img/pirate_cart.png' %}" srcset="{% static 'img/pirate_cart.png' %} 1x, {% static 'img/pirate_cart2x.png' %} 2x">
+      <a href="/" class="btn primary">{% trans "Check out Our sales" %}</a>
+    </div>
+  {% endif %}
+</div>

@@ -8,6 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from mock import MagicMock, Mock
 
 from saleor.cart import decorators, forms, utils
+from saleor.cart.context_processors import cart_counter
 from saleor.cart.models import Cart
 from satchless.item import InsufficientStock
 
@@ -78,6 +79,13 @@ def test_shipping_detection(cart, product_in_stock):
     assert not cart.is_shipping_required()
     cart.add(variant, 1, replace=True)
     assert cart.is_shipping_required()
+
+
+def test_cart_counter(monkeypatch):
+    monkeypatch.setattr('saleor.cart.context_processors.get_cart_from_request',
+                        Mock(return_value=Mock(quantity=4)))
+    ret = cart_counter(Mock())
+    assert ret == {'cart_counter': 4}
 
 
 def test_get_product_variants_and_prices():
@@ -330,8 +338,7 @@ def test_cart_summary_page(client, product_in_stock, request_cart):
     request_cart.add(variant, 1)
     response = client.get('/cart/summary/')
     assert response.status_code == 200
-    content = response.content.decode('utf-8')
-    content = json.loads(content)
+    content = response.context
     assert content['quantity'] == request_cart.quantity
     cart_total = request_cart.get_total()
     assert content['total'] == currencyfmt(
@@ -345,5 +352,5 @@ def test_cart_summary_page(client, product_in_stock, request_cart):
 def test_cart_summary_page_empty_cart(client, request_cart):
     response = client.get('/cart/summary/')
     assert response.status_code == 200
-    content = response.content.decode('utf-8')
-    assert json.loads(content) == {}
+    data = response.context
+    assert data['quantity'] == 0

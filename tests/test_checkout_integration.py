@@ -60,8 +60,9 @@ def test_checkout_flow(request_cart_with_item, client, shipping_method):  # pyli
         'verification_result': 'waiting'}
     payment_response = client.post(payment_page_url, data=payment_data)
     assert payment_response.status_code == 302
-    order_details = reverse('order:details', kwargs={'token': order.token})
-    assert get_redirect_location(payment_response) == order_details
+    order_password = reverse('order:create-password',
+                             kwargs={'token': order.token})
+    assert get_redirect_location(payment_response) == order_password
 
 
 def test_checkout_flow_authenticated_user(authorized_client, billing_address,  # pylint: disable=R0914
@@ -111,8 +112,9 @@ def test_checkout_flow_authenticated_user(authorized_client, billing_address,  #
                                               data=payment_data)
 
     assert payment_response.status_code == 302
-    order_details = reverse('order:details', kwargs={'token': order.token})
-    assert get_redirect_location(payment_response) == order_details
+    order_password = reverse('order:create-password',
+                             kwargs={'token': order.token})
+    assert get_redirect_location(payment_response) == order_password
 
 
 def test_address_without_shipping(request_cart_with_item, client, monkeypatch):  # pylint: disable=W0613

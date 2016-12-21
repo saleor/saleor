@@ -1,0 +1,135 @@
+.checkout {
+  &__header {
+    background-color: $gray;
+    padding: $global-padding 0;
+    margin-bottom: $global-margin * 4;
+    @include media-breakpoint-down(sm) {
+      margin-bottom: $global-margin * 2;
+    }
+    img {
+      float: left;
+      @include media-breakpoint-down(sm) {
+        max-height: 22px;
+        margin-top: $global-margin / 2;
+      }
+    }
+    h1 {
+      display: inline-block;
+      color: $white;
+      margin-left: $global-margin;
+      @include media-breakpoint-down(sm) {
+        font-size: $font-size-h2;
+        margin-top: $global-margin / 2;
+      }
+    }
+  }
+  &__review {
+    background-color: $light-gray;
+    padding: $global-padding * 2;
+    &__section {
+      border-top: 1px solid $gray;
+      padding-top: $global-padding;
+    }
+    &__tittle {
+      margin-bottom: $global-margin * 2;
+    }
+    &__variant {
+      color: $gray;
+    }
+    &__voucher {
+      position: relative;
+      button {
+        position: absolute;
+        top: 1px;
+        right: 0;
+      }
+      &-form {
+        margin-bottom: $global-margin;
+      }
+    }
+  }
+  &__shipping {
+    h1 {
+      margin-bottom: $global-margin * 2;
+    }
+    &__form {
+      label {
+        margin-bottom: $global-margin;
+        input {
+          display: inline-block;
+          vertical-align: top;
+          margin: $global-margin / 4 $global-margin / 2 0 0;
+        }
+        span {
+          display: inline-block;
+        }
+      }
+    }
+  }
+}
+
+.thankyoupage {
+  text-align: center;
+  margin-top: $global-margin * 6;
+  span {
+    color: $dark-gray;
+  }
+  &__pirate-mail {
+    position: absolute;
+    left: 0;
+    top: -3rem;
+    @include media-breakpoint-down(sm) {
+      position: relative;
+      top: 1rem;
+      margin-bottom: $global-margin * 2;
+    }
+  }
+  &__form {
+    margin-top: $global-margin * 6;
+    background-color: $light-gray;
+    @include media-breakpoint-down(sm) {
+      margin-top: $global-margin * 3;
+    }
+    .col-md-6 {
+      padding: $global-padding * 4 0 $global-padding * 4 $global-padding * 2;
+      &:last-of-type {
+        padding-right: $global-padding * 2;
+      }
+      @include media-breakpoint-down(sm) {
+        &:first-of-type {
+          padding-bottom: 0;
+        }
+        padding-bottom: $global-padding * 3;
+        padding-top: $global-padding * 3;
+        padding-right: $global-padding * 2;
+      }
+    }
+    form {
+      border-right: 1px solid $gray;
+      padding: 0 $global-padding * 4 0 $global-padding * 2;
+      @include media-breakpoint-down(sm) { 
+        border-right: 0;
+        border-bottom: 1px solid $gray;
+        padding-bottom: $global-padding * 3;
+        padding-right: $global-padding * 2;
+      }
+      p {
+        color: $dark-gray;
+      }
+      button {
+        margin-top: $global-margin * 2;
+      }
+    }
+  }
+  &__image {
+    img {
+      margin: $global-margin * 5 0 $global-margin * 2.8;
+      @include media-breakpoint-down(sm) { 
+        margin-top: $global-margin * 3;
+      }
+      @include media-breakpoint-down(md) {
+        margin-bottom: $global-margin * 4.3;
+      }
+    }
+  }
+}

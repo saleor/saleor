@@ -1,0 +1,47 @@
+.login {
+  margin: $global-margin * 3 0;
+  fieldset {
+    margin-bottom: $global-margin;
+    h2 {
+      margin-bottom: $global-margin * 2;
+    }
+  }
+  p, a {
+    color: $gray;  
+  }
+  a:not(.btn) {
+    text-decoration: underline;
+  }
+  .btn {
+    margin-right: $global-margin;
+  }
+  &__register-link {
+    text-align: center;
+    padding-top: $global-padding * 2;
+    margin-top: $global-margin * 2;
+    border-top: 1px solid $gray;
+    @include media-breakpoint-up(md) {
+      border-top: 0;
+      border-left: 1px solid $gray;
+      margin-top: 0;
+      padding-top: 0;
+    }
+    img {
+      margin: $global-margin * 2.5 0;
+      @include media-breakpoint-up(md) {
+        &.singup-img {
+          margin-bottom: $global-margin * 5;
+        }
+        &.checkout-pirate {
+          margin-bottom: $global-margin * 3.2;
+        }
+      }
+    }
+  }
+  &__btn-group {
+    a {
+      margin-top: $global-margin;
+      display: block;
+    }
+  }
+}
