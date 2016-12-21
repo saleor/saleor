@@ -72,7 +72,7 @@
   text-align: center;
   margin-top: $global-margin * 6;
   span {
-    color: $gray;
+    color: $dark-gray;
   }
   &__pirate-mail {
     position: absolute;
@@ -114,7 +114,7 @@
         padding-right: $global-padding * 2;
       }
       p {
-        color: $gray;
+        color: $dark-gray;
       }
       button {
         margin-top: $global-margin * 2;
