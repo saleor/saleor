@@ -177,9 +177,9 @@ export default Relay.createContainer(CategoryPage, {
         pk
         name
         url
-        ancestors {
-          name
-          pk
+        parent {
+          id
+          name,
           url
         }
         children {

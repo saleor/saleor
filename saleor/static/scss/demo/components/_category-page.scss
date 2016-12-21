@@ -59,20 +59,41 @@
 			}
 		}
 		.categories {
-			padding-bottom: $global-padding*2;;
+			padding: $global-padding*2 0;
+			h2 {
+				font-size: 1.8rem;
+				color: $body-color;
+				padding-bottom: 0;
+			}
 			ul {
 				list-style: none;
 				padding: 0 $global-padding;
 				margin-bottom: 0;
-				&.parents {
-					padding-left: 0;
-				}
 				li {
+					padding-left: 0;
 					a {
 						font-size: 1.2rem;
 						color: $body-color;
 						padding-right: $global-padding/2;
 					}
+				}
+			}
+			.parents {
+				padding-left: $global-padding;
+				i {
+					padding-right: $global-padding/2;
+				}
+				a {
+					color: $body-color;
+				}
+			}
+			.childs {
+				padding-left: $global-padding*2.5;
+				a {
+					font-size: 1rem;
+				}
+				&.no-parent {
+					padding-left: $global-padding;
 				}
 			}
 		}
@@ -84,6 +105,7 @@
 		button {
 			color: $body-color;
 			padding-right: $global-padding;
+			outline: 0;
 			i {
 				padding-left: $global-padding/2;
 			}

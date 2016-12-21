@@ -9,36 +9,27 @@ export default class CategoryFilter extends Component {
 
   render() {
     const { category } = this.props;
+    console.log(category.ancestors);
     return (
       <div className="categories">
-        <ul className="parents">
-          {category.ancestors.map((ancestor) => {
+
+        <h2><strong>{category.name}</strong></h2>
+
+        {category.parent ? (
+          <div className="parents">
+            <i className="fa fa-arrow-left" aria-hidden="true"></i>
+            <a href={category.parent.url}>See all {category.parent.name}</a>
+          </div>
+        ) : (null)}
+        <ul className={category.parent ? ("childs") : ("childs no-parent")}>
+          {category.children && (category.children.map((child) => {
             return (
-              <li key={ancestor.pk}><a href={ancestor.url}><strong>{ancestor.name} / </strong></a></li>
+                <li key={child.pk} className="item">
+                  <a href={child.url}>{child.name}</a>
+                </li>
             );
-          })}
-          <li className="current">
-            <a href={category.url}><strong>{category.name}</strong></a>
-          </li>
+          }))}
         </ul>
-        {category.children && (category.children.map((child) => {
-          return (
-            <ul key={child.pk} className="childs">
-              <li className="item">
-                <a href={child.url}>{child.name}</a>
-              </li>
-              {child.children && (child.children.map((child) => {
-                return (
-                  <ul key={child.pk} className="childs">
-                    <li className="item">
-                      <a href={child.url}>{child.name}</a>
-                    </li>
-                  </ul>
-                );
-              }))}
-            </ul>
-          );
-        }))}
       </div>
     );
   }
