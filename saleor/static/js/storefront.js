@@ -42,6 +42,13 @@ $(document).ready((e) => {
   })
 })
 
+// Sticky footer
+
+var navbarHeight = $('.navbar').outerHeight(true)
+var footerHeight = $('.footer').outerHeight(true)
+var windowHeight = $(window).height()
+$('.maincontent').css('min-height', windowHeight - navbarHeight - footerHeight)
+
 // New address dropdown
 
 var $addressShow = $('.address_show label')
