@@ -45,8 +45,7 @@
   "addons": [
     "heroku-postgresql:hobby-dev",
     "heroku-redis:hobby-dev",
-    "sendgrid:starter",
-    "bonsai:sandbox"
+    "sendgrid:starter"
   ],
   "buildpacks": [
     {
