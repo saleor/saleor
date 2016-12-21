@@ -53,11 +53,16 @@
       border-bottom: 1px solid $gray;
       padding-bottom: $global-padding
     }
-    .custom-select {
-      max-width: 100%;
-      display: inline-block;
+    select {
       color: $body-color;
       margin-left: $global-margin / 2;
+      background-color: $white;
+      &:focus {
+        outline: none;
+      }
+    }
+    &__price {
+      text-align: right;
     }
   }
   &__empty {
