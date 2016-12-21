@@ -63,7 +63,7 @@
             {% if is_visible and product.is_in_stock %}
                 {% block orderform %}
                 <form role="form" class="product-form form-vertical" method="post"
-                 action="{% url 'cart:add-to-cart' product_id=product.pk %}?next={{ product.get_absolute_url }}" novalidate>
+                 action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}" novalidate>
                     {% csrf_token %}
                     {% bootstrap_form form %}
 
