@@ -6,6 +6,7 @@ import CategoryFilter from './CategoryFilter';
 import PriceFilter from './PriceFilter';
 import ProductFilters from './ProductFilters';
 import ProductList from './ProductList';
+import SortBy from './SortBy';
 
 
 const PAGINATE_BY = 20;
@@ -126,35 +127,53 @@ class CategoryPage extends Component {
   render() {
     const { attributes, category, relay: { variables } } = this.props;
     return (
-      <div className="row">
-        <div className="col-md-3">
-          <div className="product-filters">
-            <CategoryFilter
-              category={category}
-            />
-          </div>
-          <h2>Filters:</h2>
-          <div className="product-filters">
-            <ProductFilters
-              attributes={attributes}
-              checkedAttributes={variables.attributesFilter}
-              onFilterChanged={this.updateAttributesFilter}
-            />
-            <PriceFilter
-              onFilterChanged={this.updatePriceFilter}
-              maxPrice={variables.maxPrice}
-              minPrice={variables.minPrice}
-            />
+      <div className="category-page">
+        <div className="category-top">
+          <div className="row">
+            <div className="col-md-8">
+              <ul className="category-breadcrumbs">
+                <li><a href="/">Home</a></li>
+                  {category.ancestors && (category.ancestors.map((ancestor) => {
+                    return (
+                      <li key={ancestor.pk}><a href={ancestor.url}>{ancestor.name}</a></li>
+                    );
+                  }))}
+                <li><a href={category.url}>{category.name}</a></li>
+              </ul>
+            </div>
+            <div className="col-md-4">
+              <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting} />
+            </div>
           </div>
         </div>
-        <div className="col-md-9">
-          <div className="row">
-            <ProductList
-              onLoadMore={this.incrementProductsCount}
-              products={category.products}
-              sortedValue={variables.sortBy}
-              setSorting={this.setSorting}
-            />
+        <div className="row">
+          <div className="col-md-3">
+            <div className="product-filters">
+              <CategoryFilter
+                category={category}
+              />
+            </div>
+            <h2>Filters:</h2>
+            <div className="product-filters">
+              <ProductFilters
+                attributes={attributes}
+                checkedAttributes={variables.attributesFilter}
+                onFilterChanged={this.updateAttributesFilter}
+              />
+              <PriceFilter
+                onFilterChanged={this.updatePriceFilter}
+                maxPrice={variables.maxPrice}
+                minPrice={variables.minPrice}
+              />
+            </div>
+          </div>
+          <div className="col-md-9">
+            <div className="row">
+              <ProductList
+                onLoadMore={this.incrementProductsCount}
+                products={category.products}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -180,6 +199,11 @@ export default Relay.createContainer(CategoryPage, {
         parent {
           id
           name,
+          url
+        }
+        ancestors {
+          name
+          pk
           url
         }
         children {

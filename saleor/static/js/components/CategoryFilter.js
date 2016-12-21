@@ -9,7 +9,6 @@ export default class CategoryFilter extends Component {
 
   render() {
     const { category } = this.props;
-    console.log(category.ancestors);
     return (
       <div className="categories">
 

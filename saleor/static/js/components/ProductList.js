@@ -2,15 +2,12 @@ import React, { Component, PropTypes } from 'react';
 import Relay from 'react-relay';
 
 import ProductItem from './ProductItem';
-import SortBy from './SortBy';
 
 class ProductList extends Component {
 
   static propTypes = {
     onLoadMore: PropTypes.func.isRequired,
     products: PropTypes.object,
-    sortedValue: PropTypes.string,
-    setSorting: PropTypes.func
   };
 
   onLoadMore = () => this.props.onLoadMore();
@@ -20,7 +17,6 @@ class ProductList extends Component {
     const { edges, pageInfo: { hasNextPage } } = this.props.products;
     return (
       <div>
-        <SortBy sortedValue={this.props.sortedValue} setSorting={this.setSorting} />
         <div>
           {edges && (edges.map((edge, i) => (
             <ProductItem key={i} product={edge.node} />
