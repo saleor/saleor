@@ -4,11 +4,8 @@ from django import forms
 from django.db import transaction
 from django.db.models import Count
 from django.forms.models import ModelChoiceIterator, inlineformset_factory
-<<<<<<< cde2a43135fcf2854d71c205d2760ccee15530ad
 from django.utils.encoding import smart_text
-=======
 from django.utils.text import slugify
->>>>>>> Add slug field in AttributeChoiceValue model
 from django.utils.translation import pgettext_lazy
 
 from ...product.models import (AttributeChoiceValue, Product, ProductAttribute,
