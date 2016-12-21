@@ -27,7 +27,7 @@ STOCK_LOCATION = 'default'
 
 DELIVERY_REGIONS = [ANY_COUNTRY, 'US', 'PL', 'DE', 'GB']
 
-REAL_DATA = {
+DEFAULT_SCHEMA = {
     'T-Shirt': {
         'product_attributes': {
             'Color': ['Blue', 'White'],
@@ -79,7 +79,7 @@ def create_product_class_with_attributes(name, schema):
     return product_class
 
 
-def create_real_product_classes(root_schema):
+def create_product_classes_by_schema(root_schema):
     results = []
     for product_class_name, schema in root_schema.items():
         product_class = create_product_class_with_attributes(
@@ -133,6 +133,11 @@ def get_variant_combinations(product):
             for attr_value in combination]
 
 
+def get_price_override(schema):
+    if schema.get('different_variant_prices'):
+        return fake.price()
+
+
 def create_items_by_class(product_class, schema,
                           placeholder_dir, how_many=10, create_images=True,
                           stdout=None):
@@ -149,7 +154,8 @@ def create_items_by_class(product_class, schema,
                 product, random.randrange(1, 5), class_placeholders)
         variant_combinations = get_variant_combinations(product)
         for attr_combination in variant_combinations:
-            create_variant(product, attributes=attr_combination)
+            create_variant(product, attributes=attr_combination,
+                           price_override=get_price_override(schema))
         if not variant_combinations:
             # Create min one variant for products without variant level attrs
             create_variant(product)
@@ -158,8 +164,9 @@ def create_items_by_class(product_class, schema,
                 product, product_class.name, len(variant_combinations) or 1))
 
 
-def create_items_by_schema(schema, placeholder_dir, how_many, create_images, stdout):
-    for product_class, class_schema in create_real_product_classes(schema):
+def create_items_by_schema(placeholder_dir, how_many, create_images, stdout,
+                           schema=DEFAULT_SCHEMA):
+    for product_class, class_schema in create_product_classes_by_schema(schema):
         create_items_by_class(
             product_class, class_schema, placeholder_dir,
             how_many=how_many, create_images=create_images, stdout=stdout)
@@ -262,22 +269,6 @@ def create_attribute_value(attribute, **kwargs):
 def create_product_images(product, how_many, placeholder_dir):
     for dummy in range(how_many):
         create_product_image(product, placeholder_dir)
-
-
-def create_items(placeholder_dir, how_many=10, create_images=True):
-    default_category = get_or_create_category('Default')
-    default_product_class = get_or_create_product_class('Default')
-
-    for dummy in range(how_many):
-        product = create_product(product_class=default_product_class)
-        product.categories.add(default_category)
-        if create_images:
-            create_product_images(
-                product, random.randrange(1, 5), placeholder_dir)
-        num_variants = random.randrange(1, 5)
-        for _ in range(num_variants):
-            create_variant(product)
-        yield 'Product: %s, %s variant(s)' % (product, num_variants)
 
 
 def create_address():

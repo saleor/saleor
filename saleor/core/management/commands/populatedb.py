@@ -3,8 +3,8 @@ from django.db import connection
 
 from ....userprofile.models import User
 from ...utils.random_data import (
-    create_items, create_orders, create_users, create_shipping_methods,
-    create_items_by_schema, REAL_DATA)
+    create_orders, create_users, create_shipping_methods,
+    create_items_by_schema)
 
 
 class Command(BaseCommand):
@@ -24,12 +24,6 @@ class Command(BaseCommand):
             dest='withoutimages',
             default=False,
             help='Don\'t create product images')
-        parser.add_argument(
-            '--real-data',
-            action='store_true',
-            dest='real_data',
-            default=False,
-            help='Create almost real data')
 
     def make_database_faster(self):
         '''Sacrifices some of the safeguards of sqlite3 for speed
@@ -47,11 +41,8 @@ class Command(BaseCommand):
         create_images = not options['withoutimages']
         for msg in create_shipping_methods():
             self.stdout.write(msg)
-        if options['real_data']:
-            create_items_by_schema(REAL_DATA, self.placeholders_dir, 10, create_images, stdout=self.stdout)
-        else:
-            for msg in create_items(self.placeholders_dir, 40, create_images):
-                self.stdout.write(msg)
+        create_items_by_schema(self.placeholders_dir, 10, create_images,
+                               stdout=self.stdout)
         for msg in create_users(20):
             self.stdout.write(msg)
         for msg in create_orders(20):
