@@ -72,6 +72,25 @@
       padding-right: $global-padding * 1.5;
       padding-left: $global-padding;
     }
+    &__search {
+      max-width: 50%;
+      width: 40%;
+      position: relative;
+      margin-right: 10%;
+      margin-top: $global-margin / 2;
+      .form-control {
+        width: 100%;
+        border-color: $body-color;
+      }
+      .btn {
+        position: absolute;
+        top: 0.25rem;
+        right: 0.25rem;
+        img {
+          max-height: 1.5rem;
+        }
+      }
+    }
   }
   &__menu {
     ul {
