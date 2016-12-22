@@ -85,6 +85,12 @@
     {% endif %}
 
     <div class="row tab-content" id="details">
+        <div class="col s12 l8">
+            <label>{% trans 'Product type' %}</label>
+            <h5>
+                {{ product.product_class }}
+            </h5>
+        </div>
         <form method="post" id="form-product" enctype="multipart/form-data" novalidate>
             {% csrf_token %}
             {{ product_form.name|materializecss:"s12 m8" }}

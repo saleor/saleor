@@ -1,21 +1,22 @@
 from __future__ import unicode_literals
 
 import datetime
-
 from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.http import HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 
-from ..cart.decorators import get_cart_from_request
+from ..cart.core import set_cart_cookie
 from ..core.utils import get_paginator_items
-from .forms import get_form_class_for_product
 from .models import Category
-from .utils import (products_with_details, get_availability,
-                    products_with_availability, get_product_images)
+from .utils import (products_with_details, products_for_cart,
+                    products_with_availability,
+                    handle_cart_form, get_availability,
+                    get_product_images)
 
 
-def product_details(request, slug, product_id):
+def product_details(request, slug, product_id, form=None):
     """Product details page
 
     The following variables are available to the template:
@@ -52,15 +53,8 @@ def product_details(request, slug, product_id):
     today = datetime.date.today()
     is_visible = (
         product.available_on is None or product.available_on <= today)
-    form_class = get_form_class_for_product(product)
-    cart = get_cart_from_request(request)
-
-    # add to cart handling
-    form = form_class(cart=cart, product=product,
-                      data=request.POST or None)
-    if form.is_valid():
-        form.save()
-        return redirect('cart:index')
+    if form is None:
+        form = handle_cart_form(request, product, create_cart=False)[0]
 
     availability = get_availability(product, discounts=request.discounts,
                                     local_currency=request.currency)
@@ -71,12 +65,30 @@ def product_details(request, slug, product_id):
     product_images = get_product_images(product)
     return TemplateResponse(
         request, templates,
-        {
-            'availability': availability,
-            'product_images': product_images,
-            'form': form,
-            'is_visible': is_visible,
-            'product': product})
+        {'is_visible': is_visible,
+         'form': form,
+         'availability': availability,
+         'product_images': product_images,
+         'product': product})
+
+
+def product_add_to_cart(request, slug, product_id):
+    if not request.method == 'POST':
+        return redirect(reverse(
+            'product:details',
+            kwargs={'product_id': product_id, 'slug': slug}))
+
+    products = products_for_cart(user=request.user)
+    product = get_object_or_404(products, pk=product_id)
+    form, cart = handle_cart_form(request, product, create_cart=True)
+    if form.is_valid():
+        form.save()
+        response = redirect('cart:index')
+    else:
+        response = product_details(request, slug, product_id, form)
+    if not request.user.is_authenticated():
+        set_cart_cookie(cart, response)
+    return response
 
 
 def category_index(request, path, category_id):

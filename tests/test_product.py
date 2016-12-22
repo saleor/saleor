@@ -2,6 +2,8 @@ import datetime
 
 from mock import Mock
 
+from django.core.urlresolvers import reverse
+
 from saleor.product import models
 from saleor.product.utils import get_availability
 from tests.utils import filter_products_by_attribute
@@ -20,6 +22,28 @@ def test_stock_allocator(product_in_stock):
     models.Stock.objects.allocate_stock(stock, 1)
     stock = models.Stock.objects.get(pk=stock.pk)
     assert stock.quantity_allocated == 1
+
+
+def test_decrease_stock(product_in_stock):
+    stock = product_in_stock.variants.first().stock.first()
+    stock.quantity = 100
+    stock.quantity_allocated = 80
+    stock.save()
+    models.Stock.objects.decrease_stock(stock, 50)
+    stock.refresh_from_db()
+    assert stock.quantity == 50
+    assert stock.quantity_allocated == 30
+
+
+def test_deallocate_stock(product_in_stock):
+    stock = product_in_stock.variants.first().stock.first()
+    stock.quantity = 100
+    stock.quantity_allocated = 80
+    stock.save()
+    models.Stock.objects.deallocate_stock(stock, 50)
+    stock.refresh_from_db()
+    assert stock.quantity == 100
+    assert stock.quantity_allocated == 30
 
 
 def test_product_page_redirects_to_correct_slug(client, product_in_stock):
@@ -96,3 +120,25 @@ def test_filtering_by_attribute(db, color_attribute):
                                             color_attribute.pk, color_2.pk)
     assert product_a in list(filtered)
     assert product_b not in list(filtered)
+
+
+def test_view_invalid_add_to_cart(client, product_in_stock, request_cart):
+    variant = product_in_stock.variants.get()
+    request_cart.add(variant, 2)
+    response = client.post(reverse('product:add-to-cart',
+        kwargs={'slug': product_in_stock.get_slug(),
+                'product_id': product_in_stock.pk}), {})
+    assert response.status_code == 200
+    assert request_cart.quantity == 2
+
+
+def test_view_add_to_cart(client, product_in_stock, request_cart):
+    variant = product_in_stock.variants.get()
+    request_cart.add(variant, 1)
+    response = client.post(
+        reverse('product:add-to-cart',
+        kwargs={'slug': product_in_stock.get_slug(),
+                'product_id': product_in_stock.pk}),
+        {'quantity': 1, 'variant': variant.pk})
+    assert response.status_code == 302
+    assert request_cart.quantity == 1

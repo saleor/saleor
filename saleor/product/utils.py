@@ -1,6 +1,8 @@
 from collections import namedtuple
 
+from ..cart.decorators import get_cart_from_request
 from ..core.utils import to_local_currency
+from .forms import get_form_class_for_product
 from .models import Product
 
 
@@ -35,7 +37,7 @@ def products_with_availability(products, discounts, local_currency):
 
 ProductAvailability = namedtuple(
     'ProductAvailability', (
-        'available', 'price_range', 'discount',
+        'available', 'price_range', 'price_range_undiscounted', 'discount',
         'price_range_local_currency', 'discount_local_currency'))
 
 
@@ -69,6 +71,22 @@ def get_availability(product, discounts=None, local_currency=None):
     return ProductAvailability(
         available=is_available,
         price_range=price_range,
+        price_range_undiscounted=undiscounted,
         discount=discount,
         price_range_local_currency=price_range_local,
         discount_local_currency=discount_local_currency)
+
+
+def handle_cart_form(request, product, create_cart=False):
+    cart = get_cart_from_request(request, create=create_cart)
+    form_class = get_form_class_for_product(product)
+    form = form_class(cart=cart, product=product,
+                      data=request.POST or None, discounts=request.discounts)
+    return form, cart
+
+
+def products_for_cart(user):
+    products = products_visible_to_user(user)
+    products = products.prefetch_related(
+        'variants', 'variants__variant_images__image')
+    return products

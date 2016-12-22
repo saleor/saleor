@@ -18,11 +18,16 @@ from ..views import staff_member_required
 
 @staff_member_required
 def product_class_list(request):
-    classes = ProductClass.objects.all()
+    classes = ProductClass.objects.all().prefetch_related(
+        'product_attributes', 'variant_attributes')
     form = forms.ProductClassForm(request.POST or None)
     if form.is_valid():
         return redirect('dashboard:product-class-add')
     classes = get_paginator_items(classes, 30, request.GET.get('page'))
+    classes.object_list = [
+        (pc.pk, pc.name, pc.has_variants, pc.product_attributes.all(),
+         pc.variant_attributes.all())
+        for pc in classes.object_list]
     ctx = {'form': form, 'product_classes': classes}
     return TemplateResponse(request, 'dashboard/product/class_list.html', ctx)
 
@@ -34,7 +39,7 @@ def product_class_create(request):
                                   instance=product_class)
     if form.is_valid():
         product_class = form.save()
-        msg = _('Added product class %s') % product_class
+        msg = _('Added product type %s') % product_class
         messages.success(request, msg)
         return redirect('dashboard:product-class-list')
     ctx = {'form': form, 'product_class': product_class}
@@ -50,7 +55,7 @@ def product_class_edit(request, pk):
                                   instance=product_class)
     if form.is_valid():
         product_class = form.save()
-        msg = _('Updated product class %s') % product_class
+        msg = _('Updated product type %s') % product_class
         messages.success(request, msg)
         return redirect('dashboard:product-class-update', pk=pk)
     ctx = {'form': form, 'product_class': product_class}
@@ -65,7 +70,7 @@ def product_class_delete(request, pk):
     if request.method == 'POST':
         product_class.delete()
         messages.success(request,
-                         _('Deleted product class %s') % product_class)
+                         _('Deleted product type %s') % product_class)
         return redirect('dashboard:product-class-list')
     return TemplateResponse(
         request,
@@ -331,7 +336,9 @@ def variants_bulk_delete(request, product_pk):
 
 @staff_member_required
 def attribute_list(request):
-    attributes = ProductAttribute.objects.prefetch_related('values')
+    attributes = [
+        (attribute.pk, attribute.display, attribute.values.all())
+        for attribute in ProductAttribute.objects.prefetch_related('values')]
     ctx = {'attributes': attributes}
     return TemplateResponse(request, 'dashboard/product/attributes/list.html',
                             ctx)

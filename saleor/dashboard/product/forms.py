@@ -25,7 +25,7 @@ class ProductClassSelectorForm(forms.Form):
         else:
             widget = forms.RadioSelect
         self.fields['product_cls'] = forms.ChoiceField(
-            label=pgettext_lazy('Product class form label', 'Product class'),
+            label=pgettext_lazy('Product class form label', 'Product type'),
             choices=choices, widget=widget)
 
 
@@ -49,6 +49,13 @@ class ProductClassForm(forms.ModelForm):
     class Meta:
         model = ProductClass
         exclude = []
+        labels = {
+            'product_attributes': pgettext_lazy(
+                'Product class form label',
+                'Attributes specific to each variant'),
+            'variant_attributes': pgettext_lazy(
+                'Product class form label',
+                'Attributes common to all variants')}
 
     def clean(self):
         data = super(ProductClassForm, self).clean()
@@ -77,7 +84,7 @@ class ProductClassForm(forms.ModelForm):
                 if query.exists():
                     msg = pgettext_lazy(
                         'Product Class Errors',
-                        'Some products based on this class have more than '
+                        'Some products of this type have more than '
                         'one variant.')
                     self.add_error('has_variants', msg)
         return data
