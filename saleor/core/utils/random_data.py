@@ -1,17 +1,21 @@
 from __future__ import unicode_literals
 
+import itertools
 import os
 import random
 import unicodedata
+from collections import defaultdict
 
 from django.conf import settings
 from django.core.files import File
+from django.template.defaultfilters import slugify
 from faker import Factory
 from faker.providers import BaseProvider
 from prices import Price
 
 from ...order.models import DeliveryGroup, Order, OrderedItem, Payment
-from ...product.models import (Category, Product, ProductClass, ProductImage,
+from ...product.models import (AttributeChoiceValue, Category, Product,
+                               ProductAttribute, ProductClass, ProductImage,
                                ProductVariant, Stock, StockLocation)
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
 from ...userprofile.models import Address, User
@@ -20,6 +24,160 @@ fake = Factory.create()
 STOCK_LOCATION = 'default'
 
 DELIVERY_REGIONS = [ANY_COUNTRY, 'US', 'PL', 'DE', 'GB']
+
+DEFAULT_SCHEMA = {
+    'T-Shirt': {
+        'product_attributes': {
+            'Color': ['Blue', 'White'],
+            'Collar': ['Round', 'V-Neck', 'Polo']
+        },
+        'variant_attributes': {
+            'Size': ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+        },
+        'images_dir': 't-shirts/',
+    },
+    'Mugs': {
+        'product_attributes': {},
+        'variant_attributes': {},
+        'images_dir': 'mugs/'
+    },
+    'Coffee': {
+        'product_attributes': {
+            'Coffee Genre': ['Arabica', 'Robusta']
+        },
+        'variant_attributes': {
+            'Box Size': ['100g', '250g', '500g', '1kg']
+        },
+        'different_variant_prices': True,
+        'images_dir': 'coffee/',
+    },
+    'Candy': {
+        'product_attributes': {
+            'Flavor': ['Sour', 'Sweet']
+        },
+        'variant_attributes': {
+            'Candy Box Size': ['100g', '250g', '500g']
+        },
+        'images_dir': 'candy/',
+        'different_variant_prices': True
+    },
+}
+
+
+def create_attributes_and_values(schema, attribute_key):
+    attributes = []
+    attribute_data = schema.get(attribute_key, {})
+    for attribute_name, attribute_values in attribute_data.items():
+        attribute = create_attribute(
+            name=slugify(attribute_name), display=attribute_name)
+        for value in attribute_values:
+            create_attribute_value(attribute, display=value)
+        attributes.append(attribute)
+    return attributes
+
+
+def create_product_class_with_attributes(name, schema):
+    product_class = get_or_create_product_class(name=name)
+    product_attributes = create_attributes_and_values(
+        schema, 'product_attributes')
+    variant_attributes = create_attributes_and_values(
+        schema, 'variant_attributes')
+    product_class.product_attributes.add(*product_attributes)
+    product_class.variant_attributes.add(*variant_attributes)
+    return product_class
+
+
+def create_product_classes_by_schema(root_schema):
+    results = []
+    for product_class_name, schema in root_schema.items():
+        product_class = create_product_class_with_attributes(
+            product_class_name, schema)
+        results.append((product_class, schema))
+    return results
+
+
+def set_product_attributes(product, product_class):
+    attr_dict = {}
+    for product_attribute in product_class.product_attributes.all():
+        value = random.choice(product_attribute.values.all())
+        attr_dict[str(product_attribute.pk)] = str(value.pk)
+    product.attributes = attr_dict
+    product.save(update_fields=['attributes'])
+
+
+def set_variant_attributes(variant, product_class):
+    attr_dict = {}
+    existing_variants = variant.product.variants.values_list(
+        'attributes', flat=True)
+    existing_variant_attributes = defaultdict(list)
+    for variant_attrs in existing_variants:
+        for attr_id, value_id in variant_attrs.items():
+            existing_variant_attributes[attr_id].append(value_id)
+
+    for product_attribute in product_class.variant_attributes.all():
+        available_values = product_attribute.values.exclude(
+            pk__in=[int(pk) for pk in existing_variant_attributes[str(product_attribute.pk)]])
+        if not available_values:
+            return
+        value = random.choice(available_values)
+        attr_dict[str(product_attribute.pk)] = str(value.pk)
+    variant.attributes = attr_dict
+    variant.save(update_fields=['attributes'])
+
+
+def get_variant_combinations(product):
+    # Returns all possible variant combinations
+    # For example: product class has two variant attributes: Size, Color
+    # Size has available values: [S, M], Color has values [Red, Green]
+    # All combinations will be generated (S, Red), (S, Green), (M, Red),
+    # (M, Green)
+    # Output is list of dicts, where key is product attribute id and value is
+    # attribute value id. Casted to string.
+    variant_attr_map = {attr: attr.values.all()
+                        for attr in product.product_class.variant_attributes.all()}
+    all_combinations = itertools.product(*variant_attr_map.values())
+    return [{str(attr_value.attribute.pk): str(attr_value.pk)}
+            for combination in all_combinations
+            for attr_value in combination]
+
+
+def get_price_override(schema):
+    if schema.get('different_variant_prices'):
+        return fake.price()
+
+
+def create_items_by_class(product_class, schema,
+                          placeholder_dir, how_many=10, create_images=True,
+                          stdout=None):
+    default_category = get_or_create_category('Default')
+
+    for dummy in range(how_many):
+        product = create_product(product_class=product_class)
+        set_product_attributes(product, product_class)
+        product.categories.add(default_category)
+        if create_images:
+            class_placeholders = os.path.join(
+                placeholder_dir, schema['images_dir'])
+            create_product_images(
+                product, random.randrange(1, 5), class_placeholders)
+        variant_combinations = get_variant_combinations(product)
+        for attr_combination in variant_combinations:
+            create_variant(product, attributes=attr_combination,
+                           price_override=get_price_override(schema))
+        if not variant_combinations:
+            # Create min one variant for products without variant level attrs
+            create_variant(product)
+        if stdout is not None:
+            stdout.write('Product: %s (%s), %s variant(s)' % (
+                product, product_class.name, len(variant_combinations) or 1))
+
+
+def create_items_by_schema(placeholder_dir, how_many, create_images, stdout,
+                           schema=DEFAULT_SCHEMA):
+    for product_class, class_schema in create_product_classes_by_schema(schema):
+        create_items_by_class(
+            product_class, class_schema, placeholder_dir,
+            how_many=how_many, create_images=create_images, stdout=stdout)
 
 
 class SaleorProvider(BaseProvider):
@@ -79,7 +237,7 @@ def create_stock(variant, **kwargs):
 def create_variant(product, **kwargs):
     defaults = {
         'name': fake.word(),
-        'sku': fake.random_int(1, 100000),
+        'sku': '%s-%s' % (product.pk, fake.random_int(1, 100000)),
         'product': product}
     defaults.update(kwargs)
     variant = ProductVariant.objects.create(**defaults)
@@ -97,25 +255,28 @@ def create_product_image(product, placeholder_dir):
     return image
 
 
+def create_attribute(**kwargs):
+    name = fake.word()
+    defaults = {
+        'name': name,
+        'display': name.title()}
+    defaults.update(kwargs)
+    attribute = ProductAttribute.objects.get_or_create(**defaults)[0]
+    return attribute
+
+
+def create_attribute_value(attribute, **kwargs):
+    defaults = {
+        'display': fake.word(),
+        'attribute': attribute}
+    defaults.update(kwargs)
+    attribute_value = AttributeChoiceValue.objects.get_or_create(**defaults)[0]
+    return attribute_value
+
+
 def create_product_images(product, how_many, placeholder_dir):
     for dummy in range(how_many):
         create_product_image(product, placeholder_dir)
-
-
-def create_items(placeholder_dir, how_many=10, create_images=True):
-    default_category = get_or_create_category('Default')
-    default_product_class = get_or_create_product_class('Default')
-
-    for dummy in range(how_many):
-        product = create_product(product_class=default_product_class)
-        product.categories.add(default_category)
-        if create_images:
-            create_product_images(
-                product, random.randrange(1, 5), placeholder_dir)
-        num_variants = random.randrange(1, 5)
-        for _ in range(num_variants):
-            create_variant(product)
-        yield 'Product: %s, %s variant(s)' % (product, num_variants)
 
 
 def create_address():

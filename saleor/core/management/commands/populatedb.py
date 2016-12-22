@@ -3,7 +3,8 @@ from django.db import connection
 
 from ....userprofile.models import User
 from ...utils.random_data import (
-    create_items, create_orders, create_users, create_shipping_methods)
+    create_orders, create_users, create_shipping_methods,
+    create_items_by_schema)
 
 
 class Command(BaseCommand):
@@ -40,8 +41,8 @@ class Command(BaseCommand):
         create_images = not options['withoutimages']
         for msg in create_shipping_methods():
             self.stdout.write(msg)
-        for msg in create_items(self.placeholders_dir, 40, create_images):
-            self.stdout.write(msg)
+        create_items_by_schema(self.placeholders_dir, 10, create_images,
+                               stdout=self.stdout)
         for msg in create_users(20):
             self.stdout.write(msg)
         for msg in create_orders(20):
