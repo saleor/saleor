@@ -36,7 +36,7 @@ def remove_unavailable_variants(cart):
 
 
 def get_product_variants_and_prices(cart, product):
-    lines = (cart_line for cart_line in cart
+    lines = (cart_line for cart_line in cart.lines.all()
              if cart_line.variant.product_id == product.id)
     for line in lines:
         for i in range(line.quantity):
@@ -44,7 +44,7 @@ def get_product_variants_and_prices(cart, product):
 
 
 def get_category_variants_and_prices(cart, discounted_category):
-    products = set((cart_line.variant.product for cart_line in cart))
+    products = set((cart_line.variant.product for cart_line in cart.lines.all()))
     discounted_products = []
     for product in products:
         for category in product.categories.all():
