@@ -131,17 +131,17 @@ $countrySelect.on('change', (e) => {
   })
 })
 
+// Save tab links to URL
 
-const variantPicker = document.getElementById('variant-picker')
-if (variantPicker) {
-  const variantPickerData = JSON.parse(variantPicker.dataset.variantPickerData)
-  ReactDOM.render(
-    <VariantPicker
-      attributes={variantPickerData.attributes}
-      url={variantPicker.dataset.action}
-      variants={variantPickerData.variants}
-    />,
-    variantPicker
-  )
+$('.nav-tabs a').click((e) => {
+  e.preventDefault();
+  $(this).tab('show');
+});
 
-}
+$("ul.nav-tabs li a").on("shown.bs.tab", (e) => {
+  var id = $(e.target).attr("href").substr(1);
+  window.location.hash = id;
+});
+
+var hash = window.location.hash;
+$('.nav-tabs a[href="' + hash + '"]').tab('show');

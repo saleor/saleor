@@ -10,34 +10,41 @@
     
   }
   &__nav {
-    background-color: $light-gray;
-    padding: $global-padding 0;
-    margin-bottom: $global-margin;
-    .nav-link {
-      color: $gray;
-      border: 0;
-      &:first-of-type {
-        margin-right: $global-margin * 3;
-      }
-      &.active, &.active:hover, &.active:focus {
-        background-color: transparent;
-        border: 0;
-        color: $body-color;
-      }
-    }
-    ul {
+    margin: $global-margin * 2 0 $global-margin * 2;
+    .nav {
       border-bottom: 0;
+      background-color: $light-gray;
+    }
+    .nav-item {
+      & + .nav-item {
+        margin-left: 0;
+      }
+      .nav-link {
+        padding: $global-padding $global-padding * 2;
+        border: 0;
+        border-radius: 0;
+        transition: 0.3s;
+        &:hover, &.active {
+          background-color: $white;
+        }
+        h3 {
+          color: $body-color;
+        }
+      }
     }
   }
   &__address-empty {
     margin: $global-margin 0 $global-margin * 2;
   }
   &__address-row {
-    padding: $global-padding 0;
-    border-bottom: 1px solid $light-gray;
-    img {
-      margin-left: $global-margin;
-      float: right;
+    &__item {
+      border: 1px solid $light-gray;
+      padding: $global-padding;
+      img {
+        position: absolute;
+        top: 1rem;
+        right: 2rem;
+      }
     }
   }
   .primary {

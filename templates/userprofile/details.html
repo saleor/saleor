@@ -11,17 +11,12 @@
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
     <li><a href="/">{% trans "Home" %}</a></li>
-    <li><a href="{% url 'profile:details' %}">{% trans "Your account" %}</a></li>
+    <li>{% trans "Your account" %} (<b>{{ user }}</b>)</li>
   </ul>
 {% endblock breadcrumb %}
 
 {% block content %}
   <div class="userprofile">
-    <div class="row">
-      <div class="col-lg-10 offset-lg-1 userprofile__user">
-        <h2 class="float-xs-left">{{ user }}</h2>
-      </div>
-    </div>
     <div class="userprofile__nav container">
       <ul class="nav nav-tabs col-lg-10 offset-lg-1" role="tablist">
         <li class="nav-item">
@@ -35,7 +30,6 @@
         </li>
       </ul>
     </div>
-    <div class="row">
     <div class="tab-content col-lg-10 offset-lg-1">
       <div class="tab-pane active" id="orders" role="tabpanel">
         <div id="accordion" role="tablist" aria-multiselectable="true">
@@ -70,11 +64,11 @@
       <div class="tab-pane" id="addresses" role="tabpanel">
         {% for address in addresses %}
           <div class="row userprofile__address-row">
-            <div class="col-xs-6">
-              {% include "userprofile/snippets/address-short.html" %}
-            </div>
-            <div class="col-md-2 col-xs-4">
-              <a data-toggle="modal" data-target=".modal-address-delete"><img src="{% static 'img/icon_delete.svg' %}"></a>
+            <div class="col-md-4">
+              <div class="userprofile__address-row__item">
+                {% include "userprofile/snippets/address-short.html" %}
+                <a data-toggle="modal" data-target=".modal-address-delete"><img src="{% static 'img/icon_delete.svg' %}"></a>
+              </div>  
             </div>
           </div>
           {% include "userprofile/address-delete.html" with pk=address.pk %}
@@ -86,7 +80,6 @@
         {% endif %}
       </div>
     </div>
-  </div>
   </div>
 {% endblock content %}
 

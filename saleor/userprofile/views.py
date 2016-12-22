@@ -22,6 +22,6 @@ def address_delete(request, pk):
     if request.method == 'POST':
         address.delete()
         messages.success(request, _('Address successfully deleted.'))
-        return HttpResponseRedirect(reverse('profile:details'))
+        return HttpResponseRedirect(reverse('profile:details') + '#addresses')
     return TemplateResponse(
         request, 'userprofile/address-delete.html', {'address': address})
