@@ -15,7 +15,8 @@ export default class sortBy extends Component {
   }
 
   setSorting = (event) => {
-    this.props.setSorting(event);
+    const value = event.target.className;
+    this.props.setSorting(value);
     this.changeVisibility();
   }
 

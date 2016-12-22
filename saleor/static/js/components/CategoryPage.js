@@ -60,9 +60,9 @@ class CategoryPage extends Component {
     });
   }
 
-  setSorting = (event) => {
+  setSorting = (value) => {
     this.props.relay.setVariables({
-      sortBy: event.target.className
+      sortBy: value
     });
   }
 
@@ -188,7 +188,7 @@ export default Relay.createContainer(CategoryPage, {
     count: floatOrNull(getVarFromQueryString('count', PAGINATE_BY)),
     minPrice: floatOrNull(getVarFromQueryString('minPrice')),
     maxPrice: floatOrNull(getVarFromQueryString('maxPrice')),
-    sortBy: getVarFromQueryString('sortBy')
+    sortBy: getVarFromQueryString('sortBy', 'name')
   },
   fragments: {
     category: () => Relay.QL`
