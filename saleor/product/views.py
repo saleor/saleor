@@ -9,7 +9,7 @@ from django.http import HttpResponsePermanentRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 
-from ..cart.core import set_cart_cookie
+from ..cart.utils import set_cart_cookie
 from ..core.utils import get_paginator_items
 from .models import Category
 from .utils import (products_with_details, products_for_cart,

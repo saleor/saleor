@@ -1,20 +1,22 @@
 from __future__ import unicode_literals
 
+from allauth.utils import get_request_param
 from babeldjango.templatetags.babel import currencyfmt
 from django.core.urlresolvers import reverse
-from django.http import JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 
-from . import decorators
 from ..core.utils import to_local_currency
 from ..product.models import ProductVariant
 from .forms import ReplaceCartLineForm
 from .models import Cart
-from .utils import check_product_availability_and_warn
+from .utils import (check_product_availability_and_warn,
+                    find_and_assign_anonymous_cart, get_or_create_db_cart,
+                    get_or_empty_db_cart)
 
 
-@decorators.get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
+@get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
 def index(request, cart):
     discounts = request.discounts
     cart_lines = []
@@ -44,7 +46,7 @@ def index(request, cart):
             'local_cart_total': local_cart_total})
 
 
-@decorators.get_or_empty_db_cart()
+@get_or_empty_db_cart()
 def update(request, cart, variant_id):
     if not request.is_ajax():
         return redirect('cart:index')
@@ -80,7 +82,7 @@ def update(request, cart, variant_id):
     return JsonResponse(response, status=status)
 
 
-@decorators.get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
+@get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
 def summary(request, cart):
 
     def prepare_line_data(line):
@@ -110,3 +112,13 @@ def summary(request, cart):
             'lines': [prepare_line_data(line) for line in cart.lines.all()]}
 
     return JsonResponse(data)
+
+
+def assign_cart_and_redirect_view(request):
+    find_and_assign_anonymous_cart(request)
+    redirect_to = get_request_param(request, "next")
+    if redirect_to is None:
+        redirect_to = '/'
+    response = HttpResponseRedirect(redirect_to)
+    response.delete_cookie(Cart.COOKIE_NAME)
+    return response

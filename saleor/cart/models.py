@@ -15,12 +15,9 @@ from jsonfield import JSONField
 from satchless.item import ItemLine, ItemList, partition
 
 from . import logger
-from ..discount.models import Voucher
-from ..product.models import ProductVariant
+
 
 CENTS = Decimal('0.01')
-
-
 SimpleCart = namedtuple('SimpleCart', ('quantity', 'total', 'token'))
 
 
@@ -98,8 +95,8 @@ class Cart(models.Model):
     email = models.EmailField(blank=True, null=True)
     token = models.UUIDField(pgettext_lazy('Cart', 'token'),
                              primary_key=True, default=uuid4, editable=False)
-    voucher = models.ForeignKey(
-        Voucher, null=True, related_name='+', on_delete=models.SET_NULL)
+    voucher = models.ForeignKey('discount.Voucher', null=True,
+                                related_name='+', on_delete=models.SET_NULL)
     checkout_data = JSONField(null=True, editable=False)
 
     total = PriceField(
@@ -222,7 +219,7 @@ class CartLine(models.Model, ItemLine):
 
     cart = models.ForeignKey(Cart, related_name='lines')
     variant = models.ForeignKey(
-        ProductVariant, related_name='+',
+        'product.ProductVariant', related_name='+',
         verbose_name=pgettext_lazy('Cart line', 'product'))
     quantity = models.PositiveIntegerField(
         pgettext_lazy('Cart line', 'quantity'),
