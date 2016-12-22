@@ -1,9 +1,10 @@
 from django.utils.encoding import smart_text
 
-def get_attributes_display_map(variant, attributes):
+
+def get_attributes_display_map(obj, attributes):
     display = {}
     for attribute in attributes:
-        value = variant.get_attribute(attribute.pk)
+        value = obj.attributes.get(smart_text(attribute.pk))
         if value:
             choices = {smart_text(a.pk): a for a in attribute.values.all()}
             attr = choices.get(value)

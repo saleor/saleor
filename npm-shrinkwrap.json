@@ -1039,6 +1039,11 @@
       "resolved": "https://registry.npmjs.org/clap/-/clap-1.1.1.tgz",
       "dev": true
     },
+    "classnames": {
+      "version": "2.2.5",
+      "from": "classnames@>=2.2.5 <3.0.0",
+      "resolved": "https://registry.npmjs.org/classnames/-/classnames-2.2.5.tgz"
+    },
     "cliui": {
       "version": "3.2.0",
       "from": "cliui@>=3.0.3 <4.0.0",
