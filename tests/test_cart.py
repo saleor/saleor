@@ -7,7 +7,6 @@ import pytest
 from babeldjango.templatetags.babel import currencyfmt
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist
-from django.urls import reverse
 from mock import MagicMock, Mock
 from satchless.item import InsufficientStock
 
