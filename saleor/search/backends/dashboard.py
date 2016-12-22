@@ -1,12 +1,16 @@
 from collections import defaultdict
 
-from . import elasticsearch5
-from ..index import get_indexed_models
+from . import get_search_backend
 from .base import BaseSearchQuery
+from ..index import get_indexed_models
 
 CONTENT_TYPES_MAP = {
     model.indexed_get_content_type(): model
     for model in get_indexed_models()}
+
+DEFAULT_BACKEND = get_search_backend('default')
+DEFAULT_BACKEND_CLASS = DEFAULT_BACKEND.__class__
+DEFAULT_BACKEND_RESULTS_CLASS = DEFAULT_BACKEND.results_class
 
 
 class DashboardSearchQuery(BaseSearchQuery):
@@ -66,7 +70,7 @@ class DashboardSearchQuery(BaseSearchQuery):
         return self.get_inner_query()
 
 
-class DashboardSearchResults(elasticsearch5.Elasticsearch5SearchResults):
+class DashboardSearchResults(DEFAULT_BACKEND_RESULTS_CLASS):
 
     def _do_search(self):
         # Params for elasticsearch query
@@ -132,7 +136,7 @@ class DashboardSearchResults(elasticsearch5.Elasticsearch5SearchResults):
         return max(hit_count, 0)
 
 
-class DashboardMultiTypeSearchBackend(elasticsearch5.Elasticsearch5SearchBackend):
+class DashboardMultiTypeSearchBackend(DEFAULT_BACKEND_CLASS):
     results_class = DashboardSearchResults
     query_class = DashboardSearchQuery
 
