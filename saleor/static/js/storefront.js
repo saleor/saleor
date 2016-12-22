@@ -138,7 +138,7 @@ $('.nav-tabs a').click((e) => {
   $(this).tab('show');
 });
 
-$("ul.nav-tabs li a:not:first-of-type").on("shown.bs.tab", (e) => {
+$("ul.nav-tabs li a:not(:first)").on("shown.bs.tab", (e) => {
   var id = $(e.target).attr("href").substr(1);
   window.location.hash = id;
 });
