@@ -1,4 +1,4 @@
-import React, { Component, PropTypes } from 'react';
+import React, { Component, PropTypes } from 'react'
 
 
 export default class AttributeSelectionWidget extends Component {
@@ -10,12 +10,12 @@ export default class AttributeSelectionWidget extends Component {
   };
 
   handleChange = (event) => {
-    const { name, value } = event.target;
-    this.props.handleChange(name, value);
+    const { name, value } = event.target
+    this.props.handleChange(name, value)
   }
 
   render() {
-    const { attribute: { display, pk, values }, selected } = this.props;
+    const { attribute: { display, pk, values }, selected } = this.props
     return (
       <div className="form-group">
         <label className="control-label">{display}</label>
@@ -32,10 +32,10 @@ export default class AttributeSelectionWidget extends Component {
                 />
                 {value.display}
               </label>
-            );
+            )
           })}
         </div>
       </div>
-    );
+    )
   }
 }
