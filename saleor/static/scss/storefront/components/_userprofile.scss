@@ -30,7 +30,7 @@
       }
       .nav-link {
         padding: $global-padding $global-padding * 2;
-        border: 0;
+        border-bottom: 1px solid $light-gray;
         margin-top: $global-margin / 2;
         @include media-breakpoint-up(sm) {
           border-left: 1px solid $light-gray;
@@ -42,6 +42,8 @@
         transition: 0.3s;
         &:hover, &.active {
           background-color: $white;
+          border-color: $light-gray;
+          border-bottom: 1px solid $white;
         }
         h3 {
           color: $body-color;
