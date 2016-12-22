@@ -67,22 +67,21 @@
 
       </div>
       <div class="tab-pane" id="addresses" role="tabpanel">
-        {% for address in addresses %}
-          <div class="row userprofile__address-row">
-            <div class="col-md-4">
-              <div class="userprofile__address-row__item">
+        <div class="card-deck-wrapper userprofile__addresses">
+          <div class="card-deck">
+            {% for address in addresses %}
+              <div class="card card-block">
                 {% include "userprofile/snippets/address-short.html" %}
                 <a data-toggle="modal" data-target=".modal-address-delete"><img src="{% static 'img/icon_delete.svg' %}"></a>
-              </div>  
-            </div>
+                {% include "userprofile/address-delete.html" with pk=address.pk %}
+              </div>
+              {% if forloop.counter|divisibleby:3 %}
+                </div>
+                <div class="card-deck">
+              {% endif %}
+            {% endfor %}
           </div>
-          {% include "userprofile/address-delete.html" with pk=address.pk %}
-        {% endfor %}
-        {% if addresses|length == 0 %}
-          <div class="userprofile__address-empty">
-            <p></p>
-          </div>
-        {% endif %}
+        </div>
       </div>
     </div>
   </div>

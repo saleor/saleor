@@ -36,14 +36,21 @@
   &__address-empty {
     margin: $global-margin 0 $global-margin * 2;
   }
-  &__address-row {
-    &__item {
-      border: 1px solid $light-gray;
-      padding: $global-padding;
-      img {
-        position: absolute;
-        top: 1rem;
-        right: 2rem;
+  &__addresses {
+    display: table;
+    min-width: 100%;
+    border-spacing: $global-margin;
+    margin: 0;
+    .card-deck {
+      display: table-row;
+      .card {
+        width: 30%;
+        border-radius: 0;
+        img {
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+        }
       }
     }
   }
