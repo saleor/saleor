@@ -78,7 +78,7 @@
                 <a data-toggle="modal" data-target=".modal-address-delete"><img src="{% static 'img/icon_delete.svg' %}"></a>
                 {% include "userprofile/address-delete.html" with pk=address.pk %}
               </div>
-              {% if forloop.counter|divisibleby:3 %}
+              {% if forloop.counter|divisibleby:2 %}
                 </div>
                 <div class="card-deck">
               {% endif %}

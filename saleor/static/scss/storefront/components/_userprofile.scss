@@ -14,14 +14,30 @@
     .nav {
       border-bottom: 0;
       background-color: $light-gray;
+      @include media-breakpoint-down(xs) {
+        text-align: center;
+        padding-right: 0;
+        padding-bottom: $global-padding / 2;
+      }
     }
     .nav-item {
+      @include media-breakpoint-down(xs) {
+        display: inline-block;
+        float: none;
+      }
       & + .nav-item {
         margin-left: 0;
       }
       .nav-link {
         padding: $global-padding $global-padding * 2;
         border: 0;
+        margin-top: $global-margin / 2;
+        @include media-breakpoint-up(sm) {
+          border-left: 1px solid $light-gray;
+          border-bottom: 1px solid $white;
+          border-top: 1px solid $light-gray;
+          margin-top: 0;
+        }
         border-radius: 0;
         transition: 0.3s;
         &:hover, &.active {
@@ -29,6 +45,9 @@
         }
         h3 {
           color: $body-color;
+          @include media-breakpoint-down(sm) {
+            font-size: 1rem;
+          }
         }
       }
     }
@@ -59,8 +78,15 @@
     .card-deck {
       display: table-row;
       .card {
-        width: 30%;
+        width: 50%;
         border-radius: 0;
+        @include media-breakpoint-down(sm) {
+          width: 100%;
+          display: inline-block;
+          &:first-of-type {
+            margin-bottom: $global-margin;
+          }
+        }
         img {
           position: absolute;
           top: 1rem;
