@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from ..cart.decorators import get_cart_from_request
+from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
 from .forms import get_form_class_for_product
 from .models import Product
@@ -78,7 +78,11 @@ def get_availability(product, discounts=None, local_currency=None):
 
 
 def handle_cart_form(request, product, create_cart=False):
-    cart = get_cart_from_request(request, create=create_cart)
+    if create_cart:
+        cart = get_or_create_cart_from_request(request)
+    else:
+        cart = get_cart_from_request(request)
+
     form_class = get_form_class_for_product(product)
     form = form_class(cart=cart, product=product,
                       data=request.POST or None, discounts=request.discounts)

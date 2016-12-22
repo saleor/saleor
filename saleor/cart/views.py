@@ -46,7 +46,7 @@ def index(request, cart):
             'local_cart_total': local_cart_total})
 
 
-@get_or_create_db_cart()
+@get_or_empty_db_cart()
 def update(request, cart, variant_id):
     if not request.is_ajax():
         return redirect('cart:index')
