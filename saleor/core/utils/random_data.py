@@ -1,12 +1,11 @@
 from __future__ import unicode_literals
 
+import itertools
 import os
 import random
 import unicodedata
-
 from collections import defaultdict
 
-import itertools
 from django.conf import settings
 from django.core.files import File
 from django.template.defaultfilters import slugify
@@ -14,10 +13,9 @@ from faker import Factory
 from faker.providers import BaseProvider
 from prices import Price
 
-from saleor.product.models import AttributeChoiceValue
-from saleor.product.models import ProductAttribute
 from ...order.models import DeliveryGroup, Order, OrderedItem, Payment
-from ...product.models import (Category, Product, ProductClass, ProductImage,
+from ...product.models import (AttributeChoiceValue, Category, Product,
+                               ProductAttribute, ProductClass, ProductImage,
                                ProductVariant, Stock, StockLocation)
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
 from ...userprofile.models import Address, User
