@@ -301,8 +301,8 @@ def test_shipping_detection(cart, product_in_stock):
 
 def test_get_product_variants_and_prices():
     variant = Mock(product_id=1, id=1)
-    cart = MagicMock()
-    cart.__iter__.return_value = [
+    cart = MagicMock(spec=Cart)
+    cart.lines.all.return_value = [
         Mock(quantity=1, variant=variant,
              get_price_per_item=Mock(return_value=10))]
     variants = list(utils.get_product_variants_and_prices(cart, variant))
