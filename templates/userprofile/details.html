@@ -59,7 +59,12 @@
         </div>
       </div>
       <div class="tab-pane" id="account" role="tabpanel">
-        
+          <form action="" method="post">
+              {% csrf_token %}
+              {% bootstrap_form change_password_form %}
+              <input type="submit" class="btn primary" value="Change password">
+          </form>
+
       </div>
       <div class="tab-pane" id="addresses" role="tabpanel">
         {% for address in addresses %}
