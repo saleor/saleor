@@ -30,6 +30,7 @@ export default class sortBy extends Component {
     const { visibility } = this.state;
     return (
       <div className="sort-by">
+        <div className={visibility ? ('click-area') : ('click-area hide')} onClick={this.changeVisibility}></div>
         <button className="btn btn-link" onClick={this.changeVisibility}>
           {sortedValue ? (
             sortedValue.search('-') ? (
