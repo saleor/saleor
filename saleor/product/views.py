@@ -5,7 +5,7 @@ import json
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.http import HttpResponsePermanentRedirect
+from django.http import HttpResponsePermanentRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 
@@ -90,9 +90,15 @@ def product_add_to_cart(request, slug, product_id):
     form, cart = handle_cart_form(request, product, create_cart=True)
     if form.is_valid():
         form.save()
-        response = redirect('cart:index')
+        if request.is_ajax():
+            response = JsonResponse({'next': reverse('cart:index')}, status=200)
+        else:
+            response = redirect('cart:index')
     else:
-        response = product_details(request, slug, product_id, form)
+        if request.is_ajax():
+            response = JsonResponse({'error': form.errors}, status=400)
+        else:
+            response = product_details(request, slug, product_id, form)
     if not request.user.is_authenticated():
         set_cart_cookie(cart, response)
     return response

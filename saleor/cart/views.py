@@ -1,9 +1,6 @@
 from __future__ import unicode_literals
 
-from itertools import chain
-
 from babeldjango.templatetags.babel import currencyfmt
-from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -45,30 +42,6 @@ def index(request, cart):
             'cart_lines': cart_lines,
             'cart_total': cart_total,
             'local_cart_total': local_cart_total})
-
-
-@decorators.get_or_create_db_cart()
-def add_to_cart(request, cart, product_id):
-    product = get_object_or_404(Product, pk=product_id)
-    form_class = get_form_class_for_product(product)
-    form = form_class(
-        data=request.POST or None, product=product, cart=cart,
-        discounts=request.discounts)
-
-    if form.is_valid():
-        form.save()
-        if request.is_ajax():
-            response = {'next': reverse('cart:index')}
-            return JsonResponse(response, status=200)
-    else:
-        if request.is_ajax():
-            response = {'error': form.errors}
-            return JsonResponse(response, status=400)
-        else:
-            flat_error_list = chain(*form.errors.values())
-            for error_msg in flat_error_list:
-                messages.error(request, error_msg)
-    return redirect('cart:index')
 
 
 @decorators.get_or_empty_db_cart()
