@@ -20,6 +20,7 @@ django-selectable>=0.8.0
 django-storages>=1.4.1
 django-versatileimagefield>=1.0.1
 django-webpack-loader>=0.3.0
+elasticsearch>=2.0.0,<3.0.0
 fake-factory>=0.3.2
 google-measurement-protocol>=0.1.2,<0.2a0
 google-i18n-address>=2.0.1

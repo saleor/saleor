@@ -11,6 +11,7 @@ from .core.sitemaps import sitemaps
 from .core.urls import urlpatterns as core_urls
 from .order.urls import urlpatterns as order_urls
 from .product.urls import urlpatterns as product_urls
+from .search.urls import urlpatterns as search_urls
 from .userprofile.urls import urlpatterns as userprofile_urls
 from .dashboard.urls import urlpatterns as dashboard_urls
 
@@ -27,6 +28,7 @@ urlpatterns = [
     url(r'^order/', include(order_urls, namespace='order')),
     url(r'^products/', include(product_urls, namespace='product')),
     url(r'^profile/', include(userprofile_urls, namespace='profile')),
+    url(r'^search/', include(search_urls, namespace='search')),
     url(r'^selectable/', include('selectable.urls')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),

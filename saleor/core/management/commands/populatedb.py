@@ -1,3 +1,4 @@
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import connection
 
@@ -24,6 +25,12 @@ class Command(BaseCommand):
             dest='withoutimages',
             default=False,
             help='Don\'t create product images')
+        parser.add_argument(
+            '--withoutsearch',
+            action='store_true',
+            dest='withoutsearch',
+            default=False,
+            help='Don\'t update search index')
 
     def make_database_faster(self):
         '''Sacrifices some of the safeguards of sqlite3 for speed
@@ -35,6 +42,9 @@ class Command(BaseCommand):
             cursor = connection.cursor()
             cursor.execute('PRAGMA temp_store = MEMORY;')
             cursor.execute('PRAGMA synchronous = OFF;')
+
+    def populate_search_index(self):
+        call_command('update_index')
 
     def handle(self, *args, **options):
         self.make_database_faster()
@@ -61,3 +71,5 @@ class Command(BaseCommand):
             else:
                 self.stdout.write(
                     'Superuser already exists - %(email)s' % credentials)
+        if not options['withoutsearch']:
+            self.populate_search_index()

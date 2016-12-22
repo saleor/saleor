@@ -11,6 +11,7 @@ from ...product.models import (AttributeChoiceValue, Product, ProductAttribute,
                                ProductClass, ProductImage, ProductVariant,
                                Stock, StockLocation, VariantImage)
 from .widgets import ImagePreviewWidget
+from ...search import index as search_index
 
 
 class ProductClassSelectorForm(forms.Form):
@@ -137,7 +138,9 @@ class ProductForm(forms.ModelForm):
             else:
                 attributes[smart_text(attr.pk)] = value
         self.instance.attributes = attributes
-        return super(ProductForm, self).save(commit=commit)
+        instance = super(ProductForm, self).save(commit=commit)
+        search_index.insert_or_update_object(instance)
+        return instance
 
 
 class ProductVariantForm(forms.ModelForm):
