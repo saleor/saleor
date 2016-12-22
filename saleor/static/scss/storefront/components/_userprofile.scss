@@ -33,8 +33,23 @@
       }
     }
   }
-  &__address-empty {
-    margin: $global-margin 0 $global-margin * 2;
+  &__orders {
+    small {
+      text-decoration: underline;
+      color: $body-color;
+    }
+    &__row {
+      border-bottom: 1px solid $light-gray;
+      padding: $global-padding 0;
+    }
+  }
+  &__password {
+    h1 {
+      margin-bottom: $global-margin * 2;
+    }
+    .btn {
+      margin-top: $global-margin;
+    }
   }
   &__addresses {
     display: table;
@@ -53,33 +68,6 @@
         }
       }
     }
-  }
-  .primary {
-    margin-top: $global-margin;
-  }
-  &__orders {
-    small {
-      text-decoration: underline;
-      color: $body-color;
-    }
-    &__row {
-      border-bottom: 1px solid $light-gray;
-      padding: $global-padding 0;
-    }
-  }
-  &__address-edit {
-    &__form {
-      margin-bottom: $global-margin * 2;
-    }
-  }
-}
-
-.account-edit {
-  &__tittle {
-    margin: $global-margin * 2 0;
-  }
-  .btn {
-    margin-top: $global-margin;
   }
 }
 

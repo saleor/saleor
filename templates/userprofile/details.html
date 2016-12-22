@@ -23,7 +23,7 @@
           <a class="nav-link active" data-toggle="tab" href="#orders" role="tab"><h3>{% trans "Orders" %}</h3></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link " data-toggle="tab" href="#account" role="tab"><h3>{% trans "Account & Password" %}</h3></a>
+          <a class="nav-link " data-toggle="tab" href="#password" role="tab"><h3>{% trans "Change password" %}</h3></a>
         </li>
         <li class="nav-item">
           <a class="nav-link" data-toggle="tab" href="#addresses" role="tab"><h3>{% trans "Addresses" %}</h3></a>
@@ -58,13 +58,16 @@
           {% endfor %}
         </div>
       </div>
-      <div class="tab-pane" id="account" role="tabpanel">
-          <form action="" method="post">
-              {% csrf_token %}
-              {% bootstrap_form change_password_form %}
-              <input type="submit" class="btn primary" value="Change password">
-          </form>
-
+      <div class="tab-pane" id="password" role="tabpanel">
+        <div class="row ">
+          <div class="col-md-8 offset-md-2 col-lg-6 offset-lg-3 userprofile__password">
+            <form action="" method="post">
+                {% csrf_token %}
+                {% bootstrap_form change_password_form %}
+                <input type="submit" class="btn primary" value="Change password">
+            </form>
+          </div>
+        </div>
       </div>
       <div class="tab-pane" id="addresses" role="tabpanel">
         <div class="card-deck-wrapper userprofile__addresses">
