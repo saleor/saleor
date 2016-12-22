@@ -68,6 +68,7 @@ def product_details(request, slug, product_id, form=None):
         product.variants.all(),
         product.product_class.variant_attributes.prefetch_related('values'))
     product_attributes = get_product_attributes_data(product)
+    show_variant_picker = all([v.attributes for v in product.variants.all()])
     return TemplateResponse(
         request, templates,
         {'is_visible': is_visible,
@@ -76,6 +77,7 @@ def product_details(request, slug, product_id, form=None):
          'product': product,
          'product_attributes': product_attributes,
          'product_images': product_images,
+         'show_variant_picker': show_variant_picker,
          'variant_picker_data': json.dumps(variant_picker_data)})
 
 

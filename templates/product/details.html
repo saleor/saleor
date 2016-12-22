@@ -68,13 +68,20 @@
                             <p>{{ value }}</p>
                         </div>
                     {% endfor %}
-                    <div id="variant-picker" data-variant-picker-data="{{ variant_picker_data }}"></div>
-                    <form id="product-form" role="form" class="product-form form-vertical" method="post"
-                     action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}" novalidate>
-                        {% csrf_token %}
-                        {{ form.quantity.as_hidden }}
-                        {{ form.variant.as_hidden }}
-                    </form>
+                    {% if show_variant_picker %}
+                        <div id="variant-picker" data-variant-picker-data="{{ variant_picker_data }}" data-action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}"></div>
+                    {% else %}
+                        <form id="product-form" role="form" class="product-form form-vertical" method="post"
+                        action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}" novalidate>
+                            {% csrf_token %}
+                            {% bootstrap_form form %}
+                            <div class="form-group">
+                                <button class="btn btn-lg btn-block btn-primary">
+                                    {% trans "Add to cart" %}
+                                </button>
+                            </div>
+                        </form>
+                    {% endif %}
                 {% endblock %}
             {% else %}
                 <p class="alert alert-warning">{% trans "This product is currently <strong>unavailable</strong>." %}</p>
