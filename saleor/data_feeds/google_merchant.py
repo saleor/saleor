@@ -8,9 +8,11 @@ from django.contrib.sites.models import Site
 from django.contrib.syndication.views import add_domain
 from django.core.files.storage import default_storage
 from django.utils import six
+from django.utils.encoding import smart_text
 
 from ..discount.models import Sale
-from ..product.models import Category, ProductAttribute, ProductVariant
+from ..product.models import (AttributeChoiceValue, Category, ProductAttribute,
+                              ProductVariant)
 
 CATEGORY_SEPARATOR = ' > '
 
@@ -71,7 +73,7 @@ def item_condition(item):
     return 'new'
 
 
-def item_brand(item, attributes_dict):
+def item_brand(item, attributes_dict, attribute_values_dict):
     """
     This field is required.
     Read more:
@@ -91,6 +93,10 @@ def item_brand(item, attributes_dict):
         if brand is None:
             brand = item.product.get_attribute(publisher_attribute_pk)
 
+    if brand is not None:
+        brand_name = attribute_values_dict.get(brand)
+        if brand_name is not None:
+            return brand_name
     return brand
 
 
@@ -154,7 +160,7 @@ def item_sale_price(item, discounts):
 
 
 def item_attributes(item, categories, category_paths, current_site,
-                    discounts, attributes_dict):
+                    discounts, attributes_dict, attribute_values_dict):
     product_data = {
         'id': item_id(item),
         'title': item_title(item),
@@ -181,7 +187,7 @@ def item_attributes(item, categories, category_paths, current_site,
     if tax:
         product_data['tax'] = tax
 
-    brand = item_brand(item, attributes_dict)
+    brand = item_brand(item, attributes_dict, attribute_values_dict)
     if brand:
         product_data['brand'] = brand
 
@@ -198,11 +204,14 @@ def write_feed(file_obj):
     discounts = Sale.objects.all().prefetch_related('products',
                                                     'categories')
     attributes_dict = {a.name: a.pk for a in ProductAttribute.objects.all()}
+    attribute_values_dict = {smart_text(a.pk): smart_text(a) for a
+                             in AttributeChoiceValue.objects.all()}
     category_paths = {}
     current_site = Site.objects.get_current()
     for item in get_feed_items():
         item_data = item_attributes(item, categories, category_paths,
-                                    current_site, discounts, attributes_dict)
+                                    current_site, discounts, attributes_dict,
+                                    attribute_values_dict)
         writer.writerow(item_data)
 
 

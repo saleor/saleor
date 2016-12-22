@@ -1,16 +1,18 @@
 from __future__ import unicode_literals
 
 import csv
+
 from mock import Mock
 
 from django.contrib.sites.models import Site
 from django.utils import six
+from django.utils.encoding import smart_text
 if six.PY3:
     from io import StringIO
 else:
     from StringIO import StringIO
 
-from saleor.product.models import Category
+from saleor.product.models import AttributeChoiceValue, Category
 from saleor.data_feeds.google_merchant import (get_feed_items,
                                                item_attributes,
                                                item_google_product_category,
@@ -26,8 +28,11 @@ def test_saleor_feed_items(product_in_stock):
     category_paths = {}
     attributes_dict = {}
     current_site = Site.objects.get_current()
+    attribute_values_dict = {smart_text(a.pk): smart_text(a) for a
+                             in AttributeChoiceValue.objects.all()}
     attributes = item_attributes(items[0], categories, category_paths,
-                                 current_site, discounts, attributes_dict)
+                                 current_site, discounts, attributes_dict,
+                                 attribute_values_dict)
     assert attributes.get('mpn') == valid_variant.sku
     assert attributes.get('availability') == 'in stock'
 

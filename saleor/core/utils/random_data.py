@@ -29,7 +29,8 @@ DEFAULT_SCHEMA = {
     'T-Shirt': {
         'product_attributes': {
             'Color': ['Blue', 'White'],
-            'Collar': ['Round', 'V-Neck', 'Polo']
+            'Collar': ['Round', 'V-Neck', 'Polo'],
+            'Brand': ['Saleor']
         },
         'variant_attributes': {
             'Size': ['XS', 'S', 'M', 'L', 'XL', 'XXL']
@@ -37,13 +38,16 @@ DEFAULT_SCHEMA = {
         'images_dir': 't-shirts/',
     },
     'Mugs': {
-        'product_attributes': {},
+        'product_attributes': {
+            'Brand': ['Saleor']
+        },
         'variant_attributes': {},
         'images_dir': 'mugs/'
     },
     'Coffee': {
         'product_attributes': {
-            'Coffee Genre': ['Arabica', 'Robusta']
+            'Coffee Genre': ['Arabica', 'Robusta'],
+            'Brand': ['Saleor']
         },
         'variant_attributes': {
             'Box Size': ['100g', '250g', '500g', '1kg']
@@ -53,7 +57,8 @@ DEFAULT_SCHEMA = {
     },
     'Candy': {
         'product_attributes': {
-            'Flavor': ['Sour', 'Sweet']
+            'Flavor': ['Sour', 'Sweet'],
+            'Brand': ['Saleor']
         },
         'variant_attributes': {
             'Candy Box Size': ['100g', '250g', '500g']
