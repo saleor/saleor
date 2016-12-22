@@ -56,6 +56,9 @@
             </div>
           </div>
           {% endfor %}
+          {% if orders|length == 0 %}
+            <h3 class="text-sm-center">{% trans "There are not any completed orders yet." %}</h3>
+          {% endif %}
         </div>
       </div>
       <div class="tab-pane" id="password" role="tabpanel">
@@ -83,6 +86,9 @@
                 <div class="card-deck">
               {% endif %}
             {% endfor %}
+            {% if addresses|length == 0 %}
+              <h3 class="text-sm-center">{% trans "You will see new addresses here after first successful checkout." %}</h3>
+            {% endif %}
           </div>
         </div>
       </div>
