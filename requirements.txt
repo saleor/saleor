@@ -33,6 +33,7 @@ django-versatileimagefield==1.6
 django-webpack-loader==0.4.1
 django==1.10.3
 djangorestframework==3.5.2
+elasticsearch==2.4.0
 fake-factory==0.7.2
 google-i18n-address==2.0.1
 google-measurement-protocol==0.1.6
@@ -67,6 +68,7 @@ six==1.10.0               # via cryptography, fake-factory, mock, purl, python-d
 stripe==1.41.1            # via django-payments
 suds-jurko==0.6           # via django-payments
 unidecode==0.4.19
+urllib3==1.19.1           # via elasticsearch
 uwsgi==2.0.14
 xmltodict==0.10.2         # via django-payments
 

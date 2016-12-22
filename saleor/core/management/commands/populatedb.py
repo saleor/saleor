@@ -1,9 +1,11 @@
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import connection
 
 from ....userprofile.models import User
 from ...utils.random_data import (
-    create_items, create_orders, create_users, create_shipping_methods)
+    create_orders, create_users, create_shipping_methods,
+    create_items_by_schema)
 
 
 class Command(BaseCommand):
@@ -23,6 +25,12 @@ class Command(BaseCommand):
             dest='withoutimages',
             default=False,
             help='Don\'t create product images')
+        parser.add_argument(
+            '--withoutsearch',
+            action='store_true',
+            dest='withoutsearch',
+            default=False,
+            help='Don\'t update search index')
 
     def make_database_faster(self):
         '''Sacrifices some of the safeguards of sqlite3 for speed
@@ -35,13 +43,16 @@ class Command(BaseCommand):
             cursor.execute('PRAGMA temp_store = MEMORY;')
             cursor.execute('PRAGMA synchronous = OFF;')
 
+    def populate_search_index(self):
+        call_command('update_index')
+
     def handle(self, *args, **options):
         self.make_database_faster()
         create_images = not options['withoutimages']
         for msg in create_shipping_methods():
             self.stdout.write(msg)
-        for msg in create_items(self.placeholders_dir, 40, create_images):
-            self.stdout.write(msg)
+        create_items_by_schema(self.placeholders_dir, 10, create_images,
+                               stdout=self.stdout)
         for msg in create_users(20):
             self.stdout.write(msg)
         for msg in create_orders(20):
@@ -60,3 +71,5 @@ class Command(BaseCommand):
             else:
                 self.stdout.write(
                     'Superuser already exists - %(email)s' % credentials)
+        if not options['withoutsearch']:
+            self.populate_search_index()

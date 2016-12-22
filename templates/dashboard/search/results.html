@@ -1,0 +1,98 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load prices_i18n %}
+{% load materializecss %}
+{% load staticfiles %}
+{% load product_first_image from product_images %}
+
+{% block title %}{% trans "Search results" %} - {{ block.super }}{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs">
+        <li>{% trans "Search" %}</li>
+    </ul>
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col s12">
+            <form class="hide-on-med-and-up row" method="get" action="{% url "dashboard:search" %}">
+                <input id="icon_prefix" type="text" class="validate col s10" placeholder="Search" name="q" value="{% if query %}{{ query }}{% endif %}">
+                <button class="btn-flat search-button col s2" type="submit">
+                    <i class="material-icons left right">search</i>
+                </button>
+            </form>
+            <div class="row">
+                <div class="col s12">
+                    <form class="row" method="get" action="{% url "dashboard:search" %}">
+                        <input type="hidden" class="validate" name="q" value="{% if query %}{{ query }}{% endif %}">
+                    </form>
+                </div>
+            </div>
+            {% if results %}
+                <ul class="collection list">
+                    {% for result in results %}
+                        <li class="collection-item avatar list-item">
+                            {% if result.content_type == 'product_product' %}
+                                {% with product=result %}
+                                    <img src="{% product_first_image product size="100x100" method="crop" %}" class="circle teal" alt="{{ product.name }}">
+                                    <a class="title" href="{% url 'dashboard:product-update' pk=product.pk %}">
+                                        <span class="list-item-name">{{ product.name }}</span>
+                                    </a>
+                                    <p class="list-item-price">
+                                        <small>{% gross product.price %}</small>
+                                    </p>
+                                {% endwith %}
+                            {% elif result.content_type == 'order_order' %}
+                                <i class="small material-icons circle teal">payment</i>
+                                <a class="title" href="{% url 'dashboard:order-details' order_pk=result.pk %}">
+                                    <span class="list-item-name">{% blocktrans with order_number=result.pk %}Order #{{ order_number }}{% endblocktrans %}</span>
+                                </a>
+                                <p class="list-item-price">
+                                    <small>{% blocktrans with email=result.user_email %}Customer: {{ email }}{% endblocktrans %}</small>
+                                    <small>
+                                        {% blocktrans with placed=result.created %}Placed on: {{ placed }}{% endblocktrans %}
+                                    </small>
+
+                                </p>
+                            {% elif result.content_type == 'userprofile_user' %}
+                                <i class="small material-icons circle teal">perm_identity</i>
+                                <a class="title" href="{% url 'dashboard:order-details' order_pk=result.pk %}">
+                                    <span class="list-item-name">
+                                        {% blocktrans with full_name=result.get_full_name %}User {{ full_name }}{% endblocktrans %}
+                                    </span>
+                                </a>
+                                <p class="list-item-price">
+                                    <small>{% trans "Customer" %}</small>
+                                </p>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+                {% include "dashboard/includes/_pagination.html" with page_obj=results %}
+            {% elif query %}
+                <p>{% trans "No results for query " %}"{{ query }}".</p>
+            {% endif %}
+        </div>
+    </div>
+    <div id="modal-product-class" class="modal">
+        <div class="modal-content">
+            <form method="post" action=".">
+                {% csrf_token %}
+                <div class="row">
+                    {{ form|materializecss }}
+                </div>
+
+                <div class="row">
+                    <div class="col s12">
+                        <button class="btn" type="submit">
+                            <i class="material-icons left">create</i> {% trans "Create new" %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

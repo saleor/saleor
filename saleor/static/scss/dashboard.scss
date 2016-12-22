@@ -26,6 +26,51 @@ header {
   .top-nav {
     box-shadow: none;
     line-height: 0;
+    .left {
+      width: 98vw;
+      @media (max-width: $small-screen) {
+        width: auto;
+      }
+      .search {
+        min-width: 50%;
+        width: auto;
+        .input-field {
+          margin-top: 0.5rem;
+          @media (min-width: $large-screen) {
+            margin-top: 0.3rem;
+          }
+          margin-left: 3rem;
+          input {
+            padding: 1rem;
+            background-color: $primary-color-light;
+            margin-bottom: 0;
+            border-radius: 3px;
+            width: 80%;
+            display: inline-block;
+            @media (min-width: $large-screen) {
+              width: 90%;
+            }
+            @media (max-width: $medium-screen) {
+              width: 70%;
+            }
+            &:focus {
+              background-color: white;
+            }
+          }
+          .search-icon {
+            background: transparent;
+            border: none;
+            position: absolute;
+            right: 0;
+            top: 0.5rem;
+            i {
+              height: 21px;
+              line-height: 1;
+            }
+          }
+        }
+      }
+    }
     .user-name {
       padding: (($dropdown-item-height - 22) / 2) 16px;
       white-space: normal;
@@ -59,6 +104,7 @@ header {
       line-height: $header-height/2;
       position: relative;
       top: $header-height/4;
+      margin-left: 1rem;
       i {
         height: $header-height/2;
         line-height: $header-height/2;
