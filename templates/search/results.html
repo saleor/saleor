@@ -20,16 +20,18 @@
 {% endblock breadcrumb %}
 
 {% block content %}
-    <div class="row">
-        {% if query and results %}
-            {% include "search/_items.html" %}
-            <div class="col-md-12">
+    <div class="row home__featured">
+        <div class="col-sm-12">
+            {% if query and results %}
+                <div class="row">
+                    {% include "category/_items.html" with products=results %}
+                </div>
                 {% bootstrap_pagination results url=query_string %}
-            </div>
-        {% else %}
-            <div class="col-md-12">
-                <h3>{% blocktrans %}No results found{% endblocktrans %}</h3>
-            </div>
-        {% endif %}
+            {% else %}
+                <div class="row">
+                    <h3>{% trans "No results" %}</h3>
+                </div>
+            {% endif %}
+        </div>
     </div>
 {% endblock content %}
