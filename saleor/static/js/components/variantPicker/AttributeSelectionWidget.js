@@ -6,7 +6,7 @@ export default class AttributeSelectionWidget extends Component {
   static propTypes = {
     attribute: PropTypes.object.isRequired,
     handleChange: PropTypes.func.isRequired,
-    selected: PropTypes.string.isRequired
+    selected: PropTypes.string
   };
 
   handleChange = (event) => {

@@ -18,12 +18,14 @@ export default class VariantPicker extends Component {
   constructor(props) {
     super(props);
     const { variants } = this.props;
-    const matchedVariant = variants.length ? variants[0] : null;
-    const selection = matchedVariant ? matchedVariant.attributes : {};
+
+    const variant = variants.filter(v => !!Object.keys(v.attributes).length)[0];
+    const selection = variant ? variant.attributes : {};
+
     this.state = {
       errors: {},
       quantity: 1,
-      variant: matchedVariant,
+      variant: variant,
       selection: selection
     };
   }
