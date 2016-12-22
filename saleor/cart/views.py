@@ -51,6 +51,13 @@ def index(request, cart):
             'default_country_options': default_country_options})
 
 
+def get_shipping_options(request):
+    country_form = CountryForm(request.POST or None)
+    if country_form.is_valid():
+        shipments = country_form.get_shipment_options()
+        return JsonResponse({'options': list(shipments)})
+
+
 @decorators.get_or_empty_db_cart()
 def update(request, cart, variant_id):
     if not request.is_ajax():
