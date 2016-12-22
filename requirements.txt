@@ -33,7 +33,7 @@ django-versatileimagefield==1.6
 django-webpack-loader==0.4.1
 django==1.10.3
 djangorestframework==3.5.2
-elasticsearch==5.0.1
+elasticsearch==2.4.0
 fake-factory==0.7.2
 google-i18n-address==2.0.1
 google-measurement-protocol==0.1.6
