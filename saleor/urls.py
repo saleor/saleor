@@ -13,6 +13,7 @@ from .order.urls import urlpatterns as order_urls
 from .product.urls import urlpatterns as product_urls
 from .search.urls import urlpatterns as search_urls
 from .userprofile.urls import urlpatterns as userprofile_urls
+from .data_feeds.urls import urlpatterns as feed_urls
 from .dashboard.urls import urlpatterns as dashboard_urls
 
 
@@ -30,6 +31,7 @@ urlpatterns = [
     url(r'^profile/', include(userprofile_urls, namespace='profile')),
     url(r'^search/', include(search_urls, namespace='search')),
     url(r'^selectable/', include('selectable.urls')),
+    url(r'^feeds/', include(feed_urls, namespace='data_feeds')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
     url(r'', include('payments.urls'))
