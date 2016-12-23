@@ -1,10 +1,13 @@
 from collections import namedtuple
 
+import six
+
+from django.utils.encoding import smart_text
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
 from .forms import get_form_class_for_product
 from .models.utils import get_attributes_display_map
-from .models import Product
+from .models import Product, ProductAttribute
 
 
 def products_visible_to_user(user):
@@ -151,3 +154,16 @@ def price_as_dict(price):
 def price_range_as_dict(price_range):
     return {'maxPrice': price_as_dict(price_range.max_price),
             'minPrice': price_as_dict(price_range.min_price)}
+
+
+def display_variant_with_attributes(variant):
+    attributes = ProductAttribute.objects.prefetch_related('values').all()
+
+    display_dict = get_attributes_display_map(variant, attributes)
+
+    attrs_string = []
+    for key, value in six.iteritems(display_dict):
+        attr = attributes.get(id=key)
+        attrs_string.append('%s: %s' % (attr, value))
+
+    return '%s (%s)' % (smart_text(variant), ', '.join(attrs_string))
