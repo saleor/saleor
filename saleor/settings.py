@@ -153,7 +153,6 @@ INSTALLED_APPS = [
     'saleor.dashboard',
     'saleor.shipping',
     'saleor.search',
-    'saleor.integrations',
     'saleor.data_feeds',
 
     # External apps
