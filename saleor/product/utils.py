@@ -1,13 +1,10 @@
 from collections import namedtuple
 
-import six
-
-from django.utils.encoding import smart_text
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
 from .forms import get_form_class_for_product
 from .models.utils import get_attributes_display_map
-from .models import Product, ProductAttribute
+from .models import Product
 
 
 def products_visible_to_user(user):
