@@ -271,10 +271,12 @@ def create_attribute(**kwargs):
 
 
 def create_attribute_value(attribute, **kwargs):
+    display = fake.word()
     defaults = {
-        'display': fake.word(),
-        'attribute': attribute}
+        'attribute': attribute,
+        'display': display}
     defaults.update(kwargs)
+    defaults['slug'] = slugify(defaults['display'])
     attribute_value = AttributeChoiceValue.objects.get_or_create(**defaults)[0]
     return attribute_value
 
