@@ -1,19 +1,22 @@
 from __future__ import unicode_literals
 
 import datetime
+import json
+
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.http import HttpResponsePermanentRedirect
+from django.http import HttpResponsePermanentRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 
-from ..cart.core import set_cart_cookie
+from ..cart.utils import set_cart_cookie
 from ..core.utils import get_paginator_items
 from .models import Category
 from .utils import (products_with_details, products_for_cart,
                     products_with_availability,
                     handle_cart_form, get_availability,
-                    get_product_images)
+                    get_product_images, get_variant_picker_data,
+                    get_product_attributes_data)
 
 
 def product_details(request, slug, product_id, form=None):
@@ -61,13 +64,21 @@ def product_details(request, slug, product_id, form=None):
         type(product).__name__.lower(),)
     templates = [template_name, 'product/details.html']
     product_images = get_product_images(product)
+    variant_picker_data = get_variant_picker_data(
+        product.variants.all(),
+        product.product_class.variant_attributes.prefetch_related('values'))
+    product_attributes = get_product_attributes_data(product)
+    show_variant_picker = all([v.attributes for v in product.variants.all()])
     return TemplateResponse(
         request, templates,
         {'is_visible': is_visible,
          'form': form,
          'availability': availability,
+         'product': product,
+         'product_attributes': product_attributes,
          'product_images': product_images,
-         'product': product})
+         'show_variant_picker': show_variant_picker,
+         'variant_picker_data': json.dumps(variant_picker_data)})
 
 
 def product_add_to_cart(request, slug, product_id):
@@ -81,9 +92,15 @@ def product_add_to_cart(request, slug, product_id):
     form, cart = handle_cart_form(request, product, create_cart=True)
     if form.is_valid():
         form.save()
-        response = redirect('cart:index')
+        if request.is_ajax():
+            response = JsonResponse({'next': reverse('cart:index')}, status=200)
+        else:
+            response = redirect('cart:index')
     else:
-        response = product_details(request, slug, product_id, form)
+        if request.is_ajax():
+            response = JsonResponse({'error': form.errors}, status=400)
+        else:
+            response = product_details(request, slug, product_id, form)
     if not request.user.is_authenticated():
         set_cart_cookie(cart, response)
     return response

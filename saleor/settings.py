@@ -32,9 +32,10 @@ if os.environ.get('REDIS_URL'):
         'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': os.environ.get('REDIS_URL')}
 
-SQLITE_DB_URL = 'sqlite:///' + os.path.join(PROJECT_ROOT, 'dev.sqlite')
 DATABASES = {
-    'default': dj_database_url.config(default=SQLITE_DB_URL, conn_max_age=600)}
+    'default': dj_database_url.config(
+        default='postgres://saleor:saleor@localhost:5432/saleor',
+        conn_max_age=600)}
 
 
 TIME_ZONE = 'America/Chicago'
@@ -154,6 +155,7 @@ INSTALLED_APPS = [
     'saleor.dashboard',
     'saleor.shipping',
     'saleor.search',
+    'saleor.data_feeds',
 
     # External apps
     'versatileimagefield',
@@ -320,6 +322,7 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_USERNAME_REQUIRED = False
 SOCIALACCOUNT_EMAIL_VERIFICATION = False
 ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_ADAPTER = 'saleor.userprofile.adapters.AccountAdapter'
 
 
 ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')

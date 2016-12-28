@@ -78,6 +78,7 @@ class DashboardSearchResults(DEFAULT_BACKEND_RESULTS_CLASS):
             body=self._get_es_body(),
             _source=False,
             from_=self.start,
+            index='{}*'.format(self.backend.get_index().name)
         )
         params[self.fields_param_name] = 'pk'
 
@@ -127,6 +128,7 @@ class DashboardSearchResults(DEFAULT_BACKEND_RESULTS_CLASS):
         # Get count
         hit_count = self.backend.es.count(
             body=self._get_es_body(for_count=True),
+            index='{}*'.format(self.backend.get_index().name)
         )['count']
         # Add limits
         hit_count -= self.start

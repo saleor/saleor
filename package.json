@@ -18,6 +18,7 @@
   "dependencies": {
     "bootstrap": "^4.0.0-alpha.5",
     "bootstrap-sass": "^3.3.7",
+    "classnames": "^2.2.5",
     "dropzone": "^4.2.0",
     "jquery": "^2.1.4",
     "jquery-match-height": "^0.7.0",

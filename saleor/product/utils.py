@@ -1,8 +1,9 @@
 from collections import namedtuple
 
-from ..cart.decorators import get_cart_from_request
+from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
 from .forms import get_form_class_for_product
+from .models.utils import get_attributes_display_map
 from .models import Product
 
 
@@ -78,7 +79,11 @@ def get_availability(product, discounts=None, local_currency=None):
 
 
 def handle_cart_form(request, product, create_cart=False):
-    cart = get_cart_from_request(request, create=create_cart)
+    if create_cart:
+        cart = get_or_create_cart_from_request(request)
+    else:
+        cart = get_cart_from_request(request)
+
     form_class = get_form_class_for_product(product)
     form = form_class(cart=cart, product=product,
                       data=request.POST or None, discounts=request.discounts)
@@ -90,3 +95,34 @@ def products_for_cart(user):
     products = products.prefetch_related(
         'variants', 'variants__variant_images__image')
     return products
+
+
+def get_variant_picker_data(variants, attributes):
+    data = {'attributes': [], 'variants': []}
+    for attribute in attributes:
+        data['attributes'].append({
+            'pk': attribute.pk,
+            'display': attribute.display,
+            'name': attribute.name,
+            'values': [{'pk': value.pk, 'display': value.display}
+                       for value in attribute.values.all()]
+        })
+    for variant in variants:
+        price = variant.get_price_per_item()
+        variant_data = {
+            'id': variant.id,
+            'price': float(price.gross),
+            'currency': price.currency,
+            'attributes': variant.attributes
+        }
+        data['variants'].append(variant_data)
+    return data
+
+
+def get_product_attributes_data(product):
+    attributes = product.product_class.product_attributes.prefetch_related(
+        'values')
+    attributes_map = {attribute.pk: attribute for attribute in attributes}
+    values_map = get_attributes_display_map(product, attributes)
+    return {attributes_map.get(attr_pk): value_obj
+            for (attr_pk, value_obj) in values_map.items()}

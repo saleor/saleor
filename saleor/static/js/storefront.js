@@ -3,8 +3,11 @@
 import 'bootstrap-sass'
 import $ from 'jquery'
 import 'jquery.cookie'
+import React from 'react'
+import ReactDOM from 'react-dom'
 
 import '../scss/storefront.scss'
+import VariantPicker from './components/variantPicker/VariantPicker'
 
 let csrftoken = $.cookie('csrftoken')
 
@@ -52,3 +55,19 @@ $(function() {
     })
   })
 })
+
+
+const variantPicker = document.getElementById('variant-picker')
+if (variantPicker) {
+  const variantPickerData = JSON.parse(variantPicker.dataset.variantPickerData)
+  ReactDOM.render(
+    <VariantPicker
+      attributes={variantPickerData.attributes}
+      url={variantPicker.dataset.action}
+      variants={variantPickerData.variants}
+    />,
+    variantPicker
+  )
+
+}
+
