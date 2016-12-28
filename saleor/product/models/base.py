@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import datetime
+import six
 from decimal import Decimal
 
 from django.conf import settings
@@ -257,9 +258,12 @@ class ProductVariant(models.Model, Item):
     def display_variant(self, attributes=None):
         if attributes is None:
             attributes = self.product.product_class.variant_attributes.all()
-        values = get_attributes_display_map(self, attributes).values()
+        values = get_attributes_display_map(self, attributes)
         if values:
-            return ', '.join([smart_text(value) for value in values])
+            return ', '.join(
+                ['%s : %s' % (smart_text(attributes.get(id=int(key))),
+                              smart_text(value))
+                 for (key, value) in six.iteritems(values)])
         else:
             return smart_text(self)
 
