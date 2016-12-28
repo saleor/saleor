@@ -21,7 +21,6 @@ from satchless.item import ItemLine, ItemSet
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product, Stock
-from ..product.utils import display_variant_with_attributes
 from ..userprofile.models import Address
 from ..search import index
 from . import Status
@@ -263,7 +262,7 @@ class DeliveryGroup(models.Model, ItemSet):
                 product=product_variant.product,
                 quantity=quantity,
                 unit_price_net=price.net,
-                product_name=display_variant_with_attributes(product_variant),
+                product_name=product_variant.display_variant(),
                 product_sku=product_variant.sku,
                 unit_price_gross=price.gross,
                 stock=stock,
