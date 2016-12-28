@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-from .decorators import get_cart_from_request
+from .utils import get_cart_from_request
 
 
 def cart_counter(request):
