@@ -1,5 +1,9 @@
 import '../../scss/demo/storefront.scss'
 import 'jquery.cookie'
+import React from 'react'
+import ReactDOM from 'react-dom'
+
+import VariantPicker from '../components/variantPicker/VariantPicker'
 
 let csrftoken = $.cookie('csrftoken')
 
@@ -17,18 +21,18 @@ $.ajaxSetup({
 
 // Mobile menu
 
-$(document).ready((e) => {  
+$(document).ready((e) => {
   var $toogleIcon = $('.navbar__brand__menu-toggle')
   var $mobileNav = $('nav')
   var windowWidth = $(window).width()
-  
+
   if (windowWidth < 767) {
     $mobileNav.append('<ul class="nav navbar-nav navbar__menu__login"></ul>')
     $('.navbar__login a').appendTo('.navbar__menu__login')
                          .wrap( '<li class="nav-item login-item"></li>')
-                         .addClass('nav-link') 
+                         .addClass('nav-link')
   }
-  
+
   $toogleIcon.click((e) => {
     $mobileNav.toggleClass('open')
     event.stopPropagation()
@@ -76,7 +80,7 @@ $('.product-form button').click((e) => {
     url: $('.product-form').attr('action'),
     type: 'POST',
     data: {
-      variant: variant, 
+      variant: variant,
       quantity: quantity
     },
     success: function() {
@@ -119,3 +123,18 @@ $countrySelect.on('change', (e) => {
     }
   })
 })
+
+
+const variantPicker = document.getElementById('variant-picker')
+if (variantPicker) {
+  const variantPickerData = JSON.parse(variantPicker.dataset.variantPickerData)
+  ReactDOM.render(
+    <VariantPicker
+      attributes={variantPickerData.attributes}
+      url={variantPicker.dataset.action}
+      variants={variantPickerData.variants}
+    />,
+    variantPicker
+  )
+
+}
