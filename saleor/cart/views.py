@@ -55,7 +55,7 @@ def update(request, cart, variant_id):
                                discounts=discounts)
     if form.is_valid():
         form.save()
-        response = {'productId': variant_id,
+        response = {'variantId': variant_id,
                     'subtotal': 0,
                     'total': 0}
         updated_line = cart.get_line(form.cart_line.variant)
