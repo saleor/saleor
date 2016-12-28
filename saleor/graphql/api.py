@@ -195,6 +195,7 @@ class Viewer(graphene.ObjectType):
     category = graphene.Field(
         CategoryType, pk=graphene.Argument(graphene.Int, required=True))
     attributes = graphene.List(ProductAttributeType)
+    debug = graphene.Field(DjangoDebug, name='__debug')
 
     def resolve_category(self, args, context, info):
         return get_object_or_none(Category, pk=args.get('pk'))
@@ -206,7 +207,6 @@ class Viewer(graphene.ObjectType):
 class Query(graphene.ObjectType):
     viewer = graphene.Field(Viewer)
     node = relay.Node.Field()
-    debug = graphene.Field(DjangoDebug, name='__debug')
 
     def resolve_viewer(self, args, context, info):
         return Viewer()
