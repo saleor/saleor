@@ -436,7 +436,18 @@ class Payment(BasePayment):
             quantity=item.quantity,
             price=item.unit_price_gross.quantize(Decimal('0.01')),
             currency=settings.DEFAULT_CURRENCY)
-                 for item in self.order.get_items()]
+            for item in self.order.get_items()]
+
+        # PayPal require discount info as item with negative price.
+        provider, _ = settings.PAYMENT_VARIANTS.get(self.variant)
+        voucher = self.order.voucher
+        if 'PaypalProvider' in provider and voucher is not None:
+            items.append(PurchasedItem(
+                name=self.order.discount_name,
+                sku='DISCOUNT',
+                quantity=1,
+                price=-1 * self.order.discount_amount.net,
+                currency=self.currency))
         return items
 
     def get_total_price(self):
