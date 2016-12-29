@@ -40,6 +40,7 @@ class ElasticsearchMapping(object):
         'SmallIntegerField': 'integer',
         'TextField': 'string',
         'TimeField': 'date',
+        'HStoreField': 'object'
     }
 
     keyword_type = 'string'
@@ -102,9 +103,11 @@ class ElasticsearchMapping(object):
                 if mapping['type'] == 'string':
                     mapping['type'] = self.keyword_type
 
-                if self.set_index_not_analyzed_on_filter_fields:
+                if (self.set_index_not_analyzed_on_filter_fields
+                        and mapping['type'] != 'object'):
                     # Not required on ES5 as that uses the "keyword" type for
                     # filtered string fields
+                    # not_analyzed is not supported on object type fields
                     mapping['index'] = 'not_analyzed'
 
                 mapping['include_in_all'] = False
@@ -112,7 +115,6 @@ class ElasticsearchMapping(object):
             if 'es_extra' in field.kwargs:
                 for key, value in field.kwargs['es_extra'].items():
                     mapping[key] = value
-
             return self.get_field_column_name(field), mapping
 
     def get_mapping(self):
@@ -133,11 +135,12 @@ class ElasticsearchMapping(object):
         fields.update(dict(
             self.get_field_mapping(field) for field in self.model.get_search_fields()
         ))
-        return {
-            self.get_document_type(): {
-                'properties': fields,
-            }
+        model_mapping = {'properties': fields}
+        model_mapping.update(self.model.get_mapping_extras())
+        mapping = {
+            self.get_document_type(): model_mapping
         }
+        return mapping
 
     def get_document_id(self, obj):
         return obj.indexed_get_toplevel_content_type() + ':' + str(obj.pk)
@@ -178,8 +181,14 @@ class ElasticsearchMapping(object):
                 elif isinstance(value, models.Model):
                     value, extra_partials = self._get_nested_document(field.fields, value)
                     partials.extend(extra_partials)
-
-            doc[self.get_field_column_name(field)] = value
+            if isinstance(value, dict):
+                # Object-type field
+                indexed_value = {}
+                for key, field_value in value.items():
+                    indexed_value[key] = field_value
+                doc[self.get_field_column_name(field)] = indexed_value
+            else:
+                doc[self.get_field_column_name(field)] = value
 
             # Check if this field should be added into _partials
             if isinstance(field, SearchField) and field.partial_match:

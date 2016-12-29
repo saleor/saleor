@@ -121,7 +121,20 @@ class Product(models.Model, ItemRange, index.Indexed):
     search_fields = [
         index.SearchField('name', partial_match=True),
         index.SearchField('description'),
-        index.FilterField('available_on')]
+        index.FilterField('available_on'),
+        index.FilterField('attributes'),
+    ]
+
+    search_mapping_extras = {
+        'dynamic_templates': [
+            {"string_template": {
+                "path_match": "attributes_filter.*",
+                "mapping": {
+                    "index": "not_analyzed",
+                }
+            }}
+        ]
+    }
 
     class Meta:
         app_label = 'product'

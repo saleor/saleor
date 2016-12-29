@@ -55,6 +55,13 @@ class Indexed(object):
         return list(search_fields.values())
 
     @classmethod
+    def get_mapping_extras(cls):
+        mapping_attr_name = 'search_mapping_extras'
+        if hasattr(cls, mapping_attr_name):
+            return getattr(cls, mapping_attr_name)
+        return {}
+
+    @classmethod
     def get_searchable_search_fields(cls):
         return [
             field for field in cls.get_search_fields()
