@@ -268,11 +268,13 @@
                             </a>
                         </div>
                     {% else %}
+                        {% if group.tracking_number %}
                         <div class="card-action">
                             {% blocktrans with tracking=group.tracking_number %}
                                 Tracking number: {{ tracking }}
                             {% endblocktrans %}
                         </div>
+                        {% endif %}
                     {% endif %}
                 </div>
             {% endfor %}
