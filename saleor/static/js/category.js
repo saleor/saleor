@@ -42,6 +42,11 @@ const RelayApp = Relay.createContainer(App, {
         }
         attributes {
           ${ProductFilters.getFragment('attributes')}
+        },
+        __debug {
+          sql {
+            sql
+          }
         }
       }
     `,
