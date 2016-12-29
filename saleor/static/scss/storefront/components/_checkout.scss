@@ -1,10 +1,14 @@
 .checkout {
+  margin-bottom: $global-margin * 5;
   &__header {
     background-color: $gray;
     padding: $global-padding 0;
     margin-bottom: $global-margin * 4;
     @include media-breakpoint-down(sm) {
       margin-bottom: $global-margin * 2;
+      & ~ .maincontent {
+        margin-top: 0;
+      }
     }
     img {
       float: left;
@@ -47,24 +51,35 @@
         margin-bottom: $global-margin;
       }
     }
+    @include media-breakpoint-down(sm) {
+      margin-top: $global-margin * 3;
+    } 
   }
-  &__shipping {
-    h1 {
-      margin-bottom: $global-margin * 2;
-    }
-    &__form {
-      label {
-        margin-bottom: $global-margin;
-        input {
-          display: inline-block;
-          vertical-align: top;
-          margin: $global-margin / 4 $global-margin / 2 0 0;
-        }
-        span {
-          display: inline-block;
-        }
+  h1 {
+    margin-bottom: $global-margin * 2;
+  }
+  .primary {
+    margin-top: $global-margin;
+  }
+  &__payment-method-form, form {
+    label {
+      margin-bottom: $global-margin;
+      input {
+        display: inline-block;
+        vertical-align: top;
+        margin: $global-margin / 4 $global-margin / 2 0 0;
+      }
+      span {
+        display: inline-block;
       }
     }
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+  }
+  &__shipping-method {
+    margin-top: $global-margin * 2;
   }
 }
 

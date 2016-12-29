@@ -9,7 +9,9 @@
 {% block header %}
     <header class="checkout__header">
       <div class="container">
-        <img src="{% static "img/testeor-logo-white.svg" %}" alt="Testeor - Saleor demo store">
+        <a href="/">
+          <img src="{% static "img/testeor-logo-white.svg" %}" alt="Testeor - Saleor demo store">
+        </a>
         <h1>{% trans "Easy chekout" %}</h1>
       </div>
     </header>
@@ -19,8 +21,8 @@
 {% endblock %}
 
 {% block content %}
-    <div class="row">
-      <div class="col-md-7 offset-lg-1">
+    <div class="row checkout">
+      <div class="col-md-7 col-lg-6 offset-lg-1">
         {% block forms %}{% endblock %}
       </div>
       <div class="col-md-5 col-lg-4">

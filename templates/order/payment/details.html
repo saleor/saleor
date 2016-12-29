@@ -3,10 +3,11 @@
 
 {% block title %}{% trans "Payment" %} — {{ block.super }}{% endblock %}
 
-{% block outerbreadcrumb %}{% endblock %}
-
 {% block content %}
-<h2>Payment</h2>
-{% block forms %}{% endblock %}
-
+  <div class="row checkout">
+    <div class="col-md-6 offset-lg-1">
+      <h1>Payment</h1>
+      {% block forms %}{% endblock %}
+    </div>
+  </div>
 {% endblock content %}

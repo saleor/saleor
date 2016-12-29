@@ -2,6 +2,9 @@
   &__header {
     margin-bottom: $global-margin * 2;
   }
+  &__addresses {
+    margin-top: $global-margin * 2;
+  }
   &__table-header {
     color: $gray;
     border-bottom: 1px solid $light-gray;
@@ -12,6 +15,9 @@
     }
   }
   &__table {
+    @include media-breakpoint-down(sm) {
+      margin-top: $global-margin * 3;
+    } 
     span {
       color: $gray;
     }
@@ -20,7 +26,6 @@
         margin-right: $global-margin;
       }
       p {
-        margin: $global-margin / 2 0;
         color: $body-color;
       }
       &:hover, &:focus {
