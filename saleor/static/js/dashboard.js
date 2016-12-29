@@ -4,7 +4,7 @@ import 'materialize-css/dist/js/materialize'
 import 'select2'
 import Sortable from 'sortablejs'
 
-import '../scss/dashboard.scss'
+import '../scss/dashboard/dashboard.scss'
 
 function openModal() {
   $('.modal-trigger-custom').on('click', function (e) {

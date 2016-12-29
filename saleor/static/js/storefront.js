@@ -1,12 +1,8 @@
-/* @flow */
-
-import 'bootstrap-sass'
-import $ from 'jquery'
+import '../scss/storefront/storefront.scss'
 import 'jquery.cookie'
 import React from 'react'
 import ReactDOM from 'react-dom'
 
-import '../scss/storefront.scss'
 import VariantPicker from './components/variantPicker/VariantPicker'
 
 let csrftoken = $.cookie('csrftoken')
@@ -23,36 +19,108 @@ $.ajaxSetup({
   }
 })
 
-$(function() {
-  const $carousel = $('.carousel')
-  const $items = $('.product-gallery-item')
-  const $modal = $('.modal')
+// Mobile menu
 
-  $items.on('click', function(e) {
-    if ($carousel.is(':visible')) {
-      e.preventDefault()
-    }
-    const index = $(this).index()
-    $carousel.carousel(index)
+$(document).ready((e) => {
+  var $toogleIcon = $('.navbar__brand__menu-toggle')
+  var $mobileNav = $('nav')
+  var windowWidth = $(window).width()
+
+  if (windowWidth < 767) {
+    $mobileNav.append('<ul class="nav navbar-nav navbar__menu__login"></ul>')
+    $('.navbar__login a').appendTo('.navbar__menu__login')
+                         .wrap( '<li class="nav-item login-item"></li>')
+                         .addClass('nav-link')
+  }
+
+  $toogleIcon.click((e) => {
+    $mobileNav.toggleClass('open')
+    event.stopPropagation()
   })
-
-  $modal.on('show.bs.modal', function() {
-    const $img = $(this).find('.modal-body img')
-    const dataSrc = $img.attr('data-src')
-    $img.attr('src', dataSrc)
+  $(document).click((e) => {
+    $mobileNav.removeClass('open')
   })
 })
 
-$(function() {
-  const $i18nAddresses = $('.i18n-address')
-  $i18nAddresses.each(function () {
-    const $form = $(this).closest('form')
-    const $countryField = $form.find('select[name=country]')
-    const $previewField = $form.find('input.preview')
-    $countryField.on('change', () => {
-      $previewField.val('on')
-      $form.submit()
-    })
+// New address dropdown
+
+var $addressShow = $('.address_show label')
+var $addressHide = $('.address_hide label')
+var $addressForm = $('.checkout__new-address')
+var $initialValue = $('#address_new_address').prop('checked')
+$addressShow.click((e) => {
+  $addressForm.slideDown('slow')
+})
+$addressHide.click((e) => {
+  $addressForm.slideUp('slow')
+})
+if ($initialValue) {
+  $addressForm.slideDown(0)
+} else {
+  $addressForm.slideUp(0)
+}
+
+//Cart dropdown
+
+var summaryLink = "/cart/summary"
+var $cartDropdown = $(".cart-dropdown")
+$.get(summaryLink, (data) => {
+    $cartDropdown.html(data)
+})
+$('.navbar__brand__cart').hover((e) => {
+  $cartDropdown.addClass("show")
+}, (e) => {
+  $cartDropdown.removeClass("show")
+})
+$('.product-form button').click((e) => {
+  e.preventDefault()
+  var quantity = $('#id_quantity').val()
+  var variant = $('#id_variant').val()
+  $.ajax ({
+    url: $('.product-form').attr('action'),
+    type: 'POST',
+    data: {
+      variant: variant,
+      quantity: quantity
+    },
+    success: function() {
+      $.get(summaryLink, (data) => {
+          $cartDropdown.html(data)
+          var newQunatity = $('.cart-dropdown__total').data('quantity')
+          $('.badge').html(newQunatity).removeClass('hidden-xs-up')
+          $cartDropdown.addClass("show")
+          setTimeout((e) => {
+            $cartDropdown.removeClass('show')
+          }, 2500)
+      })
+    }
+  })
+})
+
+// Delivery information
+
+var $deliveryForm = $('.deliveryform')
+var crsfToken = $deliveryForm.data('crsf')
+var $countrySelect = $('#id_country')
+var $newMethod = $('.cart__delivery-info__method')
+var $newPrice = $('.cart__delivery-info__price')
+$countrySelect.on('change', (e) => {
+  var newCountry = $countrySelect.val()
+  $.ajax({
+    url: "/cart/shipingoptions/",
+    type: 'POST',
+    data: {
+      'csrfmiddlewaretoken': crsfToken,
+      'country': newCountry
+    },
+    success: (data) => {
+      $newMethod.empty()
+      $newPrice.empty()
+      $.each(data.options, (key, val) => {
+          $newMethod.append('<p>' + val.shipping_method__name + '</p>')
+          $newPrice.append('<p>$' + val.price[1] + '</p>')
+      })
+    }
   })
 })
 
@@ -70,4 +138,3 @@ if (variantPicker) {
   )
 
 }
-
