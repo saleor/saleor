@@ -90,6 +90,7 @@ class CategoryType(DjangoObjectType):
         order_by = args.get('order_by')
         price_lte = args.get('price_lte')
         price_gte = args.get('price_gte')
+
         if attributes_filter:
             attributes = ProductAttribute.objects.prefetch_related('values')
             attributes_map = {attribute.name: attribute.pk
@@ -97,7 +98,6 @@ class CategoryType(DjangoObjectType):
             values_map = {attr.name: {value.slug: value.pk
                                       for value in attr.values.all()}
                           for attr in attributes}
-
             queries = {}
             # Convert attribute:value pairs into a dictionary where
             # attributes are keys and values are grouped in lists
@@ -113,24 +113,26 @@ class CategoryType(DjangoObjectType):
                         raise ValueError("Invalid attribute value: %s" %
                                          val_slug)
                     else:
-                        key = 'variants__attributes__%s' % attr_pk
-                        if key not in queries:
-                            queries[key] = [attr_val_pk]
+                        if attr_pk not in queries:
+                            queries[attr_pk] = [attr_val_pk]
                         else:
-                            queries[key].append(attr_val_pk)
-
+                            queries[attr_pk].append(attr_val_pk)
             if queries:
                 # Combine filters of the same attribute with OR operator
                 # and then combine full query with AND operator.
-                combine_and = [reduce(operator.or_, [Q(**{key: v})
-                                                     for v in values])
-                               for key, values in queries.items()]
+                combine_and = [reduce(operator.or_, [
+                    Q(**{'variants__attributes__%s' % key: v}) |
+                    Q(**{'attributes__%s' % key: v})
+                    for v in values]) for key, values in queries.items()]
                 query = reduce(operator.and_, combine_and)
                 qs = qs.filter(query)
+
         if order_by:
             qs = qs.order_by(order_by)
+
         if price_lte:
             qs = qs.filter(price__lte=price_lte)
+
         if price_gte:
             qs = qs.filter(price__gte=price_gte)
         return qs.distinct()
