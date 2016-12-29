@@ -3,8 +3,12 @@
 
 @import "components/fonts";
 @import "components/buttons";
-@import "components/header";
+@import "components/labels";
+@import "components/pagination";
 @import "components/breadcrumbs";
+@import "components/forms";
+@import "components/cart-dropdown";
+@import "components/header";
 @import "components/footer";
 @import "components/home";
 @import "components/product-page";
@@ -12,8 +16,5 @@
 @import "components/userprofile";
 @import "components/login";
 @import "components/product-list";
-@import "components/cart-dropdown";
 @import "components/checkout";
-@import "components/forms";
 @import "components/order-details";
-@import "components/labels";

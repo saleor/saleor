@@ -13,11 +13,6 @@
 </ul>
 {% endblock breadcrumb %}
 
-{% block footer_scripts %}
-  {{ block.super }}
-  {% render_bundle 'cart' 'js' %}
-{% endblock footer_scripts %}
-
 {% block content %}
 <div class="cart">
   {% if cart_lines %}
