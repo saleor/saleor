@@ -85,7 +85,8 @@ class CategoryType(DjangoObjectType):
         return self.get_siblings()
 
     def resolve_products(self, args, context, info):
-        qs = self.products.prefetch_for_api()
+        tree = self.get_descendants(include_self=True)
+        qs = Product.objects.prefetch_for_api().filter(categories__in=tree)
         attributes_filter = args.get('attributes')
         order_by = args.get('order_by')
         price_lte = args.get('price_lte')
@@ -211,10 +212,11 @@ class Viewer(graphene.ObjectType):
         if category_pk:
             # Get attributes that are used with product classes
             # within the given category.
+            tree = Category.objects.get(
+                pk=category_pk).get_descendants(include_self=True)
             product_classes = set(
                 [obj[0] for obj in Product.objects.filter(
-                    categories__in=[category_pk]).values_list(
-                        'product_class_id')])
+                    categories__in=tree).values_list('product_class_id')])
             queryset = queryset.filter(
                 Q(products_class__in=product_classes) |
                 Q(product_variants_class__in=product_classes))
