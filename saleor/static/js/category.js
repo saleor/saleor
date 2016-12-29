@@ -40,7 +40,7 @@ const RelayApp = Relay.createContainer(App, {
         category(pk: $categoryId) {
           ${CategoryPage.getFragment('category')}
         }
-        attributes {
+        attributes(categoryPk: $categoryId) {
           ${ProductFilters.getFragment('attributes')}
         },
         __debug {

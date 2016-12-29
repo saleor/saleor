@@ -1,5 +1,4 @@
 import React, { Component, PropTypes } from 'react';
-import AttributeInput from './AttributeInput';
 
 export default class CategoryFilter extends Component {
 

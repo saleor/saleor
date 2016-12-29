@@ -193,15 +193,30 @@ class PriceType(graphene.ObjectType):
 
 class Viewer(graphene.ObjectType):
     category = graphene.Field(
-        CategoryType, pk=graphene.Argument(graphene.Int, required=True))
-    attributes = graphene.List(ProductAttributeType)
+        CategoryType,
+        pk=graphene.Argument(graphene.Int, required=True))
+    attributes = graphene.List(
+        ProductAttributeType,
+        category_pk=graphene.Argument(graphene.Int, required=False))
     debug = graphene.Field(DjangoDebug, name='__debug')
 
     def resolve_category(self, args, context, info):
         return get_object_or_none(Category, pk=args.get('pk'))
 
     def resolve_attributes(self, args, context, info):
-        return ProductAttribute.objects.prefetch_related('values').all()
+        category_pk = args.get('category_pk')
+        queryset = ProductAttribute.objects.prefetch_related('values')
+        if category_pk:
+            # Get attributes that are used with product classes
+            # within the given category.
+            product_classes = set(
+                [obj[0] for obj in Product.objects.filter(
+                    categories__in=[category_pk]).values_list(
+                        'product_class_id')])
+            queryset = queryset.filter(
+                Q(products_class__in=product_classes) |
+                Q(product_variants_class__in=product_classes))
+        return queryset
 
 
 class Query(graphene.ObjectType):
