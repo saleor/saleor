@@ -267,6 +267,12 @@
                                 {% trans "Ship" %}
                             </a>
                         </div>
+                    {% else %}
+                        <div class="card-action">
+                            {% blocktrans with tracking=group.tracking_number %}
+                                Tracking number: {{ tracking }}
+                            {% endblocktrans %}
+                        </div>
                     {% endif %}
                 </div>
             {% endfor %}
