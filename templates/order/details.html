@@ -107,7 +107,18 @@
                     {% endif %}
                 </tbody>
             </table>
+            {% if group.tracking_number %}
+            <div class="panel-footer">
+                {{ group.shipping_method_name }}
+                <span class="pull-right">
+                    {% blocktrans with tracking=group.tracking_number %}
+                        Tracking number: {{ tracking }}
+                    {% endblocktrans %}
+                </span>
+            </div>
+            {% endif %}
         </div>
+
     {% endfor %}
     {% if order.discount_amount %}
         <div class="panel panel-default">
