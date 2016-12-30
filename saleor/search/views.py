@@ -5,6 +5,7 @@ from django.conf import settings
 from django.http import Http404
 from django.shortcuts import render
 from .forms import SearchForm
+from .aggregations import AttributeAggregation
 from ..product.utils import products_with_details
 
 
@@ -22,13 +23,20 @@ def search(request):
     form = SearchForm(data=request.GET or None)
     if form.is_valid():
         visible_products = products_with_details(request.user)
-        results = form.search(model_or_queryset=visible_products)
+        results, aggregations = form.search(
+            model_or_queryset=visible_products,
+            aggregations={
+                'color': AttributeAggregation(attribute_name='color'),
+                'size': AttributeAggregation(attribute_name='size'),
+            })
         page = paginate_results(results, request.GET, settings.PAGINATE_BY)
     else:
         page = form.no_query_found()
+        aggregations = None
     query = form.cleaned_data['q']
     ctx = {
         'query': query,
         'results': page,
+        'aggregations': aggregations,
         'query_string': '?q=%s' % query}
     return render(request, 'search/results.html', ctx)

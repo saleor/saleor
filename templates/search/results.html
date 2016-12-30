@@ -26,6 +26,18 @@
             <div class="col-md-12">
                 {% bootstrap_pagination results url=query_string %}
             </div>
+            {% if aggregations %}
+                <div class="col-md-12">
+                {% for agg_label, agg_data in aggregations.items %}
+                    <span>{{ agg_data.attribute.display }}</span>
+                    <ul>
+                        {% for agg_value, count in agg_data.values.items %}
+                            <li>{{ agg_value.display }} - {{ count }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endfor %}
+                </div>
+            {% endif %}
         {% else %}
             <div class="col-md-12">
                 <h3>{% blocktrans %}No results found{% endblocktrans %}</h3>

@@ -208,8 +208,10 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
     DEFAULT_OPERATOR = 'or'
 
     def __init__(self, *args, **kwargs):
+        self.aggregations = kwargs.pop('aggregations')
         super(ElasticsearchSearchQuery, self).__init__(*args, **kwargs)
         self.mapping = self.mapping_class(self.queryset.model)
+
 
         # Convert field names into index column names
         if self.fields:
@@ -364,6 +366,12 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
 
         return filters
 
+    def get_aggs(self):
+        agg_map = self.aggregations
+        inner_aggs = {agg_name: instance.get_aggs()
+                      for agg_name, instance in agg_map.items()}
+        return inner_aggs
+
     def get_query(self):
         inner_query = self.get_inner_query()
         filters = self.get_filters()
@@ -427,7 +435,8 @@ class ElasticsearchSearchResults(BaseSearchResults):
 
     def _get_es_body(self, for_count=False):
         body = {
-            'query': self.query.get_query()
+            'query': self.query.get_query(),
+            'aggs': self.query.get_aggs()
         }
 
         if not for_count:
@@ -469,9 +478,9 @@ class ElasticsearchSearchResults(BaseSearchResults):
 
             if self._score_field:
                 setattr(obj, self._score_field, scores.get(str(obj.pk)))
-
+        aggregations = self._do_aggregations(hits)
         # Return results in order given by Elasticsearch
-        return [results[str(pk)] for pk in pks if results[str(pk)]]
+        return [results[str(pk)] for pk in pks if results[str(pk)]], aggregations
 
     def _do_count(self):
         # Get count
@@ -485,6 +494,14 @@ class ElasticsearchSearchResults(BaseSearchResults):
             hit_count = min(hit_count, self.stop - self.start)
 
         return max(hit_count, 0)
+
+    def _do_aggregations(self, es_response):
+        aggs_map = self.query.aggregations
+        raw_aggregation_results = es_response['aggregations']
+        results = {}
+        for agg_name, instance in aggs_map.items():
+            results[agg_name] = instance.parse_results(raw_aggregation_results)
+        return results
 
 
 class ElasticsearchIndex(object):

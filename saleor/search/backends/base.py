@@ -216,7 +216,8 @@ class BaseSearchBackend(object):
         raise NotImplementedError
 
     def search(self, query_string, model_or_queryset, fields=None, filters=None,
-               prefetch_related=None, operator=None, order_by_relevance=True):
+               prefetch_related=None, operator=None, order_by_relevance=True,
+               aggregations=None):
         # Find model/queryset
         if isinstance(model_or_queryset, QuerySet):
             model = model_or_queryset.model
@@ -261,6 +262,7 @@ class BaseSearchBackend(object):
 
         # Search
         search_query = self.query_class(
-            queryset, query_string, fields=fields, operator=operator, order_by_relevance=order_by_relevance
+            queryset, query_string, fields=fields, operator=operator,
+            order_by_relevance=order_by_relevance, aggregations=aggregations
         )
         return self.results_class(self, search_query)
