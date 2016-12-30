@@ -115,7 +115,8 @@ def default_category(db):  # pylint: disable=W0613
 @pytest.fixture
 def product_class(color_attribute, size_attribute):
     product_class = ProductClass.objects.create(name='Default Class',
-                                                has_variants=False)
+                                                has_variants=False,
+                                                is_shipping_required=True)
     product_class.product_attributes.add(color_attribute)
     product_class.variant_attributes.add(size_attribute)
     return product_class
