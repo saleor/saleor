@@ -94,6 +94,11 @@ class CategoryType(DjangoObjectType):
         return self.get_siblings()
 
     def resolve_products(self, args, context, info):
+
+        def filter_by_price(queryset, value, operator):
+            return [obj for obj in queryset if operator(get_availability(
+                obj, context.discounts).price_range.min_price.gross, value)]
+
         tree = self.get_descendants(include_self=True)
         qs = Product.objects.prefetch_for_api().filter(categories__in=tree)
         attributes_filter = args.get('attributes')
@@ -135,17 +140,17 @@ class CategoryType(DjangoObjectType):
                     Q(**{'attributes__%s' % key: v})
                     for v in values]) for key, values in queries.items()]
                 query = reduce(operator.and_, combine_and)
-                qs = qs.filter(query)
+                qs = qs.filter(query).distinct()
 
         if order_by:
             qs = qs.order_by(order_by)
 
         if price_lte:
-            qs = qs.filter(price__lte=price_lte)
+            qs = filter_by_price(qs, price_lte, operator.le)
 
         if price_gte:
-            qs = qs.filter(price__gte=price_gte)
-        return qs.distinct()
+            qs = filter_by_price(qs, price_gte, operator.ge)
+        return qs
 
     def resolve_products_count(self, args, context, info):
         return self.products.count()
