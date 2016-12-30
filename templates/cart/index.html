@@ -46,24 +46,20 @@
                 <br><small>{{ line.variant.display_variant }}</small></h3>
             </a>
           </div>
-          <div class="cart-item-amount">
+          <div class="cart__line__quantity col-md-2">
             <form role="form" action="{% url "cart:update-line" variant_id=line.variant.pk %}" method="post" class="form-cart">
-                <div class="input-group cart-item-quantity js-hidden{% if form.quantity.errors %} has-error{% endif %}">
+                <div class="{% if form.quantity.errors %} has-error{% endif %}">
                     {{ line.form.quantity }}
-                    <span class="input-group-btn">
-                        <button class="btn btn-info" type="submit">{% trans "Update" %}</button>
-                    </span>
                 </div>
-                {% if line.form.quantity.errors %}
-                    {% for error in form.quantity.errors %}
-                        <span class="text-danger">{{ error }}</span>
-                    {% endfor %}
-                {% endif %}
                 {% csrf_token %}
             </form>
+            <small class="cart__line__quantity-error text-danger"></small>
           </div>
-          <div class="cart-item-subtotal" data-product-id="{{ line.variant.pk }}">
+          <div class="cart-item-subtotal col-md-2" data-product-id="{{ line.variant.pk }}">
             <h3>{% gross line.get_total html=True %}</h3>
+          </div>
+          <div class="col-md-2 cart-item-delete">
+            <img src="{% static 'img/icon_delete.svg' %}">
           </div>
         </div>
       </div>

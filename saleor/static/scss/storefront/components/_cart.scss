@@ -35,6 +35,15 @@
         }
       }
     }
+    &__quantity {
+      input {
+        width: 4rem;
+        padding: $global-padding / 2;
+        &:focus {
+          outline: none;
+        }
+      }
+    }
   }
   &__total {
     border-top: 1px solid $gray;

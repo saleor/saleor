@@ -131,17 +131,56 @@ $countrySelect.on('change', (e) => {
   })
 })
 
-// Save tab links to URL
+// Variant Picker
 
-$('.nav-tabs a').click((e) => {
-  e.preventDefault();
-  $(this).tab('show');
-});
+const variantPicker = document.getElementById('variant-picker')
+if (variantPicker) {
+  const variantPickerData = JSON.parse(variantPicker.dataset.variantPickerData)
+  ReactDOM.render(
+    <VariantPicker
+      attributes={variantPickerData.attributes}
+      url={variantPicker.dataset.action}
+      variants={variantPickerData.variants}
+    />,
+    variantPicker
+  )
+}
 
-$("ul.nav-tabs li a:not(:first)").on("shown.bs.tab", (e) => {
-  var id = $(e.target).attr("href").substr(1);
-  window.location.hash = id;
-});
+// Cart quantity form
 
-var hash = window.location.hash;
-$('.nav-tabs a[href="' + hash + '"]').tab('show');
+var $cartLine = $('.cart__line')
+var $total = $('.cart-total')
+$cartLine.each(function() {
+  var $quantityInput = $(this).find('#id_quantity')
+  var cartFormUrl = $(this).find('.form-cart').attr('action')
+  var $formError = $(this).find('.cart__line__quantity-error')
+  var $subtotal = $(this).find('.cart-item-subtotal h3')
+  var $deleteIcon = $(this).find('.cart-item-delete')
+  $(this).on('change', $quantityInput, (e) => {
+    var newQuantity = $quantityInput.val()
+    $.ajax({
+      url: cartFormUrl,
+      method: 'POST',
+      data: {quantity: newQuantity},
+      success: (response) => {
+        $subtotal.html(response.subtotal)
+        $total.html(response.total)
+        $formError.html('')
+      },
+      error: (response) => {
+        var qunatityError = $.parseJSON(response.responseText).error.quantity
+        $formError.html(qunatityError)
+      }
+    })
+  })
+  $deleteIcon.on('click', (e) => {
+    $.ajax({
+      url: cartFormUrl,
+      method: 'POST',
+      data: {quantity: 0},
+      success: (response) => {
+        location.reload()
+      }
+    })
+  })
+})
