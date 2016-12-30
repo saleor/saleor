@@ -2,8 +2,8 @@ import React, { PropTypes } from 'react';
 import ReactDOM from 'react-dom';
 import Relay from 'react-relay';
 
-import CategoryPage from './components/CategoryPage';
-import ProductFilters from './components/ProductFilters';
+import CategoryPage from './components/categoryPage/CategoryPage';
+import ProductFilters from './components/categoryPage/ProductFilters';
 
 const categoryPage = document.getElementById('category-page');
 const categoryData = JSON.parse(categoryPage.getAttribute('data-category'));
