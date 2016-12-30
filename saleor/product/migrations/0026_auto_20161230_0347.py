@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='productclass',
-            name='is_shippable',
+            name='is_shipping_required',
             field=models.BooleanField(default=False),
         ),
     ]

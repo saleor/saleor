@@ -73,7 +73,7 @@ class ProductClass(models.Model):
         'ProductAttribute', related_name='products_class', blank=True)
     variant_attributes = models.ManyToManyField(
         'ProductAttribute', related_name='product_variants_class', blank=True)
-    is_shippable = models.BooleanField(default=False)
+    is_shipping_required = models.BooleanField(default=False)
 
     class Meta:
         app_label = 'product'
