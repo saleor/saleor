@@ -236,7 +236,7 @@ class ProductVariant(models.Model, Item):
             'unit_price': str(self.get_price_per_item().gross)}
 
     def is_shipping_required(self):
-        return True
+        return self.product.product_class.is_shippable
 
     def is_in_stock(self):
         return any(
