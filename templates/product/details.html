@@ -11,7 +11,7 @@
 {% block title %}{{ product }} — {{ block.super }}{% endblock %}
 
 {% block breadcrumb %}
-    <ul class="breadcrumbs list-unstyled hidden-sm-down">
+    <ul class="breadcrumbs list-unstyled">
         <li><a href="/">{% trans "Home" %}</a></li>
         {% with product.get_first_category as category %}
             {% if category %}

@@ -4,7 +4,7 @@
 {% load product_first_image from product_images %}
 
 {% for product, availability in products %}
-    <div class="col-xs-12 col-sm-6 col-md-4 product-list" itemscope itemtype="https://schema.org/Product">
+    <div class="col-xs-6 col-md-4 product-list" itemscope itemtype="https://schema.org/Product">
         <div class="text-center">
             <div>
                 <a itemprop="url" href="{{ product.get_absolute_url }}">
