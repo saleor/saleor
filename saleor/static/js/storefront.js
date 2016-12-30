@@ -168,6 +168,7 @@ $cartLine.each(function() {
         $total.html(response.total)
         $cartBadge.html(response.cart)
         $formError.html('')
+        $cartDropdown.load(summaryLink)
       },
       error: (response) => {
         var qunatityError = $.parseJSON(response.responseText).error.quantity
@@ -184,6 +185,8 @@ $cartLine.each(function() {
         if (response.cart_length >= 1) {
           $(this).fadeOut()
           $total.html(response.total)
+          $cartBadge.html(response.cart)
+          $cartDropdown.load(summaryLink)
         } else {
           location.reload()
         }
