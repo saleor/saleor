@@ -58,8 +58,8 @@
           <div class="cart-item-subtotal col-md-2 col-xs-8" data-product-id="{{ line.variant.pk }}">
             <h3 class="float-xs-left float-sm-right">{% gross line.get_total html=True %}</h3>
           </div>
-          <div class="col-md-2 col-xs-4 cart-item-delete">
-            <img src="{% static 'img/icon_delete.svg' %}">
+          <div class="col-md-2 col-xs-4">
+            <img class="cart-item-delete" src="{% static 'img/icon_delete.svg' %}">
           </div>
         </div>
       </div>

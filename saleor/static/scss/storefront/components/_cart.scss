@@ -44,6 +44,9 @@
         }
       }
     }
+    .cart-item-delete {
+      cursor: pointer;
+    }
   }
   &__total {
     border-top: 1px solid $gray;

@@ -19,6 +19,11 @@ $.ajaxSetup({
   }
 })
 
+var getAjaxError = (response) => {
+  var ajaxError = $.parseJSON(response.responseText).error.quantity
+  return ajaxError
+}
+
 // Mobile menu
 
 $(document).ready((e) => {
@@ -71,6 +76,7 @@ if ($initialValue) {
 
 var summaryLink = "/cart/summary"
 var $cartDropdown = $(".cart-dropdown")
+var $addToCartError = $('.product__info__form-error')
 $.get(summaryLink, (data) => {
     $cartDropdown.html(data)
 })
@@ -90,9 +96,10 @@ $('.product-form button').click((e) => {
       variant: variant,
       quantity: quantity
     },
-    success: function() {
+    success: () => {
       $.get(summaryLink, (data) => {
           $cartDropdown.html(data)
+          $addToCartError.html('')
           var newQunatity = $('.cart-dropdown__total').data('quantity')
           $('.badge').html(newQunatity).removeClass('hidden-xs-up')
           $cartDropdown.addClass("show")
@@ -100,6 +107,9 @@ $('.product-form button').click((e) => {
             $cartDropdown.removeClass('show')
           }, 2500)
       })
+    },
+    error: (response) => {
+      $addToCartError.html(getAjaxError(response))
     }
   })
 })
@@ -154,7 +164,7 @@ var $cartBadge = $('.navbar__brand__cart .badge')
 $cartLine.each(function() {
   var $quantityInput = $(this).find('#id_quantity')
   var cartFormUrl = $(this).find('.form-cart').attr('action')
-  var $formError = $(this).find('.cart__line__quantity-error')
+  var $qunatityError = $(this).find('.cart__line__quantity-error')
   var $subtotal = $(this).find('.cart-item-subtotal h3')
   var $deleteIcon = $(this).find('.cart-item-delete')
   $(this).on('change', $quantityInput, (e) => {
@@ -167,12 +177,11 @@ $cartLine.each(function() {
         $subtotal.html(response.subtotal)
         $total.html(response.total)
         $cartBadge.html(response.cart)
-        $formError.html('')
+        $qunatityError.html('')
         $cartDropdown.load(summaryLink)
       },
       error: (response) => {
-        var qunatityError = $.parseJSON(response.responseText).error.quantity
-        $formError.html(qunatityError)
+        $qunatityError.html(getAjaxError(response))
       }
     })
   })
