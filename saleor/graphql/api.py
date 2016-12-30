@@ -1,4 +1,3 @@
-import datetime
 import graphene
 import operator
 
@@ -9,25 +8,31 @@ from graphene_django.debug import DjangoDebug
 
 from ..product.models import (AttributeChoiceValue, Category, Product,
                               ProductAttribute, ProductImage, ProductVariant)
+from ..product.utils import get_availability
 from .scalars import AttributesFilterScalar
 from .utils import DjangoPkInterface, connection_with_count, get_object_or_none
+
+
+class ProductAvailabilityType(graphene.ObjectType):
+    available = graphene.Boolean()
+    discount = graphene.Field(lambda: PriceType)
+    discount_local_currency = graphene.Field(lambda: PriceType)
+    price_range = graphene.Field(lambda: PriceRangeType)
+    price_range_undiscounted = graphene.Field(lambda: PriceRangeType)
+    price_range_local_currency = graphene.Field(lambda: PriceRangeType)
 
 
 class ProductType(DjangoObjectType):
     url = graphene.String()
     image_url = graphene.String()
-    is_available = graphene.Boolean()
     price = graphene.Field(lambda: PriceType)
     images = graphene.List(lambda: ProductImageType)
     variants = graphene.List(lambda: ProductVariantType)
+    availability = graphene.Field(lambda: ProductAvailabilityType)
 
     class Meta:
         model = Product
         interfaces = (relay.Node, DjangoPkInterface)
-
-    def resolve_is_available(self, args, context, info):
-        today = datetime.date.today()
-        return self.available_on is None or self.available_on >= today
 
     def resolve_image_url(self, args, context, info):
         return self.images.first().image.crop['400x400'].url
@@ -40,6 +45,10 @@ class ProductType(DjangoObjectType):
 
     def resolve_url(self, args, context, info):
         return self.get_absolute_url()
+
+    def resolve_availability(self, args, context, info):
+        a = get_availability(self, context.discounts, context.currency)
+        return ProductAvailabilityType(**a._asdict())
 
 
 ProductType.Connection = connection_with_count(ProductType)
@@ -192,6 +201,11 @@ class PriceType(graphene.ObjectType):
     gross = graphene.Float()
     net = graphene.Float()
     currency = graphene.String()
+
+
+class PriceRangeType(graphene.ObjectType):
+    maxPrice = graphene.Field(lambda: PriceType)
+    min_price = graphene.Field(lambda: PriceType)
 
 
 class Viewer(graphene.ObjectType):

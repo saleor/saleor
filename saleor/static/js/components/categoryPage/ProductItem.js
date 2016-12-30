@@ -1,6 +1,8 @@
 import React, { Component, PropTypes } from 'react';
 import Relay from 'react-relay';
 
+import ProductPrice from './ProductPrice';
+
 
 class ProductItem extends Component {
 
@@ -20,9 +22,7 @@ class ProductItem extends Component {
             </a>
           </div>
           <div className="panel-footer">
-            <span itemProp="price">
-              {product.price.gross} <span className="currency"> {product.price.currency}</span>
-            </span>
+            <ProductPrice availability={product.availability} />
           </div>
         </div>
       </div>
@@ -36,10 +36,8 @@ export default Relay.createContainer(ProductItem, {
       fragment on ProductType {
         id
         name
-        price {
-          gross
-          net
-          currency
+        availability {
+          ${ProductPrice.getFragment('availability')}
         }
         imageUrl
         url
