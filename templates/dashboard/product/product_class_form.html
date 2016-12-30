@@ -46,7 +46,8 @@
         <form method="post" id="form-product" enctype="multipart/form-data" novalidate>
             {% csrf_token %}
             {{ form.name|materializecss:"s12" }}
-            {{ form.product_attributes|materializecss:"input-field s12" }}
+            {{ form.is_shippable|materializecss:"input-field s2" }}
+            {{ form.product_attributes|materializecss:"input-field s10" }}
             {{ form.has_variants|materializecss:"input-field s2" }}
             {{ form.variant_attributes|materializecss:"input-field s10" }}
             <div class="col s12 right-align">
