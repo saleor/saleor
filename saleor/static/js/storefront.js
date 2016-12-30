@@ -150,6 +150,7 @@ if (variantPicker) {
 
 var $cartLine = $('.cart__line')
 var $total = $('.cart-total')
+var $cartBadge = $('.navbar__brand__cart .badge')
 $cartLine.each(function() {
   var $quantityInput = $(this).find('#id_quantity')
   var cartFormUrl = $(this).find('.form-cart').attr('action')
@@ -165,6 +166,7 @@ $cartLine.each(function() {
       success: (response) => {
         $subtotal.html(response.subtotal)
         $total.html(response.total)
+        $cartBadge.html(response.cart)
         $formError.html('')
       },
       error: (response) => {
@@ -179,7 +181,12 @@ $cartLine.each(function() {
       method: 'POST',
       data: {quantity: 0},
       success: (response) => {
-        location.reload()
+        if (response.cart_length >= 1) {
+          $(this).fadeOut()
+          $total.html(response.total)
+        } else {
+          location.reload()
+        }
       }
     })
   })
