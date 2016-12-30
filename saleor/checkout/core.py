@@ -7,6 +7,7 @@ from django.forms.models import model_to_dict
 from django.utils.encoding import smart_text
 from prices import Price, FixedDiscount
 
+from ..cart.models import Cart
 from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
 from ..discount.models import Voucher, NotApplicable
@@ -319,7 +320,8 @@ class Checkout(object):
 
 def load_checkout(view):
     @wraps(view)
-    @get_or_empty_db_cart()
+    @get_or_empty_db_cart(Cart.objects.all().prefetch_related(
+        'lines__variant__product'))
     def func(request, cart):
         try:
             session_data = request.session[STORAGE_SESSION_KEY]
