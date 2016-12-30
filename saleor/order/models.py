@@ -262,7 +262,7 @@ class DeliveryGroup(models.Model, ItemSet):
                 product=product_variant.product,
                 quantity=quantity,
                 unit_price_net=price.net,
-                product_name=product_variant.display_product(),
+                product_name=smart_text(product_variant),
                 product_sku=product_variant.sku,
                 unit_price_gross=price.gross,
                 stock=stock,
