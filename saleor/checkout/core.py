@@ -31,6 +31,8 @@ class Checkout(object):
         self.tracking_code = tracking_code
         self.user = user
         self.discounts = cart.discounts
+        self.cached_shipping_method = None
+        self.cached_shipping_address = None
 
     @classmethod
     def from_storage(cls, storage_data, cart, user, tracking_code):
@@ -86,9 +88,12 @@ class Checkout(object):
 
     @property
     def shipping_address(self):
+        if self.cached_shipping_address is not None:
+            return self.cached_shipping_address
         address = self._get_address_from_storage('shipping_address')
         if address is None and self.user.is_authenticated():
-            return self.user.default_shipping_address
+            address = self.user.default_shipping_address
+        self.cached_shipping_address = address
         return address
 
     @shipping_address.setter
@@ -100,6 +105,8 @@ class Checkout(object):
 
     @property
     def shipping_method(self):
+        if self.cached_shipping_method is not None:
+            return self.cached_shipping_method
         shipping_address = self.shipping_address
         if shipping_address is not None:
             shipping_method_country_id = self.storage.get(
@@ -113,12 +120,14 @@ class Checkout(object):
                 shipping_country_code = shipping_address.country.code
                 if (shipping_method_country.country_code == ANY_COUNTRY or
                         shipping_method_country.country_code == shipping_country_code):
+                    self.cached_shipping_method = shipping_method_country
                     return shipping_method_country
 
     @shipping_method.setter
     def shipping_method(self, shipping_method_country):
         self.storage['shipping_method_country_id'] = shipping_method_country.id
         self.modified = True
+        self.cached_shipping_method = shipping_method_country
 
     @property
     def email(self):
