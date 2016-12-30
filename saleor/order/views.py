@@ -21,7 +21,10 @@ logger = logging.getLogger(__name__)
 
 
 def details(request, token):
-    orders = Order.objects.prefetch_related('groups__items')
+    orders = Order.objects.prefetch_related('groups__items',
+                                            'groups__items__product')
+    orders = orders.select_related('billing_address', 'shipping_address',
+                                   'user')
     order = get_object_or_404(orders, token=token)
     groups = order.groups.all()
     return TemplateResponse(request, 'order/details.html',
@@ -29,7 +32,10 @@ def details(request, token):
 
 
 def payment(request, token):
-    orders = Order.objects.prefetch_related('groups__items')
+    orders = Order.objects.prefetch_related('groups__items',
+                                            'groups__items__product')
+    orders = orders.select_related('billing_address', 'shipping_address',
+                                   'user')
     order = get_object_or_404(orders, token=token)
     groups = order.groups.all()
     payments = order.payments.all()
