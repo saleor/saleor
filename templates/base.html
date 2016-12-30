@@ -88,17 +88,15 @@
               </div>
             </header>
         {% endblock %}
-        {% if messages %}
-        <div class="container">
-            {% for message in messages %}
-            <div class="alert{% if message.tags %} alert-{{ message.tags }}{% endif %}">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                {{ message }}
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
         <div class="container maincontent">
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert{% if message.tags %} alert-{{ message.tags }}{% endif %}">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
             {% block breadcrumb %}
             {% endblock breadcrumb %}
             {% block content %}
