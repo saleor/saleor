@@ -10,38 +10,49 @@
     
   }
   &__nav {
-    background-color: $light-gray;
-    padding: $global-padding 0;
-    margin-bottom: $global-margin;
-    .nav-link {
-      color: $gray;
-      border: 0;
-      &:first-of-type {
-        margin-right: $global-margin * 3;
-      }
-      &.active, &.active:hover, &.active:focus {
-        background-color: transparent;
-        border: 0;
-        color: $body-color;
-      }
-    }
-    ul {
+    margin: $global-margin * 2 0 $global-margin * 2;
+    .nav {
       border-bottom: 0;
+      background-color: $light-gray;
+      @include media-breakpoint-down(xs) {
+        text-align: center;
+        padding-right: 0;
+        padding-bottom: $global-padding / 2;
+      }
     }
-  }
-  &__address-empty {
-    margin: $global-margin 0 $global-margin * 2;
-  }
-  &__address-row {
-    padding: $global-padding 0;
-    border-bottom: 1px solid $light-gray;
-    img {
-      margin-left: $global-margin;
-      float: right;
+    .nav-item {
+      @include media-breakpoint-down(xs) {
+        display: inline-block;
+        float: none;
+      }
+      & + .nav-item {
+        margin-left: 0;
+      }
+      .nav-link {
+        padding: $global-padding $global-padding * 2;
+        border-bottom: 1px solid $light-gray;
+        margin-top: $global-margin / 2;
+        @include media-breakpoint-up(sm) {
+          border-left: 1px solid $light-gray;
+          border-bottom: 1px solid $white;
+          border-top: 1px solid $light-gray;
+          margin-top: 0;
+        }
+        border-radius: 0;
+        transition: 0.3s;
+        &:hover, &.active {
+          background-color: $white;
+          border-color: $light-gray;
+          border-bottom: 1px solid $white;
+        }
+        h3 {
+          color: $body-color;
+          @include media-breakpoint-down(sm) {
+            font-size: 1rem;
+          }
+        }
+      }
     }
-  }
-  .primary {
-    margin-top: $global-margin;
   }
   &__orders {
     small {
@@ -53,19 +64,38 @@
       padding: $global-padding 0;
     }
   }
-  &__address-edit {
-    &__form {
+  &__password {
+    h1 {
       margin-bottom: $global-margin * 2;
     }
+    .btn {
+      margin-top: $global-margin;
+    }
   }
-}
-
-.account-edit {
-  &__tittle {
-    margin: $global-margin * 2 0;
-  }
-  .btn {
-    margin-top: $global-margin;
+  &__addresses {
+    display: table;
+    min-width: 100%;
+    border-spacing: $global-margin;
+    margin: 0;
+    .card-deck {
+      display: table-row;
+      .card {
+        width: 50%;
+        border-radius: 0;
+        @include media-breakpoint-down(sm) {
+          width: 100%;
+          display: inline-block;
+          &:first-of-type {
+            margin-bottom: $global-margin;
+          }
+        }
+        img {
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+        }
+      }
+    }
   }
 }
 

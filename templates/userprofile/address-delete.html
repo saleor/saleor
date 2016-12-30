@@ -12,7 +12,7 @@
       <div class="modal-footer">
         <form method="post" novalidate action="{% url 'profile:address-delete' pk=address.pk %}">
           {% csrf_token %}
-          <a href="{% url 'profile:details' %}" class="btn btn-link">{% trans "Cancel" %}</a>
+          <a class="btn btn-link" data-dismiss="modal">{% trans "Cancel" %}</a>
           <button type="submit" class="btn danger">{% trans "Delete" %}</button>
         </form>
       </div>
