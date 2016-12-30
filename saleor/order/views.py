@@ -90,6 +90,8 @@ def start_payment(request, order, variant):
         try:
             form = payment.get_form(data=request.POST or None)
         except RedirectNeeded as redirect_to:
+            # NOTE: this is good place to add logic of sending
+            # digital products. Make sure that payment status is confirmed
             return redirect(str(redirect_to))
         except Exception:
             logger.exception('Error communicating with the payment gateway')
