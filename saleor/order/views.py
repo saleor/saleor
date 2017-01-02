@@ -133,5 +133,5 @@ def create_password(request, token):
         if auth_user is not None:
             auth.login(request, auth_user)
         return redirect('order:details', token=token)
-    ctx = {'form': form, 'email': email}
+    ctx = {'form': form, 'email': email, 'order': order}
     return TemplateResponse(request, 'order/create_password.html', ctx)

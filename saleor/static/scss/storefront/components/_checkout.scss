@@ -3,7 +3,7 @@
   &__header {
     background-color: $gray;
     padding: $global-padding 0;
-    margin-bottom: $global-margin * 4;
+    margin-bottom: $global-margin * 2;
     @include media-breakpoint-down(sm) {
       margin-bottom: $global-margin * 2;
       & ~ .maincontent {
@@ -89,6 +89,10 @@
   span {
     color: $dark-gray;
   }
+  h1 a {
+    color: $body-color;
+    text-decoration: underline;
+  }
   &__pirate-mail {
     position: absolute;
     left: 0;
@@ -141,9 +145,7 @@
   }
   &__image {
     img {
-      margin: $global-margin 0 $global-margin * 2.8;
-      padding: 0 $global-padding * 4.8;
-      max-width: 100%; 
+      margin: $global-margin * 3.5 0 $global-margin * 2.8;
       @include media-breakpoint-down(sm) { 
         margin-top: $global-margin * 3;
       }
