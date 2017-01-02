@@ -47,6 +47,18 @@ $(document).ready((e) => {
   })
 })
 
+// Mobile search form
+
+var $searchIcon = $('.mobile-search-icon')
+var $closeSearchIcon = $('.mobile-close-search')
+var $searchForm = $('.navbar__brand__search')
+$searchIcon.click((e) => {
+  $searchForm.animate({left: 0}, {duration: 500})
+})
+$closeSearchIcon.click((e) => {
+  $searchForm.animate({left: '-100vw'}, {duration: 500})
+})
+
 // Sticky footer
 
 var navbarHeight = $('.navbar').outerHeight(true)
