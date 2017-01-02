@@ -81,7 +81,7 @@
     }
   },
   "scripts": {
-    "build-assets": "node ./node_modules/webpack/bin/webpack.js -p",
+    "build-assets": "python manage.py graphql_schema; node ./node_modules/webpack/bin/webpack.js -p",
     "heroku-postbuild": "npm run build-assets",
     "start": "python manage.py graphql_schema; UV_THREADPOOL_SIZE=8 node ./node_modules/webpack/bin/webpack.js -d --watch"
   }
