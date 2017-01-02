@@ -11,7 +11,7 @@
 {% block title %}{{ product }} — {{ block.super }}{% endblock %}
 
 {% block breadcrumb %}
-    <ul class="breadcrumbs list-unstyled hidden-sm-down">
+    <ul class="breadcrumbs list-unstyled">
         <li><a href="/">{% trans "Home" %}</a></li>
         {% with product.get_first_category as category %}
             {% if category %}
@@ -101,13 +101,14 @@
                                 {% csrf_token %}
                                 {% bootstrap_form form %}
                                 <div class="form-group">
-                                    <button class="btn btn-lg btn-block btn-primary">
+                                    <button class="btn primary">
                                         {% trans "Add to cart" %}
                                     </button>
                                 </div>
                             </form>
                         {% endif %}
                     {% endblock %}
+                    <small class="product__info__form-error text-danger"></small>
                 {% else %}
                     <p class="alert alert-warning">{% trans "This product is currently <strong>unavailable</strong>." %}</p>
                 {% endif %}

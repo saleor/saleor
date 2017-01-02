@@ -35,6 +35,18 @@
         }
       }
     }
+    &__quantity {
+      input {
+        width: 4rem;
+        padding: $global-padding / 2;
+        &:focus {
+          outline: none;
+        }
+      }
+    }
+    .cart-item-delete {
+      cursor: pointer;
+    }
   }
   &__total {
     border-top: 1px solid $gray;

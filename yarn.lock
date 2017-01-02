@@ -1033,6 +1033,10 @@ clap@^1.0.9:
   dependencies:
     chalk "^1.1.3"
 
+classnames@^2.2.5:
+  version "2.2.5"
+  resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.2.5.tgz#fb3801d453467649ef3603c7d61a02bd129bde6d"
+
 cliui@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/cliui/-/cliui-2.1.0.tgz#4b475760ff80264c762c3a1719032e91c7fea0d1"
