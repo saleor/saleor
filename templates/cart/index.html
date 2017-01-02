@@ -14,6 +14,10 @@
 {% endblock breadcrumb %}
 
 {% block content %}
+<div class="alert alert-success hidden-xs-up remove-product-alert">
+    {% trans "Product has been deleted from cart" %}
+   <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+</div>
 <div class="cart">
   {% if cart_lines %}
     <div class="cart__table-header hidden-sm-down">
