@@ -4,6 +4,10 @@ import pytest
 from saleor.product.models import Category
 
 
+def get_content(response):
+    return json.loads(response.content.decode('utf8'))
+
+
 def assert_success_response(content):
     assert 'errors' not in content
     assert 'data' in content
@@ -35,7 +39,7 @@ def test_category_query(client, product_in_stock):
         }
     """ % {'category_pk': category.pk}
     response = client.post('/graphql/', {'query': query})
-    content = json.loads(response.content)
+    content = get_content(response)
     assert_success_response(content)
     category_data = content['data']['viewer']['category']
     assert category_data is not None
@@ -86,7 +90,7 @@ def test_product_query(client, product_in_stock):
         }
     """ % {'category_pk': category.pk}
     response = client.post('/graphql/', {'query': query})
-    content = json.loads(response.content)
+    content = get_content(response)
     assert_success_response(content)
     assert content['data']['viewer']['category'] is not None
     product_edges_data = content['data']['viewer']['category']['products']['edges']
