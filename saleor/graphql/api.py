@@ -25,7 +25,6 @@ class ProductAvailabilityType(graphene.ObjectType):
 class ProductType(DjangoObjectType):
     url = graphene.String()
     image_url = graphene.String()
-    price = graphene.Field(lambda: PriceType)
     images = graphene.List(lambda: ProductImageType)
     variants = graphene.List(lambda: ProductVariantType)
     availability = graphene.Field(lambda: ProductAvailabilityType)
