@@ -3,7 +3,7 @@
     &__name {
       font-weight: 900;
       @include media-breakpoint-up(md) {
-        margin-bottom: $global-margin * 2;
+        margin-bottom: $global-margin;
       }
     }
     &__price {
@@ -11,6 +11,7 @@
         color: $gray;
         text-decoration: line-through;
       }
+      margin-bottom: $global-margin * 2;
     }
   }
   &__gallery {
@@ -37,6 +38,14 @@
             opacity: 0.5;  
           }
         }
+      }
+    }
+  }
+  &__variant-picker {
+    .radio-inline {
+      margin-right: $global-margin;
+      span {
+        margin-left: $global-margin / 2;
       }
     }
   }

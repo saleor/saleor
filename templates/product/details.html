@@ -88,8 +88,8 @@
                 {% if is_visible and product.is_in_stock %}
                     {% block orderform %}
                         {% for attribute, value in product_attributes.items %}
-                            <div className="form-group">
-                                <label className="control-label">{{ attribute }}</label>
+                            <div class="form-group">
+                                <label class="control-label"><b>{{ attribute }}</b></label>
                                 <p>{{ value }}</p>
                             </div>
                         {% endfor %}

@@ -17,8 +17,8 @@ export default class AttributeSelectionWidget extends Component {
   render() {
     const { attribute: { display, pk, values }, selected } = this.props
     return (
-      <div className="form-group">
-        <label className="control-label">{display}</label>
+      <div className="form-group product__variant-picker">
+        <label className="control-label"><b>{display}</b></label>
           <div className="radio">
           {values.map((value, i) => {
             return (
