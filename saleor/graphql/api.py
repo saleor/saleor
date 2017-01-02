@@ -34,7 +34,8 @@ class ProductType(DjangoObjectType):
         interfaces = (relay.Node, DjangoPkInterface)
 
     def resolve_image_url(self, args, context, info):
-        return self.images.first().image.crop['400x400'].url
+        image = self.images.first()
+        return image.image.crop['400x400'].url if image else None
 
     def resolve_images(self, args, context, info):
         return self.images.all()
