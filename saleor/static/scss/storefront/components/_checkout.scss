@@ -128,6 +128,9 @@
         padding-bottom: $global-padding * 3;
         padding-right: $global-padding * 2;
       }
+      .form-group {
+        text-align: left;
+      }
       p {
         color: $dark-gray;
       }
@@ -138,12 +141,15 @@
   }
   &__image {
     img {
-      margin: $global-margin * 5 0 $global-margin * 2.8;
+      margin: $global-margin 0 $global-margin * 2.8;
+      padding: 0 $global-padding * 4.8;
+      max-width: 100%; 
       @include media-breakpoint-down(sm) { 
         margin-top: $global-margin * 3;
       }
       @include media-breakpoint-down(md) {
-        margin-bottom: $global-margin * 4.3;
+        padding: 0;
+        margin-bottom: $global-margin * 3.5;
       }
     }
   }
