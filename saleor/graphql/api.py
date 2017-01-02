@@ -239,7 +239,7 @@ class Viewer(graphene.ObjectType):
             queryset = queryset.filter(
                 Q(products_class__in=product_classes) |
                 Q(product_variants_class__in=product_classes))
-        return queryset
+        return queryset.distinct()
 
 
 class Query(graphene.ObjectType):
