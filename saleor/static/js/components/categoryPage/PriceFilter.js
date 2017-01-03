@@ -28,9 +28,9 @@ export default class PriceFilter extends Component {
   }
 
   changeVisibility = () => {
-    this.setState({
-      visibility: !this.state.visibility
-    });
+      this.setState({
+        visibility: !this.state.visibility
+      })
   }
 
   render() {
@@ -42,7 +42,7 @@ export default class PriceFilter extends Component {
           Price range
           <i className={visibility ? ('fa fa-chevron-up pull-right') : ('fa fa-chevron-down pull-right')} aria-hidden="true"></i>
         </h3>
-        {visibility ? (
+        {visibility || minPrice || maxPrice ? (
           <div>
             <input
               className="form-control"
