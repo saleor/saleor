@@ -177,6 +177,7 @@ var $cartLine = $('.cart__line')
 var $total = $('.cart-total')
 var $cartBadge = $('.navbar__brand__cart .badge')
 var $removeProductSucces = $('.remove-product-alert')
+var $closeMsg = $('.close-msg')
 $cartLine.each(function() {
   var $quantityInput = $(this).find('#id_quantity')
   var cartFormUrl = $(this).find('.form-cart').attr('action')
@@ -221,3 +222,6 @@ $cartLine.each(function() {
   })
 })
 
+$closeMsg.on('click', (e) => {
+  $removeProductSucces.addClass('hidden-xs-up')
+})
