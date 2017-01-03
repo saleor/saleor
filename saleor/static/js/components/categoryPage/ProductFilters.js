@@ -54,23 +54,23 @@ class ProductFilters extends Component {
                 {attribute.display}
                 <i className={visibility[attribute.name] ? ('fa fa-chevron-up pull-right') : ('fa fa-chevron-down pull-right')} aria-hidden="true" onClick={() => this.changeVisibility(attribute.name)}></i>
               </h3>
-              {visibility[attribute.name] ? (
               <ul id={attribute.name}>
                 {attribute.values.map((value) => {
                   const key = this.getFilterKey(attribute.name, value.slug);
-                  return (
-                    <li key={value.id} className="item">
-                      <AttributeInput
-                        attribute={attribute}
-                        checked={checkedAttributes.includes(key)}
-                        onClick={this.onClick}
-                        value={value}
-                      />
-                    </li>
-                  );
+                    if(visibility[attribute.name] || checkedAttributes.includes(key)) {
+                    return (
+                      <li key={value.id} className="item">
+                        <AttributeInput
+                          attribute={attribute}
+                          checked={checkedAttributes.includes(key)}
+                          onClick={this.onClick}
+                          value={value}
+                        />
+                      </li>
+                    );
+                    }
                 })}
               </ul>
-              ) : (null)}
             </div>
           );
         }))}
