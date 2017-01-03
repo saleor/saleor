@@ -50,9 +50,9 @@ class ProductFilters extends Component {
         {attributes && (attributes.map((attribute) => {
           return (
             <div key={attribute.id}>
-              <h3 className={attribute.name}>
+              <h3 className={attribute.name} onClick={() => this.changeVisibility(attribute.name)}>
                 {attribute.display}
-                <i className={visibility[attribute.name] ? ('fa fa-chevron-up pull-right') : ('fa fa-chevron-down pull-right')} aria-hidden="true" onClick={() => this.changeVisibility(attribute.name)}></i>
+                <i className={visibility[attribute.name] ? ('fa fa-chevron-up pull-right') : ('fa fa-chevron-down pull-right')} aria-hidden="true" ></i>
               </h3>
               <ul id={attribute.name}>
                 {attribute.values.map((value) => {

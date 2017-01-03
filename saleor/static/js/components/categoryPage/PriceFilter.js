@@ -38,9 +38,9 @@ export default class PriceFilter extends Component {
     const { visibility } = this.state;
     return (
       <div className="price-range">
-        <h3>
+        <h3 onClick={this.changeVisibility}>
           Price range
-          <i className={visibility ? ('fa fa-chevron-up pull-right') : ('fa fa-chevron-down pull-right')} aria-hidden="true" onClick={this.changeVisibility}></i>
+          <i className={visibility ? ('fa fa-chevron-up pull-right') : ('fa fa-chevron-down pull-right')} aria-hidden="true"></i>
         </h3>
         {visibility ? (
           <div>
