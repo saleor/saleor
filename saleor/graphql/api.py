@@ -1,3 +1,4 @@
+import functools
 import graphene
 import operator
 
@@ -132,11 +133,11 @@ class CategoryType(DjangoObjectType):
             if queries:
                 # Combine filters of the same attribute with OR operator
                 # and then combine full query with AND operator.
-                combine_and = [reduce(operator.or_, [
+                combine_and = [functools.reduce(operator.or_, [
                     Q(**{'variants__attributes__%s' % key: v}) |
                     Q(**{'attributes__%s' % key: v})
                     for v in values]) for key, values in queries.items()]
-                query = reduce(operator.and_, combine_and)
+                query = functools.reduce(operator.and_, combine_and)
                 qs = qs.filter(query).distinct()
 
         if order_by:
