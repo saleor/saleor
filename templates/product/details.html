@@ -34,6 +34,9 @@
               <h1 itemprop="name" class="product__info__name">
                   {{ product }}
               </h1>
+              {% if user.is_staff %}
+                <p><a href="{% url "dashboard:product-update" pk=product.pk %}">{% trans "Edit in dashboard" %}</a></p>
+              {% endif %}
               {% if availability.available %}
                   <h2 itemprop="offers" class="product__info__price" itemscope itemtype="http://schema.org/Offer">
                       <span>{% price_range availability.price_range %}</span>

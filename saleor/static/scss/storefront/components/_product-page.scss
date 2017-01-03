@@ -1,4 +1,8 @@
 .product {
+  a {
+    color: $dark-gray;
+    text-decoration: underline;
+  }
   &__info {
     &__name {
       font-weight: 900;
