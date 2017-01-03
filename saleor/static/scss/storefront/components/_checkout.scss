@@ -68,18 +68,7 @@
       text-decoration: underline;
     }
   }
-  &__payment-method-form, form {
-    label {
-      margin-bottom: $global-margin / 2;
-      input {
-        display: inline-block;
-        vertical-align: top;
-        margin: $global-margin / 4 $global-margin / 2 0 0;
-      }
-      span {
-        display: inline-block;
-      }
-    }
+  &__payment-method-form {
     ul {
       list-style: none;
       padding-left: 0;
