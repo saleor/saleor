@@ -168,6 +168,19 @@ $countrySelect.on('change', (e) => {
   })
 })
 
+// Save tab links to URL
+  		  
+$('.nav-tabs a').click((e) => {
+  e.preventDefault();
+  $(this).tab('show');
+});
+$("ul.nav-tabs li a:not(:first)").on("shown.bs.tab", (e) => {
+  var id = $(e.target).attr("href").substr(1);
+  window.location.hash = id;
+});
+var hash = window.location.hash;
+$('.nav-tabs a[href="' + hash + '"]').tab('show');
+
 // Variant Picker
 
 const variantPicker = document.getElementById('variant-picker')
