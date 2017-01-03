@@ -2,29 +2,29 @@
   margin-bottom: $global-margin * 5;
   &__header {
     background-color: $gray;
-    padding: $global-padding 0;
-    margin-bottom: $global-margin * 2;
+    padding: $global-padding * 1.5 0 $global-padding;
+    text-transform: uppercase;
     @include media-breakpoint-down(sm) {
-      margin-bottom: $global-margin * 2;
       & ~ .maincontent {
         margin-top: 0;
       }
     }
     img {
-      float: left;
+      max-width: 8rem;
+      display: inline-block;
+      vertical-align: text-bottom;
+    }
+    p {
+      display: inline-block;
+      color: $light-gray;
+      margin-left: $global-margin;
+      font-weight: 700;
       @include media-breakpoint-down(sm) {
-        max-height: 22px;
         margin-top: $global-margin / 2;
       }
     }
-    h1 {
-      display: inline-block;
-      color: $white;
-      margin-left: $global-margin;
-      @include media-breakpoint-down(sm) {
-        font-size: $font-size-h2;
-        margin-top: $global-margin / 2;
-      }
+    a:hover {
+      text-decoration: none;
     }
   }
   &__review {
@@ -60,6 +60,13 @@
   }
   .primary {
     margin-top: $global-margin;
+  }
+  &__edit-link {
+    margin-top: $global-margin / 2;
+    a {
+      color: $dark-gray;
+      text-decoration: underline;
+    }
   }
   &__payment-method-form, form {
     label {

@@ -1,6 +1,19 @@
 {% extends "checkout/details.html" %}
 {% load i18n %}
 
+{% block header %}
+  {{ block.super }}
+  <div class="breadcrumbs-checkout">
+    <div class="container">
+      <ul class="breadcrumbs list-unstyled">
+          <li><a href="{% url 'checkout:shipping-address' %}">1. {% trans "Shipping address" %}</a></li>
+          <li><a href="{% url 'checkout:shipping-method' %}">2. {% trans "Shipping method" %}</a></li>
+          <li class="active">3. {% trans "Billing address" %}</li>
+      </ul>
+    </div>
+  </div>
+{% endblock header %}
+
 {% block forms %}
     <form method="post" novalidate>
         {% csrf_token %}

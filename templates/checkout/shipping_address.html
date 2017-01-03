@@ -2,6 +2,19 @@
 {% load i18n %}
 {% load bootstrap_form from bootstrap3 %}
 
+{% block header %}
+  {{ block.super }}
+  <div class="breadcrumbs-checkout">
+    <div class="container">
+      <ul class="breadcrumbs list-unstyled">
+          <li class="active">1. {% trans "Shipping address" %}</li>
+          <li class="disabled">2. {% trans "Shipping method" %}</li>
+          <li class="disabled">3. {% trans "Billing address" %}</li>
+      </ul>
+    </div>
+  </div>
+{% endblock header %}
+
 {% block forms %}
     <form method="post" novalidate class="checkout__shipping">
         {% csrf_token %}
