@@ -195,7 +195,6 @@ $cartLine.each(function() {
         $cartBadge.html(response.cart)
         $qunatityError.html('')
         $cartDropdown.load(summaryLink)
-        $removeProductSucces.removeClass('hidden-xs-up')
       },
       error: (response) => {
         $qunatityError.html(getAjaxError(response))
@@ -213,6 +212,7 @@ $cartLine.each(function() {
           $total.html(response.total)
           $cartBadge.html(response.cart)
           $cartDropdown.load(summaryLink)
+          $removeProductSucces.removeClass('hidden-xs-up')
         } else {
           location.reload()
         }
