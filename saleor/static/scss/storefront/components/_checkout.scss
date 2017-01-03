@@ -63,7 +63,7 @@
   }
   &__payment-method-form, form {
     label {
-      margin-bottom: $global-margin;
+      margin-bottom: $global-margin / 2;
       input {
         display: inline-block;
         vertical-align: top;

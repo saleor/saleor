@@ -171,15 +171,15 @@ $countrySelect.on('change', (e) => {
 // Save tab links to URL
   		  
 $('.nav-tabs a').click((e) => {
-  e.preventDefault();
-  $(this).tab('show');
+  e.preventDefault()
+  $(this).tab('show')
 });
 $("ul.nav-tabs li a:not(:first)").on("shown.bs.tab", (e) => {
-  var id = $(e.target).attr("href").substr(1);
-  window.location.hash = id;
+  var id = $(e.target).attr("href").substr(1)
+  window.location.hash = id
 });
 var hash = window.location.hash;
-$('.nav-tabs a[href="' + hash + '"]').tab('show');
+$('.nav-tabs a[href="' + hash + '"]').tab('show')
 
 // Variant Picker
 
@@ -216,7 +216,14 @@ $cartLine.each(function() {
       method: 'POST',
       data: {quantity: newQuantity},
       success: (response) => {
-        $subtotal.html(response.subtotal)
+        if (newQuantity == 0) {
+          $(this).fadeOut()
+          if (response.cart_length == 0) {
+            location.reload()
+          }
+        } else {
+          $subtotal.html(response.subtotal)
+        }
         $total.html(response.total)
         $cartBadge.html(response.cart)
         $qunatityError.html('')
