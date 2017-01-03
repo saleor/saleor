@@ -85,7 +85,7 @@ export default class VariantPicker extends Component {
     const { errors, selection, quantity, variant } = this.state
 
     const addToCartBtnClasses = classNames({
-      'btn btn-lg btn-block btn-primary': true,
+      'btn primary': true,
       'disabled': !variant
     })
 
