@@ -118,15 +118,14 @@ class CategoryType(DjangoObjectType):
                 try:
                     attr_pk = attributes_map[attr_name]
                 except KeyError:
-                    raise ValueError("Invalid attribute name: %s" % attr_name)
+                    attr_pk = None
                 else:
                     try:
                         attr_val_pk = values_map[attr_name][val_slug]
                     except KeyError:
-                        raise ValueError("Invalid attribute value: %s" %
-                                         val_slug)
+                        attr_val_pk = None
                     else:
-                        if attr_pk not in queries:
+                        if attr_val_pk is not None and attr_pk not in queries:
                             queries[attr_pk] = [attr_val_pk]
                         else:
                             queries[attr_pk].append(attr_val_pk)
