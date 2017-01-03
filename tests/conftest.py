@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from decimal import Decimal
 import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.utils.encoding import smart_text
 from mock import Mock
 
 from saleor.cart import utils
@@ -92,18 +93,22 @@ def shipping_method(db):  # pylint: disable=W0613
 
 @pytest.fixture
 def color_attribute(db):  # pylint: disable=W0613
-    attribute = ProductAttribute.objects.create(name='color',
-                                                display='Display')
-    AttributeChoiceValue.objects.create(display='Red', attribute=attribute)
-    AttributeChoiceValue.objects.create(display='Blue', attribute=attribute)
+    attribute = ProductAttribute.objects.create(
+        name='color', display='Color')
+    AttributeChoiceValue.objects.create(
+        attribute=attribute, display='Red', slug='red')
+    AttributeChoiceValue.objects.create(
+        attribute=attribute, display='Blue', slug='blue')
     return attribute
 
 
 @pytest.fixture
 def size_attribute(db):  # pylint: disable=W0613
     attribute = ProductAttribute.objects.create(name='size', display='Size')
-    AttributeChoiceValue.objects.create(display='Small', attribute=attribute)
-    AttributeChoiceValue.objects.create(display='Big', attribute=attribute)
+    AttributeChoiceValue.objects.create(
+        attribute=attribute, display='Small', slug='small')
+    AttributeChoiceValue.objects.create(
+        attribute=attribute, display='Big', slug='big')
     return attribute
 
 
@@ -114,8 +119,8 @@ def default_category(db):  # pylint: disable=W0613
 
 @pytest.fixture
 def product_class(color_attribute, size_attribute):
-    product_class = ProductClass.objects.create(name='Default Class',
-                                                has_variants=False)
+    product_class = ProductClass.objects.create(
+        name='Default Class', has_variants=False)
     product_class.product_attributes.add(color_attribute)
     product_class.variant_attributes.add(size_attribute)
     return product_class
@@ -123,10 +128,15 @@ def product_class(color_attribute, size_attribute):
 
 @pytest.fixture
 def product_in_stock(product_class, default_category):
+    product_attr = product_class.product_attributes.first()
+    attr_value = product_attr.values.first()
+    attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
+
     product = Product.objects.create(
         name='Test product', price=Decimal('10.00'), weight=1,
-        product_class=product_class)
+        product_class=product_class, attributes=attributes)
     product.categories.add(default_category)
+
     variant = ProductVariant.objects.create(product=product, sku='123')
     warehouse_1 = StockLocation.objects.create(name='Warehouse 1')
     warehouse_2 = StockLocation.objects.create(name='Warehouse 2')

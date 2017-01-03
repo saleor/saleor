@@ -70,10 +70,7 @@ class CategoryType(DjangoObjectType):
                 than or equal to the given value"""),
         price_gte=graphene.Argument(
             graphene.Float, description="""Get the products with price greater
-                than or equal to the given value"""),
-        subcategories=graphene.Argument(
-            graphene.List(graphene.String, description="""A list of
-                subcategories slugs to filter the products by""")))
+                than or equal to the given value"""))
     products_count = graphene.Int()
     url = graphene.String()
     ancestors = graphene.List(lambda: CategoryType)
