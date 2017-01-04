@@ -87,11 +87,30 @@ $(function() {
   })
 })
 
+
 //Cart dropdown
 
 var summaryLink = "/cart/summary"
 var $cartDropdown = $(".cart-dropdown")
 var $addToCartError = $('.product__info__form-error')
+
+const onAddToCartSuccess = () => {
+  $.get(summaryLink, (data) => {
+    $cartDropdown.html(data)
+    $addToCartError.html('')
+    var newQunatity = $('.cart-dropdown__total').data('quantity')
+    $('.badge').html(newQunatity).removeClass('hidden-xs-up')
+    $cartDropdown.addClass("show")
+    setTimeout((e) => {
+      $cartDropdown.removeClass('show')
+    }, 2500)
+  })
+}
+
+const onAddToCartError = (response) => {
+  $addToCartError.html(getAjaxError(response))
+}
+
 $.get(summaryLink, (data) => {
     $cartDropdown.html(data)
 })
@@ -112,19 +131,10 @@ $('.product-form button').click((e) => {
       quantity: quantity
     },
     success: () => {
-      $.get(summaryLink, (data) => {
-          $cartDropdown.html(data)
-          $addToCartError.html('')
-          var newQunatity = $('.cart-dropdown__total').data('quantity')
-          $('.badge').html(newQunatity).removeClass('hidden-xs-up')
-          $cartDropdown.addClass("show")
-          setTimeout((e) => {
-            $cartDropdown.removeClass('show')
-          }, 2500)
-      })
+      onAddToCartSuccess()
     },
     error: (response) => {
-      $addToCartError.html(getAjaxError(response))
+      onAddToCartError(response)
     }
   })
 })
@@ -164,6 +174,8 @@ if (variantPicker) {
   ReactDOM.render(
     <VariantPicker
       attributes={variantPickerData.attributes}
+      onAddToCartError={onAddToCartError}
+      onAddToCartSuccess={onAddToCartSuccess}
       url={variantPicker.dataset.action}
       variants={variantPickerData.variants}
     />,
