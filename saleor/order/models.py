@@ -439,9 +439,9 @@ class Payment(BasePayment):
             for item in self.order.get_items()]
 
         # PayPal require discount info as item with negative price.
-        provider, _ = settings.PAYMENT_VARIANTS.get(self.variant)
+        provider, _ = settings.PAYMENT_VARIANTS.get(self.variant, (None, None))
         voucher = self.order.voucher
-        if 'PaypalProvider' in provider and voucher is not None:
+        if provider and 'PaypalProvider' in provider and voucher is not None:
             items.append(PurchasedItem(
                 name=self.order.discount_name,
                 sku='DISCOUNT',
