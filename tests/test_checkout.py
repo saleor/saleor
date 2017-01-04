@@ -8,6 +8,7 @@ from saleor.checkout import views
 from saleor.checkout.core import STORAGE_SESSION_KEY, Checkout
 from saleor.shipping.models import ShippingMethodCountry
 from saleor.userprofile.models import Address
+from saleor.discount.models import Sale
 
 
 def test_checkout_version():
@@ -184,3 +185,10 @@ def test_index_view(cart, status_code, url, rf):
     response = views.index_view(request, checkout, checkout.cart)
     assert response.status_code == status_code
     assert response.url == url
+
+
+def test_checkout_discount(cart, sale, product_in_stock):
+    variant = product_in_stock.variants.get()
+    cart.add(variant, 1)
+    checkout = Checkout(cart, AnonymousUser(), 'tracking_code')
+    assert checkout.get_total() == Price(currency="USD", net=5)
