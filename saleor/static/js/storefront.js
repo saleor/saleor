@@ -101,16 +101,16 @@ $(function() {
 
 //Cart dropdown
 
-var summaryLink = "/cart/summary"
-var $cartDropdown = $(".cart-dropdown")
+var summaryLink = '/cart/summary'
+var $cartDropdown = $('.cart-dropdown')
 var $addToCartError = $('.product__info__form-error')
 $.get(summaryLink, (data) => {
     $cartDropdown.html(data)
 })
 $('.navbar__brand__cart').hover((e) => {
-  $cartDropdown.addClass("show")
+  $cartDropdown.addClass('show')
 }, (e) => {
-  $cartDropdown.removeClass("show")
+  $cartDropdown.removeClass('show')
 })
 $('.product-form button').click((e) => {
   e.preventDefault()
@@ -129,7 +129,7 @@ $('.product-form button').click((e) => {
           $addToCartError.html('')
           var newQunatity = $('.cart-dropdown__total').data('quantity')
           $('.badge').html(newQunatity).removeClass('hidden-xs-up')
-          $cartDropdown.addClass("show")
+          $cartDropdown.addClass('show')
           $cartDropdown.find('.container').scrollTop($cartDropdown.find('.container')[0].scrollHeight)
           setTimeout((e) => {
             $cartDropdown.removeClass('show')
@@ -152,7 +152,7 @@ var $newPrice = $('.cart__delivery-info__price')
 $countrySelect.on('change', (e) => {
   var newCountry = $countrySelect.val()
   $.ajax({
-    url: "/cart/shipingoptions/",
+    url: '/cart/shipingoptions/',
     type: 'POST',
     data: {
       'csrfmiddlewaretoken': crsfToken,
@@ -175,8 +175,8 @@ $('.nav-tabs a').click((e) => {
   e.preventDefault()
   $(this).tab('show')
 });
-$("ul.nav-tabs li a:not(:first)").on("shown.bs.tab", (e) => {
-  var id = $(e.target).attr("href").substr(1)
+$('ul.nav-tabs li a:not(:first)').on('shown.bs.tab', (e) => {
+  var id = $(e.target).attr('href').substr(1)
   window.location.hash = id
 });
 var hash = window.location.hash;
