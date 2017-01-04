@@ -50,6 +50,9 @@
     <div class="row">
       <div class="col-xs-8">
         <p>{% trans "Delivery" %} ({{ item.shipping_method_name }})</p>
+        {% if item.tracking_number %}
+          <p>{% trans "Tracking number: " %} {{ item.tracking_number }}</p>
+        {% endif %}
       </div>
       <div class="col-xs-4">
         <p class="float-xs-right">{% gross item.shipping_price %}</p>

@@ -51,10 +51,10 @@ class ProductClassForm(forms.ModelForm):
         model = ProductClass
         exclude = []
         labels = {
-            'product_attributes': pgettext_lazy(
+            'variant_attributes': pgettext_lazy(
                 'Product class form label',
                 'Attributes specific to each variant'),
-            'variant_attributes': pgettext_lazy(
+            'product_attributes': pgettext_lazy(
                 'Product class form label',
                 'Attributes common to all variants')}
 
