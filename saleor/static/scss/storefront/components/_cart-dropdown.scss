@@ -11,6 +11,8 @@
     padding-top: $global-padding * 2;
     padding-bottom: $global-padding * 2;
     box-shadow: 3px 3px 3px 0px rgba($gray, 0.75);
+    max-height: 28rem;
+    overflow-y: scroll;
   }
   a {
     color: $body-color;

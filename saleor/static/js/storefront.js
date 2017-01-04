@@ -130,6 +130,7 @@ $('.product-form button').click((e) => {
           var newQunatity = $('.cart-dropdown__total').data('quantity')
           $('.badge').html(newQunatity).removeClass('hidden-xs-up')
           $cartDropdown.addClass("show")
+          $cartDropdown.find('.container').scrollTop($cartDropdown.find('.container')[0].scrollHeight)
           setTimeout((e) => {
             $cartDropdown.removeClass('show')
           }, 2500)
