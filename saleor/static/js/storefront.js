@@ -217,9 +217,12 @@ $cartLine.each(function() {
       data: {quantity: newQuantity},
       success: (response) => {
         if (newQuantity == 0) {
-          $(this).fadeOut()
           if (response.cart_length == 0) {
+            $.cookie('alert', 'true', { path: '/cart' })
             location.reload()
+          } else {
+            $removeProductSucces.removeClass('hidden-xs-up')
+            $(this).fadeOut()
           }
         } else {
           $subtotal.html(response.subtotal)
@@ -247,12 +250,18 @@ $cartLine.each(function() {
           $cartDropdown.load(summaryLink)
           $removeProductSucces.removeClass('hidden-xs-up')
         } else {
+          $.cookie('alert', 'true', { path: '/cart' })
           location.reload()
         }
       }
     })
   })
 })
+
+if ($.cookie('alert') == 'true') {
+  $removeProductSucces.removeClass('hidden-xs-up')
+  $.cookie('alert', 'false', { path: '/cart' })
+}
 
 $closeMsg.on('click', (e) => {
   $removeProductSucces.addClass('hidden-xs-up')
