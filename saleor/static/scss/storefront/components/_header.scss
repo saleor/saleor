@@ -90,6 +90,30 @@
           max-height: 1.5rem;
         }
       }
+      @include media-breakpoint-down(sm) {
+        display: block;
+        left: -100vw;
+        position: absolute;
+        width: 90%;
+        max-width: 90%;
+        float: right;
+        top: -2rem;
+        z-index: 4;
+        margin-top: 0;
+        input {
+          padding: $global-padding * 2 $global-padding * 2 $global-padding * 2 $global-padding * 4;
+          border: 0;
+          min-width: 100vw;
+        }
+        i {
+          position: absolute;
+          padding: $global-padding * 1.7 $global-padding;
+        }
+        .btn {
+          top: 2rem;
+          right: 0;
+        }
+      }
     }
   }
   &__menu {

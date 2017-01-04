@@ -1,4 +1,8 @@
 .product {
+  a {
+    color: $dark-gray;
+    text-decoration: underline;
+  }
   &__info {
     &__name {
       font-weight: 900;
@@ -38,14 +42,6 @@
             opacity: 0.5;  
           }
         }
-      }
-    }
-  }
-  &__variant-picker {
-    .radio-inline {
-      margin-right: $global-margin;
-      span {
-        margin-left: $global-margin / 2;
       }
     }
   }
