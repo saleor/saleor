@@ -3,11 +3,13 @@ import Relay from 'react-relay';
 
 
 const ProductPrice = ({ availability }) => {
-  const { discount, priceRange } = availability;
+  const { discount, priceRange: { minPrice, maxPrice } } = availability;
+  const isPriceRange = minPrice.gross !== maxPrice.gross;
   return (
     <div>
       <span itemProp="price">
-        {priceRange.minPrice.gross} <span className="currency"> {priceRange.minPrice.currency}</span>
+        {isPriceRange && <span>From </span>}
+        {minPrice.gross} <span className="currency"> {minPrice.currency}</span>
       </span>
       {discount && (
         <div className="product-list__sale"><span>Sale</span></div>
