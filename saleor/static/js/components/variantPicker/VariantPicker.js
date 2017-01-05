@@ -5,12 +5,14 @@ import React, { Component, PropTypes } from 'react'
 
 import AttributeSelectionWidget from './AttributeSelectionWidget'
 import QuantityInput from './QuantityInput'
+import VariantPrice from './VariantPrice'
 
 
 export default class VariantPicker extends Component {
 
   static propTypes = {
     attributes: PropTypes.array.isRequired,
+    availability: PropTypes.object.isRequired,
     onAddToCartError: PropTypes.func.isRequired,
     onAddToCartSuccess: PropTypes.func.isRequired,
     url: PropTypes.string.isRequired,
@@ -76,7 +78,7 @@ export default class VariantPicker extends Component {
   }
 
   render() {
-    const { attributes } = this.props
+    const { attributes, availability } = this.props
     const { errors, selection, quantity, variant } = this.state
 
     const addToCartBtnClasses = classNames({
@@ -86,6 +88,7 @@ export default class VariantPicker extends Component {
 
     return (
       <div>
+        <VariantPrice availability={availability} variant={variant} />
         {attributes.map((attribute, i) =>
           <AttributeSelectionWidget
             attribute={attribute}

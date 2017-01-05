@@ -97,8 +97,13 @@ def products_for_cart(user):
     return products
 
 
-def get_variant_picker_data(variants, attributes):
+def get_variant_picker_data(product, discounts=None):
+    availability = get_availability(product, discounts)
+    attributes = product.product_class.variant_attributes.prefetch_related(
+        'values')
+    variants = product.variants.all()
     data = {'attributes': [], 'variants': []}
+
     for attribute in attributes:
         data['attributes'].append({
             'pk': attribute.pk,
@@ -107,15 +112,24 @@ def get_variant_picker_data(variants, attributes):
             'values': [{'pk': value.pk, 'display': value.display}
                        for value in attribute.values.all()]
         })
+
     for variant in variants:
-        price = variant.get_price_per_item()
+        price = variant.get_price_per_item(discounts)
+        price_undiscounted = variant.get_price_per_item()
         variant_data = {
             'id': variant.id,
             'price': float(price.gross),
+            'priceUndiscounted': float(price_undiscounted.gross),
             'currency': price.currency,
             'attributes': variant.attributes
         }
         data['variants'].append(variant_data)
+
+    data['availability'] = {
+        'discount': price_as_dict(availability.discount),
+        'priceRange': price_range_as_dict(availability.price_range),
+        'priceRangeUndiscounted': price_range_as_dict(
+            availability.price_range_undiscounted)}
     return data
 
 
@@ -126,3 +140,16 @@ def get_product_attributes_data(product):
     values_map = get_attributes_display_map(product, attributes)
     return {attributes_map.get(attr_pk): value_obj
             for (attr_pk, value_obj) in values_map.items()}
+
+
+def price_as_dict(price):
+    return {
+        'currency': price.currency,
+        'gross': float(price.gross),
+        'net': float(price.net)} if price else {}
+
+
+def price_range_as_dict(price_range):
+    return {
+        'maxPrice': price_as_dict(price_range.max_price),
+        'minPrice': price_as_dict(price_range.min_price)}

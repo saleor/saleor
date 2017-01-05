@@ -200,6 +200,7 @@ if (variantPicker) {
   ReactDOM.render(
     <VariantPicker
       attributes={variantPickerData.attributes}
+      availability={variantPickerData.availability}
       onAddToCartError={onAddToCartError}
       onAddToCartSuccess={onAddToCartSuccess}
       url={variantPicker.dataset.action}
