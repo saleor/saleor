@@ -186,8 +186,8 @@ def test_index_view(cart, status_code, url, rf):
     assert response.url == url
 
 
-def test_checkout_discount(cart, sale, product_in_stock):
+def test_checkout_discount(request_cart, sale, product_in_stock):
     variant = product_in_stock.variants.get()
-    cart.add(variant, 1)
-    checkout = Checkout(cart, AnonymousUser(), 'tracking_code')
+    request_cart.add(variant, 1)
+    checkout = Checkout(request_cart, AnonymousUser(), 'tracking_code')
     assert checkout.get_total() == Price(currency="USD", net=5)
