@@ -34,6 +34,7 @@ def request_cart(cart, monkeypatch):
     monkeypatch.setattr(
         utils, 'get_cart_from_request',
         lambda request, cart_queryset=None: cart)
+    cart.discounts = Sale.objects.all()
     return cart
 
 
