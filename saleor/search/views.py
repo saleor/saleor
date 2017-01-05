@@ -25,8 +25,8 @@ def search(request):
         results = form.search(model_or_queryset=visible_products)
         page = paginate_results(results, request.GET, settings.PAGINATE_BY)
     else:
-        page = form.no_query_found()
-    query = form.cleaned_data['q']
+        page = []
+    query = form.cleaned_data.get('q', '')
     ctx = {
         'query': query,
         'results': page,
