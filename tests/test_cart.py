@@ -25,6 +25,7 @@ def cart_request_factory(rf, monkeypatch):
             request.user = AnonymousUser()
         else:
             request.user = user
+        request.discounts = Sale.objects.all()
         monkeypatch.setattr(request, 'get_signed_cookie',
                             Mock(return_value=token))
         return request
@@ -183,6 +184,8 @@ def test_get_cart_from_request(monkeypatch, customer_user,
     returned_cart = utils.get_cart_from_request(request, queryset)
     mock_get_for_user.assert_called_once_with(customer_user, queryset)
     assert returned_cart == user_cart
+
+    assert list(returned_cart.discounts) == list(request.discounts)
 
     mock_get_for_user = Mock(return_value=None)
     monkeypatch.setattr('saleor.cart.utils.get_user_cart',
