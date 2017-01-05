@@ -8,7 +8,6 @@ from saleor.checkout import views
 from saleor.checkout.core import STORAGE_SESSION_KEY, Checkout
 from saleor.shipping.models import ShippingMethodCountry
 from saleor.userprofile.models import Address
-from saleor.discount.models import Sale
 
 
 def test_checkout_version():
