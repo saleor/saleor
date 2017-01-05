@@ -121,6 +121,13 @@
                     </a>
                   </li>
                 {% endif %}
+                {% if perms.product.view_product %}
+                <li class="{% block menu_collections_class %}{% endblock %}">
+                  <a href="{% url 'dashboard:collection-list' %}">
+                    {% trans "Collections" context "Dashboard side navigation link" %}
+                  </a>
+                </li>
+                {% endif %}
               </ul>
             </li>
             {% endif %}
