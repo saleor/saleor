@@ -2,6 +2,7 @@ from django.conf.urls import url, include
 
 from . import views as core_views
 from .category.urls import urlpatterns as category_urls
+from .collection.urls import urlpatterns as collection_urls
 from .customer.urls import urlpatterns as customer_urls
 from .staff.urls import urlpatterns as staff_urls
 from .group.urls import urlpatterns as groups_urls
@@ -16,6 +17,7 @@ from .shipping.urls import urlpatterns as shipping_urls
 urlpatterns = [
     url(r'^$', core_views.index, name='index'),
     url(r'^categories/', include(category_urls)),
+    url(r'^collections/', include(collection_urls)),
     url(r'^orders/', include(order_urls)),
     url(r'^products/', include(product_urls)),
     url(r'^customers/', include(customer_urls)),
