@@ -206,7 +206,7 @@ class PriceType(graphene.ObjectType):
 
 
 class PriceRangeType(graphene.ObjectType):
-    maxPrice = graphene.Field(lambda: PriceType)
+    max_price = graphene.Field(lambda: PriceType)
     min_price = graphene.Field(lambda: PriceType)
 
 
