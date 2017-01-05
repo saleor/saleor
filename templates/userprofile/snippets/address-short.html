@@ -8,7 +8,7 @@
                  {% if address.country_area %}{{ address.country_area }}, {% endif %}{{ address.get_country_display }}<br>
                  {{ address.phone }}"
    data-html="true" title="{{ address.first_name }} {{ address.last_name }}">
-    <strong>{{ address.first_name }} {{ address.last_name }}</strong><br>
+    {{ address.first_name }} {{ address.last_name }}<br>
     {% if address.company_name %}{{ address.company_name }}<br>{% endif %}
     {{ address.street_address_1 }}<br>
     {% if address.street_address_2 %}

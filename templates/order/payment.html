@@ -39,7 +39,7 @@
                             <h1>
                               {% trans "Pay for order" %} {{ order }}
                             </h1>
-                            <form method="post" action="{% url "order:payment" token=order.token %}" class="payment-method-form">
+                            <form method="post" action="{% url "order:payment" token=order.token %}" class="payment-method-form radio">
                               {% csrf_token %}
                               {{ payment_form }}
                               {% block form_submit %}

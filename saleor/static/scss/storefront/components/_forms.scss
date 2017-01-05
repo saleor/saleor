@@ -4,3 +4,23 @@
     color: $body-color;
   }
 }
+
+.help-block {
+  color: $red;
+}
+
+.radio {
+  margin-bottom: $global-margin / 2;
+  ul {
+    list-style: none;
+    padding-left: 0;
+  }
+  input {
+    display: inline-block;
+    vertical-align: top;
+    margin: $global-margin / 4 $global-margin / 2 0 0;
+  }
+  label {
+    margin-right: $global-margin;
+  }
+}

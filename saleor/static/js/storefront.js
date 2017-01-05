@@ -47,6 +47,18 @@ $(document).ready((e) => {
   })
 })
 
+// Mobile search form
+
+var $searchIcon = $('.mobile-search-icon')
+var $closeSearchIcon = $('.mobile-close-search')
+var $searchForm = $('.navbar__brand__search')
+$searchIcon.click((e) => {
+  $searchForm.animate({left: 0}, {duration: 500})
+})
+$closeSearchIcon.click((e) => {
+  $searchForm.animate({left: '-100vw'}, {duration: 500})
+})
+
 // Sticky footer
 
 var navbarHeight = $('.navbar').outerHeight(true)
@@ -87,18 +99,38 @@ $(function() {
   })
 })
 
+
 //Cart dropdown
 
-var summaryLink = "/cart/summary"
-var $cartDropdown = $(".cart-dropdown")
+var summaryLink = '/cart/summary'
+var $cartDropdown = $('.cart-dropdown')
 var $addToCartError = $('.product__info__form-error')
+
+const onAddToCartSuccess = () => {
+  $.get(summaryLink, (data) => {
+    $cartDropdown.html(data)
+    $addToCartError.html('')
+    var newQunatity = $('.cart-dropdown__total').data('quantity')
+    $('.badge').html(newQunatity).removeClass('hidden-xs-up')
+    $cartDropdown.addClass('show')
+    $cartDropdown.find('.container').scrollTop($cartDropdown.find('.container')[0].scrollHeight)
+    setTimeout((e) => {
+      $cartDropdown.removeClass('show')
+    }, 2500)
+  })
+}
+
+const onAddToCartError = (response) => {
+  $addToCartError.html(getAjaxError(response))
+}
+
 $.get(summaryLink, (data) => {
     $cartDropdown.html(data)
 })
 $('.navbar__brand__cart').hover((e) => {
-  $cartDropdown.addClass("show")
+  $cartDropdown.addClass('show')
 }, (e) => {
-  $cartDropdown.removeClass("show")
+  $cartDropdown.removeClass('show')
 })
 $('.product-form button').click((e) => {
   e.preventDefault()
@@ -112,19 +144,10 @@ $('.product-form button').click((e) => {
       quantity: quantity
     },
     success: () => {
-      $.get(summaryLink, (data) => {
-          $cartDropdown.html(data)
-          $addToCartError.html('')
-          var newQunatity = $('.cart-dropdown__total').data('quantity')
-          $('.badge').html(newQunatity).removeClass('hidden-xs-up')
-          $cartDropdown.addClass("show")
-          setTimeout((e) => {
-            $cartDropdown.removeClass('show')
-          }, 2500)
-      })
+      onAddToCartSuccess()
     },
     error: (response) => {
-      $addToCartError.html(getAjaxError(response))
+      onAddToCartError(response)
     }
   })
 })
@@ -139,7 +162,7 @@ var $newPrice = $('.cart__delivery-info__price')
 $countrySelect.on('change', (e) => {
   var newCountry = $countrySelect.val()
   $.ajax({
-    url: "/cart/shipingoptions/",
+    url: '/cart/shipingoptions/',
     type: 'POST',
     data: {
       'csrfmiddlewaretoken': crsfToken,
@@ -156,6 +179,19 @@ $countrySelect.on('change', (e) => {
   })
 })
 
+// Save tab links to URL
+  		  
+$('.nav-tabs a').click((e) => {
+  e.preventDefault()
+  $(this).tab('show')
+});
+$('ul.nav-tabs li a:not(:first)').on('shown.bs.tab', (e) => {
+  var id = $(e.target).attr('href').substr(1)
+  window.location.hash = id
+});
+var hash = window.location.hash;
+$('.nav-tabs a[href="' + hash + '"]').tab('show')
+
 // Variant Picker
 
 const variantPicker = document.getElementById('variant-picker')
@@ -164,6 +200,8 @@ if (variantPicker) {
   ReactDOM.render(
     <VariantPicker
       attributes={variantPickerData.attributes}
+      onAddToCartError={onAddToCartError}
+      onAddToCartSuccess={onAddToCartSuccess}
       url={variantPicker.dataset.action}
       variants={variantPickerData.variants}
     />,
@@ -191,7 +229,17 @@ $cartLine.each(function() {
       method: 'POST',
       data: {quantity: newQuantity},
       success: (response) => {
-        $subtotal.html(response.subtotal)
+        if (newQuantity == 0) {
+          if (response.cart_length == 0) {
+            $.cookie('alert', 'true', { path: '/cart' })
+            location.reload()
+          } else {
+            $removeProductSucces.removeClass('hidden-xs-up')
+            $(this).fadeOut()
+          }
+        } else {
+          $subtotal.html(response.subtotal)
+        }
         $total.html(response.total)
         $cartBadge.html(response.cart)
         $qunatityError.html('')
@@ -215,12 +263,18 @@ $cartLine.each(function() {
           $cartDropdown.load(summaryLink)
           $removeProductSucces.removeClass('hidden-xs-up')
         } else {
+          $.cookie('alert', 'true', { path: '/cart' })
           location.reload()
         }
       }
     })
   })
 })
+
+if ($.cookie('alert') == 'true') {
+  $removeProductSucces.removeClass('hidden-xs-up')
+  $.cookie('alert', 'false', { path: '/cart' })
+}
 
 $closeMsg.on('click', (e) => {
   $removeProductSucces.addClass('hidden-xs-up')

@@ -11,6 +11,8 @@ export default class VariantPicker extends Component {
 
   static propTypes = {
     attributes: PropTypes.array.isRequired,
+    onAddToCartError: PropTypes.func.isRequired,
+    onAddToCartSuccess: PropTypes.func.isRequired,
     url: PropTypes.string.isRequired,
     variants: PropTypes.array.isRequired
   }
@@ -31,6 +33,7 @@ export default class VariantPicker extends Component {
   }
 
   handleAddToCart = () => {
+    const { onAddToCartSuccess, onAddToCartError } = this.props;
     const { quantity, variant } = this.state
     if (quantity > 0 && variant) {
       $.ajax({
@@ -40,19 +43,11 @@ export default class VariantPicker extends Component {
           quantity: quantity,
           variant: variant.id
         },
-        success: (response) => {
-          const { next } = response
-          if (next) {
-            window.location = next
-          } else {
-            location.reload()
-          }
+        success: () => {
+          onAddToCartSuccess()
         },
         error: (response) => {
-          const { error } = response.responseJSON
-          if (error) {
-            this.setState({ errors: response.responseJSON.error })
-          }
+          onAddToCartError(response)
         }
       })
     }
@@ -85,7 +80,7 @@ export default class VariantPicker extends Component {
     const { errors, selection, quantity, variant } = this.state
 
     const addToCartBtnClasses = classNames({
-      'btn btn-lg btn-block btn-primary': true,
+      'btn primary': true,
       'disabled': !variant
     })
 

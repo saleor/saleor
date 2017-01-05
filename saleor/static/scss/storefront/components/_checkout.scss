@@ -2,29 +2,29 @@
   margin-bottom: $global-margin * 5;
   &__header {
     background-color: $gray;
-    padding: $global-padding 0;
-    margin-bottom: $global-margin * 4;
+    padding: $global-padding * 1.5 0 $global-padding;
+    text-transform: uppercase;
     @include media-breakpoint-down(sm) {
-      margin-bottom: $global-margin * 2;
       & ~ .maincontent {
         margin-top: 0;
       }
     }
     img {
-      float: left;
+      max-width: 8rem;
+      display: inline-block;
+      vertical-align: text-bottom;
+    }
+    p {
+      display: inline-block;
+      color: $light-gray;
+      margin-left: $global-margin;
+      font-weight: 700;
       @include media-breakpoint-down(sm) {
-        max-height: 22px;
         margin-top: $global-margin / 2;
       }
     }
-    h1 {
-      display: inline-block;
-      color: $white;
-      margin-left: $global-margin;
-      @include media-breakpoint-down(sm) {
-        font-size: $font-size-h2;
-        margin-top: $global-margin / 2;
-      }
+    a:hover {
+      text-decoration: none;
     }
   }
   &__review {
@@ -61,18 +61,14 @@
   .primary {
     margin-top: $global-margin;
   }
-  &__payment-method-form, form {
-    label {
-      margin-bottom: $global-margin;
-      input {
-        display: inline-block;
-        vertical-align: top;
-        margin: $global-margin / 4 $global-margin / 2 0 0;
-      }
-      span {
-        display: inline-block;
-      }
+  &__edit-link {
+    margin-top: $global-margin / 2;
+    a {
+      color: $dark-gray;
+      text-decoration: underline;
     }
+  }
+  &__payment-method-form {
     ul {
       list-style: none;
       padding-left: 0;
@@ -88,6 +84,10 @@
   margin-top: $global-margin * 6;
   span {
     color: $dark-gray;
+  }
+  h1 a {
+    color: $body-color;
+    text-decoration: underline;
   }
   &__pirate-mail {
     position: absolute;
@@ -128,6 +128,9 @@
         padding-bottom: $global-padding * 3;
         padding-right: $global-padding * 2;
       }
+      .form-group {
+        text-align: left;
+      }
       p {
         color: $dark-gray;
       }
@@ -138,12 +141,13 @@
   }
   &__image {
     img {
-      margin: $global-margin * 5 0 $global-margin * 2.8;
+      margin: $global-margin * 3.5 0 $global-margin * 2.8;
       @include media-breakpoint-down(sm) { 
         margin-top: $global-margin * 3;
       }
       @include media-breakpoint-down(md) {
-        margin-bottom: $global-margin * 4.3;
+        padding: 0;
+        margin-bottom: $global-margin * 3.5;
       }
     }
   }
