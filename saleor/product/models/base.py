@@ -67,13 +67,19 @@ class Category(MPTTModel):
 @python_2_unicode_compatible
 class ProductClass(models.Model):
     name = models.CharField(
-        pgettext_lazy('Product field', 'name'), max_length=128)
-    has_variants = models.BooleanField(default=True)
+        pgettext_lazy('Product class field', 'name'), max_length=128)
+    has_variants = models.BooleanField(
+        pgettext_lazy('Product class field', 'has variants'), default=True)
     product_attributes = models.ManyToManyField(
-        'ProductAttribute', related_name='products_class', blank=True)
+        'ProductAttribute', related_name='products_class', blank=True,
+        verbose_name=pgettext_lazy('Product class field',
+                                   'product attributes'))
     variant_attributes = models.ManyToManyField(
-        'ProductAttribute', related_name='product_variants_class', blank=True)
-    is_shipping_required = models.BooleanField(default=False)
+        'ProductAttribute', related_name='product_variants_class', blank=True,
+        verbose_name=pgettext_lazy('Product class field', 'variant attributes'))
+    is_shipping_required = models.BooleanField(
+        pgettext_lazy('Product class field', 'is shipping required'),
+        default=False)
 
     class Meta:
         app_label = 'product'
