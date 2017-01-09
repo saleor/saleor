@@ -17,7 +17,7 @@
 {% block header_extra %}
     <div class="fixed-action-btn">
         <a class="btn-fab btn-floating btn-large waves-effect waves-light teal" title="{% trans "Add collection" %}"
-            href="#">
+            href="{% url 'dashboard:collection-add' %}">
             <i class="material-icons">add</i>
         </a>
     </div>
