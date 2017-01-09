@@ -1,7 +1,16 @@
 from ..product.models import ProductAttribute, AttributeChoiceValue
 
 
-class AttributeAggregation(object):
+class Aggregation(object):
+
+    def get_aggs(self):
+        raise NotImplementedError()
+
+    def parse_results(self, aggregation_results):
+        raise NotImplementedError()
+
+
+class AttributeAggregation(Aggregation):
     field = 'attributes_filter'
     attribute_id = None
     aggregation_name = None
@@ -33,3 +42,11 @@ class AttributeAggregation(object):
             }
         }
 
+    def update_field(self, field, results):
+        """
+        Update choices of MultipleChoiceField from the form
+        """
+        choices = []
+        for choice in results.keys():
+            choices.append((choice, choice))
+        field.choices = choices
