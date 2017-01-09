@@ -23,10 +23,11 @@ def search(request):
     if form.is_valid():
         visible_products = products_with_details(request.user)
         results = form.search(model_or_queryset=visible_products)
-        page = paginate_results(results, request.GET, settings.PAGINATE_BY)
+        query = form.cleaned_data.get('q', '')
     else:
-        page = []
-    query = form.cleaned_data.get('q', '')
+        results = []
+        query = ''
+    page = paginate_results(results, request.GET, settings.PAGINATE_BY)
     ctx = {
         'query': query,
         'results': page,
