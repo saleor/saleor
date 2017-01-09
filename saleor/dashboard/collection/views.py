@@ -13,7 +13,7 @@ from .forms import CollectionForm
 def collection_list(request):
     collections = Collection.objects.all()
     collections = get_paginator_items(collections, 30, request.GET.get('page'))
-    ctx = {'colections': collections}
+    ctx = {'collections': collections}
     return TemplateResponse(request,
                             'dashboard/collection/list.html', ctx)
 
