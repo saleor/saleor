@@ -184,3 +184,10 @@ def test_index_view(cart, status_code, url, rf):
     response = views.index_view(request, checkout, checkout.cart)
     assert response.status_code == status_code
     assert response.url == url
+
+
+def test_checkout_discount(request_cart, sale, product_in_stock):
+    variant = product_in_stock.variants.get()
+    request_cart.add(variant, 1)
+    checkout = Checkout(request_cart, AnonymousUser(), 'tracking_code')
+    assert checkout.get_total() == Price(currency="USD", net=5)

@@ -67,3 +67,11 @@ def test_dashboard_change_quantity_form(request_cart_with_item, order):
     assert form.is_valid()
     form.save()
     assert group.items.get().stock.quantity_allocated == 1
+
+
+def test_order_discount(sale, order, request_cart_with_item):
+    cart = request_cart_with_item
+    group = models.DeliveryGroup.objects.create(order=order)
+    group.add_items_from_partition(cart.lines.all(), discounts=cart.discounts)
+    item = group.items.first()
+    assert item.get_price_per_item() == Price(currency="USD", net=5)
