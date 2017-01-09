@@ -380,7 +380,7 @@ class VariantImage(models.Model):
 @python_2_unicode_compatible
 class Collection(models.Model):
     name = models.CharField(
-        pgettext_lazy('Collection field', 'name'), max_length=128)
+        pgettext_lazy('Collection field', 'name'), max_length=128, unique=True)
     products = models.ManyToManyField(Product)
 
     def __str__(self):

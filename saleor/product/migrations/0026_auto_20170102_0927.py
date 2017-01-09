@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             name='Collection',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=128, verbose_name='name')),
+                ('name', models.CharField(max_length=128, verbose_name='name', unique=True,)),
                 ('products', models.ManyToManyField(to='product.Product')),
             ],
         ),
