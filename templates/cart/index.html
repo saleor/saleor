@@ -93,7 +93,7 @@
                         </div>
                     </td>
                     <td class="text-right hidden-xs">{% gross line.get_price_per_item html=True %}</td>
-                    <td class="text-right cart-item-subtotal" data-product-id="{{ line.variant.pk }}">{% gross line.get_total html=True %}</td>
+                    <td class="text-right cart-item-subtotal" data-variant-id="{{ line.variant.pk }}">{% gross line.get_total html=True %}</td>
                 </tr>
             {% endfor %}
         </tbody>

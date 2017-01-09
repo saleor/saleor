@@ -56,9 +56,9 @@ if ($cartTotal.length) {
 }
 
 $('.cart-item-subtotal').each(function() {
-  let productId = $(this).data('product-id')
+  let variantId = $(this).data('variant-id')
   let props = {
-    productId,
+    variantId,
     subtotal: $(this).text()
   }
   store.dispatch({
@@ -67,7 +67,7 @@ $('.cart-item-subtotal').each(function() {
   })
   render(
     <Provider store={store}>
-      <CartItemSubtotal productId={productId} />
+      <CartItemSubtotal variantId={variantId} />
     </Provider>,
     this
   )
