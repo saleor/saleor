@@ -36,6 +36,9 @@ Environment variables
 ``DEFAULT_FROM_EMAIL``
   Default email address to use for outgoing mail.
 
+``NOTIFICATION_FROM_EMAIL``
+  Email address to use for outgoing mail with wishlist notifications. Defaults to ``DEFAULT_FROM_EMAIL``
+
 ``EMAIL_URL``
   The URL of the email gateway. Defaults to printing everything to the console.
 

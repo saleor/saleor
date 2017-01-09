@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 from saleor.cart.models import Cart
 from saleor.cart import utils
 from saleor.product import models
-from saleor.product.utils import get_availability
+from saleor.product.utils import get_product_availability
 from tests.utils import filter_products_by_attribute
 
 
@@ -70,7 +70,7 @@ def test_product_preview(admin_client, client, product_in_stock):
 
 
 def test_availability(product_in_stock, monkeypatch, settings):
-    availability = get_availability(product_in_stock)
+    availability = get_product_availability(product_in_stock)
     assert availability.price_range == product_in_stock.get_price_range()
     assert availability.price_range_local_currency is None
     monkeypatch.setattr(
@@ -79,7 +79,7 @@ def test_availability(product_in_stock, monkeypatch, settings):
     settings.DEFAULT_CURRENCY = 'USD'
     settings.DEFAULT_COUNTRY = 'PL'
     settings.OPENEXCHANGERATES_API_KEY = 'fake-key'
-    availability = get_availability(product_in_stock, local_currency='PLN')
+    availability = get_product_availability(product_in_stock, local_currency='PLN')
     assert availability.price_range_local_currency.min_price.currency == 'PLN'
     assert availability.available
 

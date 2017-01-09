@@ -29,6 +29,9 @@
         <li class="nav-item">
           <a class="nav-link" data-toggle="tab" href="#addresses" role="tab"><h3>{% trans "Addresses book" %}</h3></a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" data-toggle="tab" href="#wishlist" role="tab"><h3>{% trans "Wishlist" %}</h3></a>
+        </li>
       </ul>
     </div>
     <div class="tab-content col-lg-10 offset-lg-1">
@@ -77,7 +80,7 @@
             <form action="" method="post">
                 {% csrf_token %}
                 {% bootstrap_form change_password_form %}
-                <input type="submit" class="btn primary" value="Change password">
+                <input type="submit" class="btn primary" name="change_password_form" value="Change password">
             </form>
           </div>
         </div>
@@ -102,6 +105,17 @@
               <h3 class="text-sm-center">{% trans "You will see new addresses here after first successful checkout." %}</h3>
             {% endif %}
           
+        </div>
+      </div>
+      <div class="tab-pane" id="wishlist" role="tabpanel">
+        <div id="accordion" role="tablist" aria-multiselectable="true">
+          <div class="col-md-8 offset-md-2 col-lg-6 offset-lg-3 userprofile__password">
+            <form action="" method="post">
+              {% csrf_token %}
+              {% bootstrap_form wishlist_form %}
+            <input type="submit" class="btn primary" name="wishlist_form" value="Save settings">
+            </form>
+          </div>
         </div>
       </div>
     </div>

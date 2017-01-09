@@ -27,3 +27,14 @@ Think about it as template for your products. You can describe here attributes a
 
 .. warning::
     You can't remove *product class* if it has any *products*.
+
+
+Wishlist
+========
+
+Every registered user can add variants to its own wishlist. Even if particular variant doesn't exist in the database (because of unique attributes combination).
+After a stock update, a command can be used to dispatch all waiting notifications:
+
+.. code-block:: bash
+
+    $ python manage.py wishlist_notifications

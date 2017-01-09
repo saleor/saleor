@@ -94,7 +94,8 @@
                     {% block orderform %}
                         {% if show_variant_picker %}
                             {% csrf_token %}
-                            <div id="variant-picker" data-variant-picker-data="{{ variant_picker_data }}" data-action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}"></div>
+                            <div id="variant-picker" data-variant-picker-data="{{ variant_picker_data }}"
+                                 data-action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}"></div>
                         {% else %}
                             <form id="product-form" role="form" class="product-form form-vertical" method="post"
                             action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}" novalidate>
@@ -111,6 +112,8 @@
                                 </div>
                             </form>
                         {% endif %}
+                        <div id="add-to-wishlist" {% if user.is_authenticated %}data-wishlisturl="{% url 'wishlist:add-item' %}"{% endif %}
+                             data-product="{{ product.pk }}"></div>
                     {% endblock %}
                     <div class="product__info__form-error">
                       <small class="text-danger"></small>

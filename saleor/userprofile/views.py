@@ -9,19 +9,28 @@ from django.template.response import TemplateResponse
 from django.utils.translation import ugettext as _
 from .forms import ChangePasswordForm, get_address_form
 
+from ..wishlist.forms import WishlistSettingsForm
+from ..wishlist.models import Wishlist
+
 
 @login_required
 def details(request):
     password_form = get_or_process_password_form(request)
+    wishlist_form = get_or_process_wishlist_form(request)
     ctx = {'addresses': request.user.addresses.all(),
            'orders': request.user.orders.prefetch_related('groups__items'),
-           'change_password_form': password_form}
-
+           'change_password_form': password_form,
+           'wishlist_form': wishlist_form}
     return TemplateResponse(request, 'userprofile/details.html', ctx)
 
 
 def get_or_process_password_form(request):
-    form = ChangePasswordForm(data=request.POST or None, user=request.user)
+    if 'change_password_form' in request.POST:
+        data = request.POST
+    else:
+        data = None
+    form = ChangePasswordForm(data=data, user=request.user,
+                              prefix='password')
     if form.is_valid():
         form.save()
         logout_on_password_change(request, form.user)
@@ -29,6 +38,20 @@ def get_or_process_password_form(request):
             request,
             messages.SUCCESS,
             'account/messages/password_changed.txt')
+    return form
+
+
+def get_or_process_wishlist_form(request):
+    wishlist, created = Wishlist.objects.get_or_create(user=request.user)
+    if 'wishlist_form' in request.POST:
+        data = request.POST
+    else:
+        data = None
+    form = WishlistSettingsForm(instance=wishlist, data=data,
+                                prefix='wishlist')
+    if form.is_valid():
+        form.save()
+        messages.success(request, _('Wishlist settings saved.'))
     return form
 
 

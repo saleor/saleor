@@ -1,0 +1,16 @@
+{% load i18n %}
+
+{% block content %}{% blocktrans %}Hi!
+
+These products from your wishlist are now available:
+{% endblocktrans %}
+{% for item in items %}- {{ item.product }} - {{ item }}
+{% endfor %}
+
+{% trans 'Check your wishlist at' %}:
+{{ url }}
+
+
+{% blocktrans %}
+Sincerely,
+Saleor Team{% endblocktrans %}{% endblock %}

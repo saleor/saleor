@@ -17,7 +17,7 @@ export default class VariantPicker extends Component {
     url: PropTypes.string.isRequired,
     variantAttributes: PropTypes.array.isRequired,
     variants: PropTypes.array.isRequired
-  }
+  };
 
   constructor(props) {
     super(props);
@@ -32,6 +32,7 @@ export default class VariantPicker extends Component {
       selection: selection
     };
     store.setVariant(variant);
+    store.setSelection(selection);
   }
 
   handleAddToCart = () => {
@@ -53,19 +54,21 @@ export default class VariantPicker extends Component {
         }
       });
     }
-  }
+  };
 
   handleAttributeChange = (attrId, valueId) => {
+    const { store } = this.props;
     this.setState({
       selection: Object.assign({}, this.state.selection, { [attrId]: valueId })
     }, () => {
+      store.setSelection(this.state.selection);
       this.matchVariantFromSelection();
     });
-  }
+  };
 
   handleQuantityChange = (event) => {
     this.setState({quantity: parseInt(event.target.value)});
-  }
+  };
 
   matchVariantFromSelection() {
     const { store, variants } = this.props;

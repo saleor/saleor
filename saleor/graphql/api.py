@@ -10,7 +10,7 @@ from django_prices.templatetags import prices_i18n
 
 from ..product.models import (AttributeChoiceValue, Category, Product,
                               ProductAttribute, ProductImage, ProductVariant)
-from ..product.utils import get_availability
+from ..product.utils import get_product_availability
 from ..product.templatetags.product_images import product_first_image
 from .scalars import AttributesFilterScalar
 from .utils import (CategoryAncestorsCache, DjangoPkInterface)
@@ -62,7 +62,7 @@ class ProductType(DjangoObjectType):
         return self.get_absolute_url()
 
     def resolve_availability(self, args, context, info):
-        a = get_availability(self, context.discounts, context.currency)
+        a = get_product_availability(self, context.discounts, context.currency)
         return ProductAvailabilityType(**a._asdict())
 
 
@@ -111,7 +111,7 @@ class CategoryType(DjangoObjectType):
 
     def resolve_products(self, args, context, info):
         def filter_by_price(queryset, value, operator):
-            return [obj for obj in queryset if operator(get_availability(
+            return [obj for obj in queryset if operator(get_product_availability(
                 obj, context.discounts).price_range.min_price.gross, value)]
 
         tree = self.get_descendants(include_self=True)

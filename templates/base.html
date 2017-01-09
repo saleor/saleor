@@ -42,7 +42,10 @@
                               </li>
                             {% endif %}
                             <li>
-                              <a href="{% url "profile:details" %}">{% trans "Your account" %}</a> 
+                              <a href="{% url "profile:details" %}">{% trans "Your account" %}</a>
+                            </li>
+                            <li>
+                              <a href="{% url "wishlist:user-wishlist" %}">{% trans "Your wishlist" %}</a>
                             </li>
                             <li>
                               <a href="{% url "account_logout" %}">{% trans "Log out" %}</a>
