@@ -1,5 +1,7 @@
 from django.template.response import TemplateResponse
 from django.contrib import messages
+from django.core.urlresolvers import reverse
+from django.http import JsonResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 
@@ -39,3 +41,18 @@ def collection_update(request, collection_pk=None):
         messages.success(request, _('Updated collection %s') % collection)
     ctx = {'collection': collection, 'form': form}
     return TemplateResponse(request, 'dashboard/collection/detail.html', ctx)
+
+
+@staff_member_required
+def collection_delete(request, collection_pk=None):
+    collection = get_object_or_404(Collection, pk=collection_pk)
+    if request.method == 'POST':
+        collection.delete()
+        messages.success(request, _("Deleted collection %s") % collection)
+        if request.is_ajax():
+            response = {'redirectUrl': reverse('dashboard:collection-list')}
+            return JsonResponse(response)
+        return redirect('dashboard:collection-list')
+    ctx = {'collection': collection}
+    return TemplateResponse(request, 'dashboard/collection/modal_delete.html',
+                            ctx)
