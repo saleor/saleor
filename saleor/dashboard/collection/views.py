@@ -11,7 +11,7 @@ from .forms import CollectionForm
 
 @staff_member_required
 def collection_list(request):
-    collections = Collection.objects.all()
+    collections = Collection.objects.prefetch_related('products').all()
     collections = get_paginator_items(collections, 30, request.GET.get('page'))
     ctx = {'collections': collections}
     return TemplateResponse(request,
