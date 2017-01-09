@@ -8,15 +8,16 @@ export default class CategoryFilter extends Component {
 
   render() {
     const { category } = this.props;
+    const parent = category.ancestors ? category.ancestors[category.ancestors.length - 1] : null;
     return (
       <div className="categories">
 
         <h2><strong>{category.name}</strong></h2>
 
-        {category.parent ? (
+        {parent ? (
           <div className="parents">
             <i className="fa fa-arrow-left" aria-hidden="true"></i>
-            <a href={category.parent.url}>See all {category.parent.name}</a>
+            <a href={parent.url}>See all {parent.name}</a>
           </div>
         ) : (null)}
         <ul className={category.parent ? ("childs") : ("childs no-parent")}>

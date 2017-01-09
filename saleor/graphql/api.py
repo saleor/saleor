@@ -220,7 +220,9 @@ class Viewer(graphene.ObjectType):
     debug = graphene.Field(DjangoDebug, name='__debug')
 
     def resolve_category(self, args, context, info):
-        return get_object_or_none(Category, pk=args.get('pk'))
+        category = get_object_or_none(
+            Category.objects.prefetch_related('children'), pk=args.get('pk'))
+        return category
 
     def resolve_attributes(self, args, context, info):
         category_pk = args.get('category_pk')

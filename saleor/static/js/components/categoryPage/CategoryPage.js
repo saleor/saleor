@@ -196,11 +196,6 @@ export default Relay.createContainer(CategoryPage, {
         pk
         name
         url
-        parent {
-          id
-          name,
-          url
-        }
         ancestors {
           name
           pk
@@ -211,12 +206,6 @@ export default Relay.createContainer(CategoryPage, {
           pk
           url
           slug
-          children {
-            name
-            pk
-            url
-            slug
-          }
         }
         products (first: $count, attributes: $attributesFilter, priceGte: $minPrice, priceLte: $maxPrice, orderBy: $sortBy) {
           ${ProductList.getFragment('products')}
