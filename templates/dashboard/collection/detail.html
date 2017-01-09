@@ -28,6 +28,21 @@
     </ul>
 {% endblock %}
 
+{% block header_extra %}
+    {% if collection.pk %}
+        <a class="dropdown-button" href="#" data-activates="collection-delete" data-constrainwidth="false">
+            <i class="material-icons">arrow_drop_down</i>
+        </a>
+        <ul id="collection-delete" class="dropdown-content">
+            <li>
+                <a class="modal-trigger-custom" data-href="{% url 'dashboard:collection-delete' collection.pk %}" href="#base-modal">
+                    {% trans "Remove collection" %}
+                </a>
+            </li>
+        </ul>
+    {% endif %}
+{% endblock %}
+
 {% block content %}
     <form method="post" id="form-category" action="" novalidate>
         {% csrf_token %}
