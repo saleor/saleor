@@ -20,9 +20,4 @@ class Migration(migrations.Migration):
                 ('products', models.ManyToManyField(to='product.Product')),
             ],
         ),
-        migrations.AlterField(
-            model_name='stocklocation',
-            name='name',
-            field=models.CharField(max_length=100, verbose_name='location'),
-        ),
     ]
