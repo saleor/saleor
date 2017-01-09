@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import datetime
-import six
 from decimal import Decimal
 
 from django.conf import settings
@@ -13,6 +12,7 @@ from django.db.models import F, Manager, Q
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
+from django.utils import six
 from django_prices.models import PriceField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
