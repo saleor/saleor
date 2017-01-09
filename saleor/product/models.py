@@ -381,7 +381,7 @@ class VariantImage(models.Model):
 class Collection(models.Model):
     name = models.CharField(
         pgettext_lazy('Collection field', 'name'), max_length=128, unique=True)
-    products = models.ManyToManyField(Product)
+    products = models.ManyToManyField(Product, blank=True)
 
     def __str__(self):
         return self.name
