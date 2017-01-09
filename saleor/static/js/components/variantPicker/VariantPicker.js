@@ -5,15 +5,18 @@ import React, { Component, PropTypes } from 'react'
 
 import AttributeSelectionWidget from './AttributeSelectionWidget'
 import QuantityInput from './QuantityInput'
+import VariantPrice from './VariantPrice'
 
 
 export default class VariantPicker extends Component {
 
   static propTypes = {
-    attributes: PropTypes.array.isRequired,
+    availability: PropTypes.object.isRequired,
     onAddToCartError: PropTypes.func.isRequired,
     onAddToCartSuccess: PropTypes.func.isRequired,
+    productAttributes: PropTypes.array.isRequired,
     url: PropTypes.string.isRequired,
+    variantAttributes: PropTypes.array.isRequired,
     variants: PropTypes.array.isRequired
   }
 
@@ -76,7 +79,7 @@ export default class VariantPicker extends Component {
   }
 
   render() {
-    const { attributes } = this.props
+    const { availability, productAttributes, variantAttributes } = this.props
     const { errors, selection, quantity, variant } = this.state
 
     const addToCartBtnClasses = classNames({
@@ -86,7 +89,14 @@ export default class VariantPicker extends Component {
 
     return (
       <div>
-        {attributes.map((attribute, i) =>
+        <VariantPrice availability={availability} variant={variant} />
+        {productAttributes.map((item, i) =>
+          <div className="form-group" key={i}>
+              <label className="control-label"><b>{item.attribute}</b></label>
+              <p>{item.value}</p>
+          </div>
+        )}
+        {variantAttributes.map((attribute, i) =>
           <AttributeSelectionWidget
             attribute={attribute}
             handleChange={this.handleAttributeChange}

@@ -199,10 +199,12 @@ if (variantPicker) {
   const variantPickerData = JSON.parse(variantPicker.dataset.variantPickerData)
   ReactDOM.render(
     <VariantPicker
-      attributes={variantPickerData.attributes}
+      availability={variantPickerData.availability}
       onAddToCartError={onAddToCartError}
       onAddToCartSuccess={onAddToCartSuccess}
+      productAttributes={variantPickerData.productAttributes}
       url={variantPicker.dataset.action}
+      variantAttributes={variantPickerData.variantAttributes}
       variants={variantPickerData.variants}
     />,
     variantPicker
