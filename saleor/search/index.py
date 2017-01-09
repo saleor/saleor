@@ -172,14 +172,17 @@ def remove_object(instance):
 
 
 class BaseField(object):
-    def __init__(self, field_name, **kwargs):
+    def __init__(self, field_name, attname=None, **kwargs):
         self.field_name = field_name
         self.kwargs = kwargs
+        self.attname = attname
 
     def get_field(self, cls):
         return cls._meta.get_field(self.field_name)
 
     def get_attname(self, cls):
+        if self.attname:
+            return self.attname
         try:
             field = self.get_field(cls)
             return field.attname
