@@ -13,18 +13,9 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--history">
-        <li class="back-mobile">
-            <a href="{% url 'dashboard:collection-list' %}" class="breadcrumbs--ellipsed-item">
-                {% trans "Collection" %}
-            </a>
-        </li>
-        <li>
-            {% if collection.pk %}
-                <span class="breadcrumbs--ellipsed-item">{{ collection }}</span>
-            {% else %}
-                <span class="breadcrumbs--ellipsed-item">{% trans 'Add new collection' %}</span>
-            {% endif %}
-        </li>
+        <li><a href="{% url "dashboard:collection-list" %}" class="breadcrumb">{% trans "Collections" %}</a></li>
+        <li class="back-mobile"><a href="{% url "dashboard:collection-list" %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a></li>
+        <li><span class="breadcrumbs--ellipsed-item">{% if collection.pk %}{{ collection }}{% else %}{% trans 'Add new collection' %}{% endif %}</span></li>
     </ul>
 {% endblock %}
 
