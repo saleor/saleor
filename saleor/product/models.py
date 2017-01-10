@@ -382,6 +382,7 @@ class Collection(models.Model):
     name = models.CharField(
         pgettext_lazy('Product collection field', 'name'), max_length=128,
         unique=True)
+    slug = models.SlugField(pgettext_lazy('Product collection field', 'slug'))
     products = models.ManyToManyField(Product, blank=True)
 
     def __str__(self):
