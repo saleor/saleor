@@ -11,9 +11,12 @@ from mock import MagicMock, Mock
 
 from saleor.cart.context_processors import cart_counter
 from satchless.item import InsufficientStock
+from prices import Price
+
 
 from saleor.cart import forms, utils
 from saleor.cart.models import Cart
+from saleor.discount.models import Sale
 
 
 @pytest.fixture()
@@ -24,6 +27,7 @@ def cart_request_factory(rf, monkeypatch):
             request.user = AnonymousUser()
         else:
             request.user = user
+        request.discounts = Sale.objects.all()
         monkeypatch.setattr(request, 'get_signed_cookie',
                             Mock(return_value=token))
         return request
@@ -182,6 +186,8 @@ def test_get_cart_from_request(monkeypatch, customer_user,
     returned_cart = utils.get_cart_from_request(request, queryset)
     mock_get_for_user.assert_called_once_with(customer_user, queryset)
     assert returned_cart == user_cart
+
+    assert list(returned_cart.discounts) == list(request.discounts)
 
     mock_get_for_user = Mock(return_value=None)
     monkeypatch.setattr('saleor.cart.utils.get_user_cart',
@@ -452,10 +458,13 @@ def test_view_empty_cart(client, request_cart):
     assert response.status_code == 200
 
 
-def test_view_cart(client, product_in_stock, request_cart):
+def test_view_cart(client, sale, product_in_stock, request_cart):
     variant = product_in_stock.variants.get()
     request_cart.add(variant, 1)
     response = client.get('/cart/')
+    response_cart_line = response.context[0]['cart_lines'][0]
+    cart_line = request_cart.lines.first()
+    assert not response_cart_line['get_total'] == cart_line.get_total()
     assert response.status_code == 200
 
 
@@ -532,3 +541,11 @@ def test_cart_summary_page_empty_cart(client, request_cart):
     assert response.status_code == 200
     data = response.context
     assert data['quantity'] == 0
+
+
+def test_total_with_discount(client, sale, request_cart, product_in_stock):
+    sales = Sale.objects.all()
+    variant = product_in_stock.variants.get()
+    request_cart.add(variant, 1)
+    line = request_cart.lines.first()
+    assert line.get_total(discounts=sales) == Price(currency="USD", net=5)

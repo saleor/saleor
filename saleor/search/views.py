@@ -27,10 +27,11 @@ def search(request):
             results, discounts=request.discounts,
             local_currency=request.currency)
         results = list(results)
-        page = paginate_results(results, request.GET, settings.PAGINATE_BY)
+        query = form.cleaned_data.get('q', '')
     else:
-        page = form.no_query_found()
-    query = form.cleaned_data['q']
+        results = []
+        query = ''
+    page = paginate_results(results, request.GET, settings.PAGINATE_BY)
     ctx = {
         'query': query,
         'results': page,
