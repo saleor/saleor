@@ -3,11 +3,13 @@ from django.utils.translation import pgettext_lazy
 from django.utils.encoding import python_2_unicode_compatible
 
 
+INTEGER = 'i'
+STRING = 's'
+BOOLEAN = 'b'
+
+
 @python_2_unicode_compatible
 class Setting(models.Model):
-    INTEGER = 'i'
-    STRING = 's'
-    BOOLEAN = 'b'
     VALUE_TYPE_CHOICES = (
         (INTEGER, pgettext_lazy('Settings', 'Integer')),
         (STRING, pgettext_lazy('Settings', 'String')),
