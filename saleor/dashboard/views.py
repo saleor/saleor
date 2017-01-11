@@ -1,9 +1,13 @@
+from functools import wraps
+
 from django.conf import settings
-from django.contrib.admin.views.decorators import \
-    staff_member_required as _staff_member_required
+from django.contrib import messages
+from django.contrib.admin.views.decorators import (
+    staff_member_required as _staff_member_required)
 from django.db.models import Q, Sum
 from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
+from django.utils.translation import ugettext as _
 from django.views.generic.edit import FormMixin
 
 from ..order.models import Order, Payment
@@ -13,6 +17,22 @@ from .order.forms import OrderFilterForm
 
 def staff_member_required(f):
     return _staff_member_required(f, login_url='account_login')
+
+
+def display_demo_warning(view):
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        cookie_set = 'readonly' in request.COOKIES
+        if cookie_set:
+            messages.info(
+                request, _('Sorry, dashboard in the demo is read only'))
+            response = view(request, *args, **kwargs)
+            response.delete_cookie('readonly')
+        else:
+            response = view(request, *args, **kwargs)
+        return response
+
+    return wrapper
 
 
 class StaffMemberOnlyMixin(object):
@@ -49,6 +69,7 @@ class FilterByStatusMixin(FormMixin):
 
 
 @staff_member_required
+@display_demo_warning
 def index(request):
     orders_to_ship = Order.objects.filter(status='fully-paid')
     orders_to_ship = (orders_to_ship
