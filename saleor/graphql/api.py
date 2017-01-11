@@ -4,7 +4,7 @@ import operator
 
 from django.db.models import Q
 from graphene import relay
-from graphene_django import DjangoObjectType
+from graphene_django import DjangoObjectType, DjangoConnectionField
 from graphene_django.debug import DjangoDebug
 
 from ..product.models import (AttributeChoiceValue, Category, Product,
@@ -69,7 +69,7 @@ ProductType.Connection = connection_with_count(ProductType)
 
 
 class CategoryType(DjangoObjectType):
-    products = relay.ConnectionField(
+    products = DjangoConnectionField(
         ProductType,
         attributes=graphene.Argument(
             graphene.List(AttributesFilterScalar),
