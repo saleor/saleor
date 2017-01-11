@@ -91,6 +91,7 @@
                 {% if is_visible and product.is_in_stock %}
                     {% block orderform %}
                         {% if show_variant_picker %}
+                            {% csrf_token %}
                             <div id="variant-picker" data-variant-picker-data="{{ variant_picker_data }}" data-action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}"></div>
                         {% else %}
                             {% for attribute, value in product_attributes.items %}
