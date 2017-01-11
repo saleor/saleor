@@ -11,7 +11,20 @@ from ..product.models import (AttributeChoiceValue, Category, Product,
                               ProductAttribute, ProductImage, ProductVariant)
 from ..product.utils import get_availability
 from .scalars import AttributesFilterScalar
-from .utils import DjangoPkInterface, connection_with_count, get_object_or_none
+from .utils import (CategoryAncestorsCache, DjangoPkInterface,
+                    connection_with_count)
+
+
+CONTEXT_CACHE_NAME = '__cache__'
+CACHE_ANCESTORS = 'ancestors'
+
+
+def get_ancestors_from_cache(category, context):
+    cache = getattr(context, CONTEXT_CACHE_NAME, None)
+    if cache and CACHE_ANCESTORS in cache:
+        return cache[CACHE_ANCESTORS].get(category)
+    else:
+        return category.get_ancestors()
 
 
 class ProductAvailabilityType(graphene.ObjectType):
@@ -83,7 +96,7 @@ class CategoryType(DjangoObjectType):
         interfaces = (relay.Node, DjangoPkInterface)
 
     def resolve_ancestors(self, args, context, info):
-        return self.get_ancestors()
+        return get_ancestors_from_cache(self, context)
 
     def resolve_children(self, args, context, info):
         return self.children.all()
@@ -91,8 +104,14 @@ class CategoryType(DjangoObjectType):
     def resolve_siblings(self, args, context, info):
         return self.get_siblings()
 
-    def resolve_products(self, args, context, info):
+    def resolve_products_count(self, args, context, info):
+        return self.products.count()
 
+    def resolve_url(self, args, context, info):
+        ancestors = get_ancestors_from_cache(self, context)
+        return self.get_absolute_url(ancestors)
+
+    def resolve_products(self, args, context, info):
         def filter_by_price(queryset, value, operator):
             return [obj for obj in queryset if operator(get_availability(
                 obj, context.discounts).price_range.min_price.gross, value)]
@@ -148,12 +167,6 @@ class CategoryType(DjangoObjectType):
         if price_gte:
             qs = filter_by_price(qs, price_gte, operator.ge)
         return qs
-
-    def resolve_products_count(self, args, context, info):
-        return self.products.count()
-
-    def resolve_url(self, args, context, info):
-        return self.get_absolute_url()
 
 
 class ProductVariantType(DjangoObjectType):
@@ -220,9 +233,13 @@ class Viewer(graphene.ObjectType):
     debug = graphene.Field(DjangoDebug, name='__debug')
 
     def resolve_category(self, args, context, info):
-        category = get_object_or_none(
-            Category.objects.prefetch_related('children'), pk=args.get('pk'))
-        return category
+        categories = Category.tree.filter(pk=args.get('pk')).get_cached_trees()
+        if categories:
+            category = categories[0]
+            cache = {CACHE_ANCESTORS: CategoryAncestorsCache(category)}
+            setattr(context, CONTEXT_CACHE_NAME, cache)
+            return category
+        return None
 
     def resolve_attributes(self, args, context, info):
         category_pk = args.get('category_pk')

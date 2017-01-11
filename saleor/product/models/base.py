@@ -52,16 +52,18 @@ class Category(MPTTModel):
     def __str__(self):
         return self.name
 
-    def get_absolute_url(self):
+    def get_absolute_url(self, ancestors=None):
         return reverse('product:category',
-                       kwargs={'path': self.get_full_path(),
+                       kwargs={'path': self.get_full_path(ancestors),
                                'category_id': self.id})
 
-    def get_full_path(self):
+    def get_full_path(self, ancestors=None):
         if not self.parent_id:
             return self.slug
-        return '/'.join(
-            [node.slug for node in self.get_ancestors(include_self=True)])
+        if not ancestors:
+            ancestors = self.get_ancestors()
+        nodes = [node for node in ancestors] + [self]
+        return '/'.join([node.slug for node in nodes])
 
     class Meta:
         verbose_name_plural = 'categories'
