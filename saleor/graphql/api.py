@@ -11,8 +11,7 @@ from ..product.models import (AttributeChoiceValue, Category, Product,
                               ProductAttribute, ProductImage, ProductVariant)
 from ..product.utils import get_availability
 from .scalars import AttributesFilterScalar
-from .utils import (CategoryAncestorsCache, DjangoPkInterface,
-                    connection_with_count)
+from .utils import (CategoryAncestorsCache, DjangoPkInterface)
 
 
 CONTEXT_CACHE_NAME = '__cache__'
