@@ -29,20 +29,6 @@ class DjangoPkInterface(graphene.Interface):
         return self.pk
 
 
-def connection_with_count(_type):
-    class Connection(graphene.relay.Connection):
-        total_count = graphene.Int()
-
-        class Meta:
-            name = _type._meta.name + 'Connection'
-            node = _type
-
-        def resolve_total_count(self, args, context, info):
-            return len(self.edges)
-
-    return Connection
-
-
 def get_object_or_none(klass, *args, **kwargs):
     queryset = _get_queryset(klass)
     try:

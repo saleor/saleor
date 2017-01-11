@@ -65,9 +65,6 @@ class ProductType(DjangoObjectType):
         return ProductAvailabilityType(**a._asdict())
 
 
-ProductType.Connection = connection_with_count(ProductType)
-
-
 class CategoryType(DjangoObjectType):
     products = DjangoConnectionField(
         ProductType,
