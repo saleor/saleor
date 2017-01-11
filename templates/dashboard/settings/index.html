@@ -16,7 +16,7 @@
 {% block header_extra %}
     <div class="fixed-action-btn">
         <a class="btn-fab btn-floating btn-large waves-effect waves-light teal" title="{% trans "Add setting" %}"
-            href="#">
+            href="{% url 'dashboard:setting-create' %}">
             <i class="material-icons">add</i>
         </a>
     </div>

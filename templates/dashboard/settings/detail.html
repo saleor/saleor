@@ -1,0 +1,43 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+{% load materializecss %}
+
+{% block title %}{% if setting.pk %}{{ setting }}{% else %}{% trans 'Add new setting' %}{% endif %} - {% trans 'Settings' %} - {{ block.super }}{% endblock %}
+
+{% block body_class %}body-settings{% endblock %}
+
+{% block menu_settings_class %}active{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs breadcrumbs--history">
+        <li><a href="{% url "dashboard:setting-index" %}" class="breadcrumb">{% trans "Settings" %}</a></li>
+        <li class="back-mobile"><a href="{% url "dashboard:setting-index" %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a></li>
+        <li><span class="breadcrumbs--ellipsed-item">{% if setting.pk %}{{ setting }}{% else %}{% trans 'Add new setting' %}{% endif %}</span></li>
+    </ul>
+{% endblock %}
+
+{% block content %}
+    <form method="post" id="form-category" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        <div class="row">
+            <div class="col l8">
+                <div class="row">
+                    {{ form.name|materializecss }}
+                    {{ form.value_type|materializecss:"s4 m2" }}
+                    {{ form.value|materializecss:"s8 m10" }}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col s12 l8 right-align">
+                <a href="{% url 'dashboard:setting-index' %}" class="btn-flat">{% trans "Cancel" %}</a>
+                {% if setting.pk %}
+                    <button type="submit" class="btn">{% trans "Update" %}</button>
+                {% else %}
+                    <button type="submit" class="btn">{% trans "Create" %}</button>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+{% endblock %}
