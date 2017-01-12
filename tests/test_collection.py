@@ -54,3 +54,19 @@ def test_collection_create_view(admin_client):
 
     redirected_url = get_redirect_location(response)
     assert redirected_url == reverse('dashboard:collection-list')
+
+
+def test_collection_update_view(admin_client, collection, product_in_stock):
+    url = reverse('dashboard:collection-update',
+                  kwargs={'collection_pk': collection.id})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    current_name = collection.name
+    data = {'name': 'New name', 'products': [product_in_stock.id]}
+    response = admin_client.post(url, data)
+    assert response.status_code == 200
+
+    collection.refresh_from_db()
+    assert not current_name == collection.name
+    assert list(collection.products.all()) == [product_in_stock]
