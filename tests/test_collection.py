@@ -9,7 +9,7 @@ from saleor.dashboard.collection.forms import CollectionForm
 
 @pytest.fixture
 def collection(db):
-    collection = Collection.objects.create(name="Collection")
+    collection = Collection.objects.create(name="Collection", slug='collection')
     return collection
 
 
@@ -88,4 +88,14 @@ def test_collection_delete_view(admin_client, collection):
     assert response.status_code == 302
     assert Collection.objects.count() == (collections_count - 1)
 
+
+def test_collection_index(client, collection):
+    url = reverse(
+        'product:collection',
+        kwargs={'slug': collection.slug, 'collection_id': collection.id})
+    response = client.get(url)
+    assert response.status_code == 200
+
+    context = response.context
+    assert context['collection'] == collection
 
