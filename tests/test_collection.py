@@ -70,3 +70,22 @@ def test_collection_update_view(admin_client, collection, product_in_stock):
     collection.refresh_from_db()
     assert not current_name == collection.name
     assert list(collection.products.all()) == [product_in_stock]
+
+
+def test_collection_delete_view(admin_client, collection):
+    # Test Http404 when collection doesn't exist
+    pk = collection.pk + 1
+    url404 = reverse('dashboard:collection-delete',
+                     kwargs={'collection_pk': pk})
+    response404 = admin_client.post(url404)
+    assert response404.status_code == 404
+
+    # Test deleting object
+    collections_count = Collection.objects.count()
+    url = reverse('dashboard:collection-delete',
+                  kwargs={'collection_pk': collection.id})
+    response = admin_client.post(url)
+    assert response.status_code == 302
+    assert Collection.objects.count() == (collections_count - 1)
+
+
