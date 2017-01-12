@@ -25,5 +25,6 @@
 {% endblock breadcrumb %}
 
 {% block content %}
+    {% csrf_token %}
     <div id="category-page" data-category='{"id":{{category.id}}}'></div>
 {% endblock content %}

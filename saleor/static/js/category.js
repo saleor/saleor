@@ -8,11 +8,6 @@ import ProductFilters from './components/categoryPage/ProductFilters';
 const categoryPage = document.getElementById('category-page');
 const categoryData = JSON.parse(categoryPage.getAttribute('data-category'));
 
-Relay.injectNetworkLayer(
-  new Relay.DefaultNetworkLayer('/graphql/', {
-    credentials: 'same-origin',
-  })
-);
 
 class App extends React.Component {
 
