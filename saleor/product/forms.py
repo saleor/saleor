@@ -4,6 +4,7 @@ import json
 
 from django import forms
 from django.template.loader import render_to_string
+from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
 
@@ -15,7 +16,7 @@ class VariantChoiceField(forms.ModelChoiceField):
 
     def label_from_instance(self, obj):
         attributes = obj.product.product_class.variant_attributes.all()
-        variant_label = obj.display_variant(attributes)
+        variant_label = smart_text(obj)
         label = '%(variant_label)s - %(price)s' % {
             'variant_label': variant_label,
             'price': gross(obj.get_price(discounts=self.discounts))}
