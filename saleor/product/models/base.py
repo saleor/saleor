@@ -205,7 +205,7 @@ class ProductVariant(models.Model, Item):
         app_label = 'product'
 
     def __str__(self):
-        return self.display_product()
+        return self.name or self.sku
 
     def get_weight(self):
         return self.weight_override or self.product.weight
@@ -265,7 +265,7 @@ class ProductVariant(models.Model, Item):
                               smart_text(value))
                  for (key, value) in six.iteritems(values)])
         else:
-            return self.name or self.sku
+            return smart_text(self)
 
     def display_product(self, attributes=None):
         return '%s (%s)' % (smart_text(self.product),
