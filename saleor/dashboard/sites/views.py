@@ -10,8 +10,8 @@ from .forms import SettingForm
 
 @staff_member_required
 def index(request):
-    settings = Setting.objects.all()
-    ctx = {'settings': settings}
+    sites = Setting.objects.all()
+    ctx = {'sites': sites}
     return TemplateResponse(request, 'dashboard/sites/index.html', ctx)
 
 
@@ -19,8 +19,8 @@ def index(request):
 def create(request):
     form = SettingForm(request.POST or None)
     if form.is_valid():
-        setting = form.save()
-        messages.success(request, _('Added site %s') % setting)
+        site = form.save()
+        messages.success(request, _('Added site %s') % str(site))
         return redirect('dashboard:site-index')
     ctx = {'form': form}
     return TemplateResponse(request, 'dashboard/sites/detail.html', ctx)
