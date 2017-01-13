@@ -1,10 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% load i18n %}
 
-</body>
-</html>
+<form method="post" id="form-category" class="form-async" action="{% url 'dashboard:site-delete' site.id %}" novalidate>
+    {% csrf_token %}
+    <div class="modal-content">
+        <div class="row">
+            <div class="col s12">
+                <h5>
+                    {% blocktrans with site=site %}
+                        Are you sure you want to delete the site settings {{ site }}?
+                    {% endblocktrans %}
+                </h5>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-footer">
+        <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
+        <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+    </div>
+</form>

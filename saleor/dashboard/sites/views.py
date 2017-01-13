@@ -1,4 +1,6 @@
 from django.contrib import messages
+from django.core.urlresolvers import reverse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
@@ -39,8 +41,14 @@ def update(request, site_id=None):
 
 @staff_member_required
 def delete(request, site_id=None):
-    site = get_object_or_404(Site, pk=site_id)
-    site.delete()
-    messages.success(request, _('Delete site %s') % site)
+    site = get_object_or_404(Setting, pk=site_id)
+    if request.method == 'POST':
+        site.delete()
+        messages.success(request, _('Delete site %s') % site)
+        if request.is_ajax():
+            response = {'redirectUrl': reverse(
+                'dashboard:site-index')}
+            return JsonResponse(response)
+        return redirect('dashboard:site-index')
     ctx = {'site': site}
     return TemplateResponse(request, 'dashboard/sites/delete_modal.html', ctx)
