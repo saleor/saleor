@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
 
-from ...setting.models import Setting
+from ...site.models import Setting
 from .forms import SettingForm
 
 
@@ -17,7 +17,7 @@ def create(request):
     form = SettingForm(request.POST or None)
     if form.is_valid():
         setting = form.save()
-        messages.success(request, _('Added setting %s') % setting)
-        return redirect('dashboard:setting-index')
+        messages.success(request, _('Added site %s') % setting)
+        return redirect('dashboard:site-index')
     ctx = {'form': form}
     return TemplateResponse(request, 'dashboard/settings/detail.html', ctx)

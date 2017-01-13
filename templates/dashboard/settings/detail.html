@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load materializecss %}
 
-{% block title %}{% if setting.pk %}{{ setting }}{% else %}{% trans 'Add new setting' %}{% endif %} - {% trans 'Settings' %} - {{ block.super }}{% endblock %}
+{% block title %}{% if setting.pk %}{{ setting }}{% else %}{% trans 'Add new site' %}{% endif %} - {% trans 'Settings' %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-settings{% endblock %}
 
@@ -10,9 +10,9 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--history">
-        <li><a href="{% url "dashboard:setting-index" %}" class="breadcrumb">{% trans "Settings" %}</a></li>
-        <li class="back-mobile"><a href="{% url "dashboard:setting-index" %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a></li>
-        <li><span class="breadcrumbs--ellipsed-item">{% if setting.pk %}{{ setting }}{% else %}{% trans 'Add new setting' %}{% endif %}</span></li>
+        <li><a href="{% url "dashboard:site-index" %}" class="breadcrumb">{% trans "Settings" %}</a></li>
+        <li class="back-mobile"><a href="{% url "dashboard:site-index" %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a></li>
+        <li><span class="breadcrumbs--ellipsed-item">{% if setting.pk %}{{ setting }}{% else %}{% trans 'Add new site' %}{% endif %}</span></li>
     </ul>
 {% endblock %}
 
@@ -30,7 +30,7 @@
 
         <div class="row">
             <div class="col s12 l8 right-align">
-                <a href="{% url 'dashboard:setting-index' %}" class="btn-flat">{% trans "Cancel" %}</a>
+                <a href="{% url 'dashboard:site-index' %}" class="btn-flat">{% trans "Cancel" %}</a>
                 {% if setting.pk %}
                     <button type="submit" class="btn">{% trans "Update" %}</button>
                 {% else %}

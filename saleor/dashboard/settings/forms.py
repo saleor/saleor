@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
-from ...setting.models import Setting
+from ...site.models import Setting
 
 
 class SettingForm(forms.ModelForm):
