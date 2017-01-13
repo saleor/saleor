@@ -900,10 +900,6 @@ boom@2.x.x:
   dependencies:
     hoek "2.x.x"
 
-bootstrap-sass@^3.3.7:
-  version "3.3.7"
-  resolved "https://registry.yarnpkg.com/bootstrap-sass/-/bootstrap-sass-3.3.7.tgz#6596c7ab40f6637393323ab0bc80d064fc630498"
-
 bootstrap@^4.0.0-alpha.5:
   version "4.0.0-alpha.5"
   resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-4.0.0-alpha.5.tgz#a126b648c3bd2f52b8fad4bbc5e2d0ad2abf7064"
