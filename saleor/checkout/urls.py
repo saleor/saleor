@@ -1,9 +1,6 @@
 from django.conf.urls import url
-from django.views.decorators.http import require_POST
 
 from . import views
-
-remove_voucher_view = require_POST(views.discount.remove_voucher_view)
 
 
 urlpatterns = [
@@ -13,6 +10,7 @@ urlpatterns = [
     url(r'^shipping-method/', views.shipping_method_view,
         name='shipping-method'),
     url(r'^summary/', views.summary_view, name='summary'),
-    url(r'^remove_voucher/', remove_voucher_view, name='remove-voucher'),
+    url(r'^remove_voucher/', views.discount.remove_voucher_view,
+        name='remove-voucher'),
     url(r'^login/', views.login, name='login'),
 ]
