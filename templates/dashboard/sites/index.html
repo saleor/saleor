@@ -29,7 +29,7 @@
                 {% if sites %}
                     {% for site in sites %}
                         <li class="collection-item list-item list-item--two-lines">
-                            <a class="list-item-name" href="#">
+                            <a class="list-item-name" href="{% url 'dashboard:site-update' site.id %}">
                                 {{ site.name }}
                             </a>
 

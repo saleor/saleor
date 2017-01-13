@@ -20,7 +20,18 @@ def create(request):
     form = SettingForm(request.POST or None)
     if form.is_valid():
         site = form.save()
-        messages.success(request, _('Added site %s') % str(site))
+        messages.success(request, _('Added site %s') % site)
         return redirect('dashboard:site-index')
     ctx = {'form': form}
+    return TemplateResponse(request, 'dashboard/sites/detail.html', ctx)
+
+
+@staff_member_required
+def update(request, site_id=None):
+    site = get_object_or_404(Setting, pk=site_id)
+    form = SettingForm(request.POST or None, instance=site)
+    if form.is_valid():
+        site = form.save()
+        messages.success(request, _('Updated site %s') % site)
+    ctx = {'site': site, 'form': form}
     return TemplateResponse(request, 'dashboard/sites/detail.html', ctx)
