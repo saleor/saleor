@@ -35,3 +35,12 @@ def update(request, site_id=None):
         messages.success(request, _('Updated site %s') % site)
     ctx = {'site': site, 'form': form}
     return TemplateResponse(request, 'dashboard/sites/detail.html', ctx)
+
+
+@staff_member_required
+def delete(request, site_id=None):
+    site = get_object_or_404(Site, pk=site_id)
+    site.delete()
+    messages.success(request, _('Delete site %s') % site)
+    ctx = {'site': site}
+    return TemplateResponse(request, 'dashboard/sites/delete_modal.html', ctx)
