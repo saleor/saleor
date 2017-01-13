@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, NON_FIELD_ERRORS
 from django.utils.translation import pgettext_lazy, ugettext_lazy
+from django_countries.fields import LazyTypedChoiceField, countries
 from satchless.item import InsufficientStock
-from ..shipping.models import COUNTRY_CODE_CHOICES
 from ..shipping.utils import get_shipment_options
 
 
@@ -118,8 +118,7 @@ class ReplaceCartLineForm(AddToCartForm):
 
 class CountryForm(forms.Form):
 
-    country = forms.ChoiceField(choices=COUNTRY_CODE_CHOICES, label='',
-                                required=False)
+    country = LazyTypedChoiceField(choices=countries)
 
     def get_shipment_options(self):
         code = self.cleaned_data['country']
