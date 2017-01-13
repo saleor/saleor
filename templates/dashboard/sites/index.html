@@ -1,7 +1,7 @@
 {% extends 'dashboard/base.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "Settings" %} - {{ block.super }}{% endblock %}
+{% block title %}{% trans "Site settings" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-settings{% endblock %}
 
@@ -9,7 +9,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--history">
-        <li class="visible-s"><span>{% trans "Settings" %}</span></li>
+        <li class="visible-s"><span>{% trans "Site settings" %}</span></li>
     </ul>
 {% endblock %}
 
@@ -29,7 +29,7 @@
                 {% if settings %}
 
                 {% else %}
-                    <p>{% trans "No additional settings." %}</p>
+                    <p>{% trans "No additional site settings." %}</p>
                 {% endif %}
             </ul>
         </div>
