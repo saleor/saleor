@@ -97,3 +97,7 @@ def get_user_shipping_country(request):
         if default_shipping:
             return default_shipping.country
     return request.country
+
+
+def json_dumps_default(obj):
+    return str(obj)

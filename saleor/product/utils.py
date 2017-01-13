@@ -118,8 +118,8 @@ def get_variant_picker_data(product, discounts=None):
         price_undiscounted = variant.get_price_per_item()
         variant_data = {
             'id': variant.id,
-            'price': float(price.gross),
-            'priceUndiscounted': float(price_undiscounted.gross),
+            'price': price.gross,
+            'priceUndiscounted': price_undiscounted.gross,
             'currency': price.currency,
             'attributes': variant.attributes}
         data['variants'].append(variant_data)
@@ -143,8 +143,9 @@ def get_product_attributes_data(product):
 def price_as_dict(price):
     if not price:
         return {}
-    return {'currency': price.currency, 'gross': float(price.gross),
-            'net': float(price.net)}
+    return {'currency': price.currency,
+            'gross': price.gross,
+            'net': price.net}
 
 
 def price_range_as_dict(price_range):
