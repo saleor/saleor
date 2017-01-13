@@ -5,21 +5,21 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
 
-from ...site.models import Setting
+from ...site.models import SiteSetting
 from ..views import staff_member_required
-from .forms import SettingForm
+from .forms import SiteSettingForm
 
 
 @staff_member_required
 def index(request):
-    sites = Setting.objects.all()
+    sites = SiteSetting.objects.all()
     ctx = {'sites': sites}
     return TemplateResponse(request, 'dashboard/sites/index.html', ctx)
 
 
 @staff_member_required
 def create(request):
-    form = SettingForm(request.POST or None)
+    form = SiteSettingForm(request.POST or None)
     if form.is_valid():
         site = form.save()
         messages.success(request, _('Added site %s') % site)
@@ -30,8 +30,8 @@ def create(request):
 
 @staff_member_required
 def update(request, site_id=None):
-    site = get_object_or_404(Setting, pk=site_id)
-    form = SettingForm(request.POST or None, instance=site)
+    site = get_object_or_404(SiteSetting, pk=site_id)
+    form = SiteSettingForm(request.POST or None, instance=site)
     if form.is_valid():
         site = form.save()
         messages.success(request, _('Updated site %s') % site)
@@ -41,7 +41,7 @@ def update(request, site_id=None):
 
 @staff_member_required
 def delete(request, site_id=None):
-    site = get_object_or_404(Setting, pk=site_id)
+    site = get_object_or_404(SiteSetting, pk=site_id)
     if request.method == 'POST':
         site.delete()
         messages.success(request, _('Delete site %s') % site)

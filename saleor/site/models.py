@@ -4,7 +4,7 @@ from django.utils.encoding import python_2_unicode_compatible
 
 
 @python_2_unicode_compatible
-class Setting(models.Model):
+class SiteSetting(models.Model):
     name = models.CharField(
         pgettext_lazy('Settings field', 'name'), max_length=128)
     value = models.CharField(

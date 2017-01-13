@@ -1,12 +1,12 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
-from ...site.models import Setting
+from ...site.models import SiteSetting
 
 
-class SettingForm(forms.ModelForm):
+class SiteSettingForm(forms.ModelForm):
     class Meta:
-        model = Setting
+        model = SiteSetting
         exclude = []
 
     def clean_name(self):
