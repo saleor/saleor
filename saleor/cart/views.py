@@ -74,8 +74,10 @@ def update(request, cart, variant_id):
         response = {'variantId': variant_id,
                     'subtotal': 0,
                     'total': 0,
-                    'cart': cart.quantity,
-                    'cart_length': len(cart)}
+                    'cart': {
+                        'numItems': cart.quantity,
+                        'numLines': len(cart)
+                    }}
         updated_line = cart.get_line(form.cart_line.variant)
         if updated_line:
             response['subtotal'] = currencyfmt(

@@ -180,7 +180,7 @@ $countrySelect.on('change', (e) => {
 })
 
 // Save tab links to URL
-  		  
+
 $('.nav-tabs a').click((e) => {
   e.preventDefault()
   $(this).tab('show')
@@ -232,7 +232,7 @@ $cartLine.each(function() {
       data: {quantity: newQuantity},
       success: (response) => {
         if (newQuantity == 0) {
-          if (response.cart_length == 0) {
+          if (response.cart.numLines == 0) {
             $.cookie('alert', 'true', { path: '/cart' })
             location.reload()
           } else {
@@ -243,7 +243,7 @@ $cartLine.each(function() {
           $subtotal.html(response.subtotal)
         }
         $total.html(response.total)
-        $cartBadge.html(response.cart)
+        $cartBadge.html(response.cart.numItems)
         $qunatityError.html('')
         $cartDropdown.load(summaryLink)
       },
@@ -258,10 +258,10 @@ $cartLine.each(function() {
       method: 'POST',
       data: {quantity: 0},
       success: (response) => {
-        if (response.cart_length >= 1) {
+        if (response.cart.numLines >= 1) {
           $(this).fadeOut()
           $total.html(response.total)
-          $cartBadge.html(response.cart)
+          $cartBadge.html(response.cart.numItems)
           $cartDropdown.load(summaryLink)
           $removeProductSucces.removeClass('hidden-xs-up')
         } else {
