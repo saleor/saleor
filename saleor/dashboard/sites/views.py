@@ -10,7 +10,7 @@ from .forms import SettingForm
 def index(request):
     settings = Setting.objects.all()
     ctx = {'settings': settings}
-    return TemplateResponse(request, 'dashboard/settings/index.html', ctx)
+    return TemplateResponse(request, 'dashboard/sites/index.html', ctx)
 
 
 def create(request):
@@ -20,4 +20,4 @@ def create(request):
         messages.success(request, _('Added site %s') % setting)
         return redirect('dashboard:site-index')
     ctx = {'form': form}
-    return TemplateResponse(request, 'dashboard/settings/detail.html', ctx)
+    return TemplateResponse(request, 'dashboard/sites/detail.html', ctx)
