@@ -175,13 +175,15 @@ def test_checkout_billing_address(user, address):
     (Mock(__len__=Mock(return_value=0),
           is_shipping_required=Mock(return_value=False)), 302, '/cart/'),
 ])
-def test_index_view(cart, status_code, url, rf):
+def test_index_view(cart, status_code, url, rf, monkeypatch):
     checkout = Checkout(cart, AnonymousUser(), 'tracking_code')
     request = rf.get('checkout:index')
     request.user = checkout.user
     request.session = {STORAGE_SESSION_KEY: checkout.for_storage()}
     request.discounts = []
-    response = views.index_view(request, checkout, checkout.cart)
+    monkeypatch.setattr('saleor.cart.utils.get_cart_from_request',
+                        lambda req, qs : cart)
+    response = views.index_view(request)
     assert response.status_code == status_code
     assert response.url == url
 
