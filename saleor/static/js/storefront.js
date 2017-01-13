@@ -200,9 +200,9 @@ $('.nav-tabs a[href="' + hash + '"]').tab('show')
 
 const variantPickerContainer = document.getElementById('variant-picker')
 const variantPriceContainer = document.getElementById('variant-price-component')
-const variantPickerData = JSON.parse(variantPickerContainer.dataset.variantPickerData)
 
 if (variantPickerContainer) {
+  const variantPickerData = JSON.parse(variantPickerContainer.dataset.variantPickerData)
   ReactDOM.render(
     <VariantPicker
       onAddToCartError={onAddToCartError}
@@ -214,16 +214,16 @@ if (variantPickerContainer) {
     />,
     variantPickerContainer
   )
-}
 
-if (variantPriceContainer) {
-  ReactDOM.render(
-    <VariantPrice
-      availability={variantPickerData.availability}
-      store={variantPickerStore}
-    />,
-    variantPriceContainer
-  )
+  if (variantPriceContainer) {
+    ReactDOM.render(
+      <VariantPrice
+        availability={variantPickerData.availability}
+        store={variantPickerStore}
+      />,
+      variantPriceContainer
+    )
+  }
 }
 
 
