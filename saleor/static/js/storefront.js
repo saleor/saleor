@@ -3,7 +3,10 @@ import 'jquery.cookie'
 import React from 'react'
 import ReactDOM from 'react-dom'
 
+import variantPickerStore from './stores/variantPicker'
+
 import VariantPicker from './components/variantPicker/VariantPicker'
+import VariantPrice from './components/variantPicker/VariantPrice'
 
 let csrftoken = $.cookie('csrftoken')
 
@@ -192,24 +195,37 @@ $('ul.nav-tabs li a:not(:first)').on('shown.bs.tab', (e) => {
 var hash = window.location.hash;
 $('.nav-tabs a[href="' + hash + '"]').tab('show')
 
+
 // Variant Picker
 
-const variantPicker = document.getElementById('variant-picker')
-if (variantPicker) {
-  const variantPickerData = JSON.parse(variantPicker.dataset.variantPickerData)
+const variantPickerContainer = document.getElementById('variant-picker')
+const variantPriceContainer = document.getElementById('variant-price-component')
+const variantPickerData = JSON.parse(variantPickerContainer.dataset.variantPickerData)
+
+if (variantPickerContainer) {
   ReactDOM.render(
     <VariantPicker
-      availability={variantPickerData.availability}
       onAddToCartError={onAddToCartError}
       onAddToCartSuccess={onAddToCartSuccess}
-      productAttributes={variantPickerData.productAttributes}
-      url={variantPicker.dataset.action}
+      store={variantPickerStore}
+      url={variantPickerContainer.dataset.action}
       variantAttributes={variantPickerData.variantAttributes}
       variants={variantPickerData.variants}
     />,
-    variantPicker
+    variantPickerContainer
   )
 }
+
+if (variantPriceContainer) {
+  ReactDOM.render(
+    <VariantPrice
+      availability={variantPickerData.availability}
+      store={variantPickerStore}
+    />,
+    variantPriceContainer
+  )
+}
+
 
 // Cart quantity form
 

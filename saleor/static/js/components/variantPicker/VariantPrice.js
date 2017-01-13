@@ -1,17 +1,21 @@
+import { observer } from 'mobx-react'
 import React, { Component, PropTypes } from 'react'
 
+
+@observer
 export default class VariantPrice extends Component {
 
   static propTypes = {
     availability: PropTypes.object.isRequired,
-    variant: PropTypes.object
+    store: PropTypes.object
   }
 
   render() {
     let priceText, priceUndiscountedText, isDiscount
-    const { availability, variant } = this.props
+    const { availability, store } = this.props
+    const variant = store.variant
     const currency = availability.priceRange.minPrice.currency
-    if (variant) {
+    if (!store.isEmpty) {
       // variant price
       isDiscount = variant.price !== variant.priceUndiscounted
       priceText = `${variant.price} ${currency}`
@@ -19,7 +23,7 @@ export default class VariantPrice extends Component {
     } else {
       // if there's no variant, fall back to product price
       const { discount, priceRange, priceRangeUndiscounted  } = availability
-      isDiscount = !!discount
+      isDiscount = !!Object.keys(discount).length
       priceText = `${priceRange.minPrice.gross} ${currency}`
       priceUndiscountedText = `${priceRangeUndiscounted.minPrice.gross} ${currency}`
     }

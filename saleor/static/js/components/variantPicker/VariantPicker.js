@@ -1,20 +1,20 @@
 import _ from 'lodash'
 import $ from 'jquery'
 import classNames from 'classnames'
+import { observer } from 'mobx-react'
 import React, { Component, PropTypes } from 'react'
 
 import AttributeSelectionWidget from './AttributeSelectionWidget'
 import QuantityInput from './QuantityInput'
-import VariantPrice from './VariantPrice'
 
 
+@observer
 export default class VariantPicker extends Component {
 
   static propTypes = {
-    availability: PropTypes.object.isRequired,
     onAddToCartError: PropTypes.func.isRequired,
     onAddToCartSuccess: PropTypes.func.isRequired,
-    productAttributes: PropTypes.array.isRequired,
+    store: PropTypes.object.isRequired,
     url: PropTypes.string.isRequired,
     variantAttributes: PropTypes.array.isRequired,
     variants: PropTypes.array.isRequired
@@ -22,7 +22,7 @@ export default class VariantPicker extends Component {
 
   constructor(props) {
     super(props)
-    const { variants } = this.props
+    const { store, variants } = this.props
 
     const variant = variants.filter(v => !!Object.keys(v.attributes).length)[0]
     const selection = variant ? variant.attributes : {}
@@ -30,21 +30,21 @@ export default class VariantPicker extends Component {
     this.state = {
       errors: {},
       quantity: 1,
-      variant: variant,
       selection: selection
     }
+    store.setVariant(variant)
   }
 
   handleAddToCart = () => {
-    const { onAddToCartSuccess, onAddToCartError } = this.props;
-    const { quantity, variant } = this.state
-    if (quantity > 0 && variant) {
+    const { onAddToCartSuccess, onAddToCartError, store } = this.props;
+    const { quantity } = this.state
+    if (quantity > 0 && !store.isEmpty) {
       $.ajax({
         url: this.props.url,
         method: 'post',
         data: {
           quantity: quantity,
-          variant: variant.id
+          variant: store.variant.id
         },
         success: () => {
           onAddToCartSuccess()
@@ -69,33 +69,28 @@ export default class VariantPicker extends Component {
   }
 
   matchVariantFromSelection() {
+    const { store, variants } = this.props
     let matchedVariant = null
-    this.props.variants.forEach(variant => {
+    variants.forEach(variant => {
       if (_.isEqual(this.state.selection, variant.attributes)) {
         matchedVariant = variant
       }
     })
-    this.setState({ variant: matchedVariant })
+    store.setVariant(matchedVariant)
   }
 
   render() {
-    const { availability, productAttributes, variantAttributes } = this.props
-    const { errors, selection, quantity, variant } = this.state
+    const { store, variantAttributes } = this.props
+    const { errors, selection, quantity } = this.state
+    const disableAddToCart = store.isEmpty
 
     const addToCartBtnClasses = classNames({
       'btn primary': true,
-      'disabled': !variant
+      'disabled': disableAddToCart
     })
 
     return (
       <div>
-        <VariantPrice availability={availability} variant={variant} />
-        {productAttributes.map((item, i) =>
-          <div className="form-group" key={i}>
-              <label className="control-label"><b>{item.attribute}</b></label>
-              <p>{item.value}</p>
-          </div>
-        )}
         {variantAttributes.map((attribute, i) =>
           <AttributeSelectionWidget
             attribute={attribute}
@@ -112,7 +107,8 @@ export default class VariantPicker extends Component {
         <div className="form-group">
           <button
             className={addToCartBtnClasses}
-            onClick={this.handleAddToCart}>
+            onClick={this.handleAddToCart}
+            disabled={disableAddToCart}>
             Add to cart
           </button>
         </div>
