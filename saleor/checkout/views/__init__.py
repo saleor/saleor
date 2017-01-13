@@ -1,23 +1,28 @@
+from allauth.account.forms import LoginForm
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
-from ..forms import ShippingMethodForm
 from .discount import add_voucher_form, validate_voucher
+from .shipping import (anonymous_user_shipping_address_view,
+                       user_shipping_address_view)
+from .summary import (
+    summary_with_shipping_view, anonymous_summary_without_shipping,
+    summary_without_shipping)
 from .validators import (
     validate_cart, validate_shipping_address,
     validate_shipping_method, validate_is_shipping_required)
-from .shipping import anonymous_user_shipping_address_view, user_shipping_address_view
-from .summary import summary_with_shipping_view, anonymous_summary_without_shipping, \
-    summary_without_shipping
+from ..core import load_checkout
+from ..forms import ShippingMethodForm
 
-from allauth.account.forms import LoginForm
 
+@load_checkout
 @validate_cart
 @validate_is_shipping_required
 def index_view(request, checkout):
     return redirect('checkout:shipping-address')
 
 
+@load_checkout
 @validate_voucher
 @validate_cart
 @validate_is_shipping_required
@@ -28,6 +33,7 @@ def shipping_address_view(request, checkout):
     return anonymous_user_shipping_address_view(request, checkout)
 
 
+@load_checkout
 @validate_voucher
 @validate_cart
 @validate_is_shipping_required
@@ -44,6 +50,7 @@ def shipping_method_view(request, checkout):
         'shipping_method_form': shipping_method_form, 'checkout': checkout})
 
 
+@load_checkout
 @validate_voucher
 @validate_cart
 @add_voucher_form
@@ -58,6 +65,7 @@ def summary_view(request, checkout):
         return anonymous_summary_without_shipping(request, checkout)
 
 
+@load_checkout
 @validate_cart
 def login(request, checkout):
     if request.user.is_authenticated:
