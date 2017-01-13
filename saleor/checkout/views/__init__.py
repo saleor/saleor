@@ -68,6 +68,10 @@ def summary_view(request, checkout):
 @load_checkout
 @validate_cart
 def login(request, checkout):
+    """
+    Allows user to choose if he wants to login before checkout or continue
+    as an anonymous user
+    """
     if request.user.is_authenticated:
         return redirect('checkout:index')
     form = LoginForm()
