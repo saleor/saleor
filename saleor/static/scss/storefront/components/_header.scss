@@ -120,6 +120,7 @@
     ul {
       border-bottom: 1px solid $gray;
       margin-bottom: $global-margin;
+      display: block;
       &.no-border {
         border-bottom: 0;
         margin-bottom: 0;
