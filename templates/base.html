@@ -67,7 +67,7 @@
                   </div>
                   {% if SEARCH_IS_ENABLED %}
                   <form class="form-inline float-xs-right navbar__brand__search" action="{% url "search:search" %}">
-                     <i class="fa fa-times fa-2x mobile-close-search hidden-md-up" aria-hidden="true"></i>
+                     <img class="mobile-close-search hidden-md-up" src="{% static "img/close-icon.svg" %}">
                      <input class="form-control" type="text" placeholder="Search" name="q" value="{% if query %}{{ query }}{% endif %}">
                      <button class="btn btn-link" type="submit"><img src="{% static "img/search-icon.svg" %}"></button>
                   </form>

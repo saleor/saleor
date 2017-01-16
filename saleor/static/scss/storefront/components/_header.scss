@@ -78,6 +78,13 @@
       position: relative;
       margin-right: 10%;
       margin-top: $global-margin / 2;
+      .mobile-close-search {
+        position: absolute;
+        top: 1.9rem;
+        left: 0.5rem;
+        max-width: 22px;
+        cursor: pointer;
+      }
       .form-control {
         width: 100%;
         border-color: $body-color;
@@ -110,7 +117,7 @@
           padding: $global-padding * 1.7 $global-padding;
         }
         .btn {
-          top: 2rem;
+          top: 1.9rem;
           right: 0;
         }
       }
