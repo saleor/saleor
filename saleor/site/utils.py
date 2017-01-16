@@ -4,13 +4,10 @@ from .models import SiteSetting
 
 
 def get_site_settings(request):
-    if hasattr(request, 'site_settings'):
-        site_settings = request.site_settings
-    else:
+    if not hasattr(request, 'site_settings'):
         site_settings_id = getattr(settings, 'SITE_SETTINGS_ID', None)
-        site_settings = get_site_settings_uncached(site_settings_id)
-        request.site_settings = site_settings
-    return site_settings
+        request.site_settings = get_site_settings_uncached(site_settings_id)
+    return request.site_settings
 
 
 def get_site_settings_uncached(site_id=None):
