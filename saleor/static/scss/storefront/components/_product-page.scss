@@ -20,14 +20,14 @@
   }
   &__gallery {
     .carousel-control {
-      &.right, &.left {
-        background-image: none;
-      }
-      &.left {
+      &-prev {
         img {
           transform: rotate(180deg);
         }
       }
+    }
+    .carousel-item {
+      flex-flow: column;
     }
     .carousel-indicators {
       top: 100%;
@@ -36,8 +36,9 @@
       margin-left: 0;
       li {
         display: inline;
+        text-indent: 0;
+        margin: 0 1.5rem;
         &.active {
-          margin: 1px;
           img {
             opacity: 0.5;  
           }

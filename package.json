@@ -33,6 +33,7 @@
     "redux": "~3.0.4",
     "select2": "^4.0.3",
     "sortablejs": "^1.4.2",
+    "tether": "^1.4.0",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
