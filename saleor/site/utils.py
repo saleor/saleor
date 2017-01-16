@@ -12,3 +12,8 @@ def get_site_settings(request):
 
 def get_site_settings_uncached(site_id=None):
     return SiteSetting.objects.get(pk=site_id)
+
+
+def get_setting_value(request, key):
+    site_settings = get_site_settings(request)
+    return getattr(site_settings, key, None)
