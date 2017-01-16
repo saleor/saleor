@@ -54,3 +54,17 @@ def test_create_view(admin_client):
     assert redirect_location == reverse('dashboard:site-index')
 
     assert SiteSetting.objects.count() == site_count + 1
+
+
+def test_collection_update_view(admin_client, site_settings):
+    url = reverse('dashboard:site-update',
+                  kwargs={'site_id': site_settings.id})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+
+    data = {'name': 'Mirumee Labs', 'domain': 'mirumee.com'}
+    response = admin_client.post(url, data)
+    assert response.status_code == 200
+
+    site_settings.refresh_from_db()
+    assert site_settings.name == 'Mirumee Labs'
