@@ -23,6 +23,7 @@ var providePlugin = new webpack.ProvidePlugin({
   '_': 'underscore',
   jQuery: 'jquery',
   'window.jQuery': 'jquery',
+  "Tether": 'tether',
   "window.Tether": 'tether'
 });
 

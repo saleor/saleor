@@ -29,7 +29,7 @@
             <header class="navbar" role="navigation">
               <div class="navbar__login hidden-sm-down">
                 <div class="container">
-                  <p class="float-xs-left">{% trans "Test Saleor in Testeor - a sample shop!" %}</p>
+                  <p class="float-xs-left">{% trans "Test Saleor - a sample shop!" %}</p>
                   <p class="float-xs-right">
                     {% if user.is_authenticated %}
                       {% if user.is_staff %}
@@ -48,7 +48,7 @@
                 <div class="container">
                   <img class="hidden-md-up navbar__brand__menu-toggle closed open" src="{% static "img/mobile-bar.svg" %}">
                   <a href="/">
-                    <img src="{% static "img/testeor-logo.svg" %}" alt="Testeor - Saleor demo store">
+                    <img src="{% static "img/saleor-logo-black.svg" %}" alt="Testeor - Saleor demo store" height="40">
                   </a>
                   <div class="float-xs-right">
                     {% if SEARCH_IS_ENABLED %}
@@ -67,7 +67,7 @@
                   </div>
                   {% if SEARCH_IS_ENABLED %}
                   <form class="form-inline float-xs-right navbar__brand__search" action="{% url "search:search" %}">
-                     <i class="fa fa-times fa-2x mobile-close-search hidden-md-up" aria-hidden="true"></i>
+                     <img class="mobile-close-search hidden-md-up" src="{% static "img/close-icon.svg" %}">
                      <input class="form-control" type="text" placeholder="Search" name="q" value="{% if query %}{{ query }}{% endif %}">
                      <button class="btn btn-link" type="submit"><img src="{% static "img/search-icon.svg" %}"></button>
                   </form>
@@ -112,7 +112,7 @@
                   <div class="row">
                     <div class="col-md-3">
                       <a href="/">
-                        <img class="footer__logo" src="{% static "img/testeor-logo-white.svg" %}" alt="Testeor - Saleor demo store">
+                        <img class="footer__logo" src="{% static "img/saleor-logo.svg" %}" height="40" alt="Testeor - Saleor demo store">
                       </a>
                     </div>
                     <div class="col-md-3 col-sm-6">

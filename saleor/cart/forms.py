@@ -2,17 +2,19 @@ from __future__ import unicode_literals
 
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, NON_FIELD_ERRORS
+from django.conf import settings
 from django.utils.translation import pgettext_lazy, ugettext_lazy
+from django_countries.fields import LazyTypedChoiceField, countries
 from satchless.item import InsufficientStock
-from ..shipping.models import COUNTRY_CODE_CHOICES
 from ..shipping.utils import get_shipment_options
 
 
 class QuantityField(forms.IntegerField):
 
     def __init__(self, **kwargs):
-        super(QuantityField, self).__init__(min_value=0, max_value=999,
-                                            initial=1, **kwargs)
+        super(QuantityField, self).__init__(
+            min_value=0, max_value=settings.MAX_CART_LINE_QUANTITY,
+            initial=1, **kwargs)
 
 
 class AddToCartForm(forms.Form):
@@ -89,7 +91,7 @@ class ReplaceCartLineForm(AddToCartForm):
         super(ReplaceCartLineForm, self).__init__(*args, **kwargs)
         self.cart_line = self.cart.get_line(self.variant)
         self.fields['quantity'].widget.attrs = {
-            'min': 1, 'max': self.variant.get_stock_quantity()}
+            'min': 1, 'max': settings.MAX_CART_LINE_QUANTITY}
 
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
@@ -118,8 +120,7 @@ class ReplaceCartLineForm(AddToCartForm):
 
 class CountryForm(forms.Form):
 
-    country = forms.ChoiceField(choices=COUNTRY_CODE_CHOICES, label='',
-                                required=False)
+    country = LazyTypedChoiceField(choices=countries)
 
     def get_shipment_options(self):
         code = self.cleaned_data['country']

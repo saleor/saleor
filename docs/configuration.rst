@@ -48,3 +48,7 @@ Environment variables
 
 ``SECRET_KEY``
   Controls `Django's secret key <https://docs.djangoproject.com/en/1.10/ref/settings/#secret-key>`_ setting.
+
+
+``MAX_CART_LINE_QUANTITY``
+  Controls maximum number of items in one cart line. Defaults to ``50``

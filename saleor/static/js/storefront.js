@@ -4,7 +4,10 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import Relay from 'react-relay';
 
+import variantPickerStore from './stores/variantPicker'
+
 import VariantPicker from './components/variantPicker/VariantPicker'
+import VariantPrice from './components/variantPicker/VariantPrice'
 
 let csrftoken = $.cookie('csrftoken')
 
@@ -190,7 +193,7 @@ $countrySelect.on('change', (e) => {
 })
 
 // Save tab links to URL
-  		  
+
 $('.nav-tabs a').click((e) => {
   e.preventDefault()
   $(this).tab('show')
@@ -202,22 +205,37 @@ $('ul.nav-tabs li a:not(:first)').on('shown.bs.tab', (e) => {
 var hash = window.location.hash;
 $('.nav-tabs a[href="' + hash + '"]').tab('show')
 
+
 // Variant Picker
 
-const variantPicker = document.getElementById('variant-picker')
-if (variantPicker) {
-  const variantPickerData = JSON.parse(variantPicker.dataset.variantPickerData)
+const variantPickerContainer = document.getElementById('variant-picker')
+const variantPriceContainer = document.getElementById('variant-price-component')
+
+if (variantPickerContainer) {
+  const variantPickerData = JSON.parse(variantPickerContainer.dataset.variantPickerData)
   ReactDOM.render(
     <VariantPicker
-      attributes={variantPickerData.attributes}
       onAddToCartError={onAddToCartError}
       onAddToCartSuccess={onAddToCartSuccess}
-      url={variantPicker.dataset.action}
+      store={variantPickerStore}
+      url={variantPickerContainer.dataset.action}
+      variantAttributes={variantPickerData.variantAttributes}
       variants={variantPickerData.variants}
     />,
-    variantPicker
+    variantPickerContainer
   )
+
+  if (variantPriceContainer) {
+    ReactDOM.render(
+      <VariantPrice
+        availability={variantPickerData.availability}
+        store={variantPickerStore}
+      />,
+      variantPriceContainer
+    )
+  }
 }
+
 
 // Cart quantity form
 
@@ -240,7 +258,7 @@ $cartLine.each(function() {
       data: {quantity: newQuantity},
       success: (response) => {
         if (newQuantity == 0) {
-          if (response.cart_length == 0) {
+          if (response.cart.numLines == 0) {
             $.cookie('alert', 'true', { path: '/cart' })
             location.reload()
           } else {
@@ -251,7 +269,7 @@ $cartLine.each(function() {
           $subtotal.html(response.subtotal)
         }
         $total.html(response.total)
-        $cartBadge.html(response.cart)
+        $cartBadge.html(response.cart.numItems)
         $qunatityError.html('')
         $cartDropdown.load(summaryLink)
       },
@@ -266,10 +284,10 @@ $cartLine.each(function() {
       method: 'POST',
       data: {quantity: 0},
       success: (response) => {
-        if (response.cart_length >= 1) {
+        if (response.cart.numLines >= 1) {
           $(this).fadeOut()
           $total.html(response.total)
-          $cartBadge.html(response.cart)
+          $cartBadge.html(response.cart.numItems)
           $cartDropdown.load(summaryLink)
           $removeProductSucces.removeClass('hidden-xs-up')
         } else {

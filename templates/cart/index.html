@@ -46,7 +46,7 @@
               {% else %}
                   <img class="cart-item-image" src="{% static 'images/product-image-placeholder-small.png' %}" alt="">
               {% endif %}
-              <h3>{{ line.variant.product }} 
+              <h3>{{ line.variant.product }}
                 <br><small>{{ line.variant.display_variant }}</small></h3>
             </a>
           </div>
@@ -102,12 +102,12 @@
       <div class="col-md-5 ">
         <div class="cart__delivery-info__list row">
           <div class="col-xs-6 cart__delivery-info__method">
-            {% for option in default_country_options %} 
+            {% for option in default_country_options %}
               <p>{{ option.shipping_method__name }}</p>
             {% endfor %}
           </div>
           <div class="col-xs-6 cart__delivery-info__price">
-            {% for option in default_country_options %} 
+            {% for option in default_country_options %}
               <p>{% gross option.price %}</p>
             {% endfor %}
           </div>
