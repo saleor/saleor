@@ -36,13 +36,15 @@ DEFAULT_SCHEMA = {
             'Size': ['XS', 'S', 'M', 'L', 'XL', 'XXL']
         },
         'images_dir': 't-shirts/',
+        'is_shipping_required': True
     },
     'Mugs': {
         'product_attributes': {
             'Brand': ['Saleor']
         },
         'variant_attributes': {},
-        'images_dir': 'mugs/'
+        'images_dir': 'mugs/',
+        'is_shipping_required': True
     },
     'Coffee': {
         'product_attributes': {
@@ -54,6 +56,7 @@ DEFAULT_SCHEMA = {
         },
         'different_variant_prices': True,
         'images_dir': 'coffee/',
+        'is_shipping_required': True
     },
     'Candy': {
         'product_attributes': {
@@ -64,14 +67,14 @@ DEFAULT_SCHEMA = {
             'Candy Box Size': ['100g', '250g', '500g']
         },
         'images_dir': 'candy/',
-        'different_variant_prices': True
+        'different_variant_prices': True,
+        'is_shipping_required': True
     },
 }
 
 
-def create_attributes_and_values(schema, attribute_key):
+def create_attributes_and_values(attribute_data):
     attributes = []
-    attribute_data = schema.get(attribute_key, {})
     for attribute_name, attribute_values in attribute_data.items():
         attribute = create_attribute(
             name=slugify(attribute_name), display=attribute_name)
@@ -82,11 +85,15 @@ def create_attributes_and_values(schema, attribute_key):
 
 
 def create_product_class_with_attributes(name, schema):
-    product_class = get_or_create_product_class(name=name)
+    product_attributes_schema = schema.get('product_attributes', {})
+    variant_attributes_schema = schema.get('variant_attributes', {})
+    is_shipping_required = schema.get('is_shipping_required', True)
+    product_class = get_or_create_product_class(
+        name=name, is_shipping_required=is_shipping_required)
     product_attributes = create_attributes_and_values(
-        schema, 'product_attributes')
+        product_attributes_schema)
     variant_attributes = create_attributes_and_values(
-        schema, 'variant_attributes')
+        variant_attributes_schema)
     product_class.product_attributes.add(*product_attributes)
     product_class.variant_attributes.add(*variant_attributes)
     return product_class
@@ -121,7 +128,8 @@ def set_variant_attributes(variant, product_class):
 
     for product_attribute in product_class.variant_attributes.all():
         available_values = product_attribute.values.exclude(
-            pk__in=[int(pk) for pk in existing_variant_attributes[str(product_attribute.pk)]])
+            pk__in=[int(pk) for pk
+                    in existing_variant_attributes[str(product_attribute.pk)]])
         if not available_values:
             return
         value = random.choice(available_values)
@@ -139,7 +147,8 @@ def get_variant_combinations(product):
     # Output is list of dicts, where key is product attribute id and value is
     # attribute value id. Casted to string.
     variant_attr_map = {attr: attr.values.all()
-                        for attr in product.product_class.variant_attributes.all()}
+                        for attr
+                        in product.product_class.variant_attributes.all()}
     all_combinations = itertools.product(*variant_attr_map.values())
     return [{str(attr_value.attribute.pk): str(attr_value.pk)}
             for combination in all_combinations
