@@ -85,9 +85,9 @@ def create_attributes_and_values(attribute_data):
 
 
 def create_product_class_with_attributes(name, schema):
-    product_attributes_schema = schema.pop('product_attributes', {})
-    variant_attributes_schema = schema.pop('variant_attributes', {})
-    is_shipping_required = schema.pop('is_shipping_required', True)
+    product_attributes_schema = schema.get('product_attributes', {})
+    variant_attributes_schema = schema.get('variant_attributes', {})
+    is_shipping_required = schema.get('is_shipping_required', True)
     product_class = get_or_create_product_class(
         name=name, is_shipping_required=is_shipping_required)
     product_attributes = create_attributes_and_values(
