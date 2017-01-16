@@ -56,7 +56,7 @@ def test_create_view(admin_client):
     assert SiteSetting.objects.count() == site_count + 1
 
 
-def test_collection_update_view(admin_client, site_settings):
+def test_site_update_view(admin_client, site_settings):
     url = reverse('dashboard:site-update',
                   kwargs={'site_id': site_settings.id})
     response = admin_client.get(url)
@@ -68,3 +68,4 @@ def test_collection_update_view(admin_client, site_settings):
 
     site_settings.refresh_from_db()
     assert site_settings.name == 'Mirumee Labs'
+
