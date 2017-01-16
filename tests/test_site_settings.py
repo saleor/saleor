@@ -68,4 +68,3 @@ def test_site_update_view(admin_client, site_settings):
 
     site_settings.refresh_from_db()
     assert site_settings.name == 'Mirumee Labs'
-
