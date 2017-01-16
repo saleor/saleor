@@ -8,10 +8,7 @@ def get_site_settings(request):
         site_settings = request.site_settings
     else:
         site_settings_id = getattr(settings, 'SITE_SETTINGS_ID', None)
-        try:
-            site_settings = get_site_settings_uncached(site_settings_id)
-        except SiteSetting.DoesNotExist:
-            site_settings = None
+        site_settings = get_site_settings_uncached(site_settings_id)
         request.site_settings = site_settings
     return site_settings
 
