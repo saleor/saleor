@@ -38,20 +38,24 @@
               {% if user.is_staff %}
                 <p><a href="{% url "dashboard:product-update" pk=product.pk %}">{% trans "Edit in dashboard" %}</a></p>
               {% endif %}
-              {% if availability.available and not show_variant_picker %}
-                  <h2 itemprop="offers" class="product__info__price" itemscope itemtype="http://schema.org/Offer">
-                      <span>{% price_range availability.price_range %}</span>
-                      {% if availability.discount %}
-                          <small class="product__info__price__undiscounted">{% gross availability.price_range_undiscounted.min_price html=True %}</small>
-                      {% endif %}
-                      {% if availability.price_range_local_currency %}
-                          <br>
-                          <small>
-                              &asymp;
-                              {% gross availability.price_range_local_currency.min_price html=True %}
-                          </small>
-                      {% endif %}
-                  </h2>
+              {% if availability.available %}
+                    {% if show_variant_picker %}
+                        <div id="variant-price-component"></div>
+                    {% else %}
+                        <h2 itemprop="offers" class="product__info__price" itemscope itemtype="http://schema.org/Offer">
+                            <span>{% price_range availability.price_range %}</span>
+                            {% if availability.discount %}
+                                <small class="product__info__price__undiscounted">{% gross availability.price_range_undiscounted.min_price html=True %}</small>
+                            {% endif %}
+                            {% if availability.price_range_local_currency %}
+                                <br>
+                                <small>
+                                    &asymp;
+                                    {% gross availability.price_range_local_currency.min_price html=True %}
+                                </small>
+                            {% endif %}
+                        </h2>
+                    {% endif %}
               {% endif %}
             </div>
             <div class="col-md-7 col-xs-12 product__gallery">
@@ -91,16 +95,16 @@
             <div class="col-md-5 col-xs-12 product__info">
                 {% if is_visible and product.is_in_stock %}
                     {% block orderform %}
+                        {% for attribute, value in product_attributes.items %}
+                            <div class="form-group">
+                                <label class="control-label"><b>{{ attribute }}</b></label>
+                                <p>{{ value }}</p>
+                            </div>
+                        {% endfor %}
                         {% if show_variant_picker %}
                             {% csrf_token %}
                             <div id="variant-picker" data-variant-picker-data="{{ variant_picker_data }}" data-action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}"></div>
                         {% else %}
-                            {% for attribute, value in product_attributes.items %}
-                                <div class="form-group">
-                                    <label class="control-label"><b>{{ attribute }}</b></label>
-                                    <p>{{ value }}</p>
-                                </div>
-                            {% endfor %}
                             <form id="product-form" role="form" class="product-form form-vertical" method="post"
                             action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}" novalidate>
                                 {% csrf_token %}
