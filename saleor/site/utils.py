@@ -11,3 +11,7 @@ def get_site_settings_and_add_to_request(request):
         site_settings = None
     request.site_settings = site_settings
     return site_settings
+
+
+def get_site_settings_uncached(site_id=None):
+    return SiteSetting.objects.get(pk=site_id)
