@@ -1,143 +1,39 @@
 {% extends "base.html" %}
 
-{% load gross from prices_i18n %}
 {% load i18n %}
 {% load staticfiles %}
-{% load discount_amount_for from prices %}
 
 {% block title %}{% trans "Order" %} {{ order }} — {{ block.super }}{% endblock %}
 
-{% block outerbreadcrumb %}
+{% block breadcrumb %}
     {% if order.user == user %}
-    <ul class="breadcrumb" itemprop="breadcrumb">
+      <ul class="breadcrumbs list-unstyled">
         <li><a href="/">{% trans "Home" %}</a></li>
-        <li><a href="{% url 'profile:orders' %}">{% trans "Your orders" %}</a></li>
-        <li><a href="{% url 'order:details' token=order.token %}">{{ order }}</a></li>
-    </ul>
+        <li><a href="{% url 'profile:details' %}">{% trans "Your account" %}</a></li>
+        <li><a href="{{ order.get_absolute_url }}">{% trans "Order" %} {{ order }}</a></li>
+      </ul>
     {% endif %}
-{% endblock outerbreadcrumb %}
+{% endblock breadcrumb %}
 
 {% block content %}
     {# This view is available by just knowing url,          #}
     {# so we don't show all details (like delivery address) #}
     {# unless current user is owner of the order.           #}
 
-    <div class="row">
-        <div class="col-sm-12">
-            <h3 class="page-header page-header--order">
-                <span class="text-muted">{% blocktrans %}Order {{ order }}: {% endblocktrans %}</span>
+    <div class="row order-details">
+        <div class="col-lg-10 offset-lg-1">
+            <h2 class="order-details__header">
+                {% blocktrans %}Order {{ order }}: {% endblocktrans %}
                 {{ order.get_status_display }}
-
-                {% if not order.is_fully_paid %}
-                    {% if order.is_pre_authorized %}
-                        <a href="{% url "order:payment" token=order.token %}" class="btn btn-info">{% trans "Payment details" %}</a>
-                    {% else %}
-                        <a href="{% url "order:payment" token=order.token %}" class="btn btn-primary">{% trans "Pay for order" %}</a>
-                    {% endif %}
+            </h2>
+            {% if not order.is_fully_paid %}
+                {% if order.is_pre_authorized %}
+                    <a href="{% url "order:payment" token=order.token %}" class="btn btn-link">{% trans "Payment details" %}</a>
+                {% else %}
+                    <a href="{% url "order:payment" token=order.token %}" class="btn primary">{% trans "Pay for order" %}</a>
                 {% endif %}
-            </h3>
+            {% endif %}
+            {% include 'order/order-details.html' %}
         </div>
     </div>
-
-    <div class="row">
-        {% if order.user == user %}
-            <div class="col-sm-6">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        {% trans "Billing address" %}
-                    </div>
-                    <div class="panel-body">
-                        <address>{% include "userprofile/snippets/address-details.html" with address=order.billing_address %}</address>
-                    </div>
-                </div>
-            </div>
-            {% if order.is_shipping_required %}
-                <div class="col-sm-6">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            {% trans "Shipping address" %}
-                        </div>
-                        <div class="panel-body">
-                            <address>{% include "userprofile/snippets/address-details.html" with address=order.shipping_address %}</address>
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
-        {% endif %}
-    </div>
-
-    {% for group in groups %}
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                {% blocktrans with number=forloop.counter %}Shipment #{{ number }}{% endblocktrans %}
-                <span class="pull-right">
-                    <span class="label label-default">{{ group.get_status_display }}</span>
-                </span>
-            </div>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th class="col-sm-6">{% trans "Name" %}</th>
-                        <th class="col-sm-3 text-right">{% trans "Price" %}</th>
-                        <th class="col-sm-3 text-right">{% trans "Subtotal" %}</th>
-                    </tr>
-                </thead>
-                <tfoot>
-                    <tr>
-                        <th colspan="2">{% trans "Total" %}</th>
-                        <th class="text-right">{% gross group.get_total %}</th>
-                    </tr>
-                </tfoot>
-                <tbody>
-                    {% for item in group %}
-                        <tr>
-                            <td>{{ item.product }}{% if item.quantity != 1 %} <em>×{{ item.quantity }}</em>{% endif %}</td>
-                            <td class="text-right">{% gross item.get_price_per_item %}</td>
-                            <td class="text-right">{% gross item.get_total %}</td>
-                        </tr>
-                    {% endfor %}
-                    {% if group.shipping_price.gross %}
-                        <tr>
-                            <td class="col-sm-4">
-                                {% trans "Shipping" %}
-                            </td>
-                            <td class="text-right">{% gross group.shipping_price %}</td>
-                            <td class="text-right">{% gross group.shipping_price %}</td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-            {% if group.tracking_number %}
-            <div class="panel-footer">
-                {{ group.shipping_method_name }}
-                <span class="pull-right">
-                    {% blocktrans with tracking=group.tracking_number %}
-                        Tracking number: {{ tracking }}
-                    {% endblocktrans %}
-                </span>
-            </div>
-            {% endif %}
-        </div>
-
-    {% endfor %}
-    {% if order.discount_amount %}
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                {{ order.discount_name }}
-            </div>
-            <div class="panel-body text-right">
-                <strong>{% gross order.discount|discount_amount_for:order.total %}</strong>
-            </div>
-        </div>
-    {% endif %}
-    {% if order.discount_amount or groups|length > 1 %}
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                {% trans "Total" %}
-            </div>
-            <div class="panel-body text-right">
-                <strong>{% gross order.total %}</strong>
-            </div>
-        </div>
-    {% endif %}
 {% endblock content %}

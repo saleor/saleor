@@ -3,48 +3,29 @@
 {% load gross from prices_i18n %}
 {% load bootstrap_form from bootstrap3 %}
 
-
-{% block steps_menu %}
-    <div class="nav nav-pills nav-justified nav-wizard">
-        <a href="{% url "cart:index" %}">
-            {% trans "Cart" %}
-            <div class="nav-arrow"></div>
-        </a>
-        <a href="{% url "checkout:shipping-address" %}">
-            <div class="nav-wedge"></div>
-            {% trans "Shipping address" %}
-            <div class="nav-arrow"></div>
-        </a>
-        <a class="active" href="{% url "checkout:shipping-method" %}">
-            <div class="nav-wedge"></div>
-            {% trans "Shipping method" %}
-            <div class="nav-arrow"></div>
-        </a>
-        <a>
-            <div class="nav-wedge"></div>
-            {% trans "Summary" %}
-        </a>
+{% block header %}
+  {{ block.super }}
+  <div class="breadcrumbs-checkout">
+    <div class="container">
+      <ul class="breadcrumbs list-unstyled">
+          <li><a href="{% url 'checkout:shipping-address' %}">1. {% trans "Shipping address" %}</a></li>
+          <li class="active">2. {% trans "Shipping method" %}</li>
+          <li class="disabled">3. {% trans "Billing address" %}</li>
+      </ul>
     </div>
-{% endblock steps_menu %}
-
+  </div>
+{% endblock header %}
 
 {% block forms %}
-    <div class="page-header">
-        <h3>{% trans "Shipping address" %}</h3>
-    </div>
-
-    {% include "userprofile/snippets/address-details.html" with address=checkout.shipping_address only %}
-
-    <form method="post" novalidate>
+    <h1>{% trans "Shipping address" %}</h1>
+    {% include "userprofile/snippets/address-short.html" with address=checkout.shipping_address only %}
+    <p class="checkout__edit-link"><a href="{% url 'checkout:shipping-address' %}">{% trans "Select other address" %}</a></p>
+    <form method="post" class="checkout__shipping-method" novalidate>
         {% csrf_token %}
-        <h3>{% trans "Shipping method" %}</h3>
-
+        <h1>{% trans "Shipping method" %}</h1>
         {% bootstrap_form shipping_method_form show_label=False %}
-
-        <p class="text-right">
-            <button type="submit" class="btn btn-primary btn-lg">
-                {% trans "Continue to payment" %}
-            </button>
-        </p>
+        <button type="submit" class="btn primary">
+            {% trans "Continue" %}
+        </button>
     </form>
 {% endblock %}

@@ -1,0 +1,80 @@
+{% load i18n %}
+{% load gross from prices_i18n %}
+{% load discount_amount_for from prices %}
+
+
+{% if order.user == user %}
+  <div class="row order-details__addresses">
+    <div class="col-xs-6">
+      <h3>{% trans "Shipping address" %}</h3>
+      <address>{% include "userprofile/snippets/address-short.html" with address=order.shipping_address %}</address>
+    </div>
+    <div class="col-xs-6">
+      <h3>{% trans "Billing address" %}</h3>
+      <address>{% include "userprofile/snippets/address-short.html" with address=order.billing_address %}</address>
+    </div>
+  </div>
+{% endif %}
+<div class="row order-details__table-header hidden-sm-down">
+  <div class="col-md-6">
+    <small>{% trans "Product" %}</small>
+  </div>
+  <div class="col-md-3">
+    <small>{% trans "Quantity" %}</small>
+  </div>
+  <div class="col-md-3">
+    <small>{% trans "Price" %}</small>
+  </div>
+</div>
+<div class="order-details__table">
+  {% for item in order %}
+    {% for item_line in item %}
+      <div class="row">
+        <div class="col-md-6 col-xs-9">
+          <a href="{{ item_line.product.get_absolute_url }}">
+            <img src="{{ item_line.product.images.first.image.crop.60x60 }}" class="float-xs-left">
+            <p>{{ item_line.product }}<br>
+            <span>{{ item_line.product_name }}</span></p>
+          </a>
+        </div>
+        <div class="col-md-6 col-xs-3">
+          <div class="col-md-6 col-xs-12">
+            <p class="float-xs-right">x {{ item_line.quantity }}</p>
+          </div>
+          <div class="col-md-6 col-xs-12">
+            <p class="float-xs-right">{% gross item_line.get_total %}</p>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+    <div class="row">
+      <div class="col-xs-8">
+        <p>{% trans "Delivery" %} ({{ item.shipping_method_name }})</p>
+        {% if item.tracking_number %}
+          <p>{% trans "Tracking number: " %} {{ item.tracking_number }}</p>
+        {% endif %}
+      </div>
+      <div class="col-xs-4">
+        <p class="float-xs-right">{% gross item.shipping_price %}</p>
+      </div>
+    </div>
+    {% if order.discount_amount %}
+      <div class="row">
+        <div class="col-xs-8">
+          <p>{{ order.discount_name }}</p>
+        </div>
+        <div class="col-xs-4">
+          <p class="float-xs-right">{% gross order.discount|discount_amount_for:order.total %}</p>
+        </div>
+      </div>
+    {% endif %}
+    <div class="row">
+      <div class="col-xs-8">
+        <p><strong>{% trans "Total" %}</strong></p>
+      </div>
+      <div class="col-xs-4">
+        <p class="float-xs-right"><strong>{% gross order.total %}</strong></p>
+      </div>
+    </div>
+  {% endfor %}
+</div>

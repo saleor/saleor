@@ -8,5 +8,7 @@ urlpatterns = [
     url(r'^update/(?P<variant_id>\d+)/$', views.update, name='update-line'),
     url(r'^summary/$', views.summary, name='cart-summary'),
     url(r'^assign/$', views.assign_cart_and_redirect_view,
-        name='assign-and-redirect')
+        name='assign-and-redirect'),
+    url(r'^shipingoptions/$', views.get_shipping_options,
+        name='shipping-options')
 ]

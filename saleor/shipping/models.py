@@ -14,8 +14,7 @@ from django_countries import countries
 
 ANY_COUNTRY = ''
 ANY_COUNTRY_DISPLAY = _('Rest of World')
-COUNTRY_CODE_CHOICES = [(ANY_COUNTRY, ANY_COUNTRY_DISPLAY)] + list(
-    dict(countries).items())
+COUNTRY_CODE_CHOICES = [(ANY_COUNTRY, ANY_COUNTRY_DISPLAY)] + list(countries)
 
 
 @python_2_unicode_compatible

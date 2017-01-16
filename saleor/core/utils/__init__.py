@@ -1,5 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
+import decimal
+from json import JSONEncoder
 
 from babel.numbers import get_territory_currencies
 from django import forms
@@ -89,3 +91,17 @@ def to_local_currency(price, currency):
             return exchange_currency(price, currency)
         except ValueError:
             pass
+
+
+def get_user_shipping_country(request):
+    if request.user.is_authenticated():
+        default_shipping = request.user.default_shipping_address
+        if default_shipping:
+            return default_shipping.country
+    return request.country
+
+
+def serialize_decimal(obj):
+    if isinstance(obj, decimal.Decimal):
+        return str(obj)
+    return JSONEncoder.default(obj)

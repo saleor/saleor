@@ -1,0 +1,49 @@
+.product {
+  a {
+    color: $dark-gray;
+    text-decoration: underline;
+  }
+  &__info {
+    &__name {
+      font-weight: 900;
+      @include media-breakpoint-up(md) {
+        margin-bottom: $global-margin;
+      }
+    }
+    &__price {
+      &__undiscounted {
+        color: $gray;
+        text-decoration: line-through;
+      }
+      margin-bottom: $global-margin * 2;
+    }
+  }
+  &__gallery {
+    .carousel-control {
+      &-prev {
+        img {
+          transform: rotate(180deg);
+        }
+      }
+    }
+    .carousel-item {
+      flex-flow: column;
+    }
+    .carousel-indicators {
+      top: 100%;
+      width: auto;
+      left: 0;
+      margin-left: 0;
+      li {
+        display: inline;
+        text-indent: 0;
+        margin: 0 1.5rem;
+        &.active {
+          img {
+            opacity: 0.5;  
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,47 +1,58 @@
 {% extends "base.html" %}
 {% load bootstrap_form from bootstrap3 %}
+{% load staticfiles %}
 {% load account socialaccount %}
 {% load i18n %}
 
-{% block title %}{% trans "Sign In" %} — {{ block.super }}{% endblock %}
+{% block title %}{% trans "Log in" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-sm-6">
-        <div class="panel panel-default">
-            <div class="panel-body">
-                <form method="post" action="{% url 'account_login' %}" novalidate>
-                    {% csrf_token %}
-                    <fieldset>
-                        <legend>{% trans 'Sign in' %}</legend>
-                        {% bootstrap_form form %}
-                        {% if redirect_field_value %}
-                            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-                        {% endif %}
-                    </fieldset>
-
-                    <div class="form-group text-right">
-                        <a class="btn btn-secondary" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
-                        <button class="btn btn-primary">
-                            {% trans "Sign in" %}
-                        </button>
-                    </div>
-                    {% get_providers as socialaccount_providers %}
-                    {% if socialaccount_providers %}
-                        <hr>
-                        <p>{% trans "Want to use your social profile?" %}</p>
-                        <p>
-                            <a class="btn btn-default" href="{% provider_login_url "facebook" method="oauth2" %}">{% trans "Sign in using Facebook" %}</a>
-                            <a class="btn btn-default" href="{% provider_login_url "google" %}">{% trans "Sign in using Google" %}</a>
-                        </p>
-                    {% endif %}
-                    <hr>
-                    <div class="form-group">
-                        <p>{% trans "Don't have an account yet?" %} <a class="btn btn-secondary" href="{{ signup_url }}">{% trans "Sign up" %}</a></p>
-                    </div>
-                </form>
+<div class="row login">
+  <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2">
+    <div class="row">
+      <div class="col-md-6">
+        <form method="post" action="{% url 'account_login' %}" novalidate>
+          {% csrf_token %}
+          <fieldset>
+            <h2>{% trans 'Log in' %}</h2>
+            {% bootstrap_form form %}
+            {% if redirect_field_value %}
+              <input type="hidden" name="next" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+            {% endif %}
+          </fieldset>
+          <div class="row login__btn-group">
+            <div class="col-sm-12">
+              <button class="btn primary">
+                {% trans "Log in" %}
+              </button>
+              <a href="{% url 'account_reset_password' %}">{% trans "Forgot password?" %}</a>
             </div>
+          </div>
+          {% get_providers as socialaccount_providers %}
+          {% if socialaccount_providers %}
+            <p>{% trans "Want to use your social profile?" %}</p>
+            <p>
+              {% if facebook_login_url %}
+              <a class="btn btn-default" href="{% provider_login_url "facebook" method="oauth2" %}">
+                {% trans "Log in using Facebook" %}
+              </a>
+              {% endif %}
+              {% if google_login_url %}
+              <a class="btn btn-default" href="{% provider_login_url "google" %}"> {% trans "Log in using Google" %}</a>
+              {% endif %}
+            </p>
+          {% endif %}
+        </form>
+      </div>
+      <div class="col-md-6">
+        <div class="login__register-link">
+          <h2>{% trans "Don't have an account yet?" %}</h2>
+          <img src="{% static 'img/pirate_login.png' %}" srcset="{% static 'img/pirate_login.png' %} 1x, {% static 'img/pirate_login2x.png' %} 2x">
+          <p><a href="{{ signup_url }}" class="btn secondary">{% trans "Register" %}</a></p>
         </div>
+      </div>
     </div>
+
+  </div>
 </div>
 {% endblock %}

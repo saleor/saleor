@@ -23,17 +23,16 @@ var providePlugin = new webpack.ProvidePlugin({
   '_': 'underscore',
   jQuery: 'jquery',
   'window.jQuery': 'jquery',
-  Backbone: 'backbone',
-  'window.Backbone': 'backbone'
+  "Tether": 'tether',
+  "window.Tether": 'tether'
 });
 
 var config = {
   entry: {
-    cart: './saleor/static/js/cart.js',
     dashboard: './saleor/static/js/dashboard.js',
     storefront: './saleor/static/js/storefront.js',
     vendor: [
-      'bootstrap-sass',
+      'bootstrap',
       'jquery',
       'jquery.cookie'
     ]
@@ -62,7 +61,7 @@ var config = {
         ])
       },
       {
-        test: /\.(eot|otf|png|svg|ttf|woff|woff2)(\?v=[0-9.]+)?$/,
+        test: /\.(eot|otf|png|svg|jpg|ttf|woff|woff2)(\?v=[0-9.]+)?$/,
         loader: 'file?name=[name].[hash].[ext]',
         include: [
           resolve('node_modules'),

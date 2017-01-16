@@ -2,36 +2,23 @@
 {% load i18n %}
 {% load bootstrap_form from bootstrap3 %}
 
-{% block steps_menu %}
-    <div class="nav nav-pills nav-justified nav-wizard">
-        <a href="{% url "cart:index" %}">
-              {% trans "Cart" %}
-              <div class="nav-arrow"></div>
-        </a>
-        <a class="active" href="{% url "checkout:shipping-address" %}">
-            <div class="nav-wedge"></div>
-            {% trans "Shipping address" %}
-            <div class="nav-arrow"></div>
-        </a>
-        <a>
-            <div class="nav-wedge"></div>
-            {% trans "Shipping method" %}
-            <div class="nav-arrow"></div>
-        </a>
-        <a>
-            <div class="nav-wedge"></div>
-            {% trans "Summary" %}
-        </a>
+{% block header %}
+  {{ block.super }}
+  <div class="breadcrumbs-checkout">
+    <div class="container">
+      <ul class="breadcrumbs list-unstyled">
+          <li class="active">1. {% trans "Shipping address" %}</li>
+          <li class="disabled">2. {% trans "Shipping method" %}</li>
+          <li class="disabled">3. {% trans "Billing address" %}</li>
+      </ul>
     </div>
-{% endblock steps_menu %}
-
+  </div>
+{% endblock header %}
 
 {% block forms %}
-    <form method="post" novalidate>
+    <form method="post" novalidate class="checkout__shipping">
         {% csrf_token %}
-        <div class="page-header">
-            <h3>{% trans "Shipping address" %}</h3>
-        </div>
+        <h1>{% trans "Shipping address" %}</h1>
         {% if request.user.is_authenticated %}
             {% include "checkout/snippets/addresses-form.html" with addresses_form=user_form addresses=additional_addresses address_form=address_form only %}
         {% else %}
@@ -40,8 +27,8 @@
         {% endif %}
 
         <p class="text-right">
-            <button type="submit" class="btn btn-primary btn-lg">
-                {% trans "Continue to shipping method" %}
+            <button type="submit" class="btn primary">
+                {% trans "Continue" %}
             </button>
         </p>
     </form>

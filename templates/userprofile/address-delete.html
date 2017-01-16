@@ -1,33 +1,21 @@
-{% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Delete address" %} — {{ block.super }}{% endblock %}
-
-{% block breadcrumb %}
-    {{ block.super }}
-    <li><a href="{% url 'profile:details' %}">{% trans "Your profile" %}</a></li>
-    <li><a href=".">{% trans "Delete address" %}</a></li>
-{% endblock breadcrumb %}
-
-{% block content %}
-    <h2>{% trans "Are you sure you want to delete the following address?" %}</h2>
-
-    <div class="row">
-        <div class="col-sm-6">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    {{ address }}
-                </div>
-                <div class="panel-body">
-                    <address>{% include "userprofile/snippets/address-details.html" with address=address %}</address>
-                </div>
-            </div>
-        </div>
+<div class="modal fade modal-address-delete" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="text-xs-center">{% trans "Are you sure you want to delete the following address?" %}</h3>
+      </div>
+      <div class="modal-body text-xs-center">
+        <address>{% include "userprofile/snippets/address-short.html" with address=address %}</address>
+      </div>
+      <div class="modal-footer">
+        <form method="post" novalidate action="{% url 'profile:address-delete' pk=address.pk %}">
+          {% csrf_token %}
+          <a class="btn btn-link" data-dismiss="modal">{% trans "Cancel" %}</a>
+          <button type="submit" class="btn danger">{% trans "Delete" %}</button>
+        </form>
+      </div>
     </div>
-
-    <form method="post" novalidate>
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">{% trans "Delete" %}</button>
-        <a href="{% url 'profile:details' %}" class="btn btn-link">{% trans "Cancel" %}</a>
-    </form>
-{% endblock content %}
+  </div>
+</div>

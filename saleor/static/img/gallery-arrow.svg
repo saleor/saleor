@@ -1,0 +1,18 @@
+<svg width="20" height="38" viewBox="0 0 20 38" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:figma="http://www.figma.com/figma/ns">
+<title>Group</title>
+<desc>Created using Figma</desc>
+<g id="Canvas" transform="translate(-1659 898)" figma:type="canvas">
+<g id="Group" style="mix-blend-mode:normal;" figma:type="frame">
+<g id="Line 5" style="mix-blend-mode:normal;" figma:type="line">
+<use xlink:href="#path0_stroke" transform="matrix(0.704759 -0.709446 0.704759 0.709446 1660.03 -860.25)" fill="#BFBFBF" style="mix-blend-mode:normal;"/>
+</g>
+<g id="Line 6" style="mix-blend-mode:normal;" figma:type="line">
+<use xlink:href="#path1_stroke" transform="matrix(-0.704759 -0.709446 0.704759 -0.709446 1678.41 -878.75)" fill="#BFBFBF" style="mix-blend-mode:normal;"/>
+</g>
+</g>
+</g>
+<defs>
+<path id="path0_stroke" d="M 0 -5.55112e-17L 26.0767 -5.55112e-17L 26.0767 -1L 0 -1L 0 -5.55112e-17Z"/>
+<path id="path1_stroke" d="M 0 0L 26.0767 0L 26.0767 -1L 0 -1L 0 0Z"/>
+</defs>
+</svg>

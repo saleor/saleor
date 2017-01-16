@@ -4,7 +4,9 @@ from django import forms
 from django.core.exceptions import ObjectDoesNotExist, NON_FIELD_ERRORS
 from django.conf import settings
 from django.utils.translation import pgettext_lazy, ugettext_lazy
+from django_countries.fields import LazyTypedChoiceField, countries
 from satchless.item import InsufficientStock
+from ..shipping.utils import get_shipment_options
 
 
 class QuantityField(forms.IntegerField):
@@ -114,3 +116,12 @@ class ReplaceCartLineForm(AddToCartForm):
         product_variant = self.get_variant(self.cleaned_data)
         return self.cart.add(product_variant, self.cleaned_data['quantity'],
                              replace=True)
+
+
+class CountryForm(forms.Form):
+
+    country = LazyTypedChoiceField(choices=countries)
+
+    def get_shipment_options(self):
+        code = self.cleaned_data['country']
+        return get_shipment_options(code)

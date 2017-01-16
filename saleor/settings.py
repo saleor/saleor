@@ -90,6 +90,7 @@ context_processors = [
     'django.template.context_processors.request',
     'saleor.core.context_processors.default_currency',
     'saleor.core.context_processors.categories',
+    'saleor.cart.context_processors.cart_counter',
     'saleor.core.context_processors.search_enabled',
 ]
 

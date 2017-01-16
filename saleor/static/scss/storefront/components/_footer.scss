@@ -1,0 +1,35 @@
+.footer {
+  background-color: $gray;
+  padding: $global-padding * 2 0;
+  margin-top: $global-margin * 8;
+  @include media-breakpoint-down(xs) {
+    text-align: center;
+  }
+  &__logo {
+    margin-bottom: $global-margin;
+  }
+  ul {
+    list-style: none;
+    padding-left: 0;
+    a {
+      color: $white;
+      line-height: 2;
+    }
+  }
+  a {
+    transition: 0.3s;
+    &:hover {
+      text-decoration: none;
+      opacity: 0.6;
+    }
+    &.github-footer {
+      margin-right: $global-margin;
+    }
+  }
+}
+
+.maincontent {
+  @include media-breakpoint-down(sm) {
+    margin-top: $global-margin * 7;
+  }
+}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+
+    <div class="home">
+      <div class="row">
+        <div class="col-sm-12 home__block1">
+          <div>
+            <h1>{% trans "Promo &amp; Sale" %}</h1>
+            <h2>{% trans "form the Northpole" %}</h2>
+            <button class="btn btn-secondary home__button">
+              {% trans "Shop now" %}
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-12 col-md-6 home__block2">
+          <div>
+            <h1>{% trans "Size &amp; Colours" %}</h1>
+            <button class="btn btn-secondary home__button">
+              {% trans "Shop now" %}
+            </button>
+          </div>
+        </div>
+        <div class="col-sm-12 col-md-6 home__block3">
+          <div>
+            <h1>{% trans "Digital Downloads" %}</h1>
+            <button class="btn btn-secondary home__button">
+              {% trans "Shop now" %}
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="row home__featured">
+        <h3 class="text-xs-center">{% trans "Featured products" %}</h3>
+          <div class="col-sm-12">
+              <div class="row">
+                  {% include "category/_items.html" %}
+              </div>
+          </div>
+      </div>
+    </div>
+
+{% endblock %}

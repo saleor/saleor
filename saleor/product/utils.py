@@ -20,7 +20,9 @@ def products_with_details(user):
     products = products.prefetch_related('categories', 'images',
                                          'variants__stock',
                                          'variants__variant_images__image',
-                                         'attributes__values')
+                                         'attributes__values',
+                                         'product_class__variant_attributes__values',
+                                         'product_class__product_attributes__values')
     return products
 
 
@@ -97,32 +99,55 @@ def products_for_cart(user):
     return products
 
 
-def get_variant_picker_data(variants, attributes):
-    data = {'attributes': [], 'variants': []}
-    for attribute in attributes:
-        data['attributes'].append({
+def get_variant_picker_data(product, discounts=None):
+    availability = get_availability(product, discounts)
+    variants = product.variants.all()
+    data = {'variantAttributes': [], 'variants': []}
+
+    variant_attributes = product.product_class.variant_attributes.all()
+    for attribute in variant_attributes:
+        data['variantAttributes'].append({
             'pk': attribute.pk,
             'display': attribute.display,
             'name': attribute.name,
             'values': [{'pk': value.pk, 'display': value.display}
-                       for value in attribute.values.all()]
-        })
+                       for value in attribute.values.all()]})
+
     for variant in variants:
-        price = variant.get_price_per_item()
+        price = variant.get_price_per_item(discounts)
+        price_undiscounted = variant.get_price_per_item()
         variant_data = {
             'id': variant.id,
-            'price': float(price.gross),
+            'price': price.gross,
+            'priceUndiscounted': price_undiscounted.gross,
             'currency': price.currency,
-            'attributes': variant.attributes
-        }
+            'attributes': variant.attributes}
         data['variants'].append(variant_data)
+
+    data['availability'] = {
+        'discount': price_as_dict(availability.discount),
+        'priceRange': price_range_as_dict(availability.price_range),
+        'priceRangeUndiscounted': price_range_as_dict(
+            availability.price_range_undiscounted)}
     return data
 
 
 def get_product_attributes_data(product):
-    attributes = product.product_class.product_attributes.prefetch_related(
-        'values')
+    attributes = product.product_class.product_attributes.all()
     attributes_map = {attribute.pk: attribute for attribute in attributes}
     values_map = get_attributes_display_map(product, attributes)
     return {attributes_map.get(attr_pk): value_obj
             for (attr_pk, value_obj) in values_map.items()}
+
+
+def price_as_dict(price):
+    if not price:
+        return {}
+    return {'currency': price.currency,
+            'gross': price.gross,
+            'net': price.net}
+
+
+def price_range_as_dict(price_range):
+    return {'maxPrice': price_as_dict(price_range.max_price),
+            'minPrice': price_as_dict(price_range.min_price)}

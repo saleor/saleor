@@ -6,14 +6,11 @@
 {% block forms %}
     <form method="post" novalidate>
         {% csrf_token %}
-        <h4>{% trans "Payment" %}</h4>
-        <p class="text-right">
-            {% bootstrap_form payment_form %}
-
-            {% bootstrap_form billing_address_form %}
-            <button type="submit" class="btn btn-primary btn-lg">
-                {% trans "Place order" %}
-            </button>
-        </p>
+        <h1>{% trans "Payment" %}</h1>
+        {% bootstrap_form payment_form %}
+        {% bootstrap_form billing_address_form %}
+        <button type="submit" class="btn primary">
+            {% trans "Place order" %}
+        </button>
     </form>
 {% endblock forms %}
