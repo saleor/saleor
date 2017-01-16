@@ -412,8 +412,9 @@ def create_orders(how_many=10):
 
 
 def create_shipping_methods():
-    shipping_method = ShippingMethod.objects.create(name='UPC')
-    shipping_method.price_per_country.create(price=fake.price())
+    shipping_method = ShippingMethod.objects.create(name='USPS')
+    shipping_method.price_per_country.create(price=fake.price(),
+                                             country_code='US')
     yield 'Shipping method #%d' % shipping_method.id
     shipping_method = ShippingMethod.objects.create(name='DHL')
     shipping_method.price_per_country.create(price=fake.price())

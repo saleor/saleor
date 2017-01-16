@@ -66,7 +66,8 @@ class ShippingMethodCountryQueryset(models.QuerySet):
 class ShippingMethodCountry(models.Model):
 
     country_code = models.CharField(
-        choices=COUNTRY_CODE_CHOICES, max_length=2, blank=True, default=ANY_COUNTRY)
+        choices=COUNTRY_CODE_CHOICES, max_length=2, blank=True,
+        default=ANY_COUNTRY, null=True)
     price = PriceField(
         pgettext_lazy('Shipping method region field', 'price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
