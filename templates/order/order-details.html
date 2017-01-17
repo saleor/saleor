@@ -41,11 +41,13 @@
           </a>
         </div>
         <div class="col-md-6 col-3">
-          <div class="col-md-6 col-12">
-            <p class="float-right">x {{ item_line.quantity }}</p>
-          </div>
-          <div class="col-md-6 col-12 push-md-7">
-            <p class="float-right">{% gross item_line.get_total %}</p>
+          <div class="row">
+            <div class="col-md-6 col-12">
+              <p class="float-right">x {{ item_line.quantity }}</p>
+            </div>
+            <div class="col-md-6 col-12">
+              <p class="float-right">{% gross item_line.get_total %}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -73,7 +75,7 @@
         </div>
       </div>
     {% endif %}
-    <div class="row">
+    <div class="row total">
       <div class="col-8">
         <p><strong>{% trans "Total" %}</strong></p>
       </div>
