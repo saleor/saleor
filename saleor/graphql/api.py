@@ -41,6 +41,7 @@ class ProductType(DjangoObjectType):
     images = graphene.List(lambda: ProductImageType)
     variants = graphene.List(lambda: ProductVariantType)
     availability = graphene.Field(lambda: ProductAvailabilityType)
+    price = graphene.Field(lambda: PriceType)
 
     class Meta:
         model = Product
