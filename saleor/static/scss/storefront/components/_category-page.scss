@@ -33,8 +33,8 @@
 				color: $body-color;
 				padding-right: $global-padding;
 				outline: 0;
-				i {
-					padding-left: $global-padding/2;
+				img {
+					margin-left: $global-padding/2;
 				}
 			}
 			ul {
@@ -59,8 +59,8 @@
 							text-decoration: underline;
 						}
 					}
-					i {
-						padding-top: $global-padding/3;
+					img {
+						margin-top: $global-padding/3;
 					}
 					&:last-child {
 						border: none;
