@@ -28,16 +28,17 @@
               <a href="{% url 'account_reset_password' %}">{% trans "Forgot password?" %}</a>
             </div>
           </div>
-          {% get_providers as socialaccount_providers %}
-          {% if socialaccount_providers %}
+          {% if SOCIALACCOUNT_PROVIDERS %}
+              {% include "socialaccount/snippets/login_extra.html" %}
+
             <p>{% trans "Want to use your social profile?" %}</p>
             <p>
-              {% if facebook_login_url %}
+              {% if "facebook" in SOCIALACCOUNT_PROVIDERS %}
               <a class="btn btn-default" href="{% provider_login_url "facebook" method="oauth2" %}">
                 {% trans "Log in using Facebook" %}
               </a>
               {% endif %}
-              {% if google_login_url %}
+              {% if 'google' in SOCIALACCOUNT_PROVIDERS %}
               <a class="btn btn-default" href="{% provider_login_url "google" %}"> {% trans "Log in using Google" %}</a>
               {% endif %}
             </p>
