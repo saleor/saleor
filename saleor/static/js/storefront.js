@@ -2,6 +2,7 @@ import '../scss/storefront/storefront.scss'
 import 'jquery.cookie'
 import React from 'react'
 import ReactDOM from 'react-dom'
+import Relay from 'react-relay';
 
 import variantPickerStore from './stores/variantPicker'
 
@@ -21,6 +22,15 @@ $.ajaxSetup({
     }
   }
 })
+
+Relay.injectNetworkLayer(
+  new Relay.DefaultNetworkLayer('/graphql/', {
+    credentials: 'same-origin',
+    headers: {
+      'X-CSRFToken': csrftoken,
+    },
+  })
+)
 
 var getAjaxError = (response) => {
   var ajaxError = $.parseJSON(response.responseText).error.quantity

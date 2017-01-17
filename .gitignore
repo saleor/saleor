@@ -8,6 +8,7 @@
 !.nvmrc
 !.pylintrc
 !.travis*
+!.eslintrc.json
 *.css
 *.log
 *.pot
@@ -24,3 +25,4 @@ dist/
 /static/
 /saleor/static/assets/
 webpack-bundle.json
+schema.json

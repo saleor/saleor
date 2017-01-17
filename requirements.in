@@ -24,6 +24,7 @@ elasticsearch>=2.0.0,<3.0.0
 faker>=0.7.7
 google-measurement-protocol>=0.1.2,<0.2a0
 google-i18n-address>=2.0.1
+graphene-django==1.2.0
 jsonfield>=1.0.3
 Markdown>=2.4
 maxminddb>=1.2.0,<1.3

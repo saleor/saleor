@@ -151,6 +151,7 @@ INSTALLED_APPS = [
     'saleor.cart',
     'saleor.checkout',
     'saleor.core',
+    'saleor.graphql',
     'saleor.order',
     'saleor.dashboard',
     'saleor.shipping',
@@ -164,6 +165,7 @@ INSTALLED_APPS = [
     'django_prices',
     'django_prices_openexchangerates',
     'emailit',
+    'graphene_django',
     'mptt',
     'payments',
     'selectable',
@@ -349,3 +351,11 @@ if ES_URL:
     }
 else:
     SEARCH_BACKENDS = {}
+
+
+GRAPHENE = {
+    'SCHEMA': 'saleor.graphql.api.schema',
+    'MIDDLEWARE': [
+        'graphene_django.debug.DjangoDebugMiddleware'
+    ]
+}

@@ -1,0 +1,19 @@
+{
+  "env": {
+    "browser": true
+  },
+  "extends": ["eslint:recommended", "plugin:react/recommended"],
+  "plugins": ["react"],
+  "parser": "babel-eslint",
+  "rules": {
+    "comma-dangle": ["error", "only-multiline"],
+    "indent": ["error", 2],
+    "no-trailing-spaces": ["warn"],
+    "no-undef": ["error"],
+    "no-unused-vars": ["warn"],
+    "react/jsx-no-bind": ["error", {"ignoreRefs": true}],
+    "semi": ["error", "always"],
+    "strict": ["error", "never"],
+    "quotes": ["warn", "single"]
+  }
+}

@@ -17,12 +17,19 @@ from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from satchless.item import InsufficientStock, Item, ItemRange
 from unidecode import unidecode
-from versatileimagefield.fields import VersatileImageField
 
 from ...discount.models import get_variant_discounts
 from .fields import WeightField
 from .utils import get_attributes_display_map
 from ...search import index
+
+
+class CategoryManager(Manager):
+
+    def prefetch_for_api(self):
+        return self.get_queryset().prefetch_related(
+            'products__images', 'products__variants',
+            'products__variants__stock')
 
 
 @python_2_unicode_compatible
@@ -39,22 +46,24 @@ class Category(MPTTModel):
     hidden = models.BooleanField(
         pgettext_lazy('Category field', 'hidden'), default=False)
 
-    objects = Manager()
+    objects = CategoryManager()
     tree = TreeManager()
 
     def __str__(self):
         return self.name
 
-    def get_absolute_url(self):
+    def get_absolute_url(self, ancestors=None):
         return reverse('product:category',
-                       kwargs={'path': self.get_full_path(),
+                       kwargs={'path': self.get_full_path(ancestors),
                                'category_id': self.id})
 
-    def get_full_path(self):
+    def get_full_path(self, ancestors=None):
         if not self.parent_id:
             return self.slug
-        return '/'.join(
-            [node.slug for node in self.get_ancestors(include_self=True)])
+        if not ancestors:
+            ancestors = self.get_ancestors()
+        nodes = [node for node in ancestors] + [self]
+        return '/'.join([node.slug for node in nodes])
 
     class Meta:
         verbose_name_plural = 'categories'
@@ -94,10 +103,15 @@ class ProductClass(models.Model):
 
 
 class ProductManager(models.Manager):
+
     def get_available_products(self):
         today = datetime.date.today()
         return self.get_queryset().filter(
             Q(available_on__lte=today) | Q(available_on__isnull=True))
+
+    def prefetch_for_api(self):
+        return self.get_queryset().prefetch_related(
+            'images', 'categories', 'variants', 'variants__stock')
 
 
 @python_2_unicode_compatible
@@ -196,8 +210,8 @@ class ProductVariant(models.Model, Item):
         unit=settings.DEFAULT_WEIGHT, max_digits=6, decimal_places=2,
         blank=True, null=True)
     product = models.ForeignKey(Product, related_name='variants')
-    attributes = HStoreField(pgettext_lazy('Variant field', 'attributes'),
-                             default={})
+    attributes = HStoreField(
+        pgettext_lazy('Variant field', 'attributes'), default={})
     images = models.ManyToManyField('ProductImage', through='VariantImage')
 
     class Meta:
@@ -368,6 +382,7 @@ class AttributeChoiceValue(models.Model):
     display = models.CharField(
         pgettext_lazy('Attribute choice value field', 'display name'),
         max_length=100)
+    slug = models.SlugField()
     color = models.CharField(
         pgettext_lazy('Attribute choice value field', 'color'),
         max_length=7,

@@ -23,10 +23,13 @@ from ...userprofile.models import Address, User
 fake = Factory.create()
 STOCK_LOCATION = 'default'
 
+DEFAULT_CATEGORY = 'Default'
+
 DELIVERY_REGIONS = [ANY_COUNTRY, 'US', 'PL', 'DE', 'GB']
 
 DEFAULT_SCHEMA = {
     'T-Shirt': {
+        'category': 'Apparel',
         'product_attributes': {
             'Color': ['Blue', 'White'],
             'Collar': ['Round', 'V-Neck', 'Polo'],
@@ -39,6 +42,7 @@ DEFAULT_SCHEMA = {
         'is_shipping_required': True
     },
     'Mugs': {
+        'category': 'Accessories',
         'product_attributes': {
             'Brand': ['Saleor']
         },
@@ -47,6 +51,7 @@ DEFAULT_SCHEMA = {
         'is_shipping_required': True
     },
     'Coffee': {
+        'category': 'Foodstuffs',
         'product_attributes': {
             'Coffee Genre': ['Arabica', 'Robusta'],
             'Brand': ['Saleor']
@@ -59,6 +64,7 @@ DEFAULT_SCHEMA = {
         'is_shipping_required': True
     },
     'Candy': {
+        'category': 'Foodstuffs',
         'product_attributes': {
             'Flavor': ['Sour', 'Sweet'],
             'Brand': ['Saleor']
@@ -163,12 +169,13 @@ def get_price_override(schema):
 def create_items_by_class(product_class, schema,
                           placeholder_dir, how_many=10, create_images=True,
                           stdout=None):
-    default_category = get_or_create_category('Default')
+    category_name = schema.get('category') or DEFAULT_CATEGORY
+    category = get_or_create_category(category_name)
 
     for dummy in range(how_many):
         product = create_product(product_class=product_class)
         set_product_attributes(product, product_class)
-        product.categories.add(default_category)
+        product.categories.add(category)
         if create_images:
             class_placeholders = os.path.join(
                 placeholder_dir, schema['images_dir'])
@@ -280,10 +287,12 @@ def create_attribute(**kwargs):
 
 
 def create_attribute_value(attribute, **kwargs):
+    display = fake.word()
     defaults = {
-        'display': fake.word(),
-        'attribute': attribute}
+        'attribute': attribute,
+        'display': display}
     defaults.update(kwargs)
+    defaults['slug'] = slugify(defaults['display'])
     attribute_value = AttributeChoiceValue.objects.get_or_create(**defaults)[0]
     return attribute_value
 

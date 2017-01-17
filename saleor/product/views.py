@@ -3,17 +3,15 @@ from __future__ import unicode_literals
 import datetime
 import json
 
-from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponsePermanentRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 
 from ..cart.utils import set_cart_cookie
-from ..core.utils import get_paginator_items, serialize_decimal
+from ..core.utils import serialize_decimal
 from .models import Category
 from .utils import (products_with_details, products_for_cart,
-                    products_with_availability,
                     handle_cart_form, get_availability,
                     get_product_images, get_variant_picker_data,
                     get_product_attributes_data)
@@ -107,23 +105,9 @@ def product_add_to_cart(request, slug, product_id):
 
 def category_index(request, path, category_id):
     category = get_object_or_404(Category, id=category_id)
-    children_categories = category.get_children()
-    breadcrumbs = category.get_ancestors(include_self=True)
     actual_path = category.get_full_path()
     if actual_path != path:
         return redirect('product:category', permanent=True, path=actual_path,
                         category_id=category_id)
-    products = category.products.get_available_products()
-    products = products.prefetch_related(
-        'images', 'variants', 'variants__stock')
-    products_page = get_paginator_items(
-        products, settings.PAGINATE_BY, request.GET.get('page'))
-    products = products_with_availability(
-        products_page, discounts=request.discounts,
-        local_currency=request.currency)
-    return TemplateResponse(
-        request, 'category/index.html',
-        {'products': products, 'category': category,
-         'children_categories': children_categories,
-         'breadcrumbs': breadcrumbs,
-         'products_page': products_page})
+    return TemplateResponse(request, 'category/index.html',
+                            {'category': category})
