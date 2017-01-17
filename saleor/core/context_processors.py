@@ -25,3 +25,7 @@ def categories(request):
 
 def search_enabled(request):
     return {'SEARCH_IS_ENABLED': bool(settings.SEARCH_BACKENDS)}
+
+
+def social_account_providers(request):
+    return get_setting_as_dict('SOCIALACCOUNT_PROVIDERS')

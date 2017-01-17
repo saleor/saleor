@@ -92,6 +92,7 @@ context_processors = [
     'saleor.core.context_processors.categories',
     'saleor.cart.context_processors.cart_counter',
     'saleor.core.context_processors.search_enabled',
+    'saleor.core.context_processors.social_account_providers',
 ]
 
 loaders = [
@@ -172,7 +173,8 @@ INSTALLED_APPS = [
     'webpack_loader',
     'allauth',
     'allauth.account',
-    'allauth.socialaccount'
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.facebook',
 ]
 
 LOGGING = {
@@ -324,6 +326,12 @@ ACCOUNT_USERNAME_REQUIRED = False
 SOCIALACCOUNT_EMAIL_VERIFICATION = False
 ACCOUNT_LOGOUT_ON_GET = True
 ACCOUNT_ADAPTER = 'saleor.userprofile.adapters.AccountAdapter'
+SOCIALACCOUNT_PROVIDERS = {
+    'facebook': {
+        'SCOPE': ['email'],
+        'METHOD': 'oauth2'
+    }
+}
 
 
 ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
