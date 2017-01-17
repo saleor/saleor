@@ -13,7 +13,7 @@ class ProductItem extends Component {
   render() {
     const { product } = this.props;
     return (
-      <div className="col-xs-6 col-md-4 product-list" itemScope itemType="https://schema.org/Product">
+      <div className="col-6 col-md-4 product-list" itemScope itemType="https://schema.org/Product">
         <div className="text-center">
           <div>
             <a itemProp="url" href={product.url}>

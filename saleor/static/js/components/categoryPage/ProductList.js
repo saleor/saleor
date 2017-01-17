@@ -17,7 +17,7 @@ class ProductList extends Component {
     const { edges, pageInfo: { hasNextPage } } = this.props.products;
     return (
       <div>
-        <div>
+        <div className="row">
           {edges && (edges.map((edge, i) => (
             <ProductItem key={i} product={edge.node} />
           )))}

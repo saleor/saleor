@@ -135,18 +135,22 @@
 			h3 {
 				margin-bottom: $global-margin;
 				span {
+					width: 100%;
 					margin: 0;
+					display: inline;
 				}
 			}
 			input {
-				width: 7.6rem;
+				width: 40%;
 				display: inline-block;
 			}
 			span {
-				margin: 0 $global-margin;
+				width: 20%;
+				text-align: center;
+				display: inline-block;
 			}
 			button {
-				width: 18rem;
+				width: 100%;
 				margin-top: $global-margin;
 			}
 		}
