@@ -1,113 +1,74 @@
 module.exports = function(grunt) {
+
   grunt.initConfig({
-    browserSync: {
-      dev: {
-        bsFiles: {
-          src: [
-            "static/*.css",
-            "static/*.js",
-            "*.html"
-          ]
-        },
-        options: {
-          open: false,
-          port: "3004",
-          server: {
-            baseDir: "./"
-          },
-          reloadOnRestart: true,
-          watchTask: true
-        }
-      }
-    },
-    jade: {
-      release: {
-        options: {
-          data: {
-            debug: false
-          }
-        },
-        files: {
-          "index.html": "src/jade/index.jade"
-          //"business.html": "src/jade/business.jade",
-          //"developers.html": "src/jade/developers.jade"
-        }
-      }
-    },
-    postcss: {
-      options: {
-        map: true,
-        processors: [
-          require("autoprefixer-core"),
-          require("csswring")
-        ]
-      },
-      prod: {
-        src: "static/style.css"
-      }
-    },
-    sass: {
-      options: {
-        sourceMap: true,
-        includePaths: ["bower_components"]
-      },
-      dist: {
-        files: {
-          "static/style.css": "src/scss/style.scss"
-        }
-      }
-    },
+    pkg: grunt.file.readJSON('package.json'),
+    
     uglify: {
-      options: {
-        mangle: false,
-        sourceMap: true
-      },
       dev: {
         files: {
-          "static/site.js": [
-            "bower_components/jquery/dist/jquery.js",
-            "bower_components/bootstrap-sass/assets/javascripts/bootstrap.js",
-            "bower_components/jquery-smooth-scroll/jquery.smooth-scroll.js",
-            "bower_components/typed.js/js/typed.js",
-            "src/js/site.js"
-          ]
+          'themes/saleor/source/js/jquery.js':
+            ['node_modules/jquery/dist/jquery.js'],
+          'themes/saleor/source/js/app.js':
+            ['themes/saleor/js/app.js']
+        }
+      }
+    },  
+    sass: { 
+      options: {
+        includePaths: ['node_modules/bootstrap-sass/assets/stylesheets/']
+      },                             
+      dist: {                             
+        options: {                       
+          style: 'compressed'
+        },
+        files: {                         
+          'themes/saleor/source/app.css': 'themes/saleor/styles/app.scss'
         }
       }
     },
-    uncss: {
-      dist: {
-        files: {
-          "static/style.css": "index.html"
-        },
-        options: {
-          ignore: [/typed-cursor/]
-        }
+    imagemin: {
+      dynamic: {
+        files: [{
+          expand: true,
+          cwd: 'themes/saleor/images',
+          src: ['**/*.{png,jpg,gif,svg}'],
+          dest: 'themes/saleor/source/images/'
+        }]
       }
     },
     watch: {
-      options: {
-        atBegin: true,
-        interrupt: false,
-        livereload: true,
-        spawn: false
-      },
-      jade: {
-        files: ["src/jade/**/*.jade"],
-        tasks: ["jade"]
-      },
+      grunt: { files: ['Gruntfile.js'] },
       sass: {
-        files: ["src/scss/**/*.scss"],
-        tasks: ["sass", "uncss", "postcss"]
+        files: 'themes/saleor/styles/*.scss',
+        tasks: ['sass']
       },
       uglify: {
-        files: ["src/js/**/*.js"],
-        tasks: ["uglify"]
+        files: 'themes/saleor/js/*.js',
+        tasks: ['uglify']
       }
-    }
+    },
+    browserSync: {
+      dev: {
+        bsFiles: {
+          src : [
+            'public/styles/*.css',
+            'public/'
+          ]
+        },
+        options: {
+          watchTask: true,
+          server: 'public'
+        }
+      }
+    }  
   });
 
-  require("load-grunt-tasks")(grunt);
+  grunt.loadNpmTasks('grunt-sass');
+  grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-browser-sync');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-contrib-imagemin');
 
-  grunt.registerTask("default", ["jade", "sass", "uncss", "postcss", "uglify"]);
-  grunt.registerTask("sync", ["browserSync", "watch"]);
+  grunt.registerTask('build', ['sass', 'uglify', 'imagemin']);
+  grunt.registerTask('sync', ['browserSync','watch', 'uglify']);
 };

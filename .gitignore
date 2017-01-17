@@ -1,5 +1,10 @@
-!.gitignore
-.*
-bower_components
-node_modules
-*.map
+.DS_Store
+Thumbs.db
+db.json
+*.log
+node_modules/
+public/
+.deploy*/
+themes/saleor/source/js/
+themes/saleor/source/app.css
+themes/saleor/source/images/

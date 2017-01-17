@@ -1,0 +1,21 @@
+# Site
+title: Saleor
+description: Saleor - a sample shop!
+author: Mirumee
+language: en
+
+# URL
+url: http://yoursite.com
+root: /
+
+# Directory
+source_dir: source
+public_dir: public
+
+# Writing
+default_layout: page
+titlecase: false
+external_link: true 
+filename_case: 0
+
+theme: saleor
