@@ -37,19 +37,19 @@
           <div class="userprofile__orders">
             <div class="userprofile__orders__row">
               <div class="row">
-                <div class="col-md-2 col-xs-5">
+                <div class="col-md-2 col-5">
                   {{ order }}
                 </div>
-                <div class="col-md-4 col-xs-6">
+                <div class="col-md-4 col-6">
                   {{ order.created }}
                 </div>
-                <div class="col-md-1 col-xs-5">
+                <div class="col-md-1 col-5">
                   <span class="float-md-right">{% gross order.get_total %}</span>
                 </div>
-                <div class="col-md-2 col-xs-5 offset-md-1">
+                <div class="col-md-2 col-5 offset-md-1">
                   {% render_status order.status order.get_status_display %}
                 </div>
-                <div class="col-md-2 col-xs-2">
+                <div class="col-md-2 col-2">
                   <a href="{{ order.get_absolute_url }}"><small class="float-right">{% trans "Details" %}</small></a>
                 </div>
               </div>

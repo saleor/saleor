@@ -33,21 +33,21 @@
             {% for delivery, delivery_cost, total_with_delivery in checkout.deliveries %}
                 {% for item, item_price_per_item, item_price_total in delivery %}
                     <div class="row">
-                      <div class="col-xs-8">
+                      <div class="col-8">
                         <p><strong>{{ item.variant.product }}</strong> x {{ item.quantity }}<br>
                           <span class="checkout__review__variant">{{ item.variant }}</span></p>
                       </div>
-                      <div class="col-xs-4">
+                      <div class="col-4">
                         <p class="float-right">{% net item_price_total %}</p>
                       </div>
                     </div>
                 {% endfor %}
             {% endfor %}
             <div class="row checkout__review__section">
-              <div class="col-xs-8">
+              <div class="col-8">
                 <p>{% trans "Delivery" %}</p>
               </div>
-              <div class="col-xs-4">
+              <div class="col-4">
                 <p class="float-right">{% if checkout.shipping_method %}
                     {% net checkout.get_total_shipping %}
                 {% else %}
@@ -56,16 +56,16 @@
               </div>
             </div>
             <div class="row checkout__review__section">
-              <div class="col-xs-12">
+              <div class="col-12">
                 <h3>{% trans "Promo code" %}</h3>
                 {% include 'checkout/snippets/voucher-form.html' with discount=checkout.discount form=voucher_form %}
               </div>
             </div>
             <div class="row checkout__review__section">
-              <div class="col-xs-8">
+              <div class="col-8">
                 <h3>{% trans "Total" %}</h3>
               </div>
-              <div class="col-xs-4">
+              <div class="col-4">
                 <h3 class="float-right">{% gross total %}</h3>
               </div>
             </div>

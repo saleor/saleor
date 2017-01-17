@@ -39,7 +39,7 @@
     {% for line in cart_lines %}
       <div class="cart__line">
         <div class="row">
-          <div class="col-md-6 col-xs-9 cart__line__product">
+          <div class="col-md-6 col-9 cart__line__product">
             <a href="{{ line.variant.get_absolute_url }}">
               {% if line.variant.product.images.first %}
                   <img class="cart-item-image" itemprop="image" src="{{ line.variant.product.images.first.image.crop.60x60 }}" alt="">
@@ -50,7 +50,7 @@
                 <br><small>{{ line.variant.display_variant }}</small></h3>
             </a>
           </div>
-          <div class="cart__line__quantity col-md-2 col-xs-3">
+          <div class="cart__line__quantity col-md-2 col-3">
             <form role="form" action="{% url "cart:update-line" variant_id=line.variant.pk %}" method="post" class="form-cart" >
                 <div class="{% if form.quantity.errors %} has-error{% endif %}" tabindex="-1">
                     {{ line.form.quantity }}
@@ -59,10 +59,10 @@
             </form>
             <small class="cart__line__quantity-error text-danger"></small>
           </div>
-          <div class="cart-item-subtotal col-md-2 col-xs-8" data-product-id="{{ line.variant.pk }}">
+          <div class="cart-item-subtotal col-md-2 col-8" data-product-id="{{ line.variant.pk }}">
             <h3 class="float-left float-sm-right">{% gross line.get_total html=True %}</h3>
           </div>
-          <div class="col-md-2 col-xs-4">
+          <div class="col-md-2 col-4">
             <img class="cart-item-delete" src="{% static 'img/icon_delete.svg' %}">
           </div>
         </div>
@@ -70,11 +70,11 @@
     {% endfor %}
     <div class="cart__total">
       <div class="row">
-        <div class="col-xs-6">
+        <div class="col-6">
           <h3>{% trans "Subtotal" %}</h3>
           <p>({% trans "Delivery claculated on checkout" %})</p>
         </div>
-        <div class="col-md-2 offset-md-2 col-xs-6">
+        <div class="col-md-2 offset-md-2 col-6">
           <h3 class="cart-total" data-value="{% gross cart_total %}"{% if local_cart_total %} data-value-local="{% gross local_cart_total %}"{% endif %}>
               {% spaceless %}
                   {% gross cart_total html=True %}
@@ -101,12 +101,12 @@
       </div>
       <div class="col-md-5 ">
         <div class="cart__delivery-info__list row">
-          <div class="col-xs-6 cart__delivery-info__method">
+          <div class="col-6 cart__delivery-info__method">
             {% for option in default_country_options %}
               <p>{{ option.shipping_method__name }}</p>
             {% endfor %}
           </div>
-          <div class="col-xs-6 cart__delivery-info__price">
+          <div class="col-6 cart__delivery-info__price">
             {% for option in default_country_options %}
               <p>{% gross option.price %}</p>
             {% endfor %}
