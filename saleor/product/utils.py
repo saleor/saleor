@@ -151,16 +151,3 @@ def price_as_dict(price):
 def price_range_as_dict(price_range):
     return {'maxPrice': price_as_dict(price_range.max_price),
             'minPrice': price_as_dict(price_range.min_price)}
-
-
-def display_variant_with_attributes(variant):
-    attributes = ProductAttribute.objects.prefetch_related('values').all()
-
-    display_dict = get_attributes_display_map(variant, attributes)
-
-    attrs_string = []
-    for key, value in six.iteritems(display_dict):
-        attr = attributes.get(id=key)
-        attrs_string.append('%s: %s' % (attr, value))
-
-    return '%s (%s)' % (smart_text(variant), ', '.join(attrs_string))
