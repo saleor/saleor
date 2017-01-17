@@ -4,7 +4,7 @@
 
 <div class="container">
   {% if quantity > 0 %}
-    {% for line in lines %}  
+    {% for line in lines %}
       <div class="row">
         <div class="col-md-10">
           <a href="{{ line.variant_url }}">
@@ -16,7 +16,7 @@
           </a>
         </div>
         <div class="col-md-2">
-          <div class="float-xs-right">
+          <div class="float-right">
             <h3>{{ line.line_total }}</h3>
           </div>
         </div>

@@ -29,8 +29,8 @@
             <header class="navbar" role="navigation">
               <div class="navbar__login hidden-sm-down">
                 <div class="container">
-                  <p class="float-xs-left">{% trans "Test Saleor - a sample shop!" %}</p>
-                  <p class="float-xs-right">
+                  <p class="float-left">{% trans "Test Saleor - a sample shop!" %}</p>
+                  <p class="float-right">
                     {% if user.is_authenticated %}
                       {% if user.is_staff %}
                           <a href="{% url "dashboard:index" %}" traget="_blank">{% trans "Dashboard" %}</a> |
@@ -50,11 +50,11 @@
                   <a href="/">
                     <img src="{% static "img/saleor-logo-black.svg" %}" alt="Testeor - Saleor demo store" height="40">
                   </a>
-                  <div class="float-xs-right">
+                  <div class="float-right">
                     {% if SEARCH_IS_ENABLED %}
                       <img class="hidden-md-up mobile-search-icon" src="{% static "img/search-icon.svg" %}">
                     {% endif %}
-                    <div class="navbar__brand__cart float-xs-right">
+                    <div class="navbar__brand__cart float-right">
                       <a href="{% url "cart:index" %}">
                         <span class="hidden-sm-down">{% trans "Your cart" %}</span>
                         <img class="navbar__brand__cart__icon" src="{% static "img/cart.svg" %}" alt="Cart">
@@ -66,7 +66,7 @@
                     </div>
                   </div>
                   {% if SEARCH_IS_ENABLED %}
-                  <form class="form-inline float-xs-right navbar__brand__search" action="{% url "search:search" %}">
+                  <form class="form-inline float-right navbar__brand__search" action="{% url "search:search" %}">
                      <img class="mobile-close-search hidden-md-up" src="{% static "img/close-icon.svg" %}">
                      <input class="form-control" type="text" placeholder="Search" name="q" value="{% if query %}{{ query }}{% endif %}">
                      <button class="btn btn-link" type="submit"><img src="{% static "img/search-icon.svg" %}"></button>
