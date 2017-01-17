@@ -128,7 +128,6 @@ MIDDLEWARE_CLASSES = [
     'saleor.core.middleware.GoogleAnalytics',
     'saleor.core.middleware.CountryMiddleware',
     'saleor.core.middleware.CurrencyMiddleware',
-    'saleor.site.middleware.SiteSettingMiddleware',
 ]
 
 INSTALLED_APPS = [
