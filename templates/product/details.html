@@ -30,8 +30,8 @@
     {% endif %}
     <div itemscope itemtype="http://schema.org/Product">
         <div class="row product">
-            <div class="col-xs-12 col-md-7"></div>
-            <div class="col-xs-12 col-md-5">
+            <div class="col-12 col-md-7"></div>
+            <div class="col-12 col-md-5">
               <h1 itemprop="name" class="product__info__name">
                   {{ product }}
               </h1>
@@ -58,7 +58,7 @@
                     {% endif %}
               {% endif %}
             </div>
-            <div class="col-md-7 col-xs-12 product__gallery">
+            <div class="col-md-7 col-12 product__gallery">
               {% with images=product_images %}
                 {% if images %}
                 <div id="carousel-example-generic" class="carousel slide">
@@ -92,7 +92,7 @@
                 {% endif %}
               {% endwith %}
             </div>
-            <div class="col-md-5 col-xs-12 product__info">
+            <div class="col-md-5 col-12 product__info">
                 {% if is_visible and product.is_in_stock %}
                     {% block orderform %}
                         {% for attribute, value in product_attributes.items %}

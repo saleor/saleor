@@ -10,10 +10,10 @@
     p {
       margin: $global-margin / 2 0;
       font-size: $small-font-size;
-      &.float-xs-left {
+      &.float-left {
         color: $white;
       }
-      &.float-xs-right {
+      &.float-right {
         a {
           color: $body-color;
         }
@@ -193,7 +193,4 @@
   }
 }
 
-// Missing in Bootstrap 4
-.float-xs-left { float: left !important; }
-.float-xs-right { float: right !important; }
 

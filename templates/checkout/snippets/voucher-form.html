@@ -7,7 +7,7 @@
         {% if discount %}
                 <form action="{% url "checkout:remove-voucher" %}?next={{ request.path }}"
                       method="post"
-                      class="float-xs-left checkout__review__voucher-form">
+                      class="float-left checkout__review__voucher-form">
                     {% csrf_token %}
                     <span>{{ discount.name }}</span>
                     <button type="submit"
@@ -17,7 +17,7 @@
                     </button>
 
                 </form>
-            <div class="float-xs-right">
+            <div class="float-right">
                 {% gross discount|discount_amount_for:total %}
             </div>
         {% else %}
