@@ -97,7 +97,9 @@ def test_checkout_deliveries_with_shipping_method(monkeypatch):
 ])
 def test_checkout_shipping_address_with_anonymous_user(user, shipping):
     checkout = Checkout(Mock(), user, 'tracking_code')
+    assert checkout._shipping_address is None
     assert checkout.shipping_address == shipping
+    assert checkout._shipping_address == shipping
 
 
 @pytest.mark.parametrize('address_objects, shipping', [
@@ -114,7 +116,9 @@ def test_checkout_shipping_address_with_storage(address_objects, shipping, monke
 def test_checkout_shipping_address_setter():
     address = Address(first_name='Jan', last_name='Kowalski')
     checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
+    assert checkout._shipping_address is None
     checkout.shipping_address = address
+    assert checkout._shipping_address == address
     assert checkout.storage['shipping_address'] == {
         'city': u'', 'city_area': u'', 'company_name': u'', 'country': '', 'phone': u'',
         'country_area': u'', 'first_name': 'Jan', 'id': None, 'last_name': 'Kowalski',
@@ -134,7 +138,9 @@ def test_checkout_shipping_method(shipping_address, shipping_method, value, monk
     monkeypatch.setattr('saleor.checkout.core.ShippingMethodCountry.objects', queryset)
     checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
     checkout.storage['shipping_method_country_id'] = 1
+    assert checkout._shipping_method is None
     assert checkout.shipping_method == value
+    assert checkout._shipping_method == value
 
 
 def test_checkout_shipping_does_not_exists(monkeypatch):
@@ -149,7 +155,9 @@ def test_checkout_shipping_method_setter():
     shipping_method = Mock(id=1)
     checkout = Checkout(Mock(), AnonymousUser(), 'tracking_code')
     assert checkout.modified is False
+    assert checkout._shipping_method is None
     checkout.shipping_method = shipping_method
+    assert checkout._shipping_method == shipping_method
     assert checkout.modified is True
     assert checkout.storage['shipping_method_country_id'] == 1
 

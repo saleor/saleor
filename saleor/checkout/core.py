@@ -88,13 +88,12 @@ class Checkout(object):
 
     @property
     def shipping_address(self):
-        if self._shipping_address is not None:
-            return self._shipping_address
-        address = self._get_address_from_storage('shipping_address')
-        if address is None and self.user.is_authenticated():
-            address = self.user.default_shipping_address
-        self._shipping_address = address
-        return address
+        if self._shipping_address is None:
+            address = self._get_address_from_storage('shipping_address')
+            if address is None and self.user.is_authenticated():
+                address = self.user.default_shipping_address
+            self._shipping_address = address
+        return self._shipping_address
 
     @shipping_address.setter
     def shipping_address(self, address):
@@ -102,26 +101,29 @@ class Checkout(object):
         address_data['country'] = smart_text(address_data['country'])
         self.storage['shipping_address'] = address_data
         self.modified = True
+        self._shipping_address = address
 
     @property
     def shipping_method(self):
-        if self._shipping_method is not None:
-            return self._shipping_method
-        shipping_address = self.shipping_address
-        if shipping_address is not None:
+        if self._shipping_method is None:
+            shipping_address = self.shipping_address
+            if shipping_address is None:
+                return None
             shipping_method_country_id = self.storage.get(
                 'shipping_method_country_id')
-            if shipping_method_country_id is not None:
-                try:
-                    shipping_method_country = ShippingMethodCountry.objects.get(
-                        id=shipping_method_country_id)
-                except ShippingMethodCountry.DoesNotExist:
-                    return None
-                shipping_country_code = shipping_address.country.code
-                if (shipping_method_country.country_code == ANY_COUNTRY or
-                        shipping_method_country.country_code == shipping_country_code):
-                    self._shipping_method = shipping_method_country
-                    return shipping_method_country
+            if shipping_method_country_id is None:
+                return None
+            try:
+                shipping_method_country = ShippingMethodCountry.objects.get(
+                    id=shipping_method_country_id)
+            except ShippingMethodCountry.DoesNotExist:
+                return None
+            shipping_country_code = shipping_address.country.code
+            allowed_codes = [ANY_COUNTRY, shipping_country_code]
+            if shipping_method_country.country_code not in allowed_codes:
+                return None
+            self._shipping_method = shipping_method_country
+        return self._shipping_method
 
     @shipping_method.setter
     def shipping_method(self, shipping_method_country):
