@@ -3,6 +3,10 @@ import Relay from 'react-relay';
 
 import AttributeInput from './AttributeInput';
 
+import chevronUpIcon from '../../../images/chevron-up-icon.svg';
+import chevronDownIcon from '../../../images/chevron-down-icon.svg';
+
+
 class ProductFilters extends Component {
 
   constructor(props) {
@@ -51,7 +55,7 @@ class ProductFilters extends Component {
             <div key={attribute.id}>
               <h3 className={attribute.name} onClick={() => this.changeVisibility(attribute.name)}>
                 {attribute.display}
-                <img className="float-right" src={visibility[attribute.name] ? ('/static/images/chevron-up-icon.svg') : ('/static/images/chevron-down-icon.svg')} width="20" />
+                <img className="float-right" src={visibility[attribute.name] ? (chevronUpIcon) : (chevronDownIcon)} width="20" />
               </h3>
               <ul id={attribute.name}>
                 {attribute.values.map((value) => {

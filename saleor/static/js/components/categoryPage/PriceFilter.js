@@ -1,5 +1,8 @@
 import React, { Component, PropTypes } from 'react';
 
+import chevronUpIcon from '../../../images/chevron-up-icon.svg';
+import chevronDownIcon from '../../../images/chevron-down-icon.svg';
+
 export default class PriceFilter extends Component {
 
   constructor(props) {
@@ -40,7 +43,7 @@ export default class PriceFilter extends Component {
       <div className="price-range">
         <h3 onClick={this.changeVisibility}>
           Price range
-          <img className="float-right" src={visibility ? ('/static/images/chevron-up-icon.svg') : ('/static/images/chevron-down-icon.svg')} width="20" />
+          <img className="float-right" src={visibility ? (chevronUpIcon) : (chevronDownIcon)} width="20" />
         </h3>
         {visibility || minPrice || maxPrice ? (
           <div>
