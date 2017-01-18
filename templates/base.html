@@ -62,32 +62,40 @@
               </div>
               <div class="navbar__brand">
                 <div class="container">
-                  <img class="hidden-md-up navbar__brand__menu-toggle closed open" src="{% static "images/mobile-bar.svg" %}">
-                  <a href="/">
-                    <img src="{% static "images/saleor-logo-black.svg" %}" alt="Testeor - Saleor demo store" height="40">
-                  </a>
-                  <div class="float-right">
-                    {% if SEARCH_IS_ENABLED %}
-                      <img class="hidden-md-up mobile-search-icon" src="{% static "images/search-icon.svg" %}">
-                    {% endif %}
-                    <div class="navbar__brand__cart float-right">
-                      <a href="{% url "cart:index" %}">
-                        <span class="hidden-sm-down">{% trans "Your cart" %}</span>
-                        <img class="navbar__brand__cart__icon" src="{% static "images/cart.svg" %}" alt="Cart">
-                        <span class="badge {% if not cart_counter %}hidden-xs-up{% endif %}">{{ cart_counter }}</span>
+                  <div class="row">
+                    <div class="col-3">
+                      <img class="hidden-md-up navbar__brand__menu-toggle closed open" src="{% static "img/mobile-bar.svg" %}">
+                      <a href="/">
+                        <img src="{% static "img/saleor-logo-black.svg" %}" alt="Testeor - Saleor demo store" height="38">
                       </a>
-                      <div class="cart-dropdown hidden-md-down">
-                      {% include 'cart-dropdown.html' %}
+                    </div>
+                    <div class="col-6">
+                      {% if SEARCH_IS_ENABLED %}
+                        <form class="form-inline navbar__brand__search" action="{% url "search:search" %}">
+                          <img class="mobile-close-search hidden-md-up" src="{% static "img/close-icon.svg" %}">
+                          <input class="form-control search-input" type="text" placeholder="Search" name="q" value="{% if query %}{{ query }}{% endif %}">
+                          <button class="btn btn-link" type="submit">
+                            <img src="{% static "img/search-icon.svg" %}">
+                          </button>
+                        </form>
+                      {% endif %}
+                      {% if SEARCH_IS_ENABLED %}
+                        <img class="hidden-md-up mobile-search-icon" src="{% static "img/search-icon.svg" %}">
+                      {% endif %}
+                    </div>
+                    <div class="col-3">
+                      <div class="navbar__brand__cart float-right">
+                        <a href="{% url "cart:index" %}">
+                          <span class="hidden-sm-down">{% trans "Your cart" %}</span>
+                          <img class="navbar__brand__cart__icon" src="{% static "img/cart.svg" %}" alt="Cart">
+                          <span class="badge {% if not cart_counter %}hidden-xs-up{% endif %}">{{ cart_counter }}</span>
+                        </a>
+                        <div class="cart-dropdown hidden-md-down">
+                        {% include 'cart-dropdown.html' %}
+                        </div>
                       </div>
                     </div>
                   </div>
-                  {% if SEARCH_IS_ENABLED %}
-                  <form class="form-inline float-right navbar__brand__search" action="{% url "search:search" %}">
-                     <img class="mobile-close-search hidden-md-up" src="{% static "images/close-icon.svg" %}">
-                     <input class="form-control" type="text" placeholder="Search" name="q" value="{% if query %}{{ query }}{% endif %}">
-                     <button class="btn btn-link" type="submit"><img src="{% static "images/search-icon.svg" %}"></button>
-                  </form>
-                  {% endif %}
                 </div>
               </div>
 

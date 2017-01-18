@@ -12,7 +12,7 @@
     padding-bottom: $global-padding * 2;
     box-shadow: 3px 3px 3px 0px rgba($gray, 0.75);
     max-height: 28rem;
-    overflow-y: scroll;
+    overflow-y: auto;
   }
   a {
     color: $body-color;
@@ -35,8 +35,8 @@
     width: 15px;
     height: 10px;
     position: absolute;
-    top: 47px;
-    right: 25px;
+    top: 54px;
+    right: 10px;
     background-color: $light-gray;
     clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
   }

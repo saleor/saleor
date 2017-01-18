@@ -37,17 +37,13 @@
       z-index: 4;
       border-bottom: 1px solid $gray;
     }
-    .container {
-      position: relative;
-    }
     &__cart {
       @include media-breakpoint-up(md) {
-        margin-top: $global-margin / 2;
+        line-height: 2.4rem;
       }
       &__icon {
         margin-left: $global-margin;
       }
-      margin-right: $global-margin;
       a {
         color: $body-color;
         position: relative;
@@ -81,11 +77,8 @@
       padding-left: $global-padding;
     }
     &__search {
-      max-width: 50%;
-      width: 40%;
+      width: 100%;
       position: relative;
-      margin-right: 10%;
-      margin-top: $global-margin / 2;
       .mobile-close-search {
         position: absolute;
         top: 1.9rem;
@@ -93,14 +86,14 @@
         max-width: 22px;
         cursor: pointer;
       }
-      .form-control {
+      .search-input {
         width: 100%;
         border-color: $body-color;
       }
       .btn {
         position: absolute;
-        top: 0.25rem;
-        right: 0.25rem;
+        right: 0.5rem;
+        border: 0;
         img {
           max-height: 1.5rem;
         }
