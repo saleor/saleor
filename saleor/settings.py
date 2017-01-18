@@ -92,7 +92,6 @@ context_processors = [
     'saleor.core.context_processors.categories',
     'saleor.cart.context_processors.cart_counter',
     'saleor.core.context_processors.search_enabled',
-    'saleor.core.context_processors.social_account_providers',
 ]
 
 loaders = [
@@ -176,7 +175,6 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.facebook',
 ]
 
 LOGGING = {
@@ -241,12 +239,7 @@ ACCOUNT_ACTIVATION_DAYS = 3
 
 LOGIN_REDIRECT_URL = 'home'
 
-FACEBOOK_APP_ID = os.environ.get('FACEBOOK_APP_ID')
-FACEBOOK_SECRET = os.environ.get('FACEBOOK_SECRET')
-
 GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get('GOOGLE_ANALYTICS_TRACKING_ID')
-GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
-GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
 
 PAYMENT_MODEL = 'order.Payment'
 
@@ -330,12 +323,6 @@ ACCOUNT_LOGOUT_ON_GET = True
 ACCOUNT_SESSION_REMEMBER = False
 ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
 ACCOUNT_ADAPTER = 'saleor.userprofile.adapters.AccountAdapter'
-SOCIALACCOUNT_PROVIDERS = {
-    'facebook': {
-        'SCOPE': ['email'],
-        'METHOD': 'oauth2'
-    }
-}
 
 
 ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
