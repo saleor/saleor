@@ -8,7 +8,6 @@ import ProductFilters from './components/categoryPage/ProductFilters';
 const categoryPage = document.getElementById('category-page');
 const categoryData = JSON.parse(categoryPage.getAttribute('data-category'));
 
-
 class App extends React.Component {
 
   static propTypes = {
@@ -44,18 +43,18 @@ const RelayApp = Relay.createContainer(App, {
           }
         }
       }
-    `,
-  },
+    `
+  }
 });
 
 const AppRoute = {
   queries: {
     viewer: () => Relay.QL`
       query { viewer }
-    `,
+    `
   },
   params: {},
-  name: 'Viewer',
+  name: 'Viewer'
 };
 
 ReactDOM.render(

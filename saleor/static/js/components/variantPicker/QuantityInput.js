@@ -1,6 +1,5 @@
-import classNames from 'classnames'
-import React, { Component, PropTypes } from 'react'
-
+import classNames from 'classnames';
+import React, { Component, PropTypes } from 'react';
 
 export default class QuantityInput extends Component {
 
@@ -11,11 +10,11 @@ export default class QuantityInput extends Component {
   }
 
   render() {
-    const { errors, quantity } = this.props
+    const { errors, quantity } = this.props;
     const formGroupClasses = classNames({
       'form-group': true,
       'has-error': errors && !!errors.length
-    })
+    });
     return (
       <div className={formGroupClasses}>
         <label className="control-label" htmlFor="id_quantity">Quantity</label>
@@ -33,6 +32,6 @@ export default class QuantityInput extends Component {
           <span className="help-block">{errors.join(' ')}</span>
         )}
       </div>
-    )
+    );
   }
 }
