@@ -8,14 +8,22 @@
   &__login {
     background-color: $gray;
     p {
-      margin: $global-margin / 2 0;
-      font-size: $small-font-size;
-      &.float-left {
-        color: $white;
-      }
-      &.float-right {
+      padding: $global-padding/2 0;
+      font-size: 0.8rem;
+      margin-bottom: 0;
+      color: $white;
+      line-height: 1.9rem;
+    }
+    ul {
+      list-style: none;
+      margin-bottom: 0;
+      li {
+        display: inline-block;
+        padding: $global-padding/2;
+        line-height: 1.9rem;
         a {
           color: $body-color;
+          font-size: 0.8rem;
         }
       }
     }

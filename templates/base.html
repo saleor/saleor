@@ -29,19 +29,35 @@
             <header class="navbar" role="navigation">
               <div class="navbar__login hidden-sm-down">
                 <div class="container">
-                  <p class="float-left">{% trans "Test Saleor - a sample shop!" %}</p>
-                  <p class="float-right">
-                    {% if user.is_authenticated %}
-                      {% if user.is_staff %}
-                          <a href="{% url "dashboard:index" %}" traget="_blank">{% trans "Dashboard" %}</a> |
-                      {% endif %}
-                      <a href="{% url "profile:details" %}">{% trans "Your account" %}</a> |
-                      <a href="{% url "account_logout" %}">{% trans "Log out" %}</a>
-                    {% else %}
-                      <a href="{% url "account_signup" %}">{% trans "Register" %}</a> |
-                      <a href="{% url "account_login" %}">{% trans "Log in" %}</a>
-                    {% endif %}
-                  </p>
+                  <div class="row">
+                    <div class="col-6">
+                      <p class="text-left">{% trans "Test Saleor - a sample shop!" %}</p>
+                    </div>
+                    <div class="col-6">
+                      <ul class="float-right">
+                        {% if user.is_authenticated %}
+                          {% if user.is_staff %}
+                            <li>
+                              <a href="{% url "dashboard:index" %}" traget="_blank">{% trans "Dashboard" %}</a>
+                            </li>
+                          {% endif %}
+                          <li>
+                            <a href="{% url "profile:details" %}">{% trans "Your account" %}</a> 
+                          </li>
+                          <li>
+                            <a href="{% url "account_logout" %}">{% trans "Log out" %}</a>
+                          </li>
+                        {% else %}
+                          <li>
+                            <a href="{% url "account_signup" %}">{% trans "Register" %}</a>
+                          </li>
+                          <li>
+                            <a href="{% url "account_login" %}">{% trans "Log in" %}</a>
+                          </li>
+                        {% endif %}
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="navbar__brand">
@@ -74,6 +90,7 @@
                   {% endif %}
                 </div>
               </div>
+
               <div class="navbar__menu">
                 <div class="container">
                   <nav class="navigation">
@@ -90,6 +107,7 @@
                   </nav>
                 </div>
               </div>
+
             </header>
         {% endblock %}
         <div class="container maincontent">
