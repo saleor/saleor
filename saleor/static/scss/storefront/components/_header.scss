@@ -148,16 +148,6 @@
         + .nav-item {
           margin-left: 0;
         }
-        &:not(.login-item) {
-          &:last-of-type {
-            a {
-              color: $red;
-              &:hover {
-                color: rgba($red, 0.6);
-              }
-            }
-          }
-        }
         a {
           color: $body-color;
           transition: 0.3s;
