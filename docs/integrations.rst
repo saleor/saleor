@@ -53,44 +53,6 @@ To update the exchange rates run the following command at least once per day:
     Heroku users can use the `Scheduler add-on <https://elements.heroku.com/addons/scheduler>`_ to automatically call the command daily at a predefined time.
 
 
-Log in using Facebook
----------------------
-
-This integration will let your customers log in using their Facebook accounts.
-
-Before you begin you will need a verified Facebook account.
-Start by `registering as a developer <https://developers.facebook.com/>`_ on Facebook and creating a new Facebook app for your store.
-
-You can find your freshly created app's “App ID” and “App Secret” in its *Settings* tab.
-
-Export the following environment variables:
-
-``FACEBOOK_APP_ID``
-  Your Facebook app's “App ID.”
-
-``FACEBOOK_SECRET``
-  Your Facebook app's “App Secret.”
-
-
-Log in using Google
--------------------
-
-This integration will let your customers log in using their Google accounts.
-
-Before you begin you will need a Google account.
-Start by `creating a Google Developers Console project and client ID <https://developers.google.com/identity/sign-in/web/devconsole-project>`_.
-
-Set the “Redirect URI” to ``http://<yourserver>/account/oauth_callback/google/`` where ``<yourserver>`` is the domain that you use.
-
-Obtained “Client ID” and “Client secret“ need to be exported as environment variables:
-
-``GOOGLE_CLIENT_ID``
-  Your project's “Client ID.”
-
-``GOOGLE_CLIENT_SECRET``
-  Your project's “Client secret.“
-
-
 Reporting with Google Analytics
 -------------------------------
 

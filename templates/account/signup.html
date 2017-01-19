@@ -15,7 +15,10 @@
             <h2>{% trans 'Create an account' %}</h2>
             {% csrf_token %}
             {% bootstrap_form form %}
-            <input type="hidden" name="next" value="{{ next }}" />
+            {% if redirect_field_value %}
+              <input type="hidden" name="next" name="{{ redirect_field_name }}"
+                     value="{{ redirect_field_value }}"/>
+            {% endif %}
           </fieldset>
           <div class="form-group text-right">
               <button type="submit" class="btn btn primary">{% trans "Create an account" %}</button>

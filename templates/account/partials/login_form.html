@@ -1,0 +1,23 @@
+{% load bootstrap_form from bootstrap3 %}
+{% load i18n %}
+
+
+<form method="post" action="{% url 'account_login' %}" novalidate>
+  {% csrf_token %}
+  <fieldset>
+    <h2>{% trans 'Log in' %}</h2>
+    {% bootstrap_form form %}
+    {% if redirect_field_value %}
+      <input type="hidden" name="next" name="{{ redirect_field_name }}"
+             value="{{ redirect_field_value }}"/>
+    {% endif %}
+  </fieldset>
+  <div class="row login__btn-group">
+    <div class="col-sm-12">
+      <button class="btn primary">
+        {% trans "Log in" %}
+      </button>
+      <a href="{% url 'account_reset_password' %}">{% trans "Forgot password?" %}</a>
+    </div>
+  </div>
+</form>
