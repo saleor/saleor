@@ -3,7 +3,6 @@ import Relay from 'react-relay';
 
 import AttributeInput from './AttributeInput';
 
-
 class ProductFilters extends Component {
 
   constructor(props) {
@@ -29,7 +28,7 @@ class ProductFilters extends Component {
 
   changeVisibility = (target) => {
     this.setState({
-      visibility: Object.assign(this.state.visibility, {[target] : !this.state.visibility[target]})
+      visibility: Object.assign(this.state.visibility, {[target]: !this.state.visibility[target]})
     });
   }
 
@@ -37,9 +36,9 @@ class ProductFilters extends Component {
     this.props.attributes.map((attribute) => {
       const attrValue = `${attribute.name}`;
       this.setState({
-        visibility: Object.assign(this.state.visibility, {[attrValue] : true})
+        visibility: Object.assign(this.state.visibility, {[attrValue]: true})
       });
-    })
+    });
   }
 
   render() {
@@ -57,7 +56,7 @@ class ProductFilters extends Component {
               <ul id={attribute.name}>
                 {attribute.values.map((value) => {
                   const key = this.getFilterKey(attribute.name, value.slug);
-                    if(visibility[attribute.name] || checkedAttributes.includes(key)) {
+                  if (visibility[attribute.name] || checkedAttributes.includes(key)) {
                     return (
                       <li key={value.id} className="item">
                         <AttributeInput
@@ -68,7 +67,7 @@ class ProductFilters extends Component {
                         />
                       </li>
                     );
-                    }
+                  }
                 })}
               </ul>
             </div>
@@ -94,6 +93,6 @@ export default Relay.createContainer(ProductFilters, {
           color
         }
       }
-    `,
-  },
+    `
+  }
 });

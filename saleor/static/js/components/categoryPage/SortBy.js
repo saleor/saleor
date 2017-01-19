@@ -27,7 +27,7 @@ export default class sortBy extends Component {
   }
 
   render() {
-    const { sortedValue }  = this.props
+    const { sortedValue } = this.props;
     const { visibility } = this.state;
     return (
       <div className="sort-by">
@@ -41,7 +41,7 @@ export default class sortBy extends Component {
               </div>
             ) : (
                <div>
-                <span>Sort by: <strong>{sortedValue.replace('-','')}</strong></span>
+                <span>Sort by: <strong>{sortedValue.replace('-', '')}</strong></span>
                 <img src="/static/img/arrow-down-icon.svg" width="15" />
               </div>
             )
@@ -81,7 +81,7 @@ export default class sortBy extends Component {
                   <span className="-price" onClick={this.setSorting}>descending</span>
                   <img className="float-right" src="/static/img/arrow-down-icon.svg" width="15" />
               </div>
-            </div>    
+            </div>
           </li>
         </ul>
         ) : (null)}

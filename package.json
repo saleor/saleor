@@ -54,7 +54,10 @@
     "babel-relay-plugin-loader": "^0.9.0",
     "css-loader": "^0.25.0",
     "eslint": "^3.10.2",
+    "eslint-config-standard": "^6.2.1",
+    "eslint-plugin-promise": "^3.4.0",
     "eslint-plugin-react": "^6.7.1",
+    "eslint-plugin-standard": "^2.0.1",
     "extract-text-webpack-plugin": "^1.0.1",
     "file-loader": "^0.9.0",
     "node-sass": "^3.10.0",
@@ -80,12 +83,12 @@
   },
   "metadata": {
     "graphql": {
-      "schema": "./schema.json"
+      "schema": "./saleor/static/schema.json"
     }
   },
   "scripts": {
-    "build-assets": "python manage.py graphql_schema; node ./node_modules/webpack/bin/webpack.js -p",
+    "build-assets": "node ./node_modules/webpack/bin/webpack.js -p",
     "heroku-postbuild": "npm run build-assets",
-    "start": "python manage.py graphql_schema; UV_THREADPOOL_SIZE=8 node ./node_modules/webpack/bin/webpack.js -d --watch"
+    "start": "UV_THREADPOOL_SIZE=8 node ./node_modules/webpack/bin/webpack.js -d --watch"
   }
 }

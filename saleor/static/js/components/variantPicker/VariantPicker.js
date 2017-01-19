@@ -1,12 +1,11 @@
-import _ from 'lodash'
-import $ from 'jquery'
-import classNames from 'classnames'
-import { observer } from 'mobx-react'
-import React, { Component, PropTypes } from 'react'
+import _ from 'lodash';
+import $ from 'jquery';
+import classNames from 'classnames';
+import { observer } from 'mobx-react';
+import React, { Component, PropTypes } from 'react';
 
-import AttributeSelectionWidget from './AttributeSelectionWidget'
-import QuantityInput from './QuantityInput'
-
+import AttributeSelectionWidget from './AttributeSelectionWidget';
+import QuantityInput from './QuantityInput';
 
 @observer
 export default class VariantPicker extends Component {
@@ -21,23 +20,23 @@ export default class VariantPicker extends Component {
   }
 
   constructor(props) {
-    super(props)
-    const { store, variants } = this.props
+    super(props);
+    const { store, variants } = this.props;
 
-    const variant = variants.filter(v => !!Object.keys(v.attributes).length)[0]
-    const selection = variant ? variant.attributes : {}
+    const variant = variants.filter(v => !!Object.keys(v.attributes).length)[0];
+    const selection = variant ? variant.attributes : {};
 
     this.state = {
       errors: {},
       quantity: 1,
       selection: selection
-    }
-    store.setVariant(variant)
+    };
+    store.setVariant(variant);
   }
 
   handleAddToCart = () => {
     const { onAddToCartSuccess, onAddToCartError, store } = this.props;
-    const { quantity } = this.state
+    const { quantity } = this.state;
     if (quantity > 0 && !store.isEmpty) {
       $.ajax({
         url: this.props.url,
@@ -47,12 +46,12 @@ export default class VariantPicker extends Component {
           variant: store.variant.id
         },
         success: () => {
-          onAddToCartSuccess()
+          onAddToCartSuccess();
         },
         error: (response) => {
-          onAddToCartError(response)
+          onAddToCartError(response);
         }
-      })
+      });
     }
   }
 
@@ -60,34 +59,34 @@ export default class VariantPicker extends Component {
     this.setState({
       selection: Object.assign({}, this.state.selection, { [attrId]: valueId })
     }, () => {
-      this.matchVariantFromSelection()
-    })
+      this.matchVariantFromSelection();
+    });
   }
 
   handleQuantityChange = (event) => {
-    this.setState({quantity: parseInt(event.target.value)})
+    this.setState({quantity: parseInt(event.target.value)});
   }
 
   matchVariantFromSelection() {
-    const { store, variants } = this.props
-    let matchedVariant = null
+    const { store, variants } = this.props;
+    let matchedVariant = null;
     variants.forEach(variant => {
       if (_.isEqual(this.state.selection, variant.attributes)) {
-        matchedVariant = variant
+        matchedVariant = variant;
       }
-    })
-    store.setVariant(matchedVariant)
+    });
+    store.setVariant(matchedVariant);
   }
 
   render() {
-    const { store, variantAttributes } = this.props
-    const { errors, selection, quantity } = this.state
-    const disableAddToCart = store.isEmpty
+    const { store, variantAttributes } = this.props;
+    const { errors, selection, quantity } = this.state;
+    const disableAddToCart = store.isEmpty;
 
     const addToCartBtnClasses = classNames({
       'btn primary': true,
       'disabled': disableAddToCart
-    })
+    });
 
     return (
       <div>
@@ -113,6 +112,6 @@ export default class VariantPicker extends Component {
           </button>
         </div>
       </div>
-    )
+    );
   }
 }

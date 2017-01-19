@@ -8,6 +8,7 @@ class ProductList extends Component {
   static propTypes = {
     onLoadMore: PropTypes.func.isRequired,
     products: PropTypes.object,
+    setSorting: PropTypes.object
   };
 
   onLoadMore = () => this.props.onLoadMore();
@@ -45,6 +46,6 @@ export default Relay.createContainer(ProductList, {
           hasNextPage
         }
       }
-    `,
-  },
+    `
+  }
 });

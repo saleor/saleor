@@ -3,7 +3,6 @@ import Relay from 'react-relay';
 
 import ProductPrice from './ProductPrice';
 
-
 class ProductItem extends Component {
 
   static propTypes = {
@@ -42,6 +41,6 @@ export default Relay.createContainer(ProductItem, {
         imageUrl
         url
       }
-    `,
-  },
+    `
+  }
 });

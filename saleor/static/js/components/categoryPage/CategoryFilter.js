@@ -20,7 +20,7 @@ export default class CategoryFilter extends Component {
             <a href={parent.url}>See all {parent.name}</a>
           </div>
         ) : (null)}
-        <ul className={category.parent ? ("childs") : ("childs no-parent")}>
+        <ul className={category.parent ? ('childs') : ('childs no-parent')}>
           {category.children && (category.children.map((child) => {
             return (
                 <li key={child.pk} className="item">

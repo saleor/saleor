@@ -8,15 +8,12 @@ import ProductFilters from './ProductFilters';
 import ProductList from './ProductList';
 import SortBy from './SortBy';
 
-
 const PAGINATE_BY = 20;
-
 
 const getVarFromQueryString = (key, defaultValue = null) => {
   let value = queryString.parse(location.search)[key];
-  return value ? value : defaultValue;
+  return value || defaultValue;
 };
-
 
 const getAttributesFromQueryString = (exclude) => {
   // Exclude parameter is used to exclude other query string parameters than
@@ -39,12 +36,10 @@ const getAttributesFromQueryString = (exclude) => {
   return attributes;
 };
 
-
 const floatOrNull = (value) => {
   const parsed = parseFloat(value);
   return isNaN(parsed) ? null : parsed;
 };
-
 
 class CategoryPage extends Component {
 
@@ -111,10 +106,8 @@ class CategoryPage extends Component {
         urlParams[attributeName] = [valueSlug];
       }
     });
-    const url = Object.keys(urlParams).length ?
-      '?' + queryString.stringify(urlParams) :
-      location.href.split('?')[0];
-    history.pushState({}, null , url);
+    const url = Object.keys(urlParams).length ? '?' + queryString.stringify(urlParams) : location.href.split('?')[0];
+    history.pushState({}, null, url);
   }
 
   componentDidUpdate() {
@@ -181,7 +174,6 @@ class CategoryPage extends Component {
   }
 }
 
-
 export default Relay.createContainer(CategoryPage, {
   initialVariables: {
     attributesFilter: getAttributesFromQueryString(['count', 'minPrice', 'maxPrice', 'sortBy']),
@@ -211,6 +203,6 @@ export default Relay.createContainer(CategoryPage, {
           ${ProductList.getFragment('products')}
         }
       }
-    `,
-  },
+    `
+  }
 });
