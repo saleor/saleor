@@ -12,6 +12,7 @@ from django.db.models import F, Manager, Q
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
+from django.utils import six
 from django_prices.models import PriceField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
@@ -218,7 +219,7 @@ class ProductVariant(models.Model, Item):
         app_label = 'product'
 
     def __str__(self):
-        return self.name or self.sku
+        return self.name or self.display_variant()
 
     def get_weight(self):
         return self.weight_override or self.product.weight
@@ -271,15 +272,18 @@ class ProductVariant(models.Model, Item):
     def display_variant(self, attributes=None):
         if attributes is None:
             attributes = self.product.product_class.variant_attributes.all()
-        values = get_attributes_display_map(self, attributes).values()
+        values = get_attributes_display_map(self, attributes)
         if values:
-            return ', '.join([smart_text(value) for value in values])
+            return ', '.join(
+                ['%s: %s' % (smart_text(attributes.get(id=int(key))),
+                              smart_text(value))
+                 for (key, value) in six.iteritems(values)])
         else:
-            return smart_text(self)
+            return smart_text(self.sku)
 
-    def display_product(self, attributes=None):
+    def display_product(self):
         return '%s (%s)' % (smart_text(self.product),
-                            self.display_variant(attributes=attributes))
+                            smart_text(self))
 
     def get_first_image(self):
         return self.product.get_first_image()
