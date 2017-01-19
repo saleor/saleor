@@ -362,8 +362,10 @@ else:
 
 
 GRAPHENE = {
-    'SCHEMA': 'saleor.graphql.api.schema',
     'MIDDLEWARE': [
         'graphene_django.debug.DjangoDebugMiddleware'
-    ]
+    ],
+    'SCHEMA': 'saleor.graphql.api.schema',
+    'SCHEMA_OUTPUT': os.path.join(
+        PROJECT_ROOT, 'saleor', 'static', 'schema.json')
 }

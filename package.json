@@ -83,7 +83,7 @@
   },
   "metadata": {
     "graphql": {
-      "schema": "./schema.json"
+      "schema": "./saleor/static/schema.json"
     }
   },
   "scripts": {
