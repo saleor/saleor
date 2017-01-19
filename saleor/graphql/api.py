@@ -10,6 +10,7 @@ from graphene_django.debug import DjangoDebug
 from ..product.models import (AttributeChoiceValue, Category, Product,
                               ProductAttribute, ProductImage, ProductVariant)
 from ..product.utils import get_availability
+from ..product.templatetags.product_images import get_thumbnail
 from .scalars import AttributesFilterScalar
 from .utils import (CategoryAncestorsCache, DjangoPkInterface)
 
@@ -37,7 +38,7 @@ class ProductAvailabilityType(graphene.ObjectType):
 
 class ProductType(DjangoObjectType):
     url = graphene.String()
-    image_url = graphene.String()
+    thumbnail_url = graphene.String()
     images = graphene.List(lambda: ProductImageType)
     variants = graphene.List(lambda: ProductVariantType)
     availability = graphene.Field(lambda: ProductAvailabilityType)
@@ -47,9 +48,9 @@ class ProductType(DjangoObjectType):
         model = Product
         interfaces = (relay.Node, DjangoPkInterface)
 
-    def resolve_image_url(self, args, context, info):
-        image = self.images.first()
-        return image.image.crop['400x400'].url if image else None
+    def resolve_thumbnail_url(self, args, context, info):
+        image_obj = self.images.first()
+        return get_thumbnail(image_obj.image if image_obj else None, '400x400')
 
     def resolve_images(self, args, context, info):
         return self.images.all()
