@@ -221,13 +221,15 @@ class PriceRangeType(graphene.ObjectType):
     min_price = graphene.Field(lambda: PriceType)
 
 
-class Viewer(graphene.ObjectType):
-    category = graphene.Field(
-        CategoryType,
-        pk=graphene.Argument(graphene.Int, required=True))
+class Query(graphene.ObjectType):
     attributes = graphene.List(
         ProductAttributeType,
         category_pk=graphene.Argument(graphene.Int, required=False))
+    category = graphene.Field(
+        CategoryType,
+        pk=graphene.Argument(graphene.Int, required=True))
+    node = relay.Node.Field()
+    root = graphene.Field(lambda: Query)
     debug = graphene.Field(DjangoDebug, name='__debug')
 
     def resolve_category(self, args, context, info):
@@ -255,13 +257,10 @@ class Viewer(graphene.ObjectType):
                 Q(product_variants_class__in=product_classes))
         return queryset.distinct()
 
-
-class Query(graphene.ObjectType):
-    viewer = graphene.Field(Viewer)
-    node = relay.Node.Field()
-
-    def resolve_viewer(self, args, context, info):
-        return Viewer()
+    def resolve_root(self, args, context, info):
+        # Re-expose the root query object. Workaround for the issue in Relay:
+        # https://github.com/facebook/relay/issues/112
+        return Query()
 
 
 schema = graphene.Schema(Query)

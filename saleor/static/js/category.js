@@ -11,14 +11,14 @@ const categoryData = JSON.parse(categoryPage.getAttribute('data-category'));
 class App extends React.Component {
 
   static propTypes = {
-    viewer: PropTypes.object
+    root: PropTypes.object
   }
 
   render() {
     return (
       <CategoryPage
-        category={this.props.viewer.category}
-        attributes={this.props.viewer.attributes}
+        category={this.props.root.category}
+        attributes={this.props.root.attributes}
       />
     );
   }
@@ -29,8 +29,8 @@ const RelayApp = Relay.createContainer(App, {
     categoryId: categoryData.id
   },
   fragments: {
-    viewer: () => Relay.QL`
-      fragment on Viewer {
+    root: () => Relay.QL`
+      fragment on Query {
         category(pk: $categoryId) {
           ${CategoryPage.getFragment('category')}
         }
@@ -49,12 +49,12 @@ const RelayApp = Relay.createContainer(App, {
 
 const AppRoute = {
   queries: {
-    viewer: () => Relay.QL`
-      query { viewer }
+    root: () => Relay.QL`
+      query { root }
     `
   },
   params: {},
-  name: 'Viewer'
+  name: 'Root'
 };
 
 ReactDOM.render(
