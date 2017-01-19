@@ -2,16 +2,15 @@
   padding: 0;
   @include media-breakpoint-down(sm) {
     img {
-      max-height: 22px;
+      max-height: 30px;
     }
   }
   &__login {
-    background-color: $gray;
     p {
       padding: $global-padding/2 0;
       font-size: 0.8rem;
       margin-bottom: 0;
-      color: $white;
+      color: $dark-gray;
       line-height: 1.9rem;
     }
     ul {
@@ -22,14 +21,17 @@
         padding: $global-padding/2;
         line-height: 1.9rem;
         a {
-          color: $body-color;
-          font-size: 0.8rem;
+          color: $dark-gray;
+          font-size: 0.7rem;
+          text-transform: uppercase;
         }
       }
     }
   }
   &__brand {
-    padding: $global-padding * 2 0;
+    background-color: $light-gray;
+    padding-top: $global-padding*2;
+    padding-bottom: $global-padding*2;
     @include media-breakpoint-down(sm) {
       position: fixed;
       width: 100vw;
@@ -37,12 +39,13 @@
       z-index: 4;
       border-bottom: 1px solid $gray;
     }
+    .static {
+      position: static;
+    }
     &__cart {
+      padding-right: $global-padding;
       @include media-breakpoint-up(md) {
         line-height: 2.4rem;
-      }
-      &__icon {
-        margin-left: $global-margin;
       }
       a {
         color: $body-color;
@@ -62,12 +65,6 @@
           height: 30px;
           text-align: center;
           line-height: 2;
-          @include media-breakpoint-down(sm) {
-            font-size: 0.8rem;
-            width: 25px;
-            height: 25px;
-            line-height: 2.1;
-          }
         }
       }
     }
@@ -82,17 +79,22 @@
       .mobile-close-search {
         position: absolute;
         top: 1.9rem;
-        left: 0.5rem;
+        right: 2rem;
         max-width: 22px;
         cursor: pointer;
       }
+      .mobile-search-icon {
+        padding-right: $global-padding;
+      }
       .search-input {
         width: 100%;
-        border-color: $body-color;
+        border-color: $gray;
+        border-radius: 0;
+        padding-left: $global-padding*2.5;
       }
       .btn {
         position: absolute;
-        right: 0.5rem;
+        left: 0.5rem;
         border: 0;
         img {
           max-height: 1.5rem;
@@ -102,16 +104,14 @@
         display: block;
         left: -100vw;
         position: absolute;
-        width: 90%;
-        max-width: 90%;
+        max-width: 100%;
         float: right;
         top: -2rem;
-        z-index: 4;
+        z-index: 5;
         margin-top: 0;
-        input {
-          padding: $global-padding * 2 $global-padding * 2 $global-padding * 2 $global-padding * 4;
+        .search-input {
+          padding: $global-padding * 2 $global-padding * 2 $global-padding * 2 $global-padding * 3;
           border: 0;
-          min-width: 100vw;
         }
         i {
           position: absolute;
@@ -119,41 +119,40 @@
         }
         .btn {
           top: 1.9rem;
-          right: 0;
+          left: 1rem;
         }
       }
     }
   }
   &__menu {
-    ul {
-      border-bottom: 1px solid $gray;
-      margin-bottom: $global-margin;
-      display: block;
-      &.no-border {
-        border-bottom: 0;
-        margin-bottom: 0;
-      }
-      @include media-breakpoint-down(sm) {
-        border-bottom: 0;
-      }
-      &:after {
-        content: "";
-        width: 100%;
-      	display: inline-block;
-      }
-      .nav-item {
-        width: 20%;
-        font-weight: 700;
-        display: inline-block;
+    .navigation {
+      ul {
+        border-bottom: 1px solid $gray;
+        margin-bottom: $global-margin;
+        display: block;
         text-align: center;
-        + .nav-item {
-          margin-left: 0;
+        &.no-border {
+          border-bottom: 0;
+          margin-bottom: 0;
         }
-        a {
-          color: $body-color;
-          transition: 0.3s;
-          &:hover {
-            color: rgba($body-color, 0.6);
+        @include media-breakpoint-down(sm) {
+          border-bottom: 0;
+        }
+        .nav-item {
+          font-weight: 700;
+          display: inline;
+          + .nav-item {
+            margin-left: 0;
+          }
+          a {
+            color: $body-color;
+            transition: 0.3s;
+            text-transform: uppercase;
+            display: inline-block;
+            padding: $global-padding;
+            &:hover {
+              color: rgba($body-color, 0.6);
+            }
           }
         }
       }
