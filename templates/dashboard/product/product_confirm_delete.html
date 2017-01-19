@@ -35,7 +35,7 @@
                         {% if object.images.exists %}
                             <img src="{{ product.images.first.image.crop.400x400 }}" alt="" class="responsive-img">
                         {% else %}
-                            <img src="{% static 'images/product-image-placeholder.png' %}" alt="" class="responsive-img">
+                            <img src="{% static 'img/product-image-placeholder.png' %}" alt="" class="responsive-img">
                         {% endif %}
                     </div>
 
