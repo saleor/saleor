@@ -67,11 +67,9 @@ let $closeSearchIcon = $('.mobile-close-search');
 let $searchForm = $('.navbar__brand__search');
 $searchIcon.click((e) => {
   $searchForm.animate({left: 0}, {duration: 500})
-  $searchForm.parent().addClass('static');
 })
 $closeSearchIcon.click((e) => {
   $searchForm.animate({left: '-100vw'}, {duration: 500})
-  $searchForm.parent().removeClass('static');
 })
 
 // Sticky footer
