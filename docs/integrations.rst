@@ -53,13 +53,6 @@ To update the exchange rates run the following command at least once per day:
     Heroku users can use the `Scheduler add-on <https://elements.heroku.com/addons/scheduler>`_ to automatically call the command daily at a predefined time.
 
 
-Log in using Social Media
--------------------------
-
-Saleor uses `django-allauth <https://github.com/pennersr/django-allauth>`_ to provide integration between registration mechanism and Social Media accounts.
-To enable particular social media integration, please refer to django-allauth documentation.
-
-
 Reporting with Google Analytics
 -------------------------------
 
