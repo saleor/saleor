@@ -26,7 +26,10 @@ export const getAttributesFromQuery = (exclude) => {
   return attributes;
 };
 
-export const floatOrNull = (value) => {
-  const parsed = parseFloat(value);
-  return isNaN(parsed) ? null : parsed;
+export const ensureAllowedName = (name, allowed) => {
+  let origName = name;
+  if (name.startsWith('-')) {
+    name = name.substr(1, name.length);
+  }
+  return name in allowed ? origName : null;
 };

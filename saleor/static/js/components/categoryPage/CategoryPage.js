@@ -7,9 +7,10 @@ import PriceFilter from './PriceFilter';
 import ProductFilters from './ProductFilters';
 import ProductList from './ProductList';
 import SortBy from './SortBy';
-import { floatOrNull, getFromQuery, getAttributesFromQuery } from './utils';
+import { ensureAllowedName, getAttributesFromQuery, getFromQuery } from './utils';
 
 const PAGINATE_BY = 20;
+const SORT_BY_FIELDS = ['name', 'price'];
 
 class CategoryPage extends Component {
 
@@ -48,8 +49,8 @@ class CategoryPage extends Component {
 
   updatePriceFilter = (minPrice, maxPrice) => {
     this.props.relay.setVariables({
-      minPrice: floatOrNull(minPrice),
-      maxPrice: floatOrNull(maxPrice)
+      minPrice: parseInt(minPrice) || null,
+      maxPrice: parseInt(maxPrice) || null
     });
   }
 
@@ -147,10 +148,10 @@ class CategoryPage extends Component {
 export default Relay.createContainer(CategoryPage, {
   initialVariables: {
     attributesFilter: getAttributesFromQuery(['count', 'minPrice', 'maxPrice', 'sortBy']),
-    count: floatOrNull(getFromQuery('count', PAGINATE_BY)),
-    minPrice: floatOrNull(getFromQuery('minPrice')),
-    maxPrice: floatOrNull(getFromQuery('maxPrice')),
-    sortBy: getFromQuery('sortBy', 'name')
+    count: parseInt(getFromQuery('count', PAGINATE_BY)) || PAGINATE_BY,
+    minPrice: parseInt(getFromQuery('minPrice')) || null,
+    maxPrice: parseInt(getFromQuery('maxPrice')) || null,
+    sortBy: ensureAllowedName(getFromQuery('sortBy', 'name'), SORT_BY_FIELDS)
   },
   fragments: {
     category: () => Relay.QL`
