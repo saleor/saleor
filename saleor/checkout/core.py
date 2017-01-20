@@ -227,7 +227,7 @@ class Checkout(object):
             shipping_address = None
         billing_address = self._save_order_billing_address()
         self._add_to_user_address_book(
-            self.shipping_address, is_billing=True)
+            self.billing_address, is_billing=True)
 
         order_data = {
             'billing_address': billing_address,
