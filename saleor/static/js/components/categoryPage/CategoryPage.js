@@ -7,39 +7,9 @@ import PriceFilter from './PriceFilter';
 import ProductFilters from './ProductFilters';
 import ProductList from './ProductList';
 import SortBy from './SortBy';
+import { floatOrNull, getFromQuery, getAttributesFromQuery } from './utils';
 
 const PAGINATE_BY = 20;
-
-const getVarFromQueryString = (key, defaultValue = null) => {
-  let value = queryString.parse(location.search)[key];
-  return value || defaultValue;
-};
-
-const getAttributesFromQueryString = (exclude) => {
-  // Exclude parameter is used to exclude other query string parameters than
-  // product attribute filters.
-  const urlParams = queryString.parse(location.search);
-  let attributes = [];
-  Object.keys(urlParams).forEach(key => {
-    if (!exclude.includes(key)) {
-      if (Array.isArray(urlParams[key])) {
-        const values = urlParams[key];
-        values.map((valueSlug) => {
-          attributes.push(`${key}:${valueSlug}`);
-        });
-      } else {
-        const valueSlug = urlParams[key];
-        attributes.push(`${key}:${valueSlug}`);
-      }
-    }
-  });
-  return attributes;
-};
-
-const floatOrNull = (value) => {
-  const parsed = parseFloat(value);
-  return isNaN(parsed) ? null : parsed;
-};
 
 class CategoryPage extends Component {
 
@@ -176,11 +146,11 @@ class CategoryPage extends Component {
 
 export default Relay.createContainer(CategoryPage, {
   initialVariables: {
-    attributesFilter: getAttributesFromQueryString(['count', 'minPrice', 'maxPrice', 'sortBy']),
-    count: floatOrNull(getVarFromQueryString('count', PAGINATE_BY)),
-    minPrice: floatOrNull(getVarFromQueryString('minPrice')),
-    maxPrice: floatOrNull(getVarFromQueryString('maxPrice')),
-    sortBy: getVarFromQueryString('sortBy', 'name')
+    attributesFilter: getAttributesFromQuery(['count', 'minPrice', 'maxPrice', 'sortBy']),
+    count: floatOrNull(getFromQuery('count', PAGINATE_BY)),
+    minPrice: floatOrNull(getFromQuery('minPrice')),
+    maxPrice: floatOrNull(getFromQuery('maxPrice')),
+    sortBy: getFromQuery('sortBy', 'name')
   },
   fragments: {
     category: () => Relay.QL`
@@ -199,7 +169,13 @@ export default Relay.createContainer(CategoryPage, {
           url
           slug
         }
-        products (first: $count, attributes: $attributesFilter, priceGte: $minPrice, priceLte: $maxPrice, orderBy: $sortBy) {
+        products (
+          first: $count,
+          attributes: $attributesFilter,
+          priceGte: $minPrice,
+          priceLte: $maxPrice,
+          orderBy: $sortBy
+        ) {
           ${ProductList.getFragment('products')}
         }
       }

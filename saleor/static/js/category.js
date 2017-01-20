@@ -15,12 +15,7 @@ class App extends React.Component {
   }
 
   render() {
-    return (
-      <CategoryPage
-        category={this.props.root.category}
-        attributes={this.props.root.attributes}
-      />
-    );
+    return <CategoryPage {...this.props.root} />;
   }
 }
 
@@ -36,7 +31,7 @@ const RelayApp = Relay.createContainer(App, {
         }
         attributes(categoryPk: $categoryId) {
           ${ProductFilters.getFragment('attributes')}
-        },
+        }
         __debug {
           sql {
             sql
