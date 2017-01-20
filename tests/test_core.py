@@ -3,6 +3,9 @@ from mock import Mock
 
 from saleor.core.utils import (
     Country, get_country_by_ip, get_currency_for_country, create_superuser)
+from saleor.core.utils.random_data import (create_shipping_methods,
+    create_fake_user, create_users)
+from saleor.shipping.models import ShippingMethod
 from saleor.userprofile.models import User
 
 
@@ -46,3 +49,26 @@ def test_create_superuser(db, client):
                             'password': credentials['password']},
                            follow=True)
     assert response.context['request'].user == admin
+
+
+def test_create_shipping_methods(db):
+    assert ShippingMethod.objects.all().count() == 0
+    for _ in create_shipping_methods():
+        pass
+    assert ShippingMethod.objects.all().count() == 2
+
+
+def test_create_fake_user(db):
+    assert User.objects.all().count() == 0
+    create_fake_user()
+    assert User.objects.all().count() == 1
+    user = User.objects.all().first()
+    assert not user.is_superuser
+
+
+def test_create_fake_users(db):
+    how_many = 5
+    for _ in create_users(how_many):
+        pass
+    assert User.objects.all().count() == 5
+
