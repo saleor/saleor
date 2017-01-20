@@ -86,6 +86,7 @@
                       <div class="col-2 col-md-4">
                         <div class="navbar__brand__cart float-right">
                           <a href="{% url "cart:index" %}">
+                            <span class="cart-label hidden-sm-down">{% trans "Your Cart" %}</span>
                             <img class="navbar__brand__cart__icon" src="{% static "img/cart.svg" %}" alt="Cart">
                             <span class="badge {% if not cart_counter %}empty{% endif %}">
                               {% if cart_counter %}

@@ -54,6 +54,9 @@
         &:hover {
           text-decoration: none;
         }
+        .cart-label {
+          padding-right: $global-padding/2;
+        }
         .badge {
           position: absolute;
           right: -15px;
