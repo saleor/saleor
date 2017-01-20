@@ -58,13 +58,16 @@
           position: absolute;
           right: -15px;
           top: -15px;
-          background-color: $red;
+          background-color: $orange;
           border-radius: 100px;
           color: $white;
           width: 30px;
           height: 30px;
           text-align: center;
           line-height: 2;
+          &.empty {
+            background-color: $dark-gray;
+          }
         }
       }
     }

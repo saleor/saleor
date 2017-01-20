@@ -87,7 +87,13 @@
                         <div class="navbar__brand__cart float-right">
                           <a href="{% url "cart:index" %}">
                             <img class="navbar__brand__cart__icon" src="{% static "img/cart.svg" %}" alt="Cart">
-                            <span class="badge {% if not cart_counter %}hidden-xs-up{% endif %}">{{ cart_counter }}</span>
+                            <span class="badge {% if not cart_counter %}empty{% endif %}">
+                              {% if cart_counter %}
+                                {{ cart_counter }}
+                              {% else %}
+                                0
+                              {% endif %}
+                            </span>
                           </a>
                           <div class="cart-dropdown hidden-md-down">
                           {% include 'cart-dropdown.html' %}

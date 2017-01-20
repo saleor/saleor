@@ -120,12 +120,12 @@ let $addToCartError = $('.product__info__form-error');
 
 const onAddToCartSuccess = () => {
   $.get(summaryLink, (data) => {
-    $cartDropdown.html(data);
-    $addToCartError.html('');
-    let newQunatity = $('.cart-dropdown__total').data('quantity');
-    $('.badge').html(newQunatity).removeClass('hidden-xs-up');
-    $cartDropdown.addClass('show');
-    $cartDropdown.find('.container').scrollTop($cartDropdown.find('.container')[0].scrollHeight);
+    $cartDropdown.html(data)
+    $addToCartError.html('')
+    var newQunatity = $('.cart-dropdown__total').data('quantity')
+    $('.badge').html(newQunatity).removeClass('empty')
+    $cartDropdown.addClass('show')
+    $cartDropdown.find('.container').scrollTop($cartDropdown.find('.container')[0].scrollHeight)
     setTimeout((e) => {
       $cartDropdown.removeClass('show');
     }, 2500);
