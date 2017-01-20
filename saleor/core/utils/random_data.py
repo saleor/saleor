@@ -193,8 +193,8 @@ def create_products_by_class(product_class, schema,
                 product, product_class.name, len(variant_combinations) or 1))
 
 
-def create_products_by_schema(placeholder_dir, how_many, create_images, stdout,
-                              schema=DEFAULT_SCHEMA):
+def create_products_by_schema(placeholder_dir, how_many, create_images,
+                              stdout=None, schema=DEFAULT_SCHEMA):
     for product_class, class_schema in create_product_classes_by_schema(schema):
         create_products_by_class(
             product_class, class_schema, placeholder_dir,
@@ -386,7 +386,7 @@ def create_order_lines(delivery_group, how_many=10):
 
 def create_fake_order():
     user = random.choice([None, User.objects.filter(
-        is_superuser=False).order_by('?')[0]])
+        is_superuser=False).order_by('?').first()])
     if user:
         user_data = {
             'user': user,

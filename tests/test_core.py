@@ -1,14 +1,33 @@
 import pytest
 from mock import Mock
 
-from saleor.core.utils import (
-    Country, get_country_by_ip, get_currency_for_country, create_superuser)
-from saleor.core.utils.random_data import (create_shipping_methods,
-                                           create_fake_user, create_users,
-                                           create_address, create_attribute,
-                                           create_product_classes_by_schema)
+from saleor.core.utils import (Country, create_superuser, get_country_by_ip,
+                               get_currency_for_country)
+from saleor.core.utils.random_data import (create_address, create_attribute,
+                                           create_fake_user,
+                                           create_product_classes_by_schema,
+                                           create_products_by_class,
+                                           create_shipping_methods,
+                                           create_users,
+                                           create_orders,
+                                           create_products_by_schema)
+from saleor.order.models import Order
+from saleor.product.models import Product
 from saleor.shipping.models import ShippingMethod
-from saleor.userprofile.models import User, Address
+from saleor.userprofile.models import Address, User
+
+
+class_schema = {'Vegetable': {
+                   'category': 'Food',
+                   'product_attributes': {
+                       'Sweetness': ['Sweet', 'Sour'],
+                       'Healthiness': ['Healthy', 'Not really']
+                   },
+                   'variant_attributes': {
+                       'GMO': ['Yes', 'No']
+                   },
+                   'images_dir': 'candy/',
+                   'is_shipping_required': True}}
 
 
 @pytest.mark.parametrize('ip_data, expected_country', [
@@ -89,20 +108,29 @@ def test_create_attribute(db):
 
 
 def test_create_product_classes_by_schema(db):
-    schema = {'T-Shirt': {
-              'category': 'Food',
-              'product_attributes': {
-                  'Sweetness': ['Sweet', 'Sour'],
-                  'Healthiness': ['Healthy', 'Not really']
-              },
-              'variant_attributes': {
-                  'GMO': ['Yes', 'No']
-              },
-              'images_dir': 'candy/',
-              'is_shipping_required': True}}
-    p_class = create_product_classes_by_schema(schema)[0][0]
-    assert p_class.name == 'T-Shirt'
+    p_class = create_product_classes_by_schema(class_schema)[0][0]
+    assert p_class.name == 'Vegetable'
     assert p_class.product_attributes.count() == 2
     assert p_class.variant_attributes.count() == 1
     assert p_class.is_shipping_required
 
+
+def test_create_products_by_class(db):
+    assert Product.objects.all().count() == 0
+    how_many = 5
+    p_class = create_product_classes_by_schema(class_schema)[0][0]
+    create_products_by_class(p_class, class_schema['Vegetable'], '/',
+                             how_many=how_many, create_images=False)
+    assert Product.objects.all().count() == how_many
+
+
+def test_create_fake_order(db):
+    for _ in create_shipping_methods():
+        pass
+    for _ in create_users(3):
+        pass
+    create_products_by_schema('/', 10, False)
+    how_many = 5
+    for _ in create_orders(how_many):
+        pass
+    Order.objects.all().count() == 5
