@@ -1,18 +1,9 @@
 import pytest
 from mock import Mock
 
-from saleor.core.utils import (Country, create_superuser, get_country_by_ip,
-                               get_currency_for_country)
-from saleor.core.utils.random_data import (create_address, create_attribute,
-                                           create_fake_user,
-                                           create_product_classes_by_schema,
-                                           create_products_by_class,
-                                           create_shipping_methods,
-                                           create_users,
-                                           create_orders,
-                                           create_products_by_schema,
-                                           create_product_sales,
-                                           create_vouchers)
+from saleor.core.utils import (
+    Country, create_superuser, get_country_by_ip, get_currency_for_country,
+    random_data)
 from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
 from saleor.product.models import Product
@@ -77,14 +68,14 @@ def test_create_superuser(db, client):
 
 def test_create_shipping_methods(db):
     assert ShippingMethod.objects.all().count() == 0
-    for _ in create_shipping_methods():
+    for _ in random_data.create_shipping_methods():
         pass
     assert ShippingMethod.objects.all().count() == 2
 
 
 def test_create_fake_user(db):
     assert User.objects.all().count() == 0
-    create_fake_user()
+    random_data.create_fake_user()
     assert User.objects.all().count() == 1
     user = User.objects.all().first()
     assert not user.is_superuser
@@ -92,26 +83,26 @@ def test_create_fake_user(db):
 
 def test_create_fake_users(db):
     how_many = 5
-    for _ in create_users(how_many):
+    for _ in random_data.create_users(how_many):
         pass
     assert User.objects.all().count() == 5
 
 
 def test_create_address(db):
     assert Address.objects.all().count() == 0
-    create_address()
+    random_data.create_address()
     assert Address.objects.all().count() == 1
 
 
 def test_create_attribute(db):
     data = {'name': 'best_attribute', 'display': 'Best attribute'}
-    attribute = create_attribute(**data)
+    attribute = random_data.create_attribute(**data)
     assert attribute.name == data['name']
     assert attribute.display == data['display']
 
 
 def test_create_product_classes_by_schema(db):
-    p_class = create_product_classes_by_schema(class_schema)[0][0]
+    p_class = random_data.create_product_classes_by_schema(class_schema)[0][0]
     assert p_class.name == 'Vegetable'
     assert p_class.product_attributes.count() == 2
     assert p_class.variant_attributes.count() == 1
@@ -121,33 +112,34 @@ def test_create_product_classes_by_schema(db):
 def test_create_products_by_class(db):
     assert Product.objects.all().count() == 0
     how_many = 5
-    p_class = create_product_classes_by_schema(class_schema)[0][0]
-    create_products_by_class(p_class, class_schema['Vegetable'], '/',
-                             how_many=how_many, create_images=False)
+    p_class = random_data.create_product_classes_by_schema(class_schema)[0][0]
+    random_data.create_products_by_class(p_class, class_schema['Vegetable'],
+                                         '/', how_many=how_many,
+                                         create_images=False)
     assert Product.objects.all().count() == how_many
 
 
 def test_create_fake_order(db):
-    for _ in create_shipping_methods():
+    for _ in random_data.create_shipping_methods():
         pass
-    for _ in create_users(3):
+    for _ in random_data.create_users(3):
         pass
-    create_products_by_schema('/', 10, False)
+        random_data.create_products_by_schema('/', 10, False)
     how_many = 5
-    for _ in create_orders(how_many):
+    for _ in random_data.create_orders(how_many):
         pass
     Order.objects.all().count() == 5
 
 
 def test_create_product_sales(db):
     how_many = 5
-    for _ in create_product_sales(how_many):
+    for _ in random_data.create_product_sales(how_many):
         pass
     assert Sale.objects.all().count() == 5
 
 
 def test_create_vouchers(db):
     assert Voucher.objects.all().count() == 0
-    for _ in create_vouchers():
+    for _ in random_data.create_vouchers():
         pass
     assert Voucher.objects.all().count() == 2
