@@ -13,7 +13,7 @@ from faker import Factory
 from faker.providers import BaseProvider
 from prices import Price
 
-from saleor.discount.models import Sale
+from ...discount.models import Sale, Voucher
 from ...order.models import DeliveryGroup, Order, OrderedItem, Payment
 from ...product.models import (AttributeChoiceValue, Category, Product,
                                ProductAttribute, ProductClass, ProductImage,
@@ -453,3 +453,28 @@ def create_shipping_methods():
     shipping_method = ShippingMethod.objects.create(name='DHL')
     shipping_method.price_per_country.create(price=fake.price())
     yield 'Shipping method #%d' % shipping_method.id
+
+
+def create_vouchers():
+    voucher, created = Voucher.objects.get_or_create(
+        code='FREESHIPPING', defaults={
+            'type': Voucher.SHIPPING_TYPE,
+            'name': 'Free shipping',
+            'discount_value_type': Voucher.DISCOUNT_VALUE_PERCENTAGE,
+            'discount_value': 100})
+    if created:
+        yield 'Voucher #%d' % voucher.id
+    else:
+        yield 'Shipping voucher already exists'
+
+    voucher, created = Voucher.objects.get_or_create(
+        code='DISCOUNT', defaults={
+            'type': Voucher.VALUE_TYPE,
+            'name': 'Big order discount',
+            'discount_value_type': Voucher.DISCOUNT_VALUE_FIXED,
+            'discount_value': 25,
+            'limit': 200})
+    if created:
+        yield 'Voucher #%d' % voucher.id
+    else:
+        yield 'Value voucher already exists'

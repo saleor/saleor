@@ -11,8 +11,9 @@ from saleor.core.utils.random_data import (create_address, create_attribute,
                                            create_users,
                                            create_orders,
                                            create_products_by_schema,
-                                           create_product_sales)
-from saleor.discount.models import Sale
+                                           create_product_sales,
+                                           create_vouchers)
+from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
 from saleor.product.models import Product
 from saleor.shipping.models import ShippingMethod
@@ -143,3 +144,10 @@ def test_create_product_sales(db):
     for _ in create_product_sales(how_many):
         pass
     assert Sale.objects.all().count() == 5
+
+
+def test_create_vouchers(db):
+    assert Voucher.objects.all().count() == 0
+    for _ in create_vouchers():
+        pass
+    assert Voucher.objects.all().count() == 2
