@@ -29,7 +29,11 @@
                 {% bootstrap_pagination results url=query_string %}
             {% else %}
                 <div class="row">
-                    <h3>{% trans "No results" %}</h3>
+                    <div class="">
+                        <h2>Search: {{ query }}</h2>
+                        <img src="{% static 'img/pirate.svg' %}" />
+                        <p>{% trans "Sorry, no matches found for your request. Try again or shop new arrivals" %}</p>
+                    </div>
                 </div>
             {% endif %}
         </div>
