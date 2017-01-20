@@ -11,7 +11,6 @@ def get_content(response):
 def assert_success(content):
     assert 'errors' not in content
     assert 'data' in content
-    assert 'viewer' in content['data']
 
 
 def assert_corresponding_fields(iterable_data, queryset, fields):
@@ -26,22 +25,20 @@ def test_category_query(client, product_in_stock):
     category = Category.objects.first()
     query = """
         query {
-            viewer {
-                category(pk: %(category_pk)s) {
-                    pk
-                    name
-                    productsCount
-                    ancestors { name }
-                    children { name }
-                    siblings { name }
-                }
+            category(pk: %(category_pk)s) {
+                pk
+                name
+                productsCount
+                ancestors { name }
+                children { name }
+                siblings { name }
             }
         }
     """ % {'category_pk': category.pk}
     response = client.post('/graphql/', {'query': query})
     content = get_content(response)
     assert_success(content)
-    category_data = content['data']['viewer']['category']
+    category_data = content['data']['category']
     assert category_data is not None
     assert int(category_data['pk']) == category.pk
     assert category_data['name'] == category.name
@@ -60,28 +57,26 @@ def test_product_query(client, product_in_stock):
     product = category.products.first()
     query = """
         query {
-            viewer {
-                category(pk: %(category_pk)s) {
-                    products {
-                        edges {
-                            node {
-                                pk
+            category(pk: %(category_pk)s) {
+                products {
+                    edges {
+                        node {
+                            pk
+                            name
+                            url
+                            thumbnailUrl
+                            images { url }
+                            variants {
                                 name
-                                url
-                                imageUrl
-                                images { url }
-                                variants {
-                                    name
-                                    stockQuantity
-                                }
-                                availability {
-                                    available,
-                                    priceRange {
-                                        minPrice {
-                                            gross
-                                            net
-                                            currency
-                                        }
+                                stockQuantity
+                            }
+                            availability {
+                                available,
+                                priceRange {
+                                    minPrice {
+                                        gross
+                                        net
+                                        currency
                                     }
                                 }
                             }
@@ -94,8 +89,8 @@ def test_product_query(client, product_in_stock):
     response = client.post('/graphql/', {'query': query})
     content = get_content(response)
     assert_success(content)
-    assert content['data']['viewer']['category'] is not None
-    product_edges_data = content['data']['viewer']['category']['products']['edges']
+    assert content['data']['category'] is not None
+    product_edges_data = content['data']['category']['products']['edges']
     assert len(product_edges_data) == category.products.count()
     product_data = product_edges_data[0]['node']
     assert int(product_data['pk']) == product.pk
@@ -113,13 +108,11 @@ def test_filter_product_by_attributes(client, product_in_stock):
     filter_by = "%s:%s" % (product_attr.name, attr_value.slug)
     query = """
         query {
-            viewer {
-                category(pk: %(category_pk)s) {
-                    products(attributes: ["%(filter_by)s"]) {
-                        edges {
-                            node {
-                                name
-                            }
+            category(pk: %(category_pk)s) {
+                products(attributes: ["%(filter_by)s"]) {
+                    edges {
+                        node {
+                            name
                         }
                     }
                 }
@@ -129,7 +122,7 @@ def test_filter_product_by_attributes(client, product_in_stock):
     response = client.post('/graphql/', {'query': query})
     content = get_content(response)
     assert_success(content)
-    product_data = content['data']['viewer']['category']['products']['edges'][0]['node']
+    product_data = content['data']['category']['products']['edges'][0]['node']
     assert product_data['name'] == product_in_stock.name
 
 
@@ -138,16 +131,14 @@ def test_attributes_query(client, product_in_stock):
     attributes = ProductAttribute.objects.prefetch_related('values')
     query = """
         query {
-            viewer {
-                attributes {
+            attributes {
+                pk
+                name
+                display
+                values {
                     pk
-                    name
                     display
-                    values {
-                        pk
-                        display
-                        slug
-                    }
+                    slug
                 }
             }
         }
@@ -155,7 +146,7 @@ def test_attributes_query(client, product_in_stock):
     response = client.post('/graphql/', {'query': query})
     content = get_content(response)
     assert_success(content)
-    attributes_data = content['data']['viewer']['attributes']
+    attributes_data = content['data']['attributes']
     assert_corresponding_fields(attributes_data, attributes, ['pk', 'name'])
 
 
@@ -164,16 +155,14 @@ def test_attributes_in_category_query(client, product_in_stock):
     category = Category.objects.first()
     query = """
         query {
-            viewer {
-                attributes(categoryPk: %(category_pk)s) {
+            attributes(categoryPk: %(category_pk)s) {
+                pk
+                name
+                display
+                values {
                     pk
-                    name
                     display
-                    values {
-                        pk
-                        display
-                        slug
-                    }
+                    slug
                 }
             }
         }
