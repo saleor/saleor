@@ -10,7 +10,9 @@ from saleor.core.utils.random_data import (create_address, create_attribute,
                                            create_shipping_methods,
                                            create_users,
                                            create_orders,
-                                           create_products_by_schema)
+                                           create_products_by_schema,
+                                           create_product_sales)
+from saleor.discount.models import Sale
 from saleor.order.models import Order
 from saleor.product.models import Product
 from saleor.shipping.models import ShippingMethod
@@ -134,3 +136,10 @@ def test_create_fake_order(db):
     for _ in create_orders(how_many):
         pass
     Order.objects.all().count() == 5
+
+
+def test_create_product_sales(db):
+    how_many = 5
+    for _ in create_product_sales(how_many):
+        pass
+    assert Sale.objects.all().count() == 5

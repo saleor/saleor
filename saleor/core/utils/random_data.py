@@ -13,6 +13,7 @@ from faker import Factory
 from faker.providers import BaseProvider
 from prices import Price
 
+from saleor.discount.models import Sale
 from ...order.models import DeliveryGroup, Order, OrderedItem, Payment
 from ...product.models import (AttributeChoiceValue, Category, Product,
                                ProductAttribute, ProductClass, ProductImage,
@@ -417,6 +418,16 @@ def create_fake_order():
     return order
 
 
+def create_fake_sale():
+    sale = Sale.objects.create(
+        name='Happy %s day!' % fake.word(),
+        type=Sale.PERCENTAGE,
+        value=random.choice([10, 20, 30, 40, 50]))
+    for product in Product.objects.all().order_by('?')[:4]:
+        sale.products.add(product)
+    return sale
+
+
 def create_users(how_many=10):
     for dummy in range(how_many):
         user = create_fake_user()
@@ -427,6 +438,12 @@ def create_orders(how_many=10):
     for dummy in range(how_many):
         order = create_fake_order()
         yield 'Order: %s' % (order,)
+
+
+def create_product_sales(how_many=5):
+    for dummy in range(how_many):
+        sale = create_fake_sale()
+        yield 'Sale: %s' % (sale,)
 
 
 def create_shipping_methods():
