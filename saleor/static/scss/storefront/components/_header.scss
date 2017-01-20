@@ -139,7 +139,6 @@
           border-bottom: 0;
         }
         .nav-item {
-          font-weight: 700;
           display: inline;
           + .nav-item {
             margin-left: 0;
@@ -149,9 +148,11 @@
             transition: 0.3s;
             text-transform: uppercase;
             display: inline-block;
-            padding: $global-padding;
+            padding: $global-padding*1.5;
+            font-size: 1.5rem;
             &:hover {
               color: rgba($body-color, 0.6);
+              
             }
           }
         }
