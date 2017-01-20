@@ -125,8 +125,8 @@ def set_product_attributes(product, product_class):
 
 def set_variant_attributes(variant, product_class):
     attr_dict = {}
-    existing_variants = variant.product.variants.values_list(
-        'attributes', flat=True)
+    existing_variants = variant.product.variants.values_list('attributes',
+                                                             flat=True)
     existing_variant_attributes = defaultdict(list)
     for variant_attrs in existing_variants:
         for attr_id, value_id in variant_attrs.items():
@@ -166,9 +166,9 @@ def get_price_override(schema):
         return fake.price()
 
 
-def create_items_by_class(product_class, schema,
-                          placeholder_dir, how_many=10, create_images=True,
-                          stdout=None):
+def create_products_by_class(product_class, schema,
+                             placeholder_dir, how_many=10, create_images=True,
+                             stdout=None):
     category_name = schema.get('category') or DEFAULT_CATEGORY
     category = get_or_create_category(category_name)
 
@@ -193,10 +193,10 @@ def create_items_by_class(product_class, schema,
                 product, product_class.name, len(variant_combinations) or 1))
 
 
-def create_items_by_schema(placeholder_dir, how_many, create_images, stdout,
-                           schema=DEFAULT_SCHEMA):
+def create_products_by_schema(placeholder_dir, how_many, create_images, stdout,
+                              schema=DEFAULT_SCHEMA):
     for product_class, class_schema in create_product_classes_by_schema(schema):
-        create_items_by_class(
+        create_products_by_class(
             product_class, class_schema, placeholder_dir,
             how_many=how_many, create_images=create_images, stdout=stdout)
 

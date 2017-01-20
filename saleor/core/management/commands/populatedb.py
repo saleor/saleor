@@ -4,7 +4,7 @@ from django.db import connection
 
 from ...utils.random_data import (
     create_orders, create_users, create_shipping_methods,
-    create_items_by_schema)
+    create_products_by_schema)
 from ...utils import create_superuser
 
 
@@ -51,8 +51,8 @@ class Command(BaseCommand):
         create_images = not options['withoutimages']
         for msg in create_shipping_methods():
             self.stdout.write(msg)
-        create_items_by_schema(self.placeholders_dir, 10, create_images,
-                               stdout=self.stdout)
+        create_products_by_schema(self.placeholders_dir, 10, create_images,
+                                  stdout=self.stdout)
         for msg in create_users(20):
             self.stdout.write(msg)
         for msg in create_orders(20):

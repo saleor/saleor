@@ -4,9 +4,11 @@ from mock import Mock
 from saleor.core.utils import (
     Country, get_country_by_ip, get_currency_for_country, create_superuser)
 from saleor.core.utils.random_data import (create_shipping_methods,
-    create_fake_user, create_users)
+                                           create_fake_user, create_users,
+                                           create_address, create_attribute,
+                                           create_product_classes_by_schema)
 from saleor.shipping.models import ShippingMethod
-from saleor.userprofile.models import User
+from saleor.userprofile.models import User, Address
 
 
 @pytest.mark.parametrize('ip_data, expected_country', [
@@ -71,4 +73,36 @@ def test_create_fake_users(db):
     for _ in create_users(how_many):
         pass
     assert User.objects.all().count() == 5
+
+
+def test_create_address(db):
+    assert Address.objects.all().count() == 0
+    create_address()
+    assert Address.objects.all().count() == 1
+
+
+def test_create_attribute(db):
+    data = {'name': 'best_attribute', 'display': 'Best attribute'}
+    attribute = create_attribute(**data)
+    assert attribute.name == data['name']
+    assert attribute.display == data['display']
+
+
+def test_create_product_classes_by_schema(db):
+    schema = {'T-Shirt': {
+              'category': 'Food',
+              'product_attributes': {
+                  'Sweetness': ['Sweet', 'Sour'],
+                  'Healthiness': ['Healthy', 'Not really']
+              },
+              'variant_attributes': {
+                  'GMO': ['Yes', 'No']
+              },
+              'images_dir': 'candy/',
+              'is_shipping_required': True}}
+    p_class = create_product_classes_by_schema(schema)[0][0]
+    assert p_class.name == 'T-Shirt'
+    assert p_class.product_attributes.count() == 2
+    assert p_class.variant_attributes.count() == 1
+    assert p_class.is_shipping_required
 
