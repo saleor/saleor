@@ -1,7 +1,6 @@
 {% load bootstrap_field bootstrap_button bootstrap_icon from bootstrap3 %}
 {% load trans from i18n %}
 {% load gross from prices_i18n %}
-{% load discount_amount_for from prices %}
 
 {% if form %}
         {% if discount %}
@@ -18,7 +17,7 @@
 
                 </form>
             <div class="float-right">
-                {% gross discount|discount_amount_for:total %}
+                - {% gross discount.amount %}
             </div>
         {% else %}
                 <form action="{{ request.path }}?next={{ request.path }}"
