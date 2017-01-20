@@ -13,6 +13,7 @@ from faker import Factory
 from faker.providers import BaseProvider
 from prices import Price
 
+from ...discount.models import Sale, Voucher
 from ...order.models import DeliveryGroup, Order, OrderedItem, Payment
 from ...product.models import (AttributeChoiceValue, Category, Product,
                                ProductAttribute, ProductClass, ProductImage,
@@ -125,8 +126,8 @@ def set_product_attributes(product, product_class):
 
 def set_variant_attributes(variant, product_class):
     attr_dict = {}
-    existing_variants = variant.product.variants.values_list(
-        'attributes', flat=True)
+    existing_variants = variant.product.variants.values_list('attributes',
+                                                             flat=True)
     existing_variant_attributes = defaultdict(list)
     for variant_attrs in existing_variants:
         for attr_id, value_id in variant_attrs.items():
@@ -166,9 +167,9 @@ def get_price_override(schema):
         return fake.price()
 
 
-def create_items_by_class(product_class, schema,
-                          placeholder_dir, how_many=10, create_images=True,
-                          stdout=None):
+def create_products_by_class(product_class, schema,
+                             placeholder_dir, how_many=10, create_images=True,
+                             stdout=None):
     category_name = schema.get('category') or DEFAULT_CATEGORY
     category = get_or_create_category(category_name)
 
@@ -193,10 +194,10 @@ def create_items_by_class(product_class, schema,
                 product, product_class.name, len(variant_combinations) or 1))
 
 
-def create_items_by_schema(placeholder_dir, how_many, create_images, stdout,
-                           schema=DEFAULT_SCHEMA):
+def create_products_by_schema(placeholder_dir, how_many, create_images,
+                              stdout=None, schema=DEFAULT_SCHEMA):
     for product_class, class_schema in create_product_classes_by_schema(schema):
-        create_items_by_class(
+        create_products_by_class(
             product_class, class_schema, placeholder_dir,
             how_many=how_many, create_images=create_images, stdout=stdout)
 
@@ -386,7 +387,7 @@ def create_order_lines(delivery_group, how_many=10):
 
 def create_fake_order():
     user = random.choice([None, User.objects.filter(
-        is_superuser=False).order_by('?')[0]])
+        is_superuser=False).order_by('?').first()])
     if user:
         user_data = {
             'user': user,
@@ -417,6 +418,16 @@ def create_fake_order():
     return order
 
 
+def create_fake_sale():
+    sale = Sale.objects.create(
+        name='Happy %s day!' % fake.word(),
+        type=Sale.PERCENTAGE,
+        value=random.choice([10, 20, 30, 40, 50]))
+    for product in Product.objects.all().order_by('?')[:4]:
+        sale.products.add(product)
+    return sale
+
+
 def create_users(how_many=10):
     for dummy in range(how_many):
         user = create_fake_user()
@@ -429,6 +440,12 @@ def create_orders(how_many=10):
         yield 'Order: %s' % (order,)
 
 
+def create_product_sales(how_many=5):
+    for dummy in range(how_many):
+        sale = create_fake_sale()
+        yield 'Sale: %s' % (sale,)
+
+
 def create_shipping_methods():
     shipping_method = ShippingMethod.objects.create(name='UPC')
     shipping_method.price_per_country.create(price=fake.price())
@@ -436,3 +453,28 @@ def create_shipping_methods():
     shipping_method = ShippingMethod.objects.create(name='DHL')
     shipping_method.price_per_country.create(price=fake.price())
     yield 'Shipping method #%d' % shipping_method.id
+
+
+def create_vouchers():
+    voucher, created = Voucher.objects.get_or_create(
+        code='FREESHIPPING', defaults={
+            'type': Voucher.SHIPPING_TYPE,
+            'name': 'Free shipping',
+            'discount_value_type': Voucher.DISCOUNT_VALUE_PERCENTAGE,
+            'discount_value': 100})
+    if created:
+        yield 'Voucher #%d' % voucher.id
+    else:
+        yield 'Shipping voucher already exists'
+
+    voucher, created = Voucher.objects.get_or_create(
+        code='DISCOUNT', defaults={
+            'type': Voucher.VALUE_TYPE,
+            'name': 'Big order discount',
+            'discount_value_type': Voucher.DISCOUNT_VALUE_FIXED,
+            'discount_value': 25,
+            'limit': 200})
+    if created:
+        yield 'Voucher #%d' % voucher.id
+    else:
+        yield 'Value voucher already exists'

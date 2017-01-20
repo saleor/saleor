@@ -2,10 +2,10 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import connection
 
-from ....userprofile.models import User
 from ...utils.random_data import (
     create_orders, create_users, create_shipping_methods,
-    create_items_by_schema)
+    create_products_by_schema, create_product_sales, create_vouchers)
+from ...utils import create_superuser
 
 
 class Command(BaseCommand):
@@ -51,8 +51,12 @@ class Command(BaseCommand):
         create_images = not options['withoutimages']
         for msg in create_shipping_methods():
             self.stdout.write(msg)
-        create_items_by_schema(self.placeholders_dir, 10, create_images,
-                               stdout=self.stdout)
+        create_products_by_schema(self.placeholders_dir, 10, create_images,
+                                  stdout=self.stdout)
+        for msg in create_product_sales(5):
+            self.stdout.write(msg)
+        for msg in create_vouchers():
+            self.stdout.write(msg)
         for msg in create_users(20):
             self.stdout.write(msg)
         for msg in create_orders(20):
@@ -60,16 +64,7 @@ class Command(BaseCommand):
 
         if options['createsuperuser']:
             credentials = {'email': 'admin@example.com', 'password': 'admin'}
-            user, created = User.objects.get_or_create(
-                email=credentials['email'], defaults={
-                    'is_active': True, 'is_staff': True, 'is_superuser': True})
-            if created:
-                user.set_password(credentials['password'])
-                user.save()
-                self.stdout.write(
-                    'Superuser - %(email)s/%(password)s' % credentials)
-            else:
-                self.stdout.write(
-                    'Superuser already exists - %(email)s' % credentials)
+            msg = create_superuser(credentials)
+            self.stdout.write(msg)
         if not options['withoutsearch']:
             self.populate_search_index()
