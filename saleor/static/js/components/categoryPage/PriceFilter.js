@@ -40,7 +40,7 @@ export default class PriceFilter extends Component {
       <div className="price-range">
         <h3 onClick={this.changeVisibility}>
           Price range
-          <img className="float-right" src={visibility ? ('/static/img/chevron-up-icon.svg') : ('/static/img/chevron-down-icon.svg')} width="20" />
+          <img className="float-right" src={visibility ? ('/static/images/chevron-up-icon.svg') : ('/static/images/chevron-down-icon.svg')} width="20" />
         </h3>
         {visibility || minPrice || maxPrice ? (
           <div>

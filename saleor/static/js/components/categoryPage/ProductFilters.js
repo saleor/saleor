@@ -51,7 +51,7 @@ class ProductFilters extends Component {
             <div key={attribute.id}>
               <h3 className={attribute.name} onClick={() => this.changeVisibility(attribute.name)}>
                 {attribute.display}
-                <img className="float-right" src={visibility[attribute.name] ? ('/static/img/chevron-up-icon.svg') : ('/static/img/chevron-down-icon.svg')} width="20" />
+                <img className="float-right" src={visibility[attribute.name] ? ('/static/images/chevron-up-icon.svg') : ('/static/images/chevron-down-icon.svg')} width="20" />
               </h3>
               <ul id={attribute.name}>
                 {attribute.values.map((value) => {
