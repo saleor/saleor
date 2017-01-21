@@ -37,12 +37,12 @@ export default class sortBy extends Component {
             sortedValue.search('-') ? (
               <div>
                 <span>Sort by: <strong>{sortedValue}</strong></span>
-                <img src="/static/img/arrow-up-icon.svg" width="15" />
+                <img src="/static/images/arrow-up-icon.svg" width="15" />
               </div>
             ) : (
                <div>
                 <span>Sort by: <strong>{sortedValue.replace('-', '')}</strong></span>
-                <img src="/static/img/arrow-down-icon.svg" width="15" />
+                <img src="/static/images/arrow-down-icon.svg" width="15" />
               </div>
             )
           ) : (
@@ -56,14 +56,14 @@ export default class sortBy extends Component {
               <div className="col-md-6">Sort by <strong>Name</strong></div>
               <div className="col-md-6">
                   <span className="name" onClick={this.setSorting}>ascending</span>
-                  <img className="float-right" src="/static/img/arrow-up-icon.svg" width="15" />
+                  <img className="float-right" src="/static/images/arrow-up-icon.svg" width="15" />
               </div>
             </div>
             <div className="row">
               <div className="col-md-6"></div>
               <div className="col-md-6">
                   <span className="-name" onClick={this.setSorting}>descending</span>
-                  <img className="float-right" src="/static/img/arrow-down-icon.svg" width="15" />
+                  <img className="float-right" src="/static/images/arrow-down-icon.svg" width="15" />
               </div>
             </div>
           </li>
@@ -72,14 +72,14 @@ export default class sortBy extends Component {
               <div className="col-md-6">Sort by <strong>Price</strong></div>
               <div className="col-md-6">
                   <span className="price" onClick={this.setSorting}>ascending</span>
-                  <img className="float-right" src="/static/img/arrow-up-icon.svg" width="15" />
+                  <img className="float-right" src="/static/images/arrow-up-icon.svg" width="15" />
               </div>
             </div>
             <div className="row">
               <div className="col-md-6"></div>
               <div className="col-md-6">
                   <span className="-price" onClick={this.setSorting}>descending</span>
-                  <img className="float-right" src="/static/img/arrow-down-icon.svg" width="15" />
+                  <img className="float-right" src="/static/images/arrow-down-icon.svg" width="15" />
               </div>
             </div>
           </li>

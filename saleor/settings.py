@@ -72,7 +72,8 @@ MEDIA_URL = '/media/'
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(PROJECT_ROOT, 'saleor', 'static')
+    ('assets', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'assets')),
+    ('images', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'images'))
 ]
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
