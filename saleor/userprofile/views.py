@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext as _
 
-from .forms import SetPasswordForm
+from .forms import ChangePasswordForm
 
 
 @login_required
@@ -22,7 +22,7 @@ def details(request):
 
 
 def get_or_process_password_form(request):
-    form = SetPasswordForm(data=request.POST or None, user=request.user)
+    form = ChangePasswordForm(data=request.POST or None, user=request.user)
     if form.is_valid():
         form.save()
         logout_on_password_change(request, form.user)
