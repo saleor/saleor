@@ -1,13 +1,17 @@
 <div class="container">
-  <nav class="row">
-    <% for (var i in theme.menu) { %>
-      <div class="col-md-2 col-sm-4 col-xs-4">
-        <div class="item" >
-          <a href="<%- url_for(theme.menu[i]) %>">
-              <%= i %>
-          </a>
-        </div>
+  <div class="row">
+    <div class="col-md-2">
+      <div class="logo">
+        <a href="/"><img src="images/saleor-logo.svg" /></a>
       </div>
-    <% } %>
-  </nav>
-</div>
+    </div>
+    <div class="col-md-10">
+      <nav class="menu-top">
+        <ul>
+          <% for (var i in theme.menu) { %>
+            <li><a href="<%- url_for(theme.menu[i]) %>"><%= i %></a></li>
+          <% } %>
+        </ul>
+      </nav>
+    </div>
+  </div>

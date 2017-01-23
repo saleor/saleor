@@ -12,10 +12,27 @@
   </head>
   <body>
     <header>
-        <%- partial('_partial/header') %>
+      <%- partial('_partial/header') %>
     </header>
-    <div class="content">
-      <%- partial('_partial/content') %>
+    <div class="page">
+      <div class="section secton-top">
+        <%- partial('_partial/top') %>
+      </div>
+      <div class="section secton-developers">
+        <%- partial('_partial/developers') %>
+      </div>
+      <div class="section secton-store_managers">
+        <%- partial('_partial/store-managers') %>
+      </div>
+      <div class="section secton-customers">
+        <%- partial('_partial/customers') %>
+      </div>
+      <div class="section secton-services">
+        <%- partial('_partial/services') %>
+      </div>
+      <div class="section secton-github">
+        <%- partial('_partial/github') %>
+      </div>
     </div>
     <footer>
       <%- partial('_partial/footer') %>
