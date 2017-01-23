@@ -151,7 +151,7 @@ def get_product_attributes_data(product):
 
 def price_as_dict(price):
     if not price:
-        return {}
+        return None
     return {'currency': price.currency,
             'gross': price.gross,
             'net': price.net}
@@ -159,6 +159,6 @@ def price_as_dict(price):
 
 def price_range_as_dict(price_range):
     if not price_range:
-        return {}
+        return None
     return {'maxPrice': price_as_dict(price_range.max_price),
             'minPrice': price_as_dict(price_range.min_price)}
