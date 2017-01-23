@@ -20,7 +20,7 @@
 {% endblock breadcrumb %}
 
 {% block content %}
-    <div class="row home__featured">
+    <div class="row home__featured search_results">
         <div class="col-sm-12">
             {% if query and results %}
                 <div class="row">
@@ -28,11 +28,12 @@
                 </div>
                 {% bootstrap_pagination results url=query_string %}
             {% else %}
-                <div class="row">
-                    <div class="">
-                        <h2>Search: {{ query }}</h2>
+                <div class="row no-results">
+                    <div class="col-12">
+                        <h2>Search: <strong>{{ query }}</strong></h2>
                         <img src="{% static 'img/pirate.svg' %}" />
-                        <p>{% trans "Sorry, no matches found for your request. Try again or shop new arrivals" %}</p>
+                        <p>{% trans "Sorry, no matches found for your request." %}</p>
+                        <p>{% trans "Try again or shop new arrivals." %}</p>
                     </div>
                 </div>
             {% endif %}
