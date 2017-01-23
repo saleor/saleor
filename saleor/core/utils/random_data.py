@@ -183,12 +183,14 @@ def create_products_by_class(product_class, schema,
             create_product_images(
                 product, random.randrange(1, 5), class_placeholders)
         variant_combinations = get_variant_combinations(product)
-        for attr_combination in variant_combinations:
+        for i, attr_combination in enumerate(variant_combinations, 1337):
+            sku = '%s-%s' % (product.pk, i)
             create_variant(product, attributes=attr_combination,
-                           price_override=get_price_override(schema))
+                           price_override=get_price_override(schema), sku=sku)
         if not variant_combinations:
             # Create min one variant for products without variant level attrs
-            create_variant(product)
+            sku = '%s-%s' % (product.pk, fake.random_int(1000, 100000))
+            create_variant(product, sku=sku)
         if stdout is not None:
             stdout.write('Product: %s (%s), %s variant(s)' % (
                 product, product_class.name, len(variant_combinations) or 1))
@@ -259,7 +261,6 @@ def create_stock(variant, **kwargs):
 def create_variant(product, **kwargs):
     defaults = {
         'name': fake.word(),
-        'sku': '%s-%s' % (product.pk, fake.random_int(1, 100000)),
         'product': product}
     defaults.update(kwargs)
     variant = ProductVariant.objects.create(**defaults)
