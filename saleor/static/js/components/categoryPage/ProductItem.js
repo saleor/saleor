@@ -16,7 +16,7 @@ class ProductItem extends Component {
         <div className="text-center">
           <div>
             <a itemProp="url" href={product.url}>
-              <img itemProp="image" className="img-responsive" src={product.imageUrl} alt="" />
+              <img itemProp="image" className="img-responsive" src={product.thumbnailUrl} alt="" />
               <span className="product-list-item-name" itemProp="name" title={product.name}>{product.name}</span>
             </a>
           </div>
@@ -38,7 +38,7 @@ export default Relay.createContainer(ProductItem, {
         availability {
           ${ProductPrice.getFragment('availability')}
         }
-        imageUrl
+        thumbnailUrl
         url
       }
     `

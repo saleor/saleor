@@ -13,7 +13,7 @@
   }
   &__block1 {
     div {
-      background-image: url('../../img/block1.jpg');
+      background-image: url('../../images/block1.jpg');
       padding: $global-padding * 15 0 $global-padding * 12;
       background-size: cover;
       h1 {
@@ -24,7 +24,7 @@
   &__block2 {
     margin-top: $global-margin * 2;
     div {
-      background-image: url('../../img/block2.jpg');
+      background-image: url('../../images/block2.jpg');
       background-size: cover;
       padding: $global-padding * 10 $global-padding $global-padding * 8;
     }
@@ -32,7 +32,7 @@
   &__block3 {
     margin-top: $global-margin * 2;
     div {
-      background-image: url('../../img/block3.jpg');
+      background-image: url('../../images/block3.jpg');
       background-size: cover;
       padding: $global-padding * 10 $global-padding $global-padding * 8;
     }

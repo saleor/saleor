@@ -31,6 +31,7 @@
     "query-string": "^4.2.3",
     "react": "^0.14.3",
     "react-dom": "^0.14.3",
+    "react-inlinesvg": "^0.5.5",
     "react-redux": "~4.0.0",
     "react-relay": "^0.9.3",
     "redux": "~3.0.4",
@@ -64,6 +65,7 @@
     "postcss": "^5.2.3",
     "postcss-loader": "^0.13.0",
     "sass-loader": "^4.1.1",
+    "url-loader": "^0.5.7",
     "webpack": "^1.13.2",
     "webpack-bundle-tracker": "0.0.93",
     "webpack-dev-server": "^1.16.1"

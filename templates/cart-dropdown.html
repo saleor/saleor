@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load staticfiles %}
 {% load gross from prices_i18n %}
+{% load get_thumbnail from product_images %}
 
 <div class="container">
   {% if quantity > 0 %}
@@ -8,7 +9,7 @@
       <div class="row">
         <div class="col-md-10">
           <a href="{{ line.variant_url }}">
-            <img class="cart-dropdown__image" src="{{ line.image }}" alt="">
+            <img class="cart-dropdown__image" src="{% get_thumbnail line.image size="60x60" %}" alt="">
             <h3>{{ line.product }}
               <br><small>{{ line.variant }}<br>
                 x {{ line.quantity }}</small>

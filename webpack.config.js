@@ -63,7 +63,7 @@ var config = {
       },
       {
         test: /\.(eot|otf|png|svg|jpg|ttf|woff|woff2)(\?v=[0-9.]+)?$/,
-        loader: 'file?name=[name].[hash].[ext]',
+        loader: 'url?name=[name].[hash].[ext]',
         include: [
           resolve('node_modules'),
           resolve('saleor/static/fonts'),

@@ -2,6 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import Relay from 'react-relay';
 
 import ProductItem from './ProductItem';
+import NoResults from './NoResults';
 
 class ProductList extends Component {
 
@@ -19,9 +20,9 @@ class ProductList extends Component {
     return (
       <div>
         <div className="row">
-          {edges && (edges.map((edge, i) => (
+          {edges.length > 0 ? (edges.map((edge, i) => (
             <ProductItem key={i} product={edge.node} />
-          )))}
+          ))) : (<NoResults />)}
         </div>
         <div className="load-more">
           {hasNextPage && (
