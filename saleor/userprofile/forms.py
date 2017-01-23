@@ -56,6 +56,8 @@ class ChangePasswordForm(UserForm):
     def __init__(self, *args, **kwargs):
         super(ChangePasswordForm, self).__init__(*args, **kwargs)
         self.fields['password1'].user = self.user
+        self.fields['oldpassword'].widget.attrs['placeholder'] = ''
+        self.fields['password1'].widget.attrs['placeholder'] = ''
 
     def clean_oldpassword(self):
         if not self.user.check_password(self.cleaned_data.get('oldpassword')):
