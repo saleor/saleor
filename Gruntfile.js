@@ -39,7 +39,7 @@ module.exports = function(grunt) {
     watch: {
       grunt: { files: ['Gruntfile.js'] },
       sass: {
-        files: 'themes/saleor/styles/*.scss',
+        files: 'themes/saleor/styles/**/*.scss',
         tasks: ['sass']
       },
       uglify: {

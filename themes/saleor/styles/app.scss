@@ -14,4 +14,7 @@
 @import "bootstrap/responsive-utilities";
 
 @import "variables";
-@import "layout";
+@import "_partial/global";
+@import "_partial/header";
+@import "_partial/sections";
+@import "_partial/footer";

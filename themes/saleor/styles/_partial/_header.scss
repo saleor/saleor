@@ -1,0 +1,15 @@
+header {
+  .logo {
+    img {
+      max-height: 80px;
+    }
+  }
+  .menu-top {
+    ul {
+      list-style: none;
+      li {
+        display: inline-block;
+      }
+    }
+  }
+}
