@@ -1,6 +1,7 @@
 {% load bootstrap_field bootstrap_button bootstrap_icon from bootstrap3 %}
 {% load trans from i18n %}
 {% load gross from prices_i18n %}
+{% load discount_as_negative from voucher %}
 
 {% if form %}
         {% if discount %}
@@ -17,7 +18,7 @@
 
                 </form>
             <div class="float-right">
-                - {% gross discount.amount %}
+                {% discount_as_negative discount %}
             </div>
         {% else %}
                 <form action="{{ request.path }}?next={{ request.path }}"
