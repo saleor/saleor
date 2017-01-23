@@ -1,37 +1,60 @@
 // Fonts
 @font-face {
-  font-family: 'Heebo-Regular';
-  src: url('../fonts/Heebo-Regular.ttf') format('truetype');
+  font-family: 'Lato';
+  src: url('../fonts/Lato-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
 }
 
 @font-face {
-  font-family: 'Heebo-Medium';
-  src: url('../fonts/Heebo-Medium.ttf') format('truetype');
+  font-family: 'Lato';
+  src: url('../fonts/Lato-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
 }
 
 @font-face {
-  font-family: 'StardosStencil-Regular';
-  src: url('../fonts/StardosStencil-Regular.ttf') format('truetype');
+  font-family: 'Lato';
+  src: url('../fonts/Lato-LightItalic.ttf') format('truetype');
+  font-weight: 300;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Lato';
+  src: url('../fonts/Lato-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Lato';
+  src: url('../fonts/Lato-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
 }
 
 //Colors
-$base-color: #000;
-$gray: #838383;
-$light-gray: #C3C3C3;
-$bg-gray: #F5F4F2;
+$base-color: #333333;
+
+$bg-gray: #FAFAFA;
+$bg-dark-gray: #4F4F4F;
+
+$light-gray: #E0E0E0;
+$gray: #BDBDBD;
+
 $white: #fff;
-$cyan: #4D9D9C;
+$cyan: #1FBAB3;
 
 //Typography
-$headings-font-family: 'Heebo-Regular';
-$font-family-base: 'Heebo-Regular';
-$font-size-base: 18px;
+$font-family-base: 'Lato';
+$font-size-base: 14px;
 $line-height-base: 1.3;
 $line-height-large: 1.8;
 $font-size-h1: floor(($font-size-base * 3.6));
-$font-size-h2: $font-size-base * 3;
-$font-size-h3: $font-size-base * 1.5;
-$font-size-h4: floor(($font-size-base * 1.2));
+$font-size-h2: floor(($font-size-base * 2.6));
+$font-size-h3: floor(($font-size-base * 1.3));
+$font-size-h4: $font-size-base;
 
 $global-margin: 1rem;
 $global-padding: 1rem;

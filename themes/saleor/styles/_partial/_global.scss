@@ -1,0 +1,28 @@
+body {
+	padding: 0;
+	margin: 0;
+	background: $white;
+	font-family: $font-family-base;
+	font-size: $font-size-base;
+	line-height: $line-height-base;
+	color: $base-color;
+}
+
+h1 {
+	font-size: $font-size-h1;
+}
+h2 {
+	font-size: $font-size-h2;
+	font-weight: 900;
+}
+h3 {
+	font-size: $font-size-h3;
+	font-weight: 300;
+}
+h4 {
+	font-size: $font-size-h4;
+	font-weight: 900;
+}
+strong {
+	font-weight: 700;
+}
