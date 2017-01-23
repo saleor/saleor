@@ -6,6 +6,7 @@ from django.conf import settings
 from django.db import transaction
 from django.forms.models import model_to_dict
 from django.utils.encoding import smart_text
+from django.utils.translation import get_language
 from prices import FixedDiscount, Price
 
 from ..cart.models import Cart
@@ -211,8 +212,9 @@ class Checkout(object):
     def _add_to_user_address_book(self, address, is_billing=False,
                                   is_shipping=False):
         if self.user.is_authenticated():
-            store_user_address(self.user, address, shipping=is_shipping,
-                               billing=is_billing)
+            store_user_address(
+                self.user, address, shipping=is_shipping,
+                billing=is_billing)
 
     def _get_address_copy(self, address):
         address.user = None
@@ -245,6 +247,7 @@ class Checkout(object):
             self.billing_address, is_billing=True)
 
         order_data = {
+            'language_code': get_language(),
             'billing_address': billing_address,
             'shipping_address': shipping_address,
             'tracking_client_id': self.tracking_code,

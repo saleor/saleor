@@ -1,7 +1,5 @@
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
-from saleor.order.models import Order
-from saleor.userprofile.models import User
 from tests.utils import get_redirect_location
 
 
@@ -172,7 +170,7 @@ def test_summary_without_shipping_method(request_cart_with_item, client, monkeyp
     user tries to get summary step without saved shipping method -
      if is redirected to shipping method step
     """
-    #address test return true
+    # address test return true
     monkeypatch.setattr('saleor.checkout.core.Checkout.email',
                         True)
 
@@ -306,3 +304,43 @@ def test_remove_voucher(client, request_cart_with_item, shipping_method, voucher
                                    follow=True, HTTP_REFERER=url)
     assert voucher_response.status_code == 200
     assert voucher_response.context['checkout'].voucher_code is None
+
+
+def test_language_is_saved_in_order(authorized_client, billing_address, customer_user,  # pylint: disable=R0913, R0914
+                                    request_cart_with_item, settings, shipping_method):
+    """
+    authorized user change own email after checkout - if is not changed in order
+    """
+    # Prepare some data
+    user_language = 'fr'
+    settings.LANGUAGE_CODE = 'en'
+    customer_user.addresses.add(billing_address)
+    request_cart_with_item.user = customer_user
+    request_cart_with_item.save()
+
+    # Enter checkout
+    # Checkout index redirects directly to shipping address step
+    shipping_address = authorized_client.get(reverse('checkout:index'),
+                                             follow=True, HTTP_ACCEPT_LANGUAGE=user_language)
+
+    # Enter shipping address data
+    shipping_data = {'address': billing_address.pk}
+    shipping_method_page = authorized_client.post(shipping_address.request['PATH_INFO'],
+                                                  data=shipping_data, follow=True,
+                                                  HTTP_ACCEPT_LANGUAGE=user_language)
+
+    # Select shipping method
+    shipping_method_data = {'method': shipping_method.pk}
+    shipping_method_response = authorized_client.post(shipping_method_page.request['PATH_INFO'],
+                                                      data=shipping_method_data, follow=True,
+                                                      HTTP_ACCEPT_LANGUAGE=user_language)
+
+    # Summary page asks for Billing address, default is the same as shipping
+    payment_method_data = {'address': 'shipping_address'}
+    payment_method_page = authorized_client.post(shipping_method_response.request['PATH_INFO'],
+                                                 data=payment_method_data, follow=True,
+                                                 HTTP_ACCEPT_LANGUAGE=user_language)
+
+    # After summary step, order is created and it waits for payment
+    order = payment_method_page.context['order']
+    assert order.language_code == user_language
