@@ -1,5 +1,4 @@
 from allauth.account.adapter import get_adapter
-from allauth.account.forms import ChangePasswordForm
 from allauth.account.utils import logout_on_password_change
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -8,6 +7,8 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext as _
+
+from .forms import SetPasswordForm
 
 
 @login_required
@@ -21,7 +22,7 @@ def details(request):
 
 
 def get_or_process_password_form(request):
-    form = ChangePasswordForm(data=request.POST or None, user=request.user)
+    form = SetPasswordForm(data=request.POST or None, user=request.user)
     if form.is_valid():
         form.save()
         logout_on_password_change(request, form.user)

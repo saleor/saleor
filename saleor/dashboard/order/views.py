@@ -11,7 +11,7 @@ from django_prices.templatetags.prices_i18n import gross
 from prices import Price
 
 from ...order.models import Order, OrderedItem, OrderNote
-from ...userprofile.forms import AddressForm
+from ...userprofile.i18n import AddressForm
 from ..views import (FilterByStatusMixin, StaffMemberOnlyMixin,
                      staff_member_required)
 from .forms import (CancelItemsForm, CancelOrderForm, CapturePaymentForm,
