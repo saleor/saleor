@@ -4,9 +4,12 @@ import noResultsImg from '../../../img/pirate.svg';
 
 const NoResults = () => {
   return (
-    <div>
-      <img src={noResultsImg} />
-      <p>Sorry, no matches found for your request. Try again or shop new arrivals</p>
+    <div className="no-results">
+        <div className="col-12">
+            <img src={noResultsImg} />
+            <p>Sorry, no matches found for your request.</p>
+            <p>Try again or shop new arrivals.</p>
+        </div>
     </div>
   );
 };
