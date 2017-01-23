@@ -4,6 +4,7 @@ import Relay from 'react-relay';
 
 import CategoryPage from './components/categoryPage/CategoryPage';
 import ProductFilters from './components/categoryPage/ProductFilters';
+import Loading from './components/Loading';
 
 const categoryPage = document.getElementById('category-page');
 const categoryData = JSON.parse(categoryPage.getAttribute('data-category'));
@@ -53,6 +54,10 @@ const AppRoute = {
 };
 
 ReactDOM.render(
-  <Relay.RootContainer Component={RelayApp} route={AppRoute} />,
-  categoryPage,
+  <Relay.RootContainer
+   Component={RelayApp}
+   route={AppRoute}
+   renderLoading={() => <Loading />}
+  />,
+  categoryPage
 );
