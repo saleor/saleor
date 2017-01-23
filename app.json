@@ -47,7 +47,7 @@
     "heroku-postgresql:hobby-dev",
     "heroku-redis:hobby-dev",
     "sendgrid:starter",
-    "bonsai:sandbox"
+    "bonsai:sandbox-10"
   ],
   "buildpacks": [
     {
