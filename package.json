@@ -63,7 +63,7 @@
     "node-sass": "^3.10.0",
     "postcss": "^5.2.3",
     "postcss-loader": "^0.13.0",
-    "sass-loader": "^4.0.2",
+    "sass-loader": "^4.1.1",
     "webpack": "^1.13.2",
     "webpack-bundle-tracker": "0.0.93",
     "webpack-dev-server": "^1.16.1"
@@ -88,7 +88,7 @@
   },
   "scripts": {
     "build-assets": "node ./node_modules/webpack/bin/webpack.js -p",
-    "heroku-postbuild": "npm run build-assets",
+    "heroku-postbuild": "yarn add --force node-sass && yarn run build-assets",
     "start": "UV_THREADPOOL_SIZE=8 node ./node_modules/webpack/bin/webpack.js -d --watch"
   }
 }
