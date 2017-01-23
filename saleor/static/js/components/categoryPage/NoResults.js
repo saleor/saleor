@@ -1,6 +1,6 @@
 import React from 'react';
 
-import noResultsImg from '../../../img/pirate.svg';
+import noResultsImg from '../../../images/pirate.svg';
 
 const NoResults = () => {
   return (
