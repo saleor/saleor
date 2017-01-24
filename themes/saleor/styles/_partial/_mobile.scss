@@ -34,4 +34,27 @@
   }
 }
 
+@media (max-width: 992px) {
+ footer {
+    .links {
+      padding-bottom: $global-padding*2;
+      border-top: 0;
+      border-bottom: 0;
+      border-left: solid 1px $footer-border;
+      border-right: solid 1px $footer-border;
+    }
+    .follow-us {
+      text-align: center;
+      padding: $global-padding*2 0;
+      h3 {
+        border: 0;
+        display: inline;
+      }
+      .icons {
+        display: inline;
+      }
+    }
+  }
+}
+
 

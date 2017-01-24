@@ -1,27 +1,23 @@
 footer {
   padding: $global-padding*4 0;
   background: $bg-dark-gray;
-  .table {
+  .rows {
     display: flex;
-      flex-wrap: wrap;
+    flex-wrap: wrap;
   }
   .logo {
     border: solid 1px $footer-border;
-    padding-bottom: $global-padding*2;
+    padding: $global-padding*2 0;
     .saleor {
-      padding: $global-padding $global-padding*2;
       img {
         border-bottom: solid 1px $footer-border;
         padding: $global-padding*2 0;
       }
     }
     .mirumee {
-      padding: $global-padding $global-padding*2;
-      color: $gray;
-      font-size: 1.2rem;
       img {
-        height: 2.5rem;
-        padding-left: $global-padding;
+        width: 100%;
+        padding: $global-padding 0;
       } 
     }
   }
@@ -37,7 +33,7 @@ footer {
     }
     ul {
       list-style: none;
-      padding-left: $global-padding*1.5;
+      padding: 0 $global-padding*1.5;
       li {
         a {
           color: $white;
@@ -61,7 +57,7 @@ footer {
       font-weight: 900;
       text-align: center;
       padding: $global-padding 0;
-      margin: $global-margin*2 $global-margin*3;
+      margin: $global-margin*2 $global-margin;
       border-bottom: solid 1px $footer-border;
     }
     .icons {
