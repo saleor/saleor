@@ -53,17 +53,29 @@
       }
     }
     .item {
-      &:nth-child(2) {
+      &:nth-child(1) {
         border-right: solid 1px $gray;
+        border-left: solid 1px transparent;
+        border-top: solid 1px transparent;
+        border-bottom: solid 1px transparent;
+      }
+      &:nth-child(2) {
+        border-bottom: solid 1px $gray;
+        border-left: solid 1px transparent;
+        border-top: solid 1px transparent;
+        border-right: solid 1px transparent;
       }
       &:nth-child(3) {
-        border-bottom: solid 1px $gray;
+        border-top: solid 1px $gray;
+        border-left: solid 1px transparent;
+        border-right: solid 1px transparent;
+        border-bottom: solid 1px transparent;
       }
       &:nth-child(4) {
-        border-top: solid 1px $gray;
-      }
-      &:nth-child(5) {
         border-left: solid 1px $gray;
+        border-right: solid 1px transparent;
+        border-top: solid 1px transparent;
+        border-bottom: solid 1px transparent;
       }
     }
   }
