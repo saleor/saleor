@@ -6,10 +6,12 @@ module.exports = function(grunt) {
     uglify: {
       dev: {
         files: {
-          'themes/saleor/source/js/jquery.js':
-            ['node_modules/jquery/dist/jquery.js'],
-          'themes/saleor/source/js/app.js':
-            ['themes/saleor/js/app.js']
+          'themes/saleor/source/js/jquery.js': ['node_modules/jquery/dist/jquery.js'],
+          'themes/saleor/source/js/app.js':[
+            'themes/saleor/js/app.js',
+            'node_modules/bootstrap-sass/assets/javascripts/bootstrap/collapse.js',
+            'node_modules/bootstrap-sass/assets/javascripts/bootstrap/transition.js',
+          ]
         }
       }
     },  

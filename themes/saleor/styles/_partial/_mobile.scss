@@ -1,0 +1,28 @@
+@media (max-width: 768px) {
+  header {
+    .navbar {
+      .logo {
+        padding-left: $global-padding;
+      }
+      .navbar-collapse {
+        padding: 0;
+        ul {
+          padding-left: 0;
+          li {
+            width: 100%;
+            display: block;
+            text-align: center;
+            padding: $global-padding;
+            &:last-child {
+              a {
+                display: block;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+

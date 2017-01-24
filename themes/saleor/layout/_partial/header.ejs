@@ -1,18 +1,22 @@
-<div class="container">
-  <div class="row">
-    <div class="col-md-2">
+<nav class="navbar navbar-custom">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
       <div class="logo">
         <a href="/"><img src="images/saleor-logo.svg" /></a>
       </div>
     </div>
-    <div class="col-md-10">
-      <nav class="menu-top">
-        <ul>
-          <li>Great for <a href="#developers">DEVELOPERS</a>, <a href="#store-managers">MANAGERS</a> &amp; <a href="#customers">CUSTOMERS</a></strong></li>
-          <% for (var i in theme.menu) { %>
-            <li><a href="<%- url_for(theme.menu[i]) %>"><%= i %></a></li>
-          <% } %>
-        </ul>
-      </nav>
+    <div id="navbar" class="menu navbar-collapse collapse navbar-right">
+      <ul>
+        <li>Great for <a href="#developers">DEVELOPERS</a>, <a href="#store-managers">MANAGERS</a> &amp; <a href="#customers">CUSTOMERS</a></strong></li>
+        <% for (var i in theme.menu) { %>
+          <li><a href="<%- url_for(theme.menu[i]) %>"><%= i %></a></li>
+        <% } %>
+      </ul>
     </div>
   </div>
+</nav>

@@ -24,7 +24,9 @@
     }
   }
   &-top {
+    margin-top: $global-margin*8;
     padding-top: $global-padding;
+    border-top: solid 1px $gray;
     h2 {
       text-transform: uppercase;
     }

@@ -7,8 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Saleor — an open source storefront written in Python</title>
     <link rel="shortcut icon" href="/images/favicon.png" />
-    <%- css('app') %>
-    <%- js('js/jquery', 'js/app') %>
+    
   </head>
   <body>
     <header>
@@ -36,6 +35,8 @@
     </div>
     <footer>
       <%- partial('_partial/footer') %>
+      <%- js('js/jquery', 'js/app') %>
+      <%- css('app') %>
     </footer>
   </body>
 </html>
