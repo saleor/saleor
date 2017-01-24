@@ -1,6 +1,6 @@
 menu:
-  Documentation: /alan-turing
-  Github: /donald-knuth
-  Services: /grace-hopper
-  Demo: /ada-lovelace
-  Get started: /john-von-neumann
+  Documentation: https://saleor.readthedocs.io/en/latest/
+  Github: https://github.com/mirumee/saleor
+  Services: /#services
+  Demo: https://github.com/mirumee/saleor
+  Get started: https://github.com/mirumee/saleor

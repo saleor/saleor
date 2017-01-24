@@ -1,3 +1,130 @@
 .section {
-
+  padding: $global-padding*3 0;
+  h2 {
+    text-align: center;
+    span {
+      color: $cyan;
+    }
+  }
+  h3 {
+    text-align: center;
+    margin-top: 0;
+  }
+  h4 {
+    text-align: center;
+    font-weight: 900;
+  }
+  p {
+    text-align: center;
+  }
+  .image {
+    position: relative;
+    img {
+      width: 100%;
+    }
+  }
+  &-top {
+    padding-top: $global-padding;
+    h2 {
+      text-transform: uppercase;
+    }
+    h3 {
+      text-transform: uppercase;
+    }
+  }
+  &-developers {
+    h3 {
+      text-transform: uppercase;
+    }
+    .boxes {
+      position: relative;
+      .ship-wheel {
+        width: 4.5rem;
+        height: 4.5rem;
+        padding: $global-padding;
+        position: absolute;
+        background-color: $white;
+        background-image: url('images/ship-wheel.svg');
+        background-size: contain;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 999;
+      }
+    }
+    .item {
+      &:nth-child(2) {
+        border-right: solid 1px $gray;
+      }
+      &:nth-child(3) {
+        border-bottom: solid 1px $gray;
+      }
+      &:nth-child(4) {
+        border-top: solid 1px $gray;
+      }
+      &:nth-child(5) {
+        border-left: solid 1px $gray;
+      }
+    }
+  }
+  &-store_managers {
+    h3 {
+      text-transform: uppercase;
+    }
+    background: $bg-gray;
+    .item {
+      border-right: solid 1px $light-gray;
+      padding: 0 $global-padding*3;
+      &:last-child {
+        border: none;
+      }
+    }
+  }
+  &-customers {
+    border-bottom:solid 1px $gray;
+    h3 {
+      text-transform: uppercase;
+    }
+    .item {
+      border-right: solid 1px $gray;
+      padding: 0 $global-padding*3;
+      &:last-child {
+        border: none;
+      }
+    }
+  }
+  &-services {
+    .logos {
+      list-style: none;
+      padding-left: 0;
+      border-top: solid 1px $light-gray;
+      border-bottom: solid 1px $light-gray;
+      padding: $global-padding*3 0;
+      margin: $global-margin*3 0;
+      li {
+        width: 20%;
+        float: left;
+        img {
+          height: 5rem;
+          padding: 0 $global-padding;
+        }
+      }
+    }
+  }
+  &-github {
+    background: $cyan;
+    h2 {
+      color: $white;
+      text-transform: uppercase;
+      margin: 0;
+      span {
+        color: $white;
+        font-weight: 300;
+        font-style: italic;
+      }
+    }
+  }
 }
+
+
+

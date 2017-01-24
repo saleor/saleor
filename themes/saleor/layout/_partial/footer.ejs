@@ -1,33 +1,45 @@
 <div class="container">
   <div class="row">
-    <div class="col-md-3">
-      <div class="logo"><a href="/"><img src="images/saleor-logo-white.svg" /></a></div>
-      <div class="crafted-by">
-        <span>Crafted by</span>
-        <img src="images/mirumee-logo.svg" />
-      </div>
-    </div>
-    <div class="col-md-6">
-      <div class="row">
-        <div class="col-md-6">
-          <h3>Great for <span>Developers</span><span>Managers</span><span>Clients</span></h3>
+    <div class="col-md-12 col-md-offset-1">
+      <div class="row table">
+        <div class="col-md-3 logo">
+          <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+              <div class="saleor"><a href="/"><img src="images/saleor-logo-white.svg" /></a></div>
+              <div class="mirumee">
+                Crafted by<img src="images/mirumee-logo.svg" />
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="col-md-6">
-          <h3>Links</h3>
-          <ul>
-            <% for (var i in theme.menu) { %>
-              <li><a href="<%- url_for(theme.menu[i]) %>"><%= i %></a></li>
-            <% } %>
+        <div class="col-md-5 links">
+          <div class="row">
+            <div class="col-md-6">
+              <h3>Great for</h3>
+              <ul>
+                <li><a href="#developers">Developers</a></li>
+                <li><a href="#store-managers">Managers</a></li>
+                <li><a href="#customers">Customers</a></li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <h3>Links</h3>
+              <ul>
+                <% for (var i in theme.menu) { %>
+                  <li><a href="<%- url_for(theme.menu[i]) %>"><%= i %></a></li>
+                <% } %>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-2 follow-us">
+          <h3>Follow us</h3>
+          <ul class="icons">
+            <li><a href="/"><img src="images/github-icon.svg" /></a></li>
+            <li><a href="/"><img src="images/twitter-icon.svg" /></a></li>
           </ul>
         </div>
       </div>
-    </div>
-    <div class="col-md-3">
-      <h3>Follow us</h3>
-      <ul class="icons">
-        <li><a href="/"><img src="images/github-icon.svg" /></a></li>
-        <li><a href="/"><img src="images/twitter-icon.svg" /></a></li>
-      </ul>
     </div>
   </div>
 </div>

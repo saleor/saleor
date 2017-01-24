@@ -1,14 +1,40 @@
 header {
+  border-bottom: solid 1px $gray;
+  padding-top: $global-padding*2;
+  padding-bottom: $global-padding*2;
   .logo {
     img {
       max-height: 80px;
+      opacity: 1;
+      @include transition(opacity 0.3s)
+      &:hover {
+        opacity: 0.7;
+      }
     }
   }
   .menu-top {
+    padding-top: $global-padding*5;
     ul {
       list-style: none;
       li {
         display: inline-block;
+        padding: 0 $global-padding;
+        a {
+          text-transform: uppercase;
+          font-weight: 900;
+          color: $base-color;
+          &:hover {
+            text-decoration: none;
+            color: $red;
+          }
+        }
+        &:last-child {
+          a {
+            color: $red;
+            border: solid 1px $red;
+            padding: $global-padding $global-padding;
+          }
+        }
       }
     }
   }

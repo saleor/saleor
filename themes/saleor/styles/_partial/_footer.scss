@@ -1,3 +1,75 @@
 footer {
-
+  padding: $global-padding*4 0;
+  background: $bg-dark-gray;
+  .table {
+    display: flex;
+      flex-wrap: wrap;
+  }
+  .logo {
+    border: solid 1px $footer-border;
+    padding-bottom: $global-padding*2;
+    .saleor {
+      padding: $global-padding $global-padding*2;
+      img {
+        border-bottom: solid 1px $footer-border;
+        padding: $global-padding*2 0;
+      }
+    }
+    .mirumee {
+      padding: $global-padding $global-padding*2;
+      color: $gray;
+      font-size: 1.2rem;
+      img {
+        height: 2.5rem;
+        padding-left: $global-padding;
+      } 
+    }
+  }
+  .links {
+    border-top: solid 1px $footer-border;
+    border-bottom: solid 1px $footer-border;
+    h3 {
+      margin: 0;
+      color: $gray;
+      font-size: 1.4rem;
+      padding-top: $global-padding*3;
+      padding-left: $global-padding*1.5;
+    }
+    ul {
+      list-style: none;
+      padding-left: $global-padding*1.5;
+      li {
+        a {
+          color: $white;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+      }
+    }
+  }
+  .follow-us {
+    border: solid 1px $footer-border;
+    h3 {
+      font-size: 1.2rem;
+      color: $white;
+      text-transform: uppercase;
+      font-weight: 900;
+      text-align: center;
+      padding: $global-padding 0;
+      margin: $global-margin*2 $global-margin*3;
+      border-bottom: solid 1px $footer-border;
+    }
+    .icons {
+      list-style: none;
+      padding-left: 0;
+      text-align: center;
+      li {
+        padding: $global-padding;
+        display: inline;
+        a {
+          display: inline-block;
+        }
+      }
+    }
+  }
 }
