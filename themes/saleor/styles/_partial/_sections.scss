@@ -23,6 +23,17 @@
       width: 100%;
     }
   }
+  .count {
+    width: 3rem;
+    height: 3rem;
+    border: solid 1px $gray;
+    line-height: 3rem;
+    border-radius: 50%;
+    text-align: center;
+    color: $footer-border;
+    font-weight: 900;
+    margin: auto;
+  }
   &-top {
     margin-top: $global-margin*8;
     padding-top: $global-padding;
