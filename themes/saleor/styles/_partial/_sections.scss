@@ -44,6 +44,9 @@
     h3 {
       text-transform: uppercase;
     }
+    img {
+      margin-top: -$global-margin*5;
+    }
   }
   &-developers {
     h3 {
@@ -52,9 +55,8 @@
     .boxes {
       position: relative;
       .ship-wheel {
-        width: 4.5rem;
-        height: 4.5rem;
-        padding: $global-padding;
+        border: solid 5px $white;
+        padding: $global-padding*3;
         position: absolute;
         background-color: $white;
         background-image: url('images/ship-wheel.svg');
@@ -89,6 +91,9 @@
         border-right: solid 1px transparent;
         border-top: solid 1px transparent;
         border-bottom: solid 1px transparent;
+      }
+      p {
+        margin-bottom: 2.5rem;
       }
     }
   }

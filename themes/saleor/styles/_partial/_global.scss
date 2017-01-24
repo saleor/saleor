@@ -33,9 +33,14 @@ strong {
 }
 
 .col-center {
-   float: none;
-   margin: 0 auto;
- }
+ float: none;
+ margin: 0 auto;
+}
+
+.no-gutter > [class*='col-'] {
+  padding-right:0;
+  padding-left:0;
+}
 
  .btn {
   width: 20rem;

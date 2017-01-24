@@ -15,10 +15,25 @@ footer {
       }
     }
     .mirumee {
-      img {
-        width: 100%;
-        padding: $global-padding 0;
-      } 
+      padding: $global-padding*2 0;
+      span {
+        color: $white;
+        font-size: 1.2rem;
+        line-height: 2.5rem;
+        text-align: right;
+        display: block;
+        padding-right: $global-padding;
+      }
+      a {
+        @include transition(opacity, 0.3s);
+        opacity: 1;
+        &:hover {
+          opacity: 0.7;
+        }
+        img {
+          height: 2.5rem;
+        } 
+      }
     }
   }
   .links {
@@ -30,6 +45,7 @@ footer {
       font-size: 1.4rem;
       padding-top: $global-padding*3;
       padding-left: $global-padding*1.5;
+      padding-bottom: $global-padding/2;
     }
     ul {
       list-style: none;
