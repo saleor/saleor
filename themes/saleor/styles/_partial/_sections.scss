@@ -116,13 +116,16 @@
       padding: $global-padding*3 0;
       margin: $global-margin*3 0;
       li {
-        width: 20%;
         float: left;
         img {
-          height: 5rem;
+          max-height: 5.9rem;
           padding: 0 $global-padding;
         }
       }
+    }
+    p {
+      margin: 0;
+      padding: $global-padding 0;
     }
   }
   &-github {
