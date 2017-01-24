@@ -113,12 +113,13 @@
       padding-left: 0;
       border-top: solid 1px $light-gray;
       border-bottom: solid 1px $light-gray;
-      padding: $global-padding*3 0;
+      padding: $global-padding*2 0;
       margin: $global-margin*3 0;
       li {
+        width: 20%;
         float: left;
         img {
-          max-height: 5.9rem;
+          width: 100%;
           padding: 0 $global-padding;
         }
       }
