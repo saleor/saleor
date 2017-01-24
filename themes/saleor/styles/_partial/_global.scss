@@ -46,16 +46,34 @@ strong {
   &.btn-primary {
     background: $cyan;
     color: $white;
-    border: none;
+    border: solid 1px transparent;
+    @include transition(background-color, 0.3s);
+    &:hover {
+      background: $white;
+      color: $cyan;
+      border: solid 1px $cyan;
+    }
   }
   &.btn-secondary {
     background: $white;
     color: $cyan;
     border: solid 1px $cyan;
+    @include transition(background-color, 0.3s);
+    &:hover {
+      background: $cyan;
+      color: $white;
+      border: solid 1px transparent;
+    }
   }
   &.btn-tertiary {
     background: $cyan;
     color: $white;
     border: solid 1px $white;
+    @include transition(background-color, 0.3s);
+    &:hover {
+      background: $white;
+      color: $cyan;
+      border: solid 1px $cyan;
+    }
   }
  }

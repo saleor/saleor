@@ -23,6 +23,7 @@ header {
           text-transform: uppercase;
           font-weight: 900;
           color: $base-color;
+          @include transition(color, 0.3s);
           &:hover {
             text-decoration: none;
             color: $red;
@@ -33,6 +34,12 @@ header {
             color: $red;
             border: solid 1px $red;
             padding: $global-padding $global-padding;
+            @include transition(background-color, 0.3s);
+            &:hover {
+              background: $red;
+              color: $white;
+              border: solid 1px $red;
+            }
           }
         }
       }

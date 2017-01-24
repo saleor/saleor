@@ -43,6 +43,11 @@ footer {
           color: $white;
           font-weight: 900;
           text-transform: uppercase;
+          @include transition(color, 0.3s);
+          &:hover {
+            color: $cyan;
+            text-decoration: none;
+          }
         }
       }
     }
@@ -68,6 +73,11 @@ footer {
         display: inline;
         a {
           display: inline-block;
+          opacity: 1;
+          @include transition(opacity, 0.3s);
+          &:hover {
+            opacity: 0.7;
+          }
         }
       }
     }
