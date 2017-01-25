@@ -95,12 +95,6 @@
             <div class="col-md-5 col-12 product__info">
                 {% if is_visible and product.is_in_stock %}
                     {% block orderform %}
-                        {% for attribute, value in product_attributes.items %}
-                            <div class="form-group">
-                                <label class="control-label"><b>{{ attribute }}</b></label>
-                                <p>{{ value }}</p>
-                            </div>
-                        {% endfor %}
                         {% if show_variant_picker %}
                             {% csrf_token %}
                             <div id="variant-picker" data-variant-picker-data="{{ variant_picker_data }}" data-action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}"></div>
@@ -122,14 +116,17 @@
                 {% else %}
                     <p class="alert alert-warning">{% trans "This product is currently <strong>unavailable</strong>." %}</p>
                 {% endif %}
-
                 <hr>
-
                 <div itemprop="product__info__description">
                     <p><strong>{% trans "Description" %}</strong></p>
                     {{ product.description|markdown }}
                 </div>
-
+                <hr>
+                <div>
+                    {% for attribute, value in product_attributes.items %}
+                        <div>{{ attribute }}: <strong>{{ value }}</strong></div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
