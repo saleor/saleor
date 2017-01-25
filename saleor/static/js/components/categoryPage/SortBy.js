@@ -1,4 +1,8 @@
 import React, { Component, PropTypes } from 'react';
+import InlineSVG from 'react-inlinesvg';
+
+import arrowUpIcon from '../../../images/arrow-up-icon.svg';
+import arrowDownIcon from '../../../images/arrow-down-icon.svg';
 
 export default class sortBy extends Component {
 
@@ -37,54 +41,66 @@ export default class sortBy extends Component {
             sortedValue.search('-') ? (
               <div>
                 <span>Sort by: <strong>{sortedValue}</strong></span>
-                <img src="/static/images/arrow-up-icon.svg" width="15" />
+                <div className="sort-order-icon">
+                  <InlineSVG key="arrowUpIcon" src={arrowUpIcon} />
+                </div>
               </div>
             ) : (
                <div>
                 <span>Sort by: <strong>{sortedValue.replace('-', '')}</strong></span>
-                <img src="/static/images/arrow-down-icon.svg" width="15" />
+                <div className="sort-order-icon">
+                  <InlineSVG key="arrowDownIcon" src={arrowDownIcon} />
+                </div>
               </div>
             )
           ) : (
             <span>Sort by: <strong>default</strong></span>
           )}
         </button>
-        {visibility ? (
-        <ul className="sort-list">
-          <li className="name">
-            <div className="row">
-              <div className="col-md-6">Sort by <strong>Name</strong></div>
-              <div className="col-md-6">
-                  <span className="name" onClick={this.setSorting}>ascending</span>
-                  <img className="float-right" src="/static/images/arrow-up-icon.svg" width="15" />
+        {visibility && (
+          <ul className="sort-list">
+            <li className="name">
+              <div className="row">
+                <div className="col-md-6">Sort by <strong>Name</strong></div>
+                <div className="col-md-6">
+                    <span className="name" onClick={this.setSorting}>ascending</span>
+                    <div className="float-right sort-order-icon">
+                      <InlineSVG src={arrowUpIcon} />
+                    </div>
+                </div>
               </div>
-            </div>
-            <div className="row">
-              <div className="col-md-6"></div>
-              <div className="col-md-6">
-                  <span className="-name" onClick={this.setSorting}>descending</span>
-                  <img className="float-right" src="/static/images/arrow-down-icon.svg" width="15" />
+              <div className="row">
+                <div className="col-md-6"></div>
+                <div className="col-md-6">
+                    <span className="-name" onClick={this.setSorting}>descending</span>
+                    <div className="float-right sort-order-icon">
+                      <InlineSVG src={arrowDownIcon} />
+                    </div>
+                </div>
               </div>
-            </div>
-          </li>
-          <li className="price">
-            <div className="row">
-              <div className="col-md-6">Sort by <strong>Price</strong></div>
-              <div className="col-md-6">
-                  <span className="price" onClick={this.setSorting}>ascending</span>
-                  <img className="float-right" src="/static/images/arrow-up-icon.svg" width="15" />
+            </li>
+            <li className="price">
+              <div className="row">
+                <div className="col-md-6">Sort by <strong>Price</strong></div>
+                <div className="col-md-6">
+                    <span className="price" onClick={this.setSorting}>ascending</span>
+                    <div className="float-right sort-order-icon">
+                      <InlineSVG src={arrowUpIcon} />
+                    </div>
+                </div>
               </div>
-            </div>
-            <div className="row">
-              <div className="col-md-6"></div>
-              <div className="col-md-6">
-                  <span className="-price" onClick={this.setSorting}>descending</span>
-                  <img className="float-right" src="/static/images/arrow-down-icon.svg" width="15" />
+              <div className="row">
+                <div className="col-md-6"></div>
+                <div className="col-md-6">
+                    <span className="-price" onClick={this.setSorting}>descending</span>
+                    <div className="float-right sort-order-icon">
+                      <InlineSVG src={arrowDownIcon} />
+                    </div>
+                </div>
               </div>
-            </div>
-          </li>
-        </ul>
-        ) : (null)}
+            </li>
+          </ul>
+        )}
       </div>
     );
   }
