@@ -86,7 +86,7 @@ class ProductClass(models.Model):
         default=False)
     vat_rate_type = models.CharField(
         pgettext_lazy('Product class field', 'vat rate type'), max_length=15,
-        blank=True)
+        blank=True, choices=[('', '--------'), ('standard', 'standard')])
 
     class Meta:
         verbose_name = pgettext_lazy(

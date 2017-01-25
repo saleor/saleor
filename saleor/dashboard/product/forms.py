@@ -7,6 +7,7 @@ from django.forms.models import ModelChoiceIterator, inlineformset_factory
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
+from django_prices_vatlayer.models import RateTypes
 
 from ...product.models import (AttributeChoiceValue, Product, ProductAttribute,
                                ProductClass, ProductImage, ProductVariant,
@@ -58,6 +59,13 @@ class ProductClassForm(forms.ModelForm):
             'product_attributes': pgettext_lazy(
                 'Product class form label',
                 'Attributes common to all variants')}
+
+    def __init__(self, *args, **kwargs):
+        super(ProductClassForm, self).__init__(*args, **kwargs)
+        rate_types = RateTypes.objects.singleton()
+        if rate_types:
+            rate_choices = [(name, name) for name in rate_types.types]
+            self.fields['vat_rate_type'].choices += rate_choices
 
     def clean(self):
         data = super(ProductClassForm, self).clean()
