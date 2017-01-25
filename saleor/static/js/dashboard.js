@@ -184,7 +184,7 @@ Dropzone.options.productImageForm = {
 let el = document.getElementById('product-gallery');
 if (el) {
   Sortable.create(el, {
-    handle: '.sortable__handle',
+    handle: '.sortable__drag-area',
     onUpdate: function () {
       $.ajax({
         dataType: 'json',
