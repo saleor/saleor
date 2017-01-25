@@ -4,6 +4,7 @@ from decimal import Decimal
 from uuid import uuid4
 
 import emailit.api
+import payments
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -13,17 +14,16 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
-from payments import PurchasedItem
 from payments.models import BasePayment
-from prices import Price, FixedDiscount
+from prices import FixedDiscount, Price
 from satchless.item import ItemLine, ItemSet
 
+from . import Status
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product, Stock
-from ..userprofile.models import Address
 from ..search import index
-from . import Status
+from ..userprofile.models import Address
 
 
 class OrderManager(models.Manager):
@@ -431,24 +431,21 @@ class Payment(BasePayment):
             from_email=settings.ORDER_FROM_EMAIL)
 
     def get_purchased_items(self):
-        items = [PurchasedItem(
+        return [payments.PurchasedItem(
             name=item.product_name, sku=item.product_sku,
             quantity=item.quantity,
             price=item.unit_price_gross.quantize(Decimal('0.01')),
             currency=settings.DEFAULT_CURRENCY)
             for item in self.order.get_items()]
 
-        # PayPal require discount info as item with negative price.
-        provider, _ = settings.PAYMENT_VARIANTS.get(self.variant, (None, None))
+    def get_discounts(self):
         voucher = self.order.voucher
-        if provider and 'PaypalProvider' in provider and voucher is not None:
-            items.append(PurchasedItem(
-                name=self.order.discount_name,
-                sku='DISCOUNT',
-                quantity=1,
-                price=-1 * self.order.discount_amount.net,
-                currency=self.currency))
-        return items
+        if voucher is None:
+            return []
+        return [payments.Discount(
+            name=self.order.discount_name,
+            amount=self.order.discount_amount.net.quantize(Decimal('0.01')),
+            currency=self.currency)]
 
     def get_total_price(self):
         net = self.total - self.tax
