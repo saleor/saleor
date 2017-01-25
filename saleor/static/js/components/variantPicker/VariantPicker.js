@@ -61,6 +61,7 @@ export default class VariantPicker extends Component {
     }, () => {
       this.matchVariantFromSelection();
     });
+    // todo: fix empty selection
   }
 
   handleQuantityChange = (event) => {

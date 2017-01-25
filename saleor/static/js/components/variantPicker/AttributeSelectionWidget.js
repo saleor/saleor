@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from 'react';
+import classNames from 'classnames';
 
 export default class AttributeSelectionWidget extends Component {
 
@@ -8,27 +9,31 @@ export default class AttributeSelectionWidget extends Component {
     selected: PropTypes.string
   };
 
-  handleChange = (event) => {
-    const { name, value } = event.target;
-    this.props.handleChange(name, value);
+  handleChange = (attrPk, valuePk) => {
+    this.props.handleChange(attrPk.toString(), valuePk.toString());
   }
 
   render() {
-    const { attribute: { display, pk, values }, selected } = this.props;
+    const { attribute, selected } = this.props;
     return (
-      <div className="form-group product__variant-picker">
-        <label className="control-label"><b>{display}</b></label>
-          <div className="radio">
-          {values.map((value, i) => {
+      <div className="product__variant-picker">
+        <div>{attribute.display}: </div>
+        <div className="btn-group" data-toggle="buttons">
+          {attribute.values.map((value, i) => {
+            const active = selected === value.pk.toString();
+            const labelClass = classNames({
+              'btn btn-secondary': true,
+              'active': active
+            });
             return (
-              <label className="radio-inline" key={i}>
+              <label
+                className={labelClass}
+                key={i}
+                onClick={() => this.handleChange(attribute.pk, value.pk)}>
                 <input
-                  name={pk}
-                  onChange={this.handleChange}
-                  defaultChecked={selected === value.pk.toString()}
-                  type="radio"
-                  value={value.pk}
-                />
+                  defaultChecked={active}
+                  name={value.pk}
+                  type="radio"/>
                 {value.display}
               </label>
             );
