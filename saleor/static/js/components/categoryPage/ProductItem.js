@@ -21,7 +21,7 @@ class ProductItem extends Component {
             </a>
           </div>
           <div className="panel-footer">
-            <ProductPrice availability={product.availability} />
+            <ProductPrice price={product.price} availability={product.availability} />
           </div>
         </div>
       </div>
@@ -35,6 +35,11 @@ export default Relay.createContainer(ProductItem, {
       fragment on ProductType {
         id
         name
+        price {
+          currency
+          gross
+          net
+        }
         availability {
           ${ProductPrice.getFragment('availability')}
         }
