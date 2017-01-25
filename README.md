@@ -1,4 +1,4 @@
-[![Avast ye landlubbers! Saleor be a Satchless store ye can fork.](http://getsaleor.com/mr-saleor-readme.svg)](https://getsaleor.com)
+[![Avast ye landlubbers! Saleor be a Satchless store ye can fork.](http://getsaleor.com/mr-saleor-readme.png)](https://getsaleor.com)
 
 
 Saleor
