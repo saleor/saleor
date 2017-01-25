@@ -42,43 +42,46 @@ strong {
   padding-left:0;
 }
 
- .btn {
+@mixin btn-primary($background, $color) {
+  background: $background;
+  color: $color;
+  border: solid 1px transparent;
+  @include transition(background-color, 0.3s);
+  &:hover {
+    background: $color;
+    color: $background;
+    border: solid 1px $background;
+  }
+}
+
+@mixin btn-secondary($background, $color) {
+  background: $background;
+  color: $color;
+  border: solid 1px $color;
+  @include transition(background-color, 0.3s);
+  &:hover {
+    background: $color;
+    color: $background;
+    border: solid 1px $background;
+  }
+}
+
+@mixin btn-white($background) {
+  background: $background;
+  color: $white;
+  border: solid 1px $white;
+  @include transition(background-color, 0.3s);
+  &:hover {
+    background: $white;
+    color: $background;
+    border: solid 1px $background;
+  }
+}
+
+.btn {
   width: 20rem;
   display: block;
   margin: $global-margin*2 auto;
   font-weight: 900;
   padding: $global-padding 0;
-  &.btn-primary {
-    background: $cyan;
-    color: $white;
-    border: solid 1px transparent;
-    @include transition(background-color, 0.3s);
-    &:hover {
-      background: $white;
-      color: $cyan;
-      border: solid 1px $cyan;
-    }
-  }
-  &.btn-secondary {
-    background: $white;
-    color: $cyan;
-    border: solid 1px $cyan;
-    @include transition(background-color, 0.3s);
-    &:hover {
-      background: $cyan;
-      color: $white;
-      border: solid 1px transparent;
-    }
-  }
-  &.btn-tertiary {
-    background: $cyan;
-    color: $white;
-    border: solid 1px $white;
-    @include transition(background-color, 0.3s);
-    &:hover {
-      background: $white;
-      color: $cyan;
-      border: solid 1px $cyan;
-    }
-  }
- }
+}

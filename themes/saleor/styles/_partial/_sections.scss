@@ -2,9 +2,6 @@
   padding: $global-padding*3 0;
   h2 {
     text-align: center;
-    span {
-      color: $cyan;
-    }
   }
   h3 {
     text-align: center;
@@ -49,6 +46,11 @@
     }
   }
   &-developers {
+    h2 {
+      span {
+        color: $blue;
+      }
+    }
     h3 {
       text-transform: uppercase;
     }
@@ -96,8 +98,16 @@
         margin-bottom: 2.5rem;
       }
     }
+    .btn-primary {
+      @include btn-primary($blue, $white);
+    }
   }
   &-store_managers {
+    h2 {
+      span {
+        color: $red;
+      }
+    }
     h3 {
       text-transform: uppercase;
     }
@@ -109,9 +119,17 @@
         border: none;
       }
     }
+    .btn-primary {
+      @include btn-primary($red, $white);
+    }
   }
   &-customers {
     border-bottom:solid 1px $gray;
+    h2 {
+      span {
+        color: $orange;
+      }
+    }
     h3 {
       text-transform: uppercase;
     }
@@ -121,6 +139,9 @@
       &:last-child {
         border: none;
       }
+    }
+    .btn-primary {
+      @include btn-primary($orange, $white);
     }
   }
   &-services {
@@ -144,9 +165,12 @@
       margin: 0;
       padding: $global-padding 0;
     }
+    .btn-secondary {
+      @include btn-secondary($white, $red);
+    }
   }
   &-github {
-    background: $cyan;
+    background: $red;
     h2 {
       color: $white;
       text-transform: uppercase;
@@ -156,6 +180,9 @@
         font-weight: 300;
         font-style: italic;
       }
+    }
+    .btn-tertiary {
+      @include btn-white($red)
     }
   }
 }
