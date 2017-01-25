@@ -1,8 +1,5 @@
 import React, { Component, PropTypes } from 'react';
-import InlineSVG from 'react-inlinesvg';
-
-import chevronUpIcon from '../../../images/chevron-up-icon.svg';
-import chevronDownIcon from '../../../images/chevron-down-icon.svg';
+import FilterHeader from './FilterHeader';
 
 export default class PriceFilter extends Component {
 
@@ -43,17 +40,14 @@ export default class PriceFilter extends Component {
   render() {
     const { maxPrice, minPrice } = this.props;
     const { visibility } = this.state;
-    const imageSrc = visibility ? (chevronUpIcon) : (chevronDownIcon);
-    const key = visibility ? 'chevronUpIcon' : 'chevronDownIcon';
     return (
       <div className="price-range">
-        <h3 onClick={this.changeVisibility}>
-          Price range
-          <div className="collapse-filters-icon">
-            <InlineSVG key={key} src={imageSrc} />
-          </div>
-        </h3>
-        {visibility || minPrice || maxPrice ? (
+        <FilterHeader
+          onClick={this.changeVisibility}
+          title="Price range"
+          visibility={visibility}
+        />
+        {visibility && (
           <div>
             <input
               className="form-control"
@@ -76,7 +70,7 @@ export default class PriceFilter extends Component {
             />
             <button className="btn" onClick={this.updateFilter}>Update</button>
           </div>
-        ) : (null)}
+        )}
       </div>
     );
   }
