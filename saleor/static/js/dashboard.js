@@ -154,7 +154,7 @@ Dropzone.options.productImageForm = {
   maxFilesize: 20,
   previewsContainer: '.product-gallery',
   thumbnailWidth: 400,
-  thumbnailHeight: 250,
+  thumbnailHeight: 400,
   previewTemplate: $('#template').html(),
   clickable: false,
   init: function() {
@@ -164,7 +164,7 @@ Dropzone.options.productImageForm = {
     this.on('complete', function() {
       $dropzoneGhost.remove().appendTo($gallery);
     }).on('success', function(e, response) {
-      $(e.previewElement).find('.product-gallery-item-desc').html(e.name);
+      $(e.previewElement).find('.product-gallery-item-desc').html(response.image);
       $(e.previewElement).attr('data-id', response.id);
       let editLinkHref = $(e.previewElement).find('.card-action-edit').attr('href');
       editLinkHref = editLinkHref.split('/');

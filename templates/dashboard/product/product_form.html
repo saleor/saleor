@@ -293,49 +293,52 @@
                             <div class="dz-message"></div>
                             {% csrf_token %}
                             <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#images">
-                            <ul class="row product-gallery" id="product-gallery" data-post-url="{% url 'dashboard:product-images-reorder' product_pk=product.pk %}">
-                                {% if images %}
-                                    {% for image in images %}
-                                        <li class="col s6 m3 card product-gallery-item" data-id="{{ image.pk }}">
-                                            <div class="card-image product-gallery-item-image">
-                                                <img class="responsive-img" src="{{ image.image.crop.400x400 }}" alt="">
-                                            </div>
+                            <div class="row ">
+                                <ul class="product-gallery" id="product-gallery" data-post-url="{% url 'dashboard:product-images-reorder' product_pk=product.pk %}">
+                                    {% if images %}
+                                        {% for image in images %}
+                                            <li class="col s6 m3 card product-gallery-item" data-id="{{ image.pk }}">
+                                                <div class="card-image product-gallery-item-image">
+                                                    <img class="responsive-img" src="{{ image.image.crop.400x400 }}" alt="">
+                                                </div>
 
-                                            <div class="card-content">
-                                                <span class="product-gallery-item-title card-title black-text" title="{{ image.alt }}">
-                                                    {% if image.alt %}
-                                                        {{ image.alt }}
-                                                    {% else %}
-                                                        <span class="grey-text">{% trans "No description" %}</span>
-                                                    {% endif %}
-                                                </span>
-                                                <span class="product-gallery-item-desc" title="{{ image.image.name }}">{{ image.image.name }}</span>
-                                            </div>
+                                                <div class="card-content">
+                                                    <span class="product-gallery-item-title card-title black-text" title="{{ image.alt }}">
+                                                        {% if image.alt %}
+                                                            {{ image.alt }}
+                                                        {% else %}
+                                                            <span class="grey-text">{% trans "No description" %}</span>
+                                                        {% endif %}
+                                                    </span>
+                                                    <span class="product-gallery-item-desc" title="{{ image.image.name }}">{{ image.image.name }}</span>
+                                                </div>
 
-                                            <div class="card-action">
-                                                <a href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">
-                                                    {% trans "Edit" %}
-                                                </a>
+                                                <div class="card-action">
+                                                    <a href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">
+                                                        {% trans "Edit" %}
+                                                    </a>
 
-                                                <a href="#base-modal" class="modal-trigger-custom"
-                                                    data-href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}">
-                                                    {% trans "Delete" %}
-                                                </a>
-                                            </div>
-                                            <div class="sortable__drag-area"></div>
-                                        </li>
-                                    {% endfor %}
-                                {% else %}
-                                    <p class="no-images">{% trans "This product has no images yet." %}</p>
-                                {% endif %}
-                                <li class="col s6 m3 card product-gallery-item dropzone-ghost">
+                                                    <a href="#base-modal" class="modal-trigger-custom"
+                                                        data-href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}">
+                                                        {% trans "Delete" %}
+                                                    </a>
+                                                </div>
+                                                <div class="sortable__drag-area"></div>
+                                            </li>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="no-images">{% trans "This product has no images yet." %}</p>
+                                    {% endif %}
+
+                                </ul>
+                                <div class="col s6 m3 card product-gallery-item dropzone-ghost">
                                     <div class="card-content">
                                         <span class="product-gallery-item-title product-gallery-item-title--noclip card-title black-text">
                                             <span class="grey-text">{% trans "Drop images here to upload" %}</span>
                                         </span>
                                     </div>
-                                </li>
-                            </ul>
+                                </div>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -370,6 +373,7 @@
 
                         &nbsp;
                     </div>
+                    <div class="sortable__drag-area"></div>
                 </li>
             </script>
         </div>
