@@ -98,11 +98,13 @@ class DashboardSearchResults(DEFAULT_BACKEND_RESULTS_CLASS):
             search_hits[hit_type].append(hit_pk)
             scores[hit['_id']] = hit['_score']
 
+        # Group results by content type
         results_by_model = {}
         for content_type, hit_pks in search_hits.items():
             queryset = self.query.queryset_map[content_type]
             results_by_model[content_type] = queryset.filter(pk__in=hit_pks)
 
+        # Merge results back in one list ordered by search score
         all_results = []
         for content_type, hits in results_by_model.items():
             for hit in hits:
@@ -149,6 +151,10 @@ class DashboardMultiTypeSearchBackend(DEFAULT_BACKEND_CLASS):
                model_or_queryset=None, fields=None, filters=None,
                prefetch_related=None, operator=None, order_by_relevance=True,
                queryset_map=None):
+        """
+        Multi-model search. Parameters that affect model or database
+        structure are skipped and not used in dashboard query implementation.
+        """
         search_query = self.query_class(
             query_string=query_string, fields=fields, operator=operator,
             order_by_relevance=order_by_relevance, queryset_map=queryset_map)
