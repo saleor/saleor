@@ -1,11 +1,11 @@
 import React, { Component, PropTypes } from 'react';
 import Relay from 'react-relay';
+import InlineSVG from 'react-inlinesvg';
 
 import AttributeInput from './AttributeInput';
 
 import chevronUpIcon from '../../../images/chevron-up-icon.svg';
 import chevronDownIcon from '../../../images/chevron-down-icon.svg';
-
 
 class ProductFilters extends Component {
 
@@ -51,11 +51,15 @@ class ProductFilters extends Component {
     return (
       <div className="attributes">
         {attributes && (attributes.map((attribute) => {
+          const imageSrc = visibility[attribute.name] ? (chevronUpIcon) : (chevronDownIcon);
+          const key = visibility[attribute.name] ? 'chevronUpIcon' : 'chevronDownIcon';
           return (
             <div key={attribute.id}>
               <h3 className={attribute.name} onClick={() => this.changeVisibility(attribute.name)}>
                 {attribute.display}
-                <img className="float-right" src={visibility[attribute.name] ? (chevronUpIcon) : (chevronDownIcon)} width="20" />
+                <div className="collapse-filters-icon">
+                  <InlineSVG key={key} src={imageSrc} />
+                </div>
               </h3>
               <ul id={attribute.name}>
                 {attribute.values.map((value) => {

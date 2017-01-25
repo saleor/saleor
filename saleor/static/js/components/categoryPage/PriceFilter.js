@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from 'react';
+import InlineSVG from 'react-inlinesvg';
 
 import chevronUpIcon from '../../../images/chevron-up-icon.svg';
 import chevronDownIcon from '../../../images/chevron-down-icon.svg';
@@ -31,19 +32,26 @@ export default class PriceFilter extends Component {
   }
 
   changeVisibility = () => {
-    this.setState({
-      visibility: !this.state.visibility
-    });
+    const { minPrice, maxPrice } = this.props;
+    if (!(minPrice || maxPrice)) {
+      this.setState({
+        visibility: !this.state.visibility
+      });
+    }
   }
 
   render() {
     const { maxPrice, minPrice } = this.props;
     const { visibility } = this.state;
+    const imageSrc = visibility ? (chevronUpIcon) : (chevronDownIcon);
+    const key = visibility ? 'chevronUpIcon' : 'chevronDownIcon';
     return (
       <div className="price-range">
         <h3 onClick={this.changeVisibility}>
           Price range
-          <img className="float-right" src={visibility ? (chevronUpIcon) : (chevronDownIcon)} width="20" />
+          <div className="collapse-filters-icon">
+            <InlineSVG key={key} src={imageSrc} />
+          </div>
         </h3>
         {visibility || minPrice || maxPrice ? (
           <div>

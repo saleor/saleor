@@ -33,8 +33,10 @@
 				color: $body-color;
 				padding-right: $global-padding;
 				outline: 0;
-				img {
+				svg {
+					vertical-align: middle;
 					margin-left: $global-padding/2;
+					height: 15px;
 				}
 			}
 			ul {
@@ -59,7 +61,7 @@
 							text-decoration: underline;
 						}
 					}
-					img {
+					svg {
 						margin-top: $global-padding/3;
 					}
 					&:last-child {
@@ -93,6 +95,10 @@
 				&.hide {
 					display: none;
 				}
+			}
+			.sort-order-icon {
+				display: inline-block;
+				width: 15px;
 			}
 		}
 	}
@@ -209,5 +215,10 @@
 				background: darken($gray, 10%);
 			}
 		}
+	}
+
+	.collapse-filters-icon {
+		float: right !important;
+		width: 20px;
 	}
 }
