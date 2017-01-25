@@ -448,7 +448,8 @@ class ElasticsearchSearchResults(BaseSearchResults):
 
         # Get pks from results
         pks = [hit['fields']['pk'][0] for hit in hits['hits']['hits']]
-        scores = {str(hit['fields']['pk'][0]): hit['_score'] for hit in hits['hits']['hits']}
+        scores = {str(hit['fields']['pk'][0]): hit['_score']
+                  for hit in hits['hits']['hits']}
 
         # Initialise results dictionary
         results = dict((str(pk), None) for pk in pks)

@@ -14,6 +14,9 @@ DEFAULT_BACKEND_RESULTS_CLASS = DEFAULT_BACKEND.results_class
 
 
 class DashboardSearchQuery(BaseSearchQuery):
+    """
+    Query that will search in multiple indexes
+    """
 
     def __init__(self, query_string,
                  fields=None, operator=None, order_by_relevance=True,

@@ -45,3 +45,13 @@ Initial search index can be created with following command:
     $ python manage.py update_index
 
 By default products are reindexed after saving forms in the dashboard. Orders are updated after they're placed.
+
+
+Search integration architecture
+-------------------------------
+
+There are three base classes that are handling whole communication between Saleor and Elasticsearch service.
+
+* `ElasticsearchSearchBackend` - Core implementation of elasticsearch communication. Here is the starting point of any search queries.
+* `ElasticsearchSearchQuery` - Abstration for queries passed to elasticsearch. Any filtering or aggregations should be implemented there.
+* `ElasticsearchSearchResults` - Abstration for search results
