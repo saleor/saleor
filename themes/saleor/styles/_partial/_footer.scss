@@ -1,6 +1,14 @@
 footer {
   padding: $global-padding*4 0;
-  background: $bg-dark-gray;
+  h3 {
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    font-weight: 400;
+    text-align: center;
+    padding: $global-padding 0;
+    margin: $global-margin*2 $global-margin;
+    border-bottom: solid 1px $footer-border;
+  }
   .rows {
     display: flex;
     flex-wrap: wrap;
@@ -17,7 +25,6 @@ footer {
     .mirumee {
       padding: $global-padding*2 0;
       span {
-        color: $white;
         font-size: 1.2rem;
         line-height: 2.5rem;
         text-align: right;
@@ -39,25 +46,17 @@ footer {
   .links {
     border-top: solid 1px $footer-border;
     border-bottom: solid 1px $footer-border;
-    h3 {
-      margin: 0;
-      color: $gray;
-      font-size: 1.4rem;
-      padding-top: $global-padding*3;
-      padding-left: $global-padding*1.5;
-      padding-bottom: $global-padding/2;
-    }
     ul {
       list-style: none;
       padding: 0 $global-padding*1.5;
       li {
         a {
-          color: $white;
+          color: $base-color;
           font-weight: 900;
           text-transform: uppercase;
           @include transition(color, 0.3s);
           &:hover {
-            color: $cyan;
+            color: $red;
             text-decoration: none;
           }
         }
@@ -66,16 +65,6 @@ footer {
   }
   .follow-us {
     border: solid 1px $footer-border;
-    h3 {
-      font-size: 1.2rem;
-      color: $white;
-      text-transform: uppercase;
-      font-weight: 900;
-      text-align: center;
-      padding: $global-padding 0;
-      margin: $global-margin*2 $global-margin;
-      border-bottom: solid 1px $footer-border;
-    }
     .icons {
       list-style: none;
       padding-left: 0;
