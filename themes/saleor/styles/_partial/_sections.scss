@@ -127,7 +127,7 @@
     border-bottom:solid 1px $gray;
     h2 {
       span {
-        color: $orange;
+        color: $green;
       }
     }
     h3 {
@@ -141,7 +141,7 @@
       }
     }
     .btn-primary {
-      @include btn-primary($orange, $white);
+      @include btn-primary($green, $white);
     }
   }
   &-slider {
