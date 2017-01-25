@@ -31,6 +31,17 @@
       &:nth-child(3) {border: 0;}
       &:nth-child(4) {border: 0;}
     }
+    &-slider {
+      .slider-bg {
+        background-image: url('images/slider-mobile.svg');
+        padding-top: 140%;
+        .carousel {
+          width: 64.8%;
+          left: 17.7%;
+          top: 16.9%;
+        }
+      }
+    }
   }
 }
 

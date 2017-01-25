@@ -144,6 +144,49 @@
       @include btn-primary($orange, $white);
     }
   }
+  &-slider {
+    .slider-bg {
+      width: 100%;
+      position: relative;
+      padding-top: 45%;
+      background-image: url('images/slider-desktop.svg');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: 50% 50%;
+      .carousel {
+        position: absolute;
+        top: 15%;
+        width: 50%;
+        left: 25%;
+        border: solid 1px $device;
+        &-inner {
+          picture {
+            img {
+              display: block;
+              max-width: 100%;
+              height: auto;
+              line-height: 1;
+            }
+          }
+        }
+        &-indicators {
+          top: 120%;
+          li {
+            width: 1rem;
+            height: 1rem;
+            border: solid 1px $device;
+            border-radius: 50%;
+            margin: 1px;
+            &.active {
+              width: 1rem;
+              height: 1rem;
+              background: $device;
+            }
+          }
+        }
+      }
+    }
+  }
   &-services {
     .logos {
       list-style: none;
