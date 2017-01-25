@@ -4,7 +4,7 @@ from ..product.utils import products_with_availability, products_with_details
 
 
 def home(request):
-    products = products_with_details(request.user)[:6]
+    products = products_with_details(request.user)[:8]
     products = products_with_availability(
         products, discounts=request.discounts, local_currency=request.currency)
     return TemplateResponse(

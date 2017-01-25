@@ -8,27 +8,53 @@
   .btn {
     margin-top: $global-margin;
   }
+  &--content-wrapper {
+     display: table;
+     width: 100%;
+     height: 100%;
+  }
+  &--content-inner {
+      display: table-cell;
+      text-align: center;
+      vertical-align: middle;
+      color: white
+  }
+  &--content {
+    position:  absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+  }
+  &--square {
+    background-size: cover;
+    position: relative;
+    &:before {
+      content: "";
+      display: block;
+      padding-top: 100%;
+    }
+  }
   &__block1 {
-    div {
+    .home--square {
       background-image: url('../../images/block1.jpg');
-      padding: $global-padding * 15 0 $global-padding * 12;
-      background-size: cover;
+      @include media-breakpoint-up(md) {
+        &:before {
+          padding-top: 50%;
+        }
+      }
     }
   }
   &__block2 {
     margin-top: $global-margin * 2;
-    div {
+    .home--square {
       background-image: url('../../images/block2.jpg');
-      background-size: cover;
-      padding: $global-padding * 10 $global-padding $global-padding * 8;
     }
   }
   &__block3 {
     margin-top: $global-margin * 2;
-    div {
+    .home--square {
       background-image: url('../../images/block3.jpg');
-      background-size: cover;
-      padding: $global-padding * 10 $global-padding $global-padding * 8;
     }
   }
   &__featured {
