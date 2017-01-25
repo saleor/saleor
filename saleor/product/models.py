@@ -18,6 +18,7 @@ from satchless.item import InsufficientStock, Item, ItemRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
+from ..core.utils import TranslationProxy
 from ..discount.models import calculate_discounted_price
 from .utils import get_attributes_display_map
 
@@ -131,6 +132,7 @@ class Product(models.Model, ItemRange):
         pgettext_lazy('Product field', 'is featured'), default=False)
 
     objects = ProductManager()
+    translated = TranslationProxy()
 
     class Meta:
         app_label = 'product'
@@ -210,6 +212,17 @@ class Product(models.Model, ItemRange):
         return PriceRange(min(grosses), max(grosses))
 
 
+class ProductTranslation(models.Model):
+    language_code = models.CharField(max_length=50,
+         verbose_name=pgettext_lazy('Product field', 'language code'))
+    product = models.ForeignKey(Product, related_name='translations',
+        verbose_name = pgettext_lazy('Product field', 'product'))
+    name = models.CharField(
+        pgettext_lazy('Product field', 'name'), max_length=128)
+    description = models.TextField(
+        verbose_name=pgettext_lazy('Product field', 'description'))
+
+
 class ProductVariant(models.Model, Item):
     sku = models.CharField(
         pgettext_lazy('Product variant field', 'SKU'), max_length=32,
@@ -228,6 +241,8 @@ class ProductVariant(models.Model, Item):
     images = models.ManyToManyField(
         'ProductImage', through='VariantImage',
         verbose_name=pgettext_lazy('Product variant field', 'images'))
+
+    translated = TranslationProxy()
 
     class Meta:
         app_label = 'product'
@@ -311,6 +326,16 @@ class ProductVariant(models.Model, Item):
             return stock.cost_price
 
 
+class ProductVariantTranslation(models.Model):
+    language_code = models.CharField(max_length=50,
+         verbose_name=pgettext_lazy('Product variant field', 'language code'))
+    product_variant = models.ForeignKey(ProductVariant, related_name='translations',
+        verbose_name = pgettext_lazy('Product variant field', 'product variant'))
+    name = models.CharField(
+        pgettext_lazy('Product variant field', 'variant name'), max_length=100,
+        blank=True)
+
+
 class StockLocation(models.Model):
     name = models.CharField(
         pgettext_lazy('Stock location field', 'location'), max_length=100)
@@ -383,6 +408,8 @@ class ProductAttribute(models.Model):
         pgettext_lazy('Product attribute field', 'display name'),
         max_length=100)
 
+    translated = TranslationProxy()
+
     class Meta:
         ordering = ('slug', )
 
@@ -396,24 +423,46 @@ class ProductAttribute(models.Model):
         return self.values.exists()
 
 
+class ProductAttributeTranslation(models.Model):
+    language_code = models.CharField(max_length=50,
+         verbose_name=pgettext_lazy('Product attribute field', 'language code'))
+    product_attribute = models.ForeignKey(ProductAttribute, related_name='translations',
+        verbose_name = pgettext_lazy('Product attribute field', 'product attribute'))
+    display = models.CharField(
+        pgettext_lazy('Product attribute field', 'display name'),
+        max_length=100)
+
+
 class AttributeChoiceValue(models.Model):
     name = models.CharField(
-        pgettext_lazy('Attribute choice value field', 'display name'),
+        pgettext_lazy('Attribute choice value model', 'display name'),
         max_length=100)
     slug = models.SlugField()
     color = models.CharField(
-        pgettext_lazy('Attribute choice value field', 'color'),
+        pgettext_lazy('Attribute choice value model', 'color'),
         max_length=7,
         validators=[RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')],
         blank=True)
     attribute = models.ForeignKey(
         ProductAttribute, related_name='values', on_delete=models.CASCADE)
 
+    translated = TranslationProxy()
+
     class Meta:
         unique_together = ('name', 'attribute')
 
     def __str__(self):
         return self.name
+
+
+class AttributeChoiceValueTranslation(models.Model):
+    language_code = models.CharField(max_length=50,
+         verbose_name=pgettext_lazy('Attribute choice value model', 'language code'))
+    attribute_choice_value = models.ForeignKey(AttributeChoiceValue, related_name='translations',
+        verbose_name = pgettext_lazy('Attribute choice value model', 'product attribute'))
+    display = models.CharField(
+        pgettext_lazy('Attribute choice value model', 'display name'),
+        max_length=100)
 
 
 class ImageManager(models.Manager):

@@ -70,7 +70,7 @@ def product_details(request, slug, product_id, form=None):
         {'is_visible': is_visible,
          'form': form,
          'availability': availability,
-         'product': product,
+         'product': product.translated,
          'product_attributes': product_attributes,
          'product_images': product_images,
          'show_variant_picker': show_variant_picker,
