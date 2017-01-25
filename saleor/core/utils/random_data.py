@@ -52,7 +52,7 @@ DEFAULT_SCHEMA = {
         'is_shipping_required': True
     },
     'Coffee': {
-        'category': 'Foodstuffs',
+        'category': 'Groceries',
         'product_attributes': {
             'Coffee Genre': ['Arabica', 'Robusta'],
             'Brand': ['Saleor']
@@ -65,7 +65,7 @@ DEFAULT_SCHEMA = {
         'is_shipping_required': True
     },
     'Candy': {
-        'category': 'Foodstuffs',
+        'category': 'Groceries',
         'product_attributes': {
             'Flavor': ['Sour', 'Sweet'],
             'Brand': ['Saleor']
@@ -77,6 +77,31 @@ DEFAULT_SCHEMA = {
         'different_variant_prices': True,
         'is_shipping_required': True
     },
+    'E-books': {
+        'category': 'Books',
+        'product_attributes': {
+            'Author': ['John Doe', 'Milionare Pirate'],
+            'Publisher': ['Mirumee Press', 'Saleor Publishing'],
+            'Language': ['English', 'Pirate']
+        },
+        'variant_attributes': {},
+        'images_dir': 'books/',
+        'is_shipping_required': False
+    },
+    'Books': {
+        'category': 'Books',
+        'product_attributes': {
+            'Author': ['John Doe', 'Milionare Pirate'],
+            'Publisher': ['Mirumee Press', 'Saleor Publishing'],
+            'Language': ['English', 'Pirate']
+        },
+        'variant_attributes': {
+            'Cover': ['Soft', 'Hard']
+        },
+        'images_dir': 'books/',
+        'different_variant_prices': True,
+        'is_shipping_required': True
+    }
 }
 
 
