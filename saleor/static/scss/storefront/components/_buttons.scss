@@ -1,8 +1,9 @@
 .btn {
   transition: 0.3s;
+  border-radius: $button-border-radius;
   &.home__button {
-    border-radius: 0;
     text-transform: uppercase;
+    font-size: $font-size-h3;
     color: $white;
     background-color: transparent;
     border: 1px solid $white;
