@@ -33,6 +33,9 @@
   }
   &__search {
     padding: 2rem 0;
+    .mobile-search-icon {
+      padding-right: $global-padding;
+    }
   }
   &__brand {
     background-color: $light-gray;
@@ -104,7 +107,7 @@
     }
     &__menu-toggle {
       max-height: 22px;
-      padding-right: $global-padding * 1.5;
+      padding-right: $global-padding;
       padding-left: $global-padding;
     }
     &__search {
@@ -116,9 +119,6 @@
         right: 2rem;
         max-width: 22px;
         cursor: pointer;
-      }
-      .mobile-search-icon {
-        padding-right: $global-padding;
       }
       .search-input {
         width: 100%;
@@ -201,13 +201,20 @@
         width: 180px;
         z-index: 3;
         background-color: $white;
-        padding-left: $global-padding * 2;
-        padding-right: $global-padding * 3;
-        padding-top: $global-padding;
+        padding-left: 0;
+        padding-right: $global-padding;
+        padding-top: $global-padding*2;
         transition: 0.3s ease-in-out;
-        li {
-          width: 100%;
+        ul {
           text-align: left;
+          .nav-item {
+            width: 100%;
+            text-align: left;
+            a {
+              padding: $global-padding/2 $global-padding;
+              font-size: 1rem;
+            }
+          }
         }
         &.open {
           left: 0;
