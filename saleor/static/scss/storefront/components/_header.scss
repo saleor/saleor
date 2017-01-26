@@ -7,7 +7,7 @@
   }
   &__login {
     p {
-      padding: $global-padding/2 0;
+      padding: $global-padding / 2 0;
       font-size: 0.8rem;
       margin-bottom: 0;
       color: $dark-gray;
@@ -18,7 +18,7 @@
       margin-bottom: 0;
       li {
         display: inline-block;
-        padding: $global-padding/2;
+        padding: $global-padding / 2;
         line-height: 1.9rem;
         a {
           color: $dark-gray;
@@ -29,10 +29,10 @@
     }
   }
   &__logo {
-    padding: 2rem 0;
+    padding: $global-padding * 2 0;
   }
   &__search {
-    padding: 2rem 0;
+    padding: $global-padding * 2 0;
     .mobile-search-icon {
       padding-right: $global-padding;
     }
@@ -60,7 +60,7 @@
         display: block;
         border: solid 1px transparent;
         border-radius: 4px 4px 0 0;
-        padding: 2rem;
+        padding: $global-padding * 2;
         position: absolute;
         right: 0;
         top:0;
@@ -83,7 +83,7 @@
           }
         }
         .cart-label {
-          padding-right: $global-padding/2;
+          padding-right: $global-padding / 2;
         }
         .badge {
           position: absolute;
@@ -124,7 +124,7 @@
         width: 100%;
         border-color: $gray;
         border-radius: 0;
-        padding-left: $global-padding*2.5;
+        padding-left: $global-padding * 2.5;
       }
       .btn {
         position: absolute;
@@ -182,7 +182,7 @@
             transition: 0.3s;
             text-transform: uppercase;
             display: inline-block;
-            padding: $global-padding*1.5;
+            padding: $global-padding * 1.5;
             font-size: 1.5rem;
             &:hover {
               color: rgba($body-color, 0.6);
@@ -203,7 +203,7 @@
         background-color: $white;
         padding-left: 0;
         padding-right: $global-padding;
-        padding-top: $global-padding*2;
+        padding-top: $global-padding * 2;
         transition: 0.3s ease-in-out;
         ul {
           text-align: left;
@@ -211,7 +211,7 @@
             width: 100%;
             text-align: left;
             a {
-              padding: $global-padding/2 $global-padding;
+              padding: $global-padding / 2 $global-padding;
               font-size: 1rem;
             }
           }

@@ -9,8 +9,8 @@
   border-radius: 4px 0 4px 4px;
   background-color: $white;
   .container {
-    padding-top: $global-padding*2;
-    padding-bottom: $global-padding*2;
+    padding-top: $global-padding * 2;
+    padding-bottom: $global-padding * 2;
     max-height: 28rem;
   }
   &__list {
@@ -29,13 +29,13 @@
       h3 {
         font-size: 1rem;
         margin-bottom: 0;
-        padding: $global-padding*1.4;
+        padding: $global-padding * 1.4;
         span {
           color: $dark-gray;
         }
         p {
           margin-bottom: 0;
-          padding-top: $global-padding*0.2;
+          padding-top: $global-padding * 0.2;
           color: $dark-gray;
         }
       }
@@ -46,17 +46,16 @@
   }
   &__total {
     h3 {
-      font-size: 1rem;
-      padding-top: $global-padding*1.4;
-      padding-left: $global-padding*5;
+      padding-top: $global-padding * 1.4;
+      padding-left: $global-padding * 5;
       span {
         color: $dark-gray;
         font-size: 0.9rem;
       }
       &.price {
-        padding-right: $global-padding*2.3;
+        padding-right: $global-padding * 2.3;
         &.single {
-          padding-right: $global-padding*1.4;
+          padding-right: $global-padding * 1.4;
         }
       }
     }
@@ -77,7 +76,7 @@
     margin-top: $global-margin * 2;
     .btn {
       width: 100%;
-      padding: $global-padding/2;
+      padding: $global-padding / 2;
       text-transform: uppercase;
       font-size: 1rem;
     }
