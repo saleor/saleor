@@ -10,8 +10,9 @@
       padding: $global-padding / 2 0;
       font-size: 0.8rem;
       margin-bottom: 0;
-      color: $dark-gray;
+      color: $skull-gray;
       line-height: 1.9rem;
+      text-transform: uppercase
     }
     ul {
       list-style: none;
@@ -21,7 +22,7 @@
         padding: $global-padding / 2;
         line-height: 1.9rem;
         a {
-          color: $dark-gray;
+          color: $body-color;
           font-size: 0.7rem;
           text-transform: uppercase;
         }
