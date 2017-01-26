@@ -16,6 +16,7 @@
   }
   .panel-footer {
     color: $skull-gray;
+    text-transform: uppercase;
   }
   &__sale {
     clip-path: polygon(0 37%, 37% 0, 100% 0, 0% 100%);
