@@ -23,6 +23,7 @@ class UploadImageSerializer(serializers.ModelSerializer):
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
+        fields = ('id', 'image', 'order')
 
 
 @staff_member_required

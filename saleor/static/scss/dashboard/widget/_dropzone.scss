@@ -8,7 +8,7 @@
     cursor: initial;
   }
 
-  & li.dropzone-ghost {
+  & div.dropzone-ghost {
     display: none;
     opacity: .75;
   }
@@ -24,7 +24,7 @@
       top: 0;
     }
 
-    li.dropzone-ghost {
+    div.dropzone-ghost {
       display: block;
     }
   }
