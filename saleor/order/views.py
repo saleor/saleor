@@ -2,17 +2,21 @@ import logging
 
 from django.conf import settings
 from django.contrib import messages, auth
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
-from django.utils.translation import ugettext as _
 from django.template.response import TemplateResponse
-from payments import RedirectNeeded
+from django.utils.translation import ugettext as _
 
+from payments import RedirectNeeded
 from .forms import PaymentDeleteForm, PaymentMethodsForm, PasswordForm
 from .models import Order, Payment
-from ..core.utils import get_client_ip
 from .utils import check_order_status
+from ..core.utils import get_client_ip
+from ..userprofile.models import User
+from ..userprofile.utils import store_user_address
 
 logger = logging.getLogger(__name__)
 
@@ -127,11 +131,33 @@ def create_password(request, token):
     if form.is_valid():
         user = form.save(request)
         order.user = user
+        store_user_address(user, order.billing_address, billing=True)
+        if order.shipping_address:
+            store_user_address(user, order.shipping_address, shipping=True)
         order.save(update_fields=['user'])
         password = form_data.get('password1')
         auth_user = auth.authenticate(email=email, password=password)
         if auth_user is not None:
             auth.login(request, auth_user)
         return redirect('order:details', token=token)
+    else:
+        # Form is not valid, check if error is about non unique email
+        msg = _('It looks like you already are our customer! '
+                'Please log in and order will be connected with your account')
+        if User.objects.filter(email=email).exists():
+            messages.info(request, msg)
+            return redirect('order:connect-order', token=token)
     ctx = {'form': form, 'email': email, 'order': order}
     return TemplateResponse(request, 'order/create_password.html', ctx)
+
+
+@login_required
+def pair_order_with_customer(request, token):
+    order = Order.objects.get(token=token)
+    if order.user_email != request.user.email:
+        raise PermissionDenied()
+    order.user = request.user
+    order.save(update_fields=['user'])
+    messages.success(
+        request, _('You\'ve successfully connected order with your account'))
+    return redirect('order:details', token=order.token)
