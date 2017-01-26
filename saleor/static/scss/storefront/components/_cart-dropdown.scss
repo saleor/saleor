@@ -1,20 +1,27 @@
 .cart-dropdown {
   position: absolute;
   width: 33rem;
-  top: 0;
+  top: 6.4rem;
   right: 0;
   z-index: 3;
   display: none;
+  border: solid 1px $gray;
+  border-radius: 4px 0 4px 4px;
+  background-color: $white;
   .container {
-    background-color: $light-gray;
-    padding-top: $global-padding * 4.4;
-    padding-bottom: $global-padding * 2;
+    padding-top: $global-padding*2;
+    padding-bottom: $global-padding*2;
     max-height: 28rem;
   }
   &__list {
     max-height: 10rem;
     overflow-y: auto;
     overflow-x: hidden;
+    border-top: solid 1px $gray;
+    border-bottom: solid 1px $gray;
+    &.overflow {
+      overflow-y: hidden;
+    }
     background: $white;
     .item {
       height: 5.1rem;
@@ -41,6 +48,7 @@
     h3 {
       font-size: 1rem;
       padding-top: $global-padding*1.4;
+      padding-left: $global-padding*5;
       span {
         color: $dark-gray;
         font-size: 0.9rem;
@@ -72,10 +80,6 @@
       padding: $global-padding/2;
       text-transform: uppercase;
       font-size: 1rem;
-      &.secondary {
-        border-color: $green;
-        color: $green;
-      }
     }
   }
   &__empty {

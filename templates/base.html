@@ -63,13 +63,13 @@
                 <div class="navbar__brand">
                   <div class="container">
                     <div class="row no-gutters">
-                      <div class="col-8 col-md-4">
+                      <div class="col-8 col-md-4 navbar__logo">
                         <img class="hidden-md-up navbar__brand__menu-toggle closed open" src="{% static "images/mobile-bar.svg" %}">
-                        <a href="/" class="float-right float-md-left">
+                        <a href="/">
                           <img src="{% static "images/saleor-logo-black.svg" %}" alt="Testeor - Saleor demo store" height="38">
                         </a>
                       </div>
-                      <div class="col-2 col-md-4 static">
+                      <div class="col-2 col-md-4 navbar__search static">
                         {% if SEARCH_IS_ENABLED %}
                           <img class="hidden-md-up mobile-search-icon float-right" src="{% static "images/search-icon-black.svg" %}">
                         {% endif %}
@@ -85,7 +85,7 @@
                       </div>
                       <div class="col-2 col-md-4">
                         <div class="navbar__brand__cart float-right">
-                          <a href="{% url "cart:index" %}">
+                          <a class="cart__icon" href="{% url "cart:index" %}">
                             <span class="cart-label hidden-sm-down">{% trans "Your Cart" %}</span>
                             <img class="navbar__brand__cart__icon" src="{% static "images/cart.svg" %}" alt="Cart">
                             <span class="badge {% if not cart_counter %}empty{% endif %}">

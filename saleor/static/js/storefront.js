@@ -116,6 +116,7 @@ $(function() {
 
 let summaryLink = '/cart/summary';
 let $cartDropdown = $('.cart-dropdown');
+let $cartIcon = $('.cart__icon');
 let $addToCartError = $('.product__info__form-error');
 
 const onAddToCartSuccess = () => {
@@ -125,9 +126,11 @@ const onAddToCartSuccess = () => {
     var newQunatity = $('.cart-dropdown__total').data('quantity')
     $('.badge').html(newQunatity).removeClass('empty')
     $cartDropdown.addClass('show')
+    $cartIcon.addClass('hover')
     $cartDropdown.find('.container').scrollTop($cartDropdown.find('.container')[0].scrollHeight)
     setTimeout((e) => {
       $cartDropdown.removeClass('show');
+      $cartIcon.removeClass('hover')
     }, 2500);
   });
 };
@@ -141,8 +144,10 @@ $.get(summaryLink, (data) => {
 });
 $('.navbar__brand__cart').hover((e) => {
   $cartDropdown.addClass('show');
+  $cartIcon.addClass("hover");
 }, (e) => {
   $cartDropdown.removeClass('show');
+  $cartIcon.removeClass("hover");
 });
 $('.product-form button').click((e) => {
   e.preventDefault();

@@ -14,23 +14,23 @@
     }
   }
   &.primary {
-    background-color: $green;
+    background-color: $blue;
     color: $white;
     padding: $global-padding $global-padding * 4;
     font-size: $font-size-h5;
     &:hover {
-      background-color: $darkgreen
+      background-color: darken($blue, 10%);
     }
   }
   &.secondary {
-    border: 1px solid $gray;
+    border: 1px solid $blue;
     padding: $global-padding $global-padding * 2;
     font-size: $font-size-h5;
     background-color: transparent;
-    color: $body-color;
+    color: $blue;
     &:hover {
-      border-color: $body-color;
-      color: $body-color;
+      border-color: darken($blue, 10%);
+      color: darken($blue, 10%);
     }
   }
   &.danger {
