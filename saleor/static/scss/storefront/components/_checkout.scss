@@ -159,6 +159,9 @@
       }
       img {
         margin-bottom: $global-margin * 1.2;
+        @include media-breakpoint-only(md) {
+          margin-bottom: $global-margin * 2.4;
+        }
       }
       form {
         .form-group {
