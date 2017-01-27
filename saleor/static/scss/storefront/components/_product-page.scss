@@ -4,18 +4,58 @@
     text-decoration: underline;
   }
   &__info {
+    h3 {
+      text-transform: uppercase;
+    }
     &__name {
-      font-weight: 900;
-      @include media-breakpoint-up(md) {
-        margin-bottom: $global-margin;
-      }
+      font-weight: 300;
     }
     &__price {
+      color: $skull-gray;
       &__undiscounted {
-        color: $gray;
         text-decoration: line-through;
       }
-      margin-bottom: $global-margin * 2;
+      margin-bottom: $global-margin;
+    }
+    label {
+      margin-bottom: $global-margin;
+    }
+    &__quantity {
+      width: 17%;
+      float: left;
+      input {
+        height: 58px;
+      }
+    }
+    &__button {
+      width: 80%;
+      float: right;
+      margin-top: $global-margin * 2.5;
+      button {
+        min-width: 100%;
+      }
+    }
+    td {
+      padding-right: $global-padding;
+    }
+    &__form-error {
+      margin-top: -$global-padding / 2;
+      margin-bottom: $global-margin;
+    }
+  }
+  &__variant-picker {
+    margin-bottom: $global-margin;
+    &__label {
+      margin-bottom: $global-margin;
+    }
+    label {
+      margin-bottom: 0;
+    }
+    .btn-group {
+      display: block;
+      .btn {
+        margin-bottom: $global-margin / 4;
+      }
     }
   }
   &__gallery {
