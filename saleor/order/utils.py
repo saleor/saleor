@@ -7,6 +7,7 @@ from functools import wraps
 
 from .models import Order
 from ..core import analytics
+from ..userprofile.utils import store_user_address
 
 
 logger = logging.getLogger(__name__)
@@ -36,3 +37,11 @@ def order_status_change(sender, instance, **kwargs):
         except Exception:
             # Analytics failing should not abort the checkout flow
             logger.exception('Recording order in analytics failed')
+
+
+def attach_order_to_user(order, user):
+    order.user = user
+    store_user_address(user, order.billing_address, billing=True)
+    if order.shipping_address:
+        store_user_address(user, order.shipping_address, shipping=True)
+    order.save(update_fields=['user'])

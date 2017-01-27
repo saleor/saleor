@@ -103,19 +103,6 @@ class UserManager(BaseUserManager):
         return self.create_user(email, password, is_staff=True,
                                 is_superuser=True, **extra_fields)
 
-    def store_address(self, user, address, billing=False, shipping=False):
-        entry = Address.objects.store_address(user, address)
-        changed = False
-        if billing and not user.default_billing_address_id:
-            user.default_billing_address = entry
-            changed = True
-        if shipping and not user.default_shipping_address_id:
-            user.default_shipping_address = entry
-            changed = True
-        if changed:
-            user.save()
-        return entry
-
 
 class User(PermissionsMixin, AbstractBaseUser, index.Indexed):
     email = models.EmailField(unique=True)

@@ -14,4 +14,6 @@ urlpatterns = [
         name='cancel-payment'),
     url(r'^%s/create-password/$' % (TOKEN_PATTERN,),
         views.create_password, name='create-password'),
+    url(r'^%s/attach/$' % (TOKEN_PATTERN,),
+        views.connect_order_with_user, name='connect-order-with-user'),
 ]
