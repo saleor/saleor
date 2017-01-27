@@ -1,7 +1,7 @@
 from django import forms
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
-from unidecode import unidecode
+from text_unidecode import unidecode
 
 from ...product.models import Category
 

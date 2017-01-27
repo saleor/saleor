@@ -12,7 +12,7 @@ Before you are ready to run Saleor you will need certain software installed on y
 
 #. ``wheel`` Python package if you're using pip older than 8.1.2
 
-#. `Node.js <https://nodejs.org/>`_ version 4 or above
+#. `Node.js <https://nodejs.org/>`_ version 6 or above
 
    .. note::
 
@@ -23,6 +23,12 @@ Before you are ready to run Saleor you will need certain software installed on y
    .. code-block:: bash
 
     $ npm i webpack -g
+
+#. `Yarn <https://yarnpkg.com/>`_ installed globally with:
+
+   .. code-block:: bash
+
+    $ npm i yarn -g
 
 #. `PostgreSQL <https://www.postgresql.org/>`_ version 9.4 or above
 
@@ -80,11 +86,11 @@ Installation
 
    .. code-block:: bash
 
-    $ npm install
+    $ yarn
 
    .. note::
 
-       If this step fails go back and make sure you're using new enough versions of Node.js and npm.
+       If this step fails go back and make sure you're using new enough version of Node.js.
 
 #. Prepare front-end assets:
 

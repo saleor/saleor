@@ -9,6 +9,7 @@ from django.template.response import TemplateResponse
 
 from ..core.utils import to_local_currency, get_user_shipping_country
 from ..product.models import ProductVariant
+from ..product.templatetags.product_images import get_thumbnail
 from ..shipping.utils import get_shipment_options
 from .forms import ReplaceCartLineForm, CountryForm
 from .models import Cart
@@ -114,7 +115,7 @@ def summary(request, cart):
             'variant': line.variant.name,
             'quantity': line.quantity,
             'attributes': line.variant.display_variant(attributes),
-            'image': first_image.url if first_image else None,
+            'image': first_image,
             'price_per_item': currencyfmt(
                 price_per_item.gross, price_per_item.currency),
             'line_total': currencyfmt(line_total.gross, line_total.currency),

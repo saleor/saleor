@@ -17,7 +17,7 @@ from django_prices.models import PriceField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from satchless.item import InsufficientStock, Item, ItemRange
-from unidecode import unidecode
+from text_unidecode import unidecode
 
 from ...discount.models import get_variant_discounts
 from .fields import WeightField

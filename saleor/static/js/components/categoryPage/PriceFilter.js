@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from 'react';
+import FilterHeader from './FilterHeader';
 
 export default class PriceFilter extends Component {
 
@@ -28,9 +29,12 @@ export default class PriceFilter extends Component {
   }
 
   changeVisibility = () => {
-    this.setState({
-      visibility: !this.state.visibility
-    });
+    const { minPrice, maxPrice } = this.props;
+    if (!(minPrice || maxPrice)) {
+      this.setState({
+        visibility: !this.state.visibility
+      });
+    }
   }
 
   render() {
@@ -38,11 +42,12 @@ export default class PriceFilter extends Component {
     const { visibility } = this.state;
     return (
       <div className="price-range">
-        <h3 onClick={this.changeVisibility}>
-          Price range
-          <img className="float-right" src={visibility ? ('/static/img/chevron-up-icon.svg') : ('/static/img/chevron-down-icon.svg')} width="20" />
-        </h3>
-        {visibility || minPrice || maxPrice ? (
+        <FilterHeader
+          onClick={this.changeVisibility}
+          title="Price range"
+          visibility={visibility}
+        />
+        {visibility && (
           <div>
             <input
               className="form-control"
@@ -65,7 +70,7 @@ export default class PriceFilter extends Component {
             />
             <button className="btn" onClick={this.updateFilter}>Update</button>
           </div>
-        ) : (null)}
+        )}
       </div>
     );
   }

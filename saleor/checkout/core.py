@@ -12,7 +12,8 @@ from ..core import analytics
 from ..discount.models import Voucher, NotApplicable
 from ..order.models import Order
 from ..shipping.models import ShippingMethodCountry, ANY_COUNTRY
-from ..userprofile.models import Address, User
+from ..userprofile.models import Address
+from ..userprofile.utils import store_user_address
 
 STORAGE_SESSION_KEY = 'checkout_storage'
 
@@ -195,9 +196,8 @@ class Checkout(object):
     def _add_to_user_address_book(self, address, is_billing=False,
                                   is_shipping=False):
         if self.user.is_authenticated():
-            User.objects.store_address(
-                self.user, address, shipping=is_shipping,
-                billing=is_billing)
+            store_user_address(self.user, address, shipping=is_shipping,
+                               billing=is_billing)
 
     def _get_address_copy(self, address):
         address.user = None
@@ -227,7 +227,7 @@ class Checkout(object):
             shipping_address = None
         billing_address = self._save_order_billing_address()
         self._add_to_user_address_book(
-            self.shipping_address, is_billing=True)
+            self.billing_address, is_billing=True)
 
         order_data = {
             'billing_address': billing_address,

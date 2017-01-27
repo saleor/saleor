@@ -45,6 +45,15 @@ ProductAvailability = namedtuple(
 
 
 def get_availability(product, discounts=None, local_currency=None):
+    if not product.variants.exists():
+        return ProductAvailability(
+            available=False,
+            price_range=None,
+            price_range_undiscounted=None,
+            discount=None,
+            price_range_local_currency=None,
+            discount_local_currency=None)
+
     # In default currency
     price_range = product.get_price_range(discounts=discounts)
     undiscounted = product.get_price_range()
@@ -142,12 +151,14 @@ def get_product_attributes_data(product):
 
 def price_as_dict(price):
     if not price:
-        return {}
+        return None
     return {'currency': price.currency,
             'gross': price.gross,
             'net': price.net}
 
 
 def price_range_as_dict(price_range):
+    if not price_range:
+        return None
     return {'maxPrice': price_as_dict(price_range.max_price),
             'minPrice': price_as_dict(price_range.min_price)}

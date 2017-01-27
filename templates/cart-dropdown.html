@@ -1,17 +1,20 @@
 {% load i18n %}
 {% load staticfiles %}
 {% load gross from prices_i18n %}
+{% load get_thumbnail from product_images %}
 
 <div class="container">
   {% if quantity > 0 %}
+    <div id="cart-dropdown-list" class="cart-dropdown__list{% if lines|length <= 2 %} overflow{% endif %}">
     {% for line in lines %}
-      <div class="row">
+      <div class="row item">
         <div class="col-md-10">
           <a href="{{ line.variant_url }}">
-            <img class="cart-dropdown__image" src="{{ line.image }}" alt="">
-            <h3>{{ line.product }}
-              <br><small>{{ line.variant }}<br>
-                x {{ line.quantity }}</small>
+            <img class="cart-dropdown__image" src="{% get_thumbnail line.image size="60x60" %}" alt="">
+            <h3>
+              {{ line.product }}
+              <span>x{{ line.quantity }}</span>
+              <p>{{ line.variant }}</p>
             </h3>
           </a>
         </div>
@@ -21,29 +24,31 @@
           </div>
         </div>
       </div>
-      <hr>
     {% endfor %}
-    <div class="row">
-      <div class="col-md-6">
-        <h3>{% trans "Subtotal" %}</h3>
+    </div>
+    <div class="row cart-dropdown__total" data-quantity="{{ quantity }}">
+      <div class="col-md-8">
+        <h3>{% trans "Subtotal" %} <br> <span>{% trans "(Delivery caclulated on checkout)" %}</span></h3>
       </div>
-      <div class="col-md-6">
-        <h3 class="float-md-right cart-dropdown__total" data-quantity="{{ quantity }}"><strong>{{ total }}</strong></h3>
+      <div class="col-md-4">
+        <h3 class="float-md-right price {% if lines|length <= 2 %}single{% endif %}" data-quantity="{{ quantity }}">
+          <p>{{ total }}</p>
+        </h3>
       </div>
     </div>
     <div class="row cart-dropdown__actions">
-      <div class="col-md-6">
-        <a href="{% url "checkout:login" %}" class="btn primary">{% trans "Checkout" %}</a>
-      </div>
-      <div class="col-md-6">
+      <div class="col-md-5 offset-md-1">
         <a href="{% url "cart:index" %}" class="btn secondary float-md-right">{% trans "Go to cart" %}</a>
+      </div>
+      <div class="col-md-5">
+        <a href="{% url "checkout:login" %}" class="btn primary">{% trans "Checkout" %}</a>
       </div>
     </div>
   {% else %}
     <div class="text-md-center cart-dropdown__empty">
       <h3>{% trans "There are no products in your shopping cart." %}</h3>
-      <img src="{% static 'img/pirate_cart.png' %}" srcset="{% static 'img/pirate_cart.png' %} 1x, {% static 'img/pirate_cart2x.png' %} 2x">
-      <a href="/" class="btn primary">{% trans "Check out Our sales" %}</a>
+      <img src="{% static 'images/pirate_cart.png' %}" srcset="{% static 'images/pirate_cart.png' %} 1x, {% static 'images/pirate_cart2x.png' %} 2x">
+      <a href="/" class="btn primary">{% trans "Check out our sales" %}</a>
     </div>
   {% endif %}
 </div>

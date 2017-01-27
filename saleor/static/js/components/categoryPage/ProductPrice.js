@@ -7,7 +7,7 @@ const ProductPrice = ({ availability }) => {
   return (
     <div>
       <span itemProp="price">
-        {isPriceRange && <span>From </span>}
+        {isPriceRange && <span>from </span>}
         {minPrice.gross} <span className="currency"> {minPrice.currency}</span>
       </span>
       {discount && (

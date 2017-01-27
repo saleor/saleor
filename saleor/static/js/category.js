@@ -4,6 +4,7 @@ import Relay from 'react-relay';
 
 import CategoryPage from './components/categoryPage/CategoryPage';
 import ProductFilters from './components/categoryPage/ProductFilters';
+import Loading from './components/Loading';
 
 const categoryPage = document.getElementById('category-page');
 const categoryData = JSON.parse(categoryPage.getAttribute('data-category'));
@@ -11,16 +12,11 @@ const categoryData = JSON.parse(categoryPage.getAttribute('data-category'));
 class App extends React.Component {
 
   static propTypes = {
-    viewer: PropTypes.object
+    root: PropTypes.object
   }
 
   render() {
-    return (
-      <CategoryPage
-        category={this.props.viewer.category}
-        attributes={this.props.viewer.attributes}
-      />
-    );
+    return <CategoryPage {...this.props.root} />;
   }
 }
 
@@ -29,14 +25,14 @@ const RelayApp = Relay.createContainer(App, {
     categoryId: categoryData.id
   },
   fragments: {
-    viewer: () => Relay.QL`
-      fragment on Viewer {
+    root: () => Relay.QL`
+      fragment on Query {
         category(pk: $categoryId) {
           ${CategoryPage.getFragment('category')}
         }
         attributes(categoryPk: $categoryId) {
           ${ProductFilters.getFragment('attributes')}
-        },
+        }
         __debug {
           sql {
             sql
@@ -49,15 +45,19 @@ const RelayApp = Relay.createContainer(App, {
 
 const AppRoute = {
   queries: {
-    viewer: () => Relay.QL`
-      query { viewer }
+    root: () => Relay.QL`
+      query { root }
     `
   },
   params: {},
-  name: 'Viewer'
+  name: 'Root'
 };
 
 ReactDOM.render(
-  <Relay.RootContainer Component={RelayApp} route={AppRoute} />,
-  categoryPage,
+  <Relay.RootContainer
+   Component={RelayApp}
+   route={AppRoute}
+   renderLoading={() => <Loading />}
+  />,
+  categoryPage
 );

@@ -10,10 +10,13 @@
       text-decoration: none;
     }
   }
-  &__name {
-    font-weight: 700;
-    margin-top: $global-margin / 2;
+  &-item-name {
+    margin: $global-margin / 2 0;
     display: block;
+  }
+  .panel-footer {
+    color: $skull-gray;
+    text-transform: uppercase;
   }
   &__sale {
     clip-path: polygon(0 37%, 37% 0, 100% 0, 0% 100%);

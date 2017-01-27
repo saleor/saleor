@@ -2,6 +2,7 @@ import React, { Component, PropTypes } from 'react';
 import Relay from 'react-relay';
 
 import AttributeInput from './AttributeInput';
+import FilterHeader from './FilterHeader';
 
 class ProductFilters extends Component {
 
@@ -49,10 +50,11 @@ class ProductFilters extends Component {
         {attributes && (attributes.map((attribute) => {
           return (
             <div key={attribute.id}>
-              <h3 className={attribute.name} onClick={() => this.changeVisibility(attribute.name)}>
-                {attribute.display}
-                <img className="float-right" src={visibility[attribute.name] ? ('/static/img/chevron-up-icon.svg') : ('/static/img/chevron-down-icon.svg')} width="20" />
-              </h3>
+              <FilterHeader
+                onClick={() => this.changeVisibility(attribute.name)}
+                title={attribute.display}
+                visibility={visibility[attribute.name]}
+              />
               <ul id={attribute.name}>
                 {attribute.values.map((value) => {
                   const key = this.getFilterKey(attribute.name, value.slug);
