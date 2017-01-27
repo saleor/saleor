@@ -5,11 +5,13 @@
   &:focus {
     color: $body-color;
     border-color: $gray;
+    background-color: $form-active;
   }
 }
 
 .help-block {
   color: $red;
+  font-size: 0.8rem;
 }
 
 .radio {

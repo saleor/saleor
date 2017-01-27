@@ -46,10 +46,12 @@
     background-color: $gray;
     border: 0;
     padding: $global-padding / 2 $global-padding * 2;
+    text-transform: none;
   }
   &.btn-link {
     padding: 0;
     vertical-align: baseline;
     color: $gray;
+    text-transform: none;
   }
 }
