@@ -16,21 +16,6 @@
     </ul>
 {% endblock %}
 
-{% block header_extra %}
-    {% if site.pk %}
-    <a class="dropdown-button" href="#" data-activates="site-delete" data-constrainwidth="false">
-        <i class="material-icons">arrow_drop_down</i>
-    </a>
-    <ul id="site-delete" class="dropdown-content">
-        <li>
-            <a class="modal-trigger-custom" data-href="{% url 'dashboard:site-delete' site.pk %}" href="#base-modal">
-                {% trans "Delete site settings" %}
-            </a>
-        </li>
-    </ul>
-    {% endif %}
-{% endblock %}
-
 {% block content %}
     <form method="post" id="form-category" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
@@ -45,12 +30,7 @@
 
         <div class="row">
             <div class="col s12 l8 right-align">
-                <a href="{% url 'dashboard:site-index' %}" class="btn-flat">{% trans "Cancel" %}</a>
-                {% if setting.pk %}
-                    <button type="submit" class="btn">{% trans "Update" %}</button>
-                {% else %}
-                    <button type="submit" class="btn">{% trans "Create" %}</button>
-                {% endif %}
+                  <button type="submit" class="btn">{% trans "Update" %}</button>
             </div>
         </div>
     </form>
