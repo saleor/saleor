@@ -56,7 +56,6 @@
     }
     &__cart {
       z-index: 4;
-      cursor: pointer;
       @include media-breakpoint-up(md) {
         line-height: 2.4rem;
       }
