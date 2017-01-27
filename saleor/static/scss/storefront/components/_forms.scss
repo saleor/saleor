@@ -23,6 +23,9 @@
     vertical-align: top;
     margin: $global-margin / 4 $global-margin / 2 0 0;
   }
+  span {
+    display: inline-block;
+  }
   label {
     margin-right: $global-margin;
   }
