@@ -5,7 +5,7 @@
 <form class="form-async" role="form" method="post" action="{% url 'dashboard:orderline-cancel' order_pk=order.pk line_pk=item.pk %}" novalidate>
     {% csrf_token %}
     <div class="modal-content">
-        <h5>{% trans "Cancer order line?" %}</h5>
+        <h5>{% trans "Cancel order line?" %}</h5>
         <p>
             {% blocktrans with order=order%}
                 Are you sure, you want cancel this order line?

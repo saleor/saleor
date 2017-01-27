@@ -4,27 +4,27 @@
 {% load product_first_image from product_images %}
 
 {% for product, availability in products %}
-    <div class="col-6 col-md-4 product-list" itemscope itemtype="https://schema.org/Product">
-        <div class="text-center">
-            <div>
-                <a itemprop="url" href="{{ product.get_absolute_url }}">
+    <div class="col-6 col-lg-3 product-list" itemscope itemtype="https://schema.org/Product">
+        <a itemprop="url" href="{{ product.get_absolute_url }}">
+            <div class="text-center">
+                <div>
                     <img itemprop="image" class="img-responsive" src="{% product_first_image product method="crop" size="400x400" %}" alt="">
                     <span class="product-list-item-name" itemprop="name" title="{{ product }}">{{ product }}</span>
-                </a>
-            </div>
+                </div>
 
-            <div>
-                {% if availability.available %}
-                    {% price_range availability.price_range %}
-                    {% if availability.discount %}
-                        {% if undiscounted.min_price != price_range.min_price %}
-                            <div class="product-list__sale"><span>{% trans "Sale" %}</span></div>
+                <div class="panel-footer">
+                    {% if availability.available %}
+                        {% price_range availability.price_range %}
+                        {% if availability.discount %}
+                            {% if undiscounted.min_price != price_range.min_price %}
+                                <div class="product-list__sale"><span>{% trans "Sale" %}</span></div>
+                            {% endif %}
                         {% endif %}
+                    {% else %}
+                        &nbsp;
                     {% endif %}
-                {% else %}
-                    &nbsp;
-                {% endif %}
+                </div>
             </div>
-        </div>
+        </a>
     </div>
 {% endfor %}

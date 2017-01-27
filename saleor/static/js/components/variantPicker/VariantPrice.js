@@ -22,7 +22,7 @@ export default class VariantPrice extends Component {
     } else {
       // if there's no variant, fall back to product price
       const { discount, priceRange, priceRangeUndiscounted } = availability;
-      isDiscount = !!Object.keys(discount).length;
+      isDiscount = discount && !!Object.keys(discount).length;
       priceText = `${priceRange.minPrice.gross} ${currency}`;
       priceUndiscountedText = `${priceRangeUndiscounted.minPrice.gross} ${currency}`;
     }

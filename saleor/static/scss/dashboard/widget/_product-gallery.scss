@@ -1,5 +1,5 @@
 @mixin product-gallery {
-  & &-item {
+  &-item {
     margin: 0 $gutter-width/2 $gutter-width !important;
     padding: 0;
     display: block;
@@ -57,6 +57,7 @@
     }
   }
   .sortable__drag-area {
+    background-color: grey;
     position: absolute;
     top: 0;
     right: 0;

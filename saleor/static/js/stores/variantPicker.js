@@ -1,15 +1,15 @@
 import { computed, observable } from 'mobx';
 
 class VariantPickerStore {
-    @observable variant = {}
+  @observable variant = {}
 
   setVariant(variant) {
     this.variant = variant || {};
   }
 
-    @computed get isEmpty() {
-      return !this.variant.id;
-    }
+  @computed get isEmpty() {
+    return !this.variant.id;
+  }
 }
 
 const store = new VariantPickerStore();

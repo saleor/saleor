@@ -13,17 +13,17 @@ class ProductItem extends Component {
     const { product } = this.props;
     return (
       <div className="col-6 col-md-4 product-list" itemScope itemType="https://schema.org/Product">
-        <div className="text-center">
-          <div>
-            <a itemProp="url" href={product.url}>
-              <img itemProp="image" className="img-responsive" src={product.thumbnailUrl} alt="" />
-              <span className="product-list-item-name" itemProp="name" title={product.name}>{product.name}</span>
-            </a>
+        <a itemProp="url" href={product.url}>
+          <div className="text-center">
+            <div>
+                <img itemProp="image" className="img-responsive" src={product.thumbnailUrl} alt="" />
+                <span className="product-list-item-name" itemProp="name" title={product.name}>{product.name}</span>
+            </div>
+            <div className="panel-footer">
+              <ProductPrice price={product.price} availability={product.availability} />
+            </div>
           </div>
-          <div className="panel-footer">
-            <ProductPrice availability={product.availability} />
-          </div>
-        </div>
+        </a>
       </div>
     );
   }
@@ -35,6 +35,11 @@ export default Relay.createContainer(ProductItem, {
       fragment on ProductType {
         id
         name
+        price {
+          currency
+          gross
+          net
+        }
         availability {
           ${ProductPrice.getFragment('availability')}
         }

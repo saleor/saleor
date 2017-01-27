@@ -27,69 +27,99 @@
     <body itemscope itemtype="http://schema.org/WebPage">
         {% block header %}
             <header class="navbar" role="navigation">
-              <div class="navbar__login hidden-sm-down">
-                <div class="container">
-                  <p class="float-left">{% trans "Test Saleor - a sample shop!" %}</p>
-                  <p class="float-right">
-                    {% if user.is_authenticated %}
-                      {% if user.is_staff %}
-                          <a href="{% url "dashboard:index" %}" traget="_blank">{% trans "Dashboard" %}</a> |
-                      {% endif %}
-                      <a href="{% url "profile:details" %}">{% trans "Your account" %}</a> |
-                      <a href="{% url "account_logout" %}">{% trans "Log out" %}</a>
-                    {% else %}
-                      <a href="{% url "account_signup" %}">{% trans "Register" %}</a> |
-                      <a href="{% url "account_login" %}">{% trans "Log in" %}</a>
-                    {% endif %}
-                  </p>
-                </div>
-              </div>
-              <div class="navbar__brand">
-                <div class="container">
-                  <img class="hidden-md-up navbar__brand__menu-toggle closed open" src="{% static "images/mobile-bar.svg" %}">
-                  <a href="/">
-                    <img src="{% static "images/saleor-logo-black.svg" %}" alt="Testeor - Saleor demo store" height="40">
-                  </a>
-                  <div class="float-right">
-                    {% if SEARCH_IS_ENABLED %}
-                      <img class="hidden-md-up mobile-search-icon" src="{% static "images/search-icon.svg" %}">
-                    {% endif %}
-                    <div class="navbar__brand__cart float-right">
-                      <a href="{% url "cart:index" %}">
-                        <span class="hidden-sm-down">{% trans "Your cart" %}</span>
-                        <img class="navbar__brand__cart__icon" src="{% static "images/cart.svg" %}" alt="Cart">
-                        <span class="badge {% if not cart_counter %}hidden-xs-up{% endif %}">{{ cart_counter }}</span>
-                      </a>
-                      <div class="cart-dropdown hidden-md-down">
-                      {% include 'cart-dropdown.html' %}
+                <div class="navbar__login hidden-sm-down">
+                  <div class="container">
+                    <div class="row">
+                      <div class="col-6">
+                        <p class="text-left">{% trans "Test Saleor - a sample shop!" %}</p>
+                      </div>
+                      <div class="col-6">
+                        <ul class="float-right">
+                          {% if user.is_authenticated %}
+                            {% if user.is_staff %}
+                              <li>
+                                <a href="{% url "dashboard:index" %}" traget="_blank">{% trans "Dashboard" %}</a>
+                              </li>
+                            {% endif %}
+                            <li>
+                              <a href="{% url "profile:details" %}">{% trans "Your account" %}</a> 
+                            </li>
+                            <li>
+                              <a href="{% url "account_logout" %}">{% trans "Log out" %}</a>
+                            </li>
+                          {% else %}
+                            <li>
+                              <a href="{% url "account_signup" %}">{% trans "Register" %}</a>
+                            </li>
+                            <li>
+                              <a href="{% url "account_login" %}">{% trans "Log in" %}</a>
+                            </li>
+                          {% endif %}
+                        </ul>
                       </div>
                     </div>
                   </div>
-                  {% if SEARCH_IS_ENABLED %}
-                  <form class="form-inline float-right navbar__brand__search" action="{% url "search:search" %}">
-                     <img class="mobile-close-search hidden-md-up" src="{% static "images/close-icon.svg" %}">
-                     <input class="form-control" type="text" placeholder="Search" name="q" value="{% if query %}{{ query }}{% endif %}">
-                     <button class="btn btn-link" type="submit"><img src="{% static "images/search-icon.svg" %}"></button>
-                  </form>
-                  {% endif %}
                 </div>
-              </div>
-              <div class="navbar__menu">
-                <div class="container">
-                  <nav class="navigation">
+                <div class="navbar__brand">
+                  <div class="container">
+                    <div class="row no-gutters">
+                      <div class="col-8 col-md-4 navbar__logo">
+                        <img class="hidden-md-up navbar__brand__menu-toggle closed open" src="{% static "images/mobile-bar.svg" %}">
+                        <a href="/">
+                          <img src="{% static "images/saleor-logo-black.svg" %}" alt="Testeor - Saleor demo store" height="38">
+                        </a>
+                      </div>
+                      <div class="col-2 col-md-4 navbar__search static">
+                        {% if SEARCH_IS_ENABLED %}
+                          <img class="hidden-md-up mobile-search-icon float-right" src="{% static "images/search-icon-black.svg" %}">
+                        {% endif %}
+                        {% if SEARCH_IS_ENABLED %}
+                          <form class="form-inline navbar__brand__search" action="{% url "search:search" %}">
+                            <img class="mobile-close-search hidden-md-up" src="{% static "images/close-icon.svg" %}">
+                            <input class="form-control search-input" type="text" name="q" value="{% if query %}{{ query }}{% endif %}" placeholder="{% trans "Search for product" %}">
+                            <button class="btn btn-link" type="submit">
+                              <img src="{% static "images/search-icon.svg" %}">
+                            </button>
+                          </form>
+                        {% endif %}
+                      </div>
+                      <div class="col-2 col-md-4">
+                        <div class="navbar__brand__cart float-right">
+                          <a class="cart__icon" href="{% url "cart:index" %}">
+                            <span class="cart-label hidden-sm-down">{% trans "Your Cart" %}</span>
+                            <img class="navbar__brand__cart__icon" src="{% static "images/cart.svg" %}" alt="Cart">
+                            <span class="badge {% if not cart_counter %}empty{% endif %}">
+                              {% if cart_counter %}
+                                {{ cart_counter }}
+                              {% else %}
+                                0
+                              {% endif %}
+                            </span>
+                          </a>
+                          <div class="cart-dropdown hidden-md-down">
+                          {% include 'cart-dropdown.html' %}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="navbar__menu">
+                  <div class="container">
+                    <nav class="navigation">
                       {% url 'home' as home_url %}
                       <ul class="nav navbar-nav{% if request.get_full_path == home_url %} no-border{% endif %}" >
                         {% for category in categories %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ category.get_absolute_url }}">
-                                    {{ category }}
-                                </a>
+                              <a class="nav-link" href="{{ category.get_absolute_url }}">
+                                  {{ category }}
+                              </a>
                             </li>
                         {% endfor %}
                       </ul>
-                  </nav>
+                    </nav>
+                  </div>
                 </div>
-              </div>
             </header>
         {% endblock %}
         <div class="container maincontent">

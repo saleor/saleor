@@ -1,3 +1,6 @@
+[![Avast ye landlubbers! Saleor be a Satchless store ye can fork.](http://getsaleor.com/mr-saleor-readme.png)](http://getsaleor.com)
+
+
 Saleor
 ======
 
@@ -30,6 +33,8 @@ Disclaimer: everything you see here is open and free to use as long as you compl
 
 Some situations however call for extra code being written. Whether you need us to cover an exotic use case or build you a custom e-commerce appliance, our team can help.
 
-> Mirumee Software
-> http://mirumee.com/
-> hello@mirumee.com
+### Mirumee Software
+
+http://mirumee.com
+
+hello@mirumee.com

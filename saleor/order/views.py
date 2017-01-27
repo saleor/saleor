@@ -1,18 +1,21 @@
 import logging
 
+from allauth.account.forms import LoginForm
 from django.conf import settings
 from django.contrib import messages, auth
+from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
-from django.utils.translation import ugettext as _
 from django.template.response import TemplateResponse
-from payments import RedirectNeeded
+from django.utils.translation import ugettext as _
 
+from payments import RedirectNeeded
 from .forms import PaymentDeleteForm, PaymentMethodsForm, PasswordForm
 from .models import Order, Payment
+from .utils import check_order_status, attach_order_to_user
 from ..core.utils import get_client_ip
-from .utils import check_order_status
+from ..userprofile.models import User
 
 logger = logging.getLogger(__name__)
 
@@ -122,16 +125,29 @@ def create_password(request, token):
     form_data = request.POST.copy()
     if form_data:
         form_data.update({'email': email})
-    form = PasswordForm(form_data or None)
-
-    if form.is_valid():
-        user = form.save(request)
-        order.user = user
-        order.save(update_fields=['user'])
+    register_form = PasswordForm(form_data or None)
+    if User.objects.filter(email=email).exists():
+        login_form = LoginForm(initial={'login': email})
+    else:
+        login_form = None
+    if register_form.is_valid():
+        register_form.save(request)
         password = form_data.get('password1')
         auth_user = auth.authenticate(email=email, password=password)
         if auth_user is not None:
             auth.login(request, auth_user)
+        attach_order_to_user(order, auth_user)
         return redirect('order:details', token=token)
-    ctx = {'form': form, 'email': email, 'order': order}
+    ctx = {'form': register_form, 'email': email, 'order': order,
+           'login_form': login_form}
     return TemplateResponse(request, 'order/create_password.html', ctx)
+
+
+@login_required
+def connect_order_with_user(request, token):
+    order = get_object_or_404(
+        Order.objects.filter(user_email=request.user.email, token=token))
+    attach_order_to_user(order, request.user)
+    messages.success(
+        request, _('You\'ve successfully connected order with your account'))
+    return redirect('order:details', token=order.token)

@@ -13,11 +13,12 @@ export default class QuantityInput extends Component {
     const { errors, quantity } = this.props;
     const formGroupClasses = classNames({
       'form-group': true,
-      'has-error': errors && !!errors.length
+      'has-error': errors && !!errors.length,
+      'product__info__quantity': true
     });
     return (
       <div className={formGroupClasses}>
-        <label className="control-label" htmlFor="id_quantity">Quantity</label>
+        <label className="control-label product__variant-picker__label" htmlFor="id_quantity">Quantity</label>
         <input
           className="form-control"
           defaultValue={quantity}
