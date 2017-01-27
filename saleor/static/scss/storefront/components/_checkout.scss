@@ -33,12 +33,16 @@
       margin-right: $global-margin;
       @include media-breakpoint-down(sm) {
         max-height: 30px;
+        vertical-align: text-bottom;
       }
     }
     h1 {
       display: inline-block;
       font-weight: 300;
       text-transform: uppercase;
+      @include media-breakpoint-down(sm) {
+        font-size: 30px;
+      }
     }
     &--top {
       text-transform: uppercase;
@@ -145,10 +149,16 @@
       }
       .col-md-6 {
         padding: $global-padding * 3 0 $global-padding * 2;
-        &:last-of-type {
+        &:first-of-type {
           background-color: $light-gray;
-          padding: $global-padding * 3 $global-padding * 4 $global-padding * 2; 
+          padding: $global-padding * 3 $global-padding * 4 $global-padding * 2;
+          @include media-breakpoint-down(md) {
+            padding: $global-padding * 3 $global-padding * 2 $global-padding * 2;
+          }
         }
+      }
+      img {
+        margin-bottom: $global-margin * 1.2;
       }
       form {
         .form-group {

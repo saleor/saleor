@@ -6,7 +6,7 @@
         {% csrf_token %}
         <h2>{% trans "Billing address" %}</h2>
         {% include "checkout/snippets/addresses-form.html" with addresses_form=addresses_form addresses=additional_addresses address_form=address_form only %}
-        <p class="text-right">
+        <p class="text-md-right">
           <button type="submit" class="btn primary">
             {% trans "Order &amp Pay" %}
           </button>

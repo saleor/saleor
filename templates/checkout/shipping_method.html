@@ -12,7 +12,7 @@
         {% csrf_token %}
         <h2>{% trans "Shipping method" %}</h2>
         {% bootstrap_form shipping_method_form show_label=False %}
-        <p class="text-right">
+        <p class="text-md-right">
           <button type="submit" class="btn primary">
               {% trans "Continue" %}
           </button>
