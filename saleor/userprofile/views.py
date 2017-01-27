@@ -1,5 +1,4 @@
 from allauth.account.adapter import get_adapter
-from allauth.account.forms import ChangePasswordForm
 from allauth.account.utils import logout_on_password_change
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -8,8 +7,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext as _
-
-from .forms import get_address_form
+from .forms import ChangePasswordForm, get_address_form
 
 
 @login_required
