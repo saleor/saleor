@@ -1,4 +1,9 @@
 .userprofile {
+  h2 {
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 1.4rem;
+  }
   &__user {
     h2 {
       margin-right: $global-margin;
@@ -10,10 +15,11 @@
     
   }
   &__nav {
-    margin: $global-margin * 2 0 $global-margin * 2;
+    margin: $global-margin * 2 0 $global-margin;
     .nav {
-      border-bottom: 0;
-      background-color: $light-gray;
+      display: block;
+      text-align: center;
+      border: 0;
       @include media-breakpoint-down(xs) {
         text-align: center;
         padding-right: 0;
@@ -21,6 +27,7 @@
       }
     }
     .nav-item {
+      display: inline;
       @include media-breakpoint-down(xs) {
         display: inline-block;
         float: none;
@@ -30,25 +37,21 @@
       }
       .nav-link {
         padding: $global-padding $global-padding * 2;
-        border-bottom: 1px solid $light-gray;
         margin-top: $global-margin / 2;
-        @include media-breakpoint-up(sm) {
-          border-left: 1px solid $light-gray;
-          border-bottom: 1px solid $white;
-          border-top: 1px solid $light-gray;
-          margin-top: 0;
-        }
-        border-radius: 0;
+        display: inline-block;
         transition: 0.3s;
-        &:hover, &.active {
-          background-color: $white;
-          border-color: $light-gray;
-          border-bottom: 1px solid $white;
-        }
+        border: 0;
+        text-transform: uppercase;
         h3 {
-          color: $body-color;
+          color: $skull-gray;
           @include media-breakpoint-down(sm) {
             font-size: 1rem;
+          }
+        }
+        &:hover, &.active {
+          h3 {
+            border: 0;
+            color: $body-color;
           }
         }
       }
