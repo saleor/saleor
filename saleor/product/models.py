@@ -14,6 +14,7 @@ from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django.utils import six
 from django_prices.models import PriceField
+from django_prices_vatlayer.utils import get_tax_for_country
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from prices import PriceRange
@@ -240,10 +241,15 @@ class ProductVariant(models.Model, Item):
             return 0
         return max([stock.quantity_available for stock in self.stock.all()])
 
-    def get_price_per_item(self, discounts=None, **kwargs):
+    def get_price_per_item(self, discounts=None, country=None, **kwargs):
         price = self.price_override or self.product.price
         price = calculate_discounted_price(self.product, price, discounts,
                                            **kwargs)
+        if country:
+            rate_name = self.product.product_class.vat_rate_type
+            vat = get_tax_for_country(country, rate_name)
+            if vat:
+                price = vat.apply(price)
         return price
 
     def get_absolute_url(self):

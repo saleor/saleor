@@ -66,12 +66,21 @@ class Checkout(object):
             return Address(**address_data)
         return None
 
+    def _vat_country(self):
+        country = None
+        if self.billing_address:
+            country = self.billing_address
+        if self.is_shipping_required and self.shipping_address:
+            country = self.shipping_address.country
+        return country
+
     @property
     def is_shipping_required(self):
         return self.cart.is_shipping_required()
 
     @property
     def deliveries(self):
+        country = self._vat_country()
         for partition in self.cart.partition():
             if self.shipping_method and partition.is_shipping_required():
                 shipping_cost = self.shipping_method.get_total()
@@ -82,10 +91,10 @@ class Checkout(object):
 
             partition = [
                 (item,
-                 item.get_price_per_item(discounts=self.cart.discounts),
-                 item.get_total(discounts=self.cart.discounts))
+                 item.get_price_per_item(discounts=self.cart.discounts,
+                                         country=country),
+                 item.get_total(discounts=self.cart.discounts, country=country))
                 for item in partition]
-
             yield partition, shipping_cost, total_with_shipping
 
     @property

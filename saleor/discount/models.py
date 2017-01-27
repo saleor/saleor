@@ -286,7 +286,7 @@ class Sale(models.Model):
                     return True
         return False
 
-    def modifier_for_product(self, product):
+    def modifier_for_product(self, product, **kwargs):
         discounted_products = {p.pk for p in self.products.all()}
         discounted_categories = set(self.categories.all())
         if product.pk in discounted_products:
