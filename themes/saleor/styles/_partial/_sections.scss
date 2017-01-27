@@ -211,6 +211,9 @@
     .btn-secondary {
       @include btn-secondary($white, $red);
     }
+    .btn-primary {
+      @include btn-primary($red, $white);
+    }
   }
   &-github {
     background: $red;
