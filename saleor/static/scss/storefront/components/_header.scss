@@ -116,7 +116,7 @@
       .mobile-close-search {
         position: absolute;
         top: 1.9rem;
-        right: 2rem;
+        left: 1rem;
         max-width: 22px;
         cursor: pointer;
       }
@@ -158,7 +158,7 @@
         z-index: 5;
         margin-top: 0;
         .search-input {
-          padding: $global-padding * 2 $global-padding * 2 $global-padding * 2 $global-padding * 3;
+          padding: $global-padding * 2 $global-padding * 2 $global-padding * 2 $global-padding * 4;
           border: 0;
         }
         i {
@@ -166,8 +166,8 @@
           padding: $global-padding * 1.7 $global-padding;
         }
         .btn {
-          top: 1.9rem;
-          left: 1rem;
+          top: 1.6rem;
+          right: 2rem;
         }
       }
     }
