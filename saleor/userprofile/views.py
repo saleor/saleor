@@ -1,5 +1,5 @@
 from allauth.account.adapter import get_adapter
-from allauth.account.views import LoginView as AllauthLoginView
+from allauth.account.views import login as allauth_login
 from allauth.account.forms import ChangePasswordForm
 from allauth.account.utils import logout_on_password_change
 from django.contrib import messages
@@ -8,7 +8,6 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
-from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext as _
 from ..cart.utils import find_and_assign_anonymous_cart
 from .forms import ChangePasswordForm, get_address_form
@@ -62,9 +61,4 @@ def address_delete(request, pk):
         request, 'userprofile/address-delete.html', {'address': address})
 
 
-class LoginView(AllauthLoginView):
-    @method_decorator(find_and_assign_anonymous_cart())
-    def dispatch(self, *args, **kwargs):
-        super(LoginView, self).dispatch(*args, **kwargs)
-
-login = LoginView.as_view()
+login = find_and_assign_anonymous_cart()(allauth_login)
