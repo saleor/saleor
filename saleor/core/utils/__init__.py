@@ -13,6 +13,7 @@ from django.utils.encoding import iri_to_uri, smart_text
 from django_countries import countries
 from django_countries.fields import Country
 from django_prices_openexchangerates import exchange_currency
+from django_prices_vatlayer.utils import get_tax_for_country
 from geolite2 import geolite2
 from prices import PriceRange
 
@@ -130,3 +131,17 @@ def create_superuser(credentials):
     else:
         msg = 'Superuser already exists - %(email)s' % credentials
     return msg
+
+
+def get_variant_price_with_vat(variant, country_code, discounts=None):
+    variant_price = variant.get_price_per_item(discounts)
+    vat_rate_type = variant.product.product_class.vat_rate_type
+
+    if not settings.VATLAYER_ACCESS_KEY:
+        return variant_price
+
+    vat_rate_modifier = get_tax_for_country(country_code, vat_rate_type)
+    if vat_rate_modifier is None:
+        return variant_price
+
+    return vat_rate_modifier.apply(variant_price)

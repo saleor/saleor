@@ -246,20 +246,6 @@ def get_variant_url(variant):
     return get_variant_url_from_product(variant.product, attributes)
 
 
-def get_variant_price_with_vat(variant, country_code):
-    variant_price = variant.get_price_per_item()
-    vat_rate_type = variant.product.product_class.vat_rate_type
-
-    if not settings.VATLAYER_ACCESS_KEY:
-        return variant_price
-
-    vat_rate_modifier = get_tax_for_country(country_code, vat_rate_type)
-    if vat_rate_modifier is None:
-        return variant_price
-
-    return vat_rate_modifier.apply(variant_price)
-
-
 def get_attributes_display_map(obj, attributes):
     display_map = {}
     for attribute in attributes:

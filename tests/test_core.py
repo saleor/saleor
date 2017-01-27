@@ -1,9 +1,12 @@
+from decimal import Decimal
 import pytest
 from mock import Mock
 
+from django.conf import settings
+
 from saleor.core.utils import (
     Country, create_superuser, get_country_by_ip, get_currency_for_country,
-    random_data)
+    random_data, get_variant_price_with_vat)
 from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
 from saleor.product.models import Product
@@ -143,3 +146,17 @@ def test_create_vouchers(db):
     for _ in random_data.create_vouchers():
         pass
     assert Voucher.objects.all().count() == 2
+
+
+def test_get_variant_price_with_vat_no_key(product_in_stock):
+    variant = product_in_stock.variants.first()
+    assert variant.get_price_per_item() == get_variant_price_with_vat(
+        variant, 'AU')
+
+
+def test_get_variant_price_with_vat(product_in_stock, vat):
+    cents = Decimal('0.01')
+    variant = product_in_stock.variants.first()
+    price_with_vat = get_variant_price_with_vat(variant, 'AT').quantize(cents)
+    variant_price_with_vat = (variant.get_price_per_item().gross * 110) / 100
+    assert price_with_vat.gross == variant_price_with_vat.quantize(cents)
