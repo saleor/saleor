@@ -4,7 +4,7 @@
 {% load product_first_image from product_images %}
 
 {% for product, availability in products %}
-    <div class="col-6 col-md-4 product-list" itemscope itemtype="https://schema.org/Product">
+    <div class="col-6 col-lg-3 product-list" itemscope itemtype="https://schema.org/Product">
         <div class="text-center">
             <div>
                 <a itemprop="url" href="{{ product.get_absolute_url }}">
@@ -13,7 +13,7 @@
                 </a>
             </div>
 
-            <div>
+            <div class="panel-footer">
                 {% if availability.available %}
                     {% price_range availability.price_range %}
                     {% if availability.discount %}

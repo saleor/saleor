@@ -1,18 +1,64 @@
 .cart-dropdown {
   position: absolute;
   width: 33rem;
-  top: 0;
-  padding-top: $global-padding * 4;
-  right: $global-padding;
+  top: 6.4rem;
+  right: 0;
   z-index: 3;
   display: none;
+  border: solid 1px $gray;
+  border-radius: 4px 0 4px 4px;
+  background-color: $white;
   .container {
-    background-color: $light-gray;
     padding-top: $global-padding * 2;
     padding-bottom: $global-padding * 2;
-    box-shadow: 3px 3px 3px 0px rgba($gray, 0.75);
     max-height: 28rem;
-    overflow-y: scroll;
+  }
+  &__list {
+    max-height: 10rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-top: solid 1px $gray;
+    border-bottom: solid 1px $gray;
+    &.overflow {
+      overflow-y: hidden;
+    }
+    background: $white;
+    .item {
+      height: 5rem;
+      border-bottom: solid 1px $gray;
+      h3 {
+        font-size: 1rem;
+        margin-bottom: 0;
+        padding: $global-padding * 1.4;
+        span {
+          color: $dark-gray;
+        }
+        p {
+          margin-bottom: 0;
+          padding-top: $global-padding * 0.2;
+          color: $dark-gray;
+        }
+      }
+      &:last-child {
+        border-bottom: 0;
+      }
+    }
+  }
+  &__total {
+    h3 {
+      padding-top: $global-padding * 1.4;
+      padding-left: $global-padding * 5;
+      span {
+        color: $dark-gray;
+        font-size: 0.9rem;
+      }
+      &.price {
+        padding-right: $global-padding * 2.3;
+        &.single {
+          padding-right: $global-padding * 1.4;
+        }
+      }
+    }
   }
   a {
     color: $body-color;
@@ -24,21 +70,16 @@
     float: left;
     width: 60px;
     height: 60px;
-    margin-right: $global-margin / 2;
+    margin: $global-margin * 0.6;
   }
   &__actions {
     margin-top: $global-margin * 2;
-  }
-  &:before {
-    content: '';
-    display: block;
-    width: 15px;
-    height: 10px;
-    position: absolute;
-    top: 47px;
-    right: 25px;
-    background-color: $light-gray;
-    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    .btn {
+      width: 100%;
+      padding: $global-padding / 2;
+      text-transform: uppercase;
+      font-size: 1rem;
+    }
   }
   &__empty {
     img {

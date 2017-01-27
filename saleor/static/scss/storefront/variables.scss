@@ -3,22 +3,24 @@ $fa-font-path: "~font-awesome/fonts";
 
 $global-padding: 1rem;
 $global-margin: 1rem;
+$button-border-radius: 3px;
 
 // COLORS
- $gray: #C4C4C4;
- $light-gray: #efefef;
- $dark-gray: #909090;
- $white: #fff;
- $body-color: #333333;
- $red: #EB5757;
- $darkred: #c53636;
- $green: #27AE60;
- $darkgreen: #1b8a4a;
+$skull-gray: #828282;
 
+$gray: #D3D1D0;
+$light-gray: #f2f2f2;
+$dark-gray: #909090;
+$white: #fff;
+$body-color: #333333;
+$red: #EB5757;
+$darkred: #c53636;
+$green: #27AE60;
+$darkgreen: #1b8a4a;
+$blue: #26A5D4;
 // TYPOGRAPHY
 $font-family-sans-serif: 'Lato';
 
-$font-size-root: 14px;
-$font-size-h1: 2.6rem;
-$font-size-h2: 1.7rem;
-$font-size-h3: 1.3rem;
+$font-size-h1: 3rem;
+$font-size-h2: 1.3rem;
+$font-size-h3: 1rem;
