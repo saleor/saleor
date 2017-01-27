@@ -26,7 +26,7 @@ class ProductList extends Component {
         </div>
         <div className="load-more">
           {hasNextPage && (
-            <button className="btn" onClick={this.onLoadMore}>Load more</button>
+            <button className="btn" onClick={this.onLoadMore}>{gettext('Load more')}</button>
           )}
         </div>
       </div>

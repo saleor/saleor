@@ -15,7 +15,7 @@ export default class CategoryFilter extends Component {
         {parent && (
           <div className="parents">
             <i className="fa fa-arrow-left" aria-hidden="true"></i>
-            <a href={parent.url}>See all {parent.name}</a>
+            <a href={parent.url}>{`${gettext('See all')} ${parent.name}`}</a>
           </div>
         )}
         <ul className={category.parent ? ('childs') : ('childs no-parent')}>

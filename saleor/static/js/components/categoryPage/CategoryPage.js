@@ -96,7 +96,7 @@ class CategoryPage extends Component {
           <div className="row">
             <div className="col-md-8">
               <ul className="category-breadcrumbs">
-                <li><a href="/">Home</a></li>
+                <li><a href="/">{gettext('Home')}</a></li>
                   {category.ancestors && (category.ancestors.map((ancestor) => {
                     return (
                       <li key={ancestor.pk}><a href={ancestor.url}>{ancestor.name}</a></li>
@@ -113,11 +113,9 @@ class CategoryPage extends Component {
         <div className="row">
           <div className="col-md-3">
             <div className="product-filters">
-              <CategoryFilter
-                category={category}
-              />
+              <CategoryFilter category={category} />
             </div>
-            <h2>Filters:</h2>
+            <h2>{gettext('Filters')}</h2>
             <div className="product-filters">
               <ProductFilters
                 attributes={attributes}
