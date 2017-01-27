@@ -124,14 +124,28 @@
         width: 100%;
         border-color: $gray;
         border-radius: 0;
-        padding-left: $global-padding * 2.5;
+        padding-left: $global-padding;
+        &::placeholder {
+          color: $gray;
+          font-family: 'Lato';
+          font-weight: 300;
+        }
       }
       .btn {
+        width: 2rem;
+        height: 2rem;
         position: absolute;
-        left: 0.5rem;
+        right: 0.2rem;
         border: 0;
+        background: $blue;
+        cursor: pointer;
+        @include transition(background, 0.3s)
+        &:hover {
+          background: darken($blue, 10%);
+        }
         img {
           max-height: 1.5rem;
+          padding: $global-padding / 7;
         }
       }
       @include media-breakpoint-down(sm) {
