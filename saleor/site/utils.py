@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from .models import SiteSetting
+from .models import SiteSettings
 
 
 def get_site_settings(request):
@@ -11,4 +11,4 @@ def get_site_settings(request):
 
 
 def get_site_settings_uncached(site_id=None):
-    return SiteSetting.objects.get(pk=site_id)
+    return SiteSettings.objects.get(pk=site_id)

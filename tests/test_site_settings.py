@@ -3,7 +3,7 @@ import pytest
 from django.core.urlresolvers import reverse
 from django.utils.encoding import smart_text
 
-from saleor.site.models import SiteSetting
+from saleor.site.models import SiteSettings
 from saleor.site import utils
 from saleor.dashboard.sites.forms import SiteSettingForm
 from .utils import get_redirect_location
@@ -11,7 +11,7 @@ from .utils import get_redirect_location
 
 @pytest.fixture
 def site_settings(db):
-    return SiteSetting.objects.create(name="mirumee.com", domain="mirumee.com")
+    return SiteSettings.objects.create(name="mirumee.com", domain="mirumee.com")
 
 
 def test_get_site_settings_uncached(site_settings):
@@ -45,7 +45,7 @@ def test_create_view(admin_client):
     response = admin_client.get(url)
     assert response.status_code == 200
 
-    site_count = SiteSetting.objects.count()
+    site_count = SiteSettings.objects.count()
     data = {'name': 'mirumee', 'domain': 'mirumee.com'}
     response_post = admin_client.post(url, data)
     assert response_post.status_code == 302
@@ -53,7 +53,7 @@ def test_create_view(admin_client):
     redirect_location = get_redirect_location(response_post)
     assert redirect_location == reverse('dashboard:site-index')
 
-    assert SiteSetting.objects.count() == site_count + 1
+    assert SiteSettings.objects.count() == site_count + 1
 
 
 def test_site_update_view(admin_client, site_settings):

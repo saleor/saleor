@@ -5,7 +5,7 @@ from django.utils.encoding import python_2_unicode_compatible
 
 
 @python_2_unicode_compatible
-class SiteSetting(models.Model):
+class SiteSettings(models.Model):
     domain = models.CharField(
         pgettext_lazy('Site field', 'domain'), max_length=100,
         validators=[_simple_domain_name_validator], unique=True)
