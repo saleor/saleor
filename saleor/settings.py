@@ -363,3 +363,5 @@ GRAPHENE = {
     'SCHEMA_OUTPUT': os.path.join(
         PROJECT_ROOT, 'saleor', 'static', 'schema.json')
 }
+
+SITE_SETTINGS_ID = 1
