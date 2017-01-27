@@ -231,7 +231,8 @@ def test_find_and_assign_anonymous_cart_and_close_opened(customer_user,
     token = opened_anonymous_cart.token
     token_user = opened_user_cart.token
     request = cart_request_factory(user=customer_user, token=token)
-    utils.find_and_assign_anonymous_cart(request)
+    mock_view = lambda request: Mock(delete_cookie=lambda name: None)
+    utils.find_and_assign_anonymous_cart()(mock_view)(request)
     token_cart = Cart.objects.filter(token=token).first()
     user_cart = Cart.objects.filter(token=token_user).first()
     assert token_cart.user.pk == customer_user.pk
