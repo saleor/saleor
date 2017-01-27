@@ -117,7 +117,7 @@ $(function() {
 let summaryLink = '/cart/summary';
 let $cartDropdown = $('.cart-dropdown');
 let $cartIcon = $('.cart__icon');
-let $addToCartError = $('.product__info__form-error');
+let $addToCartError = $('.product__info__form-error small');
 
 const onAddToCartSuccess = () => {
   $.get(summaryLink, (data) => {

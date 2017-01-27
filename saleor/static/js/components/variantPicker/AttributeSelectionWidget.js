@@ -17,7 +17,7 @@ export default class AttributeSelectionWidget extends Component {
     const { attribute, selected } = this.props;
     return (
       <div className="product__variant-picker">
-        <div>{attribute.display}: </div>
+        <div className="product__variant-picker__label">{attribute.display}</div>
         <div className="btn-group" data-toggle="buttons">
           {attribute.values.map((value, i) => {
             const active = selected === value.pk.toString();

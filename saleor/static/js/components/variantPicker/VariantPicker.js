@@ -98,18 +98,20 @@ export default class VariantPicker extends Component {
             selected={selection[attribute.pk]}
           />
         )}
-        <QuantityInput
-          errors={errors.quantity}
-          handleChange={this.handleQuantityChange}
-          quantity={quantity}
-        />
-        <div className="form-group">
-          <button
-            className={addToCartBtnClasses}
-            onClick={this.handleAddToCart}
-            disabled={disableAddToCart}>
-            Add to cart
-          </button>
+        <div className="clearfix">
+          <QuantityInput
+            errors={errors.quantity}
+            handleChange={this.handleQuantityChange}
+            quantity={quantity}
+          />
+          <div className="form-group product__info__button">
+            <button
+              className={addToCartBtnClasses}
+              onClick={this.handleAddToCart}
+              disabled={disableAddToCart}>
+              Add to cart
+            </button>
+          </div>
         </div>
       </div>
     );
