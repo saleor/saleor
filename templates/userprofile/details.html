@@ -34,24 +34,33 @@
     <div class="tab-content col-lg-10 offset-lg-1">
       <div class="tab-pane active" id="orders" role="tabpanel">
         <div id="accordion" role="tablist" aria-multiselectable="true">
+          <div class="userprofile__orders-header">
+            <div class="row">
+              <div class="col-md-2 col-3"><h3>{% trans "Order" %}</h3></div>
+              <div class="col-md-3  hidden-sm-down"><h3>{% trans "Date" %}</h3></div>
+              <div class="col-md-2 col-3"><h3 class="float-md-right">{% trans "Summary" %}</h3></div>
+              <div class="col-md-4  hidden-sm-down"><h3>{% trans "Status" %}</h3></div>
+              <div class="col-md-1 col-3"></div>
+            </div>
+          </div>
           {% for order in orders %}
           <div class="userprofile__orders">
             <div class="userprofile__orders__row">
               <div class="row">
-                <div class="col-md-2 col-5">
+                <div class="col-md-2 col-3">
                   {{ order }}
                 </div>
-                <div class="col-md-4 col-6">
+                <div class="col-md-3 hidden-sm-down">
                   {{ order.created }}
                 </div>
-                <div class="col-md-1 col-5">
+                <div class="col-md-2 col-3">
                   <span class="float-md-right">{% gross order.get_total %}</span>
                 </div>
-                <div class="col-md-2 col-5 offset-md-1">
+                <div class="col-md-4 hidden-sm-down">
                   {% render_status order.status order.get_status_display %}
                 </div>
-                <div class="col-md-2 col-2">
-                  <a href="{{ order.get_absolute_url }}"><small class="float-right">{% trans "Details" %}</small></a>
+                <div class="col-md-1 col-3">
+                  <a href="{{ order.get_absolute_url }}"  class="float-right">{% trans "Details" %}</a>
                 </div>
               </div>
             </div>

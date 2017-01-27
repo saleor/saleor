@@ -63,8 +63,26 @@
       color: $body-color;
     }
     &__row {
-      border-bottom: 1px solid $light-gray;
+      border-bottom: 1px solid $gray;
       padding: $global-padding 0;
+      font-size: 0.9rem;
+      a {
+        color: $body-color;
+        text-decoration: underline;
+        padding-right: $global-padding / 2;
+        &:hover {
+          text-decoration: none;
+        }
+      }
+    }
+    &-header {
+      border-bottom: 1px solid $gray;
+      padding-bottom: $global-padding/2;
+      h3 {
+        color: $skull-gray;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+      }
     }
   }
   &__password {
