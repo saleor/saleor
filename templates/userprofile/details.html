@@ -80,6 +80,7 @@
                 {% include "userprofile/snippets/address-short.html" %}
                 <a data-toggle="modal" data-target=".modal-address-delete"><img src="{% static 'images/icon_delete.svg' %}"></a>
                 {% include "userprofile/address-delete.html" with pk=address.pk %}
+                <a href="{% url "profile:address-edit" pk=address.pk %}"><img src="{% static 'images/icon_edit.svg' %}"></a>
               </div>
               {% if forloop.counter|divisibleby:2 %}
                 </div>
