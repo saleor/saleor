@@ -144,6 +144,8 @@
         border: 0;
         background: $blue;
         cursor: pointer;
+        top: 50%;
+        transform: translateY(-50%);
         @include transition(background, 0.3s)
         &:hover {
           background: darken($blue, 10%);
