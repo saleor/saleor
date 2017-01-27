@@ -5,6 +5,11 @@
       max-height: 30px;
     }
   }
+  @media (max-width: 370px) { 
+    img {
+      max-height: 27px;
+    }
+  }
   &__login {
     p {
       font-size: 0.7rem;
