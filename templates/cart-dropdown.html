@@ -5,7 +5,7 @@
 
 <div class="container">
   {% if quantity > 0 %}
-    <div class="cart-dropdown__list {% if lines|length <= 2 %}overflow{% endif %}">
+    <div id="cart-dropdown-list" class="cart-dropdown__list{% if lines|length <= 2 %} overflow{% endif %}">
     {% for line in lines %}
       <div class="row item">
         <div class="col-md-10">
@@ -26,7 +26,7 @@
       </div>
     {% endfor %}
     </div>
-    <div class="row cart-dropdown__total">
+    <div class="row cart-dropdown__total" data-quantity="{{ quantity }}">
       <div class="col-md-8">
         <h3>{% trans "Subtotal" %} <br> <span>{% trans "(Delivery caclulated on checkout)" %}</span></h3>
       </div>

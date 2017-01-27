@@ -125,9 +125,10 @@ const onAddToCartSuccess = () => {
     $addToCartError.html('')
     var newQunatity = $('.cart-dropdown__total').data('quantity')
     $('.badge').html(newQunatity).removeClass('empty')
+    console.log(newQunatity);
     $cartDropdown.addClass('show')
     $cartIcon.addClass('hover')
-    $cartDropdown.find('.container').scrollTop($cartDropdown.find('.container')[0].scrollHeight)
+    $cartDropdown.find('.cart-dropdown__list').scrollTop($cartDropdown.find('.cart-dropdown__list')[0].scrollHeight)
     setTimeout((e) => {
       $cartDropdown.removeClass('show');
       $cartIcon.removeClass('hover')
