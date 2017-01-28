@@ -6,30 +6,35 @@
 
 
 {% if order.user == user %}
-  <div class="row order-details__addresses">
-        {% if order.is_shipping_required %}
-    <div class="col-6">
-      <h3>{% trans "Shipping address" %}</h3>
-            <address>{% include "userprofile/snippets/address-short.html" with address=order.shipping_address %}</address>
-    </div>
-            {% endif %}
-    <div class="col-6">
-      <h3>{% trans "Billing address" %}</h3>
-      <address>{% include "userprofile/snippets/address-short.html" with address=order.billing_address %}</address>
+  <div class="order-details__addresses">
+    <div class="row">
+          {% if order.is_shipping_required %}
+      <div class="col-6">
+        <h3>{% trans "Shipping address" %}</h3>
+              <address>{% include "userprofile/snippets/address-short.html" with address=order.shipping_address %}</address>
+      </div>
+              {% endif %}
+      <div class="col-6">
+        <h3>{% trans "Billing address" %}</h3>
+        <address>{% include "userprofile/snippets/address-short.html" with address=order.billing_address %}</address>
+      </div>
     </div>
   </div>
 {% endif %}
-<div class="row order-details__table-header hidden-sm-down">
-  <div class="col-md-6">
-    <small>{% trans "Product" %}</small>
-  </div>
-  <div class="col-md-3">
-    <small>{% trans "Quantity" %}</small>
-  </div>
-  <div class="col-md-3">
-    <small>{% trans "Price" %}</small>
+<div class="order-details__table-header hidden-sm-down">
+  <div class="row">
+    <div class="col-md-6">
+      <small>{% trans "Product" %}</small>
+    </div>
+    <div class="col-md-3">
+      <small>{% trans "Quantity" %}</small>
+    </div>
+    <div class="col-md-3">
+      <small>{% trans "Price" %}</small>
+    </div>
   </div>
 </div>
+
 <div class="order-details__table">
   {% for item in order %}
     {% for item_line in item %}
@@ -76,12 +81,16 @@
         </div>
       </div>
     {% endif %}
-    <div class="row total">
-      <div class="col-8">
-        <p><strong>{% trans "Total" %}</strong></p>
-      </div>
-      <div class="col-4">
-        <p class="float-right"><strong>{% gross order.total %}</strong></p>
+    <div class="total">
+      <div class="row">
+        <div class="col-8">
+          <div class="total">
+            <p><strong>{% trans "Total" %}</strong></p>
+          </div>
+        </div>
+        <div class="col-4">
+          <p class="float-right"><strong>{% gross order.total %}</strong></p>
+        </div>
       </div>
     </div>
   {% endfor %}
