@@ -24,3 +24,15 @@
     margin-right: $global-margin;
   }
 }
+
+.relative {
+  position: relative;
+}
+
+.passIcon {
+  max-width: 15px;
+  position: absolute;
+  top: 2.8rem;
+  right: 0.5rem;
+  cursor: pointer;
+}
