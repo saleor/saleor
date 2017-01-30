@@ -113,7 +113,7 @@ def handle_cart_form(request, product, create_cart=False):
         cart = get_cart_from_request(request)
     form = ProductForm(
         cart=cart, product=product, data=request.POST or None,
-        discounts=request.discounts)
+        discounts=request.discounts, country=request.country)
     return form, cart
 
 
