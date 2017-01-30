@@ -41,15 +41,8 @@
       font-weight: 300;
       text-transform: uppercase;
       @include media-breakpoint-down(sm) {
-        font-size: 30px;
-      }
-    }
-    &--top {
-      text-transform: uppercase;
-      margin: $global-margin / 4 auto;
-      color: $dark-gray;
-      small {
-        font-size: 70%;
+        font-size: 2.3rem;
+        margin-bottom: 0;
       }
     }
   }
