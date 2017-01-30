@@ -23,8 +23,8 @@ var providePlugin = new webpack.ProvidePlugin({
   '_': 'underscore',
   jQuery: 'jquery',
   'window.jQuery': 'jquery',
-  "Tether": 'tether',
-  "window.Tether": 'tether'
+  'Tether': 'tether',
+  'window.Tether': 'tether'
 });
 
 var config = {
@@ -36,7 +36,9 @@ var config = {
       'babel-es6-polyfill',
       'bootstrap',
       'jquery',
-      'jquery.cookie'
+      'jquery.cookie',
+      'react',
+      'react-relay'
     ]
   },
   output: {
