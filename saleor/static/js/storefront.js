@@ -250,7 +250,7 @@ $cartLine.each(function() {
   let $quantityInput = $(this).find('#id_quantity');
   let cartFormUrl = $(this).find('.form-cart').attr('action');
   let $qunatityError = $(this).find('.cart__line__quantity-error');
-  let $subtotal = $(this).find('.cart-item-subtotal h3');
+  let $subtotal = $(this).find('.cart-item-subtotal p');
   let $deleteIcon = $(this).find('.cart-item-delete');
   $(this).on('change', $quantityInput, (e) => {
     let newQuantity = $quantityInput.val();

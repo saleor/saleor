@@ -22,71 +22,70 @@
   {% if cart_lines %}
     <div class="cart__table-header hidden-sm-down">
       <div class="row">
-        <div class="col-md-6">
-          <small>{% trans "Product" %}</small>
+        <div class="col-md-7">
+          <h3>{% trans "Product" %}</h3>
+        </div>
+        <div class="col-md-3">
+          <h3>{% trans "Quantity" %}</h3>
         </div>
         <div class="col-md-2">
-          <small>{% trans "Quantity" %}</small>
-        </div>
-        <div class="col-md-2">
-          <small>{% trans "Price" %}</small>
-        </div>
-        <div class="col-md-2">
-          <small>{% trans "Delete" %}</small>
+          <h3 class="text-right">{% trans "Price" %}</h3>
         </div>
       </div>
     </div>
     {% for line in cart_lines %}
-      <div class="cart__line">
+      <div class="cart__line{% if forloop.last %} last{% endif %}">
         <div class="row">
-          <div class="col-md-6 col-9 cart__line__product">
+          <div class="col-7 cart__line__product">
             <a href="{{ line.variant.get_absolute_url }}">
               {% if line.variant.product.images.first %}
-                  <img class="cart-item-image" itemprop="image" src="{{ line.variant.product.images.first.image.crop.60x60 }}" alt="">
+                  <img itemprop="image" src="{{ line.variant.product.images.first.image.crop.60x60 }}" alt="">
               {% else %}
-                  <img class="cart-item-image" src="{% static 'images/product-image-placeholder-small.png' %}" alt="">
+                  <img src="{% static 'images/placeholder60x60.png' %}" alt="">
               {% endif %}
-              <h3>{{ line.variant.product }}
-                <br><small>{{ line.variant }}</small></h3>
+              <p>{{ line.variant.product }}
+                <br><small>{{ line.variant }}</small></p>
             </a>
           </div>
-          <div class="cart__line__quantity col-md-2 col-3">
-            <form role="form" action="{% url "cart:update-line" variant_id=line.variant.pk %}" method="post" class="form-cart" >
-                <div class="{% if form.quantity.errors %} has-error{% endif %}" tabindex="-1">
-                    {{ line.form.quantity }}
-                </div>
-                {% csrf_token %}
-            </form>
-            <small class="cart__line__quantity-error text-danger"></small>
-          </div>
-          <div class="cart-item-subtotal col-md-2 col-8" data-product-id="{{ line.variant.pk }}">
-            <h3 class="float-left float-sm-right">{% gross line.get_total html=True %}</h3>
-          </div>
-          <div class="col-md-2 col-4">
-            <img class="cart-item-delete" src="{% static 'images/icon_delete.svg' %}">
+          <div class="col-5">
+            <div class="row">
+              <div class="cart__line__quantity col-md-7 col-12">
+                <form role="form" action="{% url "cart:update-line" variant_id=line.variant.pk %}" method="post" class="form-cart">
+                    <div class="{% if form.quantity.errors %} has-error{% endif %}" tabindex="-1">
+                        {{ line.form.quantity }}
+                    </div>
+                    {% csrf_token %}
+                </form>
+                <img class="cart-item-delete" src="{% static 'images/icon_delete.svg' %}">
+                <small class="cart__line__quantity-error text-danger"></small>
+              </div>
+              <div class="cart-item-subtotal col-md-5 col-12" data-product-id="{{ line.variant.pk }}">
+                <p class="text-right">{% gross line.get_total html=True %}</h3>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     {% endfor %}
     <div class="cart__total">
       <div class="row">
-        <div class="col-6">
+        <div class="col-9 cart__total__subtotal">
           <h3>{% trans "Subtotal" %}</h3>
           <p>({% trans "Delivery claculated on checkout" %})</p>
         </div>
-        <div class="col-md-2 offset-md-2 col-6">
-          <h3 class="cart-total" data-value="{% gross cart_total %}"{% if local_cart_total %} data-value-local="{% gross local_cart_total %}"{% endif %}>
+        <div class="col-3">
+          <p class="cart-total text-right" data-value="{% gross cart_total %}"{% if local_cart_total %} data-value-local="{% gross local_cart_total %}"{% endif %}>
               {% spaceless %}
                   {% gross cart_total html=True %}
                   {% if local_cart_total %}
                       <br>
-                      <small class="text-info">
+                      <small>
                           &asymp;
                           {% gross local_cart_total html=True %}
                       </small>
                   {% endif %}
               {% endspaceless %}
-          </h3>
+          </p>
         </div>
       </div>
     </div>
@@ -96,19 +95,20 @@
       </div>
     </div>
     <div class="cart__delivery-info">
-      <div class="deliveryform" data-csrf="{{ csrf_token }}">
-        <h3>{% trans "Delivery options to" %} {{ country_form }}</h3>
-      </div>
-      <div class="col-md-5 ">
+      <h3><small>{% trans "Calculate shipping cost" %}</small></h3>
+      <div class="col-md-8 col-lg-6 col-xl-5">
         <div class="cart__delivery-info__list row">
+          <div class="deliveryform" data-csrf="{{ csrf_token }}">
+            {{ country_form }}
+          </div>
           <div class="col-6 cart__delivery-info__method">
             {% for option in default_country_options %}
               <p>{{ option.shipping_method__name }}</p>
             {% endfor %}
           </div>
-          <div class="col-6 cart__delivery-info__price">
+          <div class="col-6">
             {% for option in default_country_options %}
-              <p>{% gross option.price %}</p>
+              <p class="text-right">{% gross option.price %}</p>
             {% endfor %}
           </div>
         </div>
