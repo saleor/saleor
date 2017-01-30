@@ -4,6 +4,7 @@ from datetime import timedelta
 from functools import wraps
 
 from django.contrib import messages
+from django.db import transaction
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 from satchless.item import InsufficientStock
@@ -79,13 +80,16 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
                 token=token, cart_queryset=queryset)
             if cart is None:
                 return
-            cart.change_user(request.user)
-            carts_to_close = Cart.objects.open().filter(user=request.user)
-            carts_to_close = carts_to_close.exclude(token=token)
-            carts_to_close.update(
-                status=Cart.CANCELED, last_status_change=now())
             response = view(request, *args, **kwargs)
-            response.delete_cookie(Cart.COOKIE_NAME)
+            if request.user.is_authenticated():
+                with transaction.atomic():
+                    cart.change_user(request.user)
+                    carts_to_close = Cart.objects.open().filter(
+                        user=request.user)
+                    carts_to_close = carts_to_close.exclude(token=token)
+                    carts_to_close.update(
+                        status=Cart.CANCELED, last_status_change=now())
+                response.delete_cookie(Cart.COOKIE_NAME)
             return response
 
         return func
