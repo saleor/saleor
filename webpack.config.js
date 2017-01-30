@@ -23,8 +23,8 @@ var providePlugin = new webpack.ProvidePlugin({
   '_': 'underscore',
   jQuery: 'jquery',
   'window.jQuery': 'jquery',
-  "Tether": 'tether',
-  "window.Tether": 'tether'
+  'Tether': 'tether',
+  'window.Tether': 'tether'
 });
 
 var config = {
@@ -33,9 +33,12 @@ var config = {
     dashboard: './saleor/static/js/dashboard.js',
     storefront: './saleor/static/js/storefront.js',
     vendor: [
+      'babel-es6-polyfill',
       'bootstrap',
       'jquery',
-      'jquery.cookie'
+      'jquery.cookie',
+      'react',
+      'react-relay'
     ]
   },
   output: {

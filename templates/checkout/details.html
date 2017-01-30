@@ -7,12 +7,15 @@
 {% block title %}{% trans "Checkout" %} — {{ block.super }}{% endblock %}
 
 {% block header %}
+    <div class="container navbar__login">
+      <p>{% trans "Easy and secure" %}!</p>
+    </div>
     <header class="checkout__header">
       <div class="container">
         <a href="/">
-          <img src="{% static 'images/saleor-logo.svg' %}">
+          <img src="{% static "images/saleor-logo-black.svg" %}" alt="Testeor - Saleor demo store" height="38">
         </a>
-        <p>{% trans "Easy checkout" %}</p>
+        <h1>{% trans "Checkout" %}</h1>
       </div>
     </header>
 {% endblock %}
@@ -23,10 +26,10 @@
 
 {% block content %}
     <div class="row checkout">
-      <div class="col-md-7 col-lg-6 offset-lg-1">
+      <div class="col-md-7">
         {% block forms %}{% endblock %}
       </div>
-      <div class="col-md-5 col-lg-4">
+      <div class="col-md-5">
         {% with total=checkout.get_total %}
           <div class="checkout__review">
             <h3 class="checkout__review__tittle">{% trans "Order review" %}</h3>

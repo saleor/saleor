@@ -11,7 +11,7 @@ export const getAttributesFromQuery = (exclude) => {
   const urlParams = queryString.parse(location.search);
   let attributes = [];
   Object.keys(urlParams).forEach(key => {
-    if (!exclude.includes(key)) {
+    if (exclude.indexOf(key) === -1) {
       if (Array.isArray(urlParams[key])) {
         const values = urlParams[key];
         values.map((valueSlug) => {
@@ -28,8 +28,8 @@ export const getAttributesFromQuery = (exclude) => {
 
 export const ensureAllowedName = (name, allowed) => {
   let origName = name;
-  if (name.startsWith('-')) {
+  if (name && name.startsWith('-')) {
     name = name.substr(1, name.length);
   }
-  return name in allowed ? origName : null;
+  return allowed.indexOf(name) > -1 ? origName : null;
 };

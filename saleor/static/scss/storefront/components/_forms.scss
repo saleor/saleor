@@ -1,9 +1,11 @@
-.form-control {
+.form-control, select, input {
   color: $body-color;
   border-radius: 2px;
+  border: 1px solid $gray;
   &:focus {
     color: $body-color;
     border-color: $gray;
+    background-color: $form-active;
   }
   &::placeholder {
     color: $gray;
@@ -14,6 +16,7 @@
 
 .help-block {
   color: $red;
+  font-size: 0.8rem;
 }
 
 .radio {
@@ -26,6 +29,9 @@
     display: inline-block;
     vertical-align: top;
     margin: $global-margin / 4 $global-margin / 2 0 0;
+  }
+  span {
+    display: inline-block;
   }
   label {
     margin-right: $global-margin;
