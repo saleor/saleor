@@ -250,7 +250,7 @@ class ProductVariant(models.Model, Item):
             vat = get_tax_for_country(country, rate_name)
             if vat:
                 price = vat.apply(price)
-        return price
+        return price.quantize('0.01')
 
     def get_absolute_url(self):
         slug = self.product.get_slug()
