@@ -29,6 +29,8 @@ def contains_unavailable_variants(cart):
 
 
 def token_is_valid(token):
+    if token is None:
+        return False
     if isinstance(token, UUID):
         return True
     try:
@@ -86,7 +88,7 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
         def func(request, *args, **kwargs):
             response = view(request, *args, **kwargs)
             token = request.get_signed_cookie(Cart.COOKIE_NAME, default=None)
-            if not token or token is not None and not token_is_valid(token):
+            if not token_is_valid(token):
                 return response
             cart = get_anonymous_cart_from_token(
                 token=token, cart_queryset=queryset)
