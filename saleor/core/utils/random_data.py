@@ -285,7 +285,6 @@ def create_stock(variant, **kwargs):
 
 def create_variant(product, **kwargs):
     defaults = {
-        'name': fake.word(),
         'product': product}
     defaults.update(kwargs)
     variant = ProductVariant.objects.create(**defaults)
