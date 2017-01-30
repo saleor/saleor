@@ -28,7 +28,7 @@ export const getAttributesFromQuery = (exclude) => {
 
 export const ensureAllowedName = (name, allowed) => {
   let origName = name;
-  if (name.startsWith('-')) {
+  if (name && name[0] === '-') {
     name = name.substr(1, name.length);
   }
   return name in allowed ? origName : null;
