@@ -17,6 +17,7 @@ from .utils import check_product_availability_and_warn, get_or_empty_db_cart
 @get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
 def index(request, cart):
     discounts = request.discounts
+    country = request.country
     cart_lines = []
     check_product_availability_and_warn(request, cart)
 
@@ -26,14 +27,15 @@ def index(request, cart):
                                    initial=initial, discounts=discounts)
         cart_lines.append({
             'variant': line.variant,
-            'get_price_per_item': line.get_price_per_item(discounts),
-            'get_total': line.get_total(discounts=discounts),
+            'get_price_per_item': line.get_price_per_item(
+                discounts, country=country),
+            'get_total': line.get_total(discounts=discounts, country=country),
             'form': form})
 
     cart_total = None
     local_cart_total = None
     if cart:
-        cart_total = cart.get_total(discounts=discounts)
+        cart_total = cart.get_total(discounts=discounts, country=country)
         local_cart_total = to_local_currency(cart_total, request.currency)
 
     default_country = get_user_shipping_country(request)
@@ -77,11 +79,14 @@ def update(request, cart, variant_id):
                     }}
         updated_line = cart.get_line(form.cart_line.variant)
         if updated_line:
+            country = request.country
             response['subtotal'] = currencyfmt(
-                updated_line.get_total(discounts=discounts).gross,
-                updated_line.get_total(discounts=discounts).currency)
+                updated_line.get_total(
+                    discounts=discounts, country=country).gross,
+                updated_line.get_total(
+                    discounts=discounts, country=country).currency)
         if cart:
-            cart_total = cart.get_total(discounts=discounts)
+            cart_total = cart.get_total(discounts=discounts, country=country)
             response['total'] = currencyfmt(
                 cart_total.gross,
                 cart_total.currency)
@@ -101,11 +106,14 @@ def update(request, cart, variant_id):
 def summary(request, cart):
 
     def prepare_line_data(line):
+        country = request.country
         product_class = line.variant.product.product_class
         attributes = product_class.variant_attributes.all()
         first_image = line.variant.get_first_image()
-        price_per_item = line.get_price_per_item(discounts=request.discounts)
-        line_total = line.get_total(discounts=request.discounts)
+        price_per_item = line.get_price_per_item(
+            discounts=request.discounts, country=country)
+        line_total = line.get_total(discounts=request.discounts,
+                                    country=country)
         return {
             'product': line.variant.product,
             'variant': line.variant.name,
@@ -121,7 +129,8 @@ def summary(request, cart):
     if cart.quantity == 0:
         data = {'quantity': 0}
     else:
-        cart_total = cart.get_total(discounts=request.discounts)
+        cart_total = cart.get_total(discounts=request.discounts,
+                                    country=request.country)
         data = {
             'quantity': cart.quantity,
             'total': currencyfmt(cart_total.gross, cart_total.currency),
