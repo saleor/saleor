@@ -1,21 +1,20 @@
 .no-results {
 	max-width: 30rem;
 	margin: auto;
+	text-align: center;
 	h2 {
-		text-align: center;
 		padding-top: $global-padding;
 		font-size: 2.5rem;
 		@include media-breakpoint-down(sm) {
 			font-size: 1.5rem
 		}
 	}
-	img {
+	img, svg {
 		width: 100%;
-		padding-top: $global-padding*2;
-		padding-bottom: $global-padding*2;
+		padding-top: $global-padding * 2;
+		padding-bottom: $global-padding * 2;
 	}
 	p {
-		text-align: center;
 		margin-bottom: 0;
 		font-size: 1.5rem;
 		@include media-breakpoint-down(sm) {
