@@ -84,25 +84,24 @@
       </div>
       <div class="tab-pane" id="addresses" role="tabpanel">
         <div class="card-deck-wrapper userprofile__addresses">
-          <div class="card-deck">
-            {% for address in addresses %}
-              <div class="card card-block">
-                {% include "userprofile/snippets/address-short.html" %}
-                <ul class="icons">
-                  <li><a href="{% url "profile:address-edit" pk=address.pk %}">{% trans "Edit" %}</a></li>
-                  <li><a class="delete-icon"><img class="float-right" src="{% static 'images/icon_delete.svg' %}"></a></li>
-                </ul>
-                {% include "userprofile/address-delete.html" with pk=address.pk %}
-              </div>
-              {% if forloop.counter|divisibleby:2 %}
+          <div class="row card-deck"> 
+              {% for address in addresses %}
+                <div class="col-md-6">
+                  <div class="card card-block">
+                    {% include "userprofile/snippets/address-short.html" %}
+                    <ul class="icons">
+                      <li><a href="{% url "profile:address-edit" pk=address.pk %}">{% trans "Edit" %}</a></li>
+                      <li><a class="delete-icon"><img class="float-right" src="{% static 'images/icon_delete.svg' %}"></a></li>
+                    </ul>
+                    {% include "userprofile/address-delete.html" with pk=address.pk %}
+                  </div>
                 </div>
-                <div class="card-deck">
-              {% endif %}
-            {% endfor %}
+              {% endfor %}
+            </div>
             {% if addresses|length == 0 %}
               <h3 class="text-sm-center">{% trans "You will see new addresses here after first successful checkout." %}</h3>
             {% endif %}
-          </div>
+          
         </div>
       </div>
     </div>

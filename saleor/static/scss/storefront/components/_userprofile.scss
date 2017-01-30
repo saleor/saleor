@@ -106,10 +106,10 @@
     border-spacing: $global-margin;
     margin: 0;
     .card-deck {
-      display: table-row;
       .card {
-        width: 50%;
+        width: 100%;
         border-radius: 3px;
+        margin: $global-margin 0;
         @include transition(background, 0.3s)
         &:hover {
           background: $light-gray;
