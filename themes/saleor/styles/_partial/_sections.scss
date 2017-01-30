@@ -217,7 +217,7 @@
     }
   }
   &-github {
-    background: $red;
+    background: $blue;
     h2 {
       color: $white;
       text-transform: uppercase;
@@ -229,7 +229,7 @@
       }
     }
     .btn-tertiary {
-      @include btn-white($red)
+      @include btn-white($blue)
     }
   }
 }
