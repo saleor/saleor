@@ -5,7 +5,7 @@
 <form method="post" action="{% url 'account_login' %}" novalidate>
   {% csrf_token %}
   <fieldset>
-    <h2>{% trans 'Log in' %}</h2>
+    <h3>{% trans 'Log in' %}</h3>
     {% bootstrap_form form %}
     {% if redirect_field_value %}
       <input type="hidden" name="next" name="{{ redirect_field_name }}"
