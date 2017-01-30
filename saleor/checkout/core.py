@@ -69,7 +69,7 @@ class Checkout(object):
     def _vat_country(self):
         country = None
         if self.billing_address:
-            country = self.billing_address
+            country = self.billing_address.country
         if self.is_shipping_required and self.shipping_address:
             country = self.shipping_address.country
         return country
