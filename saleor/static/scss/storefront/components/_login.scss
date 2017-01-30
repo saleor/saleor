@@ -30,12 +30,12 @@
     }
     &-link {
       text-align: center;
+      a {
+        max-width: 12rem;
+      }
       img {
         margin: $global-margin / 2 0;
         @include media-breakpoint-up(md) {
-          &.singup-img {
-            margin-bottom: $global-margin * 5;
-          }
           &.checkout-pirate {
             margin-bottom: $global-margin * 3.2;
           }

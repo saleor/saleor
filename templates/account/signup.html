@@ -7,12 +7,19 @@
 
 {% block content %}
 <div class="row login">
-  <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2">
+  <div class="col-lg-10 offset-lg-1 col-sm-12">
     <div class="row">
-      <div class="col-md-6">
+      <div class="col-md-6 login__register">
+        <div class="login__register-link">
+          <h3>{% trans "Already have an account?" %}</h3>
+          <img class="singup-img" src="{% static 'images/pirate_login.png' %}" srcset="{% static 'images/pirate_login.png' %} 1x, {% static 'images/pirate_login2x.png' %} 2x">
+          <p><a href="{% url 'account_login' %}" class="btn secondary">{% trans "Log in" %}</a></p>
+        </div>
+      </div>
+      <div class="col-md-6 login__form">
         <form method="post" action="{% url 'account_signup' %}">
           <fieldset>
-            <h2>{% trans 'Create an account' %}</h2>
+            <h3>{% trans 'Create an account' %}</h3>
             {% csrf_token %}
             {% bootstrap_form form %}
             {% if redirect_field_value %}
@@ -24,13 +31,6 @@
               <button type="submit" class="btn btn primary">{% trans "Create an account" %}</button>
           </div>
         </form>
-      </div>
-      <div class="col-md-6">
-        <div class="login__register-link">
-          <h2>{% trans "Already have an account?" %}</h2>
-          <img class="singup-img" src="{% static 'images/pirate_login.png' %}" srcset="{% static 'images/pirate_login.png' %} 1x, {% static 'images/pirate_login2x.png' %} 2x">
-          <p><a href="{% url 'account_login' %}" class="btn secondary">{% trans "Log in" %}</a></p>
-        </div>
       </div>
     </div>
   </div>
