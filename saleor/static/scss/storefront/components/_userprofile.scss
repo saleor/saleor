@@ -160,18 +160,17 @@
       }
     }
   }
-}
-
-.modal-address-delete {
-  .modal-header {
-    padding-top: $global-padding * 2;
-    border-bottom: 0;
-  }
-  .modal-footer {
-    border-top: 0;
-    padding-bottom: $global-padding;
-    button {
-      margin-left: $global-margin * 2;
+  &__address-edit {
+    h1 {
+      text-align: center;
+      font-size: 1.3em;
+      text-transform: uppercase;
+      padding-bottom: $global-padding;
+    }
+    .btn {
+      padding: $global-padding / 2 $global-padding * 2;
+      text-transform: uppercase;
+      font-size: 1rem;
     }
   }
 }
