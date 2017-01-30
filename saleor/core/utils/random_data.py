@@ -99,6 +99,7 @@ DEFAULT_SCHEMA = {
             'Cover': ['Soft', 'Hard']
         },
         'images_dir': 'books/',
+        'different_variant_prices': True,
         'is_shipping_required': True
     }
 }
