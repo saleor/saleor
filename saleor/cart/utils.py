@@ -73,14 +73,14 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
     def get_cart(view):
         @wraps(view)
         def func(request, *args, **kwargs):
+            response = view(request, *args, **kwargs)
             token = request.get_signed_cookie(Cart.COOKIE_NAME, default=None)
             if not token:
-                return
+                return response
             cart = get_anonymous_cart_from_token(
                 token=token, cart_queryset=queryset)
             if cart is None:
-                return
-            response = view(request, *args, **kwargs)
+                return response
             if request.user.is_authenticated():
                 with transaction.atomic():
                     cart.change_user(request.user)
