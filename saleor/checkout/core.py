@@ -87,7 +87,7 @@ class Checkout(object):
             else:
                 shipping_cost = Price(0, currency=settings.DEFAULT_CURRENCY)
             total_with_shipping = partition.get_total(
-                discounts=self.cart.discounts) + shipping_cost
+                discounts=self.cart.discounts, country=country) + shipping_cost
 
             partition = [
                 (item,
