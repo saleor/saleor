@@ -137,6 +137,8 @@ class Product(models.Model, ItemRange, index.Indexed):
                              default={})
     updated_at = models.DateTimeField(
         pgettext_lazy('Product field', 'updated at'), auto_now=True, null=True)
+    is_featured = models.BooleanField(
+        pgettext_lazy('Product field', 'is featured'), default=False)
 
     objects = ProductManager()
 
