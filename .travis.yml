@@ -1,6 +1,7 @@
 language: python
 cache:
   pip: true
+  yarn: true
   directories:
     - node_modules
 sudo: false
