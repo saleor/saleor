@@ -1,6 +1,7 @@
-.form-control {
+.form-control, select, input {
   color: $body-color;
   border-radius: 2px;
+  border: 1px solid $gray;
   &:focus {
     color: $body-color;
     border-color: $gray;
