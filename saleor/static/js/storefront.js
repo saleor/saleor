@@ -259,8 +259,8 @@ $cartLine.each(function() {
       method: 'POST',
       data: {quantity: newQuantity},
       success: (response) => {
-        if (newQuantity === 0) {
-          if (response.cart.numLines === 0) {
+        if (newQuantity == 0) {
+          if (response.cart.numLines == 0) {
             $.cookie('alert', 'true', { path: '/cart' });
             location.reload();
           } else {
