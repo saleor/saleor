@@ -41,6 +41,7 @@ class SetPasswordForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
+        self.temp_key = kwargs.pop("temp_key", None)
         super(SetPasswordForm, self).__init__(*args, **kwargs)
         self.fields['password1'].user = self.user
 

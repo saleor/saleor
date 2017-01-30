@@ -263,7 +263,11 @@ PAGINATE_BY = 16
 BOOTSTRAP3 = {
     'set_placeholder': False,
     'set_required': False,
-    'success_css_class': ''}
+    'success_css_class': '',
+    'form_renderers': {
+        'default': 'saleor.core.utils.form_renderer.FormRenderer',
+    },
+}
 
 TEST_RUNNER = ''
 
