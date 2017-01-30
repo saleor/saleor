@@ -5,11 +5,13 @@
   &:focus {
     color: $body-color;
     border-color: $gray;
+    background-color: $form-active;
   }
 }
 
 .help-block {
   color: $red;
+  font-size: 0.8rem;
 }
 
 .radio {
@@ -22,6 +24,9 @@
     display: inline-block;
     vertical-align: top;
     margin: $global-margin / 4 $global-margin / 2 0 0;
+  }
+  span {
+    display: inline-block;
   }
   label {
     margin-right: $global-margin;

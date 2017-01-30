@@ -1,27 +1,23 @@
-{% extends "base.html" %}
+{% extends "checkout/details.html" %}
 {% load staticfiles %}
 {% load i18n %}
 
 {% block title %}{% trans "Login" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
-<div class="row login">
-  <div class="col-lg-10 offset-lg-1 col-xl-8 offset-xl-2">
-    <div class="row">
-      <div class="col-md-6">
-        {% url "checkout:index" as checkout_url %}
-        {% include "account/partials/login_form.html" with redirect_field_value=checkout_url %}
-      </div>
-      <div class="col-md-6">
-        <div class="login__register-link">
-          <h2>{% trans "New customer?" %}</h2>
-          <h6>{% trans "Registration is not required!" %}</h6>
-          <img class="checkout-pirate" src="{% static 'images/pirate_login.png' %}" srcset="{% static 'images/pirate-checkout.png' %} 1x, {% static 'images/pirate-checkout2x.png' %} 2x">
-          <p><a href="{% url 'checkout:index' %}" class="btn secondary">{% trans "Continue" %}</a></p>
-        </div>
+<div class="row checkout__login">
+    <div class="col-12 col-md-6">
+      <div class="checkout__login__continue">
+        <h3>{% trans "New customer?" %}</h3>
+        <img class="checkout-pirate" src="{% static 'images/pirate_login.png' %}" srcset="{% static 'images/pirate-checkout.png' %} 1x, {% static 'images/pirate-checkout2x.png' %} 2x">
+        <p><a href="{% url 'checkout:index' %}" class="btn secondary">{% trans "Continue" %}</a></p>
+        <p>{% trans "Registration is not required!" %}</p>
       </div>
     </div>
-
-  </div>
+    <div class="col-12 col-md-6 checkout__login__form">
+      {% url "checkout:index" as checkout_url %}
+      <h3>{% trans "Existing customer? Log in." %}</h3>
+      {% include "account/partials/login_form.html" with redirect_field_value=checkout_url %}
+    </div>
 </div>
 {% endblock %}
