@@ -103,7 +103,15 @@
       }
     }
   }
-  
+}
+@media (min-width: 992px) {
+  .section-developers {
+    .boxes {
+      .ship-wheel {
+        transform: translate(-50%, -62%);
+      }
+    }
+  }
 }
 
 

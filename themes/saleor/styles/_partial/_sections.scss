@@ -95,7 +95,7 @@
         border-bottom: solid 1px transparent;
       }
       p {
-        margin-bottom: 2.5rem;
+        margin-bottom: $global-margin*2.5;
       }
     }
     .btn-primary {
@@ -145,6 +145,7 @@
     }
   }
   &-slider {
+    border-bottom: solid 1px $gray;
     .slider-bg {
       width: 100%;
       position: relative;

@@ -4,8 +4,9 @@ footer {
     font-size: 1.2rem;
     text-transform: uppercase;
     font-weight: 400;
-    text-align: center;
+    text-align: left;
     padding: $global-padding 0;
+    padding-left: $global-padding / 2;
     margin: $global-margin*2 $global-margin;
     border-bottom: solid 1px $footer-border;
   }
@@ -65,6 +66,9 @@ footer {
   }
   .follow-us {
     border: solid 1px $footer-border;
+    h3 {
+      text-align: center;
+    }
     .icons {
       list-style: none;
       padding-left: 0;
