@@ -38,7 +38,7 @@
             <div class="row">
               <div class="col-md-2 col-3"><h3>{% trans "Order" %}</h3></div>
               <div class="col-md-3  hidden-sm-down"><h3>{% trans "Date" %}</h3></div>
-              <div class="col-md-2 col-3"><h3 class="float-md-right">{% trans "Summary" %}</h3></div>
+              <div class="col-md-2 col-6"><h3 class="float-md-right">{% trans "Summary" %}</h3></div>
               <div class="col-md-4  hidden-sm-down"><h3>{% trans "Status" %}</h3></div>
               <div class="col-md-1 col-3"></div>
             </div>
@@ -53,7 +53,7 @@
                 <div class="col-md-3 hidden-sm-down">
                   {{ order.created }}
                 </div>
-                <div class="col-md-2 col-3">
+                <div class="col-md-2 col-6">
                   <span class="float-md-right">{% gross order.get_total %}</span>
                 </div>
                 <div class="col-md-4 hidden-sm-down">
