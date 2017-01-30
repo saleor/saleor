@@ -18,6 +18,7 @@
     display: block;
     margin: auto;
     margin-top: $global-margin;
+    font-family: $font-family-sans-serif;
   }
   &__register {
     padding: $global-padding * 2;
@@ -63,3 +64,37 @@
     }
   }
 }
+
+.forgott-password {
+  h2 {
+    font-size: 2rem;
+    text-align: center;
+    padding-top: $global-padding*2;
+    font-weight: 300;
+  }
+  p {
+    font-size: 1rem;
+    text-align: center;
+    padding-top: $global-padding;
+  }
+  fieldset {
+    max-width: 60%;
+    margin: auto;
+    padding-bottom: $global-padding;
+  }
+  .btn {
+    padding: $global-padding / 2 $global-padding * 3;
+    display: block;
+    margin: auto;
+    text-transform: uppercase;
+    font-family: $font-family-sans-serif;
+  }
+  img {
+    max-width: 15rem;
+    margin: auto;
+    display: block;
+    padding-top: $global-padding * 2;
+  }
+}
+
+
