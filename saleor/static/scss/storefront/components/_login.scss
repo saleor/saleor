@@ -1,5 +1,8 @@
 .login {
   padding-top: $global-padding * 2;
+  @include media-breakpoint-down(sm) {
+    padding-top: 0;
+  }
   h3 {
     text-transform: uppercase;
     text-align: center;
@@ -47,6 +50,9 @@
   &__form {
     background: $light-gray;
     padding: $global-padding * 2 $global-padding * 5;
+    @include media-breakpoint-down(sm) {
+      padding: $global-padding * 2 $global-padding * 2;
+    }
     a {
       color: $body-color;
       text-align: center;
@@ -81,19 +87,24 @@
     max-width: 60%;
     margin: auto;
     padding-bottom: $global-padding;
+    @include media-breakpoint-down(sm) {
+      max-width: 80%;
+    }
   }
-  .btn {
-    padding: $global-padding / 2 $global-padding * 3;
-    display: block;
-    margin: auto;
-    text-transform: uppercase;
-    font-family: $font-family-sans-serif;
-  }
-  img {
-    max-width: 15rem;
-    margin: auto;
-    display: block;
-    padding-top: $global-padding * 2;
+  .login__btn-group {
+    .btn {
+      padding: $global-padding / 2 $global-padding * 3;
+      display: block;
+      margin: auto;
+      text-transform: uppercase;
+      font-family: $font-family-sans-serif;
+    }
+    img {
+      max-width: 15rem;
+      margin: auto;
+      display: block;
+      padding-top: $global-padding * 2;
+    }
   }
 }
 

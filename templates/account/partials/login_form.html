@@ -1,7 +1,6 @@
 {% load bootstrap_form from bootstrap3 %}
 {% load i18n %}
 
-
 <form method="post" action="{% url 'account_login' %}" novalidate>
   {% csrf_token %}
   <fieldset>
