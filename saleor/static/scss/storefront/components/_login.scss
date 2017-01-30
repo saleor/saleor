@@ -1,10 +1,10 @@
 .login {
   padding-top: $global-padding * 2;
-  fieldset {
-    margin-bottom: $global-margin;
-    h2 {
-      margin-bottom: $global-margin * 2;
-    }
+  h2 {
+    font-size: 1rem;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: $global-margin * 2;
   }
   p, a {
     color: $gray;  
@@ -13,28 +13,47 @@
     text-decoration: underline;
   }
   .btn {
-    margin-right: $global-margin;
+    padding: $global-padding / 2 $global-padding * 3;
+    font-size: 1rem;
+    text-transform: uppercase;
+    display: block;
+    margin: auto;
+    margin-top: $global-margin;
   }
-  &__register-link {
-    text-align: center;
-    padding-top: $global-padding * 2;
-    margin-top: $global-margin * 2;
-    border-top: 1px solid $gray;
-    @include media-breakpoint-up(md) {
-      border-top: 0;
-      border-left: 1px solid $gray;
-      margin-top: 0;
-      padding-top: 0;
+  &__register {
+    padding: $global-padding * 2;
+    border-top: solid 1px $light-gray;
+    border-bottom: solid 1px $light-gray;
+    border-left: solid 1px $light-gray;
+    @include media-breakpoint-down(sm) {
+      border-bottom: 0;
+      border-right: solid 1px $light-gray;
     }
-    img {
-      margin: $global-margin * 2.5 0;
-      @include media-breakpoint-up(md) {
-        &.singup-img {
-          margin-bottom: $global-margin * 5;
+    &-link {
+      text-align: center;
+      img {
+        margin: $global-margin / 2 0;
+        @include media-breakpoint-up(md) {
+          &.singup-img {
+            margin-bottom: $global-margin * 5;
+          }
+          &.checkout-pirate {
+            margin-bottom: $global-margin * 3.2;
+          }
         }
-        &.checkout-pirate {
-          margin-bottom: $global-margin * 3.2;
-        }
+      }
+    }
+  }
+  &__form {
+    background: $light-gray;
+    padding: $global-padding * 2 $global-padding * 5;
+    a {
+      color: $body-color;
+      text-align: center;
+      text-decoration: none;
+      font-size: 0.8rem;
+      &:hover {
+        text-decoration: underline;
       }
     }
   }

@@ -3,6 +3,11 @@
   &:focus {
     color: $body-color;
   }
+  &::placeholder {
+    color: $gray;
+    font-family: 'Lato';
+    font-weight: 300;
+  }
 }
 
 .help-block {
