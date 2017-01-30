@@ -200,6 +200,7 @@
             </footer>
         {% endblock %}
         {% block footer_scripts %}
+            <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
             {% render_bundle 'vendor' 'js' %}
             {% render_bundle 'storefront' 'js' %}
         {% endblock footer_scripts %}

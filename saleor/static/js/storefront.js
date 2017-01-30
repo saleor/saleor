@@ -66,11 +66,11 @@ let $searchIcon = $('.mobile-search-icon');
 let $closeSearchIcon = $('.mobile-close-search');
 let $searchForm = $('.navbar__brand__search');
 $searchIcon.click((e) => {
-  $searchForm.animate({left: 0}, {duration: 500})
-})
+  $searchForm.animate({left: 0}, {duration: 500});
+});
 $closeSearchIcon.click((e) => {
-  $searchForm.animate({left: '-100vw'}, {duration: 500})
-})
+  $searchForm.animate({left: '-100vw'}, {duration: 500});
+});
 
 // Sticky footer
 
@@ -121,17 +121,16 @@ let $addToCartError = $('.product__info__form-error small');
 
 const onAddToCartSuccess = () => {
   $.get(summaryLink, (data) => {
-    $cartDropdown.html(data)
-    $addToCartError.html('')
-    var newQunatity = $('.cart-dropdown__total').data('quantity')
-    $('.badge').html(newQunatity).removeClass('empty')
-    console.log(newQunatity);
-    $cartDropdown.addClass('show')
-    $cartIcon.addClass('hover')
-    $cartDropdown.find('.cart-dropdown__list').scrollTop($cartDropdown.find('.cart-dropdown__list')[0].scrollHeight)
+    $cartDropdown.html(data);
+    $addToCartError.html('');
+    var newQunatity = $('.cart-dropdown__total').data('quantity');
+    $('.badge').html(newQunatity).removeClass('empty');
+    $cartDropdown.addClass('show');
+    $cartIcon.addClass('hover');
+    $cartDropdown.find('.cart-dropdown__list').scrollTop($cartDropdown.find('.cart-dropdown__list')[0].scrollHeight);
     setTimeout((e) => {
       $cartDropdown.removeClass('show');
-      $cartIcon.removeClass('hover')
+      $cartIcon.removeClass('hover');
     }, 2500);
   });
 };
@@ -145,10 +144,10 @@ $.get(summaryLink, (data) => {
 });
 $('.navbar__brand__cart').hover((e) => {
   $cartDropdown.addClass('show');
-  $cartIcon.addClass("hover");
+  $cartIcon.addClass('hover');
 }, (e) => {
   $cartDropdown.removeClass('show');
-  $cartIcon.removeClass("hover");
+  $cartIcon.removeClass('hover');
 });
 $('.product-form button').click((e) => {
   e.preventDefault();

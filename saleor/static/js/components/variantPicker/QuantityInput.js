@@ -18,7 +18,7 @@ export default class QuantityInput extends Component {
     });
     return (
       <div className={formGroupClasses}>
-        <label className="control-label product__variant-picker__label" htmlFor="id_quantity">Quantity</label>
+        <label className="control-label product__variant-picker__label" htmlFor="id_quantity">{gettext('Quantity')}</label>
         <input
           className="form-control"
           defaultValue={quantity}
