@@ -503,3 +503,9 @@ def create_vouchers():
         yield 'Voucher #%d' % voucher.id
     else:
         yield 'Value voucher already exists'
+
+
+def set_featured_products(how_many=8):
+    pks = Product.objects.order_by('?')[:how_many].values_list('pk', flat=True)
+    Product.objects.filter(pk__in=pks).update(is_featured=True)
+    yield 'Featured products created'
