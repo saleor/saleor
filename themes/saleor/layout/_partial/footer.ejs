@@ -29,8 +29,8 @@
               <h3>Links</h3>
               <ul>
                 <% for (var i in theme.menu) { %>
-                  <li><a href="<%- url_for(theme.menu[i]) %>"><%= i %></a></li>
-                <% } %>
+                  <li><a href="<%- url_for(theme.menu[i]) %>" <% if (theme.menuNewCart[i]) { %>target="_blank"<% } %>><%= i %></a></li>
+              <% } %>
               </ul>
             </div>
           </div>
