@@ -233,6 +233,27 @@ def test_find_and_assign_anonymous_cart(opened_anonymous_cart,
     assert authenticated_user_carts[0].token == cart_token
 
 
+def test_login_without_a_cart(customer_user, client):
+    assert Cart.COOKIE_NAME not in client.cookies
+    response = client.post(
+        '/account/login',
+        {'login': customer_user.email, 'password': 'password'})
+    assert response.context['user'] == customer_user
+    authenticated_user_carts = customer_user.carts.filter(status=Cart.OPEN)
+    assert authenticated_user_carts.count() == 0
+
+
+def test_login_with_incorrect_cookie_token(customer_user, client):
+    value = signing.get_cookie_signer(salt=Cart.COOKIE_NAME).sign('incorrect')
+    client.cookies[Cart.COOKIE_NAME] = value
+    response = client.post(
+        '/account/login',
+        {'login': customer_user.email, 'password': 'password'})
+    assert response.context['user'] == customer_user
+    authenticated_user_carts = customer_user.carts.filter(status=Cart.OPEN)
+    assert authenticated_user_carts.count() == 0
+
+
 def test_find_and_assign_anonymous_cart_and_close_opened(customer_user,
                                                          opened_user_cart,
                                                          opened_anonymous_cart,

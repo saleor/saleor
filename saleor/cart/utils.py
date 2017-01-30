@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from datetime import timedelta
 from functools import wraps
+from uuid import UUID
 
 from django.contrib import messages
 from django.db import transaction
@@ -25,6 +26,16 @@ def contains_unavailable_variants(cart):
     except InsufficientStock:
         return True
     return False
+
+
+def token_is_valid(token):
+    if isinstance(token, UUID):
+        return True
+    try:
+        UUID(token)
+    except ValueError:
+        return False
+    return True
 
 
 def remove_unavailable_variants(cart):
@@ -75,7 +86,7 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
         def func(request, *args, **kwargs):
             response = view(request, *args, **kwargs)
             token = request.get_signed_cookie(Cart.COOKIE_NAME, default=None)
-            if not token:
+            if not token or token is not None and not token_is_valid(token):
                 return response
             cart = get_anonymous_cart_from_token(
                 token=token, cart_queryset=queryset)
