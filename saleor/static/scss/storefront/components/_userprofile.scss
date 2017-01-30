@@ -19,7 +19,7 @@
     .nav {
       display: block;
       text-align: center;
-      border: 0;
+      border-bottom: solid 1px $gray;
       @include media-breakpoint-down(xs) {
         text-align: center;
         padding-right: 0;
@@ -36,7 +36,7 @@
         margin-left: 0;
       }
       .nav-link {
-        padding: $global-padding $global-padding * 2;
+        padding: $global-padding / 2 $global-padding * 2;
         margin-top: $global-margin / 2;
         display: inline-block;
         transition: 0.3s;
@@ -89,9 +89,7 @@
     }
   }
   &__password {
-    h1 {
-      margin-bottom: $global-margin * 2;
-    }
+    margin-top: $global-margin * 2;
     .btn {
       margin-top: $global-margin;
       float: right;
@@ -109,7 +107,7 @@
       .card {
         width: 100%;
         border-radius: 3px;
-        margin: $global-margin 0;
+        margin-bottom: $global-margin * 2;
         @include transition(background, 0.3s)
         &:hover {
           background: $light-gray;
