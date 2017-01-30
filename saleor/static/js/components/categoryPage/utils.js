@@ -11,7 +11,7 @@ export const getAttributesFromQuery = (exclude) => {
   const urlParams = queryString.parse(location.search);
   let attributes = [];
   Object.keys(urlParams).forEach(key => {
-    if (!exclude.includes(key)) {
+    if (exclude.indexOf(key) === -1) {
       if (Array.isArray(urlParams[key])) {
         const values = urlParams[key];
         values.map((valueSlug) => {
