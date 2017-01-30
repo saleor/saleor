@@ -33,6 +33,7 @@ var config = {
     dashboard: './saleor/static/js/dashboard.js',
     storefront: './saleor/static/js/storefront.js',
     vendor: [
+      'babel-es6-polyfill',
       'bootstrap',
       'jquery',
       'jquery.cookie'
