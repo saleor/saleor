@@ -106,7 +106,7 @@
               <p>{{ option.shipping_method__name }}</p>
             {% endfor %}
           </div>
-          <div class="col-6">
+          <div class="col-6 cart__delivery-info__price">
             {% for option in default_country_options %}
               <p class="text-right">{% gross option.price %}</p>
             {% endfor %}
