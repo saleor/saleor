@@ -43,7 +43,7 @@
                       <span class="checkout__review__variant">{{ item.variant }}</span></p>
                   </div>
                   <div class="col-4">
-                    <p class="float-right">{% net item_price_total %}</p>
+                    <p class="float-right">{% gross item_price_total %}</p>
                   </div>
                 </div>
               {% endfor %}
@@ -54,7 +54,7 @@
               </div>
               <div class="col-4">
                 <p class="float-right">{% if checkout.shipping_method %}
-                  {% net checkout.get_total_shipping %}
+                  {% gross checkout.get_total_shipping %}
                 {% else %}
                   &mdash;
                 {% endif %}</p>
