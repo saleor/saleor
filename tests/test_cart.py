@@ -6,6 +6,7 @@ from uuid import uuid4
 import pytest
 from babeldjango.templatetags.babel import currencyfmt
 from django.contrib.auth.models import AnonymousUser
+from django.core import signing
 from django.core.exceptions import ObjectDoesNotExist
 from mock import MagicMock, Mock
 
@@ -215,13 +216,21 @@ def test_get_cart_from_request(monkeypatch, customer_user,
 
 
 def test_find_and_assign_anonymous_cart(opened_anonymous_cart,
-                                        cancelled_anonymous_cart,
-                                        opened_user_cart, cancelled_user_cart,
-                                        customer_user, cart_request_factory):
-    request = cart_request_factory(user=customer_user, token=None)
-    anonymous_carts = Cart.objects.filter(user=None).count()
-    utils.find_and_assign_anonymous_cart(request)
-    assert Cart.objects.filter(user=None).count() == anonymous_carts
+                                        customer_user, client):
+    cart_token = opened_anonymous_cart.token
+    # Anonymous user has a cart with token stored in cookie
+    value = signing.get_cookie_signer(salt=Cart.COOKIE_NAME).sign(cart_token)
+    client.cookies[Cart.COOKIE_NAME] = value
+    # Anonymous logs in
+    response = client.post(
+        '/account/login',
+        {'login': customer_user.email, 'password': 'password'})
+    assert response.context['user'] == customer_user
+    # User should have only one cart, the same as he had previously in
+    # anonymous session
+    authenticated_user_carts = customer_user.carts.filter(status=Cart.OPEN)
+    assert authenticated_user_carts.count() == 1
+    assert authenticated_user_carts[0].token == cart_token
 
 
 def test_find_and_assign_anonymous_cart_and_close_opened(customer_user,
