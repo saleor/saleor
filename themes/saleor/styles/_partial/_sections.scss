@@ -210,10 +210,10 @@
       padding: $global-padding 0;
     }
     .btn-secondary {
-      @include btn-secondary($white, $red);
+      @include btn-secondary($white, $blue);
     }
     .btn-primary {
-      @include btn-primary($red, $white);
+      @include btn-primary($blue, $white);
     }
   }
   &-github {
@@ -225,7 +225,7 @@
       span {
         color: $white;
         font-weight: 300;
-        font-style: italic;
+        font-style: normal;
       }
     }
     .btn-tertiary {
