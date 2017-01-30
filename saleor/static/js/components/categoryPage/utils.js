@@ -31,5 +31,5 @@ export const ensureAllowedName = (name, allowed) => {
   if (name && name[0] === '-') {
     name = name.substr(1, name.length);
   }
-  return name in allowed ? origName : null;
+  return allowed.indexOf(name) > -1 ? origName : null;
 };
