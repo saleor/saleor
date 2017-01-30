@@ -1,21 +1,8 @@
 {% load i18n %}
-
-<div class="modal fade modal-address-delete" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 class="text-xs-center">{% trans "Are you sure you want to delete the following address?" %}</h3>
-      </div>
-      <div class="modal-body text-xs-center">
-        <address>{% include "userprofile/snippets/address-short.html" with address=address %}</address>
-      </div>
-      <div class="modal-footer">
-        <form method="post" novalidate action="{% url 'profile:address-delete' pk=address.pk %}">
-          {% csrf_token %}
-          <a class="btn btn-link" data-dismiss="modal">{% trans "Cancel" %}</a>
-          <button type="submit" class="btn danger">{% trans "Delete" %}</button>
-        </form>
-      </div>
-    </div>
-  </div>
+<div class="address-delete none">
+  <form method="post" novalidate action="{% url 'profile:address-delete' pk=address.pk %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-outline-danger float-right">{% trans "Delete Address" %}</button>
+    <a class="btn btn-link cancel float-right">{% trans "Cancel" %}</a>
+  </form>
 </div>

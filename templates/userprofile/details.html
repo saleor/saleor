@@ -88,9 +88,11 @@
             {% for address in addresses %}
               <div class="card card-block">
                 {% include "userprofile/snippets/address-short.html" %}
-                <a data-toggle="modal" data-target=".modal-address-delete"><img src="{% static 'images/icon_delete.svg' %}"></a>
+                <ul class="icons">
+                  <li><a href="{% url "profile:address-edit" pk=address.pk %}">{% trans "Edit" %}</a></li>
+                  <li><a class="delete-icon"><img class="float-right" src="{% static 'images/icon_delete.svg' %}"></a></li>
+                </ul>
                 {% include "userprofile/address-delete.html" with pk=address.pk %}
-                <a href="{% url "profile:address-edit" pk=address.pk %}"><img src="{% static 'images/icon_edit.svg' %}"></a>
               </div>
               {% if forloop.counter|divisibleby:2 %}
                 </div>

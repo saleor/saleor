@@ -240,6 +240,28 @@ if (variantPickerContainer) {
   }
 }
 
+// Account delete address bar
+
+let $deleteAdressIcons = $('.icons');
+let $deleteAdressIcon = $('.delete-icon');
+let $deleteAddress = $('.address-delete');
+
+ $deleteAdressIcon.on('click', (e) => {
+  if ($deleteAddress.hasClass('none')) {
+    $deleteAddress.removeClass('none');
+    $deleteAdressIcons.addClass('none');
+  } else {
+    $deleteAddress.addClass('none');
+  }
+ });
+
+ $deleteAddress.find('.cancel').on('click', (e) => {
+  $deleteAddress.addClass('none');
+  $deleteAdressIcons.removeClass('none');
+ });
+
+
+
 // Cart quantity form
 
 let $cartLine = $('.cart__line');
