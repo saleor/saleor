@@ -1,5 +1,7 @@
 from collections import namedtuple
 
+from django.contrib.auth.models import AnonymousUser
+
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
 from .forms import get_form_class_for_product
@@ -23,6 +25,13 @@ def products_with_details(user):
                                          'attributes__values',
                                          'product_class__variant_attributes__values',
                                          'product_class__product_attributes__values')
+    return products
+
+
+def products_for_homepage():
+    user = AnonymousUser()
+    products = products_with_details(user)
+    products = products.filter(is_featured=True)
     return products
 
 
