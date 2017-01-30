@@ -10,8 +10,12 @@ from .utils import get_redirect_location
 
 
 @pytest.fixture
-def site_settings(db):
-    return SiteSettings.objects.create(name="mirumee.com", domain="mirumee.com")
+def site_settings(db, settings):
+    obj = SiteSettings.objects.create(name="mirumee.com",
+                                      header_text="mirumee.com",
+                                      domain="mirumee.com")
+    settings.SITE_SETTINGS_ID = obj.pk
+    return obj
 
 
 def test_get_site_settings_uncached(site_settings):
@@ -20,11 +24,11 @@ def test_get_site_settings_uncached(site_settings):
 
 
 def test_index_view(admin_client, site_settings):
-    response = admin_client.get(reverse('dashboard:site-index'))
+    response = admin_client.get(reverse('dashboard:site-index'), follow=True)
     assert response.status_code == 200
 
     context = response.context
-    assert list(context['sites']) == [site_settings]
+    assert context['site'] == site_settings
 
 
 @pytest.mark.django_db
@@ -40,29 +44,14 @@ def test_form():
     assert not form.is_valid()
 
 
-def test_create_view(admin_client):
-    url = reverse('dashboard:site-create')
-    response = admin_client.get(url)
-    assert response.status_code == 200
-
-    site_count = SiteSettings.objects.count()
-    data = {'name': 'mirumee', 'domain': 'mirumee.com'}
-    response_post = admin_client.post(url, data)
-    assert response_post.status_code == 302
-
-    redirect_location = get_redirect_location(response_post)
-    assert redirect_location == reverse('dashboard:site-index')
-
-    assert SiteSettings.objects.count() == site_count + 1
-
-
 def test_site_update_view(admin_client, site_settings):
     url = reverse('dashboard:site-update',
                   kwargs={'site_id': site_settings.id})
     response = admin_client.get(url)
     assert response.status_code == 200
 
-    data = {'name': 'Mirumee Labs', 'domain': 'mirumee.com'}
+    data = {'name': 'Mirumee Labs', 'header_text': 'We have all the things!',
+            'domain': 'mirumee.com'}
     response = admin_client.post(url, data)
     assert response.status_code == 200
 

@@ -11,6 +11,8 @@ class SiteSettings(models.Model):
         validators=[_simple_domain_name_validator], unique=True)
 
     name = models.CharField(pgettext_lazy('Site field', 'name'), max_length=50)
+    header_text = models.CharField(pgettext_lazy('Site field', 'header text'),
+                                   max_length=200, blank=True)
 
     def __str__(self):
         return self.name
