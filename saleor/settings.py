@@ -263,7 +263,11 @@ PAGINATE_BY = 16
 BOOTSTRAP3 = {
     'set_placeholder': False,
     'set_required': False,
-    'success_css_class': ''}
+    'success_css_class': '',
+    'form_renderers': {
+        'default': 'saleor.core.utils.form_renderer.FormRenderer',
+    },
+}
 
 TEST_RUNNER = ''
 
@@ -322,6 +326,9 @@ ACCOUNT_LOGOUT_ON_GET = True
 ACCOUNT_SESSION_REMEMBER = False
 ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
 ACCOUNT_ADAPTER = 'saleor.userprofile.adapters.AccountAdapter'
+ACCOUNT_FORMS = {
+    'reset_password_from_key': 'saleor.userprofile.forms.SetPasswordForm'
+}
 
 
 ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')

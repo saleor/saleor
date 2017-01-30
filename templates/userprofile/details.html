@@ -18,39 +18,49 @@
 {% block content %}
   <div class="userprofile">
     <div class="userprofile__nav container">
+      <h2>{% trans "My account" %}</h2>
       <ul class="nav nav-tabs col-lg-10 offset-lg-1" role="tablist">
         <li class="nav-item">
-          <a class="nav-link active" data-toggle="tab" href="#orders" role="tab"><h3>{% trans "Orders" %}</h3></a>
+          <a class="nav-link active" data-toggle="tab" href="#orders" role="tab"><h3>{% trans "Recent Orders" %}</h3></a>
         </li>
         <li class="nav-item">
           <a class="nav-link " data-toggle="tab" href="#password" role="tab"><h3>{% trans "Change password" %}</h3></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" data-toggle="tab" href="#addresses" role="tab"><h3>{% trans "Addresses" %}</h3></a>
+          <a class="nav-link" data-toggle="tab" href="#addresses" role="tab"><h3>{% trans "Addresses book" %}</h3></a>
         </li>
       </ul>
     </div>
     <div class="tab-content col-lg-10 offset-lg-1">
       <div class="tab-pane active" id="orders" role="tabpanel">
         <div id="accordion" role="tablist" aria-multiselectable="true">
+          <div class="userprofile__orders-header">
+            <div class="row">
+              <div class="col-md-2 col-3"><h3>{% trans "Order" %}</h3></div>
+              <div class="col-md-3  hidden-sm-down"><h3>{% trans "Date" %}</h3></div>
+              <div class="col-md-2 col-6"><h3 class="float-md-right">{% trans "Summary" %}</h3></div>
+              <div class="col-md-4  hidden-sm-down"><h3>{% trans "Status" %}</h3></div>
+              <div class="col-md-1 col-3"></div>
+            </div>
+          </div>
           {% for order in orders %}
           <div class="userprofile__orders">
             <div class="userprofile__orders__row">
               <div class="row">
-                <div class="col-md-2 col-5">
+                <div class="col-md-2 col-3">
                   {{ order }}
                 </div>
-                <div class="col-md-4 col-6">
+                <div class="col-md-3 hidden-sm-down">
                   {{ order.created }}
                 </div>
-                <div class="col-md-1 col-5">
+                <div class="col-md-2 col-6">
                   <span class="float-md-right">{% gross order.get_total %}</span>
                 </div>
-                <div class="col-md-2 col-5 offset-md-1">
+                <div class="col-md-4 hidden-sm-down">
                   {% render_status order.status order.get_status_display %}
                 </div>
-                <div class="col-md-2 col-2">
-                  <a href="{{ order.get_absolute_url }}"><small class="float-right">{% trans "Details" %}</small></a>
+                <div class="col-md-1 col-3">
+                  <a href="{{ order.get_absolute_url }}"  class="float-right">{% trans "Details" %}</a>
                 </div>
               </div>
             </div>
@@ -74,22 +84,24 @@
       </div>
       <div class="tab-pane" id="addresses" role="tabpanel">
         <div class="card-deck-wrapper userprofile__addresses">
-          <div class="card-deck">
-            {% for address in addresses %}
-              <div class="card card-block">
-                {% include "userprofile/snippets/address-short.html" %}
-                <a data-toggle="modal" data-target=".modal-address-delete"><img src="{% static 'images/icon_delete.svg' %}"></a>
-                {% include "userprofile/address-delete.html" with pk=address.pk %}
-              </div>
-              {% if forloop.counter|divisibleby:2 %}
+          <div class="row card-deck"> 
+              {% for address in addresses %}
+                <div class="col-md-6">
+                  <div class="card card-block">
+                    {% include "userprofile/snippets/address-short.html" %}
+                    <ul class="icons">
+                      <li><a href="{% url "profile:address-edit" pk=address.pk %}">{% trans "Edit" %}</a></li>
+                      <li><a class="delete-icon"><img class="float-right" src="{% static 'images/icon_delete.svg' %}"></a></li>
+                    </ul>
+                    {% include "userprofile/address-delete.html" with pk=address.pk %}
+                  </div>
                 </div>
-                <div class="card-deck">
-              {% endif %}
-            {% endfor %}
+              {% endfor %}
+            </div>
             {% if addresses|length == 0 %}
               <h3 class="text-sm-center">{% trans "You will see new addresses here after first successful checkout." %}</h3>
             {% endif %}
-          </div>
+          
         </div>
       </div>
     </div>

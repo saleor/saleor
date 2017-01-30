@@ -6,6 +6,9 @@ import Relay from 'react-relay';
 
 import variantPickerStore from './stores/variantPicker';
 
+import passwordIvisible from '../images/pass-invisible.svg';
+import passwordVisible from '../images/pass-visible.svg';
+
 import VariantPicker from './components/variantPicker/VariantPicker';
 import VariantPrice from './components/variantPicker/VariantPrice';
 
@@ -110,6 +113,22 @@ $(function() {
       $form.submit();
     });
   });
+});
+
+// Input Passwords 
+
+let $inputPassword = $('input[type=password]');
+$("<img class='passIcon' src="+passwordIvisible+" />").insertAfter($inputPassword);
+$inputPassword.parent().addClass('relative');
+$('.passIcon').on('click', (e) => {
+  let $input = $(e.target).parent().find('input');
+  if ($input.attr('type') == 'password') {
+    $input.attr('type','text');
+    $(e.target).attr('src', passwordVisible);
+  } else {
+    $input.attr('type','password');
+    $(e.target).attr('src', passwordIvisible);
+  }
 });
 
 // Cart dropdown
@@ -238,6 +257,28 @@ if (variantPickerContainer) {
     );
   }
 }
+
+// Account delete address bar
+
+let $deleteAdressIcons = $('.icons');
+let $deleteAdressIcon = $('.delete-icon');
+let $deleteAddress = $('.address-delete');
+
+ $deleteAdressIcon.on('click', (e) => {
+  if ($deleteAddress.hasClass('none')) {
+    $deleteAddress.removeClass('none');
+    $deleteAdressIcons.addClass('none');
+  } else {
+    $deleteAddress.addClass('none');
+  }
+ });
+
+ $deleteAddress.find('.cancel').on('click', (e) => {
+  $deleteAddress.addClass('none');
+  $deleteAdressIcons.removeClass('none');
+ });
+
+
 
 // Cart quantity form
 

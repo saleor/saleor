@@ -1,23 +1,20 @@
-<span class="address-details"
-   data-content="{% if address.company_name %}{{ address.company_name }}<br>{% endif %}
+<div class="address-details" data-content="{% if address.company_name %}{{ address.company_name }}<br>{% endif %}
                  {{ address.street_address_1 }}<br>
                  {% if address.street_address_2 %}
-                 	{{ address.street_address_2 }}<br>
+                    {{ address.street_address_2 }}<br>
                  {% endif %}
                  {{ address.postal_code }} {{ address.city }}<br>
                  {% if address.country_area %}{{ address.country_area }}, {% endif %}{{ address.get_country_display }}<br>
                  {{ address.phone }}"
    data-html="true" title="{{ address.first_name }} {{ address.last_name }}">
-    {{ address.first_name }} {{ address.last_name }}<br>
-    {% if address.company_name %}{{ address.company_name }}<br>{% endif %}
-    {{ address.street_address_1 }}<br>
-    {% if address.street_address_2 %}
-        {{ address.street_address_2 }}<br>
-    {% endif %}
-    {{ address.postal_code }} {{ address.city }}<br>
-    {% if address.country_area %}
+    <p>{{ address.first_name }} {{ address.last_name }}{% if address.company_name %}, {{ address.company_name }}{% endif %}</p>
+    <p>{{ address.street_address_1 }} {% if address.street_address_2 %}
+        {{ address.street_address_2 }}, {{ address.postal_code }} {{ address.city }}
+    {% endif %}</p>
+    <p>{% if address.country_area %}
         {{ address.country_area }}, 
-    {% endif %}
-    {{ address.get_country_display }}<br>
-    {{ address.phone }}
-</span>
+    {% endif %}</p>
+    <p>{{ address.get_country_display }}</p>
+    <p>{{ address.phone }}</p>
+</div>
+
