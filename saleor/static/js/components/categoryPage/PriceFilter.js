@@ -44,7 +44,7 @@ export default class PriceFilter extends Component {
       <div className="price-range">
         <FilterHeader
           onClick={this.changeVisibility}
-          title="Price range"
+          title={gettext('Price range')}
           visibility={visibility}
         />
         {visibility && (
@@ -54,7 +54,7 @@ export default class PriceFilter extends Component {
               defaultValue={minPrice}
               min="0"
               onKeyUp={this.checkKey}
-              placeholder="min"
+              placeholder={gettext('from')}
               ref={input => (this.minPriceInput = input)}
               type="number"
             />
@@ -64,11 +64,11 @@ export default class PriceFilter extends Component {
               defaultValue={maxPrice}
               min="0"
               onKeyUp={this.checkKey}
-              placeholder="max"
+              placeholder={gettext('to')}
               ref={input => (this.maxPriceInput = input)}
               type="number"
             />
-            <button className="btn" onClick={this.updateFilter}>Update</button>
+            <button className="btn" onClick={this.updateFilter}>{gettext('Update')}</button>
           </div>
         )}
       </div>

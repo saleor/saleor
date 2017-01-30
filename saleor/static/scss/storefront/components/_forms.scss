@@ -1,7 +1,9 @@
 .form-control {
   color: $body-color;
+  border-radius: 2px;
   &:focus {
     color: $body-color;
+    border-color: $gray;
   }
   &::placeholder {
     color: $gray;

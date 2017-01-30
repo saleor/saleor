@@ -40,30 +40,30 @@ export default class sortBy extends Component {
           {sortedValue ? (
             sortedValue.search('-') ? (
               <div>
-                <span>Sort by: <strong>{sortedValue}</strong></span>
+                <span>{gettext('Sort by:')} <strong>{sortedValue}</strong></span>
                 <div className="sort-order-icon">
                   <InlineSVG key="arrowUpIcon" src={arrowUpIcon} />
                 </div>
               </div>
             ) : (
                <div>
-                <span>Sort by: <strong>{sortedValue.replace('-', '')}</strong></span>
+                <span>{gettext('Sort by:')} <strong>{sortedValue.replace('-', '')}</strong></span>
                 <div className="sort-order-icon">
                   <InlineSVG key="arrowDownIcon" src={arrowDownIcon} />
                 </div>
               </div>
             )
           ) : (
-            <span>Sort by: <strong>default</strong></span>
+            <span>{gettext('Sort by:')} <strong>{gettext('default')}</strong></span>
           )}
         </button>
         {visibility && (
           <ul className="sort-list">
             <li className="name">
               <div className="row">
-                <div className="col-md-6">Sort by <strong>Name</strong></div>
+                <div className="col-md-6">{gettext('Sort by:')} <strong>{gettext('Name')}</strong></div>
                 <div className="col-md-6">
-                    <span className="name" onClick={this.setSorting}>ascending</span>
+                    <span className="name" onClick={this.setSorting}>{gettext('ascending')}</span>
                     <div className="float-right sort-order-icon">
                       <InlineSVG src={arrowUpIcon} />
                     </div>
@@ -72,7 +72,7 @@ export default class sortBy extends Component {
               <div className="row">
                 <div className="col-md-6"></div>
                 <div className="col-md-6">
-                    <span className="-name" onClick={this.setSorting}>descending</span>
+                    <span className="-name" onClick={this.setSorting}>{gettext('descending')}</span>
                     <div className="float-right sort-order-icon">
                       <InlineSVG src={arrowDownIcon} />
                     </div>
@@ -81,9 +81,9 @@ export default class sortBy extends Component {
             </li>
             <li className="price">
               <div className="row">
-                <div className="col-md-6">Sort by <strong>Price</strong></div>
+                <div className="col-md-6">{gettext('Sort by:')} <strong>{gettext('Price')}</strong></div>
                 <div className="col-md-6">
-                    <span className="price" onClick={this.setSorting}>ascending</span>
+                    <span className="price" onClick={this.setSorting}>{gettext('ascending')}</span>
                     <div className="float-right sort-order-icon">
                       <InlineSVG src={arrowUpIcon} />
                     </div>
@@ -92,7 +92,7 @@ export default class sortBy extends Component {
               <div className="row">
                 <div className="col-md-6"></div>
                 <div className="col-md-6">
-                    <span className="-price" onClick={this.setSorting}>descending</span>
+                    <span className="-price" onClick={this.setSorting}>{gettext('descending')}</span>
                     <div className="float-right sort-order-icon">
                       <InlineSVG src={arrowDownIcon} />
                     </div>

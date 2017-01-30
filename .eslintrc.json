@@ -4,6 +4,9 @@
     "jquery": true
   },
   "extends": ["standard", "plugin:react/recommended"],
+  "globals": {
+    "gettext": true
+  },
   "plugins": ["react"],
   "parser": "babel-eslint",
   "rules": {
