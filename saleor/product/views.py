@@ -64,7 +64,7 @@ def product_details(request, slug, product_id, form=None):
     templates = [template_name, 'product/details.html']
     product_images = get_product_images(product)
     variant_picker_data = get_variant_picker_data(
-        product, request.discounts, request.currency)
+        product, request.discounts, request.currency, country=request.country)
     product_attributes = get_product_attributes_data(product)
     show_variant_picker = all([v.attributes for v in product.variants.all()])
     json_ld_data = product_json_ld(product, availability, product_attributes)
