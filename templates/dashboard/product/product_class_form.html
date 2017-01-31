@@ -73,9 +73,11 @@
             <div class="row">
               {{ form.name|materializecss }}
             </div>
+            {% if form.vat_rate_type %}
             <div class="row">
               {{ form.vat_rate_type|materiallizecss }}
             </div>
+            {% endif %}
             <div class="row">
               <div class="col s12 m8">
                 <div class="row">

@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django import forms
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Count
 from django.forms.models import ModelChoiceIterator, inlineformset_factory
@@ -62,12 +63,15 @@ class ProductClassForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ProductClassForm, self).__init__(*args, **kwargs)
-        rate_choices = [('', '--------'), ('standard', 'standard')]
-        rate_types = RateTypes.objects.singleton()
-        if rate_types:
-            rate_choices += [(name, name) for name in rate_types.types]
-        self.fields['vat_rate_type'] = forms.ChoiceField(choices=rate_choices,
-                                                         required=False)
+        if settings.VATLAYER_ACCESS_KEY is not None:
+            rate_choices = [('', '--------'), ('standard', 'standard')]
+            rate_types = RateTypes.objects.singleton()
+            if rate_types:
+                rate_choices += [(name, name) for name in rate_types.types]
+            self.fields['vat_rate_type'] = forms.ChoiceField(
+                choices=rate_choices, required=False)
+        else:
+            del self.fields['vat_rate_type']
 
     def clean(self):
         data = super(ProductClassForm, self).clean()
