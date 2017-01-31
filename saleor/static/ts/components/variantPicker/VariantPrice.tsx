@@ -1,9 +1,9 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
-type VariantPriceProps = {
-  availability: any,
-  store?: any
+interface VariantPriceProps {
+  availability: any;
+  store?: any;
 };
 
 @observer

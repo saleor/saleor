@@ -1,10 +1,10 @@
 import * as React from 'react';
 import classNames from 'classnames';
 
-type AttributeSelectionWidgetProps = {
-  attribute: any,
-  handleChange: (attributeId: string, optionId: string) => any,
-  selected?: string
+interface AttributeSelectionWidgetProps {
+  attribute: any;
+  handleChange(attributeId: string, optionId: string): any;
+  selected?: string;
 };
 
 export default class AttributeSelectionWidget extends React.Component<AttributeSelectionWidgetProps, {}> {

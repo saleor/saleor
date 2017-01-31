@@ -1,10 +1,10 @@
 import * as React from 'react';
 
-type AttributeInputProps = {
-  checked?: boolean,
-  attribute: any,
-  value: any,
-  onClick: (name: string, value: any) => any
+interface AttributeInputProps {
+  checked?: boolean;
+  attribute: any;
+  value: any;
+  onClick(name: string, value: any): any;
 };
 
 const AttributeInput = ({attribute, checked, onClick, value}: AttributeInputProps) => {

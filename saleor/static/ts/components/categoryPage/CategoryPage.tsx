@@ -12,12 +12,11 @@ import { ensureAllowedName, getAttributesFromQuery, getFromQuery } from './utils
 const PAGINATE_BY = 20;
 const SORT_BY_FIELDS = ['name', 'price'];
 
-type CategoryPageProps = {
-  attributes: [any],
-  category: any,
-  relay: any
+interface CategoryPageProps {
+  attributes: [any];
+  category: any;
+  relay: any;
 }
-
 
 class CategoryPage extends React.Component<CategoryPageProps, {}> {
 

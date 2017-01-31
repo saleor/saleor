@@ -2,14 +2,14 @@ import * as React from 'react';
 import FilterHeader from './FilterHeader';
 import {isMobile} from '../utils';
 
-type PriceFilterProps = {
-    minPrice: number,
-    maxPrice: number,
-    onFilterChanged: (minPrice: number, maxPrice: number) => any
+interface PriceFilterProps {
+    minPrice: number;
+    maxPrice: number;
+    onFilterChanged(minPrice: number, maxPrice: number): any;
 };
 
-type PriceFilterState = {
-  visibility: boolean
+interface PriceFilterState {
+  visibility: boolean;
 };
 
 export default class PriceFilter extends React.Component<PriceFilterProps, PriceFilterState> {

@@ -5,13 +5,13 @@ import AttributeInput from './AttributeInput';
 import FilterHeader from './FilterHeader';
 import { isMobile } from '../utils';
 
-type ProductFiltersProps = {
-  attributes: [any],
+interface ProductFiltersProps {
+  attributes: [any];
   checkedAttributes: [any],
-  onFilterChanged: (filter: string) => any
+  onFilterChanged(filter: string): any
 };
 
-type ProductFiltersState = {
+interface ProductFiltersState {
   visibility: {};
 };
 

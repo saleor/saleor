@@ -4,10 +4,10 @@ import * as Relay from 'react-relay';
 import ProductItem from './ProductItem';
 import NoResults from './NoResults';
 
-type ProductListProps = {
-  onLoadMore: () => any,
-  products: any,
-  setSorting: any
+interface ProductListProps {
+  onLoadMore(): any;
+  products: any;
+  setSorting: any;
 };
 
 

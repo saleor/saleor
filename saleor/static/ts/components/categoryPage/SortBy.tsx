@@ -4,13 +4,13 @@ import InlineSVG from 'react-inlinesvg';
 let arrowUpIcon = require<string>('../../../images/arrow-up-icon.svg');
 let arrowDownIcon = require<string>('../../../images/arrow-down-icon.svg');
 
-type SortByProps = {
-  setSorting: (value: any) => any,
-  sortedValue?: string
+interface SortByProps {
+  setSorting(value: any): any;
+  sortedValue?: string;
 };
 
-type SortByState = {
-  visibility: boolean
+interface SortByState {
+  visibility: boolean;
 };
 
 export default class SortBy extends React.Component<SortByProps, SortByState> {

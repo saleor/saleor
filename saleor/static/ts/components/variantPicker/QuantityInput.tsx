@@ -1,10 +1,10 @@
 import classNames from 'classnames';
 import * as React from 'react';
 
-type QuantityInputProps = {
-  errors?: [any],
-  handleChange: (event: any) => any,
-  quantity: number
+interface QuantityInputProps {
+  errors?: [any];
+  handleChange(event: any): any;
+  quantity: number;
 };
 
 export default class QuantityInput extends React.Component<QuantityInputProps, {}> {

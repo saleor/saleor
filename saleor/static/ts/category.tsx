@@ -9,8 +9,8 @@ import Loading from './components/Loading';
 const categoryPage = document.getElementById('category-page');
 const categoryData = JSON.parse(categoryPage.getAttribute('data-category'));
 
-type AppProps = {
-  root: {}
+interface AppProps {
+  root: {};
 };
 
 class App extends React.Component<AppProps, {}> {

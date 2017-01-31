@@ -8,19 +8,19 @@ import AttributeSelectionWidget from './AttributeSelectionWidget';
 import QuantityInput from './QuantityInput';
 
 
-type VariantPickerProps = {
-  onAddToCartError: (response: any) => any,
-  onAddToCartSuccess: () => any,
-  store: any,
-  url: string,
-  variantAttributes: [any],
-  variants: [any]
+interface VariantPickerProps {
+  onAddToCartError(response: any): any;
+  onAddToCartSuccess(): any;
+  store: any;
+  url: string;
+  variantAttributes: [any];
+  variants: [any];
 };
 
-type VariantPickerState = {
-  errors: {},
-  quantity: number,
-  selection: {}
+interface VariantPickerState {
+  errors: {};
+  quantity: number;
+  selection: {};
 };
 
 @observer

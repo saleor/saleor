@@ -3,8 +3,8 @@ import * as Relay from 'react-relay';
 
 import ProductPrice from './ProductPrice';
 
-type ProductItemProps = {
-  product: any
+interface ProductItemProps {
+  product: any;
 };
 
 class ProductItem extends React.Component<ProductItemProps, {}> {

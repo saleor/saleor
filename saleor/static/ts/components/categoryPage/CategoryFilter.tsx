@@ -1,7 +1,7 @@
 import * as React from 'react';
 
-type CategoryFilterProps = {
-  category: any
+interface CategoryFilterProps {
+  category: any;
 };
 
 export default class CategoryFilter extends React.Component<CategoryFilterProps, {}> {

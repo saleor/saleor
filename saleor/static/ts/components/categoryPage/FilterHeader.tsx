@@ -5,10 +5,10 @@ import InlineSVG from 'react-inlinesvg';
 let chevronUpIcon = require<string>('../../../images/chevron-up-icon.svg');
 let chevronDownIcon = require<string>('../../../images/chevron-down-icon.svg');
 
-type FilterHeaderProps = {
-  onClick: () => any,
-  title: string,
-  visibility?: boolean
+interface FilterHeaderProps {
+  onClick(): any;
+  title: string;
+  visibility?: boolean;
 };
 
 const FilterHeader = ({ onClick, title, visibility }: FilterHeaderProps) => {

@@ -1,9 +1,9 @@
 import * as React from 'react';
 import * as Relay from 'react-relay';
 
-type ProductPriceProps = {
-  availability: any,
-  price: any
+interface ProductPriceProps {
+  availability: any;
+  price: any;
 };
 
 const ProductPrice = ({ availability, price }: ProductPriceProps) => {
