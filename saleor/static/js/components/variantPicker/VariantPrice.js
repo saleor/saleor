@@ -13,18 +13,17 @@ export default class VariantPrice extends Component {
     let priceText, priceUndiscountedText, isDiscount;
     const { availability, store } = this.props;
     const variant = store.variant;
-    const currency = availability.priceRange.minPrice.currency;
     if (!store.isEmpty) {
       // variant price
-      isDiscount = variant.price !== variant.priceUndiscounted;
-      priceText = `${variant.price} ${currency}`;
-      priceUndiscountedText = `${variant.priceUndiscounted} ${currency}`;
+      isDiscount = variant.price.gross !== variant.priceUndiscounted.gross;
+      priceText = `${variant.price.grossLocalized}`;
+      priceUndiscountedText = `${variant.priceUndiscounted.grossLocalized}`;
     } else {
       // if there's no variant, fall back to product price
       const { discount, priceRange, priceRangeUndiscounted } = availability;
       isDiscount = discount && !!Object.keys(discount).length;
-      priceText = `${priceRange.minPrice.gross} ${currency}`;
-      priceUndiscountedText = `${priceRangeUndiscounted.minPrice.gross} ${currency}`;
+      priceText = `${priceRange.minPrice.grossLocalized}`;
+      priceUndiscountedText = `${priceRangeUndiscounted.minPrice.grossLocalized}`;
     }
     return (
       <h2 itemProp="offers" className="product__info__price" itemScope itemType="http://schema.org/Offer">

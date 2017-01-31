@@ -6,6 +6,7 @@ from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoObjectType, DjangoConnectionField
 from graphene_django.debug import DjangoDebug
+from django_prices.templatetags import prices_i18n
 
 from ..product.models import (AttributeChoiceValue, Category, Product,
                               ProductAttribute, ProductImage, ProductVariant)
@@ -210,9 +211,17 @@ class ProductAttributeType(DjangoObjectType):
 
 
 class PriceType(graphene.ObjectType):
-    gross = graphene.Float()
-    net = graphene.Float()
     currency = graphene.String()
+    gross = graphene.Float()
+    gross_localized = graphene.String()
+    net = graphene.Float()
+    net_localized = graphene.String()
+
+    def resolve_gross_localized(self, args, context, info):
+        return prices_i18n.gross(self)
+
+    def resolve_net_localized(self, args, context, info):
+        return prices_i18n.net(self)
 
 
 class PriceRangeType(graphene.ObjectType):

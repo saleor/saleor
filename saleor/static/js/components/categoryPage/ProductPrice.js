@@ -4,12 +4,11 @@ import Relay from 'react-relay';
 const ProductPrice = ({ availability, price }) => {
   const { discount, priceRange } = availability;
   const isPriceRange = priceRange && priceRange.minPrice.gross !== priceRange.maxPrice.gross;
-  const gross = isPriceRange ? priceRange.minPrice.gross : price.gross;
+  const gross = isPriceRange ? priceRange.minPrice.grossLocalized : price.grossLocalized;
   return (
     <div>
       <span itemProp="price">
-        {isPriceRange && <span>{gettext('from')} </span>}
-        {gross} <span className="currency"> {price.currency}</span>
+        {isPriceRange && <span>{gettext('from')} </span>} {gross}
       </span>
       {discount && (
         <div className="product-list__sale"><span>Sale</span></div>
@@ -30,8 +29,8 @@ export default Relay.createContainer(ProductPrice, {
         available,
         discount { gross },
         priceRange {
-          maxPrice { gross, currency },
-          minPrice { gross, currency }
+          maxPrice { gross, grossLocalized, currency },
+          minPrice { gross, grossLocalized, currency }
         }
       }
     `

@@ -1,6 +1,7 @@
 from collections import namedtuple
 
 from django.contrib.auth.models import AnonymousUser
+from django_prices.templatetags import prices_i18n
 
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
@@ -136,9 +137,8 @@ def get_variant_picker_data(product, discounts=None):
         price_undiscounted = variant.get_price_per_item()
         variant_data = {
             'id': variant.id,
-            'price': price.gross,
-            'priceUndiscounted': price_undiscounted.gross,
-            'currency': price.currency,
+            'price': price_as_dict(price),
+            'priceUndiscounted': price_as_dict(price_undiscounted),
             'attributes': variant.attributes}
         data['variants'].append(variant_data)
 
@@ -163,7 +163,9 @@ def price_as_dict(price):
         return None
     return {'currency': price.currency,
             'gross': price.gross,
-            'net': price.net}
+            'grossLocalized': prices_i18n.gross(price),
+            'net': price.net,
+            'netLocalized': prices_i18n.net(price)}
 
 
 def price_range_as_dict(price_range):
