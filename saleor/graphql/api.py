@@ -62,7 +62,8 @@ class ProductType(DjangoObjectType):
         return self.get_absolute_url()
 
     def resolve_availability(self, args, context, info):
-        a = get_availability(self, context.discounts, context.currency)
+        a = get_availability(self, context.discounts, context.currency,
+                             country=context.country)
         return ProductAvailabilityType(**a._asdict())
 
 
