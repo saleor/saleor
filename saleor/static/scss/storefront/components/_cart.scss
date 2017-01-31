@@ -84,6 +84,14 @@
   }
   &__delivery-info {
     margin-top: $global-margin * 2;
+    p {
+      margin-bottom: 0;
+    }
+    &__price {
+      p {
+        text-align: right;
+      }
+    }
     &__list {
       border-top: 1px solid $gray;
       .deliveryform {
