@@ -10,7 +10,7 @@ root: /
 
 # Directory
 source_dir: source
-public_dir: public
+public_dir: .
 
 # Writing
 default_layout: page

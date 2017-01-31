@@ -52,13 +52,13 @@ module.exports = function(grunt) {
       dev: {
         bsFiles: {
           src : [
-            'public/styles/*.css',
-            'public/'
+            'styles/*.css',
+            '.'
           ]
         },
         options: {
           watchTask: true,
-          server: 'public'
+          server: '.'
         }
       }
     }  
