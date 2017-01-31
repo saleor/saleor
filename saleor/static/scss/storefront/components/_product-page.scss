@@ -73,11 +73,12 @@
       top: 100%;
       width: auto;
       left: 0;
-      margin-left: 0;
+      margin: 0;
       li {
         display: inline;
         text-indent: 0;
-        margin: 0 1.5rem;
+        margin: 0;
+        min-width: 60px;
         &.active {
           img {
             opacity: 0.5;  
