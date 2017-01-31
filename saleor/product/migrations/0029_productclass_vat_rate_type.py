@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='productclass',
             name='vat_rate_type',
-            field=models.CharField(blank=True, max_length=15, verbose_name='vat rate type'),
+            field=models.CharField(blank=True, max_length=60, verbose_name='vat rate type'),
         ),
     ]
