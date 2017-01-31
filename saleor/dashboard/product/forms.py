@@ -66,7 +66,8 @@ class ProductClassForm(forms.ModelForm):
         rate_types = RateTypes.objects.singleton()
         if rate_types:
             rate_choices += [(name, name) for name in rate_types.types]
-        self.fields['vat_rate_type'] = forms.ChoiceField(choices=rate_choices)
+        self.fields['vat_rate_type'] = forms.ChoiceField(choices=rate_choices,
+                                                         required=False)
 
     def clean(self):
         data = super(ProductClassForm, self).clean()
