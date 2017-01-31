@@ -36,9 +36,16 @@ class ProductFilters extends Component {
   componentWillMount() {
     this.props.attributes.map((attribute) => {
       const attrValue = `${attribute.name}`;
-      this.setState({
-        visibility: Object.assign(this.state.visibility, {[attrValue]: true})
-      });
+      console.log(window.innerWidth);
+      if (window.innerWidth <= 700) {
+        this.setState({
+          visibility: Object.assign(this.state.visibility, {[attrValue]: false})
+        });
+      } else {
+        this.setState({
+          visibility: Object.assign(this.state.visibility, {[attrValue]: true})
+        });
+      }
     });
   }
 

@@ -5,9 +5,15 @@ export default class PriceFilter extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {
-      visibility: true
-    };
+    if (window.innerWidth <= 700) {
+      this.state = {
+        visibility: false
+      };
+    } else {
+      this.state = {
+        visibility: true
+      };
+    }
   }
 
   static propTypes = {
@@ -68,7 +74,7 @@ export default class PriceFilter extends Component {
               ref={input => (this.maxPriceInput = input)}
               type="number"
             />
-            <button className="btn" onClick={this.updateFilter}>{gettext('Update')}</button>
+            <button className="btn btn-primary" onClick={this.updateFilter}>{gettext('Update')}</button>
           </div>
         )}
       </div>

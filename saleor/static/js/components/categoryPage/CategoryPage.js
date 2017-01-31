@@ -111,7 +111,7 @@ class CategoryPage extends Component {
           </div>
         </div>
         <div className="row">
-          <div className="col-md-3">
+          <div className="col-md-4 col-lg-3">
             <div className="product-filters">
               <CategoryFilter category={category} />
             </div>
@@ -129,7 +129,7 @@ class CategoryPage extends Component {
               />
             </div>
           </div>
-          <div className="col-md-9 category-list">
+          <div className="col-md-8 col-lg-9 category-list">
             <div>
               <ProductList
                 onLoadMore={this.incrementProductsCount}
