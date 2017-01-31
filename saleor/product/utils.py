@@ -1,6 +1,8 @@
 from collections import namedtuple
 
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.utils.encoding import smart_text
 from django_prices.templatetags import prices_i18n
 
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
@@ -180,3 +182,36 @@ def price_range_as_dict(price_range):
         return None
     return {'maxPrice': price_as_dict(price_range.max_price),
             'minPrice': price_as_dict(price_range.min_price)}
+
+
+def product_json_ld(product, availability, attributes):
+    # type: (saleor.product.models.Product, saleor.product.utils.ProductAvailability, dict) -> dict  # noqa
+    """Generates JSON-LD data for product"""
+    data = {'@context': 'http://schema.org/',
+            '@type': 'Product',
+            'name': smart_text(product),
+            'image': smart_text(product.get_first_image()),
+            'description': product.description,
+            'offers': {'@type': 'Offer',
+                       'itemCondition': 'http://schema.org/NewCondition'}}
+
+    if availability.price_range:
+        data['offers']['priceCurrency'] = settings.DEFAULT_CURRENCY
+        data['offers']['price'] = availability.price_range.min_price.net
+
+    if availability.available:
+        data['offers']['availability'] = 'http://schema.org/InStock'
+    else:
+        data['offers']['availability'] = 'http://schema.org/OutOfStock'
+
+    brand = ''
+    for key in attributes:
+        if key.name == 'brand':
+            brand = attributes[key].display
+            break
+        elif key.name == 'publisher':
+            brand = attributes[key].display
+
+    if brand:
+        data['brand'] = {'@type': 'Thing', 'name': brand}
+    return data
