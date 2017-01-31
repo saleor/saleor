@@ -68,6 +68,18 @@
             </div>
             <div class="row checkout__review__section">
               <div class="col-8">
+                <h3>{% trans "Total net" context "Order review section title" %}</h3>
+              </div>
+              <div class="col-4">
+                <h3 class="float-right">{% net total %}</h3>
+              </div>
+              <div class="col-8">
+                <h3>{% trans "Tax included" context "Order review section title" %}</h3>
+              </div>
+              <div class="col-4">
+                <h3 class="float-right">{% tax total %}</h3>
+              </div>
+              <div class="col-8">
                 <h3>{% trans "Total" context "Order review section title" %}</h3>
               </div>
               <div class="col-4">
