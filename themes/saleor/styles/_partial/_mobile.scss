@@ -1,0 +1,117 @@
+@media (max-width: 768px) {
+  .section {
+    .item {
+      border: 0;
+      &:nth-child(1) {border: 0;}
+      &:nth-child(2) {border: 0;}
+      &:nth-child(3) {border: 0;}
+      &:nth-child(4) {border: 0;}
+    }
+    &-slider {
+      .slider-bg {
+        background-image: url('images/slider-mobile.svg');
+        padding-top: 140%;
+        .carousel {
+          width: 64.8%;
+          left: 17.7%;
+          top: 16.9%;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 992px) {
+ footer {
+    .links {
+      padding-bottom: $global-padding*2;
+      border-top: 0;
+      border-bottom: 0;
+      border-left: solid 1px $footer-border;
+      border-right: solid 1px $footer-border;
+    }
+    .follow-us {
+      text-align: center;
+      padding: $global-padding*2 0;
+      h3 {
+        border: 0;
+        display: inline;
+      }
+      .icons {
+        display: inline;
+      }
+    }
+  }
+}
+
+@media (max-width: 1200px) {
+  header {
+    .navbar {
+      .logo {
+        padding-left: $global-padding;
+      }
+      .navbar-collapse {
+        padding: 0;
+        ul {
+          padding-left: 0;
+          li {
+            width: 100%;
+            display: block;
+            text-align: center;
+            padding: $global-padding;
+            &:last-child {
+              a {
+                display: block;
+              }
+            }
+          }
+        }
+      }
+      .navbar-header {
+        float: none;
+      }
+      .navbar-left,.navbar-right {
+        float: none !important;
+      }
+      .navbar-toggle {
+        display: block;
+      }
+      .navbar-collapse {
+        border-top: 1px solid transparent;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+      }
+      .navbar-fixed-top {
+        top: 0;
+        border-width: 0 0 1px;
+      }
+      .navbar-collapse.collapse {
+        display: none!important;
+      }
+      .navbar-nav {
+        float: none!important;
+        margin-top: 7.5px;
+      }
+      .navbar-nav>li {
+        float: none;
+      }
+      .navbar-nav>li>a {
+        padding-top: 10px;
+          padding-bottom: 10px;
+      }
+      .collapse.in{
+        display:block !important;
+      }
+    }
+  }
+}
+@media (min-width: 992px) {
+  .section-developers {
+    .boxes {
+      .ship-wheel {
+        transform: translate(-50%, -62%);
+      }
+    }
+  }
+}
+
+

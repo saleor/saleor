@@ -1,0 +1,63 @@
+header {
+  padding-top: $global-padding*2;
+  padding-bottom: $global-padding*2;
+  .navbar {
+    width: 100%;
+    position: absolute;
+    left: 0;
+    top: 1rem;
+    z-index: 999;
+    .logo {
+      img {
+        max-height: 80px;
+        opacity: 1;
+        @include transition(opacity 0.3s)
+        &:hover {
+          opacity: 0.7;
+        }
+      }
+    }
+    .navbar-collapse {
+      background: $white;
+      padding-top: $global-padding*5;
+      ul {
+        padding-left: 0;
+        list-style: none;
+        li {
+          display: inline-block;
+          padding: 0 $global-padding;
+          a {
+            text-transform: uppercase;
+            font-weight: 900;
+            color: $base-color;
+            @include transition(color, 0.3s);
+            &:hover {
+              text-decoration: none;
+              color: $red;
+            }
+          }
+          &:last-child {
+            a {
+              color: $red;
+              border: solid 1px $red;
+              padding: $global-padding $global-padding;
+              @include transition(background-color, 0.3s);
+              &:hover {
+                background: $red;
+                color: $white;
+                border: solid 1px $red;
+              }
+            }
+          }
+        }
+      }
+    }
+    .navbar-toggle {
+      border: solid 1px $base-color;
+      margin: $global-margin*4 $global-margin*2;
+      .icon-bar {
+        background: $base-color;
+      }
+    }
+  }
+}

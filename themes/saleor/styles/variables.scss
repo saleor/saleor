@@ -1,0 +1,67 @@
+// Fonts
+@font-face {
+  font-family: 'Lato';
+  src: url('../fonts/Lato-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Lato';
+  src: url('../fonts/Lato-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Lato';
+  src: url('../fonts/Lato-LightItalic.ttf') format('truetype');
+  font-weight: 300;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Lato';
+  src: url('../fonts/Lato-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Lato';
+  src: url('../fonts/Lato-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+}
+
+//Colors
+$base-color: #333333;
+
+$bg-gray: #FAFAFA;
+$bg-dark-gray: #4F4F4F;
+
+$light-gray: #E0E0E0;
+$gray: #BDBDBD;
+$footer-border: #828282;
+
+$white: #fff;
+$cyan: #1FBAB3;
+$red: #D85039;
+$orange: #F99144;
+$blue: #26A5D4;
+$green: #2AB573;
+
+$device: #9EA0A2;
+
+//Typography
+$font-family-base: 'Lato';
+$font-size-base: 14px;
+$line-height-base: 1.3;
+$line-height-large: 1.8;
+$font-size-h1: floor(($font-size-base * 3.6));
+$font-size-h2: floor(($font-size-base * 2.6));
+$font-size-h3: floor(($font-size-base * 1.3));
+$font-size-h4: $font-size-base;
+
+$global-margin: 1rem;
+$global-padding: 1rem;

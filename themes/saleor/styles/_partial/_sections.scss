@@ -1,0 +1,238 @@
+.section {
+  padding: $global-padding*3 0;
+  h2 {
+    text-align: center;
+  }
+  h3 {
+    text-align: center;
+    margin-top: 0;
+  }
+  h4 {
+    text-align: center;
+    font-weight: 900;
+  }
+  p {
+    text-align: center;
+  }
+  .image {
+    position: relative;
+    img {
+      width: 100%;
+    }
+  }
+  .count {
+    width: 3rem;
+    height: 3rem;
+    border: solid 1px $gray;
+    line-height: 3rem;
+    border-radius: 50%;
+    text-align: center;
+    color: $footer-border;
+    font-weight: 900;
+    margin: auto;
+  }
+  &-top {
+    margin-top: $global-margin*8;
+    padding-top: $global-padding;
+    border-top: solid 1px $gray;
+    h2 {
+      text-transform: uppercase;
+    }
+    h3 {
+      text-transform: uppercase;
+    }
+    img {
+      margin-top: -$global-margin*5;
+    }
+  }
+  &-developers {
+    h2 {
+      span {
+        color: $blue;
+      }
+    }
+    h3 {
+      text-transform: uppercase;
+    }
+    .boxes {
+      position: relative;
+      .ship-wheel {
+        border: solid 5px $white;
+        padding: $global-padding*3;
+        position: absolute;
+        background-color: $white;
+        background-image: url('images/ship-wheel.svg');
+        background-size: contain;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 999;
+      }
+    }
+    .item {
+      &:nth-child(1) {
+        border-right: solid 1px $gray;
+        border-left: solid 1px transparent;
+        border-top: solid 1px transparent;
+        border-bottom: solid 1px transparent;
+      }
+      &:nth-child(2) {
+        border-bottom: solid 1px $gray;
+        border-left: solid 1px transparent;
+        border-top: solid 1px transparent;
+        border-right: solid 1px transparent;
+      }
+      &:nth-child(3) {
+        border-top: solid 1px $gray;
+        border-left: solid 1px transparent;
+        border-right: solid 1px transparent;
+        border-bottom: solid 1px transparent;
+      }
+      &:nth-child(4) {
+        border-left: solid 1px $gray;
+        border-right: solid 1px transparent;
+        border-top: solid 1px transparent;
+        border-bottom: solid 1px transparent;
+      }
+      p {
+        margin-bottom: $global-margin*2.5;
+      }
+    }
+    .btn-primary {
+      @include btn-primary($blue, $white);
+    }
+  }
+  &-store_managers {
+    h2 {
+      span {
+        color: $red;
+      }
+    }
+    h3 {
+      text-transform: uppercase;
+    }
+    background: $bg-gray;
+    .item {
+      border-right: solid 1px $light-gray;
+      padding: 0 $global-padding*3;
+      &:last-child {
+        border: none;
+      }
+    }
+    .btn-primary {
+      @include btn-primary($red, $white);
+    }
+  }
+  &-customers {
+    border-bottom:solid 1px $gray;
+    h2 {
+      span {
+        color: $green;
+      }
+    }
+    h3 {
+      text-transform: uppercase;
+    }
+    .item {
+      border-right: solid 1px $gray;
+      padding: 0 $global-padding*3;
+      &:last-child {
+        border: none;
+      }
+    }
+    .btn-primary {
+      @include btn-primary($green, $white);
+    }
+  }
+  &-slider {
+    border-bottom: solid 1px $gray;
+    .slider-bg {
+      width: 100%;
+      position: relative;
+      padding-top: 45%;
+      background-image: url('images/slider-desktop.svg');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: 50% 50%;
+      .carousel {
+        position: absolute;
+        top: 15%;
+        width: 50%;
+        left: 25%;
+        border: solid 1px $device;
+        &-inner {
+          picture {
+            img {
+              display: block;
+              max-width: 100%;
+              height: auto;
+              line-height: 1;
+            }
+          }
+        }
+        &-indicators {
+          top: 120%;
+          li {
+            width: 1rem;
+            height: 1rem;
+            border: solid 1px $device;
+            border-radius: 50%;
+            margin: 1px;
+            &.active {
+              width: 1rem;
+              height: 1rem;
+              background: $device;
+            }
+          }
+        }
+      }
+    }
+  }
+  &-services {
+    .logos {
+      list-style: none;
+      padding-left: 0;
+      border-top: solid 1px $light-gray;
+      border-bottom: solid 1px $light-gray;
+      padding: $global-padding*2 0;
+      margin: $global-margin*3 0;
+      li {
+        width: 20%;
+        float: left;
+        img {
+          width: 100%;
+          padding: 0 $global-padding;
+        }
+      }
+    }
+    p {
+      margin: 0;
+      padding: $global-padding 0;
+    }
+    .btn-secondary {
+      @include btn-secondary($white, $blue);
+    }
+    .btn-primary {
+      @include btn-primary($blue, $white);
+    }
+  }
+  &-github {
+    background: $blue;
+    h2 {
+      color: $white;
+      text-transform: uppercase;
+      margin: 0;
+      span {
+        color: $white;
+        font-weight: 300;
+        font-style: normal;
+      }
+    }
+    .btn-tertiary {
+      @include btn-white($blue)
+    }
+  }
+}
+
+
+

@@ -1,0 +1,87 @@
+body {
+  padding: 0;
+  margin: 0;
+  background: $white;
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  line-height: $line-height-base;
+  color: $base-color;
+}
+
+h1 {
+  font-size: $font-size-h1;
+  line-height: $line-height-base;
+}
+h2 {
+  font-size: $font-size-h2;
+  font-weight: 900;
+  line-height: $line-height-base;
+}
+h3 {
+  font-size: $font-size-h3;
+  font-weight: 300;
+  line-height: $line-height-base;
+}
+h4 {
+  font-size: $font-size-h4;
+  font-weight: 900;
+  line-height: $line-height-base;
+}
+strong {
+  font-weight: 700;
+  line-height: $line-height-base;
+}
+
+.col-center {
+ float: none;
+ margin: 0 auto;
+}
+
+.no-gutter > [class*='col-'] {
+  padding-right:0;
+  padding-left:0;
+}
+
+@mixin btn-primary($background, $color) {
+  background: $background;
+  color: $color;
+  border: solid 1px transparent;
+  @include transition(background-color, 0.3s);
+  &:hover {
+    background: $color;
+    color: $background;
+    border: solid 1px $background;
+  }
+}
+
+@mixin btn-secondary($background, $color) {
+  background: $background;
+  color: $color;
+  border: solid 1px $color;
+  @include transition(background-color, 0.3s);
+  &:hover {
+    background: $color;
+    color: $background;
+    border: solid 1px $background;
+  }
+}
+
+@mixin btn-white($background) {
+  background: $background;
+  color: $white;
+  border: solid 1px $white;
+  @include transition(background-color, 0.3s);
+  &:hover {
+    background: $white;
+    color: $background;
+    border: solid 1px $background;
+  }
+}
+
+.btn {
+  width: 20rem;
+  display: block;
+  margin: $global-margin*2 auto;
+  font-weight: 900;
+  padding: $global-padding 0;
+}

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="icon" href="#">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Saleor — an open source storefront written in Python and Django</title>
+    <meta name="application-name" content="Saleor — an open source storefront written in Python and Django">
+    <%- css('app') %>
+    <link rel="apple-touch-icon" sizes="180x180" href="images/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="images/favicons/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="images/favicons/favicon-16x16.png" sizes="16x16">
+    <link rel="manifest" href="images/favicons/manifest.json">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="google-site-verification" content="o3fAcqwEAmUxNIxf07503fA79ulBGaXsCpxyCf1zb9w">
+    <meta property="og:title" content="Saleor — an open source storefront platform for perfectionists" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="http://getsaleor.com" />
+    <meta property="og:image" content="main-pic-mobile.png" />
+    <meta property="og:description" content="Written in python, best served as a bespoke, high-performance e-commerce solution" />
+  </head>
+  <body>
+    <header>
+      <%- partial('_partial/header') %>
+    </header>
+    <div class="page">
+      <div class="section section-top">
+        <%- partial('_partial/top') %>
+      </div>
+      <div id="developers" class="section section-developers">
+        <%- partial('_partial/developers') %>
+      </div>
+      <div id="store-managers" class="section section-store_managers">
+        <%- partial('_partial/store-managers') %>
+      </div>
+      <div id="customers" class="section section-customers">
+        <%- partial('_partial/customers') %>
+      </div>
+      <div class="section section-slider">
+        <%- partial('_partial/slider') %>
+      </div>
+      <div id="services" class="section section-services">
+        <%- partial('_partial/services') %>
+      </div>
+      <div class="section section-github">
+        <%- partial('_partial/github') %>
+      </div>
+    </div>
+    <footer>
+      <%- partial('_partial/footer') %>
+      <%- js('js/jquery', 'js/app') %>
+    </footer>
+  </body>
+</html>
