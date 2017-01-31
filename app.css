@@ -3350,6 +3350,9 @@ header {
     color: #828282;
     font-weight: 900;
     margin: auto; }
+  .section .dahsboard-credentials {
+    padding: 20px 0 0 0;
+    font-style: italic; }
   .section-top {
     margin-top: 8rem;
     padding-top: 1rem;
