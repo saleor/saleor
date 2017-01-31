@@ -6,11 +6,30 @@ machine:
   environment:
     DATABASE_URL: postgres://ubuntu:@127.0.0.1:5432/circle_test
     SECRET_KEY: irrelevant
+  services:
+    - docker
+
 dependencies:
+  override:
+    - yarn
+    - pip install -r requirements.txt
   post:
-    - npm run build-assets
+    - yarn run build-assets
     - ./manage.py collectstatic --no-input
 test:
   override:
     - mkdir -p $CIRCLE_TEST_REPORTS/pytest
     - pytest --junitxml=$CIRCLE_TEST_REPORTS/pytest/junit.xml
+
+deployment:
+  release:
+    tag: /.*/
+    commands:
+      - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+      - docker build -t mirumee/saleor:$CIRCLE_SHA1 -t mirumee/saleor:latest .
+      - docker push mirumee/saleor:$CIRCLE_SHA1
+      - docker push mirumee/saleor:latest
+      - git clone git@github.com:mirumee/saleor-demo.git saleor-demo
+      - cd saleor-demo
+      - docker build -t mirumee/saleor-demo:latest .
+      - docker push mirumee/saleor-demo:latest
