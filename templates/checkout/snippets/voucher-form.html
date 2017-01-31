@@ -24,7 +24,7 @@
                 <form action="{{ request.path }}?next={{ request.path }}"
                       method="post">
                     {% csrf_token %}
-                    <div class="form-group checkout__review__voucher">{% bootstrap_field form.voucher show_label=False %} {% bootstrap_button _("Use") button_type="submit" button_class="btn checkout" %}</div>
+                    <div class="form-group checkout__review__voucher">{% bootstrap_field form.voucher show_label=False %} {% bootstrap_button _("Use") button_type="submit" button_class="btn secondary" %}</div>
                 </form>
         {% endif %}
 {% endif %}

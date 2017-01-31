@@ -17,6 +17,7 @@
 .help-block {
   color: $red;
   font-size: 0.8rem;
+  margin-top: $global-margin / 2;
 }
 
 .radio {
@@ -30,7 +31,7 @@
     vertical-align: top;
     margin: $global-margin / 4 $global-margin / 2 0 0;
   }
-  span {
+  span, .address-details {
     display: inline-block;
   }
   label {

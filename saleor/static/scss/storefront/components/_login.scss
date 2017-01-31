@@ -1,5 +1,7 @@
 .login {
-  padding-top: $global-padding * 2;
+  margin-top: $global-padding * 2;
+  border-radius: 4px;
+  border: 1px solid $gray;
   @include media-breakpoint-down(sm) {
     padding-top: 0;
   }
@@ -25,13 +27,6 @@
   }
   &__register {
     padding: $global-padding * 2;
-    border-top: solid 1px $light-gray;
-    border-bottom: solid 1px $light-gray;
-    border-left: solid 1px $light-gray;
-    @include media-breakpoint-down(sm) {
-      border-bottom: 0;
-      border-right: solid 1px $light-gray;
-    }
     &-link {
       text-align: center;
       a {
@@ -107,5 +102,3 @@
     }
   }
 }
-
-

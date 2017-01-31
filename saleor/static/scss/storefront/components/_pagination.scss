@@ -1,5 +1,7 @@
 .pagination {
   list-style: none;
+  display: block;
+  text-align: center;
   li {
     display: inline-block;
     font-size: $small-font-size;
