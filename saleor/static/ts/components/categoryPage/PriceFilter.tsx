@@ -1,20 +1,26 @@
-import React, { Component, PropTypes } from 'react';
+import * as React from 'react';
 import FilterHeader from './FilterHeader';
 import {isMobile} from '../utils';
 
-export default class PriceFilter extends Component {
+type PriceFilterProps = {
+    minPrice: number,
+    maxPrice: number,
+    onFilterChanged: (minPrice: number, maxPrice: number) => any
+};
+
+type PriceFilterState = {
+  visibility: boolean
+};
+
+export default class PriceFilter extends React.Component<PriceFilterProps, PriceFilterState> {
+  minPriceInput: HTMLInputElement;
+  maxPriceInput: HTMLInputElement;
 
   constructor(props) {
     super(props);
       this.state = {
         visibility: !isMobile()
       };
-  }
-
-  static propTypes = {
-    minPrice: PropTypes.number,
-    maxPrice: PropTypes.number,
-    onFilterChanged: PropTypes.func.isRequired
   }
 
   checkKey = (event) => {
@@ -24,8 +30,8 @@ export default class PriceFilter extends Component {
   }
 
   updateFilter = () => {
-    const minPrice = this.minPriceInput.value;
-    const maxPrice = this.maxPriceInput.value;
+    const minPrice = parseFloat(this.minPriceInput.value);
+    const maxPrice = parseFloat(this.maxPriceInput.value);
     this.props.onFilterChanged(minPrice, maxPrice);
   }
 
@@ -52,7 +58,7 @@ export default class PriceFilter extends Component {
           <div>
             <input
               className="form-control"
-              defaultValue={minPrice}
+              defaultValue={minPrice.toString()}
               min="0"
               onKeyUp={this.checkKey}
               placeholder={gettext('from')}
@@ -62,7 +68,7 @@ export default class PriceFilter extends Component {
             <span>&#8212;</span>
             <input
               className="form-control"
-              defaultValue={maxPrice}
+              defaultValue={maxPrice.toString()}
               min="0"
               onKeyUp={this.checkKey}
               placeholder={gettext('to')}

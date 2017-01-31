@@ -1,16 +1,17 @@
+import * as $ from 'jquery';
 import '../scss/storefront/storefront.scss';
 import 'jquery.cookie';
-import React from 'react';
-import ReactDOM from 'react-dom';
-import Relay from 'react-relay';
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+import * as Relay from 'react-relay';
 
 import variantPickerStore from './stores/variantPicker';
 
-import passwordIvisible from '../images/pass-invisible.svg';
-import passwordVisible from '../images/pass-visible.svg';
-
 import VariantPicker from './components/variantPicker/VariantPicker';
 import VariantPrice from './components/variantPicker/VariantPrice';
+
+let passwordInvisible = require<string>('../images/pass-invisible.svg');
+let passwordVisible = require<string>('../images/pass-visible.svg');
 
 let csrftoken = $.cookie('csrftoken');
 
@@ -115,10 +116,10 @@ $(function() {
   });
 });
 
-// Input Passwords 
+// Input Passwords
 
 let $inputPassword = $('input[type=password]');
-$("<img class='passIcon' src="+passwordIvisible+" />").insertAfter($inputPassword);
+$("<img class='passIcon' src="+passwordInvisible+" />").insertAfter($inputPassword);
 $inputPassword.parent().addClass('relative');
 $('.passIcon').on('click', (e) => {
   let $input = $(e.target).parent().find('input');
@@ -127,7 +128,7 @@ $('.passIcon').on('click', (e) => {
     $(e.target).attr('src', passwordVisible);
   } else {
     $input.attr('type','password');
-    $(e.target).attr('src', passwordIvisible);
+    $(e.target).attr('src', passwordInvisible);
   }
 });
 
@@ -234,13 +235,13 @@ const variantPickerContainer = document.getElementById('variant-picker');
 const variantPriceContainer = document.getElementById('variant-price-component');
 
 if (variantPickerContainer) {
-  const variantPickerData = JSON.parse(variantPickerContainer.dataset.variantPickerData);
+  const variantPickerData = JSON.parse(variantPickerContainer.dataset['variantPickerData']);
   ReactDOM.render(
     <VariantPicker
       onAddToCartError={onAddToCartError}
       onAddToCartSuccess={onAddToCartSuccess}
       store={variantPickerStore}
-      url={variantPickerContainer.dataset.action}
+      url={variantPickerContainer.dataset['action']}
       variantAttributes={variantPickerData.variantAttributes}
       variants={variantPickerData.variants}
     />,

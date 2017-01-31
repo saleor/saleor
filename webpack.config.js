@@ -29,11 +29,10 @@ var providePlugin = new webpack.ProvidePlugin({
 
 var config = {
   entry: {
-    category: './saleor/static/js/category.js',
-    dashboard: './saleor/static/js/dashboard.js',
-    storefront: './saleor/static/js/storefront.js',
+    category: './saleor/static/ts/category.tsx',
+    dashboard: './saleor/static/ts/dashboard.tsx',
+    storefront: './saleor/static/ts/storefront.tsx',
     vendor: [
-      'babel-es6-polyfill',
       'bootstrap',
       'jquery',
       'jquery.cookie',
@@ -48,20 +47,24 @@ var config = {
   module: {
     loaders: [
       {
-        test: /\.js$/,
+        test: /\.js?$/,
         exclude: /node_modules/,
         loader: 'babel'
       },
       {
+        test: /\.tsx?$/,
+        loader: 'awesome-typescript-loader'
+      },
+      {
         test: /\.json$/,
-        loader: 'json'
+        loader: 'json-loader'
       },
       {
         test: /\.scss$/,
         loader: ExtractTextPlugin.extract([
-          'css?sourceMap',
-          'postcss',
-          'sass'
+          'css-loader?sourceMap',
+          'postcss-loader',
+          'sass-loader'
         ])
       },
       {
@@ -73,6 +76,12 @@ var config = {
           resolve('saleor/static/images'),
           resolve('saleor/static/img')
         ]
+      }
+    ],
+    preLoaders: [
+      {
+        test: /\.js$/,
+        loader: 'source-map-loader'
       }
     ]
   },
@@ -89,7 +98,10 @@ var config = {
   resolve: {
     alias: {
       'jquery': resolve('node_modules/jquery/dist/jquery.js')
-    }
+    },
+    extensions: [
+      '', '.tsx', '.ts', '.js'
+    ]
   },
   sassLoader: {
     sourceMap: true

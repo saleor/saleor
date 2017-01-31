@@ -1,23 +1,27 @@
-import React, { Component, PropTypes } from 'react';
-import Relay from 'react-relay';
+import * as React from 'react';
+import * as Relay from 'react-relay';
 
 import AttributeInput from './AttributeInput';
 import FilterHeader from './FilterHeader';
-import {isMobile} from '../utils';
+import { isMobile } from '../utils';
 
-class ProductFilters extends Component {
+type ProductFiltersProps = {
+  attributes: [any],
+  checkedAttributes: [any],
+  onFilterChanged: (filter: string) => any
+};
+
+type ProductFiltersState = {
+  visibility: {};
+};
+
+class ProductFilters extends React.Component<ProductFiltersProps, ProductFiltersState> {
 
   constructor(props) {
     super(props);
     this.state = {
       visibility: {}
     };
-  }
-
-  static propTypes = {
-    attributes: PropTypes.array,
-    checkedAttributes: PropTypes.array,
-    onFilterChanged: PropTypes.func.isRequired
   }
 
   getFilterKey(attributeName, valueSlug) {
@@ -30,16 +34,16 @@ class ProductFilters extends Component {
 
   changeVisibility = (target) => {
     this.setState({
-      visibility: Object.assign(this.state.visibility, {[target]: !this.state.visibility[target]})
+      visibility: {...this.state.visibility, [target]: !this.state.visibility[target]}
     });
   }
 
   componentWillMount() {
     this.props.attributes.map((attribute) => {
       const attrValue = `${attribute.name}`;
-        this.setState({
-          visibility: Object.assign(this.state.visibility, {[attrValue]: !isMobile()})
-        });
+      this.setState({
+        visibility: {...this.state.visibility, [attrValue]: !isMobile()}
+      });
     });
   }
 

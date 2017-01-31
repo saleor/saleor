@@ -1,7 +1,7 @@
-import React from 'react';
+import * as React from 'react';
 import InlineSVG from 'react-inlinesvg';
 
-import loader from '../../images/loader.svg';
+let loader = require<string>('../../images/loader.svg');
 
 const Loading = () => {
   return (

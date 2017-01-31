@@ -1,24 +1,30 @@
 import _ from 'lodash';
-import $ from 'jquery';
+import * as $ from 'jquery';
 import classNames from 'classnames';
 import { observer } from 'mobx-react';
-import React, { Component, PropTypes } from 'react';
+import * as React from 'react';
 
 import AttributeSelectionWidget from './AttributeSelectionWidget';
 import QuantityInput from './QuantityInput';
 
+
+type VariantPickerProps = {
+  onAddToCartError: (response: any) => any,
+  onAddToCartSuccess: () => any,
+  store: any,
+  url: string,
+  variantAttributes: [any],
+  variants: [any]
+};
+
+type VariantPickerState = {
+  errors: {},
+  quantity: number,
+  selection: {}
+};
+
 @observer
-export default class VariantPicker extends Component {
-
-  static propTypes = {
-    onAddToCartError: PropTypes.func.isRequired,
-    onAddToCartSuccess: PropTypes.func.isRequired,
-    store: PropTypes.object.isRequired,
-    url: PropTypes.string.isRequired,
-    variantAttributes: PropTypes.array.isRequired,
-    variants: PropTypes.array.isRequired
-  }
-
+export default class VariantPicker extends React.Component<VariantPickerProps, VariantPickerState> {
   constructor(props) {
     super(props);
     const { store, variants } = this.props;
@@ -57,10 +63,8 @@ export default class VariantPicker extends Component {
 
   handleAttributeChange = (attrId, valueId) => {
     this.setState({
-      selection: Object.assign({}, this.state.selection, { [attrId]: valueId })
-    }, () => {
-      this.matchVariantFromSelection();
-    });
+      selection: {...this.state.selection, [attrId]: valueId }
+    }, this.matchVariantFromSelection);
   }
 
   handleQuantityChange = (event) => {
@@ -100,7 +104,7 @@ export default class VariantPicker extends Component {
         )}
         <div className="clearfix">
           <QuantityInput
-            errors={errors.quantity}
+            errors={errors['quantity']}
             handleChange={this.handleQuantityChange}
             quantity={quantity}
           />

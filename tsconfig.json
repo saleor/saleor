@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "experimentalDecorators": true,
+        "outDir": "./saleor/static/assets/",
+        "sourceMap": true,
+        "noImplicitAny": false,
+        "module": "commonjs",
+        "target": "es5",
+        "jsx": "react"
+    },
+    "include": [
+        "./saleor/static/ts/**/*"
+    ]
+}
