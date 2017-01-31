@@ -7,7 +7,7 @@
   hr {
     margin: $global-margin * 3 0 $global-margin * 2;
   }
-  button.primary {
+  .btn {
     margin-top: $global-margin;
   }
   &__edit-link {
@@ -48,7 +48,7 @@
   }
   &__login {
     margin: $global-margin * 5 0 $global-margin * 3;
-    border: 1px solid $light-gray;
+    border: 1px solid $gray;
     border-radius: $button-border-radius;
     text-align: center;
     h3 {
@@ -81,6 +81,7 @@
   &__review {
     background-color: $light-gray;
     padding: $global-padding $global-padding * 2;
+    border-radius: 3px;
     h3 {
       margin: $global-margin 0;
     }
@@ -92,14 +93,17 @@
       margin-bottom: $global-margin * 2;
     }
     &__variant {
-      color: $gray;
+      color: $skull-gray;
     }
     &__voucher {
       position: relative;
-      button {
+      .btn {
         position: absolute;
-        top: 1px;
+        top: 0;
         right: 0;
+        padding: $global-padding / 2 $global-padding * 2;
+        margin-top: 0;
+        background-color: $white;
       }
       &-form {
         margin-bottom: $global-margin;

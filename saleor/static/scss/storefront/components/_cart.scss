@@ -59,7 +59,9 @@
       &-error {
         display: block;
       }
-      
+      img {
+        max-width: 18px;
+      }
     }
     .cart-item-delete {
       cursor: pointer;

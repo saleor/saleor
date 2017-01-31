@@ -5,9 +5,9 @@
 {% block title %}{% trans "Log in" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
-<div class="row login">
+
   <div class="col-lg-10 offset-lg-1 col-sm-12">
-    <div class="row">
+    <div class="row login">
       <div class="col-md-6 login__register">
         <div class="login__register-link">
           <h3>{% trans "Don't have an account yet?" %}</h3>
@@ -16,10 +16,10 @@
         </div>
       </div>
       <div class="col-md-6 login__form">
+        <h3>{% trans 'Log in' %}</h3>
         {% include "account/partials/login_form.html" %} 
       </div>
     </div>
-
   </div>
-</div>
+  
 {% endblock %}
