@@ -1,6 +1,6 @@
 from django.template.response import TemplateResponse
 
-from ..product.utils import (products_with_availability, products_for_homepage)
+from ..product.utils import products_with_availability, products_for_homepage
 
 
 def home(request):
