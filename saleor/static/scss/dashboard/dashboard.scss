@@ -347,6 +347,12 @@ header {
   white-space: pre-wrap;
 }
 
+.readonly-msg {
+  border: 1px solid #ee6e73;
+  box-shadow: none;
+  color: $primary-color;
+}
+
 @import "widget/breadcrumbs";
 @import "widget/card";
 @import "widget/data-table";
