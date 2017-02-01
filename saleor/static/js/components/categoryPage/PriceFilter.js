@@ -1,19 +1,14 @@
 import React, { Component, PropTypes } from 'react';
 import FilterHeader from './FilterHeader';
+import {isMobile} from '../utils';
 
 export default class PriceFilter extends Component {
 
   constructor(props) {
     super(props);
-    if (window.innerWidth <= 700) {
       this.state = {
-        visibility: false
+        visibility: !isMobile()
       };
-    } else {
-      this.state = {
-        visibility: true
-      };
-    }
   }
 
   static propTypes = {

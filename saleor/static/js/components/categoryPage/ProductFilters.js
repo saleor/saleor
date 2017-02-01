@@ -3,6 +3,7 @@ import Relay from 'react-relay';
 
 import AttributeInput from './AttributeInput';
 import FilterHeader from './FilterHeader';
+import {isMobile} from '../utils';
 
 class ProductFilters extends Component {
 
@@ -36,15 +37,9 @@ class ProductFilters extends Component {
   componentWillMount() {
     this.props.attributes.map((attribute) => {
       const attrValue = `${attribute.name}`;
-      if (window.innerWidth <= 700) {
         this.setState({
-          visibility: Object.assign(this.state.visibility, {[attrValue]: false})
+          visibility: Object.assign(this.state.visibility, {[attrValue]: !isMobile()})
         });
-      } else {
-        this.setState({
-          visibility: Object.assign(this.state.visibility, {[attrValue]: true})
-        });
-      }
     });
   }
 
