@@ -84,9 +84,14 @@ def login(request, checkout):
 @validate_cart
 @add_voucher_form
 def review_for_different_country(request, checkout):
-    address_id = request.GET.get('address_id')
-    address = get_object_or_404(Address, pk=address_id)
-    checkout.set_country(address.country)
+    address_id = request.GET.get('address_id', None)
+    address_type = request.GET.get('address_type', None)
+    if address_id:
+        address = get_object_or_404(Address, pk=address_id)
+        if address_type == 'billing':
+            checkout.billing_address = address
+        if address_type == 'shipping':
+            checkout.shipping_address = address
     ctx = {'checkout': checkout, 'total': checkout.get_total(),
-            'deliveries': checkout.deliveries}
+           'deliveries': checkout.deliveries}
     return TemplateResponse(request, 'checkout/_review_section.html', ctx)
