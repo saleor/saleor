@@ -1,5 +1,5 @@
 from allauth.account.forms import LoginForm
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.template.response import TemplateResponse
 
 from .discount import add_voucher_form, validate_voucher
@@ -13,6 +13,7 @@ from .validators import (
     validate_shipping_method, validate_is_shipping_required)
 from ..core import load_checkout
 from ..forms import ShippingMethodForm
+from ...userprofile.models import Address
 
 
 @load_checkout
@@ -77,3 +78,15 @@ def login(request, checkout):
     form = LoginForm()
     ctx = {'form': form}
     return TemplateResponse(request, 'checkout/login.html', ctx)
+
+
+@load_checkout
+@validate_cart
+@add_voucher_form
+def review_for_different_country(request, checkout):
+    address_id = request.GET.get('address_id')
+    address = get_object_or_404(Address, pk=address_id)
+    checkout.set_country(address.country)
+    ctx = {'checkout': checkout, 'total': checkout.get_total(),
+            'deliveries': checkout.deliveries}
+    return TemplateResponse(request, 'checkout/_review_section.html', ctx)

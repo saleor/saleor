@@ -62,6 +62,7 @@ $(document).ready((e) => {
   $(document).click((e) => {
     $mobileNav.removeClass('open');
   });
+  reviewCheckout();
 });
 
 // Mobile search form
@@ -365,3 +366,23 @@ if ($.cookie('alert') === 'true') {
 $closeMsg.on('click', (e) => {
   $removeProductSucces.addClass('hidden-xs-up');
 });
+
+
+let $reviewSection = $('#review_section');
+let $reviewForCountryUrl = $reviewSection.data('url');
+function reviewCheckout () {
+  $('input[name=address]').on('change', function(e){
+    let that = this;
+    let address_id = $(that).val();
+    if ($.isNumeric(address_id)) {
+      $.ajax({
+        url: $reviewForCountryUrl,
+        method: 'get',
+        data: {'address_id': address_id},
+        success: function (response) {
+          $reviewSection.html(response);
+        }
+      });
+    }
+  });
+}

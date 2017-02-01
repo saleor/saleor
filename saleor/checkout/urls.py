@@ -13,4 +13,6 @@ urlpatterns = [
     url(r'^remove_voucher/', views.discount.remove_voucher_view,
         name='remove-voucher'),
     url(r'^login/', views.login, name='login'),
+    url(r'review-for-country/$', views.review_for_different_country,
+        name='review_for_country'),
 ]

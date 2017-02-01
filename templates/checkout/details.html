@@ -31,8 +31,8 @@
       <div class="col-md-7">
         {% block forms %}{% endblock %}
       </div>
-      <div class="col-md-5">
-        {% include 'checkout/_review_section.html' %}
+      <div class="col-md-5" id="review_section" data-url="{% url 'checkout:review_for_country' %}">
+        {% include 'checkout/_review_section.html' with deliveries=checkout.deliveries total=checkout.get_total %}
       </div>
   </div>
 {% endblock content %}

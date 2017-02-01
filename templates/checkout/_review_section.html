@@ -1,10 +1,9 @@
 {% load i18n %}
 {% load gross net tax from prices_i18n %}
 
-{% with total=checkout.get_total %}
   <div class="checkout__review">
     <h3 class="checkout__review__tittle">{% trans "Order review" %}</h3>
-    {% for delivery, delivery_cost, total_with_delivery in checkout.deliveries %}
+    {% for delivery, delivery_cost, total_with_delivery in deliveries %}
       {% for item, item_price_per_item, item_price_total in delivery %}
         <div class="row">
           <div class="col-8">
@@ -56,4 +55,3 @@
       </div>
     </div>
   </div>
-{% endwith %}

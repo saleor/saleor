@@ -66,7 +66,12 @@ class Checkout(object):
             return Address(**address_data)
         return None
 
+    def set_country(self, country):
+        self.country = country
+
     def _vat_country(self):
+        if hasattr(self, 'country'):
+            return self.country
         country = None
         if self.billing_address:
             country = self.billing_address.country
