@@ -14,8 +14,6 @@ var commonsChunkPlugin = new webpack.optimize.CommonsChunkPlugin({
   names: 'vendor'
 });
 
-var occurenceOrderPlugin = new webpack.optimize.OccurenceOrderPlugin();
-
 var extractTextPlugin = new ExtractTextPlugin('[name].[contenthash].css');
 
 var providePlugin = new webpack.ProvidePlugin({
@@ -45,26 +43,37 @@ var config = {
     filename: '[name].[chunkhash].js'
   },
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.tsx?$/,
-        loader: 'babel!awesome-typescript-loader'
+        use: [
+          'babel-loader',
+          'awesome-typescript-loader'
+        ]
       },
       {
-        test: /\.json$/,
-        loader: 'json-loader'
+        test: /\.js$/,
+        enforce: 'pre',
+        loader: 'source-map-loader'
       },
       {
         test: /\.scss$/,
         loader: ExtractTextPlugin.extract([
           'css-loader?sourceMap',
-          'postcss-loader',
-          'sass-loader'
+          {
+            loader: 'postcss-loader',
+            options: {
+              plugins: function () {
+                return [autoprefixer];
+              }
+            }
+          },
+          'sass-loader?sourceMap'
         ])
       },
       {
         test: /\.(eot|otf|png|svg|jpg|ttf|woff|woff2)(\?v=[0-9.]+)?$/,
-        loader: 'url?name=[name].[hash].[ext]',
+        loader: 'url-loader?name=[name].[hash].[ext]',
         include: [
           resolve('node_modules'),
           resolve('saleor/static/fonts'),
@@ -72,34 +81,21 @@ var config = {
           resolve('saleor/static/img')
         ]
       }
-    ],
-    preLoaders: [
-      {
-        test: /\.js$/,
-        loader: 'source-map-loader'
-      }
     ]
   },
   plugins: [
     bundleTrackerPlugin,
     commonsChunkPlugin,
     extractTextPlugin,
-    occurenceOrderPlugin,
     providePlugin
   ],
-  postcss: function() {
-    return [autoprefixer];
-  },
   resolve: {
     alias: {
       'jquery': resolve('node_modules/jquery/dist/jquery.js')
     },
     extensions: [
-      '', '.tsx', '.ts', '.js'
+      '.tsx', '.ts', '.js'
     ]
-  },
-  sassLoader: {
-    sourceMap: true
   }
 };
 

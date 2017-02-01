@@ -51,7 +51,6 @@
     "autoprefixer": "^6.7.0",
     "awesome-typescript-loader": "^3.0.0-beta.18",
     "babel-core": "^6.22.1",
-    "babel-es6-polyfill": "^1.1.0",
     "babel-eslint": "^7.1.1",
     "babel-loader": "^6.2.10",
     "babel-plugin-transform-class-properties": "^6.22.0",
@@ -68,7 +67,7 @@
     "eslint-plugin-promise": "^3.4.0",
     "eslint-plugin-react": "^6.7.1",
     "eslint-plugin-standard": "^2.0.1",
-    "extract-text-webpack-plugin": "^1.0.1",
+    "extract-text-webpack-plugin": "beta",
     "file-loader": "^0.9.0",
     "node-sass": "^4.3.0",
     "postcss": "^5.2.11",
@@ -78,9 +77,9 @@
     "tslint": "^4.4.2",
     "typescript": "^2.1.5",
     "url-loader": "^0.5.7",
-    "webpack": "^1.13.2",
+    "webpack": "^2.2.1",
     "webpack-bundle-tracker": "0.2.0",
-    "webpack-dev-server": "^1.16.1"
+    "webpack-dev-server": "^1.16.3"
   },
   "babel": {
     "presets": [
