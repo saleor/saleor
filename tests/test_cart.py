@@ -6,6 +6,7 @@ from uuid import uuid4
 import pytest
 from babeldjango.templatetags.babel import currencyfmt
 from django.contrib.auth.models import AnonymousUser
+from django.core import signing
 from django.core.exceptions import ObjectDoesNotExist
 from mock import MagicMock, Mock
 
@@ -215,13 +216,42 @@ def test_get_cart_from_request(monkeypatch, customer_user,
 
 
 def test_find_and_assign_anonymous_cart(opened_anonymous_cart,
-                                        cancelled_anonymous_cart,
-                                        opened_user_cart, cancelled_user_cart,
-                                        customer_user, cart_request_factory):
-    request = cart_request_factory(user=customer_user, token=None)
-    anonymous_carts = Cart.objects.filter(user=None).count()
-    utils.find_and_assign_anonymous_cart(request)
-    assert Cart.objects.filter(user=None).count() == anonymous_carts
+                                        customer_user, client):
+    cart_token = opened_anonymous_cart.token
+    # Anonymous user has a cart with token stored in cookie
+    value = signing.get_cookie_signer(salt=Cart.COOKIE_NAME).sign(cart_token)
+    client.cookies[Cart.COOKIE_NAME] = value
+    # Anonymous logs in
+    response = client.post(
+        '/account/login',
+        {'login': customer_user.email, 'password': 'password'})
+    assert response.context['user'] == customer_user
+    # User should have only one cart, the same as he had previously in
+    # anonymous session
+    authenticated_user_carts = customer_user.carts.filter(status=Cart.OPEN)
+    assert authenticated_user_carts.count() == 1
+    assert authenticated_user_carts[0].token == cart_token
+
+
+def test_login_without_a_cart(customer_user, client):
+    assert Cart.COOKIE_NAME not in client.cookies
+    response = client.post(
+        '/account/login',
+        {'login': customer_user.email, 'password': 'password'})
+    assert response.context['user'] == customer_user
+    authenticated_user_carts = customer_user.carts.filter(status=Cart.OPEN)
+    assert authenticated_user_carts.count() == 0
+
+
+def test_login_with_incorrect_cookie_token(customer_user, client):
+    value = signing.get_cookie_signer(salt=Cart.COOKIE_NAME).sign('incorrect')
+    client.cookies[Cart.COOKIE_NAME] = value
+    response = client.post(
+        '/account/login',
+        {'login': customer_user.email, 'password': 'password'})
+    assert response.context['user'] == customer_user
+    authenticated_user_carts = customer_user.carts.filter(status=Cart.OPEN)
+    assert authenticated_user_carts.count() == 0
 
 
 def test_find_and_assign_anonymous_cart_and_close_opened(customer_user,
@@ -231,7 +261,8 @@ def test_find_and_assign_anonymous_cart_and_close_opened(customer_user,
     token = opened_anonymous_cart.token
     token_user = opened_user_cart.token
     request = cart_request_factory(user=customer_user, token=token)
-    utils.find_and_assign_anonymous_cart(request)
+    mock_view = lambda request: Mock(delete_cookie=lambda name: None)
+    utils.find_and_assign_anonymous_cart()(mock_view)(request)
     token_cart = Cart.objects.filter(token=token).first()
     user_cart = Cart.objects.filter(token=token_user).first()
     assert token_cart.user.pk == customer_user.pk

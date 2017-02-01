@@ -132,13 +132,3 @@ def summary(request, cart):
             'lines': [prepare_line_data(line) for line in cart.lines.all()]}
 
     return render(request, 'cart-dropdown.html', data)
-
-
-def assign_cart_and_redirect_view(request):
-    find_and_assign_anonymous_cart(request)
-    redirect_to = get_request_param(request, "next")
-    if redirect_to is None:
-        redirect_to = '/'
-    response = HttpResponseRedirect(redirect_to)
-    response.delete_cookie(Cart.COOKIE_NAME)
-    return response

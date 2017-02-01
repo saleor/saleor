@@ -2,8 +2,10 @@ from __future__ import unicode_literals
 
 from datetime import timedelta
 from functools import wraps
+from uuid import UUID
 
 from django.contrib import messages
+from django.db import transaction
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 from satchless.item import InsufficientStock
@@ -24,6 +26,18 @@ def contains_unavailable_variants(cart):
     except InsufficientStock:
         return True
     return False
+
+
+def token_is_valid(token):
+    if token is None:
+        return False
+    if isinstance(token, UUID):
+        return True
+    try:
+        UUID(token)
+    except ValueError:
+        return False
+    return True
 
 
 def remove_unavailable_variants(cart):
@@ -65,20 +79,34 @@ def check_product_availability_and_warn(request, cart):
         remove_unavailable_variants(cart)
 
 
-def find_and_assign_anonymous_cart(request, queryset=Cart.objects.all()):
+def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
     """Assign cart from cookie to request user
     :type request: django.http.HttpRequest
     """
-    token = request.get_signed_cookie(Cart.COOKIE_NAME, default=None)
-    if not token:
-        return
-    cart = get_anonymous_cart_from_token(token=token, cart_queryset=queryset)
-    if cart is None:
-        return
-    cart.change_user(request.user)
-    carts_to_close = Cart.objects.open().filter(user=request.user)
-    carts_to_close = carts_to_close.exclude(token=token)
-    carts_to_close.update(status=Cart.CANCELED, last_status_change=now())
+    def get_cart(view):
+        @wraps(view)
+        def func(request, *args, **kwargs):
+            response = view(request, *args, **kwargs)
+            token = request.get_signed_cookie(Cart.COOKIE_NAME, default=None)
+            if not token_is_valid(token):
+                return response
+            cart = get_anonymous_cart_from_token(
+                token=token, cart_queryset=queryset)
+            if cart is None:
+                return response
+            if request.user.is_authenticated():
+                with transaction.atomic():
+                    cart.change_user(request.user)
+                    carts_to_close = Cart.objects.open().filter(
+                        user=request.user)
+                    carts_to_close = carts_to_close.exclude(token=token)
+                    carts_to_close.update(
+                        status=Cart.CANCELED, last_status_change=now())
+                response.delete_cookie(Cart.COOKIE_NAME)
+            return response
+
+        return func
+    return get_cart
 
 
 def get_or_create_anonymous_cart_from_token(token,
