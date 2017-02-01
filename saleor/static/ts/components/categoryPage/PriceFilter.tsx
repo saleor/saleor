@@ -3,8 +3,8 @@ import FilterHeader from './FilterHeader';
 import {isMobile} from '../utils';
 
 interface PriceFilterProps {
-    minPrice: number;
-    maxPrice: number;
+    minPrice: number | null;
+    maxPrice: number | null;
     onFilterChanged(minPrice: number, maxPrice: number): any;
 };
 
@@ -58,7 +58,7 @@ export default class PriceFilter extends React.Component<PriceFilterProps, Price
           <div>
             <input
               className="form-control"
-              defaultValue={minPrice.toString()}
+              defaultValue={minPrice !== null ? minPrice.toString() : null}
               min="0"
               onKeyUp={this.checkKey}
               placeholder={gettext('from')}
@@ -68,7 +68,7 @@ export default class PriceFilter extends React.Component<PriceFilterProps, Price
             <span>&#8212;</span>
             <input
               className="form-control"
-              defaultValue={maxPrice.toString()}
+              defaultValue={maxPrice !== null ? maxPrice.toString() : null}
               min="0"
               onKeyUp={this.checkKey}
               placeholder={gettext('to')}

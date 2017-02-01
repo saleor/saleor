@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import InlineSVG from 'react-inlinesvg';
+import * as InlineSVG from 'react-inlinesvg';
 
 let chevronUpIcon = require<string>('../../../images/chevron-up-icon.svg');
 let chevronDownIcon = require<string>('../../../images/chevron-down-icon.svg');

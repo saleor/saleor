@@ -1,5 +1,5 @@
 import * as React from 'react';
-import InlineSVG from 'react-inlinesvg';
+import * as InlineSVG from 'react-inlinesvg';
 
 let noResultsImg = require('../../../images/pirate.svg');
 

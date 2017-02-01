@@ -1,5 +1,5 @@
 import * as React from 'react';
-import InlineSVG from 'react-inlinesvg';
+import * as InlineSVG from 'react-inlinesvg';
 
 let arrowUpIcon = require<string>('../../../images/arrow-up-icon.svg');
 let arrowDownIcon = require<string>('../../../images/arrow-down-icon.svg');

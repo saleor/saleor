@@ -47,13 +47,8 @@ var config = {
   module: {
     loaders: [
       {
-        test: /\.js?$/,
-        exclude: /node_modules/,
-        loader: 'babel'
-      },
-      {
         test: /\.tsx?$/,
-        loader: 'awesome-typescript-loader'
+        loader: 'babel!awesome-typescript-loader'
       },
       {
         test: /\.json$/,
