@@ -1,6 +1,7 @@
 from collections import namedtuple
 
 from django.contrib.auth.models import AnonymousUser
+from django_prices.templatetags import prices_i18n
 
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
@@ -117,8 +118,8 @@ def products_for_cart(user):
     return products
 
 
-def get_variant_picker_data(product, discounts=None):
-    availability = get_availability(product, discounts)
+def get_variant_picker_data(product, discounts=None, local_currency=None):
+    availability = get_availability(product, discounts, local_currency)
     variants = product.variants.all()
     data = {'variantAttributes': [], 'variants': []}
 
@@ -134,19 +135,25 @@ def get_variant_picker_data(product, discounts=None):
     for variant in variants:
         price = variant.get_price_per_item(discounts)
         price_undiscounted = variant.get_price_per_item()
+        if local_currency:
+            price_local_currency = to_local_currency(price, local_currency)
+        else:
+            price_local_currency = None
         variant_data = {
             'id': variant.id,
-            'price': price.gross,
-            'priceUndiscounted': price_undiscounted.gross,
-            'currency': price.currency,
-            'attributes': variant.attributes}
+            'price': price_as_dict(price),
+            'priceUndiscounted': price_as_dict(price_undiscounted),
+            'attributes': variant.attributes,
+            'priceLocalCurrency': price_as_dict(price_local_currency)}
         data['variants'].append(variant_data)
 
     data['availability'] = {
         'discount': price_as_dict(availability.discount),
         'priceRange': price_range_as_dict(availability.price_range),
         'priceRangeUndiscounted': price_range_as_dict(
-            availability.price_range_undiscounted)}
+            availability.price_range_undiscounted),
+        'priceRangeLocalCurrency': price_range_as_dict(
+            availability.price_range_local_currency)}
     return data
 
 
@@ -163,7 +170,9 @@ def price_as_dict(price):
         return None
     return {'currency': price.currency,
             'gross': price.gross,
-            'net': price.net}
+            'grossLocalized': prices_i18n.gross(price),
+            'net': price.net,
+            'netLocalized': prices_i18n.net(price)}
 
 
 def price_range_as_dict(price_range):

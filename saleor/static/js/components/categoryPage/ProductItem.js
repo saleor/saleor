@@ -38,6 +38,7 @@ export default Relay.createContainer(ProductItem, {
         price {
           currency
           gross
+          grossLocalized
           net
         }
         availability {
