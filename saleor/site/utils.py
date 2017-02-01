@@ -17,4 +17,4 @@ def get_site_settings(request):
 def get_site_settings_uncached(settings_id=None):
     # type: (str) -> SiteSettings
     """Query database for settings object."""
-    return SiteSettings.objects.get(pk=settings_id)
+    return SiteSettings.objects.get_or_create(pk=settings_id)[0]

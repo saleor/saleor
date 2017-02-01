@@ -6,7 +6,6 @@ from django.utils.encoding import smart_text
 from saleor.site.models import SiteSettings
 from saleor.site import utils
 from saleor.dashboard.sites.forms import SiteSettingForm
-from .utils import get_redirect_location
 
 
 @pytest.fixture
