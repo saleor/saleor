@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.conf.urls import url, include
 from django.conf.urls.static import static
-from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 from django.contrib.staticfiles.views import serve
 from django.views.i18n import javascript_catalog
@@ -21,13 +20,10 @@ from .data_feeds.urls import urlpatterns as feed_urls
 from .dashboard.urls import urlpatterns as dashboard_urls
 
 
-admin.autodiscover()
-
 urlpatterns = [
     url(r'^', include(core_urls)),
     url(r'^account/', include('allauth.urls')),
     url(r'^account/login', login_view, name="account_login"),
-    url(r'^admin/', include(admin.site.urls)),
     url(r'^cart/', include(cart_urls, namespace='cart')),
     url(r'^checkout/', include(checkout_urls, namespace='checkout')),
     url(r'^dashboard/', include(dashboard_urls, namespace='dashboard')),
