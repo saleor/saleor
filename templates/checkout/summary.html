@@ -2,7 +2,7 @@
 {% load i18n %}
 
 {% block forms %}
-  <form method="post" novalidate>
+  <form method="post" novalidate data-type="billing">
     {% csrf_token %}
     <h2>{% trans "Billing address" context "Checkout summary title" %}</h2>
     {% include "checkout/snippets/addresses-form.html" with addresses_form=addresses_form addresses=additional_addresses address_form=address_form only %}
