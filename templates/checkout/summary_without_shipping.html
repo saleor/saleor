@@ -3,7 +3,7 @@
 {% load bootstrap_form from bootstrap3 %}
 
 {% block forms %}
-    <form method="post" novalidate>
+    <form method="post" novalidate data-type="billing">
         {% csrf_token %}
         <h2>{% trans "Billing address" context "Checkout summary without shipping title" %}</h2>
         {% if request.user.is_authenticated %}
