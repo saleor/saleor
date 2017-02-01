@@ -34,40 +34,41 @@
     <div class="tab-content col-lg-10 offset-lg-1">
       <div class="tab-pane active" id="orders" role="tabpanel">
         <div id="accordion" role="tablist" aria-multiselectable="true">
-          <div class="userprofile__orders-header">
-            <div class="row">
-              <div class="col-md-2 col-3"><h3>{% trans "Order" %}</h3></div>
-              <div class="col-md-3  hidden-sm-down"><h3>{% trans "Date" %}</h3></div>
-              <div class="col-md-2 col-6"><h3 class="float-md-right">{% trans "Summary" %}</h3></div>
-              <div class="col-md-4  hidden-sm-down"><h3>{% trans "Status" %}</h3></div>
-              <div class="col-md-1 col-3"></div>
-            </div>
-          </div>
-          {% for order in orders %}
-          <div class="userprofile__orders">
-            <div class="userprofile__orders__row">
+          {% if orders|length %}
+            <div class="userprofile__orders-header">
               <div class="row">
-                <div class="col-md-2 col-3">
-                  {{ order }}
-                </div>
-                <div class="col-md-3 hidden-sm-down">
-                  {{ order.created }}
-                </div>
-                <div class="col-md-2 col-6">
-                  <span class="float-md-right">{% gross order.get_total %}</span>
-                </div>
-                <div class="col-md-4 hidden-sm-down">
-                  {% render_status order.status order.get_status_display %}
-                </div>
-                <div class="col-md-1 col-3">
-                  <a href="{{ order.get_absolute_url }}"  class="float-right">{% trans "Details" %}</a>
+                <div class="col-md-2 col-3"><h3>{% trans "Order" %}</h3></div>
+                <div class="col-md-3  hidden-sm-down"><h3>{% trans "Date" %}</h3></div>
+                <div class="col-md-2 col-6"><h3 class="float-md-right">{% trans "Summary" %}</h3></div>
+                <div class="col-md-4  hidden-sm-down"><h3>{% trans "Status" %}</h3></div>
+                <div class="col-md-1 col-3"></div>
+              </div>
+            </div>
+            {% for order in orders %}
+            <div class="userprofile__orders">
+              <div class="userprofile__orders__row">
+                <div class="row">
+                  <div class="col-md-2 col-3">
+                    {{ order }}
+                  </div>
+                  <div class="col-md-3 hidden-sm-down">
+                    {{ order.created }}
+                  </div>
+                  <div class="col-md-2 col-6">
+                    <span class="float-md-right">{% gross order.get_total %}</span>
+                  </div>
+                  <div class="col-md-4 hidden-sm-down">
+                    {% render_status order.status order.get_status_display %}
+                  </div>
+                  <div class="col-md-1 col-3">
+                    <a href="{{ order.get_absolute_url }}"  class="float-right">{% trans "Details" %}</a>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          {% endfor %}
-          {% if orders|length == 0 %}
-            <h3 class="text-sm-center">{% trans "There are not any completed orders yet." %}</h3>
+            {% endfor %}
+          {% else %}
+            <h3 class="text-sm-center userprofile__orders-empty">{% trans "There are not any completed orders yet." %}</h3>
           {% endif %}
         </div>
       </div>

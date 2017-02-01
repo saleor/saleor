@@ -33,7 +33,8 @@
         max-width: 12rem;
       }
       img {
-        margin: $global-margin / 2 0;
+        margin: $global-margin / 2 auto;
+        display: block;
         @include media-breakpoint-up(md) {
           &.checkout-pirate {
             margin-bottom: $global-margin * 3.2;
