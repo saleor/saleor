@@ -34,9 +34,7 @@
     <div class="tab-content col-lg-10 offset-lg-1">
       <div class="tab-pane active" id="orders" role="tabpanel">
         <div id="accordion" role="tablist" aria-multiselectable="true">
-          {% if orders|length == 0 %}
-            <h3 class="text-sm-center userprofile__orders-empty">{% trans "There are not any completed orders yet." %}</h3>
-          {% else %}
+          {% if orders|length %}
             <div class="userprofile__orders-header">
               <div class="row">
                 <div class="col-md-2 col-3"><h3>{% trans "Order" %}</h3></div>
@@ -69,6 +67,8 @@
               </div>
             </div>
             {% endfor %}
+          {% else %}
+            <h3 class="text-sm-center userprofile__orders-empty">{% trans "There are not any completed orders yet." %}</h3>
           {% endif %}
         </div>
       </div>
