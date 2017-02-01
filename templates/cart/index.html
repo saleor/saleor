@@ -69,11 +69,11 @@
     {% endfor %}
     <div class="cart__total">
       <div class="row">
-        <div class="col-9 cart__total__subtotal">
+        <div class="col-8 cart__total__subtotal">
           <h3>{% trans "Subtotal" %}</h3>
           <p>({% trans "Delivery claculated on checkout" %})</p>
         </div>
-        <div class="col-3">
+        <div class="col-4">
           <p class="cart-total text-right" data-value="{% gross cart_total %}"{% if local_cart_total %} data-value-local="{% gross local_cart_total %}"{% endif %}>
               {% spaceless %}
                   {% gross cart_total html=True %}

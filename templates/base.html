@@ -64,7 +64,10 @@
                   <div class="container">
                     <div class="row no-gutters">
                       <div class="col-8 col-md-4 navbar__logo">
-                        <img class="hidden-md-up navbar__brand__menu-toggle closed open" src="{% static "images/mobile-bar.svg" %}">
+                        <div class="menu-icon-mobile hidden-md-up">
+                          <img class="navbar__brand__menu-toggle closed open" src="{% static "images/mobile-bar.svg" %}">
+                          <span>{% trans "menu" %}</span>
+                        </div>
                         <a href="/">
                           <img src="{% static "images/saleor-logo-black.svg" %}" alt="Testeor - Saleor demo store" height="38">
                         </a>

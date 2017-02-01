@@ -7,7 +7,7 @@
   }
   @media (max-width: 370px) { 
     img {
-      max-height: 27px;
+      max-height: 25px;
     }
   }
   &__login {
@@ -35,6 +35,21 @@
   }
   &__logo {
     padding: $global-padding * 2 0;
+    .menu-icon-mobile {
+        position: relative;
+        display: inline-block;
+        span {
+          position: absolute;
+          top: 1.3rem;
+          left: 1.1rem;
+          text-transform: uppercase;
+          font-size: 0.45rem;
+        }
+        img {
+          max-height: 20px;
+          vertical-align: top;
+        }
+    }
   }
   &__search {
     padding: $global-padding * 2 0;
