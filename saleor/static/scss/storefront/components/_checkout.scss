@@ -57,15 +57,19 @@
     }
     .btn {
       margin: $global-margin * 3 auto 0;
+      padding: $global-padding / 2 $global-padding * 2.5;
     }
     &__continue {
-      padding: $global-padding * 3 0 $global-padding;
+      padding: $global-padding * 2 0 $global-padding;
+      p {
+        font-size: 0.8rem;
+      }
     }
     &__form {
       background-color: $light-gray;
-      padding: $global-padding * 3 $global-padding * 6 $global-padding * 2;
+      padding: $global-padding * 2 $global-padding * 6 $global-padding * 2;
       @include media-breakpoint-only(md) {
-        padding: $global-padding * 3 $global-padding * 3 $global-padding * 2;
+        padding: $global-padding * 2 $global-padding * 3 $global-padding * 2;
       }
       .form-group {
         text-align: left;
@@ -75,6 +79,8 @@
       }
       a {
         color: $body-color;
+        text-decoration: underline;
+        font-size: 0.8rem;
       }
     }
   }
