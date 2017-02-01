@@ -90,6 +90,9 @@
         padding: $global-padding 0;
         width: 100%;
         select {
+          @include media-breakpoint-down(sm) {
+            width: 100%;
+          }
           background-color: $white;
           height: calc(2.25rem + 2px);
           @include media-breakpoint-up(sm) {
