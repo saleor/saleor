@@ -7,7 +7,7 @@ from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
 from .forms import get_form_class_for_product
 from .models.utils import get_attributes_display_map
-from .models import Category, Product
+from .models import Product
 
 
 def products_visible_to_user(user):
@@ -34,13 +34,6 @@ def products_for_homepage():
     products = products_with_details(user)
     products = products.filter(is_featured=True)
     return products
-
-
-def categories_for_homepage(num):
-    categories = list(Category.objects.all()[:num])
-    while 0 < len(categories) < num:
-        categories.append(Category.objects.first())
-    return categories
 
 
 def get_product_images(product):
