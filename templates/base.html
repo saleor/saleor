@@ -4,7 +4,7 @@
 {% load render_bundle from webpack_loader %}
 
 <html lang="en" class="no-js">
-    <head>
+    <head>    
         <title>{% block title %}Saleor{% endblock %}</title>
         {% block meta %}
         <meta charset="utf-8">
@@ -12,7 +12,7 @@
         <meta name="description" content="{% block meta_description %}{% endblock %}">
         <meta name="author" content="{% trans "Mirumee Software" %}">
         {% endblock meta %}
-
+        {% include 'favicon.html' %}
         {% render_bundle 'vendor' 'css' %}
         {% render_bundle 'storefront' 'css' %}
 
