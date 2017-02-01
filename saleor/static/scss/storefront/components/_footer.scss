@@ -7,6 +7,12 @@
   }
   &__logo {
     margin-bottom: $global-margin;
+    @include media-breakpoint-down(md) {
+      height: 30px;
+    }
+    @include media-breakpoint-down(sm) {
+      height: 40px;
+    }
   }
   ul {
     list-style: none;
