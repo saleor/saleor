@@ -153,7 +153,7 @@
                         {% for category in categories %}
                             <li>
                                 <a href="{{ category.get_absolute_url }}">
-                                    {{ category }}
+                                    {{ category|capfirst }}
                                 </a>
                             </li>
                         {% endfor %}
