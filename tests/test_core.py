@@ -1,8 +1,10 @@
+from http.cookies import SimpleCookie
 import pytest
 from mock import Mock
 
 from django.core.urlresolvers import reverse
 
+from saleor.core.middleware import CountryMiddleware
 from saleor.core.utils import (
     Country, create_superuser, get_country_by_ip, get_currency_for_country,
     random_data)
@@ -190,3 +192,20 @@ def test_set_country_wrong_country(client):
 
     cookie_value = client.cookies.get(COOKIE_COUNTRY)
     assert cookie_value is None
+
+
+def test_country_middleware_with_cookie():
+    country_middleware = CountryMiddleware()
+    request = Mock()
+    request.COOKIES = {COOKIE_COUNTRY: 'LI'}
+    country_middleware.process_request(request)
+    assert request.country.code == 'LI'
+
+
+def test_country_middleware_without_cookie():
+    country_middleware = CountryMiddleware()
+    request = Mock()
+    request.META = {'HTTP_X_FORWARDED_FOR': '127.0.0.1'}
+    request.COOKIES = {}
+    country_middleware.process_request(request)
+    assert request.country.code == 'PL'
