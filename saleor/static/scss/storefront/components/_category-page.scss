@@ -1,227 +1,228 @@
 #category-page {
-	h2 {
-		font-size: 1rem;
-		color: $gray;
-		font-weight: bold;
-		padding-bottom: $global-padding/2;
-	}
-	.category-list {
-		margin-top: $global-margin;
-	}
-	.category-top {
-		border-bottom: solid 1px $gray;
-		padding-bottom: $global-padding;
-		.category-breadcrumbs {
-			list-style: none;
-			padding-left: 0;
-			margin-bottom: 0;
-				li {
-					display: inline-block;
-					a {
-						color: $body-color;
-					}
-					&:after {
-						content: "/";
-						padding: 0 $global-padding/2;
-					}
-					&:last-child:after {
-						content: "";
-					}
-			}
-		}
-		.sort-by {
-			text-align: right;
-			position: relative;
-			button {
-				color: $body-color;
-				padding-right: $global-padding;
-				outline: 0;
-				svg {
-					vertical-align: middle;
-					margin-left: $global-padding/2;
-					height: 15px;
-				}
-			}
-			ul {
-				width: 20rem;
-				list-style: none;
-				background: $light-gray;
-				box-shadow: 3px 3px 3px 0px rgba($gray, 0.75);
-				position: absolute;
-				top: 2.5rem;
-				right: 0;
-				z-index: 999;
-				padding: $global-padding $global-padding*2;
-				li {
-					text-align: left;
-					padding-top: $global-padding/2;
-					overflow: hidden;
-					border-bottom: solid 1px $gray;
-					padding-bottom: $global-padding;
-					span {
-						&:hover {
-							cursor: pointer;
-							text-decoration: underline;
-						}
-					}
-					svg {
-						margin-top: $global-padding/3;
-					}
-					&:last-child {
-						border: none;
-						padding-bottom: 0;
-					}
-					&:after {
-						content: "";
-					}
-				}
-				&:before {
-				    content: '';
-				    display: block;
-				    width: 15px;
-				    height: 10px;
-				    position: absolute;
-				    top: -10px;
-				    right: 15px;
-				    background-color: $light-gray;
-				    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-				  }
-			}
-			.click-area {
-				width: 100%;
-				height: 100%;
-				opacity: 0;
-				position: fixed;
-				top: 0;
-				left: 0;
-				z-index: 998;
-				&.hide {
-					display: none;
-				}
-			}
-			.sort-order-icon {
-				display: inline-block;
-				width: 15px;
-			}
-		}
-	}
+  h2 {
+    font-size: 1rem;
+    color: $gray;
+    font-weight: bold;
+    padding-bottom: $global-padding/2;
+  }
+  .category-list {
+    margin-top: $global-margin;
+  }
+  .category-top {
+    border-bottom: solid 1px $gray;
+    padding-bottom: $global-padding;
+    .category-breadcrumbs {
+      list-style: none;
+      padding-left: 0;
+      margin-bottom: 0;
+        li {
+          display: inline-block;
+          a {
+            color: $body-color;
+          }
+          &:after {
+            content: "/";
+            padding: 0 $global-padding/2;
+          }
+          &:last-child:after {
+            content: "";
+          }
+      }
+    }
+    .sort-by {
+      text-align: right;
+      position: relative;
+      button {
+        color: $body-color;
+        padding-right: $global-padding;
+        outline: 0;
+        svg {
+          vertical-align: middle;
+          margin-left: $global-padding/2;
+          height: 15px;
+        }
+      }
+      ul {
+        width: 20rem;
+        list-style: none;
+        background: $light-gray;
+        box-shadow: 3px 3px 3px 0px rgba($gray, 0.75);
+        position: absolute;
+        top: 2.5rem;
+        right: 0;
+        z-index: 999;
+        padding: $global-padding $global-padding*2;
+        li {
+          text-align: left;
+          padding-top: $global-padding/2;
+          overflow: hidden;
+          border-bottom: solid 1px $gray;
+          padding-bottom: $global-padding;
+          span {
+            &:hover {
+              cursor: pointer;
+              text-decoration: underline;
+            }
+          }
+          svg {
+            margin-top: $global-padding/3;
+          }
+          &:last-child {
+            border: none;
+            padding-bottom: 0;
+          }
+          &:after {
+            content: "";
+          }
+        }
+        &:before {
+            content: '';
+            display: block;
+            width: 15px;
+            height: 10px;
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            background-color: $light-gray;
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+          }
+      }
+      .click-area {
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 998;
+        &.hide {
+          display: none;
+        }
+      }
+      .sort-order-icon {
+        display: inline-block;
+        width: 15px;
+        height: 15px;
+      }
+    }
+  }
 
-		
+    
 
-	.product-filters {
-		.hide {
-			display: none;
-		}
-		h3 {
-			background: $light-gray;
-			padding: $global-padding;
-			font-size: 1rem;
-			font-weight: bold;
-			cursor: pointer;
-		}
-		ul {
-			padding: $global-padding/2 0;
-			list-style: none;
-			margin-bottom: 0;
-			li {
-				padding-left: $global-padding;
-				input {
-					margin-right: $global-margin;
-				}
-			}
-		}
-		.attributes {
-			ul {
-				li {
-					label {
-						cursor: pointer;
-						outline: 0;
-					}
-				}
-			}
-		}
-		.price-range {
-			h3 {
-				margin-bottom: $global-margin;
-				span {
-					width: 100%;
-					margin: 0;
-					display: inline;
-				}
-			}
-			input {
-				width: 40%;
-				display: inline-block;
-			}
-			span {
-				width: 20%;
-				text-align: center;
-				display: inline-block;
-			}
-			button {
-				width: 100%;
-				margin-top: $global-margin;
-			}
-		}
-		.categories {
-			padding: $global-padding*2 0;
-			h2 {
-				font-size: 1.8rem;
-				color: $body-color;
-				padding-bottom: 0;
-			}
-			ul {
-				list-style: none;
-				padding: 0 $global-padding;
-				margin-bottom: 0;
-				li {
-					padding-left: 0;
-					a {
-						font-size: 1.2rem;
-						color: $body-color;
-						padding-right: $global-padding/2;
-					}
-				}
-			}
-			.parents {
-				padding-left: $global-padding;
-				i {
-					padding-right: $global-padding/2;
-				}
-				a {
-					color: $body-color;
-				}
-			}
-			.childs {
-				padding-left: $global-padding*2.5;
-				a {
-					font-size: 1rem;
-				}
-				&.no-parent {
-					padding-left: $global-padding;
-				}
-			}
-		}
-	}
+  .product-filters {
+    .hide {
+      display: none;
+    }
+    h3 {
+      background: $light-gray;
+      padding: $global-padding;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      .collapse-filters-icon {
+        float: right !important;
+        width: 20px;
+        height: 20px;
+      }
+    }
+    ul {
+      padding: $global-padding/2 0;
+      list-style: none;
+      margin-bottom: 0;
+      li {
+        padding-left: $global-padding;
+        input {
+          margin-right: $global-margin;
+        }
+      }
+    }
+    .attributes {
+      ul {
+        li {
+          label {
+            cursor: pointer;
+            outline: 0;
+          }
+        }
+      }
+    }
+    .price-range {
+      h3 {
+        margin-bottom: $global-margin;
+        span {
+          width: 100%;
+          margin: 0;
+          display: inline;
+        }
+      }
+      input {
+        width: 40%;
+        display: inline-block;
+      }
+      span {
+        width: 20%;
+        text-align: center;
+        display: inline-block;
+      }
+      button {
+        width: 100%;
+        margin-top: $global-margin;
+      }
+    }
+    .categories {
+      padding: $global-padding*2 0;
+      h2 {
+        font-size: 1.8rem;
+        color: $body-color;
+        padding-bottom: 0;
+      }
+      ul {
+        list-style: none;
+        padding: 0 $global-padding;
+        margin-bottom: 0;
+        li {
+          padding-left: 0;
+          a {
+            font-size: 1.2rem;
+            color: $body-color;
+            padding-right: $global-padding/2;
+          }
+        }
+      }
+      .parents {
+        padding-left: $global-padding;
+        i {
+          padding-right: $global-padding/2;
+        }
+        a {
+          color: $body-color;
+        }
+      }
+      .childs {
+        padding-left: $global-padding*2.5;
+        a {
+          font-size: 1rem;
+        }
+        &.no-parent {
+          padding-left: $global-padding;
+        }
+      }
+    }
+  }
 
-	.load-more {
-		clear: both;
-		button {
-			width: 20rem;
-			margin: 0 auto;
-			display: block;
-			color: $white;
-			font-size: 2rem;
-			cursor: pointer;
-			outline: 0;
-			&:hover {
-				background: darken($gray, 10%);
-			}
-		}
-	}
-
-	.collapse-filters-icon {
-		float: right !important;
-		width: 20px;
-	}
+  .load-more {
+    clear: both;
+    button {
+      width: 20rem;
+      margin: 0 auto;
+      display: block;
+      color: $white;
+      font-size: 2rem;
+      cursor: pointer;
+      outline: 0;
+      &:hover {
+        background: darken($gray, 10%);
+      }
+    }
+  }
 }
