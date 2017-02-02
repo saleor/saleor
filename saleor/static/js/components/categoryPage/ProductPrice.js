@@ -13,7 +13,7 @@ const ProductPrice = ({ availability, price }) => {
         {isPriceRange && <span>{gettext('from')} </span>} {gross}
       </span>
       {discount && (
-        <div className="product-list__sale"><img src={SaleImg}/><span>Sale</span></div>
+        <div className="product-list__sale"><img src={SaleImg}/><span>{gettext('Sale')}</span></div>
       )}
     </div>
   );
