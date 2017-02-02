@@ -26,6 +26,13 @@
     margin-top: $global-margin;
     font-family: $font-family-sans-serif;
   }
+  &__btn-group {
+    text-align: center;
+    img {
+      display: block;
+      margin: 0 auto;
+    }
+  }
   &__register {
     padding: $global-padding * 2;
     &-link {
@@ -33,7 +40,7 @@
         max-width: 12rem;
       }
       img {
-        margin: $global-margin / 2 auto;
+        margin: $global-margin / 2 auto $global-margin * 0.9;
         display: block;
         @include media-breakpoint-up(md) {
           &.checkout-pirate {
@@ -95,7 +102,6 @@
       font-family: $font-family-sans-serif;
     }
     img {
-
       padding-top: $global-padding * 2;
     }
   }
