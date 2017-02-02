@@ -10,7 +10,7 @@
       <div class="row item">
         <div class="col-md-10">
           <a href="{{ line.variant_url }}">
-            <img class="cart-dropdown__image" src="{% get_thumbnail line.image size="60x60" %}" alt="">
+            <img class="cart-dropdown__image" src="{% get_thumbnail line.image size="60x60" %}" srcset="{% get_thumbnail line.image size="60x60" %} 1x, {% get_thumbnail line.image size="120x120" %} 2x" alt="">
             <h3>
               {{ line.product }}
               <span>x{{ line.quantity }}</span>

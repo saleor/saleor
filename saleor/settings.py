@@ -305,10 +305,13 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
     'defaults': [
         ('list_view', 'crop__100x100'),
         ('dashboard', 'crop__400x400'),
-        ('product_page_mobile', 'crop__680x680'),
-        ('product_page_big', 'crop__750x750'),
-        ('product_page_thumb', 'crop__280x280')]}
-
+        ('product_gallery', 'crop__540x540'),
+        ('product_gallery_2x', 'crop__1080x1080'),
+        ('product_small', 'crop__60x60'),
+        ('product_small_2x', 'crop__120x120'),
+        ('product_list', 'crop__255x255'),
+        ('product_list_2x', 'crop__510x510')]}
+        
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment
     'create_images_on_demand': ast.literal_eval(
