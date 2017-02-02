@@ -29,7 +29,9 @@
     </div>
   {% endif %}
   <div class="row product">
-    <script type="application/ld+json">{{ json_ld_product_data|safe }}</script>
+    <div id="product-schema-component">
+      <script type="application/ld+json">{{ json_ld_product_data|safe }}</script>
+    </div>
     <div class="col-md-6 col-12 product__gallery">
       {% with images=product_images %}
         {% if images %}

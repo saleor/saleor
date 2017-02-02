@@ -11,6 +11,7 @@ import passwordVisible from '../images/pass-visible.svg';
 
 import VariantPicker from './components/variantPicker/VariantPicker';
 import VariantPrice from './components/variantPicker/VariantPrice';
+import ProductSchema from './components/variantPicker/ProductSchema';
 
 let csrftoken = $.cookie('csrftoken');
 
@@ -115,7 +116,7 @@ $(function() {
   });
 });
 
-// Input Passwords 
+// Input Passwords
 
 let $inputPassword = $('input[type=password]');
 $("<img class='passIcon' src="+passwordIvisible+" />").insertAfter($inputPassword);
@@ -257,6 +258,20 @@ if (variantPickerContainer) {
     );
   }
 }
+
+// Product Schema
+const productSchemaContainer = document.getElementById('product-schema-component');
+if (productSchemaContainer) {
+  let productSchema = JSON.parse(document.getElementById('product-schema-component').children[0].text)
+  ReactDOM.render(
+    <ProductSchema
+      variantStore={variantPickerStore}
+      productSchema={productSchema}
+    />,
+    productSchemaContainer
+  );
+}
+
 
 // Account delete address bar
 
