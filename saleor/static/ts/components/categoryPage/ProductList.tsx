@@ -1,17 +1,17 @@
-import React, { Component, PropTypes } from 'react';
-import Relay from 'react-relay';
+import * as React from 'react';
+import * as Relay from 'react-relay';
 
 import ProductItem from './ProductItem';
 import NoResults from './NoResults';
 
-class ProductList extends Component {
+interface ProductListProps {
+  onLoadMore(): any;
+  products: any;
+  setSorting: any;
+};
 
-  static propTypes = {
-    onLoadMore: PropTypes.func.isRequired,
-    products: PropTypes.object,
-    setSorting: PropTypes.object
-  };
 
+class ProductList extends React.Component<ProductListProps, {}> {
   onLoadMore = () => this.props.onLoadMore();
   setSorting = (event) => this.props.setSorting(event);
 

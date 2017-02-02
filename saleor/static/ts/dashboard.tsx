@@ -1,5 +1,5 @@
 import Dropzone from 'dropzone';
-import $ from 'jquery';
+import * as $ from 'jquery';
 import 'materialize-css/dist/js/materialize';
 import 'select2';
 import Sortable from 'sortablejs';
@@ -92,7 +92,7 @@ $(document).ready(function() {
   let $tabs = $('ul.tabs');
   if ($tabs.length) {
     $tabs.find('.tab').on('click', function (e) {
-      window.history.pushState(null, null, e.target.hash);
+      window.history.pushState(null, null, (e.target as HTMLAnchorElement).hash);
       let tabSelector = $(this).find('a').attr('href');
       $('.btn-fab').addClass('btn-fab-hidden');
       $(tabSelector + '-btn').removeClass('btn-fab-hidden');
@@ -167,14 +167,14 @@ Dropzone.options.productImageForm = {
       $(e.previewElement).find('.product-gallery-item-desc').html(response.image);
       $(e.previewElement).attr('data-id', response.id);
       let editLinkHref = $(e.previewElement).find('.card-action-edit').attr('href');
-      editLinkHref = editLinkHref.split('/');
-      editLinkHref[editLinkHref.length - 2] = response.id;
-      $(e.previewElement).find('.card-action-edit').attr('href', editLinkHref.join('/'));
+      let editLinkHrefParts = editLinkHref.split('/');
+      editLinkHrefParts[editLinkHrefParts.length - 2] = response.id;
+      $(e.previewElement).find('.card-action-edit').attr('href', editLinkHrefParts.join('/'));
       $(e.previewElement).find('.card-action-edit').show();
       let deleteLinkHref = $(e.previewElement).find('.card-action-delete').attr('data-href');
-      deleteLinkHref = deleteLinkHref.split('/');
-      deleteLinkHref[deleteLinkHref.length - 3] = response.id;
-      $(e.previewElement).find('.card-action-delete').attr('data-href', deleteLinkHref.join('/'));
+      let deleteLinkHrefParts = deleteLinkHref.split('/');
+      deleteLinkHrefParts[deleteLinkHrefParts.length - 3] = response.id;
+      $(e.previewElement).find('.card-action-delete').attr('data-href', deleteLinkHrefParts.join('/'));
       $(e.previewElement).find('.card-action-delete').show();
       $('.no-images').addClass('hide');
       openModal();

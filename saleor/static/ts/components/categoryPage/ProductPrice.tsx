@@ -1,7 +1,12 @@
-import React, { PropTypes } from 'react';
-import Relay from 'react-relay';
+import * as React from 'react';
+import * as Relay from 'react-relay';
 
-const ProductPrice = ({ availability, price }) => {
+interface ProductPriceProps {
+  availability: any;
+  price: any;
+};
+
+const ProductPrice = ({ availability, price }: ProductPriceProps) => {
   const { discount, priceRange } = availability;
   const isPriceRange = priceRange && priceRange.minPrice.gross !== priceRange.maxPrice.gross;
   const gross = isPriceRange ? priceRange.minPrice.grossLocalized : price.grossLocalized;
@@ -15,11 +20,6 @@ const ProductPrice = ({ availability, price }) => {
       )}
     </div>
   );
-};
-
-ProductPrice.propTypes = {
-  availability: PropTypes.object.isRequired,
-  price: PropTypes.object.isRequired
 };
 
 export default Relay.createContainer(ProductPrice, {

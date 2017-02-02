@@ -1,14 +1,13 @@
 import { observer } from 'mobx-react';
-import React, { Component, PropTypes } from 'react';
+import * as React from 'react';
+
+interface VariantPriceProps {
+  availability: any;
+  store?: any;
+};
 
 @observer
-export default class VariantPrice extends Component {
-
-  static propTypes = {
-    availability: PropTypes.object.isRequired,
-    store: PropTypes.object
-  }
-
+export default class VariantPrice extends React.Component<VariantPriceProps, {}> {
   render() {
     let priceText, priceUndiscountedText, priceLocalCurrency, isDiscount;
     const { availability, store } = this.props;

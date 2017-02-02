@@ -1,21 +1,25 @@
-import React, { Component, PropTypes } from 'react';
-import InlineSVG from 'react-inlinesvg';
+import * as React from 'react';
+import * as InlineSVG from 'react-inlinesvg';
 
-import arrowUpIcon from '../../../images/arrow-up-icon.svg';
-import arrowDownIcon from '../../../images/arrow-down-icon.svg';
+let arrowUpIcon = require<string>('../../../images/arrow-up-icon.svg');
+let arrowDownIcon = require<string>('../../../images/arrow-down-icon.svg');
 
-export default class sortBy extends Component {
+interface SortByProps {
+  setSorting(value: any): any;
+  sortedValue?: string;
+};
+
+interface SortByState {
+  visibility: boolean;
+};
+
+export default class SortBy extends React.Component<SortByProps, SortByState> {
 
   constructor(props) {
     super(props);
     this.state = {
       visibility: false
     };
-  }
-
-  static propTypes = {
-    setSorting: PropTypes.func,
-    sortedValue: PropTypes.string
   }
 
   setSorting = (event) => {

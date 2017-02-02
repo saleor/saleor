@@ -1,4 +1,4 @@
-import queryString from 'query-string';
+import * as queryString from 'query-string';
 
 export const getFromQuery = (key, defaultValue = null) => {
   let value = queryString.parse(location.search)[key];
@@ -12,14 +12,13 @@ export const getAttributesFromQuery = (exclude) => {
   let attributes = [];
   Object.keys(urlParams).forEach(key => {
     if (exclude.indexOf(key) === -1) {
-      if (Array.isArray(urlParams[key])) {
-        const values = urlParams[key];
-        values.map((valueSlug) => {
+      let value = urlParams[key];
+      if (Array.isArray(value)) {
+        value.map((valueSlug) => {
           attributes.push(`${key}:${valueSlug}`);
         });
       } else {
-        const valueSlug = urlParams[key];
-        attributes.push(`${key}:${valueSlug}`);
+        attributes.push(`${key}:${value}`);
       }
     }
   });

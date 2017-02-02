@@ -1,13 +1,13 @@
-import React, { Component, PropTypes } from 'react';
-import Relay from 'react-relay';
+import * as React from 'react';
+import * as Relay from 'react-relay';
 
 import ProductPrice from './ProductPrice';
 
-class ProductItem extends Component {
+interface ProductItemProps {
+  product: any;
+};
 
-  static propTypes = {
-    product: PropTypes.object
-  };
+class ProductItem extends React.Component<ProductItemProps, {}> {
 
   render() {
     const { product } = this.props;

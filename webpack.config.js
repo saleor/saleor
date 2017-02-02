@@ -14,8 +14,6 @@ var commonsChunkPlugin = new webpack.optimize.CommonsChunkPlugin({
   names: 'vendor'
 });
 
-var occurenceOrderPlugin = new webpack.optimize.OccurenceOrderPlugin();
-
 var extractTextPlugin = new ExtractTextPlugin('[name].[contenthash].css');
 
 var providePlugin = new webpack.ProvidePlugin({
@@ -29,11 +27,10 @@ var providePlugin = new webpack.ProvidePlugin({
 
 var config = {
   entry: {
-    category: './saleor/static/js/category.js',
-    dashboard: './saleor/static/js/dashboard.js',
-    storefront: './saleor/static/js/storefront.js',
+    category: './saleor/static/ts/category.tsx',
+    dashboard: './saleor/static/ts/dashboard.tsx',
+    storefront: './saleor/static/ts/storefront.tsx',
     vendor: [
-      'babel-es6-polyfill',
       'bootstrap',
       'jquery',
       'jquery.cookie',
@@ -46,27 +43,37 @@ var config = {
     filename: '[name].[chunkhash].js'
   },
   module: {
-    loaders: [
+    rules: [
       {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        loader: 'babel'
+        test: /\.tsx?$/,
+        use: [
+          'babel-loader',
+          'awesome-typescript-loader'
+        ]
       },
       {
-        test: /\.json$/,
-        loader: 'json'
+        test: /\.js$/,
+        enforce: 'pre',
+        loader: 'source-map-loader'
       },
       {
         test: /\.scss$/,
         loader: ExtractTextPlugin.extract([
-          'css?sourceMap',
-          'postcss',
-          'sass'
+          'css-loader?sourceMap',
+          {
+            loader: 'postcss-loader',
+            options: {
+              plugins: function () {
+                return [autoprefixer];
+              }
+            }
+          },
+          'sass-loader?sourceMap'
         ])
       },
       {
         test: /\.(eot|otf|png|svg|jpg|ttf|woff|woff2)(\?v=[0-9.]+)?$/,
-        loader: 'url?name=[name].[hash].[ext]',
+        loader: 'url-loader?name=[name].[hash].[ext]',
         include: [
           resolve('node_modules'),
           resolve('saleor/static/fonts'),
@@ -80,19 +87,15 @@ var config = {
     bundleTrackerPlugin,
     commonsChunkPlugin,
     extractTextPlugin,
-    occurenceOrderPlugin,
     providePlugin
   ],
-  postcss: function() {
-    return [autoprefixer];
-  },
   resolve: {
     alias: {
       'jquery': resolve('node_modules/jquery/dist/jquery.js')
-    }
-  },
-  sassLoader: {
-    sourceMap: true
+    },
+    extensions: [
+      '.tsx', '.ts', '.js'
+    ]
   }
 };
 

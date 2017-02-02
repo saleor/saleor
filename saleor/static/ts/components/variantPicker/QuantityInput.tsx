@@ -1,14 +1,13 @@
 import classNames from 'classnames';
-import React, { Component, PropTypes } from 'react';
+import * as React from 'react';
 
-export default class QuantityInput extends Component {
+interface QuantityInputProps {
+  errors?: [any];
+  handleChange(event: any): any;
+  quantity: number;
+};
 
-  static propTypes = {
-    errors: PropTypes.array,
-    handleChange: PropTypes.func.isRequired,
-    quantity: PropTypes.number.isRequired
-  }
-
+export default class QuantityInput extends React.Component<QuantityInputProps, {}> {
   render() {
     const { errors, quantity } = this.props;
     const formGroupClasses = classNames({
@@ -21,7 +20,7 @@ export default class QuantityInput extends Component {
         <label className="control-label product__variant-picker__label" htmlFor="id_quantity">{gettext('Quantity')}</label>
         <input
           className="form-control"
-          defaultValue={quantity}
+          defaultValue={quantity.toString()}
           id="id_quantity"
           max="999"
           min="0"

@@ -1,6 +1,13 @@
-import React, { PropTypes } from 'react';
+import * as React from 'react';
 
-const AttributeInput = ({attribute, checked, onClick, value}) => {
+interface AttributeInputProps {
+  checked?: boolean;
+  attribute: any;
+  value: any;
+  onClick(name: string, value: any): any;
+};
+
+const AttributeInput = ({attribute, checked, onClick, value}: AttributeInputProps) => {
   const handleChange = (event) => {
     const { name, value } = event.target;
     onClick(name, value);
@@ -18,13 +25,6 @@ const AttributeInput = ({attribute, checked, onClick, value}) => {
       {value.display}
     </label>
   );
-};
-
-AttributeInput.propTypes = {
-  checked: PropTypes.bool,
-  attribute: PropTypes.object.isRequired,
-  value: PropTypes.object.isRequired,
-  onClick: PropTypes.func.isRequired
 };
 
 export default AttributeInput;

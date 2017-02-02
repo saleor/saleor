@@ -1,14 +1,13 @@
-import React, { Component, PropTypes } from 'react';
+import * as React from 'react';
 import classNames from 'classnames';
 
-export default class AttributeSelectionWidget extends Component {
+interface AttributeSelectionWidgetProps {
+  attribute: any;
+  handleChange(attributeId: string, optionId: string): any;
+  selected?: string;
+};
 
-  static propTypes = {
-    attribute: PropTypes.object.isRequired,
-    handleChange: PropTypes.func.isRequired,
-    selected: PropTypes.string
-  };
-
+export default class AttributeSelectionWidget extends React.Component<AttributeSelectionWidgetProps, {}> {
   handleChange = (attrPk, valuePk) => {
     this.props.handleChange(attrPk.toString(), valuePk.toString());
   }

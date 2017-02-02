@@ -1,11 +1,10 @@
-import React, { Component, PropTypes } from 'react';
+import * as React from 'react';
 
-export default class CategoryFilter extends Component {
+interface CategoryFilterProps {
+  category: any;
+};
 
-  static propTypes = {
-    category: PropTypes.object.isRequired
-  }
-
+export default class CategoryFilter extends React.Component<CategoryFilterProps, {}> {
   render() {
     const { category } = this.props;
     const parent = category.ancestors ? category.ancestors[category.ancestors.length - 1] : null;

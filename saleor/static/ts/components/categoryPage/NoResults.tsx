@@ -1,7 +1,7 @@
-import React from 'react';
-import InlineSVG from 'react-inlinesvg';
+import * as React from 'react';
+import * as InlineSVG from 'react-inlinesvg';
 
-import noResultsImg from '../../../images/pirate.svg';
+let noResultsImg = require('../../../images/pirate.svg');
 
 const NoResults = () => {
   return (

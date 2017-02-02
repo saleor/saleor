@@ -1,6 +1,6 @@
-import queryString from 'query-string';
-import React, { Component, PropTypes } from 'react';
-import Relay from 'react-relay';
+import * as queryString from 'query-string';
+import * as React from 'react';
+import * as Relay from 'react-relay';
 
 import CategoryFilter from './CategoryFilter';
 import PriceFilter from './PriceFilter';
@@ -12,13 +12,13 @@ import { ensureAllowedName, getAttributesFromQuery, getFromQuery } from './utils
 const PAGINATE_BY = 20;
 const SORT_BY_FIELDS = ['name', 'price'];
 
-class CategoryPage extends Component {
+interface CategoryPageProps {
+  attributes: [any];
+  category: any;
+  relay: any;
+}
 
-  static propTypes = {
-    attributes: PropTypes.array,
-    category: PropTypes.object,
-    relay: PropTypes.object
-  }
+class CategoryPage extends React.Component<CategoryPageProps, {}> {
 
   incrementProductsCount = () => {
     this.props.relay.setVariables({
