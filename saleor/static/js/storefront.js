@@ -387,3 +387,9 @@ $('input[name=address]').on('change', function(e){
     });
   }
 });
+
+let $countryForm = $('#country-form');
+let $countryFormSelect = $('#country-form select');
+$countryFormSelect.on('change', function(e) {
+  $countryForm.submit();
+});
