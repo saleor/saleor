@@ -94,6 +94,7 @@ context_processors = [
     'saleor.cart.context_processors.cart_counter',
     'saleor.core.context_processors.search_enabled',
     'saleor.site.context_processors.settings',
+    'saleor.core.context_processors.webpage_schema',
 ]
 
 loaders = [
@@ -373,3 +374,7 @@ GRAPHENE = {
 }
 
 SITE_SETTINGS_ID = 1
+
+SITE_ADDRESS = os.environ.get('SITE_ADDRESS', 'localhost:8000')
+SITE_NAME = os.environ.get('SITE_NAME', 'Saleor')
+SITE_DESCRIPTION = 'Shop with unique products and great prices.'
