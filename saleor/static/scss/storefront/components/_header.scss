@@ -101,6 +101,9 @@
             padding: 2rem 1rem 2rem 0;
           }
         }
+        &:hover {
+          text-decoration: none;
+        }
         .cart-label {
           padding-right: $global-padding / 2;
         }
