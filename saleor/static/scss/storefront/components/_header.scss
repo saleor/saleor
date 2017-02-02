@@ -134,10 +134,11 @@
       position: relative;
       .mobile-close-search {
         position: absolute;
-        top: 1.9rem;
-        left: 1rem;
-        max-width: 22px;
         cursor: pointer;
+        padding: $global-padding * 1.9 $global-padding;
+        img {
+          width: 22px;
+        }
       }
       .search-input {
         width: 100%;
