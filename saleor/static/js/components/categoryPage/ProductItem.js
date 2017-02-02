@@ -9,15 +9,33 @@ class ProductItem extends Component {
     product: PropTypes.object
   };
 
+  getSchema = () => {
+    const { product } = this.props;
+    let data = {
+      "@context": "http://schema.org/",
+      "@type": "Product",
+      "name": product.name,
+      "image": product.thumbnailUrl,
+      "offers": {
+        "@type": "Offer",
+        "priceCurrency": product.price.currency,
+        "price": product.price.net,
+      }
+    };
+    return JSON.stringify(data);
+  };
+
   render() {
     const { product } = this.props;
+    let productSchema = this.getSchema();
     return (
-      <div className="col-6 col-md-4 product-list" itemScope itemType="https://schema.org/Product">
-        <a itemProp="url" href={product.url}>
+      <div className="col-6 col-md-4 product-list">
+        <script type="application/ld+json">{productSchema}</script>
+        <a href={product.url}>
           <div className="text-center">
             <div>
-                <img itemProp="image" className="img-responsive" src={product.thumbnailUrl} alt="" />
-                <span className="product-list-item-name" itemProp="name" title={product.name}>{product.name}</span>
+                <img className="img-responsive" src={product.thumbnailUrl} alt="" />
+                <span className="product-list-item-name" title={product.name}>{product.name}</span>
             </div>
             <div className="panel-footer">
               <ProductPrice price={product.price} availability={product.availability} />
