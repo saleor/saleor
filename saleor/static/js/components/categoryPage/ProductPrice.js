@@ -1,6 +1,8 @@
 import React, { PropTypes } from 'react';
 import Relay from 'react-relay';
 
+import SaleImg from '../../../images/sale_bg.svg';
+
 const ProductPrice = ({ availability, price }) => {
   const { discount, priceRange } = availability;
   const isPriceRange = priceRange && priceRange.minPrice.gross !== priceRange.maxPrice.gross;
@@ -11,7 +13,7 @@ const ProductPrice = ({ availability, price }) => {
         {isPriceRange && <span>{gettext('from')} </span>} {gross}
       </span>
       {discount && (
-        <div className="product-list__sale"><span>Sale</span></div>
+        <div className="product-list__sale"><img src={SaleImg}/><span>Sale</span></div>
       )}
     </div>
   );

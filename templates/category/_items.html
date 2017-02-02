@@ -17,7 +17,7 @@
                         {% price_range availability.price_range %}
                         {% if availability.discount %}
                             {% if undiscounted.min_price != price_range.min_price %}
-                                <div class="product-list__sale"><span>{% trans "Sale" %}</span></div>
+                                <div class="product-list__sale"><img src="{% static "images/sale_bg.svg" %}"><span>{% trans "Sale" %}</span></div>
                             {% endif %}
                         {% endif %}
                     {% else %}

@@ -19,21 +19,20 @@
     text-transform: uppercase;
   }
   &__sale {
-    clip-path: polygon(0 37%, 37% 0, 100% 0, 0% 100%);
-    background-color: $red;
-    position: absolute;
-    top: 0;
-    left: 15px;
-    width: 55px;
-    height: 55px;
+    img {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
     span {
       position: absolute;
-      top: 7px;
-      left: 3px;
+      top: 0.5rem;
+      left: 0.15rem;
       color: $white;
+      font-size: 0.8rem;
       text-transform: uppercase;
       transform: rotate(-45deg);
-      font-weight: 700;
+      font-weight: 500;
     }
   }
 }
