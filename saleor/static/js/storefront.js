@@ -62,7 +62,6 @@ $(document).ready((e) => {
   $(document).click((e) => {
     $mobileNav.removeClass('open');
   });
-  reviewCheckout();
 });
 
 // Mobile search form
@@ -370,23 +369,21 @@ $closeMsg.on('click', (e) => {
 
 let $reviewSection = $('#review_section');
 let $reviewForCountryUrl = $reviewSection.data('url');
-function reviewCheckout () {
-  $('input[name=address]').on('change', function(e){
-    let address_type = $('form').data('type');
-    let that = this;
-    let address_id = $(that).val();
-    if ($.isNumeric(address_id)) {
-      $.ajax({
-        url: $reviewForCountryUrl,
-        method: 'get',
-        data: {
-          'address_id': address_id,
-          'address_type': address_type,
-        },
-        success: function (response) {
-          $reviewSection.html(response);
-        }
-      });
-    }
-  });
-}
+$('input[name=address]').on('change', function(e){
+  let address_type = $('form').data('type');
+  let that = this;
+  let address_id = $(that).val();
+  if ($.isNumeric(address_id)) {
+    $.ajax({
+      url: $reviewForCountryUrl,
+      method: 'get',
+      data: {
+        'address_id': address_id,
+        'address_type': address_type,
+      },
+      success: function (response) {
+        $reviewSection.html(response);
+      }
+    });
+  }
+});
