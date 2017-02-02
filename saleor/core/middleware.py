@@ -7,6 +7,7 @@ from django_countries.fields import Country
 from . import analytics
 from ..discount.models import Sale
 from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
+from .views import COOKIE_COUNTRY
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,10 @@ class DiscountMiddleware(object):
 class CountryMiddleware(object):
 
     def process_request(self, request):
+        cookie = request.COOKIES.get(COOKIE_COUNTRY)
+        if cookie:
+            request.country = Country(cookie)
+            return
         client_ip = get_client_ip(request)
         if client_ip:
             request.country = get_country_by_ip(client_ip)
