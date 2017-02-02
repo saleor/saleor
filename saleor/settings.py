@@ -96,6 +96,7 @@ context_processors = [
     'saleor.core.context_processors.search_enabled',
     'saleor.site.context_processors.settings',
     'saleor.core.context_processors.webpage_schema',
+    'saleor.core.context_processors.country_form',
 ]
 
 loaders = [
