@@ -2,14 +2,18 @@
 {% load staticfiles %}
 {% load price_range from price_ranges %}
 {% load product_first_image from product_images %}
+{% load product_availability_schema from jsonld %}
 
 {% for product, availability in products %}
-    <div class="col-6 col-lg-3 product-list" itemscope itemtype="https://schema.org/Product">
-        <a itemprop="url" href="{{ product.get_absolute_url }}">
+    <div class="col-6 col-lg-3 product-list">
+        <script type="application/ld+json">
+          {% autoescape off %}{% product_availability_schema product %}{% endautoescape %}
+        </script>
+        <a href="{{ product.get_absolute_url }}">
             <div class="text-center">
                 <div>
-                    <img itemprop="image" class="img-responsive" src="{% product_first_image product method="crop" size="400x400" %}" alt="">
-                    <span class="product-list-item-name" itemprop="name" title="{{ product }}">{{ product }}</span>
+                    <img class="img-responsive" src="{% product_first_image product method="crop" size="400x400" %}" alt="">
+                    <span class="product-list-item-name" title="{{ product }}">{{ product }}</span>
                 </div>
 
                 <div class="panel-footer">
