@@ -68,12 +68,17 @@
     }
     .carousel-item {
       flex-flow: column;
+      img {
+        width: 100%;
+        height: 100%;
+      }
     }
     .carousel-indicators {
       top: 100%;
       width: auto;
       left: 0;
-      margin: 0;
+      display: block;
+      text-align: center;
       li {
         display: inline;
         text-indent: 0;
