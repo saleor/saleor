@@ -64,6 +64,7 @@
                           {% endif %}
                           <form novalidate method="post" action="{% url 'set-country' %}" id="country-form">
                             {% csrf_token %}
+                            <input type="text" hidden name="next" value="{{ request.path }}" />
                             {{ country_form.country }}
                           </form>
                         </ul>
