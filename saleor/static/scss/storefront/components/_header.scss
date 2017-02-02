@@ -163,7 +163,7 @@
         outline: 0;
         @include transition(background, 0.3s)
         img {
-          max-height: 1.5rem;
+          height: 1.5rem;
           padding: $global-padding / 7;
         }
       }
