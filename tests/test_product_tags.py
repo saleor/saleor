@@ -1,5 +1,5 @@
 from mock import Mock
-from django.templatetags.static import static
+from django.contrib.staticfiles.templatetags.staticfiles import static
 from saleor.product.templatetags.product_images import (
     get_thumbnail, product_first_image)
 
@@ -18,7 +18,7 @@ def test_get_thumbnail():
 
 def test_get_thumbnail_no_instance():
     output = get_thumbnail(instance=None, size='10x10', method='crop')
-    assert output == static('/images/product-image-placeholder.png')
+    assert output == static('images/product-image-placeholder.png')
 
 
 def test_product_first_image():
