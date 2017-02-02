@@ -32,7 +32,7 @@ export default class VariantPrice extends Component {
       }
     }
     return (
-      <h2 itemProp="offers" className="product__info__price" itemScope itemType="http://schema.org/Offer">
+      <h2 className="product__info__price">
           <span>{priceText}&nbsp;</span>
           {isDiscount && (
             <small className="product__info__price__undiscounted">{priceUndiscountedText}</small>
