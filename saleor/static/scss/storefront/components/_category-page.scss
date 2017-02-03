@@ -82,9 +82,13 @@
           overflow: hidden;
           border-bottom: solid 1px $gray;
           padding-bottom: $global-padding;
+          .col-6 {
+            div {
+              cursor: pointer;
+            }
+          }
           span {
             &:hover {
-              cursor: pointer;
               text-decoration: underline;
             }
           }
