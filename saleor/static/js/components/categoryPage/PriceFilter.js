@@ -48,7 +48,7 @@ export default class PriceFilter extends Component {
           title={gettext('Price range')}
           visibility={visibility}
         />
-        {visibility && (
+        {visibility || minPrice || maxPrice ? (
           <div>
             <input
               className="form-control"
@@ -71,7 +71,7 @@ export default class PriceFilter extends Component {
             />
             <button className="btn btn-primary" onClick={this.updateFilter}>{gettext('Update')}</button>
           </div>
-        )}
+        ) : (null)}
       </div>
     );
   }
