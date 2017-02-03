@@ -124,7 +124,9 @@ class CategoryPage extends Component {
               <div className="row">
                 <div className="col-6 filters-menu">
                   <span className="filters-menu-label hidden-sm-up" onClick={() => this.setMenu(filtersMenu)}>Filters</span>
-                  <span className="filters-menu-icon"></span>
+                  {variables.attributesFilter.length || variables.minPrice || variables.maxPrice ? (
+                    <span className="filters-menu-icon"></span>
+                  ) : (null)}
                 </div>
                 <div className="col-6">
                   <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting} />
