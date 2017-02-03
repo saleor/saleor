@@ -11,6 +11,15 @@
   .category-top {
     border-bottom: solid 1px $gray;
     padding-bottom: $global-padding;
+    @include media-breakpoint-down(sm) {
+      width: 100%;
+      position: fixed;
+      background: $white;
+      z-index: 3;
+      top: 5.7rem;
+      left: 0;
+      padding-top: $global-padding;
+    }
     .category-breadcrumbs {
       list-style: none;
       padding-left: 0;
@@ -33,6 +42,7 @@
       &-label {
         text-transform: uppercase;
         cursor: pointer;
+        padding-left: $global-padding;
       }
       &-icon {
         display: inline-block;
@@ -46,9 +56,6 @@
     .sort-by {
       text-align: right;
       position: relative;
-      @include media-breakpoint-up(sm) {
-        margin-left: $global-margin*5;
-      }
       button {
         color: $body-color;
         padding-right: $global-padding;
