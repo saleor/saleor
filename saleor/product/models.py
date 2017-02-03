@@ -245,7 +245,7 @@ class ProductVariant(models.Model, Item):
         price = self.price_override or self.product.price
         price = calculate_discounted_price(self.product, price, discounts,
                                            **kwargs)
-        if country:
+        if country and settings.VATLAYER_ACCESS_KEY:
             rate_name = self.product.product_class.vat_rate_type
             vat = get_tax_for_country(country, rate_name)
             if vat:

@@ -315,3 +315,12 @@ def test_variant_price_with_vat(product_in_stock, vat):
     price_with_vat = variant.get_price_per_item(country='AT').quantize(2)
     expected = Price(net=10, gross=11, currency=price_with_vat.currency)
     assert price_with_vat == expected
+
+
+def test_variant_price_without_vatlayer_key(product_in_stock, vat, settings):
+    settings.VATLAYER_ACCESS_KEY = None
+    variant = product_in_stock.variants.first()
+
+    price = variant.get_price_per_item(country='AT').quantize(2)
+    expected = Price(net=10, gross=10, currency=price.currency)
+    assert price == expected
