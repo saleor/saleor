@@ -3,6 +3,7 @@
 {% load i18n %}
 {% load static from staticfiles %}
 {% load render_bundle from webpack_loader %}
+{% load get_thumbnail from product_images %}
 
 {% block title %}{% trans "Your cart" context "Cart page title" %} — {{ block.super }}{% endblock %}
 

@@ -23,8 +23,8 @@ AVAILABLE_SIZES = get_available_sizes()
 
 @register.simple_tag()
 def get_thumbnail(instance, size, method='crop'):
+    size_name = '%s__%s' % (method, size)
     if instance:
-        size_name = '%s__%s' % (method, size)
         if (size_name not in AVAILABLE_SIZES and not
                 settings.VERSATILEIMAGEFIELD_SETTINGS['create_images_on_demand']):
             msg = ('Thumbnail size %s is not defined in settings '
@@ -40,7 +40,7 @@ def get_thumbnail(instance, size, method='crop'):
                              extra={'instance': instance, 'size': size})
         else:
             return thumbnail.url
-    return static('images/product-image-placeholder.png')
+    return static('images/placeholder' + size + '.png')
 
 
 @register.simple_tag()

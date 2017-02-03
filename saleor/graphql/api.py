@@ -50,7 +50,7 @@ class ProductType(DjangoObjectType):
         interfaces = (relay.Node, DjangoPkInterface)
 
     def resolve_thumbnail_url(self, args, context, info):
-        return product_first_image(self, '400x400')
+        return product_first_image(self, '255x255')
 
     def resolve_images(self, args, context, info):
         return self.images.all()
