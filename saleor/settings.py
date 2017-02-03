@@ -242,6 +242,8 @@ LOGIN_REDIRECT_URL = 'home'
 
 GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get('GOOGLE_ANALYTICS_TRACKING_ID')
 
+PAYMENT_HOST = 'saleor.site.utils.get_domain'
+
 PAYMENT_MODEL = 'order.Payment'
 
 PAYMENT_VARIANTS = {
