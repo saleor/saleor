@@ -9,7 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible, smart_text
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
@@ -438,10 +438,8 @@ class Payment(BasePayment):
             currency=settings.DEFAULT_CURRENCY)
             for item in self.order.get_items()]
 
-        # PayPal require discount info as item with negative price.
-        provider, _ = settings.PAYMENT_VARIANTS.get(self.variant, (None, None))
         voucher = self.order.voucher
-        if provider and 'PaypalProvider' in provider and voucher is not None:
+        if voucher is not None:
             items.append(PurchasedItem(
                 name=self.order.discount_name,
                 sku='DISCOUNT',
