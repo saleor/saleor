@@ -73,40 +73,40 @@ Your shop sells Coffee from around the world. Customer can order 1kg, 500g and 2
 
 **Attributes**
 
-* *Name*: Country of origin
-* *Values*: Brazil, Vietnam, Colombia, Indonesia
-
-
-* *Name*: Package size
-* *Values*: 1kg, 500g and 250g
+===================  ==================
+ *Name*               *Values*
+-------------------  ------------------
+Country of origin     Brazil, Vietnam, Colombia, Indonesia
+Package size          1kg, 500g, 250g
+===================  ==================
 
 **Product class**
 
-* *Name*: Coffee
-* *Product Attributes*: Country of origin
-* *Variant Attributes*: Package size
-* *Has variants*: Yes
-* *Is shipping required*: Yes
+========================  =================
+*Name*                    Coffee
+*Product Attributes*      Country of origin
+*Variant Attributes*      Package size
+*Has variants*            Yes
+*Is shipping required*    Yes
+========================  =================
 
 **Product**
 
-* *Product class*: Coffee
-* *Name*: Best Java Coffee
-* *Country of Origin attribute*: Indonesia
-* *Description*: Best coffee found on Java island!
+=============================  =================================
+*Product class*                Coffee
+*Name*                         Best Java Coffee
+*Country of Origin attribute*  Indonesia
+*Description*                  Best coffee found on Java island!
+=============================  =================================
 
 **Variants**
 
-* *Package size attribute*: 1kg
-* *Price*: $20
-
-
-* *Package size attribute*: 500g
-* *Price*: $12
-
-
-* *Package size attribute*: 250g
-* *Price*: $7
+========================  =======
+*Package size attribute*  *Price*
+1kg                        $20
+500g                       $12
+250g                       $7
+========================  =======
 
 
 Example - Online game item
@@ -116,25 +116,27 @@ You have great selection of online games items. Each item is unique, important d
 
 **Attributes**
 
-* *Name*: Game
-* *Values*: Kings Online, War MMO, Target Shooter
-* *Name*: Max attack
-* *Values*: ---
+==========  =====================================
+*Name*      *Values*
+Game        Kings Online, War MMO, Target Shooter
+Max attack  ---
+==========  =====================================
 
 
 **Product class**
 
-* *Name*: Game item
-* *Product Attributes*: Game, Max attack
-* *Variant Attributes*: None
-* *Has variants*: No
-* *Is shipping required*: No
+======================  ================
+*Name*                  Game item
+*Product Attributes*    Game, Max attack
+*Variant Attributes*    None
+*Has variants*          No
+*Is shipping required*  No
+======================  ================
 
 **Product**
 
-* *Product class*: Game item
-* *Name*: Magic Fire Sword
-* *Price*: $199
-* *Game attribute*: Kings Online
-* *Max attack attribute*: 8000 damage
-* *Description*: Unique sword for any fighter. Set your enemies in fire!
+===============  ================  =======  ================  ======================  =======================================================
+*Product class*  *Name*            *Price*  *Game attribute*  *Max attack attribute*  *Description*
+Game item        Magic Fire Sword  $199     Kings Online      8000 damage             Unique sword for any fighter. Set your enemies in fire!
+Game item        Rapid Pistol      $2500    Target Shooter    250 damage              Fastest pistol in whole game.
+===============  ================  =======  ================  ======================  =======================================================
