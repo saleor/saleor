@@ -8,11 +8,19 @@ import ProductFilters from './ProductFilters';
 import ProductList from './ProductList';
 import SortBy from './SortBy';
 import { ensureAllowedName, getAttributesFromQuery, getFromQuery } from './utils';
+import {isMobile} from '../utils';
 
 const PAGINATE_BY = 20;
 const SORT_BY_FIELDS = ['name', 'price'];
 
 class CategoryPage extends Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      filtersMenu: !isMobile()
+    };
+  }
 
   static propTypes = {
     attributes: PropTypes.array,
@@ -29,6 +37,12 @@ class CategoryPage extends Component {
   setSorting = (value) => {
     this.props.relay.setVariables({
       sortBy: value
+    });
+  }
+
+  setMenu = (target) => {
+    this.setState({
+      filtersMenu: !target
     });
   }
 
@@ -90,12 +104,13 @@ class CategoryPage extends Component {
 
   render() {
     const { attributes, category, relay: { variables } } = this.props;
+    const { filtersMenu } = this.state;
     return (
       <div className="category-page">
         <div className="category-top">
           <div className="row">
             <div className="col-md-8">
-              <ul className="category-breadcrumbs">
+              <ul className="category-breadcrumbs hidden-sm-down">
                 <li><a href="/">{gettext('Home')}</a></li>
                   {category.ancestors && (category.ancestors.map((ancestor) => {
                     return (
@@ -106,7 +121,15 @@ class CategoryPage extends Component {
               </ul>
             </div>
             <div className="col-md-4">
-              <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting} />
+              <div className="row">
+                <div className="col-6 filters-menu">
+                  <span className="filters-menu-label hidden-sm-up" onClick={() => this.setMenu(filtersMenu)}>Filters</span>
+                  <span className="filters-menu-icon"></span>
+                </div>
+                <div className="col-6">
+                  <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting} />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -115,19 +138,23 @@ class CategoryPage extends Component {
             <div className="product-filters">
               <CategoryFilter category={category} />
             </div>
-            <h2>{gettext('Filters')}</h2>
-            <div className="product-filters">
-              <ProductFilters
-                attributes={attributes}
-                checkedAttributes={variables.attributesFilter}
-                onFilterChanged={this.updateAttributesFilter}
-              />
-              <PriceFilter
-                onFilterChanged={this.updatePriceFilter}
-                maxPrice={variables.maxPrice}
-                minPrice={variables.minPrice}
-              />
+            {filtersMenu ? (
+            <div>
+              <h2>{gettext('Filters')}</h2>
+              <div className="product-filters">
+                <ProductFilters
+                  attributes={attributes}
+                  checkedAttributes={variables.attributesFilter}
+                  onFilterChanged={this.updateAttributesFilter}
+                />
+                <PriceFilter
+                  onFilterChanged={this.updatePriceFilter}
+                  maxPrice={variables.maxPrice}
+                  minPrice={variables.minPrice}
+                />
+              </div>
             </div>
+            ) : (null)}
           </div>
           <div className="col-md-8 col-lg-9 category-list">
             <div>

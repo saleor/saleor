@@ -29,6 +29,20 @@
           }
       }
     }
+    .filters-menu {
+      &-label {
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+      &-icon {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        background: $blue;
+        margin-left: $global-margin/2;
+        border-radius: 50%;
+      }
+    }
     .sort-by {
       text-align: right;
       position: relative;
