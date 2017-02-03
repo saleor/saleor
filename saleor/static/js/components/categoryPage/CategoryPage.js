@@ -132,9 +132,9 @@ class CategoryPage extends Component {
               <div className="row">
                 <div className="col-6 col-md-2 col-lg-6 filters-menu">
                   <span className="filters-menu-label hidden-sm-up" onClick={() => this.toggleMenu(filtersMenu)}>Filters</span>
-                  {variables.attributesFilter.length || variables.minPrice || variables.maxPrice ? (
+                  {(variables.attributesFilter.length || variables.minPrice || variables.maxPrice) && (
                     <span className="filters-menu-icon hidden-sm-up"></span>
-                  ) : (null)}
+                  )}
                 </div>
                 <div className="col-6 col-md-10 col-lg-6">
                   <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting} />
@@ -148,7 +148,7 @@ class CategoryPage extends Component {
             <div className="product-filters">
               <CategoryFilter category={category} />
             </div>
-            {filtersMenu ? (
+            {filtersMenu && (
             <div>
               <h2>
                 {gettext('Filters')}
@@ -167,7 +167,7 @@ class CategoryPage extends Component {
                 />
               </div>
             </div>
-            ) : (null)}
+            )}
           </div>
           <div className="col-md-8 col-lg-9 category-list">
             <div>
