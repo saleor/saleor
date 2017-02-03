@@ -2,6 +2,7 @@ import pytest
 from mock import Mock
 
 from django.core.urlresolvers import reverse
+from django.conf import settings
 
 from saleor.core.middleware import CountryMiddleware
 from saleor.core.utils import (
@@ -207,4 +208,5 @@ def test_country_middleware_without_cookie():
     request.META = {'HTTP_X_FORWARDED_FOR': '127.0.0.1'}
     request.COOKIES = {}
     country_middleware.process_request(request)
-    assert request.country.code == 'PL'
+    default_country = settings.DEFAULT_COUNTRY
+    assert request.country.code == default_country
