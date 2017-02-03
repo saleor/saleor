@@ -1,4 +1,4 @@
-from unidecode import unidecode
+from text_unidecode import unidecode
 
 from django import forms
 from django.utils.text import slugify
