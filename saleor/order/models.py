@@ -446,7 +446,7 @@ class Payment(BasePayment):
                 name=self.order.discount_name,
                 sku='DISCOUNT',
                 quantity=1,
-                price=-1 * self.order.discount_amount.net,
+                price=-self.order.discount_amount.net,
                 currency=self.currency))
         return items
 
