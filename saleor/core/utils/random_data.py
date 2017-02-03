@@ -20,6 +20,8 @@ from ...product.models import (AttributeChoiceValue, Category, Product,
                                ProductVariant, Stock, StockLocation)
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
 from ...userprofile.models import Address, User
+from ...userprofile.utils import store_user_address
+
 
 fake = Factory.create()
 STOCK_LOCATION = 'default'
@@ -509,3 +511,9 @@ def set_featured_products(how_many=8):
     pks = Product.objects.order_by('?')[:how_many].values_list('pk', flat=True)
     Product.objects.filter(pk__in=pks).update(is_featured=True)
     yield 'Featured products created'
+
+
+def add_address_to_admin(email):
+    address = create_address()
+    user = User.objects.get(email=email)
+    store_user_address(user, address, True, True)
