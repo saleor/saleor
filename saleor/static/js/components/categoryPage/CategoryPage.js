@@ -40,7 +40,7 @@ class CategoryPage extends Component {
     });
   }
 
-  setMenu = (target) => {
+  toggleMenu = (target) => {
     this.setState({
       filtersMenu: !target
     });
@@ -131,7 +131,7 @@ class CategoryPage extends Component {
             <div className="col-md-4">
               <div className="row">
                 <div className="col-6 col-md-2 col-lg-6 filters-menu">
-                  <span className="filters-menu-label hidden-sm-up" onClick={() => this.setMenu(filtersMenu)}>Filters</span>
+                  <span className="filters-menu-label hidden-sm-up" onClick={() => this.toggleMenu(filtersMenu)}>Filters</span>
                   {variables.attributesFilter.length || variables.minPrice || variables.maxPrice ? (
                     <span className="filters-menu-icon hidden-sm-up"></span>
                   ) : (null)}
