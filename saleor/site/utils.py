@@ -3,7 +3,7 @@ from django.conf import settings
 from .models import SiteSettings
 
 
-def get_site_settings(request):
+def get_site_settings_from_request(request):
     # type: (django.http.request.HttpRequest) -> SiteSettings
     """
     Returns site settings. If not found in request, gets one from database.
