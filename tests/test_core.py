@@ -1,4 +1,3 @@
-from http.cookies import SimpleCookie
 import pytest
 from mock import Mock
 
