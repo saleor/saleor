@@ -46,6 +46,14 @@ class CategoryPage extends Component {
     });
   }
 
+  clearFilters = () => {
+    this.props.relay.setVariables({ 
+      attributesFilter: [],
+      minPrice: null,
+      maxPrice: null 
+    });
+  }
+
   updateAttributesFilter = (key) => {
     // Create a new attributesFilter array by cloning the current one to make
     // Relay refetch products with new attributes. Passing the same array (even
@@ -122,13 +130,13 @@ class CategoryPage extends Component {
             </div>
             <div className="col-md-4">
               <div className="row">
-                <div className="col-6 filters-menu">
+                <div className="col-6 col-md-1 filters-menu">
                   <span className="filters-menu-label hidden-sm-up" onClick={() => this.setMenu(filtersMenu)}>Filters</span>
                   {variables.attributesFilter.length || variables.minPrice || variables.maxPrice ? (
-                    <span className="filters-menu-icon"></span>
+                    <span className="filters-menu-icon hidden-sm-up"></span>
                   ) : (null)}
                 </div>
-                <div className="col-6">
+                <div className="col-6 col-md-11">
                   <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting} />
                 </div>
               </div>
@@ -142,7 +150,10 @@ class CategoryPage extends Component {
             </div>
             {filtersMenu ? (
             <div>
-              <h2>{gettext('Filters')}</h2>
+              <h2>
+                {gettext('Filters')}
+                <span className="clear-filters float-right" onClick={this.clearFilters}>{gettext('Clear filters')}</span>
+              </h2>
               <div className="product-filters">
                 <ProductFilters
                   attributes={attributes}

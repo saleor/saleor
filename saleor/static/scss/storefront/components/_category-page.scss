@@ -46,6 +46,9 @@
     .sort-by {
       text-align: right;
       position: relative;
+      @include media-breakpoint-up(sm) {
+        margin-left: $global-margin*5;
+      }
       button {
         color: $body-color;
         padding-right: $global-padding;
@@ -120,9 +123,13 @@
       }
     }
   }
-
-    
-
+  .clear-filters {
+    color: $body-color;
+    font-weight: 400;
+    cursor: pointer;
+    font-size: 0.8rem;
+    line-height: 1.3rem;
+  }
   .product-filters {
     .hide {
       display: none;
