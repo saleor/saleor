@@ -17,20 +17,27 @@ class ImageManager(models.Manager):
 
 
 class ProductImage(models.Model):
-    product = models.ForeignKey(Product, related_name='images')
+    product = models.ForeignKey(
+        Product, related_name='images',
+        verbose_name=pgettext_lazy('Product image field', 'product'))
     image = VersatileImageField(
-        upload_to='products', ppoi_field='ppoi', blank=False)
-    ppoi = PPOIField()
+        upload_to='products', ppoi_field='ppoi', blank=False,
+        verbose_name=pgettext_lazy('Product image field', 'image'))
+    ppoi = PPOIField(verbose_name=pgettext_lazy('Product image field', 'ppoi'))
     alt = models.CharField(
         pgettext_lazy('Product image field', 'short description'),
         max_length=128, blank=True)
-    order = models.PositiveIntegerField(editable=False)
+    order = models.PositiveIntegerField(
+        pgettext_lazy('Product image field', 'order'),
+        editable=False)
 
     objects = ImageManager()
 
     class Meta:
-        ordering = ['order']
+        ordering = ('order', )
         app_label = 'product'
+        verbose_name = pgettext_lazy('Product image model', 'product image')
+        verbose_name_plural = pgettext_lazy('Product image model', 'product images')
 
     def get_ordering_queryset(self):
         return self.product.images.all()
@@ -50,6 +57,15 @@ class ProductImage(models.Model):
 
 
 class VariantImage(models.Model):
-    variant = models.ForeignKey('ProductVariant',
-                                related_name='variant_images')
-    image = models.ForeignKey(ProductImage, related_name='variant_images')
+    variant = models.ForeignKey(
+        'ProductVariant', related_name='variant_images',
+        verbose_name=pgettext_lazy('Variant image field', 'variant'))
+    image = models.ForeignKey(
+        ProductImage, related_name='variant_images',
+        verbose_name=pgettext_lazy('Variant image field', 'image'))
+
+    class Meta:
+        verbose_name = pgettext_lazy(
+            'Variant image model', 'variant image')
+        verbose_name_plural = pgettext_lazy(
+            'Variant image model', 'variant images')

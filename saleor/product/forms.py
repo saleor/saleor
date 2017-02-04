@@ -15,11 +15,12 @@ class VariantChoiceField(forms.ModelChoiceField):
     discounts = None
 
     def label_from_instance(self, obj):
-        attributes = obj.product.product_class.variant_attributes.all()
         variant_label = smart_text(obj)
-        label = '%(variant_label)s - %(price)s' % {
-            'variant_label': variant_label,
-            'price': gross(obj.get_price(discounts=self.discounts))}
+        label = pgettext_lazy(
+            'Variant choice field label',
+            '%(variant_label)s - %(price)s') % {
+                'variant_label': variant_label,
+                'price': gross(obj.get_price(discounts=self.discounts))}
         return label
 
 
