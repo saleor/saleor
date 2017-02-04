@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import npgettext_lazy
 
 from .forms import CustomerSearchForm
 from ..views import staff_member_required
@@ -28,7 +28,10 @@ def customer_list(request):
     else:
         customers = customers.filter(
             orders__status__in=['new', 'payment-pending', 'fully-paid'])
-    title = _('Results (%s)') % len(customers)
+    title = npgettext_lazy(
+        'Customer list page title',
+        '%d result',
+        'Results (%d)') % len(customers)
 
     customers = get_paginator_items(customers, 30, request.GET.get('page'))
     ctx = {'customers': customers, 'form': form, 'title': title,

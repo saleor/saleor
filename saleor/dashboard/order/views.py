@@ -5,7 +5,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from django.views.generic import ListView
 from django_prices.templatetags.prices_i18n import gross
 from prices import Price
@@ -72,7 +72,9 @@ def order_add_note(request, order_pk):
     status = 200
     if form.is_valid():
         form.save()
-        msg = _('Added note')
+        msg = pgettext_lazy(
+            'Dashboard message related to an order',
+            'Added note')
         order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
     elif form.errors:
@@ -92,7 +94,8 @@ def capture_payment(request, order_pk, payment_pk):
                               initial={'amount': amount})
     if form.is_valid() and form.capture():
         amount = form.cleaned_data['amount']
-        msg = _('Captured %(amount)s') % {'amount': gross(amount)}
+        msg = pgettext_lazy(
+            'Dashboard message related to a payment', 'Captured %(amount)s') % {'amount': gross(amount)}
         payment.order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
@@ -112,7 +115,9 @@ def refund_payment(request, order_pk, payment_pk):
                              initial={'amount': amount})
     if form.is_valid() and form.refund():
         amount = form.cleaned_data['amount']
-        msg = _('Refunded %(amount)s') % {'amount': gross(amount)}
+        msg = pgettext_lazy(
+            'Dashboard message related to a payment',
+            'Refunded %(amount)s') % {'amount': gross(amount)}
         payment.order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
@@ -129,7 +134,7 @@ def release_payment(request, order_pk, payment_pk):
     payment = get_object_or_404(order.payments, pk=payment_pk)
     form = ReleasePaymentForm(request.POST or None, payment=payment)
     if form.is_valid() and form.release():
-        msg = _('Released payment')
+        msg = pgettext_lazy('Dashboard message', 'Released payment')
         payment.order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
@@ -151,7 +156,8 @@ def orderline_change_quantity(request, order_pk, line_pk):
     if form.is_valid():
         with transaction.atomic():
             form.save()
-        msg = _(
+        msg = pgettext_lazy(
+            'Dashboard message related to an order line',
             'Changed quantity for product %(product)s from'
             ' %(old_quantity)s to %(new_quantity)s') % {
                 'product': item.product, 'old_quantity': old_quantity,
@@ -181,8 +187,11 @@ def orderline_split(request, order_pk, line_pk):
         with transaction.atomic():
             target_group = form.move_items()
         if not old_group.pk:
-            old_group = _('removed group')
-        msg = _(
+            old_group = pgettext_lazy(
+                'Dashboard message related to a delivery group',
+                'removed group')
+        msg = pgettext_lazy(
+            'Dashboard message related to delivery groups',
             'Moved %(how_many)s items %(item)s from %(old_group)s'
             ' to %(new_group)s') % {
                 'how_many': how_many, 'item': item, 'old_group': old_group,
@@ -204,7 +213,9 @@ def orderline_cancel(request, order_pk, line_pk):
     form = CancelItemsForm(data=request.POST or None, item=item)
     status = 200
     if form.is_valid():
-        msg = _('Cancelled item %s') % item
+        msg = pgettext_lazy(
+            'Dashboard message related to an order line',
+            'Cancelled item %s') % item
         with transaction.atomic():
             form.cancel_item()
             order.create_history_entry(comment=msg, user=request.user)
@@ -225,7 +236,9 @@ def ship_delivery_group(request, order_pk, group_pk):
     if form.is_valid():
         with transaction.atomic():
             form.save()
-        msg = _('Shipped %s') % group
+        msg = pgettext_lazy(
+            'Dashboard message related to a delivery group',
+            'Shipped %s') % group
         messages.success(request, msg)
         group.order.create_history_entry(comment=msg, user=request.user)
         return redirect('dashboard:order-details', order_pk=order_pk)
@@ -245,7 +258,9 @@ def cancel_delivery_group(request, order_pk, group_pk):
     if form.is_valid():
         with transaction.atomic():
             form.cancel_group()
-        msg = _('Cancelled %s') % group
+        msg = pgettext_lazy(
+            'Dashboard message related to a delivery group',
+            'Cancelled %s') % group
         messages.success(request, msg)
         group.order.create_history_entry(comment=msg, user=request.user)
         return redirect('dashboard:order-details', order_pk=order_pk)
@@ -261,10 +276,14 @@ def address_view(request, order_pk, address_type):
     order = Order.objects.get(pk=order_pk)
     if address_type == 'shipping':
         address = order.shipping_address
-        success_msg = _('Updated shipping address')
+        success_msg = pgettext_lazy(
+            'Dashboard message',
+            'Updated shipping address')
     else:
         address = order.billing_address
-        success_msg = _('Updated billing address')
+        success_msg = pgettext_lazy(
+            'Dashboard message',
+            'Updated billing address')
     form = AddressForm(request.POST or None, instance=address)
     status = 200
     if form.is_valid():
@@ -284,7 +303,7 @@ def cancel_order(request, order_pk):
     order = get_object_or_404(Order, pk=order_pk)
     form = CancelOrderForm(request.POST or None, order=order)
     if form.is_valid():
-        msg = _('Cancelled order')
+        msg = pgettext_lazy('Dashboard message', 'Cancelled order')
         with transaction.atomic():
             form.cancel_order()
             order.create_history_entry(comment=msg, user=request.user)
@@ -303,11 +322,11 @@ def remove_order_voucher(request, order_pk):
     order = get_object_or_404(Order, pk=order_pk)
     form = RemoveVoucherForm(request.POST or None, order=order)
     if form.is_valid():
-        msg = _('Removed voucher from Order')
+        msg = pgettext_lazy('Dashboard message', 'Removed voucher from order')
         with transaction.atomic():
             form.remove_voucher()
             order.create_history_entry(comment=msg, user=request.user)
-        messages.success(request, 'Voucher removed')
+        messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400
