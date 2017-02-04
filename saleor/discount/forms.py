@@ -9,7 +9,7 @@ class VoucherField(forms.ModelChoiceField):
     default_error_messages = {
         'invalid_choice': pgettext_lazy(
             'voucher', pgettext_lazy(
-                'voucher', 'Discount code incorrect or expired')),
+                'Voucher form error', 'Discount code incorrect or expired')),
     }
 
 
@@ -17,7 +17,9 @@ class CheckoutDiscountForm(forms.Form):
 
     voucher = VoucherField(
         queryset=Voucher.objects.active(), to_field_name='code',
-        label=pgettext_lazy('voucher', 'Gift card or discount code'),
+        label=pgettext_lazy(
+            'Checkout discount form label for voucher field',
+            'Gift card or discount code'),
         widget=forms.TextInput)
 
     def __init__(self, *args, **kwargs):
