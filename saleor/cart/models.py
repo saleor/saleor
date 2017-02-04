@@ -70,44 +70,52 @@ class Cart(models.Model):
         'open', 'saved', 'payment', 'ordered', 'checkout', 'canceled')
 
     STATUS_CHOICES = (
-        (OPEN, pgettext_lazy('Cart', 'Open - currently active')),
-        (WAITING_FOR_PAYMENT, pgettext_lazy('Cart', 'Waiting for payment')),
+        (OPEN, pgettext_lazy(
+            'Cart status field value', 'Open - currently active')),
+        (WAITING_FOR_PAYMENT, pgettext_lazy(
+            'Cart status field value', 'Waiting for payment')),
         (SAVED, pgettext_lazy(
-            'Cart', 'Saved - for items to be purchased later')),
+            'Cart status field value', 'Saved - for items to be purchased later')),
         (ORDERED, pgettext_lazy(
-            'Cart', 'Submitted - has been ordered at the checkout')),
+            'Cart status field value', 'Submitted - has been ordered at the checkout')),
         (CHECKOUT, pgettext_lazy(
-            'Cart', 'Checkout - basket is processed in checkout')),
+            'Cart status field value', 'Checkout - basket is processed in checkout')),
         (CANCELED, pgettext_lazy(
-            'Cart', 'Canceled - basket was canceled by user'))
+            'Cart status field value', 'Canceled - basket was canceled by user'))
     )
 
     status = models.CharField(
-        pgettext_lazy('Cart', 'order status'),
+        pgettext_lazy('Cart field', 'order status'),
         max_length=32, choices=STATUS_CHOICES, default=OPEN)
     created = models.DateTimeField(
-        pgettext_lazy('Cart', 'created'), auto_now_add=True)
+        pgettext_lazy('Cart field', 'created'), auto_now_add=True)
     last_status_change = models.DateTimeField(
-        pgettext_lazy('Cart', 'last status change'), auto_now_add=True)
+        pgettext_lazy('Cart field', 'last status change'), auto_now_add=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='carts',
-        verbose_name=pgettext_lazy('Cart', 'user'))
-    email = models.EmailField(blank=True, null=True)
-    token = models.UUIDField(pgettext_lazy('Cart', 'token'),
-                             primary_key=True, default=uuid4, editable=False)
-    voucher = models.ForeignKey('discount.Voucher', null=True,
-                                related_name='+', on_delete=models.SET_NULL)
-    checkout_data = JSONField(null=True, editable=False)
+        verbose_name=pgettext_lazy('Cart field', 'user'))
+    email = models.EmailField(pgettext_lazy('Cart field', 'email'), blank=True, null=True)
+    token = models.UUIDField(
+        pgettext_lazy('Cart field', 'token'),
+        primary_key=True, default=uuid4, editable=False)
+    voucher = models.ForeignKey(
+        'discount.Voucher', null=True, related_name='+', on_delete=models.SET_NULL,
+        verbose_name=pgettext_lazy('Cart field', 'token'))
+    checkout_data = JSONField(
+        verbose_name=pgettext_lazy('Cart field', 'checkout data'), null=True, editable=False,)
 
     total = PriceField(
+        pgettext_lazy('Cart field', 'total'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         default=0)
-    quantity = models.PositiveIntegerField(default=0)
+    quantity = models.PositiveIntegerField(pgettext_lazy('Cart field', 'quantity'), default=0)
 
     objects = CartQueryset.as_manager()
 
     class Meta:
         ordering = ('-last_status_change',)
+        verbose_name = pgettext_lazy('Cart model', 'Cart')
+        verbose_name_plural = pgettext_lazy('Cart model', 'Carts')
 
     def __init__(self, *args, **kwargs):
         self.discounts = kwargs.pop('discounts', None)
@@ -217,17 +225,22 @@ class Cart(models.Model):
 @python_2_unicode_compatible
 class CartLine(models.Model, ItemLine):
 
-    cart = models.ForeignKey(Cart, related_name='lines')
+    cart = models.ForeignKey(
+        Cart, related_name='lines',
+        verbose_name=pgettext_lazy('Cart line field', 'cart'))
     variant = models.ForeignKey(
         'product.ProductVariant', related_name='+',
-        verbose_name=pgettext_lazy('Cart line', 'product'))
+        verbose_name=pgettext_lazy('Cart line field', 'product'))
     quantity = models.PositiveIntegerField(
-        pgettext_lazy('Cart line', 'quantity'),
+        pgettext_lazy('Cart line field', 'quantity'),
         validators=[MinValueValidator(0), MaxValueValidator(999)])
-    data = JSONField(blank=True, default={})
+    data = JSONField(
+        blank=True, default={}, verbose_name=pgettext_lazy('Cart line field', 'data'))
 
     class Meta:
         unique_together = ('cart', 'variant', 'data')
+        verbose_name = pgettext_lazy('Cart line model', 'Cart line')
+        verbose_name_plural = pgettext_lazy('Cart line model', 'Cart lines')
 
     def __str__(self):
         return smart_str(self.variant)

@@ -7,7 +7,7 @@ from uuid import UUID
 from django.contrib import messages
 from django.db import transaction
 from django.utils.timezone import now
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from satchless.item import InsufficientStock
 
 from .models import Cart
@@ -73,8 +73,10 @@ def get_category_variants_and_prices(cart, discounted_category):
 
 def check_product_availability_and_warn(request, cart):
     if contains_unavailable_variants(cart):
-        msg = _('Sorry. We don\'t have that many items in stock. '
-                'Quantity was set to maximum available for now.')
+        msg = pgettext_lazy(
+            'Cart warning message',
+            'Sorry. We don\'t have that many items in stock. '
+            'Quantity was set to maximum available for now.')
         messages.warning(request, msg)
         remove_unavailable_variants(cart)
 
