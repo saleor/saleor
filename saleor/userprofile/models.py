@@ -70,6 +70,10 @@ class Address(models.Model):
     def full_name(self):
         return '%s %s' % (self.first_name, self.last_name)
 
+    class Meta:
+        verbose_name = pgettext_lazy('Address model', 'address')
+        verbose_name_plural = pgettext_lazy('Address model', 'addresses')
+
     def __str__(self):
         if self.company_name:
             return '%s - %s' % (self.company_name, self.full_name)
@@ -105,8 +109,10 @@ class UserManager(BaseUserManager):
 
 
 class User(PermissionsMixin, AbstractBaseUser, index.Indexed):
-    email = models.EmailField(unique=True)
-    addresses = models.ManyToManyField(Address, blank=True)
+    email = models.EmailField(pgettext_lazy('User field', 'email'), unique=True)
+    addresses = models.ManyToManyField(
+        Address, blank=True,
+        verbose_name=pgettext_lazy('User field', 'addresses'))
     is_staff = models.BooleanField(
         pgettext_lazy('User field', 'staff status'),
         default=False)
@@ -131,6 +137,10 @@ class User(PermissionsMixin, AbstractBaseUser, index.Indexed):
 
     search_fields = [
         index.SearchField('email')]
+
+    class Meta:
+        verbose_name = pgettext_lazy('User model', 'user')
+        verbose_name_plural = pgettext_lazy('User model', 'users')
 
     def get_full_name(self):
         return self.email

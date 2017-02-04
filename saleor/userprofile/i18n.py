@@ -3,7 +3,7 @@ from collections import defaultdict
 import i18naddress
 from django import forms
 from django.forms.forms import BoundField
-from django.utils.translation import pgettext_lazy
+from django.utils.translation import pgettext_lazy, pgettext
 from django_countries.data import COUNTRIES
 
 from .models import Address
@@ -35,7 +35,9 @@ AREA_TYPE_TRANSLATIONS = {
 
 
 class AddressMetaForm(forms.ModelForm):
-    preview = forms.BooleanField(initial=False, required=False)
+    preview = forms.BooleanField(
+        label=pgettext('Address meta form label', 'preview'),
+        initial=False, required=False)
 
     class Meta:
         model = Address
