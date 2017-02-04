@@ -76,7 +76,6 @@ def test_availability(product_in_stock, monkeypatch, settings):
     monkeypatch.setattr(
         'django_prices_openexchangerates.models.get_rates',
         lambda c: {'PLN': Mock(rate=2)})
-    settings.DEFAULT_CURRENCY = 'USD'
     settings.DEFAULT_COUNTRY = 'PL'
     settings.OPENEXCHANGERATES_API_KEY = 'fake-key'
     availability = get_availability(product_in_stock, local_currency='PLN')
