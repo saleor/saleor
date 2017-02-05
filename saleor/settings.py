@@ -174,6 +174,7 @@ INSTALLED_APPS = [
     'webpack_loader',
     'allauth',
     'allauth.account',
+    'django_countries',
 ]
 
 LOGGING = {
