@@ -535,7 +535,6 @@ def test_cart_page_without_openexchagerates(
 
 def test_cart_page_with_openexchagerates(
         client, monkeypatch, product_in_stock, request_cart, settings):
-    settings.DEFAULT_CURRENCY = 'USD'
     settings.DEFAULT_COUNTRY = 'PL'
     settings.OPENEXCHANGERATES_API_KEY = 'fake-key'
     variant = product_in_stock.variants.get()
