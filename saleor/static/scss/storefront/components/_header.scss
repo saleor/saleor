@@ -25,6 +25,14 @@
         display: inline-block;
         padding: 0 $global-padding / 2;
         line-height: 1.9rem;
+        &:last-child {
+          width: 12rem;
+          select {
+            width: 100%;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+          }
+        }
         a {
           color: $body-color;
           font-size: 0.7rem;
