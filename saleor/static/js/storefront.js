@@ -133,7 +133,7 @@ $('.passIcon').on('click', (e) => {
 
 // Cart dropdown
 
-let summaryLink = '/cart/summary';
+let summaryLink = '/cart/summary/';
 let $cartDropdown = $('.cart-dropdown');
 let $cartIcon = $('.cart__icon');
 let $addToCartError = $('.product__info__form-error small');
