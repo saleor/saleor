@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=128, unique=True, verbose_name='name')),
                 ('slug', models.SlugField(verbose_name='slug')),
-                ('products', models.ManyToManyField(blank=True, to='product.Product')),
+                ('products', models.ManyToManyField(blank=True, related_name='collections', to='product.Product')),
             ],
         ),
     ]
