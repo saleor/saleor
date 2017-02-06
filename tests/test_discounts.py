@@ -6,6 +6,7 @@ from prices import FixedDiscount, FractionalDiscount, Price
 
 from django_prices.templatetags.prices_i18n import net
 
+from saleor.discount.forms import CheckoutDiscountForm
 from saleor.discount.models import NotApplicable, Sale, Voucher
 from saleor.product.models import Product, ProductVariant
 
@@ -166,6 +167,7 @@ def test_product_voucher_checkout_discount_not_applicable(settings,
         discount_value_type=Voucher.DISCOUNT_VALUE_FIXED,
         discount_value=10)
     checkout = Mock(cart=Mock())
+
     with pytest.raises(NotApplicable) as e:
         voucher.get_discount_for_checkout(checkout)
     assert str(e.value) == 'This offer is only valid for selected items.'
@@ -184,6 +186,16 @@ def test_category_voucher_checkout_discount_not_applicable(settings,
     with pytest.raises(NotApplicable) as e:
         voucher.get_discount_for_checkout(checkout)
     assert str(e.value) == 'This offer is only valid for selected items.'
+
+
+def test_invalid_checkout_discount_form(monkeypatch, voucher):
+    checkout = Mock(cart=Mock())
+    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
+    monkeypatch.setattr(
+        'saleor.discount.models.Voucher.get_discount_for_checkout',
+        Mock(side_effect=NotApplicable('Not applicable')))
+    assert not form.is_valid()
+    assert 'voucher' in form.errors
 
 
 @pytest.mark.parametrize(

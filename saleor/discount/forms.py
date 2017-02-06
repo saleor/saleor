@@ -1,4 +1,5 @@
 from django import forms
+from django.utils import six
 from django.utils.translation import pgettext_lazy
 
 from .models import Voucher, NotApplicable
@@ -38,7 +39,7 @@ class CheckoutDiscountForm(forms.Form):
                 discount = voucher.get_discount_for_checkout(self.checkout)
                 cleaned_data['discount'] = discount
             except NotApplicable as e:
-                self.add_error('voucher', unicode(e))
+                self.add_error('voucher', six.text_type(e))
         return cleaned_data
 
     def apply_discount(self):
