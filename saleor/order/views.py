@@ -8,7 +8,7 @@ from django.db import transaction
 from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.utils.translation import ugettext as _
+from django.utils.translation import pgettext_lazy
 
 from payments import RedirectNeeded
 from .forms import PaymentDeleteForm, PaymentMethodsForm, PasswordForm
@@ -79,8 +79,9 @@ def start_payment(request, order, variant):
                 'billing_postcode': billing.postal_code,
                 'billing_country_code': billing.country,
                 'billing_email': order.user_email,
-                'description': _('Order %(order_number)s') % {
-                    'order_number': order},
+                'description': pgettext_lazy(
+                    'Payment description', 'Order %(order_number)s') % {
+                        'order_number': order},
                 'billing_country_area': billing.country_area,
                 'customer_ip_address': get_client_ip(request)}
     variant_choices = settings.CHECKOUT_PAYMENT_CHOICES
@@ -98,8 +99,10 @@ def start_payment(request, order, variant):
             logger.exception('Error communicating with the payment gateway')
             messages.error(
                 request,
-                _('Oops, it looks like we were unable to contact the selected'
-                  ' payment service'))
+                pgettext_lazy(
+                    'Payment gateway error',
+                    'Oops, it looks like we were unable to contact the selected'
+                    ' payment service'))
             payment.change_status('error')
             return redirect('order:payment', token=order.token)
     template = 'order/payment/%s.html' % variant
@@ -149,5 +152,7 @@ def connect_order_with_user(request, token):
         Order.objects.filter(user_email=request.user.email, token=token))
     attach_order_to_user(order, request.user)
     messages.success(
-        request, _('You\'ve successfully connected order with your account'))
+        request, pgettext_lazy(
+            'storefront message',
+            'You\'ve successfully connected order with your account'))
     return redirect('order:details', token=order.token)

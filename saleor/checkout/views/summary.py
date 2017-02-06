@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
+from django.utils.translation import pgettext
 
 from ..forms import (
     AnonymousUserBillingForm, BillingAddressesForm,
@@ -23,7 +24,8 @@ def create_order(checkout):
 def handle_order_placement(request, checkout):
     order, success_redirect = create_order(checkout)
     if not order:
-        messages.warning(request, 'Please review your checkout.')
+        msg = pgettext('Checkout warning', 'Please review your checkout.')
+        messages.warning(request, msg)
     return success_redirect
 
 

@@ -25,3 +25,4 @@ dist/
 /static/
 /saleor/static/assets/
 webpack-bundle.json
+*.mo

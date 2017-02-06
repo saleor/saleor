@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist, NON_FIELD_ERRORS
 from django.conf import settings
-from django.utils.translation import pgettext_lazy, ugettext_lazy
+from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_countries.fields import LazyTypedChoiceField, countries
 from satchless.item import InsufficientStock
 from ..shipping.utils import get_shipment_options
@@ -23,19 +23,24 @@ class AddToCartForm(forms.Form):
     Allows selection of a product variant and quantity.
     The save method adds it to the cart.
     """
-    quantity = QuantityField(label=pgettext_lazy('Form field', 'Quantity'))
+    quantity = QuantityField(label=pgettext_lazy('Add to cart form field label', 'Quantity'))
     error_messages = {
-        'not-available': ugettext_lazy(
+        'not-available': pgettext_lazy(
+            'Add to cart form error',
             'Sorry. This product is currently not available.'
         ),
-        'empty-stock': ugettext_lazy(
+        'empty-stock': pgettext_lazy(
+            'Add to cart form error',
             'Sorry. This product is currently out of stock.'
         ),
-        'variant-does-not-exists': ugettext_lazy(
+        'variant-does-not-exists': pgettext_lazy(
+            'Add to cart form error',
             'Oops. We could not find that product.'
         ),
-        'insufficient-stock': ugettext_lazy(
-            'Only %(remaining)d remaining in stock.'
+        'insufficient-stock': npgettext_lazy(
+            'Add to cart form error',
+            'Only %d remaining in stock.',
+            'Only %d remaining in stock.'
         )
     }
 
@@ -65,9 +70,10 @@ class AddToCartForm(forms.Form):
                 remaining = e.item.get_stock_quantity() - used_quantity
                 if remaining:
                     msg = self.error_messages['insufficient-stock']
+                    self.add_error('quantity', msg % remaining)
                 else:
                     msg = self.error_messages['empty-stock']
-                self.add_error('quantity', msg % {'remaining': remaining})
+                    self.add_error('quantity', msg)
         return cleaned_data
 
     def save(self):
@@ -99,8 +105,7 @@ class ReplaceCartLineForm(AddToCartForm):
             self.variant.check_quantity(quantity)
         except InsufficientStock as e:
             msg = self.error_messages['insufficient-stock']
-            raise forms.ValidationError(msg % {
-                'remaining': e.item.get_stock_quantity()})
+            raise forms.ValidationError(msg % e.item.get_stock_quantity())
         return quantity
 
     def clean(self):
@@ -120,7 +125,9 @@ class ReplaceCartLineForm(AddToCartForm):
 
 class CountryForm(forms.Form):
 
-    country = LazyTypedChoiceField(choices=countries)
+    country = LazyTypedChoiceField(
+        label=pgettext_lazy('Country form field label', 'country'),
+        choices=countries)
 
     def get_shipment_options(self):
         code = self.cleaned_data['country']

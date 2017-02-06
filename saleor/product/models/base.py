@@ -50,6 +50,11 @@ class Category(MPTTModel):
     objects = CategoryManager()
     tree = TreeManager()
 
+    class Meta:
+        verbose_name = pgettext_lazy('Category model', 'category')
+        verbose_name_plural = pgettext_lazy('Category model', 'categories')
+        app_label = 'product'
+
     def __str__(self):
         return self.name
 
@@ -65,10 +70,6 @@ class Category(MPTTModel):
             ancestors = self.get_ancestors()
         nodes = [node for node in ancestors] + [self]
         return '/'.join([node.slug for node in nodes])
-
-    class Meta:
-        verbose_name_plural = 'categories'
-        app_label = 'product'
 
     def set_hidden_descendants(self, hidden):
         self.get_descendants().update(hidden=hidden)
@@ -92,6 +93,10 @@ class ProductClass(models.Model):
         default=False)
 
     class Meta:
+        verbose_name = pgettext_lazy(
+            'Product class model', 'product class')
+        verbose_name_plural = pgettext_lazy(
+            'Product class model', 'product classes')
         app_label = 'product'
 
     def __str__(self):
@@ -117,7 +122,9 @@ class ProductManager(models.Manager):
 
 @python_2_unicode_compatible
 class Product(models.Model, ItemRange, index.Indexed):
-    product_class = models.ForeignKey(ProductClass, related_name='products')
+    product_class = models.ForeignKey(
+        ProductClass, related_name='products',
+        verbose_name=pgettext_lazy('Product field', 'product class'))
     name = models.CharField(
         pgettext_lazy('Product field', 'name'), max_length=128)
     description = models.TextField(
@@ -149,6 +156,8 @@ class Product(models.Model, ItemRange, index.Indexed):
 
     class Meta:
         app_label = 'product'
+        verbose_name = pgettext_lazy('Product model', 'product')
+        verbose_name_plural = pgettext_lazy('Product model', 'products')
 
     def __iter__(self):
         if not hasattr(self, '__variants'):
@@ -200,25 +209,29 @@ class Product(models.Model, ItemRange, index.Indexed):
 @python_2_unicode_compatible
 class ProductVariant(models.Model, Item):
     sku = models.CharField(
-        pgettext_lazy('Variant field', 'SKU'), max_length=32, unique=True)
+        pgettext_lazy('Product variant field', 'SKU'), max_length=32, unique=True)
     name = models.CharField(
-        pgettext_lazy('Variant field', 'variant name'), max_length=100,
+        pgettext_lazy('Product variant field', 'variant name'), max_length=100,
         blank=True)
     price_override = PriceField(
-        pgettext_lazy('Variant field', 'price override'),
+        pgettext_lazy('Product variant field', 'price override'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
     weight_override = WeightField(
-        pgettext_lazy('Variant field', 'weight override'),
+        pgettext_lazy('Product variant field', 'weight override'),
         unit=settings.DEFAULT_WEIGHT, max_digits=6, decimal_places=2,
         blank=True, null=True)
     product = models.ForeignKey(Product, related_name='variants')
     attributes = HStoreField(
-        pgettext_lazy('Variant field', 'attributes'), default={})
-    images = models.ManyToManyField('ProductImage', through='VariantImage')
+        pgettext_lazy('Product variant field', 'attributes'), default={})
+    images = models.ManyToManyField(
+        'ProductImage', through='VariantImage',
+        verbose_name=pgettext_lazy('Product variant field', 'images'))
 
     class Meta:
         app_label = 'product'
+        verbose_name = pgettext_lazy('Product variant model', 'product variant')
+        verbose_name_plural = pgettext_lazy('Product variant model', 'product variants')
 
     def __str__(self):
         return self.name or self.display_variant()
@@ -278,7 +291,7 @@ class ProductVariant(models.Model, Item):
         if values:
             return ', '.join(
                 ['%s: %s' % (smart_text(attributes.get(id=int(key))),
-                              smart_text(value))
+                             smart_text(value))
                  for (key, value) in six.iteritems(values)])
         else:
             return smart_text(self.sku)
@@ -308,7 +321,7 @@ class ProductVariant(models.Model, Item):
 @python_2_unicode_compatible
 class StockLocation(models.Model):
     name = models.CharField(
-        pgettext_lazy('Stock item field', 'location'), max_length=100)
+        pgettext_lazy('Stock location field', 'location'), max_length=100)
 
     def __str__(self):
         return self.name
@@ -371,7 +384,9 @@ class ProductAttribute(models.Model):
         max_length=100)
 
     class Meta:
-        ordering = ['name']
+        ordering = ('name', )
+        verbose_name = pgettext_lazy('Product attribute model', 'product attribute')
+        verbose_name_plural = pgettext_lazy('Product attribute model', 'product attributes')
 
     def __str__(self):
         return self.display
@@ -395,6 +410,14 @@ class AttributeChoiceValue(models.Model):
         validators=[RegexValidator('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')],
         blank=True)
     attribute = models.ForeignKey(ProductAttribute, related_name='values')
+
+    class Meta:
+        verbose_name = pgettext_lazy(
+            'Attribute choice value model',
+            'attribute choices value')
+        verbose_name_plural = pgettext_lazy(
+            'Attribute choice value model',
+            'attribute choices values')
 
     def __str__(self):
         return self.display

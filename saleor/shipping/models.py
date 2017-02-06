@@ -6,22 +6,30 @@ from django.conf import settings
 from django.db import models
 from django.db.models import Q
 from django.utils.encoding import python_2_unicode_compatible
-from django.utils.translation import pgettext_lazy, gettext as _
+from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from prices import PriceRange
 from django_countries import countries
 
 
 ANY_COUNTRY = ''
-ANY_COUNTRY_DISPLAY = _('Rest of World')
+ANY_COUNTRY_DISPLAY = pgettext_lazy('Country choice', 'Rest of World')
 COUNTRY_CODE_CHOICES = [(ANY_COUNTRY, ANY_COUNTRY_DISPLAY)] + list(countries)
 
 
 @python_2_unicode_compatible
 class ShippingMethod(models.Model):
 
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True, default='')
+    name = models.CharField(
+        pgettext_lazy('Shipping method field', 'name'),
+        max_length=100)
+    description = models.TextField(
+        pgettext_lazy('Shipping method field', 'description'),
+        blank=True, default='')
+
+    class Meta:
+        verbose_name = pgettext_lazy('Shipping method model', 'shipping method')
+        verbose_name_plural = pgettext_lazy('Shipping method model', 'shipping methods')
 
     def __str__(self):
         return self.name
@@ -65,20 +73,27 @@ class ShippingMethodCountryQueryset(models.QuerySet):
 class ShippingMethodCountry(models.Model):
 
     country_code = models.CharField(
+        pgettext_lazy('Shipping method country field', 'country code'),
         choices=COUNTRY_CODE_CHOICES, max_length=2, blank=True, default=ANY_COUNTRY)
     price = PriceField(
-        pgettext_lazy('Shipping method region field', 'price'),
+        pgettext_lazy('Shipping method country field', 'price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
-    shipping_method = models.ForeignKey(ShippingMethod, related_name='price_per_country')
+    shipping_method = models.ForeignKey(
+        ShippingMethod, related_name='price_per_country',
+        verbose_name=pgettext_lazy('Shipping method country field', 'shipping method'),)
 
     objects = ShippingMethodCountryQueryset.as_manager()
 
     class Meta:
         unique_together = ('country_code', 'shipping_method')
+        verbose_name = pgettext_lazy(
+            'Shipping method country model', 'shipping method country')
+        verbose_name_plural = pgettext_lazy(
+            'Shipping method country model', 'shipping method countries')
 
     def __str__(self):
         # https://docs.djangoproject.com/en/dev/ref/models/instances/#django.db.models.Model.get_FOO_display  # noqa
-        return "%s %s" % (self.shipping_method, self.get_country_code_display())
+        return '%s %s' % (self.shipping_method, self.get_country_code_display())
 
     def get_total(self):
         return self.price

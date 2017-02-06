@@ -50,7 +50,7 @@ def validate_voucher(view):
                 del checkout.voucher_code
                 checkout.recalculate_discount()
                 msg = pgettext(
-                    'checkout warning',
+                    'Checkout warning',
                     'This voucher has expired. Please review your checkout.')
                 messages.warning(request, msg)
                 return redirect('checkout:summary')

@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from allauth.account.adapter import get_adapter
 from allauth.account.forms import SetPasswordField, UserForm, PasswordField
 from django import forms
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import pgettext
 
 from .i18n import AddressMetaForm, get_address_form_class
 
@@ -37,7 +37,8 @@ def get_address_form(data, country_code, initial=None, instance=None, **kwargs):
 
 
 class SetPasswordForm(forms.Form):
-    password1 = SetPasswordField(label=_('New Password'))
+    password1 = SetPasswordField(
+        label=pgettext('Set password form label', 'New Password'))
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
@@ -51,8 +52,10 @@ class SetPasswordForm(forms.Form):
 
 class ChangePasswordForm(UserForm):
 
-    oldpassword = PasswordField(label=_('Current Password'))
-    password1 = SetPasswordField(label=_('New Password'))
+    oldpassword = PasswordField(
+        label=pgettext('Change password form label', 'Current Password'))
+    password1 = SetPasswordField(
+        label=pgettext('Change password form label', 'New Password'))
 
     def __init__(self, *args, **kwargs):
         super(ChangePasswordForm, self).__init__(*args, **kwargs)
@@ -62,8 +65,10 @@ class ChangePasswordForm(UserForm):
 
     def clean_oldpassword(self):
         if not self.user.check_password(self.cleaned_data.get('oldpassword')):
-            raise forms.ValidationError(_('Please type your current'
-                                          ' password.'))
+            raise forms.ValidationError(
+                pgettext(
+                    'Change password form error',
+                    'Please type your current password.'))
         return self.cleaned_data['oldpassword']
 
     def save(self):

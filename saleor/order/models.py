@@ -9,7 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible, smart_text
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
@@ -60,29 +60,37 @@ class Order(models.Model, ItemSet, index.Indexed):
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='orders',
         verbose_name=pgettext_lazy('Order field', 'user'))
     tracking_client_id = models.CharField(
+        pgettext_lazy('Order field', 'tracking client id'),
         max_length=36, blank=True, editable=False)
     billing_address = models.ForeignKey(
-        Address, related_name='+', editable=False)
+        Address, related_name='+', editable=False,
+        verbose_name=pgettext_lazy('Order field', 'billing address'))
     shipping_address = models.ForeignKey(
-        Address, related_name='+', editable=False, null=True)
+        Address, related_name='+', editable=False, null=True,
+        verbose_name=pgettext_lazy('Order field', 'shipping address'))
     user_email = models.EmailField(
+        pgettext_lazy('Order field', 'user email'),
         blank=True, default='', editable=False)
     token = models.CharField(
         pgettext_lazy('Order field', 'token'), max_length=36, unique=True)
     total_net = PriceField(
-        pgettext_lazy('Order field', 'total'),
+        pgettext_lazy('Order field', 'total net'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
     total_tax = PriceField(
-        pgettext_lazy('Order field', 'total'),
+        pgettext_lazy('Order field', 'total tax'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
     voucher = models.ForeignKey(
-        Voucher, null=True, related_name='+', on_delete=models.SET_NULL)
+        Voucher, null=True, related_name='+', on_delete=models.SET_NULL,
+        verbose_name=pgettext_lazy('Order field', 'voucher'))
     discount_amount = PriceField(
+        verbose_name=pgettext_lazy('Order field', 'discount amount'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
-    discount_name = models.CharField(max_length=255, default='', blank=True)
+    discount_name = models.CharField(
+        verbose_name=pgettext_lazy('Order field', 'discount name'),
+        max_length=255, default='', blank=True)
 
     objects = OrderManager()
 
@@ -94,6 +102,8 @@ class Order(models.Model, ItemSet, index.Indexed):
 
     class Meta:
         ordering = ('-last_status_change',)
+        verbose_name = pgettext_lazy('Order model', 'Order')
+        verbose_name_plural = pgettext_lazy('Order model', 'Orders')
 
     def save(self, *args, **kwargs):
         if not self.token:
@@ -153,8 +163,9 @@ class Order(models.Model, ItemSet, index.Indexed):
         return reverse('order:details', kwargs={'token': self.token})
 
     def get_delivery_total(self):
-        return sum([group.shipping_price for group in self.groups.all()],
-                   Price(0, currency=settings.DEFAULT_CURRENCY))
+        return sum(
+            [group.shipping_price for group in self.groups.all()],
+            Price(0, currency=settings.DEFAULT_CURRENCY))
 
     def send_confirmation_email(self):
         email = self.get_user_current_email()
@@ -163,8 +174,8 @@ class Order(models.Model, ItemSet, index.Indexed):
         context = {'payment_url': payment_url}
 
         emailit.api.send_mail(
-                email, context, 'order/emails/confirm_email',
-                from_email=settings.ORDER_FROM_EMAIL)
+            email, context, 'order/emails/confirm_email',
+            from_email=settings.ORDER_FROM_EMAIL)
 
     def get_last_payment_status(self):
         last_payment = self.payments.last()
@@ -224,9 +235,18 @@ class DeliveryGroup(models.Model, ItemSet):
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=4,
         default=0, editable=False)
     shipping_method_name = models.CharField(
+        pgettext_lazy('Delivery group field', 'shipping method name'),
         max_length=255, null=True, default=None, blank=True, editable=False)
-    tracking_number = models.CharField(max_length=255, default='', blank=True)
-    last_updated = models.DateTimeField(null=True, auto_now=True)
+    tracking_number = models.CharField(
+        pgettext_lazy('Delivery group field', 'tracking number'),
+        max_length=255, default='', blank=True)
+    last_updated = models.DateTimeField(
+        pgettext_lazy('Delivery group field', 'last updated'),
+        null=True, auto_now=True)
+
+    class Meta:
+        verbose_name = pgettext_lazy('Delivery group model', 'Delivery Group')
+        verbose_name_plural = pgettext_lazy('Delivery group model', 'Delivery Groups')
 
     def __str__(self):
         return pgettext_lazy(
@@ -320,38 +340,44 @@ class OrderedItemManager(models.Manager):
 @python_2_unicode_compatible
 class OrderedItem(models.Model, ItemLine):
     delivery_group = models.ForeignKey(
-        DeliveryGroup, related_name='items', editable=False)
+        DeliveryGroup, related_name='items', editable=False,
+        verbose_name=pgettext_lazy('Ordered item field', 'delivery group'))
     product = models.ForeignKey(
         Product, blank=True, null=True, related_name='+',
         on_delete=models.SET_NULL,
-        verbose_name=pgettext_lazy('OrderedItem field', 'product'))
+        verbose_name=pgettext_lazy('Ordered item field', 'product'))
     product_name = models.CharField(
-        pgettext_lazy('OrderedItem field', 'product name'), max_length=128)
-    product_sku = models.CharField(pgettext_lazy('OrderedItem field', 'sku'),
-                                   max_length=32)
+        pgettext_lazy('Ordered item field', 'product name'), max_length=128)
+    product_sku = models.CharField(
+        pgettext_lazy('Ordered item field', 'sku'), max_length=32)
     stock_location = models.CharField(
         pgettext_lazy('OrderedItem field', 'stock location'), max_length=100,
         default='')
-    stock = models.ForeignKey('product.Stock', on_delete=models.SET_NULL,
-                              null=True)
+    stock = models.ForeignKey(
+        'product.Stock', on_delete=models.SET_NULL, null=True,
+        verbose_name=pgettext_lazy('Ordered item field', 'stock'))
     quantity = models.IntegerField(
-        pgettext_lazy('OrderedItem field', 'quantity'),
+        pgettext_lazy('Ordered item field', 'quantity'),
         validators=[MinValueValidator(0), MaxValueValidator(999)])
     unit_price_net = models.DecimalField(
-        pgettext_lazy('OrderedItem field', 'unit price (net)'),
+        pgettext_lazy('Ordered item field', 'unit price (net)'),
         max_digits=12, decimal_places=4)
     unit_price_gross = models.DecimalField(
-        pgettext_lazy('OrderedItem field', 'unit price (gross)'),
+        pgettext_lazy('Ordered item field', 'unit price (gross)'),
         max_digits=12, decimal_places=4)
 
     objects = OrderedItemManager()
 
-    def get_price_per_item(self, **kwargs):
-        return Price(net=self.unit_price_net, gross=self.unit_price_gross,
-                     currency=settings.DEFAULT_CURRENCY)
+    class Meta:
+        verbose_name = pgettext_lazy('Ordered item model', 'Ordered item')
+        verbose_name_plural = pgettext_lazy('Ordered item model', 'Ordered items')
 
     def __str__(self):
         return self.product_name
+
+    def get_price_per_item(self, **kwargs):
+        return Price(net=self.unit_price_net, gross=self.unit_price_gross,
+                     currency=settings.DEFAULT_CURRENCY)
 
     def get_quantity(self):
         return self.quantity
@@ -376,9 +402,16 @@ class PaymentManager(models.Manager):
 
 
 class Payment(BasePayment):
-    order = models.ForeignKey(Order, related_name='payments')
+    order = models.ForeignKey(
+        Order, related_name='payments',
+        verbose_name=pgettext_lazy('Payment field', 'order'))
 
     objects = PaymentManager()
+
+    class Meta:
+        ordering = ('-pk',)
+        verbose_name = pgettext_lazy('Payment model', 'Payment')
+        verbose_name_plural = pgettext_lazy('Payment model', 'Payments')
 
     def get_failure_url(self):
         return build_absolute_uri(
@@ -403,7 +436,7 @@ class Payment(BasePayment):
             quantity=item.quantity,
             price=item.unit_price_gross.quantize(Decimal('0.01')),
             currency=settings.DEFAULT_CURRENCY)
-            for item in self.order.get_items()]
+                 for item in self.order.get_items()]
         return items
 
     def get_total_price(self):
@@ -413,27 +446,36 @@ class Payment(BasePayment):
     def get_captured_price(self):
         return Price(self.captured_amount, currency=self.currency)
 
-    class Meta:
-        ordering = ('-pk',)
-
 
 @python_2_unicode_compatible
 class OrderHistoryEntry(models.Model):
     date = models.DateTimeField(
-        pgettext_lazy('Order field', 'last history change'),
+        pgettext_lazy('Order history entry field', 'last history change'),
         default=now, editable=False)
-    order = models.ForeignKey(Order, related_name='history')
+    order = models.ForeignKey(
+        Order, related_name='history',
+        verbose_name=pgettext_lazy('Order history entry field', 'order'))
     status = models.CharField(
-        pgettext_lazy('Order field', 'order status'),
+        pgettext_lazy('Order history entry field', 'order status'),
         max_length=32, choices=Status.CHOICES)
-    comment = models.CharField(max_length=100, default='', blank=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True)
-
-    def __str__(self):
-        return 'OrderHistoryEntry for Order #%d' % self.order.pk
+    comment = models.CharField(
+        pgettext_lazy('Order history entry field', 'comment'),
+        max_length=100, default='', blank=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, blank=True, null=True,
+        verbose_name=pgettext_lazy('Order history entry field', 'user'))
 
     class Meta:
-        ordering = ['date']
+        ordering = ('date', )
+        verbose_name = pgettext_lazy(
+            'Order history entry model', 'Order history entry')
+        verbose_name_plural = pgettext_lazy(
+            'Order history entry model', 'Order history entries')
+
+    def __str__(self):
+        return pgettext_lazy(
+            'Order history entry str',
+            'OrderHistoryEntry for Order #%d') % self.order.pk
 
 
 @python_2_unicode_compatible
@@ -443,5 +485,11 @@ class OrderNote(models.Model):
     order = models.ForeignKey(Order, related_name='notes')
     content = models.CharField(max_length=250)
 
+    class Meta:
+        verbose_name = pgettext_lazy('Order note model', 'Order note')
+        verbose_name_plural = pgettext_lazy('Order note model', 'Order notes')
+
     def __str__(self):
-        return 'OrderNote for Order #%d' % self.order.pk
+        return pgettext_lazy(
+            'Order note str',
+            'OrderNote for Order #%d' % self.order.pk)
