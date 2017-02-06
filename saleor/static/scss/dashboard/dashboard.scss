@@ -55,14 +55,18 @@ header {
             }
             &:focus {
               background-color: white;
+              & + .search-icon i{
+                color: $primary-color;
+              }
             }
+           
           }
           .search-icon {
             background: transparent;
             border: none;
             position: absolute;
-            right: 0;
-            top: 0.5rem;
+            right: 1.3rem;
+            top: 0.9rem;
             i {
               height: 21px;
               line-height: 1;
@@ -105,6 +109,7 @@ header {
       position: relative;
       top: $header-height/4;
       margin-left: 1rem;
+      z-index: 999;
       i {
         height: $header-height/2;
         line-height: $header-height/2;
