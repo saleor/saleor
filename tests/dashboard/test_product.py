@@ -69,7 +69,7 @@ def test_edit_used_product_class(db):
     product_class = ProductClass.objects.create(name='New class',
                                                 has_variants=True)
     product = Product.objects.create(
-        name='Test product', price=10, weight=1, product_class=product_class)
+        name='Test product', price=10, product_class=product_class)
     ProductVariant.objects.create(product=product, sku='1234')
 
     # When all products have only one variant you can change
@@ -126,7 +126,6 @@ def test_change_attributes_in_product_form(db, product_in_stock,
     new_color = color_value.pk
     data = {'name': product.name,
             'price': product.price.gross,
-            'weight': product.weight,
             'categories': [c.pk for c in product.categories.all()],
             'description': 'description',
             'attribute-author': new_author,

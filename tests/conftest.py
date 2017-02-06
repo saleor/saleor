@@ -135,7 +135,7 @@ def product_in_stock(product_class, default_category):
     attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
 
     product = Product.objects.create(
-        name='Test product', price=Decimal('10.00'), weight=1,
+        name='Test product', price=Decimal('10.00'),
         product_class=product_class, attributes=attributes)
     product.categories.add(default_category)
 

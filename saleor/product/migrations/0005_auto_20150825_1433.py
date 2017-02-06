@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 from django.db import models, migrations
 import django_prices.models
-import saleor.product.models.fields
 
 
 class Migration(migrations.Migration):
@@ -26,7 +25,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='product',
             name='weight',
-            field=saleor.product.models.fields.WeightField(verbose_name='weight', max_digits=6, decimal_places=2, unit='lb'),
+            field=models.DecimalField(verbose_name='weight', max_digits=6, decimal_places=2),
         ),
         migrations.AlterField(
             model_name='productvariant',
@@ -36,7 +35,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='productvariant',
             name='weight_override',
-            field=saleor.product.models.fields.WeightField(verbose_name='weight override', decimal_places=2, blank=True, max_digits=6, unit='lb', null=True),
+            field=models.DecimalField(verbose_name='weight override', decimal_places=2, blank=True, max_digits=6, null=True),
         ),
         migrations.AlterField(
             model_name='stock',

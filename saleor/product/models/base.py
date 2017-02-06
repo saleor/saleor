@@ -20,7 +20,6 @@ from satchless.item import InsufficientStock, Item, ItemRange
 from text_unidecode import unidecode
 
 from ...discount.models import get_variant_discounts
-from .fields import WeightField
 from .utils import get_attributes_display_map
 from ...search import index
 
@@ -135,9 +134,6 @@ class Product(models.Model, ItemRange, index.Indexed):
     price = PriceField(
         pgettext_lazy('Product field', 'price'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
-    weight = WeightField(
-        pgettext_lazy('Product field', 'weight'), unit=settings.DEFAULT_WEIGHT,
-        max_digits=6, decimal_places=2)
     available_on = models.DateField(
         pgettext_lazy('Product field', 'available on'), blank=True, null=True)
     attributes = HStoreField(pgettext_lazy('Product field', 'attributes'),
@@ -217,10 +213,6 @@ class ProductVariant(models.Model, Item):
         pgettext_lazy('Product variant field', 'price override'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         blank=True, null=True)
-    weight_override = WeightField(
-        pgettext_lazy('Product variant field', 'weight override'),
-        unit=settings.DEFAULT_WEIGHT, max_digits=6, decimal_places=2,
-        blank=True, null=True)
     product = models.ForeignKey(Product, related_name='variants')
     attributes = HStoreField(
         pgettext_lazy('Product variant field', 'attributes'), default={})
@@ -235,9 +227,6 @@ class ProductVariant(models.Model, Item):
 
     def __str__(self):
         return self.name or self.display_variant()
-
-    def get_weight(self):
-        return self.weight_override or self.product.weight
 
     def check_quantity(self, quantity):
         available_quantity = self.get_stock_quantity()
