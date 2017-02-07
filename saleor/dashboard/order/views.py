@@ -38,8 +38,8 @@ def order_list(request):
     except EmptyPage:
         page = paginator.page(paginator.num_pages)
 
-    form = OrderFilterForm(request.GET or None,
-                           initial={'status': active_status})
+    form = OrderFilterForm(request.POST or None,
+                           initial={'status': active_status or None})
 
     ctx = {'object_list': page.object_list, 'paginator': paginator,
            'page_obj': page, 'is_paginated': page.has_other_pages(),

@@ -25,7 +25,8 @@ def payment_list(request):
     except EmptyPage:
         page = paginator.page(paginator.num_pages)
 
-    form = PaymentFilterForm(request.GET or None)
+    form = PaymentFilterForm(request.POST or None,
+                             initial={'status': active_status or None})
 
     ctx = {'payments': page.object_list, 'paginator': paginator,
            'page_obj': page, 'is_paginated': page.has_other_pages(),
