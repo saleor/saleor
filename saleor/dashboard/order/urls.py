@@ -4,7 +4,7 @@ from . import views
 
 
 urlpatterns = [
-    url(r'^$', views.OrderListView.as_view(), name='orders'),
+    url(r'^$', views.order_list, name='orders'),
     url(r'^(?P<order_pk>\d+)/$',
         views.order_details, name='order-details'),
     url(r'^(?P<order_pk>\d+)/add-note/$',

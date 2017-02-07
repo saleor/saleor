@@ -1,34 +1,50 @@
 from __future__ import unicode_literals
 
 from django.contrib import messages
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
-from django.views.generic import ListView
 from django_prices.templatetags.prices_i18n import gross
 from prices import Price
 
+from ..order.forms import OrderFilterForm
 from ...order.models import Order, OrderedItem, OrderNote
 from ...userprofile.i18n import AddressForm
-from ..views import (FilterByStatusMixin, StaffMemberOnlyMixin,
-                     staff_member_required)
+from ..views import staff_member_required
 from .forms import (CancelItemsForm, CancelOrderForm, CapturePaymentForm,
                     ChangeQuantityForm, MoveItemsForm, OrderNoteForm,
                     RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm,
                     ShipGroupForm, CancelGroupForm)
 
 
-class OrderListView(StaffMemberOnlyMixin, FilterByStatusMixin, ListView):
-    template_name = 'dashboard/order/list.html'
-    paginate_by = 20
-    model = Order
+@staff_member_required
+def order_list(request):
+    orders = Order.objects.prefetch_related(
+        'groups', 'payments', 'groups__items').all()
 
-    def get_queryset(self):
-        qs = super(OrderListView, self).get_queryset()
-        return qs.prefetch_related(
-            'groups', 'payments', 'groups__items').select_related('user')
+    active_status = request.GET.get('status')
+    if active_status:
+        orders = orders.filter(status=active_status)
+
+    paginator = Paginator(orders, 20)
+    page_number = request.GET.get('page')
+    try:
+        page = paginator.page(page_number)
+    except PageNotAnInteger:
+        page = paginator.page(1)
+    except EmptyPage:
+        page = paginator.page(paginator.num_pages)
+
+    form = OrderFilterForm(request.GET or None,
+                           initial={'status': active_status})
+
+    ctx = {'object_list': page.object_list, 'paginator': paginator,
+           'page_obj': page, 'is_paginated': page.has_other_pages(),
+           'form': form}
+    return TemplateResponse(request, 'dashboard/order/list.html', ctx)
 
 
 @staff_member_required
