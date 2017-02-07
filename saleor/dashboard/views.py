@@ -3,7 +3,6 @@ from django.contrib.admin.views.decorators import \
     staff_member_required as _staff_member_required
 from django.db.models import Q, Sum
 from django.template.response import TemplateResponse
-from django.utils.decorators import method_decorator
 
 from ..order.models import Order, Payment
 from ..product.models import Product
@@ -11,12 +10,6 @@ from ..product.models import Product
 
 def staff_member_required(f):
     return _staff_member_required(f, login_url='account_login')
-
-
-class StaffMemberOnlyMixin(object):
-    @method_decorator(staff_member_required)
-    def dispatch(self, *args, **kwargs):
-        return super(StaffMemberOnlyMixin, self).dispatch(*args, **kwargs)
 
 
 @staff_member_required
