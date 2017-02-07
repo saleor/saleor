@@ -268,7 +268,6 @@ def create_product(**kwargs):
     defaults = {
         'name': fake.company(),
         'price': fake.price(),
-        'weight': fake.random_digit(),
         'description': '\n\n'.join(fake.paragraphs(5))}
     defaults.update(kwargs)
     return Product.objects.create(**defaults)

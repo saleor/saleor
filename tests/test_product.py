@@ -91,11 +91,11 @@ def test_filtering_by_attribute(db, color_attribute):
                                                          has_variants=True)
     product_class_b.variant_attributes.add(color_attribute)
     product_a = models.Product.objects.create(
-        name='Test product a', price=10, weight=1,
+        name='Test product a', price=10,
         product_class=product_class_a)
     models.ProductVariant.objects.create(product=product_a, sku='1234')
     product_b = models.Product.objects.create(
-        name='Test product b', price=10, weight=1,
+        name='Test product b', price=10,
         product_class=product_class_b)
     variant_b = models.ProductVariant.objects.create(product=product_b,
                                                      sku='12345')

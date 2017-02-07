@@ -154,8 +154,6 @@ class ProductVariantForm(forms.ModelForm):
         if self.instance.product.pk:
             self.fields['price_override'].widget.attrs[
                 'placeholder'] = self.instance.product.price.gross
-            self.fields['weight_override'].widget.attrs[
-                'placeholder'] = self.instance.product.weight
 
 
 class CachingModelChoiceIterator(ModelChoiceIterator):
