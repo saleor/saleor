@@ -1,6 +1,8 @@
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.paginator import Paginator, InvalidPage
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
+from django.utils.translation import pgettext_lazy
 
 from ..views import staff_member_required
 from ...order.models import Payment
@@ -17,13 +19,21 @@ def payment_list(request):
         payments = payments.filter(status=active_status)
 
     paginator = Paginator(payments, 30)
-    page_number = request.GET.get('page')
+    page_number = request.GET.get('page') or 1
+    try:
+        page_number = int(page_number)
+    except ValueError:
+        raise Http404(pgettext_lazy(
+            'Dashboard message related to an payments',
+            'Page can not be converted to an int.'))
+
     try:
         page = paginator.page(page_number)
-    except PageNotAnInteger:
-        page = paginator.page(1)
-    except EmptyPage:
-        page = paginator.page(paginator.num_pages)
+    except InvalidPage as err:
+        raise Http404(pgettext_lazy(
+            'Dashboard message related to an payments',
+            'Invalid page (%(page_number)s): %(message)s') % {
+                          'page_number': page_number, 'message': str(err)})
 
     form = PaymentFilterForm(request.POST or None,
                              initial={'status': active_status or None})
