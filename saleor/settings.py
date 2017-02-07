@@ -242,7 +242,12 @@ LOGIN_REDIRECT_URL = 'home'
 
 GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get('GOOGLE_ANALYTICS_TRACKING_ID')
 
-PAYMENT_HOST = 'saleor.site.utils.get_domain'
+
+def get_host():
+    from saleor.site.utils import get_domain
+    return get_domain()
+
+PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = 'order.Payment'
 
