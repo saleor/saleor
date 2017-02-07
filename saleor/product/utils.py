@@ -55,10 +55,19 @@ def products_with_availability(products, discounts, local_currency):
         yield product, get_availability(product, discounts, local_currency)
 
 
-ProductAvailability = namedtuple(
-    'ProductAvailability', (
-        'available', 'price_range', 'price_range_undiscounted', 'discount',
-        'price_range_local_currency', 'discount_local_currency'))
+class ProductAvailability(namedtuple(
+    'ProductAvailability',
+        'available price_range price_range_undiscounted discount price_range_local_currency discount_local_currency')):
+    """ ProductAvailability - contains all information that needed to print price info
+
+    Fields:
+    available -- Boolean True if project is and stock or is available
+    price_range -- PriceRange min and max price of Product Variant
+    price_range_undiscounted -- PriceRange like price_range but without discounts
+    discount -- Price - difference between price_range and price_range_undiscounted min values
+    price_range_local_currency -- PriceRange default None, price_range value in local currency
+    discount_local_currency -- Price default None, discount value in local currency
+    """
 
 
 def get_availability(product, discounts=None, local_currency=None):
