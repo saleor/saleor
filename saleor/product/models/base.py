@@ -19,6 +19,7 @@ from mptt.models import MPTTModel
 from prices import PriceRange
 from satchless.item import InsufficientStock, Item, ItemRange
 from text_unidecode import unidecode
+from typing import Any, Dict, Iterable, Union
 
 from ...discount.models import calculate_discounted_price
 from .utils import get_attributes_display_map
@@ -28,6 +29,7 @@ from ...search import index
 class CategoryManager(Manager):
 
     def prefetch_for_api(self):
+        # type: () -> Iterable[Category]
         return self.get_queryset().prefetch_related(
             'products__images', 'products__variants',
             'products__variants__stock')
@@ -35,6 +37,17 @@ class CategoryManager(Manager):
 
 @python_2_unicode_compatible
 class Category(MPTTModel):
+    """ Class describes product category (e.g shirts), may have parent and children categories
+
+    Fields:
+    name -- name of category
+    slug -- slug for category
+    description -- description
+    parent -- parent Category
+    children -- children Categories
+    hidden -- does category is hidden
+    products -- products in category
+    """
     name = models.CharField(
         pgettext_lazy('Category field', 'name'), max_length=128)
     slug = models.SlugField(
@@ -59,11 +72,13 @@ class Category(MPTTModel):
         return self.name
 
     def get_absolute_url(self, ancestors=None):
+        # type: (Iterable[Category]) -> str
         return reverse('product:category',
                        kwargs={'path': self.get_full_path(ancestors),
                                'category_id': self.id})
 
     def get_full_path(self, ancestors=None):
+        # type: (Iterable[Category]) -> str
         if not self.parent_id:
             return self.slug
         if not ancestors:
@@ -72,11 +87,21 @@ class Category(MPTTModel):
         return '/'.join([node.slug for node in nodes])
 
     def set_hidden_descendants(self, hidden):
+        # type: (bool) -> None
         self.get_descendants().update(hidden=hidden)
 
 
 @python_2_unicode_compatible
 class ProductClass(models.Model):
+    """Class describes common part of multiple products and its variant attributes
+
+    Fields:
+    name -- name of category
+    product_attributes -- Attributes shared with all *product variants*.
+    variant_attributes -- It's what distinguishes different *variants*.
+    is_shipping_required -- Mark as false for *products* which does not need shipping. Could be used for digital products.
+    has_variants --  *product* has different variants
+    """
     name = models.CharField(
         pgettext_lazy('Product class field', 'name'), max_length=128)
     has_variants = models.BooleanField(
@@ -109,19 +134,36 @@ class ProductClass(models.Model):
 
 
 class ProductManager(models.Manager):
+    """Default manager for Product Model"""
 
     def get_available_products(self):
+        # type: () -> Iterable[Category]
         today = datetime.date.today()
         return self.get_queryset().filter(
             Q(available_on__lte=today) | Q(available_on__isnull=True))
 
     def prefetch_for_api(self):
+        # type: () -> Iterable[Product]
         return self.get_queryset().prefetch_related(
             'images', 'categories', 'variants', 'variants__stock')
 
 
 @python_2_unicode_compatible
 class Product(models.Model, ItemRange, index.Indexed):
+    """Model of Product
+
+    Fields:
+    name -- name of category (Char Field, max length 128)
+    slug -- slug for category, (Slug Field, max length 50)
+    description -- description, (Text Field, required False)
+    categories -- product categories
+    price -- product price
+    available_on -- when product will be available
+    attributes -- product attributes
+    updated_at -- last product change
+    is_featured -- product is featured
+    images -- QuerySet of related ProductImages
+    """
     product_class = models.ForeignKey(
         ProductClass, related_name='products',
         verbose_name=pgettext_lazy('Product field', 'product class'))
@@ -157,6 +199,7 @@ class Product(models.Model, ItemRange, index.Indexed):
         verbose_name_plural = pgettext_lazy('Product model', 'products')
 
     def __iter__(self):
+        # type: () -> Iterable[ProductVariant]
         if not hasattr(self, '__variants'):
             setattr(self, '__variants', self.variants.all())
         return iter(getattr(self, '__variants'))
@@ -170,36 +213,44 @@ class Product(models.Model, ItemRange, index.Indexed):
         return self.name
 
     def get_absolute_url(self):
+        # type: () -> str
         return reverse('product:details', kwargs={'slug': self.get_slug(),
                                                   'product_id': self.id})
 
     def get_slug(self):
+        # type: () -> str
         return slugify(smart_text(unidecode(self.name)))
 
     def is_in_stock(self):
+        # type: () -> bool
         return any(variant.is_in_stock() for variant in self)
 
     def get_first_category(self):
+        # type: () -> Union[Category, None]
+        """Return first not hidden category"""
         for category in self.categories.all():
             if not category.hidden:
                 return category
         return None
 
     def is_available(self):
+        # type: () -> bool
         today = datetime.date.today()
         return self.available_on is None or self.available_on <= today
 
     def get_first_image(self):
+        # type: () -> Union[None, 'saleor.product.models.images.ProductImage']
         first_image = self.images.first()
-
         if first_image:
             return first_image.image
         return None
 
     def get_attribute(self, pk):
+        # type: (int) -> str
         return self.attributes.get(smart_text(pk))
 
     def set_attribute(self, pk, value_pk):
+        # type: (Union[int, str], Union[int, str]) -> None
         self.attributes[smart_text(pk)] = smart_text(value_pk)
 
     def get_price_range(self, discounts=None,  **kwargs):
@@ -214,6 +265,16 @@ class Product(models.Model, ItemRange, index.Indexed):
 
 @python_2_unicode_compatible
 class ProductVariant(models.Model, Item):
+    """Product variants - e.g. blue X and white X are variants of product X
+
+    Fields:
+    sku - unique identifier or code that refers to the particular stock keeping unit
+    name - variant name
+    price_override - override product price e.g. blue t-shirt is cheaper
+    product - foreign key to product
+    attributes - variant attributes
+    images - product images
+    """
     sku = models.CharField(
         pgettext_lazy('Product variant field', 'SKU'), max_length=32, unique=True)
     name = models.CharField(
@@ -239,28 +300,41 @@ class ProductVariant(models.Model, Item):
         return self.name or self.display_variant()
 
     def check_quantity(self, quantity):
+        # type: (int) -> None
+        """Raise InsufficientStock if quantity is bigger that available"""
         available_quantity = self.get_stock_quantity()
         if quantity > available_quantity:
             raise InsufficientStock(self)
 
     def get_stock_quantity(self):
+        # type: () -> int
+        """Return maximum quantity available in all stock"""
         if not len(self.stock.all()):
             return 0
         return max([stock.quantity_available for stock in self.stock.all()])
 
     def get_price_per_item(self, discounts=None, **kwargs):
+        # type: (Iterable['saleor.discount.models.Sale'], ...) -> 'prices.Price'
+        """Return price for Product Variant
+
+        Arguments:
+        discounts -- (optional) Queryset of discunts
+        kwargs -- extra parameters for discounts calculation
+        """
         price = self.price_override or self.product.price
         price = calculate_discounted_price(self.product, price, discounts,
                                            **kwargs)
         return price
 
     def get_absolute_url(self):
+        # type: () -> str
         slug = self.product.get_slug()
         product_id = self.product.id
         return reverse('product:details',
                        kwargs={'slug': slug, 'product_id': product_id})
 
     def as_data(self):
+        # type: () -> Dict[str, Any]
         return {
             'product_name': str(self),
             'product_id': self.product.pk,
@@ -268,19 +342,29 @@ class ProductVariant(models.Model, Item):
             'unit_price': str(self.get_price_per_item().gross)}
 
     def is_shipping_required(self):
+        # type: () -> bool
         return self.product.product_class.is_shipping_required
 
     def is_in_stock(self):
+        # type: () -> bool
         return any(
             [stock.quantity_available > 0 for stock in self.stock.all()])
 
     def get_attribute(self, pk):
+        # type: (int) -> str
         return self.attributes.get(smart_text(pk))
 
     def set_attribute(self, pk, value_pk):
+        # type: (int, int) -> None
         self.attributes[smart_text(pk)] = smart_text(value_pk)
 
     def display_variant(self, attributes=None):
+        # type: (django.db.models.QuerySet) -> str
+        """Return string version of variant
+
+        Arguments:
+        attributes -- (optional) attributes that you want print in display
+        """
         if attributes is None:
             attributes = self.product.product_class.variant_attributes.all()
         values = get_attributes_display_map(self, attributes)
@@ -293,14 +377,22 @@ class ProductVariant(models.Model, Item):
             return smart_text(self.sku)
 
     def display_product(self):
+        # type: () -> str
+        """Return display version of product"""
         return '%s (%s)' % (smart_text(self.product),
                             smart_text(self))
 
     def get_first_image(self):
+        # type: () -> 'saleor.product.models.images.ProductImage'
         return self.product.get_first_image()
 
     def select_stockrecord(self, quantity=1):
-        # By default selects stock with lowest cost price
+        # type: (int) -> Union['saleor.product.models.base.Stock', None]
+        """By default selects stock with lowest cost price
+
+        Arguments:
+        quantity -- (optional) How many item you need default: 1
+        """
         stock = filter(
             lambda stock: stock.quantity_available >= quantity,
             self.stock.all())
@@ -309,6 +401,7 @@ class ProductVariant(models.Model, Item):
             return stock[0]
 
     def get_cost_price(self):
+        # type: () -> Union[prices.Price, None]
         stock = self.select_stockrecord()
         if stock:
             return stock.cost_price
@@ -316,6 +409,11 @@ class ProductVariant(models.Model, Item):
 
 @python_2_unicode_compatible
 class StockLocation(models.Model):
+    """Stock Location model
+
+    Fields:
+    name - name of stock location
+    """
     name = models.CharField(
         pgettext_lazy('Stock location field', 'location'), max_length=100)
 
@@ -324,16 +422,38 @@ class StockLocation(models.Model):
 
 
 class StockManager(models.Manager):
+    """Stock Manager"""
 
     def allocate_stock(self, stock, quantity):
+        # type: (Stock, int) -> None
+        """Increase stock allocated quantity
+
+        Arguments:
+        stock -- stock
+        quantity -- quantity of allocate
+        """
         stock.quantity_allocated = F('quantity_allocated') + quantity
         stock.save(update_fields=['quantity_allocated'])
 
     def deallocate_stock(self, stock, quantity):
+        # type: (Stock, int) -> None
+        """Decrease stock allocated quantity
+
+        Arguments:
+        stock -- stock
+        quantity -- quantity of deallocate
+        """
         stock.quantity_allocated = F('quantity_allocated') - quantity
         stock.save(update_fields=['quantity_allocated'])
 
     def decrease_stock(self, stock, quantity):
+        # type: (Stock, int) -> None
+        """Decrease stock quantity and allocated quantity
+
+        Arguments:
+        stock
+        quantity -- quantity of decrease
+        """
         stock.quantity = F('quantity') - quantity
         stock.quantity_allocated = F('quantity_allocated') - quantity
         stock.save(update_fields=['quantity', 'quantity_allocated'])
@@ -341,6 +461,16 @@ class StockManager(models.Manager):
 
 @python_2_unicode_compatible
 class Stock(models.Model):
+    """Product Stock
+
+    Fields:
+    variant -- foreign key to Product Variant
+    location -- foreign key to stock location
+    quantity -- quantity of product in stock. Must by 0 or more
+    quantity_allocated
+    cost_price
+    """
+
     variant = models.ForeignKey(
         ProductVariant, related_name='stock',
         verbose_name=pgettext_lazy('Stock item field', 'variant'))
@@ -367,11 +497,19 @@ class Stock(models.Model):
 
     @property
     def quantity_available(self):
+        # type: () -> int
         return max(self.quantity - self.quantity_allocated, 0)
 
 
 @python_2_unicode_compatible
 class ProductAttribute(models.Model):
+    """Product Attribute e.g. size, color
+
+    Fields:
+    name -- attribute name - slug field
+    display -- field use in string representations
+    values - QuerySet with values of attribute e.g 'x', 'xl' for size
+    """
     name = models.SlugField(
         pgettext_lazy('Product attribute field', 'internal name'),
         max_length=50, unique=True)
@@ -388,14 +526,25 @@ class ProductAttribute(models.Model):
         return self.display
 
     def get_formfield_name(self):
+        # type: () -> str
+        """Return name of form field for product attribute """
         return slugify('attribute-%s' % self.name)
 
     def has_values(self):
+        # type: () -> bool
         return self.values.exists()
 
 
 @python_2_unicode_compatible
 class AttributeChoiceValue(models.Model):
+    """Value of Attribute Choice e.g. X and XL for attribute size
+
+    Fields:
+    display -- this field is used to display value
+    slug -- slug field
+    color -- (optional) color as value
+    attribute -- Foreign Key to Product Attribute
+    """
     display = models.CharField(
         pgettext_lazy('Attribute choice value field', 'display name'),
         max_length=100)

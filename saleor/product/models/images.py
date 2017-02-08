@@ -9,7 +9,10 @@ from .base import Product
 
 
 class ImageManager(models.Manager):
+    """ Default ProductImage Manager """
+
     def first(self):
+        # type: () -> Union(None, saleor.product.models.images.ProductImage)
         try:
             return self.get_queryset()[0]
         except IndexError:
@@ -17,6 +20,17 @@ class ImageManager(models.Manager):
 
 
 class ProductImage(models.Model):
+    """ Product image model
+
+    Fields:
+    product -- foreign key to Product
+    image -- uploaded image
+    ppoi -- Primary Point of Interest
+    alt -- short description
+    order -- order in ProductImage queryset
+
+    objects - instance of ImageManager
+    """
     product = models.ForeignKey(
         Product, related_name='images',
         verbose_name=pgettext_lazy('Product image field', 'product'))
@@ -40,9 +54,12 @@ class ProductImage(models.Model):
         verbose_name_plural = pgettext_lazy('Product image model', 'product images')
 
     def get_ordering_queryset(self):
+        # type: () -> django.db.models.QuerySet
+        """ Return product image in order"""
         return self.product.images.all()
 
     def save(self, *args, **kwargs):
+        # type: (...) -> None
         if self.order is None:
             qs = self.get_ordering_queryset()
             existing_max = qs.aggregate(Max('order'))
@@ -51,12 +68,19 @@ class ProductImage(models.Model):
         super(ProductImage, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
+        # type: (...) -> None
         qs = self.get_ordering_queryset()
         qs.filter(order__gt=self.order).update(order=F('order') - 1)
         super(ProductImage, self).delete(*args, **kwargs)
 
 
 class VariantImage(models.Model):
+    """ Image for Product Variant e.g. photo of blue shirt
+
+    Fields:
+    variant -- foreign key to Product Variant
+    image -- foreign key to Product Image
+    """
     variant = models.ForeignKey(
         'ProductVariant', related_name='variant_images',
         verbose_name=pgettext_lazy('Variant image field', 'variant'))
