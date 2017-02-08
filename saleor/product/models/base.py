@@ -16,6 +16,7 @@ from django.utils import six
 from django_prices.models import PriceField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
+from prices import PriceRange
 from satchless.item import InsufficientStock, Item, ItemRange
 from text_unidecode import unidecode
 
@@ -200,6 +201,12 @@ class Product(models.Model, ItemRange, index.Indexed):
 
     def set_attribute(self, pk, value_pk):
         self.attributes[smart_text(pk)] = smart_text(value_pk)
+
+    def get_price_range(self, **kwargs):
+        if not self.variants.exists():
+            return PriceRange(self.price, self.price)
+        else:
+            return super(Product, self).get_price_range(**kwargs)
 
 
 @python_2_unicode_compatible
