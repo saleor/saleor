@@ -20,7 +20,7 @@ from prices import PriceRange
 from satchless.item import InsufficientStock, Item, ItemRange
 from text_unidecode import unidecode
 
-from ...discount.models import get_variant_discounts
+from ...discount.models import get_product_discounts
 from .utils import get_attributes_display_map
 from ...search import index
 
@@ -202,11 +202,18 @@ class Product(models.Model, ItemRange, index.Indexed):
     def set_attribute(self, pk, value_pk):
         self.attributes[smart_text(pk)] = smart_text(value_pk)
 
-    def get_price_range(self, **kwargs):
+    def get_price_range(self, discounts=None,  **kwargs):
         if not self.variants.exists():
-            return PriceRange(self.price, self.price)
+            price = self.price
+            if discounts:
+                discounts = list(
+                    get_product_discounts(self, discounts, **kwargs))
+                if discounts:
+                    price = min(price | discount for discount in discounts)
+            return PriceRange(price, price)
         else:
-            return super(Product, self).get_price_range(**kwargs)
+            return super(Product, self).get_price_range(
+                discounts=discounts, **kwargs)
 
 
 @python_2_unicode_compatible
@@ -249,7 +256,7 @@ class ProductVariant(models.Model, Item):
         price = self.price_override or self.product.price
         if discounts:
             discounts = list(
-                get_variant_discounts(self, discounts, **kwargs))
+                get_product_discounts(self.product, discounts, **kwargs))
             if discounts:
                 price = min(price | discount for discount in discounts)
         return price

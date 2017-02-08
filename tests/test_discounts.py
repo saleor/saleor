@@ -242,7 +242,7 @@ def test_sale_applies_to_correct_products(product_class):
     sale = Sale.objects.create(name='Test sale', value=5, type=Sale.FIXED)
     sale.products.add(product)
     assert product2 not in sale.products.all()
-    assert sale.modifier_for_variant(variant).amount == Price(net=5,
-                                                              currency='USD')
+    assert sale.modifier_for_product(variant.product).amount == Price(
+        net=5, currency='USD')
     with pytest.raises(NotApplicable):
-        sale.modifier_for_variant(sec_variant)
+        sale.modifier_for_product(sec_variant.product)

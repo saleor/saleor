@@ -285,17 +285,17 @@ class Sale(models.Model):
                     return True
         return False
 
-    def modifier_for_variant(self, variant):
+    def modifier_for_product(self, product):
         discounted_products = [p.pk for p in self.products.all()]
         discounted_categories = list(self.categories.all())
-        if discounted_products and variant.product.pk not in discounted_products:
+        if discounted_products and product.pk not in discounted_products:
             raise NotApplicable(
                 pgettext(
                     'Voucher not applicable',
                     'Discount not applicable for this product'))
         if (discounted_categories and not
-                self._product_has_category_discount(
-                    variant.product, discounted_categories)):
+            self._product_has_category_discount(
+                product, discounted_categories)):
             raise NotApplicable(
                 pgettext(
                     'Voucher not applicable',
@@ -303,9 +303,9 @@ class Sale(models.Model):
         return self.get_discount()
 
 
-def get_variant_discounts(variant, discounts, **kwargs):
+def get_product_discounts(product, discounts, **kwargs):
     for discount in discounts:
         try:
-            yield discount.modifier_for_variant(variant, **kwargs)
+            yield discount.modifier_for_product(product, **kwargs)
         except NotApplicable:
             pass
