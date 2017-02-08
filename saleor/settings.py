@@ -374,5 +374,3 @@ GRAPHENE = {
 }
 
 SITE_SETTINGS_ID = 1
-
-SITE_DESCRIPTION = 'Shop with unique products and great prices.'
