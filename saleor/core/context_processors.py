@@ -42,8 +42,7 @@ def webpage_schema(request):
         '@type': 'WebSite',
         'url': url,
         'name': site_settings.name,
-        'description': settings.SITE_DESCRIPTION,
-    }
+        'description': site_settings.description}
     if bool(settings.SEARCH_BACKENDS):
         data['potentialAction'] = {
             '@type': 'SearchAction',
