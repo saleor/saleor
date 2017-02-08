@@ -1,9 +1,7 @@
 from __future__ import unicode_literals
 
 from django.contrib import messages
-from django.core.paginator import Paginator, InvalidPage
 from django.db import transaction
-from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
@@ -11,6 +9,7 @@ from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
 from prices import Price
 
+from ...core.utils import get_paginator_items
 from ..order.forms import OrderFilterForm
 from ...order.models import Order, OrderedItem, OrderNote
 from ...userprofile.i18n import AddressForm
@@ -30,29 +29,13 @@ def order_list(request):
     if active_status:
         orders = orders.filter(status=active_status)
 
-    paginator = Paginator(orders, 20)
-    page_number = request.GET.get('page') or 1
-    try:
-        page_number = int(page_number)
-    except ValueError:
-        raise Http404(pgettext_lazy(
-            'Dashboard message related to an order',
-            'Page can not be converted to an int.'))
-
-    try:
-        page = paginator.page(page_number)
-    except InvalidPage as e:
-        raise Http404(pgettext_lazy(
-            'Dashboard message related to an order',
-            'Invalid page (%(page_number)s): %(message)s') % {
-            'page_number': page_number, 'message': str(e)})
+    page = get_paginator_items(orders, 20, request.GET.get('page'))
 
     form = OrderFilterForm(request.POST or None,
                            initial={'status': active_status or None})
 
-    ctx = {'object_list': page.object_list, 'paginator': paginator,
-           'page_obj': page, 'is_paginated': page.has_other_pages(),
-           'form': form}
+    ctx = {'object_list': page.object_list, 'page_obj': page,
+           'is_paginated': page.has_other_pages(), 'form': form}
     return TemplateResponse(request, 'dashboard/order/list.html', ctx)
 
 
