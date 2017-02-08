@@ -1,0 +1,106 @@
+# Saleor
+# Copyright (C) 2017 Mirumee Software
+# This file is distributed under the same license as the Saleor package.
+# Mirumee Software <hello@mirumee.com>, 2017.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-02-08 03:52-0600\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: saleor/static/js/components/categoryPage/CategoryFilter.js:18
+msgid "See all"
+msgstr ""
+
+#: saleor/static/js/components/categoryPage/CategoryPage.js:122
+msgid "Home"
+msgstr ""
+
+#: saleor/static/js/components/categoryPage/CategoryPage.js:134
+#: saleor/static/js/components/categoryPage/CategoryPage.js:154
+msgid "Filters"
+msgstr ""
+
+#: saleor/static/js/components/categoryPage/CategoryPage.js:155
+msgid "Clear filters"
+msgstr ""
+
+#: saleor/static/js/components/categoryPage/NoResults.js:11
+msgid "Sorry, no matches found for your request."
+msgstr ""
+
+#: saleor/static/js/components/categoryPage/NoResults.js:12
+msgid "Try again or shop new arrivals."
+msgstr ""
+
+#: saleor/static/js/components/categoryPage/PriceFilter.js:48
+msgid "Price range"
+msgstr ""
+
+#: saleor/static/js/components/categoryPage/PriceFilter.js:58
+#: saleor/static/js/components/categoryPage/ProductPrice.js:13
+msgid "from"
+msgstr ""
+
+#: saleor/static/js/components/categoryPage/PriceFilter.js:68
+msgid "to"
+msgstr ""
+
+#: saleor/static/js/components/categoryPage/PriceFilter.js:72
+msgid "Update"
+msgstr ""
+
+#: saleor/static/js/components/categoryPage/ProductList.js:29
+msgid "Load more"
+msgstr ""
+
+#: saleor/static/js/components/categoryPage/ProductPrice.js:16
+msgid "Sale"
+msgstr ""
+
+#: saleor/static/js/components/categoryPage/SortBy.js:43
+#: saleor/static/js/components/categoryPage/SortBy.js:50
+#: saleor/static/js/components/categoryPage/SortBy.js:57
+#: saleor/static/js/components/categoryPage/SortBy.js:64
+#: saleor/static/js/components/categoryPage/SortBy.js:88
+msgid "Sort by:"
+msgstr ""
+
+#: saleor/static/js/components/categoryPage/SortBy.js:57
+msgid "default"
+msgstr ""
+
+#: saleor/static/js/components/categoryPage/SortBy.js:64
+msgid "Name"
+msgstr ""
+
+#: saleor/static/js/components/categoryPage/SortBy.js:67
+#: saleor/static/js/components/categoryPage/SortBy.js:91
+msgid "ascending"
+msgstr ""
+
+#: saleor/static/js/components/categoryPage/SortBy.js:78
+#: saleor/static/js/components/categoryPage/SortBy.js:102
+msgid "descending"
+msgstr ""
+
+#: saleor/static/js/components/categoryPage/SortBy.js:88
+msgid "Price"
+msgstr ""
+
+#: saleor/static/js/components/variantPicker/QuantityInput.js:21
+msgid "Quantity"
+msgstr ""
+
+#: saleor/static/js/components/variantPicker/VariantPicker.js:112
+msgid "Add to cart"
+msgstr ""
