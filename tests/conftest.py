@@ -171,7 +171,7 @@ def voucher(db):  # pylint: disable=W0613
 def order_with_items(order, product_class):
     group = DeliveryGroup.objects.create(order=order)
     product = Product.objects.create(
-        name='Test product', price=Decimal('10.00'), weight=1,
+        name='Test product', price=Decimal('10.00'),
         product_class=product_class)
 
     OrderedItem.objects.create(
@@ -184,7 +184,7 @@ def order_with_items(order, product_class):
         unit_price_gross=Decimal('10.00'),
     )
     product = Product.objects.create(
-        name='Test product 2', price=Decimal('20.00'), weight=1,
+        name='Test product 2', price=Decimal('20.00'),
         product_class=product_class)
 
     OrderedItem.objects.create(
@@ -197,7 +197,7 @@ def order_with_items(order, product_class):
         unit_price_gross=Decimal('20.00'),
     )
     product = Product.objects.create(
-        name='Test product 3', price=Decimal('30.00'), weight=1,
+        name='Test product 3', price=Decimal('30.00'),
         product_class=product_class)
 
     OrderedItem.objects.create(
