@@ -15,6 +15,7 @@ from geolite2 import geolite2
 from prices import PriceRange
 
 from ...userprofile.models import User
+from ...site.utils import get_site_settings
 
 try:
     from urllib.parse import urljoin
@@ -40,8 +41,7 @@ class CategoryChoiceField(forms.ModelChoiceField):
 
 
 def build_absolute_uri(location, is_secure=False):
-    from django.contrib.sites.models import Site
-    site = Site.objects.get_current()
+    site = get_site_settings()
     host = site.domain
     current_uri = '%s://%s' % ('https' if is_secure else 'http', host)
     location = urljoin(current_uri, location)

@@ -4,8 +4,8 @@
 {% load render_bundle from webpack_loader %}
 
 <html lang="en" class="no-js">
-    <head>    
-        <title>{% block title %}Saleor{% endblock %}</title>
+    <head>
+        <title>{% block title %}{{ settings.name }}{% endblock %}</title>
         {% block meta %}
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,7 +31,7 @@
                   <div class="container">
                     <div class="row">
                       <div class="col-6">
-                        <p class="text-left">{% trans "Test Saleor - a sample shop!" %}</p>
+                        <p class="text-left">{{ settings.header_text }}</p>
                       </div>
                       <div class="col-6">
                         <ul class="float-right">
@@ -42,7 +42,7 @@
                               </li>
                             {% endif %}
                             <li>
-                              <a href="{% url "profile:details" %}">{% trans "Your account" %}</a> 
+                              <a href="{% url "profile:details" %}">{% trans "Your account" %}</a>
                             </li>
                             <li>
                               <a href="{% url "account_logout" %}">{% trans "Log out" %}</a>

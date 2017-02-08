@@ -93,6 +93,7 @@ context_processors = [
     'saleor.core.context_processors.categories',
     'saleor.cart.context_processors.cart_counter',
     'saleor.core.context_processors.search_enabled',
+    'saleor.site.context_processors.settings',
 ]
 
 loaders = [
@@ -127,7 +128,7 @@ MIDDLEWARE_CLASSES = [
     'saleor.core.middleware.DiscountMiddleware',
     'saleor.core.middleware.GoogleAnalytics',
     'saleor.core.middleware.CountryMiddleware',
-    'saleor.core.middleware.CurrencyMiddleware'
+    'saleor.core.middleware.CurrencyMiddleware',
 ]
 
 INSTALLED_APPS = [
@@ -156,6 +157,7 @@ INSTALLED_APPS = [
     'saleor.dashboard',
     'saleor.shipping',
     'saleor.search',
+    'saleor.site',
     'saleor.data_feeds',
 
     # External apps
@@ -239,6 +241,13 @@ ACCOUNT_ACTIVATION_DAYS = 3
 LOGIN_REDIRECT_URL = 'home'
 
 GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get('GOOGLE_ANALYTICS_TRACKING_ID')
+
+
+def get_host():
+    from saleor.site.utils import get_domain
+    return get_domain()
+
+PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = 'order.Payment'
 
@@ -362,3 +371,5 @@ GRAPHENE = {
     'SCHEMA_OUTPUT': os.path.join(
         PROJECT_ROOT, 'saleor', 'static', 'schema.json')
 }
+
+SITE_SETTINGS_ID = 1

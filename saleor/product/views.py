@@ -80,6 +80,8 @@ def product_details(request, slug, product_id, form=None):
 
 
 def product_add_to_cart(request, slug, product_id):
+    # types: (int, str, dict) -> None
+
     if not request.method == 'POST':
         return redirect(reverse(
             'product:details',
