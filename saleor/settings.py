@@ -375,6 +375,4 @@ GRAPHENE = {
 
 SITE_SETTINGS_ID = 1
 
-SITE_ADDRESS = os.environ.get('SITE_ADDRESS', 'localhost:8000')
-SITE_NAME = os.environ.get('SITE_NAME', 'Saleor')
 SITE_DESCRIPTION = 'Shop with unique products and great prices.'

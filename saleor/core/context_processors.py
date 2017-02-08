@@ -5,6 +5,8 @@ import json
 from django.conf import settings
 from django.urls import reverse
 
+from ..core.utils import build_absolute_uri
+from ..site.utils import get_site_settings_from_request
 from ..product.models import Category
 
 
@@ -33,18 +35,18 @@ def search_enabled(request):
 
 
 def webpage_schema(request):
-    # Todo: add editing this data in dashboard
+    site_settings = get_site_settings_from_request(request)
+    url = build_absolute_uri(location='/', site_settings=site_settings)
     data = {
         '@context': 'http://schema.org',
         '@type': 'WebSite',
-        'url': settings.SITE_ADDRESS,
-        'name': settings.SITE_NAME,
+        'url': url,
+        'name': site_settings.name,
         'description': settings.SITE_DESCRIPTION,
     }
     if bool(settings.SEARCH_BACKENDS):
         data['potentialAction'] = {
             '@type': 'SearchAction',
-            'target': '%s%s?q={search_term}' % (settings.SITE_ADDRESS,
-                                                reverse('search:search')),
+            'target': '%s%s?q={search_term}' % (url, reverse('search:search')),
             'query-input': 'required name=search_term'}
     return {'webpage_schema': json.dumps(data)}
