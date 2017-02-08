@@ -8,8 +8,13 @@ from django_prices.templatetags import prices_i18n
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
 from .forms import get_form_class_for_product
-from .models.utils import get_attributes_display_map
 from .models import Product
+from .models.utils import get_attributes_display_map
+
+try:
+    from urllib.parse import urlencode
+except ImportError:
+    from urllib import urlencode
 
 
 def products_visible_to_user(user):
@@ -166,7 +171,7 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
             'pk': attribute.pk,
             'display': attribute.display,
             'name': attribute.name,
-            'values': [{'pk': value.pk, 'display': value.display}
+            'values': [{'pk': value.pk, 'display': value.display, 'slug': value.slug}
                        for value in attribute.values.all()]})
 
     for variant in variants:
@@ -229,3 +234,18 @@ def price_range_as_dict(price_range):
         return None
     return {'maxPrice': price_as_dict(price_range.max_price),
             'minPrice': price_as_dict(price_range.min_price)}
+
+
+def get_variant_url_from_product(product, attributes):
+    return '%s?%s' % (product.get_absolute_url(), urlencode(attributes))
+
+
+def get_variant_url(variant):
+    attributes = {}
+    values = {}
+    for attribute in variant.product.product_class.variant_attributes.all():
+        attributes[str(attribute.pk)] = attribute
+        for value in attribute.values.all():
+            values[str(value.pk)] = value
+
+    return get_variant_url_from_product(variant.product, attributes)
