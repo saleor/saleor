@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import json
 
 from django.conf import settings
-from django.urls import reverse
+from django.core.urlresolvers import reverse
 
 from ..core.utils import build_absolute_uri
 from ..site.utils import get_site_settings_from_request
