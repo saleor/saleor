@@ -39,7 +39,7 @@
           <div class="col-7 cart__line__product">
             <a href="{{ line.variant.get_absolute_url }}">
               {% if line.variant.product.images.first %}
-                  <img itemprop="image" src="{{ line.variant.product.images.first.image.crop.60x60 }}" alt="">
+                  <img src="{{ line.variant.product.images.first.image.crop.60x60 }}" alt="">
               {% else %}
                   <img src="{% static 'images/placeholder60x60.png' %}" alt="">
               {% endif %}

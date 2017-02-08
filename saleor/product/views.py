@@ -14,7 +14,7 @@ from .models import Category
 from .utils import (products_with_details, products_for_cart,
                     handle_cart_form, get_availability,
                     get_product_images, get_variant_picker_data,
-                    get_product_attributes_data)
+                    get_product_attributes_data, product_json_ld)
 
 
 def product_details(request, slug, product_id, form=None):
@@ -66,6 +66,7 @@ def product_details(request, slug, product_id, form=None):
         product, request.discounts, request.currency)
     product_attributes = get_product_attributes_data(product)
     show_variant_picker = all([v.attributes for v in product.variants.all()])
+    json_ld_data = product_json_ld(product, availability, product_attributes)
     return TemplateResponse(
         request, templates,
         {'is_visible': is_visible,
@@ -76,7 +77,9 @@ def product_details(request, slug, product_id, form=None):
          'product_images': product_images,
          'show_variant_picker': show_variant_picker,
          'variant_picker_data': json.dumps(
-             variant_picker_data, default=serialize_decimal)})
+             variant_picker_data, default=serialize_decimal),
+         'json_ld_product_data': json.dumps(
+             json_ld_data, default=serialize_decimal)})
 
 
 def product_add_to_cart(request, slug, product_id):

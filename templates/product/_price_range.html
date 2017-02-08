@@ -1,8 +1,8 @@
 {% load i18n %}
 {% load gross from prices_i18n %}
 
-<span itemprop="offers" itemscope itemtype="https://schema.org/Offer">
-    <span itemprop="price">
+<span>
+    <span>
         {% if price_range.min_price != price_range.max_price %}{% trans "from" %} {% endif %}{% gross price_range.min_price html=True %}
     </span>
 </span>

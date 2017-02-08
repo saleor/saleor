@@ -24,7 +24,7 @@
         <![endif]-->
     </head>
 
-    <body itemscope itemtype="http://schema.org/WebPage">
+    <body>
         {% block header %}
             <header class="navbar" role="navigation">
                 <div class="navbar__login hidden-sm-down">
@@ -209,6 +209,7 @@
             {% render_bundle 'vendor' 'js' %}
             {% render_bundle 'storefront' 'js' %}
         {% endblock footer_scripts %}
+    <script type="application/ld+json">{{ webpage_schema|safe }}</script>
     </body>
 </html>
 
