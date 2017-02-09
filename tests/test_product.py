@@ -5,7 +5,7 @@ from mock import Mock
 from django.core.urlresolvers import reverse
 
 from saleor.cart.models import Cart
-from saleor.cart import utils
+from saleor.cart import CartStatus, utils
 from saleor.product import models
 from saleor.product.utils import get_availability
 from tests.utils import filter_products_by_attribute
@@ -246,7 +246,7 @@ def test_adding_to_cart_with_closed_cart_token(
     cart = Cart.objects.create(user=admin_user)
     variant = product_in_stock.variants.first()
     cart.add(variant, 1)
-    cart.change_status(Cart.ORDERED)
+    cart.change_status(CartStatus.ORDERED)
 
     response = client.get('/cart/')
     utils.set_cart_cookie(cart, response)
@@ -258,6 +258,7 @@ def test_adding_to_cart_with_closed_cart_token(
                         'product_id': product_in_stock.pk}),
         {'quantity': 1, 'variant': variant.pk})
 
-    assert Cart.objects.filter(user=admin_user, status=Cart.OPEN).count() == 1
     assert Cart.objects.filter(
-        user=admin_user, status=Cart.ORDERED).count() == 1
+        user=admin_user, status=CartStatus.OPEN).count() == 1
+    assert Cart.objects.filter(
+        user=admin_user, status=CartStatus.ORDERED).count() == 1

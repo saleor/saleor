@@ -10,6 +10,7 @@ from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from satchless.item import InsufficientStock
 
+from . import CartStatus
 from .models import Cart
 
 COOKIE_NAME = 'cart'
@@ -55,12 +56,12 @@ def get_product_variants_and_prices(cart, product):
     lines = (cart_line for cart_line in cart.lines.all()
              if cart_line.variant.product_id == product.id)
     for line in lines:
-        for i in range(line.quantity):
+        for dummy_i in range(line.quantity):
             yield line.variant, line.get_price_per_item()
 
 
 def get_category_variants_and_prices(cart, discounted_category):
-    products = set((cart_line.variant.product for cart_line in cart.lines.all()))
+    products = {cart_line.variant.product for cart_line in cart.lines.all()}
     discounted_products = []
     for product in products:
         for category in product.categories.all():
@@ -105,7 +106,7 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
                         user=request.user)
                     carts_to_close = carts_to_close.exclude(token=token)
                     carts_to_close.update(
-                        status=Cart.CANCELED, last_status_change=now())
+                        status=CartStatus.CANCELED, last_status_change=now())
                 response.delete_cookie(COOKIE_NAME)
             return response
 
@@ -113,14 +114,13 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
     return get_cart
 
 
-def get_or_create_anonymous_cart_from_token(token,
-                                            cart_queryset=Cart.objects.all()):
+def get_or_create_anonymous_cart_from_token(
+        token, cart_queryset=Cart.objects.all()):
     """Returns open anonymous cart with given token or creates new.
     :type cart_queryset: saleor.cart.models.CartQueryset
     :type token: string
     :rtype: Cart
     """
-
     return cart_queryset.open().filter(token=token, user=None).get_or_create(
         defaults={'user': None})[0]
 

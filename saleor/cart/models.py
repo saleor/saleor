@@ -14,7 +14,7 @@ from django_prices.models import PriceField
 from jsonfield import JSONField
 from satchless.item import ItemLine, ItemList, partition
 
-from . import logger
+from . import CartStatus, logger
 
 
 CENTS = Decimal('0.01')
@@ -32,22 +32,22 @@ class CartQueryset(models.QuerySet):
         return self.filter(user=None)
 
     def open(self):
-        return self.filter(status=Cart.OPEN)
+        return self.filter(status=CartStatus.OPEN)
 
     def saved(self):
-        return self.filter(status=Cart.SAVED)
+        return self.filter(status=CartStatus.SAVED)
 
     def waiting_for_payment(self):
-        return self.filter(status=Cart.WAITING_FOR_PAYMENT)
+        return self.filter(status=CartStatus.WAITING_FOR_PAYMENT)
 
     def checkout(self):
-        return self.filter(status=Cart.CHECKOUT)
+        return self.filter(status=CartStatus.CHECKOUT)
 
     def canceled(self):
-        return self.filter(status=Cart.CANCELED)
+        return self.filter(status=CartStatus.CANCELED)
 
     def save(self):
-        self.update(status=Cart.SAVED)
+        self.update(status=CartStatus.SAVED)
 
     def for_display(self):
         return self.prefetch_related(
@@ -63,28 +63,9 @@ class CartQueryset(models.QuerySet):
 
 
 class Cart(models.Model):
-
-    OPEN, SAVED, WAITING_FOR_PAYMENT, ORDERED, CHECKOUT, CANCELED = (
-        'open', 'saved', 'payment', 'ordered', 'checkout', 'canceled')
-
-    STATUS_CHOICES = (
-        (OPEN, pgettext_lazy(
-            'Cart status field value', 'Open - currently active')),
-        (WAITING_FOR_PAYMENT, pgettext_lazy(
-            'Cart status field value', 'Waiting for payment')),
-        (SAVED, pgettext_lazy(
-            'Cart status field value', 'Saved - for items to be purchased later')),
-        (ORDERED, pgettext_lazy(
-            'Cart status field value', 'Submitted - has been ordered at the checkout')),
-        (CHECKOUT, pgettext_lazy(
-            'Cart status field value', 'Checkout - basket is processed in checkout')),
-        (CANCELED, pgettext_lazy(
-            'Cart status field value', 'Canceled - basket was canceled by user'))
-    )
-
     status = models.CharField(
         pgettext_lazy('Cart field', 'order status'),
-        max_length=32, choices=STATUS_CHOICES, default=OPEN)
+        max_length=32, choices=CartStatus.CHOICES, default=CartStatus.OPEN)
     created = models.DateTimeField(
         pgettext_lazy('Cart field', 'created'), auto_now_add=True)
     last_status_change = models.DateTimeField(
@@ -127,7 +108,7 @@ class Cart(models.Model):
         self.save(update_fields=['quantity'])
 
     def change_status(self, status):
-        if status not in dict(self.STATUS_CHOICES):
+        if status not in dict(CartStatus.CHOICES):
             raise ValueError('Not expected status')
         if status != self.status:
             self.status = status
@@ -137,7 +118,7 @@ class Cart(models.Model):
     def change_user(self, user):
         open_cart = Cart.get_user_open_cart(user)
         if open_cart is not None:
-            open_cart.change_status(status=Cart.CANCELED)
+            open_cart.change_status(status=CartStatus.CANCELED)
         self.user = user
         self.save(update_fields=['user'])
 
@@ -147,7 +128,7 @@ class Cart(models.Model):
         if len(carts) > 1:
             logger.warning('%s has more than one open basket', user)
             for cart in carts[1:]:
-                cart.change_status(Cart.CANCELED)
+                cart.change_status(CartStatus.CANCELED)
         return carts.first()
 
     def is_shipping_required(self):
