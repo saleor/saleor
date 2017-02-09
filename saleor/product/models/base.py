@@ -16,10 +16,11 @@ from django.utils import six
 from django_prices.models import PriceField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
+from prices import PriceRange
 from satchless.item import InsufficientStock, Item, ItemRange
 from text_unidecode import unidecode
 
-from ...discount.models import get_variant_discounts
+from ...discount.models import calculate_discounted_price
 from .utils import get_attributes_display_map
 from ...search import index
 
@@ -201,6 +202,15 @@ class Product(models.Model, ItemRange, index.Indexed):
     def set_attribute(self, pk, value_pk):
         self.attributes[smart_text(pk)] = smart_text(value_pk)
 
+    def get_price_range(self, discounts=None,  **kwargs):
+        if not self.variants.exists():
+            price = calculate_discounted_price(self, self.price, discounts,
+                                               **kwargs)
+            return PriceRange(price, price)
+        else:
+            return super(Product, self).get_price_range(
+                discounts=discounts, **kwargs)
+
 
 @python_2_unicode_compatible
 class ProductVariant(models.Model, Item):
@@ -240,11 +250,8 @@ class ProductVariant(models.Model, Item):
 
     def get_price_per_item(self, discounts=None, **kwargs):
         price = self.price_override or self.product.price
-        if discounts:
-            discounts = list(
-                get_variant_discounts(self, discounts, **kwargs))
-            if discounts:
-                price = min(price | discount for discount in discounts)
+        price = calculate_discounted_price(self.product, price, discounts,
+                                           **kwargs)
         return price
 
     def get_absolute_url(self):
