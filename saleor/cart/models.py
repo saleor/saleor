@@ -64,8 +64,6 @@ class CartQueryset(models.QuerySet):
 
 class Cart(models.Model):
 
-    COOKIE_NAME = 'cart'
-
     OPEN, SAVED, WAITING_FOR_PAYMENT, ORDERED, CHECKOUT, CANCELED = (
         'open', 'saved', 'payment', 'ordered', 'checkout', 'canceled')
 

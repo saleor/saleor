@@ -12,11 +12,13 @@ from satchless.item import InsufficientStock
 
 from .models import Cart
 
+COOKIE_NAME = 'cart'
+
 
 def set_cart_cookie(simple_cart, response):
     ten_years = timedelta(days=(365 * 10))
     response.set_signed_cookie(
-        Cart.COOKIE_NAME, simple_cart.token, max_age=ten_years.total_seconds())
+        COOKIE_NAME, simple_cart.token, max_age=ten_years.total_seconds())
 
 
 def contains_unavailable_variants(cart):
@@ -89,7 +91,7 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
         @wraps(view)
         def func(request, *args, **kwargs):
             response = view(request, *args, **kwargs)
-            token = request.get_signed_cookie(Cart.COOKIE_NAME, default=None)
+            token = request.get_signed_cookie(COOKIE_NAME, default=None)
             if not token_is_valid(token):
                 return response
             cart = get_anonymous_cart_from_token(
@@ -104,7 +106,7 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
                     carts_to_close = carts_to_close.exclude(token=token)
                     carts_to_close.update(
                         status=Cart.CANCELED, last_status_change=now())
-                response.delete_cookie(Cart.COOKIE_NAME)
+                response.delete_cookie(COOKIE_NAME)
             return response
 
         return func
@@ -157,7 +159,7 @@ def get_or_create_cart_from_request(request, cart_queryset=Cart.objects.all()):
     if request.user.is_authenticated():
         return get_or_create_user_cart(request.user, cart_queryset)
     else:
-        token = request.get_signed_cookie(Cart.COOKIE_NAME, default=None)
+        token = request.get_signed_cookie(COOKIE_NAME, default=None)
         return get_or_create_anonymous_cart_from_token(token, cart_queryset)
 
 
@@ -172,7 +174,7 @@ def get_cart_from_request(request, cart_queryset=Cart.objects.all()):
         cart = get_user_cart(request.user, cart_queryset)
         user = request.user
     else:
-        token = request.get_signed_cookie(Cart.COOKIE_NAME, default=None)
+        token = request.get_signed_cookie(COOKIE_NAME, default=None)
         cart = get_anonymous_cart_from_token(token, cart_queryset)
         user = None
     if cart is not None:

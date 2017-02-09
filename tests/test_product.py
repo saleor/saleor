@@ -126,9 +126,13 @@ def test_filtering_by_attribute(db, color_attribute):
 def test_view_invalid_add_to_cart(client, product_in_stock, request_cart):
     variant = product_in_stock.variants.get()
     request_cart.add(variant, 2)
-    response = client.post(reverse('product:add-to-cart',
-        kwargs={'slug': product_in_stock.get_slug(),
-                'product_id': product_in_stock.pk}), {})
+    response = client.post(
+        reverse(
+            'product:add-to-cart',
+            kwargs={
+                'slug': product_in_stock.get_slug(),
+                'product_id': product_in_stock.pk}),
+        {})
     assert response.status_code == 200
     assert request_cart.quantity == 2
 
@@ -137,17 +141,19 @@ def test_view_add_to_cart(client, product_in_stock, request_cart):
     variant = product_in_stock.variants.get()
     request_cart.add(variant, 1)
     response = client.post(
-        reverse('product:add-to-cart',
-        kwargs={'slug': product_in_stock.get_slug(),
-                'product_id': product_in_stock.pk}),
+        reverse(
+            'product:add-to-cart',
+            kwargs={'slug': product_in_stock.get_slug(),
+                    'product_id': product_in_stock.pk}),
         {'quantity': 1, 'variant': variant.pk})
     assert response.status_code == 302
     assert request_cart.quantity == 1
 
-def test_adding_to_cart_with_current_user_token(admin_user, admin_client,
-                                                product_in_stock):
+
+def test_adding_to_cart_with_current_user_token(
+        admin_user, admin_client, product_in_stock):
     client = admin_client
-    key = Cart.COOKIE_NAME
+    key = utils.COOKIE_NAME
     cart = Cart.objects.create(user=admin_user)
     variant = product_in_stock.variants.first()
     cart.add(variant, 1)
@@ -166,11 +172,10 @@ def test_adding_to_cart_with_current_user_token(admin_user, admin_client,
     assert Cart.objects.get(user=admin_user).pk == cart.pk
 
 
-def test_adding_to_cart_with_another_user_token(admin_user, admin_client,
-                                                product_in_stock,
-                                                customer_user):
+def test_adding_to_cart_with_another_user_token(
+        admin_user, admin_client, product_in_stock, customer_user):
     client = admin_client
-    key = Cart.COOKIE_NAME
+    key = utils.COOKIE_NAME
     cart = Cart.objects.create(user=customer_user)
     variant = product_in_stock.variants.first()
     cart.add(variant, 1)
@@ -189,10 +194,9 @@ def test_adding_to_cart_with_another_user_token(admin_user, admin_client,
     assert Cart.objects.get(user=admin_user).pk != cart.pk
 
 
-def test_anonymous_adding_to_cart_with_another_user_token(client,
-                                                          product_in_stock,
-                                                          customer_user):
-    key = Cart.COOKIE_NAME
+def test_anonymous_adding_to_cart_with_another_user_token(
+        client, product_in_stock, customer_user):
+    key = utils.COOKIE_NAME
     cart = Cart.objects.create(user=customer_user)
     variant = product_in_stock.variants.first()
     cart.add(variant, 1)
@@ -211,10 +215,10 @@ def test_anonymous_adding_to_cart_with_another_user_token(client,
     assert Cart.objects.get(user=None).pk != cart.pk
 
 
-def test_adding_to_cart_with_deleted_cart_token(admin_user, admin_client,
-                                                product_in_stock):
+def test_adding_to_cart_with_deleted_cart_token(
+        admin_user, admin_client, product_in_stock):
     client = admin_client
-    key = Cart.COOKIE_NAME
+    key = utils.COOKIE_NAME
     cart = Cart.objects.create(user=admin_user)
     old_token = cart.token
     variant = product_in_stock.variants.first()
@@ -235,10 +239,10 @@ def test_adding_to_cart_with_deleted_cart_token(admin_user, admin_client,
     assert not Cart.objects.filter(token=old_token).exists()
 
 
-def test_adding_to_cart_with_closed_cart_token(admin_user, admin_client,
-                                               product_in_stock):
+def test_adding_to_cart_with_closed_cart_token(
+        admin_user, admin_client, product_in_stock):
     client = admin_client
-    key = Cart.COOKIE_NAME
+    key = utils.COOKIE_NAME
     cart = Cart.objects.create(user=admin_user)
     variant = product_in_stock.variants.first()
     cart.add(variant, 1)

@@ -219,8 +219,8 @@ def test_find_and_assign_anonymous_cart(opened_anonymous_cart,
                                         customer_user, client):
     cart_token = opened_anonymous_cart.token
     # Anonymous user has a cart with token stored in cookie
-    value = signing.get_cookie_signer(salt=Cart.COOKIE_NAME).sign(cart_token)
-    client.cookies[Cart.COOKIE_NAME] = value
+    value = signing.get_cookie_signer(salt=utils.COOKIE_NAME).sign(cart_token)
+    client.cookies[utils.COOKIE_NAME] = value
     # Anonymous logs in
     response = client.post(
         '/account/login',
@@ -234,7 +234,7 @@ def test_find_and_assign_anonymous_cart(opened_anonymous_cart,
 
 
 def test_login_without_a_cart(customer_user, client):
-    assert Cart.COOKIE_NAME not in client.cookies
+    assert utils.COOKIE_NAME not in client.cookies
     response = client.post(
         '/account/login',
         {'login': customer_user.email, 'password': 'password'})
@@ -244,8 +244,8 @@ def test_login_without_a_cart(customer_user, client):
 
 
 def test_login_with_incorrect_cookie_token(customer_user, client):
-    value = signing.get_cookie_signer(salt=Cart.COOKIE_NAME).sign('incorrect')
-    client.cookies[Cart.COOKIE_NAME] = value
+    value = signing.get_cookie_signer(salt=utils.COOKIE_NAME).sign('incorrect')
+    client.cookies[utils.COOKIE_NAME] = value
     response = client.post(
         '/account/login',
         {'login': customer_user.email, 'password': 'password'})
