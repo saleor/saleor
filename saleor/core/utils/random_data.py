@@ -184,9 +184,9 @@ def get_variant_combinations(product):
                         for attr
                         in product.product_class.variant_attributes.all()}
     all_combinations = itertools.product(*variant_attr_map.values())
-    return [{str(attr_value.attribute.pk): str(attr_value.pk)}
-            for combination in all_combinations
-            for attr_value in combination]
+    return [{str(attr_value.attribute.pk): str(attr_value.pk)
+            for attr_value in combination}
+            for combination in all_combinations]
 
 
 def get_price_override(schema):
