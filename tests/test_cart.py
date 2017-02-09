@@ -34,12 +34,12 @@ def cart_request_factory(rf, monkeypatch):
 
 
 @pytest.fixture()
-def opened_anonymous_cart(customer_user):
+def opened_anonymous_cart(db):
     return Cart.objects.get_or_create(user=None, status=CartStatus.OPEN)[0]
 
 
 @pytest.fixture()
-def cancelled_anonymous_cart(customer_user):
+def cancelled_anonymous_cart(db):
     return Cart.objects.get_or_create(user=None, status=CartStatus.CANCELED)[0]
 
 
