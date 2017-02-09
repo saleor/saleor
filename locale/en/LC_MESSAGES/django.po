@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-02-08 03:51-0600\n"
+"POT-Creation-Date: 2017-02-09 16:39+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -216,434 +216,6 @@ msgstr ""
 #: saleor/checkout/views/summary.py:27
 msgctxt "Checkout warning"
 msgid "Please review your checkout."
-msgstr ""
-
-#: saleor/dashboard/category/views.py:35
-#, python-format
-msgctxt "Dashboard message"
-msgid "Added category %s"
-msgstr ""
-
-#: saleor/dashboard/category/views.py:55
-#, python-format
-msgctxt "Dashboard message"
-msgid "Updated category %s"
-msgstr ""
-
-#: saleor/dashboard/category/views.py:75
-#, python-format
-msgctxt "Dashboard message"
-msgid "Deleted category %s"
-msgstr ""
-
-#: saleor/dashboard/customer/forms.py:13
-msgctxt "Customer search form field label"
-msgid "Email"
-msgstr ""
-
-#: saleor/dashboard/customer/forms.py:18
-msgctxt "Customer search form field label"
-msgid "Name"
-msgstr ""
-
-#: saleor/dashboard/customer/forms.py:23
-msgctxt "Customer search form label for field `order_status`"
-msgid "With open orders"
-msgstr ""
-
-#: saleor/dashboard/customer/views.py:33
-#, python-format
-msgctxt "Customer list page title"
-msgid "%d result"
-msgid_plural "Results (%d)"
-msgstr[0] ""
-msgstr[1] ""
-
-#: saleor/dashboard/discount/forms.py:25
-msgctxt "Sale (discount) error"
-msgid "Sale cannot exceed 100%"
-msgstr ""
-
-#: saleor/dashboard/discount/forms.py:66
-msgctxt "Shipping voucher form label for `limit` field"
-msgid "Only if order is over or equal to"
-msgstr ""
-
-#: saleor/dashboard/discount/forms.py:70
-msgctxt "Shipping voucher form label for `apply_to` field"
-msgid "Country"
-msgstr ""
-
-#: saleor/dashboard/discount/forms.py:90
-msgctxt "Value voucher form label for `limit` field"
-msgid "Only if purchase value is greater than or equal to"
-msgstr ""
-
-#: saleor/dashboard/discount/views.py:30
-msgctxt "Sale (discount) message"
-msgid "Updated sale"
-msgstr ""
-
-#: saleor/dashboard/discount/views.py:31
-msgctxt "Sale (discount) message"
-msgid "Added sale"
-msgstr ""
-
-#: saleor/dashboard/discount/views.py:45
-#, python-format
-msgctxt "Sale (discount) message"
-msgid "Deleted sale %s"
-msgstr ""
-
-#: saleor/dashboard/discount/views.py:90
-msgctxt "Voucher message"
-msgid "Updated voucher"
-msgstr ""
-
-#: saleor/dashboard/discount/views.py:91
-msgctxt "Voucher message"
-msgid "Added voucher"
-msgstr ""
-
-#: saleor/dashboard/discount/views.py:108
-#, python-format
-msgctxt "Voucher message"
-msgid "Deleted voucher %s"
-msgstr ""
-
-#: saleor/dashboard/order/forms.py:26
-msgctxt "Order note form placeholder"
-msgid "Note"
-msgstr ""
-
-#: saleor/dashboard/order/forms.py:47
-msgctxt "Payment form error"
-msgid "Only pre-authorized payments can be captured"
-msgstr ""
-
-#: saleor/dashboard/order/forms.py:58 saleor/dashboard/order/forms.py:80
-#: saleor/dashboard/order/forms.py:105
-#, python-format
-msgctxt "Payment form error"
-msgid "Payment gateway error: %s"
-msgstr ""
-
-#: saleor/dashboard/order/forms.py:69
-msgctxt "Payment form error"
-msgid "Only confirmed payments can be refunded"
-msgstr ""
-
-#: saleor/dashboard/order/forms.py:95
-msgctxt "Payment form error"
-msgid "Only pre-authorized payments can be released"
-msgstr ""
-
-#: saleor/dashboard/order/forms.py:112
-msgctxt "Move items form label"
-msgid "Quantity"
-msgstr ""
-
-#: saleor/dashboard/order/forms.py:114
-msgctxt "Move items form label"
-msgid "Target shipment"
-msgstr ""
-
-#: saleor/dashboard/order/forms.py:129
-msgctxt "Delivery group value for `target_group` field"
-msgid "New shipment"
-msgstr ""
-
-#: saleor/dashboard/order/forms.py:184
-#, python-format
-msgctxt "Change quantity form error"
-msgid "Only %(remaining)d remaining in stock."
-msgid_plural "Only %(remaining)d remaining in stock."
-msgstr[0] ""
-msgstr[1] ""
-
-#: saleor/dashboard/order/forms.py:210
-msgctxt "Ship group form field placeholder"
-msgid "Parcel tracking number"
-msgstr ""
-
-#: saleor/dashboard/order/forms.py:217
-msgctxt "Ship group form error"
-msgid "Cannot ship this group"
-msgstr ""
-
-#: saleor/dashboard/order/forms.py:264
-msgctxt "Cancel order form error"
-msgid "This order can't be cancelled"
-msgstr ""
-
-#: saleor/dashboard/order/forms.py:285
-msgctxt "Remove voucher form error"
-msgid "This order has no voucher"
-msgstr ""
-
-#: saleor/dashboard/order/forms.py:297
-msgctxt "Order status field value"
-msgid "All"
-msgstr ""
-
-#: saleor/dashboard/order/forms.py:300
-msgctxt "Payment status field value"
-msgid "All"
-msgstr ""
-
-#: saleor/dashboard/order/views.py:77
-msgctxt "Dashboard message related to an order"
-msgid "Added note"
-msgstr ""
-
-#: saleor/dashboard/order/views.py:98
-#, python-format
-msgctxt "Dashboard message related to a payment"
-msgid "Captured %(amount)s"
-msgstr ""
-
-#: saleor/dashboard/order/views.py:120
-#, python-format
-msgctxt "Dashboard message related to a payment"
-msgid "Refunded %(amount)s"
-msgstr ""
-
-#: saleor/dashboard/order/views.py:137
-msgctxt "Dashboard message"
-msgid "Released payment"
-msgstr ""
-
-#: saleor/dashboard/order/views.py:161
-#, python-format
-msgctxt "Dashboard message related to an order line"
-msgid ""
-"Changed quantity for product %(product)s from %(old_quantity)s to "
-"%(new_quantity)s"
-msgstr ""
-
-#: saleor/dashboard/order/views.py:192
-msgctxt "Dashboard message related to a delivery group"
-msgid "removed group"
-msgstr ""
-
-#: saleor/dashboard/order/views.py:195
-#, python-format
-msgctxt "Dashboard message related to delivery groups"
-msgid "Moved %(how_many)s items %(item)s from %(old_group)s to %(new_group)s"
-msgstr ""
-
-#: saleor/dashboard/order/views.py:218
-#, python-format
-msgctxt "Dashboard message related to an order line"
-msgid "Cancelled item %s"
-msgstr ""
-
-#: saleor/dashboard/order/views.py:241
-#, python-format
-msgctxt "Dashboard message related to a delivery group"
-msgid "Shipped %s"
-msgstr ""
-
-#: saleor/dashboard/order/views.py:263
-#, python-format
-msgctxt "Dashboard message related to a delivery group"
-msgid "Cancelled %s"
-msgstr ""
-
-#: saleor/dashboard/order/views.py:281
-msgctxt "Dashboard message"
-msgid "Updated shipping address"
-msgstr ""
-
-#: saleor/dashboard/order/views.py:286
-msgctxt "Dashboard message"
-msgid "Updated billing address"
-msgstr ""
-
-#: saleor/dashboard/order/views.py:306
-msgctxt "Dashboard message"
-msgid "Cancelled order"
-msgstr ""
-
-#: saleor/dashboard/order/views.py:325
-msgctxt "Dashboard message"
-msgid "Removed voucher from order"
-msgstr ""
-
-#: saleor/dashboard/product/forms.py:30
-msgctxt "Product class form label"
-msgid "Product type"
-msgstr ""
-
-#: saleor/dashboard/product/forms.py:57
-msgctxt "Product class form label"
-msgid "Attributes specific to each variant"
-msgstr ""
-
-#: saleor/dashboard/product/forms.py:60
-msgctxt "Product class form label"
-msgid "Attributes common to all variants"
-msgstr ""
-
-#: saleor/dashboard/product/forms.py:70
-msgctxt "Product class form error"
-msgid "Product variants are disabled."
-msgstr ""
-
-#: saleor/dashboard/product/forms.py:75
-msgctxt "Product class form error"
-msgid "A single attribute can't belong to both a product and its variant."
-msgstr ""
-
-#: saleor/dashboard/product/forms.py:89
-msgctxt "Product class form error"
-msgid "Some products of this type have more than one variant."
-msgstr ""
-
-#: saleor/dashboard/product/forms.py:106
-msgctxt "Product form placeholder"
-msgid "Give your awesome product a name"
-msgstr ""
-
-#: saleor/dashboard/product/forms.py:109
-msgctxt "Product form placeholder"
-msgid "Search"
-msgstr ""
-
-#: saleor/dashboard/product/forms.py:284
-msgctxt "Attribute choice value form error"
-msgid "Name already exists"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:42
-#, python-format
-msgctxt "Dashboard message"
-msgid "Added product type %s"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:58
-#, python-format
-msgctxt "Dashboard message"
-msgid "Updated product type %s"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:76
-#, python-format
-msgctxt "Dashboard message"
-msgid "Deleted product type %s"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:122
-#, python-format
-msgctxt "Dashboard message"
-msgid "Added product %s"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:161
-#, python-format
-msgctxt "Dashboard message"
-msgid "Updated product %s"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:180
-#, python-format
-msgctxt "Dashboard message"
-msgid "Deleted product %s"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:198
-msgctxt "Dashboard message"
-msgid "Saved stock"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:214 saleor/dashboard/product/views.py:231
-msgctxt "Dashboard message"
-msgid "Deleted stock"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:252
-#, python-format
-msgctxt "Dashboard message"
-msgid "Updated image %s"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:256
-#, python-format
-msgctxt "Dashboard message"
-msgid "Added image %s"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:277
-#, python-format
-msgctxt "Dashboard message"
-msgid "Deleted image %s"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:307
-#, python-format
-msgctxt "Dashboard message"
-msgid "Updated variant %s"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:311
-#, python-format
-msgctxt "Dashboard message"
-msgid "Added variant %s"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:332
-#, python-format
-msgctxt "Dashboard message"
-msgid "Deleted variant %s"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:353
-msgctxt "Dashboard message"
-msgid "Deleted variants"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:383
-msgctxt "Dashboard message"
-msgid "Updated attribute"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:384
-msgctxt "Dashboard message"
-msgid "Added attribute"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:401
-#, python-format
-msgctxt "Dashboard message"
-msgid "Deleted attribute %s"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:427
-msgctxt "Dashboard message for stock location"
-msgid "Updated location"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:428
-msgctxt "Dashboard message for stock location"
-msgid "Added location"
-msgstr ""
-
-#: saleor/dashboard/product/views.py:445
-#, python-format
-msgctxt "Dashboard message for stock location"
-msgid "Deleted location %s"
-msgstr ""
-
-#: saleor/dashboard/shipping/views.py:30
-#, python-format
-msgctxt "Dashboard message"
-msgid "%(shipping_method_name)s method saved"
-msgstr ""
-
-#: saleor/dashboard/shipping/views.py:59
-#, python-format
-msgctxt "Dashboard message"
-msgid "%(shipping_method_name)s successfully deleted"
 msgstr ""
 
 #: saleor/discount/forms.py:13
@@ -1523,6 +1095,26 @@ msgctxt "Shipping method country model"
 msgid "shipping method countries"
 msgstr ""
 
+#: saleor/site/models.py:10
+msgctxt "Site field"
+msgid "domain"
+msgstr ""
+
+#: saleor/site/models.py:13
+msgctxt "Site field"
+msgid "name"
+msgstr ""
+
+#: saleor/site/models.py:15
+msgctxt "Site field"
+msgid "header text"
+msgstr ""
+
+#: saleor/site/models.py:17
+msgctxt "Site field"
+msgid "site description"
+msgstr ""
+
 #: saleor/userprofile/forms.py:41
 msgctxt "Set password form label"
 msgid "New Password"
@@ -1819,7 +1411,7 @@ msgid "Forgot password?"
 msgstr ""
 
 #: templates/account/password_change.html:7 templates/cart/index.html:11
-#: templates/dashboard/base.html:37 templates/dashboard/base.html:101
+#: templates/dashboard/base.html:37 templates/dashboard/base.html:102
 #: templates/order/details.html:11 templates/order/payment.html:14
 #: templates/product/details.html:15 templates/userprofile/address-edit.html:9
 #: templates/userprofile/details.html:13
@@ -1927,10 +1519,6 @@ msgstr ""
 msgid "Mirumee Software"
 msgstr ""
 
-#: templates/base.html:34
-msgid "Test Saleor - a sample shop!"
-msgstr ""
-
 #: templates/base.html:41 templates/base.html:174
 msgid "Dashboard"
 msgstr ""
@@ -2016,7 +1604,7 @@ msgstr ""
 msgid "Calculate shipping cost"
 msgstr ""
 
-#: templates/category/_items.html:20
+#: templates/category/_items.html:24
 msgid "Sale"
 msgstr ""
 
@@ -2225,6 +1813,11 @@ msgstr ""
 msgid "Shipping methods"
 msgstr ""
 
+#: templates/dashboard/base.html:67 templates/dashboard/sites/detail.html:5
+#: templates/dashboard/sites/detail.html:13
+msgid "Site settings"
+msgstr ""
+
 #: templates/dashboard/category/category_confirm_delete.html:5
 msgid "Delete category"
 msgstr ""
@@ -2343,6 +1936,7 @@ msgstr ""
 #: templates/dashboard/product/stock_locations/form.html:51
 #: templates/dashboard/product/variant_form.html:67
 #: templates/dashboard/shipping/method_form.html:76
+#: templates/dashboard/sites/detail.html:35
 msgid "Update"
 msgstr ""
 
@@ -3325,6 +2919,11 @@ msgstr ""
 msgid "No shipping methods found."
 msgstr ""
 
+#: templates/dashboard/sites/detail.html:5
+#: templates/dashboard/sites/detail.html:15
+msgid "Add new site settings"
+msgstr ""
+
 #: templates/home.html:13
 msgid "Promo &amp; Sale"
 msgstr ""
@@ -3516,19 +3115,19 @@ msgid ""
 "visible on <strong>%(date)s</strong>."
 msgstr ""
 
-#: templates/product/details.html:72
+#: templates/product/details.html:74
 msgid "Edit in dashboard"
 msgstr ""
 
-#: templates/product/details.html:109
+#: templates/product/details.html:111
 msgid "Add to cart"
 msgstr ""
 
-#: templates/product/details.html:120
+#: templates/product/details.html:122
 msgid "This product is currently <strong>unavailable</strong>."
 msgstr ""
 
-#: templates/product/details.html:123
+#: templates/product/details.html:125
 msgid "Description"
 msgstr ""
 
