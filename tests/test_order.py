@@ -3,6 +3,7 @@ from prices import Price
 from saleor.cart.models import Cart
 from saleor.dashboard.order.forms import ChangeQuantityForm
 from saleor.order import models
+from saleor.order.utils import add_items_to_delivery_group
 
 
 def test_total_property():
@@ -32,7 +33,7 @@ def test_stock_allocation(billing_address, product_in_stock):
     cart.add(variant, quantity=2)
     order = models.Order.objects.create(billing_address=billing_address)
     delivery_group = models.DeliveryGroup.objects.create(order=order)
-    delivery_group.add_items_from_partition(cart.lines.all())
+    add_items_to_delivery_group(delivery_group, cart.lines.all())
     order_line = delivery_group.items.get()
     stock = order_line.stock
     assert stock.quantity_allocated == 2
@@ -41,7 +42,7 @@ def test_stock_allocation(billing_address, product_in_stock):
 def test_dashboard_change_quantity_form(request_cart_with_item, order):
     cart = request_cart_with_item
     group = models.DeliveryGroup.objects.create(order=order)
-    group.add_items_from_partition(cart.lines.all())
+    add_items_to_delivery_group(group, cart.lines.all())
     order_line = group.items.get()
 
     # Check available quantity validation
@@ -72,6 +73,7 @@ def test_dashboard_change_quantity_form(request_cart_with_item, order):
 def test_order_discount(sale, order, request_cart_with_item):
     cart = request_cart_with_item
     group = models.DeliveryGroup.objects.create(order=order)
-    group.add_items_from_partition(cart.lines.all(), discounts=cart.discounts)
+    add_items_to_delivery_group(
+        group, cart.lines.all(), discounts=cart.discounts)
     item = group.items.first()
     assert item.get_price_per_item() == Price(currency="USD", net=5)

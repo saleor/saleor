@@ -272,25 +272,6 @@ class DeliveryGroup(models.Model, ItemSet):
         subtotal = super(DeliveryGroup, self).get_total(**kwargs)
         return subtotal + self.shipping_price
 
-    def add_items_from_partition(self, partition, discounts=None):
-        for item_line in partition:
-            product_variant = item_line.variant
-            price = item_line.get_price_per_item(discounts)
-            quantity = item_line.get_quantity()
-            stock = product_variant.select_stockrecord(quantity)
-            self.items.create(
-                product=product_variant.product,
-                quantity=quantity,
-                unit_price_net=price.net,
-                product_name=product_variant.display_product(),
-                product_sku=product_variant.sku,
-                unit_price_gross=price.gross,
-                stock=stock,
-                stock_location=stock.location.name if stock else None)
-            if stock:
-                # allocate quantity to avoid overselling
-                Stock.objects.allocate_stock(stock, quantity)
-
     def get_total_quantity(self):
         return sum([item.get_quantity() for item in self])
 

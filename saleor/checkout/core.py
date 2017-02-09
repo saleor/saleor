@@ -11,6 +11,7 @@ from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
 from ..discount.models import Voucher, NotApplicable
 from ..order.models import Order
+from ..order.utils import add_items_to_delivery_group
 from ..shipping.models import ShippingMethodCountry, ANY_COUNTRY
 from ..userprofile.models import Address
 from ..userprofile.utils import store_user_address
@@ -261,8 +262,8 @@ class Checkout(object):
             group = order.groups.create(
                 shipping_price=shipping_price,
                 shipping_method_name=shipping_method_name)
-            group.add_items_from_partition(
-                partition, discounts=self.cart.discounts)
+            add_items_to_delivery_group(
+                group, partition, discounts=self.cart.discounts)
 
         if voucher is not None:
             Voucher.objects.increase_usage(voucher)
