@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-02-09 16:39+0100\n"
+"POT-Creation-Date: 2017-02-10 00:39+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,36 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: saleor/cart/__init__.py:20
+msgctxt "cart status"
+msgid "Open - currently active"
+msgstr ""
+
+#: saleor/cart/__init__.py:22
+msgctxt "cart status"
+msgid "Waiting for payment"
+msgstr ""
+
+#: saleor/cart/__init__.py:24
+msgctxt "cart status"
+msgid "Saved - for items to be purchased later"
+msgstr ""
+
+#: saleor/cart/__init__.py:26
+msgctxt "cart status"
+msgid "Submitted - an order was placed"
+msgstr ""
+
+#: saleor/cart/__init__.py:28
+msgctxt "cart status"
+msgid "Checkout - processed in checkout"
+msgstr ""
+
+#: saleor/cart/__init__.py:30
+msgctxt "cart status"
+msgid "Canceled - canceled by user"
+msgstr ""
 
 #: saleor/cart/forms.py:26
 msgctxt "Add to cart form field label"
@@ -51,122 +81,92 @@ msgctxt "Country form field label"
 msgid "country"
 msgstr ""
 
-#: saleor/cart/models.py:74
-msgctxt "Cart status field value"
-msgid "Open - currently active"
-msgstr ""
-
-#: saleor/cart/models.py:76
-msgctxt "Cart status field value"
-msgid "Waiting for payment"
-msgstr ""
-
-#: saleor/cart/models.py:78
-msgctxt "Cart status field value"
-msgid "Saved - for items to be purchased later"
-msgstr ""
-
-#: saleor/cart/models.py:80
-msgctxt "Cart status field value"
-msgid "Submitted - has been ordered at the checkout"
-msgstr ""
-
-#: saleor/cart/models.py:82
-msgctxt "Cart status field value"
-msgid "Checkout - basket is processed in checkout"
-msgstr ""
-
-#: saleor/cart/models.py:84
-msgctxt "Cart status field value"
-msgid "Canceled - basket was canceled by user"
-msgstr ""
-
-#: saleor/cart/models.py:88
+#: saleor/cart/models.py:67
 msgctxt "Cart field"
 msgid "order status"
 msgstr ""
 
-#: saleor/cart/models.py:91
+#: saleor/cart/models.py:70
 msgctxt "Cart field"
 msgid "created"
 msgstr ""
 
-#: saleor/cart/models.py:93
+#: saleor/cart/models.py:72
 msgctxt "Cart field"
 msgid "last status change"
 msgstr ""
 
-#: saleor/cart/models.py:96
+#: saleor/cart/models.py:75
 msgctxt "Cart field"
 msgid "user"
 msgstr ""
 
-#: saleor/cart/models.py:97
+#: saleor/cart/models.py:76
 msgctxt "Cart field"
 msgid "email"
 msgstr ""
 
-#: saleor/cart/models.py:99 saleor/cart/models.py:103
+#: saleor/cart/models.py:78 saleor/cart/models.py:82
 msgctxt "Cart field"
 msgid "token"
 msgstr ""
 
-#: saleor/cart/models.py:105
+#: saleor/cart/models.py:84
 msgctxt "Cart field"
 msgid "checkout data"
 msgstr ""
 
-#: saleor/cart/models.py:108
+#: saleor/cart/models.py:87
 msgctxt "Cart field"
 msgid "total"
 msgstr ""
 
-#: saleor/cart/models.py:111
+#: saleor/cart/models.py:90
 msgctxt "Cart field"
 msgid "quantity"
 msgstr ""
 
-#: saleor/cart/models.py:117
+#: saleor/cart/models.py:96
 msgctxt "Cart model"
 msgid "Cart"
 msgstr ""
 
-#: saleor/cart/models.py:118
+#: saleor/cart/models.py:97
 msgctxt "Cart model"
 msgid "Carts"
 msgstr ""
 
-#: saleor/cart/models.py:230
+#: saleor/cart/models.py:209
 msgctxt "Cart line field"
 msgid "cart"
 msgstr ""
 
-#: saleor/cart/models.py:233
+#: saleor/cart/models.py:212
 msgctxt "Cart line field"
 msgid "product"
 msgstr ""
 
-#: saleor/cart/models.py:235
+#: saleor/cart/models.py:214
 msgctxt "Cart line field"
 msgid "quantity"
 msgstr ""
 
-#: saleor/cart/models.py:238
+#: saleor/cart/models.py:217
 msgctxt "Cart line field"
 msgid "data"
 msgstr ""
 
-#: saleor/cart/models.py:242
+#: saleor/cart/models.py:221
 msgctxt "Cart line model"
 msgid "Cart line"
 msgstr ""
 
-#: saleor/cart/models.py:243
+#: saleor/cart/models.py:222
 msgctxt "Cart line model"
 msgid "Cart lines"
 msgstr ""
 
-#: saleor/cart/utils.py:78
+#: saleor/cart/utils.py:81
 msgctxt "Cart warning message"
 msgid ""
 "Sorry. We don't have that many items in stock. Quantity was set to maximum "
@@ -600,128 +600,128 @@ msgctxt "Delivery group str"
 msgid "Shipment #%s"
 msgstr ""
 
-#: saleor/order/models.py:344
+#: saleor/order/models.py:325
 msgctxt "Ordered item field"
 msgid "delivery group"
 msgstr ""
 
-#: saleor/order/models.py:348
+#: saleor/order/models.py:329
 msgctxt "Ordered item field"
 msgid "product"
 msgstr ""
 
-#: saleor/order/models.py:350
+#: saleor/order/models.py:331
 msgctxt "Ordered item field"
 msgid "product name"
 msgstr ""
 
-#: saleor/order/models.py:352
+#: saleor/order/models.py:333
 msgctxt "Ordered item field"
 msgid "sku"
 msgstr ""
 
-#: saleor/order/models.py:354
+#: saleor/order/models.py:335
 msgctxt "OrderedItem field"
 msgid "stock location"
 msgstr ""
 
-#: saleor/order/models.py:358
+#: saleor/order/models.py:339
 msgctxt "Ordered item field"
 msgid "stock"
 msgstr ""
 
-#: saleor/order/models.py:360
+#: saleor/order/models.py:341
 msgctxt "Ordered item field"
 msgid "quantity"
 msgstr ""
 
-#: saleor/order/models.py:363
+#: saleor/order/models.py:344
 msgctxt "Ordered item field"
 msgid "unit price (net)"
 msgstr ""
 
-#: saleor/order/models.py:366
+#: saleor/order/models.py:347
 msgctxt "Ordered item field"
 msgid "unit price (gross)"
 msgstr ""
 
-#: saleor/order/models.py:372
+#: saleor/order/models.py:353
 msgctxt "Ordered item model"
 msgid "Ordered item"
 msgstr ""
 
-#: saleor/order/models.py:373
+#: saleor/order/models.py:354
 msgctxt "Ordered item model"
 msgid "Ordered items"
 msgstr ""
 
-#: saleor/order/models.py:407
+#: saleor/order/models.py:388
 msgctxt "Payment field"
 msgid "order"
 msgstr ""
 
-#: saleor/order/models.py:413
+#: saleor/order/models.py:394
 msgctxt "Payment model"
 msgid "Payment"
 msgstr ""
 
-#: saleor/order/models.py:414
+#: saleor/order/models.py:395
 msgctxt "Payment model"
 msgid "Payments"
 msgstr ""
 
-#: saleor/order/models.py:453
+#: saleor/order/models.py:443
 msgctxt "Order history entry field"
 msgid "last history change"
 msgstr ""
 
-#: saleor/order/models.py:457
+#: saleor/order/models.py:447
 msgctxt "Order history entry field"
 msgid "order"
 msgstr ""
 
-#: saleor/order/models.py:459
+#: saleor/order/models.py:449
 msgctxt "Order history entry field"
 msgid "order status"
 msgstr ""
 
-#: saleor/order/models.py:462
+#: saleor/order/models.py:452
 msgctxt "Order history entry field"
 msgid "comment"
 msgstr ""
 
-#: saleor/order/models.py:466
+#: saleor/order/models.py:456
 msgctxt "Order history entry field"
 msgid "user"
 msgstr ""
 
-#: saleor/order/models.py:471
+#: saleor/order/models.py:461
 msgctxt "Order history entry model"
 msgid "Order history entry"
 msgstr ""
 
-#: saleor/order/models.py:473
+#: saleor/order/models.py:463
 msgctxt "Order history entry model"
 msgid "Order history entries"
 msgstr ""
 
-#: saleor/order/models.py:478
+#: saleor/order/models.py:468
 #, python-format
 msgctxt "Order history entry str"
 msgid "OrderHistoryEntry for Order #%d"
 msgstr ""
 
-#: saleor/order/models.py:489
+#: saleor/order/models.py:479
 msgctxt "Order note model"
 msgid "Order note"
 msgstr ""
 
-#: saleor/order/models.py:490
+#: saleor/order/models.py:480
 msgctxt "Order note model"
 msgid "Order notes"
 msgstr ""
 
-#: saleor/order/models.py:495
+#: saleor/order/models.py:485
 #, python-format
 msgctxt "Order note str"
 msgid "OrderNote for Order #%d"
