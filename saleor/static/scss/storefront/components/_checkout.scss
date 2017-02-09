@@ -56,7 +56,7 @@
       text-transform: uppercase;
     }
     .btn {
-      margin: $global-margin * 3 auto 0;
+      margin: $global-margin * 2 auto 0;
       padding: $global-padding / 2 $global-padding * 2.5;
     }
     &__continue {
@@ -68,8 +68,8 @@
     &__form {
       background-color: $light-gray;
       padding: $global-padding * 2 $global-padding * 6 $global-padding * 2;
-      @include media-breakpoint-only(md) {
-        padding: $global-padding * 2 $global-padding * 3 $global-padding * 2;
+      @include media-breakpoint-down(md) {
+        padding: $global-padding * 2 $global-padding * 2 $global-padding * 2;
       }
       .form-group {
         text-align: left;

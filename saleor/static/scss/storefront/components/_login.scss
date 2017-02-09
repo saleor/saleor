@@ -54,7 +54,7 @@
     background: $light-gray;
     padding: $global-padding * 2 $global-padding * 5;
     @include media-breakpoint-down(md) {
-      padding: $global-padding * 2 $global-padding * 3;
+      padding: $global-padding * 2;
     }
     a {
       color: $body-color;
