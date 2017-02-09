@@ -12,6 +12,8 @@ from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
 from saleor.discount.models import Voucher, Sale
 from saleor.order.models import Order
+from saleor.discount.models import Voucher
+from saleor.order.models import Order, OrderedItem, DeliveryGroup
 from saleor.product.models import (AttributeChoiceValue, Category, Product,
                                    ProductAttribute, ProductClass,
                                    ProductVariant, Stock, StockLocation)
@@ -163,6 +165,52 @@ def anonymous_checkout():
 @pytest.fixture
 def voucher(db):  # pylint: disable=W0613
     return Voucher.objects.create(code='mirumee', discount_value=20)
+
+
+@pytest.fixture()
+def order_with_items(order, product_class):
+    group = DeliveryGroup.objects.create(order=order)
+    product = Product.objects.create(
+        name='Test product', price=Decimal('10.00'),
+        product_class=product_class)
+
+    OrderedItem.objects.create(
+        delivery_group=group,
+        product=product,
+        product_name=product.name,
+        product_sku='SKU_%d' % (product.pk,),
+        quantity=1,
+        unit_price_net=Decimal('10.00'),
+        unit_price_gross=Decimal('10.00'),
+    )
+    product = Product.objects.create(
+        name='Test product 2', price=Decimal('20.00'),
+        product_class=product_class)
+
+    OrderedItem.objects.create(
+        delivery_group=group,
+        product=product,
+        product_name=product.name,
+        product_sku='SKU_%d' % (product.pk,),
+        quantity=1,
+        unit_price_net=Decimal('20.00'),
+        unit_price_gross=Decimal('20.00'),
+    )
+    product = Product.objects.create(
+        name='Test product 3', price=Decimal('30.00'),
+        product_class=product_class)
+
+    OrderedItem.objects.create(
+        delivery_group=group,
+        product=product,
+        product_name=product.name,
+        product_sku='SKU_%d' % (product.pk,),
+        quantity=1,
+        unit_price_net=Decimal('30.00'),
+        unit_price_gross=Decimal('30.00'),
+    )
+
+    return order
 
 
 @pytest.fixture()

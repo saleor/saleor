@@ -436,7 +436,16 @@ class Payment(BasePayment):
             quantity=item.quantity,
             price=item.unit_price_gross.quantize(Decimal('0.01')),
             currency=settings.DEFAULT_CURRENCY)
-                 for item in self.order.get_items()]
+            for item in self.order.get_items()]
+
+        voucher = self.order.voucher
+        if voucher is not None:
+            items.append(PurchasedItem(
+                name=self.order.discount_name,
+                sku='DISCOUNT',
+                quantity=1,
+                price=-self.order.discount_amount.net,
+                currency=self.currency))
         return items
 
     def get_total_price(self):
