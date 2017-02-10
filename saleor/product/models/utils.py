@@ -11,5 +11,5 @@ def get_attributes_display_map(obj, attributes):
             if choice_obj:
                 display_map[attribute.pk] = choice_obj
             else:
-                display_map[attribute.pk] = value_pk
+                display_map[attribute.pk] = value
     return display_map
