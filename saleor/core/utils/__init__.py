@@ -1,12 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
+
 import decimal
 from json import JSONEncoder
 
 from babel.numbers import get_territory_currencies
 from django import forms
 from django.conf import settings
-from django.core.paginator import Paginator, InvalidPage
+from django.core.paginator import InvalidPage, Paginator
 from django.http import Http404
 from django.utils.encoding import iri_to_uri, smart_text
 from django.utils.translation import pgettext_lazy
