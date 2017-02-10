@@ -29,7 +29,6 @@ django-payments==0.10.0
 django-prices-openexchangerates==0.1.12
 django-prices==0.4.13
 django-redis==4.7.0
-django-selectable==0.9.0
 django-storages==1.5.2
 django-versatileimagefield==1.6.2
 django-webpack-loader==0.4.1
