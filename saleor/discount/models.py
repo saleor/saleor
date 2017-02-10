@@ -215,7 +215,8 @@ class Voucher(models.Model):
                         checkout.cart, self.category)))
             if len(prices) == 0:
                 msg = pgettext(
-                    'Voucher not applicable', 'This offer is only valid for selected items.')
+                    'Voucher not applicable',
+                    'This offer is only valid for selected items.')
                 raise NotApplicable(msg)
             if self.apply_to == Voucher.APPLY_TO_ALL_PRODUCTS:
                 discounts = (
@@ -286,21 +287,17 @@ class Sale(models.Model):
         return False
 
     def modifier_for_product(self, product):
-        discounted_products = [p.pk for p in self.products.all()]
-        discounted_categories = list(self.categories.all())
-        if discounted_products and product.pk not in discounted_products:
-            raise NotApplicable(
-                pgettext(
-                    'Voucher not applicable',
-                    'Discount not applicable for this product'))
-        if (discounted_categories and not
-            self._product_has_category_discount(
-                product, discounted_categories)):
-            raise NotApplicable(
-                pgettext(
-                    'Voucher not applicable',
-                    'Discount too high for this product'))
-        return self.get_discount()
+        discounted_products = {p.pk for p in self.products.all()}
+        discounted_categories = set(self.categories.all())
+        if product.pk in discounted_products:
+            return self.get_discount()
+        if self._product_has_category_discount(
+                product, discounted_categories):
+            return self.get_discount()
+        raise NotApplicable(
+            pgettext(
+                'Voucher not applicable',
+                'Discount not applicable for this product'))
 
 
 def get_product_discounts(product, discounts, **kwargs):
