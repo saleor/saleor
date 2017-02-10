@@ -16,7 +16,6 @@ django-prices>=0.4.11,<0.5a0
 django-prices-openexchangerates>=0.1.12,<0.2a0
 django-redis>=4.0.0
 djangorestframework>=3.1
-django-selectable>=0.8.0
 django-storages>=1.4.1
 django-versatileimagefield>=1.0.1
 django-webpack-loader>=0.3.0

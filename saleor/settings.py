@@ -171,7 +171,6 @@ INSTALLED_APPS = [
     'graphene_django',
     'mptt',
     'payments',
-    'selectable',
     'materializecssform',
     'rest_framework',
     'webpack_loader',
