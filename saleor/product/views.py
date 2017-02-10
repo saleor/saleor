@@ -145,7 +145,7 @@ def products_from_collections(request, product_id):
     related_products = Product.objects.prefetch_related(
         'collections', 'images').filter(
         collections__products__id=product_id).exclude(
-        id=product_id).distinct()
+        id=product_id).distinct()[:6]
     products = products_with_availability(related_products,
                                           discounts=request.discounts,
                                           local_currency=request.currency)
