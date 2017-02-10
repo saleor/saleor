@@ -13,6 +13,7 @@ from ...cart.forms import QuantityField
 from ...discount.models import Voucher
 from ...order import Status
 from ...order.models import DeliveryGroup, Order, OrderedItem, OrderNote
+from ...order.utils import cancel_order, cancel_delivery_group
 from ...product.models import ProductVariant, Stock
 
 
@@ -236,17 +237,7 @@ class CancelGroupForm(forms.Form):
         super(CancelGroupForm, self).__init__(*args, **kwargs)
 
     def cancel_group(self):
-        for line in self.delivery_group:
-            if line.stock:
-                Stock.objects.deallocate_stock(line.stock, line.quantity)
-        self.delivery_group.status = Status.CANCELLED
-        self.delivery_group.save()
-        other_groups = self.delivery_group.order.groups.all()
-        statuses = set(other_groups.values_list('status', flat=True))
-        if statuses == {Status.CANCELLED}:
-            # Cancel whole order
-            self.delivery_group.order.status = Status.CANCELLED
-            self.delivery_group.order.save(update_fields=['status'])
+        cancel_delivery_group(self.delivery_group)
 
 
 class CancelOrderForm(forms.Form):
@@ -265,9 +256,7 @@ class CancelOrderForm(forms.Form):
         return data
 
     def cancel_order(self):
-        for group in self.order.groups.all():
-            group_form = CancelGroupForm(delivery_group=group)
-            group_form.cancel_group()
+        cancel_order(self.order)
 
 
 class RemoveVoucherForm(forms.Form):

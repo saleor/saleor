@@ -1,15 +1,15 @@
 import logging
 from functools import wraps
 
-from payments.signals import status_changed
 from django.dispatch import receiver
 from django.shortcuts import get_object_or_404, redirect
+from payments.signals import status_changed
 
-from .models import Order
+from . import Status
 from ..core import analytics
 from ..product.models import Stock
 from ..userprofile.utils import store_user_address
-
+from .models import Order
 
 logger = logging.getLogger(__name__)
 
@@ -67,3 +67,24 @@ def add_items_to_delivery_group(delivery_group, partition, discounts=None):
             # allocate quantity to avoid overselling
             Stock.objects.allocate_stock(stock, quantity)
 
+
+def cancel_delivery_group(group, cancel_order=True):
+    for line in group:
+        if line.stock:
+            Stock.objects.deallocate_stock(line.stock, line.quantity)
+    group.status = Status.CANCELLED
+    group.save()
+    if cancel_order:
+        other_groups = group.order.groups.all()
+        statuses = set(other_groups.values_list('status', flat=True))
+        if statuses == {Status.CANCELLED}:
+            # Cancel whole order
+            group.order.status = Status.CANCELLED
+            group.order.save(update_fields=['status'])
+
+
+def cancel_order(order):
+    for group in order.groups.all():
+        cancel_delivery_group(group, cancel_order=False)
+    order.status = Status.CANCELLED
+    order.save()
