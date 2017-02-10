@@ -6,7 +6,7 @@
 <h2>See also</h2>
 <hr>
 <div class="row">
-  {% for product, availability in products %}
+  {% for product in products %}
       <div class="col-6 col-md-4 col-lg-2 product-list" itemscope itemtype="https://schema.org/Product">
           <a itemprop="url" href="{{ product.get_absolute_url }}">
               <div class="text-center">
