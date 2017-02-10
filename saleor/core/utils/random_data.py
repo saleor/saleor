@@ -189,9 +189,9 @@ def get_variant_combinations(product):
             for combination in all_combinations]
 
 
-def get_price_override(schema):
+def get_price_override(schema, n):
     if schema.get('different_variant_prices'):
-        return fake.price()
+        return iter(sorted([fake.price() for _ in range(n)], reverse=True))
 
 
 def create_products_by_class(product_class, schema,
@@ -210,10 +210,14 @@ def create_products_by_class(product_class, schema,
             create_product_images(
                 product, random.randrange(1, 5), class_placeholders)
         variant_combinations = get_variant_combinations(product)
+        prices = get_price_override(schema, len(variant_combinations))
         for i, attr_combination in enumerate(variant_combinations, 1337):
             sku = '%s-%s' % (product.pk, i)
-            create_variant(product, attributes=attr_combination,
-                           price_override=get_price_override(schema), sku=sku)
+            kwargs = {'attributes': attr_combination, 'sku': sku}
+            if schema.get('different_variant_prices'):
+                kwargs['price_override'] = next(prices)
+            create_variant(product, **kwargs)
+
         if not variant_combinations:
             # Create min one variant for products without variant level attrs
             sku = '%s-%s' % (product.pk, fake.random_int(1000, 100000))
