@@ -30,7 +30,7 @@
     <div class="col s12 l8">
         <div class="card grey lighten-4">
             <div class="card-content">
-                <span class="card-title black-text">Payment details</span>
+                <span class="card-title black-text">{% trans "Payment details" %}</span>
 
                 <ul>
                     <li>{% trans "Payment status" %}: {% render_status payment.status payment.get_status_display %}</li>

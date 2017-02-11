@@ -34,7 +34,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--history">
-        <li><a href="{% url "dashboard:orders" %}">Orders</a></li>
+        <li><a href="{% url "dashboard:orders" %}">{% trans "Orders" %}</a></li>
         <li class="back-mobile"><a href="{% url "dashboard:orders" %}"><i class="material-icons">arrow_back</i></a></li>
         <li><span>{{ order }}</span></li>
     </ul>
@@ -63,7 +63,7 @@
         <div class="col s12 l4 switch-two-columns">
             <div class="card grey lighten-4">
                 <div class="card-content data-table-container">
-                    <span class="card-title black-text">Order summary</span>
+                    <span class="card-title black-text">{% trans "Order summary" %}</span>
 
                     <table class="order-summary responsive-table">
                         <tbody>
@@ -139,7 +139,7 @@
 
                                 <div class="card-action">
                                     <a href="#base-modal-fixed" class="modal-trigger-custom"
-                                       data-href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">Edit</a>
+                                       data-href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">{% trans "Edit" %}</a>
                                 </div>
                             </div>
                         </div>
@@ -160,7 +160,7 @@
 
                             <div class="card-action">
                                 <a href="#base-modal-fixed" class="modal-trigger-custom"
-                                   data-href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}">Edit</a>
+                                   data-href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}">{% trans "Edit" %}</a>
                             </div>
                         </div>
                     </div>
@@ -401,10 +401,10 @@
             <table class="bordered hoverable responsive data-table">
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Order status</th>
-                        <th>User</th>
-                        <th class="wide">Comment</th>
+                        <th>{% trans "Date" %}</th>
+                        <th>{% trans "Order status" %}</th>
+                        <th>{% trans "User" %}</th>
+                        <th class="wide">{% trans "Comment" %}</th>
                     </tr>
                 </thead>
 
