@@ -3,7 +3,7 @@
 {% load staticfiles %}
 {% load render_bundle from webpack_loader %}
 
-<html lang="en" class="no-js">
+<html lang="{{ LANGUAGE_CODE }}" class="no-js">
     <head>
         <title>{% block title %}{{ settings.name }}{% endblock %}</title>
         {% block meta %}
