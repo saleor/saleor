@@ -4,7 +4,7 @@
 {% load materializecss %}
 {% load staticfiles %}
 
-{% block title %}{% trans "Products" %} - {{ block.super }}{% endblock %}
+{% block title %}{% trans "Products" context "Product list page title" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-products{% endblock %}
 
@@ -14,7 +14,8 @@
     <div class="fixed-action-btn">
         {% if product_classes %}
             <a class="btn-fab btn-floating btn-large waves-effect waves-light teal modal-trigger"
-                href="#modal-product-class" title="{% trans "Add product" %}">
+                href="#modal-product-class"
+               title="{% trans "Add product" context "Product list add button text" %}">
                 <i class="material-icons">add</i>
             </a>
         {% endif %}
@@ -23,7 +24,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li class="visible-s">{% trans "Products" %}</li>
+        <li class="visible-s">{% trans "Products" context "Product list breadcrumbs" %}</li>
     </ul>
 {% endblock %}
 
@@ -50,9 +51,9 @@
                 </ul>
                 {% include "dashboard/includes/_pagination.html" with page_obj=products %}
             {% else %}
-                <p>{% trans "No products found." %}</p>
+                <p>{% trans "No products found." context "Empty product list message" %}</p>
                 {% if not product_classes %}
-                    <p>{% trans "Create product type first." %}</p>
+                    <p>{% trans "Create product type first." context "Empty product list without product types message" %}</p>
                 {% endif %}
             {% endif %}
         </div>
@@ -68,7 +69,8 @@
                 <div class="row">
                     <div class="col s12">
                         <button class="btn" type="submit">
-                            <i class="material-icons left">create</i> {% trans "Create new" %}
+                            <i class="material-icons left">create</i>
+                            {% trans "Create new" context "Product list choose product type for new product action" %}
                         </button>
                     </div>
                 </div>

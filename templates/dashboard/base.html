@@ -7,7 +7,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
-    <title>{% block title %}{% trans "Dashboard - Saleor" %}{% endblock %}</title>
+    <title>{% block title %}{% trans "Dashboard - Saleor" context "Dashboard default page title"  %}{% endblock %}</title>
 
     {% render_bundle 'vendor' 'css' %}
     {% render_bundle 'dashboard' 'css' %}
@@ -25,8 +25,12 @@
             <ul id="user-action" class="dropdown-content">
               <li class="user-name">{{ request.user }}</li>
               <li class="divider"></li>
-              <li><a href="/" target="_blank" class="waves-effect waves-teal">{% trans "Visit storefront" %}</a></li>
-              <li><a href="{% url 'account_logout' %}" class="waves-effect waves-teal">{% trans "Log out" %}</a></li>
+              <li><a href="/" target="_blank" class="waves-effect waves-teal">
+                  {% trans "Visit storefront" context "Dashboard top navigation action" %}
+              </a></li>
+              <li><a href="{% url 'account_logout' %}" class="waves-effect waves-teal">
+                  {% trans "Log out" context "Dashboard top navigation action" %}
+              </a></li>
             </ul>
             <a class="dropdown-button" data-constrainwidth="false" href="#" data-activates="user-action"><i class="material-icons">account_circle</i><i class="mdi-navigation-arrow-drop-down right"></i></a>
             {% if SEARCH_IS_ENABLED %}
@@ -34,37 +38,58 @@
             {% endif %}
           </div>
           <ul class="side-nav" id="main-nav">
-            <li class="nav-home"><a href="{% url 'dashboard:index' %}">{% trans "Home" %}</a></li>
+            <li class="nav-home"><a href="{% url 'dashboard:index' %}">
+                {% trans "Home" context "Dashboard side navigation link" %}
+            </a></li>
             <li class="side-nav-section" id="first">
-              <p>{% trans "Catalogue" %}</p>
+              <p>{% trans "Catalogue" context "Dashboard side navigation title" %}</p>
               <ul>
-                <li class="{% block menu_products_class %}{% endblock %}"><a href="{% url 'dashboard:product-list' %}">{% trans "Products" %}</a></li>
-                <li class="{% block menu_categories_class %}{% endblock %}"><a href="{% url 'dashboard:category-list' %}">{% trans "Categories" %}</a></li>
-                <li class="{% block menu_location_class %}{% endblock %}"><a href="{% url 'dashboard:product-stock-location-list' %}">{% trans "Stock locations" %}</a></li>
+                <li class="{% block menu_products_class %}{% endblock %}"><a href="{% url 'dashboard:product-list' %}">
+                        {% trans "Products" context "Dashboard side navigation link" %}
+                </a></li>
+                <li class="{% block menu_categories_class %}{% endblock %}"><a href="{% url 'dashboard:category-list' %}">
+                    {% trans "Categories" context "Dashboard side navigation link" %}
+                </a></li>
+                <li class="{% block menu_location_class %}{% endblock %}"><a href="{% url 'dashboard:product-stock-location-list' %}">
+                    {% trans "Stock locations" context "Dashboard side navigation link" %}
+                </a></li>
               </ul>
             </li>
             <li class="side-nav-section">
-              <p>{% trans "Discounts" %}</p>
+              <p>{% trans "Discounts" context "Dashboard side navigation title" %}</p>
               <ul>
-                <li class="{% block menu_sales_class %}{% endblock %}"><a href="{% url 'dashboard:sale-list' %}">{% trans "Sales" %}</a></li>
-                <li class="{% block menu_vouchers_class %}{% endblock %}"><a href="{% url 'dashboard:voucher-list' %}">{% trans "Vouchers" %}</a></li>
+                <li class="{% block menu_sales_class %}{% endblock %}"><a href="{% url 'dashboard:sale-list' %}">
+                    {% trans "Sales" context "Dashboard side navigation link" %}
+                </a></li>
+                <li class="{% block menu_vouchers_class %}{% endblock %}"><a href="{% url 'dashboard:voucher-list' %}">
+                    {% trans "Vouchers" context "Dashboard side navigation link" %}</a></li>
               </ul>
             </li>
             <li class="side-nav-section">
-              <p>{% trans "Sales" %}</p>
+              <p>{% trans "Sales" context "Dashboard side navigation title. `Sales' is noun of to sell" %}</p>
               <ul>
-                <li class="{% block menu_orders_class %}{% endblock %}"><a href="{% url 'dashboard:orders' %}">{% trans "Orders" %}</a></li>
-                <li class="{% block menu_customers_class %}{% endblock %}"><a href="{% url 'dashboard:customers' %}">{% trans "Customers" %}</a></li>
-                <li class="{% block menu_payments_class %}{% endblock %}"><a href="{% url 'dashboard:payments' %}">{% trans "Payments" %}</a></li>
+                <li class="{% block menu_orders_class %}{% endblock %}"><a href="{% url 'dashboard:orders' %}">
+                    {% trans "Orders" %}
+                </a></li>
+                <li class="{% block menu_customers_class %}{% endblock %}"><a href="{% url 'dashboard:customers' %}">
+                    {% trans "Customers" context "Dashboard side navigation link" %}
+                </a></li>
+                <li class="{% block menu_payments_class %}{% endblock %}"><a href="{% url 'dashboard:payments' %}">
+                    {% trans "Payments" context "Dashboard side navigation link" %}
+                </a></li>
               </ul>
             </li>
             <li class="side-nav-section">
-              <p>{% trans "Configuration" %}</p>
+              <p>{% trans "Configuration"  context "Dashboard side navigation title" %}</p>
               <ul>
-                <li class="{% block menu_product_classes_class %}{% endblock %}"><a href="{% url 'dashboard:product-class-list' %}">{% trans "Product types" %}</a></li>
-                <li class="{% block menu_attributes_class %}{% endblock %}"><a href="{% url 'dashboard:product-attributes' %}">{% trans "Attributes" %}</a></li>
-                <li class="{% block menu_delivery_class %}{% endblock %}"><a href="{% url 'dashboard:shipping-methods' %}">{% trans "Shipping methods" %}</a></li>
-                <li class="{% block menu_settings_class %}{% endblock %}"><a href="{% url 'dashboard:site-index' %}">{% trans "Site settings" %}</a></li>
+                <li class="{% block menu_product_classes_class %}{% endblock %}"><a href="{% url 'dashboard:product-class-list' %}">
+                    {% trans "Product types" context "Dashboard side navigation link" %}</a></li>
+                <li class="{% block menu_attributes_class %}{% endblock %}"><a href="{% url 'dashboard:product-attributes' %}">
+                    {% trans "Attributes" context "Dashboard side navigation link" %}</a></li>
+                <li class="{% block menu_delivery_class %}{% endblock %}"><a href="{% url 'dashboard:shipping-methods' %}">
+                    {% trans "Shipping methods" context "Dashboard side navigation link" %}</a></li>
+                <li class="{% block menu_settings_class %}{% endblock %}"><a href="{% url 'dashboard:site-index' %}">
+                    {% trans "Site settings" context "Dashboard side navigation link" %}</a></li>
               </ul>
             </li>
           </ul>
@@ -80,7 +105,7 @@
                   {% if SEARCH_IS_ENABLED %}
                     <form method="get" action="{% url "dashboard:search" %}" class="hide-on-small-only">
                         <div class="input-field">
-                            <input id="search" type="search" class="validate" placeholder="Order, product, customer" name="q" value="{% if query %}{{ query }}{% endif %}">
+                            <input id="search" type="search" class="validate" placeholder="{% trans "Order, product, customer" context "Dashboard search placeholder" %}" name="q" value="{% if query %}{{ query }}{% endif %}">
                             <button type="submit" class="right search-icon">
                                 <i class="material-icons">search</i>
                             </button>
@@ -99,7 +124,7 @@
       <div class="nav-wrapper container">
         {% block breadcrumbs %}
           <ul class="breadcrumbs">
-              <li class="visible-s"><a href="#">{% trans "Home" %}</a></li>
+              <li class="visible-s"><a href="#">{% trans "Home" context "Dashboard homepage breadcrumbs" %}</a></li>
           </ul>
         {% endblock %}
         {% block header_extra %}{% endblock %}

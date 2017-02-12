@@ -3,7 +3,7 @@
 {% load mptt_tags %}
 {% load materializecss %}
 
-{% block title %}{% trans "Categories" %} - {{ block.super }}{% endblock %}
+{% block title %}{% trans "Categories" context "Category list page title" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-categories{% endblock %}
 
@@ -24,51 +24,55 @@
 
 {% block header_extra %}
     <div class="fixed-action-btn">
-        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal" title="{% trans "Add category" %}"
-            href="{% if root %}{% url 'dashboard:category-add' root_pk=root.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}">
+        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
+           title="{% trans "Add category" context "Category list add button text" %}"
+           href="
+               {% if root %}{% url 'dashboard:category-add' root_pk=root.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}">
             <i class="material-icons">add</i>
         </a>
     </div>
 
     {% if root %}
-    <a class="dropdown-button" href="#" data-activates="category-delete" data-constrainwidth="false">
-        <i class="material-icons">arrow_drop_down</i>
-    </a>
-    <ul id="category-delete" class="dropdown-content">
-        <li>
-            <a class="modal-trigger-custom" data-href="{% url 'dashboard:category-edit' root_pk=root.pk %}" href="#base-modal">
-                {% trans "Edit category" %}
-            </a>
-        </li>
+        <a class="dropdown-button" href="#" data-activates="category-delete" data-constrainwidth="false">
+            <i class="material-icons">arrow_drop_down</i>
+        </a>
+        <ul id="category-delete" class="dropdown-content">
+            <li>
+                <a class="modal-trigger-custom" data-href="{% url 'dashboard:category-edit' root_pk=root.pk %}"
+                   href="#base-modal">
+                    {% trans "Edit category" context "Category list action link" %}
+                </a>
+            </li>
 
-        <li>
-            <a class="modal-trigger-custom" data-href="{% url 'dashboard:category-delete' pk=root.pk %}" href="#base-modal">
-                {% trans "Remove category" %}
-            </a>
-        </li>
-    </ul>
+            <li>
+                <a class="modal-trigger-custom" data-href="{% url 'dashboard:category-delete' pk=root.pk %}"
+                   href="#base-modal">
+                    {% trans "Remove category" context "Category list action link" %}
+                </a>
+            </li>
+        </ul>
     {% endif %}
 {% endblock %}
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--history">
         {% if path %}
-          <li><a href="{% url 'dashboard:category-list' %}">{% trans "Categories" %}</a></li>
+            <li><a href="{% url 'dashboard:category-list' %}">{% trans "Categories" context "Category list breadcrumbs" %}</a></li>
         {% else %}
-          <li class="visible-s"><span>{% trans "Categories" %}</span></li>
-        {% endif %} 
+            <li class="visible-s"><span>{% trans "Categories" context "Category list breadcrumbs" %}</span></li>
+        {% endif %}
         {% if path %}
-            <li class="back-mobile"><a href="{% url 'dashboard:category-list' %}"><i class="material-icons">arrow_back</i></a></li>
+            <li class="back-mobile"><a href="{% url 'dashboard:category-list' %}"><i
+                    class="material-icons">arrow_back</i></a></li>
             {% for node in path %}
                 {% if forloop.last %}
                     <li title="{{ node.name }}">
-                        <span class="breadcrumbs--ellipsed-item">
-                            {{ node.name }}
-                        </span>
+                        <span class="breadcrumbs--ellipsed-item">{{ node.name }}</span>
                     </li>
                 {% else %}
                     <li class="hide-on-med-and-down">
-                        <a title="{{ node.name }}" href="{% url 'dashboard:category-list' root_pk=node.pk %}" class="breadcrumbs--ellipsed-item">
+                        <a title="{{ node.name }}" href="{% url 'dashboard:category-list' root_pk=node.pk %}"
+                           class="breadcrumbs--ellipsed-item">
                             {{ node.name }}
                         </a>
                     </li>
@@ -87,7 +91,7 @@
                 {% if categories %}
                     {% for node in categories %}
                         <li class="collection-item list-item list-item--two-lines">
-                            <a class="list-item-name" href="{% url 'dashboard:category-list' root_pk=node.pk %}">
+                            <a class="list-item-name" href="{% url "dashboard:category-list" root_pk=node.pk %}">
                                 {{ node.name }}
                             </a>
 
@@ -107,9 +111,9 @@
                 {% else %}
                     <p>
                         {% if root %}
-                            {% trans "No subcategories." %}
+                            {% trans "No subcategories." context "Empty Category list message" %}
                         {% else %}
-                            {% trans "No categories." %}
+                            {% trans "No categories." context "Empty Category list message" %}
                         {% endif %}
                     </p>
                 {% endif %}

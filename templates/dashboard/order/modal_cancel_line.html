@@ -5,9 +5,9 @@
 <form class="form-async" role="form" method="post" action="{% url 'dashboard:orderline-cancel' order_pk=order.pk line_pk=item.pk %}" novalidate>
     {% csrf_token %}
     <div class="modal-content">
-        <h5>{% trans "Cancel order line?" %}</h5>
+        <h5>{% trans "Cancel order line?" context "Modal cancel order line title" %}</h5>
         <p>
-            {% blocktrans with order=order%}
+            {% blocktrans trimmed with order=order context "Modal cancel order line text" %}
                 Are you sure, you want cancel this order line?
             {% endblocktrans %}
         </p>
@@ -15,11 +15,11 @@
         <table>
              <thead>
                 <tr>
-                    <th class="wide">{% trans "Item" %}</th>
-                    <th>{% trans "SKU" %}</th>
-                    <th class="right-align">{% trans "Price" %}</th>
-                    <th class="right-align">{% trans "Quantity" %}</th>
-                    <th class="right-align">{% trans "Total" %}</th>
+                    <th class="wide">{% trans "Item" context "Modal cancel order line table header" %}</th>
+                    <th>{% trans "SKU" context "Modal cancel order line table header" %}</th>
+                    <th class="right-align">{% trans "Price" context "Modal cancel order line table header" %}</th>
+                    <th class="right-align">{% trans "Quantity" context "Modal cancel order line table header" %}</th>
+                    <th class="right-align">{% trans "Total" context "Modal cancel order line table header" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -37,7 +37,9 @@
     </div>
 
     <div class="modal-footer">
-            <button type="submit" class="modal-action btn-flat red-text">{% trans "Cancel Line" %}</button>
-            <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Abort" %}</a>
+            <button type="submit" class="modal-action btn-flat red-text">
+                {% trans "Cancel Line" context "Modal cancel order line primary action" %}</button>
+            <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">
+                {% trans "Abort" context "Modal cancel order line secondary action" %}</a>
     </div>
 </form>

@@ -7,7 +7,7 @@
     <div class="modal-content">
         <div class="row">
             <div class="col s12">
-                <h5>{% trans "Are you sure?" %}</h5>
+                <h5>{% trans "Are you sure?" context "Modal delete image title" %}</h5>
             </div>
         </div>
 
@@ -16,12 +16,16 @@
         </div>
 
         <p>
-            {% blocktrans %}You are about to delete this image.{% endblocktrans %}
+            {% blocktrans trimmed context "Modal delete image text" %}
+                You are about to delete this image.
+            {% endblocktrans %}
         </p>
     </div>
 
     <div class="modal-footer">
-        <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
-        <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+        <button type="submit" class="modal-action btn-flat blue-text">
+            {% trans "Delete" context "Modal delete image primary action" %}</button>
+        <a href="#!" class="modal-action modal-close btn-flat blue-text">
+            {% trans "Cancel" context "Modal delete image secondary action" %}</a>
     </div>
 </form>

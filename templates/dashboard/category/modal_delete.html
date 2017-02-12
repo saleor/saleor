@@ -1,13 +1,13 @@
 {% load i18n %}
 {% load mptt_tags %}
 
-<form method="post" id="form-category" class="form-async" action="{% url 'dashboard:category-delete' pk=category.pk %}" novalidate>
+<form method="post" id="form-category" class="form-async" action="{% url "dashboard:category-delete" pk=category.pk %}" novalidate>
     {% csrf_token %}
     <div class="modal-content">
         <div class="row">
             <div class="col s12">
                 <h5>
-                    {% blocktrans with category=category %}
+                    {% blocktrans with category=category trimmed context "Delete category modal title" %}
                         Are you sure you want to delete the category {{ category }}?
                     {% endblocktrans %}
                 </h5>
@@ -17,7 +17,7 @@
         {% if descendants %}
             <div class="row">
                 <div class="col s12">
-                    {% trans 'The following child categories will be deleted:' %}
+                    {% trans "The following child categories will be deleted:" context "Delete category form text about descendant categories" %}
                     <ul>
                         {% recursetree descendants %}
                             <li>{{ node.name }}
@@ -34,16 +34,20 @@
         {% endif %}
 
         {% if products_count %}
-            {% blocktrans count counter=products_count %}
+            {% blocktrans count counter=products_count trimmed context "Delete category form text about products" %}
                 There is one product in this category that will be deleted.
-            {% plural %}
+                {% plural %}
                 There are {{ counter }} products in this category that will be deleted.
             {% endblocktrans %}
         {% endif %}
     </div>
 
     <div class="modal-footer">
-        <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
-        <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+        <button type="submit" class="modal-action btn-flat blue-text">
+            {% trans "Delete" context "Delete category form primary action" %}
+        </button>
+        <a href="#!" class="modal-action modal-close btn-flat blue-text">
+            {% trans "Cancel" context "Delete category form secondary action" %}
+        </a>
     </div>
 </form>

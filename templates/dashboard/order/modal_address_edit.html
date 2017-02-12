@@ -6,9 +6,9 @@
     <div class="modal-content">
         <h5>
             {% if address_type == "shipping" %}
-                {% trans "Edit shipping address" %}
+                {% trans "Edit shipping address" context "Modal address title" %}
             {% else %}
-                {% trans "Edit billing address" %}
+                {% trans "Edit billing address" context "Modal address title" %}
             {% endif %}
         </h5>
 
@@ -17,7 +17,11 @@
         </div>
     </div>
     <div class="modal-footer">
-        <button type="submit" class="modal-action btn-flat blue-text"> {% trans "Update" %}</button>
-        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+        <button type="submit" class="modal-action btn-flat blue-text">
+            {% trans "Update" context "Modal address primary action" %}
+        </button>
+        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">
+            {% trans "Cancel" context "Modal address secondary action" %}
+        </a>
     </div>
 </form>

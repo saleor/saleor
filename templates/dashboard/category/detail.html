@@ -3,17 +3,18 @@
 {% load i18n %}
 {% load mptt_tags %}
 
-{% block title %}{% if category.pk %}{{ category }}{% else %}{% trans 'Add new category' %}{% endif %} - {% trans 'Categories' %} - {{ block.super }}{% endblock %}
+{% block title %}{% if category.pk %}{{ category }}{% else %}{% trans "Add new category" context "Category detail page title" %}{% endif %} - {% trans "Categories" context "Category detail page title" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-categories{% endblock %}
 
 {% block menu_categories_class %}active{% endblock %}
 
-{% block page_title %}{% if category.pk %}{{ category }}{% else %}{% trans 'Add new category' %}{% endif %}{% endblock %}
+{% block page_title %}{% if category.pk %}{{ category }}{% else %}{% trans "Add new category" context "Category detail page title" %}{% endif %}{% endblock %}
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--history">
-        <li class="back-mobile"><a href="{% url 'dashboard:category-list' %}" class="breadcrumbs--ellipsed-item">{% trans "Categories" %}</a></li>
+        <li class="back-mobile"><a href="{% url 'dashboard:category-list' %}" class="breadcrumbs--ellipsed-item">
+            {% trans "Categories" context "Category detail breadcrumbs" %}</a></li>
         {% if path %}
             {% for node in path %}
                 <li><a href="{% url 'dashboard:category-list' root_pk=node.pk %}" class="breadcrumbs--ellipsed-item">{{ node.name }}</a></li>
@@ -23,7 +24,9 @@
             {% if category.pk %}
                 <span class="breadcrumbs--ellipsed-item">{{ category }}</span>
             {% else %}
-                <span class="breadcrumbs--ellipsed-item">{% trans 'Add new category' %}</span>
+                <span class="breadcrumbs--ellipsed-item">
+          {% trans "Add new category" context "Category detail breadcrumbs" %}
+        </span>
             {% endif %}
         </li>
     </ul>
@@ -47,14 +50,20 @@
         <div class="row">
             <div class="col s12 l8 right-align">
                 {% if category.parent %}
-                    <a href="{% url 'dashboard:category-list' root_pk=category.parent.pk %}" class="btn-flat">{% trans "Cancel" %}</a>
+                    <a href="{% url 'dashboard:category-list' root_pk=category.parent.pk %}" class="btn-flat">
+                        {% trans "Cancel" context "Category form secondary action" %}</a>
                 {% else %}
-                    <a href="{% url 'dashboard:category-list' %}" class="btn-flat">{% trans "Cancel" %}</a>
+                    <a href="{% url 'dashboard:category-list' %}" class="btn-flat">
+                        {% trans "Cancel" context "Category form secondary action" %}</a>
                 {% endif %}
                 {% if category.pk %}
-                    <button type="submit" class="btn">{% trans "Update" %}</button>
+                    <button type="submit" class="btn">
+                        {% trans "Update" context "Category form primary action" %}
+                    </button>
                 {% else %}
-                    <button type="submit" class="btn">{% trans "Create" %}</button>
+                    <button type="submit" class="btn">
+                        {% trans "Create" context "Category form primary action" %}
+                    </button>
                 {% endif %}
             </div>
         </div>

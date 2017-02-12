@@ -3,8 +3,8 @@
 {% load materializecss %}
 {% load static %}
 
-{% block title %}{% if sale.pk %}{{ sale }}{% else %}{% trans 'Add new sale' %}
-{% endif %} - {% trans "Sales" %} - {{ block.super }}{% endblock %}
+{% block title %}{% if sale.pk %}{{ sale }}{% else %}{% trans "Add new sale"  context "Sale (discount) page title" %}
+{% endif %} - {% trans "Sales" context "Sale (discount) page title" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-sales{% endblock %}
 
@@ -25,7 +25,7 @@
             <li>
                 <a class="modal-trigger-custom" href="#base-modal"
                    data-href="{% url 'dashboard:sale-delete' pk=sale.pk %}">
-                    {% trans "Remove sale" %}
+                    {% trans "Remove sale" context "Sale (discount) action" %}
                 </a>
             </li>
         </ul>
@@ -34,10 +34,12 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--history">
-        <li><a href="{% url 'dashboard:sale-list' %}">{% trans "Sales" %}</a></li>
+        <li><a href="{% url 'dashboard:sale-list' %}">
+            {% trans "Sales" context "Sale (discount) breadcrumbs" %}
+        </a></li>
         <li class="back-mobile"><a href="{% url 'dashboard:sale-list' %}"><i class="material-icons">arrow_back</i></a></li>
         <li><span class="breadcrumbs--ellipsed-item">{% if sale.pk %}{{ sale }}{% else %}
-            {% trans 'Add new sale' %}{% endif %}</span></li>
+            {% trans "Add new sale" context "Sale (discount) breadcrumbs" %}{% endif %}</span></li>
     </ul>
 {% endblock %}
 
@@ -61,9 +63,13 @@
         <div class="row">
             <div class="col l8 right-align">
                 {% if sale.pk %}
-                    <button type="submit" class="btn">{% trans "Update" %}</button>
+                    <button type="submit" class="btn">
+                        {% trans "Update" context "Sale (discount) primary action" %}
+                    </button>
                 {% else %}
-                    <button type="submit" class="btn">{% trans "Create" %}</button>
+                    <button type="submit" class="btn">
+                        {% trans "Create" context "Sale (discount) primary action" %}
+                    </button>
                 {% endif %}
             </div>
         </div>

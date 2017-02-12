@@ -12,7 +12,7 @@
 {% block header_extra %}
     <div class="fixed-action-btn">
         <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
-            href="{% url 'dashboard:sale-add' %}" title="{% trans "Add sale" %}">
+            href="{% url 'dashboard:sale-add' %}" title="{% trans "Add sale" context "Sale (discount) list add button text" %}">
             <i class="material-icons">add</i>
         </a>
     </div>
@@ -20,7 +20,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li class="visible-s">{% trans "Sales" %}</li>
+        <li class="visible-s">{% trans "Sales" context "Sale (discount) list breadcrumbs" %}</li>
     </ul>
 {% endblock %}
 
@@ -33,8 +33,8 @@
                 <table class="bordered hoverable responsive data-table">
                     <thead>
                     <tr>
-                        <th>{% trans "Name" %}</th>
-                        <th>{% trans "Discount" %}</th>
+                        <th>{% trans "Name" context "Sale (discount) table header" %}</th>
+                        <th>{% trans "Discount" context "Sale (discount) table header" %}</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -53,6 +53,6 @@
 
         {% include "dashboard/includes/_pagination.html" %}
     {% else %}
-        <p>{% trans "No sales found." %}</p>
+        <p>{% trans "No sales found." context "Empty sale (discount) table message" %}</p>
     {% endif %}
 {% endblock %}
