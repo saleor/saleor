@@ -4,7 +4,7 @@
 {% load materializecss %}
 {% load staticfiles %}
 
-{% block title %}{% trans "Product types" %} - {{ block.super }}{% endblock %}
+{% block title %}{% trans "Product types" context "Product type list page title" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-products{% endblock %}
 
@@ -13,7 +13,8 @@
 
 {% block header_extra %}
     <div class="fixed-action-btn">
-        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal" title="{% trans "Add product type" %}"
+        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
+           title="{% trans "Add product type" context "Product type list add button text" %}"
             href="{% url 'dashboard:product-class-add' %}">
             <i class="material-icons">add</i>
         </a>
@@ -22,7 +23,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li>{% trans "Product types" %}</li>
+        <li>{% trans "Product types" context "Product type list breadcrumbs" %}</li>
     </ul>
 {% endblock %}
 
@@ -39,19 +40,20 @@
                                 <span class="list-item-name">{{ name }}</span>
                             </a>
                             <p>
-                                {% trans 'Variants' %}: {% if has_variants %}{% trans 'Yes' %}{% else %}{% trans 'No' %}{% endif %}
-                                {% if variant_attributes %} | {% trans 'Variant attributes' %}: {{ variant_attributes|join:", " }}{% endif %}
-                                {% if product_attributes %} | {% trans 'Product attributes' %}: {{ product_attributes|join:", " }}{% endif %}
+                                {% trans "Variants" context "Product type item list text" %}: {% if has_variants %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}
+                                {% if variant_attributes %} | {% trans "Variant attributes" context "Product type item list text" %}: {{ variant_attributes|join:", " }}{% endif %}
+                                {% if product_attributes %} | {% trans "Product attributes" context "Product type item list text" %}: {{ product_attributes|join:", " }}{% endif %}
                             </p>
                         </li>
                     {% endfor %}
                 </ul>
                 {% include "dashboard/includes/_pagination.html" with page_obj=product_classes %}
             {% else %}
-                <p>{% trans "No product types found." %}</p>
+                <p>{% trans "No product types found." context "Empty product type list message" %}</p>
             {% endif %}
         </div>
     </div>
+    <Div></Div>
     <div id="modal-product-class" class="modal">
         <div class="modal-content">
             <form method="post" novalidate>
@@ -63,7 +65,7 @@
                 <div class="row">
                     <div class="col s12">
                         <button class="btn" type="submit">
-                            <i class="material-icons left">create</i> {% trans "Create new" %}
+                            <i class="material-icons left">create</i> {% trans "Create new" context "Modal add product type action"  %}
                         </button>
                     </div>
                 </div>

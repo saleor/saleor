@@ -9,7 +9,7 @@
     <div class="col s12">
         <div class="card">
             <div class="data-table-header{% if not preauthorized_payments %} data-table-header--no-data{% endif %}">
-                <span class="card-title black-text">{% trans "Preauthorized payments" %}</span>
+                <span class="card-title black-text">{% trans "Preauthorized payments" context "Dashboard homepage table title" %}</span>
             </div>
 
             {% if preauthorized_payments %}
@@ -17,10 +17,10 @@
                     <table class="bordered hoverable responsive data-table">
                         <thead>
                             <tr>
-                                <th>{% trans "Order number" %}</th>
-                                <th>{% trans "Date" %}</th>
-                                <th>{% trans "Customer" %}</th>
-                                <th class="text-right">{% trans "Amount" %}</th>
+                                <th>{% trans "Order number" context "Preauthorized payments table header" %}</th>
+                                <th>{% trans "Date" context "Preauthorized payments table header" %}</th>
+                                <th>{% trans "Customer" context "Preauthorized payments table header" %}</th>
+                                <th class="text-right">{% trans "Amount" context "Preauthorized payments table header" %}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -37,28 +37,30 @@
                 </div>
             {% else %}
                 <div class="card-content card-content--no-data">
-                    <p>{% trans "No preauthorized payments." %}</p>
+                    <p>{% trans "No preauthorized payments." context "Empty Preauthorized payments table message" %}</p>
                 </div>
             {% endif %}
         </div>
 
         <div class="card">
             <div class="data-table-header{% if not orders_to_ship %} data-table-header--no-data{% endif %}">
-                <span class="card-title black-text">{% trans "Orders ready for shipment" %}</span>
+                <span class="card-title black-text">
+                    {% trans "Orders ready for shipment" context "Dashboard homepage table title" %}
+                </span>
             </div>
 
             {% if orders_to_ship %}
                 {% include "dashboard/includes/_orders_table.html" with orders=orders_to_ship %}
             {% else %}
                 <div class="card-content card-content--no-data">
-                    <p>{% trans "No orders are ready for shipment." %}</p>
+                    <p>{% trans "No orders are ready for shipment." context "Empty order table message" %}</p>
                 </div>
             {% endif %}
         </div>
 
         <div class="card">
             <div class="card-content">
-                <span class="card-title black-text">{% trans "Products with low stock" %}</span>
+                <span class="card-title black-text">{% trans "Products with low stock" context "Dashboard homepage table title" %}</span>
 
                 {% if low_stock %}
                     <ul class="list">
@@ -71,7 +73,7 @@
                         {% endfor %}
                     </ul>
                 {% else %}
-                    <p>{% trans "No products are low in stock." %}</p>
+                    <p>{% trans "No products are low in stock." context "Empty low stock table message" %}</p>
                 {% endif %}
             </div>
         </div>

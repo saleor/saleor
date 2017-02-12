@@ -2,9 +2,9 @@
 {% load materializecss %}
 
 <div class="modal-content">
-    <h5>{% trans "Cancel order?" %}</h5>
+    <h5>{% trans "Cancel order?" context "Modal cancel order title" %}</h5>
     <p>
-        {% blocktrans with order=order%}
+        {% blocktrans trimmed with order=order context "Modal cancel order text" %}
             Are you sure, you want cancel order {{ order }}?
         {% endblocktrans %}</p>
 </div>
@@ -13,7 +13,9 @@
     <form id="release-form" method="post" role="form" class="form-async"
           action="{% url 'dashboard:order-cancel' order_pk=order.pk %}" novalidate>
         {% csrf_token %}
-        <button type="submit" class="modal-action btn-flat red-text">{% trans "Cancel Order" %}</button>
-        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Abort" %}</a>
+        <button type="submit" class="modal-action btn-flat red-text">
+            {% trans "Cancel Order" context "Modal cancel order primary action" %}</button>
+        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">
+            {% trans "Abort" context "Modal cancel order secondary action" %}</a>
     </form>
 </div>

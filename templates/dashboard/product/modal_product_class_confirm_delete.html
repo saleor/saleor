@@ -7,21 +7,25 @@
     <div class="modal-content">
         <div class="row">
             <div class="col s12">
-                <h5>{% trans "Error" %}</h5>
+                <h5>{% trans "Error" context "Modal delete product class with products title" %}</h5>
             </div>
         </div>
 
         <div class="row">
             <div class="col s12 center-align">
                 <p>
-                    {% blocktrans %}This type is base for created products. Cannot remove it.{% endblocktrans %}
+                    {% blocktrans trimmed context "Modal delete product class with products text" %}
+                        This type is base for created products. Cannot remove it.
+                    {% endblocktrans %}
                 </p>
             </div>
         </div>
     </div>
 
     <div class="modal-footer">
-        <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+        <a href="#!" class="modal-action modal-close btn-flat blue-text">
+            {% trans "Cancel" context "Modal delete product class with products secondary action" %}
+        </a>
     </div>
 {% else %}
     <form action="{% url "dashboard:product-class-delete" pk=product_class.pk %}" method="post" novalidate>
@@ -29,17 +33,23 @@
         <div class="modal-content">
             <div class="row">
                 <div class="col s12">
-                    <h5>{% trans "Are you sure?" %}</h5>
+                    <h5>{% trans "Are you sure?" context "Modal delete product class title" %}</h5>
                 </div>
             </div>
             <p>
-                {% blocktrans %}If you remove <strong>{{ product_class }}</strong> you will lose all data related to this product type.{% endblocktrans %}
+                {% blocktrans trimmed context "Modal delete product class text" %}
+                    If you remove <strong>{{ product_class }}</strong> you will lose all data related to this product type.
+                {% endblocktrans %}
             </p>
         </div>
 
         <div class="modal-footer">
-            <button type="submit" class="modal-action btn-flat blue-text">{% trans "Delete" %}</button>
-            <a href="#!" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+            <button type="submit" class="modal-action btn-flat blue-text">
+                {% trans "Delete" context "Modal delete product class primary action" %}
+            </button>
+            <a href="#!" class="modal-action modal-close btn-flat blue-text">
+                {% trans "Cancel" context "Modal delete product class secondary action" %}
+            </a>
         </div>
     </form>
 {% endif %}

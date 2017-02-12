@@ -5,7 +5,8 @@
 {% load static %}
 {% load attributes %}
 
-{% block title %}{% if product_class.pk %}{{ product_class }}{% else %}{% trans 'Add new product type' %}{% endif %} - {% trans "Products" %} - {{ block.super }}{% endblock %}
+{% block title %}{% if product_class.pk %}{{ product_class }}{% else %}
+    {% trans "Add new product type" context "Product class page title" %}{% endif %} - {% trans "Products" context "Product class page title" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-products{% endblock %}
 
@@ -18,9 +19,13 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--history">
-        <li><a href="{% url "dashboard:product-class-list" %}" class="breadcrumb">{% trans "Product types" %}</a></li>
-        <li class="back-mobile"><a href="{% url "dashboard:product-class-list" %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a></li>
-        <li><span class="breadcrumbs--ellipsed-item">{% if product_class.pk %}{{ product_class }}{% else %}{% trans 'Add new product type' %}{% endif %}</span></li>
+        <li><a href="{% url "dashboard:product-class-list" %}" class="breadcrumb">
+            {% trans "Product types" context "Product class breadcrumbs" %}</a></li>
+        <li class="back-mobile">
+            <a href="{% url "dashboard:product-class-list" %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a></li>
+        <li><span class="breadcrumbs--ellipsed-item">
+            {% if product_class.pk %}{{ product_class }}{% else %}
+                {% trans 'Add new product type' context "Product class breadcrumbs" %}{% endif %}</span></li>
     </ul>
 {% endblock %}
 
@@ -34,7 +39,7 @@
         <li>
             <a href="#base-modal" data-href="{% url 'dashboard:product-class-delete' pk=product_class.pk %}"
                class="modal-trigger-custom">
-                {% trans "Remove product type" %}
+                {% trans "Remove product type" context "Product class action" %}
             </a>
         </li>
     </ul>
@@ -53,13 +58,20 @@
             <div class="col s12 right-align">
                 <div class="row">
                     <button type="submit" class="btn">
-                        {% if product_class.pk %}{% trans "Update" %}{% else %}{% trans "Create" %}{% endif %}
+                        {% if product_class.pk %}
+                            {% trans "Update" context "Product class primary action" %}
+                        {% else %}
+                            {% trans "Create" context "Product class primary action" %}
+                        {% endif %}
                     </button>
                 </div>
             </div>
         </form>
     <p>
-        {% blocktrans %}Product Type is a template used for creating new products. It also controls which attributes can be used during product creation process.{% endblocktrans %}
+        {% blocktrans trimmed context "Product class help text" %}
+            Product Type is a template used for creating new products.
+            It also controls which attributes can be used during product creation process.
+        {% endblocktrans %}
     </p>
     </div>
 {% endblock %}

@@ -4,7 +4,11 @@
 {% load status %}
 {% load utils %}
 
-{% block title %}{% trans "Payment" %} #{{ payment.id }} - {% trans "Payments" %} - {{ block.super }}{% endblock %}
+{% block title %}
+    {% blocktrans trimmed with payment_id=payment.id context "Payment detail page title" %}
+        Payment #{{ payment_id }} - Payments
+    {% endblocktrans %} - {{ block.super }}
+{% endblock %}
 
 {% block body_class %}body-payments{% endblock %}
 
@@ -17,9 +21,15 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--history">
-        <li><a href="{% url "dashboard:payments" %}">{% trans "Payments" %}</a></li>
+        <li><a href="{% url "dashboard:payments" %}">
+            {% trans "Payments" context "Payment detail breadcrumbs" %}
+        </a></li>
         <li class="back-mobile"><a href="{% url "dashboard:payments" %}"><i class="material-icons">arrow_back</i></a></li>
-        <li><span>#{{ payment.id }}</span></li>
+        <li><span>
+            {% blocktrans trimmed with payment_id=payment.id context "Payment detail breadcrumbs" %}
+                #{{ payment.id }}
+            {% endblocktrans %}
+        </span></li>
     </ul>
 {% endblock %}
 
@@ -30,28 +40,28 @@
     <div class="col s12 l8">
         <div class="card grey lighten-4">
             <div class="card-content">
-                <span class="card-title black-text">Payment details</span>
+                <span class="card-title black-text">{% trans "Payment details" context "Payment detail card title" %}</span>
 
                 <ul>
-                    <li>{% trans "Payment status" %}: {% render_status payment.status payment.get_status_display %}</li>
-                    <li>{% trans "Fraud status" %}: {% render_status payment.fraud_status payment.get_fraud_status_display %}</li>
-                    <li>{% trans "Amount" %}: {% gross payment.get_total_price %}</li>
-                    <li>{% trans "Captured amount" %}: {% gross payment.get_captured_price %}</li>
-                    <li>{% trans "Gateway" %}: {{ payment.variant }}</li>
-                    <li>{% trans "Transaction ID" %}: {{ payment.transaction_id }}</li>
-                    <li>{% trans "Payment date" %}: {{ payment.created }}</li>
+                    <li>{% trans "Payment status" context "Payment detail card list item title" %}: {% render_status payment.status payment.get_status_display %}</li>
+                    <li>{% trans "Fraud status" context "Payment detail card list item title" %}: {% render_status payment.fraud_status payment.get_fraud_status_display %}</li>
+                    <li>{% trans "Amount" context "Payment detail card list item title" %}: {% gross payment.get_total_price %}</li>
+                    <li>{% trans "Captured amount" context "Payment detail card list item title" %}: {% gross payment.get_captured_price %}</li>
+                    <li>{% trans "Gateway" context "Payment detail card list item title" %}: {{ payment.variant }}</li>
+                    <li>{% trans "Transaction ID" context "Payment detail card list item title" %}: {{ payment.transaction_id }}</li>
+                    <li>{% trans "Payment date" context "Payment detail card list item title" %}: {{ payment.created }}</li>
                 </ul>
             </div>
         </div>
 
         <div class="card">
             <div class="card-content">
-                <span class="card-title black-text">{% trans "Gateway response" %}</span>
+                <span class="card-title black-text">{% trans "Gateway response" context "Gateway response card title" %}</span>
 
                 {% if payment.message %}
                     {{ payment.message }}
                 {% else %}
-                    <p>{% trans "No response available." %}</p>
+                    <p>{% trans "No response available." context "Empty gateway response card message" %}</p>
                 {% endif %}
             </div>
         </div>
@@ -62,13 +72,16 @@
             <div class="col s12 m6 l12">
                 <div class="card equal-height-on-med">
                     <div class="card-content">
-                        <span class="card-title black-text">{% trans "Customer" %}</span>
+                        <span class="card-title black-text">{% trans "Customer" context "Customer card title" %}</span>
 
                         <div class="address">
                             {% if payment.order.user %}
-                                <div>{% trans "Account" %}: <a href="{% url "dashboard:customer-details" pk=payment.order.user.pk %}">{{ payment.order.user }}</a></div>
+                                <div>{% trans "Account" context "Customer card item title" %}:
+                                    <a href="{% url "dashboard:customer-details" pk=payment.order.user.pk %}">
+                                        {{ payment.order.user }}</a>
+                                </div>
                             {% else %}
-                                <div>{% trans "Account" %}: {% trans "Guest" %}</div>
+                                <div>{% trans "Account" context "Customer card item title" %}: {% trans "Guest" context "Customer card item value" %}</div>
                             {% endif %}
                             <div><i class="material-icons">email</i> <a href="mailto:{{ payment.order.user_email }}">{{ payment.order.user_email }}</a></div>
                             <div>Customer IP: {{ payment.customer_ip_address }}</div>
@@ -80,7 +93,7 @@
             <div class="col s12 m6 l12">
                 <div class="card equal-height-on-med">
                     <div class="card-content">
-                        <span class="card-title black-text">{% trans "Billing address" %}</span>
+                        <span class="card-title black-text">{% trans "Billing address" context "Billing address card title" %}</span>
 
                         <div class="address">
                             <strong>{{ payment.billing_first_name }} {{ payment.billing_last_name }}</strong>

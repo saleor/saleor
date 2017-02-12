@@ -3,7 +3,7 @@
 {% load prices_i18n %}
 {% load status %}
 
-{% block title %}{% trans "Shipping methods" %} - {{ block.super }}{% endblock %}
+{% block title %}{% trans "Shipping methods" context "Shipping method list page title" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-shipping-methods{% endblock %}
 
@@ -11,14 +11,14 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li class="visible-s">{% trans "Shipping methods" %}</li>
+        <li class="visible-s">{% trans "Shipping methods" context "Shipping method list breadcrumbs" %}</li>
     </ul>
 {% endblock %}
 
 {% block header_extra %}
     <div class="fixed-action-btn">
         <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
-           title="{% trans "Add method" %}"
+           title="{% trans "Add method" context "Shipping method list add button text" %}"
            href="{% url 'dashboard:shipping-method-add' %}">
             <i class="material-icons">add</i>
         </a>
@@ -32,9 +32,9 @@
                 <table class="bordered hoverable responsive data-table">
                     <thead>
                     <tr>
-                        <th>{% trans "Name" %}</th>
-                        <th>{% trans "Price range" %}</th>
-                        <th class="wide">{% trans "Countries" %}</th>
+                        <th>{% trans "Name" context "Shipping methods table header" %}</th>
+                        <th>{% trans "Price range" context "Shipping methods table header" %}</th>
+                        <th class="wide">{% trans "Countries" context "Shipping methods table header" %}</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -63,7 +63,7 @@
 
         {% include "dashboard/includes/_pagination.html" %}
     {% else %}
-        <p>{% trans "No shipping methods found." %}</p>
+        <p>{% trans "No shipping methods found." context "Empty Shipping methods table" %}</p>
     {% endif %}
 
 {% endblock %}

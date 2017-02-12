@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load materializecss %}
 
-{% block title %}{% trans "Attributes" %} - {{ block.super }}{% endblock %}
+{% block title %}{% trans "Attributes" context "Attribute list page title" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-attributes{% endblock %}
 
@@ -11,7 +11,7 @@
 {% block header_extra %}
     <div class="fixed-action-btn">
         <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
-            href="{% url 'dashboard:product-attribute-add' %}" title="{% trans "Add attribute" %}">
+            href="{% url 'dashboard:product-attribute-add' %}" title="{% trans "Add attribute" context "Attribute list add button text" %}">
             <i class="material-icons">add</i>
         </a>
     </div>
@@ -19,7 +19,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li class="visible-s">{% trans "Attributes" %}</li>
+        <li class="visible-s">{% trans "Attributes" context "Attribute list breadcrumbs" %}</li>
     </ul>
 {% endblock %}
 
@@ -43,7 +43,7 @@
                     {% endfor %}
                 </ul>
             {% else %}
-                <p>{% trans "No attributes found." %}</p>
+                <p>{% trans "No attributes found." context "Empty attribute list message" %}</p>
             {% endif %}
         </div>
     </div>
