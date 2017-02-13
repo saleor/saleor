@@ -49,7 +49,8 @@ var config = {
   },
   output: {
     path: resolve('saleor/static/assets/'),
-    filename: '[name].[chunkhash].js'
+    filename: '[name].[chunkhash].js',
+    publicPath: '/static/assets/'
   },
   module: {
     loaders: [
@@ -72,7 +73,7 @@ var config = {
       },
       {
         test: /\.(eot|otf|png|svg|jpg|ttf|woff|woff2)(\?v=[0-9.]+)?$/,
-        loader: 'file?name=[name].[hash].[ext]&publicPath=/static/assets/',
+        loader: 'file?name=[name].[hash].[ext]',
         include: [
           resolve('node_modules'),
           resolve('saleor/static/fonts'),
