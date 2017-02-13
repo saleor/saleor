@@ -215,7 +215,7 @@ def create_products_by_class(product_class, schema,
             sku = '%s-%s' % (product.pk, i)
             kwargs = {'attributes': attr_combination, 'sku': sku}
             if schema.get('different_variant_prices'):
-                kwargs['price_override'] = next(prices)
+                kwargs['price_override'] = product.price + next(prices)
             create_variant(product, **kwargs)
 
         if not variant_combinations:
