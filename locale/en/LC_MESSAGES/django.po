@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-02-12 22:08+0100\n"
+"POT-Creation-Date: 2017-02-13 19:26+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1996,6 +1996,7 @@ msgid "Customers"
 msgstr ""
 
 #: templates/dashboard/customer/list.html:27
+msgctxt "Customer list form primary action"
 msgid "Filter"
 msgstr ""
 
@@ -2521,7 +2522,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:222
 #, python-format
 msgctxt "Shipment group table item column data"
-msgid "Shipping (%(group.shipping_method_name)s)"
+msgid "Shipping (%(group_shipping_method_name)s)"
 msgstr ""
 
 #: templates/dashboard/order/detail.html:252
@@ -2612,7 +2613,7 @@ msgstr ""
 #: templates/dashboard/order/detail.html:402
 #, python-format
 msgctxt "Payment item column data"
-msgid "#%(payment.id)s"
+msgid "#%(payment_id)s"
 msgstr ""
 
 #: templates/dashboard/order/detail.html:415
@@ -2944,7 +2945,7 @@ msgstr ""
 #: templates/dashboard/payments/detail.html:29
 #, python-format
 msgctxt "Payment detail breadcrumbs"
-msgid "#%(payment.id)s"
+msgid "#%(payment_id)s"
 msgstr ""
 
 #: templates/dashboard/payments/detail.html:43
@@ -3850,8 +3851,8 @@ msgctxt "Modal delete stock location text"
 msgid ""
 "There is one stock associated with this stock location that will be deleted."
 msgid_plural ""
-"There are %(stock_count)s stocks associated with this stock location that "
-"will be deleted."
+"There are %(counter)s stocks associated with this stock location that will "
+"be deleted."
 msgstr[0] ""
 msgstr[1] ""
 
