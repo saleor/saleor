@@ -1,6 +1,6 @@
 import datetime
 import json
-from random import randint, shuffle
+from random import randint
 
 from django.conf import settings
 from django.http import HttpResponsePermanentRedirect, JsonResponse
@@ -148,7 +148,10 @@ def products_from_collections(request, product_id):
         collections__products__id=product_id).exclude(
         id=product_id).distinct()
     products_count = products.count()
-    index = randint(0, products_count - 6)
+    if products_count > 6:
+        index = randint(0, products_count - 6)
+    else:
+        index = 0
 
     ctx = {'products': products[index:index + 6]}
     return TemplateResponse(request, 'product/_product_collections.html', ctx)
