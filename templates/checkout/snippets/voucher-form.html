@@ -11,9 +11,9 @@
                     {% csrf_token %}
                     <span>{{ discount.name }}</span>
                     <button type="submit"
-                              class="btn btn-link"
-                              aria-label="{% trans "Remove" %}">
-                              ({% trans "Remove" %})
+                            class="btn btn-link"
+                            aria-label="{% trans "Remove" context "Checkout voucher form action" %}">
+                        ({% trans "Remove" context "Checkout voucher form action" %})
                     </button>
 
                 </form>
@@ -24,7 +24,10 @@
                 <form action="{{ request.path }}?next={{ request.path }}"
                       method="post">
                     {% csrf_token %}
-                    <div class="form-group checkout__review__voucher">{% bootstrap_field form.voucher show_label=False %} {% bootstrap_button _("Use") button_type="submit" button_class="btn secondary" %}</div>
+                    <div class="form-group checkout__review__voucher">
+                        {% trans "Use" context "Checkout voucher form action" as use_voucher %}
+                        {% bootstrap_field form.voucher show_label=False %} {% bootstrap_button use_voucher button_type="submit" button_class="btn secondary" %}
+                    </div>
                 </form>
         {% endif %}
 {% endif %}
