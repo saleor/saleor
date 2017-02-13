@@ -27,7 +27,7 @@
         <li class="back-mobile"><a href="{% url "dashboard:payments" %}"><i class="material-icons">arrow_back</i></a></li>
         <li><span>
             {% blocktrans trimmed with payment_id=payment.id context "Payment detail breadcrumbs" %}
-                #{{ payment.id }}
+                #{{ payment_id }}
             {% endblocktrans %}
         </span></li>
     </ul>
