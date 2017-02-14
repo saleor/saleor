@@ -1,14 +1,25 @@
 import datetime
 
 from mock import Mock
+import pytest
 
 from django.core.urlresolvers import reverse
+from django.utils.encoding import smart_text
 
 from saleor.cart.models import Cart
 from saleor.cart import CartStatus, utils
 from saleor.product import models
+from saleor.product.models.utils import get_attributes_display_map
 from saleor.product.utils import get_availability
 from tests.utils import filter_products_by_attribute
+
+
+@pytest.fixture()
+def product_with_no_attributes(product_class):
+    product = models.Product.objects.create(
+        name='Test product', price='10.00',
+        product_class=product_class)
+    return product
 
 
 def test_stock_selector(product_in_stock):
@@ -262,3 +273,33 @@ def test_adding_to_cart_with_closed_cart_token(
         user=admin_user, status=CartStatus.OPEN).count() == 1
     assert Cart.objects.filter(
         user=admin_user, status=CartStatus.ORDERED).count() == 1
+
+
+def test_get_attributes_display_map(product_in_stock):
+    attributes = product_in_stock.product_class.product_attributes.all()
+    attributes_display_map = get_attributes_display_map(
+        product_in_stock, attributes)
+
+    product_attr = product_in_stock.product_class.product_attributes.first()
+    attr_value = product_attr.values.first()
+
+    assert len(attributes_display_map) == 1
+    assert attributes_display_map == {product_attr.pk: attr_value}
+
+
+def test_get_attributes_display_map_empty(product_with_no_attributes):
+    product = product_with_no_attributes
+    attributes = product.product_class.product_attributes.all()
+
+    assert get_attributes_display_map(product, attributes) == {}
+
+
+def test_get_attributes_display_map_no_choices(product_in_stock):
+    attributes = product_in_stock.product_class.product_attributes.all()
+    product_attr = attributes.first()
+
+    product_in_stock.set_attribute(product_attr.pk, -1)
+    attributes_display_map = get_attributes_display_map(
+        product_in_stock, attributes)
+
+    assert attributes_display_map == {product_attr.pk: smart_text(-1)}
