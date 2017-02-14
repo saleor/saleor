@@ -363,15 +363,6 @@ def test_remove_voucher(client, request_cart_with_item, shipping_method, voucher
 
 def test_user_pass_new_valid_shipping_address(authorized_client, customer_user,  # pylint: disable=W0613,R0914
                                               request_cart_with_item, shipping_method):  # pylint: disable=W0613
-    """User pass new valid shipping address
-      - if is save in session storage
-      - if is save in order object, after finish checkout
-      - if is add to authorized user (ass default shipping address)
-      user pass new valid shipping address, and use it as billing address
-      - if is save in order
-      - if is save in as default
-
-    """
 
     # Enter checkout
     checkout_index = authorized_client.get(reverse('checkout:index'), follow=True)
@@ -423,8 +414,9 @@ def test_user_pass_new_valid_shipping_address(authorized_client, customer_user, 
     assert order_dict == shipping_data
 
     user = User.objects.get(pk=customer_user.pk)
-    assert model_to_dict(user.default_shipping_address, exclude=['id']) == \
-           model_to_dict(order.shipping_address, exclude=['id'])
+    default_shipping_address_dict = model_to_dict(user.default_shipping_address, exclude=['id'])
+    shipping_address_dict = model_to_dict(order.shipping_address, exclude=['id'])
+    assert default_shipping_address_dict == shipping_address_dict
 
 
 def test_user_pass_new_valid_billing_address(authorized_client, customer_user,  # pylint: disable=W0613,R0914
@@ -488,8 +480,7 @@ def test_user_pass_new_valid_billing_address(authorized_client, customer_user,  
     assert order_dict == billing_data
 
     user = User.objects.get(pk=customer_user.pk)
-    assert model_to_dict(user.default_billing_address, exclude=['id']) == \
-           model_to_dict(order.billing_address, exclude=['id'])
+    assert model_to_dict(user.default_billing_address, exclude=['id']) == order_dict
 
 
 def test_user_choose_existing_shipping_address(authorized_client, billing_address, customer_user,  # pylint: disable=W0613,R0914
@@ -529,9 +520,10 @@ def test_user_choose_existing_shipping_address(authorized_client, billing_addres
     order_dict = model_to_dict(billing_address, exclude=['id'])
     assert order_dict == model_to_dict(order.shipping_address, exclude=['id'])
 
-    user = User.objects.get(pk=customer_user.pk)
-    assert model_to_dict(user.default_shipping_address, exclude=['id']) == \
-           model_to_dict(order.shipping_address, exclude=['id'])
+    default_shipping_address_dict = model_to_dict(order.shipping_address, exclude=['id'])
+    shipping_address_dict = model_to_dict(order.shipping_address, exclude=['id'])
+    assert default_shipping_address_dict == shipping_address_dict
+
 
 
 def test_user_choose_existing_billing_address(authorized_client, billing_address, customer_user,  # pylint: disable=R0914
@@ -694,9 +686,8 @@ def test_user_choose_existing_shipping_method_then_change_it(authorized_client, 
     address_data = {'country_form': 'true', 'preview': 'true'}
     summary_response = authorized_client.post(shipping_method_response.request['PATH_INFO'],
                                               data=address_data, follow=True)
-
-    assert summary_response.context['checkout'].shipping_method == \
-           shipping_method.price_per_country.all()[0]
+    shipping_method_price = shipping_method.price_per_country.all()[0]
+    assert summary_response.context['checkout'].shipping_method == shipping_method_price
 
     address_data = {'address': billing_address.pk}
     summary_response = authorized_client.post(shipping_method_response.request['PATH_INFO'],
