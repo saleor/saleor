@@ -175,8 +175,7 @@ INSTALLED_APPS = [
     'materializecssform',
     'rest_framework',
     'webpack_loader',
-    'allauth',
-    'allauth.account',
+    'social_django',
     'django_countries',
 ]
 
