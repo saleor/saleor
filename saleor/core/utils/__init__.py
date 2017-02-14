@@ -134,7 +134,10 @@ class TranslationWrapper(object):
 
     @cached_property
     def _translation(self):
-        return self._instance.translations.filter(language_code=self._locale).first()
+        for translation in self._instance.translations.all():
+            if translation.language_code == self._locale:
+                return translation
+        return None
 
     def __getattr__(self, item):
         if hasattr(self._translation, item):
