@@ -4,6 +4,7 @@ from mock import Mock
 import pytest
 
 from django.core.urlresolvers import reverse
+from django.utils.encoding import smart_text
 
 from saleor.cart.models import Cart
 from saleor.cart import CartStatus, utils
@@ -293,3 +294,14 @@ def test_get_attributes_display_map_empty(product_with_no_attributes):
     attributes = product.product_class.product_attributes.all()
 
     assert get_attributes_display_map(product, attributes) == {}
+
+
+def test_get_attributes_display_map_no_choices(product_in_stock):
+    attributes = product_in_stock.product_class.product_attributes.all()
+    product_attr = attributes.first()
+
+    product_in_stock.set_attribute(product_attr.pk, -1)
+    attributes_display_map = get_attributes_display_map(
+        product_in_stock, attributes)
+
+    assert attributes_display_map == {product_attr.pk: smart_text(-1)}
