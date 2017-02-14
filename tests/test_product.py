@@ -15,9 +15,7 @@ from tests.utils import filter_products_by_attribute
 
 
 @pytest.fixture()
-def product_with_no_attributes(db):
-    product_class = models.ProductClass.objects.create(
-        name='Default Class', has_variants=False, is_shipping_required=True)
+def product_with_no_attributes(product_class):
     product = models.Product.objects.create(
         name='Test product', price='10.00',
         product_class=product_class)
