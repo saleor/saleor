@@ -1,7 +1,5 @@
 from collections import namedtuple
 
-from django_prices_vatlayer.utils import get_tax_for_country
-
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.utils.encoding import smart_text
