@@ -48,10 +48,11 @@ def attach_order_to_user(order, user):
     order.save(update_fields=['user'])
 
 
-def add_items_to_delivery_group(delivery_group, partition, discounts=None):
+def add_items_to_delivery_group(delivery_group, partition, discounts=None,
+                                country=None):
     for item_line in partition:
         product_variant = item_line.variant
-        price = item_line.get_price_per_item(discounts)
+        price = item_line.get_price_per_item(discounts, country=country)
         quantity = item_line.get_quantity()
         stock = product_variant.select_stockrecord(quantity)
         delivery_group.items.create(
