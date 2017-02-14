@@ -18,7 +18,6 @@ defusedxml==0.5.0         # via python3-openid
 dj-database-url==0.4.2
 dj-email-url==0.0.10
 django-absolute==0.3      # via django-emailit
-django-allauth==0.30.0
 django-bootstrap3==8.2.1
 django-cache-url==1.3.1
 django-countries==4.1
@@ -52,7 +51,7 @@ markdown==2.6.7
 maxminddb-geolite2==2015.708
 maxminddb==1.2.3
 mock==2.0.0
-oauthlib==2.0.1           # via requests-oauthlib
+oauthlib==2.0.1           # via requests-oauthlib, social-auth-core
 packaging==16.8           # via setuptools
 pbr==1.10.0               # via mock
 pillow==3.4.2             # via django-versatileimagefield
@@ -64,20 +63,22 @@ purl==1.3
 py==1.4.32                # via pytest
 pyasn1==0.1.9             # via cryptography
 pycparser==2.17           # via cffi
-pyjwt==1.4.2              # via django-payments
+pyjwt==1.4.2              # via django-payments, social-auth-core
 pyparsing==2.1.10         # via packaging
 pytest-django==3.1.2
 pytest==3.0.5
 python-dateutil==2.6.0    # via botocore, faker
-python3-openid==3.1.0     # via django-allauth
+python3-openid==3.1.0     # via social-auth-core
 pytz==2016.10             # via babel
 redis==2.10.5             # via django-redis
-requests-oauthlib==0.7.0  # via django-allauth
+requests-oauthlib==0.7.0  # via social-auth-core
 requests==2.12.4
 s3transfer==0.1.10        # via boto3
 satchless==1.1.3
 singledispatch==3.4.0.3   # via graphene-django
-six==1.10.0               # via cryptography, faker, graphene, graphene-django, graphql-core, graphql-relay, mock, packaging, purl, python-dateutil, setuptools, singledispatch
+six==1.10.0               # via cryptography, faker, graphene, graphene-django, graphql-core, graphql-relay, mock, packaging, purl, python-dateutil, setuptools, singledispatch, social-auth-app-django, social-auth-core
+social-auth-app-django==1.1.0
+social-auth-core==1.2.0   # via social-auth-app-django
 stripe==1.46.0            # via django-payments
 suds-jurko==0.6           # via django-payments
 text-unidecode==1.0
