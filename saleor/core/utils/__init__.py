@@ -127,26 +127,17 @@ def create_superuser(credentials):
 
 @python_2_unicode_compatible
 class TranslationWrapper(object):
-
     def __init__(self, instance, locale):
-        self._instance = instance
-        self._locale = locale
-
-    @cached_property
-    def _translation(self):
-        for translation in self._instance.translations.all():
-            if translation.language_code == self._locale:
-                return translation
-        return None
+        self.instance = instance
+        self.translation = next((t for t in instance.translations.all() if t.language_code == locale), None)
 
     def __getattr__(self, item):
-        if hasattr(self._translation, item):
-            return getattr(self._translation, item)
-
-        return getattr(self._instance, item)
+        if self.translation is not None and hasattr(self.translation, item):
+            return getattr(self.translation, item)
+        return getattr(self.instance, item)
 
     def __str__(self):
-        return str(self._instance)
+        return str(self.instance)
 
 
 class TranslationProxy(object):
