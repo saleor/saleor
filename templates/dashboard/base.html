@@ -4,11 +4,11 @@
 
 <html lang="{{ LANGUAGE_CODE }}" class="no-js">
 <head>
+    <title>{% block title %}{% trans "Dashboard - Saleor" context "Dashboard default page title"  %}{% endblock %}</title>
+    {% block meta %}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-
-    <title>{% block title %}{% trans "Dashboard - Saleor" context "Dashboard default page title"  %}{% endblock %}</title>
-
+    {% endblock meta %}
     {% render_bundle 'vendor' 'css' %}
     {% render_bundle 'dashboard' 'css' %}
     <link rel="stylesheet" type="text/css" href="{% static "versatileimagefield/css/versatileimagefield.css" %}">
