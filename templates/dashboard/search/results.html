@@ -72,7 +72,7 @@
                                 </p>
                             {% elif result.content_type == 'userprofile_user' %}
                                 <i class="small material-icons circle teal">perm_identity</i>
-                                <a class="title" href="{% url 'dashboard:order-details' order_pk=result.pk %}">
+                                <a class="title" href="{% url 'dashboard:customer-details' pk=result.pk %}">
                                     <span class="list-item-name">
                                         {% blocktrans trimmed with full_name=result.get_full_name context "Search user result text" %}
                                             User {{ full_name }}
