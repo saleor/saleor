@@ -276,7 +276,7 @@ class AttributeChoiceValueForm(forms.ModelForm):
 
     def clean_display(self):
         display = self.cleaned_data['display']
-        if (not self.instance.pk and
+        if (not self.instance.pk and hasattr(self.instance, 'attribute') and
                 self.instance.attribute.values.filter(slug=slugify(display))):
             raise forms.ValidationError(
                 pgettext_lazy(
