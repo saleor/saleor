@@ -10,20 +10,20 @@ from django_prices.templatetags.prices_i18n import gross
 from prices import Price
 
 from ...core.utils import get_paginator_items
-from ..order.forms import OrderFilterForm
 from ...order.models import Order, OrderedItem, OrderNote
 from ...userprofile.i18n import AddressForm
+from ..order.forms import OrderFilterForm
 from ..views import staff_member_required
-from .forms import (CancelItemsForm, CancelOrderForm, CapturePaymentForm,
-                    ChangeQuantityForm, MoveItemsForm, OrderNoteForm,
-                    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm,
-                    ShipGroupForm, CancelGroupForm)
+from .forms import (CancelGroupForm, CancelItemsForm, CancelOrderForm,
+                    CapturePaymentForm, ChangeQuantityForm, MoveItemsForm,
+                    OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
+                    RemoveVoucherForm, ShipGroupForm)
 
 
 @staff_member_required
 def order_list(request):
     orders = Order.objects.prefetch_related(
-        'groups', 'payments', 'groups__items').all()
+        'groups', 'payments', 'groups__items', 'user').all()
 
     active_status = request.GET.get('status')
     if active_status:
@@ -103,7 +103,8 @@ def capture_payment(request, order_pk, payment_pk):
     if form.is_valid() and form.capture():
         amount = form.cleaned_data['amount']
         msg = pgettext_lazy(
-            'Dashboard message related to a payment', 'Captured %(amount)s') % {'amount': gross(amount)}
+            'Dashboard message related to a payment',
+            'Captured %(amount)s') % {'amount': gross(amount)}
         payment.order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
