@@ -1,19 +1,20 @@
 from __future__ import unicode_literals
+
 from functools import wraps
 
 from django.conf import settings
 from django.db import transaction
 from django.forms.models import model_to_dict
 from django.utils.encoding import smart_text
-from prices import Price, FixedDiscount
+from prices import FixedDiscount, Price
 
 from ..cart.models import Cart
 from ..cart.utils import get_or_empty_db_cart
 from ..core import analytics
-from ..discount.models import Voucher, NotApplicable
+from ..discount.models import NotApplicable, Voucher
 from ..order.models import Order
 from ..order.utils import add_items_to_delivery_group
-from ..shipping.models import ShippingMethodCountry, ANY_COUNTRY
+from ..shipping.models import ANY_COUNTRY, ShippingMethodCountry
 from ..userprofile.models import Address
 from ..userprofile.utils import store_user_address
 
@@ -145,7 +146,8 @@ class Checkout(object):
         address = self._get_address_from_storage('billing_address')
         if address is not None:
             return address
-        elif self.user.is_authenticated() and self.user.default_billing_address:
+        elif (self.user.is_authenticated() and
+              self.user.default_billing_address):
             return self.user.default_billing_address
         elif self.shipping_address:
             return self.shipping_address
@@ -331,8 +333,7 @@ class Checkout(object):
 
 def load_checkout(view):
     @wraps(view)
-    @get_or_empty_db_cart(Cart.objects.all().prefetch_related(
-        'lines__variant__product'))
+    @get_or_empty_db_cart(Cart.objects.for_display())
     def func(request, cart):
         try:
             session_data = request.session[STORAGE_SESSION_KEY]
