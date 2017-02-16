@@ -9,6 +9,7 @@ from collections import defaultdict
 from django.conf import settings
 from django.core.files import File
 from django.template.defaultfilters import slugify
+from django.utils.six import moves
 from faker import Factory
 from faker.providers import BaseProvider
 from prices import Price
@@ -189,9 +190,13 @@ def get_variant_combinations(product):
             for combination in all_combinations]
 
 
-def get_price_override(schema, n):
+def get_price_override(schema, combinations_num, current_price):
+    prices = []
     if schema.get('different_variant_prices'):
-        return iter(sorted([fake.price() for _ in range(n)], reverse=True))
+        prices = sorted(
+            [current_price + fake.price() for _ in range(combinations_num)],
+            reverse=True)
+    return prices
 
 
 def create_products_by_class(product_class, schema,
@@ -210,13 +215,18 @@ def create_products_by_class(product_class, schema,
             create_product_images(
                 product, random.randrange(1, 5), class_placeholders)
         variant_combinations = get_variant_combinations(product)
-        prices = get_price_override(schema, len(variant_combinations))
-        for i, attr_combination in enumerate(variant_combinations, 1337):
+
+        prices = get_price_override(
+            schema, len(variant_combinations), product.price)
+        variants_with_prices = moves.zip_longest(
+            variant_combinations, prices)
+
+        for i, variant_price in enumerate(variants_with_prices, start=1337):
+            attr_combination, price = variant_price
             sku = '%s-%s' % (product.pk, i)
-            kwargs = {'attributes': attr_combination, 'sku': sku}
-            if schema.get('different_variant_prices'):
-                kwargs['price_override'] = product.price + next(prices)
-            create_variant(product, **kwargs)
+            create_variant(
+                product, attributes=attr_combination, sku=sku,
+                price_override=price)
 
         if not variant_combinations:
             # Create min one variant for products without variant level attrs
