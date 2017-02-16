@@ -4,9 +4,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.forms import model_to_dict
 from mock import Mock
 from prices import Price
-from satchless.item import partition
 
-from saleor.cart.models import ProductGroup, Cart, CartLine
 from saleor.checkout import views
 from saleor.checkout.core import STORAGE_SESSION_KEY, Checkout
 from saleor.shipping.models import ShippingMethodCountry
@@ -16,36 +14,6 @@ from saleor.userprofile.models import Address
 @pytest.fixture
 def anonymous_checkout():
     return Checkout(Mock(), AnonymousUser(), 'tracking_code')
-
-
-@pytest.fixture
-def cart_with_partition_factory(cart, monkeypatch, product_in_stock):
-    def generate_cart(items):
-        partitions = []
-        for item in items:
-            is_shipping_required = item.get('is_shipping_required', True)
-            money_function_mock = Mock(return_value=Price(item['cost'],
-                                                          currency=settings.DEFAULT_CURRENCY))
-            item = Mock(spec=CartLine,
-                        get_total=money_function_mock,
-                        get_price_per_item=money_function_mock)
-
-            partition = Mock(spec=ProductGroup,
-                             is_shipping_required=Mock(return_value=is_shipping_required),
-                             get_total=money_function_mock,
-                             get_price_per_item=money_function_mock,
-                             item=item)  # this is for assertion purpose only
-
-            partition.__iter__ = Mock(return_value=iter([item]))
-            partitions.append(partition)
-
-        mock = Mock(spec=Cart,
-                    partition=Mock(return_value=partitions),
-                    currency=settings.DEFAULT_CURRENCY,
-                    discounts=None)
-        return mock
-
-    return generate_cart
 
 
 @pytest.fixture
@@ -92,11 +60,11 @@ def test_checkout_is_shipping_required(anonymous_checkout):
 
 def test_checkout_deliveries(anonymous_checkout, cart_with_partition_factory):
     anonymous_checkout.cart = cart_with_partition_factory(items=[{'cost': 10}])
-    partition = anonymous_checkout.cart.partition()[0]
+    partition = anonymous_checkout.cart.partition()
     deliveries = list(anonymous_checkout.deliveries)
     assert deliveries[0][1] == Price(0, currency=settings.DEFAULT_CURRENCY)
     assert deliveries[0][2] == partition.get_total()
-    assert deliveries[0][0][0][0] == partition.item
+    assert deliveries[0][0][0][0] == partition.subject[0]
 
 
 def test_checkout_deliveries_with_shipping_method(anonymous_checkout, cart_with_partition_factory,
@@ -105,13 +73,13 @@ def test_checkout_deliveries_with_shipping_method(anonymous_checkout, cart_with_
     items_cost = 5
 
     anonymous_checkout.cart = cart_with_partition_factory(items=[{'cost': items_cost}])
-    partition = anonymous_checkout.cart.partition()[0]
+    partition = anonymous_checkout.cart.partition()
     shipping_method_factory(shipping_cost=shipping_cost)
 
     deliveries = list(anonymous_checkout.deliveries)
     assert deliveries[0][1] == Price(shipping_cost, currency=settings.DEFAULT_CURRENCY)
     assert deliveries[0][2] == Price(items_cost + shipping_cost, currency=settings.DEFAULT_CURRENCY)
-    assert deliveries[0][0][0][0] == partition.item
+    assert deliveries[0][0][0][0] == partition.subject[0]
 
 
 @pytest.mark.parametrize('user, shipping', [
@@ -276,7 +244,7 @@ def test_set_email_address(anonymous_checkout):
 
 
 @pytest.mark.parametrize('items, subtotal', [
-    ([{'cost': 10}, {'cost': 20}], 30),
+    ([{'cost': 10}, {'cost': 20, 'is_shipping_required': False}], 30),
     ([{'cost': 10}], 10),
 ])
 def test_get_subtotal(anonymous_checkout, cart_with_partition_factory, items, subtotal):
@@ -288,7 +256,7 @@ def test_get_subtotal(anonymous_checkout, cart_with_partition_factory, items, su
 
 
 @pytest.mark.parametrize('items, total', [
-    ([{'cost': 10}, {'cost': 20}], 30),
+    ([{'cost': 10}, {'cost': 20, 'is_shipping_required': False}], 30),
     ([{'cost': 10}], 10),
 ])
 def test_get_total(anonymous_checkout, cart_with_partition_factory, items, total):
@@ -300,7 +268,7 @@ def test_get_total(anonymous_checkout, cart_with_partition_factory, items, total
 
 
 @pytest.mark.parametrize('items, total_shipping', [
-    ([{'cost': 10}, {'cost': 20}], 10),
+    ([{'cost': 10}, {'cost': 20, 'is_shipping_required': False}], 5),
     ([{'cost': 10}], 5),
 ])
 def test_get_total_shipping(anonymous_checkout, cart_with_partition_factory,

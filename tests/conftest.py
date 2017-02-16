@@ -276,3 +276,30 @@ def authorization_key(db, site_settings):
     return AuthorizationKey.objects.create(
         site_settings=site_settings, name='Backend', key='Key',
         password='Password')
+
+
+@pytest.fixture
+def cart_with_partition_factory(cart, color_attribute, default_category, size_attribute):
+    def generate_cart(items):
+
+        for index, item in enumerate(items):
+            is_shipping_required = item.get('is_shipping_required', True)
+            product_class = ProductClass.objects.create(
+                name=smart_text(index), has_variants=False,
+                is_shipping_required=is_shipping_required)
+            product_class.product_attributes.add(color_attribute)
+            product_class.variant_attributes.add(size_attribute)
+            product_attr = product_class.product_attributes.first()
+            attr_value = product_attr.values.first()
+            attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
+
+            product = Product.objects.create(
+                name='Test product', price=Decimal(item.get('cost', '10.00')),
+                product_class=product_class, attributes=attributes)
+            product.categories.add(default_category)
+
+            variant = ProductVariant.objects.create(
+                product=product, sku=smart_text(index))
+            cart.add(variant, check_quantity=False)
+        return cart
+    return generate_cart
