@@ -4,7 +4,9 @@
 Saleor
 ======
 
-Avast ye landlubbers! Saleor be a Satchless store ye can fork.
+Avast ye landlubbers! Saleor be a Satchless store ye can fork. 
+
+[Saleor homepage](http://getsaleor.com/)
 
 [![Build Status](https://travis-ci.org/mirumee/saleor.png?branch=master)](https://travis-ci.org/mirumee/saleor)
 [![Requirements Status](https://requires.io/github/mirumee/saleor/requirements.svg?branch=master)](https://requires.io/github/mirumee/saleor/requirements/?branch=master)
@@ -19,7 +21,11 @@ See the [Saleor docs](https://saleor.readthedocs.io) for installation and deploy
 Demo
 ----
 
-Want to see Saleor in action? Launch the demo on a free Heroku instance.
+Want to see Saleor in action?
+
+[Saleor live demo](http://demo.getsaleor.com/)
+
+Or launch the demo on a free Heroku instance.
 
 [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
 
