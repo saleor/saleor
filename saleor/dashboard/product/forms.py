@@ -274,16 +274,6 @@ class AttributeChoiceValueForm(forms.ModelForm):
         model = AttributeChoiceValue
         exclude = ('slug', )
 
-    def clean_display(self):
-        display = self.cleaned_data['display']
-        if (not self.instance.pk and hasattr(self.instance, 'attribute') and
-                self.instance.attribute.values.filter(slug=slugify(display))):
-            raise forms.ValidationError(
-                pgettext_lazy(
-                    'Attribute choice value form error',
-                    'Name already exists'))
-        return display
-
     def save(self, commit=True):
         self.instance.slug = slugify(self.instance.display)
         return super(AttributeChoiceValueForm, self).save(commit=commit)
