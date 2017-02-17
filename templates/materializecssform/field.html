@@ -53,7 +53,7 @@
     <div class="input col {{ classes.label }}">
 
         <label class="active{% if not field.field.required %} optional{% endif %}"
-               for="{{ field.auto_id }}">{{ field.label }}</label>
+               for="{{ field.auto_id }}">{{ field.label }}{% if not field.field.required %} ({% trans 'optional' %}){% endif %}</label>
         <input type="date" id="{{ field.auto_id }}" class="datepicker"
                name="{{ field.name }}"
                value="{% if field.value %}{{ field.value|date:"Y-m-d" }}{% endif %}"
@@ -72,7 +72,7 @@
     <div class="input col {{ classes.label }}">
         {% if field|is_checkbox_select_multiple %}
             {% if field.auto_id %}
-                <label class="control-label {{ classes.label }}">{{ field.label }}</label>
+                <label class="control-label {{ classes.label }}">{{ field.label }}{% if not field.field.required %} ({% trans 'optional' %}){% endif %}</label>
             {% endif %}
             <div class="{{ classes.value }}">
                 {% for choice in field %}
@@ -94,7 +94,7 @@
             </div>
 
         {% else %}
-            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            <label for="{{ field.id_for_label }}">{{ field.label }}{% if not field.field.required %} ({% trans 'optional' %}){% endif %}</label>
             {{ field }}
             {% for error in field.errors %}
                 <p class="help-block materialize-red-text">{{ error }}</p>
@@ -118,7 +118,7 @@
         {% if field.auto_id %}
             <label class="active
                     {{ classes.label }}{% if not field.field.required %} optional{% endif %}"
-                   for="{{ field.auto_id }}">{{ field.label }}</label>
+                   for="{{ field.auto_id }}">{{ field.label }}{% if not field.field.required %} ({% trans 'optional' %}){% endif %}</label>
         {% endif %}
 
         {% for error in field.errors %}
@@ -137,7 +137,7 @@
         <p>
             {% if field.auto_id %}
                 <label class="{{ classes.label }}"
-                       for="{{ field.auto_id }}">{{ field.label }}</label><br>
+                       for="{{ field.auto_id }}">{{ field.label }}{% if not field.field.required %} ({% trans 'optional' %}){% endif %}</label><br>
             {% endif %}
             {{ field }}
         </p>
@@ -147,7 +147,7 @@
     <div class="input col file-field input-field {{ classes.label }}">
         {% if field.auto_id %}
             <label class="{{ classes.label }}"
-                   for="{{ field.auto_id }}">{{ field.label }}</label>
+                   for="{{ field.auto_id }}">{{ field.label }}{% if not field.field.required %} ({% trans 'optional' %}){% endif %}</label>
         {% endif %}
         <div class="btn">
             <span>{% trans "File" %}</span>
@@ -175,7 +175,7 @@
     <div class="input input-field col {{ classes.label }}">
         {% if field.auto_id %}
             <label class="active{% if not field.field.required %} optional{% endif %}"
-                    for="{{ field.auto_id }}">{{ field.label }}</label>
+                    for="{{ field.auto_id }}">{{ field.label }}{% if not field.field.required %} ({% trans 'optional' %}){% endif %}</label>
         {% endif %}
         {{ field }}
 
