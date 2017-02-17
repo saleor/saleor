@@ -8,7 +8,7 @@ from saleor.userprofile.models import User
 from tests.utils import get_redirect_location
 
 
-def test_checkout_flow(request_cart_with_item, client, shipping_method):  # pylint: disable=W0613,R0914
+def test_checkout_flow(request_cart_with_item, client, shipping_method, valid_address):  # pylint: disable=W0613,R0914
     """Basic test case that confirms if core checkout flow works"""
 
     # Enter checkout
@@ -17,19 +17,8 @@ def test_checkout_flow(request_cart_with_item, client, shipping_method):  # pyli
     shipping_address = client.get(checkout_index.request['PATH_INFO'])
 
     # Enter shipping address data
-    shipping_data = {
-        'email': 'test@example.com',
-        'first_name': 'John',
-        'last_name': 'Doe',
-        'street_address_1': 'Aleje Jerozolimskie 2',
-        'street_address_2': '',
-        'city': 'Warszawa',
-        'city_area': '',
-        'country_area': '',
-        'postal_code': '00-374',
-        'country': 'PL'}
     shipping_response = client.post(shipping_address.request['PATH_INFO'],
-                                    data=shipping_data, follow=True)
+                                    data=valid_address, follow=True)
 
     # Select shipping method
     shipping_method_page = client.get(shipping_response.request['PATH_INFO'])
@@ -183,7 +172,7 @@ def test_summary_without_shipping_method(request_cart_with_item, client, monkeyp
 
 
 def test_unauthorized_email_is_saved_shipping(client, customer_user,  # pylint: disable=W0613
-                                              request_cart_with_item, shipping_method):  # pylint: disable=W0613
+                                              request_cart_with_item, shipping_method, valid_address):  # pylint: disable=W0613
     """Unauthorized user provide valid email address in shipping step -
       if is save in order
       if is save in session storage
@@ -196,19 +185,8 @@ def test_unauthorized_email_is_saved_shipping(client, customer_user,  # pylint: 
     shipping_address = client.get(checkout_index.request['PATH_INFO'])
 
     # Enter shipping address data
-    shipping_data = {
-        'email': 'test@example.com',
-        'first_name': 'John',
-        'last_name': 'Doe',
-        'street_address_1': 'Aleje Jerozolimskie 2',
-        'street_address_2': '',
-        'city': 'Warszawa',
-        'city_area': '',
-        'country_area': '',
-        'postal_code': '00-374',
-        'country': 'PL'}
     shipping_response = client.post(shipping_address.request['PATH_INFO'],
-                                    data=shipping_data, follow=True)
+                                    data=valid_address, follow=True)
 
     # Select shipping method
     shipping_method_page = client.get(shipping_response.request['PATH_INFO'])
@@ -269,7 +247,7 @@ def test_email_is_saved_in_order(authorized_client, billing_address, customer_us
     assert order.user_email == customer_user.email
 
 
-def test_voucher_invalid(client, request_cart_with_item, shipping_method, voucher):  # pylint: disable=W0613,R0914
+def test_voucher_invalid(client, request_cart_with_item, shipping_method, valid_address, voucher):  # pylint: disable=W0613,R0914
     """Look: #549 #544"""
 
     voucher.usage_limit = 3
@@ -280,19 +258,8 @@ def test_voucher_invalid(client, request_cart_with_item, shipping_method, vouche
     shipping_address = client.get(checkout_index.request['PATH_INFO'])
 
     # Enter shipping address data
-    shipping_data = {
-        'email': 'test@example.com',
-        'first_name': 'John',
-        'last_name': 'Doe',
-        'street_address_1': 'Aleje Jerozolimskie 2',
-        'street_address_2': '',
-        'city': 'Warszawa',
-        'city_area': '',
-        'country_area': '',
-        'postal_code': '00-374',
-        'country': 'PL'}
     shipping_response = client.post(shipping_address.request['PATH_INFO'],
-                                    data=shipping_data, follow=True)
+                                    data=valid_address, follow=True)
 
     # Select shipping method
     shipping_method_page = client.get(shipping_response.request['PATH_INFO'])
@@ -319,26 +286,15 @@ def test_voucher_invalid(client, request_cart_with_item, shipping_method, vouche
     assert summary_response.context['order'].voucher is None
 
 
-def test_remove_voucher(client, request_cart_with_item, shipping_method, voucher):  # pylint: disable=W0613,R0914
+def test_remove_voucher(client, request_cart_with_item, shipping_method, valid_address, voucher):  # pylint: disable=W0613,R0914
     # Enter checkout
     checkout_index = client.get(reverse('checkout:index'), follow=True)
     # Checkout index redirects directly to shipping address step
     shipping_address = client.get(checkout_index.request['PATH_INFO'])
 
     # Enter shipping address data
-    shipping_data = {
-        'email': 'test@example.com',
-        'first_name': 'John',
-        'last_name': 'Doe',
-        'street_address_1': 'Aleje Jerozolimskie 2',
-        'street_address_2': '',
-        'city': 'Warszawa',
-        'city_area': '',
-        'country_area': '',
-        'postal_code': '00-374',
-        'country': 'PL'}
     shipping_response = client.post(shipping_address.request['PATH_INFO'],
-                                    data=shipping_data, follow=True)
+                                    data=valid_address, follow=True)
 
     # Select shipping method
     shipping_method_page = client.get(shipping_response.request['PATH_INFO'])
@@ -362,7 +318,7 @@ def test_remove_voucher(client, request_cart_with_item, shipping_method, voucher
 
 
 def test_user_pass_new_valid_shipping_address(authorized_client, customer_user,  # pylint: disable=W0613,R0914
-                                              request_cart_with_item, shipping_method):  # pylint: disable=W0613
+                                              request_cart_with_item, shipping_method, valid_address):  # pylint: disable=W0613
 
     # Enter checkout
     checkout_index = authorized_client.get(reverse('checkout:index'), follow=True)
@@ -370,19 +326,8 @@ def test_user_pass_new_valid_shipping_address(authorized_client, customer_user, 
     shipping_address = authorized_client.get(checkout_index.request['PATH_INFO'])
 
     # Enter shipping address data
-    shipping_data = {
-        'first_name': 'John',
-        'last_name': 'Doe',
-        'street_address_1': 'Aleje Jerozolimskie 2',
-        'street_address_2': '',
-        'city': 'WARSZAWA',
-        'company_name': 'Mirumee',
-        'city_area': '',
-        'country_area': '',
-        'postal_code': '00-374',
-        'phone': '',
-        'country': 'PL'}
-    shipping_data_prepared = shipping_data.copy()
+    del valid_address['email']
+    shipping_data_prepared = valid_address.copy()
     shipping_data_prepared['address'] = 'new_address'
     shipping_response = authorized_client.post(shipping_address.request['PATH_INFO'],
                                                data=shipping_data_prepared, follow=True)
@@ -402,7 +347,7 @@ def test_user_pass_new_valid_shipping_address(authorized_client, customer_user, 
     # After summary step, order is created and it waits for payment
     checkout = summary_response.context['checkout']
     del checkout.storage['shipping_address']['id']
-    assert checkout.storage['shipping_address'] == shipping_data
+    assert checkout.storage['shipping_address'] == valid_address
 
 
     # Summary page asks for Billing address, default is the same as shipping
@@ -411,7 +356,7 @@ def test_user_pass_new_valid_shipping_address(authorized_client, customer_user, 
                                               data=address_data, follow=True)
     order = summary_response.context['order']
     order_dict = model_to_dict(order.shipping_address, exclude=['id'])
-    assert order_dict == shipping_data
+    assert order_dict == valid_address
 
     user = User.objects.get(pk=customer_user.pk)
     default_shipping_address_dict = model_to_dict(user.default_shipping_address, exclude=['id'])
@@ -420,7 +365,7 @@ def test_user_pass_new_valid_shipping_address(authorized_client, customer_user, 
 
 
 def test_user_pass_new_valid_billing_address(authorized_client, customer_user,  # pylint: disable=W0613,R0914
-                                             request_cart_with_item, shipping_method):  # pylint: disable=W0613
+                                             request_cart_with_item, shipping_method, valid_address):  # pylint: disable=W0613
     """User pass new valid billing address
       - if is save in session storage
       - if is save in order object, after finish checkout
@@ -434,19 +379,8 @@ def test_user_pass_new_valid_billing_address(authorized_client, customer_user,  
     shipping_address = authorized_client.get(checkout_index.request['PATH_INFO'])
 
     # Enter shipping address data
-    shipping_data = {
-        'first_name': 'John',
-        'last_name': 'Doe',
-        'street_address_1': 'Aleje Jerozolimskie 2',
-        'street_address_2': '',
-        'city': 'WARSZAWA',
-        'company_name': 'Mirumee',
-        'city_area': '',
-        'country_area': '',
-        'postal_code': '00-374',
-        'phone': '',
-        'country': 'PL'}
-    shipping_data_prepared = shipping_data.copy()
+    del valid_address['email']
+    shipping_data_prepared = valid_address.copy()
     shipping_data_prepared['address'] = 'new_address'
     shipping_response = authorized_client.post(shipping_address.request['PATH_INFO'],
                                                data=shipping_data_prepared, follow=True)
@@ -459,25 +393,13 @@ def test_user_pass_new_valid_billing_address(authorized_client, customer_user,  
                                                       data=shipping_method_data, follow=True)
 
     # Summary page asks for Billing address, default is the same as shipping
-    billing_data = {
-        'first_name': 'John',
-        'last_name': 'Doe',
-        'street_address_1': 'Aleje Jerozolimskie 2',
-        'street_address_2': '',
-        'city': 'WARSZAWA',
-        'company_name': 'Mirumee',
-        'city_area': '',
-        'country_area': '',
-        'postal_code': '00-374',
-        'phone': '',
-        'country': 'PL'}
-    billing_data_prepared = billing_data.copy()
+    billing_data_prepared = valid_address.copy()
     billing_data_prepared['address'] = 'new_address'
     summary_response = authorized_client.post(shipping_method_response.request['PATH_INFO'],
                                               data=billing_data_prepared, follow=True)
     order = summary_response.context['order']
     order_dict = model_to_dict(order.billing_address, exclude=['id'])
-    assert order_dict == billing_data
+    assert order_dict == valid_address
 
     user = User.objects.get(pk=customer_user.pk)
     assert model_to_dict(user.default_billing_address, exclude=['id']) == order_dict
@@ -527,7 +449,7 @@ def test_user_choose_existing_shipping_address(authorized_client, billing_addres
 
 
 def test_user_choose_existing_billing_address(authorized_client, billing_address, customer_user,  # pylint: disable=R0914
-                                              request_cart_with_item, shipping_method):  # pylint: disable=W0613
+                                              request_cart_with_item, shipping_method, valid_address):  # pylint: disable=W0613
     """User choose existing billing address
       - if is save in session storage
       - if is save in order
@@ -541,21 +463,10 @@ def test_user_choose_existing_billing_address(authorized_client, billing_address
     # Checkout index redirects directly to shipping address step
     shipping_address = authorized_client.get(checkout_index.request['PATH_INFO'])
     # Enter shipping address data
-    shipping_data = {
-        'address': 'new_address',
-        'first_name': 'John',
-        'last_name': 'Doe',
-        'street_address_1': 'Aleje Jerozolimskie 2',
-        'street_address_2': '',
-        'city': 'Warszawa',
-        'company_name': 'Mirumee',
-        'city_area': '',
-        'country_area': '',
-        'postal_code': '00-374',
-        'phone': '',
-        'country': 'PL'}
+    valid_address['address'] = 'new_address'
+
     shipping_response = authorized_client.post(shipping_address.request['PATH_INFO'],
-                                               data=shipping_data, follow=True)
+                                               data=valid_address, follow=True)
     # Select shipping method
     shipping_method_page = authorized_client.get(shipping_response.request['PATH_INFO'])
 
@@ -578,7 +489,7 @@ def test_user_choose_existing_billing_address(authorized_client, billing_address
 
 
 def test_user_choose_existing_shipping_method(authorized_client, billing_address, customer_user,  # pylint: disable=R0914
-                                              request_cart_with_item, shipping_method):  # pylint: disable=W0613
+                                              request_cart_with_item, shipping_method, valid_address):  # pylint: disable=W0613
     """User choose existing shipping method
     - if is save in session storage
     - if is save in order
@@ -593,21 +504,9 @@ def test_user_choose_existing_shipping_method(authorized_client, billing_address
     # Checkout index redirects directly to shipping address step
     shipping_address = authorized_client.get(checkout_index.request['PATH_INFO'])
     # Enter shipping address data
-    shipping_data = {
-        'address': 'new_address',
-        'first_name': 'John',
-        'last_name': 'Doe',
-        'street_address_1': 'Aleje Jerozolimskie 2',
-        'street_address_2': '',
-        'city': 'Warszawa',
-        'company_name': 'Mirumee',
-        'city_area': '',
-        'country_area': '',
-        'postal_code': '00-374',
-        'phone': '',
-        'country': 'PL'}
+    valid_address['address'] = 'new_address'
     shipping_response = authorized_client.post(shipping_address.request['PATH_INFO'],
-                                               data=shipping_data, follow=True)
+                                               data=valid_address, follow=True)
     # Select shipping method
     shipping_method_page = authorized_client.get(shipping_response.request['PATH_INFO'])
 
@@ -638,7 +537,7 @@ def test_user_choose_existing_shipping_method(authorized_client, billing_address
 
 def test_user_choose_existing_shipping_method_then_change_it(authorized_client, billing_address,  # pylint: disable=R0914
                                                              customer_user, request_cart_with_item,  # pylint: disable=W0613
-                                                             shipping_method):
+                                                             shipping_method, valid_address):
     """User choose existing shipping method, then change it
      - if new one is save in session storage
      - if new one is save in order
@@ -652,21 +551,9 @@ def test_user_choose_existing_shipping_method_then_change_it(authorized_client, 
     # Checkout index redirects directly to shipping address step
     shipping_address = authorized_client.get(checkout_index.request['PATH_INFO'])
     # Enter shipping address data
-    shipping_data = {
-        'address': 'new_address',
-        'first_name': 'John',
-        'last_name': 'Doe',
-        'street_address_1': 'Aleje Jerozolimskie 2',
-        'street_address_2': '',
-        'city': 'Warszawa',
-        'company_name': 'Mirumee',
-        'city_area': '',
-        'country_area': '',
-        'postal_code': '00-374',
-        'phone': '',
-        'country': 'PL'}
+    valid_address['address'] ='new_address'
     shipping_response = authorized_client.post(shipping_address.request['PATH_INFO'],
-                                               data=shipping_data, follow=True)
+                                               data=valid_address, follow=True)
     # Select shipping method
     shipping_method_page = authorized_client.get(shipping_response.request['PATH_INFO'])
 
@@ -726,7 +613,7 @@ def test_invalid_shipping_address(authorized_client, request_cart_with_item):  #
 
 
 def test_invalid_billing_address(authorized_client, billing_address, customer_user,  # pylint: disable=R0914
-                                 request_cart_with_item, shipping_method):  # pylint: disable=W0613
+                                 request_cart_with_item, shipping_method, valid_address):  # pylint: disable=W0613
     customer_user.addresses.add(billing_address)
 
     # Enter checkout
@@ -734,21 +621,8 @@ def test_invalid_billing_address(authorized_client, billing_address, customer_us
     # Checkout index redirects directly to shipping address step
     shipping_address = authorized_client.get(checkout_index.request['PATH_INFO'])
     # Enter shipping address data
-    shipping_data = {
-        'address': 'new_address',
-        'first_name': 'John',
-        'last_name': 'Doe',
-        'street_address_1': 'Aleje Jerozolimskie 2',
-        'street_address_2': '',
-        'city': 'Warszawa',
-        'company_name': 'Mirumee',
-        'city_area': '',
-        'country_area': '',
-        'postal_code': '00-374',
-        'phone': '',
-        'country': 'PL'}
     shipping_response = authorized_client.post(shipping_address.request['PATH_INFO'],
-                                               data=shipping_data, follow=True)
+                                               data=valid_address, follow=True)
     # Select shipping method
     shipping_method_page = authorized_client.get(shipping_response.request['PATH_INFO'])
 
