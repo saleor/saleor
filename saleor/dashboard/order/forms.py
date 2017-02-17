@@ -156,7 +156,8 @@ class CancelItemsForm(forms.Form):
         if self.item.stock:
             Stock.objects.deallocate_stock(self.item.stock, self.item.quantity)
         order = self.item.delivery_group.order
-        OrderedItem.objects.remove_empty_groups(self.item, force=True)
+        self.item.quantity = 0
+        OrderedItem.objects.remove_empty_groups(self.item)
         Order.objects.recalculate_order(order)
 
 
