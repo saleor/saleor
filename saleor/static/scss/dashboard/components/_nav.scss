@@ -111,6 +111,9 @@ header {
     @media (min-width: $large-screen) {
       transform: translateX(0);
     }
+    a {
+      padding: 0 $sidenav-padding;
+    }
     &-section {
       p {
         @extend .grey-text;
@@ -118,7 +121,7 @@ header {
         margin: 0;
         height: 40px;
         line-height: 40px;
-        padding: 0 (2 * $sidenav-padding);
+        padding: 0 $sidenav-padding;
         font-size: 13px;
       }
       &:not(:last-of-type) {
