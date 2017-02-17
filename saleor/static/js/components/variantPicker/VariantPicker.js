@@ -27,7 +27,7 @@ export default class VariantPicker extends Component {
     const variant = variants.filter(v => !!Object.keys(v.attributes).length)[0];
     const params = queryString.parse(location.search);
     let selection = {};
-    if (params) {
+    if (Object.keys(params).length) {
       Object.keys(params).some((name) => {
         const valueName = params[name];
         const attribute = this.matchAttributeByName(name);
@@ -41,7 +41,7 @@ export default class VariantPicker extends Component {
           return true;
         }
       });
-    } else if (variant) {
+    } else if (Object.keys(variant).length) {
       selection = variant.attributes;
     }
     this.state = {
