@@ -92,50 +92,59 @@
         </div>
     {% endif %}
 
-    <div class="row tab-content" id="details">
-        <div class="col s12 l8">
-            <label>{% trans "Product type" context "Product form details tab label" %}</label>
-            <h5>
-                {{ product.product_class }}
-            </h5>
-        </div>
+    <div class="tab-content card" id="details">
         <form method="post" id="form-product" enctype="multipart/form-data" novalidate>
             {% csrf_token %}
-            {{ product_form.name|materializecss:"s12 m8" }}
-            {{ product_form.price|materializecss:"s12 m4" }}
-
-            <div class="col s12 l8" >
+            <div class="card-content">
+                <h5 class="card-title">
+                    {{ product.product_class }}
+                </h5>
                 <div class="row">
-                    {% for attribute_field in product_form.iter_attribute_fields %}
-                        {{ attribute_field|materializecss }}
-                    {% endfor %}
-                    {{ product_form.description|materializecss }}
+                    <div class="col s12 l8" >
+                        <div class="row">
+                            {{ product_form.name|materializecss }}
+                        </div>
+                        {% for attribute_field in product_form.iter_attribute_fields %}
+                            <div class="row">
+                                {{ attribute_field|materializecss:"input-field s12" }}
+                            </div>
+                        {% endfor %}
+                        <div class="row">
+                            {{ product_form.description|materializecss }}
+                        </div>
+                    </div>
+
+                    <div class="col s12 l4">
+                        <div class="row">
+                            {{ product_form.price|materializecss }}
+                        </div>
+                        {% if not product.product_class.has_variants %}
+                            <div class="row">
+                                {{ variant_form.sku|materializecss }}
+                            </div>
+                        {% endif %}
+                        <div class="row">
+                            {{ product_form.categories|materializecss:"input-field s12" }}
+                        </div>
+                        <div class="row">
+                            {{ product_form.available_on|materializecss:"input-field s12" }}
+                        </div>
+                        <div class="row">
+                            {{ product_form.is_featured|materializecss }}
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div class="col s12 l4">
-                <div class="row">
-                    {% if not product.product_class.has_variants %}
-                        {{ variant_form.sku|materializecss:"input-field s12" }}
-                    {% endif %}
-                    {{ product_form.categories|materializecss:"input-field s12" }}
-                    {{ product_form.available_on|materializecss:"input-field s12" }}
-                    {{ product_form.is_featured|materializecss:"input-field s12" }}
-                </div>
-            </div>
-
-            <div class="col s12 right-align">
-                <div class="row">
-                    {% if product.pk %}
-                        <button type="submit" class="btn">
-                            {% trans "Update" context "Product form details tab action" %}
-                        </button>
-                    {% else %}
-                        <button type="submit" class="btn">
-                            {% trans "Create" context "Product form details tab action" %}
-                        </button>
-                    {% endif %}
-                </div>
+            <div class="card-action right-align">
+                {% if product.pk %}
+                    <button type="submit" class="btn btn-flat">
+                        {% trans "Update" context "Product form details tab action" %}
+                    </button>
+                {% else %}
+                    <button type="submit" class="btn btn-flat">
+                        {% trans "Create" context "Product form details tab action" %}
+                    </button>
+                {% endif %}
             </div>
         </form>
     </div>
@@ -145,12 +154,12 @@
             <div id="variants" class="card tab-content">
                 <form method="post" action="{% url 'dashboard:variant-bulk-delete' product_pk=product.pk %}" novalidate>
                     {% csrf_token %}
-                    <div class="data-table-header">
-                        <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
+                    <div class="data-table-actions">
+                        <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked btn-flat">
                             {% trans "Add" context "Product form variants tab table action" %}
                         </a>
 
-                        <a href="#modal-product-variant-delete" class="modal-trigger btn-data-table btn-show-when-checked blue-text" hidden>
+                        <a href="#modal-product-variant-delete" class="modal-trigger btn-data-table btn-show-when-checked btn-flat" hidden>
                             {% trans "Delete" context "Product form variants tab table action" %}
                         </a>
 
@@ -163,9 +172,9 @@
                             </div>
 
                             <div class="modal-footer">
-                                <button type="submit" class="modal-action btn-flat blue-text">
+                                <button type="submit" class="modal-action btn-flat">
                                     {% trans "Delete" context "Modal delete variant from product primary action" %}</button>
-                                <a href="#!" class="modal-action modal-close btn-flat blue-text">
+                                <a href="#!" class="modal-action modal-close btn-flat">
                                     {% trans "Cancel" context "Modal delete variant from product secondary action" %}</a>
                             </div>
                         </div>
@@ -207,7 +216,7 @@
                                                 </td>
                                             {% endfor %}
                                             <td>{{ variant.name }}</td>
-                                            <td class="right-align">{% gross variant.get_price_per_item %}</td>
+                                            <td class="right-align">{% gross variant.get_price_per_item html=True %}</td>
                                         </tr>
                                     {% endfor %}
                                 </tbody>
@@ -232,12 +241,12 @@
         <div id="stock" class="card tab-content">
             <form method="post" action="{% url 'dashboard:stock-bulk-delete' product_pk=product.pk %}" novalidate>
                 {% csrf_token %}
-                <div class="data-table-header">
-                    <a href="{% url 'dashboard:product-stock-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked blue-text">
+                <div class="data-table-actions">
+                    <a href="{% url 'dashboard:product-stock-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked btn-flat">
                         {% trans "Add" context "Product form stock tab table action" %}
                     </a>
 
-                    <a href="#modal-product-stock-delete" class="modal-trigger btn-data-table btn-show-when-checked blue-text" hidden>
+                    <a href="#modal-product-stock-delete" class="modal-trigger btn-data-table btn-show-when-checked btn-flat" hidden>
                         {% trans "Delete" context "Product form stock tab table action" %}
                     </a>
 
@@ -253,9 +262,9 @@
                         </div>
 
                         <div class="modal-footer">
-                            <button type="submit" class="modal-action btn-flat blue-text">
+                            <button type="submit" class="modal-action btn-flat">
                                 {% trans "Delete" context "Modal delete stock from variant primary action" %}</button>
-                            <a href="#!" class="modal-action modal-close btn-flat blue-text">
+                            <a href="#!" class="modal-action modal-close btn-flat">
                                 {% trans "Cancel" context "Modal delete stock from variant secondary action" %}</a>
                         </div>
                     </div>
@@ -311,96 +320,96 @@
         </div>
 
         <div id="images" class="tab-content">
+            <form action="{% url 'dashboard:product-images-upload' product_pk=product.pk %}" class="dropzone" id="product-image-form" novalidate>
+                <div class="dz-message"></div>
+                {% csrf_token %}
+                <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#images">
                 <div class="row">
-                    <div class="col l12">
-                        <form action="{% url 'dashboard:product-images-upload' product_pk=product.pk %}" class="dropzone" id="product-image-form" novalidate>
-                            <div class="dz-message"></div>
-                            {% csrf_token %}
-                            <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#images">
-                            <div class="row ">
-                                <ul class="product-gallery" id="product-gallery" data-post-url="{% url 'dashboard:product-images-reorder' product_pk=product.pk %}">
-                                    {% if images %}
-                                        {% for image in images %}
-                                            <li class="col s6 m3 card product-gallery-item" data-id="{{ image.pk }}">
-                                                <div class="card-image product-gallery-item-image">
-                                                    <img class="responsive-img" src="{{ image.image.crop.400x400 }}" alt="">
-                                                </div>
+                    {% if images %}
+                        <ul class="product-gallery" id="product-gallery" data-post-url="{% url 'dashboard:product-images-reorder' product_pk=product.pk %}">
+                            {% for image in images %}
+                                <li class="col s6 m3 product-gallery-item" data-id="{{ image.pk }}">
+                                    <div class="row">
+                                        <div class="card">
+                                            <div class="card-image product-gallery-item-image">
+                                                <img class="responsive-img" src="{{ image.image.crop.400x400 }}" alt="">
+                                            </div>
 
-                                                <div class="card-content">
-                                                    <span class="product-gallery-item-title card-title black-text" title="{{ image.alt }}">
-                                                        {% if image.alt %}
-                                                            {{ image.alt }}
-                                                        {% else %}
-                                                            <span class="grey-text">{% trans "No description" context "Image card text" %}</span>
-                                                        {% endif %}
-                                                    </span>
-                                                    <span class="product-gallery-item-desc" title="{{ image.image.name }}">{{ image.image.name }}</span>
-                                                </div>
+                                            <div class="card-content">
+                                                <span class="product-gallery-item-title card-title black-text" title="{{ image.alt }}">
+                                                    {% if image.alt %}
+                                                        {{ image.alt }}
+                                                    {% else %}
+                                                        <span class="grey-text">{% trans "No description" context "Image card text" %}</span>
+                                                    {% endif %}
+                                                </span>
+                                            </div>
 
-                                                <div class="card-action">
-                                                    <a href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">
-                                                        {% trans "Edit" context "Image card action" %}
-                                                    </a>
+                                            <div class="sortable__drag-area"></div>
 
-                                                    <a href="#base-modal" class="modal-trigger-custom"
-                                                        data-href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}">
-                                                        {% trans "Delete" context "Image card action" %}
-                                                    </a>
-                                                </div>
-                                                <div class="sortable__drag-area"></div>
-                                            </li>
-                                        {% endfor %}
-                                    {% else %}
-                                        <p class="no-images">{% trans "This product has no images yet." context "Empty image gallery message" %}</p>
-                                    {% endif %}
+                                            <div class="card-action">
+                                                <a href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">
+                                                    {% trans "Edit" context "Image card action" %}
+                                                </a>
 
-                                </ul>
-                                <div class="col s6 m3 card product-gallery-item dropzone-ghost">
-                                    <div class="card-content">
-                                        <span class="product-gallery-item-title product-gallery-item-title--noclip card-title black-text">
-                                            <span class="grey-text">
-                                                {% trans "Drop images here to upload" context "Image gallery upload box text" %}
-                                            </span>
-                                        </span>
+                                                <a href="#base-modal" class="modal-trigger-custom"
+                                                    data-href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}">
+                                                    {% trans "Delete" context "Image card action" %}
+                                                </a>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="no-images">{% trans "This product has no images yet." context "Empty image gallery message" %}</p>
+                    {% endif %}
+
+                    <div class="col s6 m3 product-gallery-item dropzone-ghost">
+                        <div class="card">
+                            <div class="card-content">
+                                <span class="product-gallery-item-title product-gallery-item-title--noclip card-title black-text">
+                                    <span class="grey-text">
+                                        {% trans "Drop images here to upload" context "Image gallery upload box text" %}
+                                    </span>
+                                </span>
                             </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
+            </form>
 
             <script type="application/template" id="template">
-                <li class="col s6 m3 card product-gallery-item dz-preview dz-file-preview" data-id="{{ image.pk }}">
-                    <div class="card-image product-gallery-item-image">
-                        <img data-dz-thumbnail />
+                <li class="col s6 m3 product-gallery-item dz-preview dz-file-preview" data-id="{{ image.pk }}">
+                    <div class="card">
+                        <div class="card-image product-gallery-item-image">
+                            <img data-dz-thumbnail />
+                        </div>
+
+                        <div class="dz-progress">
+                            <span class="dz-upload" data-dz-uploadprogress></span>
+                        </div>
+
+                        <div class="card-content">
+                            <span class="product-gallery-item-title card-title black-text">
+                                <span class="grey-text">{% trans "No description" context "Empty image gallery message" %}</span>
+                            </span>
+                        </div>
+
+                        <div class="sortable__drag-area"></div>
+
+                        <div class="card-action">
+                            <a class="card-action-edit" href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=0 %}">
+                                {% trans "Edit" context "Image card action" %}
+                            </a>
+
+                            <a href="#base-modal" class="card-action-delete modal-trigger-custom"
+                            data-href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=0 %}">
+                                {% trans "Delete" context "Image card action" %}
+                            </a>
+                        </div>
                     </div>
-
-                    <div class="dz-progress">
-                        <span class="dz-upload" data-dz-uploadprogress></span>
-                    </div>
-
-                    <div class="card-content">
-                        <span class="product-gallery-item-title card-title black-text">
-                            <span class="grey-text">{% trans "No description" context "Empty image gallery message" %}</span>
-                        </span>
-                        <span class="product-gallery-item-desc">
-                            &nbsp;
-                        </span>
-                    </div>
-
-                    <div class="card-action">
-                        <a class="card-action-edit" href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=0 %}">
-                            {% trans "Edit" context "Image card action" %}
-                        </a>
-
-                        <a href="#base-modal" class="card-action-delete modal-trigger-custom"
-                           data-href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=0 %}">
-                            {% trans "Delete" context "Image card action" %}
-                        </a>
-
-                        &nbsp;
-                    </div>
-                    <div class="sortable__drag-area"></div>
                 </li>
             </script>
         </div>

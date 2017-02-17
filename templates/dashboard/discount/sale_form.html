@@ -46,32 +46,42 @@
 {% block menu_discounts_class %} active{% endblock %}
 
 {% block content %}
-    <form method="post" enctype="multipart/form-data" id="form-sales" novalidate>
-        <div class="row">
-            <div class="col l8">
+    <div class="card">
+        <form method="post" enctype="multipart/form-data" id="form-sales" novalidate>
+            <div class="card-content">
+                {% csrf_token %}
                 <div class="row">
-                    {% csrf_token %}
                     {{ form.name|materializecss }}
-                    {{ form.value|materializecss:"s12 m8" }}
-                    {{ form.type|materializecss:"s12 m4" }}
+                </div>
+                <div class="row">
+                    <div class="col s12 m8">
+                        <div class="row">
+                            {{ form.value|materializecss }}
+                        </div>
+                    </div>
+                    <div class="col s12 m4">
+                        {{ form.type|materializecss:"input-field s12" }}
+                    </div>
+                </div>
+                <div class="row">
                     {{ form.products|materializecss }}
+                </div>
+                <div class="row">
                     {{ form.categories|materializecss }}
                 </div>
             </div>
-        </div>
 
-        <div class="row">
-            <div class="col l8 right-align">
+            <div class="card-action right-align">
                 {% if sale.pk %}
-                    <button type="submit" class="btn">
+                    <button type="submit" class="btn btn-flat">
                         {% trans "Update" context "Sale (discount) primary action" %}
                     </button>
                 {% else %}
-                    <button type="submit" class="btn">
+                    <button type="submit" class="btn btn-flat">
                         {% trans "Create" context "Sale (discount) primary action" %}
                     </button>
                 {% endif %}
             </div>
-        </div>
-    </form>
+        </form>
+    </div>
 {% endblock %}

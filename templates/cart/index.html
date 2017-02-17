@@ -108,7 +108,7 @@
           </div>
           <div class="col-6 cart__delivery-info__price">
             {% for option in default_country_options %}
-              <p class="text-right">{% gross option.price %}</p>
+              <p class="text-right">{% gross option.price html=True %}</p>
             {% endfor %}
           </div>
         </div>

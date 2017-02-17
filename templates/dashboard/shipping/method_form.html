@@ -43,51 +43,62 @@
 {% block menu_shipping_class %} active{% endblock %}
 
 {% block content %}
-    <form method="post" id="form-method">
-        {% csrf_token %}
-        {{ price_per_country_formset.management_form }}
-        <div class="row">
-            {{ shipping_method_form|materializecss }}
-        </div>
-        <h4 class="light">{% trans "Price per country" context "Shipping method form text" %}</h4>
-
-        <div class="card-panel">
-            {% for form in price_per_country_formset %}
+    <div class="card">
+        <form method="post" id="form-method">
+            <div class="card-content">
+                {% csrf_token %}
+                {{ price_per_country_formset.management_form }}
                 <div class="row">
-                    {{ form.id }}
-                    {{ form.country_code|materializecss:"input-field s12 l5" }}
-                    {{ form.price|materializecss:"input-field s12 l5" }}
-                    {{ form.DELETE|materializecss:"input-field s12 l2" }}
+                    {{ shipping_method_form|materializecss }}
                 </div>
-                {% if form.non_field_errors %}
-                    {% for error in form.non_field_errors %}
-                        <p class="help-block materialize-red-text">{{ error }}</p>
-                    {% endfor %}
+                <h class="card-title">{% trans "Price per country" context "Shipping method form text" %}</h5>
+            </div>
+            <div class="formset-table-container">
+                <table class="formset-table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Country" context "Shipping method country list" %}</th>
+                            <th>{% trans "Price" context "Shipping method country list" %}</th>
+                            <th>{% trans "Delete" context "Shipping method country list" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for form in price_per_country_formset %}
+                            <tr>
+                                <td>
+                                    {% for hidden in form.hidden_fields %}
+                                        {{ hidden }}
+                                    {% endfor %}
+                                    {{ form.country_code|materializecss:"input-field s12" }}
+                                </td>
+                                <td>
+                                    {{ form.price|materializecss }}
+                                </td>
+                                <td>
+                                    {{ form.DELETE|materializecss }}
+                                </td>
+                            </trv>
+                            {% if form.non_field_errors %}
+                                {% for error in form.non_field_errors %}
+                                    <p class="help-block materialize-red-text">{{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card-action right-align">
+                {% if shipping_method.pk %}
+                    <a href="{% url 'dashboard:shipping-method-delete' pk=shipping_method.pk %}" class="btn btn-flat">{% trans "Delete" context "Shipping method form action" %}</a>
+                    <a href="{% url 'dashboard:shipping-methods' %}" class="btn btn-flat">{% trans "Cancel" context "Shipping method form action" %}</a>
+                    <button type="submit" class="btn btn-flat">{% trans "Update" context "Shipping method form action" %}</button>
+                {% else %}
+                    <a href="{% url 'dashboard:shipping-methods' %}" class="btn btn-flat">{% trans "Cancel" context "Shipping method form action" %}</a>
+                        <button type="submit" class="btn btn-flat">{% trans "Create" context "Shipping method form action" %}</button>
+                    </div>
                 {% endif %}
-            {% endfor %}
-        </div>
-
-
-        <div class="row">
-            {% if shipping_method.pk %}
-                <div class="col s12 l6">
-                    <a href="{% url 'dashboard:shipping-method-delete' pk=shipping_method.pk %}"
-                       class="btn red">{% trans "Delete" context "Shipping method form action" %}</a>
-                </div>
-                <div class="col s12 l6 right-align">
-                    <a href="{% url 'dashboard:shipping-methods' %}"
-                       class="btn-flat">{% trans "Cancel" context "Shipping method form action" %}</a>
-                    <button type="submit" class="btn">{% trans "Update" context "Shipping method form action" %}
-                    </button>
-                </div>
-            {% else %}
-                <div class="col s12 right-align">
-                    <a href="{% url 'dashboard:shipping-methods' %}"
-                       class="btn-flat">{% trans "Cancel" context "Shipping method form action" %}</a>
-                    <button type="submit" class="btn">{% trans "Create" context "Shipping method form action" %}
-                    </button>
-                </div>
-            {% endif %}
-        </div>
-    </form>
+            </div>
+        </form>
+    </div>
 {% endblock %}

@@ -9,7 +9,7 @@
 
   label {
     @extend .active;
-    display: block;
+    transition: none;
   }
 
   input[type=radio] {
@@ -18,6 +18,11 @@
 
   select[multiple] {
     display: initial;
+    width: 100%;
+  }
+
+  textarea {
+    width: 100%;
   }
 
   p.help-block {
@@ -26,8 +31,18 @@
     clear: both;
   }
 
+  .input-field {
+    margin-top: 0;
+    padding-top: 1rem;
+    label, label.active {
+      top: 0;
+      transform: none;
+    }
+  }
+
   %input-lg {
     font-size: 2.2rem;
+    transition: none;
   }
 
   &#form-product {
@@ -59,18 +74,6 @@
   &#form-attributes {
     #id_display {
       @extend %input-lg;
-    }
-
-    table {
-      .input-field, p {
-        margin: 0;
-        padding: 0;
-      }
-
-      label {
-        font-size: 0;
-        vertical-align: bottom;
-      }
     }
   }
 
@@ -112,6 +115,19 @@
   }
 }
 
-form {
+.input-with-suffix {
+  display: flex;
+  input {
+    flex-grow: 1;
+  }
+  .input-text-suffix {
+    @extend .grey-text;
+    line-height: 45px;
+    padding-left: 10px;
+    text-align: right;
+  }
+}
+
+.main form {
   @include form;
 }

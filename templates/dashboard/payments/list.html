@@ -50,7 +50,7 @@
                                     {% endblocktrans %}
                                 </a>
                             </td>
-                            <td class="right-align">{% gross payment.get_total_price %}</td>
+                            <td class="right-align">{% gross payment.get_total_price html=True %}</td>
                             <td>{% render_status payment.status payment.get_status_display %}</td>
                         </tr>
                     {% endfor %}

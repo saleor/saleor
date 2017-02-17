@@ -25,8 +25,6 @@
     </ul>
 {% endblock %}
 
-{% block menu_sales_class %} active{% endblock %}
-
 {% block content %}
     <div class="row">
         <div class="col s12 l8">
@@ -44,9 +42,8 @@
                             <tr>
                                 <th>{% trans "Number" context "Customer orders table header" %}</th>
                                 <th>{% trans "Placed on" context "Customer orders table header" %}</th>
-                                <th>{% trans "Payment" context "Customer orders table header" %}</th>
                                 <th>{% trans "Order status" context "Customer orders table header" %}</th>
-                                <th>{% trans "Total" context "Customer orders table header" %}</th>
+                                <th class="right-align">{% trans "Total" context "Customer orders table header" %}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -54,9 +51,8 @@
                                 <tr>
                                     <td><a href="{% url 'dashboard:order-details' order_pk=order.pk %}">{{ order }}</a></td>
                                     <td>{{ order.created }}</td>
-                                    <td>{% render_status order.get_last_payment_status order.get_last_payment_status_display %}</td>
                                     <td>{% render_status order.status order.get_status_display %}</td>
-                                    <td>{% gross order.get_total %}</td>
+                                    <td class="right-align">{% gross order.get_total html=True %}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>

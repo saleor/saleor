@@ -85,39 +85,37 @@
 {% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col s12">
-            <ul class="collection list">
-                {% if categories %}
-                    {% for node in categories %}
-                        <li class="collection-item list-item list-item--two-lines">
-                            <a class="list-item-name" href="{% url "dashboard:category-list" root_pk=node.pk %}">
-                                {{ node.name }}
-                            </a>
+    <ul class="collection list">
+        {% if categories %}
+            {% for node in categories %}
+                <li class="collection-item list-item">
+                    <a class="list-item-name" href="{% url "dashboard:category-list" root_pk=node.pk %}">
+                        {{ node.name }}
+                    </a>
 
-                            <p class="list-item-desc"><span>
-                                {% if node.description %}
-                                    {{ node.description }}
-                                {% else %}
-                                    &nbsp;
-                                {% endif %}
-                            </span></p>
-
-                            {% if node.hidden %}
-                                <span class="list-item-icon"><i class="material-icons">visibility_off</i></span>
-                            {% endif %}
-                        </li>
-                    {% endfor %}
-                {% else %}
-                    <p>
-                        {% if root %}
-                            {% trans "No subcategories." context "Empty Category list message" %}
+                    <p class="list-item-desc"><span>
+                        {% if node.description %}
+                            {{ node.description }}
                         {% else %}
-                            {% trans "No categories." context "Empty Category list message" %}
+                            &nbsp;
                         {% endif %}
-                    </p>
-                {% endif %}
-            </ul>
-        </div>
-    </div>
+                    </span></p>
+
+                    {% if node.hidden %}
+                        <span class="list-item-icon"><i class="material-icons">visibility_off</i></span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        {% else %}
+            <li class="collection-item list-item">
+                <p class="list-item-name--single">
+                    {% if root %}
+                        {% trans "No subcategories." context "Empty Category list message" %}
+                    {% else %}
+                        {% trans "No categories." context "Empty Category list message" %}
+                    {% endif %}
+                </p>
+            </li>
+        {% endif %}
+    </ul>
 {% endblock %}

@@ -47,17 +47,40 @@
 {% endblock %}
 
 {% block content %}
-    <div class="row tab-content" id="details">
+    <div class="card">
         <form method="post" id="form-product" enctype="multipart/form-data" novalidate>
-            {% csrf_token %}
-            {{ form.name|materializecss:"s12" }}
-            {{ form.is_shipping_required|materializecss:"input-field s2" }}
-            {{ form.product_attributes|materializecss:"input-field s10" }}
-            {{ form.has_variants|materializecss:"input-field s2" }}
-            {{ form.variant_attributes|materializecss:"input-field s10" }}
-            <div class="col s12 right-align">
+            <div class="card-content">
+                {% csrf_token %}
                 <div class="row">
-                    <button type="submit" class="btn">
+                    {{ form.name|materializecss }}
+                </div>
+                <div class="row">
+                    <div class="col s12 m8">
+                        <div class="row">
+                            {{ form.product_attributes|materializecss:"input-field s12" }}
+                        </div>
+                        <div class="row">
+                            {{ form.variant_attributes|materializecss:"input-field s12" }}
+                        </div>
+                    </div>
+                    <div class="col s12 m4">
+                        <div class="row">
+                            {{ form.is_shipping_required|materializecss }}
+                        </div>
+                        <div class="row">
+                            {{ form.has_variants|materializecss }}
+                        </div>
+                        <p class="grey-text">
+                            {% blocktrans trimmed context "Product class help text" %}
+                                Product Type is a template used for creating new products.
+                                It also controls which attributes can be used during product creation process.
+                            {% endblocktrans %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-action right-align">
+                    <button type="submit" class="btn btn-flat">
                         {% if product_class.pk %}
                             {% trans "Update" context "Product class primary action" %}
                         {% else %}
@@ -67,11 +90,5 @@
                 </div>
             </div>
         </form>
-    <p>
-        {% blocktrans trimmed context "Product class help text" %}
-            Product Type is a template used for creating new products.
-            It also controls which attributes can be used during product creation process.
-        {% endblocktrans %}
-    </p>
     </div>
 {% endblock %}

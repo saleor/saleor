@@ -1,0 +1,221 @@
+header {
+  .top-nav {
+    box-shadow: none;
+    line-height: 0;
+    .left {
+      float: none !important;
+      margin-right: 56px;
+      @media (max-width: $small-screen) {
+        margin-right: 0;
+      }
+      .search {
+        float: none;
+        margin-left: 272px;
+        padding: 10px 0;
+        .input-field {
+          input {
+            background-color: rgba(255, 255, 255, .15);
+            border-radius: 3px;
+            box-sizing: border-box;
+            display: inline-block;
+            height: 36px;
+            margin-bottom: 0;
+            transition: background-color .2s ease-out;
+            width: 100%;
+            &:hover {
+              background-color: rgba(255, 255, 255, .25);
+            }
+            &:focus {
+              background-color: white;
+            }
+          }
+          label {
+            transition: color .2s ease-out;
+            i {
+              height: 36px;
+              line-height: 36px;
+            }
+          }
+        }
+      }
+    }
+    .user-name {
+      padding: (($dropdown-item-height - 22) / 2) 16px;
+      white-space: normal;
+      max-width: 90vw;
+    }
+    .menu-toggle {
+      background-color: $primary-color;
+      position: absolute;
+      width: 237px;
+      z-index: 2;
+      i {
+        color: white;
+      }
+      a:hover {
+        background-color: transparent;
+      }
+    }
+    .header-button, .button-collapse {
+      float: left;
+      margin: 0 $gutter-width;
+      display: block;
+      i {
+        font-size: 2.7rem;
+        height: $header-height;
+        line-height: $header-height;
+      }
+    }
+
+    .dropdown-button {
+      float: right;
+      line-height: $header-height/2;
+      position: relative;
+      top: $header-height/4;
+      margin-left: 1rem;
+      z-index: 999;
+      i {
+        height: $header-height/2;
+        line-height: $header-height/2;
+      }
+    }
+
+    .dropdown-content {
+      left: auto !important;
+      right: 0;
+      white-space: nowrap;
+    }
+
+    .logo {
+      img {
+        max-height: $navbar-height;
+        margin: 13px 0;
+      }
+    }
+    .right {
+      padding-right: 15px;
+    }
+  }
+
+  .side-nav {
+    width: 232px;
+    padding: 12px 8px 52px;
+    position: absolute;
+    top: $header-height + $subheader-height;
+    height: 100vh;
+    transition: transform .1s;
+    @media (min-width: $medium-screen) {
+      background: transparent;
+      box-shadow: none;
+    }
+    @media (min-width: $large-screen) {
+      transform: translateX(0);
+    }
+    &-section {
+      p {
+        @extend .grey-text;
+        @extend .text-darken-1;
+        margin: 0;
+        height: 40px;
+        line-height: 40px;
+        padding: 0 (2 * $sidenav-padding);
+        font-size: 13px;
+      }
+      &:not(:last-of-type) {
+        border-bottom: 1px solid map-get($grey, lighten-2);
+      }
+      padding-top: $gutter-width / 2;
+      &#first{
+        border-top: 1px solid map-get($grey, lighten-2);
+      }
+    }
+    a {
+      @media (min-width: $medium-screen) {
+        height: 40px;
+        line-height: 40px;
+      }
+    }
+    li {
+      border-radius: 2px;
+      &.active {
+        a {
+          @extend .grey-text;
+          @extend .text-darken-4;
+        }
+      }
+      .body-home &.nav-home {
+        @extend .active;
+      }
+    }
+  }
+}
+
+.subheader {
+  background-color: $primary-color-light;
+  height: $subheader-height;
+  margin-top: 0;
+  .container {
+    margin: 0 40px;
+    transition: margin .1s;
+    @media (min-width: $large-screen) {
+      margin-left: 272px;
+    }
+  }
+  i {
+    font-size: $subheader-height/2;
+    line-height: $subheader-height;
+    color: white;
+  }
+}
+
+.main {
+  .container {
+    margin: 40px 40px 0;
+    max-width: none;
+    width: auto;
+    transition: margin .1s;
+    @media (min-width: $large-screen) {
+      margin-left: 272px;
+    }
+  }
+}
+
+body.nav-toggled {
+  header {
+    .side-nav {
+      transform: translateX(0);
+      @media (min-width: $large-screen) {
+        transform: translateX(-105%);
+      }
+    }
+  }
+  .subheader {
+    .container {
+      @media (min-width: $medium-screen) {
+        margin-left: 272px;
+      }
+      @media (min-width: $large-screen) {
+        margin-left: 40px;
+      }
+    }
+  }
+  .main {
+    .container {
+      @media (min-width: $medium-screen) {
+        margin-left: 272px;
+      }
+      @media (min-width: $large-screen) {
+        margin-left: 40px;
+      }
+    }
+  }
+}
+
+body.sticky-nav {
+  header {
+    .side-nav {
+      position: fixed;
+      top: 0;
+    }
+  }
+}

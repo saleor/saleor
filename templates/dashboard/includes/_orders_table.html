@@ -6,12 +6,12 @@
     <table class="bordered hoverable responsive data-table">
         <thead>
             <tr>
-                <th></th>
+                <th>#</th>
                 <th>{% trans "Order status" context "Orders table header" %}</th>
                 <th>{% trans "Payment status" context "Orders table header" %}</th>
                 <th>{% trans "Customer" context "Orders table header" %}</th>
                 <th>{% trans "Placed on" context "Orders table header" %}</th>
-                <th>{% trans "Total" context "Orders table header" %}</th>
+                <th class="right-align">{% trans "Total" context "Orders table header" %}</th>
             </tr>
         </thead>
         <tbody>
@@ -25,7 +25,7 @@
                 {% trans "Guest" context "Customer column anonymous user text" as guest %}
                 <td>{{ order.user|default:guest }}</td>
                 <td>{{ order.created }}</td>
-                <td>{% gross order.get_total %}</td>
+                <td class="right-align">{% gross order.get_total html=True %}</td>
             </tr>
         {% endfor %}
         </tbody>

@@ -16,23 +16,38 @@
 {% endblock %}
 
 {% block content %}
-    <form method="get" novalidate>
-        <div class="row">
-            {{ form.email|materializecss:"s12 m3 l3" }}
-            {{ form.name|materializecss:"s12 m3 l3" }}
-            {{ form.order_status|materializecss:"s7 m3 l2" }}
+    <div class="card">
+        <form method="get" novalidate>
+            <div class="card-content">
+                <div class="row">
+                    <div class="col s12 m3">
+                        <div class="row">
+                            {{ form.email|materializecss }}
+                        </div>
+                    </div>
+                    <div class="col s12 m4">
+                        <div class="row">
+                            {{ form.name|materializecss }}
+                        </div>
+                    </div>
+                    <div class="col s12 m3">
+                        <div class="row">
+                            {{ form.order_status|materializecss:"input-field s12" }}
+                        </div>
+                    </div>
 
-            <div class="col s5 m3 l3">
-                <button type="submit" class="btn btn--inline">
-                    {% trans "Filter" context "Customer list form primary action" %}</button>
-                {% if form.is_bound %}
-                    <a class="btn btn--inline" href="{% url 'dashboard:customers' %}">
-                        {% trans "Clear" context "Customer list form secondary action" %}</a>
-                {% endif %}
+                    <div class="col s12 m2">
+                        <button type="submit" class="btn btn-flat btn--inline">
+                            {% trans "Filter" context "Customer list form primary action" %}</button>
+                        {% if form.is_bound %}
+                            <a class="btn btn--inline" href="{% url 'dashboard:customers' %}">
+                                {% trans "Clear" context "Customer list form secondary action" %}</a>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-        </div>
-    </form>
-
+        </form>
+    </div>
 
     <div class="card">
         <div class="data-table-header{% if not customers %} data-table-header--no-data{% endif %}">

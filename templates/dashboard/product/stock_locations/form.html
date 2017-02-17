@@ -40,28 +40,26 @@
 
 
 {% block content %}
-    <div class="row tab-content" id="details">
+    <div class="card">
         <form method="post" id="form-product" novalidate>
-            {% csrf_token %}
+            <div class="card-content">
+                {% csrf_token %}
 
-            <div class="col s12 l4">
                 <div class="row">
-                    {{ form.name|materializecss:"input-field s12" }}
+                    {{ form.name|materializecss }}
                 </div>
             </div>
 
-            <div class="col s12 right-align">
-                <div class="row">
-                    {% if location.pk %}
-                        <button type="submit" class="btn">
-                            {% trans "Update" context "Stock location detail action" %}
-                        </button>
-                    {% else %}
-                        <button type="submit" class="btn">
-                            {% trans "Create" context "Stock location detail action" %}
-                        </button>
-                    {% endif %}
-                </div>
+            <div class="card-action right-align">
+                {% if location.pk %}
+                    <button type="submit" class="btn btn-flat">
+                        {% trans "Update" context "Stock location detail action" %}
+                    </button>
+                {% else %}
+                    <button type="submit" class="btn btn-flat">
+                        {% trans "Create" context "Stock location detail action" %}
+                    </button>
+                {% endif %}
             </div>
         </form>
     </div>

@@ -45,7 +45,7 @@
                                         <span class="list-item-name">{{ product.name }}</span>
                                     </a>
                                     <p class="list-item-price">
-                                        <small>{% gross product.price %}</small>
+                                        <small>{% gross product.price html=True %}</small>
                                     </p>
                                 {% endwith %}
                             {% elif result.content_type == 'order_order' %}

@@ -8,7 +8,7 @@
                     <i class="material-icons">chevron_left</i>
                 </a>
             {% else %}
-                <span><i class="material-icons">chevron_left</i></span>
+                <a href="#!"><i class="material-icons">chevron_left</i></a>
             {% endif %}
         </li>
         {% for page in page_obj.paginator.page_range %}
@@ -24,7 +24,7 @@
                     <i class="material-icons">chevron_right</i>
                 </a>
             {% else %}
-                <span><i class="material-icons">chevron_right</i></span>
+                <a href="#!"><i class="material-icons">chevron_right</i></a>
             {% endif %}
         </li>
     </ul>

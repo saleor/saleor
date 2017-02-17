@@ -62,7 +62,7 @@
                             <td>{{ voucher.get_apply_to_display|default_if_none:"-" }}</td>
                             <td>
                                 {% if voucher.limit %}
-                                    {% gross voucher.limit %}
+                                    {% gross voucher.limit html=True %}
                                 {% else %}
                                     -
                                 {% endif %}

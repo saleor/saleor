@@ -89,21 +89,21 @@
                             </tr>
                             <tr>
                                 <td>{% trans "Order total" context "Order summary card header" %}</td>
-                                <td class="right-align"><strong>{% gross order.get_total %}</strong></td>
+                                <td class="right-align"><strong>{% gross order.get_total html=True %}</strong></td>
                             </tr>
                             <tr>
                                 <td>{% trans "Preauthorized amount" context "Order summary card header" %}</td>
                                 <td class="right-align">
-                                    {% if preauthorized %}{% gross preauthorized %}
+                                    {% if preauthorized %}{% gross preauthorized html=True %}
                                     {% else %}{% trans "N/A" context "Preauthorized amount not available" %}{% endif %}</td>
                             </tr>
                             <tr>
                                 <td>{% trans "Captured amount" context "Order summary card header" %}</td>
-                                <td class="right-align">{% gross captured %}</td>
+                                <td class="right-align">{% gross captured html=True %}</td>
                             </tr>
                             <tr>
                                 <td>{% trans "Outstanding balance" context "Order summary card header" %}</td>
-                                <td class="right-align">{% gross balance %}</td>
+                                <td class="right-align">{% gross balance html=True %}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -224,7 +224,7 @@
                                             {% endblocktrans %}
                                         </td>
                                         <td class="right-align">
-                                            {% gross group.shipping_price %}
+                                            {% gross group.shipping_price html=True %}
                                         </td>
                                         <td class="no-padded"></td>
                                     </tr>
@@ -238,9 +238,9 @@
                                             {{ item.product_name }}<br>
                                         </td>
                                         <td>{{ item.product_sku }}</td>
-                                        <td class="right-align">{% gross item.get_price_per_item %}</td>
+                                        <td class="right-align">{% gross item.get_price_per_item html=True %}</td>
                                         <td class="right-align">{{ item.quantity }}</td>
-                                        <td class="right-align">{% gross item.get_total %}</td>
+                                        <td class="right-align">{% gross item.get_total html=True %}</td>
                                         <td class="right-align no-padded">
                                             {% if group.status != 'cancelled' %}
                                                 <a class="dropdown-button" href="#" data-activates="line-actions-{{ item.pk }}" data-constrainwidth="false">
@@ -301,7 +301,7 @@
                                     {% trans "Grand total" context "Order totals header" %}
                                 </td>
                                 <td>
-                                    {% gross order.get_total %}
+                                    {% gross order.get_total html=True %}
                                 </td>
                                 <td class="no-padded"></td>
                             </tr>
@@ -313,14 +313,14 @@
                                     {% trans "Subtotal" context "Order totals header" %}
                                 </td>
                                 <td class="right-align">
-                                    {% gross order.get_subtotal_without_voucher %}
+                                    {% gross order.get_subtotal_without_voucher html=True %}
                                 </td>
                                 <td class="no-padded"></td>
                             </tr>
                             <tr>
                                 <td>{% trans "Shipping" context "Order totals header" %}</td>
                                 <td class="right-align">
-                                    {% gross order.get_total_shipping %}
+                                    {% gross order.get_total_shipping html=True %}
                                 </td>
                                 <td class="no-padded"></td>
                             </tr>
@@ -332,7 +332,7 @@
                                         {% endblocktrans %}
                                     </td>
                                     <td class="right-align">
-                                        {% gross order.discount|discount_amount_for:order.total %}
+                                        {% gross order.discount|discount_amount_for:order.total html=True %}
                                     </td>
                                     <td class="no-padded">
                                         <a class="dropdown-button" href="#" data-activates="voucher-actions" data-constrainwidth="false">

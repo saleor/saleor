@@ -11,6 +11,11 @@
     }
   }
 
+  &-actions {
+    border-bottom: 1px solid $table-border-color;
+    padding: 21px 8px;
+  }
+
   &-header {
     padding: 21px 24px;
 
@@ -23,27 +28,27 @@
     font-weight: 300;
     margin: 0;
 
-    .data-table-status {
+    a {
+      color: $secondary-color;
+    }
+
+    .label {
       float: right;
       margin-top: -4px;
     }
   }
 
-  $statuses-map: (
-    danger: map-get($red, base),
-    success: map-get($green, lighten-2),
-    default: map-get($grey, base)
-  );
+  .label {
+    @extend .grey-text;
+    font-size: 12px;
+    text-transform: uppercase;
 
-  &-status {
-    @each $status in (danger, success, default) {
-      &--#{$status} {
-        color: white;
-        background: #{map_get($statuses-map, $status)};
-        border-radius: 2px;
-        padding: .25em 5px;
-        font-size: .8em;
-      }
+    &.label-danger {
+      @extend .red-text;
+    }
+
+    &.label-success {
+      @extend .green-text;
     }
   }
 
@@ -65,6 +70,10 @@
     vertical-align: middle;
     white-space: nowrap;
 
+    a {
+      color: $secondary-color;
+    }
+
     &:first-child {
       padding-left: 24px;
     }
@@ -79,7 +88,6 @@
   }
 
   th {
-    border-top: 1px solid $table-border-color;
     color: map_get($grey, darken-1);
     font-weight: normal;
     font-size: 85%;

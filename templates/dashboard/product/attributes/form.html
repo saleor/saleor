@@ -46,27 +46,31 @@
 {% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
-    <form method="post" enctype="multipart/form-data" id="form-attributes" novalidate>
-        <div class="row">
-            <div class="col s12 l8">
+    <div class="card">
+        <form method="post" enctype="multipart/form-data" id="form-attributes" novalidate>
+            <div class="card-content">
+                {% csrf_token %}
                 <div class="row">
-                    {% csrf_token %}
                     {{ form.display|materializecss }}
+                </div>
+                <div class="row">
                     {{ form.name|materializecss }}
                 </div>
 
-                <h5>{% trans "Attribute values" context "Attribute values formset title" %}</h5>
+                <h5 class="card-title">{% trans "Attribute values" context "Attribute values formset title" %}</h5>
                 {{ formset.management_form }}
                 {{ formset.non_form_errors.as_ul }}
-                <table id="formset" class="highlight">
+            </div>
+            <div class="formset-table-container">
+                <table id="formset" class="formset-table">
                     {% for form in formset.forms %}
                         {% if forloop.first %}
                             <thead>
-                            <tr>
-                                {% for field in form.visible_fields %}
-                                    <th>{{ field.label|capfirst }}</th>
-                                {% endfor %}
-                            </tr>
+                                <tr>
+                                    {% for field in form.visible_fields %}
+                                        <th>{{ field.label|capfirst }}</th>
+                                    {% endfor %}
+                                </tr>
                             </thead>
                         {% endif %}
                         <tr>
@@ -84,16 +88,14 @@
                     {% endfor %}
                 </table>
             </div>
-        </div>
 
-        <div class="row">
-            <div class="col s12 l8 right-align">
+            <div class="card-action right-align">
                 {% if attribute.pk %}
-                    <button type="submit" class="btn">{% trans "Update" context "Attribute values formset action" %}</button>
+                    <button type="submit" class="btn btn-flat">{% trans "Update" context "Attribute values formset action" %}</button>
                 {% else %}
-                    <button type="submit" class="btn">{% trans "Create" context "Attribute values formset action" %}</button>
+                    <button type="submit" class="btn btn-flat">{% trans "Create" context "Attribute values formset action" %}</button>
                 {% endif %}
             </div>
-        </div>
-    </form>
+        </form>
+    </div>
 {% endblock %}

@@ -6,6 +6,20 @@ import Sortable from 'sortablejs';
 
 import '../scss/dashboard/dashboard.scss';
 
+var supportsPassive = false;
+try {
+  var opts = Object.defineProperty({}, 'passive', {
+    get: function() {
+      supportsPassive = true;
+    }
+  });
+  window.addEventListener('test', null, opts);
+} catch (e) {}
+
+function onScroll(func) {
+  window.addEventListener('scroll', func, supportsPassive ? {passive: true} : false);
+}
+
 function openModal() {
   $('.modal-trigger-custom').on('click', function (e) {
     let that = this;
@@ -25,63 +39,16 @@ function openModal() {
 }
 
 $(document).ready(function() {
-  let tabletScreen = 990;
-  let wideScreen = 1650;
-  let navWidth = '250px';
-  let $mainNav = $('#main-nav');
-  let mainNavTop = $mainNav.offset().top;
-  let $closeMenu = $('#close-menu');
-  let $openMenu = $('#open-menu');
-  function openMenu(animationSpeed) {
-    $mainNav.animate({
-      'left': navWidth
-    }, animationSpeed);
-    if ($(window).width() < wideScreen && $(window).width() >= tabletScreen) {
-      $('main .container, .subheader .nav-wrapper').animate({
-        'marginLeft': navWidth
-      }, animationSpeed);
-    }
-    $openMenu.addClass('hide');
-    $closeMenu.removeClass('hide');
-    $(window).scroll(function() {
-      $mainNav.toggleClass('sticky', $(window).scrollTop() > mainNavTop);
-    });
-    if ($(window).width() > tabletScreen) {
-      $.cookie('menu', 'open', { path: '/' });
-    }
+  let mainNavTop = $('.side-nav').offset().top;
+  let $toggleMenu = $('#toggle-menu');
+  function toggleMenu(e) {
+    $(document.body).toggleClass('nav-toggled');
+    e.preventDefault();
   }
-  function closeMenu() {
-    $mainNav.animate({
-      'left': '0'
-    });
-    $closeMenu.addClass('hide');
-    $openMenu.removeClass('hide');
-    $.removeCookie('menu', { path: '/' });
-    if ($(window).width() < wideScreen) {
-      $('main .container, .subheader .nav-wrapper').css({
-        'margin-left': 'auto'
-      });
-    }
-  }
-  $openMenu.click(function() {
-    openMenu(400);
+  $toggleMenu.click(toggleMenu);
+  onScroll(function() {
+    $(document.body).toggleClass('sticky-nav', Math.floor($(window).scrollTop()) > Math.ceil(mainNavTop));
   });
-  $closeMenu.click(function() {
-    closeMenu();
-  });
-  if ($(window).width() <= tabletScreen) {
-    $(window).click(function() {
-      closeMenu();
-    });
-    $openMenu.click(function(event) {
-      event.stopPropagation();
-    });
-  }
-  if ($.cookie('menu') === 'open') {
-    openMenu(0);
-  } else {
-    closeMenu();
-  }
   initSelects();
   $('.modal').modal();
 
@@ -237,7 +204,7 @@ $('.datepicker').pickadate({
 });
 function initSelects() {
   $('select:not(.browser-default):not([multiple])').material_select();
-  $('select[multiple]:not(.browser-default)').select2();
+  $('select[multiple]:not(.browser-default)').select2({width: '100%'});
 }
 
 // Coupon dynamic forms

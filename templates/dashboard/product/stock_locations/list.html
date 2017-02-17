@@ -33,9 +33,11 @@
                 <ul class="collection list">
                     {% for location in locations %}
                         <li class="collection-item list-item">
-                            <a class="list-item-name" href="{% url 'dashboard:product-stock-location-edit' location.pk %}">
-                                {{ location }}
-                            </a>
+                            <p class="list-item-name--single">
+                                <a href="{% url 'dashboard:product-stock-location-edit' location.pk %}">
+                                    {{ location }}
+                                </a>
+                            </p>
                         </li>
                     {% endfor %}
                 </ul>

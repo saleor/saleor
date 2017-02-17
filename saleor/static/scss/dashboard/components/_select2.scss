@@ -1,5 +1,5 @@
 @mixin select2 {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 
   &.select2-container--default, &.select2-container--default.select2-container--focus {
     border-bottom: $input-border;
@@ -38,7 +38,7 @@
       border: none;
       border-radius: 0;
       box-sizing: border-box;
-      line-height: 3rem;
+      line-height: calc(3rem - 1px);
 
       .select2-selection__rendered {
         padding: 0;
@@ -86,7 +86,7 @@
   &.select2-container--default.select2-container--open {
     border-bottom: 1px solid $input-focus-color;
     box-shadow: 0 1px 0 0 $input-focus-color;
- 
+
     .select2-selection__rendered {
       background-color: $select-background;
     }

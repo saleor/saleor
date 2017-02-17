@@ -33,20 +33,18 @@
     </ul>
 {% endblock %}
 
-{% block menu_sales_class %} active{% endblock %}
-
 {% block content %}
 <div class="row">
     <div class="col s12 l8">
-        <div class="card grey lighten-4">
+        <div class="card">
             <div class="card-content">
                 <span class="card-title black-text">{% trans "Payment details" context "Payment detail card title" %}</span>
 
                 <ul>
                     <li>{% trans "Payment status" context "Payment detail card list item title" %}: {% render_status payment.status payment.get_status_display %}</li>
                     <li>{% trans "Fraud status" context "Payment detail card list item title" %}: {% render_status payment.fraud_status payment.get_fraud_status_display %}</li>
-                    <li>{% trans "Amount" context "Payment detail card list item title" %}: {% gross payment.get_total_price %}</li>
-                    <li>{% trans "Captured amount" context "Payment detail card list item title" %}: {% gross payment.get_captured_price %}</li>
+                    <li>{% trans "Amount" context "Payment detail card list item title" %}: {% gross payment.get_total_price html=True %}</li>
+                    <li>{% trans "Captured amount" context "Payment detail card list item title" %}: {% gross payment.get_captured_price html=True %}</li>
                     <li>{% trans "Gateway" context "Payment detail card list item title" %}: {{ payment.variant }}</li>
                     <li>{% trans "Transaction ID" context "Payment detail card list item title" %}: {{ payment.transaction_id }}</li>
                     <li>{% trans "Payment date" context "Payment detail card list item title" %}: {{ payment.created }}</li>

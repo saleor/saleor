@@ -14,13 +14,13 @@
 
             {% if preauthorized_payments %}
                 <div class="data-table-container">
-                    <table class="bordered hoverable responsive data-table">
+                    <table class="bordered responsive data-table">
                         <thead>
                             <tr>
-                                <th>{% trans "Order number" context "Preauthorized payments table header" %}</th>
+                                <th>#</th>
                                 <th>{% trans "Date" context "Preauthorized payments table header" %}</th>
                                 <th>{% trans "Customer" context "Preauthorized payments table header" %}</th>
-                                <th class="text-right">{% trans "Amount" context "Preauthorized payments table header" %}</th>
+                                <th class="right-align">{% trans "Amount" context "Preauthorized payments table header" %}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -29,7 +29,7 @@
                                     <td><a href="{% url "dashboard:order-details" order_pk=payment.order.pk %}">{{ payment.order }}</a></td>
                                     <td>{{ payment.created }}</td>
                                     <td>{{ payment.order.user|default:_("Guest") }}</td>
-                                    <td class="text-right">{% gross payment.get_total_price %}</td>
+                                    <td class="right-align">{% gross payment.get_total_price html=True %}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -59,23 +59,40 @@
         </div>
 
         <div class="card">
-            <div class="card-content">
-                <span class="card-title black-text">{% trans "Products with low stock" context "Dashboard homepage table title" %}</span>
-
-                {% if low_stock %}
-                    <ul class="list">
-                        {% for product in low_stock %}
-                            <li class="list-item">
-                                <a class="list-item-name list-item-name--single" href="{% url "dashboard:product-update" pk=product.pk %}#stock">
-                                    {{ product }} ({{ product.total_stock }})
-                                </a>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p>{% trans "No products are low in stock." context "Empty low stock table message" %}</p>
-                {% endif %}
+            <div class="data-table-header{% if not preauthorized_payments %} data-table-header--no-data{% endif %}">
+                <span class="card-title">{% trans "Products with low stock" context "Dashboard homepage table title" %}</span>
             </div>
+
+            {% if low_stock %}
+                <div class="data-table-container">
+                    <table class="bordered responsive data-table">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Product name" context "Low stock product list" %}</th>
+                                <th class="right-align">{% trans "Stock left" context "Low stock product list" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in low_stock %}
+                                <tr>
+                                    <td>
+                                        <a class="list-item-name list-item-name--single" href="{% url "dashboard:product-update" pk=product.pk %}#stock">
+                                            {{ product }}
+                                        </a>
+                                    </td>
+                                    <td class="right-align">
+                                        {{ product.total_stock }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="card-content card-content--no-data">
+                    <p>{% trans "No products are low in stock." context "Empty low stock table message" %}</p>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
