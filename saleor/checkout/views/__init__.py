@@ -1,4 +1,3 @@
-from allauth.account.forms import LoginForm
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 
@@ -13,6 +12,7 @@ from .validators import (
     validate_shipping_method, validate_is_shipping_required)
 from ..core import load_checkout
 from ..forms import ShippingMethodForm
+from ...userprofile.registration.forms import LoginForm
 
 
 @load_checkout
