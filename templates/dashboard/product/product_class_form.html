@@ -80,14 +80,13 @@
                 </div>
             </div>
             <div class="card-action right-align">
-                    <button type="submit" class="btn btn-flat">
-                        {% if product_class.pk %}
-                            {% trans "Update" context "Product class primary action" %}
-                        {% else %}
-                            {% trans "Create" context "Product class primary action" %}
-                        {% endif %}
-                    </button>
-                </div>
+                <button type="submit" class="btn btn-flat">
+                    {% if product_class.pk %}
+                        {% trans "Update" context "Product class primary action" %}
+                    {% else %}
+                        {% trans "Create" context "Product class primary action" %}
+                    {% endif %}
+                </button>
             </div>
         </form>
     </div>

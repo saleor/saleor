@@ -11,45 +11,42 @@
     }
   }
 
-  &-actions {
+  &-action {
+    border-top: 1px solid $table-border-color;
+    padding: 10px 8px;
+  }
+
+  &-hader-action {
     border-bottom: 1px solid $table-border-color;
     padding: 14px 8px;
   }
 
   &-header {
-    padding: 21px 24px;
+    align-items: center;
+    display: flex;
+    height: 64px;
 
     &--no-data {
       padding: 20px 20px 0;
     }
-  }
-
-  &-title {
-    font-weight: 300;
-    margin: 0;
 
     a {
       color: $secondary-color;
     }
 
     .label {
-      float: right;
-      margin-top: -4px;
+      line-height: 1;
+      margin-right: 24px;
     }
   }
 
-  .label {
-    @extend .grey-text;
-    font-size: 12px;
-    text-transform: uppercase;
-
-    &.label-danger {
-      @extend .red-text;
-    }
-
-    &.label-success {
-      @extend .green-text;
-    }
+  &-title {
+    flex-grow: 1;
+    font-size: 20px;
+    font-weight: 300;
+    line-height: 1;
+    margin: 0;
+    padding: 0 24px;
   }
 
   input[type=checkbox].filled-in + label {
@@ -63,7 +60,6 @@
   }
 
   th, td {
-    font-size: 13px;
     height: 48px;
     overflow: hidden;
     padding: 0 28px;
@@ -85,6 +81,17 @@
 
     &.no-padded {
       padding: 0;
+    }
+
+    .dropdown-button {
+      color: inherit;
+      display: inline-block;
+      i {
+        @extend .grey-text;
+        font-size: 16px;
+        text-align: center;
+        width: 16px;
+      }
     }
   }
 
@@ -110,21 +117,6 @@
 
   .wide {
     width: 99%;
-  }
-
-  &.hoverable {
-    box-shadow: none;
-  }
-
-  .dropdown-button {
-    padding: 15px 28px;
-  }
-
-  .dropdown-content {
-    left: auto !important;
-    right: 0;
-    top: 0;
-    white-space: nowrap;
   }
 }
 

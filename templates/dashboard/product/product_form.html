@@ -154,7 +154,7 @@
             <div id="variants" class="card tab-content">
                 <form method="post" action="{% url 'dashboard:variant-bulk-delete' product_pk=product.pk %}" novalidate>
                     {% csrf_token %}
-                    <div class="data-table-actions">
+                    <div class="data-table-header-action">
                         <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked btn-flat">
                             {% trans "Add" context "Product form variants tab table action" %}
                         </a>
@@ -181,7 +181,7 @@
                     </div>
 
                     <div class="data-table-container">
-                        <table class="bordered hoverable responsive data-table">
+                        <table class="bordered highlight responsive data-table">
                             {% if variants %}
                                 <thead>
                                     <tr>
@@ -241,7 +241,7 @@
         <div id="stock" class="card tab-content">
             <form method="post" action="{% url 'dashboard:stock-bulk-delete' product_pk=product.pk %}" novalidate>
                 {% csrf_token %}
-                <div class="data-table-actions">
+                <div class="data-table-header-action">
                     <a href="{% url 'dashboard:product-stock-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked btn-flat">
                         {% trans "Add" context "Product form stock tab table action" %}
                     </a>
@@ -271,7 +271,7 @@
                 </div>
 
                 <div class="data-table-container">
-                    <table class="bordered hoverable responsive data-table">
+                    <table class="bordered highlight responsive data-table">
                         {% if stock_items %}
                             <thead>
                                 <tr>

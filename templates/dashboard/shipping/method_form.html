@@ -95,8 +95,7 @@
                     <button type="submit" class="btn btn-flat">{% trans "Update" context "Shipping method form action" %}</button>
                 {% else %}
                     <a href="{% url 'dashboard:shipping-methods' %}" class="btn btn-flat">{% trans "Cancel" context "Shipping method form action" %}</a>
-                        <button type="submit" class="btn btn-flat">{% trans "Create" context "Shipping method form action" %}</button>
-                    </div>
+                    <button type="submit" class="btn btn-flat">{% trans "Create" context "Shipping method form action" %}</button>
                 {% endif %}
             </div>
         </form>

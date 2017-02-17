@@ -5,8 +5,8 @@
     {% csrf_token %}
 
     <div class="modal-content">
-        <h5>{% trans "Ship delivery group" context "Modal ship delivery group title" %}</h5>
-        <p>{% trans "Ship selected delivery group to the following address:" context "Modal ship delivery group text" %}</p>
+        <h5>{% trans "Dispatch delivery group" context "Modal ship delivery group title" %}</h5>
+        <p>{% trans "Dispatch this shipment to the following address:" context "Modal ship delivery group text" %}</p>
         {% include 'dashboard/includes/_address.html' with address=group.order.shipping_address only %}
         <div class="row">
             {{ form|materializecss }}

@@ -1,13 +1,15 @@
 $button-padding: 0 16px;
-$button-flat-color: #EC407A;
+$button-flat-color: #26A69A;
+$card-link-color: #26A69A;
+$card-padding: 16px;
 $font-size-action-icon: 18px;
 $header-height: 64px;
 $navbar-height: 56px;
 $navbar-height-mobile: 64px;
 $placeholder-text-color: white;
-$primary-color: #0097A7;
-$primary-color-light: #00BCD4;
-$secondary-color: #EC407A;
+$primary-color: #E57373;
+$primary-color-light: #EF9A9A;
+$secondary-color: #26A69A;
 $sidenav-font-color: #616161;
 $sidenav-padding: 8px;
 $subheader-height: 48px;
@@ -134,22 +136,17 @@ $roboto-font-path: "~materialize-css/fonts/roboto/";
   font-size: 120%;
 }
 
-#order-details {
-  .order-summary {
-    td {
-      padding: 5px 5px;
-    }
-    .order-user {
-      display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      width: 100px;
-      min-width: 100%;
-    }
+.label {
+  @extend .grey-text;
+  font-size: 12px;
+  text-transform: uppercase;
+
+  &.label-danger {
+    @extend .red-text;
   }
 
-  #order-notes {
-    box-shadow: none;
+  &.label-success {
+    @extend .green-text;
   }
 }
 
@@ -190,10 +187,23 @@ $roboto-font-path: "~materialize-css/fonts/roboto/";
 .currency {
   @extend .grey-text;
   font-size: 12px;
+  font-weight: normal;
 }
 
 html {
   background: #f5f5f5;
+  @media only screen and (min-width: 0) {
+    font-size: 14px;
+  }
+
+  @media only screen and (min-width: $large-screen) {
+    font-size: 13px;
+  }
+}
+
+h6 {
+  @extend .grey-text;
+  font-size: 13px;
 }
 
 @import "components/breadcrumbs";

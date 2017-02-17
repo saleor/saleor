@@ -28,13 +28,9 @@ def customer_list(request):
     else:
         customers = customers.filter(
             orders__status__in=['new', 'payment-pending', 'fully-paid'])
-    title = npgettext_lazy(
-        'Customer list page title',
-        '%d result',
-        'Results (%d)') % len(customers)
 
     customers = get_paginator_items(customers, 30, request.GET.get('page'))
-    ctx = {'customers': customers, 'form': form, 'title': title,
+    ctx = {'customers': customers, 'form': form,
            'default_pagination_params': form_values}
     return TemplateResponse(request, 'dashboard/customer/list.html', ctx)
 

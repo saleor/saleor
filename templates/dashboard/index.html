@@ -9,7 +9,7 @@
     <div class="col s12">
         <div class="card">
             <div class="data-table-header{% if not preauthorized_payments %} data-table-header--no-data{% endif %}">
-                <span class="card-title black-text">{% trans "Preauthorized payments" context "Dashboard homepage table title" %}</span>
+                <span class="data-table-title">{% trans "Preauthorized payments" context "Dashboard homepage table title" %}</span>
             </div>
 
             {% if preauthorized_payments %}
@@ -44,7 +44,7 @@
 
         <div class="card">
             <div class="data-table-header{% if not orders_to_ship %} data-table-header--no-data{% endif %}">
-                <span class="card-title black-text">
+                <span class="data-table-title">
                     {% trans "Orders ready for shipment" context "Dashboard homepage table title" %}
                 </span>
             </div>
@@ -60,7 +60,7 @@
 
         <div class="card">
             <div class="data-table-header{% if not preauthorized_payments %} data-table-header--no-data{% endif %}">
-                <span class="card-title">{% trans "Products with low stock" context "Dashboard homepage table title" %}</span>
+                <span class="data-table-title">{% trans "Products with low stock" context "Dashboard homepage table title" %}</span>
             </div>
 
             {% if low_stock %}

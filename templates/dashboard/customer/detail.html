@@ -30,14 +30,14 @@
         <div class="col s12 l8">
             <div class="card">
                 <div class="data-table-header{% if not customer_orders %} data-table-header--no-data{% endif %}">
-                <span class="card-title black-text">
-                  {% trans "Order history" context "Customer orders table title" %}
-                </span>
+                    <h5 class="data-table-title">
+                    {% trans "Order history" context "Customer orders table title" %}
+                    </h5>
                 </div>
 
                 {% if customer_orders %}
                     <div class="data-table-container">
-                        <table class="bordered hoverable responsive data-table">
+                        <table class="bordered highlight responsive data-table">
                         <thead>
                             <tr>
                                 <th>{% trans "Number" context "Customer orders table header" %}</th>
