@@ -63,6 +63,7 @@
   }
 
   th, td {
+    font-size: 13px;
     height: 48px;
     overflow: hidden;
     padding: 0 28px;
@@ -90,7 +91,7 @@
   th {
     color: map_get($grey, darken-1);
     font-weight: normal;
-    font-size: 85%;
+    font-size: 12px;
     height: 56px;
   }
 

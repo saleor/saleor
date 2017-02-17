@@ -21,14 +21,15 @@
     {% if payments %}
         <div class="card">
             <div class="data-table-container">
-                <table class="bordered hoverable responsive data-table">
+                <table class="bordered highlight responsive data-table">
                     <thead>
                         <tr>
-                            <th></th>
-                            <th>{% trans "Date" context "Payments table header" %}</th>
-                            <th>{% trans "Payment" context "Payments table header" %}</th>
-                            <th class="right-align">{% trans "Amount" context "Payments table header" %}</th>
+                            <th>#</th>
+                            <th>{% trans "Order" context "Payments table header" %}</th>
                             <th class="wide">{% trans "Status" context "Payments table header" %}</th>
+                            <th>{% trans "Date" context "Payments table header" %}</th>
+                            <th>{% trans "Gateway" context "Payments table header" %}</th>
+                            <th class="right-align">{% trans "Amount" context "Payments table header" %}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -39,19 +40,21 @@
                                     #{{ payment_id }}
                                 {% endblocktrans %}
                             </a></td>
-                            <td>{{ payment.created }}</td>
                             <td>
-                                {% blocktrans trimmed with payment_variant=payment.variant context "Payments table item data" %}
-                                    Gateway {{ payment_variant }}
-                                {% endblocktrans %} &middot;
                                 <a href="{% url 'dashboard:order-details' order_pk=payment.order.pk %}">
                                     {% blocktrans trimmed with order=payment.order context "Payments table item data" %}
                                         Order {{ order }}
                                     {% endblocktrans %}
                                 </a>
                             </td>
-                            <td class="right-align">{% gross payment.get_total_price html=True %}</td>
                             <td>{% render_status payment.status payment.get_status_display %}</td>
+                            <td>{{ payment.created }}</td>
+                            <td>
+                                {% blocktrans trimmed with payment_variant=payment.variant context "Payments table item data" %}
+                                    Gateway {{ payment_variant }}
+                                {% endblocktrans %}
+                            </td>
+                            <td class="right-align">{% gross payment.get_total_price html=True %}</td>
                         </tr>
                     {% endfor %}
                     </tbody>
