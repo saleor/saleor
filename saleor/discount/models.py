@@ -125,7 +125,7 @@ class Voucher(models.Model):
     def __str__(self):
         if self.name:
             return self.name
-        discount = '%s%s' % (
+        discount = '%s %s' % (
             self.discount_value, self.get_discount_value_type_display())
         if self.type == Voucher.SHIPPING_TYPE:
             if self.is_free:

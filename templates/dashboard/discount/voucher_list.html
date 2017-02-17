@@ -32,15 +32,15 @@
             <div class="data-table-container">
                 <table class="bordered highlight responsive data-table">
                     <thead>
-                    <tr>
-                        <th class="wide">{% trans "Name" context "Voucher table header" %}</th>
-                        <th>{% trans "Discount" context "Voucher table header" %}</th>
-                        <th>{% trans "Start date" context "Voucher table header" %}</th>
-                        <th>{% trans "End date" context "Voucher table header" %}</th>
-                        <th>{% trans "Used" context "Voucher table header" %}</th>
-                        <th>{% trans "Apply to" context "Voucher table header" %}</th>
-                        <th>{% trans "Limit" context "Voucher table header" %}</th>
-                    </tr>
+                        <tr>
+                            <th class="wide">{% trans "Name" context "Voucher table header" %}</th>
+                            <th class="right-align">{% trans "Discount" context "Voucher table header" %}</th>
+                            <th>{% trans "Apply to" context "Voucher table header" %}</th>
+                            <th>{% trans "Start date" context "Voucher table header" %}</th>
+                            <th>{% trans "End date" context "Voucher table header" %}</th>
+                            <th class="right-align">{% trans "Used" context "Voucher table header" %}</th>
+                            <th class="right-align">{% trans "Limit" context "Voucher table header" %}</th>
+                        </tr>
                     </thead>
                     <tbody>
                     {% for voucher in vouchers %}
@@ -48,19 +48,20 @@
                             <td>
                                 <a href="{% url 'dashboard:voucher-update' pk=voucher.pk %}">{{ voucher }}</a>
                             </td>
-                            <td>
-                                {{ voucher.discount_value }}{{ voucher.get_discount_value_type_display }}</td>
+                            <td class="right-align">
+                                {{ voucher.discount_value }}&nbsp;<span class="currency">{{ voucher.get_discount_value_type_display }}</span>
+                            </td>
+                            <td>{{ voucher.get_apply_to_display|default_if_none:"-" }}</td>
                             <td>{{ voucher.start_date }}</td>
                             <td>{{ voucher.end_date|default_if_none:"-" }}</td>
-                            <td>
+                            <td class="right-align">
                                 {% if voucher.usage_limit or voucher.usage_limit == 0 %}
                                     {{ voucher.used }}/{{ voucher.usage_limit }}
                                 {% else %}
                                     {{ voucher.used }}
                                 {% endif %}
                             </td>
-                            <td>{{ voucher.get_apply_to_display|default_if_none:"-" }}</td>
-                            <td>
+                            <td class="right-align">
                                 {% if voucher.limit %}
                                     {% gross voucher.limit html=True %}
                                 {% else %}
