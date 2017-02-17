@@ -60,7 +60,7 @@ def test_create_superuser(db, client):
     assert User.objects.all().count() == 1
     # Test logging in
     response = client.post('/account/login/',
-                           {'login': credentials['email'],
+                           {'username': credentials['email'],
                             'password': credentials['password']},
                            follow=True)
     assert response.context['request'].user == admin
