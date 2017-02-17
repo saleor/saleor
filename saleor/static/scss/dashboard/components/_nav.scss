@@ -129,18 +129,20 @@ header {
         border-top: 1px solid map-get($grey, lighten-2);
       }
     }
-    a {
-      @media (min-width: $medium-screen) {
-        height: 40px;
-        line-height: 40px;
-      }
-    }
     li {
       border-radius: 2px;
+      a {
+        font-weight: normal;
+        @media (min-width: $medium-screen) {
+          height: 40px;
+          line-height: 40px;
+        }
+      }
       &.active {
         a {
           @extend .grey-text;
           @extend .text-darken-4;
+          font-weight: bold;
         }
       }
       .body-home &.nav-home {
