@@ -70,6 +70,11 @@
                                         {{ hidden }}
                                     {% endfor %}
                                     {{ form.country_code|materializecss:"input-field s12" }}
+                                    {% if form.non_field_errors %}
+                                        {% for error in form.non_field_errors %}
+                                            <p class="help-block materialize-red-text">{{ error }}</p>
+                                        {% endfor %}
+                                    {% endif %}
                                 </td>
                                 <td>
                                     {{ form.price|materializecss }}
@@ -77,12 +82,7 @@
                                 <td>
                                     {{ form.DELETE|materializecss }}
                                 </td>
-                            </trv>
-                            {% if form.non_field_errors %}
-                                {% for error in form.non_field_errors %}
-                                    <p class="help-block materialize-red-text">{{ error }}</p>
-                                {% endfor %}
-                            {% endif %}
+                            </tr>
                         {% endfor %}
                     </tbody>
                 </table>
