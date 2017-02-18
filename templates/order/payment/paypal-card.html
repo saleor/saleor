@@ -7,11 +7,11 @@
 {% block forms %}
     <form method="post" class="form-horizontal" novalidate>
         {% csrf_token %}
-        {% bootstrap_form form layout='horizontal' %}
+        {% bootstrap_form form layout="horizontal" %}
         <div class="form-group">
             <div class="col-sm-offset-2 col-sm-10">
                 <button type="submit" class="btn btn-primary">
-                    {% trans "Save changes" %}
+                    {% trans "Save changes" context "Payment form (PayPal) primary action" %}
                 </button>
             </div>
         </div>
