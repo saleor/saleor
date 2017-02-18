@@ -4,7 +4,7 @@
 {% load static from staticfiles %}
 {% load bootstrap_pagination from bootstrap3 %}
 
-{% block title %}{% trans "Search results" %} {{ block.super }}{% endblock %}
+{% block title %}{% trans "Search results" context "Search page title" %} {{ block.super }}{% endblock %}
 
 {% block breadcrumb %}
     {{ block.super }}
@@ -32,8 +32,8 @@
                     <div class="col-12">
                         <h2>Search: <strong>{{ query }}</strong></h2>
                         <img src="{% static 'images/pirate.svg' %}" />
-                        <p>{% trans "Sorry, no matches found for your request." %}</p>
-                        <p>{% trans "Try again or shop new arrivals." %}</p>
+                        <p>{% trans "Sorry, no matches found for your request." context "Search without results text" %}</p>
+                        <p>{% trans "Try again or shop new arrivals." context "Search without results text" %}</p>
                     </div>
                 </div>
             {% endif %}

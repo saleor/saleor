@@ -12,7 +12,9 @@
 
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
-    <li><a href="/">{% trans "Home" %}</a></li>
+    <li><a href="/">
+        {% trans "Home" context "Product details breadcrumbs" %}
+    </a></li>
     {% with product.get_first_category as category %}
       {% if category %}
         <li><a href="{{ category.get_absolute_url }}">{{ category }}</a></li>
@@ -25,7 +27,10 @@
 {% block content %}
   {% if not is_visible %}
     <div class="alert alert-warning" role="alert">
-      {% blocktrans with date=product.available_on|date %}<strong>Warning!</strong> You are previewing a product that will become visible on <strong>{{ date }}</strong>.{% endblocktrans %}
+      {% blocktrans trimmed with date=product.available_on|date context "Product details text" %}
+          <strong>Warning!</strong>
+          You are previewing a product that will become visible on <strong>{{ date }}</strong>.
+      {% endblocktrans %}
     </div>
   {% endif %}
   <div class="row product">
@@ -71,7 +76,9 @@
         {{ product }}
       </h1>
       {% if user.is_staff %}
-        <p><a href="{% url "dashboard:product-update" pk=product.pk %}">{% trans "Edit in dashboard" %}</a></p>
+        <p><a href="{% url "dashboard:product-update" pk=product.pk %}">
+            {% trans "Edit in dashboard" context "Product details link text" %}
+        </a></p>
       {% endif %}
       {% if availability.available %}
         {% if show_variant_picker %}
@@ -108,7 +115,7 @@
 
               <div class="form-group product__info__button">
                 <button class="btn primary">
-                  {% trans "Add to cart" %}
+                  {% trans "Add to cart" context "Product details primary action" %}
                 </button>
               </div>
             </form>
@@ -119,10 +126,12 @@
         </div>
 
       {% else %}
-        <p class="alert alert-warning">{% trans "This product is currently <strong>unavailable</strong>." %}</p>
+        <p class="alert alert-warning">
+            {% trans "This product is currently <strong>unavailable</strong>." context "Product details text" %}
+        </p>
       {% endif %}
       <div class="product__info__description">
-        <h3>{% trans "Description" %}</h3>
+        <h3>{% trans "Description" context "Product details title" %}</h3>
         <hr>
         {{ product.description|markdown }}
       </div>

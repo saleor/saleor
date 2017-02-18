@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-02-13 19:26+0100\n"
+"POT-Creation-Date: 2017-02-18 12:15+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: saleor/cart/__init__.py:20
 msgctxt "cart status"
@@ -1366,6 +1366,7 @@ msgstr ""
 
 #: templates/account/email/email_confirmation_message.txt:3
 #, python-format
+msgctxt "Email confirmation message"
 msgid ""
 "Hi!\n"
 "\n"
@@ -1382,87 +1383,113 @@ msgid ""
 msgstr ""
 
 #: templates/account/email/email_confirmation_subject.txt:2
+msgctxt "Email confirmation subject"
 msgid "Confirm your email address"
 msgstr ""
 
-#: templates/account/login.html:5 templates/account/login.html:19
-#: templates/account/partials/login_form.html:16
-#: templates/account/signup.html:15 templates/base.html:55
-#: templates/base.html:190
+#: templates/account/login.html:5
+msgctxt "Login page title"
 msgid "Log in"
 msgstr ""
 
 #: templates/account/login.html:13
+msgctxt "Login form secondary title"
 msgid "Don't have an account yet?"
 msgstr ""
 
-#: templates/account/login.html:15 templates/base.html:52
-#: templates/base.html:187
+#: templates/account/login.html:17
+msgctxt "Login form secondary action"
 msgid "Register"
 msgstr ""
 
-#: templates/account/partials/login_form.html:18
+#: templates/account/login.html:22
+msgctxt "Login form title"
+msgid "Log in"
+msgstr ""
+
+#: templates/account/partials/already_logged_in.html:7
+#, python-format
+msgctxt "Already logged in warning message"
+msgid "You are already logged in as %(user_display)s."
+msgstr ""
+
+#: templates/account/partials/login_form.html:16
+msgctxt "Login form primary action"
+msgid "Log in"
+msgstr ""
+
+#: templates/account/partials/login_form.html:19
+msgctxt "Login form secondary link"
 msgid "Forgot password?"
 msgstr ""
 
-#: templates/account/password_change.html:7 templates/cart/index.html:11
-#: templates/order/details.html:11 templates/order/payment.html:14
-#: templates/product/details.html:15 templates/userprofile/address-edit.html:9
-#: templates/userprofile/details.html:13
+#: templates/account/password_change.html:7
+msgctxt "Password change breadcrumb"
 msgid "Home"
 msgstr ""
 
-#: templates/account/password_change.html:8 templates/base.html:45
-#: templates/base.html:179 templates/order/details.html:12
-#: templates/order/payment.html:15 templates/userprofile/details.html:14
+#: templates/account/password_change.html:8
+msgctxt "Password change breadcrumb"
 msgid "Your account"
 msgstr ""
 
 #: templates/account/password_change.html:9
-#: templates/userprofile/details.html:94
+msgctxt "Password change breadcrumb"
 msgid "Edit"
 msgstr ""
 
-#: templates/account/password_change.html:21
-#: templates/account/password_reset_from_key.html:6
-#: templates/account/password_reset_from_key_done.html:4
-#: templates/account/password_reset_from_key_done.html:7
+#: templates/account/password_change.html:22
+msgctxt "Password change form legend"
 msgid "Change Password"
 msgstr ""
 
-#: templates/account/password_change.html:26
+#: templates/account/password_change.html:28
+msgctxt "Password change form primary action"
 msgid "Save new password"
 msgstr ""
 
-#: templates/account/password_reset.html:13
-msgid "Forgott password?"
+#: templates/account/password_reset.html:6
+msgctxt "Password reset page title"
+msgid "Password reset"
 msgstr ""
 
-#: templates/account/password_reset.html:14
+#: templates/account/password_reset.html:15
+msgctxt "Password reset form title"
+msgid "Forgot your password?"
+msgstr ""
+
+#: templates/account/password_reset.html:16
+msgctxt "Password reset form help text"
 msgid ""
 "Please let us know the email you have used to register or purchase at our "
 "store."
 msgstr ""
 
-#: templates/account/password_reset.html:22
-#: templates/account/password_reset_from_key.html:29
-#: templates/account/password_set.html:19 templates/checkout/login.html:13
-#: templates/checkout/shipping_address.html:18
-#: templates/checkout/shipping_method.html:17
+#: templates/account/password_reset.html:27
+msgctxt "Password reset primary action"
 msgid "Continue"
 msgstr ""
 
 #: templates/account/password_reset_done.html:7
+msgctxt "Password reset done page title"
+msgid "Password Reset"
+msgstr ""
+
 #: templates/account/password_reset_done.html:11
-#: templates/account/password_reset_from_key.html:21
-#: templates/account/password_set.html:13
+msgctxt "Password reset done title"
 msgid "Password Reset"
 msgstr ""
 
 #: templates/account/password_reset_done.html:15
+msgctxt "Password reset done text"
 msgid ""
 "We have sent you an e-mail. Please contact us if you do not receive it "
 "within a few minutes."
+msgstr ""
+
+#: templates/account/password_reset_from_key.html:6
+msgctxt "Password reset from key page title"
+msgid "Change Password"
 msgstr ""
 
 #: templates/account/password_reset_from_key.html:11
@@ -1471,15 +1498,36 @@ msgstr ""
 
 #: templates/account/password_reset_from_key.html:13
 #, python-format
+msgctxt "Password reset text if key is invalid"
 msgid ""
-"The password reset link was invalid, possibly\n"
-"        because it has already been used.<br> Please request a\n"
-"        <a href=\"%(passwd_reset_url)s\">new password reset</a>\n"
-"        ."
+"The password reset link was invalid, possibly because it has already been "
+"used.<br> Please request a <a href=\"%(passwd_reset_url)s\">new password "
+"reset</a>."
 msgstr ""
 
-#: templates/account/password_reset_from_key.html:22
+#: templates/account/password_reset_from_key.html:23
+msgctxt "Password reset from key form title"
+msgid "Password Reset"
+msgstr ""
+
+#: templates/account/password_reset_from_key.html:24
+msgctxt "Password reset from key form title"
 msgid "Now you can set new password for you account."
+msgstr ""
+
+#: templates/account/password_reset_from_key.html:31
+msgctxt "Password reset from key form primary action"
+msgid "Continue"
+msgstr ""
+
+#: templates/account/password_reset_from_key_done.html:4
+msgctxt "Password reset from key done page title"
+msgid "Password Changed"
+msgstr ""
+
+#: templates/account/password_reset_from_key_done.html:7
+msgctxt "Password reset from key done title"
+msgid "Password Changed"
 msgstr ""
 
 #: templates/account/password_reset_from_key_done.html:9
@@ -1488,196 +1536,366 @@ msgstr ""
 
 #: templates/account/password_reset_from_key_done.html:10
 #, python-format
+msgctxt "Password reset from key done text"
 msgid ""
-"You can now <a href=\"%(login_url)s\">sign in</a> using your new password "
+"You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
+msgstr ""
+
+#: templates/account/password_set.html:14
+msgctxt "Password set form legend"
+msgid "Password Reset"
+msgstr ""
+
+#: templates/account/password_set.html:21
+msgctxt "Password set form primary action"
+msgid "Continue"
 msgstr ""
 
 #: templates/account/signup.html:6
+msgctxt "Signup page title"
 msgid "Sign Up"
 msgstr ""
 
 #: templates/account/signup.html:13
+msgctxt "Signup form secondary title"
 msgid "Already have an account?"
 msgstr ""
 
-#: templates/account/signup.html:21 templates/account/signup.html:29
-#: templates/order/create_password.html:35
+#: templates/account/signup.html:17
+msgctxt "Signup form secondary action"
+msgid "Log in"
+msgstr ""
+
+#: templates/account/signup.html:24
+msgctxt "Signup form title"
+msgid "Create an account"
+msgstr ""
+
+#: templates/account/signup.html:33
+msgctxt "Signup form primary action"
 msgid "Create an account"
 msgstr ""
 
 #: templates/base.html:13
+msgctxt "Meta author text"
 msgid "Mirumee Software"
 msgstr ""
 
-#: templates/base.html:41 templates/base.html:174
+#: templates/base.html:42
+msgctxt "Top navbar link text"
 msgid "Dashboard"
 msgstr ""
 
-#: templates/base.html:48 templates/base.html:183
+#: templates/base.html:48
+msgctxt "Top navbar link text"
+msgid "Your account"
+msgstr ""
+
+#: templates/base.html:52
+msgctxt "Top navbar link text"
 msgid "Log out"
 msgstr ""
 
-#: templates/base.html:69
+#: templates/base.html:57
+msgctxt "Top navbar link text"
+msgid "Register"
+msgstr ""
+
+#: templates/base.html:61
+msgctxt "Top navbar link text"
+msgid "Log in"
+msgstr ""
+
+#: templates/base.html:76
+msgctxt "Hamburger button text"
 msgid "menu"
 msgstr ""
 
-#: templates/base.html:84
+#: templates/base.html:91
 msgid "Search for product"
 msgstr ""
 
-#: templates/base.html:94
+#: templates/base.html:102
+msgctxt "Top navbar link"
 msgid "Your Cart"
 msgstr ""
 
-#: templates/base.html:168 templates/cart/index.html:12
+#: templates/base.html:177
+msgctxt "Top navbar link"
 msgid "Cart"
 msgstr ""
 
-#: templates/cart-dropdown.html:31 templates/cart/index.html:73
-msgid "Subtotal"
+#: templates/base.html:184
+msgctxt "Top navbar link"
+msgid "Dashboard"
+msgstr ""
+
+#: templates/base.html:190
+msgctxt "Top navbar link"
+msgid "Your account"
+msgstr ""
+
+#: templates/base.html:195
+msgctxt "Top navbar link"
+msgid "Log out"
+msgstr ""
+
+#: templates/base.html:200
+msgctxt "Top navbar link"
+msgid "Register"
+msgstr ""
+
+#: templates/base.html:205
+msgctxt "Top navbar link"
+msgid "Log in"
 msgstr ""
 
 #: templates/cart-dropdown.html:31
+msgctxt "Cart dropdown text"
+msgid "Subtotal"
+msgstr ""
+
+#: templates/cart-dropdown.html:33
+msgctxt "Cart dropdown text"
 msgid "(Delivery calculated at checkout)"
 msgstr ""
 
-#: templates/cart-dropdown.html:41
+#: templates/cart-dropdown.html:43
+msgctxt "Cart dropdown secondary action"
 msgid "Go to cart"
 msgstr ""
 
-#: templates/cart-dropdown.html:44 templates/cart/index.html:94
-#: templates/checkout/details.html:7 templates/checkout/details.html:18
+#: templates/cart-dropdown.html:46
+msgctxt "Cart dropdown primary action"
 msgid "Checkout"
 msgstr ""
 
-#: templates/cart-dropdown.html:49 templates/cart/index.html:120
+#: templates/cart-dropdown.html:51
 msgid "There are no products in your shopping cart."
 msgstr ""
 
-#: templates/cart-dropdown.html:51 templates/cart/index.html:121
+#: templates/cart-dropdown.html:53
+msgctxt "Empty cart dropdown text"
 msgid "Check out our sales"
 msgstr ""
 
 #: templates/cart/index.html:7
+msgctxt "Cart page title"
 msgid "Your cart"
 msgstr ""
 
+#: templates/cart/index.html:11
+msgctxt "Cart breadcrumb"
+msgid "Home"
+msgstr ""
+
+#: templates/cart/index.html:12
+msgctxt "Cart breadcrumb"
+msgid "Cart"
+msgstr ""
+
 #: templates/cart/index.html:18
+msgctxt "Cart message"
 msgid "Product has been deleted from cart"
 msgstr ""
 
-#: templates/cart/index.html:26 templates/order/order-details.html:27
+#: templates/cart/index.html:26
+msgctxt "Cart table header"
 msgid "Product"
 msgstr ""
 
-#: templates/cart/index.html:29 templates/order/order-details.html:30
+#: templates/cart/index.html:29
+msgctxt "Cart table header"
 msgid "Quantity"
 msgstr ""
 
-#: templates/cart/index.html:32 templates/order/order-details.html:33
+#: templates/cart/index.html:32
+msgctxt "Cart table header"
 msgid "Price"
 msgstr ""
 
+#: templates/cart/index.html:73
+msgctxt "Cart totals"
+msgid "Subtotal"
+msgstr ""
+
 #: templates/cart/index.html:74
+msgctxt "Cart totals help text"
 msgid "Delivery calculated at checkout"
 msgstr ""
 
-#: templates/cart/index.html:98
+#: templates/cart/index.html:97
+msgctxt "Cart primary action"
+msgid "Checkout"
+msgstr ""
+
+#: templates/cart/index.html:102
+msgctxt "Cart secondary title"
 msgid "Calculate shipping cost"
 msgstr ""
 
-#: templates/category/_items.html:24
+#: templates/cart/index.html:125
+msgctxt "Empty cart message"
+msgid "There are no products in your shopping cart."
+msgstr ""
+
+#: templates/cart/index.html:126
+msgctxt "Empty cart link"
+msgid "Check out our sales"
+msgstr ""
+
+#. Translators: Layout may break if character length is different than four.
+#: templates/category/_items.html:27
+msgctxt "Sale (discount) label for item in product list"
 msgid "Sale"
 msgstr ""
 
-#: templates/checkout/details.html:11
-msgid "Easy and secure"
+#: templates/checkout/details.html:7
+msgctxt "Checkout page title"
+msgid "Checkout"
 msgstr ""
 
-#: templates/checkout/details.html:35
+#: templates/checkout/details.html:11
+msgctxt "Checkout top message"
+msgid "Easy and secure!"
+msgstr ""
+
+#: templates/checkout/details.html:17
+msgctxt "Checkout logo alternate text"
+msgid "Testeor - Saleor demo store"
+msgstr ""
+
+#: templates/checkout/details.html:20
+msgctxt "Checkout title"
+msgid "Checkout"
+msgstr ""
+
+#: templates/checkout/details.html:37
+msgctxt "Order review title"
 msgid "Order review"
 msgstr ""
 
-#: templates/checkout/details.html:51 templates/order/order-details.html:64
+#: templates/checkout/details.html:53
+msgctxt "Order review section"
 msgid "Delivery"
 msgstr ""
 
-#: templates/checkout/details.html:63
+#: templates/checkout/details.html:65
+msgctxt "Order review section title"
 msgid "Promo code"
 msgstr ""
 
-#: templates/checkout/details.html:69 templates/order/order-details.html:88
+#: templates/checkout/details.html:71
+msgctxt "Order review section title"
 msgid "Total"
 msgstr ""
 
 #: templates/checkout/login.html:5
+msgctxt "Checkout login page title"
 msgid "Login"
 msgstr ""
 
 #: templates/checkout/login.html:11
+msgctxt "Checkout login page title"
 msgid "New customer?"
 msgstr ""
 
-#: templates/checkout/login.html:14
+#: templates/checkout/login.html:15
+msgctxt "Checkout login page new users action"
+msgid "Continue"
+msgstr ""
+
+#: templates/checkout/login.html:17
+msgctxt "Checkout login page new users message"
 msgid "Registration is not required!"
 msgstr ""
 
-#: templates/checkout/login.html:19
+#: templates/checkout/login.html:22
+msgctxt "Checkout login form title"
 msgid "Existing customer? Log in."
 msgstr ""
 
-#: templates/checkout/payment.html:9 templates/order/payment/details.html:4
+#: templates/checkout/payment.html:9
+msgctxt "Checkout payment title"
 msgid "Payment"
 msgstr ""
 
 #: templates/checkout/payment.html:13
-#: templates/checkout/summary_without_shipping.html:17
+msgctxt "Checkout payment primary action"
 msgid "Place order"
 msgstr ""
 
 #: templates/checkout/shipping_address.html:8
 #: templates/checkout/shipping_method.html:7
-#: templates/order/order-details.html:13
+msgctxt "Checkout shipping address title"
 msgid "Shipping address"
 msgstr ""
 
-#: templates/checkout/shipping_method.html:9
+#: templates/checkout/shipping_address.html:18
+msgctxt "Checkout shipping address primary action"
+msgid "Continue"
+msgstr ""
+
+#: templates/checkout/shipping_method.html:10
 msgid "Select other address"
 msgstr ""
 
-#: templates/checkout/shipping_method.html:13
+#: templates/checkout/shipping_method.html:15
+msgctxt "Checkout shipping method form title"
 msgid "Shipping method"
 msgstr ""
 
+#: templates/checkout/shipping_method.html:19
+msgctxt "Checkout shipping method primary action"
+msgid "Continue"
+msgstr ""
+
 #: templates/checkout/snippets/addresses-form-panel.html:1
-#: templates/checkout/snippets/addresses-form.html:3
 msgid "Same as shipping"
 msgstr ""
 
-#: templates/checkout/snippets/addresses-form.html:9
+#: templates/checkout/snippets/addresses-form.html:4
+msgctxt "Checkout addresses form label"
+msgid "Same as shipping"
+msgstr ""
+
+#: templates/checkout/snippets/addresses-form.html:11
+msgctxt "Checkout addresses form label"
 msgid "Enter a new address"
 msgstr ""
 
 #: templates/checkout/snippets/voucher-form.html:15
 #: templates/checkout/snippets/voucher-form.html:16
+msgctxt "Checkout voucher form action"
 msgid "Remove"
 msgstr ""
 
-#: templates/checkout/snippets/voucher-form.html:27
+#: templates/checkout/snippets/voucher-form.html:28
+msgctxt "Checkout voucher form action"
 msgid "Use"
 msgstr ""
 
 #: templates/checkout/summary.html:7
-#: templates/checkout/summary_without_shipping.html:8
-#: templates/order/order-details.html:18
+msgctxt "Checkout summary title"
 msgid "Billing address"
 msgstr ""
 
 #: templates/checkout/summary.html:11
+msgctxt "Checkout summary primary action"
 msgid "Order &amp Pay"
 msgstr ""
 
-#: templates/dashboard/base.html:10
+#: templates/checkout/summary_without_shipping.html:8
+msgctxt "Checkout summary without shipping title"
+msgid "Billing address"
+msgstr ""
+
+#: templates/checkout/summary_without_shipping.html:17
+msgctxt "Checkout summary without shipping action"
+msgid "Place order"
+msgstr ""
+
+#: templates/dashboard/base.html:7
 msgctxt "Dashboard default page title"
 msgid "Dashboard - Saleor"
 msgstr ""
@@ -3903,7 +4121,7 @@ msgctxt "Variant form action"
 msgid "Create"
 msgstr ""
 
-#: templates/dashboard/search/results.html:8
+#: templates/dashboard/search/results.html:8 templates/search/results.html:7
 msgctxt "Search page title"
 msgid "Search results"
 msgstr ""
@@ -4093,26 +4311,32 @@ msgid "Update"
 msgstr ""
 
 #: templates/home.html:13
+msgctxt "Homepage title"
 msgid "Promo &amp; Sale"
 msgstr ""
 
 #: templates/home.html:14
+msgctxt "Homepage title"
 msgid "form the Northpole"
 msgstr ""
 
-#: templates/home.html:15 templates/home.html:29 templates/home.html:41
+#: templates/home.html:16 templates/home.html:31 templates/home.html:43
+msgctxt "Homepage action"
 msgid "Shop now"
 msgstr ""
 
-#: templates/home.html:28
+#: templates/home.html:30
+msgctxt "Homepage title"
 msgid "Size &amp; Colours"
 msgstr ""
 
-#: templates/home.html:40
+#: templates/home.html:42
+msgctxt "Homepage title"
 msgid "Digital Downloads"
 msgstr ""
 
-#: templates/home.html:49
+#: templates/home.html:51
+msgctxt "Homepage title"
 msgid "Featured products"
 msgstr ""
 
@@ -4125,67 +4349,93 @@ msgid "File"
 msgstr ""
 
 #: templates/order/create_password.html:7
+msgctxt "Checkout create password page title"
 msgid "Create password"
 msgstr ""
 
-#: templates/order/create_password.html:14
-msgid "Thank you for your"
-msgstr ""
-
-#: templates/order/create_password.html:14
-msgid "order"
-msgstr ""
-
 #: templates/order/create_password.html:15
-msgid "We’ve sent a confirmation email with details to"
+#, python-format
+msgctxt "Checkout title"
+msgid "Thank you for your <a href=\"%(order_url)s\">order</a>!"
 msgstr ""
 
-#: templates/order/create_password.html:16
-msgid "In any problems and questions contact us."
-msgstr ""
-
-#: templates/order/create_password.html:20
+#: templates/order/create_password.html:19
+#, python-format
+msgctxt "Checkout text"
 msgid ""
-"It looks like you already are our customer! <br>Please log in to\n"
-"              connect order with your account."
+"We've sent a confirmation email with details to <span>%(email)s</span>.<br> "
+"If any problems or questions contact us."
 msgstr ""
 
-#: templates/order/create_password.html:28
+#: templates/order/create_password.html:26
+msgctxt "Checkout text"
+msgid ""
+"It looks like you already are our customer! <br> Please log in to connect "
+"order with your account."
+msgstr ""
+
+#: templates/order/create_password.html:36
+msgctxt "Checkout title"
 msgid "Why not to create an account"
 msgstr ""
 
-#: templates/order/create_password.html:29
+#: templates/order/create_password.html:37
 msgid ""
 "Make your shopping experience even better! Save your shipping and payment "
-"details for faster checkout"
+"details for faster checkout."
 msgstr ""
 
-#: templates/order/create_password.html:45
+#: templates/order/create_password.html:46
+msgctxt "Checkout primary action"
+msgid "Create an account"
+msgstr ""
+
+#: templates/order/create_password.html:58
+msgctxt "Checkout secondary action"
 msgid "Continue shopping"
 msgstr ""
 
-#: templates/order/details.html:6 templates/order/details.html:13
-#: templates/order/payment.html:16 templates/userprofile/details.html:40
-msgid "Order"
-msgstr ""
-
-#: templates/order/details.html:26
+#: templates/order/details.html:7
 #, python-format
-msgid "Order %(order)s: "
+msgctxt "Order details page title"
+msgid "Order %(order)s"
 msgstr ""
 
-#: templates/order/details.html:31
-#: templates/order/payment/emails/confirm_email.subject.txt:2
+#: templates/order/details.html:16
+msgctxt "Order details breadcrumb"
+msgid "Home"
+msgstr ""
+
+#: templates/order/details.html:19
+msgctxt "Order details breadcrumb"
+msgid "Your account"
+msgstr ""
+
+#: templates/order/details.html:22
+#, python-format
+msgctxt "Order details breadcrumb"
+msgid "Order %(order)s"
+msgstr ""
+
+#: templates/order/details.html:38
+#, python-format
+msgctxt "Order detail text"
+msgid "Order %(order)s: %(order_status)s"
+msgstr ""
+
+#: templates/order/details.html:45
+msgctxt "Order details link text"
 msgid "Payment details"
 msgstr ""
 
-#: templates/order/details.html:33 templates/order/payment.html:9
-#: templates/order/payment.html:45
+#: templates/order/details.html:49
+msgctxt "Order details primary action"
 msgid "Pay for order"
 msgstr ""
 
 #: templates/order/emails/confirm_email.body.txt:3
 #, python-format
+msgctxt "Order confirmation email text"
 msgid ""
 "Hi!\n"
 "\n"
@@ -4197,59 +4447,139 @@ msgid ""
 msgstr ""
 
 #: templates/order/emails/confirm_email.subject.txt:2
+msgctxt "Order confirmation email subject"
 msgid "Order details"
 msgstr ""
 
-#: templates/order/order-details.html:66
-msgid "Tracking number: "
+#: templates/order/order-details.html:14
+msgctxt "Order details address title"
+msgid "Shipping address"
 msgstr ""
 
-#: templates/order/payment.html:28
+#: templates/order/order-details.html:21
+msgctxt "Order details address title"
+msgid "Billing address"
+msgstr ""
+
+#: templates/order/order-details.html:32
+msgctxt "Order details column title"
+msgid "Product"
+msgstr ""
+
+#: templates/order/order-details.html:37
+msgctxt "Order details column title"
+msgid "Quantity"
+msgstr ""
+
+#: templates/order/order-details.html:42
+msgctxt "Order details column title"
+msgid "Price"
+msgstr ""
+
+#: templates/order/order-details.html:75
+#, python-format
+msgctxt "Order details delivery row text"
+msgid "Delivery (%(shipping_method_name)s)"
+msgstr ""
+
+#: templates/order/order-details.html:81
+#, python-format
+msgctxt "Order details delivery row text"
+msgid "Tracking number: %(tracking_number)s"
+msgstr ""
+
+#: templates/order/order-details.html:106
+msgctxt "Order details total text"
+msgid "Total"
+msgstr ""
+
+#: templates/order/payment.html:10
+#, python-format
+msgctxt "Payment details page title"
+msgid "Pay for order %(order)s"
+msgstr ""
+
+#: templates/order/payment.html:19
+msgctxt "Payment details breadcrumb"
+msgid "Home"
+msgstr ""
+
+#: templates/order/payment.html:22
+msgctxt "Payment details breadcrumb"
+msgid "Your account"
+msgstr ""
+
+#: templates/order/payment.html:25
+#, python-format
+msgctxt "Payment details breadcrumb"
+msgid "Order %(order)s"
+msgstr ""
+
+#: templates/order/payment.html:40
+msgctxt "Payment details title"
 msgid "Payment pending"
 msgstr ""
 
-#: templates/order/payment.html:32
+#: templates/order/payment.html:44
+msgctxt "Payment pending text"
 msgid ""
 "We are currently waiting for an external service to authorize your payment "
 "for this order."
 msgstr ""
 
-#: templates/order/payment.html:33
+#: templates/order/payment.html:48
+msgctxt "Payment status text"
 msgid "Current status"
 msgstr ""
 
-#: templates/order/payment.html:34
+#: templates/order/payment.html:54
+msgctxt "Payment pending text"
 msgid ""
-"Unless you are absolutely sure that the process will not complete\n"
-"                                    (for example you have closed the browser "
-"window before paying), you should wait before\n"
-"                                    attempting a new payment.\n"
-"                                    Please be warned that if you try again "
-"and the previous transaction succeeds\n"
-"                                    you might end up being charged twice.\n"
-"                                "
+"Unless you are absolutely sure that the process will not complete (for "
+"example you have closed the browser window before paying), you should wait "
+"before attempting a new payment. Please be warned that if you try again and "
+"the previous transaction succeeds you might end up being charged twice."
 msgstr ""
 
-#: templates/order/payment.html:41
+#: templates/order/payment.html:63
+msgctxt "Payment pending action"
 msgid "I understand, allow me to pay again"
 msgstr ""
 
-#: templates/order/payment.html:52
+#: templates/order/payment.html:68
+#, python-format
+msgctxt "Payment details title"
+msgid "Pay for order %(order)s"
+msgstr ""
+
+#: templates/order/payment.html:77
+msgctxt "Payment details primary action"
 msgid "Proceed to payment"
 msgstr ""
 
-#: templates/order/payment.html:57
+#: templates/order/payment.html:82
+msgctxt "Payment details text"
 msgid "You've authorized transaction. Order is in processing"
 msgstr ""
 
 #: templates/order/payment/default.html:11
-#: templates/order/payment/paypal-card.html:14
-#: templates/userprofile/address-edit.html:35
+msgctxt "Payment form primary action"
 msgid "Save changes"
+msgstr ""
+
+#: templates/order/payment/details.html:4
+msgctxt "Payment form page title"
+msgid "Payment"
+msgstr ""
+
+#: templates/order/payment/details.html:9
+msgctxt "Payment form title"
+msgid "Payment"
 msgstr ""
 
 #: templates/order/payment/emails/confirm_email.body.txt:3
 #, python-format
+msgctxt "Payment confirmation email text"
 msgid ""
 "Hi!\n"
 "\n"
@@ -4260,7 +4590,18 @@ msgid ""
 "Saleor Team"
 msgstr ""
 
-#: templates/order/payment/stripe.html:11
+#: templates/order/payment/emails/confirm_email.subject.txt:2
+msgctxt "Payment confirmation subject"
+msgid "Payment details"
+msgstr ""
+
+#: templates/order/payment/paypal-card.html:14
+msgctxt "Payment form (PayPal) primary action"
+msgid "Save changes"
+msgstr ""
+
+#: templates/order/payment/stripe.html:12
+msgctxt "Payment form (Stripe) secondary action"
 msgid "Change payment method"
 msgstr ""
 
@@ -4281,107 +4622,183 @@ msgid "Your order number is"
 msgstr ""
 
 #: templates/product/_price_range.html:6
+msgctxt "product price range"
 msgid "from"
 msgstr ""
 
-#: templates/product/details.html:28
+#: templates/product/details.html:16
+msgctxt "Product details breadcrumbs"
+msgid "Home"
+msgstr ""
+
+#: templates/product/details.html:30
 #, python-format
+msgctxt "Product details text"
 msgid ""
 "<strong>Warning!</strong> You are previewing a product that will become "
 "visible on <strong>%(date)s</strong>."
 msgstr ""
 
-#: templates/product/details.html:74
+#: templates/product/details.html:80
+msgctxt "Product details link text"
 msgid "Edit in dashboard"
 msgstr ""
 
-#: templates/product/details.html:111
+#: templates/product/details.html:118
+msgctxt "Product details primary action"
 msgid "Add to cart"
 msgstr ""
 
-#: templates/product/details.html:122
+#: templates/product/details.html:130
+msgctxt "Product details text"
 msgid "This product is currently <strong>unavailable</strong>."
 msgstr ""
 
-#: templates/product/details.html:125
+#: templates/product/details.html:134
+msgctxt "Product details title"
 msgid "Description"
 msgstr ""
 
-#: templates/search/results.html:7
-msgid "Search results"
-msgstr ""
-
 #: templates/search/results.html:35
+msgctxt "Search without results text"
 msgid "Sorry, no matches found for your request."
 msgstr ""
 
 #: templates/search/results.html:36
+msgctxt "Search without results text"
 msgid "Try again or shop new arrivals."
 msgstr ""
 
-#: templates/userprofile/address-delete.html:5
+#: templates/userprofile/address-delete.html:6
+msgctxt "Delete address form action"
 msgid "Delete Address"
 msgstr ""
 
-#: templates/userprofile/address-delete.html:6
+#: templates/userprofile/address-delete.html:9
+msgctxt "Delete address form action"
 msgid "Cancel"
 msgstr ""
 
-#: templates/userprofile/address-edit.html:5
-msgid "Edit Address"
-msgstr ""
-
-#: templates/userprofile/address-edit.html:10
-#: templates/userprofile/details.html:9
-msgid "Your profile"
-msgstr ""
-
-#: templates/userprofile/address-edit.html:12
-#: templates/userprofile/address-edit.html:26
+#: templates/userprofile/address-edit.html:7
+msgctxt "Edit address page title"
 msgid "Edit address"
 msgstr ""
 
-#: templates/userprofile/address-edit.html:14
-#: templates/userprofile/address-edit.html:28
+#: templates/userprofile/address-edit.html:9
+msgctxt "New address page title"
 msgid "New address"
 msgstr ""
 
-#: templates/userprofile/details.html:21
+#: templates/userprofile/address-edit.html:15
+msgctxt "Edit/new address breadcrumb"
+msgid "Home"
+msgstr ""
+
+#: templates/userprofile/address-edit.html:18
+msgctxt "Edit/new address breadcrumb"
+msgid "Your profile"
+msgstr ""
+
+#: templates/userprofile/address-edit.html:22
+msgctxt "Edit address breadcrumb"
+msgid "Edit address"
+msgstr ""
+
+#: templates/userprofile/address-edit.html:26
+msgctxt "New address breadcrumb"
+msgid "New address"
+msgstr ""
+
+#: templates/userprofile/address-edit.html:39
+msgctxt "Edit address title"
+msgid "Edit address"
+msgstr ""
+
+#: templates/userprofile/address-edit.html:41
+msgctxt "New address title"
+msgid "New address"
+msgstr ""
+
+#: templates/userprofile/address-edit.html:49
+msgctxt "Edit/new address primary action"
+msgid "Save changes"
+msgstr ""
+
+#: templates/userprofile/details.html:9
+msgctxt "User profile page title"
+msgid "Your profile"
+msgstr ""
+
+#: templates/userprofile/details.html:14
+msgctxt "User profile breadcrumb"
+msgid "Home"
+msgstr ""
+
+#: templates/userprofile/details.html:16
+msgctxt "User profile breadcrumb"
+msgid "Your account"
+msgstr ""
+
+#: templates/userprofile/details.html:23
 msgid "My account"
 msgstr ""
 
-#: templates/userprofile/details.html:24
+#: templates/userprofile/details.html:27
+msgctxt "User profile tab"
 msgid "Recent Orders"
 msgstr ""
 
-#: templates/userprofile/details.html:27
+#: templates/userprofile/details.html:32
+msgctxt "User profile tab"
 msgid "Change password"
 msgstr ""
 
-#: templates/userprofile/details.html:30
+#: templates/userprofile/details.html:37
+msgctxt "User profile tab"
 msgid "Addresses book"
 msgstr ""
 
-#: templates/userprofile/details.html:41
+#: templates/userprofile/details.html:49
+msgctxt "Recent orders column title"
+msgid "Order"
+msgstr ""
+
+#: templates/userprofile/details.html:52
+msgctxt "Recent orders column title"
 msgid "Date"
 msgstr ""
 
-#: templates/userprofile/details.html:42
+#: templates/userprofile/details.html:55
+msgctxt "Recent orders column title"
 msgid "Summary"
 msgstr ""
 
-#: templates/userprofile/details.html:43
+#: templates/userprofile/details.html:58
+msgctxt "Recent orders column title"
 msgid "Status"
 msgstr ""
 
-#: templates/userprofile/details.html:64
+#: templates/userprofile/details.html:81
+msgctxt "Recent orders link text"
 msgid "Details"
 msgstr ""
 
-#: templates/userprofile/details.html:71
+#: templates/userprofile/details.html:90
+msgctxt "No recent orders text"
 msgid "There are not any completed orders yet."
 msgstr ""
 
-#: templates/userprofile/details.html:103
+#: templates/userprofile/details.html:102
+msgctxt "User profile action"
+msgid "Change password"
+msgstr ""
+
+#: templates/userprofile/details.html:116
+msgctxt "User address action"
+msgid "Edit"
+msgstr ""
+
+#: templates/userprofile/details.html:127
+msgctxt "No addresses text"
 msgid "You will see new addresses here after first successful checkout."
 msgstr ""

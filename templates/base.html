@@ -10,7 +10,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="{% block meta_description %}{% endblock %}">
-        <meta name="author" content="{% trans "Mirumee Software" %}">
+        <meta name="author" content="{% trans "Mirumee Software" context "Meta author text" %}">
         {% endblock meta %}
         {% include 'favicon.html' %}
         {% render_bundle 'vendor' 'css' %}
@@ -38,21 +38,28 @@
                           {% if user.is_authenticated %}
                             {% if user.is_staff %}
                               <li>
-                                <a href="{% url "dashboard:index" %}" traget="_blank">{% trans "Dashboard" %}</a>
+                                <a href="{% url "dashboard:index" %}" target="_blank" rel="noopener">
+                                    {% trans "Dashboard" context "Top navbar link text" %}
+                                </a>
                               </li>
                             {% endif %}
                             <li>
-                              <a href="{% url "profile:details" %}">{% trans "Your account" %}</a>
+                              <a href="{% url "profile:details" %}">
+                                  {% trans "Your account" context "Top navbar link text" %}</a>
                             </li>
                             <li>
-                              <a href="{% url "account_logout" %}">{% trans "Log out" %}</a>
+                              <a href="{% url "account_logout" %}">
+                                  {% trans "Log out" context "Top navbar link text" %}</a>
                             </li>
                           {% else %}
                             <li>
-                              <a href="{% url "account_signup" %}">{% trans "Register" %}</a>
+                              <a href="{% url "account_signup" %}">
+                                  {% trans "Register" context "Top navbar link text" %}</a>
                             </li>
                             <li>
-                              <a href="{% url "account_login" %}">{% trans "Log in" %}</a>
+                              <a href="{% url "account_login" %}">
+                                  {% trans "Log in" context "Top navbar link text" %}
+                              </a>
                             </li>
                           {% endif %}
                         </ul>
@@ -66,7 +73,7 @@
                       <div class="col-8 col-md-4 navbar__logo">
                         <div class="menu-icon-mobile hidden-md-up">
                           <img class="navbar__brand__menu-toggle closed open" src="{% static "images/mobile-bar.svg" %}">
-                          <span>{% trans "menu" %}</span>
+                          <span>{% trans "menu" context "Hamburger button text" %}</span>
                         </div>
                         <a href="/">
                           <img src="{% static "images/saleor-logo-black.svg" %}" alt="Testeor - Saleor demo store" height="38">
@@ -91,7 +98,9 @@
                       <div class="col-2 col-md-4">
                         <div class="navbar__brand__cart float-right">
                           <a class="cart__icon" href="{% url "cart:index" %}">
-                            <span class="cart-label hidden-sm-down">{% trans "Your Cart" %}</span>
+                            <span class="cart-label hidden-sm-down">
+                                {% trans "Your Cart" context "Top navbar link" %}
+                            </span>
                             <img class="navbar__brand__cart__icon" src="{% static "images/cart.svg" %}" alt="Cart">
                             <span class="badge {% if not cart_counter %}empty{% endif %}">
                               {% if cart_counter %}
@@ -165,38 +174,45 @@
                       <ul>
                         <li>
                           <a href="{% url "cart:index" %}">
-                            {% trans "Cart" %}
+                            {% trans "Cart" context "Top navbar link" %}
                           </a>
                         </li>
                         {% if user.is_authenticated %}
                           {% if user.is_staff %}
                               <li>
-                                <a href="{% url "dashboard:index" %}" traget="_blank">{% trans "Dashboard" %}</a>
+                                <a href="{% url "dashboard:index" %}" target="_blank" rel="noopener">
+                                    {% trans "Dashboard" context "Top navbar link" %}
+                                </a>
                               </li>
                           {% endif %}
                           <li>
                             <a href="{% url "profile:details" %}">
-                              {% trans "Your account" %}
+                              {% trans "Your account" context "Top navbar link" %}
                             </a>
                           </li>
                           <li>
-                            <a href="{% url "account_logout" %}">{% trans "Log out" %}</a>
+                            <a href="{% url "account_logout" %}">
+                                {% trans "Log out" context "Top navbar link" %}</a>
                           </li>
                         {% else %}
                           <li>
-                            <a href="{% url "account_signup" %}">{% trans "Register" %}</a>
+                            <a href="{% url "account_signup" %}">
+                                {% trans "Register" context "Top navbar link" %}
+                            </a>
                           </li>
                           <li>
-                            <a href="{% url "account_login" %}">{% trans "Log in" %}</a>
+                            <a href="{% url "account_login" %}">
+                                {% trans "Log in" context "Top navbar link" %}
+                            </a>
                           </li>
                         {% endif %}
                       </ul>
                     </div>
                     <div class="col-md-3 col-sm-12">
-                      <a target="_blank" class="github-footer" href="https://github.com/mirumee/saleor">
+                      <a target="_blank" rel="noopener" class="github-footer" href="https://github.com/mirumee/saleor">
                         <img src="{% static "images/github_logo.svg" %}">
                       </a>
-                      <a target="_blank" href="https://twitter.com/getsaleor">
+                      <a target="_blank" rel="noopener" href="https://twitter.com/getsaleor">
                         <img src="{% static "images/twitter_logo.svg" %}">
                       </a>
                     </div>

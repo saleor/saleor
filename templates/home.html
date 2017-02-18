@@ -10,9 +10,11 @@
             <div class="home--content">
               <div class="home--content-wrapper">
                 <div class="home--content-inner">
-                  <h1>{% trans "Promo &amp; Sale" %}</h1>
-                  <h2>{% trans "form the Northpole" %}</h2>
-                    <a class="btn btn-secondary home__button" href="#">{% trans "Shop now" %}</a>
+                  <h1>{% trans "Promo &amp; Sale" context "Homepage title" %}</h1>
+                  <h2>{% trans "form the Northpole" context "Homepage title" %}</h2>
+                    <a class="btn btn-secondary home__button" href="#">
+                        {% trans "Shop now" context "Homepage action" %}
+                    </a>
                 </div>
               </div>
             </div>
@@ -25,8 +27,8 @@
             <div class="home--content">
               <div class="home--content-wrapper">
                 <div class="home--content-inner">
-                  <h1>{% trans "Size &amp; Colours" %}</h1>
-                  <a class="btn btn-secondary home__button" href="#">{% trans "Shop now" %}</a>
+                  <h1>{% trans "Size &amp; Colours" context "Homepage title" %}</h1>
+                  <a class="btn btn-secondary home__button" href="#">{% trans "Shop now" context "Homepage action" %}</a>
                 </div>
               </div>
             </div>
@@ -37,8 +39,8 @@
             <div class="home--content">
               <div class="home--content-wrapper">
                 <div class="home--content-inner">
-                  <h1>{% trans "Digital Downloads" %}</h1>
-                  <a class="btn btn-secondary home__button" href="#">{% trans "Shop now" %}</a>
+                  <h1>{% trans "Digital Downloads" context "Homepage title" %}</h1>
+                  <a class="btn btn-secondary home__button" href="#">{% trans "Shop now" context "Homepage action" %}</a>
                 </div>
               </div>
             </div>
@@ -46,7 +48,7 @@
         </div>
       </div>
       <div class="home__featured">
-        <h2 class="text-center">{% trans "Featured products" %}</h2>
+        <h2 class="text-center">{% trans "Featured products" context "Homepage title" %}</h2>
         <div class="row">
           {% include "category/_items.html" %}
         </div>
