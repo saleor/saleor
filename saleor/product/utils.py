@@ -8,7 +8,6 @@ from django_prices.templatetags import prices_i18n
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
 from .forms import ProductForm
-from .models import Product
 
 try:
     from urllib.parse import urlencode
@@ -17,8 +16,8 @@ except ImportError:
 
 
 def products_visible_to_user(user):
-    if (user.is_authenticated() and
-            user.is_active and user.is_staff):
+    from .models import Product
+    if user.is_authenticated() and user.is_active and user.is_staff:
         return Product.objects.all()
     else:
         return Product.objects.get_available_products()
@@ -26,12 +25,11 @@ def products_visible_to_user(user):
 
 def products_with_details(user):
     products = products_visible_to_user(user)
-    products = products.prefetch_related('categories', 'images',
-                                         'variants__stock',
-                                         'variants__variant_images__image',
-                                         'attributes__values',
-                                         'product_class__variant_attributes__values',
-                                         'product_class__product_attributes__values')
+    products = products.prefetch_related(
+        'categories', 'images', 'variants__stock',
+        'variants__variant_images__image', 'attributes__values',
+        'product_class__variant_attributes__values',
+        'product_class__product_attributes__values')
     return products
 
 

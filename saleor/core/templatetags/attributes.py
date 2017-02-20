@@ -1,6 +1,6 @@
 from django.template import Library
 
-from ...product.models.utils import get_attributes_display_map
+from ...product.utils import get_attributes_display_map
 
 register = Library()
 
