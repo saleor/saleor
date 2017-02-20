@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='order',
             name='language_code',
-            field=models.CharField(default='en-us', max_length=55),
+            field=models.CharField(default='en-us', max_length=35),
         ),
     ]
