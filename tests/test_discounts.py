@@ -252,10 +252,12 @@ def test_sale_applies_to_correct_products(product_class):
 
 
 @pytest.mark.django_db
-def test_get_category_variants_and_prices_product_with_many_categories(cart, default_category, product_in_stock):
-    """Test error: get_category_variants_and_prices return duplicated items. It cause double(or more) percentage discount"""
+def test_get_category_variants_and_prices_product_with_many_categories(cart, default_category,
+                                                                       product_in_stock):
+    # Test error: get_category_variants_and_prices return duplicated items.
+    # It cause double(or more) percentage discount
     category = Category.objects.create(name='Foobar', slug='foo', parent=default_category)
-    product_in_stock.price=Decimal('10.00')
+    product_in_stock.price = Decimal('10.00')
     product_in_stock.save()
     product_in_stock.categories.add(category)
     variant = product_in_stock.variants.first()
@@ -269,4 +271,4 @@ def test_get_category_variants_and_prices_product_with_many_categories(cart, def
                                      discount_value_type=Voucher.DISCOUNT_VALUE_PERCENTAGE)
     checkout_mock = Mock(spec=Checkout, cart=cart)
     discount = voucher.get_discount_for_checkout(checkout_mock)
-    assert discount.amount == Price('1.00', currency=discount.amount.currency) #10% for 10 is one
+    assert discount.amount == Price('1.00', currency=discount.amount.currency)  # 10% for 10 is 1
