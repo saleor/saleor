@@ -20,7 +20,7 @@ from satchless.item import ItemLine, ItemSet
 
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
-from ..product.models import Product, Stock
+from ..product.models import Product
 from ..userprofile.models import Address
 from ..search import index
 from . import Status
