@@ -29,8 +29,8 @@
     <div class="input col {{ classes.label }}">
 
         {% if field.auto_id %}
-            <label class="control-label
-                    {{ classes.label }}">{{ field.label }}{% if not field.field.required %} ({% trans 'optional' %}){% endif %}</label>
+            <label class="control-label {{ classes.label }}">
+                {{ field.label }}{% if not field.field.required %} ({% trans 'optional' %}){% endif %}</label>
         {% endif %}
         {% for choice in field %}
             <p>
@@ -52,7 +52,7 @@
 {% elif field|is_date_input %}
     <div class="input col {{ classes.label }}">
 
-        <label class="active{% if not field.field.required %} optional{% endif %}"
+        <label class="active"
                for="{{ field.auto_id }}">{{ field.label }}</label>
         <input type="date" id="{{ field.auto_id }}" class="datepicker"
                name="{{ field.name }}"
@@ -116,8 +116,7 @@
                   class="materialize-textarea {{ field.field.widget.attrs.class }}"
                   name="{{ field.name }}">{% if field.value %}{{ field.value }}{% endif %}</textarea>
         {% if field.auto_id %}
-            <label class="active
-                    {{ classes.label }}{% if not field.field.required %} optional{% endif %}"
+            <label class="active {{ classes.label }}"
                    for="{{ field.auto_id }}">{{ field.label }}</label>
         {% endif %}
 
@@ -174,8 +173,7 @@
 
     <div class="input input-field col {{ classes.label }}">
         {% if field.auto_id %}
-            <label class="active{% if not field.field.required %} optional{% endif %}"
-                    for="{{ field.auto_id }}">{{ field.label }}</label>
+            <label class="active" for="{{ field.auto_id }}">{{ field.label }}</label>
         {% endif %}
         {{ field }}
 
