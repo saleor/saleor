@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import json
 
 from django import forms
-from django.template.loader import render_to_string
 from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
@@ -58,10 +57,3 @@ class ProductVariantInline(forms.models.BaseInlineFormSet):
 class ImageInline(ProductVariantInline):
     error_no_items = pgettext_lazy(
         'Product admin error', 'You have to add at least one image')
-
-
-def get_form_class_for_product(product):
-    from ..product.models import Product
-    if isinstance(product, Product):
-        return ProductForm
-    raise NotImplementedError

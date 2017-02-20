@@ -7,9 +7,8 @@ from django_prices.templatetags import prices_i18n
 
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
-from .forms import get_form_class_for_product
+from .forms import ProductForm
 from .models import Product
-from .models.utils import get_attributes_display_map
 
 try:
     from urllib.parse import urlencode
@@ -102,10 +101,9 @@ def handle_cart_form(request, product, create_cart=False):
         cart = get_or_create_cart_from_request(request)
     else:
         cart = get_cart_from_request(request)
-
-    form_class = get_form_class_for_product(product)
-    form = form_class(cart=cart, product=product,
-                      data=request.POST or None, discounts=request.discounts)
+    form = ProductForm(
+        cart=cart, product=product, data=request.POST or None,
+        discounts=request.discounts)
     return form, cart
 
 
@@ -240,3 +238,17 @@ def get_variant_url(variant):
             values[str(value.pk)] = value
 
     return get_variant_url_from_product(variant.product, attributes)
+
+
+def get_attributes_display_map(obj, attributes):
+    display_map = {}
+    for attribute in attributes:
+        value = obj.attributes.get(smart_text(attribute.pk))
+        if value:
+            choices = {smart_text(a.pk): a for a in attribute.values.all()}
+            choice_obj = choices.get(value)
+            if choice_obj:
+                display_map[attribute.pk] = choice_obj
+            else:
+                display_map[attribute.pk] = value
+    return display_map
