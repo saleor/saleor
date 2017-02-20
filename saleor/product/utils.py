@@ -56,8 +56,9 @@ def products_with_availability(products, discounts, local_currency):
 
 
 class ProductAvailability(namedtuple(
-    'ProductAvailability',
-        'available price_range price_range_undiscounted discount price_range_local_currency discount_local_currency')):
+    'ProductAvailability', (
+        'available', 'price_range', 'price_range_undiscounted', 'discount',
+        'price_range_local_currency', 'discount_local_currency'))):
     """ ProductAvailability - contains all information that needed to print price info
 
     Fields:
