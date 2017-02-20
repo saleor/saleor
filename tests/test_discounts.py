@@ -254,8 +254,8 @@ def test_sale_applies_to_correct_products(product_class):
 @pytest.mark.django_db
 def test_get_category_variants_and_prices_product_with_many_categories(cart, default_category,
                                                                        product_in_stock):
-    # Test error: get_category_variants_and_prices return duplicated items.
-    # It cause double(or more) percentage discount
+    # Test: don't duplicate percentage voucher
+    # when product is in more than one category with discount
     category = Category.objects.create(name='Foobar', slug='foo', parent=default_category)
     product_in_stock.price = Decimal('10.00')
     product_in_stock.save()
