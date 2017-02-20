@@ -96,3 +96,18 @@ def test_signup_view_fail(client, db, customer_user):
     data = {'email': customer_user.email, 'password': 'password'}
     client.post(url, data)
     assert User.objects.count() == 1
+
+
+def test_password_reset_view_post(client, db):
+    url = reverse('account_reset_password')
+    data = {'email': 'test@examle.com'}
+    response = client.post(url, data)
+    redirect_location = get_redirect_location(response)
+    assert redirect_location == reverse('account_reset_password_done')
+
+
+def test_password_reset_view_get(client, db):
+    url = reverse('account_reset_password')
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.template_name == 'account/password_reset.html'

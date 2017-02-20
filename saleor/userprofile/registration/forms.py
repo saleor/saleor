@@ -1,13 +1,12 @@
 from django import forms
 from django.contrib.auth import login
-from django.contrib.auth.models import User
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import forms as django_forms
 from django.utils.translation import pgettext
 
 from ..models import User
 
 
-class LoginForm(AuthenticationForm):
+class LoginForm(django_forms.AuthenticationForm):
     username = forms.EmailField(
         label=pgettext('Form field', 'Email'), max_length=75)
 
@@ -43,3 +42,9 @@ class SignupForm(forms.ModelForm):
             if request:
                 login(request, user)
         return user
+
+
+class SetPasswordForm(django_forms.SetPasswordForm):
+    def __init__(self, *args, **kwargs):
+        super(SetPasswordForm, self).__init__(*args, **kwargs)
+        del self.fields['new_password2']
