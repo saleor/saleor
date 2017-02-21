@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import datetime
 from decimal import Decimal
+from typing import Any, Dict, Iterable, Union
 
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
@@ -9,27 +10,27 @@ from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import F, Manager, Q
+from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
-from django.utils import six
 from django_prices.models import PriceField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from prices import PriceRange
 from satchless.item import InsufficientStock, Item, ItemRange
 from text_unidecode import unidecode
-from typing import Any, Dict, Iterable, Union
 
 from ...discount.models import calculate_discounted_price
-from .utils import get_attributes_display_map
 from ...search import index
+from .utils import get_attributes_display_map
 
 
 class CategoryManager(Manager):
 
     def prefetch_for_api(self):
         # type: () -> Iterable[Category]
+        """Prefetch tables used by API"""
         return self.get_queryset().prefetch_related(
             'products__images', 'products__variants',
             'products__variants__stock')
@@ -37,16 +38,15 @@ class CategoryManager(Manager):
 
 @python_2_unicode_compatible
 class Category(MPTTModel):
-    """ Class describes product category (e.g shirts), may have parent and children categories
+    """Contains multiple products in hierarchical way.
 
     Fields:
-    name -- name of category
-    slug -- slug for category
-    description -- description
-    parent -- parent Category
-    children -- children Categories
-    hidden -- does category is hidden
-    products -- products in category
+    name -- Category name
+    slug -- Category slug
+    description -- Category description
+    parent -- Category parent (default None)
+    hidden -- Does category is hidden (default False)
+    products -- Products in category
     """
     name = models.CharField(
         pgettext_lazy('Category field', 'name'), max_length=128)
@@ -93,14 +93,17 @@ class Category(MPTTModel):
 
 @python_2_unicode_compatible
 class ProductClass(models.Model):
-    """Class describes common part of multiple products and its variant attributes
+    """Class describes common part of multiple products and its variant
+    attributes.
 
     Fields:
-    name -- name of category
-    product_attributes -- Attributes shared with all *product variants*.
-    variant_attributes -- It's what distinguishes different *variants*.
-    is_shipping_required -- Mark as false for *products* which does not need shipping. Could be used for digital products.
-    has_variants --  *product* has different variants
+    name -- Product Class name
+    product_attributes -- Attributes shared with all product variants.
+    variant_attributes -- It's what distinguishes different variants.
+    is_shipping_required -- Mark as false for products which does not need
+        shipping. (default True)
+    has_variants -- Set as True if product has different variants
+        (default True)
     """
     name = models.CharField(
         pgettext_lazy('Product class field', 'name'), max_length=128)
@@ -138,30 +141,33 @@ class ProductManager(models.Manager):
 
     def get_available_products(self):
         # type: () -> Iterable[Category]
+        """Filter products which are available today for customers"""
         today = datetime.date.today()
         return self.get_queryset().filter(
             Q(available_on__lte=today) | Q(available_on__isnull=True))
 
     def prefetch_for_api(self):
         # type: () -> Iterable[Product]
+        """Prefetch tables used by API"""
         return self.get_queryset().prefetch_related(
             'images', 'categories', 'variants', 'variants__stock')
 
 
 @python_2_unicode_compatible
 class Product(models.Model, ItemRange, index.Indexed):
-    """Model of Product
+    """Describes common details of few product variants.
 
     Fields:
-    name -- name of category (Char Field, max length 128)
-    slug -- slug for category, (Slug Field, max length 50)
-    description -- description, (Text Field, required False)
-    categories -- product categories
-    price -- product price
-    available_on -- when product will be available
-    attributes -- product attributes
-    updated_at -- last product change
-    is_featured -- product is featured
+    name -- Product name
+    slug -- Product slug
+    description -- Description
+    categories -- Product categories
+    price -- Product price
+    available_on -- When product will be available for customers
+    attributes -- Product attributes values
+    updated_at -- Last product change
+    is_featured -- Flag used to feature products in ex: front page or 
+        suggestions (default False)
     images -- QuerySet of related ProductImages
     """
     product_class = models.ForeignKey(
@@ -235,6 +241,7 @@ class Product(models.Model, ItemRange, index.Indexed):
 
     def is_available(self):
         # type: () -> bool
+        """Checks if product is available today for customers"""
         today = datetime.date.today()
         return self.available_on is None or self.available_on <= today
 
@@ -247,10 +254,12 @@ class Product(models.Model, ItemRange, index.Indexed):
 
     def get_attribute(self, pk):
         # type: (int) -> str
+        """Get value of product attribute with provided pk"""
         return self.attributes.get(smart_text(pk))
 
     def set_attribute(self, pk, value_pk):
         # type: (Union[int, str], Union[int, str]) -> None
+        """Set value of product attribute with provided pk"""
         self.attributes[smart_text(pk)] = smart_text(value_pk)
 
     def get_price_range(self, discounts=None,  **kwargs):
@@ -265,18 +274,21 @@ class Product(models.Model, ItemRange, index.Indexed):
 
 @python_2_unicode_compatible
 class ProductVariant(models.Model, Item):
-    """Product variants - e.g. blue X and white X are variants of product X
+    """Product with assigned SKU. Model used by cart, checkout and for other
+    calculations.
 
     Fields:
-    sku - unique identifier or code that refers to the particular stock keeping unit
-    name - variant name
-    price_override - override product price e.g. blue t-shirt is cheaper
-    product - foreign key to product
-    attributes - variant attributes
-    images - product images
+    sku -- Unique identifier or code that refers to the particular stock 
+        keeping unit
+    name -- Variant name
+    price_override -- If provided, will override price found in product
+    product -- Foreign key to product
+    attributes -- Variant attributes values
+    images -- Variant images
     """
     sku = models.CharField(
-        pgettext_lazy('Product variant field', 'SKU'), max_length=32, unique=True)
+        pgettext_lazy('Product variant field', 'SKU'), max_length=32,
+        unique=True)
     name = models.CharField(
         pgettext_lazy('Product variant field', 'variant name'), max_length=100,
         blank=True)
@@ -293,8 +305,10 @@ class ProductVariant(models.Model, Item):
 
     class Meta:
         app_label = 'product'
-        verbose_name = pgettext_lazy('Product variant model', 'product variant')
-        verbose_name_plural = pgettext_lazy('Product variant model', 'product variants')
+        verbose_name = pgettext_lazy(
+            'Product variant model', 'product variant')
+        verbose_name_plural = pgettext_lazy(
+            'Product variant model', 'product variants')
 
     def __str__(self):
         return self.name or self.display_variant()
@@ -318,8 +332,8 @@ class ProductVariant(models.Model, Item):
         """Return price for Product Variant
 
         Arguments:
-        discounts -- (optional) Queryset of discunts
-        kwargs -- extra parameters for discounts calculation
+        discounts -- (optional) Queryset of discounts
+        kwargs -- Extra parameters for discounts calculation
         """
         price = self.price_override or self.product.price
         price = calculate_discounted_price(self.product, price, discounts,
@@ -335,6 +349,7 @@ class ProductVariant(models.Model, Item):
 
     def as_data(self):
         # type: () -> Dict[str, Any]
+        """Get basic variant information as dict"""
         return {
             'product_name': str(self),
             'product_id': self.product.pk,
@@ -352,15 +367,17 @@ class ProductVariant(models.Model, Item):
 
     def get_attribute(self, pk):
         # type: (int) -> str
+        """Get value of variant attribute with provided pk"""
         return self.attributes.get(smart_text(pk))
 
     def set_attribute(self, pk, value_pk):
         # type: (int, int) -> None
+        """Set value of variant attribute with provided pk"""
         self.attributes[smart_text(pk)] = smart_text(value_pk)
 
     def display_variant(self, attributes=None):
         # type: (django.db.models.QuerySet) -> str
-        """Return string version of variant
+        """Return string representation of variant
 
         Arguments:
         attributes -- (optional) attributes that you want print in display
@@ -378,7 +395,7 @@ class ProductVariant(models.Model, Item):
 
     def display_product(self):
         # type: () -> str
-        """Return display version of product"""
+        """Return string representation of product"""
         return '%s (%s)' % (smart_text(self.product),
                             smart_text(self))
 
@@ -429,8 +446,8 @@ class StockManager(models.Manager):
         """Increase stock allocated quantity
 
         Arguments:
-        stock -- stock
-        quantity -- quantity of allocate
+        stock -- Stock which quantities will be modified
+        quantity -- Quantity to allocate
         """
         stock.quantity_allocated = F('quantity_allocated') + quantity
         stock.save(update_fields=['quantity_allocated'])
@@ -440,19 +457,19 @@ class StockManager(models.Manager):
         """Decrease stock allocated quantity
 
         Arguments:
-        stock -- stock
-        quantity -- quantity of deallocate
+        stock -- Stock which quantities will be modified
+        quantity -- Quantity to deallocate
         """
         stock.quantity_allocated = F('quantity_allocated') - quantity
         stock.save(update_fields=['quantity_allocated'])
 
     def decrease_stock(self, stock, quantity):
         # type: (Stock, int) -> None
-        """Decrease stock quantity and allocated quantity
+        """Decrease stock and allocated quantity, by provided value
 
         Arguments:
-        stock
-        quantity -- quantity of decrease
+        stock -- Stock which quantities will be modified
+        quantity -- Quantity to decrease
         """
         stock.quantity = F('quantity') - quantity
         stock.quantity_allocated = F('quantity_allocated') - quantity
@@ -461,14 +478,14 @@ class StockManager(models.Manager):
 
 @python_2_unicode_compatible
 class Stock(models.Model):
-    """Product Stock
+    """Contains information about variant stock availability
 
     Fields:
-    variant -- foreign key to Product Variant
-    location -- foreign key to stock location
-    quantity -- quantity of product in stock. Must by 0 or more
-    quantity_allocated
-    cost_price
+    variant -- Foreign key to Product Variant
+    location -- Foreign key to stock location
+    quantity -- Quantity of product stored in stock. Must by 0 or more
+    quantity_allocated -- Quantity reserved by orders
+    cost_price -- Acquisition cost. Can be used for reports
     """
 
     variant = models.ForeignKey(
@@ -506,9 +523,9 @@ class ProductAttribute(models.Model):
     """Product Attribute e.g. size, color
 
     Fields:
-    name -- attribute name - slug field
-    display -- field use in string representations
-    values - QuerySet with values of attribute e.g 'x', 'xl' for size
+    name -- Attribute name. Used as slug
+    display -- Field used in string representations
+    values -- QuerySet with values of attribute
     """
     name = models.SlugField(
         pgettext_lazy('Product attribute field', 'internal name'),
@@ -540,9 +557,9 @@ class AttributeChoiceValue(models.Model):
     """Value of Attribute Choice e.g. X and XL for attribute size
 
     Fields:
-    display -- this field is used to display value
-    slug -- slug field
-    color -- (optional) color as value
+    display -- Value name
+    slug -- Slug
+    color -- Color as hex value
     attribute -- Foreign Key to Product Attribute
     """
     display = models.CharField(
