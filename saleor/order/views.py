@@ -16,6 +16,7 @@ from .models import Order, Payment
 from .utils import check_order_status, attach_order_to_user
 from ..core.utils import get_client_ip
 from ..userprofile.models import User
+from . import OrderStatus, PaymentStatus
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ def payment(request, token):
     payments = order.payments.all()
     form_data = request.POST or None
     try:
-        waiting_payment = order.payments.get(status='waiting')
+        waiting_payment = order.payments.get(status=PaymentStatus.WAITING)
     except Payment.DoesNotExist:
         waiting_payment = None
         waiting_payment_form = None
@@ -68,7 +69,7 @@ def payment(request, token):
 
 @check_order_status
 def start_payment(request, order, variant):
-    waiting_payments = order.payments.filter(status='waiting').exists()
+    waiting_payments = order.payments.filter(status=PaymentStatus.WAITING).exists()
     if waiting_payments:
         return redirect('order:payment', token=order.token)
     billing = order.billing_address
@@ -93,9 +94,10 @@ def start_payment(request, order, variant):
     if variant not in [code for code, dummy_name in variant_choices]:
         raise Http404('%r is not a valid payment variant' % (variant,))
     with transaction.atomic():
-        order.change_status('payment-pending')
+        order.change_status(OrderStatus.PAYMENT_PENDING)
         payment, dummy_created = Payment.objects.get_or_create(
-            variant=variant, status='waiting', order=order, defaults=defaults)
+            variant=variant, status=PaymentStatus.WAITING, order=order,
+            defaults=defaults)
         try:
             form = payment.get_form(data=request.POST or None)
         except RedirectNeeded as redirect_to:

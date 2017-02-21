@@ -8,6 +8,7 @@ from django.utils.translation import npgettext_lazy
 from .forms import CustomerSearchForm
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items
+from ...order import OrderStatus
 from ...userprofile.models import User
 
 
@@ -27,7 +28,9 @@ def customer_list(request):
         customers = form.search()
     else:
         customers = customers.filter(
-            orders__status__in=['new', 'payment-pending', 'fully-paid'])
+            orders__status__in=[
+                OrderStatus.NEW, OrderStatus.PAYMENT_PENDING,
+                OrderStatus.FULLY_PAID])
     title = npgettext_lazy(
         'Customer list page title',
         '%d result',

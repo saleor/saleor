@@ -23,14 +23,14 @@ from ..discount.models import Voucher
 from ..product.models import Product
 from ..userprofile.models import Address
 from ..search import index
-from . import Status
+from . import OrderStatus, PaymentStatus
 
 
 class OrderManager(models.Manager):
 
     def recalculate_order(self, order):
         prices = [group.get_total() for group in order
-                  if group.status != Status.CANCELLED]
+                  if group.status != OrderStatus.CANCELLED]
         total_net = sum(p.net for p in prices)
         total_gross = sum(p.gross for p in prices)
         shipping = [group.shipping_price for group in order]
@@ -49,7 +49,7 @@ class OrderManager(models.Manager):
 class Order(models.Model, ItemSet, index.Indexed):
     status = models.CharField(
         pgettext_lazy('Order field', 'order status'),
-        max_length=32, choices=Status.CHOICES, default=Status.NEW)
+        max_length=32, choices=OrderStatus.CHOICES, default=OrderStatus.NEW)
     created = models.DateTimeField(
         pgettext_lazy('Order field', 'created'),
         default=now, editable=False)
@@ -121,7 +121,7 @@ class Order(models.Model, ItemSet, index.Indexed):
 
     def is_fully_paid(self):
         total_paid = sum([payment.total for payment in
-                          self.payments.filter(status='confirmed')], Decimal())
+                          self.payments.filter(status=PaymentStatus.CONFIRMED)], Decimal())
         total = self.get_total()
         return total_paid >= total.gross
 
@@ -188,7 +188,7 @@ class Order(models.Model, ItemSet, index.Indexed):
             return last_payment.get_status_display()
 
     def is_pre_authorized(self):
-        return self.payments.filter(status='preauth').exists()
+        return self.payments.filter(status=PaymentStatus.PREAUTH).exists()
 
     def create_history_entry(self, comment='', status=None, user=None):
         if not status:
@@ -222,13 +222,13 @@ class Order(models.Model, ItemSet, index.Indexed):
         return Price(net=0, currency=settings.DEFAULT_CURRENCY)
 
     def can_cancel(self):
-        return self.status not in {Status.CANCELLED, Status.SHIPPED}
+        return self.status not in {OrderStatus.CANCELLED, OrderStatus.SHIPPED}
 
 
 class DeliveryGroup(models.Model, ItemSet):
     status = models.CharField(
         pgettext_lazy('Delivery group field', 'delivery status'),
-        max_length=32, default=Status.NEW, choices=Status.CHOICES)
+        max_length=32, default=OrderStatus.NEW, choices=OrderStatus.CHOICES)
     order = models.ForeignKey(Order, related_name='groups', editable=False)
     shipping_price = PriceField(
         pgettext_lazy('Delivery group field', 'shipping price'),
@@ -279,10 +279,10 @@ class DeliveryGroup(models.Model, ItemSet):
         return self.shipping_required
 
     def can_ship(self):
-        return self.is_shipping_required() and self.status == 'new'
+        return self.is_shipping_required() and self.status == OrderStatus.NEW
 
     def can_cancel(self):
-        return self.status != Status.CANCELLED
+        return self.status != OrderStatus.CANCELLED
 
 
 class OrderedItemManager(models.Manager):
@@ -315,7 +315,7 @@ class OrderedItemManager(models.Manager):
         if not source_group.get_total_quantity() or force:
             source_group.delete()
         if not order.get_items():
-            order.change_status('cancelled')
+            order.change_status(OrderStatus.CANCELLED)
 
 
 @python_2_unicode_compatible
@@ -370,7 +370,7 @@ class OrderedItem(models.Model, ItemLine):
         if not self.delivery_group.get_total_quantity():
             self.delivery_group.delete()
         if not order.get_items():
-            order.change_status('cancelled')
+            order.change_status(OrderStatus.CANCELLED)
 
 
 class PaymentManager(models.Manager):
@@ -447,7 +447,7 @@ class OrderHistoryEntry(models.Model):
         verbose_name=pgettext_lazy('Order history entry field', 'order'))
     status = models.CharField(
         pgettext_lazy('Order history entry field', 'order status'),
-        max_length=32, choices=Status.CHOICES)
+        max_length=32, choices=OrderStatus.CHOICES)
     comment = models.CharField(
         pgettext_lazy('Order history entry field', 'comment'),
         max_length=100, default='', blank=True)

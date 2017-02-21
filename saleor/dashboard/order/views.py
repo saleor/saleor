@@ -10,6 +10,7 @@ from django_prices.templatetags.prices_i18n import gross
 from prices import Price
 
 from ...core.utils import get_paginator_items
+from ...order import OrderStatus, PaymentStatus
 from ...order.models import Order, OrderedItem, OrderNote
 from ...userprofile.i18n import AddressForm
 from ..order.forms import OrderFilterForm
@@ -24,16 +25,12 @@ from .forms import (CancelGroupForm, CancelItemsForm, CancelOrderForm,
 def order_list(request):
     orders = Order.objects.prefetch_related(
         'groups', 'payments', 'groups__items', 'user').all()
-
     active_status = request.GET.get('status')
     if active_status:
         orders = orders.filter(status=active_status)
-
     page = get_paginator_items(orders, 20, request.GET.get('page'))
-
-    form = OrderFilterForm(request.POST or None,
-                           initial={'status': active_status or None})
-
+    form = OrderFilterForm(
+        request.POST or None, initial={'status': active_status or None})
     ctx = {'object_list': page.object_list, 'page_obj': page,
            'is_paginated': page.has_other_pages(), 'form': form}
     return TemplateResponse(request, 'dashboard/order/list.html', ctx)
@@ -53,12 +50,13 @@ def order_details(request, order_pk):
     captured = preauthorized = Price(0, currency=order.get_total().currency)
     balance = captured - order.get_total()
     if payment:
-        can_capture = (payment.status == 'preauth' and
-                       order.status != 'cancelled')
-        can_release = payment.status == 'preauth'
-        can_refund = payment.status == 'confirmed'
+        can_capture = (
+            payment.status == PaymentStatus.PREAUTH and
+            order.status != OrderStatus.CANCELLED)
+        can_release = payment.status == PaymentStatus.PREAUTH
+        can_refund = payment.status == PaymentStatus.CONFIRMED
         preauthorized = payment.get_total_price()
-        if payment.status == 'confirmed':
+        if payment.status == PaymentStatus.CONFIRMED:
             captured = payment.get_captured_price()
             balance = captured - order.get_total()
     else:

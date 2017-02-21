@@ -5,11 +5,11 @@ from django.dispatch import receiver
 from django.shortcuts import get_object_or_404, redirect
 from payments.signals import status_changed
 
-from . import Status
 from ..core import analytics
 from ..product.models import Stock
 from ..userprofile.utils import store_user_address
 from .models import Order
+from . import OrderStatus
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ def check_order_status(func):
 def order_status_change(sender, instance, **kwargs):
     order = instance.order
     if order.is_fully_paid():
-        order.change_status('fully-paid')
+        order.change_status(OrderStatus.FULLY_PAID)
         instance.send_confirmation_email()
         try:
             analytics.report_order(order.tracking_client_id, order)
@@ -72,19 +72,19 @@ def cancel_delivery_group(group, cancel_order=True):
     for line in group:
         if line.stock:
             Stock.objects.deallocate_stock(line.stock, line.quantity)
-    group.status = Status.CANCELLED
+    group.status = OrderStatus.CANCELLED
     group.save()
     if cancel_order:
         other_groups = group.order.groups.all()
         statuses = set(other_groups.values_list('status', flat=True))
-        if statuses == {Status.CANCELLED}:
+        if statuses == {OrderStatus.CANCELLED}:
             # Cancel whole order
-            group.order.status = Status.CANCELLED
+            group.order.status = OrderStatus.CANCELLED
             group.order.save(update_fields=['status'])
 
 
 def cancel_order(order):
     for group in order.groups.all():
         cancel_delivery_group(group, cancel_order=False)
-    order.status = Status.CANCELLED
+    order.status = OrderStatus.CANCELLED
     order.save()
