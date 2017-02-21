@@ -159,10 +159,17 @@ header {
   height: $subheader-height;
   margin-top: 0;
   .container {
+    width: auto;
+    max-width: none;
     margin: 0 40px;
     transition: margin .1s;
     @media (min-width: $large-screen) {
       margin-left: 272px;
+    }
+    .dropdown-button {
+      i {
+        padding-right: 10px;
+      }
     }
   }
   i {
