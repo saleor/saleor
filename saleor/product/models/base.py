@@ -41,11 +41,9 @@ class Category(MPTTModel):
     """Contains multiple products in hierarchical way.
 
     Fields:
-    name -- Category name
-    slug -- Category slug
-    description -- Category description
-    parent -- Category parent (default None)
-    hidden -- Does category is hidden (default False)
+    parent -- Category parent
+    children -- Subcategories
+    hidden -- Whether the category is visible in site navigation
     products -- Products in category
     """
     name = models.CharField(
@@ -97,13 +95,11 @@ class ProductClass(models.Model):
     attributes.
 
     Fields:
-    name -- Product Class name
-    product_attributes -- Attributes shared with all product variants.
-    variant_attributes -- It's what distinguishes different variants.
+    product_attributes -- Attributes shared with all product variants
+    variant_attributes -- It's what distinguishes different variants
     is_shipping_required -- Mark as false for products which does not need
-        shipping. (default True)
+        shipping
     has_variants -- Set as True if product has different variants
-        (default True)
     """
     name = models.CharField(
         pgettext_lazy('Product class field', 'name'), max_length=128)
@@ -137,8 +133,6 @@ class ProductClass(models.Model):
 
 
 class ProductManager(models.Manager):
-    """Default manager for Product Model"""
-
     def get_available_products(self):
         # type: () -> Iterable[Category]
         """Filter products which are available today for customers"""
@@ -158,16 +152,11 @@ class Product(models.Model, ItemRange, index.Indexed):
     """Describes common details of few product variants.
 
     Fields:
-    name -- Product name
-    slug -- Product slug
-    description -- Description
-    categories -- Product categories
-    price -- Product price
     available_on -- When product will be available for customers
     attributes -- Product attributes values
     updated_at -- Last product change
-    is_featured -- Flag used to feature products in ex: front page or 
-        suggestions (default False)
+    is_featured -- Flag used to feature products in ex: front page or
+        suggestions
     images -- QuerySet of related ProductImages
     """
     product_class = models.ForeignKey(
@@ -241,7 +230,7 @@ class Product(models.Model, ItemRange, index.Indexed):
 
     def is_available(self):
         # type: () -> bool
-        """Checks if product is available today for customers"""
+        """`True` if product is available for purchase, `False` otherwise."""
         today = datetime.date.today()
         return self.available_on is None or self.available_on <= today
 
@@ -278,11 +267,10 @@ class ProductVariant(models.Model, Item):
     calculations.
 
     Fields:
-    sku -- Unique identifier or code that refers to the particular stock 
+    sku -- Unique identifier or code that refers to the particular stock
         keeping unit
-    name -- Variant name
     price_override -- If provided, will override price found in product
-    product -- Foreign key to product
+    product -- Product instance
     attributes -- Variant attributes values
     images -- Variant images
     """
@@ -332,8 +320,7 @@ class ProductVariant(models.Model, Item):
         """Return price for Product Variant
 
         Arguments:
-        discounts -- (optional) Queryset of discounts
-        kwargs -- Extra parameters for discounts calculation
+        discounts -- Queryset of discounts
         """
         price = self.price_override or self.product.price
         price = calculate_discounted_price(self.product, price, discounts,
@@ -380,7 +367,7 @@ class ProductVariant(models.Model, Item):
         """Return string representation of variant
 
         Arguments:
-        attributes -- (optional) attributes that you want print in display
+        attributes -- Attributes to be included in output
         """
         if attributes is None:
             attributes = self.product.product_class.variant_attributes.all()
@@ -408,7 +395,7 @@ class ProductVariant(models.Model, Item):
         """By default selects stock with lowest cost price
 
         Arguments:
-        quantity -- (optional) How many item you need default: 1
+        quantity -- How many item you need default: 1
         """
         stock = filter(
             lambda stock: stock.quantity_available >= quantity,
@@ -426,11 +413,6 @@ class ProductVariant(models.Model, Item):
 
 @python_2_unicode_compatible
 class StockLocation(models.Model):
-    """Stock Location model
-
-    Fields:
-    name - name of stock location
-    """
     name = models.CharField(
         pgettext_lazy('Stock location field', 'location'), max_length=100)
 
@@ -439,14 +421,13 @@ class StockLocation(models.Model):
 
 
 class StockManager(models.Manager):
-    """Stock Manager"""
 
     def allocate_stock(self, stock, quantity):
         # type: (Stock, int) -> None
         """Increase stock allocated quantity
 
         Arguments:
-        stock -- Stock which quantities will be modified
+        stock -- Stock instance which quantities will be modified
         quantity -- Quantity to allocate
         """
         stock.quantity_allocated = F('quantity_allocated') + quantity
@@ -457,7 +438,7 @@ class StockManager(models.Manager):
         """Decrease stock allocated quantity
 
         Arguments:
-        stock -- Stock which quantities will be modified
+        stock -- Stock instance which quantities will be modified
         quantity -- Quantity to deallocate
         """
         stock.quantity_allocated = F('quantity_allocated') - quantity
@@ -468,7 +449,7 @@ class StockManager(models.Manager):
         """Decrease stock and allocated quantity, by provided value
 
         Arguments:
-        stock -- Stock which quantities will be modified
+        stock -- Stock instance which quantities will be modified
         quantity -- Quantity to decrease
         """
         stock.quantity = F('quantity') - quantity
@@ -481,8 +462,8 @@ class Stock(models.Model):
     """Contains information about variant stock availability
 
     Fields:
-    variant -- Foreign key to Product Variant
-    location -- Foreign key to stock location
+    variant -- Product Variant instance
+    location -- Stock Location instance
     quantity -- Quantity of product stored in stock. Must by 0 or more
     quantity_allocated -- Quantity reserved by orders
     cost_price -- Acquisition cost. Can be used for reports
@@ -558,9 +539,8 @@ class AttributeChoiceValue(models.Model):
 
     Fields:
     display -- Value name
-    slug -- Slug
     color -- Color as hex value
-    attribute -- Foreign Key to Product Attribute
+    attribute -- Product Attribute instance
     """
     display = models.CharField(
         pgettext_lazy('Attribute choice value field', 'display name'),
