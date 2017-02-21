@@ -3,7 +3,7 @@ Getting started
 
 .. note::
 
-   If you prefer using containers or have problems with configuring database, Redis and Elasticsearch, try :ref:`docker_dev` instructions.
+   If you prefer using containers or have problems with configuring PostgreSQL, Redis and Elasticsearch, try :ref:`docker_dev` instructions.
 
 
 Prerequisites
