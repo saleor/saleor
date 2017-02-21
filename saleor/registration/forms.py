@@ -3,7 +3,7 @@ from django.contrib.auth import login
 from django.contrib.auth import forms as django_forms
 from django.utils.translation import pgettext
 
-from ..models import User
+from saleor.userprofile.models import User
 
 
 class LoginForm(django_forms.AuthenticationForm):

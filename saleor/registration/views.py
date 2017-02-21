@@ -6,7 +6,7 @@ from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from django.template.response import TemplateResponse
 
-from ...cart.utils import find_and_assign_anonymous_cart
+from saleor.cart.utils import find_and_assign_anonymous_cart
 from .forms import LoginForm, SignupForm, SetPasswordForm
 
 

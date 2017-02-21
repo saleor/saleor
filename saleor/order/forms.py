@@ -1,10 +1,10 @@
 from django import forms
 from django.conf import settings
 from django.utils.translation import pgettext_lazy
-from ..userprofile.registration.forms import SignupForm
 from payments import PaymentStatus
 
 from .models import Payment
+from ..registration.forms import SignupForm
 
 
 class PaymentMethodsForm(forms.Form):
