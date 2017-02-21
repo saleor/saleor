@@ -25,11 +25,9 @@ deployment:
   release:
     tag: /.*/
     commands:
-      - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
-      - docker build -t mirumee/saleor:$CIRCLE_SHA1 -t mirumee/saleor:latest .
-      - docker push mirumee/saleor:$CIRCLE_SHA1
+      - echo "__version__ = '$(git describe --tags)'" > saleor/version.py
+      - docker login -e $DOCKERCLOUD_EMAIL -u $DOCKERCLOUD_USER -p $DOCKERCLOUD_PASS
+      - docker build -t mirumee/saleor:$CIRCLE_TAG -t mirumee/saleor:latest .
+      - docker push mirumee/saleor:$CIRCLE_TAG
       - docker push mirumee/saleor:latest
-      - git clone git@github.com:mirumee/saleor-demo.git saleor-demo
-      - cd saleor-demo
-      - docker build -t mirumee/saleor-demo:latest .
-      - docker push mirumee/saleor-demo:latest
+      - curl -X POST https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo?circle-token=$CIRCLE_API_TOKEN
