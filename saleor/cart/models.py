@@ -47,10 +47,6 @@ class CartQueryset(models.QuerySet):
     def canceled(self):
         return self.filter(status=CartStatus.CANCELED)
 
-    def save(self):
-        self.exclude(status=CartStatus.SAVED).update(status=CartStatus.SAVED,
-                                                     last_status_change=now())
-
     def for_display(self):
         return self.prefetch_related(
             'lines',
