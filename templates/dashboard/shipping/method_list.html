@@ -15,19 +15,14 @@
     </ul>
 {% endblock %}
 
-{% block header_extra %}
-    <div class="fixed-action-btn">
-        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
-           title="{% trans "Add method" context "Shipping method list add button text" %}"
-           href="{% url 'dashboard:shipping-method-add' %}">
-            <i class="material-icons">add</i>
-        </a>
-    </div>
-{% endblock %}
-
 {% block content %}
     {% if shipping_methods %}
         <div class="card">
+            <div class="data-table-header-action">
+                <a href="{% url 'dashboard:shipping-method-add' %}" class="btn-data-table btn-flat" title="{% trans "Add method" context "Shipping method list add button text" %}">
+                    {% trans "Add" context "Product form variants tab table action" %}
+                </a>
+            </div>
             <div class="data-table-container">
                 <table class="bordered highlight responsive data-table">
                     <thead>
