@@ -125,7 +125,6 @@ def test_checkout_shipping_method(shipping_address, shipping_method,
     monkeypatch.setattr(Checkout, 'shipping_address', shipping_address)
     monkeypatch.setattr('saleor.checkout.core.ShippingMethodCountry.objects', queryset)
     anonymous_checkout.storage['shipping_method_country_id'] = 1
-    assert anonymous_checkout.shipping_method == value
     assert anonymous_checkout._shipping_method is None
     assert anonymous_checkout.shipping_method == value
     assert anonymous_checkout._shipping_method == value
@@ -191,9 +190,7 @@ def test_checkout_discount(request_cart, sale, product_in_stock):
 
 
 def test_address_shipping_is_same_as_billing(anonymous_checkout, billing_address):
-    """
-    pass the same address twice and check method is_shipping_same_as_billing
-    """
+    """Pass the same address twice and check method is_shipping_same_as_billing """
     anonymous_checkout.shipping_address = billing_address
     anonymous_checkout.billing_address = billing_address
 
@@ -201,9 +198,7 @@ def test_address_shipping_is_same_as_billing(anonymous_checkout, billing_address
 
 
 def test_address_shipping_isnt_same_as_billing(anonymous_checkout, billing_address):
-    """
-     pass two different addresses and check method is_shipping_same_as_billing
-    """
+    """Pass two different addresses and check method is_shipping_same_as_billing """
     anonymous_checkout.billing_address = billing_address
     shipping_address = billing_address
     shipping_address.id = None
@@ -214,9 +209,7 @@ def test_address_shipping_isnt_same_as_billing(anonymous_checkout, billing_addre
 
 
 def test_set_shipping_address(anonymous_checkout, billing_address):
-    """
-    set shipping address and check if checkout object is modified
-    """
+    """Set shipping address and check if checkout object is modified """
     assert anonymous_checkout.modified is False
     anonymous_checkout.shipping_address = billing_address
     assert anonymous_checkout.modified is True
@@ -224,9 +217,7 @@ def test_set_shipping_address(anonymous_checkout, billing_address):
 
 
 def test_set_billing_address(anonymous_checkout, billing_address):
-    """
-    set billing address and check if checkout object is modified
-    """
+    """Set billing address and check if checkout object is modified """
     assert anonymous_checkout.modified is False
     anonymous_checkout.billing_address = billing_address
     assert anonymous_checkout.modified is True
@@ -234,9 +225,7 @@ def test_set_billing_address(anonymous_checkout, billing_address):
 
 
 def test_set_email_address(anonymous_checkout):
-    """
-     set email address and check if checkout object is modified
-    """
+    """Set email address and check if checkout object is modified """
     assert anonymous_checkout.modified is False
     anonymous_checkout.email = 'test@example.com'
     assert anonymous_checkout.modified is True
@@ -248,9 +237,7 @@ def test_set_email_address(anonymous_checkout):
     ([{'cost': 10}], 10),
 ])
 def test_get_subtotal(anonymous_checkout, cart_with_partition_factory, items, subtotal):
-    """
-    mock cart object (with partition) and check test method get_subtotal
-    """
+    """Test checkout subtotal cost calculation for cart with multiple groups """
     anonymous_checkout.cart = cart_with_partition_factory(items=items)
     assert anonymous_checkout.get_subtotal() == Price(subtotal, currency=settings.DEFAULT_CURRENCY)
 
@@ -260,9 +247,7 @@ def test_get_subtotal(anonymous_checkout, cart_with_partition_factory, items, su
     ([{'cost': 10}], 10),
 ])
 def test_get_total(anonymous_checkout, cart_with_partition_factory, items, total):
-    """
-    mock cart object (with partition) and check test method get_total
-    """
+    """Test checkout total cost calculation for cart with multiple groups """
     anonymous_checkout.cart = cart_with_partition_factory(items=items)
     assert anonymous_checkout.get_total() == Price(total, currency=settings.DEFAULT_CURRENCY)
 
@@ -273,9 +258,7 @@ def test_get_total(anonymous_checkout, cart_with_partition_factory, items, total
 ])
 def test_get_total_shipping(anonymous_checkout, cart_with_partition_factory,
                             shipping_method_factory, items, total_shipping):
-    """
-    mock cart object (with partition) and check test method get_total_shipping
-    """
+    """Test checkout total cost calculation for cart with multiple groups and shipping cost """
     shipping_method_factory(shipping_cost=5)
     anonymous_checkout.cart = cart_with_partition_factory(items=items)
     assert anonymous_checkout.get_total_shipping() == Price(total_shipping,
