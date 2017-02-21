@@ -408,7 +408,7 @@ class Stock(models.Model):
 class ProductAttribute(models.Model):
     slug = models.SlugField(
         pgettext_lazy('Product attribute field', 'internal name'),
-        max_length=35, unique=True)
+        max_length=50, unique=True)
     name = models.CharField(
         pgettext_lazy('Product attribute field', 'display name'),
         max_length=100)
