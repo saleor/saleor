@@ -69,7 +69,7 @@
                                     {% for hidden in form.hidden_fields %}
                                         {{ hidden }}
                                     {% endfor %}
-                                    {{ form.country_code|materializecss:"input-field s12" }}
+                                    {{ form.country_code|materializecss }}
                                     {% if form.non_field_errors %}
                                         {% for error in form.non_field_errors %}
                                             <p class="help-block materialize-red-text">{{ error }}</p>

@@ -106,7 +106,7 @@
                         </div>
                         {% for attribute_field in product_form.iter_attribute_fields %}
                             <div class="row">
-                                {{ attribute_field|materializecss:"input-field s12" }}
+                                {{ attribute_field|materializecss }}
                             </div>
                         {% endfor %}
                         <div class="row">
@@ -124,10 +124,10 @@
                             </div>
                         {% endif %}
                         <div class="row">
-                            {{ product_form.categories|materializecss:"input-field s12" }}
+                            {{ product_form.categories|materializecss }}
                         </div>
                         <div class="row">
-                            {{ product_form.available_on|materializecss:"input-field s12" }}
+                            {{ product_form.available_on|materializecss }}
                         </div>
                         <div class="row">
                             {{ product_form.is_featured|materializecss }}
