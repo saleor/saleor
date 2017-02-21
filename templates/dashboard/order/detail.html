@@ -398,11 +398,11 @@
                         <tbody>
                             {% for payment in all_payments %}
                             <tr>
-                                <td><a href="{% url "dashboard:payment-details" pk=payment.pk %}">
+                                <td>
                                     {% blocktrans trimmed with payment_id=payment.id context "Payment item column data" %}
                                         #{{ payment_id }}
                                     {% endblocktrans %}
-                                </a></td>
+                                </td>
                                 <td>{{ payment.created }}</td>
                                 <td>{% render_status payment.status payment.get_status_display %}</td>
                             </tr>
