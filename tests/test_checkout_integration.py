@@ -366,13 +366,6 @@ def test_user_pass_new_valid_shipping_address(authorized_client, customer_user, 
 
 def test_user_pass_new_valid_billing_address(authorized_client, customer_user,  # pylint: disable=W0613,R0914
                                              request_cart_with_item, shipping_method, valid_address):  # pylint: disable=W0613
-    """User pass new valid billing address
-      - if is save in session storage
-      - if is save in order object, after finish checkout
-      - if is add to authorized user (ass default billing address)
-
-     """
-
     # Enter checkout
     checkout_index = authorized_client.get(reverse('checkout:index'), follow=True)
     # Checkout index redirects directly to shipping address step
@@ -407,14 +400,6 @@ def test_user_pass_new_valid_billing_address(authorized_client, customer_user,  
 
 def test_user_choose_existing_shipping_address(authorized_client, billing_address, customer_user,  # pylint: disable=W0613,R0914
                                                request_cart_with_item, shipping_method):  # pylint: disable=W0613
-    """User choose existing shipping address
-      - it is save in session storage
-      - it is save in order
-      - it is save ass default shipping address
-      - if is not save as new address (duplicate)
-
-    """
-
     customer_user.addresses.add(billing_address)
 
     # Enter checkout
@@ -450,12 +435,6 @@ def test_user_choose_existing_shipping_address(authorized_client, billing_addres
 
 def test_user_choose_existing_billing_address(authorized_client, billing_address, customer_user,  # pylint: disable=R0914
                                               request_cart_with_item, shipping_method, valid_address):  # pylint: disable=W0613
-    """User choose existing billing address
-      - if is save in session storage
-      - if is save in order
-      - if is save as default billing address
-     """
-
     customer_user.addresses.add(billing_address)
 
     # Enter checkout
@@ -490,13 +469,6 @@ def test_user_choose_existing_billing_address(authorized_client, billing_address
 
 def test_user_choose_existing_shipping_method(authorized_client, billing_address, customer_user,  # pylint: disable=R0914
                                               request_cart_with_item, shipping_method, valid_address):  # pylint: disable=W0613
-    """User choose existing shipping method
-    - if is save in session storage
-    - if is save in order
-    - after checkout method it is removed - if chosen is save in order
-
-    """
-
     customer_user.addresses.add(billing_address)
 
     # Enter checkout
@@ -538,12 +510,6 @@ def test_user_choose_existing_shipping_method(authorized_client, billing_address
 def test_user_choose_existing_shipping_method_then_change_it(authorized_client, billing_address,  # pylint: disable=R0914
                                                              customer_user, request_cart_with_item,  # pylint: disable=W0613
                                                              shipping_method, valid_address):
-    """User choose existing shipping method, then change it
-     - if new one is save in session storage
-     - if new one is save in order
-
-    """
-
     customer_user.addresses.add(billing_address)
 
     # Enter checkout
