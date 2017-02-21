@@ -106,7 +106,7 @@ To build assets you will need `node <https://docs.docker.com/compose/install/>`_
 
 .. note::
 
-   Our configuration exposes database, Redis and Elasticsearch ports. If you have problems running this docker file because of port conflicts, you can remove 'ports' section from docker-compose.yml
+   Our configuration exposes PostgreSQL, Redis and Elasticsearch ports. If you have problems running this docker file because of port conflicts, you can remove 'ports' section from docker-compose.yml
 
 
 Usage
@@ -123,7 +123,7 @@ Usage
 
    .. code-block:: bash
 
-    $ npm run build-assets
+    $ yarn run build-assets
 
 
 3. Build the containers using ``docker-compose``
@@ -138,7 +138,7 @@ Usage
    .. code-block:: bash
 
     $ docker-compose run web python manage.py migrate
-    $ docker-compose run web python manage.py collectstatic --noinput
+    $ docker-compose run web python manage.py collectstatic
     $ docker-compose run web python manage.py populatedb --createsuperuser
 
    The ``--createsuperuser`` switch creates an admin account for

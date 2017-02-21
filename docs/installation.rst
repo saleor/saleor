@@ -101,7 +101,7 @@ Installation
 
    .. code-block:: bash
 
-    $ npm run build-assets
+    $ yarn run build-assets
 
 
 #. Run like a normal django project:
