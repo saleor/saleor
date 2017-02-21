@@ -1,6 +1,11 @@
 Getting started
 ===============
 
+.. note::
+
+   If you prefer using containers or have problems with configuring PostgreSQL, Redis and Elasticsearch, try :ref:`docker_dev` instructions.
+
+
 Prerequisites
 -------------
 
@@ -96,7 +101,7 @@ Installation
 
    .. code-block:: bash
 
-    $ npm run build-assets
+    $ yarn run build-assets
 
 
 #. Run like a normal django project:
