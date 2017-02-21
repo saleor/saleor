@@ -12,7 +12,7 @@
   "image": "heroku/python",
   "env": {
     "DJANGO_SETTINGS_MODULE": "saleor.settings",
-    "NODE_ENV": "dev",
+    "NODE_ENV": "production",
     "DEBUG": "False",
     "NPM_CONFIG_PRODUCTION": "false",
     "ALLOWED_HOSTS": {
