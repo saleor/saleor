@@ -56,16 +56,23 @@ $roboto-font-path: "~materialize-css/fonts/roboto/";
   }
 }
 
-.data-table-container {
-  overflow: auto;
-  table {
-    .row {
-      .col {
-        float: none;
-        padding: $gutter-width/2;
 
-        .responsive-img {
-          display: block;
+.data-table {
+  &-header-action {
+    border-bottom: 1px solid $table-border-color;
+    padding: 14px 8px;
+  }
+  &-container {
+    overflow: auto;
+    table {
+      .row {
+        .col {
+          float: none;
+          padding: $gutter-width/2;
+
+          .responsive-img {
+            display: block;
+          }
         }
       }
     }
