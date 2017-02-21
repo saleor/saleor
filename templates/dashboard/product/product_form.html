@@ -34,8 +34,8 @@
 
 {% block header_extra %}
     {% if product.pk %}
-    <a class="dropdown-button" href="#" data-activates="context-menu" data-constrainwidth="false">
-        <i class="material-icons">arrow_drop_down</i>
+    <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
+        <i class="material-icons">more_vert</i>
     </a>
     <ul id="context-menu" class="dropdown-content">
         <li>
@@ -52,6 +52,8 @@
     </ul>
     {% endif %}
 {% endblock %}
+
+
 
 {% block menu_catalogue_class %} active{% endblock %}
 

@@ -40,6 +40,19 @@
     </ul>
 {% endblock %}
 
+{% block header_extra %}
+    {% if shipping_method.pk %}
+    <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
+        <i class="material-icons">more_vert</i>
+    </a>
+    <ul id="context-menu" class="dropdown-content">
+        <li>
+             <a href="{% url 'dashboard:shipping-method-delete' pk=shipping_method.pk %}">{% trans "Delete shipping method" context "Shipping method form action" %}</a>
+        </li>
+    </ul>
+    {% endif %}
+{% endblock %}
+
 {% block menu_shipping_class %} active{% endblock %}
 
 {% block content %}
@@ -90,7 +103,6 @@
 
             <div class="card-action right-align">
                 {% if shipping_method.pk %}
-                    <a href="{% url 'dashboard:shipping-method-delete' pk=shipping_method.pk %}" class="btn btn-flat">{% trans "Delete" context "Shipping method form action" %}</a>
                     <a href="{% url 'dashboard:shipping-methods' %}" class="btn btn-flat">{% trans "Cancel" context "Shipping method form action" %}</a>
                     <button type="submit" class="btn btn-flat">{% trans "Update" context "Shipping method form action" %}</button>
                 {% else %}
