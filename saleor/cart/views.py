@@ -11,7 +11,7 @@ from ..product.models import ProductVariant
 from ..shipping.utils import get_shipment_options
 from .forms import ReplaceCartLineForm, CountryForm
 from .models import Cart
-from .utils import (check_product_availability_and_warn, get_or_empty_db_cart)
+from .utils import check_product_availability_and_warn, get_or_empty_db_cart
 
 
 @get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
