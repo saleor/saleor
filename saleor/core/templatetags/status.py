@@ -5,10 +5,10 @@ from ...order import OrderStatus, PaymentStatus
 register = Library()
 
 
-ERRORS = [PaymentStatus.ERROR, PaymentStatus.REJECTED]
-SUCCESSES = [
+ERRORS = {PaymentStatus.ERROR, PaymentStatus.REJECTED}
+SUCCESSES = {
     OrderStatus.FULLY_PAID, OrderStatus.SHIPPED,
-    PaymentStatus.CONFIRMED, PaymentStatus.REFUNDED]
+    PaymentStatus.CONFIRMED, PaymentStatus.REFUNDED}
 
 
 @register.inclusion_tag('status_label.html')
