@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             name='AttributeChoiceValueTranslation',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('language_code', models.CharField(max_length=50, verbose_name='language code')),
+                ('language_code', models.CharField(max_length=35, verbose_name='language code')),
                 ('display', models.CharField(max_length=100, verbose_name='display name')),
                 ('attribute_choice_value', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='translations', to='product.AttributeChoiceValue', verbose_name='product attribute')),
             ],
@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
             name='ProductAttributeTranslation',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('language_code', models.CharField(max_length=50, verbose_name='language code')),
+                ('language_code', models.CharField(max_length=35, verbose_name='language code')),
                 ('display', models.CharField(max_length=100, verbose_name='display name')),
                 ('product_attribute', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='translations', to='product.ProductAttribute', verbose_name='product attribute')),
             ],
@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
             name='ProductTranslation',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('language_code', models.CharField(max_length=50, verbose_name='language code')),
+                ('language_code', models.CharField(max_length=35, verbose_name='language code')),
                 ('name', models.CharField(max_length=128, verbose_name='name')),
                 ('description', models.TextField(verbose_name='description')),
                 ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='translations', to='product.Product', verbose_name='product')),
@@ -45,7 +45,7 @@ class Migration(migrations.Migration):
             name='ProductVariantTranslation',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('language_code', models.CharField(max_length=50, verbose_name='language code')),
+                ('language_code', models.CharField(max_length=35, verbose_name='language code')),
                 ('name', models.CharField(blank=True, max_length=100, verbose_name='variant name')),
                 ('product_variant', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='translations', to='product.ProductVariant', verbose_name='product variant')),
             ],
