@@ -11,7 +11,6 @@ from django.utils.translation import ugettext_lazy as _
 def get_list(text):
     return [item.strip() for item in text.split(',')]
 
-
 DEBUG = ast.literal_eval(os.environ.get('DEBUG', 'True'))
 
 SITE_ID = 1

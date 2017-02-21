@@ -82,7 +82,7 @@
     </div>
     <div class="col-md-6 col-12 product__info">
       <h1 class="product__info__name">
-        {{ product.name }}
+        {{ product }}
       </h1>
       {% if user.is_staff %}
         <p><a href="{% url "dashboard:product-detail" pk=product.pk %}">

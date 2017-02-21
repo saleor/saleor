@@ -213,14 +213,18 @@ class Product(models.Model, ItemRange):
 
 
 class ProductTranslation(models.Model):
-    language_code = models.CharField(max_length=50,
-         verbose_name=pgettext_lazy('Product field', 'language code'))
-    product = models.ForeignKey(Product, related_name='translations',
-        verbose_name = pgettext_lazy('Product field', 'product'))
+    language_code = models.CharField(
+        max_length=50, verbose_name=pgettext_lazy('Product field', 'language code'))
+    product = models.ForeignKey(
+        Product, related_name='translations',
+        verbose_name=pgettext_lazy('Product field', 'product'))
     name = models.CharField(
         pgettext_lazy('Product field', 'name'), max_length=128)
     description = models.TextField(
         verbose_name=pgettext_lazy('Product field', 'description'))
+
+    def __str__(self):
+        return self.name
 
 
 class ProductVariant(models.Model, Item):
@@ -327,10 +331,11 @@ class ProductVariant(models.Model, Item):
 
 
 class ProductVariantTranslation(models.Model):
-    language_code = models.CharField(max_length=50,
-         verbose_name=pgettext_lazy('Product variant field', 'language code'))
-    product_variant = models.ForeignKey(ProductVariant, related_name='translations',
-        verbose_name = pgettext_lazy('Product variant field', 'product variant'))
+    language_code = models.CharField(
+        max_length=50, verbose_name=pgettext_lazy('Product variant field', 'language code'))
+    product_variant = models.ForeignKey(
+        ProductVariant, related_name='translations',
+        verbose_name=pgettext_lazy('Product variant field', 'product variant'))
     name = models.CharField(
         pgettext_lazy('Product variant field', 'variant name'), max_length=100,
         blank=True)
@@ -424,10 +429,11 @@ class ProductAttribute(models.Model):
 
 
 class ProductAttributeTranslation(models.Model):
-    language_code = models.CharField(max_length=50,
-         verbose_name=pgettext_lazy('Product attribute field', 'language code'))
-    product_attribute = models.ForeignKey(ProductAttribute, related_name='translations',
-        verbose_name = pgettext_lazy('Product attribute field', 'product attribute'))
+    language_code = models.CharField(
+        max_length=50, verbose_name=pgettext_lazy('Product attribute field', 'language code'))
+    product_attribute = models.ForeignKey(
+        ProductAttribute, related_name='translations',
+        verbose_name=pgettext_lazy('Product attribute field', 'product attribute'))
     display = models.CharField(
         pgettext_lazy('Product attribute field', 'display name'),
         max_length=100)
@@ -456,10 +462,11 @@ class AttributeChoiceValue(models.Model):
 
 
 class AttributeChoiceValueTranslation(models.Model):
-    language_code = models.CharField(max_length=50,
-         verbose_name=pgettext_lazy('Attribute choice value model', 'language code'))
-    attribute_choice_value = models.ForeignKey(AttributeChoiceValue, related_name='translations',
-        verbose_name = pgettext_lazy('Attribute choice value model', 'product attribute'))
+    language_code = models.CharField(
+        max_length=50, verbose_name=pgettext_lazy('Attribute choice value model', 'language code'))
+    attribute_choice_value = models.ForeignKey(
+        AttributeChoiceValue, related_name='translations',
+        verbose_name=pgettext_lazy('Attribute choice value model', 'product attribute'))
     display = models.CharField(
         pgettext_lazy('Attribute choice value model', 'display name'),
         max_length=100)
