@@ -1,7 +1,13 @@
 from django.contrib.sites.models import _simple_domain_name_validator
 from django.db import models
-from django.utils.translation import pgettext_lazy
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.translation import pgettext_lazy
+
+
+GOOGLE = 'google-oauth2'
+FACEBOOK = 'facebook'
+
+BACKENDS = [(FACEBOOK, 'Facebook'), (GOOGLE, 'Google')]
 
 
 @python_2_unicode_compatible
@@ -19,3 +25,23 @@ class SiteSettings(models.Model):
 
     def __str__(self):
         return self.name
+
+
+@python_2_unicode_compatible
+class AuthorizationKey(models.Model):
+    site_settings = models.ForeignKey(SiteSettings)
+    name = models.CharField(
+        pgettext_lazy('Authentiaction field', 'name'), max_length=20,
+        choices=BACKENDS)
+    key = models.TextField(pgettext_lazy('Authentication field', 'key'))
+    password = models.TextField(
+        pgettext_lazy('Authentication field', 'password'))
+
+    class Meta:
+        unique_together = (('site_settings', 'name'),)
+
+    def __str__(self):
+        return self.name
+
+    def get_secrets(self):
+        return self.key, self.password

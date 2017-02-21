@@ -1,11 +1,13 @@
 import pytest
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.utils.encoding import smart_text
 
-from saleor.site.models import SiteSettings
+from saleor.site.models import AuthorizationKey, SiteSettings
 from saleor.site import utils
-from saleor.dashboard.sites.forms import SiteSettingForm
+from saleor.dashboard.sites.forms import (AuthorizationKeyFormSet,
+                                          SiteSettingForm)
 
 
 @pytest.fixture
@@ -15,6 +17,13 @@ def site_settings(db, settings):
                                       domain="mirumee.com")
     settings.SITE_SETTINGS_ID = obj.pk
     return obj
+
+
+@pytest.fixture
+def authorization_key(db, site_settings):
+    return AuthorizationKey.objects.create(
+        site_settings=site_settings, name='Backend', key='Key',
+        password='Password')
 
 
 def test_get_site_settings_uncached(site_settings):
@@ -50,9 +59,22 @@ def test_site_update_view(admin_client, site_settings):
     assert response.status_code == 200
 
     data = {'name': 'Mirumee Labs', 'header_text': 'We have all the things!',
-            'domain': 'mirumee.com'}
+            'domain': 'mirumee.com', 'form-TOTAL_FORMS': 0,
+            'form-INITIAL_FORMS': 0}
     response = admin_client.post(url, data)
-    assert response.status_code == 200
+    assert response.status_code == 302
 
     site_settings.refresh_from_db()
     assert site_settings.name == 'Mirumee Labs'
+
+
+@pytest.mark.django_db
+def test_get_authorization_key_for_backend(site_settings, authorization_key):
+    key_for_backend = utils.get_authorization_key_for_backend('Backend')
+    assert key_for_backend == authorization_key
+
+
+@pytest.mark.django_db
+def test_get_authorization_key_for_backend(site_settings):
+    with pytest.raises(ObjectDoesNotExist):
+        utils.get_authorization_key_for_backend('Backend')
