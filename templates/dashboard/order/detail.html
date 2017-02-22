@@ -404,7 +404,7 @@
                                 <td>{{ payment.transaction_id|default:"-" }}</td>
                                 <td>{{ payment.created }}</td>
                                 <td>{% render_status payment.status payment.get_status_display %}</td>
-                                <td>{% render_status payment.fraud_status payment.fraud_status %}</td>
+                                <td>{% render_status payment.fraud_status payment.get_fraud_status_display %}</td>
                                 <td>{{ payment.total|currencyfmt:payment.currency }}</td>
                             </tr>
                             {% endfor %}
