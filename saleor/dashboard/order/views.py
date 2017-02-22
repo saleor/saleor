@@ -47,7 +47,7 @@ def order_details(request, order_pk):
                             'groups', 'groups__items'))
     order = get_object_or_404(qs, pk=order_pk)
     notes = order.notes.all()
-    all_payments = order.payments.all()
+    all_payments = order.payments.exclude(status='input')
     payment = order.payments.last()
     groups = list(order)
     captured = preauthorized = Price(0, currency=order.get_total().currency)

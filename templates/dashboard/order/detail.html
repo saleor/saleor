@@ -1,4 +1,5 @@
 {% extends "dashboard/base.html" %}
+{% load babel %}
 {% load prices_i18n %}
 {% load i18n %}
 {% load materializecss %}
@@ -389,22 +390,22 @@
                     <table class="bordered hoverable responsive data-table">
                         <thead>
                             <tr>
-                                <th></th>
+                                <th>{% trans "Transaction ID" context "Payment history table header" %}</th>
                                 <th>{% trans "Date" context "Payment history table header" %}</th>
-                                <th class="wide">{% trans "Payment status" context "Payment history table header" %}</th>
+                                <th>{% trans "Payment status" context "Payment history table header" %}</th>
+                                <th>{% trans "Fraud status" context "Payment history table header" %}</th>
+                                <th>{% trans "Amount" context "Payment history table header" %}</th>
                             </tr>
                         </thead>
 
                         <tbody>
                             {% for payment in all_payments %}
                             <tr>
-                                <td>
-                                    {% blocktrans trimmed with payment_id=payment.id context "Payment item column data" %}
-                                        #{{ payment_id }}
-                                    {% endblocktrans %}
-                                </td>
+                                <td>{{ payment.transaction_id|default:"-" }}</td>
                                 <td>{{ payment.created }}</td>
                                 <td>{% render_status payment.status payment.get_status_display %}</td>
+                                <td>{% render_status payment.fraud_status payment.fraud_status %}</td>
+                                <td>{{ payment.total|currencyfmt:payment.currency }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
