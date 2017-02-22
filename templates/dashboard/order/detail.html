@@ -46,15 +46,22 @@
         <div class="col s12">
             <ul class="tabs" role="tablist">
                 <li role="presentation" class="tab col s4">
-                    <a href="#order-details" role="tab" class="active">{% trans "Details" context "Order detail tab" %}</a>
+                    <a href="#order-details" role="tab" class="active">
+                        <span>{% trans "Details" context "Order detail tab" %}</span>
+                        <i class="material-icons">description</i>
+                    </a>
                 </li>
-
                 <li role="presentation" class="tab col s4">
-                    <a href="#payment-history" role="tab">{% trans "Payments" context "Order detail tab" %}</a>
+                    <a href="#payment-history" role="tab">
+                        <span>{% trans "Payments" context "Order detail tab" %}</span>
+                        <i class="material-icons">payment</i>
+                    </a> 
                 </li>
-
                 <li role="presentation" class="tab col s4">
-                    <a href="#order-history" role="tab">{% trans "History" context "Order detail tab" %}</a>
+                    <a href="#order-history" role="tab">
+                        <span>{% trans "History" context "Order detail tab" %}</span>
+                        <i class="material-icons">history</i>
+                    </a>
                 </li>
             </ul>
         </div>
