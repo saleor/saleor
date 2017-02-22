@@ -27,7 +27,8 @@ deployment:
     commands:
       - echo "__version__ = '$(git describe --tags)'" > saleor/version.py
       - docker login -e $DOCKERCLOUD_EMAIL -u $DOCKERCLOUD_USER -p $DOCKERCLOUD_PASS
-      - docker build -t mirumee/saleor:$CIRCLE_TAG -t mirumee/saleor:latest .
+      - docker build -t mirumee/saleor:$CIRCLE_TAG .
+      - docker build -t mirumee/saleor:latest .
       - docker push mirumee/saleor:$CIRCLE_TAG
       - docker push mirumee/saleor:latest
       - curl -X POST https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo?circle-token=$CIRCLE_API_TOKEN
