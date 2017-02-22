@@ -10,7 +10,7 @@ header {
       }
       .search {
         float: none;
-        margin-left: 272px;
+        margin-left: 270px;
         padding: 10px 0;
         .input-field {
           input {
@@ -160,11 +160,14 @@ header {
   margin-top: 0;
   .container {
     width: auto;
-    max-width: none;
+    max-width: 1200px;
     margin: 0 40px;
     transition: margin .1s;
     @media (min-width: $large-screen) {
-      margin-left: 272px;
+      margin-left: 270px;
+    }
+    @media (min-width: 1740px) {
+      margin: 0 auto;
     }
     .dropdown-button {
       i {
@@ -182,11 +185,14 @@ header {
 .main {
   .container {
     margin: 40px 40px 0;
-    max-width: none;
+    max-width: 1200px;
     width: auto;
     transition: margin .1s;
     @media (min-width: $large-screen) {
-      margin-left: 272px;
+      margin-left: 270px;
+    }
+    @media (min-width: 1740px) {
+      margin: 40px auto;
     }
   }
 }
@@ -203,7 +209,7 @@ body.nav-toggled {
   .subheader {
     .container {
       @media (min-width: $medium-screen) {
-        margin-left: 272px;
+        margin-left: 270px;
       }
       @media (min-width: $large-screen) {
         margin-left: 40px;
@@ -213,7 +219,7 @@ body.nav-toggled {
   .main {
     .container {
       @media (min-width: $medium-screen) {
-        margin-left: 272px;
+        margin-left: 270px;
       }
       @media (min-width: $large-screen) {
         margin-left: 40px;
