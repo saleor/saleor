@@ -35,45 +35,50 @@
 {% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
-    <div class="card">
-        <form method="post" id="form-category" enctype="multipart/form-data" novalidate>
-            <div class="card-content">
-                {% csrf_token %}
-                <div class="row">
-                    {{ form.name|materializecss }}
-                </div>
-                <div class="row">
-                    <div class="col s12 m8">
+    <div class="row">
+        <div class="col s12 m9">
+            <div class="card">
+                <form method="post" id="form-category" enctype="multipart/form-data" novalidate>
+                    <div class="card-content">
+                        {% csrf_token %}
                         <div class="row">
-                            {{ form.description|materializecss }}
+                            {{ form.name|materializecss }}
+                        </div>
+                        <div class="row">
+                            <div class="col s12 m8">
+                                <div class="row">
+                                    {{ form.description|materializecss }}
+                                </div>
+                            </div>
+                            <div class="col s12 m4">
+                                <div class="row">
+                                    {{ form.hidden|materializecss:"input-field s12" }}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col s12 m4">
-                        <div class="row">
-                            {{ form.hidden|materializecss:"input-field s12" }}
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <div class="card-action right-align">
-                {% if category.parent %}
-                    <a href="{% url 'dashboard:category-list' root_pk=category.parent.pk %}" class="btn btn-flat">
-                        {% trans "Cancel" context "Category form secondary action" %}</a>
-                {% else %}
-                    <a href="{% url 'dashboard:category-list' %}" class="btn btn-flat">
-                        {% trans "Cancel" context "Category form secondary action" %}</a>
-                {% endif %}
-                {% if category.pk %}
-                    <button type="submit" class="btn btn-flat">
-                        {% trans "Update" context "Category form primary action" %}
-                    </button>
-                {% else %}
-                    <button type="submit" class="btn btn-flat">
-                        {% trans "Create" context "Category form primary action" %}
-                    </button>
-                {% endif %}
+                    <div class="card-action right-align">
+                        {% if category.parent %}
+                            <a href="{% url 'dashboard:category-list' root_pk=category.parent.pk %}" class="btn btn-flat">
+                                {% trans "Cancel" context "Category form secondary action" %}</a>
+                        {% else %}
+                            <a href="{% url 'dashboard:category-list' %}" class="btn btn-flat">
+                                {% trans "Cancel" context "Category form secondary action" %}</a>
+                        {% endif %}
+                        {% if category.pk %}
+                            <button type="submit" class="btn btn-flat">
+                                {% trans "Update" context "Category form primary action" %}
+                            </button>
+                        {% else %}
+                            <button type="submit" class="btn btn-flat">
+                                {% trans "Create" context "Category form primary action" %}
+                            </button>
+                        {% endif %}
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
+        <div class="col s12 m3 help-box"></div>
     </div>
 {% endblock %}
