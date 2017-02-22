@@ -47,54 +47,61 @@
 {% endblock %}
 
 {% block content %}
-    <div class="card">
-        <form method="post" id="form-product" enctype="multipart/form-data" novalidate>
-            <div class="card-content">
-                {% csrf_token %}
-                <div class="row">
-                    {{ form.name|materializecss }}
-                </div>
-                <div class="row">
-                    <div class="col s12 m8">
+    <div class="row">
+        <div class="col s12 m9">
+            <div class="card">
+                <form method="post" id="form-product" enctype="multipart/form-data" novalidate>
+                    <div class="card-content">
+                        {% csrf_token %}
                         <div class="row">
-                            {{ form.product_attributes|materializecss }}
+                            {{ form.name|materializecss }}
                         </div>
                         <div class="row">
-                            {{ form.variant_attributes|materializecss }}
+                            <div class="col s12 m8">
+                                <div class="row">
+                                    {{ form.product_attributes|materializecss:"input-field s12" }}
+                                </div>
+                                <div class="row">
+                                    {{ form.variant_attributes|materializecss:"input-field s12" }}
+                                </div>
+                            </div>
+                            <div class="col s12 m4">
+                                <div class="row">
+                                    {{ form.is_shipping_required|materializecss }}
+                                </div>
+                                <div class="row">
+                                    {{ form.has_variants|materializecss }}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col s12 m4">
-                        <div class="row">
-                            {{ form.is_shipping_required|materializecss }}
-                        </div>
-                        <div class="row">
-                            {{ form.has_variants|materializecss }}
-                        </div>
-                        <p class="grey-text">
-                            {% blocktrans trimmed context "Product class help text" %}
-                                Product Type is a template used for creating new products.
-                                It also controls which attributes can be used during product creation process.
-                            {% endblocktrans %}
-                        </p>
+                    <div class="card-action right-align">
+                        {% if product_class.pk %}
+                            <a href="{% url 'dashboard:product-class-list' %}" class="btn btn-flat">
+                                {% trans "Cancel" context "Product class secondary action" %}</a>
+                            <button type="submit" class="btn btn-flat">
+                                {% trans "Update" context "Product class primary action" %}
+                            </button>
+                        {% else %}
+                            <a href="{% url 'dashboard:product-class-list' %}" class="btn btn-flat">
+                                {% trans "Cancel" context "Product class secondary action" %}</a>
+                            <button type="submit" class="btn btn-flat">
+                                {% trans "Create" context "Product class primary action" %}
+                            </button>
+                        {% endif %}
+                        
                     </div>
-                </div>
+                </form>
             </div>
-            <div class="card-action right-align">
-                {% if product_class.pk %}
-                    <a href="{% url 'dashboard:product-class-list' %}" class="btn btn-flat">
-                        {% trans "Cancel" context "Product class secondary action" %}</a>
-                    <button type="submit" class="btn btn-flat">
-                        {% trans "Update" context "Product class primary action" %}
-                    </button>
-                {% else %}
-                    <a href="{% url 'dashboard:product-class-list' %}" class="btn btn-flat">
-                        {% trans "Cancel" context "Product class secondary action" %}</a>
-                    <button type="submit" class="btn btn-flat">
-                        {% trans "Create" context "Product class primary action" %}
-                    </button>
-                {% endif %}
-                
-            </div>
-        </form>
+        </div>
+        <div class="col s12 m3 help-box">
+            <p class="grey-text">
+                <i class="material-icons">help</i>
+                {% blocktrans trimmed context "Product class help text" %}
+                    Product Type is a template used for creating new products.
+                    It also controls which attributes can be used during product creation process.
+                {% endblocktrans %}
+            </p>
+        </div>
     </div>
 {% endblock %}
