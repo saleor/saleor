@@ -94,6 +94,7 @@ header {
         max-height: $navbar-height;
         margin: 13px 0;
         @media (max-width: $small-screen) {
+          height: 30px;
           margin: 17px 0;
         }
       }
