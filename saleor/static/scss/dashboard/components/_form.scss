@@ -129,6 +129,6 @@
   }
 }
 
-.main form {
+.main form, .modal form {
   @include form;
 }

@@ -104,13 +104,14 @@
                             {{ product.product_class }}
                         </h5>
                         <div class="row">
+
                             <div class="col s12 l8" >
                                 <div class="row">
                                     {{ product_form.name|materializecss }}
                                 </div>
                                 {% for attribute_field in product_form.iter_attribute_fields %}
                                     <div class="row">
-                                        {{ attribute_field|materializecss:"input-field s12" }}
+                                        {{ attribute_field|materializecss }}
                                     </div>
                                 {% endfor %}
                                 <div class="row">
@@ -137,6 +138,15 @@
                                     {{ product_form.is_featured|materializecss }}
                                 </div>
                             </div>
+                        {% endif %}
+                        <div class="row">
+                            {{ product_form.categories|materializecss }}
+                        </div>
+                        <div class="row">
+                            {{ product_form.available_on|materializecss }}
+                        </div>
+                        <div class="row">
+                            {{ product_form.is_featured|materializecss }}
                         </div>
                     </div>
                     <div class="card-action right-align">

@@ -62,7 +62,7 @@
                                 </div>
                             </div>
                             <div class="col s12 m4">
-                                {{ form.type|materializecss:"input-field s12" }}
+                                {{ form.type|materializecss }}
                             </div>
                         </div>
                         <div class="row">
@@ -72,7 +72,6 @@
                             {{ form.categories|materializecss }}
                         </div>
                     </div>
-
                     <div class="card-action right-align">
                         {% if sale.pk %}
                             <a href="{% url 'dashboard:sale-list' %}" class="btn btn-flat">

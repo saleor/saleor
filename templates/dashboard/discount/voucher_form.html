@@ -74,17 +74,17 @@
                                     </div>
                                     <div class="col s12 m4">
                                         <div class="row">
-                                            {{ form.discount_value_type|materializecss:"input-field s12" }}
+                                            {{ form.discount_value_type|materializecss }}
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row">
-                                    {{ form.type|materializecss:"input-field s12" }}
+                                    {{ form.type|materializecss }}
                                 </div>
                                 {% for form_type, form in type_base_forms.items %}
                                     <div class="row voucher-form" data-type="{{ form_type }}">
                                         {% for field in form %}
-                                            {{ field|materializecss:"input-field s12" }}
+                                            {{ field|materializecss }}
                                         {% endfor %}
                                     </div>
                                 {% endfor %}
@@ -92,10 +92,10 @@
 
                             <div class="col s12 m4">
                                 <div class="row">
-                                    {{ form.start_date|materializecss:"input-field s12" }}
+                                    {{ form.start_date|materializecss }}
                                 </div>
                                 <div class="row">
-                                    {{ form.end_date|materializecss:"input-field s12" }}
+                                    {{ form.end_date|materializecss }}
                                 </div>
                                 <div class="row">
                                     {{ form.usage_limit|materializecss }}
