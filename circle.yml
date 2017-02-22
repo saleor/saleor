@@ -23,8 +23,7 @@ test:
 
 deployment:
   release:
-    tag: /.*/
-    branch: master
+    tag: /v.*/
     commands:
       - echo "__version__ = '$(git describe --tags)'" > saleor/version.py
       - docker login -e $DOCKERCLOUD_EMAIL -u $DOCKERCLOUD_USER -p $DOCKERCLOUD_PASS
