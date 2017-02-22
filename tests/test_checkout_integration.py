@@ -248,7 +248,10 @@ def test_email_is_saved_in_order(authorized_client, billing_address, customer_us
 
 
 def test_voucher_invalid(client, request_cart_with_item, shipping_method, valid_address, voucher):  # pylint: disable=W0613,R0914
-    """Look: #549 #544"""
+    """Check if:
+        - user is forced to review checkout if used voucher becomes invalid
+        - vouchers cannot be used past their limit
+    """
 
     voucher.usage_limit = 3
     voucher.save()
