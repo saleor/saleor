@@ -155,31 +155,31 @@ header {
 }
 
 .subheader {
-  background-color: $primary-color-light;
+  background-color: $primary-color;
   height: $subheader-height;
   margin-top: 0;
   .container {
-    width: auto;
-    max-width: 1200px;
-    margin: 0 40px;
-    transition: margin .1s;
-    @media (min-width: $large-screen) {
-      margin-left: 270px;
-    }
-    @media (min-width: 1740px) {
-      margin: 0 auto;
+    width: 100%;
+    max-width: none;
+    height: $subheader-height;
+    .breadcrumbs {
+      margin-left: 40px;
+      @media (min-width: $large-screen) {
+        margin-left: 270px;
+      }
     }
     .dropdown-button {
       i {
-        padding-right: 10px;
+        padding-right: 15px;
       }
     }
+    i {
+      font-size: $subheader-height/2;
+      line-height: $subheader-height;
+      color: white;
+    }
   }
-  i {
-    font-size: $subheader-height/2;
-    line-height: $subheader-height;
-    color: white;
-  }
+
 }
 
 .main {
