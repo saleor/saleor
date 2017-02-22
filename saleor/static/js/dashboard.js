@@ -125,12 +125,10 @@ Dropzone.options.productImageForm = {
   previewTemplate: $('#template').html(),
   clickable: false,
   init: function() {
-    let $dropzoneGhost = $('.dropzone-ghost');
+    let $dropzoneMessage = $('.dropzone-message');
     let $gallery = $('.product-gallery');
 
-    this.on('complete', function() {
-      $dropzoneGhost.remove().appendTo($gallery);
-    }).on('success', function(e, response) {
+    this.on('success', function(e, response) {
       $(e.previewElement).find('.product-gallery-item-desc').html(response.image);
       $(e.previewElement).attr('data-id', response.id);
       let editLinkHref = $(e.previewElement).find('.card-action-edit').attr('href');
