@@ -67,7 +67,7 @@
                     <h5 class="card-title">{% trans "Order summary" context "Order summary title" %}</h5>
 
                     <div class="row">
-                        <div class="col s4 l12">
+                        <div class="col s12 m4 l12">
                             <h6>
                                 {% trans "Customer" context "Order summary card header" %}
                             </h6>
@@ -79,7 +79,7 @@
                                 {% endif %}
                             </p>
                         </div>
-                        <div class="col s4 l12">
+                        <div class="col s12 m4 l12">
                             <h6>
                                 {% trans "Order status" context "Order summary card header" %}
                             </h6>
@@ -87,7 +87,7 @@
                                 {% render_status order.status order.get_status_display %}
                             </p>
                         </div>
-                        <div class="col s4 l12">
+                        <div class="col s12 m4 l12">
                             <h6>
                                 {% trans "Payment status" context "Order summary card header" %}
                             </h6>
