@@ -82,7 +82,7 @@ def start_payment(request, order, variant):
                 'billing_address_2': billing.street_address_2,
                 'billing_city': billing.city,
                 'billing_postcode': billing.postal_code,
-                'billing_country_code': billing.country,
+                'billing_country_code': billing.country.code,
                 'billing_email': order.user_email,
                 'description': pgettext_lazy(
                     'Payment description', 'Order %(order_number)s') % {
