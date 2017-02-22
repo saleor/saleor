@@ -25,7 +25,7 @@ deployment:
   release:
     tag: /v.*/
     commands:
-      - echo $(git describe --tags) > templates/dashboard/version.txt
+      - echo "__version__ = '$(git describe --tags)'" > saleor/version.py
       - docker login -e $DOCKERCLOUD_EMAIL -u $DOCKERCLOUD_USER -p $DOCKERCLOUD_PASS
       - docker build -t mirumee/saleor:$CIRCLE_TAG .
       - docker build -t mirumee/saleor:latest .
