@@ -33,7 +33,8 @@ urlpatterns = [
     url(r'^feeds/', include(feed_urls, namespace='data_feeds')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
-    url(r'', include('payments.urls'))
+    url(r'', include('payments.urls')),
+    url('', include('social_django.urls', namespace='social')),
 ]
 
 if settings.DEBUG:

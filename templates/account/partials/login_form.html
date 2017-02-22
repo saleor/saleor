@@ -18,6 +18,8 @@
       <a class="link--styled" href="{% url 'account_reset_password' %}">
         {% trans "Forgot password?" context "Login form secondary link" %}
       </a>
+      <a href="{% url 'social:begin' 'facebook' %}">{% trans 'Facebook' %}</a>
+      <a href="{% url 'social:begin' 'google-oauth2' %}">{% trans 'Google' %}</a>
     </div>
   </div>
 </form>

@@ -7,7 +7,7 @@ from django.utils.translation import pgettext_lazy
 GOOGLE = 'google-oauth2'
 FACEBOOK = 'facebook'
 
-BACKENDS = [(FACEBOOK, 'Facebook'), (GOOGLE, 'Google')]
+BACKENDS = [(FACEBOOK, 'Facebook-Oauth2'), (GOOGLE, 'Google-Oauth2')]
 
 
 @python_2_unicode_compatible
@@ -43,5 +43,5 @@ class AuthorizationKey(models.Model):
     def __str__(self):
         return self.name
 
-    def get_secrets(self):
+    def key_and_secret(self):
         return self.key, self.password

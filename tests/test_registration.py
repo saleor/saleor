@@ -111,3 +111,11 @@ def test_password_reset_view_get(client, db):
     response = client.get(url)
     assert response.status_code == 200
     assert response.template_name == 'account/password_reset.html'
+
+
+def test_base_backend(authorization_key):
+    base_backend = BaseBackend()
+    base_backend.DB_NAME = 'Backend'
+    key, secret = base_backend.get_key_and_secret()
+    assert key == 'Key'
+    assert secret == 'Password'
