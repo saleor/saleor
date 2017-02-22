@@ -93,7 +93,7 @@ class Address(models.Model):
 class UserManager(BaseUserManager):
 
     def create_user(self, email, password=None, is_staff=False,
-                    is_active=True, **extra_fields):
+                    is_active=True, username='', **extra_fields):
         'Creates a User with the given username, email and password'
         email = UserManager.normalize_email(email)
         user = self.model(email=email, is_active=is_active,
