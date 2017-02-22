@@ -20,7 +20,7 @@ class LoginForm(django_forms.AuthenticationForm):
 
 class SignupForm(forms.ModelForm):
     password = forms.CharField(
-        label=pgettext('User form field', 'Password'), strip=False,
+        label=pgettext('User form field', 'Password'),
         widget=forms.PasswordInput)
 
     class Meta:
