@@ -117,7 +117,7 @@ def products_for_cart(user):
 
 
 def product_json_ld(product, availability=None, attributes=None):
-    # type: (saleor.product.models.Product, saleor.product.utils.ProductAvailability, dict) -> dict  # noqa
+    # type: (Product, ProductAvailability, dict) -> dict
     """Generates JSON-LD data for product"""
     data = {'@context': 'http://schema.org/',
             '@type': 'Product',

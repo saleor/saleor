@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import datetime
 from decimal import Decimal
-from typing import Any, Dict, Iterable, Union, Iterator
+from typing import Any, Dict, Iterable, Union, Iterator, TYPE_CHECKING
 
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
@@ -25,6 +25,8 @@ from ...discount.models import Sale, calculate_discounted_price
 from ...search import index
 from .utils import get_attributes_display_map
 
+if TYPE_CHECKING:
+    from .images import ProductImage
 
 class CategoryManager(Manager):
 
