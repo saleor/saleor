@@ -17,11 +17,12 @@ from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
-from prices import PriceRange
+from prices import Price, PriceRange
 from satchless.item import InsufficientStock, Item, ItemRange
 from text_unidecode import unidecode
 
-from ...discount.models import calculate_discounted_price
+from ...discount.models import Sale, calculate_discounted_price
+from ...product.models import ProductImage
 from ...search import index
 from .utils import get_attributes_display_map
 
@@ -235,7 +236,7 @@ class Product(models.Model, ItemRange, index.Indexed):
         return self.available_on is None or self.available_on <= today
 
     def get_first_image(self):
-        # type: () -> Union[None, 'saleor.product.models.images.ProductImage']
+        # type: () -> Union[None, ProductImage]
         first_image = self.images.first()
         if first_image:
             return first_image.image
@@ -316,7 +317,7 @@ class ProductVariant(models.Model, Item):
         return max([stock.quantity_available for stock in self.stock.all()])
 
     def get_price_per_item(self, discounts=None, **kwargs):
-        # type: (Iterable['saleor.discount.models.Sale'], ...) -> 'prices.Price'
+        # type: (Iterable[Sale], **Any) -> Price
         """Return price for Product Variant
 
         Arguments:
@@ -363,7 +364,7 @@ class ProductVariant(models.Model, Item):
         self.attributes[smart_text(pk)] = smart_text(value_pk)
 
     def display_variant(self, attributes=None):
-        # type: (django.db.models.QuerySet) -> str
+        # type: (Iterable[ProductAttribute]) -> str
         """Return string representation of variant
 
         Arguments:
@@ -387,11 +388,11 @@ class ProductVariant(models.Model, Item):
                             smart_text(self))
 
     def get_first_image(self):
-        # type: () -> 'saleor.product.models.images.ProductImage'
+        # type: () -> ProductImage
         return self.product.get_first_image()
 
     def select_stockrecord(self, quantity=1):
-        # type: (int) -> Union['saleor.product.models.base.Stock', None]
+        # type: (int) -> Union[Stock, None]
         """By default selects stock with lowest cost price
 
         Arguments:
@@ -405,7 +406,7 @@ class ProductVariant(models.Model, Item):
             return stock[0]
 
     def get_cost_price(self):
-        # type: () -> Union[prices.Price, None]
+        # type: () -> Union[Price, None]
         stock = self.select_stockrecord()
         if stock:
             return stock.cost_price

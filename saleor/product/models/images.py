@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from typing import Union
+
 from django.db import models
 from django.db.models import Max, F
 from django.utils.translation import pgettext_lazy
@@ -12,7 +14,7 @@ class ImageManager(models.Manager):
     """ Default ProductImage Manager """
 
     def first(self):
-        # type: () -> Union(None, saleor.product.models.images.ProductImage)
+        # type: () -> Union[None, saleor.product.models.images.ProductImage]
         try:
             return self.get_queryset()[0]
         except IndexError:
