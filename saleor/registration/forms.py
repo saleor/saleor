@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth import login
+from django.contrib.auth import login, authenticate
 from django.contrib.auth import forms as django_forms
 from django.utils.translation import pgettext
 
@@ -40,6 +40,8 @@ class SignupForm(forms.ModelForm):
         if commit:
             user.save()
             if request:
+                email = self.cleaned_data['email']
+                user = authenticate(username=email, password=password)
                 login(request, user)
         return user
 

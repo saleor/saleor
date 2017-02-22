@@ -12,11 +12,8 @@ from .forms import LoginForm, SignupForm, SetPasswordForm
 
 @find_and_assign_anonymous_cart()
 def login(request):
-    next_url = request.GET.get('next')
     kwargs = {
         'template_name': 'account/login.html', 'authentication_form': LoginForm}
-    if next_url:
-        kwargs['redirect_authenticated_user'] = next_url
     return django_views.login(request, **kwargs)
 
 

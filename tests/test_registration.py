@@ -3,6 +3,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.urlresolvers import reverse
 
 from saleor.registration.forms import LoginForm, SignupForm
+from saleor.registration.backends import BaseBackend
 from .utils import get_redirect_location
 
 User = get_user_model()
@@ -50,8 +51,8 @@ def test_logout_view_no_user(client):
     url = reverse('account_logout')
     response = client.get(url)
     redirect_location = get_redirect_location(response)
-    location = '/account/login/?next=/account/logout/'
-    assert redirect_location == location
+    location = '/account/login/'
+    assert location in redirect_location
 
 
 def test_logout_with_user(authorized_client):

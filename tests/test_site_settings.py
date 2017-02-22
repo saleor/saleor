@@ -4,26 +4,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.utils.encoding import smart_text
 
-from saleor.site.models import AuthorizationKey, SiteSettings
 from saleor.site import utils
-from saleor.dashboard.sites.forms import (AuthorizationKeyFormSet,
-                                          SiteSettingForm)
-
-
-@pytest.fixture
-def site_settings(db, settings):
-    obj = SiteSettings.objects.create(name="mirumee.com",
-                                      header_text="mirumee.com",
-                                      domain="mirumee.com")
-    settings.SITE_SETTINGS_ID = obj.pk
-    return obj
-
-
-@pytest.fixture
-def authorization_key(db, site_settings):
-    return AuthorizationKey.objects.create(
-        site_settings=site_settings, name='Backend', key='Key',
-        password='Password')
+from saleor.dashboard.sites.forms import SiteSettingForm
 
 
 def test_get_site_settings_uncached(site_settings):

@@ -16,6 +16,7 @@ from saleor.product.models import (AttributeChoiceValue, Category, Product,
                                    ProductAttribute, ProductClass,
                                    ProductVariant, Stock, StockLocation)
 from saleor.shipping.models import ShippingMethod
+from saleor.site.models import SiteSettings, AuthorizationKey
 from saleor.userprofile.models import Address, User
 
 
@@ -259,3 +260,19 @@ def sale(db, default_category):
     sale = Sale.objects.create(name="Sale", value=5)
     sale.categories.add(default_category)
     return sale
+
+
+@pytest.fixture
+def site_settings(db, settings):
+    obj = SiteSettings.objects.create(name="mirumee.com",
+                                      header_text="mirumee.com",
+                                      domain="mirumee.com")
+    settings.SITE_SETTINGS_ID = obj.pk
+    return obj
+
+
+@pytest.fixture
+def authorization_key(db, site_settings):
+    return AuthorizationKey.objects.create(
+        site_settings=site_settings, name='Backend', key='Key',
+        password='Password')
