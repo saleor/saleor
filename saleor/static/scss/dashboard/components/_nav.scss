@@ -74,6 +74,9 @@ header {
       top: $header-height/4;
       margin-left: 1rem;
       z-index: 999;
+      @media (max-width: $small-screen) {
+        top: $header-height/3;
+      }
       i {
         height: $header-height/2;
         line-height: $header-height/2;
@@ -90,6 +93,9 @@ header {
       img {
         max-height: $navbar-height;
         margin: 13px 0;
+        @media (max-width: $small-screen) {
+          margin: 17px 0;
+        }
       }
     }
     .right {
@@ -101,7 +107,7 @@ header {
     width: 232px;
     padding: 12px 8px 52px;
     position: absolute;
-    top: $header-height + $subheader-height;
+    top: $navbar-height-mobile + $subheader-height;
     height: 100vh;
     transition: transform .1s;
     @media (min-width: $medium-screen) {
