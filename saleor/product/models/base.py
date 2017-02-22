@@ -2,14 +2,14 @@ from __future__ import unicode_literals
 
 import datetime
 from decimal import Decimal
-from typing import Any, Dict, Iterable, Union
+from typing import Any, Dict, Iterable, Union, Iterator
 
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
 from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
-from django.db.models import F, Manager, Q
+from django.db.models import F, Manager, Q, QuerySet
 from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.text import slugify
@@ -22,7 +22,6 @@ from satchless.item import InsufficientStock, Item, ItemRange
 from text_unidecode import unidecode
 
 from ...discount.models import Sale, calculate_discounted_price
-from ...product.models import ProductImage
 from ...search import index
 from .utils import get_attributes_display_map
 
@@ -195,7 +194,7 @@ class Product(models.Model, ItemRange, index.Indexed):
         verbose_name_plural = pgettext_lazy('Product model', 'products')
 
     def __iter__(self):
-        # type: () -> Iterable[ProductVariant]
+        # type: () -> Iterator[ProductVariant]
         if not hasattr(self, '__variants'):
             setattr(self, '__variants', self.variants.all())
         return iter(getattr(self, '__variants'))
@@ -364,7 +363,7 @@ class ProductVariant(models.Model, Item):
         self.attributes[smart_text(pk)] = smart_text(value_pk)
 
     def display_variant(self, attributes=None):
-        # type: (Iterable[ProductAttribute]) -> str
+        # type: (QuerySet) -> str
         """Return string representation of variant
 
         Arguments:
@@ -400,7 +399,7 @@ class ProductVariant(models.Model, Item):
         """
         stock = filter(
             lambda stock: stock.quantity_available >= quantity,
-            self.stock.all())
+            self.stock.all())  # type: Iterable[Stock]
         stock = sorted(stock, key=lambda stock: stock.cost_price, reverse=True)
         if stock:
             return stock[0]

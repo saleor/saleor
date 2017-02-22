@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from typing import Union
 
 from django.db import models
-from django.db.models import Max, F
+from django.db.models import Max, F, QuerySet
 from django.utils.translation import pgettext_lazy
 from versatileimagefield.fields import VersatileImageField, PPOIField
 
@@ -11,10 +11,8 @@ from .base import Product
 
 
 class ImageManager(models.Manager):
-    """ Default ProductImage Manager """
-
     def first(self):
-        # type: () -> Union[None, saleor.product.models.images.ProductImage]
+        # type: () -> Union[None, ProductImage]
         try:
             return self.get_queryset()[0]
         except IndexError:
@@ -56,7 +54,7 @@ class ProductImage(models.Model):
         verbose_name_plural = pgettext_lazy('Product image model', 'product images')
 
     def get_ordering_queryset(self):
-        # type: () -> django.db.models.QuerySet
+        # type: () -> QuerySet
         """ Return product image in order"""
         return self.product.images.all()
 
