@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from collections import namedtuple
 from decimal import Decimal
+from prices import Price
 from uuid import uuid4
 
 from django.conf import settings
@@ -45,9 +46,6 @@ class CartQueryset(models.QuerySet):
 
     def canceled(self):
         return self.filter(status=CartStatus.CANCELED)
-
-    def save(self):
-        self.update(status=CartStatus.SAVED)
 
     def for_display(self):
         return self.prefetch_related(
@@ -148,7 +146,8 @@ class Cart(models.Model):
                      for item in self.lines.all()]
         if not subtotals:
             raise AttributeError('Calling get_total() on an empty item set')
-        return sum(subtotals[1:], subtotals[0])
+        zero = Price(0, currency=settings.DEFAULT_CURRENCY)
+        return sum(subtotals, zero)
 
     def count(self):
         lines = self.lines.all()
