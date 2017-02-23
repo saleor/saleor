@@ -10,13 +10,7 @@
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
-    <li><a href="{% url "dashboard:site-index" %}" class="breadcrumb">
-        {% trans "Site settings" context "Site settings breadcrumbs" %}
-    </a></li>
-    <li class="back-mobile"><a href="{% url "dashboard:site-index" %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a></li>
-    <li><span class="breadcrumbs--ellipsed-item">
-        {% if site.pk %}{{ site }}{% else %}{% trans "Add new site settings" context "Site settings breadcrumbs" %}{% endif %}
-    </span></li>
+    <li class="visible-s">{% trans "Site settings" context "Site settings breadcrumbs" %}</li>
   </ul>
 {% endblock %}
 
