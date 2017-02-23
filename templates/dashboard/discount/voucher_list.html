@@ -40,10 +40,8 @@
                     </thead>
                     <tbody>
                     {% for voucher in vouchers %}
-                        <tr>
-                            <td>
-                                <a href="{% url 'dashboard:voucher-update' pk=voucher.pk %}">{{ voucher }}</a>
-                            </td>
+                        <tr data-action-go="{% url 'dashboard:voucher-update' pk=voucher.pk %}">
+                            <td>{{ voucher }}</td>
                             <td class="right-align">
                                 {{ voucher.discount_value }}&nbsp;<span class="currency">{{ voucher.get_discount_value_type_display }}</span>
                             </td>

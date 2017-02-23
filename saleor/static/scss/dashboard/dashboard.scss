@@ -79,6 +79,10 @@ $roboto-font-path: "~materialize-css/fonts/roboto/";
   }
 }
 
+tr[data-action-go]>td:not(.ignore-link):hover {
+  cursor: pointer;
+}
+
 #modal-product-class {
   max-width: 300px;
 }

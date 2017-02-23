@@ -48,8 +48,8 @@
                         </thead>
                         <tbody>
                             {% for order in customer_orders %}
-                                <tr>
-                                    <td><a href="{% url 'dashboard:order-details' order_pk=order.pk %}">{{ order }}</a></td>
+                                <tr data-action-go="{% url 'dashboard:order-details' order_pk=order.pk %}">
+                                    <td>{{ order }}</td>
                                     <td>{{ order.created }}</td>
                                     <td>{% render_status order.status order.get_status_display %}</td>
                                     <td class="right-align">{% gross order.get_total html=True %}</td>
