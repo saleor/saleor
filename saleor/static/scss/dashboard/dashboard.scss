@@ -59,7 +59,7 @@ header {
                 color: $primary-color;
               }
             }
-           
+
           }
           .search-icon {
             background: transparent;
@@ -80,9 +80,9 @@ header {
       white-space: normal;
       max-width: 90vw;
     }
-    .menu-toggle {    
+    .menu-toggle {
       background-color: $primary-color;
-      position: absolute;      
+      position: absolute;
       width: 237px;
       z-index: 2;
       i {
@@ -121,7 +121,7 @@ header {
       right: 0;
       white-space: nowrap;
     }
-  
+
     .logo {
       img {
         max-height: $header-height;
@@ -356,6 +356,11 @@ header {
   border: 1px solid #ee6e73;
   box-shadow: none;
   color: $primary-color;
+}
+
+li#version-indicator {
+  position: absolute;
+  bottom: 0;
 }
 
 @import "widget/breadcrumbs";

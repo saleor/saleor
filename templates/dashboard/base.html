@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 {% load staticfiles i18n %}
 {% load render_bundle from webpack_loader %}
+{% load version %}
 
 <html lang="{{ LANGUAGE_CODE }}" class="no-js">
 <head>
@@ -92,6 +93,11 @@
                     {% trans "Site settings" context "Dashboard side navigation link" %}</a></li>
               </ul>
             </li>
+            {% if request.user.is_superuser %}
+            <li class="side-nav-section" id="version-indicator">
+              <p>{% trans "Release" context "Dashboard software version" %}: {% version %}</p>
+            </li>
+            {% endif %}
           </ul>
           <ul>
             <li class="menu-toggle">
