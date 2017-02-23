@@ -2,9 +2,9 @@ from django import forms
 from django.conf import settings
 from django.utils.translation import pgettext_lazy
 from allauth.account.forms import SignupForm
+from payments import PaymentStatus
 
 from .models import Payment
-from . import PaymentStatus
 
 
 class PaymentMethodsForm(forms.Form):
@@ -24,7 +24,8 @@ class PaymentDeleteForm(forms.Form):
     def clean(self):
         cleaned_data = super(PaymentDeleteForm, self).clean()
         payment_id = cleaned_data.get('payment_id')
-        waiting_payments = self.order.payments.filter(status=PaymentStatus.WAITING)
+        waiting_payments = self.order.payments.filter(
+            status=PaymentStatus.WAITING)
         try:
             payment = waiting_payments.get(id=payment_id)
         except Payment.DoesNotExist:

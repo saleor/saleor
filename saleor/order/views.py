@@ -9,14 +9,14 @@ from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
+from payments import PaymentStatus, RedirectNeeded
 
-from payments import RedirectNeeded
 from .forms import PaymentDeleteForm, PaymentMethodsForm, PasswordForm
 from .models import Order, Payment
 from .utils import check_order_status, attach_order_to_user
 from ..core.utils import get_client_ip
 from ..userprofile.models import User
-from . import OrderStatus, PaymentStatus
+from . import OrderStatus
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +110,7 @@ def start_payment(request, order, variant):
                     'Payment gateway error',
                     'Oops, it looks like we were unable to contact the selected'
                     ' payment service'))
-            payment.change_status('error')
+            payment.change_status(PaymentStatus.ERROR)
             return redirect('order:payment', token=order.token)
     template = 'order/payment/%s.html' % variant
     return TemplateResponse(request, [template, 'order/payment/default.html'],

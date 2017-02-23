@@ -3,6 +3,7 @@ from django.contrib.admin.views.decorators import \
     staff_member_required as _staff_member_required
 from django.db.models import Q, Sum
 from django.template.response import TemplateResponse
+from payments import PaymentStatus
 
 from ..order.models import Order, Payment
 from ..order import OrderStatus
@@ -19,7 +20,8 @@ def index(request):
     orders_to_ship = (orders_to_ship
                       .select_related('user')
                       .prefetch_related('groups', 'groups__items', 'payments'))
-    payments = Payment.objects.filter(status='preauth').order_by('-created')
+    payments = Payment.objects.filter(
+        status=PaymentStatus.PREAUTH).order_by('-created')
     payments = payments.select_related('order', 'order__user')
     low_stock = get_low_stock_products()
     ctx = {'preauthorized_payments': payments,

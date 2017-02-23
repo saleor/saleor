@@ -5,12 +5,12 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.forms import PriceField
-from payments import PaymentError
+from payments import PaymentError, PaymentStatus
 from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
 from ...discount.models import Voucher
-from ...order import OrderStatus, PaymentStatus
+from ...order import OrderStatus
 from ...order.models import DeliveryGroup, Order, OrderedItem, OrderNote
 from ...order.utils import cancel_order, cancel_delivery_group
 from ...product.models import ProductVariant, Stock

@@ -1,6 +1,7 @@
 from django.template import Library
+from payments import PaymentStatus
 
-from ...order import OrderStatus, PaymentStatus
+from ...order import OrderStatus
 
 register = Library()
 

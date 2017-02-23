@@ -7,10 +7,11 @@ from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
+from payments import PaymentStatus
 from prices import Price
 
 from ...core.utils import get_paginator_items
-from ...order import OrderStatus, PaymentStatus
+from ...order import OrderStatus
 from ...order.models import Order, OrderedItem, OrderNote
 from ...userprofile.i18n import AddressForm
 from ..order.forms import OrderFilterForm
@@ -44,7 +45,7 @@ def order_details(request, order_pk):
                             'groups', 'groups__items'))
     order = get_object_or_404(qs, pk=order_pk)
     notes = order.notes.all()
-    all_payments = order.payments.exclude(status='input')
+    all_payments = order.payments.exclude(status=PaymentStatus.INPUT)
     payment = order.payments.last()
     groups = list(order)
     captured = preauthorized = Price(0, currency=order.get_total().currency)

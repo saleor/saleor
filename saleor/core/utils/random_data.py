@@ -11,10 +11,11 @@ from django.core.files import File
 from django.template.defaultfilters import slugify
 from faker import Factory
 from faker.providers import BaseProvider
+from payments import PaymentStatus
 from prices import Price
 
 from ...discount.models import Sale, Voucher
-from ...order import OrderStatus, PaymentStatus
+from ...order import OrderStatus
 from ...order.models import DeliveryGroup, Order, OrderedItem, Payment
 from ...product.models import (AttributeChoiceValue, Category, Product,
                                ProductAttribute, ProductClass, ProductImage,

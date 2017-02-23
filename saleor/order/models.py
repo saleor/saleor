@@ -13,7 +13,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
-from payments import PurchasedItem
+from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
 from prices import Price, FixedDiscount
 from satchless.item import ItemLine, ItemSet
@@ -23,7 +23,7 @@ from ..discount.models import Voucher
 from ..product.models import Product
 from ..userprofile.models import Address
 from ..search import index
-from . import OrderStatus, PaymentStatus
+from . import OrderStatus
 
 
 class OrderManager(models.Manager):
