@@ -143,13 +143,13 @@
                         {% if product.pk %}
                             <a href="{% url 'dashboard:product-list' %}" class="btn btn-flat">
                                 {% trans "Cancel" context "Product form secondary action" %}</a>
-                            <button type="submit" class="btn btn-flat">
+                            <button type="submit" class="btn btn-flat primary">
                                 {% trans "Update" context "Product form details tab action" %}
                             </button>
                         {% else %}
                             <a href="{% url 'dashboard:product-list' %}" class="btn btn-flat">
                                 {% trans "Cancel" context "Product form secondary action" %}</a>
-                            <button type="submit" class="btn btn-flat">
+                            <button type="submit" class="btn btn-flat primary">
                                 {% trans "Create" context "Product form details tab action" %}
                             </button>
                         {% endif %}

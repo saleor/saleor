@@ -78,11 +78,11 @@
                         {% if product_image.pk %}
                             <a href="{% url "dashboard:product-update" pk=product.pk %}#images" class="btn btn-flat">
                                 {% trans "Cancel" context "Image form secondary action" %}</a>
-                            <button type="submit" class="btn btn-flat">{% trans "Update" context "Image form primary action" %}</button>
+                            <button type="submit" class="btn btn-flat primary">{% trans "Update" context "Image form primary action" %}</button>
                         {% else %}
                             <a href="{% url "dashboard:product-update" pk=product.pk %}#images" class="btn btn-flat">
                                 {% trans "Cancel" context "Image form secondary action" %}</a>
-                            <button type="submit" class="btn btn-flat">{% trans "Create" context "Image form secondary action" %}</button>
+                            <button type="submit" class="btn btn-flat primary">{% trans "Create" context "Image form secondary action" %}</button>
                         {% endif %}
                     </div>
                 </form>

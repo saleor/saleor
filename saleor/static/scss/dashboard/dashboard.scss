@@ -92,9 +92,13 @@ tr[data-action-go]>td:not(.ignore-link):hover {
 }
 
 .btn-flat {
-  &:hover {
+  &.primary {
     background: $button-flat-color;
     color: #fff;
+    &:hover {
+      background: rgba(0,0,0,0.1);
+      color: $button-flat-color;
+    }
   }
 }
 

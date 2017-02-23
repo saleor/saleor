@@ -36,7 +36,8 @@
           </div>
 
           <div class="card-action right-align">
-            <button type="submit" class="btn btn-flat">{% trans "Update" context "Site settings action" %}</button>
+            <a class="btn btn-flat" href="{% url "dashboard:index" %}" traget="_blank">{% trans "Cancel" %}</a>
+            <button type="submit" class="btn btn-flat primary">{% trans "Update" context "Site settings action" %}</button>
           </div>
         </form>
       </div>

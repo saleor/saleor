@@ -57,13 +57,13 @@
                         {% if location.pk %}
                             <a href="{% url 'dashboard:product-stock-location-list' %}" class="btn btn-flat">
                                 {% trans "Cancel" context "Product stock location secondary action" %}</a>
-                            <button type="submit" class="btn btn-flat">
+                            <button type="submit" class="btn btn-flat primary">
                                 {% trans "Update" context "Stock location detail action" %}
                             </button>
                         {% else %}
                             <a href="{% url 'dashboard:product-stock-location-list' %}" class="btn btn-flat">
                                 {% trans "Cancel" context "Product stock location secondary action" %}</a>
-                            <button type="submit" class="btn btn-flat">
+                            <button type="submit" class="btn btn-flat primary">
                                 {% trans "Create" context "Stock location detail action" %}
                             </button>
                         {% endif %}
