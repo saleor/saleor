@@ -27,11 +27,13 @@
             {% trans "Recent Orders" context "User profile tab" %}
           </h3></a>
         </li>
+        {% if user.password %}
         <li class="nav-item">
           <a class="nav-link " data-toggle="tab" href="#password" role="tab"><h3>
             {% trans "Change password" context "User profile tab" %}
           </h3></a>
         </li>
+        {% endif %}
         <li class="nav-item">
           <a class="nav-link" data-toggle="tab" href="#addresses" role="tab"><h3>
             {% trans "Addresses book" context "User profile tab" %}
