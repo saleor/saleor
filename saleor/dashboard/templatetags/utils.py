@@ -1,5 +1,3 @@
-import json
-
 from versatileimagefield.widgets import VersatileImagePPOIClickWidget
 
 try:
@@ -10,11 +8,6 @@ except ImportError:
 from django.template import Library
 
 register = Library()
-
-
-@register.filter
-def format_json(data, indent=2):
-    return json.dumps(json.loads(data), indent=indent)
 
 
 @register.simple_tag(takes_context=True)
