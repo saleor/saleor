@@ -127,6 +127,14 @@
     padding-left: 10px;
     text-align: right;
   }
+  @media (max-width: $small-screen) {
+    input {
+      width: 80%;
+    }
+    .input-text-suffix {
+      width: 20%;
+    }
+  }
 }
 
 .main form, .modal form {
