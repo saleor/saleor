@@ -35,10 +35,8 @@
                     </thead>
                     <tbody>
                     {% for sale in sales %}
-                        <tr>
-                            <td>
-                                <a href="{% url 'dashboard:sale-update' pk=sale.pk %}">{{ sale }}</a>
-                            </td>
+                        <tr data-action-go="{% url 'dashboard:sale-update' pk=sale.pk %}">
+                            <td>{{ sale }}</td>
                             <td>{{ sale.value }}{{ sale.get_type_display }}</td>
                         </tr>
                     {% endfor %}

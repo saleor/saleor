@@ -211,16 +211,14 @@
 
                                 <tbody>
                                     {% for variant in variants %}
-                                        <tr>
-                                            <td class="bulk-checkbox">
+                                        <tr data-action-go="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" title="{% trans "Edit variant" context "Product variant table link title" %}">
+                                            <td class="bulk-checkbox ignore-link">
                                                 <input id="id_variants_{{ variant.id }}" name="items" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
                                                 <label for="id_variants_{{ variant.id }}"></label>
                                             </td>
-                                            <td><a class="light-blue-text text-lighten-1"
-                                                   title="{% trans "Edit variant" context "Product variant table link title" %}"
-                                                        href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}">
+                                            <td>
                                                 {{ variant.sku }}
-                                            </a></td>
+                                            </td>
                                             {% for attr_display in variant|attributes_values_with_empty:attributes %}
                                                 <td>
                                                     {{ attr_display }}
@@ -299,16 +297,12 @@
 
                             <tbody>
                                 {% for item in stock_items %}
-                                    <tr>
-                                        <td class="bulk-checkbox">
+                                    <tr data-action-go="{% url 'dashboard:product-stock-update' product_pk=product.pk stock_pk=item.pk %}" title="{% trans "Edit variant" context "Stock table action" %}">
+                                        <td class="bulk-checkbox ignore-link">
                                             <input name="items" type="checkbox" id="{{ item.id }}" class="filled-in switch-actions" value="{{ item.id }}">
                                             <label for="{{ item.id }}"></label>
                                         </td>
-                                        <td><a class="light-blue-text text-lighten-1"
-                                               title="{% trans "Edit variant" context "Stock table action" %}"
-                                               href="{% url 'dashboard:product-stock-update' product_pk=product.pk stock_pk=item.pk %}">
-                                            {{ item.variant.sku }}
-                                        </a></td>
+                                        <td>{{ item.variant.sku }}</td>
                                         <td>{{ item.location }}</td>
                                         <td class="right-align">{{ item.quantity }}</td>
                                         <td class="right-align">{{ item.quantity_allocated }}</td>

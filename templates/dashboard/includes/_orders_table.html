@@ -16,10 +16,8 @@
         </thead>
         <tbody>
         {% for order in orders %}
-            <tr>
-                <td>
-                    <a href="{% url 'dashboard:order-details' order_pk=order.pk %}">#{{ order.id }}</a>
-                </td>
+            <tr data-action-go="{% url 'dashboard:order-details' order_pk=order.pk %}">
+                <td>#{{ order.id }}</td>
                 <td>{% render_status order.status order.get_status_display %}</td>
                 <td>{% render_status order.get_last_payment_status order.get_last_payment_status_display %}</td>
                 {% trans "Guest" context "Customer column anonymous user text" as guest %}
