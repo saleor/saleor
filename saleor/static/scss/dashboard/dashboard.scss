@@ -217,6 +217,30 @@ $roboto-font-path: "~materialize-css/fonts/roboto/";
   }
 }
 
+.search-form {
+  input {
+    border: none;
+    color: $primary-color;
+    margin-bottom: 0;
+    width: 75%;
+    padding-left: 5%;
+    &::placeholder {
+      color: $primary-color;
+    }
+    &:focus:not([readonly]), &.valid, &:focus.valid, {
+      border: none;
+      box-shadow: none;
+    }
+  }
+  button {
+    width: 20%;
+    padding: 0;
+    i {
+      color: $primary-color;
+    }
+  }
+}
+
 html {
   background: #f5f5f5;
   @media only screen and (min-width: 0) {
