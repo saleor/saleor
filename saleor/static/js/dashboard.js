@@ -172,7 +172,8 @@ if (el) {
     }
   });
 }
-$('.select-all').on('change', function() {
+$('.select-all').on('change', function(event) {
+  event.stopPropagation();
   let $items = $(this).parents('form').find('.switch-actions');
   if (this.checked) {
     $items.prop('checked', true);
@@ -180,7 +181,8 @@ $('.select-all').on('change', function() {
     $items.prop('checked', false);
   }
 });
-$('.switch-actions').on('change', function() {
+$('.switch-actions').on('change', function(event) {
+  event.stopPropagation();
   let $btnChecked = $(this).parents('form').find('.btn-show-when-checked');
   let $btnUnchecked = $(this).parents('form').find('.btn-show-when-unchecked');
   if ($(this).parents('form').find('.switch-actions:checked').length) {
@@ -204,6 +206,11 @@ function initSelects() {
   $('select:not(.browser-default):not([multiple])').material_select();
   $('select[multiple]:not(.browser-default)').select2({width: '100%'});
 }
+// Clickable rows in dashboard tables
+$(document).on('click', 'tr[data-action-go]>td:not(.ignore-link)', function(){
+  let target = $(this).parent();
+  window.location.href = target.data('action-go');
+});
 
 // Coupon dynamic forms
 $(document).ready(() => {

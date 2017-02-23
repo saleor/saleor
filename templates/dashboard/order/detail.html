@@ -54,7 +54,7 @@
                     <a href="#payment-history" role="tab">
                         <span>{% trans "Payments" context "Order detail tab" %}</span>
                         <i class="material-icons">payment</i>
-                    </a> 
+                    </a>
                 </li>
                 <li role="presentation" class="tab col s4">
                     <a href="#order-history" role="tab">
@@ -407,12 +407,12 @@
 
                         <tbody>
                             {% for payment in all_payments %}
-                            <tr>
-                                <td><a href="{% url "dashboard:payment-details" pk=payment.pk %}">
+                            <tr data-action-go="{% url "dashboard:payment-details" pk=payment.pk %}">
+                                <td>
                                     {% blocktrans trimmed with payment_id=payment.id context "Payment item column data" %}
                                         #{{ payment_id }}
                                     {% endblocktrans %}
-                                </a></td>
+                                </td>
                                 <td>{{ payment.created }}</td>
                                 <td>{% render_status payment.status payment.get_status_display %}</td>
                             </tr>

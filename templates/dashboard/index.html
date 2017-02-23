@@ -25,8 +25,8 @@
                         </thead>
                         <tbody>
                             {% for payment in preauthorized_payments %}
-                                <tr>
-                                    <td><a href="{% url "dashboard:order-details" order_pk=payment.order.pk %}">{{ payment.order }}</a></td>
+                                <tr data-action-go="{% url "dashboard:order-details" order_pk=payment.order.pk %}">
+                                    <td>{{ payment.order }}</td>
                                     <td>{{ payment.created }}</td>
                                     <td>{{ payment.order.user|default:_("Guest") }}</td>
                                     <td class="right-align">{% gross payment.get_total_price html=True %}</td>
@@ -74,12 +74,8 @@
                         </thead>
                         <tbody>
                             {% for product in low_stock %}
-                                <tr>
-                                    <td>
-                                        <a class="list-item-name list-item-name--single" href="{% url "dashboard:product-update" pk=product.pk %}#stock">
-                                            {{ product }}
-                                        </a>
-                                    </td>
+                                <tr data-action-go="{% url "dashboard:product-update" pk=product.pk %}#stock">
+                                    <td>{{ product }}</td>
                                     <td class="right-align">
                                         {{ product.total_stock }}
                                     </td>

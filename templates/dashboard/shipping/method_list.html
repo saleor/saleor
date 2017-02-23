@@ -34,10 +34,8 @@
                     </thead>
                     <tbody>
                     {% for method in shipping_methods %}
-                        <tr>
-                            <td>
-                                <a href="{% url 'dashboard:shipping-method-detail' pk=method.pk %}">{{ method }}</a>
-                            </td>
+                        <tr data-action-go="{% url 'dashboard:shipping-method-detail' pk=method.pk %}">
+                            <td>{{ method }}</td>
                             <td>
                                 {% if not method.price_range %}
                                     -
