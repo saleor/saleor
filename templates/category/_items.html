@@ -12,7 +12,9 @@
         <a href="{{ product.get_absolute_url }}">
             <div class="text-center">
                 <div>
-                    <img class="img-responsive" src="{% product_first_image product method="crop" size="400x400" %}" alt="">
+                    <img class="img-responsive" 
+                         src="{% get_thumbnail line.variant.product.images.first.image method="crop" size="255x255" %}" srcset="{% get_thumbnail line.variant.product.images.first.image method="crop" size="255x255" %} 1x, {% get_thumbnail line.variant.product.images.first.image method="crop" size="510x510" %} 2x" 
+                         alt="">
                     <span class="product-list-item-name" title="{{ product }}">{{ product }}</span>
                 </div>
 
