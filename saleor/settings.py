@@ -309,12 +309,22 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
         ('product_small_2x', 'crop__120x120'),
         ('product_list', 'crop__255x255'),
         ('product_list_2x', 'crop__510x510')]}
-        
+
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment
     'create_images_on_demand': ast.literal_eval(
         os.environ.get('CREATE_IMAGES_ON_DEMAND', 'True')),
 }
+
+PLACEHOLDER_IMAGES = {
+    60: 'images/placeholder60x60.png',
+    120: 'images/placeholder120x120.png',
+    255: 'images/placeholder255x255.png',
+    540: 'images/placeholder540x540.png',
+    1080: 'images/placeholder1080x1080.png'
+}
+
+DEFAULT_PLACEHOLDER = 'images/placeholder255x255.png'
 
 WEBPACK_LOADER = {
     'DEFAULT': {
