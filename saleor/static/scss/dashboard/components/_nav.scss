@@ -162,7 +162,7 @@ header {
 }
 
 .subheader {
-  background-color: $primary-color;
+  background-color: $primary-color-light;
   height: $subheader-height;
   margin-top: 0;
   .container {
@@ -170,6 +170,7 @@ header {
     max-width: none;
     height: $subheader-height;
     .breadcrumbs {
+      transition: margin .1s;
       margin-left: 40px;
       @media (max-width: $small-screen) {
         margin-left: 15px;
