@@ -88,6 +88,10 @@ $roboto-font-path: "~materialize-css/fonts/roboto/";
 }
 
 .btn-data-table {
+  &:hover {
+    background: $button-flat-color;
+    color: #fff;
+  }
 }
 
 .fixed-action-btn {
