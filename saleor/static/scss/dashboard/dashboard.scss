@@ -361,7 +361,12 @@ header {
 li#version-indicator {
   position: absolute;
   bottom: 0;
+  p {
+      @extend .grey-text, .text-lighten-1;
+  }
 }
+
+
 
 @import "widget/breadcrumbs";
 @import "widget/card";
