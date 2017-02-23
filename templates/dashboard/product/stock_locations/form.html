@@ -27,9 +27,10 @@
 {% endblock %}
 
 {% block breadcrumbs %}
-    <ul class="breadcrumbs breadcrumbs--with-menu">
+    <ul class="breadcrumbs breadcrumbs--history">
         <li><a href="{% url 'dashboard:product-stock-location-list' %}" class="breadcrumbs--ellipsed-item">
             {% trans "Stock location" context "Stock location detail breadcrumbs" %}</a></li>
+        <li class="back-mobile"><a href="{% url 'dashboard:sale-list' %}"><i class="material-icons">arrow_back</i></a></li>
         <li><span class="breadcrumbs--ellipsed-item">
             {% if location.pk %}{{ location }}{% else %}
                 {% trans "Add new stock location" context "Stock location detail breadcrumbs" %}{% endif %}</span></li>
