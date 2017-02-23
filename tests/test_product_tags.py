@@ -18,7 +18,7 @@ def test_get_thumbnail():
 
 def test_get_thumbnail_no_instance():
     output = get_thumbnail(instance=None, size='10x10', method='crop')
-    assert output == static('images/product-image-placeholder.png')
+    assert output == static('images/placeholder60x60.png')
 
 
 def test_product_first_image():
