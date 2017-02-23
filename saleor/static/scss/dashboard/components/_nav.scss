@@ -222,10 +222,15 @@ body.nav-toggled {
   .subheader {
     .container {
       @media (min-width: $medium-screen) {
-        margin-left: 270px;
+        margin-left: 0;
       }
       @media (min-width: $large-screen) {
-        margin-left: 40px;
+        margin-left: 0;
+      }
+      .breadcrumbs {
+        @media (min-width: $medium-screen) {
+          margin-left: 40px;
+        }
       }
     }
   }
