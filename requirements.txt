@@ -14,14 +14,14 @@ cffi==1.9.1               # via cryptography
 cryptography==1.7.1       # via django-payments
 cssselect==1.0.1          # via premailer
 cssutils==1.0.1           # via premailer
-defusedxml==0.4.1         # via python3-openid
+defusedxml==0.5.0         # via python3-openid
 dj-database-url==0.4.2
 dj-email-url==0.0.10
 django-absolute==0.3      # via django-emailit
 django-allauth==0.30.0
 django-bootstrap3==8.1.0
 django-cache-url==1.3.1
-django-countries==4.0
+django-countries==4.1
 django-emailit==0.2.2
 django-materializecss-form==1.0.1
 django-mptt==0.8.7
@@ -69,7 +69,7 @@ pyparsing==2.1.10         # via packaging
 pytest-django==3.1.2
 pytest==3.0.5
 python-dateutil==2.6.0    # via botocore, faker
-python3-openid==3.0.10    # via django-allauth
+python3-openid==3.1.0     # via django-allauth
 pytz==2016.10             # via babel
 redis==2.10.5             # via django-redis
 requests-oauthlib==0.7.0  # via django-allauth
