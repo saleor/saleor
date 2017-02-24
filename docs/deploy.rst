@@ -1,7 +1,7 @@
 Deployment
 ==========
 
-.. _docker:
+.. _docker_deployment:
 
 Docker
 ------
@@ -12,7 +12,7 @@ Before building the image make sure you have all of the front-end assets prepare
 
 .. code-block:: bash
 
- $ npm run build-assets
+ $ yarn run build-assets
  $ python manage.py collectstatic
 
 Then use Docker to build the image:

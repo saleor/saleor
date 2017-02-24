@@ -1,4 +1,5 @@
 {% extends "dashboard/base.html" %}
+{% load babel %}
 {% load prices_i18n %}
 {% load i18n %}
 {% load materializecss %}
@@ -219,8 +220,8 @@
                                 {% if group.shipping_price.gross or group.is_shipping_required %}
                                     <tr>
                                         <td colspan="4">
-                                            {% blocktrans trimmed context "Shipment group table item column data" %}
-                                                Shipping ({{ group.shipping_method_name }})
+                                            {% blocktrans trimmed with group_shipping_method_name=group.shipping_method_name context "Shipment group table item column data" %}
+                                                Shipping ({{ group_shipping_method_name }})
                                             {% endblocktrans %}
                                         </td>
                                         <td class="right-align">
@@ -389,22 +390,22 @@
                     <table class="bordered hoverable responsive data-table">
                         <thead>
                             <tr>
-                                <th></th>
+                                <th>{% trans "Transaction ID" context "Payment history table header" %}</th>
                                 <th>{% trans "Date" context "Payment history table header" %}</th>
-                                <th class="wide">{% trans "Payment status" context "Payment history table header" %}</th>
+                                <th>{% trans "Payment status" context "Payment history table header" %}</th>
+                                <th>{% trans "Fraud status" context "Payment history table header" %}</th>
+                                <th>{% trans "Amount" context "Payment history table header" %}</th>
                             </tr>
                         </thead>
 
                         <tbody>
                             {% for payment in all_payments %}
                             <tr>
-                                <td><a href="{% url "dashboard:payment-details" pk=payment.pk %}">
-                                    {% blocktrans trimmed context "Payment item column data" %}
-                                        #{{ payment.id }}
-                                    {% endblocktrans %}
-                                </a></td>
+                                <td>{{ payment.transaction_id|default:"-" }}</td>
                                 <td>{{ payment.created }}</td>
                                 <td>{% render_status payment.status payment.get_status_display %}</td>
+                                <td>{% render_status payment.fraud_status payment.get_fraud_status_display %}</td>
+                                <td>{{ payment.total|currencyfmt:payment.currency }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

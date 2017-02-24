@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 {% load staticfiles i18n %}
 {% load render_bundle from webpack_loader %}
+{% load version %}
 
 <html lang="{{ LANGUAGE_CODE }}" class="no-js">
 <head>
+    <title>{% block title %}{% trans "Dashboard - Saleor" context "Dashboard default page title"  %}{% endblock %}</title>
+    {% block meta %}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-
-    <title>{% block title %}{% trans "Dashboard - Saleor" context "Dashboard default page title"  %}{% endblock %}</title>
-
+    {% endblock meta %}
     {% render_bundle 'vendor' 'css' %}
     {% render_bundle 'dashboard' 'css' %}
     <link rel="stylesheet" type="text/css" href="{% static "versatileimagefield/css/versatileimagefield.css" %}">
@@ -74,9 +75,6 @@
                 <li class="{% block menu_customers_class %}{% endblock %}"><a href="{% url 'dashboard:customers' %}">
                     {% trans "Customers" context "Dashboard side navigation link" %}
                 </a></li>
-                <li class="{% block menu_payments_class %}{% endblock %}"><a href="{% url 'dashboard:payments' %}">
-                    {% trans "Payments" context "Dashboard side navigation link" %}
-                </a></li>
               </ul>
             </li>
             <li class="side-nav-section">
@@ -92,6 +90,11 @@
                     {% trans "Site settings" context "Dashboard side navigation link" %}</a></li>
               </ul>
             </li>
+            {% if request.user.is_superuser %}
+            <li class="side-nav-section" id="version-indicator">
+              <p>{% trans "Release" context "Dashboard software version" %}: {% version %}</p>
+            </li>
+            {% endif %}
           </ul>
           <ul>
             <li class="menu-toggle">

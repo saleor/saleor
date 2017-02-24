@@ -13,9 +13,11 @@
   <div class="row login__btn-group">
     <div class="col-sm-12">
       <button class="btn primary">
-        {% trans "Log in" %}
+        {% trans "Log in" context "Login form primary action" %}
       </button>
-      <a href="{% url 'account_reset_password' %}">{% trans "Forgot password?" %}</a>
+      <a href="{% url 'account_reset_password' %}">
+        {% trans "Forgot password?" context "Login form secondary link" %}
+      </a>
     </div>
   </div>
 </form>

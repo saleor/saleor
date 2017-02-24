@@ -18,6 +18,12 @@ var occurenceOrderPlugin = new webpack.optimize.OccurenceOrderPlugin();
 
 var extractTextPlugin = new ExtractTextPlugin('[name].[contenthash].css');
 
+var environmentPlugin = new webpack.DefinePlugin({
+  'process.env': {
+    NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development')
+  }
+});
+
 var providePlugin = new webpack.ProvidePlugin({
   $: 'jquery',
   '_': 'underscore',
@@ -79,6 +85,7 @@ var config = {
   plugins: [
     bundleTrackerPlugin,
     commonsChunkPlugin,
+    environmentPlugin,
     extractTextPlugin,
     occurenceOrderPlugin,
     providePlugin

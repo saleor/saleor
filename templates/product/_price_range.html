@@ -3,6 +3,6 @@
 
 <span>
     <span>
-        {% if price_range.min_price != price_range.max_price %}{% trans "from" %} {% endif %}{% gross price_range.min_price html=True %}
+        {% if price_range.min_price != price_range.max_price %}{% trans "from" context "product price range" %} {% endif %}{% gross price_range.min_price html=True %}
     </span>
 </span>

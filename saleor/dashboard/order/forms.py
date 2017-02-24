@@ -5,13 +5,12 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.forms import PriceField
-from payments import PaymentError
-from payments.models import PAYMENT_STATUS_CHOICES
+from payments import PaymentError, PaymentStatus
 from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
 from ...discount.models import Voucher
-from ...order import Status
+from ...order import OrderStatus
 from ...order.models import DeliveryGroup, Order, OrderedItem, OrderNote
 from ...order.utils import cancel_order, cancel_delivery_group
 from ...product.models import ProductVariant, Stock
@@ -41,7 +40,7 @@ class ManagePaymentForm(forms.Form):
 
 class CapturePaymentForm(ManagePaymentForm):
     def clean(self):
-        if self.payment.status != 'preauth':
+        if self.payment.status != PaymentStatus.PREAUTH:
             raise forms.ValidationError(
                 pgettext_lazy(
                     'Payment form error',
@@ -63,7 +62,7 @@ class CapturePaymentForm(ManagePaymentForm):
 
 class RefundPaymentForm(ManagePaymentForm):
     def clean(self):
-        if self.payment.status != 'confirmed':
+        if self.payment.status != PaymentStatus.CONFIRMED:
             raise forms.ValidationError(
                 pgettext_lazy(
                     'Payment form error',
@@ -89,7 +88,7 @@ class ReleasePaymentForm(forms.Form):
         super(ReleasePaymentForm, self).__init__(*args, **kwargs)
 
     def clean(self):
-        if self.payment.status != 'preauth':
+        if self.payment.status != PaymentStatus.PREAUTH:
             raise forms.ValidationError(
                 pgettext_lazy(
                     'Payment form error',
@@ -211,7 +210,7 @@ class ShipGroupForm(forms.ModelForm):
                 'Parcel tracking number')})
 
     def clean(self):
-        if self.instance.status != 'new':
+        if self.instance.status != OrderStatus.NEW:
             raise forms.ValidationError(
                 pgettext_lazy(
                     'Ship group form error',
@@ -225,10 +224,10 @@ class ShipGroupForm(forms.ModelForm):
             if stock is not None:
                 # remove and deallocate quantity
                 Stock.objects.decrease_stock(stock, line.quantity)
-        self.instance.change_status('shipped')
+        self.instance.change_status(OrderStatus.SHIPPED)
         statuses = [g.status for g in order.groups.all()]
-        if 'shipped' in statuses and 'new' not in statuses:
-            order.change_status('shipped')
+        if OrderStatus.SHIPPED in statuses and OrderStatus.NEW not in statuses:
+            order.change_status(OrderStatus.SHIPPED)
 
 
 class CancelGroupForm(forms.Form):
@@ -282,11 +281,15 @@ class RemoveVoucherForm(forms.Form):
         self.order.voucher = None
         Order.objects.recalculate_order(self.order)
 
-ORDER_STATUS_CHOICES = [('', pgettext_lazy('Order status field value',
-                                           'All'))] + Status.CHOICES
 
-PAYMENT_STATUS_CHOICES = (('', pgettext_lazy('Payment status field value',
-                                             'All')),) + PAYMENT_STATUS_CHOICES
+ORDER_STATUS_CHOICES = [
+    ('', pgettext_lazy('Order status field value', 'All'))
+] + OrderStatus.CHOICES
+
+
+PAYMENT_STATUS_CHOICES = [
+    ('', pgettext_lazy('Payment status field value', 'All')),
+] + PaymentStatus.CHOICES
 
 
 class OrderFilterForm(forms.Form):

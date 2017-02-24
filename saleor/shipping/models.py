@@ -40,7 +40,7 @@ class ShippingMethod(models.Model):
 
     @property
     def price_range(self):
-        prices = list(self.price_per_country.values_list('price', flat=True))
+        prices = [country.price for country in self.price_per_country.all()]
         if prices:
             return PriceRange(min(prices), max(prices))
 

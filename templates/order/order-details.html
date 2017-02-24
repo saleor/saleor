@@ -10,12 +10,16 @@
     <div class="row">
           {% if order.is_shipping_required %}
       <div class="col-6">
-        <h3>{% trans "Shipping address" %}</h3>
+        <h3>
+            {% trans "Shipping address" context "Order details address title" %}
+        </h3>
               <address>{% include "userprofile/snippets/address-short.html" with address=order.shipping_address %}</address>
       </div>
               {% endif %}
       <div class="col-6">
-        <h3>{% trans "Billing address" %}</h3>
+        <h3>
+            {% trans "Billing address" context "Order details address title" %}
+        </h3>
         <address>{% include "userprofile/snippets/address-short.html" with address=order.billing_address %}</address>
       </div>
     </div>
@@ -24,13 +28,19 @@
 <div class="order-details__table-header hidden-sm-down">
   <div class="row">
     <div class="col-md-6">
-      <small>{% trans "Product" %}</small>
+      <small>
+          {% trans "Product" context "Order details column title" %}
+      </small>
     </div>
     <div class="col-md-3">
-      <small>{% trans "Quantity" %}</small>
+      <small>
+          {% trans "Quantity" context "Order details column title" %}
+      </small>
     </div>
     <div class="col-md-3">
-      <small>{% trans "Price" %}</small>
+      <small>
+          {% trans "Price" context "Order details column title" %}
+      </small>
     </div>
   </div>
 </div>
@@ -61,9 +71,17 @@
     {% if order.is_shipping_required %}
         <div class="row">
           <div class="col-8">
-            <p>{% trans "Delivery" %} ({{ item.shipping_method_name }})</p>
+            <p>
+              {% blocktrans trimmed with shipping_method_name=item.shipping_method_name context "Order details delivery row text"  %}
+                Delivery ({{ shipping_method_name }})
+              {% endblocktrans %}
+            </p>
             {% if item.tracking_number %}
-              <p>{% trans "Tracking number: " %} {{ item.tracking_number }}</p>
+              <p>
+                {% blocktrans trimmed with tracking_number=item.tracking_number context "Order details delivery row text"  %}
+                  Tracking number: {{ tracking_number }}
+                {% endblocktrans %}
+              </p>
             {% endif %}
           </div>
           <div class="col-4">
@@ -85,7 +103,7 @@
       <div class="row">
         <div class="col-8">
           <div class="total">
-            <p><strong>{% trans "Total" %}</strong></p>
+            <p><strong>{% trans "Total" context "Order details total text" %}</strong></p>
           </div>
         </div>
         <div class="col-4">

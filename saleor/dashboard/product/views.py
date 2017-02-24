@@ -39,7 +39,8 @@ def product_class_create(request):
                                   instance=product_class)
     if form.is_valid():
         product_class = form.save()
-        msg = pgettext_lazy('Dashboard message', 'Added product type %s') % product_class
+        msg = pgettext_lazy(
+            'Dashboard message', 'Added product type %s') % product_class
         messages.success(request, msg)
         return redirect('dashboard:product-class-list')
     ctx = {'form': form, 'product_class': product_class}
@@ -55,7 +56,8 @@ def product_class_edit(request, pk):
                                   instance=product_class)
     if form.is_valid():
         product_class = form.save()
-        msg = pgettext_lazy('Dashboard message', 'Updated product type %s') % product_class
+        msg = pgettext_lazy(
+            'Dashboard message', 'Updated product type %s') % product_class
         messages.success(request, msg)
         return redirect('dashboard:product-class-update', pk=pk)
     ctx = {'form': form, 'product_class': product_class}
@@ -141,7 +143,7 @@ def product_edit(request, pk):
     images = product.images.all()
     variants = product.variants.all()
     stock_items = Stock.objects.filter(
-        variant__in=variants).select_related('variant')
+        variant__in=variants).select_related('variant', 'location')
 
     form = forms.ProductForm(request.POST or None, instance=product)
     variants_delete_form = forms.VariantBulkDeleteForm()
@@ -158,7 +160,8 @@ def product_edit(request, pk):
 
     if form.is_valid() and not variant_errors:
         product = form.save()
-        msg = pgettext_lazy('Dashboard message', 'Updated product %s') % product
+        msg = pgettext_lazy(
+            'Dashboard message', 'Updated product %s') % product
         messages.success(request, msg)
         return redirect('dashboard:product-update', pk=product.pk)
     ctx = {'attributes': attributes, 'images': images, 'product_form': form,
@@ -195,7 +198,8 @@ def stock_edit(request, product_pk, stock_pk=None):
                            product=product)
     if form.is_valid():
         form.save()
-        messages.success(request, pgettext_lazy('Dashboard message', 'Saved stock'))
+        messages.success(
+            request, pgettext_lazy('Dashboard message', 'Saved stock'))
         product_url = reverse(
             'dashboard:product-update', kwargs={'pk': product_pk})
         success_url = request.POST.get('success_url', product_url)
@@ -211,7 +215,8 @@ def stock_delete(request, product_pk, stock_pk):
     stock = get_object_or_404(Stock, pk=stock_pk)
     if request.method == 'POST':
         stock.delete()
-        messages.success(request, pgettext_lazy('Dashboard message', 'Deleted stock'))
+        messages.success(
+            request, pgettext_lazy('Dashboard message', 'Deleted stock'))
         success_url = request.POST['success_url']
         if is_safe_url(success_url, request.get_host()):
             return redirect(success_url)
@@ -228,7 +233,8 @@ def stock_bulk_delete(request, product_pk):
     if form.is_valid():
         form.delete()
         success_url = request.POST['success_url']
-        messages.success(request, pgettext_lazy('Dashboard message', 'Deleted stock'))
+        messages.success(
+            request, pgettext_lazy('Dashboard message', 'Deleted stock'))
         if is_safe_url(success_url, request.get_host()):
             return redirect(success_url)
     return redirect('dashboard:product-update', pk=product.pk)

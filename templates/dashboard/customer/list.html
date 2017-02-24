@@ -24,7 +24,7 @@
 
             <div class="col s5 m3 l3">
                 <button type="submit" class="btn btn--inline">
-                    {% trans "Filter" context="Customer list form primary action" %}</button>
+                    {% trans "Filter" context "Customer list form primary action" %}</button>
                 {% if form.is_bound %}
                     <a class="btn btn--inline" href="{% url 'dashboard:customers' %}">
                         {% trans "Clear" context "Customer list form secondary action" %}</a>

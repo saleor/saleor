@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Payment" %} — {{ block.super }}{% endblock %}
+{% block title %}{% trans "Payment" context "Payment form page title" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
   <div class="row checkout">
     <div class="col-md-6 offset-lg-1">
-      <h1>Payment</h1>
+      <h1>{% trans "Payment" context "Payment form title" %} </h1>
       {% block forms %}{% endblock %}
     </div>
   </div>

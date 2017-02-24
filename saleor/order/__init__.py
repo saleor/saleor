@@ -1,7 +1,7 @@
 from django.utils.translation import pgettext_lazy
 
 
-class Status(object):
+class OrderStatus:
     NEW = 'new'
     CANCELLED = 'cancelled'
     SHIPPED = 'shipped'

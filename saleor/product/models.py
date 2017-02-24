@@ -2,14 +2,14 @@ from __future__ import unicode_literals
 
 import datetime
 from decimal import Decimal
-from typing import Any, Dict, Iterable, Union, Iterator, TYPE_CHECKING
+from typing import Any, Dict, Iterable, Iterator, Union
 
 from django.conf import settings
 from django.contrib.postgres.fields import HStoreField
 from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
-from django.db.models import F, Manager, Q, QuerySet
+from django.db.models import F, Max, Q, QuerySet
 from django.utils import six
 from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.text import slugify
@@ -20,22 +20,11 @@ from mptt.models import MPTTModel
 from prices import Price, PriceRange
 from satchless.item import InsufficientStock, Item, ItemRange
 from text_unidecode import unidecode
+from versatileimagefield.fields import PPOIField, VersatileImageField
 
-from ...discount.models import Sale, calculate_discounted_price
-from ...search import index
+from ..discount.models import Sale, calculate_discounted_price
+from ..search import index
 from .utils import get_attributes_display_map
-
-if TYPE_CHECKING:
-    from .images import ProductImage
-
-class CategoryManager(Manager):
-
-    def prefetch_for_api(self):
-        # type: () -> Iterable[Category]
-        """Prefetch tables used by API"""
-        return self.get_queryset().prefetch_related(
-            'products__images', 'products__variants',
-            'products__variants__stock')
 
 
 @python_2_unicode_compatible
@@ -60,7 +49,7 @@ class Category(MPTTModel):
     hidden = models.BooleanField(
         pgettext_lazy('Category field', 'hidden'), default=False)
 
-    objects = CategoryManager()
+    objects = models.Manager()
     tree = TreeManager()
 
     class Meta:
@@ -141,12 +130,6 @@ class ProductManager(models.Manager):
         today = datetime.date.today()
         return self.get_queryset().filter(
             Q(available_on__lte=today) | Q(available_on__isnull=True))
-
-    def prefetch_for_api(self):
-        # type: () -> Iterable[Product]
-        """Prefetch tables used by API"""
-        return self.get_queryset().prefetch_related(
-            'images', 'categories', 'variants', 'variants__stock')
 
 
 @python_2_unicode_compatible
@@ -556,6 +539,7 @@ class AttributeChoiceValue(models.Model):
     attribute = models.ForeignKey(ProductAttribute, related_name='values')
 
     class Meta:
+        unique_together = ('display', 'attribute')
         verbose_name = pgettext_lazy(
             'Attribute choice value model',
             'attribute choices value')
@@ -565,3 +549,88 @@ class AttributeChoiceValue(models.Model):
 
     def __str__(self):
         return self.display
+
+
+class ImageManager(models.Manager):
+    def first(self):
+        # type: () -> Union[None, ProductImage]
+        try:
+            return self.get_queryset()[0]
+        except IndexError:
+            pass
+
+
+class ProductImage(models.Model):
+    """ Product image model
+
+    Fields:
+    product -- foreign key to Product
+    image -- uploaded image
+    ppoi -- Primary Point of Interest
+    alt -- short description
+    order -- order in ProductImage queryset
+
+    objects - instance of ImageManager
+    """
+    product = models.ForeignKey(
+        Product, related_name='images',
+        verbose_name=pgettext_lazy('Product image field', 'product'))
+    image = VersatileImageField(
+        upload_to='products', ppoi_field='ppoi', blank=False,
+        verbose_name=pgettext_lazy('Product image field', 'image'))
+    ppoi = PPOIField(verbose_name=pgettext_lazy('Product image field', 'ppoi'))
+    alt = models.CharField(
+        pgettext_lazy('Product image field', 'short description'),
+        max_length=128, blank=True)
+    order = models.PositiveIntegerField(
+        pgettext_lazy('Product image field', 'order'),
+        editable=False)
+
+    objects = ImageManager()
+
+    class Meta:
+        ordering = ('order', )
+        app_label = 'product'
+        verbose_name = pgettext_lazy('Product image model', 'product image')
+        verbose_name_plural = pgettext_lazy('Product image model', 'product images')
+
+    def get_ordering_queryset(self):
+        # type: () -> QuerySet
+        """ Return product image in order"""
+        return self.product.images.all()
+
+    def save(self, *args, **kwargs):
+        # type: (...) -> None
+        if self.order is None:
+            qs = self.get_ordering_queryset()
+            existing_max = qs.aggregate(Max('order'))
+            existing_max = existing_max.get('order__max')
+            self.order = 0 if existing_max is None else existing_max + 1
+        super(ProductImage, self).save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # type: (...) -> None
+        qs = self.get_ordering_queryset()
+        qs.filter(order__gt=self.order).update(order=F('order') - 1)
+        super(ProductImage, self).delete(*args, **kwargs)
+
+
+class VariantImage(models.Model):
+    """ Image for Product Variant e.g. photo of blue shirt
+
+    Fields:
+    variant -- foreign key to Product Variant
+    image -- foreign key to Product Image
+    """
+    variant = models.ForeignKey(
+        'ProductVariant', related_name='variant_images',
+        verbose_name=pgettext_lazy('Variant image field', 'variant'))
+    image = models.ForeignKey(
+        ProductImage, related_name='variant_images',
+        verbose_name=pgettext_lazy('Variant image field', 'image'))
+
+    class Meta:
+        verbose_name = pgettext_lazy(
+            'Variant image model', 'variant image')
+        verbose_name_plural = pgettext_lazy(
+            'Variant image model', 'variant images')

@@ -1,2 +1,2 @@
 {% load i18n %}
-{% trans "Confirm your email address" %}
+{% trans "Confirm your email address" context "Email confirmation subject" %}

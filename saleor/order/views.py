@@ -9,19 +9,23 @@ from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
+from payments import PaymentStatus, RedirectNeeded
 
-from payments import RedirectNeeded
 from .forms import PaymentDeleteForm, PaymentMethodsForm, PasswordForm
 from .models import Order, Payment
 from .utils import check_order_status, attach_order_to_user
 from ..core.utils import get_client_ip
 from ..userprofile.models import User
+from . import OrderStatus
 
 logger = logging.getLogger(__name__)
 
 
 def details(request, token):
-    orders = Order.objects.prefetch_related('groups__items')
+    orders = Order.objects.prefetch_related('groups__items',
+                                            'groups__items__product')
+    orders = orders.select_related('billing_address', 'shipping_address',
+                                   'user')
     order = get_object_or_404(orders, token=token)
     groups = order.groups.all()
     return TemplateResponse(request, 'order/details.html',
@@ -29,13 +33,15 @@ def details(request, token):
 
 
 def payment(request, token):
-    orders = Order.objects.prefetch_related('groups__items')
+    orders = Order.objects.prefetch_related('groups__items__product')
+    orders = orders.select_related('billing_address', 'shipping_address',
+                                   'user')
     order = get_object_or_404(orders, token=token)
     groups = order.groups.all()
     payments = order.payments.all()
     form_data = request.POST or None
     try:
-        waiting_payment = order.payments.get(status='waiting')
+        waiting_payment = order.payments.get(status=PaymentStatus.WAITING)
     except Payment.DoesNotExist:
         waiting_payment = None
         waiting_payment_form = None
@@ -63,7 +69,7 @@ def payment(request, token):
 
 @check_order_status
 def start_payment(request, order, variant):
-    waiting_payments = order.payments.filter(status='waiting').exists()
+    waiting_payments = order.payments.filter(status=PaymentStatus.WAITING).exists()
     if waiting_payments:
         return redirect('order:payment', token=order.token)
     billing = order.billing_address
@@ -77,7 +83,7 @@ def start_payment(request, order, variant):
                 'billing_address_2': billing.street_address_2,
                 'billing_city': billing.city,
                 'billing_postcode': billing.postal_code,
-                'billing_country_code': billing.country,
+                'billing_country_code': billing.country.code,
                 'billing_email': order.user_email,
                 'description': pgettext_lazy(
                     'Payment description', 'Order %(order_number)s') % {
@@ -88,9 +94,10 @@ def start_payment(request, order, variant):
     if variant not in [code for code, dummy_name in variant_choices]:
         raise Http404('%r is not a valid payment variant' % (variant,))
     with transaction.atomic():
-        order.change_status('payment-pending')
+        order.change_status(OrderStatus.PAYMENT_PENDING)
         payment, dummy_created = Payment.objects.get_or_create(
-            variant=variant, status='waiting', order=order, defaults=defaults)
+            variant=variant, status=PaymentStatus.WAITING, order=order,
+            defaults=defaults)
         try:
             form = payment.get_form(data=request.POST or None)
         except RedirectNeeded as redirect_to:
@@ -103,7 +110,7 @@ def start_payment(request, order, variant):
                     'Payment gateway error',
                     'Oops, it looks like we were unable to contact the selected'
                     ' payment service'))
-            payment.change_status('error')
+            payment.change_status(PaymentStatus.ERROR)
             return redirect('order:payment', token=order.token)
     template = 'order/payment/%s.html' % variant
     return TemplateResponse(request, [template, 'order/payment/default.html'],

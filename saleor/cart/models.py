@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from collections import namedtuple
 from decimal import Decimal
+from prices import Price
 from uuid import uuid4
 
 from django.conf import settings
@@ -46,18 +47,11 @@ class CartQueryset(models.QuerySet):
     def canceled(self):
         return self.filter(status=CartStatus.CANCELED)
 
-    def save(self):
-        self.update(status=CartStatus.SAVED)
-
     def for_display(self):
         return self.prefetch_related(
-            'lines',
-            'lines__variant',
-            'lines__variant__product',
+            'lines__variant__product__categories',
             'lines__variant__product__images',
-            'lines__variant__product__product_class__product_attributes',
             'lines__variant__product__product_class__product_attributes__values',  # noqa
-            'lines__variant__product__product_class__variant_attributes',
             'lines__variant__product__product_class__variant_attributes__values',  # noqa
             'lines__variant__stock')
 
@@ -73,21 +67,25 @@ class Cart(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='carts',
         verbose_name=pgettext_lazy('Cart field', 'user'))
-    email = models.EmailField(pgettext_lazy('Cart field', 'email'), blank=True, null=True)
+    email = models.EmailField(
+        pgettext_lazy('Cart field', 'email'), blank=True, null=True)
     token = models.UUIDField(
         pgettext_lazy('Cart field', 'token'),
         primary_key=True, default=uuid4, editable=False)
     voucher = models.ForeignKey(
-        'discount.Voucher', null=True, related_name='+', on_delete=models.SET_NULL,
+        'discount.Voucher', null=True, related_name='+',
+        on_delete=models.SET_NULL,
         verbose_name=pgettext_lazy('Cart field', 'token'))
     checkout_data = JSONField(
-        verbose_name=pgettext_lazy('Cart field', 'checkout data'), null=True, editable=False,)
+        verbose_name=pgettext_lazy('Cart field', 'checkout data'), null=True,
+        editable=False,)
 
     total = PriceField(
         pgettext_lazy('Cart field', 'total'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         default=0)
-    quantity = models.PositiveIntegerField(pgettext_lazy('Cart field', 'quantity'), default=0)
+    quantity = models.PositiveIntegerField(
+        pgettext_lazy('Cart field', 'quantity'), default=0)
 
     objects = CartQueryset.as_manager()
 
@@ -148,7 +146,8 @@ class Cart(models.Model):
                      for item in self.lines.all()]
         if not subtotals:
             raise AttributeError('Calling get_total() on an empty item set')
-        return sum(subtotals[1:], subtotals[0])
+        zero = Price(0, currency=settings.DEFAULT_CURRENCY)
+        return sum(subtotals, zero)
 
     def count(self):
         lines = self.lines.all()
@@ -214,7 +213,8 @@ class CartLine(models.Model, ItemLine):
         pgettext_lazy('Cart line field', 'quantity'),
         validators=[MinValueValidator(0), MaxValueValidator(999)])
     data = JSONField(
-        blank=True, default={}, verbose_name=pgettext_lazy('Cart line field', 'data'))
+        blank=True, default={},
+        verbose_name=pgettext_lazy('Cart line field', 'data'))
 
     class Meta:
         unique_together = ('cart', 'variant', 'data')

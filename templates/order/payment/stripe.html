@@ -8,7 +8,9 @@
     {{ form.media }}
     {% bootstrap_form form layout='horizontal' %}
     {% if form.errors %}
-    <a class="btn" href="{% url "order:details" token=payment.order.token %}">{% trans "Change payment method" %}</a>
+    <a class="btn" href="{% url "order:details" token=payment.order.token %}">
+        {% trans "Change payment method" context "Payment form (Stripe) secondary action" %}
+    </a>
     {% endif %}
 </form>
 {% endblock forms %}

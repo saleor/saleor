@@ -61,6 +61,7 @@
     background-color: $light-gray;
     @include media-breakpoint-down(sm) {
       position: fixed;
+      top: 0;
       width: 100vw;
       background-color: $white;
       z-index: 4;
