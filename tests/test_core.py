@@ -176,8 +176,6 @@ def test_set_country(client):
     url = reverse('set-country')
     response = client.post(url, {'country': 'PL', 'next': 'cart/'})
     assert response.status_code == 302
-    redirect_location = get_redirect_location(response)
-    assert redirect_location == 'cart/'
 
     cookie_value = client.cookies.get(COOKIE_COUNTRY).value
     assert cookie_value == 'PL'
@@ -186,10 +184,6 @@ def test_set_country(client):
 def test_set_country_wrong_country(client):
     url = reverse('set-country')
     response = client.post(url, {'country': 'PL124', 'next': 'cart/'})
-    assert response.status_code == 302
-    redirect_location = get_redirect_location(response)
-    assert redirect_location == 'cart/'
-
     cookie_value = client.cookies.get(COOKIE_COUNTRY)
     assert cookie_value is None
 
