@@ -9,6 +9,7 @@ from collections import defaultdict
 from django.conf import settings
 from django.core.files import File
 from django.template.defaultfilters import slugify
+from django.utils.six import moves
 from faker import Factory
 from faker.providers import BaseProvider
 from payments import PaymentStatus
@@ -186,14 +187,18 @@ def get_variant_combinations(product):
                         for attr
                         in product.product_class.variant_attributes.all()}
     all_combinations = itertools.product(*variant_attr_map.values())
-    return [{str(attr_value.attribute.pk): str(attr_value.pk)}
-            for combination in all_combinations
-            for attr_value in combination]
+    return [{str(attr_value.attribute.pk): str(attr_value.pk)
+            for attr_value in combination}
+            for combination in all_combinations]
 
 
-def get_price_override(schema):
+def get_price_override(schema, combinations_num, current_price):
+    prices = []
     if schema.get('different_variant_prices'):
-        return fake.price()
+        prices = sorted(
+            [current_price + fake.price() for _ in range(combinations_num)],
+            reverse=True)
+    return prices
 
 
 def create_products_by_class(product_class, schema,
@@ -212,10 +217,19 @@ def create_products_by_class(product_class, schema,
             create_product_images(
                 product, random.randrange(1, 5), class_placeholders)
         variant_combinations = get_variant_combinations(product)
-        for i, attr_combination in enumerate(variant_combinations, 1337):
+
+        prices = get_price_override(
+            schema, len(variant_combinations), product.price)
+        variants_with_prices = moves.zip_longest(
+            variant_combinations, prices)
+
+        for i, variant_price in enumerate(variants_with_prices, start=1337):
+            attr_combination, price = variant_price
             sku = '%s-%s' % (product.pk, i)
-            create_variant(product, attributes=attr_combination,
-                           price_override=get_price_override(schema), sku=sku)
+            create_variant(
+                product, attributes=attr_combination, sku=sku,
+                price_override=price)
+
         if not variant_combinations:
             # Create min one variant for products without variant level attrs
             sku = '%s-%s' % (product.pk, fake.random_int(1000, 100000))
