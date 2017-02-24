@@ -11,9 +11,11 @@ from django.core.files import File
 from django.template.defaultfilters import slugify
 from faker import Factory
 from faker.providers import BaseProvider
+from payments import PaymentStatus
 from prices import Price
 
 from ...discount.models import Sale, Voucher
+from ...order import OrderStatus
 from ...order.models import DeliveryGroup, Order, OrderedItem, Payment
 from ...product.models import (AttributeChoiceValue, Category, Product,
                                ProductAttribute, ProductClass, ProductImage,
@@ -356,7 +358,8 @@ def create_fake_user():
 
 def create_payment(delivery_group):
     order = delivery_group.order
-    status = random.choice(['waiting', 'preauth', 'confirmed'])
+    status = random.choice(
+        [PaymentStatus.WAITING, PaymentStatus.PREAUTH, PaymentStatus.CONFIRMED])
     payment = Payment.objects.create(
         order=order,
         status=status,
@@ -372,7 +375,7 @@ def create_payment(delivery_group):
         billing_city=order.billing_address.city,
         billing_postcode=order.billing_address.postal_code,
         billing_country_code=order.billing_address.country)
-    if status == 'confirmed':
+    if status == PaymentStatus.CONFIRMED:
         payment.captured_amount = payment.total
         payment.save()
     return payment
@@ -427,7 +430,7 @@ def create_fake_order():
             'user_email': get_email(
                 address.first_name, address.last_name)}
     order = Order.objects.create(**user_data)
-    order.change_status('payment-pending')
+    order.change_status(OrderStatus.PAYMENT_PENDING)
 
     delivery_group = create_delivery_group(order)
     lines = create_order_lines(delivery_group, random.randrange(1, 5))
@@ -437,10 +440,10 @@ def create_fake_order():
     order.save()
 
     payment = create_payment(delivery_group)
-    if payment.status == 'confirmed':
-        order.change_status('fully-paid')
+    if payment.status == PaymentStatus.CONFIRMED:
+        order.change_status(OrderStatus.FULLY_PAID)
         if random.choice([True, False]):
-            order.change_status('shipped')
+            order.change_status(OrderStatus.SHIPPED)
     return order
 
 

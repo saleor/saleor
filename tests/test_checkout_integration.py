@@ -1,4 +1,5 @@
 from django.core.urlresolvers import reverse
+from payments import FraudStatus, PaymentStatus
 
 from saleor.order.models import Order
 from saleor.userprofile.models import User
@@ -54,8 +55,8 @@ def test_checkout_flow(request_cart_with_item, client, shipping_method):  # pyli
     # Go to payment details page, enter payment data
     payment_page_url = payment_page.redirect_chain[0][0]
     payment_data = {
-        'status': 'preauth',
-        'fraud_status': 'unknown',
+        'status': PaymentStatus.PREAUTH,
+        'fraud_status': FraudStatus.UNKNOWN,
         'gateway_response': '3ds-disabled',
         'verification_result': 'waiting'}
     payment_response = client.post(payment_page_url, data=payment_data)
@@ -104,8 +105,8 @@ def test_checkout_flow_authenticated_user(authorized_client, billing_address,  #
 
     # Go to payment details page, enter payment data
     payment_data = {
-        'status': 'preauth',
-        'fraud_status': 'unknown',
+        'status': PaymentStatus.PREAUTH,
+        'fraud_status': FraudStatus.UNKNOWN,
         'gateway_response': '3ds-disabled',
         'verification_result': 'waiting'}
     payment_response = authorized_client.post(payment_page.request['PATH_INFO'],
