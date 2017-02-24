@@ -59,6 +59,7 @@ class Order(models.Model, ItemSet, index.Indexed):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='orders',
         verbose_name=pgettext_lazy('Order field', 'user'))
+    language_code = models.CharField(max_length=35, default=settings.LANGUAGE_CODE)
     tracking_client_id = models.CharField(
         pgettext_lazy('Order field', 'tracking client id'),
         max_length=36, blank=True, editable=False)
