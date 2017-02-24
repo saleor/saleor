@@ -1,13 +1,14 @@
 import React, { Component, PropTypes } from 'react';
 import FilterHeader from './FilterHeader';
+import {isMobile} from '../utils';
 
 export default class PriceFilter extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {
-      visibility: true
-    };
+      this.state = {
+        visibility: !isMobile()
+      };
   }
 
   static propTypes = {
@@ -47,7 +48,7 @@ export default class PriceFilter extends Component {
           title={gettext('Price range')}
           visibility={visibility}
         />
-        {visibility && (
+        {(visibility || minPrice || maxPrice) && (
           <div>
             <input
               className="form-control"
@@ -68,7 +69,7 @@ export default class PriceFilter extends Component {
               ref={input => (this.maxPriceInput = input)}
               type="number"
             />
-            <button className="btn" onClick={this.updateFilter}>{gettext('Update')}</button>
+            <button className="btn btn-primary" onClick={this.updateFilter}>{gettext('Update')}</button>
           </div>
         )}
       </div>

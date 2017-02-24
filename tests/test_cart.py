@@ -6,17 +6,20 @@ from uuid import uuid4
 import pytest
 from babeldjango.templatetags.babel import currencyfmt
 from django.contrib.auth.models import AnonymousUser
+from django.core import signing
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse
 from mock import MagicMock, Mock
-
-from saleor.cart.context_processors import cart_counter
-from satchless.item import InsufficientStock
 from prices import Price
+from satchless.item import InsufficientStock
 
-
-from saleor.cart import forms, utils
-from saleor.cart.models import Cart
+from saleor.cart import CartStatus, forms, utils
+from saleor.cart.context_processors import cart_counter
+from saleor.cart.models import Cart, ProductGroup
+from saleor.cart.views import update
 from saleor.discount.models import Sale
+from saleor.product.models import Category
 
 
 @pytest.fixture()
@@ -35,33 +38,39 @@ def cart_request_factory(rf, monkeypatch):
 
 
 @pytest.fixture()
-def opened_anonymous_cart(customer_user):
-    return Cart.objects.get_or_create(user=None, status=Cart.OPEN)[0]
+def opened_anonymous_cart(db):
+    return Cart.objects.get_or_create(user=None, status=CartStatus.OPEN)[0]
 
 
 @pytest.fixture()
-def cancelled_anonymous_cart(customer_user):
-    return Cart.objects.get_or_create(user=None, status=Cart.CANCELED)[0]
+def cancelled_anonymous_cart(db):
+    return Cart.objects.get_or_create(user=None, status=CartStatus.CANCELED)[0]
 
 
 @pytest.fixture()
 def opened_user_cart(customer_user):
-    return Cart.objects.get_or_create(user=customer_user, status=Cart.OPEN)[0]
+    return Cart.objects.get_or_create(
+        user=customer_user, status=CartStatus.OPEN)[0]
 
 
 @pytest.fixture()
 def cancelled_user_cart(customer_user):
-    return Cart.objects.get_or_create(user=customer_user,
-                                      status=Cart.CANCELED)[0]
+    return Cart.objects.get_or_create(
+        user=customer_user, status=CartStatus.CANCELED)[0]
 
+@pytest.fixture()
+def local_currency(monkeypatch):
+    def side_effect(price, currency):
+        return price
+    monkeypatch.setattr('saleor.cart.views.to_local_currency', side_effect)
 
-def test_get_or_create_anonymous_cart_from_token(opened_anonymous_cart,
-                                                 cancelled_anonymous_cart,
-                                                 opened_user_cart,
-                                                 cancelled_user_cart):
+def test_get_or_create_anonymous_cart_from_token(
+        opened_anonymous_cart, cancelled_anonymous_cart, opened_user_cart,
+        cancelled_user_cart):
     queryset = Cart.objects.all()
     carts = list(queryset)
-    cart = utils.get_or_create_anonymous_cart_from_token(opened_anonymous_cart.token)
+    cart = utils.get_or_create_anonymous_cart_from_token(
+        opened_anonymous_cart.token)
     assert Cart.objects.all().count() == 4
     assert cart == opened_anonymous_cart
 
@@ -71,7 +80,7 @@ def test_get_or_create_anonymous_cart_from_token(opened_anonymous_cart,
     assert Cart.objects.all().count() == 5
     assert cart not in carts
     assert cart.user is None
-    assert cart.status == Cart.OPEN
+    assert cart.status == CartStatus.OPEN
     cart.delete()
 
     # test against new token
@@ -79,7 +88,7 @@ def test_get_or_create_anonymous_cart_from_token(opened_anonymous_cart,
     assert Cart.objects.all().count() == 5
     assert cart not in carts
     assert cart.user is None
-    assert cart.status == Cart.OPEN
+    assert cart.status == CartStatus.OPEN
     cart.delete()
 
     # test against getting cart assigned to user
@@ -87,33 +96,32 @@ def test_get_or_create_anonymous_cart_from_token(opened_anonymous_cart,
     assert Cart.objects.all().count() == 5
     assert cart not in carts
     assert cart.user is None
-    assert cart.status == Cart.OPEN
+    assert cart.status == CartStatus.OPEN
     cart.delete()
 
 
-def test_get_or_create_user_cart(customer_user, opened_anonymous_cart,
-                                 cancelled_anonymous_cart, opened_user_cart,
-                                 cancelled_user_cart, admin_user):
+def test_get_or_create_user_cart(
+        customer_user, opened_anonymous_cart, cancelled_anonymous_cart,
+        opened_user_cart, cancelled_user_cart, admin_user):
     cart = utils.get_or_create_user_cart(customer_user)
     assert Cart.objects.all().count() == 4
     assert cart == opened_user_cart
 
     # test against getting closed carts
-    Cart.objects.create(user=admin_user, status=Cart.CANCELED)
+    Cart.objects.create(user=admin_user, status=CartStatus.CANCELED)
     queryset = Cart.objects.all()
     carts = list(queryset)
     cart = utils.get_or_create_user_cart(admin_user)
     assert Cart.objects.all().count() == 6
     assert cart not in carts
     assert cart.user is admin_user
-    assert cart.status == Cart.OPEN
+    assert cart.status == CartStatus.OPEN
     cart.delete()
 
 
-def test_get_anonymous_cart_from_token(opened_anonymous_cart,
-                                       cancelled_anonymous_cart,
-                                       opened_user_cart,
-                                       cancelled_user_cart):
+def test_get_anonymous_cart_from_token(
+        opened_anonymous_cart, cancelled_anonymous_cart, opened_user_cart,
+        cancelled_user_cart):
     cart = utils.get_anonymous_cart_from_token(opened_anonymous_cart.token)
     assert Cart.objects.all().count() == 4
     assert cart == opened_anonymous_cart
@@ -134,15 +142,15 @@ def test_get_anonymous_cart_from_token(opened_anonymous_cart,
     assert cart is None
 
 
-def test_get_user_cart(opened_anonymous_cart, cancelled_anonymous_cart,
-                       opened_user_cart, cancelled_user_cart, admin_user,
-                       customer_user):
+def test_get_user_cart(
+        opened_anonymous_cart, cancelled_anonymous_cart, opened_user_cart,
+        cancelled_user_cart, admin_user, customer_user):
     cart = utils.get_user_cart(customer_user)
     assert Cart.objects.all().count() == 4
     assert cart == opened_user_cart
 
     # test against getting closed carts
-    Cart.objects.create(user=admin_user, status=Cart.CANCELED)
+    Cart.objects.create(user=admin_user, status=CartStatus.CANCELED)
     queryset = Cart.objects.all()
     carts = list(queryset)
     cart = utils.get_user_cart(admin_user)
@@ -214,29 +222,61 @@ def test_get_cart_from_request(monkeypatch, customer_user,
     assert not Cart.objects.filter(token=returned_cart.token).exists()
 
 
-def test_find_and_assign_anonymous_cart(opened_anonymous_cart,
-                                        cancelled_anonymous_cart,
-                                        opened_user_cart, cancelled_user_cart,
-                                        customer_user, cart_request_factory):
-    request = cart_request_factory(user=customer_user, token=None)
-    anonymous_carts = Cart.objects.filter(user=None).count()
-    utils.find_and_assign_anonymous_cart(request)
-    assert Cart.objects.filter(user=None).count() == anonymous_carts
+def test_find_and_assign_anonymous_cart(
+        opened_anonymous_cart, customer_user, client):
+    cart_token = opened_anonymous_cart.token
+    # Anonymous user has a cart with token stored in cookie
+    value = signing.get_cookie_signer(salt=utils.COOKIE_NAME).sign(cart_token)
+    client.cookies[utils.COOKIE_NAME] = value
+    # Anonymous logs in
+    response = client.post(
+        '/account/login',
+        {'login': customer_user.email, 'password': 'password'})
+    assert response.context['user'] == customer_user
+    # User should have only one cart, the same as he had previously in
+    # anonymous session
+    authenticated_user_carts = customer_user.carts.filter(
+        status=CartStatus.OPEN)
+    assert authenticated_user_carts.count() == 1
+    assert authenticated_user_carts[0].token == cart_token
 
 
-def test_find_and_assign_anonymous_cart_and_close_opened(customer_user,
-                                                         opened_user_cart,
-                                                         opened_anonymous_cart,
-                                                         cart_request_factory):
+def test_login_without_a_cart(customer_user, client):
+    assert utils.COOKIE_NAME not in client.cookies
+    response = client.post(
+        '/account/login',
+        {'login': customer_user.email, 'password': 'password'})
+    assert response.context['user'] == customer_user
+    authenticated_user_carts = customer_user.carts.filter(
+        status=CartStatus.OPEN)
+    assert authenticated_user_carts.count() == 0
+
+
+def test_login_with_incorrect_cookie_token(customer_user, client):
+    value = signing.get_cookie_signer(salt=utils.COOKIE_NAME).sign('incorrect')
+    client.cookies[utils.COOKIE_NAME] = value
+    response = client.post(
+        '/account/login',
+        {'login': customer_user.email, 'password': 'password'})
+    assert response.context['user'] == customer_user
+    authenticated_user_carts = customer_user.carts.filter(
+        status=CartStatus.OPEN)
+    assert authenticated_user_carts.count() == 0
+
+
+def test_find_and_assign_anonymous_cart_and_close_opened(
+        customer_user, opened_user_cart, opened_anonymous_cart,
+        cart_request_factory):
     token = opened_anonymous_cart.token
     token_user = opened_user_cart.token
     request = cart_request_factory(user=customer_user, token=token)
-    utils.find_and_assign_anonymous_cart(request)
+    mock_view = lambda request: Mock(delete_cookie=lambda name: None)
+    utils.find_and_assign_anonymous_cart()(mock_view)(request)
     token_cart = Cart.objects.filter(token=token).first()
     user_cart = Cart.objects.filter(token=token_user).first()
     assert token_cart.user.pk == customer_user.pk
-    assert token_cart.status == Cart.OPEN
-    assert user_cart.status == Cart.CANCELED
+    assert token_cart.status == CartStatus.OPEN
+    assert user_cart.status == CartStatus.CANCELED
 
 
 def test_adding_without_checking(cart, product_in_stock):
@@ -294,10 +334,10 @@ def test_change_status(cart):
     with pytest.raises(ValueError):
         cart.change_status('spanish inquisition')
 
-    cart.change_status(Cart.OPEN)
-    assert cart.status == Cart.OPEN
-    cart.change_status(Cart.CANCELED)
-    assert cart.status == Cart.CANCELED
+    cart.change_status(CartStatus.OPEN)
+    assert cart.status == CartStatus.OPEN
+    cart.change_status(CartStatus.CANCELED)
+    assert cart.status == CartStatus.CANCELED
 
 
 def test_shipping_detection(cart, product_in_stock):
@@ -383,6 +423,10 @@ def test_add_to_cart_form():
         data = {'quantity': 1}
         form = forms.AddToCartForm(data=data, cart=cart, product=Mock())
         form.is_valid()
+    data = {}
+
+    form = forms.AddToCartForm(data=data, cart=cart, product=Mock())
+    assert not form.is_valid()
 
 
 def test_form_when_variant_does_not_exist():
@@ -468,7 +512,7 @@ def test_view_cart(client, sale, product_in_stock, request_cart):
     assert response.status_code == 200
 
 
-def test_view_update_cart_quantity(client, product_in_stock, request_cart):
+def test_view_update_cart_quantity(client, local_currency, product_in_stock, request_cart):
     variant = product_in_stock.variants.get()
     request_cart.add(variant, 1)
     response = client.post(
@@ -504,7 +548,6 @@ def test_cart_page_without_openexchagerates(
 
 def test_cart_page_with_openexchagerates(
         client, monkeypatch, product_in_stock, request_cart, settings):
-    settings.DEFAULT_CURRENCY = 'USD'
     settings.DEFAULT_COUNTRY = 'PL'
     settings.OPENEXCHANGERATES_API_KEY = 'fake-key'
     variant = product_in_stock.variants.get()
@@ -549,3 +592,129 @@ def test_total_with_discount(client, sale, request_cart, product_in_stock):
     request_cart.add(variant, 1)
     line = request_cart.lines.first()
     assert line.get_total(discounts=sales) == Price(currency="USD", net=5)
+
+
+def test_product_group():
+    group = ProductGroup([Mock(is_shipping_required=Mock(return_value=False)),
+                          Mock(is_shipping_required=Mock(return_value=False))])
+    assert not group.is_shipping_required()
+    group = ProductGroup([Mock(is_shipping_required=Mock(return_value=True)),
+                          Mock(is_shipping_required=Mock(return_value=False))])
+    assert group.is_shipping_required()
+
+
+def test_cart_queryset(customer_user):
+    saved_cart = Cart.objects.create(status=CartStatus.SAVED)
+    waiting_cart = Cart.objects.create(status=CartStatus.WAITING_FOR_PAYMENT)
+    checkout_cart = Cart.objects.create(status=CartStatus.CHECKOUT)
+    canceled_cart = Cart.objects.create(status=CartStatus.CANCELED)
+
+    anonymous_carts = Cart.objects.anonymous()
+    assert anonymous_carts.filter(pk=saved_cart.pk).exists()
+
+    saved = Cart.objects.saved()
+    assert saved.filter(pk=saved_cart.pk).exists()
+
+    waiting_for_payment = Cart.objects.waiting_for_payment()
+    assert waiting_for_payment.filter(pk=waiting_cart.pk).exists()
+
+    checkout = Cart.objects.checkout()
+    assert checkout.filter(pk=checkout_cart.pk).exists()
+
+    canceled = Cart.objects.canceled()
+    assert canceled.filter(pk=canceled_cart.pk).exists()
+
+
+def test_get_user_open_cart(customer_user, opened_user_cart):
+
+    assert Cart.get_user_open_cart(customer_user) == opened_user_cart
+
+    cart = Cart.objects.create(user=customer_user)
+
+    assert Cart.get_user_open_cart(customer_user) == cart
+    assert Cart.objects.get(pk=opened_user_cart.pk).status == CartStatus.CANCELED
+
+
+def test_cart_repr():
+    cart = Cart()
+
+    assert repr(cart) == 'Cart(quantity=0)'
+
+    cart.quantity = 1
+
+    assert repr(cart) == 'Cart(quantity=1)'
+
+
+def test_cart_get_total_empty(db):
+    cart = Cart.objects.create()
+
+    with pytest.raises(AttributeError):
+        cart.get_total()
+
+
+def test_cart_change_user(customer_user):
+    cart1 = Cart.objects.create()
+
+    cart1.change_user(customer_user)
+    cart2 = Cart.objects.create()
+
+    cart2.change_user(customer_user)
+
+    old_cart = Cart.objects.get(pk=cart1.pk)
+
+    assert old_cart.user == customer_user
+    assert old_cart.status == CartStatus.CANCELED
+
+
+def test_cart_line_repr(product_in_stock, request_cart_with_item):
+    variant = product_in_stock.variants.get()
+    line = request_cart_with_item.lines.first()
+    assert repr(line) == 'CartLine(variant=%r, quantity=%r, data=%r)' % (
+        variant, line.quantity, line.data)
+
+
+def test_cart_line_state(product_in_stock, request_cart_with_item):
+    variant = product_in_stock.variants.get()
+    line = request_cart_with_item.lines.first()
+
+    assert line.__getstate__() == (variant, line.quantity, line.data)
+
+    line.__setstate__((variant, 2, line.data))
+
+    assert line.quantity == 2
+
+
+def test_get_category_variants_and_prices(default_category, product_in_stock,
+                                          request_cart_with_item):
+    variant = product_in_stock.variants.get()
+    top_category = Category.objects.create(name='foo', slug='bar')
+    product_in_stock.categories.add(top_category)
+    default_category.parent = top_category
+    default_category.save()
+    result = list(utils.get_category_variants_and_prices(request_cart_with_item,
+                                                         top_category))
+    assert result[0][0] == variant
+
+
+def test_update_view_must_be_ajax(customer_user, rf):
+    request = rf.post('/')
+    request.user = customer_user
+    request.discounts = None
+    result = update(request, 1)
+    assert result.status_code == 302
+
+
+def test_get_or_create_db_cart(customer_user, db, rf):
+    def view(request, cart, *args, **kwargs):
+        return HttpResponse()
+
+    decorated_view = utils.get_or_create_db_cart()(view)
+    assert Cart.objects.filter(user=customer_user).count() == 0
+    request = rf.get('/')
+    request.user = customer_user
+    decorated_view(request)
+    assert Cart.objects.filter(user=customer_user).count() == 1
+
+    request.user = AnonymousUser()
+    decorated_view(request)
+    assert Cart.objects.filter(user__isnull=True).count() == 1

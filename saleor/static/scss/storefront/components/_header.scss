@@ -7,7 +7,7 @@
   }
   @media (max-width: 370px) { 
     img {
-      max-height: 27px;
+      max-height: 25px;
     }
   }
   &__login {
@@ -35,6 +35,21 @@
   }
   &__logo {
     padding: $global-padding * 2 0;
+    .menu-icon-mobile {
+        position: relative;
+        display: inline-block;
+        span {
+          position: absolute;
+          top: 1.3rem;
+          left: 1.1rem;
+          text-transform: uppercase;
+          font-size: 0.45rem;
+        }
+        img {
+          max-height: 20px;
+          vertical-align: top;
+        }
+    }
   }
   &__search {
     padding: $global-padding * 2 0;
@@ -46,6 +61,7 @@
     background-color: $light-gray;
     @include media-breakpoint-down(sm) {
       position: fixed;
+      top: 0;
       width: 100vw;
       background-color: $white;
       z-index: 4;
@@ -86,6 +102,9 @@
             padding: 2rem 1rem 2rem 0;
           }
         }
+        &:hover {
+          text-decoration: none;
+        }
         .cart-label {
           padding-right: $global-padding / 2;
         }
@@ -119,10 +138,11 @@
       position: relative;
       .mobile-close-search {
         position: absolute;
-        top: 1.9rem;
-        left: 1rem;
-        max-width: 22px;
         cursor: pointer;
+        padding: $global-padding * 1.9 $global-padding;
+        img {
+          width: 22px;
+        }
       }
       .search-input {
         width: 100%;
@@ -139,14 +159,15 @@
         width: 2.3rem;
         height: 2.3rem;
         position: absolute;
-        right: 0rem;
+        top: 0;
+        right: 0;
         cursor: pointer;
         border-left: solid 1px $gray;
         border-radius: 0;
         outline: 0;
         @include transition(background, 0.3s)
         img {
-          max-height: 1.5rem;
+          height: 1.5rem;
           padding: $global-padding / 7;
         }
       }

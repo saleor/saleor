@@ -21,6 +21,7 @@
     padding: $global-padding * 1.5 0 $global-padding;
     margin-bottom: $global-margin;
     @include media-breakpoint-down(sm) {
+        padding: $global-padding 0;
       & ~ .maincontent {
         margin-top: 0;
       }
@@ -32,8 +33,9 @@
       vertical-align: baseline;
       margin-right: $global-margin;
       @include media-breakpoint-down(sm) {
-        max-height: 30px;
+        max-height: 25px;
         vertical-align: text-bottom;
+        margin-right: 0;
       }
     }
     h1 {
@@ -41,7 +43,7 @@
       font-weight: 300;
       text-transform: uppercase;
       @include media-breakpoint-down(sm) {
-        font-size: 2.3rem;
+        font-size: 1.8rem;
         margin-bottom: 0;
       }
     }
@@ -56,16 +58,20 @@
       text-transform: uppercase;
     }
     .btn {
-      margin: $global-margin * 3 auto 0;
+      margin: $global-margin * 2 auto 0;
+      padding: $global-padding / 2 $global-padding * 2.5;
     }
     &__continue {
-      padding: $global-padding * 3 0 $global-padding;
+      padding: $global-padding * 2 0 $global-padding;
+      p {
+        font-size: 0.8rem;
+      }
     }
     &__form {
       background-color: $light-gray;
-      padding: $global-padding * 3 $global-padding * 6 $global-padding * 2;
-      @include media-breakpoint-only(md) {
-        padding: $global-padding * 3 $global-padding * 3 $global-padding * 2;
+      padding: $global-padding * 2 $global-padding * 6 $global-padding * 2;
+      @include media-breakpoint-down(md) {
+        padding: $global-padding * 2;
       }
       .form-group {
         text-align: left;
@@ -75,6 +81,8 @@
       }
       a {
         color: $body-color;
+        text-decoration: underline;
+        font-size: 0.8rem;
       }
     }
   }

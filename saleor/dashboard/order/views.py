@@ -5,30 +5,36 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
-from django.utils.translation import ugettext_lazy as _
-from django.views.generic import ListView
+from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
+from payments import PaymentStatus
 from prices import Price
 
+from ...core.utils import get_paginator_items
+from ...order import OrderStatus
 from ...order.models import Order, OrderedItem, OrderNote
 from ...userprofile.i18n import AddressForm
-from ..views import (FilterByStatusMixin, StaffMemberOnlyMixin,
-                     staff_member_required)
-from .forms import (CancelItemsForm, CancelOrderForm, CapturePaymentForm,
-                    ChangeQuantityForm, MoveItemsForm, OrderNoteForm,
-                    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm,
-                    ShipGroupForm, CancelGroupForm)
+from ..order.forms import OrderFilterForm
+from ..views import staff_member_required
+from .forms import (CancelGroupForm, CancelItemsForm, CancelOrderForm,
+                    CapturePaymentForm, ChangeQuantityForm, MoveItemsForm,
+                    OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
+                    RemoveVoucherForm, ShipGroupForm)
 
 
-class OrderListView(StaffMemberOnlyMixin, FilterByStatusMixin, ListView):
-    template_name = 'dashboard/order/list.html'
-    paginate_by = 20
-    model = Order
-
-    def get_queryset(self):
-        qs = super(OrderListView, self).get_queryset()
-        return qs.prefetch_related(
-            'groups', 'payments', 'groups__items').select_related('user')
+@staff_member_required
+def order_list(request):
+    orders = Order.objects.prefetch_related(
+        'groups', 'payments', 'groups__items', 'user').all()
+    active_status = request.GET.get('status')
+    if active_status:
+        orders = orders.filter(status=active_status)
+    page = get_paginator_items(orders, 20, request.GET.get('page'))
+    form = OrderFilterForm(
+        request.POST or None, initial={'status': active_status or None})
+    ctx = {'object_list': page.object_list, 'page_obj': page,
+           'is_paginated': page.has_other_pages(), 'form': form}
+    return TemplateResponse(request, 'dashboard/order/list.html', ctx)
 
 
 @staff_member_required
@@ -39,18 +45,19 @@ def order_details(request, order_pk):
                             'groups', 'groups__items'))
     order = get_object_or_404(qs, pk=order_pk)
     notes = order.notes.all()
-    all_payments = order.payments.all()
+    all_payments = order.payments.exclude(status=PaymentStatus.INPUT)
     payment = order.payments.last()
     groups = list(order)
     captured = preauthorized = Price(0, currency=order.get_total().currency)
     balance = captured - order.get_total()
     if payment:
-        can_capture = (payment.status == 'preauth' and
-                       order.status != 'cancelled')
-        can_release = payment.status == 'preauth'
-        can_refund = payment.status == 'confirmed'
+        can_capture = (
+            payment.status == PaymentStatus.PREAUTH and
+            order.status != OrderStatus.CANCELLED)
+        can_release = payment.status == PaymentStatus.PREAUTH
+        can_refund = payment.status == PaymentStatus.CONFIRMED
         preauthorized = payment.get_total_price()
-        if payment.status == 'confirmed':
+        if payment.status == PaymentStatus.CONFIRMED:
             captured = payment.get_captured_price()
             balance = captured - order.get_total()
     else:
@@ -72,7 +79,9 @@ def order_add_note(request, order_pk):
     status = 200
     if form.is_valid():
         form.save()
-        msg = _('Added note')
+        msg = pgettext_lazy(
+            'Dashboard message related to an order',
+            'Added note')
         order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
     elif form.errors:
@@ -92,7 +101,9 @@ def capture_payment(request, order_pk, payment_pk):
                               initial={'amount': amount})
     if form.is_valid() and form.capture():
         amount = form.cleaned_data['amount']
-        msg = _('Captured %(amount)s') % {'amount': gross(amount)}
+        msg = pgettext_lazy(
+            'Dashboard message related to a payment',
+            'Captured %(amount)s') % {'amount': gross(amount)}
         payment.order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
@@ -112,7 +123,9 @@ def refund_payment(request, order_pk, payment_pk):
                              initial={'amount': amount})
     if form.is_valid() and form.refund():
         amount = form.cleaned_data['amount']
-        msg = _('Refunded %(amount)s') % {'amount': gross(amount)}
+        msg = pgettext_lazy(
+            'Dashboard message related to a payment',
+            'Refunded %(amount)s') % {'amount': gross(amount)}
         payment.order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
@@ -129,7 +142,7 @@ def release_payment(request, order_pk, payment_pk):
     payment = get_object_or_404(order.payments, pk=payment_pk)
     form = ReleasePaymentForm(request.POST or None, payment=payment)
     if form.is_valid() and form.release():
-        msg = _('Released payment')
+        msg = pgettext_lazy('Dashboard message', 'Released payment')
         payment.order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
@@ -151,7 +164,8 @@ def orderline_change_quantity(request, order_pk, line_pk):
     if form.is_valid():
         with transaction.atomic():
             form.save()
-        msg = _(
+        msg = pgettext_lazy(
+            'Dashboard message related to an order line',
             'Changed quantity for product %(product)s from'
             ' %(old_quantity)s to %(new_quantity)s') % {
                 'product': item.product, 'old_quantity': old_quantity,
@@ -181,8 +195,11 @@ def orderline_split(request, order_pk, line_pk):
         with transaction.atomic():
             target_group = form.move_items()
         if not old_group.pk:
-            old_group = _('removed group')
-        msg = _(
+            old_group = pgettext_lazy(
+                'Dashboard message related to a delivery group',
+                'removed group')
+        msg = pgettext_lazy(
+            'Dashboard message related to delivery groups',
             'Moved %(how_many)s items %(item)s from %(old_group)s'
             ' to %(new_group)s') % {
                 'how_many': how_many, 'item': item, 'old_group': old_group,
@@ -204,7 +221,9 @@ def orderline_cancel(request, order_pk, line_pk):
     form = CancelItemsForm(data=request.POST or None, item=item)
     status = 200
     if form.is_valid():
-        msg = _('Cancelled item %s') % item
+        msg = pgettext_lazy(
+            'Dashboard message related to an order line',
+            'Cancelled item %s') % item
         with transaction.atomic():
             form.cancel_item()
             order.create_history_entry(comment=msg, user=request.user)
@@ -225,7 +244,9 @@ def ship_delivery_group(request, order_pk, group_pk):
     if form.is_valid():
         with transaction.atomic():
             form.save()
-        msg = _('Shipped %s') % group
+        msg = pgettext_lazy(
+            'Dashboard message related to a delivery group',
+            'Shipped %s') % group
         messages.success(request, msg)
         group.order.create_history_entry(comment=msg, user=request.user)
         return redirect('dashboard:order-details', order_pk=order_pk)
@@ -245,7 +266,9 @@ def cancel_delivery_group(request, order_pk, group_pk):
     if form.is_valid():
         with transaction.atomic():
             form.cancel_group()
-        msg = _('Cancelled %s') % group
+        msg = pgettext_lazy(
+            'Dashboard message related to a delivery group',
+            'Cancelled %s') % group
         messages.success(request, msg)
         group.order.create_history_entry(comment=msg, user=request.user)
         return redirect('dashboard:order-details', order_pk=order_pk)
@@ -261,10 +284,14 @@ def address_view(request, order_pk, address_type):
     order = Order.objects.get(pk=order_pk)
     if address_type == 'shipping':
         address = order.shipping_address
-        success_msg = _('Updated shipping address')
+        success_msg = pgettext_lazy(
+            'Dashboard message',
+            'Updated shipping address')
     else:
         address = order.billing_address
-        success_msg = _('Updated billing address')
+        success_msg = pgettext_lazy(
+            'Dashboard message',
+            'Updated billing address')
     form = AddressForm(request.POST or None, instance=address)
     status = 200
     if form.is_valid():
@@ -284,7 +311,7 @@ def cancel_order(request, order_pk):
     order = get_object_or_404(Order, pk=order_pk)
     form = CancelOrderForm(request.POST or None, order=order)
     if form.is_valid():
-        msg = _('Cancelled order')
+        msg = pgettext_lazy('Dashboard message', 'Cancelled order')
         with transaction.atomic():
             form.cancel_order()
             order.create_history_entry(comment=msg, user=request.user)
@@ -303,11 +330,11 @@ def remove_order_voucher(request, order_pk):
     order = get_object_or_404(Order, pk=order_pk)
     form = RemoveVoucherForm(request.POST or None, order=order)
     if form.is_valid():
-        msg = _('Removed voucher from Order')
+        msg = pgettext_lazy('Dashboard message', 'Removed voucher from order')
         with transaction.atomic():
             form.remove_voucher()
             order.create_history_entry(comment=msg, user=request.user)
-        messages.success(request, 'Voucher removed')
+        messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400

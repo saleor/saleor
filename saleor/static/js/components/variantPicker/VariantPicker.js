@@ -6,6 +6,7 @@ import React, { Component, PropTypes } from 'react';
 
 import AttributeSelectionWidget from './AttributeSelectionWidget';
 import QuantityInput from './QuantityInput';
+import * as queryString from 'query-string';
 
 @observer
 export default class VariantPicker extends Component {
@@ -24,15 +25,32 @@ export default class VariantPicker extends Component {
     const { store, variants } = this.props;
 
     const variant = variants.filter(v => !!Object.keys(v.attributes).length)[0];
-    const selection = variant ? variant.attributes : {};
-
+    const params = queryString.parse(location.search);
+    let selection = {};
+    if (Object.keys(params).length) {
+      Object.keys(params).some((name) => {
+        const valueName = params[name];
+        const attribute = this.matchAttributeByName(name);
+        const value = this.matchAttributeValueByName(attribute, valueName);
+        if (attribute && value) {
+          selection[attribute.pk] = value.pk.toString();
+        } else {
+          // if attribute doesn't exist - show variant
+          selection = variant ? variant.attributes : {};
+          // break
+          return true;
+        }
+      });
+    } else if (Object.keys(variant).length) {
+      selection = variant.attributes;
+    }
     this.state = {
       errors: {},
       quantity: 1,
       selection: selection
     };
-    store.setVariant(variant);
     store.setSelection(selection);
+    this.matchVariantFromSelection();
   }
 
   handleAddToCart = () => {
@@ -63,12 +81,43 @@ export default class VariantPicker extends Component {
     }, () => {
       store.setSelection(this.state.selection);
       this.matchVariantFromSelection();
+      let params = {};
+      Object.keys(this.state.selection).forEach(attrId => {
+        const attribute = this.matchAttribute(attrId);
+        const value = this.matchAttributeValue(attribute, this.state.selection[attrId]);
+        if (attribute && value) {
+          params[attribute.name] = value.slug;
+        }
+      });
+      history.pushState(null, null, '?' + queryString.stringify(params));
     });
   };
 
   handleQuantityChange = (event) => {
     this.setState({quantity: parseInt(event.target.value)});
   };
+
+  matchAttribute = (id) => {
+    const { variantAttributes } = this.props;
+    const match = variantAttributes.filter(attribute => attribute.pk.toString() === id);
+    return match.length > 0 ? match[0] : null;
+  }
+
+  matchAttributeByName = (name) => {
+    const { variantAttributes } = this.props;
+    const match = variantAttributes.filter(attribute => attribute.name === name);
+    return match.length > 0 ? match[0] : null;
+  }
+
+  matchAttributeValue = (attribute, id) => {
+    const match = attribute.values.filter(attribute => attribute.pk.toString() === id);
+    return match.length > 0 ? match[0] : null;
+  }
+
+  matchAttributeValueByName = (attribute, name) => {
+    const match = attribute ? attribute.values.filter(value => value.slug === name) : [];
+    return match.length > 0 ? match[0] : null;
+  }
 
   matchVariantFromSelection() {
     const { store, variants } = this.props;

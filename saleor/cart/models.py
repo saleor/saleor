@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from collections import namedtuple
 from decimal import Decimal
+from prices import Price
 from uuid import uuid4
 
 from django.conf import settings
@@ -14,7 +15,7 @@ from django_prices.models import PriceField
 from jsonfield import JSONField
 from satchless.item import ItemLine, ItemList, partition
 
-from . import logger
+from . import CartStatus, logger
 
 
 CENTS = Decimal('0.01')
@@ -32,82 +33,66 @@ class CartQueryset(models.QuerySet):
         return self.filter(user=None)
 
     def open(self):
-        return self.filter(status=Cart.OPEN)
+        return self.filter(status=CartStatus.OPEN)
 
     def saved(self):
-        return self.filter(status=Cart.SAVED)
+        return self.filter(status=CartStatus.SAVED)
 
     def waiting_for_payment(self):
-        return self.filter(status=Cart.WAITING_FOR_PAYMENT)
+        return self.filter(status=CartStatus.WAITING_FOR_PAYMENT)
 
     def checkout(self):
-        return self.filter(status=Cart.CHECKOUT)
+        return self.filter(status=CartStatus.CHECKOUT)
 
     def canceled(self):
-        return self.filter(status=Cart.CANCELED)
-
-    def save(self):
-        self.update(status=Cart.SAVED)
+        return self.filter(status=CartStatus.CANCELED)
 
     def for_display(self):
         return self.prefetch_related(
-            'lines',
-            'lines__variant',
-            'lines__variant__product',
+            'lines__variant__product__categories',
             'lines__variant__product__images',
-            'lines__variant__product__product_class__product_attributes',
             'lines__variant__product__product_class__product_attributes__values',  # noqa
-            'lines__variant__product__product_class__variant_attributes',
             'lines__variant__product__product_class__variant_attributes__values',  # noqa
             'lines__variant__stock')
 
 
 class Cart(models.Model):
-
-    COOKIE_NAME = 'cart'
-
-    OPEN, SAVED, WAITING_FOR_PAYMENT, ORDERED, CHECKOUT, CANCELED = (
-        'open', 'saved', 'payment', 'ordered', 'checkout', 'canceled')
-
-    STATUS_CHOICES = (
-        (OPEN, pgettext_lazy('Cart', 'Open - currently active')),
-        (WAITING_FOR_PAYMENT, pgettext_lazy('Cart', 'Waiting for payment')),
-        (SAVED, pgettext_lazy(
-            'Cart', 'Saved - for items to be purchased later')),
-        (ORDERED, pgettext_lazy(
-            'Cart', 'Submitted - has been ordered at the checkout')),
-        (CHECKOUT, pgettext_lazy(
-            'Cart', 'Checkout - basket is processed in checkout')),
-        (CANCELED, pgettext_lazy(
-            'Cart', 'Canceled - basket was canceled by user'))
-    )
-
     status = models.CharField(
-        pgettext_lazy('Cart', 'order status'),
-        max_length=32, choices=STATUS_CHOICES, default=OPEN)
+        pgettext_lazy('Cart field', 'order status'),
+        max_length=32, choices=CartStatus.CHOICES, default=CartStatus.OPEN)
     created = models.DateTimeField(
-        pgettext_lazy('Cart', 'created'), auto_now_add=True)
+        pgettext_lazy('Cart field', 'created'), auto_now_add=True)
     last_status_change = models.DateTimeField(
-        pgettext_lazy('Cart', 'last status change'), auto_now_add=True)
+        pgettext_lazy('Cart field', 'last status change'), auto_now_add=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, blank=True, null=True, related_name='carts',
-        verbose_name=pgettext_lazy('Cart', 'user'))
-    email = models.EmailField(blank=True, null=True)
-    token = models.UUIDField(pgettext_lazy('Cart', 'token'),
-                             primary_key=True, default=uuid4, editable=False)
-    voucher = models.ForeignKey('discount.Voucher', null=True,
-                                related_name='+', on_delete=models.SET_NULL)
-    checkout_data = JSONField(null=True, editable=False)
+        verbose_name=pgettext_lazy('Cart field', 'user'))
+    email = models.EmailField(
+        pgettext_lazy('Cart field', 'email'), blank=True, null=True)
+    token = models.UUIDField(
+        pgettext_lazy('Cart field', 'token'),
+        primary_key=True, default=uuid4, editable=False)
+    voucher = models.ForeignKey(
+        'discount.Voucher', null=True, related_name='+',
+        on_delete=models.SET_NULL,
+        verbose_name=pgettext_lazy('Cart field', 'token'))
+    checkout_data = JSONField(
+        verbose_name=pgettext_lazy('Cart field', 'checkout data'), null=True,
+        editable=False,)
 
     total = PriceField(
+        pgettext_lazy('Cart field', 'total'),
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2,
         default=0)
-    quantity = models.PositiveIntegerField(default=0)
+    quantity = models.PositiveIntegerField(
+        pgettext_lazy('Cart field', 'quantity'), default=0)
 
     objects = CartQueryset.as_manager()
 
     class Meta:
         ordering = ('-last_status_change',)
+        verbose_name = pgettext_lazy('Cart model', 'Cart')
+        verbose_name_plural = pgettext_lazy('Cart model', 'Carts')
 
     def __init__(self, *args, **kwargs):
         self.discounts = kwargs.pop('discounts', None)
@@ -121,7 +106,7 @@ class Cart(models.Model):
         self.save(update_fields=['quantity'])
 
     def change_status(self, status):
-        if status not in dict(self.STATUS_CHOICES):
+        if status not in dict(CartStatus.CHOICES):
             raise ValueError('Not expected status')
         if status != self.status:
             self.status = status
@@ -131,7 +116,7 @@ class Cart(models.Model):
     def change_user(self, user):
         open_cart = Cart.get_user_open_cart(user)
         if open_cart is not None:
-            open_cart.change_status(status=Cart.CANCELED)
+            open_cart.change_status(status=CartStatus.CANCELED)
         self.user = user
         self.save(update_fields=['user'])
 
@@ -141,7 +126,7 @@ class Cart(models.Model):
         if len(carts) > 1:
             logger.warning('%s has more than one open basket', user)
             for cart in carts[1:]:
-                cart.change_status(Cart.CANCELED)
+                cart.change_status(CartStatus.CANCELED)
         return carts.first()
 
     def is_shipping_required(self):
@@ -161,7 +146,8 @@ class Cart(models.Model):
                      for item in self.lines.all()]
         if not subtotals:
             raise AttributeError('Calling get_total() on an empty item set')
-        return sum(subtotals[1:], subtotals[0])
+        zero = Price(0, currency=settings.DEFAULT_CURRENCY)
+        return sum(subtotals, zero)
 
     def count(self):
         lines = self.lines.all()
@@ -217,17 +203,23 @@ class Cart(models.Model):
 @python_2_unicode_compatible
 class CartLine(models.Model, ItemLine):
 
-    cart = models.ForeignKey(Cart, related_name='lines')
+    cart = models.ForeignKey(
+        Cart, related_name='lines',
+        verbose_name=pgettext_lazy('Cart line field', 'cart'))
     variant = models.ForeignKey(
         'product.ProductVariant', related_name='+',
-        verbose_name=pgettext_lazy('Cart line', 'product'))
+        verbose_name=pgettext_lazy('Cart line field', 'product'))
     quantity = models.PositiveIntegerField(
-        pgettext_lazy('Cart line', 'quantity'),
+        pgettext_lazy('Cart line field', 'quantity'),
         validators=[MinValueValidator(0), MaxValueValidator(999)])
-    data = JSONField(blank=True, default={})
+    data = JSONField(
+        blank=True, default={},
+        verbose_name=pgettext_lazy('Cart line field', 'data'))
 
     class Meta:
         unique_together = ('cart', 'variant', 'data')
+        verbose_name = pgettext_lazy('Cart line model', 'Cart line')
+        verbose_name_plural = pgettext_lazy('Cart line model', 'Cart lines')
 
     def __str__(self):
         return smart_str(self.variant)

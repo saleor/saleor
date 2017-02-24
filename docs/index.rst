@@ -12,6 +12,7 @@ Contents:
    configuration
    products
    stock
+   settings
    payments
    integrations
    development

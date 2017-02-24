@@ -1,21 +1,17 @@
 from __future__ import unicode_literals
 
-from allauth.utils import get_request_param
 from babeldjango.templatetags.babel import currencyfmt
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 
 from ..core.utils import to_local_currency, get_user_shipping_country
 from ..product.models import ProductVariant
-from ..product.templatetags.product_images import get_thumbnail
 from ..shipping.utils import get_shipment_options
 from .forms import ReplaceCartLineForm, CountryForm
 from .models import Cart
-from .utils import (check_product_availability_and_warn,
-                    find_and_assign_anonymous_cart, get_or_create_db_cart,
-                    get_or_empty_db_cart)
+from .utils import check_product_availability_and_warn, get_or_empty_db_cart
 
 
 @get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
@@ -132,13 +128,3 @@ def summary(request, cart):
             'lines': [prepare_line_data(line) for line in cart.lines.all()]}
 
     return render(request, 'cart-dropdown.html', data)
-
-
-def assign_cart_and_redirect_view(request):
-    find_and_assign_anonymous_cart(request)
-    redirect_to = get_request_param(request, "next")
-    if redirect_to is None:
-        redirect_to = '/'
-    response = HttpResponseRedirect(redirect_to)
-    response.delete_cookie(Cart.COOKIE_NAME)
-    return response

@@ -8,11 +8,19 @@ import ProductFilters from './ProductFilters';
 import ProductList from './ProductList';
 import SortBy from './SortBy';
 import { ensureAllowedName, getAttributesFromQuery, getFromQuery } from './utils';
+import {isMobile} from '../utils';
 
 const PAGINATE_BY = 20;
 const SORT_BY_FIELDS = ['name', 'price'];
 
 class CategoryPage extends Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      filtersMenu: !isMobile()
+    };
+  }
 
   static propTypes = {
     attributes: PropTypes.array,
@@ -29,6 +37,20 @@ class CategoryPage extends Component {
   setSorting = (value) => {
     this.props.relay.setVariables({
       sortBy: value
+    });
+  }
+
+  toggleMenu = (target) => {
+    this.setState({
+      filtersMenu: !target
+    });
+  }
+
+  clearFilters = () => {
+    this.props.relay.setVariables({ 
+      attributesFilter: [],
+      minPrice: null,
+      maxPrice: null 
     });
   }
 
@@ -90,12 +112,13 @@ class CategoryPage extends Component {
 
   render() {
     const { attributes, category, relay: { variables } } = this.props;
+    const { filtersMenu } = this.state;
     return (
       <div className="category-page">
         <div className="category-top">
           <div className="row">
             <div className="col-md-8">
-              <ul className="category-breadcrumbs">
+              <ul className="category-breadcrumbs hidden-sm-down">
                 <li><a href="/">{gettext('Home')}</a></li>
                   {category.ancestors && (category.ancestors.map((ancestor) => {
                     return (
@@ -106,30 +129,47 @@ class CategoryPage extends Component {
               </ul>
             </div>
             <div className="col-md-4">
-              <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting} />
+              <div className="row">
+                <div className="col-6 col-md-2 col-lg-6 filters-menu">
+                  <span className="filters-menu-label hidden-sm-up" onClick={() => this.toggleMenu(filtersMenu)}>{gettext('Filters')}</span>
+                  {(variables.attributesFilter.length || variables.minPrice || variables.maxPrice) && (
+                    <span className="filters-menu-icon hidden-sm-up"></span>
+                  )}
+                </div>
+                <div className="col-6 col-md-10 col-lg-6">
+                  <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting} />
+                </div>
+              </div>
             </div>
           </div>
         </div>
         <div className="row">
-          <div className="col-md-3">
+          <div className="col-md-4 col-lg-3">
             <div className="product-filters">
               <CategoryFilter category={category} />
             </div>
-            <h2>{gettext('Filters')}</h2>
-            <div className="product-filters">
-              <ProductFilters
-                attributes={attributes}
-                checkedAttributes={variables.attributesFilter}
-                onFilterChanged={this.updateAttributesFilter}
-              />
-              <PriceFilter
-                onFilterChanged={this.updatePriceFilter}
-                maxPrice={variables.maxPrice}
-                minPrice={variables.minPrice}
-              />
+            {filtersMenu && (
+            <div>
+              <h2>
+                {gettext('Filters')}
+                <span className="clear-filters float-right" onClick={this.clearFilters}>{gettext('Clear filters')}</span>
+              </h2>
+              <div className="product-filters">
+                <ProductFilters
+                  attributes={attributes}
+                  checkedAttributes={variables.attributesFilter}
+                  onFilterChanged={this.updateAttributesFilter}
+                />
+                <PriceFilter
+                  onFilterChanged={this.updatePriceFilter}
+                  maxPrice={variables.maxPrice}
+                  minPrice={variables.minPrice}
+                />
+              </div>
             </div>
+            )}
           </div>
-          <div className="col-md-9 category-list">
+          <div className="col-md-8 col-lg-9 category-list">
             <div>
               <ProductList
                 onLoadMore={this.incrementProductsCount}

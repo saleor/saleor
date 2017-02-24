@@ -19,7 +19,7 @@ export default class sortBy extends Component {
   }
 
   setSorting = (event) => {
-    const value = event.target.className;
+    const value = event.currentTarget.className;
     this.props.setSorting(value);
     this.changeVisibility();
   }
@@ -61,40 +61,48 @@ export default class sortBy extends Component {
           <ul className="sort-list">
             <li className="name">
               <div className="row">
-                <div className="col-md-6">{gettext('Sort by:')} <strong>{gettext('Name')}</strong></div>
-                <div className="col-md-6">
-                    <span className="name" onClick={this.setSorting}>{gettext('ascending')}</span>
-                    <div className="float-right sort-order-icon">
-                      <InlineSVG src={arrowUpIcon} />
+                <div className="col-6">{gettext('Sort by:')} <strong>{gettext('Name')}</strong></div>
+                <div className="col-6">
+                    <div className="name" onClick={this.setSorting}>
+                      <span>{gettext('ascending')}</span>
+                      <div className="float-right sort-order-icon">
+                        <InlineSVG src={arrowUpIcon} />
+                      </div>
                     </div>
                 </div>
               </div>
               <div className="row">
-                <div className="col-md-6"></div>
-                <div className="col-md-6">
-                    <span className="-name" onClick={this.setSorting}>{gettext('descending')}</span>
-                    <div className="float-right sort-order-icon">
-                      <InlineSVG src={arrowDownIcon} />
+                <div className="col-6"></div>
+                <div className="col-6">
+                    <div className="-name" onClick={this.setSorting}>
+                      <span>{gettext('descending')}</span>
+                      <div className="float-right sort-order-icon">
+                        <InlineSVG src={arrowDownIcon} />
+                      </div>
                     </div>
                 </div>
               </div>
             </li>
             <li className="price">
               <div className="row">
-                <div className="col-md-6">{gettext('Sort by:')} <strong>{gettext('Price')}</strong></div>
-                <div className="col-md-6">
-                    <span className="price" onClick={this.setSorting}>{gettext('ascending')}</span>
-                    <div className="float-right sort-order-icon">
-                      <InlineSVG src={arrowUpIcon} />
+                <div className="col-6">{gettext('Sort by:')} <strong>{gettext('Price')}</strong></div>
+                <div className="col-6">
+                    <div className="price" onClick={this.setSorting}>
+                      <span>{gettext('ascending')}</span>
+                      <div className="float-right sort-order-icon">
+                        <InlineSVG src={arrowUpIcon} />
+                      </div>
                     </div>
                 </div>
               </div>
               <div className="row">
-                <div className="col-md-6"></div>
-                <div className="col-md-6">
-                    <span className="-price" onClick={this.setSorting}>{gettext('descending')}</span>
-                    <div className="float-right sort-order-icon">
-                      <InlineSVG src={arrowDownIcon} />
+                <div className="col-6"></div>
+                <div className="col-6">
+                    <div className="-price" onClick={this.setSorting}>
+                      <span>{gettext('descending')}</span>
+                      <div className="float-right sort-order-icon">
+                        <InlineSVG src={arrowDownIcon} />
+                      </div>
                     </div>
                 </div>
               </div>

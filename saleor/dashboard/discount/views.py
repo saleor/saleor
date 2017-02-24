@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 from ...discount.models import Sale, Voucher
 from . import forms
@@ -26,7 +26,9 @@ def sale_edit(request, pk=None):
         request.POST or None, instance=instance)
     if form.is_valid():
         instance = form.save()
-        msg = _('Updated sale') if pk else _('Added sale')
+        msg = pgettext_lazy(
+            'Sale (discount) message', 'Updated sale') if pk else pgettext_lazy(
+                'Sale (discount) message', 'Added sale')
         messages.success(request, msg)
         return redirect('dashboard:sale-update', pk=instance.pk)
     ctx = {'sale': instance, 'form': form}
@@ -39,7 +41,8 @@ def sale_delete(request, pk):
     if request.method == 'POST':
         instance.delete()
         messages.success(
-            request, _('Deleted sale %s') % (instance.name,))
+            request,
+            pgettext_lazy('Sale (discount) message', 'Deleted sale %s') % (instance.name,))
         return redirect('dashboard:sale-list')
     ctx = {'sale': instance}
     return TemplateResponse(
@@ -83,7 +86,9 @@ def voucher_edit(request, pk=None):
             instance = form_type.save()
 
         if form_type is None or form_type.is_valid():
-            msg = _('Updated voucher') if pk else _('Added voucher')
+            msg = pgettext_lazy(
+                'Voucher message', 'Updated voucher') if pk else pgettext_lazy(
+                    'Voucher message', 'Added voucher')
             messages.success(request, msg)
             return redirect('dashboard:voucher-update', pk=instance.pk)
     ctx = {
@@ -99,7 +104,8 @@ def voucher_delete(request, pk):
     if request.method == 'POST':
         instance.delete()
         messages.success(
-            request, _('Deleted voucher %s') % (instance,))
+            request,
+            pgettext_lazy('Voucher message', 'Deleted voucher %s') % (instance,))
         return redirect('dashboard:voucher-list')
     ctx = {'voucher': instance}
     return TemplateResponse(

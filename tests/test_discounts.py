@@ -6,7 +6,11 @@ from prices import FixedDiscount, FractionalDiscount, Price
 
 from django_prices.templatetags.prices_i18n import net
 
+from saleor.cart.utils import get_category_variants_and_prices
+from saleor.checkout.core import Checkout
+from saleor.discount.forms import CheckoutDiscountForm
 from saleor.discount.models import NotApplicable, Sale, Voucher
+from saleor.product.models import Category
 from saleor.product.models import Product, ProductVariant
 
 
@@ -16,7 +20,6 @@ from saleor.product.models import Product, ProductVariant
         (Price(10, currency='USD'), Price(5, currency='USD'), False),
 ])
 def test_voucher_limit_validation(settings, limit, value, valid):
-    settings.DEFAULT_CURRENCY = 'USD'
     voucher = Voucher(
         code='unique', type=Voucher.SHIPPING_TYPE,
         discount_value_type=Voucher.DISCOUNT_VALUE_FIXED,
@@ -77,7 +80,6 @@ def test_percentage_discounts(product_in_stock):
         ('100.05', 10, Voucher.DISCOUNT_VALUE_PERCENTAGE, 100, 10)])
 def test_value_voucher_checkout_discount(settings, total, discount_value,
                                          discount_type, limit, expected_value):
-    settings.DEFAULT_CURRENCY = 'USD'
     voucher = Voucher(
         code='unique', type=Voucher.VALUE_TYPE,
         discount_value_type=discount_type,
@@ -90,7 +92,6 @@ def test_value_voucher_checkout_discount(settings, total, discount_value,
 
 
 def test_value_voucher_checkout_discount_not_applicable(settings):
-    settings.DEFAULT_CURRENCY = 'USD'
     voucher = Voucher(
         code='unique', type=Voucher.VALUE_TYPE,
         discount_value_type=Voucher.DISCOUNT_VALUE_FIXED,
@@ -112,7 +113,6 @@ def test_value_voucher_checkout_discount_not_applicable(settings):
 def test_shipping_voucher_checkout_discount(
         settings, shipping_cost, shipping_country_code, discount_value,
         discount_type, apply_to, expected_value):
-    settings.DEFAULT_CURRENCY = 'USD'
     checkout = Mock(
         get_subtotal=Mock(return_value=Price(100, currency='USD')),
         is_shipping_required=True, shipping_method=Mock(
@@ -146,7 +146,6 @@ def test_shipping_voucher_checkout_discount(
 def test_shipping_voucher_checkout_discountnot_applicable(
         settings, is_shipping_required, shipping_method, discount_value,
         discount_type, apply_to, limit, subtotal, error_msg):
-    settings.DEFAULT_CURRENCY = 'USD'
     checkout = Mock(is_shipping_required=is_shipping_required,
                     shipping_method=shipping_method,
                     get_subtotal=Mock(return_value=subtotal))
@@ -166,12 +165,12 @@ def test_product_voucher_checkout_discount_not_applicable(settings,
     monkeypatch.setattr(
         'saleor.discount.models.get_product_variants_and_prices',
         lambda cart, product: [])
-    settings.DEFAULT_CURRENCY = 'USD'
     voucher = Voucher(
         code='unique', type=Voucher.PRODUCT_TYPE,
         discount_value_type=Voucher.DISCOUNT_VALUE_FIXED,
         discount_value=10)
     checkout = Mock(cart=Mock())
+
     with pytest.raises(NotApplicable) as e:
         voucher.get_discount_for_checkout(checkout)
     assert str(e.value) == 'This offer is only valid for selected items.'
@@ -182,7 +181,6 @@ def test_category_voucher_checkout_discount_not_applicable(settings,
     monkeypatch.setattr(
         'saleor.discount.models.get_category_variants_and_prices',
         lambda cart, product: [])
-    settings.DEFAULT_CURRENCY = 'USD'
     voucher = Voucher(
         code='unique', type=Voucher.CATEGORY_TYPE,
         discount_value_type=Voucher.DISCOUNT_VALUE_FIXED,
@@ -191,6 +189,16 @@ def test_category_voucher_checkout_discount_not_applicable(settings,
     with pytest.raises(NotApplicable) as e:
         voucher.get_discount_for_checkout(checkout)
     assert str(e.value) == 'This offer is only valid for selected items.'
+
+
+def test_invalid_checkout_discount_form(monkeypatch, voucher):
+    checkout = Mock(cart=Mock())
+    form = CheckoutDiscountForm({'voucher': voucher.code}, checkout=checkout)
+    monkeypatch.setattr(
+        'saleor.discount.models.Voucher.get_discount_for_checkout',
+        Mock(side_effect=NotApplicable('Not applicable')))
+    assert not form.is_valid()
+    assert 'voucher' in form.errors
 
 
 @pytest.mark.parametrize(
@@ -213,7 +221,6 @@ def test_products_voucher_checkout_discount_not(settings, monkeypatch, prices,
         'saleor.discount.models.get_product_variants_and_prices',
         lambda cart, product: (
             (None, Price(p, currency='USD')) for p in prices))
-    settings.DEFAULT_CURRENCY = 'USD'
     voucher = Voucher(
         code='unique', type=Voucher.PRODUCT_TYPE,
         discount_value_type=discount_type,
@@ -227,18 +234,41 @@ def test_products_voucher_checkout_discount_not(settings, monkeypatch, prices,
 @pytest.mark.django_db
 def test_sale_applies_to_correct_products(product_class):
     product = Product.objects.create(
-        name='Test Product', price=10, weight=1, description='', pk=10,
+        name='Test Product', price=10, description='', pk=10,
         product_class=product_class)
     variant = ProductVariant.objects.create(product=product, sku='firstvar')
     product2 = Product.objects.create(
-        name='Second product', price=15, weight=1, description='',
+        name='Second product', price=15, description='',
         product_class=product_class)
     sec_variant = ProductVariant.objects.create(
         product=product2, sku='secvar', pk=10)
     sale = Sale.objects.create(name='Test sale', value=5, type=Sale.FIXED)
     sale.products.add(product)
     assert product2 not in sale.products.all()
-    assert sale.modifier_for_variant(variant).amount == Price(net=5,
-                                                              currency='USD')
+    assert sale.modifier_for_product(variant.product).amount == Price(
+        net=5, currency='USD')
     with pytest.raises(NotApplicable):
-        sale.modifier_for_variant(sec_variant)
+        sale.modifier_for_product(sec_variant.product)
+
+
+@pytest.mark.django_db
+def test_get_category_variants_and_prices_product_with_many_categories(cart, default_category,
+                                                                       product_in_stock):
+    # Test: don't duplicate percentage voucher
+    # when product is in more than one category with discount
+    category = Category.objects.create(name='Foobar', slug='foo', parent=default_category)
+    product_in_stock.price = Decimal('10.00')
+    product_in_stock.save()
+    product_in_stock.categories.add(category)
+    variant = product_in_stock.variants.first()
+    cart.add(variant, check_quantity=False)
+
+    discounted_products = list(get_category_variants_and_prices(cart, default_category))
+    assert len(discounted_products) == 1
+
+    voucher = Voucher.objects.create(category=default_category, type=Voucher.CATEGORY_TYPE,
+                                     discount_value='10.0', code='foobar',
+                                     discount_value_type=Voucher.DISCOUNT_VALUE_PERCENTAGE)
+    checkout_mock = Mock(spec=Checkout, cart=cart)
+    discount = voucher.get_discount_for_checkout(checkout_mock)
+    assert discount.amount == Price('1.00', currency=discount.amount.currency)  # 10% for 10 is 1

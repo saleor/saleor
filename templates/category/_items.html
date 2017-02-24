@@ -2,22 +2,31 @@
 {% load staticfiles %}
 {% load price_range from price_ranges %}
 {% load product_first_image from product_images %}
+{% load product_availability_schema from jsonld %}
 
 {% for product, availability in products %}
-    <div class="col-6 col-lg-3 product-list" itemscope itemtype="https://schema.org/Product">
-        <a itemprop="url" href="{{ product.get_absolute_url }}">
+    <div class="col-6 col-lg-3 product-list">
+        <script type="application/ld+json">
+          {% autoescape off %}{% product_availability_schema product %}{% endautoescape %}
+        </script>
+        <a href="{{ product.get_absolute_url }}">
             <div class="text-center">
                 <div>
-                    <img itemprop="image" class="img-responsive" src="{% product_first_image product method="crop" size="400x400" %}" alt="">
-                    <span class="product-list-item-name" itemprop="name" title="{{ product }}">{{ product }}</span>
+                    <img class="img-responsive" src="{% product_first_image product method="crop" size="400x400" %}" alt="">
+                    <span class="product-list-item-name" title="{{ product }}">{{ product }}</span>
                 </div>
 
                 <div class="panel-footer">
                     {% if availability.available %}
                         {% price_range availability.price_range %}
                         {% if availability.discount %}
-                            {% if undiscounted.min_price != price_range.min_price %}
-                                <div class="product-list__sale"><span>{% trans "Sale" %}</span></div>
+                            {% if availability.price_range_undiscounted.min_price != availability.price_range.min_price %}
+                                <div class="product-list__sale"><img src="{% static "images/sale_bg.svg" %}">
+                                    <span>
+                                        {% comment %}Translators: Layout may break if character length is different than four.{% endcomment %}
+                                        {% trans "Sale" context "Sale (discount) label for item in product list" %}
+                                  </span>
+                                </div>
                             {% endif %}
                         {% endif %}
                     {% else %}

@@ -2,19 +2,24 @@ from __future__ import unicode_literals
 
 from datetime import timedelta
 from functools import wraps
+from uuid import UUID
 
 from django.contrib import messages
+from django.db import transaction
 from django.utils.timezone import now
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from satchless.item import InsufficientStock
 
+from . import CartStatus
 from .models import Cart
+
+COOKIE_NAME = 'cart'
 
 
 def set_cart_cookie(simple_cart, response):
     ten_years = timedelta(days=(365 * 10))
     response.set_signed_cookie(
-        Cart.COOKIE_NAME, simple_cart.token, max_age=ten_years.total_seconds())
+        COOKIE_NAME, simple_cart.token, max_age=ten_years.total_seconds())
 
 
 def contains_unavailable_variants(cart):
@@ -24,6 +29,18 @@ def contains_unavailable_variants(cart):
     except InsufficientStock:
         return True
     return False
+
+
+def token_is_valid(token):
+    if token is None:
+        return False
+    if isinstance(token, UUID):
+        return True
+    try:
+        UUID(token)
+    except ValueError:
+        return False
+    return True
 
 
 def remove_unavailable_variants(cart):
@@ -39,19 +56,19 @@ def get_product_variants_and_prices(cart, product):
     lines = (cart_line for cart_line in cart.lines.all()
              if cart_line.variant.product_id == product.id)
     for line in lines:
-        for i in range(line.quantity):
+        for dummy_i in range(line.quantity):
             yield line.variant, line.get_price_per_item()
 
 
 def get_category_variants_and_prices(cart, discounted_category):
-    products = set((cart_line.variant.product for cart_line in cart.lines.all()))
-    discounted_products = []
+    products = {cart_line.variant.product for cart_line in cart.lines.all()}
+    discounted_products = set()
     for product in products:
         for category in product.categories.all():
             is_descendant = category.is_descendant_of(
                 discounted_category, include_self=True)
             if is_descendant:
-                discounted_products.append(product)
+                discounted_products.add(product)
     for product in discounted_products:
         for line in get_product_variants_and_prices(cart, product):
             yield line
@@ -59,36 +76,51 @@ def get_category_variants_and_prices(cart, discounted_category):
 
 def check_product_availability_and_warn(request, cart):
     if contains_unavailable_variants(cart):
-        msg = _('Sorry. We don\'t have that many items in stock. '
-                'Quantity was set to maximum available for now.')
+        msg = pgettext_lazy(
+            'Cart warning message',
+            'Sorry. We don\'t have that many items in stock. '
+            'Quantity was set to maximum available for now.')
         messages.warning(request, msg)
         remove_unavailable_variants(cart)
 
 
-def find_and_assign_anonymous_cart(request, queryset=Cart.objects.all()):
+def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
     """Assign cart from cookie to request user
     :type request: django.http.HttpRequest
     """
-    token = request.get_signed_cookie(Cart.COOKIE_NAME, default=None)
-    if not token:
-        return
-    cart = get_anonymous_cart_from_token(token=token, cart_queryset=queryset)
-    if cart is None:
-        return
-    cart.change_user(request.user)
-    carts_to_close = Cart.objects.open().filter(user=request.user)
-    carts_to_close = carts_to_close.exclude(token=token)
-    carts_to_close.update(status=Cart.CANCELED, last_status_change=now())
+    def get_cart(view):
+        @wraps(view)
+        def func(request, *args, **kwargs):
+            response = view(request, *args, **kwargs)
+            token = request.get_signed_cookie(COOKIE_NAME, default=None)
+            if not token_is_valid(token):
+                return response
+            cart = get_anonymous_cart_from_token(
+                token=token, cart_queryset=queryset)
+            if cart is None:
+                return response
+            if request.user.is_authenticated():
+                with transaction.atomic():
+                    cart.change_user(request.user)
+                    carts_to_close = Cart.objects.open().filter(
+                        user=request.user)
+                    carts_to_close = carts_to_close.exclude(token=token)
+                    carts_to_close.update(
+                        status=CartStatus.CANCELED, last_status_change=now())
+                response.delete_cookie(COOKIE_NAME)
+            return response
+
+        return func
+    return get_cart
 
 
-def get_or_create_anonymous_cart_from_token(token,
-                                            cart_queryset=Cart.objects.all()):
+def get_or_create_anonymous_cart_from_token(
+        token, cart_queryset=Cart.objects.all()):
     """Returns open anonymous cart with given token or creates new.
     :type cart_queryset: saleor.cart.models.CartQueryset
     :type token: string
     :rtype: Cart
     """
-
     return cart_queryset.open().filter(token=token, user=None).get_or_create(
         defaults={'user': None})[0]
 
@@ -127,7 +159,7 @@ def get_or_create_cart_from_request(request, cart_queryset=Cart.objects.all()):
     if request.user.is_authenticated():
         return get_or_create_user_cart(request.user, cart_queryset)
     else:
-        token = request.get_signed_cookie(Cart.COOKIE_NAME, default=None)
+        token = request.get_signed_cookie(COOKIE_NAME, default=None)
         return get_or_create_anonymous_cart_from_token(token, cart_queryset)
 
 
@@ -142,7 +174,7 @@ def get_cart_from_request(request, cart_queryset=Cart.objects.all()):
         cart = get_user_cart(request.user, cart_queryset)
         user = request.user
     else:
-        token = request.get_signed_cookie(Cart.COOKIE_NAME, default=None)
+        token = request.get_signed_cookie(COOKIE_NAME, default=None)
         cart = get_anonymous_cart_from_token(token, cart_queryset)
         user = None
     if cart is not None:

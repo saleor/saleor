@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
 
@@ -24,9 +24,11 @@ def shipping_method_edit(request, method):
     form = ShippingMethodForm(request.POST or None, instance=method)
     formset = ShippingMethodCountryFormSet(request.POST or None, instance=method)
     if form.is_valid() and formset.is_valid():
-        method = form.save()
+        shipping_method = form.save()
         formset.save()
-        msg = _('%s method saved') % method
+        msg = pgettext_lazy(
+            'Dashboard message', '%(shipping_method_name)s method saved') % {
+                'shipping_method_name': shipping_method}
         messages.success(request, msg)
         return redirect('dashboard:shipping-methods')
     ctx = {'shipping_method_form': form,
@@ -52,8 +54,10 @@ def shipping_method_delete(request, pk):
     if request.method == 'POST':
         shipping_method.delete()
         messages.success(
-            request, _('%(shipping_method_name)s successfully deleted') % {
-                'shipping_method_name': shipping_method})
+            request,
+            pgettext_lazy(
+                'Dashboard message', '%(shipping_method_name)s successfully deleted') % {
+                    'shipping_method_name': shipping_method})
         return redirect('dashboard:shipping-methods')
     ctx = {'shipping_method': shipping_method}
     return TemplateResponse(request, 'dashboard/shipping/method_delete.html', ctx)

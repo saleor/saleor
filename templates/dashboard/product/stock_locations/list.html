@@ -3,14 +3,15 @@
 {% load materializecss %}
 {% load staticfiles %}
 
-{% block title %}{% trans "Stock locations" %} - {{ block.super }}{% endblock %}
+{% block title %}{% trans "Stock locations" context "Stock location list page title" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-locations{% endblock %}
 
 {% block header_extra %}
     <div class="fixed-action-btn">
         <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
-            href="{% url 'dashboard:product-stock-location-add' %}" title="{% trans "Add stock location" %}">
+            href="{% url 'dashboard:product-stock-location-add' %}"
+           title="{% trans "Add stock location" context "Stock location list add button text" %}">
             <i class="material-icons">add</i>
         </a>
     </div>
@@ -18,7 +19,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li>{% trans "Stock locations" %}</li>
+        <li>{% trans "Stock locations" context "Stock location list breadcrumbs" %}</li>
     </ul>
 {% endblock %}
 
@@ -32,12 +33,14 @@
                 <ul class="collection list">
                     {% for location in locations %}
                         <li class="collection-item list-item">
-                            <a class="list-item-name" href="{% url 'dashboard:product-stock-location-edit' location.pk %}">{{ location }}</a>
+                            <a class="list-item-name" href="{% url 'dashboard:product-stock-location-edit' location.pk %}">
+                                {{ location }}
+                            </a>
                         </li>
                     {% endfor %}
                 </ul>
             {% else %}
-                <p>{% trans "No locations found." %}</p>
+                <p>{% trans "No locations found." context "Empty stock location list message" %}</p>
             {% endif %}
         </div>
     </div>

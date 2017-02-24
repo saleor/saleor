@@ -21,7 +21,7 @@ class SaleForm(forms.ModelForm):
         value = cleaned_data['value']
         if discount_type == Sale.PERCENTAGE and value > 100:
             self.add_error('value', pgettext_lazy(
-                'sale error',
+                'Sale (discount) error',
                 'Sale cannot exceed 100%'))
         return cleaned_data
 
@@ -62,9 +62,13 @@ class ShippingVoucherForm(forms.ModelForm):
     limit = PriceField(
         min_value=0, required=False, currency=settings.DEFAULT_CURRENCY,
         label=pgettext_lazy(
-            'voucher', 'Only if order is over or equal to'))
+            'Shipping voucher form label for `limit` field',
+            'Only if order is over or equal to'))
     apply_to = forms.ChoiceField(
-        label=pgettext_lazy('voucher', 'Country'), choices=country_choices,
+        label=pgettext_lazy(
+            'Shipping voucher form label for `apply_to` field',
+            'Country'),
+        choices=country_choices,
         required=False)
 
     class Meta:
@@ -82,7 +86,8 @@ class ValueVoucherForm(forms.ModelForm):
     limit = PriceField(
         min_value=0, required=False, currency=settings.DEFAULT_CURRENCY,
         label=pgettext_lazy(
-            'voucher', 'Only if purchase value is greater than or equal to'))
+            'Value voucher form label for `limit` field',
+            'Only if purchase value is greater than or equal to'))
 
     class Meta:
         model = Voucher

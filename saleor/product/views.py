@@ -12,9 +12,9 @@ from ..cart.utils import set_cart_cookie
 from ..core.utils import serialize_decimal
 from .models import Category
 from .utils import (products_with_details, products_for_cart,
-                    handle_cart_form, get_product_availability,
+                    handle_cart_form, get_availability,
                     get_product_images, get_variant_picker_data,
-                    get_product_attributes_data)
+                    get_product_attributes_data, product_json_ld)
 
 
 def product_details(request, slug, product_id, form=None):
@@ -56,7 +56,7 @@ def product_details(request, slug, product_id, form=None):
         product.available_on is None or product.available_on <= today)
     if form is None:
         form = handle_cart_form(request, product, create_cart=False)[0]
-    availability = get_product_availability(product,
+    availability = get_availability(product,
                                             discounts=request.discounts,
                                             local_currency=request.currency)
     template_name = 'product/details_%s.html' % (
@@ -67,6 +67,7 @@ def product_details(request, slug, product_id, form=None):
         product, request.discounts, request.currency)
     product_attributes = get_product_attributes_data(product)
     show_variant_picker = all([v.attributes for v in product.variants.all()])
+    json_ld_data = product_json_ld(product, availability, product_attributes)
     return TemplateResponse(
         request, templates,
         {'is_visible': is_visible,
@@ -77,10 +78,14 @@ def product_details(request, slug, product_id, form=None):
          'product_images': product_images,
          'show_variant_picker': show_variant_picker,
          'variant_picker_data': json.dumps(
-             variant_picker_data, default=serialize_decimal)})
+             variant_picker_data, default=serialize_decimal),
+         'json_ld_product_data': json.dumps(
+             json_ld_data, default=serialize_decimal)})
 
 
 def product_add_to_cart(request, slug, product_id):
+    # types: (int, str, dict) -> None
+
     if not request.method == 'POST':
         return redirect(reverse(
             'product:details',

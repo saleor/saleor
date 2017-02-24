@@ -26,7 +26,7 @@ def get_thumbnail(instance, size, method='crop'):
     if instance:
         size_name = '%s__%s' % (method, size)
         if (size_name not in AVAILABLE_SIZES and not
-            settings.VERSATILEIMAGEFIELD_SETTINGS['create_images_on_demand']):
+                settings.VERSATILEIMAGEFIELD_SETTINGS['create_images_on_demand']):
             msg = ('Thumbnail size %s is not defined in settings '
                    'and it won\'t be generated automatically' % size_name)
             warnings.warn(msg)

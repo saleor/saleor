@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
 
 from .models import Voucher, NotApplicable
@@ -9,7 +10,7 @@ class VoucherField(forms.ModelChoiceField):
     default_error_messages = {
         'invalid_choice': pgettext_lazy(
             'voucher', pgettext_lazy(
-                'voucher', 'Discount code incorrect or expired')),
+                'Voucher form error', 'Discount code incorrect or expired')),
     }
 
 
@@ -17,7 +18,9 @@ class CheckoutDiscountForm(forms.Form):
 
     voucher = VoucherField(
         queryset=Voucher.objects.active(), to_field_name='code',
-        label=pgettext_lazy('voucher', 'Gift card or discount code'),
+        label=pgettext_lazy(
+            'Checkout discount form label for voucher field',
+            'Gift card or discount code'),
         widget=forms.TextInput)
 
     def __init__(self, *args, **kwargs):
@@ -36,7 +39,7 @@ class CheckoutDiscountForm(forms.Form):
                 discount = voucher.get_discount_for_checkout(self.checkout)
                 cleaned_data['discount'] = discount
             except NotApplicable as e:
-                self.add_error('voucher', unicode(e))
+                self.add_error('voucher', smart_text(e))
         return cleaned_data
 
     def apply_discount(self):

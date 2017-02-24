@@ -3,7 +3,7 @@
 {% load prices_i18n %}
 {% load status %}
 
-{% block title %}{% trans "Orders" %} - {{ block.super }}{% endblock %}
+{% block title %}{% trans "Orders" context "Order list page title" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-orders{% endblock %}
 
@@ -11,7 +11,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li class="visible-s">{% trans "Orders" %}</li>
+        <li class="visible-s">{% trans "Orders" context "Order list breadcrumbs" %}</li>
     </ul>
 {% endblock %}
 
@@ -26,6 +26,6 @@
             {% include "dashboard/includes/_pagination.html" %}
         </div>
     {% else %}
-        <p>{% trans "No orders." %}</p>
+        <p>{% trans "No orders." context "Empty order list message" %}</p>
     {% endif %}
 {% endblock %}

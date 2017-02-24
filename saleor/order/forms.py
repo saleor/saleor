@@ -1,14 +1,15 @@
 from django import forms
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import pgettext_lazy
+from allauth.account.forms import SignupForm
+from payments import PaymentStatus
 
 from .models import Payment
-
-from allauth.account.forms import SignupForm
 
 
 class PaymentMethodsForm(forms.Form):
     method = forms.ChoiceField(
+        label=pgettext_lazy('Payment methods form label', 'Method'),
         choices=settings.CHECKOUT_PAYMENT_CHOICES, widget=forms.RadioSelect,
         initial=settings.CHECKOUT_PAYMENT_CHOICES[0][0])
 
@@ -23,19 +24,22 @@ class PaymentDeleteForm(forms.Form):
     def clean(self):
         cleaned_data = super(PaymentDeleteForm, self).clean()
         payment_id = cleaned_data.get('payment_id')
-        waiting_payments = self.order.payments.filter(status='waiting')
+        waiting_payments = self.order.payments.filter(
+            status=PaymentStatus.WAITING)
         try:
             payment = waiting_payments.get(id=payment_id)
         except Payment.DoesNotExist:
-            self._errors['number'] = self.error_class(
-                [_('Payment does not exist')])
+            self._errors['number'] = self.error_class([
+                pgettext_lazy(
+                    'Payment delete form error',
+                    'Payment does not exist')])
         else:
             cleaned_data['payment'] = payment
         return cleaned_data
 
     def save(self):
         payment = self.cleaned_data['payment']
-        payment.status = 'rejected'
+        payment.status = PaymentStatus.REJECTED
         payment.save()
 
 

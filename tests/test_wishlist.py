@@ -87,8 +87,8 @@ def test_variant_getter(wishlist_with_items,
 def test_get_wishlistitem_url(available_variant,
                               wishlist_item_available,
                               wishlist_item_missing_variant):
-    assert utils.get_wishlistitem_url(
-        wishlist_item_available) == available_variant.get_absolute_url()
+    variant_url = available_variant.get_absolute_url() + "?size=big"
+    assert utils.get_wishlistitem_url(wishlist_item_available) == variant_url
     product_url = available_variant.product.get_absolute_url()
     assert utils.get_wishlistitem_url(
         wishlist_item_missing_variant) == product_url

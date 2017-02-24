@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import pgettext_lazy
 
 from ...product.models import Category
 from ..views import staff_member_required
@@ -29,7 +29,10 @@ def category_create(request, root_pk=None):
     form = CategoryForm(request.POST or None, parent_pk=root_pk)
     if form.is_valid():
         category = form.save()
-        messages.success(request, _('Added category %s') % category)
+        messages.success(
+            request,
+            pgettext_lazy(
+                'Dashboard message', 'Added category %s') % category)
         if root_pk:
             return redirect('dashboard:category-list', root_pk=root_pk)
         else:
@@ -46,7 +49,10 @@ def category_edit(request, root_pk=None):
     status = 200
     if form.is_valid():
         category = form.save()
-        messages.success(request, _('Added category %s') % category)
+        messages.success(
+            request,
+            pgettext_lazy(
+                'Dashboard message', 'Updated category %s') % category)
         if root_pk:
             return redirect('dashboard:category-list', root_pk=root_pk)
         else:
@@ -63,7 +69,10 @@ def category_delete(request, pk):
     category = get_object_or_404(Category, pk=pk)
     if request.method == 'POST':
         category.delete()
-        messages.success(request, _('Deleted category %s') % category)
+        messages.success(
+            request,
+            pgettext_lazy(
+                'Dashboard message', 'Deleted category %s') % category)
         root_pk = None
         if category.parent:
             root_pk = category.parent.pk

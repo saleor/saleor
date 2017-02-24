@@ -6,19 +6,18 @@ from django.utils.encoding import smart_text
 
 from ..core.utils import build_absolute_uri
 from ..product.models import Product, ProductVariant
-from ..product.utils import get_product_availability, get_variant_availability
+from ..product.utils import (
+    get_availability, get_variant_availability, get_variant_url)
 from ..userprofile.models import User
 from .models import Wishlist, WishlistItem, WishlistNotification
 
 
 def get_wishlistitem_url(wishlist_item):
     # type: (WishlistItem) -> str
-    """
-    Returns url to product or variant, if available.
-    """
+    """Returns url to product or variant, if available."""
     variant = wishlist_item.variant
     if variant:
-        return variant.get_absolute_url()
+        return get_variant_url(variant)
     return wishlist_item.product.get_absolute_url()
 
 
@@ -39,10 +38,8 @@ def add_variant_to_user_wishlist(user, variant):
 
 def add_to_user_wishlist(user, product, attributes):
     # type: (User, Product, dict) -> bool
-    """
-    Adds item chosen by attributes to user product list. Will try to find
-    variant with matching attributes.
-    """
+    """Adds item chosen by attributes to user product list. Will try to find
+    variant with matching attributes."""
     if product.product_class.variant_attributes.exists():
         variant = ProductVariant.objects.filter(
             product=product, attributes=attributes).first()
@@ -57,27 +54,21 @@ def add_to_user_wishlist(user, product, attributes):
 
 def clear_notifications():
     # type: () -> None
-    """
-    Removes all notification objects from db.
-    """
+    """Removes all notification objects from db."""
     WishlistNotification.objects.all().delete()
 
 
 def variant_available(variant):
     # type: (ProductVariant) -> bool
-    """
-    Test if variant should generate notification.
-    """
+    """Test if variant should generate notification."""
     return all([variant.product.is_available(),
                 variant.is_in_stock()])
 
 
 def create_notifications(turn_off_watcher=True):
     # type: (bool) -> None
-    """
-    Create Wishlist notifications if variants are available.
-    If notification is created, turn off watcher.
-    """
+    """Create Wishlist notifications if variants are available.
+    If notification is created, turn off watcher."""
     wli = WishlistItem.objects.all().filter(watch=True).order_by(
         'product', 'attributes').distinct('product', 'attributes')
     for wishlist_item in wli:
@@ -98,9 +89,7 @@ def create_notifications(turn_off_watcher=True):
 
 def update_notifications():
     # type: () -> None
-    """
-    Remove all old Wishlist notifications and create new.
-    """
+    """Remove all old Wishlist notifications and create new."""
     clear_notifications()
     create_notifications()
 
@@ -130,9 +119,7 @@ def get_users_and_notifications():
 
 def send_notification_email(user, items):
     # type: (User, list) -> None
-    """
-    Send to user all its notifications.
-    """
+    """Send to user all its notifications."""
     url = build_absolute_uri(reverse('wishlist:user-wishlist'))
     emailit.api.send_mail(user.email,
                           {'items': items, 'url': url},
@@ -142,9 +129,7 @@ def send_notification_email(user, items):
 
 def update_and_send_wishlist_notifications():
     # type: () -> None
-    """
-    Update all notification data and send email to users.
-    """
+    """Update all notification data and send email to users."""
     update_notifications()
     for user, items in get_users_and_notifications():
         send_notification_email(user, items)
@@ -152,9 +137,7 @@ def update_and_send_wishlist_notifications():
 
 def wishlist_item_variant_name(item):
     # type: (WishlistItem) -> str
-    """
-    Get WishlistItem display name.
-    """
+    """Get WishlistItem display name."""
     if item.variant:
         return item.variant.display_variant()
     attributes = item.product.product_class.variant_attributes.all()
@@ -194,8 +177,7 @@ def wishlist_item_info(item):
 
 def wishlist_items_with_availability(items, discounts, local_currency=None):
     # type: (list, list, Optional[str]) -> typing.Iterator[tuple]
-    """
-    Generate information about availability and prices of provided
+    """Generate information about availability and prices of provided
     WishlistItem.
     """
     for item in items:
@@ -205,7 +187,7 @@ def wishlist_items_with_availability(items, discounts, local_currency=None):
                                                     discounts,
                                                     local_currency)
         else:
-            availability = get_product_availability(item.product,
-                                                    discounts,
-                                                    local_currency)
+            availability = get_availability(item.product,
+                                            discounts,
+                                            local_currency)
         yield item_info, availability

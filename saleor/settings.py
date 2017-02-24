@@ -95,6 +95,8 @@ context_processors = [
     'saleor.core.context_processors.categories',
     'saleor.cart.context_processors.cart_counter',
     'saleor.core.context_processors.search_enabled',
+    'saleor.site.context_processors.settings',
+    'saleor.core.context_processors.webpage_schema',
 ]
 
 loaders = [
@@ -129,7 +131,7 @@ MIDDLEWARE_CLASSES = [
     'saleor.core.middleware.DiscountMiddleware',
     'saleor.core.middleware.GoogleAnalytics',
     'saleor.core.middleware.CountryMiddleware',
-    'saleor.core.middleware.CurrencyMiddleware'
+    'saleor.core.middleware.CurrencyMiddleware',
 ]
 
 INSTALLED_APPS = [
@@ -143,7 +145,6 @@ INSTALLED_APPS = [
     'django.contrib.sitemaps',
     'django.contrib.sites',
     'django.contrib.staticfiles',
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.postgres',
 
@@ -159,6 +160,7 @@ INSTALLED_APPS = [
     'saleor.dashboard',
     'saleor.shipping',
     'saleor.search',
+    'saleor.site',
     'saleor.data_feeds',
     'saleor.wishlist',
 
@@ -172,12 +174,12 @@ INSTALLED_APPS = [
     'graphene_django',
     'mptt',
     'payments',
-    'selectable',
     'materializecssform',
     'rest_framework',
     'webpack_loader',
     'allauth',
     'allauth.account',
+    'django_countries',
 ]
 
 LOGGING = {
@@ -234,7 +236,6 @@ LOGIN_URL = '/account/login/'
 DEFAULT_COUNTRY = 'US'
 DEFAULT_CURRENCY = 'USD'
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
-DEFAULT_WEIGHT = 'lb'
 
 OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')
 
@@ -243,6 +244,13 @@ ACCOUNT_ACTIVATION_DAYS = 3
 LOGIN_REDIRECT_URL = 'home'
 
 GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get('GOOGLE_ANALYTICS_TRACKING_ID')
+
+
+def get_host():
+    from saleor.site.utils import get_domain
+    return get_domain()
+
+PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = 'order.Payment'
 
@@ -328,7 +336,6 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_LOGOUT_ON_GET = True
 ACCOUNT_SESSION_REMEMBER = False
 ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
-ACCOUNT_ADAPTER = 'saleor.userprofile.adapters.AccountAdapter'
 ACCOUNT_FORMS = {
     'reset_password_from_key': 'saleor.userprofile.forms.SetPasswordForm'
 }
@@ -367,3 +374,5 @@ GRAPHENE = {
     'SCHEMA_OUTPUT': os.path.join(
         PROJECT_ROOT, 'saleor', 'static', 'schema.json')
 }
+
+SITE_SETTINGS_ID = 1

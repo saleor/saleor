@@ -3,8 +3,8 @@
 {% load materializecss %}
 {% load static %}
 
-{% block title %}{% if voucher.pk %}{{ voucher }}{% else %}{% trans 'Add new voucher' %}
-{% endif %} - {% trans "Vouchers" %} - {{ block.super }}{% endblock %}
+{% block title %}{% if voucher.pk %}{{ voucher }}{% else %}{% trans "Add new voucher" context "Voucher page title" %}
+{% endif %} - {% trans "Vouchers" context "Voucher page title" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-vouchers{% endblock %}
 
@@ -24,7 +24,7 @@
         <ul id="voucher-delete" class="dropdown-content">
             <li>
                 <a class="modal-trigger-custom" href="#base-modal" data-href="{% url 'dashboard:voucher-delete' pk=voucher.pk %}">
-                {% trans "Remove voucher" %}
+                {% trans "Remove voucher" context "Voucher action" %}
                 </a>
             </li>
         </ul>
@@ -33,10 +33,12 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--history">
-        <li><a href="{% url 'dashboard:voucher-list' %}">{% trans "Vouchers" %}</a></li>
-        <li class="back-mobile"><a href="{% url 'dashboard:voucher-list' %}"><i class="material-icons">arrow_back</i></a></li>
+        <li><a href="{% url 'dashboard:voucher-list' %}">
+            {% trans "Vouchers" context "Voucher breadcrumbs" %}</a></li>
+        <li class="back-mobile"><a href="{% url 'dashboard:voucher-list' %}">
+                <i class="material-icons">arrow_back</i></a></li>
         <li><span class="breadcrumbs--ellipsed-item">{% if voucher.pk %}
-            {{ voucher }}{% else %}{% trans 'Add new voucher' %}{% endif %}</span></li>
+            {{ voucher }}{% else %}{% trans "Add new voucher" context "Voucher breadcrumbs" %}{% endif %}</span></li>
     </ul>
 {% endblock %}
 
@@ -82,9 +84,9 @@
         <div class="row">
             <div class="col l8 right-align">
                 {% if voucher.pk %}
-                    <button type="submit" class="btn">{% trans "Update" %}</button>
+                    <button type="submit" class="btn">{% trans "Update" context "Voucher form primary action" %}</button>
                 {% else %}
-                    <button type="submit" class="btn">{% trans "Create" %}</button>
+                    <button type="submit" class="btn">{% trans "Create" context "Voucher form primary action" %}</button>
                 {% endif %}
             </div>
         </div>

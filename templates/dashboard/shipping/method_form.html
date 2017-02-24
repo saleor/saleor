@@ -5,11 +5,11 @@
 
 
 {% block title %}
-    {% trans "Shipping methods" %}
+    {% trans "Shipping methods" context "Shipping method form page title" %}
     {% if shipping_method.pk %}
         - {{ shipping_method }}
     {% else %}
-        - {% trans 'Add new method' %}
+        - {% trans "Add new method" context "Shipping method form page title" %}
     {% endif %}
     - {{ block.super }}
 {% endblock %}
@@ -19,18 +19,22 @@
 {% block menu_delivery_class %}active{% endblock %}
 
 {% block page_title %}{% if shipping_method.pk %}{{ shipping_method }}{% else %}
-    {% trans 'Add new method' %}
+    {% trans "Add new method" context "Shipping method form page title" %}
 {% endif %}{% endblock %}
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--history">
-        <li><a href="{% url 'dashboard:shipping-methods' %}">{% trans "Shipping methods" %}</a></li>
+        <li><a href="{% url 'dashboard:shipping-methods' %}">
+            {% trans "Shipping methods" context "Shipping method form breadcrumbs" %}
+        </a></li>
         <li class="back-mobile"><a href="{% url 'dashboard:shipping-methods' %}"><i class="material-icons">arrow_back</i></a></li>
         <li>
             {% if shipping_method.pk %}
                 <span class="breadcrumbs--ellipsed-item">{{ shipping_method }}</span>
             {% else %}
-                <span class="breadcrumbs--ellipsed-item">{% trans 'Add new method' %}</span>
+                <span class="breadcrumbs--ellipsed-item">
+                    {% trans "Add new method" context "Shipping method form breadcrumbs" %}
+                </span>
             {% endif %}
         </li>
     </ul>
@@ -45,7 +49,7 @@
         <div class="row">
             {{ shipping_method_form|materializecss }}
         </div>
-        <h4 class="light">{% trans "Price per country" %}</h4>
+        <h4 class="light">{% trans "Price per country" context "Shipping method form text" %}</h4>
 
         <div class="card-panel">
             {% for form in price_per_country_formset %}
@@ -68,18 +72,20 @@
             {% if shipping_method.pk %}
                 <div class="col s12 l6">
                     <a href="{% url 'dashboard:shipping-method-delete' pk=shipping_method.pk %}"
-                       class="btn red">{% trans "Delete" %}</a>
+                       class="btn red">{% trans "Delete" context "Shipping method form action" %}</a>
                 </div>
                 <div class="col s12 l6 right-align">
                     <a href="{% url 'dashboard:shipping-methods' %}"
-                       class="btn-flat">{% trans "Cancel" %}</a>
-                    <button type="submit" class="btn">{% trans "Update" %}</button>
+                       class="btn-flat">{% trans "Cancel" context "Shipping method form action" %}</a>
+                    <button type="submit" class="btn">{% trans "Update" context "Shipping method form action" %}
+                    </button>
                 </div>
             {% else %}
                 <div class="col s12 right-align">
                     <a href="{% url 'dashboard:shipping-methods' %}"
-                       class="btn-flat">{% trans "Cancel" %}</a>
-                    <button type="submit" class="btn">{% trans "Create" %}</button>
+                       class="btn-flat">{% trans "Cancel" context "Shipping method form action" %}</a>
+                    <button type="submit" class="btn">{% trans "Create" context "Shipping method form action" %}
+                    </button>
                 </div>
             {% endif %}
         </div>

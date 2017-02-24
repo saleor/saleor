@@ -3,7 +3,7 @@
 {% load prices_i18n %}
 {% load materializecss %}
 
-{% block title %}{% trans "Customers" %} - {{ block.super }}{% endblock %}
+{% block title %}{% trans "Customers" context "Customer list page title" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-customers{% endblock %}
 
@@ -11,7 +11,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li class="visible-s">{% trans "Customers" %}</li>
+        <li class="visible-s">{% trans "Customers" context "Customer list breadcrumbs" %}</li>
     </ul>
 {% endblock %}
 
@@ -23,9 +23,11 @@
             {{ form.order_status|materializecss:"s7 m3 l2" }}
 
             <div class="col s5 m3 l3">
-                <button type="submit" class="btn btn--inline">{% trans "Filter" %}</button>
+                <button type="submit" class="btn btn--inline">
+                    {% trans "Filter" context "Customer list form primary action" %}</button>
                 {% if form.is_bound %}
-                    <a class="btn btn--inline" href="{% url 'dashboard:customers' %}">{% trans "Clear" %}</a>
+                    <a class="btn btn--inline" href="{% url 'dashboard:customers' %}">
+                        {% trans "Clear" context "Customer list form secondary action" %}</a>
                 {% endif %}
             </div>
         </div>
@@ -42,11 +44,11 @@
                 <table class="bordered hoverable responsive data-table">
                     <thead>
                         <tr>
-                            <th>{% trans "Email" %}</th>
-                            <th class="wide">{% trans "Name" %}</th>
-                            <th>{% trans "Location" %}</th>
-                            <th class="right-align">{% trans "Number of orders" %}</th>
-                            <th>{% trans "Last order" %}</th>
+                            <th>{% trans "Email" context "Customers table header" %}</th>
+                            <th class="wide">{% trans "Name" context "Customers table header" %}</th>
+                            <th>{% trans "Location" context "Customers table header" %}</th>
+                            <th class="right-align">{% trans "Number of orders" context "Customers table header" %}</th>
+                            <th>{% trans "Last order" context "Customers table header" %}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -72,7 +74,11 @@
                             </td>
                             <td>
                                 {% if customer.last_order %}
-                                    <a href="{% url 'dashboard:order-details' order_pk=customer.last_order %}">#{{ customer.last_order }}</a>
+                                    <a href="{% url 'dashboard:order-details' order_pk=customer.last_order %}">
+                                        {% blocktrans with last_order=customer.last_order trimmed context "Customers table last order data" %}
+                                            #{{ last_order }}
+                                        {% endblocktrans %}
+                                    </a>
                                 {% endif %}
                             </td>
                         </tr>
@@ -82,7 +88,7 @@
             </div>
         {% else %}
             <div class="card-content card-content--no-data">
-                <p>{% trans "No customers found." %}</p>
+                <p>{% trans "No customers found." context "Empty customers table message" %}</p>
             </div>
         {% endif %}
     </div>

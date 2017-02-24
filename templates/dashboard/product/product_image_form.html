@@ -28,8 +28,13 @@
             <li><span class="breadcrumbs--ellipsed-item">{{ product_image.image }}</span></li>
         {% else %}
             <li>
-                <span class="hide-on-med-and-down">{% trans "Add image" %}</span>
-                <span class="hide-on-large-only breadcrumbs--ellipsed-item">{% blocktrans %}Add image for {{ product }}{% endblocktrans %}</span>
+                <span class="hide-on-med-and-down">
+                    {% trans "Add image" context "Image form breadcrumbs" %}</span>
+                <span class="hide-on-large-only breadcrumbs--ellipsed-item">
+                    {% blocktrans trimmed context "Image form breadcrumbs"  %}
+                        Add image for {{ product }}
+                    {% endblocktrans %}
+                </span>
             </li>
         {% endif %}
     </ul>
@@ -44,7 +49,9 @@
                 {% csrf_token %}
 
                 {% if product_image.pk %}
-                    <p class="no-margin">{% trans "Pick the most relevant part of the image using the red circle." %}</p>
+                    <p class="no-margin">
+                        {% trans "Pick the most relevant part of the image using the red circle." context "Image form text" %}
+                    </p>
                 {% endif %}
                 <div class="row">
                     {{ form.image|materializecss }}
@@ -60,9 +67,9 @@
         <div class="row">
             <div class="col l8 right-align">
                 {% if product_image.pk %}
-                    <button type="submit" class="btn">{% trans "Update" %}</button>
+                    <button type="submit" class="btn">{% trans "Update" context "Image form primary action" %}</button>
                 {% else %}
-                    <button type="submit" class="btn">{% trans "Create" %}</button>
+                    <button type="submit" class="btn">{% trans "Create" context "Image form secondary action" %}</button>
                 {% endif %}
             </div>
         </div>

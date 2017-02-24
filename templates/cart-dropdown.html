@@ -28,7 +28,9 @@
     </div>
     <div class="row cart-dropdown__total" data-quantity="{{ quantity }}">
       <div class="col-md-8">
-        <h3>{% trans "Subtotal" %} <br> <span>{% trans "(Delivery calculated on checkout)" %}</span></h3>
+        <h3>{% trans "Subtotal" context "Cart dropdown text" %}
+            <br>
+            <span>{% trans "(Delivery calculated at checkout)" context "Cart dropdown text" %}</span></h3>
       </div>
       <div class="col-md-4">
         <h3 class="float-md-right price {% if lines|length <= 2 %}single{% endif %}" data-quantity="{{ quantity }}">
@@ -38,17 +40,17 @@
     </div>
     <div class="row cart-dropdown__actions">
       <div class="col-md-5 offset-md-1">
-        <a href="{% url "cart:index" %}" class="btn secondary float-md-right">{% trans "Go to cart" %}</a>
+        <a href="{% url "cart:index" %}" class="btn secondary float-md-right">{% trans "Go to cart" context "Cart dropdown secondary action" %}</a>
       </div>
       <div class="col-md-5">
-        <a href="{% url "checkout:login" %}" class="btn primary">{% trans "Checkout" %}</a>
+        <a href="{% url "checkout:login" %}" class="btn primary">{% trans "Checkout" context "Cart dropdown primary action" %}</a>
       </div>
     </div>
   {% else %}
     <div class="text-md-center cart-dropdown__empty">
       <h3>{% trans "There are no products in your shopping cart." %}</h3>
       <img src="{% static 'images/pirate_cart.png' %}" srcset="{% static 'images/pirate_cart.png' %} 1x, {% static 'images/pirate_cart2x.png' %} 2x">
-      <a href="/" class="btn primary">{% trans "Check out our sales" %}</a>
+      <a href="/" class="btn primary">{% trans "Check out our sales" context "Empty cart dropdown text" %}</a>
     </div>
   {% endif %}
 </div>

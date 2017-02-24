@@ -1,10 +1,15 @@
 from django.template import Library
+from payments import PaymentStatus
+
+from ...order import OrderStatus
 
 register = Library()
 
 
-ERRORS = ['error', 'reject', 'rejected']
-SUCCESSES = ['accept', 'confirmed', 'fully-paid', 'shipped', 'refunded']
+ERRORS = {PaymentStatus.ERROR, PaymentStatus.REJECTED}
+SUCCESSES = {
+    OrderStatus.FULLY_PAID, OrderStatus.SHIPPED,
+    PaymentStatus.CONFIRMED, PaymentStatus.REFUNDED}
 
 
 @register.inclusion_tag('status_label.html')

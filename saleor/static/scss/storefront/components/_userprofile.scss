@@ -61,6 +61,9 @@
     }
   }
   &__orders {
+    &-empty {
+      margin-top: $global-margin * 2;
+    }
     small {
       text-decoration: underline;
       color: $body-color;

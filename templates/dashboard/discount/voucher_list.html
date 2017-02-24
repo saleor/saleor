@@ -3,7 +3,7 @@
 {% load prices_i18n %}
 {% load materializecss %}
 
-{% block title %}{% trans "Vouchers" %} - {{ block.super }}{% endblock %}
+{% block title %}{% trans "Vouchers" context "Voucher list page title" %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-vouchers{% endblock %}
 
@@ -12,7 +12,7 @@
 {% block header_extra %}
     <div class="fixed-action-btn">
         <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
-           href="{% url 'dashboard:voucher-add' %}" title="{% trans "Add voucher" %}">
+           href="{% url 'dashboard:voucher-add' %}" title="{% trans "Add voucher" context "Voucher list add button text" %}">
             <i class="material-icons">add</i>
         </a>
     </div>
@@ -20,7 +20,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li class="visible-s">{% trans "Vouchers" %}</li>
+        <li class="visible-s">{% trans "Vouchers" context "Voucher list breadcrumbs" %}</li>
     </ul>
 {% endblock %}
 
@@ -33,13 +33,13 @@
                 <table class="bordered hoverable responsive data-table">
                     <thead>
                     <tr>
-                        <th class="wide">{% trans "Name" %}</th>
-                        <th>{% trans "Discount" %}</th>
-                        <th>{% trans "Start date" %}</th>
-                        <th>{% trans "End date" %}</th>
-                        <th>{% trans "Used" %}</th>
-                        <th>{% trans "Apply to" %}</th>
-                        <th>{% trans "Limit" %}</th>
+                        <th class="wide">{% trans "Name" context "Voucher table header" %}</th>
+                        <th>{% trans "Discount" context "Voucher table header" %}</th>
+                        <th>{% trans "Start date" context "Voucher table header" %}</th>
+                        <th>{% trans "End date" context "Voucher table header" %}</th>
+                        <th>{% trans "Used" context "Voucher table header" %}</th>
+                        <th>{% trans "Apply to" context "Voucher table header" %}</th>
+                        <th>{% trans "Limit" context "Voucher table header" %}</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -76,6 +76,6 @@
 
         {% include "dashboard/includes/_pagination.html" %}
     {% else %}
-        <p>{% trans "No vouchers found." %}</p>
+        <p>{% trans "No vouchers found." context "Empty voucher table message" %}</p>
     {% endif %}
 {% endblock %}

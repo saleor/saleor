@@ -4,7 +4,7 @@ Development
 Working with templates
 ----------------------
 
-Default storefront templates are based on `Bootstrap 3 <http://getbootstrap.com/>`_.
+Default storefront templates are based on `Bootstrap 4 <https://v4-alpha.getbootstrap.com/>`_.
 
 You can find the files under ``/templates/``.
 
@@ -82,6 +82,8 @@ The storefront ships with a working `CircleCI <https://circleci.com/>`_ configur
 To use it log into your CircleCI account and enable your repository.
 
 
+.. _docker_dev:
+
 Docker
 ------
 
@@ -90,7 +92,7 @@ Using Docker to build software allows you to run and test code without having to
 .. warning::
 
   The following setup is only meant for local development.
-  See :ref:`docker` for production use of Docker.
+  See :ref:`docker_deployment` for production use of Docker.
 
 
 Local prerequisites
@@ -100,33 +102,54 @@ You will need to install Docker and
 `docker-compose <https://docs.docker.com/compose/install/>`_ before
 performing the following steps.
 
+To build assets you will need `node <https://docs.docker.com/compose/install/>`_, `yarn <https://docs.docker.com/compose/install/>`_ and `webpack module bundler <https://webpack.github.io/>`_.
+
+.. note::
+
+   Our configuration exposes PostgreSQL, Redis and Elasticsearch ports. If you have problems running this docker file because of port conflicts, you can remove 'ports' section from docker-compose.yml
+
 
 Usage
 *****
 
-1. Build the containers using ``docker-compose``
+1. Install JavaScript dependencies
+
+   .. code-block:: bash
+
+    $ yarn
+
+
+2. Prepare static assets
+
+   .. code-block:: bash
+
+    $ yarn run build-assets
+
+
+3. Build the containers using ``docker-compose``
 
    .. code-block:: bash
 
     $ docker-compose build
 
 
-2. Prepare the database
+4. Prepare the database
 
    .. code-block:: bash
 
     $ docker-compose run web python manage.py migrate
+    $ docker-compose run web python manage.py collectstatic
     $ docker-compose run web python manage.py populatedb --createsuperuser
 
    The ``--createsuperuser`` switch creates an admin account for
     ``admin@example.com`` with the password set to ``admin``.
 
 
-3. Run the containers
+5. Run the containers
 
    .. code-block:: bash
 
     $ docker-compose up
 
 
-By default, the application is started in debug mode, will automaticall reload code and is configured to listen on port ``8000``.
+By default, the application is started in debug mode, will automatically reload code and is configured to listen on port ``8000``.

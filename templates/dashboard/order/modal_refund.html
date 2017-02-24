@@ -7,22 +7,30 @@
     {% csrf_token %}
 
     <div class="modal-content">
-        <h5>{% trans "Refund payment" %}</h5>
+        <h5>{% trans "Refund payment" context "Modal refund payment title" %}</h5>
 
         <div class="row">
             {{ form|materializecss }}
         </div>
 
-        <h5>{% trans "Before this action" %}</h5>
+        <h5>{% trans "Before this action" context "Modal refund payment title" %}</h5>
 
         <ul class="list">
-            <li class="list-item">{% trans "Order total: " %}{% gross payment.order.get_total %}</li>
-            <li class="list-item">{% trans "Captured amount: " %}{{ captured|currencyfmt:currency }} </li>
+            <li class="list-item">{% trans "Order total:" context "Modal refund payment list title" %}
+                {% gross payment.order.get_total %}
+            </li>
+            <li class="list-item">{% trans "Captured amount:" context "Modal refund payment list title" %}
+                {{ captured|currencyfmt:currency }}
+            </li>
         </ul>
     </div>
 
     <div class="modal-footer">
-        <button type="submit" class="modal-action btn-flat blue-text">{% trans 'Refund' %}</button>
-        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">{% trans "Cancel" %}</a>
+        <button type="submit" class="modal-action btn-flat blue-text">
+            {% trans "Refund" context "Modal refund payment primary action" %}
+        </button>
+        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">
+            {% trans "Cancel" context "Modal refund payment secondary action" %}
+        </a>
     </div>
 </form>

@@ -9,17 +9,22 @@ from collections import defaultdict
 from django.conf import settings
 from django.core.files import File
 from django.template.defaultfilters import slugify
+from django.utils.six import moves
 from faker import Factory
 from faker.providers import BaseProvider
+from payments import PaymentStatus
 from prices import Price
 
 from ...discount.models import Sale, Voucher
+from ...order import OrderStatus
 from ...order.models import DeliveryGroup, Order, OrderedItem, Payment
 from ...product.models import (AttributeChoiceValue, Category, Product,
                                ProductAttribute, ProductClass, ProductImage,
                                ProductVariant, Stock, StockLocation)
 from ...shipping.models import ANY_COUNTRY, ShippingMethod
 from ...userprofile.models import Address, User
+from ...userprofile.utils import store_user_address
+
 
 fake = Factory.create()
 STOCK_LOCATION = 'default'
@@ -182,14 +187,18 @@ def get_variant_combinations(product):
                         for attr
                         in product.product_class.variant_attributes.all()}
     all_combinations = itertools.product(*variant_attr_map.values())
-    return [{str(attr_value.attribute.pk): str(attr_value.pk)}
-            for combination in all_combinations
-            for attr_value in combination]
+    return [{str(attr_value.attribute.pk): str(attr_value.pk)
+            for attr_value in combination}
+            for combination in all_combinations]
 
 
-def get_price_override(schema):
+def get_price_override(schema, combinations_num, current_price):
+    prices = []
     if schema.get('different_variant_prices'):
-        return fake.price()
+        prices = sorted(
+            [current_price + fake.price() for _ in range(combinations_num)],
+            reverse=True)
+    return prices
 
 
 def create_products_by_class(product_class, schema,
@@ -208,10 +217,19 @@ def create_products_by_class(product_class, schema,
             create_product_images(
                 product, random.randrange(1, 5), class_placeholders)
         variant_combinations = get_variant_combinations(product)
-        for i, attr_combination in enumerate(variant_combinations, 1337):
+
+        prices = get_price_override(
+            schema, len(variant_combinations), product.price)
+        variants_with_prices = moves.zip_longest(
+            variant_combinations, prices)
+
+        for i, variant_price in enumerate(variants_with_prices, start=1337):
+            attr_combination, price = variant_price
             sku = '%s-%s' % (product.pk, i)
-            create_variant(product, attributes=attr_combination,
-                           price_override=get_price_override(schema), sku=sku)
+            create_variant(
+                product, attributes=attr_combination, sku=sku,
+                price_override=price)
+
         if not variant_combinations:
             # Create min one variant for products without variant level attrs
             sku = '%s-%s' % (product.pk, fake.random_int(1000, 100000))
@@ -266,7 +284,6 @@ def create_product(**kwargs):
     defaults = {
         'name': fake.company(),
         'price': fake.price(),
-        'weight': fake.random_digit(),
         'description': '\n\n'.join(fake.paragraphs(5))}
     defaults.update(kwargs)
     return Product.objects.create(**defaults)
@@ -355,7 +372,8 @@ def create_fake_user():
 
 def create_payment(delivery_group):
     order = delivery_group.order
-    status = random.choice(['waiting', 'preauth', 'confirmed'])
+    status = random.choice(
+        [PaymentStatus.WAITING, PaymentStatus.PREAUTH, PaymentStatus.CONFIRMED])
     payment = Payment.objects.create(
         order=order,
         status=status,
@@ -371,7 +389,7 @@ def create_payment(delivery_group):
         billing_city=order.billing_address.city,
         billing_postcode=order.billing_address.postal_code,
         billing_country_code=order.billing_address.country)
-    if status == 'confirmed':
+    if status == PaymentStatus.CONFIRMED:
         payment.captured_amount = payment.total
         payment.save()
     return payment
@@ -426,7 +444,7 @@ def create_fake_order():
             'user_email': get_email(
                 address.first_name, address.last_name)}
     order = Order.objects.create(**user_data)
-    order.change_status('payment-pending')
+    order.change_status(OrderStatus.PAYMENT_PENDING)
 
     delivery_group = create_delivery_group(order)
     lines = create_order_lines(delivery_group, random.randrange(1, 5))
@@ -436,10 +454,10 @@ def create_fake_order():
     order.save()
 
     payment = create_payment(delivery_group)
-    if payment.status == 'confirmed':
-        order.change_status('fully-paid')
+    if payment.status == PaymentStatus.CONFIRMED:
+        order.change_status(OrderStatus.FULLY_PAID)
         if random.choice([True, False]):
-            order.change_status('shipped')
+            order.change_status(OrderStatus.SHIPPED)
     return order
 
 
@@ -509,3 +527,9 @@ def set_featured_products(how_many=8):
     pks = Product.objects.order_by('?')[:how_many].values_list('pk', flat=True)
     Product.objects.filter(pk__in=pks).update(is_featured=True)
     yield 'Featured products created'
+
+
+def add_address_to_admin(email):
+    address = create_address()
+    user = User.objects.get(email=email)
+    store_user_address(user, address, True, True)

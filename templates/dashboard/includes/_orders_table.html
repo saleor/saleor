@@ -7,11 +7,11 @@
         <thead>
             <tr>
                 <th></th>
-                <th>{% trans "Order status" %}</th>
-                <th>{% trans "Payment status" %}</th>
-                <th>{% trans "Customer" %}</th>
-                <th>{% trans "Placed on" %}</th>
-                <th>{% trans "Total" %}</th>
+                <th>{% trans "Order status" context "Orders table header" %}</th>
+                <th>{% trans "Payment status" context "Orders table header" %}</th>
+                <th>{% trans "Customer" context "Orders table header" %}</th>
+                <th>{% trans "Placed on" context "Orders table header" %}</th>
+                <th>{% trans "Total" context "Orders table header" %}</th>
             </tr>
         </thead>
         <tbody>
@@ -22,7 +22,8 @@
                 </td>
                 <td>{% render_status order.status order.get_status_display %}</td>
                 <td>{% render_status order.get_last_payment_status order.get_last_payment_status_display %}</td>
-                <td>{{ order.user|default:_("Guest") }}</td>
+                {% trans "Guest" context "Customer column anonymous user text" as guest %}
+                <td>{{ order.user|default:guest }}</td>
                 <td>{{ order.created }}</td>
                 <td>{% gross order.get_total %}</td>
             </tr>
