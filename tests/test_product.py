@@ -306,7 +306,8 @@ def test_get_attributes_display_map_no_choices(product_in_stock):
     assert attributes_display_map == {product_attr.pk: smart_text(-1)}
 
 
-def test_variant_price_with_vat(product_in_stock, vat):
+def test_variant_price_with_vat(product_in_stock, vat, settings):
+    settings.VATLAYER_ACCESS_KEY = '123'
     variant = product_in_stock.variants.first()
     price_without_vat = variant.get_price_per_item().quantize(2)
     expected = Price(net=10, gross=10, currency=price_without_vat.currency)
