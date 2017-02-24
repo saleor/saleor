@@ -15,7 +15,7 @@ dependencies:
     - yarn
     - pip install -r requirements.txt
   override:
-    - yarn run build-assets
+    - yarn run build-assets --production
     - ./manage.py collectstatic --no-input
     - sed -i.bak "s#'dev'#'$(git describe --tags)'#" saleor/__init__.py
   post:
