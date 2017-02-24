@@ -5,6 +5,7 @@ from django.forms import model_to_dict
 from mock import Mock
 from prices import Price
 
+from saleor.cart.models import Cart
 from saleor.checkout import views
 from saleor.checkout.core import STORAGE_SESSION_KEY, Checkout
 from saleor.shipping.models import ShippingMethodCountry
@@ -13,7 +14,7 @@ from saleor.userprofile.models import Address
 
 @pytest.fixture
 def anonymous_checkout():
-    return Checkout(Mock(), AnonymousUser(), 'tracking_code')
+    return Checkout(Mock(spec=Cart, discounts=None), AnonymousUser(), 'tracking_code')
 
 
 @pytest.fixture

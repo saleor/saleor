@@ -1,9 +1,5 @@
 from django.core.urlresolvers import reverse
 from payments import FraudStatus, PaymentStatus
-
-from saleor.order.models import Order
-from saleor.shipping.models import ShippingMethod
-from saleor.userprofile.models import User
 from tests.utils import get_redirect_location
 
 
