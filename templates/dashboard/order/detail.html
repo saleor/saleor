@@ -183,7 +183,9 @@
                                 {% endwith %}
                             </div>
                             <div class="card-action">
-                                <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}">{% trans "Edit" context "Billing address card action" %}</a>
+                                <a href="#base-modal-fixed" class="modal-trigger-custom btn-flat"
+                                   data-href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}">
+                                    {% trans "Edit" context "Billing address card action" %}</a>
                             </div>
                         </div>
                     </div>
@@ -381,7 +383,7 @@
 
                 <div class="card-action">
                     <a data-href="{% url "dashboard:order-add-note" order_pk=order.pk %}"
-                       class="modal-trigger-custom" href="#base-modal">{% trans "Add note" context "Order notes card action" %}</a>
+                       class="modal-trigger-custom btn-flat" href="#base-modal">{% trans "Add note" context "Order notes card action" %}</a>
                 </div>
             </div>
         </div>
