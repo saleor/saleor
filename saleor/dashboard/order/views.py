@@ -294,16 +294,13 @@ def address_view(request, order_pk, address_type):
             'Dashboard message',
             'Updated billing address')
     form = AddressForm(request.POST or None, instance=address)
-    status = 200
     if form.is_valid():
         form.save()
         order.create_history_entry(comment=success_msg, user=request.user)
         messages.success(request, success_msg)
-    elif form.errors:
-        status = 400
+        return redirect('dashboard:order-details', order_pk=order_pk)
     ctx = {'order': order, 'address_type': address_type, 'form': form}
-    return TemplateResponse(request, 'dashboard/order/modal_address_edit.html',
-                            ctx, status=status)
+    return TemplateResponse(request, 'dashboard/order/address_form.html', ctx)
 
 
 @staff_member_required

@@ -153,13 +153,11 @@
                             <div class="card">
                                 <div class="card-content">
                                     <span class="card-title black-text">{% trans "Shipping address" context "Shipping address card title" %}</span>
-
                                     {% include 'dashboard/includes/_address.html' with address=address only %}
                                 </div>
 
                                 <div class="card-action">
-                                    <a href="#base-modal-fixed" class="modal-trigger-custom"
-                                       data-href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">
+                                    <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">
                                         {% trans "Edit" context "Shipping address card action" %}
                                     </a>
                                 </div>
@@ -174,15 +172,11 @@
                                     <span class="card-title black-text">
                                         {% trans "Billing address" context "Billing address card title" %}
                                     </span>
-
                                     {% include 'dashboard/includes/_address.html' with address=address only %}
                                 {% endwith %}
                             </div>
-
                             <div class="card-action">
-                                <a href="#base-modal-fixed" class="modal-trigger-custom"
-                                   data-href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}">
-                                    {% trans "Edit" context "Billing address card action" %}</a>
+                                <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}">{% trans "Edit" context "Billing address card action" %}</a>
                             </div>
                         </div>
                     </div>

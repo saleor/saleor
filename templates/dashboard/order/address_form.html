@@ -1,0 +1,50 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load materializecss %}
+{% load static %}
+
+{% block title %}{% trans "Edit address" context "" %} - {% trans "Orders" context "" %} - {{ block.super }}{% endblock %}
+
+{% block body_class %}body-orders{% endblock %}
+
+{% block menu_orders_class %}active{% endblock %}
+
+{% block header_menu %}
+    {% url "dashboard:orders" as url %}
+    {% include "dashboard/includes/_back-link.html" with url=url %}
+{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs breadcrumbs--history">
+        <li><a href="{% url "dashboard:orders" %}">{% trans "Orders" context "Breadcrumbs" %}</a></li>
+        <li class="back-mobile"><a href="{% url "dashboard:order-details" order_pk=order.pk %}"><i class="material-icons">arrow_back</i></a></li>
+        <li><a href="{% url "dashboard:order-details" order_pk=order.pk %}">#{{ order.pk }}</a></li>
+        <li>
+            <span class="breadcrumbs--ellipsed-item">
+                {% if address_type == "shipping" %}
+                    {% trans "Shipping address" context "" %}
+                {% else %}
+                    {% trans "Billing address" context "" %}
+                {% endif %}
+            </span>
+        </li>
+    </ul>
+{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <form method="post" novalidate>
+            <div class="card-content">
+                {% csrf_token %}
+                <div class="row">
+                    {{ form|materializecss }}
+                </div>
+            </div>
+            <div class="card-action right-align">
+                <button type="submit" class="btn btn-flat">
+                    {% trans "Update" context "Address primary action" %}
+                </button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
