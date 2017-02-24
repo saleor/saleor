@@ -183,8 +183,7 @@
                                 {% endwith %}
                             </div>
                             <div class="card-action">
-                                <a href="#base-modal-fixed" class="modal-trigger-custom btn-flat"
-                                   data-href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}">
+                                <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}" class=" btn-flat">
                                     {% trans "Edit" context "Billing address card action" %}</a>
                             </div>
                         </div>

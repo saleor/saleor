@@ -17,8 +17,8 @@
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--history">
         <li><a href="{% url "dashboard:orders" %}">{% trans "Orders" context "Breadcrumbs" %}</a></li>
+        <li class="hide-on-med-and-down"><a href="{% url "dashboard:order-details" order_pk=order.pk %}">#{{ order.pk }}</a></li>
         <li class="back-mobile"><a href="{% url "dashboard:order-details" order_pk=order.pk %}"><i class="material-icons">arrow_back</i></a></li>
-        <li><a href="{% url "dashboard:order-details" order_pk=order.pk %}">#{{ order.pk }}</a></li>
         <li>
             <span class="breadcrumbs--ellipsed-item">
                 {% if address_type == "shipping" %}
@@ -32,19 +32,26 @@
 {% endblock %}
 
 {% block content %}
-    <div class="card">
-        <form method="post" novalidate>
-            <div class="card-content">
-                {% csrf_token %}
-                <div class="row">
-                    {{ form|materializecss }}
-                </div>
+    <div class="row">
+        <div class="col s12 m9">
+            <div class="card">
+                <form method="post" novalidate>
+                    <div class="card-content">
+                        {% csrf_token %}
+                        <div class="row">
+                            {{ form|materializecss }}
+                        </div>
+                    </div>
+                    <div class="card-action right-align">
+                        <a href="{% url "dashboard:order-details" order_pk=order.pk %}" class="btn btn-flat">
+                            {% trans "Cancel" context "Address form secondary action" %}</a>
+                        <button type="submit" class="btn btn-flat primary">
+                            {% trans "Update" context "Address primary action" %}
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div class="card-action right-align">
-                <button type="submit" class="btn btn-flat">
-                    {% trans "Update" context "Address primary action" %}
-                </button>
-            </div>
-        </form>
+        </div>
+        <div class="col s12 m3"></div>
     </div>
 {% endblock %}
