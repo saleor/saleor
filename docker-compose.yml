@@ -6,15 +6,15 @@ services:
       - POSTGRES_USER=saleor
       - POSTGRES_PASSWORD=saleor
     ports:
-      - '5432:5432'
+      - '127.0.0.1:5432:5432'
   redis:
     image: redis
     ports:
-      - '6379:6379'
+      - '127.0.0.1:6379:6379'
   search:
     image: elasticsearch:2.4
     ports:
-      - '9200:9200'
+      - '127.0.0.1:9200:9200'
   web:
     build: .
     command: python manage.py runserver 0.0.0.0:8000

@@ -10,7 +10,7 @@ from django_prices.templatetags import prices_i18n
 
 from ..product.models import (AttributeChoiceValue, Category, Product,
                               ProductAttribute, ProductImage, ProductVariant)
-from ..product.utils import get_availability
+from ..product.utils import get_availability, products_for_api
 from ..product.templatetags.product_images import product_first_image
 from .scalars import AttributesFilterScalar
 from .utils import (CategoryAncestorsCache, DjangoPkInterface)
@@ -110,12 +110,14 @@ class CategoryType(DjangoObjectType):
         return self.get_absolute_url(ancestors)
 
     def resolve_products(self, args, context, info):
+
         def filter_by_price(queryset, value, operator):
             return [obj for obj in queryset if operator(get_availability(
                 obj, context.discounts).price_range.min_price.gross, value)]
 
         tree = self.get_descendants(include_self=True)
-        qs = Product.objects.prefetch_for_api().filter(categories__in=tree)
+        qs = products_for_api(context.user)
+        qs = qs.filter(categories__in=tree)
         attributes_filter = args.get('attributes')
         order_by = args.get('order_by')
         price_lte = args.get('price_lte')

@@ -9,7 +9,7 @@ from django.utils.encoding import smart_text
 from saleor.cart.models import Cart
 from saleor.cart import CartStatus, utils
 from saleor.product import models
-from saleor.product.models.utils import get_attributes_display_map
+from saleor.product.utils import get_attributes_display_map
 from saleor.product.utils import get_availability
 from tests.utils import filter_products_by_attribute
 

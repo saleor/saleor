@@ -7,9 +7,7 @@ from django_prices.templatetags import prices_i18n
 
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
-from .forms import get_form_class_for_product
-from .models import Product
-from .models.utils import get_attributes_display_map
+from .forms import ProductForm
 
 try:
     from urllib.parse import urlencode
@@ -18,8 +16,8 @@ except ImportError:
 
 
 def products_visible_to_user(user):
-    if (user.is_authenticated() and
-            user.is_active and user.is_staff):
+    from .models import Product
+    if user.is_authenticated() and user.is_active and user.is_staff:
         return Product.objects.all()
     else:
         return Product.objects.get_available_products()
@@ -27,13 +25,18 @@ def products_visible_to_user(user):
 
 def products_with_details(user):
     products = products_visible_to_user(user)
-    products = products.prefetch_related('categories', 'images',
-                                         'variants__stock',
-                                         'variants__variant_images__image',
-                                         'attributes__values',
-                                         'product_class__variant_attributes__values',
-                                         'product_class__product_attributes__values')
+    products = products.prefetch_related(
+        'categories', 'images', 'variants__stock',
+        'variants__variant_images__image', 'attributes__values',
+        'product_class__variant_attributes__values',
+        'product_class__product_attributes__values')
     return products
+
+
+def products_for_api(user):
+    products = products_visible_to_user(user)
+    return products.prefetch_related(
+        'images', 'categories', 'variants', 'variants__stock')
 
 
 def products_for_homepage():
@@ -102,10 +105,9 @@ def handle_cart_form(request, product, create_cart=False):
         cart = get_or_create_cart_from_request(request)
     else:
         cart = get_cart_from_request(request)
-
-    form_class = get_form_class_for_product(product)
-    form = form_class(cart=cart, product=product,
-                      data=request.POST or None, discounts=request.discounts)
+    form = ProductForm(
+        cart=cart, product=product, data=request.POST or None,
+        discounts=request.discounts)
     return form, cart
 
 
@@ -240,3 +242,17 @@ def get_variant_url(variant):
             values[str(value.pk)] = value
 
     return get_variant_url_from_product(variant.product, attributes)
+
+
+def get_attributes_display_map(obj, attributes):
+    display_map = {}
+    for attribute in attributes:
+        value = obj.attributes.get(smart_text(attribute.pk))
+        if value:
+            choices = {smart_text(a.pk): a for a in attribute.values.all()}
+            choice_obj = choices.get(value)
+            if choice_obj:
+                display_map[attribute.pk] = choice_obj
+            else:
+                display_map[attribute.pk] = value
+    return display_map
