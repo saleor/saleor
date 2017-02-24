@@ -1,6 +1,6 @@
 from mock import Mock
 
-from saleor.product.models.base import ProductTranslation
+from saleor.product.models import ProductTranslation
 
 
 def test_translation(monkeypatch, product_in_stock):
