@@ -27,6 +27,7 @@ django-materializecss-form==1.0.1
 django-mptt==0.8.7
 django-payments==0.11.0.3
 django-prices-openexchangerates==0.1.12
+django-prices-vatlayer==0.1.0
 django-prices==0.4.13
 django-redis==4.7.0
 django-storages==1.5.2

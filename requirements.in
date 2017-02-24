@@ -14,6 +14,7 @@ django-mptt>=0.7.1
 django-payments>=0.11.0,<0.12a0
 django-prices>=0.4.11,<0.5a0
 django-prices-openexchangerates>=0.1.12,<0.2a0
+django-prices-vatlayer>=0.1.0
 django-redis>=4.0.0
 djangorestframework>=3.1
 django-storages>=1.4.1
