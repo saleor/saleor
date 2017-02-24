@@ -171,13 +171,7 @@ header {
     height: $subheader-height;
     .breadcrumbs {
       transition: margin .1s;
-      margin-left: 40px;
-      @media (max-width: $small-screen) {
-        margin-left: 15px;
-      }
-      @media (min-width: $large-screen) {
-        margin-left: 270px;
-      }
+      padding-left: 15px;
     }
     .dropdown-button {
       i {
@@ -231,6 +225,7 @@ body.nav-toggled {
       .breadcrumbs {
         @media (min-width: $medium-screen) {
           margin-left: 40px;
+          padding-left: 0;
         }
       }
     }
@@ -241,7 +236,7 @@ body.nav-toggled {
         margin-left: 270px;
       }
       @media (min-width: $large-screen) {
-        margin-left: 40px;
+        margin: 0 auto;
       }
     }
   }
