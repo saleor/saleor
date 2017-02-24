@@ -49,7 +49,7 @@
                 </ul>
                 {% include "dashboard/includes/_pagination.html" with page_obj=product_classes %}
             {% else %}
-                <p>{% trans "No product types found." context "Empty product type list message" %}</p>
+                <p class="not-found grey-text">{% trans "No product types found." context "Empty product type list message" %}</p>
             {% endif %}
         </div>
     </div>

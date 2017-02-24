@@ -16,8 +16,40 @@
 {% endblock %}
 
 {% block content %}
-    <div class="card">
-        {% if customers %}
+    {% if customers %}
+        <div class="card">
+            <form method="get" novalidate>
+                <div class="card-content">
+                    <div class="row">
+                        <div class="col s12 m3">
+                            <div class="row">
+                                {{ form.email|materializecss }}
+                            </div>
+                        </div>
+                        <div class="col s12 m4">
+                            <div class="row">
+                                {{ form.name|materializecss }}
+                            </div>
+                        </div>
+                        <div class="col s12 m3">
+                            <div class="row">
+                                {{ form.order_status|materializecss }}
+                            </div>
+                        </div>
+
+                        <div class="col s12 m2">
+                            <button type="submit" class="btn btn-flat btn--inline">
+                                {% trans "Filter" context "Customer list form primary action" %}</button>
+                            {% if form.is_bound %}
+                                <a class="btn btn--inline" href="{% url 'dashboard:customers' %}">
+                                    {% trans "Clear" context "Customer list form secondary action" %}</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="card">
             <div class="data-table-container">
                 <table class="bordered highlight responsive data-table">
                     <thead>
@@ -64,11 +96,11 @@
                     </tbody>
                 </table>
             </div>
-        {% else %}
-            <div class="card-content card-content--no-data">
-                <p>{% trans "No customers found." context "Empty customers table message" %}</p>
-            </div>
-        {% endif %}
-    </div>
+        </div>
+    {% else %}
+        <div class="card-content card-content--no-data">
+            <p class="not-found grey-text">{% trans "No customers found." context "Empty customers table message" %}</p>
+        </div>
+    {% endif %}
     {% include "dashboard/includes/_pagination.html" with page_obj=customers %}
 {% endblock %}

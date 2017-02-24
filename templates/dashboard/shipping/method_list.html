@@ -58,7 +58,7 @@
         </div>
         {% include "dashboard/includes/_pagination.html" %}
     {% else %}
-        <p>{% trans "No shipping methods found." context "Empty Shipping methods table" %}</p>
+        <p class="not-found grey-text">{% trans "No shipping methods found." context "Empty Shipping methods table" %}</p>
     {% endif %}
 
 {% endblock %}

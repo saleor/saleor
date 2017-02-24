@@ -71,6 +71,6 @@
 
         {% include "dashboard/includes/_pagination.html" %}
     {% else %}
-        <p>{% trans "No vouchers found." context "Empty voucher table message" %}</p>
+        <p class="not-found grey-text">{% trans "No vouchers found." context "Empty voucher table message" %}</p>
     {% endif %}
 {% endblock %}

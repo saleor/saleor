@@ -229,6 +229,12 @@ tr[data-action-go]>td:not(.ignore-link):hover {
   }
 }
 
+.not-found {
+  font-size: 1.7rem;
+  text-transform: uppercase;
+  text-align: center;
+}
+
 .search-form {
   input {
     border: none;
