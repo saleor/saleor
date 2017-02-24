@@ -73,7 +73,7 @@
                                 </tr>
                             </thead>
                         {% endif %}
-                        <tr>
+                        <tr {% if form.non_field_errors %}class="materialize-red-text"{% endif %}>
                             {% for field in form.visible_fields %}
                                 <td{% if forloop.last %} class="center-align"{% endif %}>
                                     {% if forloop.first %}
@@ -85,6 +85,15 @@
                                 </td>
                             {% endfor %}
                         </tr>
+                        {% if form.non_field_errors %}
+                        <tr>
+                            <td colspan="{{ form.visible_fields|length }}">
+                                {% for error in form.non_field_errors %}
+                                    <p class="help-block materialize-red-text">{{ error }}</p>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% endif %}
                     {% endfor %}
                 </table>
             </div>

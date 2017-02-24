@@ -4,18 +4,20 @@
 {% load staticfiles %}
 {% load gross net tax from prices_i18n %}
 
-{% block title %}{% trans "Checkout" %} — {{ block.super }}{% endblock %}
+{% block title %}{% trans "Checkout" context "Checkout page title" %} — {{ block.super }}{% endblock %}
 
 {% block header %}
     <div class="container navbar__login">
-      <p>{% trans "Easy and secure" %}!</p>
+      <p>{% trans "Easy and secure!" context "Checkout top message" %}</p>
     </div>
     <header class="checkout__header">
       <div class="container">
         <a href="/">
-          <img src="{% static "images/saleor-logo-black.svg" %}" alt="Testeor - Saleor demo store" height="38">
+          <img src="{% static "images/saleor-logo-black.svg" %}"
+               alt="{% trans "Testeor - Saleor demo store" context "Checkout logo alternate text" %}"
+               height="38">
         </a>
-        <h1>{% trans "Checkout" %}</h1>
+        <h1>{% trans "Checkout" context "Checkout title" %}</h1>
       </div>
     </header>
 {% endblock %}
@@ -32,41 +34,41 @@
       <div class="col-md-5">
         {% with total=checkout.get_total %}
           <div class="checkout__review">
-            <h3 class="checkout__review__tittle">{% trans "Order review" %}</h3>
+            <h3 class="checkout__review__tittle">{% trans "Order review" context "Order review title" %}</h3>
             {% for delivery, delivery_cost, total_with_delivery in checkout.deliveries %}
-                {% for item, item_price_per_item, item_price_total in delivery %}
-                    <div class="row">
-                      <div class="col-8">
-                        <p><strong>{{ item.variant.product }}</strong> x {{ item.quantity }}<br>
-                          <span class="checkout__review__variant">{{ item.variant }}</span></p>
-                      </div>
-                      <div class="col-4">
-                        <p class="float-right">{% net item_price_total %}</p>
-                      </div>
-                    </div>
-                {% endfor %}
+              {% for item, item_price_per_item, item_price_total in delivery %}
+                <div class="row">
+                  <div class="col-8">
+                    <p><strong>{{ item.variant.product }}</strong> x {{ item.quantity }}<br>
+                      <span class="checkout__review__variant">{{ item.variant }}</span></p>
+                  </div>
+                  <div class="col-4">
+                    <p class="float-right">{% net item_price_total %}</p>
+                  </div>
+                </div>
+              {% endfor %}
             {% endfor %}
             <div class="row checkout__review__section">
               <div class="col-8">
-                <p>{% trans "Delivery" %}</p>
+                <p>{% trans "Delivery" context "Order review section" %}</p>
               </div>
               <div class="col-4">
                 <p class="float-right">{% if checkout.shipping_method %}
-                    {% net checkout.get_total_shipping %}
+                  {% net checkout.get_total_shipping %}
                 {% else %}
-                    &mdash;
+                  &mdash;
                 {% endif %}</p>
               </div>
             </div>
             <div class="row checkout__review__section">
               <div class="col-12">
-                <h3>{% trans "Promo code" %}</h3>
-                {% include 'checkout/snippets/voucher-form.html' with discount=checkout.discount form=voucher_form %}
+                <h3>{% trans "Promo code" context "Order review section title" %}</h3>
+                {% include "checkout/snippets/voucher-form.html" with discount=checkout.discount form=voucher_form %}
               </div>
             </div>
             <div class="row checkout__review__section">
               <div class="col-8">
-                <h3>{% trans "Total" %}</h3>
+                <h3>{% trans "Total" context "Order review section title" %}</h3>
               </div>
               <div class="col-4">
                 <h3 class="float-right">{% gross total html=True %}</h3>
@@ -75,5 +77,5 @@
           </div>
         {% endwith %}
       </div>
-    </div>
+  </div>
 {% endblock content %}

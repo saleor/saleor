@@ -6,12 +6,14 @@
 {% load status %}
 {% load bootstrap_form from bootstrap3 %}
 
-{% block title %}{% trans "Your profile" %} — {{ block.super }}{% endblock %}
+{% block title %}{% trans "Your profile" context "User profile page title" %} — {{ block.super }}{% endblock %}
 
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
-    <li><a href="/">{% trans "Home" %}</a></li>
-    <li>{% trans "Your account" %} (<b>{{ user }}</b>)</li>
+    <li><a href="/">
+        {% trans "Home" context "User profile breadcrumb" %}
+    </a></li>
+    <li>{% trans "Your account" context "User profile breadcrumb" %} (<b>{{ user }}</b>)</li>
   </ul>
 {% endblock breadcrumb %}
 
@@ -21,13 +23,19 @@
       <h2>{% trans "My account" %}</h2>
       <ul class="nav nav-tabs col-lg-10 offset-lg-1" role="tablist">
         <li class="nav-item">
-          <a class="nav-link active" data-toggle="tab" href="#orders" role="tab"><h3>{% trans "Recent Orders" %}</h3></a>
+          <a class="nav-link active" data-toggle="tab" href="#orders" role="tab"><h3>
+            {% trans "Recent Orders" context "User profile tab" %}
+          </h3></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link " data-toggle="tab" href="#password" role="tab"><h3>{% trans "Change password" %}</h3></a>
+          <a class="nav-link " data-toggle="tab" href="#password" role="tab"><h3>
+            {% trans "Change password" context "User profile tab" %}
+          </h3></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" data-toggle="tab" href="#addresses" role="tab"><h3>{% trans "Addresses book" %}</h3></a>
+          <a class="nav-link" data-toggle="tab" href="#addresses" role="tab"><h3>
+            {% trans "Addresses book" context "User profile tab" %}
+          </h3></a>
         </li>
       </ul>
     </div>
@@ -37,10 +45,18 @@
           {% if orders|length %}
             <div class="userprofile__orders-header">
               <div class="row">
-                <div class="col-md-2 col-3"><h3>{% trans "Order" %}</h3></div>
-                <div class="col-md-3  hidden-sm-down"><h3>{% trans "Date" %}</h3></div>
-                <div class="col-md-2 col-6"><h3 class="float-md-right">{% trans "Summary" %}</h3></div>
-                <div class="col-md-4  hidden-sm-down"><h3>{% trans "Status" %}</h3></div>
+                <div class="col-md-2 col-3"><h3>
+                  {% trans "Order" context "Recent orders column title" %}
+                </h3></div>
+                <div class="col-md-3  hidden-sm-down"><h3>
+                  {% trans "Date" context "Recent orders column title" %}
+                </h3></div>
+                <div class="col-md-2 col-6"><h3 class="float-md-right">
+                  {% trans "Summary" context "Recent orders column title" %}
+                </h3></div>
+                <div class="col-md-4  hidden-sm-down"><h3>
+                  {% trans "Status" context "Recent orders column title" %}
+                </h3></div>
                 <div class="col-md-1 col-3"></div>
               </div>
             </div>
@@ -61,14 +77,18 @@
                     {% render_status order.status order.get_status_display %}
                   </div>
                   <div class="col-md-1 col-3">
-                    <a href="{{ order.get_absolute_url }}"  class="float-right">{% trans "Details" %}</a>
+                    <a href="{{ order.get_absolute_url }}" class="float-right">
+                      {% trans "Details" context "Recent orders link text" %}
+                    </a>
                   </div>
                 </div>
               </div>
             </div>
             {% endfor %}
           {% else %}
-            <h3 class="text-sm-center userprofile__orders-empty">{% trans "There are not any completed orders yet." %}</h3>
+            <h3 class="text-sm-center userprofile__orders-empty">
+                {% trans "There are not any completed orders yet." context "No recent orders text" %}
+            </h3>
           {% endif %}
         </div>
       </div>
@@ -78,7 +98,8 @@
             <form action="" method="post">
                 {% csrf_token %}
                 {% bootstrap_form change_password_form %}
-                <input type="submit" class="btn primary" value="Change password">
+                <input type="submit" class="btn primary"
+                       value="{% trans "Change password" context "User profile action" %}">
             </form>
           </div>
         </div>
@@ -91,8 +112,10 @@
                   <div class="card card-block">
                     {% include "userprofile/snippets/address-short.html" %}
                     <ul class="icons">
-                      <li><a href="{% url "profile:address-edit" pk=address.pk %}">{% trans "Edit" %}</a></li>
-                      <li><a class="delete-icon"><img class="float-right" src="{% static 'images/icon_delete.svg' %}"></a></li>
+                      <li><a href="{% url "profile:address-edit" pk=address.pk %}">
+                        {% trans "Edit" context "User address action" %}
+                      </a></li>
+                      <li><a class="delete-icon"><img class="float-right" src="{% static "images/icon_delete.svg" %}"></a></li>
                     </ul>
                     {% include "userprofile/address-delete.html" with pk=address.pk %}
                   </div>
@@ -100,7 +123,9 @@
               {% endfor %}
             </div>
             {% if addresses|length == 0 %}
-              <h3 class="text-sm-center">{% trans "You will see new addresses here after first successful checkout." %}</h3>
+              <h3 class="text-sm-center">
+                  {% trans "You will see new addresses here after first successful checkout." context "No addresses text" %}
+              </h3>
             {% endif %}
 
         </div>

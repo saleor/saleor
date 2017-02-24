@@ -1,2 +1,2 @@
 {% load i18n %}
-{% trans "Payment details" %}
+{% trans "Payment details" context "Payment confirmation subject" %}

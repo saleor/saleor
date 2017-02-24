@@ -408,6 +408,7 @@ class AttributeChoiceValue(models.Model):
     attribute = models.ForeignKey(ProductAttribute, related_name='values')
 
     class Meta:
+        unique_together = ('display', 'attribute')
         verbose_name = pgettext_lazy(
             'Attribute choice value model',
             'attribute choices value')

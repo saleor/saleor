@@ -1,2 +1,2 @@
 {% load i18n %}
-{% trans "Order details" %}
+{% trans "Order details" context "Order confirmation email subject" %}

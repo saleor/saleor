@@ -6,8 +6,11 @@ from prices import FixedDiscount, FractionalDiscount, Price
 
 from django_prices.templatetags.prices_i18n import net
 
+from saleor.cart.utils import get_category_variants_and_prices
+from saleor.checkout.core import Checkout
 from saleor.discount.forms import CheckoutDiscountForm
 from saleor.discount.models import NotApplicable, Sale, Voucher
+from saleor.product.models import Category
 from saleor.product.models import Product, ProductVariant
 
 
@@ -246,3 +249,26 @@ def test_sale_applies_to_correct_products(product_class):
         net=5, currency='USD')
     with pytest.raises(NotApplicable):
         sale.modifier_for_product(sec_variant.product)
+
+
+@pytest.mark.django_db
+def test_get_category_variants_and_prices_product_with_many_categories(cart, default_category,
+                                                                       product_in_stock):
+    # Test: don't duplicate percentage voucher
+    # when product is in more than one category with discount
+    category = Category.objects.create(name='Foobar', slug='foo', parent=default_category)
+    product_in_stock.price = Decimal('10.00')
+    product_in_stock.save()
+    product_in_stock.categories.add(category)
+    variant = product_in_stock.variants.first()
+    cart.add(variant, check_quantity=False)
+
+    discounted_products = list(get_category_variants_and_prices(cart, default_category))
+    assert len(discounted_products) == 1
+
+    voucher = Voucher.objects.create(category=default_category, type=Voucher.CATEGORY_TYPE,
+                                     discount_value='10.0', code='foobar',
+                                     discount_value_type=Voucher.DISCOUNT_VALUE_PERCENTAGE)
+    checkout_mock = Mock(spec=Checkout, cart=cart)
+    discount = voucher.get_discount_for_checkout(checkout_mock)
+    assert discount.amount == Price('1.00', currency=discount.amount.currency)  # 10% for 10 is 1

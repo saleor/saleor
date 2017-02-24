@@ -1,6 +1,6 @@
 {% load i18n %}
 
-{% block content %}{% blocktrans %}Hi!
+{% block content %}{% blocktrans context "Email confirmation message" %}Hi!
 
 You have requested login access to saleor project. To continue visit the link below.
 

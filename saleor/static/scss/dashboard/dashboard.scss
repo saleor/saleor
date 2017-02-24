@@ -206,6 +206,14 @@ h6 {
   font-size: 13px;
 }
 
+li#version-indicator {
+  position: absolute;
+  bottom: 0;
+  p {
+      @extend .grey-text, .text-lighten-1;
+  }
+}
+
 @import "components/breadcrumbs";
 @import "components/card";
 @import "components/data-table";
