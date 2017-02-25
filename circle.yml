@@ -5,30 +5,31 @@ machine:
     version: "3.5.1"
   environment:
     DATABASE_URL: postgres://ubuntu:@127.0.0.1:5432/circle_test
+    DJANGO_SETTINGS_MODULE: saleor.settings
     SECRET_KEY: irrelevant
   services:
     - docker
 
 dependencies:
-  override:
+  pre:
     - yarn
     - pip install -r requirements.txt
-  post:
-    - yarn run build-assets
+  override:
+    - yarn run build-assets --production
     - ./manage.py collectstatic --no-input
+    - sed -i.bak "s#'dev'#'$(git describe --tags)'#" saleor/__init__.py
+  post:
+    - docker build --rm=false -t mirumee/saleor:latest .
 test:
   override:
-    - mkdir -p $CIRCLE_TEST_REPORTS/pytest
-    - pytest --junitxml=$CIRCLE_TEST_REPORTS/pytest/junit.xml
+    - docker run --net=host -e DATABASE_URL -e DJANGO_SETTINGS_MODULE -e SECRET_KEY mirumee/saleor:latest pytest
 
 deployment:
   release:
     tag: /v.*/
     commands:
-      - sed -i.bak "s#'dev'#'$(git describe --tags)'#" saleor/__init__.py
       - docker login -e $DOCKERCLOUD_EMAIL -u $DOCKERCLOUD_USER -p $DOCKERCLOUD_PASS
-      - docker build -t mirumee/saleor:$CIRCLE_TAG .
-      - docker build -t mirumee/saleor:latest .
+      - docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_TAG
       - docker push mirumee/saleor:$CIRCLE_TAG
       - docker push mirumee/saleor:latest
       - curl -X POST https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo?circle-token=$CIRCLE_API_TOKEN
