@@ -2,9 +2,11 @@ import pytest
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
+from django.db.utils import IntegrityError
 from django.utils.encoding import smart_text
 
 from saleor.site import utils
+from saleor.site.models import AuthorizationKey
 from saleor.dashboard.sites.forms import SiteSettingForm
 
 
@@ -60,3 +62,16 @@ def test_get_authorization_key_for_backend(site_settings, authorization_key):
 def test_get_authorization_key_for_backend(site_settings):
     with pytest.raises(ObjectDoesNotExist):
         utils.get_authorization_key_for_backend('Backend')
+
+
+@pytest.mark.django_db
+def test_one_authorization_key_for_backend_and_settings(
+        site_settings, authorization_key):
+    with pytest.raises(IntegrityError):
+        AuthorizationKey.objects.create(
+            site_settings=site_settings, name='Backend')
+
+
+@pytest.mark.django_db
+def test_authorization_key_key_and_secret(authorization_key):
+    assert authorization_key.key_and_secret() == ('Key', 'Password')
