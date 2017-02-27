@@ -228,8 +228,7 @@ body.nav-toggled {
       }
       .breadcrumbs {
         @media (min-width: $medium-screen) {
-          margin-left: 40px;
-          padding-left: 0;
+          margin-left: 0;
         }
       }
     }
@@ -240,7 +239,7 @@ body.nav-toggled {
         margin-left: 270px;
       }
       @media (min-width: $large-screen) {
-        margin: 0 auto;
+        margin: 40px auto;
       }
     }
   }
