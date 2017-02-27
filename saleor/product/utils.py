@@ -4,6 +4,8 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.utils.encoding import smart_text
 from django_prices.templatetags import prices_i18n
+from django_prices_vatlayer.utils import get_tax_for_country
+
 
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
@@ -262,3 +264,12 @@ def get_attributes_display_map(obj, attributes):
             else:
                 display_map[attribute.pk] = value
     return display_map
+
+
+def get_price_with_vat(product, price, country):
+    if country and settings.VATLAYER_ACCESS_KEY:
+        rate_name = product.product_class.vat_rate_type
+        vat = get_tax_for_country(country, rate_name)
+        if vat:
+            price = vat.apply(price).quantize('0.01')
+    return price
