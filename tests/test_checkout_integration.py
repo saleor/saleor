@@ -307,6 +307,7 @@ def test_language_is_saved_in_order(
         request_cart_with_item, settings, shipping_method):
     # Prepare some data
     user_language = 'fr'
+    settings.LANGUAGES = [('en', 'English'), ('fr', 'French')]
     settings.LANGUAGE_CODE = 'en'
     customer_user.addresses.add(billing_address)
     request_cart_with_item.user = customer_user
