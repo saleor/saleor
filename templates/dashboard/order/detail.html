@@ -405,7 +405,7 @@
 
                         <tbody>
                             {% for payment in all_payments %}
-                            <tr data-action-go="{% url "dashboard:payment-details" pk=payment.pk %}">
+                            <tr>
                                 <td>
                                     {% blocktrans trimmed with payment_id=payment.id context "Payment item column data" %}
                                         #{{ payment_id }}
