@@ -164,7 +164,7 @@
                                 </div>
 
                                 <div class="card-action">
-                                    <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">
+                                    <a class="btn-flat" href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">
                                         {% trans "Edit" context "Shipping address card action" %}
                                     </a>
                                 </div>

@@ -13,6 +13,12 @@
   .row {
     margin-bottom: 0;
   }
+
+  & &-action {
+    a:not(.btn):not(.btn-large):not(.btn-large):not(.btn-floating):hover {
+      color: $button-flat-color;
+    }
+  }
 }
 
 .card {
