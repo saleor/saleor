@@ -36,7 +36,7 @@
         <li><a href="{% url 'dashboard:product-attributes' %}" class="breadcrumbs--ellipsed-item">
             {% trans "Attributes" context "Attribute detail breadcrumbs" %}
         </a></li>
-        <li class="back-mobile"><a href="{% url 'dashboard:product-attributes' %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a></li>
+        <li class="back-mobile"><a href="{% url 'dashboard:product-attributes' %}"><i class="material-icons">arrow_back</i></a></li>
         <li><span class="breadcrumbs--ellipsed-item">
             {% if attribute.pk %}{{ attribute }}{% else %}{% trans "Add new attribute" context "Attribute detail breadcrumbs" %}{% endif %}
         </span></li>
@@ -47,7 +47,7 @@
 
 {% block content %}
     <div class="row">
-        <div class="col s12 m9">
+        <div class="col m12 l9">
             <div class="card">
                 <form method="post" enctype="multipart/form-data" id="form-attributes" novalidate>
                     <div class="card-content">
@@ -105,6 +105,6 @@
                 </form>
             </div>
         </div>
-        <div class="col s12 m3 help-box"></div>
+        <div class="col m12 l3 help-box"></div>
     </div>
 {% endblock %}

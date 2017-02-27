@@ -52,10 +52,6 @@ $(document).ready(function() {
   initSelects();
   $('.modal').modal();
 
-  if (isTablet()) {
-    $('.equal-height-on-med').matchHeight();
-  }
-
   let $tabs = $('ul.tabs');
   if ($tabs.length) {
     $tabs.find('.tab').on('click', function (e) {

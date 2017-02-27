@@ -22,7 +22,7 @@
         <li><a href="{% url "dashboard:product-class-list" %}" class="breadcrumb">
             {% trans "Product types" context "Product class breadcrumbs" %}</a></li>
         <li class="back-mobile">
-            <a href="{% url "dashboard:product-class-list" %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a></li>
+            <a href="{% url "dashboard:product-class-list" %}"><i class="material-icons">arrow_back</i></a></li>
         <li><span class="breadcrumbs--ellipsed-item">
             {% if product_class.pk %}{{ product_class }}{% else %}
                 {% trans 'Add new product type' context "Product class breadcrumbs" %}{% endif %}</span></li>
@@ -48,7 +48,7 @@
 
 {% block content %}
     <div class="row">
-        <div class="col s12 m9">
+        <div class="col m12 l9">
             <div class="card">
                 <form method="post" id="form-product" enctype="multipart/form-data" novalidate>
                     <div class="card-content">
@@ -94,7 +94,7 @@
                 </form>
             </div>
         </div>
-        <div class="col s12 m3 help-box">
+        <div class="col m12 l3 help-box">
             <p class="grey-text">
                 <i class="material-icons">help</i>
                 {% blocktrans trimmed context "Product class help text" %}
