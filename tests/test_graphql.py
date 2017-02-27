@@ -134,10 +134,10 @@ def test_attributes_query(client, product_in_stock):
             attributes {
                 pk
                 name
-                display
+                slug
                 values {
                     pk
-                    display
+                    name
                     slug
                 }
             }
@@ -158,10 +158,10 @@ def test_attributes_in_category_query(client, product_in_stock):
             attributes(categoryPk: %(category_pk)s) {
                 pk
                 name
-                display
+                slug
                 values {
                     pk
-                    display
+                    name
                     slug
                 }
             }

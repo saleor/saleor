@@ -118,8 +118,8 @@ def test_change_attributes_in_product_form(db, product_in_stock,
                                            color_attribute):
     product = product_in_stock
     product_class = product.product_class
-    text_attribute = ProductAttribute.objects.create(name='author',
-                                                     display='Author')
+    text_attribute = ProductAttribute.objects.create(slug='author',
+                                                     name='Author')
     product_class.product_attributes.add(text_attribute)
     color_value = color_attribute.values.first()
     new_author = 'Main Tester'

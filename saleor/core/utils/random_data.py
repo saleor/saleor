@@ -114,9 +114,9 @@ def create_attributes_and_values(attribute_data):
     attributes = []
     for attribute_name, attribute_values in attribute_data.items():
         attribute = create_attribute(
-            name=slugify(attribute_name), display=attribute_name)
+            slug=slugify(attribute_name), name=attribute_name)
         for value in attribute_values:
-            create_attribute_value(attribute, display=value)
+            create_attribute_value(attribute, name=value)
         attributes.append(attribute)
     return attributes
 
@@ -320,22 +320,22 @@ def create_product_image(product, placeholder_dir):
 
 
 def create_attribute(**kwargs):
-    name = fake.word()
+    slug = fake.word()
     defaults = {
-        'name': name,
-        'display': name.title()}
+        'slug': slug,
+        'name': slug.title()}
     defaults.update(kwargs)
     attribute = ProductAttribute.objects.get_or_create(**defaults)[0]
     return attribute
 
 
 def create_attribute_value(attribute, **kwargs):
-    display = fake.word()
+    name = fake.word()
     defaults = {
         'attribute': attribute,
-        'display': display}
+        'name': name}
     defaults.update(kwargs)
-    defaults['slug'] = slugify(defaults['display'])
+    defaults['slug'] = slugify(defaults['name'])
     attribute_value = AttributeChoiceValue.objects.get_or_create(**defaults)[0]
     return attribute_value
 

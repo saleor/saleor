@@ -52,15 +52,15 @@ class ProductFilters extends Component {
           return (
             <div key={attribute.id}>
               <FilterHeader
-                onClick={() => this.changeVisibility(attribute.name)}
-                title={attribute.display}
-                visibility={visibility[attribute.name]}
+                onClick={() => this.changeVisibility(attribute.slug)}
+                title={attribute.name}
+                visibility={visibility[attribute.slug]}
               />
-              <ul id={attribute.name}>
+              <ul id={attribute.slug}>
                 {attribute.values.map((value) => {
-                  const key = this.getFilterKey(attribute.name, value.slug);
+                  const key = this.getFilterKey(attribute.slug, value.slug);
                   const isKeyChecked = checkedAttributes.indexOf(key) > -1;
-                  if (visibility[attribute.name] || isKeyChecked) {
+                  if (visibility[attribute.slug] || isKeyChecked) {
                     return (
                       <li key={value.id} className="item">
                         <AttributeInput
@@ -88,12 +88,12 @@ export default Relay.createContainer(ProductFilters, {
       fragment on ProductAttributeType @relay(plural: true) {
         id
         pk
+        slug
         name
-        display
         values {
           id
           slug
-          display
+          name
           color
         }
       }

@@ -71,10 +71,10 @@
           <div class="card-content card-content-form">
             {% csrf_token %}
             <div class="row">
-              {{ form.display|materializecss }}
+              {{ form.name|materializecss }}
             </div>
             <div class="row">
-              {{ form.name|materializecss }}
+              {{ form.slug|materializecss }}
             </div>
             <h5 class="card-title">
               {% trans "Attribute values" context "Attribute values formset title" %}

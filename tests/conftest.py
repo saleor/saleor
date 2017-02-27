@@ -95,21 +95,21 @@ def shipping_method(db):  # pylint: disable=W0613
 @pytest.fixture
 def color_attribute(db):  # pylint: disable=W0613
     attribute = ProductAttribute.objects.create(
-        name='color', display='Color')
+        slug='color', name='Color')
     AttributeChoiceValue.objects.create(
-        attribute=attribute, display='Red', slug='red')
+        attribute=attribute, name='Red', slug='red')
     AttributeChoiceValue.objects.create(
-        attribute=attribute, display='Blue', slug='blue')
+        attribute=attribute, name='Blue', slug='blue')
     return attribute
 
 
 @pytest.fixture
 def size_attribute(db):  # pylint: disable=W0613
-    attribute = ProductAttribute.objects.create(name='size', display='Size')
+    attribute = ProductAttribute.objects.create(slug='size', name='Size')
     AttributeChoiceValue.objects.create(
-        attribute=attribute, display='Small', slug='small')
+        attribute=attribute, name='Small', slug='small')
     AttributeChoiceValue.objects.create(
-        attribute=attribute, display='Big', slug='big')
+        attribute=attribute, name='Big', slug='big')
     return attribute
 
 

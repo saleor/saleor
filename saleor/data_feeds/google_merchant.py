@@ -203,7 +203,7 @@ def write_feed(file_obj):
     categories = Category.objects.all()
     discounts = Sale.objects.all().prefetch_related('products',
                                                     'categories')
-    attributes_dict = {a.name: a.pk for a in ProductAttribute.objects.all()}
+    attributes_dict = {a.slug: a.pk for a in ProductAttribute.objects.all()}
     attribute_values_dict = {smart_text(a.pk): smart_text(a) for a
                              in AttributeChoiceValue.objects.all()}
     category_paths = {}
