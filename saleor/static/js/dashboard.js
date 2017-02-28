@@ -201,7 +201,7 @@ function initSelects() {
   $('select[multiple]:not(.browser-default)').select2({width: '100%'});
 }
 // Clickable rows in dashboard tables
-$(document).on('click', 'tr[data-action-go]>td:not(.ignore-link)', function(){
+$(document).on('click', 'tr[data-action-go]>td:not(.ignore-link)', function() {
   let target = $(this).parent();
   window.location.href = target.data('action-go');
 });
