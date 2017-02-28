@@ -13,13 +13,9 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--history">
-        <li class="back-mobile"><a href="{% url 'dashboard:category-list' %}" class="breadcrumbs--ellipsed-item">
-            {% trans "Categories" context "Category detail breadcrumbs" %}</a></li>
-        {% if path %}
-            {% for node in path %}
-                <li><a href="{% url 'dashboard:category-list' root_pk=node.pk %}" class="breadcrumbs--ellipsed-item">{{ node.name }}</a></li>
-            {% endfor %}
-        {% endif %}
+        <li><a href="{% url 'dashboard:category-list'%}" class="breadcrumbs--ellipsed-item">{% trans "Categories" context "Category detail breadcrumbs" %}</a></li>
+        <li class="back-mobile"><a href="{% url 'dashboard:category-list' %}" class="breadcrumbs--ellipsed-item"> <i class="material-icons">arrow_back</i>
+            </a></li>
         <li>
             {% if category.pk %}
                 <span class="breadcrumbs--ellipsed-item">{{ category }}</span>
