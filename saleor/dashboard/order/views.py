@@ -24,15 +24,17 @@ from .forms import (CancelGroupForm, CancelItemsForm, CancelOrderForm,
 
 @staff_member_required
 def order_list(request):
-    orders = Order.objects.prefetch_related(
+    orders_all = Order.objects.prefetch_related(
         'groups', 'payments', 'groups__items', 'user').all()
     active_status = request.GET.get('status')
     if active_status:
-        orders = orders.filter(status=active_status)
+        orders = orders_all.filter(status=active_status)
+    else:
+        orders = orders_all
     page = get_paginator_items(orders, 20, request.GET.get('page'))
     form = OrderFilterForm(
         request.POST or None, initial={'status': active_status or None})
-    ctx = {'object_list': page.object_list, 'page_obj': page,
+    ctx = {'object_list': page.object_list, 'orders_all': orders_all, 'page_obj': page,
            'is_paginated': page.has_other_pages(), 'form': form}
     return TemplateResponse(request, 'dashboard/order/list.html', ctx)
 

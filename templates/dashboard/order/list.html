@@ -16,16 +16,19 @@
 {% endblock %}
 
 {% block content %}
-    {% if object_list %}
-        {% include "dashboard/includes/_status_filters.html" %}
-        <div class="card">
-            {% include "dashboard/includes/_orders_table.html" with orders=object_list %}
-        </div>
-
-        <div class="row">
-            {% include "dashboard/includes/_pagination.html" %}
-        </div>
+    {% if orders_all %}
+      {% include "dashboard/includes/_status_filters.html" %}
+        {% if object_list %}
+              <div class="card">
+                  {% include "dashboard/includes/_orders_table.html" with orders=object_list %}
+              </div>
+              <div class="row">
+                  {% include "dashboard/includes/_pagination.html" %}
+              </div>
+         {% else %}
+              <p class="not-found grey-text">{% trans "No orders found." context "Empty order list message" %}</p>
+         {% endif %}
     {% else %}
-        <p class="not-found grey-text">{% trans "No orders." context "Empty order list message" %}</p>
+          <p class="not-found grey-text">{% trans "No orders." context "Empty order list message" %}</p>
     {% endif %}
 {% endblock %}
