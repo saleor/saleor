@@ -74,7 +74,7 @@ def test_collection_update_view(admin_client, collection, product_in_stock):
 
 def test_collection_delete_view(admin_client, collection):
     # Test Http404 when collection doesn't exist
-    pk = collection.pk + 1
+    pk = 500
     url404 = reverse('dashboard:collection-delete',
                      kwargs={'collection_pk': pk})
     response404 = admin_client.post(url404)
