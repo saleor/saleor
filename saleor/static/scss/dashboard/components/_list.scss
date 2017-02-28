@@ -4,10 +4,6 @@
   & &-item.avatar {
     min-height: 64px;
 
-    @media (max-width: $small-screen) {
-      margin-right: -$gutter-width/2;
-    }
-
     &-delete {
       background: white;
       font-size: $font-size-action-icon;

@@ -253,8 +253,12 @@ tr[data-action-go]>td:not(.ignore-link):hover {
   button {
     width: 20%;
     padding: 0;
+    margin-top: 3px;
     i {
       color: $primary-color;
+    }
+    &:hover {
+      background-color: transparent;
     }
   }
 }
@@ -282,8 +286,10 @@ h6 {
 }
 
 li#version-indicator {
-  position: absolute;
-  bottom: 0;
+  @media only screen and (min-width: $large-screen) {
+    position: absolute;
+    bottom: 0;
+  }
   p {
       @extend .grey-text, .text-lighten-1;
   }
