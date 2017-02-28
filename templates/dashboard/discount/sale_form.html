@@ -17,9 +17,9 @@
 
 {% block header_extra %}
     {% if sale.pk %}
-        <a class="dropdown-button" href="#" data-activates="sale-delete"
+        <a class="dropdown-button right" href="#" data-activates="sale-delete"
            data-constrainwidth="false">
-            <i class="material-icons">arrow_drop_down</i>
+            <i class="material-icons">more_vert</i>
         </a>
         <ul id="sale-delete" class="dropdown-content">
             <li>
@@ -46,42 +46,51 @@
 {% block menu_discounts_class %} active{% endblock %}
 
 {% block content %}
-    <div class="card">
-        <form method="post" enctype="multipart/form-data" id="form-sales" novalidate>
-            <div class="card-content">
-                {% csrf_token %}
-                <div class="row">
-                    {{ form.name|materializecss }}
-                </div>
-                <div class="row">
-                    <div class="col s12 m8">
+    <div class="row">
+        <div class="col m12 l9">
+            <div class="card">
+                <form method="post" enctype="multipart/form-data" id="form-sales" novalidate>
+                    <div class="card-content card-content-form">
+                        {% csrf_token %}
                         <div class="row">
-                            {{ form.value|materializecss }}
+                            {{ form.name|materializecss }}
+                        </div>
+                        <div class="row">
+                            <div class="col s12 m8">
+                                <div class="row">
+                                    {{ form.value|materializecss }}
+                                </div>
+                            </div>
+                            <div class="col s12 m4">
+                                {{ form.type|materializecss:"input-field s12" }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            {{ form.products|materializecss }}
+                        </div>
+                        <div class="row">
+                            {{ form.categories|materializecss }}
                         </div>
                     </div>
-                    <div class="col s12 m4">
-                        {{ form.type|materializecss }}
-                    </div>
-                </div>
-                <div class="row">
-                    {{ form.products|materializecss }}
-                </div>
-                <div class="row">
-                    {{ form.categories|materializecss }}
-                </div>
-            </div>
 
-            <div class="card-action right-align">
-                {% if sale.pk %}
-                    <button type="submit" class="btn btn-flat">
-                        {% trans "Update" context "Sale (discount) primary action" %}
-                    </button>
-                {% else %}
-                    <button type="submit" class="btn btn-flat">
-                        {% trans "Create" context "Sale (discount) primary action" %}
-                    </button>
-                {% endif %}
+                    <div class="card-action right-align">
+                        {% if sale.pk %}
+                            <a href="{% url 'dashboard:sale-list' %}" class="btn btn-flat">
+                                {% trans "Cancel" context "Sale (discount) secondary action" %}</a>
+                            <button type="submit" class="btn btn-flat primary">
+                                {% trans "Update" context "Sale (discount) primary action" %}
+                            </button>
+                        {% else %}
+                            <a href="{% url 'dashboard:sale-list' %}" class="btn btn-flat">
+                                {% trans "Cancel" context "Sake (discount) secondary action" %}</a>
+                            <button type="submit" class="btn btn-flat primary">
+                                {% trans "Create" context "Sale (discount) primary action" %}
+                            </button>
+                        {% endif %}
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
+        <div class="col m12 l3 help-box"></div>
     </div>
 {% endblock %}

@@ -9,7 +9,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li>{% trans "Search" context "Search breadcrumbs" %}</li>
+        <li class="visible-s">{% trans "Search" context "Search breadcrumbs" %}</li>
     </ul>
 {% endblock %}
 
@@ -18,20 +18,18 @@
 {% block content %}
     <div class="row">
         <div class="col s12">
-            <form class="hide-on-med-and-up row" method="get" action="{% url "dashboard:search" %}">
-                <input id="icon_prefix" type="text" class="validate col s10"
-                       placeholder="{% trans "Search" context "Search form placeholder" %}"
-                       name="q" value="{% if query %}{{ query }}{% endif %}">
-                <button class="btn-flat search-button col s2" type="submit">
-                    <i class="material-icons left right">search</i>
-                </button>
-            </form>
-            <div class="row">
-                <div class="col s12">
-                    <form class="row" method="get" action="{% url "dashboard:search" %}">
-                        <input type="hidden" class="validate" name="q" value="{% if query %}{{ query }}{% endif %}">
-                    </form>
-                </div>
+            <div class="card search-form">
+                <form class="hide-on-med-and-up" method="get" action="{% url "dashboard:search" %}">
+                    <input id="icon_prefix" type="text" class="validate left"
+                           placeholder="{% trans "Search" context "Search form placeholder" %}"
+                           name="q" value="{% if query %}{{ query }}{% endif %}">
+                    <button class="btn-flat" type="submit">
+                        <i class="material-icons left right">search</i>
+                    </button>
+                </form>
+                <form class="hide-on-med-and-up row" method="get" action="{% url "dashboard:search" %}">
+                    <input type="hidden" class="validate" name="q" value="{% if query %}{{ query }}{% endif %}">
+                </form>
             </div>
             {% if results %}
                 <ul class="collection list">
@@ -88,11 +86,15 @@
                 </ul>
                 {% include "dashboard/includes/_pagination.html" with page_obj=results %}
             {% elif query %}
-                <p>
-                    {% blocktrans trimmed with full_name=result.get_full_name context "No Search result message" %}
-                        No results for query "{{ query }}".
-                    {%  endblocktrans %}
-                </p>
+                <ul class="collection list">
+                    <li class="collection-item list-item">
+                        <p class="list-item-name--single">
+                        {% blocktrans trimmed with full_name=result.get_full_name context "No Search result message" %}
+                            No results for query "{{ query }}".
+                        {%  endblocktrans %}
+                        </p>
+                    </li>
+                </ul>
             {% endif %}
         </div>
     </div>

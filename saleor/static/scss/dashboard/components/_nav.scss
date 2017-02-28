@@ -10,7 +10,7 @@ header {
       }
       .search {
         float: none;
-        margin-left: 272px;
+        margin-left: 270px;
         padding: 10px 0;
         .input-field {
           input {
@@ -22,6 +22,7 @@ header {
             margin-bottom: 0;
             transition: background-color .2s ease-out;
             width: 100%;
+            line-height: 1;
             &:hover {
               background-color: rgba(255, 255, 255, .25);
             }
@@ -74,6 +75,9 @@ header {
       top: $header-height/4;
       margin-left: 1rem;
       z-index: 999;
+      @media (max-width: $small-screen) {
+        top: $header-height/3;
+      }
       i {
         height: $header-height/2;
         line-height: $header-height/2;
@@ -89,7 +93,12 @@ header {
     .logo {
       img {
         max-height: $navbar-height;
+        width: 140px;
         margin: 13px 0;
+        @media (max-width: $small-screen) {
+          height: 30px;
+          margin: 17px 0;
+        }
       }
     }
     .right {
@@ -101,9 +110,12 @@ header {
     width: 232px;
     padding: 12px 8px 52px;
     position: absolute;
-    top: $header-height + $subheader-height;
+    top: $navbar-height-mobile + $subheader-height;
     height: 100vh;
     transition: transform .1s;
+    @media (min-width: $small-screen) {
+      top: $header-height + $subheader-height;
+    }
     @media (min-width: $medium-screen) {
       background: transparent;
       box-shadow: none;
@@ -159,27 +171,41 @@ header {
   height: $subheader-height;
   margin-top: 0;
   .container {
-    margin: 0 40px;
-    transition: margin .1s;
-    @media (min-width: $large-screen) {
-      margin-left: 272px;
+    width: 100%;
+    max-width: none;
+    height: $subheader-height;
+    .breadcrumbs {
+      transition: margin .1s;
+      padding-left: 15px;
+    }
+    .dropdown-button {
+      i {
+        padding-right: 15px;
+      }
+    }
+    i {
+      font-size: $subheader-height/2;
+      line-height: $subheader-height;
+      color: white;
     }
   }
-  i {
-    font-size: $subheader-height/2;
-    line-height: $subheader-height;
-    color: white;
-  }
+
 }
 
 .main {
   .container {
     margin: 40px 40px 0;
-    max-width: none;
+    max-width: 1200px;
     width: auto;
     transition: margin .1s;
+    @media (max-width: $small-screen) {
+      margin: 15px 15px 0;
+    }
     @media (min-width: $large-screen) {
-      margin-left: 272px;
+      margin-left: 270px;
+    }
+    @media (min-width: 1740px) {
+      margin: 40px auto;
     }
   }
 }
@@ -196,20 +222,25 @@ body.nav-toggled {
   .subheader {
     .container {
       @media (min-width: $medium-screen) {
-        margin-left: 272px;
+        margin-left: 0;
       }
       @media (min-width: $large-screen) {
-        margin-left: 40px;
+        margin-left: 0;
+      }
+      .breadcrumbs {
+        @media (min-width: $medium-screen) {
+          margin-left: 0;
+        }
       }
     }
   }
   .main {
     .container {
       @media (min-width: $medium-screen) {
-        margin-left: 272px;
+        margin-left: 270px;
       }
       @media (min-width: $large-screen) {
-        margin-left: 40px;
+        margin: 40px auto;
       }
     }
   }

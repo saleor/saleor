@@ -19,8 +19,8 @@
 
 {% block header_extra %}
     {% if order.can_cancel %}
-        <a class="dropdown-button" href="#" data-activates="context-menu" data-constrainwidth="false">
-            <i class="material-icons">arrow_drop_down</i>
+        <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
+            <i class="material-icons">more_vert</i>
         </a>
         <ul id="context-menu" class="dropdown-content">
             <li>
@@ -46,15 +46,22 @@
         <div class="col s12">
             <ul class="tabs" role="tablist">
                 <li role="presentation" class="tab col s4">
-                    <a href="#order-details" role="tab" class="active">{% trans "Details" context "Order detail tab" %}</a>
+                    <a href="#order-details" role="tab" class="active">
+                        <span>{% trans "Details" context "Order detail tab" %}</span>
+                        <i class="material-icons">description</i>
+                    </a>
                 </li>
-
                 <li role="presentation" class="tab col s4">
-                    <a href="#payment-history" role="tab">{% trans "Payments" context "Order detail tab" %}</a>
+                    <a href="#payment-history" role="tab">
+                        <span>{% trans "Payments" context "Order detail tab" %}</span>
+                        <i class="material-icons">payment</i>
+                    </a>
                 </li>
-
                 <li role="presentation" class="tab col s4">
-                    <a href="#order-history" role="tab">{% trans "History" context "Order detail tab" %}</a>
+                    <a href="#order-history" role="tab">
+                        <span>{% trans "History" context "Order detail tab" %}</span>
+                        <i class="material-icons">history</i>
+                    </a>
                 </li>
             </ul>
         </div>
@@ -64,10 +71,10 @@
         <div class="col s12 l4 switch-two-columns">
             <div class="card">
                 <div class="card-content">
-                    <h5 class="card-title">{% trans "Order summary" context "Order summary title" %}</h5>
+                    <span class="card-title">{% trans "Order summary" context "Order summary title" %}</span>
 
                     <div class="row">
-                        <div class="col s4 l12">
+                        <div class="col s12 m4 l12">
                             <h6>
                                 {% trans "Customer" context "Order summary card header" %}
                             </h6>
@@ -79,7 +86,7 @@
                                 {% endif %}
                             </p>
                         </div>
-                        <div class="col s4 l12">
+                        <div class="col s12 m4 l12">
                             <h6>
                                 {% trans "Order status" context "Order summary card header" %}
                             </h6>
@@ -87,7 +94,7 @@
                                 {% render_status order.status order.get_status_display %}
                             </p>
                         </div>
-                        <div class="col s4 l12">
+                        <div class="col s12 m4 l12">
                             <h6>
                                 {% trans "Payment status" context "Order summary card header" %}
                             </h6>
@@ -157,7 +164,7 @@
                                 </div>
 
                                 <div class="card-action">
-                                    <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">
+                                    <a class="btn-flat" href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">
                                         {% trans "Edit" context "Shipping address card action" %}
                                     </a>
                                 </div>
@@ -176,7 +183,8 @@
                                 {% endwith %}
                             </div>
                             <div class="card-action">
-                                <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}">{% trans "Edit" context "Billing address card action" %}</a>
+                                <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}" class=" btn-flat">
+                                    {% trans "Edit" context "Billing address card action" %}</a>
                             </div>
                         </div>
                     </div>
@@ -374,7 +382,7 @@
 
                 <div class="card-action">
                     <a data-href="{% url "dashboard:order-add-note" order_pk=order.pk %}"
-                       class="modal-trigger-custom" href="#base-modal">{% trans "Add note" context "Order notes card action" %}</a>
+                       class="modal-trigger-custom btn-flat" href="#base-modal">{% trans "Add note" context "Order notes card action" %}</a>
                 </div>
             </div>
         </div>
@@ -398,7 +406,11 @@
                         <tbody>
                             {% for payment in all_payments %}
                             <tr>
-                                <td>{{ payment.transaction_id|default:"-" }}</td>
+                                <td>
+                                    {% blocktrans trimmed with payment_id=payment.id context "Payment item column data" %}
+                                        #{{ payment_id }}
+                                    {% endblocktrans %}
+                                </td>
                                 <td>{{ payment.created }}</td>
                                 <td>{% render_status payment.status payment.get_status_display %}</td>
                                 <td>{% render_status payment.fraud_status payment.get_fraud_status_display %}</td>

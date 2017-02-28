@@ -19,7 +19,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li>{% trans "Stock locations" context "Stock location list breadcrumbs" %}</li>
+        <li class="visible-s">{% trans "Stock locations" context "Stock location list breadcrumbs" %}</li>
     </ul>
 {% endblock %}
 
@@ -42,7 +42,7 @@
                     {% endfor %}
                 </ul>
             {% else %}
-                <p>{% trans "No locations found." context "Empty stock location list message" %}</p>
+                <p class="not-found grey-text">{% trans "No locations found." context "Empty stock location list message" %}</p>
             {% endif %}
         </div>
     </div>

@@ -8,7 +8,7 @@
         <div class="{{ classes.single_value }}">
             <p>
                 {% if field.auto_id %}
-                    {{ field }}
+                    <input id="{{ field.auto_id }}" name="{{ field.name }}" class="filled-in" type="checkbox">
                     <label for="{{ field.auto_id }}">
                         {{ field.label }}
                     </label>

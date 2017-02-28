@@ -33,8 +33,8 @@
     </div>
 
     {% if root %}
-        <a class="dropdown-button" href="#" data-activates="category-delete" data-constrainwidth="false">
-            <i class="material-icons">arrow_drop_down</i>
+        <a class="dropdown-button right" href="#" data-activates="category-delete" data-constrainwidth="false">
+            <i class="material-icons">more_vert</i>
         </a>
         <ul id="category-delete" class="dropdown-content">
             <li>
@@ -85,8 +85,8 @@
 {% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
-    <ul class="collection list">
-        {% if categories %}
+    {% if categories %}
+        <ul class="collection list">
             {% for node in categories %}
                 <li class="collection-item list-item">
                     <a class="list-item-name" href="{% url "dashboard:category-list" root_pk=node.pk %}">
@@ -106,16 +106,12 @@
                     {% endif %}
                 </li>
             {% endfor %}
+        </ul>
+    {% else %}
+        {% if root %}
+            <p class="not-found grey-text">{% trans "No subcategories." context "Empty Category list message" %}</p>
         {% else %}
-            <li class="collection-item list-item">
-                <p class="list-item-name--single">
-                    {% if root %}
-                        {% trans "No subcategories." context "Empty Category list message" %}
-                    {% else %}
-                        {% trans "No categories." context "Empty Category list message" %}
-                    {% endif %}
-                </p>
-            </li>
+            <p class="not-found grey-text">{% trans "No categories." context "Empty Category list message" %}</p>
         {% endif %}
-    </ul>
+    {% endif %}
 {% endblock %}

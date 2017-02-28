@@ -10,6 +10,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     {% endblock meta %}
+    {% include 'favicon.html' %}
     {% render_bundle 'vendor' 'css' %}
     {% render_bundle 'dashboard' 'css' %}
     <link rel="stylesheet" type="text/css" href="{% static "versatileimagefield/css/versatileimagefield.css" %}">
@@ -136,8 +137,7 @@
         </div>
     </main>
 
-    <div class="hide-on-med-only"></div>
-    <div class="hide-on-large-only"></div>
+
     <div id="base-modal" class="modal"></div>
     <div id="base-modal-fixed" class="modal modal-fixed-footer"></div>
 

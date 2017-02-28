@@ -16,8 +16,8 @@
 {% endblock %}
 
 {% block content %}
-    <div class="card">
-        {% if customers %}
+    {% if customers %}
+        <div class="card">
             <div class="data-table-container">
                 <table class="bordered highlight responsive data-table">
                     <thead>
@@ -31,10 +31,10 @@
                     </thead>
                     <tbody>
                     {% for customer in customers %}
-                        <tr>
+                        <tr data-action-go="{% url "dashboard:customer-details" pk=customer.pk %}">
                             {% with customer.default_billing_address as default_address %}
                             <td>
-                                <a href="{% url "dashboard:customer-details" pk=customer.pk %}">{{ customer.email }}</a>
+                                {{ customer.email }}
                             </td>
                             {% if default_address %}
                                 <td>
@@ -50,7 +50,7 @@
                             <td class="right-align">
                                 {{ customer.num_orders }}
                             </td>
-                            <td>
+                            <td class="ignore-link">
                                 {% if customer.last_order %}
                                     <a href="{% url 'dashboard:order-details' order_pk=customer.last_order %}">
                                         {% blocktrans with last_order=customer.last_order trimmed context "Customers table last order data" %}
@@ -64,11 +64,11 @@
                     </tbody>
                 </table>
             </div>
-        {% else %}
-            <div class="card-content card-content--no-data">
-                <p>{% trans "No customers found." context "Empty customers table message" %}</p>
-            </div>
-        {% endif %}
-    </div>
+        </div>
+    {% else %}
+        <div class="card-content card-content--no-data">
+            <p class="not-found grey-text">{% trans "No customers found." context "Empty customers table message" %}</p>
+        </div>
+    {% endif %}
     {% include "dashboard/includes/_pagination.html" with page_obj=customers %}
 {% endblock %}

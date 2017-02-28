@@ -52,10 +52,6 @@ $(document).ready(function() {
   initSelects();
   $('.modal').modal();
 
-  if (isTablet()) {
-    $('.equal-height-on-med').matchHeight();
-  }
-
   let $tabs = $('ul.tabs');
   if ($tabs.length) {
     $tabs.find('.tab').on('click', function (e) {
@@ -125,12 +121,10 @@ Dropzone.options.productImageForm = {
   previewTemplate: $('#template').html(),
   clickable: false,
   init: function() {
-    let $dropzoneGhost = $('.dropzone-ghost');
+    let $dropzoneMessage = $('.dropzone-message');
     let $gallery = $('.product-gallery');
 
-    this.on('complete', function() {
-      $dropzoneGhost.remove().appendTo($gallery);
-    }).on('success', function(e, response) {
+    this.on('success', function(e, response) {
       $(e.previewElement).find('.product-gallery-item-desc').html(response.image);
       $(e.previewElement).attr('data-id', response.id);
       let editLinkHref = $(e.previewElement).find('.card-action-edit').attr('href');
@@ -206,6 +200,11 @@ function initSelects() {
   $('select:not(.browser-default):not([multiple])').material_select();
   $('select[multiple]:not(.browser-default)').select2({width: '100%'});
 }
+// Clickable rows in dashboard tables
+$(document).on('click', 'tr[data-action-go]>td:not(.ignore-link)', function() {
+  let target = $(this).parent();
+  window.location.href = target.data('action-go');
+});
 
 // Coupon dynamic forms
 $(document).ready(() => {

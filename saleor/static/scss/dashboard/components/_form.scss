@@ -117,15 +117,24 @@
 }
 
 .input-with-suffix {
-  display: flex;
+  display: table-row;
   input {
-    flex-grow: 1;
+    display: table-cell;
   }
   .input-text-suffix {
+    display: table-cell;
     @extend .grey-text;
     line-height: 45px;
     padding-left: 10px;
     text-align: right;
+  }
+  @media (max-width: $small-screen) {
+    input {
+      width: 80%;
+    }
+    .input-text-suffix {
+      width: 20%;
+    }
   }
 }
 
