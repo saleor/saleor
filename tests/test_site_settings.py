@@ -60,8 +60,13 @@ def test_get_authorization_key_for_backend(site_settings, authorization_key):
 
 @pytest.mark.django_db
 def test_get_authorization_key_for_backend(site_settings):
-    with pytest.raises(ObjectDoesNotExist):
-        utils.get_authorization_key_for_backend('Backend')
+    assert utils.get_authorization_key_for_backend('Backend') is None
+
+
+@pytest.mark.django_db
+def test_get_authorization_key_no_settings_site(settings, authorization_key):
+    settings.SITE_SETTINGS_ID = None
+    assert utils.get_authorization_key_for_backend('Backend') is None
 
 
 @pytest.mark.django_db

@@ -40,7 +40,7 @@ def get_site_settings_uncached(settings_id=None):
 
 def get_authorization_key_for_backend(backend_name):
     # type: (str) -> AuthorizationKey
-    site_settings = get_site_settings()
-    authorization_key = AuthorizationKey.objects.get(
-        name=backend_name, site_settings=site_settings)
-    return authorization_key
+    site_settings_id = getattr(settings, 'SITE_SETTINGS_ID', None)
+    authorization_key = AuthorizationKey.objects.filter(
+        name=backend_name, site_settings__id=site_settings_id)
+    return authorization_key.first()
