@@ -117,11 +117,12 @@
 }
 
 .input-with-suffix {
-  display: flex;
+  display: table-row;
   input {
-    flex-grow: 1;
+    display: table-cell;
   }
   .input-text-suffix {
+    display: table-cell;
     @extend .grey-text;
     line-height: 45px;
     padding-left: 10px;

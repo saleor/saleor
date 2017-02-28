@@ -93,6 +93,7 @@ header {
     .logo {
       img {
         max-height: $navbar-height;
+        width: 140px;
         margin: 13px 0;
         @media (max-width: $small-screen) {
           height: 30px;
