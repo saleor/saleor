@@ -58,7 +58,10 @@
         </div>
         {% include "dashboard/includes/_pagination.html" %}
     {% else %}
-        <p class="not-found grey-text">{% trans "No shipping methods found." context "Empty Shipping methods table" %}</p>
+        <div class="not-found">
+          <p class="grey-text">{% trans "No shipping methods found." context "Empty Shipping methods table" %}</p>
+          <a href="{% url 'dashboard:shipping-method-add' %}" class="btn btn-flat primary" title="{% trans "Add method" context "Shipping method list add button text" %}">{% trans "Add new shipping method" context "Empty shipping methods table add button" %}</a>
+        </div>
     {% endif %}
 
 {% endblock %}

@@ -26,9 +26,13 @@
                   {% include "dashboard/includes/_pagination.html" %}
               </div>
          {% else %}
-              <p class="not-found grey-text">{% trans "No orders found." context "Empty order list message" %}</p>
+              <div class="not-found">
+                <p class="grey-text">{% trans "No orders found." context "Empty order list message" %}</p>
+              </div>
          {% endif %}
     {% else %}
-          <p class="not-found grey-text">{% trans "No orders." context "Empty order list message" %}</p>
+          <div class="not-found">
+            <p class="grey-text">{% trans "No orders." context "Empty order list message" %}</p>
+          </div>
     {% endif %}
 {% endblock %}

@@ -66,8 +66,8 @@
             </div>
         </div>
     {% else %}
-        <div class="card-content card-content--no-data">
-            <p class="not-found grey-text">{% trans "No customers found." context "Empty customers table message" %}</p>
+        <div class="card-content card-content--no-data not-found">
+            <p class="grey-text">{% trans "No customers found." context "Empty customers table message" %}</p>
         </div>
     {% endif %}
     {% include "dashboard/includes/_pagination.html" with page_obj=customers %}

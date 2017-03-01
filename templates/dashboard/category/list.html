@@ -108,10 +108,12 @@
             {% endfor %}
         </ul>
     {% else %}
+      <div class="not-found">
         {% if root %}
-            <p class="not-found grey-text">{% trans "No subcategories." context "Empty Category list message" %}</p>
+            <p class="grey-text">{% trans "No subcategories." context "Empty Category list message" %}</p>
         {% else %}
-            <p class="not-found grey-text">{% trans "No categories." context "Empty Category list message" %}</p>
+            <p class="grey-text">{% trans "No categories." context "Empty Category list message" %}</p>
         {% endif %}
+      </div>
     {% endif %}
 {% endblock %}

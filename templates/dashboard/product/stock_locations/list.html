@@ -42,7 +42,9 @@
                     {% endfor %}
                 </ul>
             {% else %}
-                <p class="not-found grey-text">{% trans "No locations found." context "Empty stock location list message" %}</p>
+                <div class="not-found">
+                  <p class="grey-text">{% trans "No locations found." context "Empty stock location list message" %}</p>
+                </div>
             {% endif %}
         </div>
     </div>

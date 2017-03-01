@@ -41,6 +41,8 @@
             {% endfor %}
         </ul>
     {% else %}
-        <p class="not-found grey-text">{% trans "No attributes found." context "Empty attribute list message" %}</p>
+        <div class="not-found">
+          <p class="grey-text">{% trans "No attributes found." context "Empty attribute list message" %}</p>
+        </div>
     {% endif %}
 {% endblock %}

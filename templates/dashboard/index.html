@@ -36,8 +36,8 @@
                     </table>
                 </div>
             {% else %}
-                <div class="card-content card-content--no-data">
-                    <p class="not-found grey-text">{% trans "No preauthorized payments." context "Empty Preauthorized payments table message" %}</p>
+                <div class="card-content card-content--no-data not-found">
+                    <p class="grey-text">{% trans "No preauthorized payments." context "Empty Preauthorized payments table message" %}</p>
                 </div>
             {% endif %}
         </div>
@@ -51,8 +51,8 @@
             {% if orders_to_ship %}
                 {% include "dashboard/includes/_orders_table.html" with orders=orders_to_ship %}
             {% else %}
-                <div class="card-content card-content--no-data">
-                    <p class="not-found grey-text">{% trans "No orders are ready for shipment." context "Empty order table message" %}</p>
+                <div class="card-content card-content--no-data not-found ">
+                    <p class="grey-text">{% trans "No orders are ready for shipment." context "Empty order table message" %}</p>
                 </div>
             {% endif %}
         </div>
@@ -82,8 +82,8 @@
                     </table>
                 </div>
             {% else %}
-                <div class="card-content card-content--no-data">
-                    <p class="not-found grey-text">{% trans "No products are low in stock." context "Empty low stock table message" %}</p>
+                <div class="card-content card-content--no-data not-found">
+                    <p class="grey-text">{% trans "No products are low in stock." context "Empty low stock table message" %}</p>
                 </div>
             {% endif %}
         </div>

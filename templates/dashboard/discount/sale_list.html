@@ -47,6 +47,9 @@
 
         {% include "dashboard/includes/_pagination.html" %}
     {% else %}
-        <p class="not-found grey-text">{% trans "No sales found." context "Empty sale (discount) table message" %}</p>
+        <div class="not-found">
+          <p class="grey-text">{% trans "No sales found." context "Empty sale (discount) table message" %}</p>
+          <a href="{% url 'dashboard:sale-add' %}" class="btn btn-flat primary" title="{% trans "Add sale" context "Sale (discount) list add button text" %}">{% trans "Add new sale" context "Empty sale (discount) table add button" %}</a>
+        </div>
     {% endif %}
 {% endblock %}

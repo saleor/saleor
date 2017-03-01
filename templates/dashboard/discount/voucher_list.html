@@ -71,6 +71,9 @@
 
         {% include "dashboard/includes/_pagination.html" %}
     {% else %}
-        <p class="not-found grey-text">{% trans "No vouchers found." context "Empty voucher table message" %}</p>
+      <div class="not-found">
+        <p class="grey-text">{% trans "No vouchers found." context "Empty voucher table message" %}</p>
+        <a href="{% url 'dashboard:voucher-add' %}" class="btn btn-flat primary" title="{% trans "Add new voucher" context "Voucher list add button text" %}">{% trans "Add new voucher" context "Empty voucher table add button" %}</a>
+      </div>
     {% endif %}
 {% endblock %}
