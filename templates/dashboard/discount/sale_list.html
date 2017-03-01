@@ -18,7 +18,6 @@
 {% block menu_discounts_class %} active{% endblock %}
 
 {% block content %}
-    {% if sales %}
         <div class="card">
             <div class="data-table-header-action">
                 <a href="{% url 'dashboard:sale-add' %}" class="btn-data-table btn-flat"  title="{% trans "Add sale" context "Sale (discount) list add button text" %}">
@@ -34,22 +33,25 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for sale in sales %}
-                        <tr data-action-go="{% url 'dashboard:sale-update' pk=sale.pk %}">
-                            <td>{{ sale }}</td>
-                            <td>{{ sale.value }}{{ sale.get_type_display }}</td>
-                        </tr>
-                    {% endfor %}
+                      {% if sales %}
+                        {% for sale in sales %}
+                            <tr data-action-go="{% url 'dashboard:sale-update' pk=sale.pk %}">
+                                <td>{{ sale }}</td>
+                                <td>{{ sale.value }}{{ sale.get_type_display }}</td>
+                            </tr>
+                        {% endfor %}
+                      {% else %}
+                          <tr>
+                              <td>
+                                  <span>
+                                      {% trans "No sales found" context "Empty sales table message" %}
+                                  </span>
+                              </td>
+                          </tr>
+                      {% endif %}
                     </tbody>
                 </table>
             </div>
         </div>
-
         {% include "dashboard/includes/_pagination.html" %}
-    {% else %}
-        <div class="not-found">
-          <p class="grey-text">{% trans "No sales found." context "Empty sale (discount) table message" %}</p>
-          <a href="{% url 'dashboard:sale-add' %}" class="btn btn-flat primary" title="{% trans "Add sale" context "Sale (discount) list add button text" %}">{% trans "Add new sale" context "Empty sale (discount) table add button" %}</a>
-        </div>
-    {% endif %}
 {% endblock %}
