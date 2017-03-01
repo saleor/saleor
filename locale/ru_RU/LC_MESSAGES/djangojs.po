@@ -1,0 +1,107 @@
+# Saleor
+# Copyright (C) 2017 Mirumee Software
+# This file is distributed under the same license as the Saleor package.
+# Mirumee Software <hello@mirumee.com>, 2017.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-02-08 03:52-0600\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Andrey Kuznetsov <netcitizen@yandex.ru>, 2017\n"
+"Language-Team: Russian (Russia) (https://www.transifex.com/mirumee/teams/34782/ru_RU/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ru_RU\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
+
+#: saleor/static/js/components/categoryPage/CategoryFilter.js:18
+msgid "See all"
+msgstr "Смотреть всё"
+
+#: saleor/static/js/components/categoryPage/CategoryPage.js:122
+msgid "Home"
+msgstr "Домой"
+
+#: saleor/static/js/components/categoryPage/CategoryPage.js:134
+#: saleor/static/js/components/categoryPage/CategoryPage.js:154
+msgid "Filters"
+msgstr "Фильтры"
+
+#: saleor/static/js/components/categoryPage/CategoryPage.js:155
+msgid "Clear filters"
+msgstr "Очистить фильтры"
+
+#: saleor/static/js/components/categoryPage/NoResults.js:11
+msgid "Sorry, no matches found for your request."
+msgstr "Извините, совпадений по вашему запросу не найдено."
+
+#: saleor/static/js/components/categoryPage/NoResults.js:12
+msgid "Try again or shop new arrivals."
+msgstr "Попробуйте еще раз или посмотрите новые поступления."
+
+#: saleor/static/js/components/categoryPage/PriceFilter.js:48
+msgid "Price range"
+msgstr "Диапазон цен"
+
+#: saleor/static/js/components/categoryPage/PriceFilter.js:58
+#: saleor/static/js/components/categoryPage/ProductPrice.js:13
+msgid "from"
+msgstr "от"
+
+#: saleor/static/js/components/categoryPage/PriceFilter.js:68
+msgid "to"
+msgstr "до"
+
+#: saleor/static/js/components/categoryPage/PriceFilter.js:72
+msgid "Update"
+msgstr "Обновить"
+
+#: saleor/static/js/components/categoryPage/ProductList.js:29
+msgid "Load more"
+msgstr "Загрузить больше"
+
+#: saleor/static/js/components/categoryPage/ProductPrice.js:16
+msgid "Sale"
+msgstr "Скидка"
+
+#: saleor/static/js/components/categoryPage/SortBy.js:43
+#: saleor/static/js/components/categoryPage/SortBy.js:50
+#: saleor/static/js/components/categoryPage/SortBy.js:57
+#: saleor/static/js/components/categoryPage/SortBy.js:64
+#: saleor/static/js/components/categoryPage/SortBy.js:88
+msgid "Sort by:"
+msgstr "Отсортировано по"
+
+#: saleor/static/js/components/categoryPage/SortBy.js:57
+msgid "default"
+msgstr "по умолчанию"
+
+#: saleor/static/js/components/categoryPage/SortBy.js:64
+msgid "Name"
+msgstr "Имя"
+
+#: saleor/static/js/components/categoryPage/SortBy.js:67
+#: saleor/static/js/components/categoryPage/SortBy.js:91
+msgid "ascending"
+msgstr "по возрастанию"
+
+#: saleor/static/js/components/categoryPage/SortBy.js:78
+#: saleor/static/js/components/categoryPage/SortBy.js:102
+msgid "descending"
+msgstr "по убыванию"
+
+#: saleor/static/js/components/categoryPage/SortBy.js:88
+msgid "Price"
+msgstr "Цена"
+
+#: saleor/static/js/components/variantPicker/QuantityInput.js:21
+msgid "Quantity"
+msgstr "Количество"
+
+#: saleor/static/js/components/variantPicker/VariantPicker.js:112
+msgid "Add to cart"
+msgstr "Добавить в корзину"
