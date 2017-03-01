@@ -42,6 +42,38 @@
             <div class="row">
               {{ form.description|materializecss }}
             </div>
+
+            <h5 class="card-title">{% trans "Authorization keys" context "Authorization keys formset title" %}</h5>
+              {{ formset.management_form }}
+              {{ formset.non_form_errors.as_ul }}
+          </div>
+
+          <div class="formset-table-container">
+            <table id="formset" class="formset-table">
+              {% for form in formset.forms %}
+                {% if forloop.first %}
+                  <thead>
+                  <tr>
+                    {% for field in form.visible_fields %}
+                      <th>{{ field.label|capfirst }}</th>
+                    {% endfor %}
+                  </tr>
+                  </thead>
+                {% endif %}
+                <tr>
+                  {% for field in form.visible_fields %}
+                    <td{% if forloop.last %} class="center-align"{% endif %}>
+                      {% if forloop.first %}
+                        {% for hidden in form.hidden_fields %}
+                          {{ hidden }}
+                        {% endfor %}
+                      {% endif %}
+                      {{ field|materializecss }}
+                    </td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            </table>
           </div>
           <div class="card-action right-align">
             <a class="btn btn-flat" href="{% url "dashboard:index" %}" traget="_blank">
