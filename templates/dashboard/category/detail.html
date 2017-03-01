@@ -13,13 +13,9 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--history">
-        <li class="back-mobile"><a href="{% url 'dashboard:category-list' %}" class="breadcrumbs--ellipsed-item">
-            {% trans "Categories" context "Category detail breadcrumbs" %}</a></li>
-        {% if path %}
-            {% for node in path %}
-                <li><a href="{% url 'dashboard:category-list' root_pk=node.pk %}" class="breadcrumbs--ellipsed-item">{{ node.name }}</a></li>
-            {% endfor %}
-        {% endif %}
+        <li><a href="{% url 'dashboard:category-list'%}" class="breadcrumbs--ellipsed-item">{% trans "Categories" context "Category detail breadcrumbs" %}</a></li>
+        <li class="back-mobile"><a href="{% url 'dashboard:category-list' %}" class="breadcrumbs--ellipsed-item"> <i class="material-icons">arrow_back</i>
+            </a></li>
         <li>
             {% if category.pk %}
                 <span class="breadcrumbs--ellipsed-item">{{ category }}</span>
@@ -35,37 +31,50 @@
 {% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
-    <form method="post" id="form-category" enctype="multipart/form-data" novalidate>
-        {% csrf_token %}
-        <div class="row">
-            <div class="col l8">
-                <div class="row">
-                    {{ form.name|materializecss:"s8 m10" }}
-                    {{ form.hidden|materializecss:"s4 m2" }}
-                    {{ form.description|materializecss }}
-                </div>
-            </div>
-        </div>
+    <div class="row">
+        <div class="col m12 l9">
+            <div class="card">
+                <form method="post" id="form-category" enctype="multipart/form-data" novalidate>
+                    <div class="card-content">
+                        {% csrf_token %}
+                        <div class="row">
+                            {{ form.name|materializecss }}
+                        </div>
+                        <div class="row">
+                            <div class="col s12 m8">
+                                <div class="row">
+                                    {{ form.description|materializecss }}
+                                </div>
+                            </div>
+                            <div class="col s12 m4">
+                                <div class="row">
+                                    {{ form.hidden|materializecss:"input-field s12" }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-        <div class="row">
-            <div class="col s12 l8 right-align">
-                {% if category.parent %}
-                    <a href="{% url 'dashboard:category-list' root_pk=category.parent.pk %}" class="btn-flat">
-                        {% trans "Cancel" context "Category form secondary action" %}</a>
-                {% else %}
-                    <a href="{% url 'dashboard:category-list' %}" class="btn-flat">
-                        {% trans "Cancel" context "Category form secondary action" %}</a>
-                {% endif %}
-                {% if category.pk %}
-                    <button type="submit" class="btn">
-                        {% trans "Update" context "Category form primary action" %}
-                    </button>
-                {% else %}
-                    <button type="submit" class="btn">
-                        {% trans "Create" context "Category form primary action" %}
-                    </button>
-                {% endif %}
+                    <div class="card-action right-align">
+                        {% if category.parent %}
+                            <a href="{% url 'dashboard:category-list' root_pk=category.parent.pk %}" class="btn btn-flat">
+                                {% trans "Cancel" context "Category form secondary action" %}</a>
+                        {% else %}
+                            <a href="{% url 'dashboard:category-list' %}" class="btn btn-flat">
+                                {% trans "Cancel" context "Category form secondary action" %}</a>
+                        {% endif %}
+                        {% if category.pk %}
+                            <button type="submit" class="btn btn-flat primary">
+                                {% trans "Update" context "Category form primary action" %}
+                            </button>
+                        {% else %}
+                            <button type="submit" class="btn btn-flat primary">
+                                {% trans "Create" context "Category form primary action" %}
+                            </button>
+                        {% endif %}
+                    </div>
+                </form>
             </div>
         </div>
-    </form>
+        <div class="col m12 l3 help-box"></div>
+    </div>
 {% endblock %}

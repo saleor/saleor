@@ -23,7 +23,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li>{% trans "Product types" context "Product type list breadcrumbs" %}</li>
+        <li class="visible-s">{% trans "Product types" context "Product type list breadcrumbs" %}</li>
     </ul>
 {% endblock %}
 
@@ -39,17 +39,19 @@
                             <a class="title" href="{% url 'dashboard:product-class-update' pk=pk %}">
                                 <span class="list-item-name">{{ name }}</span>
                             </a>
-                            <p>
+                            <p class="list-item-desc">
                                 {% trans "Variants" context "Product type item list text" %}: {% if has_variants %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}
-                                {% if variant_attributes %} | {% trans "Variant attributes" context "Product type item list text" %}: {{ variant_attributes|join:", " }}{% endif %}
-                                {% if product_attributes %} | {% trans "Product attributes" context "Product type item list text" %}: {{ product_attributes|join:", " }}{% endif %}
+                                {% if variant_attributes %} &middot; {% trans "Variant attributes" context "Product type item list text" %}: {{ variant_attributes|join:", " }}{% endif %}
+                                {% if product_attributes %} &middot; {% trans "Product attributes" context "Product type item list text" %}: {{ product_attributes|join:", " }}{% endif %}
                             </p>
                         </li>
                     {% endfor %}
                 </ul>
                 {% include "dashboard/includes/_pagination.html" with page_obj=product_classes %}
             {% else %}
-                <p>{% trans "No product types found." context "Empty product type list message" %}</p>
+                <div class="not-found">
+                  <p class="grey-text">{% trans "No product types found." context "Empty product type list message" %}</p>
+                </div>
             {% endif %}
         </div>
     </div>

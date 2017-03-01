@@ -1,0 +1,29 @@
+@mixin card {
+  & &-content {
+    .card-title {
+      display: block;
+      line-height: 28px;
+      margin: 8px 0 16px;
+    }
+
+    &--no-data {
+      padding-top: 6px;
+    }
+    &.card-content-form {
+      padding: 24px 16px 16px;
+    }
+  }
+  .row {
+    margin-bottom: 0;
+  }
+
+  & &-action {
+    a:not(.btn):not(.btn-large):not(.btn-large):not(.btn-floating):hover {
+      color: $button-flat-color;
+    }
+  }
+}
+
+.card {
+  @include card;
+}

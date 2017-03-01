@@ -24,9 +24,11 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs breadcrumbs--history">
-        <li><a href="{% url "dashboard:product-list" %}" class="breadcrumbs--ellipsed-item"><i class="material-icons">first_page</i></a></li>
-        <li><a href="{% url "dashboard:product-update" pk=product.pk %}#stock" class="breadcrumbs--ellipsed-item">{{ product }}</a></li>
+        <li><a href="{% url "dashboard:product-list" %}" class="breadcrumb">
+            {% trans "Products" context "Stock form breadcrumbs" %}
+        </a></li>
         <li class="back-mobile"><a href="{% url "dashboard:product-update" pk=product.pk %}#stock"><i class="material-icons">chevron_left</i></a></li>
+        <li><a href="{% url "dashboard:product-update" pk=product.pk %}#stock" class="breadcrumbs--ellipsed-item">{{ product }}</a></li>
         {% if stock.pk %}
             <li><span class="breadcrumbs--ellipsed-item">
                 {% blocktrans trimmed with variant=stock.variant context "Stock form breadcrumbs" %}
@@ -51,31 +53,51 @@
 {% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
-    <form method="post" id="form-stock" enctype="multipart/form-data">
-        <div class="row">
-            {% csrf_token %}
-            {{ form.variant|materializecss:"s12 m8 l6" }}
-            {{ form.quantity|materializecss:"s12 m4 l2" }}
-        </div>
+    <div class="row">
+        <div class="col s12 m9">
+            <div class="card">
+                <form method="post" id="form-stock" enctype="multipart/form-data">
+                    <div class="card-content">
+                        {% csrf_token %}
+                        <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#stock">
+                        <div class="row">
+                            <div class="col s12 m8">
+                                <div class="row">
+                                    {{ form.variant|materializecss }}
+                                </div>
+                                <div class="row">
+                                    {{ form.location|materializecss }}
+                                </div>
+                            </div>
+                            <div class="col s12 m4">
+                                <div class="row">
+                                    {{ form.quantity|materializecss }}
+                                </div>
+                                <div class="row">
+                                    {{ form.cost_price|materializecss }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-        <div class="row">
-            {{ form.location|materializecss:"s12 m6 l4" }}
-            {{ form.cost_price|materializecss:"s12 m6 l4" }}
-            <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#stock">
-        </div>
-
-        <div class="row">
-            <div class="col s12 l8 right-align">
-                {% if stock.pk %}
-                    <button type="submit" class="btn">
-                        {% trans "Update" context "Stock form action" %}
-                    </button>
-                {% else %}
-                    <button type="submit" class="btn">
-                        {% trans "Create" context "Stock form action" %}
-                    </button>
-                {% endif %}
+                    <div class="card-action right-align">
+                        {% if stock.pk %}
+                            <a href="{% url "dashboard:product-update" pk=product.pk %}#stock" class="btn btn-flat">
+                                {% trans "Cancel" context "Stock form secondary action" %}</a>
+                            <button type="submit" class="btn btn-flat primary">
+                                {% trans "Update" context "Stock form action" %}
+                            </button>
+                        {% else %}
+                            <a href="{% url "dashboard:product-update" pk=product.pk %}#stock" class="btn btn-flat">
+                                {% trans "Cancel" context "Stock form secondary action" %}</a>
+                            <button type="submit" class="btn btn-flat primary">
+                                {% trans "Create" context "Stock form action" %}
+                            </button>
+                        {% endif %}
+                    </div>
+                </form>
             </div>
         </div>
-    </form>
+        <div class="col s12 m3 help-box"></div>
+    </div>
 {% endblock %}

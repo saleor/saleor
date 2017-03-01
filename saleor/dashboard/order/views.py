@@ -24,15 +24,17 @@ from .forms import (CancelGroupForm, CancelItemsForm, CancelOrderForm,
 
 @staff_member_required
 def order_list(request):
-    orders = Order.objects.prefetch_related(
+    orders_all = Order.objects.prefetch_related(
         'groups', 'payments', 'groups__items', 'user').all()
     active_status = request.GET.get('status')
     if active_status:
-        orders = orders.filter(status=active_status)
+        orders = orders_all.filter(status=active_status)
+    else:
+        orders = orders_all
     page = get_paginator_items(orders, 20, request.GET.get('page'))
     form = OrderFilterForm(
         request.POST or None, initial={'status': active_status or None})
-    ctx = {'object_list': page.object_list, 'page_obj': page,
+    ctx = {'object_list': page.object_list, 'orders_all': orders_all, 'page_obj': page,
            'is_paginated': page.has_other_pages(), 'form': form}
     return TemplateResponse(request, 'dashboard/order/list.html', ctx)
 
@@ -293,16 +295,13 @@ def address_view(request, order_pk, address_type):
             'Dashboard message',
             'Updated billing address')
     form = AddressForm(request.POST or None, instance=address)
-    status = 200
     if form.is_valid():
         form.save()
         order.create_history_entry(comment=success_msg, user=request.user)
         messages.success(request, success_msg)
-    elif form.errors:
-        status = 400
+        return redirect('dashboard:order-details', order_pk=order_pk)
     ctx = {'order': order, 'address_type': address_type, 'form': form}
-    return TemplateResponse(request, 'dashboard/order/modal_address_edit.html',
-                            ctx, status=status)
+    return TemplateResponse(request, 'dashboard/order/address_form.html', ctx)
 
 
 @staff_member_required

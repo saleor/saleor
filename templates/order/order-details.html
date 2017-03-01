@@ -62,7 +62,7 @@
               <p class="float-right">x {{ item_line.quantity }}</p>
             </div>
             <div class="col-md-6 col-12">
-              <p class="float-right">{% gross item_line.get_total %}</p>
+              <p class="float-right">{% gross item_line.get_total html=True %}</p>
             </div>
           </div>
         </div>
@@ -85,7 +85,7 @@
             {% endif %}
           </div>
           <div class="col-4">
-            <p class="float-right">{% gross item.shipping_price %}</p>
+            <p class="float-right">{% gross item.shipping_price html=True %}</p>
           </div>
         </div>
     {% endif %}
@@ -107,7 +107,7 @@
           </div>
         </div>
         <div class="col-4">
-          <p class="float-right"><strong>{% gross order.total %}</strong></p>
+          <p class="float-right"><strong>{% gross order.total html=True %}</strong></p>
         </div>
       </div>
     </div>

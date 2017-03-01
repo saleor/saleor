@@ -45,16 +45,18 @@
                             <a class="title" href="{% url 'dashboard:product-update' pk=product.pk %}">
                                 <span class="list-item-name">{{ product.name }}</span>
                             </a>
-                            <p class="list-item-price">{% gross product.price %}</p>
+                            <p class="list-item-price">{% gross product.price html=True %}</p>
                         </li>
                     {% endfor %}
                 </ul>
                 {% include "dashboard/includes/_pagination.html" with page_obj=products %}
             {% else %}
-                <p>{% trans "No products found." context "Empty product list message" %}</p>
-                {% if not product_classes %}
-                    <p>{% trans "Create product type first." context "Empty product list without product types message" %}</p>
-                {% endif %}
+                <div class="not-found">
+                    <p class="grey-text">{% trans "No products found." context "Empty product list message" %}</p>
+                    {% if not product_classes %}
+                        <p class="grey-text">{% trans "Create product type first." context "Empty product list without product types message" %}</p>
+                    {% endif %}
+                </div>
             {% endif %}
         </div>
     </div>

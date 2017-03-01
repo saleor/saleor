@@ -26,25 +26,23 @@
 {% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col s12">
-            {% if attributes %}
-                <ul class="collection list list--attributes">
-                    {% for pk, display, values in attributes %}
-                        <li class="collection-item list-item list--attributes-item list-item--two-lines">
-                            <a class="list-item-name" href="{% url 'dashboard:product-attribute-update' pk=pk %}">{{ display }}</a>
+    {% if attributes %}
+        <ul class="collection list">
+            {% for pk, display, values in attributes %}
+                <li class="collection-item list-item">
+                    <a class="list-item-name" href="{% url 'dashboard:product-attribute-update' pk=pk %}">{{ display }}</a>
 
-                            <p class="list-item-desc">
-                                    {% for value in values %}
-                                    {{ value }}{% if not forloop.last %}, {% endif %}
-                                {% endfor %}
-                            </p>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>{% trans "No attributes found." context "Empty attribute list message" %}</p>
-            {% endif %}
+                    <p class="list-item-desc">
+                            {% for value in values %}
+                            {{ value }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="not-found">
+          <p class="grey-text">{% trans "No attributes found." context "Empty attribute list message" %}</p>
         </div>
-    </div>
+    {% endif %}
 {% endblock %}

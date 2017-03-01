@@ -8,15 +8,15 @@
         <h5>{% trans "Cancel delivery group?" context "Modal cancel delivery group title" %}</h5>
         <p>
             {% blocktrans trimmed context "Modal cancel delivery group text" %}
-                After this action, {{ group }} will be cancelled. Ordered items will be returned to stock.
+                After this action {{ group }} will be cancelled. Ordered items will be returned to stock.
             {% endblocktrans %}
         </p>
     </div>
 
     <div class="modal-footer">
-        <button type="submit" class="modal-action btn-flat red-text">
-            {% trans "Cancel group" context "Modal cancel delivery group primary action" %}</button>
-        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">
-            {% trans "Cancel" context "Modal cancel delivery group secondary action" %}</a>
+        <button type="submit" class="modal-action btn-flat">
+            {% trans "Cancel this shipment" context "Modal cancel delivery group primary action" %}</button>
+        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat">
+            {% trans "Abort" context "Modal cancel delivery group secondary action" %}</a>
     </div>
 </form>

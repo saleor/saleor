@@ -1,9 +1,20 @@
+$button-padding: 0 16px;
+$button-flat-color: #26A69A;
+$card-link-color: #26A69A;
+$card-padding: 16px;
 $font-size-action-icon: 18px;
-$header-height: 64px;
+$header-height: 56px;
+$navbar-height: 56px;
 $navbar-height-mobile: 64px;
-$subheader-height: 48px;
-$transition-duration: .2s;
 $placeholder-text-color: white;
+$primary-color: #E57373;
+$primary-color-light: #EF9A9A;
+$secondary-color: #26A69A;
+$sidenav-font-color: #616161;
+$sidenav-padding: 16px;
+$subheader-height: 48px;
+$tabs-bg-color: #f5f5f5;
+$transition-duration: .2s;
 
 $roboto-font-path: "~materialize-css/fonts/roboto/";
 @import "~materialize-css/sass/materialize";
@@ -20,165 +31,6 @@ $roboto-font-path: "~materialize-css/fonts/roboto/";
        url('~material-design-icons/iconfont/MaterialIcons-Regular.woff2') format('woff2'),
        url('~material-design-icons/iconfont/MaterialIcons-Regular.woff') format('woff'),
        url('~material-design-icons/iconfont/MaterialIcons-Regular.ttf') format('truetype');
-}
-
-header {
-  .top-nav {
-    box-shadow: none;
-    line-height: 0;
-    .left {
-      width: 98vw;
-      @media (max-width: $small-screen) {
-        width: auto;
-      }
-      .search {
-        min-width: 50%;
-        width: auto;
-        .input-field {
-          margin-top: 0.5rem;
-          @media (min-width: $large-screen) {
-            margin-top: 0.3rem;
-          }
-          margin-left: 3rem;
-          input {
-            padding: 1rem;
-            background-color: $primary-color-light;
-            margin-bottom: 0;
-            border-radius: 3px;
-            width: 80%;
-            display: inline-block;
-            @media (min-width: $large-screen) {
-              width: 90%;
-            }
-            @media (max-width: $medium-screen) {
-              width: 70%;
-            }
-            &:focus {
-              background-color: white;
-              & + .search-icon i{
-                color: $primary-color;
-              }
-            }
-
-          }
-          .search-icon {
-            background: transparent;
-            border: none;
-            position: absolute;
-            right: 1.3rem;
-            top: 0.9rem;
-            i {
-              height: 21px;
-              line-height: 1;
-            }
-          }
-        }
-      }
-    }
-    .user-name {
-      padding: (($dropdown-item-height - 22) / 2) 16px;
-      white-space: normal;
-      max-width: 90vw;
-    }
-    .menu-toggle {
-      background-color: $primary-color;
-      position: absolute;
-      width: 237px;
-      z-index: 2;
-      i {
-        color: white;
-      }
-      a:hover {
-        background-color: transparent;
-      }
-    }
-    .header-button, .button-collapse {
-      float: left;
-      margin: 0 $gutter-width;
-      display: block;
-      i {
-        font-size: 2.7rem;
-        height: $header-height;
-        line-height: $header-height;
-      }
-    }
-
-    .dropdown-button {
-      float: right;
-      line-height: $header-height/2;
-      position: relative;
-      top: $header-height/4;
-      margin-left: 1rem;
-      z-index: 999;
-      i {
-        height: $header-height/2;
-        line-height: $header-height/2;
-      }
-    }
-
-    .dropdown-content {
-      left: auto !important;
-      right: 0;
-      white-space: nowrap;
-    }
-
-    .logo {
-      img {
-        max-height: $header-height;
-        padding-top: $sidenav-padding
-      }
-    }
-    .right {
-      padding-right: $sidenav-padding;
-    }
-  }
-
-  .side-nav {
-    width: 250px;
-    position: absolute;
-    top: $header-height + $subheader-height;
-    height: 100vh;
-    &-section {
-      p {
-        line-height: 1;
-        color: map-get($grey, darken-1);
-        margin-left: $gutter-width;
-        font-size: 85%;
-      }
-      &:not(:last-of-type) {
-        border-bottom: 1px solid map-get($grey, lighten-2);
-      }
-      padding-top: $gutter-width / 2;
-      &#first{
-        border-top: 1px solid map-get($grey, lighten-2);
-      }
-    }
-    &.sticky {
-      position: fixed;
-      top: 0;
-    }
-    li {
-      display: block;
-      .body-home &.nav-home {
-        @extend .active;
-      }
-    }
-  }
-}
-
-.subheader {
-  background-color: $primary-color-light;
-  height: $subheader-height;
-  margin-top: 0;
-  i {
-    font-size: $subheader-height/2;
-    line-height: $subheader-height;
-    color: white;
-  }
-}
-
-.main {
-  margin-top: 1.5rem;
 }
 
 .modal-content {
@@ -204,32 +56,31 @@ header {
   }
 }
 
-.data-table-container {
-  overflow: auto;
-  table {
-    .row {
-      .col {
-        float: none;
-        padding: $gutter-width/2;
 
-        .responsive-img {
-          display: block;
+.data-table {
+  &-header-action {
+    border-bottom: 1px solid $table-border-color;
+    padding: 14px 8px;
+  }
+  &-container {
+    overflow: auto;
+    table {
+      .row {
+        .col {
+          float: none;
+          padding: $gutter-width/2;
+
+          .responsive-img {
+            display: block;
+          }
         }
       }
     }
   }
 }
 
-.input-with-suffix input {
-  float: left;
-  width: calc(100% - 40px);
-}
-
-.input-text-suffix {
-  float: right;
-  line-height: 45px;
-  text-align: right;
-  width: 40px;
+tr[data-action-go]>td:not(.ignore-link):hover {
+  cursor: pointer;
 }
 
 #modal-product-class {
@@ -240,15 +91,14 @@ header {
   color: #999;
 }
 
-.btn-data-table {
-  background: none;
-  border: none;
-  font-weight: bold;
-  padding: 0;
-  text-transform: uppercase;
-
-  &:hover, &:focus {
-    background: none;
+.btn-flat {
+  &.primary {
+    background: $button-flat-color;
+    color: #fff;
+    transition: transform $transition-duration, box-shadow $transition-duration;
+    &:hover {
+      box-shadow: 0px 2px 9px -2px rgba(0,0,0,0.75);
+    }
   }
 }
 
@@ -305,22 +155,17 @@ header {
   font-size: 120%;
 }
 
-#order-details {
-  .order-summary {
-    td {
-      padding: 5px 5px;
-    }
-    .order-user {
-      display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      width: 100px;
-      min-width: 100%;
-    }
+.label {
+  @extend .grey-text;
+  font-size: 12px;
+  text-transform: uppercase;
+
+  &.label-danger {
+    @extend .red-text;
   }
 
-  #order-notes {
-    box-shadow: none;
+  &.label-success {
+    @extend .green-text;
   }
 }
 
@@ -358,24 +203,110 @@ header {
   color: $primary-color;
 }
 
+.currency {
+  @extend .grey-text;
+  font-size: 12px;
+  font-weight: normal;
+}
+
+.dropzone {
+  .dz-preview {
+    &.dz-image-preview {
+      background: none;
+    }
+  }
+  &-message {
+    span {
+      font-size: 1.7rem;
+      text-transform: uppercase;
+    }
+  }
+}
+
+.help-box {
+  i {
+    font-size: 1.3rem;
+  }
+}
+
+.not-found {
+  text-align: center;
+  p {
+    font-size: 1.7rem;
+    text-transform: uppercase;
+  }
+}
+
+.search-form {
+  input {
+    border: none;
+    color: $primary-color;
+    margin-bottom: 0;
+    width: 75%;
+    padding-left: 5%;
+    &::placeholder {
+      color: $primary-color;
+    }
+    &:focus:not([readonly]), &.valid, &:focus.valid, {
+      border: none;
+      box-shadow: none;
+    }
+  }
+  button {
+    width: 20%;
+    padding: 0;
+    margin-top: 3px;
+    i {
+      color: $primary-color;
+    }
+    &:hover {
+      background-color: transparent;
+    }
+  }
+}
+
+#base-modal {
+  @media only screen and (min-width: 1367px) {
+    width: 40%;
+  }
+}
+
+html {
+  background: #f5f5f5;
+  @media only screen and (min-width: 0) {
+    font-size: 14px;
+  }
+
+  @media only screen and (min-width: $large-screen) {
+    font-size: 13px;
+  }
+}
+
+h6 {
+  @extend .grey-text;
+  font-size: 13px;
+}
+
 li#version-indicator {
-  position: absolute;
-  bottom: 0;
+  @media only screen and (min-width: $large-screen) {
+    position: absolute;
+    bottom: 0;
+  }
   p {
       @extend .grey-text, .text-lighten-1;
   }
 }
 
-
-
-@import "widget/breadcrumbs";
-@import "widget/card";
-@import "widget/data-table";
-@import "widget/dropzone";
-@import "widget/form";
-@import "widget/list";
-@import "widget/product-gallery";
-@import "widget/ppoi";
-@import "widget/select2";
-@import "widget/tabs";
-@import "widget/toast";
+@import "components/breadcrumbs";
+@import "components/card";
+@import "components/data-table";
+@import "components/dropzone";
+@import "components/form";
+@import "components/formset";
+@import "components/list";
+@import "components/nav";
+@import "components/product-gallery";
+@import "components/ppoi";
+@import "components/select2";
+@import "components/tabs";
+@import "components/toast";

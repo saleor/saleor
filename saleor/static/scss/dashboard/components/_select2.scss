@@ -1,8 +1,9 @@
 @mixin select2 {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 
   &.select2-container--default, &.select2-container--default.select2-container--focus {
     border-bottom: $input-border;
+    box-sizing: border-box;
 
     .select2-results__options {
       background-color: $dropdown-bg-color;
@@ -38,7 +39,6 @@
       border: none;
       border-radius: 0;
       box-sizing: border-box;
-      line-height: 3rem;
 
       .select2-selection__rendered {
         padding: 0;
@@ -48,6 +48,8 @@
       li.select2-selection__choice {
         @extend .chip;
         border: 0;
+        margin-top: 3px;
+        margin-bottom: 4px;
 
         .select2-selection__choice__remove {
           color: inherit;
@@ -72,7 +74,8 @@
       .select2-search__field {
         background: transparent;
         height: auto;
-        margin: 0;
+        line-height: 32px;
+        margin: 3px 0 4px;
         padding-left: 0;
 
         &:focus {
@@ -86,7 +89,7 @@
   &.select2-container--default.select2-container--open {
     border-bottom: 1px solid $input-focus-color;
     box-shadow: 0 1px 0 0 $input-focus-color;
- 
+
     .select2-selection__rendered {
       background-color: $select-background;
     }

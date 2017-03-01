@@ -17,17 +17,17 @@
 
         <ul class="list">
             <li class="list-item">{% trans "Order total:" context "Modal capture payment list title" %}
-                {% gross payment.order.get_total %}</li>
+                {% gross payment.order.get_total html=True %}</li>
             <li class="list-item">{% trans "Captured amount:" context "Modal capture payment list title" %}
                 {{ captured|currencyfmt:currency }} </li>
         </ul>
     </div>
 
     <div class="modal-footer">
-        <button type="submit" class="modal-action btn-flat blue-text">
+        <button type="submit" class="modal-action btn-flat">
             {% trans "Capture" context "Modal capture payment primary action" %}
         </button>
-        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">
+        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat">
             {% trans "Cancel" context "Modal capture payment secondary action" %}
         </a>
     </div>

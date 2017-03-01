@@ -9,15 +9,6 @@
 
 {% block menu_sales_class %}active{% endblock %}
 
-{% block header_extra %}
-    <div class="fixed-action-btn">
-        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
-            href="{% url 'dashboard:sale-add' %}" title="{% trans "Add sale" context "Sale (discount) list add button text" %}">
-            <i class="material-icons">add</i>
-        </a>
-    </div>
-{% endblock %}
-
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
         <li class="visible-s">{% trans "Sales" context "Sale (discount) list breadcrumbs" %}</li>
@@ -27,10 +18,14 @@
 {% block menu_discounts_class %} active{% endblock %}
 
 {% block content %}
-    {% if sales %}
         <div class="card">
+            <div class="data-table-header-action">
+                <a href="{% url 'dashboard:sale-add' %}" class="btn-data-table btn-flat"  title="{% trans "Add sale" context "Sale (discount) list add button text" %}">
+                    {% trans "Add" context "Product form variants tab table action" %}
+                </a>
+            </div>
             <div class="data-table-container">
-                <table class="bordered hoverable responsive data-table">
+                <table class="bordered highlight responsive data-table">
                     <thead>
                     <tr>
                         <th>{% trans "Name" context "Sale (discount) table header" %}</th>
@@ -38,21 +33,25 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for sale in sales %}
-                        <tr>
-                            <td>
-                                <a href="{% url 'dashboard:sale-update' pk=sale.pk %}">{{ sale }}</a>
-                            </td>
-                            <td>{{ sale.value }}{{ sale.get_type_display }}</td>
-                        </tr>
-                    {% endfor %}
+                      {% if sales %}
+                        {% for sale in sales %}
+                            <tr data-action-go="{% url 'dashboard:sale-update' pk=sale.pk %}">
+                                <td>{{ sale }}</td>
+                                <td>{{ sale.value }}{{ sale.get_type_display }}</td>
+                            </tr>
+                        {% endfor %}
+                      {% else %}
+                          <tr>
+                              <td>
+                                  <span>
+                                      {% trans "No sales found" context "Empty sales table message" %}
+                                  </span>
+                              </td>
+                          </tr>
+                      {% endif %}
                     </tbody>
                 </table>
             </div>
         </div>
-
         {% include "dashboard/includes/_pagination.html" %}
-    {% else %}
-        <p>{% trans "No sales found." context "Empty sale (discount) table message" %}</p>
-    {% endif %}
 {% endblock %}

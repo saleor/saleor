@@ -9,15 +9,6 @@
 
 {% block menu_vouchers_class %}active{% endblock %}
 
-{% block header_extra %}
-    <div class="fixed-action-btn">
-        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
-           href="{% url 'dashboard:voucher-add' %}" title="{% trans "Add voucher" context "Voucher list add button text" %}">
-            <i class="material-icons">add</i>
-        </a>
-    </div>
-{% endblock %}
-
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
         <li class="visible-s">{% trans "Vouchers" context "Voucher list breadcrumbs" %}</li>
@@ -27,55 +18,66 @@
 {% block menu_discounts_class %} active{% endblock %}
 
 {% block content %}
-    {% if vouchers %}
         <div class="card">
+            <div class="data-table-header-action">
+                <a href="{% url 'dashboard:voucher-add' %}" class="btn-data-table btn-flat" title="{% trans "Add voucher" context "Voucher list add button text" %}">
+                    {% trans "Add" context "Product form variants tab table action" %}
+                </a>
+            </div>
             <div class="data-table-container">
-                <table class="bordered hoverable responsive data-table">
-                    <thead>
-                    <tr>
-                        <th class="wide">{% trans "Name" context "Voucher table header" %}</th>
-                        <th>{% trans "Discount" context "Voucher table header" %}</th>
-                        <th>{% trans "Start date" context "Voucher table header" %}</th>
-                        <th>{% trans "End date" context "Voucher table header" %}</th>
-                        <th>{% trans "Used" context "Voucher table header" %}</th>
-                        <th>{% trans "Apply to" context "Voucher table header" %}</th>
-                        <th>{% trans "Limit" context "Voucher table header" %}</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for voucher in vouchers %}
-                        <tr>
-                            <td>
-                                <a href="{% url 'dashboard:voucher-update' pk=voucher.pk %}">{{ voucher }}</a>
-                            </td>
-                            <td>
-                                {{ voucher.discount_value }}{{ voucher.get_discount_value_type_display }}</td>
-                            <td>{{ voucher.start_date }}</td>
-                            <td>{{ voucher.end_date|default_if_none:"-" }}</td>
-                            <td>
-                                {% if voucher.usage_limit or voucher.usage_limit == 0 %}
-                                    {{ voucher.used }}/{{ voucher.usage_limit }}
-                                {% else %}
-                                    {{ voucher.used }}
-                                {% endif %}
-                            </td>
-                            <td>{{ voucher.get_apply_to_display|default_if_none:"-" }}</td>
-                            <td>
-                                {% if voucher.limit %}
-                                    {% gross voucher.limit %}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
+                <table class="bordered highlight responsive data-table">
+                  {% if vouchers %}
+                      <thead>
+                          <tr>
+                              <th class="wide">{% trans "Name" context "Voucher table header" %}</th>
+                              <th class="right-align">{% trans "Discount" context "Voucher table header" %}</th>
+                              <th>{% trans "Apply to" context "Voucher table header" %}</th>
+                              <th>{% trans "Start date" context "Voucher table header" %}</th>
+                              <th>{% trans "End date" context "Voucher table header" %}</th>
+                              <th class="right-align">{% trans "Used" context "Voucher table header" %}</th>
+                              <th class="right-align">{% trans "Limit" context "Voucher table header" %}</th>
+                          </tr>
+                      </thead>
+                      {% for voucher in vouchers %}
+                        <tbody>
+                            <tr data-action-go="{% url 'dashboard:voucher-update' pk=voucher.pk %}">
+                                  <td>{{ voucher }}</td>
+                                  <td class="right-align">
+                                      {{ voucher.discount_value }}&nbsp;<span class="currency">{{ voucher.get_discount_value_type_display }}</span>
+                                  </td>
+                                  <td>{{ voucher.get_apply_to_display|default_if_none:"-" }}</td>
+                                  <td>{{ voucher.start_date }}</td>
+                                  <td>{{ voucher.end_date|default_if_none:"-" }}</td>
+                                  <td class="right-align">
+                                      {% if voucher.usage_limit or voucher.usage_limit == 0 %}
+                                          {{ voucher.used }}/{{ voucher.usage_limit }}
+                                      {% else %}
+                                          {{ voucher.used }}
+                                      {% endif %}
+                                  </td>
+                                  <td class="right-align">
+                                      {% if voucher.limit %}
+                                          {% gross voucher.limit html=True %}
+                                      {% else %}
+                                          -
+                                      {% endif %}
+                                  </td>
+                              </tr>
+                          {% endfor %}
+                        </tbody>
+                      {% else %}
+                        <tbody>
+                          <tr>
+                              <td>
+                                  <span>
+                                      {% trans "No vouchers found" context "Empty vouchers table message" %}
+                                  </span>
+                              </td>
+                          </tr>
+                        </tbody>
+                      {% endif %}
                 </table>
             </div>
         </div>
-
         {% include "dashboard/includes/_pagination.html" %}
-    {% else %}
-        <p>{% trans "No vouchers found." context "Empty voucher table message" %}</p>
-    {% endif %}
 {% endblock %}

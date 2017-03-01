@@ -83,7 +83,7 @@
     &-item {
       text-overflow: ellipsis;
       white-space: nowrap;
-      max-width: 55vw;
+      max-width: calc(100vw - 80px);
       @media (min-width: $medium-screen-up) {
         max-width: 14em;
       }

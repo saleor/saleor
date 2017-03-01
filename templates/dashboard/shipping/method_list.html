@@ -15,55 +15,57 @@
     </ul>
 {% endblock %}
 
-{% block header_extra %}
-    <div class="fixed-action-btn">
-        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
-           title="{% trans "Add method" context "Shipping method list add button text" %}"
-           href="{% url 'dashboard:shipping-method-add' %}">
-            <i class="material-icons">add</i>
-        </a>
-    </div>
-{% endblock %}
-
 {% block content %}
-    {% if shipping_methods %}
-        <div class="card">
-            <div class="data-table-container">
-                <table class="bordered hoverable responsive data-table">
-                    <thead>
-                    <tr>
-                        <th>{% trans "Name" context "Shipping methods table header" %}</th>
-                        <th>{% trans "Price range" context "Shipping methods table header" %}</th>
-                        <th class="wide">{% trans "Countries" context "Shipping methods table header" %}</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for method in shipping_methods %}
-                        <tr>
-                            <td>
-                                <a href="{% url 'dashboard:shipping-method-detail' pk=method.pk %}">{{ method }}</a>
-                            </td>
-                            <td>
-                                {% if not method.price_range %}
-                                    -
-                                {% elif method.price_range.min_price == method.price_range.max_price %}
-                                    {% gross method.price_range.min_price %}
-                                {% else %}
-                                    {% gross method.price_range.min_price %} -
-                                    {% gross method.price_range.max_price %}
-                                {% endif %}
-                            </td>
-                            <td>{{ method.countries|join:", " }}</td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+        <div class="row">
+            <div class="col s12">
+                <div class="card">
+                    <div class="data-table-header-action">
+                        <a href="{% url 'dashboard:shipping-method-add' %}" class="btn-data-table btn-flat" title="{% trans "Add method" context "Shipping method list add button text" %}">
+                            {% trans "Add" context "Product form variants tab table action" %}
+                        </a>
+                    </div>
+                    <div class="data-table-container">
+                        <table class="bordered highlight responsive data-table">
+                          {% if shipping_methods %}
+                              <thead>
+                              <tr>
+                                  <th>{% trans "Name" context "Shipping methods table header" %}</th>
+                                  <th>{% trans "Price range" context "Shipping methods table header" %}</th>
+                                  <th class="wide">{% trans "Countries" context "Shipping methods table header" %}</th>
+                              </tr>
+                              </thead>
+                              <tbody>
+                              {% for method in shipping_methods %}
+                                  <tr data-action-go="{% url 'dashboard:shipping-method-detail' pk=method.pk %}">
+                                      <td>{{ method }}</td>
+                                      <td>
+                                          {% if not method.price_range %}
+                                              -
+                                          {% elif method.price_range.min_price == method.price_range.max_price %}
+                                              {% gross method.price_range.min_price html=True %}
+                                          {% else %}
+                                              {% gross method.price_range.min_price html=True %}&ndash;{% gross method.price_range.max_price html=True %}
+                                          {% endif %}
+                                      </td>
+                                      <td>{{ method.countries|join:", " }}</td>
+                                  </tr>
+                              {% endfor %}
+                              </tbody>
+                            {% else %}
+                              <tbody>
+                                <tr>
+                                    <td>
+                                        <span>
+                                            {% trans "No Shipping methods found" context "Empty Shipping methods table message" %}
+                                        </span>
+                                    </td>
+                                </tr>
+                              </tbody>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
-
         {% include "dashboard/includes/_pagination.html" %}
-    {% else %}
-        <p>{% trans "No shipping methods found." context "Empty Shipping methods table" %}</p>
-    {% endif %}
-
 {% endblock %}

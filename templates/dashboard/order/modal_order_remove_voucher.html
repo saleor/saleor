@@ -14,9 +14,9 @@
     <form id="release-form" method="post" role="form" class="form-async"
           action="{% url 'dashboard:order-remove-voucher' order_pk=order.pk %}" novalidate>
         {% csrf_token %}
-        <button type="submit" class="modal-action btn-flat red-text">
+        <button type="submit" class="modal-action btn-flat">
             {% trans "Remove voucher" context "Modal remove voucher from order primary action" %}</button>
-        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat blue-text">
+        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat">
             {% trans "Abort" context "Modal remove voucher from order secondary action" %}
         </a>
     </form>

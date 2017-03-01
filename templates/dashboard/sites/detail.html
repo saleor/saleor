@@ -10,34 +10,38 @@
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
-    <li><a href="{% url "dashboard:site-index" %}" class="breadcrumb">
-        {% trans "Site settings" context "Site settings breadcrumbs" %}
-    </a></li>
-    <li class="back-mobile"><a href="{% url "dashboard:site-index" %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a></li>
-    <li><span class="breadcrumbs--ellipsed-item">
-        {% if site.pk %}{{ site }}{% else %}{% trans "Add new site settings" context "Site settings breadcrumbs" %}{% endif %}
-    </span></li>
+    <li class="visible-s">{% trans "Site settings" context "Site settings breadcrumbs" %}</li>
   </ul>
 {% endblock %}
 
 {% block content %}
-  <form method="post" id="form-category" enctype="multipart/form-data" novalidate>
-    {% csrf_token %}
-    <div class="row">
-      <div class="col l8">
-        <div class="row">
-          {{ form.name|materializecss }}
-          {{ form.domain|materializecss }}
-          {{ form.header_text|materializecss }}
-          {{ form.description|materializecss }}
-        </div>
-      </div>
-    </div>
+  <div class="row">
+    <div class="col m12 l9">
+      <div class="card">
+        <form method="post" id="form-category" enctype="multipart/form-data" novalidate>
+          <div class="card-content card-content-form">
+            {% csrf_token %}
+            <div class="row">
+              {{ form.name|materializecss }}
+            </div>
+            <div class="row">
+              {{ form.domain|materializecss }}
+            </div>
+            <div class="row">
+              {{ form.header_text|materializecss }}
+            </div>
+            <div class="row">
+              {{ form.description|materializecss }}
+            </div>
+          </div>
 
-    <div class="row">
-      <div class="col s12 l8 right-align">
-        <button type="submit" class="btn">{% trans "Update" context "Site settings action" %}</button>
+          <div class="card-action right-align">
+            <a class="btn btn-flat" href="{% url "dashboard:index" %}" traget="_blank">{% trans "Cancel" %}</a>
+            <button type="submit" class="btn btn-flat primary">{% trans "Update" context "Site settings action" %}</button>
+          </div>
+        </form>
       </div>
     </div>
-  </form>
+    <div class="col m12 l3 help-box"></div>
+  </div>
 {% endblock %}

@@ -3,12 +3,9 @@ from __future__ import unicode_literals
 from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
-from django.utils.translation import npgettext_lazy
 
-from .forms import CustomerSearchForm
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items
-from ...order import OrderStatus
 from ...userprofile.models import User
 
 
@@ -21,24 +18,8 @@ def customer_list(request):
         .annotate(
             num_orders=Count('orders', distinct=True),
             last_order=Max('orders', distinct=True)))
-
-    form = CustomerSearchForm(request.GET or None, queryset=customers)
-    form_values = [(field.name, field.value() or '') for field in form]
-    if form.is_valid():
-        customers = form.search()
-    else:
-        customers = customers.filter(
-            orders__status__in=[
-                OrderStatus.NEW, OrderStatus.PAYMENT_PENDING,
-                OrderStatus.FULLY_PAID])
-    title = npgettext_lazy(
-        'Customer list page title',
-        '%d result',
-        'Results (%d)') % len(customers)
-
     customers = get_paginator_items(customers, 30, request.GET.get('page'))
-    ctx = {'customers': customers, 'form': form, 'title': title,
-           'default_pagination_params': form_values}
+    ctx = {'customers': customers}
     return TemplateResponse(request, 'dashboard/customer/list.html', ctx)
 
 

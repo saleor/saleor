@@ -11,40 +11,38 @@
     }
   }
 
-  &-header {
-    padding: 21px 24px;
+  &-action {
+    border-top: 1px solid $table-border-color;
+    padding: 10px 8px;
+  }
 
-    &--no-data {
-      padding: 20px 20px 0;
+  &-hader-action {
+    border-bottom: 1px solid $table-border-color;
+    padding: 14px 8px;
+  }
+
+  &-header {
+    align-items: center;
+    display: flex;
+    height: 64px;
+
+    a {
+      color: $secondary-color;
+    }
+
+    .label {
+      line-height: 1;
+      margin-right: 24px;
     }
   }
 
   &-title {
+    flex-grow: 1;
+    font-size: 20px;
     font-weight: 300;
+    line-height: 1;
     margin: 0;
-
-    .data-table-status {
-      float: right;
-      margin-top: -4px;
-    }
-  }
-
-  $statuses-map: (
-    danger: map-get($red, base),
-    success: map-get($green, lighten-2),
-    default: map-get($grey, base)
-  );
-
-  &-status {
-    @each $status in (danger, success, default) {
-      &--#{$status} {
-        color: white;
-        background: #{map_get($statuses-map, $status)};
-        border-radius: 2px;
-        padding: .25em 5px;
-        font-size: .8em;
-      }
-    }
+    padding: 0 24px;
   }
 
   input[type=checkbox].filled-in + label {
@@ -65,6 +63,10 @@
     vertical-align: middle;
     white-space: nowrap;
 
+    a {
+      color: $secondary-color;
+    }
+
     &:first-child {
       padding-left: 24px;
     }
@@ -76,13 +78,23 @@
     &.no-padded {
       padding: 0;
     }
+
+    .dropdown-button {
+      color: inherit;
+      display: inline-block;
+      i {
+        @extend .grey-text;
+        font-size: 16px;
+        text-align: center;
+        width: 16px;
+      }
+    }
   }
 
   th {
-    border-top: 1px solid $table-border-color;
     color: map_get($grey, darken-1);
     font-weight: normal;
-    font-size: 85%;
+    font-size: 12px;
     height: 56px;
   }
 
@@ -101,21 +113,6 @@
 
   .wide {
     width: 99%;
-  }
-
-  &.hoverable {
-    box-shadow: none;
-  }
-
-  .dropdown-button {
-    padding: 15px 28px;
-  }
-
-  .dropdown-content {
-    left: auto !important;
-    right: 0;
-    top: 0;
-    white-space: nowrap;
   }
 }
 

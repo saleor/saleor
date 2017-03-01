@@ -19,7 +19,7 @@
 
 {% block breadcrumbs %}
     <ul class="breadcrumbs">
-        <li>{% trans "Stock locations" context "Stock location list breadcrumbs" %}</li>
+        <li class="visible-s">{% trans "Stock locations" context "Stock location list breadcrumbs" %}</li>
     </ul>
 {% endblock %}
 
@@ -33,14 +33,18 @@
                 <ul class="collection list">
                     {% for location in locations %}
                         <li class="collection-item list-item">
-                            <a class="list-item-name" href="{% url 'dashboard:product-stock-location-edit' location.pk %}">
-                                {{ location }}
-                            </a>
+                            <p class="list-item-name--single">
+                                <a href="{% url 'dashboard:product-stock-location-edit' location.pk %}">
+                                    {{ location }}
+                                </a>
+                            </p>
                         </li>
                     {% endfor %}
                 </ul>
             {% else %}
-                <p>{% trans "No locations found." context "Empty stock location list message" %}</p>
+                <div class="not-found">
+                  <p class="grey-text">{% trans "No locations found." context "Empty stock location list message" %}</p>
+                </div>
             {% endif %}
         </div>
     </div>

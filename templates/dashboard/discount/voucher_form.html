@@ -17,9 +17,9 @@
 
 {% block header_extra %}
     {% if voucher.pk %}
-        <a class="dropdown-button" href="#" data-activates="voucher-delete"
+        <a class="dropdown-button right" href="#" data-activates="voucher-delete"
            data-constrainwidth="false">
-            <i class="material-icons">arrow_drop_down</i>
+            <i class="material-icons">more_vert</i>
         </a>
         <ul id="voucher-delete" class="dropdown-content">
             <li>
@@ -45,50 +45,79 @@
 {% block menu_discounts_class %} active{% endblock %}
 
 {% block content %}
-    <form method="post" enctype="multipart/form-data" id="form-vouchers" novalidate>
-        {% csrf_token %}
-        {% if form.non_field_errors %}
-            <blockquote>
-                {% for non_field_error in form.non_field_errors %}
-                    {{ non_field_error }}
-                {% endfor %}
-            </blockquote>
-        {% endif %}
-        <div class="row">
-            <div class="col s12 l8">
-                <div class="row">
-                    {{ form.code|materializecss }}
-                    {{ form.name|materializecss }}
-                    {{ form.discount_value|materializecss:"s12 m8" }}
-                    {{ form.discount_value_type|materializecss:"s12 m4" }}
-                    {{ form.type|materializecss }}
-                </div>
-                {% for form_type, form in type_base_forms.items %}
-                    <div class="row voucher-form" data-type="{{ form_type }}">
-                        {% for field in form %}
-                            {{ field|materializecss:"s12 m6" }}
-                        {% endfor %}
+    <div class="row">
+        <div class="col m12 l9">
+            <div class="card">
+                <form method="post" enctype="multipart/form-data" id="form-vouchers" novalidate>
+                    <div class="card-content card-content-form">
+                        {% csrf_token %}
+                        {% if form.non_field_errors %}
+                            <blockquote>
+                                {% for non_field_error in form.non_field_errors %}
+                                    {{ non_field_error }}
+                                {% endfor %}
+                            </blockquote>
+                        {% endif %}
+                        <div class="row">
+                            <div class="col s12 m8">
+                                <div class="row">
+                                    {{ form.code|materializecss }}
+                                </div>
+                                <div class="row">
+                                    {{ form.name|materializecss }}
+                                </div>
+                                <div class="row">
+                                    <div class="col s12 m8">
+                                        <div class="row">
+                                            {{ form.discount_value|materializecss }}
+                                        </div>
+                                    </div>
+                                    <div class="col s12 m4">
+                                        <div class="row">
+                                            {{ form.discount_value_type|materializecss:"input-field s12" }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    {{ form.type|materializecss:"input-field s12" }}
+                                </div>
+                                {% for form_type, form in type_base_forms.items %}
+                                    <div class="row voucher-form" data-type="{{ form_type }}">
+                                        {% for field in form %}
+                                            {{ field|materializecss:"input-field s12" }}
+                                        {% endfor %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="col s12 m4">
+                                <div class="row">
+                                    {{ form.start_date|materializecss:"input-field s12" }}
+                                </div>
+                                <div class="row">
+                                    {{ form.end_date|materializecss:"input-field s12" }}
+                                </div>
+                                <div class="row">
+                                    {{ form.usage_limit|materializecss }}
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                {% endfor %}
-            </div>
 
-            <div class="col s12 l4">
-                <div class="row">
-                    {{ form.start_date|materializecss:"input-field s12" }}
-                    {{ form.end_date|materializecss:"input-field s12" }}
-                    {{ form.usage_limit|materializecss }}
-                </div>
+                    <div class="card-action right-align">
+                        {% if voucher.pk %}
+                            <a href="{% url 'dashboard:voucher-list' %}" class="btn btn-flat">
+                                {% trans "Cancel" context "Voucher form secondary action" %}</a>
+                            <button type="submit" class="btn btn-flat primary">{% trans "Update" context "Voucher form primary action" %}</button>
+                        {% else %}
+                            <a href="{% url 'dashboard:voucher-list' %}" class="btn btn-flat">
+                                {% trans "Cancel" context "Voucher form secondary action" %}</a>
+                            <button type="submit" class="btn btn-flat primary">{% trans "Create" context "Voucher form primary action" %}</button>
+                        {% endif %}
+                    </div>
+                </form>
             </div>
         </div>
-
-        <div class="row">
-            <div class="col l8 right-align">
-                {% if voucher.pk %}
-                    <button type="submit" class="btn">{% trans "Update" context "Voucher form primary action" %}</button>
-                {% else %}
-                    <button type="submit" class="btn">{% trans "Create" context "Voucher form primary action" %}</button>
-                {% endif %}
-            </div>
-        </div>
-    </form>
+        <div class="col m12 l3 help-box"></div>
+    </div>
 {% endblock %}

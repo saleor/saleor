@@ -1,0 +1,80 @@
+@mixin formset-table {
+  input[type=checkbox].filled-in + label {
+    margin-top: 5px;
+    padding: 0;
+
+    &:after {
+      display: inline-block;
+      position: static;
+    }
+  }
+
+  th, td {
+    height: 48px;
+    padding: 0 28px;
+    vertical-align: baseline;
+
+    &:first-child {
+      padding-left: 24px;
+    }
+
+    &:last-child {
+      padding-right: 24px;
+    }
+
+    &.no-padded {
+      padding: 0;
+    }
+
+    .input-field {
+      label, label.active {
+        font-size: 0;
+        vertical-align: bottom;
+      }
+    }
+
+    p {
+      margin-bottom: 15px;
+    }
+  }
+
+  th {
+    color: map_get($grey, darken-1);
+    font-weight: normal;
+    font-size: 85%;
+    height: 56px;
+    vertical-align: middle;
+  }
+
+  tfoot {
+    font-weight: bold;
+  }
+
+  .bulk-checkbox {
+    padding: 0 24px;
+    width: 1px;
+
+    + th, + td {
+      padding-left: 0;
+    }
+  }
+
+  .wide {
+    width: 99%;
+  }
+
+  .dropdown-button {
+    padding: 15px 28px;
+  }
+
+  .dropdown-content {
+    left: auto !important;
+    right: 0;
+    top: 0;
+    white-space: nowrap;
+  }
+}
+
+.formset-table {
+  @include formset-table;
+}
