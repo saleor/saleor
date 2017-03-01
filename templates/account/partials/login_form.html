@@ -20,18 +20,20 @@
         {% trans "Forgot password?" context "Login form secondary link" %}
       </a>
       <hr>
+      {% with available_backends=settings.available_backends %}
       <div class="row">
         <div class="col-sm-6">
-          {% if 'facebook' in backends.backends %}
+          {% if 'facebook' in backends.backends and 'facebook' in available_backends %}
             <a class="social-btn facebook" href="{% url 'social:begin' 'facebook' %}"><img src="{% static 'images/facebook_icon.svg' %}" />{% trans 'Facebook' %}</a>
           {% endif %}
         </div>
         <div class="col-sm-6">
-          {% if 'google-oauth2' in backends.backends %}
+          {% if 'google-oauth2' in backends.backends and 'google-oauth2' in available_backends %}
             <a class="social-btn google" href="{% url 'social:begin' 'google-oauth2' %}"><img src="{% static 'images/google_icon.svg' %}" />{% trans 'Google' %}</a>
           {% endif %}
         </div>
       </div>
+    {% endwith %}
     </div>
   </div>
 </form>

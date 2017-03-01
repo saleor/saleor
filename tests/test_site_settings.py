@@ -80,3 +80,15 @@ def test_one_authorization_key_for_backend_and_settings(
 @pytest.mark.django_db
 def test_authorization_key_key_and_secret(authorization_key):
     assert authorization_key.key_and_secret() == ('Key', 'Password')
+
+
+@pytest.mark.django_db
+def test_settings_available_backends_empty(site_settings):
+    assert site_settings.available_backends().count() == 0
+
+
+@pytest.mark.django_db
+def test_settings_available_backends(site_settings, authorization_key):
+    backend_name = authorization_key.name
+    available_backends = site_settings.available_backends()
+    assert backend_name in available_backends

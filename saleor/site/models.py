@@ -26,6 +26,9 @@ class SiteSettings(models.Model):
     def __str__(self):
         return self.name
 
+    def available_backends(self):
+        return self.authorizationkey_set.values_list('name', flat=True)
+
 
 @python_2_unicode_compatible
 class AuthorizationKey(models.Model):
