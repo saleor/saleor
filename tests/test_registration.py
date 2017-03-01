@@ -1,3 +1,5 @@
+import pytest
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.core.urlresolvers import reverse
@@ -7,6 +9,13 @@ from saleor.registration.backends import BaseBackend
 from .utils import get_redirect_location
 
 User = get_user_model()
+
+
+@pytest.fixture
+def base_backend():
+    base_backend = BaseBackend()
+    base_backend.DB_NAME = 'Backend'
+    return base_backend
 
 
 def test_login_form_valid(customer_user):
@@ -113,9 +122,12 @@ def test_password_reset_view_get(client, db):
     assert response.template_name == 'account/password_reset.html'
 
 
-def test_base_backend(authorization_key):
-    base_backend = BaseBackend()
-    base_backend.DB_NAME = 'Backend'
+def test_base_backend(authorization_key, base_backend):
     key, secret = base_backend.get_key_and_secret()
     assert key == 'Key'
     assert secret == 'Password'
+
+
+def test_backend_no_settings(settings, authorization_key, base_backend):
+    settings.SITE_SETTINGS_ID = None
+    assert base_backend.get_key_and_secret() is None
