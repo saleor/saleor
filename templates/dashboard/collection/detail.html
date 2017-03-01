@@ -21,13 +21,13 @@
 
 {% block header_extra %}
     {% if collection.pk %}
-        <a class="dropdown-button" href="#" data-activates="collection-delete" data-constrainwidth="false">
-            <i class="material-icons">arrow_drop_down</i>
+        <a class="dropdown-button right" href="#" data-activates="collection-delete" data-constrainwidth="false">
+            <i class="material-icons">more_vert</i>
         </a>
         <ul id="collection-delete" class="dropdown-content">
             <li>
                 <a class="modal-trigger-custom" data-href="{% url 'dashboard:collection-delete' collection.pk %}" href="#base-modal">
-                    {% trans "Remove collection" %}
+                    {% trans "Remove collection" context "Collection detail action" %}
                 </a>
             </li>
         </ul>
@@ -35,23 +35,36 @@
 {% endblock %}
 
 {% block content %}
-    <form method="post" id="form-category" action="" novalidate>
-        {% csrf_token %}
-        <div class="row">
-            {{ form.name|materializecss:"col l8" }}
-        </div>
-        <div class="row">
-            {{ form.products|materializecss:"col l8" }}
-        </div>
-        <div class="row">
-            <div class="col s12 l8 right-align">
-                <a href="{% url 'dashboard:collection-list' %}" class="btn-flat">{% trans "Cancel" %}</a>
-                {% if collection.pk %}
-                    <button type="submit" class="btn">{% trans "Update" %}</button>
-                {% else %}
-                    <button type="submit" class="btn">{% trans "Create" %}</button>
-                {% endif %}
+  <div class="row">
+    <div class="col m12 l9">
+      <div class="card">
+        <form method="post" id="form-category" action="" novalidate>
+          <div class="card-content card-content-form">
+            {% csrf_token %}
+            <div class="row">
+              {{ form.name|materializecss }}
             </div>
-        </div>
-    </form>
+            <div class="row">
+              {{ form.products|materializecss }}
+            </div>
+          </div>
+          <div class="card-action right-align">
+            {% if collection.pk %}
+              <a href="{% url 'dashboard:collection-list' %}" class="btn btn-flat">
+                {% trans "Cancel" context "Collection secondary action" %}</a>
+              <button type="submit" class="btn btn-flat primary">
+                {% trans "Update" context "Collection detail action" %}
+              </button>
+            {% else %}
+              <a href="{% url 'dashboard:collection-list' %}" class="btn btn-flat">
+                {% trans "Cancel" context "Collection secondary action" %}</a>
+              <button type="submit" class="btn btn-flat primary">
+                {% trans "Create" context "Collection detail action" %}
+              </button>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 {% endblock %}
