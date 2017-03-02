@@ -2,20 +2,21 @@
 {% load materializecss %}
 
 <form role="form" method="post" action="{% url 'dashboard:order-add-note' order_pk=order.pk %}" class="form-async" novalidate>
-    {% csrf_token %}
-    <div class="modal-content">
-        <h5>{% trans "Add note" context "Modal add note title" %}</h5>
-
-        <div class="row">
-            {{ form|materializecss }}
-        </div>
+  {% csrf_token %}
+  <div class="modal-content">
+    <h5>
+      {% trans "Add note" context "Modal add note title" %}
+    </h5>
+    <div class="row">
+      {{ form|materializecss }}
     </div>
-
-    <div class="modal-footer">
-        <button type="submit" class="modal-action btn-flat">
-            {% trans "Save note" context "Modal add note primary action" %}
-            </button>
-        <a href="#!" class="modal-action modal-close btn-flat">
-            {% trans "Cancel" context "Modal add note secondary action" %}</a>
-    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="modal-action btn-flat">
+      {% trans "Save note" context "Modal add note primary action" %}
+    </button>
+    <a href="#!" class="modal-action modal-close btn-flat">
+      {% trans "Cancel" context "Modal add note secondary action" %}
+    </a>
+  </div>
 </form>

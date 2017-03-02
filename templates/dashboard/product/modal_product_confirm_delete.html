@@ -3,37 +3,36 @@
 {% load staticfiles %}
 
 <form action="{% url "dashboard:product-delete" pk=product.pk %}" method="post" novalidate>
-    {% csrf_token %}
-    <div class="modal-content">
-        <div class="row">
-            <div class="col s12">
-                <h5>{% trans "Are you sure?" context "Modal delete product title" %}</h5>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col s12 center-align">
-                {% if product.images.exists %}
-                    <img src="{{ product.images.first.image.crop.400x400 }}" alt="" class="responsive-img">
-                {% else %}
-                    <img src="{% static 'images/product-image-placeholder.png' %}" alt="" class="responsive-img">
-                {% endif %}
-            </div>
-        </div>
-
-        <p>
-            {% blocktrans trimmed context "Modal delete product text" %}
-                If you remove <strong>{{ product }}</strong> you will lose all data related to this product.
-            {% endblocktrans %}
-        </p>
+  {% csrf_token %}
+  <div class="modal-content">
+    <div class="row">
+      <div class="col s12">
+        <h5>
+          {% trans "Are you sure?" context "Modal delete product title" %}
+        </h5>
+      </div>
     </div>
-
-    <div class="modal-footer">
-        <button type="submit" class="modal-action btn-flat">
-            {% trans "Delete" context "Modal delete product primary action" %}
-        </button>
-        <a href="#!" class="modal-action modal-close btn-flat">
-            {% trans "Cancel" context "Modal delete product secondary action" %}
-        </a>
+    <div class="row">
+      <div class="col s12 center-align">
+        {% if product.images.exists %}
+          <img src="{{ product.images.first.image.crop.400x400 }}" alt="" class="responsive-img">
+        {% else %}
+          <img src="{% static 'images/product-image-placeholder.png' %}" alt="" class="responsive-img">
+        {% endif %}
+      </div>
     </div>
+    <p>
+      {% blocktrans trimmed context "Modal delete product text" %}
+        If you remove <strong>{{ product }}</strong> you will lose all data related to this product.
+      {% endblocktrans %}
+    </p>
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="modal-action btn-flat">
+      {% trans "Delete" context "Modal delete product primary action" %}
+    </button>
+    <a href="#!" class="modal-action modal-close btn-flat">
+      {% trans "Cancel" context "Modal delete product secondary action" %}
+    </a>
+  </div>
 </form>

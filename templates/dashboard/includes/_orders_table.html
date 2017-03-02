@@ -3,29 +3,53 @@
 {% load status %}
 
 <div class="data-table-container">
-    <table class="bordered highlight responsive data-table">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>{% trans "Order status" context "Orders table header" %}</th>
-                <th>{% trans "Payment status" context "Orders table header" %}</th>
-                <th>{% trans "Customer" context "Orders table header" %}</th>
-                <th>{% trans "Placed on" context "Orders table header" %}</th>
-                <th class="right-align">{% trans "Total" context "Orders table header" %}</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for order in orders %}
-            <tr data-action-go="{% url 'dashboard:order-details' order_pk=order.pk %}">
-                <td>#{{ order.id }}</td>
-                <td>{% render_status order.status order.get_status_display %}</td>
-                <td>{% render_status order.get_last_payment_status order.get_last_payment_status_display %}</td>
-                {% trans "Guest" context "Customer column anonymous user text" as guest %}
-                <td>{{ order.user|default:guest }}</td>
-                <td>{{ order.created }}</td>
-                <td class="right-align">{% gross order.get_total html=True %}</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+  <table class="bordered highlight responsive data-table">
+    <thead>
+      <tr>
+        <th>
+          #
+        </th>
+        <th>
+          {% trans "Order status" context "Orders table header" %}
+        </th>
+        <th>
+          {% trans "Payment status" context "Orders table header" %}
+        </th>
+        <th>
+          {% trans "Customer" context "Orders table header" %}
+        </th>
+        <th>
+          {% trans "Placed on" context "Orders table header" %}
+        </th>
+        <th class="right-align">
+          {% trans "Total" context "Orders table header" %}
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in orders %}
+        <tr data-action-go="{% url 'dashboard:order-details' order_pk=order.pk %}">
+          <td>
+            #{{ order.id }}
+          </td>
+          <td>
+            {% render_status order.status order.get_status_display %}
+          </td>
+          <td>
+            {% render_status order.get_last_payment_status order.get_last_payment_status_display %}
+          </td>
+          {% trans "Guest" context "Customer column anonymous user text" as guest %}
+          <td>
+            {{ order.user|default:guest }}
+          </td>
+          <td>
+            {{ order.created }}
+          </td>
+          <td class="right-align">
+            {% gross order.get_total html=True %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>

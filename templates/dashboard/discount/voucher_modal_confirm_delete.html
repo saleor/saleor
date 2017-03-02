@@ -1,21 +1,23 @@
 {% load i18n %}
 
 <form action="{% url "dashboard:voucher-delete" pk=voucher.pk %}" method="post" novalidate>
-    {% csrf_token %}
-    <div class="modal-content">
-        <h5>{% trans "Are you sure?" context "Delete voucher title" %}</h5>
-
-        <p>
-            {% blocktrans trimmed context "Delete voucher text" %}
-                You are about to delete <strong>{{ voucher }}</strong>.
-            {% endblocktrans %}
-        </p>
-    </div>
-
-    <div class="modal-footer">
-        <button type="submit" class="modal-action btn-flat">
-            {% trans "Delete" context "Delete voucher primary action" %}</button>
-        <a href="#!" class="modal-action modal-close btn-flat">
-            {% trans "Cancel" context "Delete voucher secondary action" %}</a>
-    </div>
+  {% csrf_token %}
+  <div class="modal-content">
+    <h5>
+      {% trans "Are you sure?" context "Delete voucher title" %}
+    </h5>
+    <p>
+      {% blocktrans trimmed context "Delete voucher text" %}
+        You are about to delete <strong>{{ voucher }}</strong>.
+      {% endblocktrans %}
+    </p>
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="modal-action btn-flat">
+      {% trans "Delete" context "Delete voucher primary action" %}
+    </button>
+    <a href="#!" class="modal-action modal-close btn-flat">
+      {% trans "Cancel" context "Delete voucher secondary action" %}
+    </a>
+  </div>
 </form>
