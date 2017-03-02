@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 import pytest
-from django.urls import reverse
+from django.core.urlresolvers import reverse
 from saleor.order.models import Order, OrderHistoryEntry, OrderedItem, DeliveryGroup
 from saleor.product.models import Stock
 from tests.utils import get_redirect_location
