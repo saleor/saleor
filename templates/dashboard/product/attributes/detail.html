@@ -1,0 +1,112 @@
+{% extends 'dashboard/base.html' %}
+
+{% load i18n %}
+
+{% block title %}
+  {{ attribute }} - {% trans "Attributes" context "Attribute detail page title" %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-attribute{% endblock %}
+
+{% block menu_attributes_class %}active{% endblock %}
+
+{% block header_extra %}
+  <a class="dropdown-button right" href="#" data-activates="attribute-delete" data-constrainwidth="false">
+    <i class="material-icons">more_vert</i>
+  </a>
+  <ul id="attribute-delete" class="dropdown-content">
+    <li>
+      <a href="{% url "dashboard:product-attribute-update" attribute.pk %}">
+        {% trans "Edit attribute" context "Attribute detail action" %}
+      </a>
+    </li>
+    <li>
+      <a class="modal-trigger-custom" href="#base-modal"
+      data-href="{% url 'dashboard:product-attribute-delete' pk=attribute.pk %}">
+        {% trans "Remove attribute" context "Attribute detail action" %}
+      </a>
+    </li>
+  </ul>
+{% endblock %}
+
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url 'dashboard:product-attributes' %}" class="breadcrumbs--ellipsed-item">
+      {% trans "Attributes" context "Attribute detail breadcrumbs" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url 'dashboard:product-attributes' %}">
+        <i class="material-icons">arrow_back</i>
+      </a>
+    </li>
+    <li>
+      <span class="breadcrumbs--ellipsed-item">
+        {{ attribute }}
+      </span>
+    </li>
+  </ul>
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col m12 l9">
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">
+            {% trans "Attribute detail" context "Attribute detail title" %}
+          </span>
+          <div class="row">
+            <div class="col s12 l9">
+              <h5>
+                {% trans "Display name" context "Attribute field" %}
+              </h5>
+              <p>
+                {{ attribute.display }}
+              </p>
+            </div>
+            <div class="col s12 l9">
+              <h5>
+                {% trans "Internal name" context "Attribute field" %}
+              </h5>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col m12 l9">
+      <div class="card">
+        <div class="data-table-header">
+          <h5 class="data-table-title">{% trans "Attribute values" %}</h5>
+        </div>
+        <div class="data-table-container">
+          <table class="bordered highlight responsive data-table">
+            <thead>
+              <tr>
+                <th>{% trans "Display name" %}</th>
+                <th>{% trans "Color" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for value in attribute.values.all %}
+                <tr>
+                  <td>
+                    {{ value.display }}
+                  </td>
+                  <td>
+                    {{ value.color }}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

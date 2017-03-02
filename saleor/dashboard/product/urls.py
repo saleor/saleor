@@ -55,6 +55,8 @@ urlpatterns = [
     url(r'attributes/$',
         views.attribute_list, name='product-attributes'),
     url(r'attributes/(?P<pk>[0-9]+)/$',
+        views.attribute_detail, name='product-attribute-detail'),
+    url(r'attributes/(?P<pk>[0-9]+)/update/$',
         views.attribute_edit, name='product-attribute-update'),
     url(r'attributes/add/$',
         views.attribute_edit, name='product-attribute-add'),

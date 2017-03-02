@@ -21,21 +21,6 @@
   {% include "dashboard/includes/_back-link.html" with url=url %}
 {% endblock %}
 
-{% block header_extra %}
-  {% if attribute.pk %}
-    <a class="dropdown-button right" href="#" data-activates="attribute-delete" data-constrainwidth="false">
-      <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
-    </a>
-    <ul id="attribute-delete" class="dropdown-content">
-      <li>
-        <a class="modal-trigger-custom" href="#base-modal"
-        data-href="{% url 'dashboard:product-attribute-delete' pk=attribute.pk %}">
-          {% trans "Remove attribute" context "Attribute detail action" %}
-        </a>
-      </li>
-    </ul>
-  {% endif %}
-{% endblock %}
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
@@ -111,7 +96,7 @@
           </div>
           <div class="card-action right-align">
             {% if attribute.pk %}
-              <a href="{% url 'dashboard:product-attributes' %}" class="btn btn-flat">
+              <a href="{% url 'dashboard:product-attribute-detail' attribute.pk %}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">

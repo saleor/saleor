@@ -373,6 +373,15 @@ def attribute_list(request):
 
 
 @staff_member_required
+def attribute_detail(request, pk):
+    attributes = ProductAttribute.objects.prefetch_related('values').all()
+    attribute = get_object_or_404(attributes, pk=pk)
+    ctx = {'attribute': attribute}
+    return TemplateResponse(
+        request, 'dashboard/product/attributes/detail.html', ctx)
+
+
+@staff_member_required
 def attribute_edit(request, pk=None):
     if pk:
         attribute = get_object_or_404(ProductAttribute, pk=pk)
@@ -389,7 +398,7 @@ def attribute_edit(request, pk=None):
             'Dashboard message', 'Updated attribute') if pk else pgettext_lazy(
                 'Dashboard message', 'Added attribute')
         messages.success(request, msg)
-        return redirect('dashboard:product-attribute-update', pk=attribute.pk)
+        return redirect('dashboard:product-attribute-detail', pk=attribute.pk)
     ctx = {'attribute': attribute, 'form': form, 'formset': formset}
     return TemplateResponse(request, 'dashboard/product/attributes/form.html',
                             ctx)
