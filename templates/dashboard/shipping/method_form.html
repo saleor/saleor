@@ -52,21 +52,6 @@
   </ul>
 {% endblock %}
 
-{% block header_extra %}
-  {% if shipping_method.pk %}
-    <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
-      <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
-    </a>
-    <ul id="context-menu" class="dropdown-content">
-      <li>
-        <a href="{% url 'dashboard:shipping-method-delete' pk=shipping_method.pk %}">
-          {% trans "Delete shipping method" context "Shipping method form action" %}
-        </a>
-     </li>
-    </ul>
-  {% endif %}
-{% endblock %}
-
 {% block menu_shipping_class %} active{% endblock %}
 
 {% block content %}
@@ -80,9 +65,7 @@
             <div class="row">
               {{ shipping_method_form|materializecss }}
             </div>
-            <h5 class="card-title">
-              {% trans "Price per country" context "Shipping method form text" %}
-            </h5>
+            <h5 class="card-title">{% trans "Price per country" context "Shipping method form text" %}</h5>
           </div>
           <div class="formset-table-container">
             <table class="formset-table">
@@ -101,32 +84,33 @@
               </thead>
               <tbody>
                 {% for form in price_per_country_formset %}
-                <tr>
-                  <td>
-                    {% for hidden in form.hidden_fields %}
-                      {{ hidden }}
-                    {% endfor %}
-                    {{ form.country_code|materializecss:"input-field s12" }}
-                    {% if form.non_field_errors %}
-                      {% for error in form.non_field_errors %}
-                        <p class="help-block materialize-red-text">{{ error }}</p>
+                  <tr>
+                    <td>
+                      {% for hidden in form.hidden_fields %}
+                        {{ hidden }}
                       {% endfor %}
-                    {% endif %}
-                  </td>
-                  <td>
-                    {{ form.price|materializecss }}
-                  </td>
-                  <td>
-                    {{ form.DELETE|materializecss }}
-                  </td>
-                </tr>
+                      {{ form.country_code|materializecss:"input-field s12" }}
+                      {% if form.non_field_errors %}
+                        {% for error in form.non_field_errors %}
+                          <p class="help-block materialize-red-text">{{ error }}</p>
+                        {% endfor %}
+                      {% endif %}
+                    </td>
+                    <td>
+                      {{ form.price|materializecss }}
+                    </td>
+                    <td>
+                      {{ form.DELETE|materializecss }}
+                    </td>
+                  </tr>
                 {% endfor %}
               </tbody>
             </table>
           </div>
+
           <div class="card-action right-align">
             {% if shipping_method.pk %}
-              <a href="{% url 'dashboard:shipping-methods' %}" class="btn btn-flat">
+              <a href="{% url 'dashboard:shipping-method-detail' shipping_method.pk %}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">

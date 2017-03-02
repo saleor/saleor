@@ -30,7 +30,8 @@ def shipping_method_edit(request, method):
             'Dashboard message', '%(shipping_method_name)s method saved') % {
                 'shipping_method_name': shipping_method}
         messages.success(request, msg)
-        return redirect('dashboard:shipping-methods')
+        return redirect(
+            'dashboard:shipping-method-detail', pk=shipping_method.pk)
     ctx = {'shipping_method_form': form,
            'price_per_country_formset': formset, 'shipping_method': method}
     return TemplateResponse(request, 'dashboard/shipping/method_form.html', ctx)
@@ -43,9 +44,20 @@ def shipping_method_add(request):
 
 
 @staff_member_required
-def shipping_method_detail(request, pk):
+def shipping_method_update(request, pk):
     method = get_object_or_404(ShippingMethod, pk=pk)
     return shipping_method_edit(request, method)
+
+
+@staff_member_required
+def shipping_method_detail(request, pk):
+    shipping_methods = ShippingMethod.objects.prefetch_related(
+        'price_per_country').all()
+    method = get_object_or_404(shipping_methods, pk=pk)
+    method_countries = method.price_per_country.all()
+    ctx = {'shipping_method': method, 'method_countries': method_countries}
+    return TemplateResponse(
+        request, 'dashboard/shipping/method_detail.html', ctx)
 
 
 @staff_member_required
