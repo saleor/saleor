@@ -229,12 +229,14 @@ def orderline_cancel(request, order_pk, line_pk):
         with transaction.atomic():
             form.cancel_item()
             order.create_history_entry(comment=msg, user=request.user)
+            messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400
     ctx = {'order': order, 'item': item, 'form': form}
-    return TemplateResponse(request, 'dashboard/order/modal_cancel_line.html',
-                            ctx, status=status)
+    return TemplateResponse(
+        request, 'dashboard/order/modal_cancel_line.html',
+        ctx, status=status)
 
 
 @staff_member_required
