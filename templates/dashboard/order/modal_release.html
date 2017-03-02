@@ -2,21 +2,21 @@
 {% load materializecss %}
 
 <div class="modal-content">
-    <h5>{% trans "Release payment" context "Modal release payment text" %}</h5>
-
-    <p>{% trans "Do you want to release the payment?" context "Modal release payment text" %}</p>
+  <h5>
+    {% trans "Release payment" context "Modal release payment text" %}
+  </h5>
+  <p>
+    {% trans "Do you want to release the payment?" context "Modal release payment text" %}
+  </p>
 </div>
-
 <div class="modal-footer">
-    <form id="release-form" method="post" role="form" class="form-async"
-          action="{% url 'dashboard:release-payment' order_pk=order.pk payment_pk=payment.pk %}" novalidate>
-        {% csrf_token %}
-
-        <button type="submit" class="modal-action btn-flat">
-            {% trans "Release" context "Modal release payment primary action" %}
-        </button>
-        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat">
-            {% trans "Cancel" context "Modal release payment secondary action" %}
-        </a>
-    </form>
+  <form id="release-form" method="post" role="form" class="form-async" action="{% url 'dashboard:release-payment' order_pk=order.pk payment_pk=payment.pk %}" novalidate>
+    {% csrf_token %}
+    <button type="submit" class="modal-action btn-flat">
+      {% trans "Release" context "Modal release payment primary action" %}
+    </button>
+    <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat">
+      {% trans "Cancel" context "Modal release payment secondary action" %}
+    </a>
+  </form>
 </div>

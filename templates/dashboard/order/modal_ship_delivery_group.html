@@ -2,23 +2,25 @@
 {% load materializecss %}
 
 <form id="ship-delivery-group-form" method="post" role="form" action="{% url 'dashboard:ship-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="form-async" novalidate>
-    {% csrf_token %}
-
-    <div class="modal-content">
-        <h5>{% trans "Dispatch delivery group" context "Modal ship delivery group title" %}</h5>
-        <p>{% trans "Dispatch this shipment to the following address:" context "Modal ship delivery group text" %}</p>
-        {% include 'dashboard/includes/_address.html' with address=group.order.shipping_address only %}
-        <div class="row">
-            {{ form|materializecss }}
-        </div>
+{% csrf_token %}
+  <div class="modal-content">
+    <h5>
+      {% trans "Dispatch delivery group" context "Modal ship delivery group title" %}
+    </h5>
+    <p>
+      {% trans "Dispatch this shipment to the following address:" context "Modal ship delivery group text" %}
+    </p>
+    {% include 'dashboard/includes/_address.html' with address=group.order.shipping_address only %}
+    <div class="row">
+      {{ form|materializecss }}
     </div>
-
-    <div class="modal-footer">
-        <button type="submit" class="modal-action btn-flat">
-            {% trans "Ship" context "Modal ship delivery group primary action" %}
-        </button>
-        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat">
-            {% trans "Cancel" context "Modal ship delivery group secondary action" %}
-        </a>
-    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="modal-action btn-flat">
+      {% trans "Ship" context "Modal ship delivery group primary action" %}
+    </button>
+    <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat">
+      {% trans "Cancel" context "Modal ship delivery group secondary action" %}
+    </a>
+  </div>
 </form>

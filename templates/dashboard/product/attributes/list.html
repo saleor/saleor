@@ -2,47 +2,54 @@
 {% load i18n %}
 {% load materializecss %}
 
-{% block title %}{% trans "Attributes" context "Attribute list page title" %} - {{ block.super }}{% endblock %}
+{% block title %}
+  {% trans "Attributes" context "Attribute list page title" %} - {{ block.super }}
+{% endblock %}
 
 {% block body_class %}body-attributes{% endblock %}
 
 {% block menu_attributes_class %}active{% endblock %}
 
 {% block header_extra %}
-    <div class="fixed-action-btn">
-        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
-            href="{% url 'dashboard:product-attribute-add' %}" title="{% trans "Add attribute" context "Attribute list add button text" %}">
-            <i class="material-icons">add</i>
-        </a>
-    </div>
+  <div class="fixed-action-btn">
+    <a class="btn-fab btn-floating btn-large waves-effect waves-light teal" href="{% url 'dashboard:product-attribute-add' %}" title="{% trans "Add attribute" context "Attribute list add button text" %}">
+      <i class="material-icons">add</i>
+    </a>
+  </div>
 {% endblock %}
 
 {% block breadcrumbs %}
-    <ul class="breadcrumbs">
-        <li class="visible-s">{% trans "Attributes" context "Attribute list breadcrumbs" %}</li>
-    </ul>
+  <ul class="breadcrumbs">
+    <li class="visible-s">
+      {% trans "Attributes" context "Attribute list breadcrumbs" %}
+    </li>
+  </ul>
 {% endblock %}
 
 {% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
-    {% if attributes %}
-        <ul class="collection list">
-            {% for pk, display, values in attributes %}
-                <li class="collection-item list-item">
-                    <a class="list-item-name" href="{% url 'dashboard:product-attribute-update' pk=pk %}">{{ display }}</a>
-
-                    <p class="list-item-desc">
-                            {% for value in values %}
-                            {{ value }}{% if not forloop.last %}, {% endif %}
-                        {% endfor %}
-                    </p>
-                </li>
+  {% if attributes %}
+    <ul class="collection list">
+      {% for pk, display, values in attributes %}
+        <li class="collection-item list-item">
+          <a class="list-item-name" href="{% url 'dashboard:product-attribute-update' pk=pk %}">
+            {{ display }}
+          </a>
+          <p class="list-item-desc">
+            {% for value in values %}
+              {{ value }}
+              {% if not forloop.last %}, {% endif %}
             {% endfor %}
-        </ul>
-    {% else %}
-        <div class="not-found">
-          <p class="grey-text">{% trans "No attributes found." context "Empty attribute list message" %}</p>
-        </div>
-    {% endif %}
+          </p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="not-found">
+      <p class="grey-text">
+        {% trans "No attributes found." context "Empty attribute list message" %}
+      </p>
+    </div>
+  {% endif %}
 {% endblock %}

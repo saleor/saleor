@@ -2,18 +2,20 @@
 {% load materializecss %}
 
 <div class="card">
-    <form method="get" novalidate>
-        <div class="card-content">
-            <div class="row">
-                <div class="col s12 m10">
-                    <div class="row">
-                        {{ form|materializecss:"s12" }}
-                    </div>
-                </div>
-                <div class="col s12 m2">
-                    <button type="submit" class="btn btn-flat btn--inline">{% trans "Filter" context "Status filter action" %}</button>
-                </div>
-            </div>
+  <form method="get" novalidate>
+    <div class="card-content">
+      <div class="row">
+        <div class="col s12 m10">
+          <div class="row">
+            {{ form|materializecss:"s12" }}
+          </div>
         </div>
-    </form>
+        <div class="col s12 m2">
+          <button type="submit" class="btn btn-flat btn--inline">
+            {% trans "Filter" context "Status filter action" %}
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
 </div>

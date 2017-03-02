@@ -4,31 +4,32 @@
 {% load prices_i18n %}
 
 <form role="form" method="post" action="{% url 'dashboard:capture-payment' order_pk=order.pk payment_pk=payment.pk %}" class="form-async" novalidate>
-    {% csrf_token %}
-
-    <div class="modal-content">
-        <h5>{% trans "Capture payment" context "Modal capture payment title" %}</h5>
-
-        <div class="row">
-            {{ form|materializecss }}
-        </div>
-
-        <h5>{% trans "Before this action" context "Modal capture payment title" %}</h5>
-
-        <ul class="list">
-            <li class="list-item">{% trans "Order total:" context "Modal capture payment list title" %}
-                {% gross payment.order.get_total html=True %}</li>
-            <li class="list-item">{% trans "Captured amount:" context "Modal capture payment list title" %}
-                {{ captured|currencyfmt:currency }} </li>
-        </ul>
+  {% csrf_token %}
+  <div class="modal-content">
+    <h5>
+      {% trans "Capture payment" context "Modal capture payment title" %}
+    </h5>
+    <div class="row">
+      {{ form|materializecss }}
     </div>
-
-    <div class="modal-footer">
-        <button type="submit" class="modal-action btn-flat">
-            {% trans "Capture" context "Modal capture payment primary action" %}
-        </button>
-        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat">
-            {% trans "Cancel" context "Modal capture payment secondary action" %}
-        </a>
-    </div>
+    <h5>
+      {% trans "Before this action" context "Modal capture payment title" %}
+    </h5>
+    <ul class="list">
+      <li class="list-item">{% trans "Order total:" context "Modal capture payment list title" %}
+        {% gross payment.order.get_total html=True %}
+      </li>
+      <li class="list-item">{% trans "Captured amount:" context "Modal capture payment list title" %}
+        {{ captured|currencyfmt:currency }}
+      </li>
+    </ul>
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="modal-action btn-flat">
+      {% trans "Capture" context "Modal capture payment primary action" %}
+    </button>
+    <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat">
+      {% trans "Cancel" context "Modal capture payment secondary action" %}
+    </a>
+  </div>
 </form>

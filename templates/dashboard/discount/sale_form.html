@@ -3,94 +3,115 @@
 {% load materializecss %}
 {% load static %}
 
-{% block title %}{% if sale.pk %}{{ sale }}{% else %}{% trans "Add new sale"  context "Sale (discount) page title" %}
-{% endif %} - {% trans "Sales" context "Sale (discount) page title" %} - {{ block.super }}{% endblock %}
+{% block title %}
+  {% if sale.pk %}
+    {{ sale }}
+  {% else %}
+    {% trans "Add new sale"  context "Sale (discount) page title" %}
+  {% endif %} 
+  - {% trans "Sales" context "Sale (discount) page title" %} - {{ block.super }}
+{% endblock %}
 
 {% block body_class %}body-sales{% endblock %}
 
 {% block menu_sales_class %}active{% endblock %}
 
 {% block header_menu %}
-    {% url "dashboard:sale-list" as url %}
-    {% include "dashboard/includes/_back-link.html" with url=url %}
+  {% url "dashboard:sale-list" as url %}
+  {% include "dashboard/includes/_back-link.html" with url=url %}
 {% endblock %}
 
 {% block header_extra %}
-    {% if sale.pk %}
-        <a class="dropdown-button right" href="#" data-activates="sale-delete"
-           data-constrainwidth="false">
-            <i class="material-icons">more_vert</i>
+  {% if sale.pk %}
+    <a class="dropdown-button right" href="#" data-activates="sale-delete"
+    data-constrainwidth="false">
+      <i class="material-icons">more_vert</i>
+    </a>
+    <ul id="sale-delete" class="dropdown-content">
+      <li>
+        <a class="modal-trigger-custom" href="#base-modal"
+        data-href="{% url 'dashboard:sale-delete' pk=sale.pk %}">
+          {% trans "Remove sale" context "Sale (discount) action" %}
         </a>
-        <ul id="sale-delete" class="dropdown-content">
-            <li>
-                <a class="modal-trigger-custom" href="#base-modal"
-                   data-href="{% url 'dashboard:sale-delete' pk=sale.pk %}">
-                    {% trans "Remove sale" context "Sale (discount) action" %}
-                </a>
-            </li>
-        </ul>
-    {% endif %}
+      </li>
+    </ul>
+  {% endif %}
 {% endblock %}
 
 {% block breadcrumbs %}
-    <ul class="breadcrumbs breadcrumbs--history">
-        <li><a href="{% url 'dashboard:sale-list' %}">
-            {% trans "Sales" context "Sale (discount) breadcrumbs" %}
-        </a></li>
-        <li class="back-mobile"><a href="{% url 'dashboard:sale-list' %}"><i class="material-icons">arrow_back</i></a></li>
-        <li><span class="breadcrumbs--ellipsed-item">{% if sale.pk %}{{ sale }}{% else %}
-            {% trans "Add new sale" context "Sale (discount) breadcrumbs" %}{% endif %}</span></li>
-    </ul>
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url 'dashboard:sale-list' %}">
+        {% trans "Sales" context "Sale (discount) breadcrumbs" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url 'dashboard:sale-list' %}">
+        <i class="material-icons">arrow_back</i>
+      </a>
+    </li>
+    <li>
+      <span class="breadcrumbs--ellipsed-item">
+        {% if sale.pk %}
+          {{ sale }}
+        {% else %}
+          {% trans "Add new sale" context "Sale (discount) breadcrumbs" %}
+        {% endif %}
+      </span>
+    </li>
+  </ul>
 {% endblock %}
 
 {% block menu_discounts_class %} active{% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col m12 l9">
-            <div class="card">
-                <form method="post" enctype="multipart/form-data" id="form-sales" novalidate>
-                    <div class="card-content card-content-form">
-                        {% csrf_token %}
-                        <div class="row">
-                            {{ form.name|materializecss }}
-                        </div>
-                        <div class="row">
-                            <div class="col s12 m8">
-                                <div class="row">
-                                    {{ form.value|materializecss }}
-                                </div>
-                            </div>
-                            <div class="col s12 m4">
-                                {{ form.type|materializecss:"input-field s12" }}
-                            </div>
-                        </div>
-                        <div class="row">
-                            {{ form.products|materializecss }}
-                        </div>
-                        <div class="row">
-                            {{ form.categories|materializecss }}
-                        </div>
-                    </div>
-
-                    <div class="card-action right-align">
-                        {% if sale.pk %}
-                            <a href="{% url 'dashboard:sale-list' %}" class="btn btn-flat">
-                                {% trans "Cancel" context "Sale (discount) secondary action" %}</a>
-                            <button type="submit" class="btn btn-flat primary">
-                                {% trans "Update" context "Sale (discount) primary action" %}
-                            </button>
-                        {% else %}
-                            <a href="{% url 'dashboard:sale-list' %}" class="btn btn-flat">
-                                {% trans "Cancel" context "Sake (discount) secondary action" %}</a>
-                            <button type="submit" class="btn btn-flat primary">
-                                {% trans "Create" context "Sale (discount) primary action" %}
-                            </button>
-                        {% endif %}
-                    </div>
-                </form>
+  <div class="row">
+    <div class="col m12 l9">
+      <div class="card">
+        <form method="post" enctype="multipart/form-data" id="form-sales" novalidate>
+          <div class="card-content card-content-form">
+            {% csrf_token %}
+            <div class="row">
+              {{ form.name|materializecss }}
             </div>
-        </div>
-        <div class="col m12 l3 help-box"></div>
+            <div class="row">
+              <div class="col s12 m8">
+                <div class="row">
+                  {{ form.value|materializecss }}
+                </div>
+              </div>
+              <div class="col s12 m4">
+                {{ form.type|materializecss:"input-field s12" }}
+              </div>
+            </div>
+            <div class="row">
+              {{ form.products|materializecss }}
+            </div>
+            <div class="row">
+              {{ form.categories|materializecss }}
+            </div>
+          </div>
+
+          <div class="card-action right-align">
+            {% if sale.pk %}
+              <a href="{% url 'dashboard:sale-list' %}" class="btn btn-flat">
+                {% trans "Cancel" context "Sale (discount) secondary action" %}
+              </a>
+              <button type="submit" class="btn btn-flat primary">
+                {% trans "Update" context "Sale (discount) primary action" %}
+              </button>
+            {% else %}
+              <a href="{% url 'dashboard:sale-list' %}" class="btn btn-flat">
+                {% trans "Cancel" context "Sake (discount) secondary action" %}
+              </a>
+              <button type="submit" class="btn btn-flat primary">
+                {% trans "Create" context "Sale (discount) primary action" %}
+              </button>
+            {% endif %}
+          </div>
+        </form>
+      </div>
     </div>
+    <div class="col m12 l3 help-box"></div>
+  </div>
 {% endblock %}

@@ -1,32 +1,32 @@
 {% load i18n %}
 
 <form action="{% url 'dashboard:product-stock-location-delete' location.pk %}" method="post" novalidate>
-    {% csrf_token %}
-    <div class="modal-content">
-        <h5>{% trans "Are you sure?" context "Modal delete stock location text" %}</h5>
-
-        <div class="row">
-            <div class="col l12">
-                {% blocktrans trimmed context "Modal delete stock location text" %}
-                    You are about to delete a stock location <strong>{{ location }}</strong>.
-                {% endblocktrans %}
-            </div>
-        </div>
-
-        {% if stock_count %}
-            {% blocktrans trimmed count counter=stock_count context "Modal delete stock location text" %}
-                There is one stock associated with this stock location that will be deleted.
-            {% plural %}
-                There are {{ counter }} stocks associated with this stock location that will be deleted.
-            {% endblocktrans %}
-        {% endif %}
+  {% csrf_token %}
+  <div class="modal-content">
+    <h5>
+      {% trans "Are you sure?" context "Modal delete stock location text" %}
+    </h5>
+    <div class="row">
+      <div class="col l12">
+        {% blocktrans trimmed context "Modal delete stock location text" %}
+          You are about to delete a stock location <strong>{{ location }}</strong>.
+        {% endblocktrans %}
+      </div>
     </div>
-
-    <div class="modal-footer">
-        <button type="submit" class="modal-action btn-flat">
-            {% trans "Delete" context "Modal delete stock location primary action" %}</button>
-        <a href="#!" class="modal-action modal-close btn-flat">
-            {% trans "Cancel" context "Modal delete stock location secondary action" %}
-        </a>
-    </div>
+    {% if stock_count %}
+      {% blocktrans trimmed count counter=stock_count context "Modal delete stock location text" %}
+        There is one stock associated with this stock location that will be deleted.
+        {% plural %}
+        There are {{ counter }} stocks associated with this stock location that will be deleted.
+      {% endblocktrans %}
+    {% endif %}
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="modal-action btn-flat">
+      {% trans "Delete" context "Modal delete stock location primary action" %}
+    </button>
+    <a href="#!" class="modal-action modal-close btn-flat">
+      {% trans "Cancel" context "Modal delete stock location secondary action" %}
+    </a>
+  </div>
 </form>

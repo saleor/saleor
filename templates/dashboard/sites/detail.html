@@ -2,7 +2,14 @@
 {% load i18n %}
 {% load materializecss %}
 
-{% block title %}{% if site.pk %}{{ site }}{% else %}{% trans "Add new site settings" context "Site settings page title" %}{% endif %} - {% trans "Site settings" context "Site settings page title" %} - {{ block.super }}{% endblock %}
+{% block title %}
+  {% if site.pk %}
+    {{ site }}
+  {% else %}
+    {% trans "Add new site settings" context "Site settings page title" %}
+  {% endif %}
+   - {% trans "Site settings" context "Site settings page title" %} - {{ block.super }}
+{% endblock %}
 
 {% block body_class %}body-settings{% endblock %}
 
@@ -10,7 +17,9 @@
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
-    <li class="visible-s">{% trans "Site settings" context "Site settings breadcrumbs" %}</li>
+    <li class="visible-s">
+      {% trans "Site settings" context "Site settings breadcrumbs" %}
+    </li>
   </ul>
 {% endblock %}
 
@@ -34,10 +43,13 @@
               {{ form.description|materializecss }}
             </div>
           </div>
-
           <div class="card-action right-align">
-            <a class="btn btn-flat" href="{% url "dashboard:index" %}" traget="_blank">{% trans "Cancel" %}</a>
-            <button type="submit" class="btn btn-flat primary">{% trans "Update" context "Site settings action" %}</button>
+            <a class="btn btn-flat" href="{% url "dashboard:index" %}" traget="_blank">
+              {% trans "Cancel" %}
+            </a>
+            <button type="submit" class="btn btn-flat primary">
+              {% trans "Update" context "Site settings action" %}
+            </button>
           </div>
         </form>
       </div>

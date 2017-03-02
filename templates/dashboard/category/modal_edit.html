@@ -7,19 +7,19 @@
   <div class="modal-content">
     <div class="row">
       <div class="col s12">
-        <h5>{% blocktrans trimmed context "Edit category modal title" %}
-          Edit {{ category }}
-        {% endblocktrans %}</h5>
+        <h5>
+          {% blocktrans trimmed context "Edit category modal title" %}
+            Edit {{ category }}
+          {% endblocktrans %}
+        </h5>
       </div>
     </div>
-
     <div class="row">
       {{ form.name|materializecss:"s8 m10" }}
       {{ form.hidden|materializecss:"s4 m2" }}
       {{ form.description|materializecss }}
     </div>
   </div>
-
   <div class="modal-footer">
     <button type="submit" class="modal-action btn-flat">
       {% trans "Update" context "Edit category form primary action" %}

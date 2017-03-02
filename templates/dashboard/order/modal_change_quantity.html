@@ -2,20 +2,21 @@
 {% load materializecss %}
 
 <form method="post" role="form" action="{% url 'dashboard:orderline-change-quantity' order_pk=order.pk line_pk=object.pk %}" class="form-async" novalidate>
-    {% csrf_token %}
-    <div class="modal-content">
-        <h5>{% trans "Change quantity" context "Modal change quantity title" %}</h5>
-
-        <div class="row">
-            {{ form|materializecss:"s12 m6" }}
-        </div>
+  {% csrf_token %}
+  <div class="modal-content">
+    <h5>
+      {% trans "Change quantity" context "Modal change quantity title" %}
+    </h5>
+    <div class="row">
+      {{ form|materializecss:"s12 m6" }}
     </div>
-
-    <div class="modal-footer">
-        <button type="submit" class="modal-action btn-flat">
-            {% trans "Update" context "Modal change quantity primary action" %}</button>
-        <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat">
-            {% trans "Cancel" context "Modal change quantity secondary action" %}
-        </a>
-    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="modal-action btn-flat">
+      {% trans "Update" context "Modal change quantity primary action" %}
+    </button>
+    <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat">
+      {% trans "Cancel" context "Modal change quantity secondary action" %}
+    </a>
+  </div>
 </form>

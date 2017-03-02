@@ -10,29 +10,33 @@
 {% block menu_orders_class %}active{% endblock %}
 
 {% block breadcrumbs %}
-    <ul class="breadcrumbs">
-        <li class="visible-s">{% trans "Orders" context "Order list breadcrumbs" %}</li>
-    </ul>
+  <ul class="breadcrumbs">
+    <li class="visible-s">{% trans "Orders" context "Order list breadcrumbs" %}</li>
+  </ul>
 {% endblock %}
 
 {% block content %}
-    {% if orders_all %}
-      {% include "dashboard/includes/_status_filters.html" %}
-        {% if object_list %}
-              <div class="card">
-                  {% include "dashboard/includes/_orders_table.html" with orders=object_list %}
-              </div>
-              <div class="row">
-                  {% include "dashboard/includes/_pagination.html" %}
-              </div>
-         {% else %}
-              <div class="not-found">
-                <p class="grey-text">{% trans "No orders found." context "Empty order list message" %}</p>
-              </div>
-         {% endif %}
+  {% if orders_all %}
+    {% include "dashboard/includes/_status_filters.html" %}
+    {% if object_list %}
+      <div class="card">
+        {% include "dashboard/includes/_orders_table.html" with orders=object_list %}
+      </div>
+      <div class="row">
+        {% include "dashboard/includes/_pagination.html" %}
+      </div>
     {% else %}
-          <div class="not-found">
-            <p class="grey-text">{% trans "No orders." context "Empty order list message" %}</p>
-          </div>
+      <div class="not-found">
+        <p class="grey-text">
+          {% trans "No orders found." context "Empty order list message" %}
+        </p>
+      </div>
     {% endif %}
+  {% else %}
+    <div class="not-found">
+      <p class="grey-text">
+        {% trans "No orders." context "Empty order list message" %}
+      </p>
+    </div>
+  {% endif %}
 {% endblock %}
