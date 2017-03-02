@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+
+{% block header %}
+    <div class="container navbar__login">
+    </div>
+    <header class="checkout__header">
+      <div class="container">
+        <a href="/">
+          <img src="{% static "images/saleor-logo-black.svg" %}"
+               alt="{% trans "Testeor - Saleor demo store" context "Checkout logo alternate text" %}"
+               height="38">
+        </a>
+        <h1>{% trans "Style guide" context "Style guide title" %}</h1>
+      </div>
+    </header>
+{% endblock %}
+
+{% block content %}
+<div class="container styleguide">
+  <div class="row">
+    <div class="col-md-3">
+      <nav class="styleguide__nav">
+        <a href="#identity">{% trans "Identity" context "Identity title in style guide" %}</a>
+        <a href="#typography">{% trans "Typography" context "Typography title in style guide" %}</a>
+        <a href="#colors">{% trans "Colors" context "Colors title in style guide" %}</a>
+        <a href="#grid">{% trans "Grid" context "Grid title in style guide" %}</a>
+        <a href="#icons">{% trans "Icons" context "Icons title in style guide" %}</a>
+        <a href="#buttons">{% trans "Buttons" context "Buttons title in style guide" %}</a>
+        <a href="#forms">{% trans "Forms" context "Forms title in style guide" %}</a>
+        <a href="#filters">{% trans "Filters" context "Filters title in style guide" %}</a>
+        <a href="#pagination">{% trans "Pagination" context "Pagination title in style guide" %}</a>
+        <a href="#breadcrumbs">{% trans "Breadcrumbs" context "Breadcrumbs title in style guide" %}</a>
+        <a href="#notifications">{% trans "Notifications" context "Notifications title in style guide" %}</a>
+        <a href="#mainnav">{% trans "Main navigation" context "Main navigation title in style guide" %}</a>
+        <a href="#tabs">{% trans "Tabs" context "Tabs title in style guide" %}</a>
+        <a href="#tables">{% trans "Tables" context "Tables title in style guide" %}</a>
+        <a href="#cards">{% trans "Cards" context "Cards title in style guide" %}</a>
+      </nav>
+    </div>
+    <div class="col-md-9 styleguide__content">
+      <div id="identity" class="styleguide__content__block">
+        <h3 class="styleguide__content__block__title">{% trans "Identity" context "Identity title in style guide" %}</h3>
+        <div class="row">
+          <div class="col-md-6">
+            <p>{% trans "Logo" %}</p>
+            <img src="{% static "images/saleor-logo-black.svg" %}" alt="Testeor - Saleor demo store" height="38">
+          </div>
+          <div class="col-md-6">
+            <p>{% trans "Favicon" %}</p>
+            <img src="{% static "images/favicons/ms-icon-150x150.png" %}" alt="Testeor - Saleor demo store" height="38">
+          </div>
+        </div>
+      </duiv>
+    </div>
+    <div id="typography" class="styleguide__content__block">
+      <h3 class="styleguide__content__block__title">{% trans "Typography" context "Typography title in style guide" %}</h3>
+      <p>We use Lato fontface in Regular(400), <span class="styleguide__content__block__light">Light(300)</span> and <span class="styleguide__content__block__bold">Bold(700)</span> weights.</p>
+      <h1>h1 / Header</h1>
+      <h2>h2 / Header</h2>
+      <h3>h3 / Header (always uppercased)</h3>
+      <p>p / Simple paragraph</p>
+      <a href="#">a / Simple link</a>
+      <a href="#" class="link--styled">a / Styled link</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
+
+
+{% load i18n %}

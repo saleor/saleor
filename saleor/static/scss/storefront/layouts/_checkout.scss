@@ -12,9 +12,6 @@
   }
   &__edit-link {
     margin-top: $global-margin;
-    a {
-      color: $blue;
-    }
   }
   &__header {
     background-color: $light-gray;
@@ -79,11 +76,6 @@
           margin-bottom: 0;
         }
       }
-      a {
-        color: $body-color;
-        text-decoration: underline;
-        font-size: 0.8rem;
-      }
     }
   }
   &__review {
@@ -140,9 +132,6 @@
     h1 {
       font-weight: 300;
       margin-top: -$global-margin * 4;
-      a {
-        color: $blue;
-      }
     }
     &__form {
       margin-top: $global-margin * 6;

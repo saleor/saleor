@@ -1,7 +1,7 @@
 @import "variables";
 @import "~bootstrap/scss/bootstrap";
 
-@import "components/fonts";
+@import "components/typography";
 @import "components/buttons";
 @import "components/labels";
 @import "components/pagination";
@@ -10,14 +10,15 @@
 @import "components/cart-dropdown";
 @import "components/header";
 @import "components/footer";
-@import "components/home";
-@import "components/product-page";
-@import "components/cart";
-@import "components/userprofile";
-@import "components/login";
-@import "components/product-list";
-@import "components/checkout";
-@import "components/order-details";
-@import "components/category-page";
-@import "components/no-results";
+@import "layouts/home";
+@import "layouts/product-page";
+@import "layouts/cart";
+@import "layouts/userprofile";
+@import "layouts/login";
+@import "layouts/product-list";
+@import "layouts/checkout";
+@import "layouts/order-details";
+@import "layouts/category-page";
+@import "layouts/no-results";
+@import "layouts/styleguide";
 @import "components/loader";

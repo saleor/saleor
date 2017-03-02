@@ -19,3 +19,27 @@
        url('../../fonts/Lato-Bold.ttf') format('truetype');
   font-weight: 700;
 }
+
+h3 {
+  text-transform: uppercase;
+}
+
+a {
+  color: $blue;
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+  &.link--styled {
+    font-size: 0.8rem;
+    color: $body-color;
+    text-decoration: underline;
+    display: block;
+  }
+  &.link--clean {
+    color: $body-color;
+    &:hover {
+      text-decoration: none;
+    }
+  }
+}

@@ -25,9 +25,7 @@
     &__product {
       a {
         transition: 0.3s;
-        color: $body-color;
         &:hover {
-          text-decoration: none;
           color: $skull-gray;
         }
         p {

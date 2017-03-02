@@ -1,0 +1,23 @@
+.styleguide {
+  &__nav {
+    a {
+      display: block;
+    }
+  }
+  &__content {
+    &__block {
+      padding-bottom: $global-padding * 3;
+      border-bottom: 1px solid $skull-gray;
+      &__title {
+        padding-top: $global-padding;
+        margin-bottom: $global-margin * 2;
+      }
+      &__bold {
+        font-weight: 700;
+      }
+      &__light {
+        font-weight: 300;
+      }
+    }
+  }
+}

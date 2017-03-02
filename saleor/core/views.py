@@ -10,3 +10,6 @@ def home(request):
     return TemplateResponse(
         request, 'home.html',
         {'products': products, 'parent': None})
+
+def styleguide(request):
+    return TemplateResponse(request, 'styleguide.html')
