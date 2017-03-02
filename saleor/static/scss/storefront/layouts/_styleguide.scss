@@ -64,6 +64,13 @@
           background-color: $beige;
         }
       }
+      &__grid {
+        text-align: center;
+        p {
+          background-color: $light-gray;
+          padding: $global-padding 0;
+        }
+      }
     }
   }
 }
