@@ -2,7 +2,7 @@
 <div class="address-delete none">
   <form method="post" novalidate action="{% url 'profile:address-delete' pk=address.pk %}">
     {% csrf_token %}
-    <button type="submit" class="btn btn-outline-danger float-right">
+    <button type="submit" class="btn danger narrow float-right">
         {% trans "Delete Address" context "Delete address form action" %}
     </button>
     <a class="btn btn-link cancel float-right">

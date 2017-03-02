@@ -133,7 +133,7 @@
         </div>
       </div>
     </div>
-    <div id="tgrid" class="styleguide__content__block">
+    <div id="grid" class="styleguide__content__block">
       <h3 class="styleguide__content__block__title">{% trans "Grid" context "Grid title in style guide" %}</h3>
       <p>We use <a href="https://v4-alpha.getbootstrap.com/getting-started/introduction/">Bootstrap 4</a> responsive grid which is based on a 12 column layout. In most cases we use following combinations:</p>
       <div class="row styleguide__content__block__grid">
@@ -172,6 +172,41 @@
         </div>
       </div>
     </div>
+    <div id="buttons" class="styleguide__content__block">
+      <h3 class="styleguide__content__block__title">{% trans "Buttons" context "Buttons title in style guide" %}</h3>
+      <div class="row">
+        <div class="container">
+          <button class="btn primary">
+              {% trans "Primary" context "Primary button example in styleguide" %}
+          </button>
+          <button class="btn secondary">
+              {% trans "Secondary" context "Secondary button example in styleguide" %}
+          </button>
+          <button class="btn danger">
+              {% trans "Danger" context "Danger button example in styleguide" %}
+          </button>
+          <button class="btn gray">
+              {% trans "Gray" context "Gray button example in styleguide" %}
+          </button>
+        </div>
+
+      </div>
+      <div class="row">
+        <div class="container">
+          <button class="btn primary narrow">
+              {% trans "Primary narrow" context "Primary narrow button example in styleguide" %}
+          </button>
+          <button class="btn secondary narrow">
+              {% trans "Secondary narrow" context "Secondary narow button example in styleguide" %}
+          </button>
+          <button class="btn danger narrow">
+              {% trans "Danger narrow" context "Danger narow button example in styleguide" %}
+          </button>
+        </div>
+
+      </div>
+    </duiv>
+  </div>
   </div>
 </div>
 {% endblock %}

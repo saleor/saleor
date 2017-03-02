@@ -68,12 +68,6 @@
   }
   &__actions {
     margin-top: $global-margin * 2;
-    .btn {
-      width: 100%;
-      padding: $global-padding / 2;
-      text-transform: uppercase;
-      font-size: 1rem;
-    }
   }
   &__empty {
     img {

@@ -26,7 +26,7 @@
                     {% csrf_token %}
                     <div class="form-group checkout__review__voucher">
                         {% trans "Use" context "Checkout voucher form action" as use_voucher %}
-                        {% bootstrap_field form.voucher show_label=False %} {% bootstrap_button use_voucher button_type="submit" button_class="btn secondary" %}
+                        {% bootstrap_field form.voucher show_label=False %} {% bootstrap_button use_voucher button_type="submit" button_class="btn secondary narrow" %}
                     </div>
                 </form>
         {% endif %}

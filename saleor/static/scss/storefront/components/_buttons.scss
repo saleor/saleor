@@ -8,6 +8,7 @@ a.btn {
   font-weight: 300;
   font-size: 1rem;
   cursor: pointer;
+  font-family: $font-family-sans-serif;
   &.home__button {
     text-transform: uppercase;
     font-size: $font-size-h3;
@@ -27,7 +28,7 @@ a.btn {
     border: none;
     &:hover {
       background-color: $darken-blue;
-    }
+    } 
   }
   &.secondary {
     border: 1px solid $blue;
@@ -40,18 +41,26 @@ a.btn {
     }
   }
   &.danger {
-    background-color: $red;
+    border: 1px solid $red;
+    background-color: transparent;
+    color: $red;
+    padding: $global-padding $global-padding * 4;
+    &:hover {
+      background-color: $dark-red;
+      color: $white;
+    }
+  }
+  &.narrow {
+    padding: $global-padding / 2 $global-padding * 2.5;
+  }
+  &.gray {
+    background-color: $gray;
+    border: 0;
     color: $white;
     padding: $global-padding $global-padding * 4;
     &:hover {
-      background-color: $dark-red
+      background-color: $darken-gray;
     }
-  }
-  &.checkout {
-    background-color: $gray;
-    border: 0;
-    padding: $global-padding / 2 $global-padding * 2;
-    text-transform: none;
   }
   &.btn-link {
     padding: 0;

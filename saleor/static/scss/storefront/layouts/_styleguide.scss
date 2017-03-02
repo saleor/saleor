@@ -71,6 +71,11 @@
           padding: $global-padding 0;
         }
       }
+      &#buttons {
+        button {
+          margin: $global-margin / 2;
+        }
+      }
     }
   }
 }

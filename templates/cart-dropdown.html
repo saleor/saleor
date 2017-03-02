@@ -42,10 +42,10 @@
     </div>
     <div class="row cart-dropdown__actions">
       <div class="col-md-5 offset-md-1">
-        <a href="{% url "cart:index" %}" class="btn secondary float-md-right">{% trans "Go to cart" context "Cart dropdown secondary action" %}</a>
+        <a href="{% url "cart:index" %}" class="btn secondary narrow float-md-right">{% trans "Go to cart" context "Cart dropdown secondary action" %}</a>
       </div>
       <div class="col-md-5">
-        <a href="{% url "checkout:login" %}" class="btn primary">{% trans "Checkout" context "Cart dropdown primary action" %}</a>
+        <a href="{% url "checkout:login" %}" class="btn primary narrow">{% trans "Checkout" context "Cart dropdown primary action" %}</a>
       </div>
     </div>
   {% else %}

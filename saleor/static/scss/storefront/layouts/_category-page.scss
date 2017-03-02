@@ -244,17 +244,6 @@
 
   .load-more {
     clear: both;
-    button {
-      width: 20rem;
-      margin: 0 auto;
-      display: block;
-      color: $white;
-      font-size: 2rem;
-      cursor: pointer;
-      outline: 0;
-      &:hover {
-        background: $darken-gray;
-      }
-    }
+    text-align: center;
   }
 }

@@ -12,19 +12,9 @@
     text-transform: uppercase;
     margin-bottom: $global-margin * 2;
   }
-  p, a {
-    color: $gray;  
-  }
-  a:not(.btn) {
-    text-decoration: underline;
-  }
   .btn {
-    padding: $global-padding / 2 $global-padding * 2.5;
-    font-size: 1rem;
-    text-transform: uppercase;
     margin: auto;
     margin-top: $global-margin;
-    font-family: $font-family-sans-serif;
   }
   &__btn-group {
     text-align: center;
@@ -84,12 +74,6 @@
     }
   }
   .login__btn-group {
-    .btn {
-      padding: $global-padding / 2 $global-padding * 3;
-      margin: auto;
-      text-transform: uppercase;
-      font-family: $font-family-sans-serif;
-    }
     img {
       padding-top: $global-padding * 2;
     }
