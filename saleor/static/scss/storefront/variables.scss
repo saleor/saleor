@@ -6,19 +6,18 @@ $global-margin: 1rem;
 $button-border-radius: 4px;
 
 // COLORS
-$skull-gray: #828282;
-$form-active: #FFFAEC;
-
-$gray: #D3D1D0;
-$light-gray: #f2f2f2;
-$dark-gray: #909090;
-$white: #fff;
 $body-color: #333333;
-$red: #EB5757;
-$darkred: #c53636;
-$green: #27AE60;
-$darkgreen: #1b8a4a;
+$white: #fff;
+$light-gray: #f2f2f2;
+$gray: #D3D1D0;
+$darken-gray: darken($gray, 10%);
+$skull-gray: #828282;
 $blue: #26A5D4;
+$darken-blue: darken($blue, 10%);
+$red: #EB5757;
+$dark-red: #c53636;
+$green: #27AE60;
+$beige: #FFFAEC;
 
 // TYPOGRAPHY
 $font-family-sans-serif: 'Lato';

@@ -1,6 +1,6 @@
 .product {
   a {
-    color: $dark-gray;
+    color: $darken-gray;
     text-decoration: underline;
   }
   &__info {
@@ -41,21 +41,6 @@
     &__form-error {
       margin-top: -$global-padding / 2;
       margin-bottom: $global-margin;
-    }
-  }
-  &__variant-picker {
-    margin-bottom: $global-margin;
-    &__label {
-      margin-bottom: $global-margin;
-    }
-    label {
-      margin-bottom: 0;
-    }
-    .btn-group {
-      display: block;
-      .btn {
-        margin-bottom: $global-margin / 4;
-      }
     }
   }
   &__gallery {

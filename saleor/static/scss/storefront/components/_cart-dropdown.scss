@@ -31,12 +31,12 @@
         margin-bottom: 0;
         padding: $global-padding * 1.4;
         span {
-          color: $dark-gray;
+          color: $darken-gray;
         }
         p {
           margin-bottom: 0;
           padding-top: $global-padding * 0.2;
-          color: $dark-gray;
+          color: $darken-gray;
         }
       }
       &:last-child {
@@ -49,7 +49,7 @@
       padding-top: $global-padding * 1.4;
       padding-left: $global-padding * 5;
       span {
-        color: $dark-gray;
+        color: $darken-gray;
         font-size: 0.9rem;
       }
       &.price {

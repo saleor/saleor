@@ -18,6 +18,52 @@
       &__light {
         font-weight: 300;
       }
+      &__color {
+        text-align: center;
+        div {
+          width: 100px;
+          height: 100px;
+          border-radius: 150px;
+          margin: 0 auto $global-margin;
+        }
+        &--body-color {
+          background-color: $body-color;
+        }
+        &--white {
+          background-color: $white;
+          border: 1px solid $gray;
+        }
+        &--light-gray {
+          background-color: $light-gray;
+        }
+        &--gray {
+          background-color: $gray;
+        }
+        &--darken-gray {
+          background-color: $darken-gray;
+        }
+        &--skull-gray {
+          background-color: $skull-gray;
+        }
+        &--blue {
+          background-color: $blue;
+        }
+        &--darken-blue {
+          background-color: $darken-blue;
+        }
+        &--red {
+          background-color: $red;
+        }
+        &--dark-red {
+          background-color: $dark-red;
+        }
+        &--green {
+          background-color: $green;
+        }
+        &--beige {
+          background-color: $beige;
+        }
+      }
     }
   }
 }

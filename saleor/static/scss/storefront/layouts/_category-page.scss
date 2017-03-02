@@ -253,7 +253,7 @@
       cursor: pointer;
       outline: 0;
       &:hover {
-        background: darken($gray, 10%);
+        background: $darken-gray;
       }
     }
   }

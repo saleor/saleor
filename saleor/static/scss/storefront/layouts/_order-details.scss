@@ -30,9 +30,6 @@
       p {
         color: $body-color;
       }
-      &:hover, &:focus {
-        text-decoration: none;
-      }
     }
     .row {
       padding: $global-padding / 2 0;

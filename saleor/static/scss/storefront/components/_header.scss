@@ -120,7 +120,7 @@
           text-align: center;
           line-height: 2;
           &.empty {
-            background-color: $dark-gray;
+            background-color: $darken-gray;
           }
           @include media-breakpoint-down(sm) {
             right: 0;

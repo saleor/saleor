@@ -143,10 +143,8 @@
             padding-right: $global-padding;
             cursor: pointer;
             color: $blue;
-            text-decoration: none;
             &:hover {
               color: $blue;
-              text-decoration: underline;
             }
           }
           button {

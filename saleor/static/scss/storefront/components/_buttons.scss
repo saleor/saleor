@@ -24,8 +24,9 @@ a.btn {
     background-color: $blue;
     color: $white;
     padding: $global-padding $global-padding * 4;
+    border: none;
     &:hover {
-      background-color: darken($blue, 10%);
+      background-color: $darken-blue;
     }
   }
   &.secondary {
@@ -34,8 +35,8 @@ a.btn {
     background-color: transparent;
     color: $blue;
     &:hover {
-      border-color: darken($blue, 10%);
-      color: darken($blue, 10%);
+      border-color: $darken-blue;
+      color: $darken-blue;
     }
   }
   &.danger {
@@ -43,7 +44,7 @@ a.btn {
     color: $white;
     padding: $global-padding $global-padding * 4;
     &:hover {
-      background-color: $darkred
+      background-color: $dark-red
     }
   }
   &.checkout {

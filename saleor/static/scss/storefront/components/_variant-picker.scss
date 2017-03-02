@@ -1,0 +1,18 @@
+.variant-picker {
+  margin-bottom: $global-margin;
+  &__label {
+    margin-bottom: $global-margin;
+  }
+  &__options {
+    display: block;
+  }
+  &__option {
+    margin-bottom: 0;
+    margin-bottom: $global-margin / 4;
+    border-color: $gray;
+    &.active {
+      background-color: $light-gray;
+      border-color: $darken-gray;
+    }
+  }
+}
