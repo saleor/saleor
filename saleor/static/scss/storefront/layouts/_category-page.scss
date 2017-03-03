@@ -18,23 +18,5 @@
       left: 0;
       padding-top: $global-padding;
     }
-    .category-breadcrumbs {
-      list-style: none;
-      padding-left: 0;
-      margin-bottom: 0;
-        li {
-          display: inline-block;
-          a {
-            color: $body-color;
-          }
-          &:after {
-            content: "/";
-            padding: 0 $global-padding/2;
-          }
-          &:last-child:after {
-            content: "";
-          }
-      }
-    }
   }
 }

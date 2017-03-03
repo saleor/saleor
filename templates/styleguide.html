@@ -31,7 +31,6 @@
         <a href="#icons">{% trans "Icons" context "Icons title in style guide" %}</a>
         <a href="#buttons">{% trans "Buttons" context "Buttons title in style guide" %}</a>
         <a href="#forms">{% trans "Forms" context "Forms title in style guide" %}</a>
-        <a href="#filters">{% trans "Filters" context "Filters title in style guide" %}</a>
         <a href="#pagination">{% trans "Pagination" context "Pagination title in style guide" %}</a>
         <a href="#breadcrumbs">{% trans "Breadcrumbs" context "Breadcrumbs title in style guide" %}</a>
         <a href="#notifications">{% trans "Notifications" context "Notifications title in style guide" %}</a>
@@ -308,6 +307,84 @@
             <input type="radio" name="6" value="on" checked="">500g
           </label>
         </div>
+      </div>
+      <div id="pagination" class="styleguide__content__block">
+        <h3 class="styleguide__content__block__title">{% trans "Pagination" context "Pagination title in style guide" %}</h3>
+        <ul class="pagination">
+            <li class="prev disabled"><a>«</a></li>
+              <li>
+                  <a>1</a>
+              </li>
+              <li class="active">
+                  <a>2</a>
+              </li>
+              <li>
+                  <a>3</a>
+              </li>
+            <li class="last disabled">
+              <a>»</a>
+            </li>
+          </ul>
+      </div>
+      <div id="breadcrumbs" class="styleguide__content__block">
+        <h3 class="styleguide__content__block__title">{% trans "Breadcrumbs" context "Breadcrumbs title in style guide" %}</h3>
+        <ul class="breadcrumbs list-unstyled">
+          <li><a href="/">
+              {% trans "Home" context "Edit/new address breadcrumb" %}
+          </a></li>
+          <li><a href="{% url "profile:details" %}">
+              {% trans "Your profile" context "Edit/new address breadcrumb" %}
+          </a></li>
+            <li><a href=".">
+                {% trans "Edit address" context "Edit address breadcrumb" %}
+            </a></li>
+        </ul>
+      </div>
+      <div id="notifications" class="styleguide__content__block">
+        <h3 class="styleguide__content__block__title">{% trans "Notifications" context "Notifications title in style guide" %}</h3>
+        <div class="alert alert-success">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+            Success alert.
+        </div>
+        <div class="alert alert-danger">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+            Danger alert.
+        </div>
+      </div>
+      <div id="mainnav" class="styleguide__content__block">
+        <h3 class="styleguide__content__block__title">{% trans "Main navigation" context "Main navigation title in style guide" %}</h3>
+        <nav class="navigation">
+          <ul class="nav navbar-nav{% if request.get_full_path == home_url %} no-border{% endif %}" >
+            {% for category in categories %}
+                {% url 'home' as home_url %}
+                <li class="nav-item">
+                  <a class="nav-link" href="{{ category.get_absolute_url }}">
+                      {{ category }}
+                  </a>
+                </li>
+            {% endfor %}
+          </ul>
+        </nav>
+      </div>
+      <div id="tabs" class="styleguide__content__block">
+        <h3 class="styleguide__content__block__title">{% trans "Tabs navigation" context "Tabs navigation title in style guide" %}</h3>
+        <ul class="nav nav-tabs col-lg-10 offset-lg-1" role="tablist">
+          <li class="nav-item">
+            <a class="nav-link active" data-toggle="tab" href="#orders" role="tab"><h3>
+              {% trans "Recent Orders" context "User profile tab" %}
+            </h3></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link " data-toggle="tab" href="#password" role="tab"><h3>
+              {% trans "Change password" context "User profile tab" %}
+            </h3></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#addresses" role="tab"><h3>
+              {% trans "Addresses book" context "User profile tab" %}
+            </h3></a>
+          </li>
+        </ul>
       </div>
     </div>
   </div>

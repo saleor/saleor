@@ -1,3 +1,36 @@
+.navigation {
+  ul {
+    border-bottom: 1px solid $gray;
+    margin-bottom: $global-margin;
+    display: block;
+    text-align: center;
+    &.no-border {
+      border-bottom: 0;
+      margin-bottom: 0;
+    }
+    @include media-breakpoint-down(sm) {
+      border-bottom: 0;
+    }
+    .nav-item {
+      display: inline;
+      + .nav-item {
+        margin-left: 0;
+      }
+      a {
+        color: $body-color;
+        transition: 0.3s;
+        text-transform: uppercase;
+        display: inline-block;
+        padding: $global-padding * 1.5;
+        font-size: 1.5rem;
+        &:hover {
+          color: rgba($body-color, 0.6);
+          
+        }
+      }
+    }
+  }
+}
 .navbar {
   padding: 0;
   @include media-breakpoint-down(sm) {
@@ -135,39 +168,6 @@
     }
   }
   &__menu {
-    .navigation {
-      ul {
-        border-bottom: 1px solid $gray;
-        margin-bottom: $global-margin;
-        display: block;
-        text-align: center;
-        &.no-border {
-          border-bottom: 0;
-          margin-bottom: 0;
-        }
-        @include media-breakpoint-down(sm) {
-          border-bottom: 0;
-        }
-        .nav-item {
-          display: inline;
-          + .nav-item {
-            margin-left: 0;
-          }
-          a {
-            color: $body-color;
-            transition: 0.3s;
-            text-transform: uppercase;
-            display: inline-block;
-            padding: $global-padding * 1.5;
-            font-size: 1.5rem;
-            &:hover {
-              color: rgba($body-color, 0.6);
-              
-            }
-          }
-        }
-      }
-    }
     @include media-breakpoint-down(sm) {
       .navigation {
         position: fixed;

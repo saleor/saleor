@@ -1,7 +1,10 @@
 .breadcrumbs {
-  margin-bottom: $global-margin * 1.5;
+  margin-bottom: 0;
   li {
     display: inline;
+    &:not(:first-of-type) {
+      margin-left: $global-margin / 3;
+    }
     &:not(:last-of-type):after {
       content: '/';
       display: inline-block;
@@ -9,31 +12,6 @@
     }
     a {
       color: $body-color;
-    }
-  }
-  &-checkout {
-    background-color: $gray;
-    margin-bottom: $global-margin * 2;
-    color: $white;
-    li {
-      margin-right: $global-margin;
-      text-transform: uppercase;
-      &.active {
-        font-weight: 900;
-      }
-      &.disabled {
-        color: $light-gray;
-      }
-      &:not(:last-of-type):after {
-        display: none;
-      }
-      a {
-        color: $white;
-        &:hover {
-          text-decoration: none;
-          color: $light-gray;
-        }
-      }
     }
   }
 }

@@ -117,8 +117,8 @@ class CategoryPage extends Component {
       <div className="category-page">
         <div className="category-top">
           <div className="row">
-            <div className="col-md-7">
-              <ul className="category-breadcrumbs hidden-sm-down">
+            <div className="col-md-8">
+              <ul className="breadcrumbs list-unstyled hidden-sm-down">
                 <li><a href="/">{gettext('Home')}</a></li>
                   {category.ancestors && (category.ancestors.map((ancestor) => {
                     return (
