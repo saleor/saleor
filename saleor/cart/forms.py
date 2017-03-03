@@ -126,7 +126,7 @@ class ReplaceCartLineForm(AddToCartForm):
 class CountryForm(forms.Form):
 
     country = LazyTypedChoiceField(
-        label=pgettext_lazy('Country form field label', 'country'),
+        label=pgettext_lazy('Country form field label', 'Country'),
         choices=countries)
 
     def get_shipment_options(self):

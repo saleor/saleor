@@ -82,6 +82,9 @@
   }
   &__delivery-info {
     margin-top: $global-margin * 2;
+    .deliveryform {
+      padding: $global-padding 0;
+    }
     p {
       margin-bottom: 0;
     }
@@ -92,27 +95,6 @@
     }
     &__list {
       border-top: 1px solid $gray;
-      .deliveryform {
-        padding: $global-padding 0;
-        width: 100%;
-        select {
-          @include media-breakpoint-down(sm) {
-            width: 100%;
-          }
-          background-color: $white;
-          height: calc(2.25rem + 2px);
-          @include media-breakpoint-up(sm) {
-            float: right;
-          }
-          &:focus {
-            outline: none;
-          }
-        }
-        label {
-          margin-right: $global-margin;
-          margin-top: $global-margin / 2;
-        }
-      }
       .col-6 {
         padding: 0;
       }

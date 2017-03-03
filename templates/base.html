@@ -81,14 +81,14 @@
                       </div>
                       <div class="col-2 col-md-4 navbar__search static">
                         {% if SEARCH_IS_ENABLED %}
-                          <img class="hidden-md-up mobile-search-icon float-right" src="{% static "images/search-icon.svg" %}">
+                          <img class="hidden-md-up navbar__search__mobile-icon float-right" src="{% static "images/search-icon.svg" %}">
                         {% endif %}
                         {% if SEARCH_IS_ENABLED %}
-                          <form class="form-inline navbar__brand__search" action="{% url "search:search" %}">
-                            <div class="mobile-close-search hidden-md-up">
+                          <form class="form-inline search-form" action="{% url "search:search" %}">
+                            <div class="search-form__close-icon hidden-md-up">
                               <img src="{% static "images/close-icon.svg" %}">
                             </div>
-                            <input class="form-control search-input" type="text" name="q" value="{% if query %}{{ query }}{% endif %}" placeholder="{% trans "Search for product" %}">
+                            <input class="form-control" type="text" name="q" value="{% if query %}{{ query }}{% endif %}" placeholder="{% trans "Search for product" %}">
                             <button class="btn btn-link" type="submit">
                               <img src="{% static "images/search-icon.svg" %}">
                             </button>

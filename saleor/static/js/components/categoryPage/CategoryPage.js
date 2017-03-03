@@ -130,10 +130,10 @@ class CategoryPage extends Component {
             </div>
             <div className="col-md-5">
               <div className="row">
-                <div className="col-5 col-md-2 col-lg-6 filters-menu">
-                  <span className="filters-menu-label hidden-sm-up" onClick={() => this.toggleMenu(filtersMenu)}>{gettext('Filters')}</span>
+                <div className="col-6 col-md-2 col-lg-6 filters-menu">
+                  <span className="filters-menu__label hidden-sm-up" onClick={() => this.toggleMenu(filtersMenu)}>{gettext('Filters')}</span>
                   {(variables.attributesFilter.length || variables.minPrice || variables.maxPrice) && (
-                    <span className="filters-menu-icon hidden-sm-up"></span>
+                    <span className="filters-menu__icon hidden-sm-up"></span>
                   )}
                 </div>
                 <div className="col-7 col-md-10 col-lg-6">

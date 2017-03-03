@@ -7,7 +7,7 @@
         {% if discount %}
                 <form action="{% url "checkout:remove-voucher" %}?next={{ request.path }}"
                       method="post"
-                      class="float-left checkout__review__voucher-form">
+                      class="float-left input-btn">
                     {% csrf_token %}
                     <span>{{ discount.name }}</span>
                     <button type="submit"
@@ -24,7 +24,7 @@
                 <form action="{{ request.path }}?next={{ request.path }}"
                       method="post">
                     {% csrf_token %}
-                    <div class="form-group checkout__review__voucher">
+                    <div class="form-group input-btn">
                         {% trans "Use" context "Checkout voucher form action" as use_voucher %}
                         {% bootstrap_field form.voucher show_label=False %} {% bootstrap_button use_voucher button_type="submit" button_class="btn secondary narrow" %}
                     </div>

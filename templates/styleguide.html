@@ -1,20 +1,22 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load staticfiles %}
+{% load gross from prices_i18n %}
+{% load bootstrap_form from bootstrap3 %}
 
 {% block header %}
-    <div class="container navbar__login">
-    </div>
-    <header class="checkout__header">
-      <div class="container">
-        <a href="/">
-          <img src="{% static "images/saleor-logo-black.svg" %}"
-               alt="{% trans "Testeor - Saleor demo store" context "Checkout logo alternate text" %}"
-               height="38">
-        </a>
-        <h1>{% trans "Style guide" context "Style guide title" %}</h1>
-      </div>
-    </header>
+<div class="container navbar__login">
+</div>
+<header class="checkout__header">
+  <div class="container">
+    <a href="/">
+      <img src="{% static "images/saleor-logo-black.svg" %}"
+      alt="{% trans "Testeor - Saleor demo store" context "Checkout logo alternate text" %}"
+      height="38">
+    </a>
+    <h1>{% trans "Style guide" context "Style guide title" %}</h1>
+  </div>
+</header>
 {% endblock %}
 
 {% block content %}
@@ -52,161 +54,262 @@
             <img src="{% static "images/favicons/ms-icon-150x150.png" %}" alt="Testeor - Saleor demo store" height="38">
           </div>
         </div>
-      </duiv>
-    </div>
-    <div id="typography" class="styleguide__content__block">
-      <h3 class="styleguide__content__block__title">{% trans "Typography" context "Typography title in style guide" %}</h3>
-      <p>We use Lato fontface in Regular(400), <span class="styleguide__content__block__light">Light(300)</span> and <span class="styleguide__content__block__bold">Bold(700)</span> weights.</p>
-      <h1>h1 / Header</h1>
-      <h2>h2 / Header</h2>
-      <h3>h3 / Header (always uppercased)</h3>
-      <p>p / Simple paragraph</p>
-      <a href="#">a / Simple link</a>
-      <a href="#" class="link--styled">a / Styled link</a>
-    </div>
-    <div id="colors" class="styleguide__content__block">
-      <h3 class="styleguide__content__block__title">{% trans "Colors" context "Colors title in style guide" %}</h3>
-      <div class="row">
-        <div class="col-md-3 styleguide__content__block__color">
-          <div class="styleguide__content__block__color--body-color">
+      </div>
+      <div id="typography" class="styleguide__content__block">
+        <h3 class="styleguide__content__block__title">{% trans "Typography" context "Typography title in style guide" %}</h3>
+        <p>We use Lato fontface in Regular(400), <span class="styleguide__content__block__light">Light(300)</span> and <span class="styleguide__content__block__bold">Bold(700)</span> weights.</p>
+        <h1>h1 / Header</h1>
+        <h2>h2 / Header</h2>
+        <h3>h3 / Header (always uppercased)</h3>
+        <p>p / Simple paragraph</p>
+        <a href="#">a / Simple link</a>
+        <a href="#" class="link--styled">a / Styled link</a>
+      </div>
+      <div id="colors" class="styleguide__content__block">
+        <h3 class="styleguide__content__block__title">{% trans "Colors" context "Colors title in style guide" %}</h3>
+        <div class="row">
+          <div class="col-md-3 styleguide__content__block__color">
+            <div class="styleguide__content__block__color--body-color">
+            </div>
+            <p>#333333<br>$body-color</p>
           </div>
-          <p>#333333<br>$body-color</p>
+          <div class="col-md-3 styleguide__content__block__color">
+            <div class="styleguide__content__block__color--white">
+            </div>
+            <p>#ffffff<br>$white</p>
+          </div>
+          <div class="col-md-3 styleguide__content__block__color">
+            <div class="styleguide__content__block__color--light-gray">
+            </div>
+            <p>#f2f2f2<br>$light-gray</p>
+          </div>
+          <div class="col-md-3 styleguide__content__block__color">
+            <div class="styleguide__content__block__color--gray">
+            </div>
+            <p>#D3D1D0<br>$gray</p>
+          </div>
         </div>
-        <div class="col-md-3 styleguide__content__block__color">
-          <div class="styleguide__content__block__color--white">
+        <div class="row">
+          <div class="col-md-3 styleguide__content__block__color">
+            <div class="styleguide__content__block__color--darken-gray">
+            </div>
+            <p>#bab7b6<br>$darken-gray</p>
           </div>
-          <p>#ffffff<br>$white</p>
+          <div class="col-md-3 styleguide__content__block__color">
+            <div class="styleguide__content__block__color--skull-gray">
+            </div>
+            <p>#828282<br>$skull-gray</p>
+          </div>
+          <div class="col-md-3 styleguide__content__block__color">
+            <div class="styleguide__content__block__color--blue">
+            </div>
+            <p>#26A5D4<br>$blue</p>
+          </div>
+          <div class="col-md-3 styleguide__content__block__color">
+            <div class="styleguide__content__block__color--darken-blue">
+            </div>
+            <p>#1e83a9<br>$darken-blue</p>
+          </div>
         </div>
-        <div class="col-md-3 styleguide__content__block__color">
-          <div class="styleguide__content__block__color--light-gray">
+        <div class="row">
+          <div class="col-md-3 styleguide__content__block__color">
+            <div class="styleguide__content__block__color--red">
+            </div>
+            <p>#EB5757<br>$red</p>
           </div>
-          <p>#f2f2f2<br>$light-gray</p>
-        </div>
-        <div class="col-md-3 styleguide__content__block__color">
-          <div class="styleguide__content__block__color--gray">
+          <div class="col-md-3 styleguide__content__block__color">
+            <div class="styleguide__content__block__color--dark-red">
+            </div>
+            <p>#c53636<br>$dark-red</p>
           </div>
-          <p>#D3D1D0<br>$gray</p>
+          <div class="col-md-3 styleguide__content__block__color">
+            <div class="styleguide__content__block__color--green">
+            </div>
+            <p>#27AE60<br>$green</p>
+          </div>
+          <div class="col-md-3 styleguide__content__block__color">
+            <div class="styleguide__content__block__color--beige">
+            </div>
+            <p>#FFFAEC<br>$beige</p>
+          </div>
         </div>
       </div>
-      <div class="row">
-        <div class="col-md-3 styleguide__content__block__color">
-          <div class="styleguide__content__block__color--darken-gray">
+      <div id="grid" class="styleguide__content__block">
+        <h3 class="styleguide__content__block__title">{% trans "Grid" context "Grid title in style guide" %}</h3>
+        <p>We use <a href="https://v4-alpha.getbootstrap.com/getting-started/introduction/">Bootstrap 4</a> responsive grid which is based on a 12 column layout. In most cases we use following combinations:</p>
+        <div class="row styleguide__content__block__grid">
+          <div class="col-md-3 col-6">
+            <p>col-md-3 col-6</p>
           </div>
-          <p>#bab7b6<br>$darken-gray</p>
+          <div class="col-md-3 col-6">
+            <p>col-md-3 col-6</p>
+          </div>
+          <div class="col-md-3 col-6">
+            <p>col-md-3 col-6</p>
+          </div>
+          <div class="col-md-3 col-6">
+            <p>col-md-3 col-6</p>
+          </div>
         </div>
-        <div class="col-md-3 styleguide__content__block__color">
-          <div class="styleguide__content__block__color--skull-gray">
+        <div class="row styleguide__content__block__grid">
+          <div class="col-md-6">
+            <p>col-md-6</p>
           </div>
-          <p>#828282<br>$skull-gray</p>
+          <div class="col-md-6">
+            <p>col-md-6</p>
+          </div>
         </div>
-        <div class="col-md-3 styleguide__content__block__color">
-          <div class="styleguide__content__block__color--blue">
+        <div class="row styleguide__content__block__grid">
+          <div class="col-lg-10 offset-lg-1">
+            <p>col-lg-10 offset-lg-1</p>
           </div>
-          <p>#26A5D4<br>$blue</p>
         </div>
-        <div class="col-md-3 styleguide__content__block__color">
-          <div class="styleguide__content__block__color--darken-blue">
+        <div class="row styleguide__content__block__grid">
+          <div class="col-md-7">
+            <p>col-md-7</p>
           </div>
-          <p>#1e83a9<br>$darken-blue</p>
+          <div class="col-md-5 styleguide__content__block__grid">
+            <p>col-md-5</p>
+          </div>
         </div>
       </div>
-      <div class="row">
-        <div class="col-md-3 styleguide__content__block__color">
-          <div class="styleguide__content__block__color--red">
-          </div>
-          <p>#EB5757<br>$red</p>
-        </div>
-        <div class="col-md-3 styleguide__content__block__color">
-          <div class="styleguide__content__block__color--dark-red">
-          </div>
-          <p>#c53636<br>$dark-red</p>
-        </div>
-        <div class="col-md-3 styleguide__content__block__color">
-          <div class="styleguide__content__block__color--green">
-          </div>
-          <p>#27AE60<br>$green</p>
-        </div>
-        <div class="col-md-3 styleguide__content__block__color">
-          <div class="styleguide__content__block__color--beige">
-          </div>
-          <p>#FFFAEC<br>$beige</p>
-        </div>
-      </div>
-    </div>
-    <div id="grid" class="styleguide__content__block">
-      <h3 class="styleguide__content__block__title">{% trans "Grid" context "Grid title in style guide" %}</h3>
-      <p>We use <a href="https://v4-alpha.getbootstrap.com/getting-started/introduction/">Bootstrap 4</a> responsive grid which is based on a 12 column layout. In most cases we use following combinations:</p>
-      <div class="row styleguide__content__block__grid">
-        <div class="col-md-3 col-6">
-          <p>col-md-3 col-6</p>
-        </div>
-        <div class="col-md-3 col-6">
-          <p>col-md-3 col-6</p>
-        </div>
-        <div class="col-md-3 col-6">
-          <p>col-md-3 col-6</p>
-        </div>
-        <div class="col-md-3 col-6">
-          <p>col-md-3 col-6</p>
-        </div>
-      </div>
-      <div class="row styleguide__content__block__grid">
-        <div class="col-md-6">
-          <p>col-md-6</p>
-        </div>
-        <div class="col-md-6">
-          <p>col-md-6</p>
-        </div>
-      </div>
-      <div class="row styleguide__content__block__grid">
-        <div class="col-lg-10 offset-lg-1">
-          <p>col-lg-10 offset-lg-1</p>
-        </div>
-      </div>
-      <div class="row styleguide__content__block__grid">
-        <div class="col-md-7">
-          <p>col-md-7</p>
-        </div>
-        <div class="col-md-5 styleguide__content__block__grid">
-          <p>col-md-5</p>
-        </div>
-      </div>
-    </div>
-    <div id="buttons" class="styleguide__content__block">
-      <h3 class="styleguide__content__block__title">{% trans "Buttons" context "Buttons title in style guide" %}</h3>
-      <div class="row">
-        <div class="container">
-          <button class="btn primary">
+      <div id="buttons" class="styleguide__content__block">
+        <h3 class="styleguide__content__block__title">{% trans "Buttons" context "Buttons title in style guide" %}</h3>
+        <div class="row">
+          <div class="container">
+            <button class="btn primary">
               {% trans "Primary" context "Primary button example in styleguide" %}
-          </button>
-          <button class="btn secondary">
+            </button>
+            <button class="btn secondary">
               {% trans "Secondary" context "Secondary button example in styleguide" %}
-          </button>
-          <button class="btn danger">
+            </button>
+            <button class="btn danger">
               {% trans "Danger" context "Danger button example in styleguide" %}
-          </button>
-          <button class="btn gray">
+            </button>
+            <button class="btn gray">
               {% trans "Gray" context "Gray button example in styleguide" %}
-          </button>
+            </button>
+          </div>
         </div>
-
-      </div>
-      <div class="row">
-        <div class="container">
-          <button class="btn primary narrow">
+        <div class="row">
+          <div class="container">
+            <button class="btn primary narrow">
               {% trans "Primary narrow" context "Primary narrow button example in styleguide" %}
-          </button>
-          <button class="btn secondary narrow">
+            </button>
+            <button class="btn secondary narrow">
               {% trans "Secondary narrow" context "Secondary narow button example in styleguide" %}
-          </button>
-          <button class="btn danger narrow">
+            </button>
+            <button class="btn danger narrow">
               {% trans "Danger narrow" context "Danger narow button example in styleguide" %}
-          </button>
+            </button>
+          </div>
         </div>
-
       </div>
-    </duiv>
-  </div>
+      <div id="forms" class="styleguide__content__block">
+        <h3 class="styleguide__content__block__title">{% trans "Forms" context "Forms title in style guide" %}</h3>
+        <p>Text form:</p>
+        <div class="row">
+          <div class="col-6">
+              <div class="form-group">
+                <label class="control-label" for="id_first_name">Given name</label>
+                <input autocomplete="given-name" class="form-control" id="id_first_name" maxlength="256" name="first_name" title="" type="text">
+              </div>
+          </div>
+          <div class="col-6">
+              <div class="form-group"><label class="control-label" for="id_last_name">Family name</label>
+                <input autocomplete="family-name" class="form-control" id="id_last_name" maxlength="256" name="last_name" title="" type="text">
+              </div>
+          </div>    
+        </div>
+        <hr>
+        <div class="row">
+          <div class="col-md-4">
+            <p>Filters:</p>
+            <div class="product-filters">
+              <h3>Box Size
+                <div class="collapse-filters-icon">
+                  <img src="/static/images/chevron-up-icon.svg">
+                </div>
+              </h3>
+              <ul id="box-size">
+                <li class="item">
+                  <label>
+                    <input type="checkbox" name="box-size" value="100g">100g
+                  </label>
+                </li>
+                <li class="item">
+                  <label>
+                    <input type="checkbox" name="box-size" value="250g">250g
+                  </label>
+                </li>
+                <li class="item">
+                  <label>
+                    <input type="checkbox" name="box-size" value="500g">500g
+                  </label>
+                </li>
+                <li class="item">
+                  <label>
+                    <input type="checkbox" name="box-size" value="1kg">1kg
+                  </label>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <hr>
+        <div class="row">
+          <div class="col-md-7">
+            <p>Select:</p>
+            <div class="deliveryform">
+              {{ country_form }}
+            </div>
+          </div>
+          <div class="col-md-3">
+            <p>Number input:</p>
+            <form role="form" class="form-cart">
+              <div class="" tabindex="-1">
+                  <input id="id_quantity" max="50" min="1" name="quantity" type="number" value="2" required="">
+              </div>
+            </form>
+          </div>
+        </div>
+        <hr>
+        <p>Radio buttons:</p>
+          {% bootstrap_form shipping_method_form show_label=False %}
+        <hr>
+        <p>Input groups:</p>
+        <div class="row">
+          <div class="col-md-6">
+            <form class="form-inline search-form" action="/search/">
+              <input class="form-control" type="text" name="q" value="" placeholder="Search for product">
+              <button class="btn btn-link" type="submit">
+                <img src="/static/images/search-icon.svg">
+              </button>
+            </form>
+          </div>
+          <div class="col-md-6 input-btn">
+              <div class="form-group">
+                <label class="sr-only control-label" for="id_discount-voucher">Gift card or discount code</label>
+                <input class="form-control" id="id_discount-voucher" name="discount-voucher" title="" type="text" required="">
+              </div>
+              <button class="btn secondary narrow" type="submit">Use</button>
+          </div>
+        </div>
+        <hr>
+        <p>Variant picker:</p>
+        <div class="btn-group" data-toggle="buttons">
+          <label class="btn btn-secondary variant-picker__option">
+            <input type="radio" name="4" value="on">100g
+          </label>
+          <label class="btn btn-secondary variant-picker__option" aria-pressed="true">
+            <input type="radio" name="5" value="on">250g
+          </label>
+          <label class="btn btn-secondary variant-picker__option active" aria-pressed="true">
+            <input type="radio" name="6" value="on" checked="">500g
+          </label>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

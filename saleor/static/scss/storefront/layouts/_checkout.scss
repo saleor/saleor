@@ -7,7 +7,7 @@
   hr {
     margin: $global-margin * 3 0 $global-margin * 2;
   }
-  .btn {
+  .primary {
     margin-top: $global-margin;
   }
   &__edit-link {
@@ -71,7 +71,6 @@
         padding: $global-padding * 2;
       }
       .form-group {
-        text-align: left;
         &:last-of-type {
           margin-bottom: 0;
         }
@@ -94,18 +93,6 @@
     }
     &__variant {
       color: $skull-gray;
-    }
-    &__voucher {
-      position: relative;
-      .btn {
-        position: absolute;
-        top: 0;
-        right: 0;
-        margin-top: 0;
-      }
-      &-form {
-        margin-bottom: $global-margin;
-      }
     }
     @include media-breakpoint-down(sm) {
       margin-top: $global-margin * 3;
@@ -153,11 +140,6 @@
         margin-bottom: $global-margin * 1.2;
         @include media-breakpoint-only(md) {
           margin-bottom: $global-margin * 2.4;
-        }
-      }
-      form {
-        .form-group {
-          text-align: left;
         }
       }
     }

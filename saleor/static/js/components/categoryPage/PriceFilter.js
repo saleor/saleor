@@ -42,7 +42,7 @@ export default class PriceFilter extends Component {
     const { maxPrice, minPrice } = this.props;
     const { visibility } = this.state;
     return (
-      <div className="price-range">
+      <div className="product-filters__price-range">
         <FilterHeader
           onClick={this.changeVisibility}
           title={gettext('Price range')}

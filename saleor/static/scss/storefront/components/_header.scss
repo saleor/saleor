@@ -53,7 +53,7 @@
   }
   &__search {
     padding: $global-padding * 2 0;
-    .mobile-search-icon {
+    &__mobile-icon {
       padding-right: $global-padding;
     }
   }
@@ -132,67 +132,6 @@
       max-height: 22px;
       padding-right: $global-padding;
       padding-left: $global-padding;
-    }
-    &__search {
-      width: 100%;
-      position: relative;
-      .mobile-close-search {
-        position: absolute;
-        cursor: pointer;
-        padding: $global-padding * 1.9 $global-padding;
-        img {
-          width: 22px;
-        }
-      }
-      .search-input {
-        width: 100%;
-        border-color: $gray;
-        border-radius: 0;
-        padding-left: $global-padding;
-        &::placeholder {
-          color: $gray;
-          font-family: 'Lato';
-          font-weight: 300;
-        }
-      }
-      .btn {
-        width: 2.3rem;
-        height: 2.3rem;
-        position: absolute;
-        top: 0;
-        right: 0;
-        cursor: pointer;
-        border-left: solid 1px $gray;
-        border-radius: 0;
-        outline: 0;
-        @include transition(background, 0.3s)
-        img {
-          height: 1.5rem;
-          padding: $global-padding / 7;
-        }
-      }
-      @include media-breakpoint-down(sm) {
-        display: block;
-        left: -100vw;
-        position: absolute;
-        max-width: 100%;
-        float: right;
-        top: 0;
-        z-index: 5;
-        margin-top: 0;
-        .search-input {
-          padding: $global-padding * 2 $global-padding * 2 $global-padding * 2 $global-padding * 4;
-          border: 0;
-        }
-        i {
-          position: absolute;
-          padding: $global-padding * 1.7 $global-padding;
-        }
-        .btn {
-          top: 1.6rem;
-          right: 2rem;
-        }
-      }
     }
   }
   &__menu {

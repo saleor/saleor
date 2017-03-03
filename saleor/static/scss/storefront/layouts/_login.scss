@@ -43,9 +43,6 @@
     @include media-breakpoint-down(md) {
       padding: $global-padding * 2;
     }
-    .form-group {
-      text-align: left;
-    }
   }
   &__btn-group {
     a {

@@ -33,7 +33,7 @@ a.btn {
   &.secondary {
     border: 1px solid $blue;
     padding: $global-padding $global-padding * 2;
-    background-color: transparent;
+    background-color: $white;
     color: $blue;
     &:hover {
       border-color: $darken-blue;
