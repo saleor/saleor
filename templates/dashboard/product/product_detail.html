@@ -1,0 +1,145 @@
+{% extends "dashboard/base.html" %}
+
+{% load i18n %}
+{% load prices_i18n %}
+
+{% block title %}
+  {{ product }} - {% trans "Products" context "Product form page title" %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-products{% endblock %}
+
+{% block menu_products_class %}active{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url "dashboard:product-list" %}" class="breadcrumb">
+        {% trans "Products" context "Product form breadcrumbs" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url "dashboard:product-list" %}">
+        <i class="material-icons">arrow_back</i>
+      </a>
+    </li>
+    <li>
+      <span class="breadcrumbs--ellipsed-item">
+        {{ product }}
+      </span>
+    </li>
+  </ul>
+{% endblock %}
+
+{% block header_extra %}
+  <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
+    <i class="material-icons">more_vert</i>
+  </a>
+  <ul id="context-menu" class="dropdown-content">
+    <li>
+      <a href="{{ product.get_absolute_url }}" target="_blank">
+        {% trans "View on site" context "Product action" %}
+      </a>
+    </li>
+    <li>
+      <a href="{% url "dashboard:product-update" product.pk %}">
+        {% trans "Update product" context "Product action" %}
+      </a>
+    </li>
+    <li>
+      <a href="#base-modal" data-href="{% url 'dashboard:product-delete' pk=product.pk %}"
+         class="modal-trigger-custom">
+        {% trans "Remove product" context "Product action" %}
+      </a>
+    </li>
+  </ul>
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col s12">
+      <ul class="tabs">
+        <li class="tab col s3" role="presentation">
+          <a href="#details" class="active" role="tab">
+            <span>
+              {% trans "Details" context "Product form tab" %}
+            </span>
+          </a>
+        </li>
+        {% if product.product_class.has_variants %}
+          <li class="tab col s3" role="presentation">
+            <a href="#variants" role="tab">
+              <span>
+                {% trans "Variants" context "Product form tab" %}
+              </span>
+            </a>
+          </li>
+        {% endif %}
+        <li class="tab col s3" role="presentation">
+          <a href="#stock" role="tab">
+            <span>
+              {% trans "Stock" context "Product form tab" %}
+            </span>
+          </a>
+        </li>
+        <li class="tab col s3" role="presentation">
+          <a href="#images" role="tab">
+            <span>
+              {% trans "Images" context "Product form tab" %}
+            </span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tab-content" id="details">
+    <div class="row">
+      <div class="col m12 l12">
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">{{ product.product_class }}</span>
+            <div class="row">
+              <div class="col s12 l9">
+                <h5>{% trans "Name" context "Product field" %}</h5>
+                <p>{{ product.name }}</p>
+              </div>
+              <div class="col s12 l3">
+                <h5>{% trans "Price" context "Product field" %}</h5>
+                <p>{% gross product.price %}</p>
+              </div>
+              {% for attribute, value in attributes.items %}
+                <div class="col s12 l9">
+                  <h5>{{ attribute }}</h5>
+                  <p>{{ value }}</p>
+                </div>
+              {% endfor %}
+              {% if product.description %}
+                <div class="col s12 l9">
+                  <h5>{% trans "Description" context "Product field" %}</h5>
+                  <p>{{ product.description }}</p>
+                </div>
+              {% endif %}
+              {% if product.categories.all %}
+                <div class="col s12 l9">
+                <h5>{% trans "Categories" context "Product field" %}</h5>
+                <p>
+                  {% for category in product.categories.all %}
+                    {{ category }},
+                  {% endfor %}
+                </p>
+                </div>
+              {% endif %}
+              {% if product.available_on %}
+              <div class="col s12 l9">
+                <h5>{% trans "Available on" context "Product field" %}</h5>
+                <p>{{ product.available_on }}</p>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

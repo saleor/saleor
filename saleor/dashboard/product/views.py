@@ -13,6 +13,7 @@ from ...core.utils import get_paginator_items
 from ...product.models import (Product, ProductAttribute, ProductClass,
                                ProductImage, ProductVariant, Stock,
                                StockLocation)
+from ...product.utils import get_product_attributes_data
 from ..views import staff_member_required
 
 
@@ -123,13 +124,24 @@ def product_create(request, class_pk):
         msg = pgettext_lazy(
             'Dashboard message', 'Added product %s') % product
         messages.success(request, msg)
-        return redirect('dashboard:product-update',
+        return redirect('dashboard:product-detail',
                         pk=product.pk)
 
     ctx = {'product_form': product_form, 'variant_form': variant_form,
            'product': product}
     return TemplateResponse(
         request, 'dashboard/product/product_form.html', ctx)
+
+
+@staff_member_required
+def product_detail(request, pk):
+    products = Product.objects.select_related('product_class').prefetch_related(
+        'product_class__product_attributes__values', 'categories').all()
+    product = get_object_or_404(products, pk=pk)
+    attributes = get_product_attributes_data(product)
+    ctx = {'product': product, 'attributes': attributes}
+    return TemplateResponse(
+        request, 'dashboard/product/product_detail.html', ctx)
 
 
 @staff_member_required
@@ -163,7 +175,7 @@ def product_edit(request, pk):
         msg = pgettext_lazy(
             'Dashboard message', 'Updated product %s') % product
         messages.success(request, msg)
-        return redirect('dashboard:product-update', pk=product.pk)
+        return redirect('dashboard:product-detail', pk=product.pk)
     ctx = {'attributes': attributes, 'images': images, 'product_form': form,
            'product': product, 'stock_delete_form': stock_delete_form,
            'stock_items': stock_items, 'variants': variants,

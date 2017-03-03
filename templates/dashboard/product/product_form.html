@@ -47,27 +47,6 @@
   </ul>
 {% endblock %}
 
-{% block header_extra %}
-  {% if product.pk %}
-    <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
-      <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
-    </a>
-    <ul id="context-menu" class="dropdown-content">
-      <li>
-        <a href="{{ product.get_absolute_url }}" target="_blank">
-          {% trans "View on site" context "Dashboard preview action" %}
-        </a>
-      </li>
-      <li>
-        <a href="#base-modal" data-href="{% url 'dashboard:product-delete' pk=product.pk %}"
-        class="modal-trigger-custom">
-          {% trans "Remove product" context "Product form action" %}
-        </a>
-      </li>
-    </ul>
-  {% endif %}
-{% endblock %}
-
 {% block menu_catalogue_class %} active{% endblock %}
 
 {% block content %}
@@ -159,7 +138,7 @@
           </div>
           <div class="card-action right-align">
             {% if product.pk %}
-              <a href="{% url 'dashboard:product-list' %}" class="btn btn-flat">
+              <a href="{% url 'dashboard:product-detail' product.pk %}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">
@@ -385,8 +364,8 @@
                   <div class="row">
                     <div class="card">
                       <div class="card-image product-gallery-item-image">
-                        <img class="responsive-img" 
-                             src="{{ image.image.crop.255x255 }}" 
+                        <img class="responsive-img"
+                             src="{{ image.image.crop.255x255 }}"
                              srcset="{{ image.image.crop.255x255 }} 1x, {{ image.image.crop.510x510 }} 2x"
                              alt="">
                       </div>
