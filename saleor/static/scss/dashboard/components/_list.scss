@@ -16,24 +16,6 @@
 
   & &-item.avatar {
     min-height: auto;
-
-    &-delete {
-      background: white;
-      font-size: $font-size-action-icon;
-
-      @media (min-width: $medium-screen-up) {
-        padding-left: 50px;
-        display: none;
-      }
-    }
-
-    @media (min-width: $medium-screen-up) {
-      &:hover {
-        .product-list-item-delete {
-          display: block;
-        }
-      }
-    }
   }
 
   & &-item {
@@ -72,14 +54,6 @@
       padding-right: 30px;
     }
 
-    &-prefix {
-      color: initial;
-    }
-
-    &-author {
-      color: map_get($grey, base);
-    }
-
     &-icon {
       font-size: 16px;
       opacity: .6;
@@ -87,24 +61,6 @@
       right: 20px;;
       top: 50%;
       transform: translateY(-50%);
-    }
-
-    &--spaced {
-      margin-bottom: 5px;
-    }
-  }
-  &-item:last-child &-item-price, &-item:last-child &-item-desc, &-item:last-child &-item-name--single {
-    border: none;
-  }
-
-  .card & {
-    margin-bottom: 0;
-
-    &-item:last-child {
-      .list-item-name {
-        border-bottom: none;
-        padding-bottom: 0;
-      }
     }
   }
 }
