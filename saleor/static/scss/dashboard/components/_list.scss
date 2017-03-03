@@ -1,5 +1,5 @@
 @mixin list {
-  overflow: visible;
+  width: 100%;
 
   .collection {
     &-item {
@@ -9,7 +9,7 @@
         padding: 10px 20px 0px 20px;
       }
       &:hover {
-        background: $collection-hover-bg-color;
+        background: #f2f2f2;
       }
     }
   } 
