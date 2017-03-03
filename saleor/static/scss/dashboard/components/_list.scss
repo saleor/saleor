@@ -1,8 +1,21 @@
 @mixin list {
   overflow: visible;
 
+  .collection {
+    &-item {
+      padding: 0;
+      a {
+        display: block;
+        padding: 10px 20px 0px 20px;
+      }
+      &:hover {
+        background: $collection-hover-bg-color;
+      }
+    }
+  } 
+
   & &-item.avatar {
-    min-height: 64px;
+    min-height: auto;
 
     &-delete {
       background: white;
@@ -24,7 +37,6 @@
   }
 
   & &-item {
-    border: none;
     padding-bottom: 0;
     position: relative;
 
@@ -34,16 +46,21 @@
       padding-right: 20px;
       text-overflow: ellipsis;
       white-space: nowrap;
+      color: $off-black;
 
       &--single {
         margin-bottom: 10px;
+        color: $off-black;
       }
     }
 
     &-price, &-desc, &-name--single {
-      border-bottom: 1px solid $collection-border-color;
       margin: 0;
       padding-bottom: 10px;
+    }
+
+    &-price {
+      color: $off-black;
     }
 
     &-desc {
@@ -52,6 +69,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      padding-right: 30px;
     }
 
     &-prefix {
@@ -63,10 +81,12 @@
     }
 
     &-icon {
+      font-size: 16px;
       opacity: .6;
       position: absolute;
-      right: 0;
-      top: 0;
+      right: 20px;;
+      top: 50%;
+      transform: translateY(-50%);
     }
 
     &--spaced {
