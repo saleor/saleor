@@ -1,5 +1,5 @@
 {% extends 'dashboard/base.html' %}
-{% load i18n %}
+{% load staticfiles i18n %}
 {% load materializecss %}
 
 {% block title %}
@@ -19,18 +19,245 @@
 {% endblock %}
 
 {% block content %}
-  <div class="container styleguide">
+  <div class="styleguide">
     <div class="row">
       <div class="col m9 styleguide__content">
-        <div id="typography" class="styleguide__content__block"></div>
-        <div id="colors" class="styleguide__content__block"></div>
-        <div id="buttons" class="styleguide__content__block"></div>
-        <div id="grid" class="styleguide__content__block"></div>
-        <div id="forms" class="styleguide__content__block"></div>
-        <div id="tables" class="styleguide__content__block"></div>
-        <div id="lists" class="styleguide__content__block"></div>
-        <div id="cards" class="styleguide__content__block"></div>
-        <div id="modals" class="styleguide__content__block"></div>
+        <div id="typography" class="styleguide__content__block">
+          <h3>Typography</h3>
+          <div class="card">
+            <div class="card-content">
+              <h1>H1 example text</h1>
+              <h2>H2 example text</h2>
+              <h3>H3 example text</h3>
+              <h4>H4 example text</h4>
+              <h5>H5 example text</h5>
+              <p>Lorem ipsum dolor sit amet mauris. Etiam sapien quis justo. Maecenas consequat, orci quis blandit ultrices posuere vitae, mollis nunc tempus euismod. Vestibulum ante eget odio. Nam pellentesque ut, turpis. Nam sed est id aliquet elit metus, quis nibh. Morbi augue imperdiet wisi.</p>
+              <a href="#">Link example text</a>
+            </div>
+          </div>
+        </div>
+        <div id="colors" class="styleguide__content__block">
+          <h3>Colors</h3>
+        </div>
+        <div id="buttons" class="styleguide__content__block">
+          <h3>Buttons</h3>
+          <div class="card">
+            <div class="card-content">
+              <a href="#" class="btn btn-flat primary">Primary</a>
+              <a href="#" class="btn btn-flat">Secondary</a>
+            </div>
+          </div>
+        </div>
+        <div id="grid" class="styleguide__content__block">
+          <h3>Grid</h3>
+          <div class="row">
+            <div class="col m12 card"><p>col m12</p></div>
+          </div>
+          <div class="row">
+            <div class="col m6 card"><p>col m6</p></div>
+            <div class="col m6 card"><p>col m6</p></div>
+          </div>
+          <div class="row">
+            <div class="col m3 card"><p>col m3</p></div>
+            <div class="col m9 card"><p>col m9</p></div>
+          </div>
+        </div>
+        <div id="forms" class="styleguide__content__block">
+          <h3>Forms</h3>
+          <div class="card">
+            <div class="card-content">
+              <div class="input input-field">
+                <label class="active" for="id_name">Name</label>
+                <input id="id_name" maxlength="128" name="name" placeholder="Give your awesome product a name" type="text" value="Lucas, Martinez and Chaney" required="">
+              </div>
+              <div class="input input-field">
+                <label class="active" for="id_attribute-coffee-genre">Coffee Genre (optional)</label>
+                <select class=" initialized" id="id_attribute-coffee-genre" name="attribute-coffee-genre">
+                  <option value="">---------</option>
+                  <option value="2">Arabica</option>
+                  <option value="3" selected="selected">Robusta</option>
+                </select>
+              </div>
+              <div class="input input-field">
+                <textarea id="id_description" class="materialize-textarea" name="description">Voluptatibus voluptate consectetur consectetur adipisci officia aliquid. Enim praesentium voluptatem sed nostrum nesciunt cupiditate deleniti numquam. Labore beatae enim impedit numquam maxime quae.</textarea>
+                <label class="active" for="id_description">Description</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="tables" class="styleguide__content__block">
+          <h3>Tables</h3>
+          <div class="card">
+            <div class="data-table-header">
+              <span class="data-table-title">
+               Orders
+              </span>
+            </div>
+            <div class="data-table-container">
+              <table class="bordered highlight responsive data-table">
+                <thead>
+                  <tr>
+                    <th>
+                      #
+                    </th>
+                    <th>
+                      {% trans "Order status" context "Orders table header" %}
+                    </th>
+                    <th>
+                      {% trans "Payment status" context "Orders table header" %}
+                    </th>
+                    <th>
+                      {% trans "Customer" context "Orders table header" %}
+                    </th>
+                    <th>
+                      {% trans "Placed on" context "Orders table header" %}
+                    </th>
+                    <th class="right-align">
+                      {% trans "Total" context "Orders table header" %}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                    <tr data-action-go="">
+                      <td>
+                        #11
+                      </td>
+                      <td>
+                        <span class="label label-success">Shipped</span>
+                      </td>
+                      <td>
+                        <span class="label label-success">Confirmed</span>
+                      </td>
+                      <td>
+                        frederick.shaw@example.com
+                      </td>
+                      <td>
+                        27 lutego 2017 05:43
+                      </td>
+                      <td class="right-align">
+                        299,06&nbsp;<span class="currency">USD</span>
+                      </td>
+                    </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div id="lists" class="styleguide__content__block">
+          <h3>Lists</h3>
+          <ul class="collection list">
+            <li class="collection-item list-item">
+              <a class="list-item-name" href="#">
+                Groceries
+                <p class="list-item-desc">
+                  <span>
+                      Autem porro rem rem. Laudantium iure ipsam voluptates repellendus nulla esse blanditiis. Facere rerum occaecati adipisci porro quasi quibusdam. asdas as das das das das das
+                  </span>
+                </p>
+              </a>
+            </li>
+            <li class="collection-item list-item">
+              <a class="list-item-name" href="#">
+                Accessories
+                <p class="list-item-desc">
+                  <span>
+                      Consequuntur ducimus laborum qui ea mollitia. Illum cum itaque consequuntur temporibus officia dolore. Atque sed aspernatur eligendi.
+                  </span>
+                </p>
+              </a>
+            </li>
+            <li class="collection-item list-item">
+              <a class="list-item-name" href="#">
+                Apparel
+                <p class="list-item-desc">
+                  <span>
+                    Consequuntur officia enim est. Cum esse accusantium blanditiis quae modi inventore. Quia iusto veniam sed perferendis. 
+                  </span>
+                </p>
+              </a>
+            </li>
+            <li class="collection-item list-item">
+              <a class="list-item-name" href="#">
+                Books
+                <p class="list-item-desc">
+                  <span>
+                    Nemo at repellat praesentium consequuntur at. Velit repellat accusamus corporis consequatur. Possimus error optio a nam officia laudantium. Nulla est iusto laboriosam laboriosam laborum.
+                  </span>
+                </p>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div id="cards" class="styleguide__content__block">
+          <h3>Cards</h3>
+          <div class="row">
+            <div class="col m6">
+              <div class="card">
+                <div class="card-content">
+                  <span class="card-title">Card Title</span>
+                  <p>Nemo at repellat praesentium consequuntur at. Velit repellat accusamus corporis consequatur. Possimus error optio a nam officia laudantium. Nulla est iusto laboriosam laboriosam laborum.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col m6">
+              <div class="card">
+                <div class="card-image">
+                  <img src="{% static "images/block1.jpg" %}">
+                  <span class="card-title">Card Title</span>
+                </div>
+                <div class="card-content">
+                  <p>I am a very simple card. I am good at containing small bits of information.
+                  I am convenient because I require little markup to use effectively.</p>
+                </div>
+                <div class="card-action">
+                  <a href="#">This is a link</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>  
+        <div id="modals" class="styleguide__content__block">
+          <h3>Modals</h3>
+          <div class="card">
+            <div class="card-content">
+              <a class="waves-effect waves-light btn" href="#modal1">Modal</a>
+              <div id="modal1" class="modal">
+                <div class="modal-content">
+                  <h4>Modal Header</h4>
+                  <p>A bunch of text</p>
+                </div>
+                <div class="modal-footer">
+                  <a href="#!" class=" modal-action modal-close waves-effect waves-green btn-flat">Agree</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="pagination" class="styleguide__content__block">
+          <h3>Pagination</h3>
+          <ul class="pagination">
+            <li class="disabled">
+              <a href="#!">
+                <i class="material-icons">chevron_left</i>
+              </a>
+            </li>
+            <li class="active">
+              <a href="?page=1">
+                1
+              </a>
+            </li>
+            <li class="waves-effect">
+              <a href="?page=2">
+                2
+              </a>
+            </li>
+            <li>
+              <a href="?page=2">
+                <i class="material-icons">chevron_right</i>
+              </a>
+            </li>
+          </ul>
+        </div>
       </div>
       <div class="col m3 styleguide__menu">
         <ul>
@@ -43,6 +270,7 @@
           <li><a href="#">Lists</a></li>
           <li><a href="#">Cards</a></li>
           <li><a href="#">Modals</a></li>
+          <li><a href="#">Pagination</a></li>
         </ul>
       </div>
     </div>
