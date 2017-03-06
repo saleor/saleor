@@ -1,5 +1,5 @@
 .breadcrumbs {
-  margin-bottom: 0;
+  margin-bottom: $global-margin * 1.5;
   li {
     display: inline;
     &:not(:first-of-type) {

@@ -43,26 +43,25 @@
       <div class="tab-pane active" id="orders" role="tabpanel">
         <div id="accordion" role="tablist" aria-multiselectable="true">
           {% if orders|length %}
-            <div class="userprofile__orders-header">
+            <div class="table__header">
               <div class="row">
-                <div class="col-md-2 col-3"><h3>
+                <div class="col-md-2 col-3"><small>
                   {% trans "Order" context "Recent orders column title" %}
-                </h3></div>
-                <div class="col-md-3  hidden-sm-down"><h3>
+                </small></div>
+                <div class="col-md-3 hidden-sm-down"><small>
                   {% trans "Date" context "Recent orders column title" %}
-                </h3></div>
-                <div class="col-md-2 col-6"><h3 class="float-md-right">
+                </small></div>
+                <div class="col-md-2 col-6 text-right"><small>
                   {% trans "Summary" context "Recent orders column title" %}
-                </h3></div>
-                <div class="col-md-4  hidden-sm-down"><h3>
+                </small></div>
+                <div class="col-md-4 hidden-sm-down"><small>
                   {% trans "Status" context "Recent orders column title" %}
-                </h3></div>
+                </small></div>
                 <div class="col-md-1 col-3"></div>
               </div>
             </div>
             {% for order in orders %}
-            <div class="userprofile__orders">
-              <div class="userprofile__orders__row">
+              <div class="table__row">
                 <div class="row">
                   <div class="col-md-2 col-3">
                     {{ order }}
@@ -83,7 +82,6 @@
                   </div>
                 </div>
               </div>
-            </div>
             {% endfor %}
           {% else %}
             <h3 class="text-sm-center userprofile__orders-empty">

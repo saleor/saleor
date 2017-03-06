@@ -1,15 +1,8 @@
 .cart {
   h3 {
-    text-transform: uppercase;
     color: $skull-gray;
   }
-  &__table-header {
-    border-bottom: 1px solid $gray;
-    padding-bottom: $global-padding / 2;
-  }
   &__line {
-    padding: $global-padding / 2 0;
-    border-bottom: 1px solid $gray;
     &.last {
       border-bottom-color: $skull-gray;
     }
@@ -17,9 +10,7 @@
       margin-top: $global-margin / 2;
       @include media-breakpoint-down(sm) {
         text-align: right;
-        p {
           margin-top: $global-margin * 2;
-        }
       }
     }
     &__product {

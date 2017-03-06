@@ -1,7 +1,10 @@
 #category-page {
   h2 {
     font-weight: bold;
-    padding-bottom: $global-padding/2;
+    padding-bottom: $global-padding / 2;
+  }
+  .breadcrumbs {
+    margin-bottom: 0;
   }
   .category-list {
     margin-top: $global-margin;

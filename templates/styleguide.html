@@ -386,6 +386,100 @@
           </li>
         </ul>
       </div>
+      <div id="table" class="styleguide__content__block">
+        <h3 class="styleguide__content__block__title">{% trans "Tables" context "Tables title in style guide" %}</h3>
+        <div class="table__header">
+          <div class="row">
+            <div class="col-md-2 col-3"><small>
+              {% trans "Order" context "Recent orders column title" %}
+            </small></div>
+            <div class="col-md-4 hidden-sm-down"><small>
+              {% trans "Date" context "Recent orders column title" %}
+            </small></div>
+            <div class="col-md-2 col-6 text-right"><small>
+              {% trans "Summary" context "Recent orders column title" %}
+            </small></div>
+            <div class="col-md-3 hidden-sm-down"><small>
+              {% trans "Status" context "Recent orders column title" %}
+            </small></div>
+            <div class="col-md-1 col-3"></div>
+          </div>
+        </div>
+        <div class="table__row">
+          <div class="row">
+            <div class="col-md-2 col-3">
+              #1
+            </div>
+            <div class="col-md-4 hidden-sm-down">
+              {% now "F j, Y, H:i a" %}
+            </div>
+            <div class="col-md-2 col-6">
+              <span class="float-md-right">$129.35</span>
+            </div>
+            <div class="col-md-3 hidden-sm-down">
+              <span class="label label-default">Payment pending</span>
+            </div>
+            <div class="col-md-1 col-3">
+              <a href="#" class="float-right link--styled">
+                {% trans "Details" context "Recent orders link text" %}
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="table__row">
+          <div class="row">
+            <div class="col-md-2 col-3">
+              #2
+            </div>
+            <div class="col-md-4 hidden-sm-down">
+              {% now "F j, Y, H:i a" %}
+            </div>
+            <div class="col-md-2 col-6">
+              <span class="float-md-right">$129.35</span>
+            </div>
+            <div class="col-md-3 hidden-sm-down">
+              <span class="label label-success">Fully paid</span>
+            </div>
+            <div class="col-md-1 col-3">
+              <a href="#" class="float-right link--styled">
+                {% trans "Details" context "Recent orders link text" %}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="cards" class="styleguide__content__block">
+        <h3 class="styleguide__content__block__title">{% trans "Cards" context "Cards title in style guide" %}</h3>
+        <div class="row">
+          <div class="card-deck col-md-6">
+            <div class="card card-block">
+              <div class="address-details">
+                <p>Mr. Walter C. Brown<br>
+                49 Featherstone Street<br>
+                London, EC1Y 8SY
+                <br>
+                United Kingdom<br>
+                </p>
+              </div>
+              <ul class="icons">
+                  <li><a href="/profile/address/96/edit/">Edit</a></li>
+                  <li><a class="delete-icon"><img class="float-right" src="/static/images/icon_delete.svg"></a></li>
+              </ul>              
+              <div class="address-delete none">
+              <form method="post" novalidate="" action="/profile/address/96/delete/">
+                <input type="hidden" name="csrfmiddlewaretoken" value="B8vX4dFwoOGcjdmRFS9zETaWJSJ2cy1ONwArWb5cDJT8aBVWFmcnjVDZpaeLD3bO">
+                <button type="submit" class="btn danger narrow float-right">
+                    Delete Address
+                </button>
+                <a class="btn btn-link cancel float-right">
+                    Cancel
+                </a>
+              </form>
+            </div>
+          </div>
+        </div>
+        </div>
+
     </div>
   </div>
 </div>

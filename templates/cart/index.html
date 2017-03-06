@@ -21,21 +21,21 @@
 </div>
 <div class="cart">
   {% if cart_lines %}
-    <div class="cart__table-header hidden-sm-down">
+    <div class="table__header hidden-sm-down">
       <div class="row">
         <div class="col-md-7">
-          <h3>{% trans "Product" context "Cart table header" %}</h3>
+          <small>{% trans "Product" context "Cart table header" %}</small>
         </div>
         <div class="col-md-3">
-          <h3>{% trans "Quantity" context "Cart table header" %}</h3>
+          <small>{% trans "Quantity" context "Cart table header" %}</small>
         </div>
-        <div class="col-md-2">
-          <h3 class="text-right">{% trans "Price" context "Cart table header" %}</h3>
+        <div class="col-md-2 text-right">
+          <small>{% trans "Price" context "Cart table header" %}</small>
         </div>
       </div>
     </div>
     {% for line in cart_lines %}
-      <div class="cart__line{% if forloop.last %} last{% endif %}">
+      <div class="cart__line{% if forloop.last %} last{% endif %} table__row">
         <div class="row">
           <div class="col-7 cart__line__product">
             <a href="{{ line.variant.get_absolute_url }}">
@@ -59,7 +59,7 @@
                 <small class="cart__line__quantity-error text-danger"></small>
               </div>
               <div class="cart-item-subtotal col-md-5 col-12" data-product-id="{{ line.variant.pk }}">
-                <h3 class="text-right">{% gross line.get_total html=True %}</h3>
+                <p class="text-right">{% gross line.get_total html=True %}</p>
               </div>
             </div>
           </div>
@@ -90,7 +90,7 @@
         </div>
       </div>
     </div>
-    <div class="cart__checkout row">
+    <div class="row">
       <div class="col-md-12">
         <a href="{% url "checkout:login" %}" class="btn primary float-md-right">
           {% trans "Checkout" context "Cart primary action" %}

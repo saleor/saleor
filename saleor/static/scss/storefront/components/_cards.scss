@@ -1,0 +1,55 @@
+.card-deck {
+  .card {
+    width: 100%;
+    border-radius: 3px;
+    margin-bottom: $global-margin * 2;
+    @include transition(background, 0.3s)
+    &:hover {
+      background: $light-gray;
+    }
+    @include media-breakpoint-down(sm) {
+      width: 100%;
+      display: inline-block;
+      &:first-of-type {
+        margin-bottom: $global-margin;
+      }
+    }
+    p {
+      margin-bottom: 0;
+    }
+    ul.icons {
+      padding-left: 0;
+      padding-top: $global-padding;
+      list-style: none;
+      margin-bottom: 0;
+      li {
+        width: 49%;
+        display: inline-block;
+        a {
+          line-height: 18px;
+          img {
+            max-width: 18px;
+            cursor: pointer;
+          }
+        }
+      }
+    }
+    .none {
+      display: none;
+    }
+    .address-delete {
+      .cancel {
+        line-height: 2rem;
+        padding-right: $global-padding;
+        cursor: pointer;
+        color: $blue;
+        &:hover {
+          color: $blue;
+        }
+      }
+      button {
+        text-transform: uppercase;
+      }
+    }
+  }
+}
