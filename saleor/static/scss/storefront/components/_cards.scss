@@ -38,6 +38,7 @@
       display: none;
     }
     .address-delete {
+      margin-top: $global-margin / 4;
       .cancel {
         line-height: 2rem;
         padding-right: $global-padding;
@@ -49,6 +50,11 @@
       }
       button {
         text-transform: uppercase;
+      }
+    }
+    @include media-breakpoint-down(sm) {
+      form {
+        text-align: center;
       }
     }
   }

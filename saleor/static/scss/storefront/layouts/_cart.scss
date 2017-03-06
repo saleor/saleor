@@ -10,7 +10,6 @@
       margin-top: $global-margin / 2;
       @include media-breakpoint-down(sm) {
         text-align: right;
-          margin-top: $global-margin * 2;
       }
     }
     &__product {
