@@ -3,11 +3,9 @@ from __future__ import unicode_literals
 import ast
 import os.path
 
-import dj_database_url
 import dj_email_url
-from django.contrib.messages import constants as messages
 import django_cache_url
-
+from django.contrib.messages import constants as messages
 
 DEBUG = ast.literal_eval(os.environ.get('DEBUG', 'True'))
 
@@ -25,21 +23,39 @@ ADMINS = (
 MANAGERS = ADMINS
 INTERNAL_IPS = os.environ.get('INTERNAL_IPS', '127.0.0.1').split()
 
-CACHES = {'default': django_cache_url.config()}
-
 if os.environ.get('REDIS_URL'):
-    CACHES['default'] = {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': os.environ.get('REDIS_URL')}
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': os.environ.get('REDIS_URL')
+        }
+    }
+else:
+    CACHES = {'default': django_cache_url.config()}
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default='postgres://saleor:saleor@localhost:5432/saleor',
-        conn_max_age=600)}
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.environ.get('RECORDSHOP_DB_NAME'),
+        'PASSWORD': os.environ.get('RECORDSHOP_DB_PASSWORD'),
+        'USER': os.environ.get('RECORDSHOP_DB_USER'),
+        'PORT': os.environ.get('RECORDSHOP_DB_PORT', '5432'),
+        'HOST': os.environ.get('RECORDSHOP_DB_HOST', '127.0.0.1'),
+    },
+    'oye_legacy': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('RECORDSHOP_LEGACY_DB_NAME'),
+        'PASSWORD': os.environ.get('RECORDSHOP_LEGACY_DB_PASSWORD'),
+        'USER': os.environ.get('RECORDSHOP_LEGACY_DB_USER'),
+        'PORT': os.environ.get('RECORDSHOP_LEGACY_DB_PORT'),
+        'HOST': os.environ.get('RECORDSHOP_LEGACY_DB_HOST'),
+    }
+}
 
+DATABASE_ROUTERS = ['saleor.dbrouters.OyeRouter', ]
 
-TIME_ZONE = 'America/Chicago'
-LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'Europe/Berlin'
+LANGUAGE_CODE = 'de-de'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
@@ -177,6 +193,12 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'django_countries',
+
+    # developer stuff
+    'django_extensions',
+
+    # my proprietary oye stuff
+    'saleor_oye',
 ]
 
 LOGGING = {
@@ -230,8 +252,8 @@ AUTH_USER_MODEL = 'userprofile.User'
 
 LOGIN_URL = '/account/login/'
 
-DEFAULT_COUNTRY = 'US'
-DEFAULT_CURRENCY = 'USD'
+DEFAULT_COUNTRY = 'DE'
+DEFAULT_CURRENCY = 'EUR'
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 
 OPENEXCHANGERATES_API_KEY = os.environ.get('OPENEXCHANGERATES_API_KEY')
@@ -324,7 +346,6 @@ WEBPACK_LOADER = {
             r'.+\.hot-update\.js',
             r'.+\.map']}}
 
-
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
@@ -367,9 +388,15 @@ GRAPHENE = {
     'MIDDLEWARE': [
         'graphene_django.debug.DjangoDebugMiddleware'
     ],
-    'SCHEMA': 'saleor.graphql.api.schema',
+    'SCHEMA': 'saleor_oye.api.graphql.schema',
     'SCHEMA_OUTPUT': os.path.join(
         PROJECT_ROOT, 'saleor', 'static', 'schema.json')
 }
 
 SITE_SETTINGS_ID = 1
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 25
+}
