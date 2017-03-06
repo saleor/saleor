@@ -8,9 +8,8 @@
                  {{ address.phone }}"
    data-html="true" title="{{ address.first_name }} {{ address.last_name }}">
     <p>{{ address.first_name }} {{ address.last_name }}{% if address.company_name %}, {{ address.company_name }}{% endif %}<br>
-    {{ address.street_address_1 }} {% if address.street_address_2 %}
-        {{ address.street_address_2 }}, {{ address.postal_code }} {{ address.city }}
-    {% endif %}<br>
+    {{ address.street_address_1 }} {% if address.street_address_2 %} {{ address.street_address_2 }} {% endif %}<br>
+    {{ address.postal_code }} {{ address.city }}
     {% if address.country_area %}
         {{ address.country_area }}, 
     {% endif %}<br>
