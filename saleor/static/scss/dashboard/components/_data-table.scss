@@ -16,7 +16,7 @@
     padding: 10px 8px;
   }
 
-  &-hader-action {
+  &-header-action {
     border-bottom: 1px solid $table-border-color;
     padding: 14px 8px;
   }
@@ -53,6 +53,10 @@
       display: inline-block;
       position: static;
     }
+  }
+
+  tr[data-action-go]>td:not(.ignore-link):hover {
+    cursor: pointer;
   }
 
   th, td {
