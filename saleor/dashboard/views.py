@@ -29,6 +29,9 @@ def index(request):
            'low_stock': low_stock}
     return TemplateResponse(request, 'dashboard/index.html', ctx)
 
+def styleguide(request):
+    return TemplateResponse(request, 'dashboard/styleguide/index.html', {})
+
 
 def get_low_stock_products():
     threshold = getattr(settings, 'LOW_STOCK_THRESHOLD', 10)

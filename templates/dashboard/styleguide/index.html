@@ -1,0 +1,23 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+{% load materializecss %}
+
+{% block title %}
+  {% trans "Dashboard - Style guide" context "StyleGuide page title" %}
+{% endblock %}
+
+{% block body_class %}body-styleguide{% endblock %}
+
+{% block menu_settings_class %}active{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li class="visible-s">
+      {% trans "Style Guide" context "Style Guide breadcrumbs" %}
+    </li>
+  </ul>
+{% endblock %}
+
+{% block content %}
+  
+{% endblock %}
