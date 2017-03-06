@@ -208,6 +208,7 @@ def orderline_split(request, order_pk, line_pk):
                 'new_group': target_group}
         order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
+        return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400
     ctx = {'order': order, 'object': item, 'form': form, 'line_pk': line_pk}
