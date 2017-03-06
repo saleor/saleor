@@ -56,13 +56,17 @@
       </div>
       <div id="typography" class="styleguide__content__block">
         <h3 class="styleguide__content__block__title">{% trans "Typography" context "Typography title in style guide" %}</h3>
-        <p>We use Lato fontface in Regular(400), <span class="styleguide__content__block__light">Light(300)</span> and <span class="styleguide__content__block__bold">Bold(700)</span> weights.</p>
-        <h1>h1 / Header</h1>
-        <h2>h2 / Header</h2>
-        <h3>h3 / Header (always uppercased)</h3>
-        <p>p / Simple paragraph</p>
-        <a href="#">a / Simple link</a>
-        <a href="#" class="link--styled">a / Styled link</a>
+        <p>
+          {% blocktrans context "Fontface description in style guide" %}
+          We use Lato fontface in Regular(400), <span class="styleguide__content__block__light">Light(300)</span> and <span class="styleguide__content__block__bold">Bold(700)</span> weights.
+          {% endblocktrans %}
+        </p>
+        <h1>{% trans "h1 / Header" context "h1 header example in style guide" %}</h1>
+        <h2>{% trans "h2 / Header" context "h2 header example in style guide" %}</h2>
+        <h3>{% trans "h3 / Header (always uppercased)" context "h3 header example in style guide" %}</h3>
+        <p>{% trans "p / Simple paragraph" context "paragraph example in style guide" %}</p>
+        <a href="#">{% trans "a / Simple link" context "simple link example in style guide" %}</a>
+        <a href="#" class="link--styled">{% trans "a / Styled link" context "styled link example in style guide" %}</a>
       </div>
       <div id="colors" class="styleguide__content__block">
         <h3 class="styleguide__content__block__title">{% trans "Colors" context "Colors title in style guide" %}</h3>
@@ -135,7 +139,11 @@
       </div>
       <div id="grid" class="styleguide__content__block">
         <h3 class="styleguide__content__block__title">{% trans "Grid" context "Grid title in style guide" %}</h3>
-        <p>We use <a href="https://v4-alpha.getbootstrap.com/getting-started/introduction/">Bootstrap 4</a> responsive grid which is based on a 12 column layout. In most cases we use following combinations:</p>
+        <p>
+          {% blocktrans context "bootstrap grid description in style guide" %}
+          We use <a href="https://v4-alpha.getbootstrap.com/getting-started/introduction/">Bootstrap 4</a> responsive grid which is based on a 12 column layout. In most cases we use following combinations:
+          {% endblocktrans %}
+        </p>
         <div class="row styleguide__content__block__grid">
           <div class="col-md-3 col-6">
             <p>col-md-3 col-6</p>
@@ -206,51 +214,47 @@
       </div>
       <div id="forms" class="styleguide__content__block">
         <h3 class="styleguide__content__block__title">{% trans "Forms" context "Forms title in style guide" %}</h3>
-        <p>Text form:</p>
+        <p>{% trans "Text form" context "Text form example in style guide" %}:</p>
         <div class="row">
           <div class="col-6">
-              <div class="form-group">
-                <label class="control-label" for="id_first_name">Given name</label>
-                <input autocomplete="given-name" class="form-control" id="id_first_name" maxlength="256" name="first_name" title="" type="text">
-              </div>
+            <div class="form-group">
+              <label class="control-label" for="id_first_name">{% trans "Given name" context "Form label in style guide" %}</label>
+              <input autocomplete="given-name" class="form-control" id="id_first_name" maxlength="256" name="first_name" title="" type="text">
+            </div>
           </div>
           <div class="col-6">
-              <div class="form-group"><label class="control-label" for="id_last_name">Family name</label>
-                <input autocomplete="family-name" class="form-control" id="id_last_name" maxlength="256" name="last_name" title="" type="text">
-              </div>
+            <div class="form-group">
+              <label class="control-label" for="id_last_name">{% trans "Family name" context "Form label in style guide" %}</label>
+              <input autocomplete="family-name" class="form-control" id="id_last_name" maxlength="256" name="last_name" title="" type="text">
+            </div>
           </div>    
+        </div>
+        <div class="row">
+          <div class="col-12">
+            <div class="form-group">
+              <label class="control-label" for="id_first_name">{% trans "Email" context "Form label in style guide" %}</label>
+              <input autocomplete="given-name" class="form-control" id="id_first_name" maxlength="256" name="first_name" title="" type="text">
+              <span class="help-block">
+                <div class="help-block">{% trans "This field is required" context "Text form error message example in style guide" %}.</div>
+              </span>
+            </div>
+          </div>
         </div>
         <hr>
         <div class="row">
           <div class="col-md-4">
-            <p>Filters:</p>
+            <p>{% trans "Filters" context "Filters example in style guide" %}:</p>
             <div class="product-filters">
-              <h3>Box Size
+              <h3>{% trans "Box Size" context "Filter name in style guide" %}
                 <div class="collapse-filters-icon">
                   <img src="/static/images/chevron-up-icon.svg">
                 </div>
               </h3>
               <ul id="box-size">
-                <li class="item">
-                  <label>
-                    <input type="checkbox" name="box-size" value="100g">100g
-                  </label>
-                </li>
-                <li class="item">
-                  <label>
-                    <input type="checkbox" name="box-size" value="250g">250g
-                  </label>
-                </li>
-                <li class="item">
-                  <label>
-                    <input type="checkbox" name="box-size" value="500g">500g
-                  </label>
-                </li>
-                <li class="item">
-                  <label>
-                    <input type="checkbox" name="box-size" value="1kg">1kg
-                  </label>
-                </li>
+                <li class="item"><label><input type="checkbox" name="box-size" value="100g">100g</label></li>
+                <li class="item"><label><input type="checkbox" name="box-size" value="250g">250g</label></li>
+                <li class="item"><label><input type="checkbox" name="box-size" value="500g">500g</label></li>
+                <li class="item"><label><input type="checkbox" name="box-size" value="1kg">1kg</label></li>
               </ul>
             </div>
           </div>
@@ -258,97 +262,88 @@
         <hr>
         <div class="row">
           <div class="col-md-7">
-            <p>Select:</p>
+            <p>{% trans "Select" context "Select example in style guide" %}:</p>
             <div class="deliveryform">
               {{ country_form }}
             </div>
           </div>
           <div class="col-md-3">
-            <p>Number input:</p>
+            <p>{% trans "Number input" context "Number input example in style guide" %}:</p>
             <form role="form" class="form-cart">
               <div class="" tabindex="-1">
-                  <input id="id_quantity" max="50" min="1" name="quantity" type="number" value="2" required="">
+                <input id="id_quantity" max="50" min="1" name="quantity" type="number" value="2" required="">
               </div>
             </form>
           </div>
         </div>
         <hr>
-        <p>Radio buttons:</p>
-          {% bootstrap_form shipping_method_form show_label=False %}
+        <p>{% trans "Radio buttons" context "Radio buttons example in style guide" %}:</p>
+        {% bootstrap_form shipping_method_form show_label=False %}
         <hr>
-        <p>Input groups:</p>
+        <p>{% trans "Input groups" context "Input groups example in style guide" %}:</p>
         <div class="row">
           <div class="col-md-6">
-            <form class="form-inline search-form" action="/search/">
-              <input class="form-control" type="text" name="q" value="" placeholder="Search for product">
+            <form class="form-inline search-form" action="{% url "search:search" %}">
+              <input class="form-control" type="text" name="q" value="{% if query %}{{ query }}{% endif %}" placeholder="{% trans "Search for product" %}">
               <button class="btn btn-link" type="submit">
-                <img src="/static/images/search-icon.svg">
+                <img src="{% static "images/search-icon.svg" %}">
               </button>
             </form>
           </div>
-          <div class="col-md-6 input-btn">
+          <div class="col-md-6">
+            <form class="form-group input-btn">
               <div class="form-group">
-                <label class="sr-only control-label" for="id_discount-voucher">Gift card or discount code</label>
                 <input class="form-control" id="id_discount-voucher" name="discount-voucher" title="" type="text" required="">
               </div>
-              <button class="btn secondary narrow" type="submit">Use</button>
+              <button class="btn secondary narrow" type="submit">{% trans "Use" context "Checkout voucher form action" as use_voucher %}</button>
+            </form>
           </div>
         </div>
         <hr>
-        <p>Variant picker:</p>
+        <p>{% trans "Variant picker" context "Variant picker example in style guide" %}:</p>
         <div class="btn-group" data-toggle="buttons">
-          <label class="btn btn-secondary variant-picker__option">
-            <input type="radio" name="4" value="on">100g
-          </label>
-          <label class="btn btn-secondary variant-picker__option" aria-pressed="true">
-            <input type="radio" name="5" value="on">250g
-          </label>
-          <label class="btn btn-secondary variant-picker__option active" aria-pressed="true">
-            <input type="radio" name="6" value="on" checked="">500g
-          </label>
+          <label class="btn btn-secondary variant-picker__option"><input type="radio" name="4" value="on">100g</label>
+          <label class="btn btn-secondary variant-picker__option" aria-pressed="true"><input type="radio" name="5" value="on">250g</label>
+          <label class="btn btn-secondary variant-picker__option active" aria-pressed="true"><input type="radio" name="6" value="on" checked="">500g</label>
         </div>
       </div>
       <div id="pagination" class="styleguide__content__block">
         <h3 class="styleguide__content__block__title">{% trans "Pagination" context "Pagination title in style guide" %}</h3>
         <ul class="pagination">
-            <li class="prev disabled"><a>«</a></li>
-              <li>
-                  <a>1</a>
-              </li>
-              <li class="active">
-                  <a>2</a>
-              </li>
-              <li>
-                  <a>3</a>
-              </li>
-            <li class="last disabled">
-              <a>»</a>
-            </li>
-          </ul>
+          <li class="prev disabled"><a>«</a></li>
+          <li><a>1</a></li>
+          <li class="active"><a>2</a></li>
+          <li><a>3</a></li>
+          <li class="last disabled"><a>»</a></li>
+        </ul>
       </div>
       <div id="breadcrumbs" class="styleguide__content__block">
         <h3 class="styleguide__content__block__title">{% trans "Breadcrumbs" context "Breadcrumbs title in style guide" %}</h3>
         <ul class="breadcrumbs list-unstyled">
           <li><a href="/">
-              {% trans "Home" context "Edit/new address breadcrumb" %}
+            {% trans "Home" context "Edit/new address breadcrumb" %}
           </a></li>
           <li><a href="{% url "profile:details" %}">
-              {% trans "Your profile" context "Edit/new address breadcrumb" %}
+            {% trans "Your profile" context "Edit/new address breadcrumb" %}
           </a></li>
-            <li><a href=".">
-                {% trans "Edit address" context "Edit address breadcrumb" %}
-            </a></li>
+          <li><a href=".">
+            {% trans "Edit address" context "Edit address breadcrumb" %}
+          </a></li>
         </ul>
       </div>
       <div id="notifications" class="styleguide__content__block">
         <h3 class="styleguide__content__block__title">{% trans "Notifications" context "Notifications title in style guide" %}</h3>
         <div class="alert alert-success">
-            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-            Success alert.
+          <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+          {% trans "Success alert" context "Success alert example in style guide" %}.
         </div>
         <div class="alert alert-danger">
-            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-            Danger alert.
+          <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+          {% trans "Danger alert" context "Danger alert example in style guide" %}.
+        </div>
+        <div class="alert alert-warning">
+          <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+          {% trans "Warning alert" context "Warning alert example in style guide" %}.
         </div>
       </div>
       <div id="mainnav" class="styleguide__content__block">
@@ -356,12 +351,12 @@
         <nav class="navigation">
           <ul class="nav navbar-nav{% if request.get_full_path == home_url %} no-border{% endif %}" >
             {% for category in categories %}
-                {% url 'home' as home_url %}
-                <li class="nav-item">
-                  <a class="nav-link" href="{{ category.get_absolute_url }}">
-                      {{ category }}
-                  </a>
-                </li>
+            {% url 'home' as home_url %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ category.get_absolute_url }}">
+                {{ category }}
+              </a>
+            </li>
             {% endfor %}
           </ul>
         </nav>
@@ -454,39 +449,39 @@
           <div class="card-deck col-md-6">
             <div class="card card-block">
               <div class="address-details">
+                {% blocktrans context "Adress example in style guide" %}
                 <p>Mr. Walter C. Brown<br>
-                49 Featherstone Street<br>
-                London, EC1Y 8SY
-                <br>
-                United Kingdom<br>
+                  49 Featherstone Street<br>
+                  London, EC1Y 8SY
+                  <br>
+                  United Kingdom<br>
                 </p>
+                {% endblocktrans %}
               </div>
               <ul class="icons">
-                  <li><a href="/profile/address/96/edit/">Edit</a></li>
-                  <li><a class="delete-icon"><img class="float-right" src="/static/images/icon_delete.svg"></a></li>
+                <li><a href="#">{% trans "Edit" context "User address action" %}</a></li>
+                <li><a class="delete-icon"><img class="float-right" src="{% static "images/icon_delete.svg" %}"></a></li>
               </ul>              
               <div class="address-delete none">
-              <form method="post" novalidate="" action="/profile/address/96/delete/">
-                <input type="hidden" name="csrfmiddlewaretoken" value="B8vX4dFwoOGcjdmRFS9zETaWJSJ2cy1ONwArWb5cDJT8aBVWFmcnjVDZpaeLD3bO">
-                <button type="submit" class="btn danger narrow float-right">
-                    Delete Address
-                </button>
-                <a class="btn btn-link cancel float-right">
-                    Cancel
-                </a>
-              </form>
+                <form>
+                  <button type="submit" class="btn danger narrow float-right">
+                    {% trans "Delete Address" context "Delete address form action" %}
+                  </button>
+                  <a class="btn btn-link cancel float-right">
+                    {% trans "Cancel" context "Delete address form action" %}
+                  </a>
+                </form>
+              </div>
             </div>
           </div>
         </div>
-        </div>
-
+      </div>
     </div>
   </div>
-</div>
-{% endblock %}
-
-{% block footer %}
-{% endblock %}
-
-
-{% load i18n %}
+  {% endblock %}
+  
+  {% block footer %}
+  {% endblock %}
+  
+  
+  {% load i18n %}

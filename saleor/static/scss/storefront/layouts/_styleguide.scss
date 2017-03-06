@@ -76,6 +76,17 @@
           margin: $global-margin / 2;
         }
       }
+      .search-form {
+        @include media-breakpoint-down(sm) {
+          margin-bottom: $global-margin;
+          position: relative;
+          left: 0;
+          .btn {
+            top: 0;
+            right: 0;
+          }
+        }
+      }
     }
   }
 }
