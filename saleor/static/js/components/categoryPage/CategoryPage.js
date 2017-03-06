@@ -10,7 +10,7 @@ import SortBy from './SortBy';
 import { ensureAllowedName, getAttributesFromQuery, getFromQuery } from './utils';
 import {isMobile} from '../utils';
 
-const PAGINATE_BY = 20;
+const PAGINATE_BY = 24;
 const SORT_BY_FIELDS = ['name', 'price'];
 
 class CategoryPage extends Component {
