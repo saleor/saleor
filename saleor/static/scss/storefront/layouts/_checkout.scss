@@ -52,17 +52,12 @@
     text-align: center;
     h3 {
       margin-bottom: $global-margin * 3;
-      text-transform: uppercase;
     }
     .btn {
       margin: $global-margin * 2 auto 0;
-      padding: $global-padding / 2 $global-padding * 2.5;
     }
     &__continue {
       padding: $global-padding * 2 0 $global-padding;
-      p {
-        font-size: 0.8rem;
-      }
     }
     &__form {
       background-color: $light-gray;
@@ -105,7 +100,6 @@
       margin-top: $global-margin * 3;
     }
     h3 {
-      text-transform: uppercase;
       margin-bottom: $global-margin * 3;
     }
     .btn {

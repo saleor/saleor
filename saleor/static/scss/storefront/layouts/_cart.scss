@@ -37,13 +37,6 @@
     &__quantity {
       form {
         display: inline-block;
-        input {
-          width: 4rem;
-          padding: $global-padding / 2;
-          &:focus {
-            outline: none;
-          }
-        }
       }
       &-error {
         display: block;

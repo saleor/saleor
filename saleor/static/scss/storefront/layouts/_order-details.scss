@@ -5,36 +5,24 @@
   &__addresses {
     margin-top: $global-margin * 2;
   }
-  &__table-header {
-    color: $gray;
-    padding-bottom: $global-padding / 2;
-    margin-top: $global-margin * 2;
-    .col-md-3 {
-      text-align: right;
-    }
-    > .row {
-      border-bottom: 1px solid $light-gray;
-    }
-  }
-  &__table {
-    @include media-breakpoint-down(sm) {
-      margin-top: $global-margin * 3;
-    }
-    span {
-      color: $gray;
-    }
+  &__product {
     a {
-      img {
-        margin-right: $global-margin;
+      transition: 0.3s;
+      &:hover {
+        color: $skull-gray;
       }
       p {
-        color: $body-color;
+        display: inline-block;
+        margin-top: $global-margin / 2;
+        margin-bottom: 0;
+        line-height: 1rem;
+        small {
+          color: $skull-gray;
+        }
       }
-    }
-    .row {
-      padding: $global-padding / 2 0;
-      &:not(:last-of-type) {
-        border-bottom: 1px solid $light-gray;
+      img {
+        vertical-align: top;
+        margin-right: $global-margin;
       }
     }
   }

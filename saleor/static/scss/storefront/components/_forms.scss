@@ -109,7 +109,10 @@
 
 input#id_quantity {
   min-width: 4rem;
-  padding: 0.5rem;
+  padding: $global-padding / 2;
+  &:focus {
+    outline: none;
+  }
 }
 
 .help-block {

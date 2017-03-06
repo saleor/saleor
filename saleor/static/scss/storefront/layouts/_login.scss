@@ -49,29 +49,29 @@
       display: block;
     }
   }
+  &__forgott-password {
+    h2 {
+      padding-top: $global-padding * 2;
+      text-transform: uppercase;
+    }
+    p {
+      font-size: 1rem;
+      padding-top: $global-padding;
+    }
+    fieldset {
+      max-width: 60%;
+      margin: auto;
+      padding-bottom: $global-padding;
+      @include media-breakpoint-down(sm) {
+        max-width: 80%;
+      }
+    }
+    .login__btn-group {
+      img {
+        padding-top: $global-padding * 2;
+      }
+    }
+  }
 }
 
-.forgott-password {
-  h2 {
-    font-size: 2rem;
-    padding-top: $global-padding*2;
-    font-weight: 300;
-  }
-  p {
-    font-size: 1rem;
-    padding-top: $global-padding;
-  }
-  fieldset {
-    max-width: 60%;
-    margin: auto;
-    padding-bottom: $global-padding;
-    @include media-breakpoint-down(sm) {
-      max-width: 80%;
-    }
-  }
-  .login__btn-group {
-    img {
-      padding-top: $global-padding * 2;
-    }
-  }
-}
+

@@ -2,7 +2,6 @@
   h2 {
     text-align: center;
     text-transform: uppercase;
-    font-size: 1.4rem;
   }
   &__user {
     h2 {
@@ -12,7 +11,6 @@
     img {
       margin-top: $global-margin / 2;
     }
-    
   }
   &__nav {
     margin: $global-margin * 2 0 $global-margin;
@@ -36,16 +34,10 @@
     margin: 0;
   }
   &__address-edit {
-    h1 {
+    h2 {
       text-align: center;
-      font-size: 1.3em;
       text-transform: uppercase;
       padding-bottom: $global-padding;
-    }
-    .btn {
-      padding: $global-padding / 2 $global-padding * 2;
-      text-transform: uppercase;
-      font-size: 1rem;
     }
   }
 }
