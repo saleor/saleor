@@ -11,8 +11,6 @@ from saleor.cart import utils
 from saleor.cart.models import Cart
 from saleor.checkout.core import Checkout
 from saleor.discount.models import Voucher, Sale
-from saleor.order.models import Order
-from saleor.discount.models import Voucher
 from saleor.order.models import Order, OrderedItem, DeliveryGroup
 from saleor.product.models import (AttributeChoiceValue, Category, Product,
                                    ProductAttribute, ProductClass,
@@ -251,6 +249,8 @@ def order_with_items_and_stock(order, product_class):
         unit_price_gross=Decimal('20.00'),
         stock=stock
     )
+    Order.objects.recalculate_order(order)
+    order.refresh_from_db()
     return order
 
 

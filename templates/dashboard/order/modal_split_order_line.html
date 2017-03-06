@@ -1,7 +1,7 @@
 {% load i18n %}
 {% load materializecss %}
 
-<form method="post" role="form" class="form-async" action="{% url 'dashboard:orderline-split' order_pk=order.pk line_pk=line_pk %}" novalidate>
+<form method="post" role="form" class="form-async" action="{% url 'dashboard:orderline-split' order_pk=order.pk line_pk=line_pk %}" novalidate>
   {% csrf_token %}
   <div class="modal-content">
     <h5>
