@@ -36,6 +36,7 @@ var providePlugin = new webpack.ProvidePlugin({
 var config = {
   entry: {
     category: './saleor/static/js/category.js',
+    release: './saleor/static/js/release.js',
     dashboard: './saleor/static/js/dashboard.js',
     storefront: './saleor/static/js/storefront.js',
     vendor: [
@@ -77,7 +78,9 @@ var config = {
           resolve('node_modules'),
           resolve('saleor/static/fonts'),
           resolve('saleor/static/images'),
-          resolve('saleor/static/img')
+          resolve('saleor/static/img'),
+          resolve('saleor/oye/static/img'),
+          resolve('saleor/oye/static/images')
         ]
       }
     ]
