@@ -1,3 +1,4 @@
+import debug_toolbar
 from django.conf import settings
 from django.conf.urls import url, include
 from django.conf.urls.static import static
@@ -14,6 +15,7 @@ from .core.urls import urlpatterns as core_urls
 from .order.urls import urlpatterns as order_urls
 from .product.urls import urlpatterns as product_urls
 from .search.urls import urlpatterns as search_urls
+# from saleor_oye.urls import urlpatterns as oye_urls
 from .userprofile.views import login as login_view
 from .userprofile.urls import urlpatterns as userprofile_urls
 from .data_feeds.urls import urlpatterns as feed_urls
@@ -36,7 +38,8 @@ urlpatterns = [
     url(r'^feeds/', include(feed_urls, namespace='data_feeds')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
-    url(r'', include('payments.urls'))
+    url(r'^oye/', include('saleor_oye.urls', namespace='oye')),
+    url(r'', include('payments.urls')),
 ]
 
 if settings.DEBUG:
