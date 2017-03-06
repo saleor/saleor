@@ -39,19 +39,19 @@
         <ul class="collection list">
           {% for product in products %}
             <li class="collection-item avatar list-item">
-              {% if product.images.exists %}
-                <img src="{{ product.images.first.image.crop.100x100 }}" alt="" class="circle teal">
-              {% else %}
-                <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
-              {% endif %}
-              <a class="title" href="{% url 'dashboard:product-update' pk=product.pk %}">
-                <span class="list-item-name">
+              <a href="{% url 'dashboard:product-update' pk=product.pk %}">
+                {% if product.images.exists %}
+                  <img src="{{ product.images.first.image.crop.100x100 }}" alt="" class="circle teal">
+                {% else %}
+                  <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
+                {% endif %}
+                <span class="title list-item-name">
                   {{ product.name }}
                 </span>
+                <p class="list-item-price">
+                  {% gross product.price html=True %}
+                </p>
               </a>
-              <p class="list-item-price">
-                {% gross product.price html=True %}
-              </p>
             </li>
           {% endfor %}
         </ul>

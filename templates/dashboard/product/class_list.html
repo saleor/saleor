@@ -41,21 +41,21 @@
                 <span class="list-item-name">
                   {{ name }}
                 </span>
+                <p class="list-item-desc">
+                  {% trans "Variants" context "Product type item list text" %}: 
+                  {% if has_variants %}
+                    {% trans "Yes" %}
+                  {% else %}
+                    {% trans "No" %}
+                  {% endif %}
+                  {% if variant_attributes %}
+                    &middot; {% trans "Variant attributes" context "Product type item list text" %}: {{ variant_attributes|join:", " }}
+                  {% endif %}
+                  {% if product_attributes %}
+                    &middot; {% trans "Product attributes" context "Product type item list text" %}: {{ product_attributes|join:", " }}
+                  {% endif %}
+                </p>
               </a>
-              <p class="list-item-desc">
-                {% trans "Variants" context "Product type item list text" %}: 
-                {% if has_variants %}
-                  {% trans "Yes" %}
-                {% else %}
-                  {% trans "No" %}
-                {% endif %}
-                {% if variant_attributes %}
-                  &middot; {% trans "Variant attributes" context "Product type item list text" %}: {{ variant_attributes|join:", " }}
-                {% endif %}
-                {% if product_attributes %}
-                  &middot; {% trans "Product attributes" context "Product type item list text" %}: {{ product_attributes|join:", " }}
-                {% endif %}
-              </p>
             </li>
           {% endfor %}
         </ul>

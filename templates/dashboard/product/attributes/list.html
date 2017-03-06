@@ -35,13 +35,13 @@
         <li class="collection-item list-item">
           <a class="list-item-name" href="{% url 'dashboard:product-attribute-update' pk=pk %}">
             {{ display }}
+            <p class="list-item-desc">
+              {% for value in values %}
+                {{ value }}
+                {% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            </p>
           </a>
-          <p class="list-item-desc">
-            {% for value in values %}
-              {{ value }}
-              {% if not forloop.last %}, {% endif %}
-            {% endfor %}
-          </p>
         </li>
       {% endfor %}
     </ul>
