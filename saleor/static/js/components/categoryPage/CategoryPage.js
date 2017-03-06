@@ -47,10 +47,10 @@ class CategoryPage extends Component {
   }
 
   clearFilters = () => {
-    this.props.relay.setVariables({ 
+    this.props.relay.setVariables({
       attributesFilter: [],
       minPrice: null,
-      maxPrice: null 
+      maxPrice: null
     });
   }
 

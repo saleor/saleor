@@ -10,3 +10,13 @@ export const isMobile = () => {
 export const isTablet = () => {
   	return window.innerWidth >= smBreakpoint && window.innerWidth <= mdBreakpoint;
 }
+
+export const getReleaseListColumnNumber = () => {
+  if (isMobile()) {
+    return 1
+  } else if (isTablet()) {
+    return 4
+  } else {
+    return 6
+  }
+}

@@ -1,0 +1,38 @@
+{
+
+  "README_schema" : "Specifies how to load the GraphQL schema that completion, error highlighting, and documentation is based on in the IDE",
+  "schema": {
+
+    "README_file" : "Remove 'file' to use request url below. A relative or absolute path to the JSON from a schema introspection query, e.g. '{ data: ... }'. Changes to the file are watched.",
+    "file": "graphql.schema.json",
+
+    "README_request" : "To request the schema from a url instead, remove the 'file' JSON property above (and optionally delete the default graphql.schema.json file).",
+    "request": {
+      "url" : "http://--graphql-server--/path-to-schema-json-or-introspection-endpoint",
+      "method" : "POST",
+      "README_postIntrospectionQuery" : "Whether to POST an introspectionQuery to the url. If the url always returns the schema JSON, set to false and consider using GET",
+      "postIntrospectionQuery" : true,
+      "README_options" : "See the 'Options' section at https://github.com/then/then-request",
+      "options" : {
+        "headers": {
+          "user-agent" : "JS GraphQL"
+        }
+      }
+    }
+
+  },
+
+  "README_endpoints": "A list of GraphQL endpoints that can be queried from '.graphql' files in the IDE",
+  "endpoints" : [
+    {
+      "name": "Default (http://localhost:8080/graphql)",
+      "url": "http://localhost:8080/graphql",
+      "options" : {
+        "headers": {
+          "user-agent" : "JS GraphQL"
+        }
+      }
+    }
+  ]
+
+}
