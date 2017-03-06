@@ -4,163 +4,175 @@
 {% load render_bundle from webpack_loader %}
 
 <html lang="{{ LANGUAGE_CODE }}" class="no-js">
-    <head>
-        <title>{% block title %}{{ settings.name }}{% endblock %}</title>
-        {% block meta %}
+<head>
+    <title>{% block title %}{{ settings.name }}{% endblock %}</title>
+    {% block meta %}
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="{% block meta_description %}{% endblock %}">
         <meta name="author" content="{% trans "Mirumee Software" context "Meta author text" %}">
-        {% endblock meta %}
-        {% include 'favicon.html' %}
-        {% render_bundle 'vendor' 'css' %}
-        {% render_bundle 'storefront' 'css' %}
+    {% endblock meta %}
+    {% include 'favicon.html' %}
+    {% render_bundle 'vendor' 'css' %}
+    {% render_bundle 'storefront' 'css' %}
 
-        {% block stylesheet %}{% endblock stylesheet %}
+    {% block stylesheet %}{% endblock stylesheet %}
 
-        <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
-        <!--[if lt IE 9]>
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
         <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
         <![endif]-->
-    </head>
+</head>
 
-    <body>
-        {% block header %}
-            <header class="navbar" role="navigation">
-                <div class="navbar__login hidden-sm-down">
-                  <div class="container">
-                    <div class="row">
-                      <div class="col-6">
+<body>
+{% block header %}
+    <header class="navbar" role="navigation">
+        <div class="navbar__login hidden-sm-down">
+            <div class="container">
+                <div class="row">
+                    <div class="col-6">
                         <p class="text-left">{{ settings.header_text }}</p>
-                      </div>
-                      <div class="col-6">
-                        <ul class="float-right">
-                          {% if user.is_authenticated %}
-                            {% if user.is_staff %}
-                              <li>
-                                <a href="{% url "dashboard:index" %}" target="_blank" rel="noopener">
-                                    {% trans "Dashboard" context "Top navbar link text" %}
-                                </a>
-                              </li>
-                            {% endif %}
-                            <li>
-                              <a href="{% url "profile:details" %}">
-                                  {% trans "Your account" context "Top navbar link text" %}</a>
-                            </li>
-                            <li>
-                              <a href="{% url "account_logout" %}">
-                                  {% trans "Log out" context "Top navbar link text" %}</a>
-                            </li>
-                          {% else %}
-                            <li>
-                              <a href="{% url "account_signup" %}">
-                                  {% trans "Register" context "Top navbar link text" %}</a>
-                            </li>
-                            <li>
-                              <a href="{% url "account_login" %}">
-                                  {% trans "Log in" context "Top navbar link text" %}
-                              </a>
-                            </li>
-                          {% endif %}
-                        </ul>
-                      </div>
                     </div>
-                  </div>
+                    <div class="col-6">
+                        <ul class="float-right">
+                            {% if user.is_authenticated %}
+                                {% if user.is_staff %}
+                                    <li>
+                                        <a href="{% url "dashboard:index" %}" target="_blank"
+                                           rel="noopener">
+                                            {% trans "Dashboard" context "Top navbar link text" %}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                <li>
+                                    <a href="{% url "profile:details" %}">
+                                        {% trans "Your account" context "Top navbar link text" %}</a>
+                                </li>
+                                <li>
+                                    <a href="{% url "account_logout" %}">
+                                        {% trans "Log out" context "Top navbar link text" %}</a>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <a href="{% url "account_signup" %}">
+                                        {% trans "Register" context "Top navbar link text" %}</a>
+                                </li>
+                                <li>
+                                    <a href="{% url "account_login" %}">
+                                        {% trans "Log in" context "Top navbar link text" %}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
                 </div>
-                <div class="navbar__brand">
-                  <div class="container">
-                    <div class="row no-gutters">
-                      <div class="col-8 col-md-4 navbar__logo">
+            </div>
+        </div>
+        <div class="navbar__brand">
+            <div class="container">
+                <div class="row no-gutters">
+                    <div class="col-8 col-md-4 navbar__logo">
                         <div class="menu-icon-mobile hidden-md-up">
-                          <img class="navbar__brand__menu-toggle closed open" src="{% static "images/mobile-bar.svg" %}">
-                          <span>{% trans "menu" context "Hamburger button text" %}</span>
+                            <img class="navbar__brand__menu-toggle closed open"
+                                 src="{% static "images/mobile-bar.svg" %}">
+                            <span>{% trans "menu" context "Hamburger button text" %}</span>
                         </div>
                         <a href="/">
-                          <img src="{% static "images/saleor-logo-black.svg" %}" alt="Testeor - Saleor demo store" height="38">
+                            <img src="{% static "images/oye-logo.svg" %}" alt="Oye Records"
+                                 height="50">
                         </a>
-                      </div>
-                      <div class="col-2 col-md-4 navbar__search static">
+                    </div>
+                    <div class="col-2 col-md-4 navbar__search static">
                         {% if SEARCH_IS_ENABLED %}
-                          <img class="hidden-md-up mobile-search-icon float-right" src="{% static "images/search-icon.svg" %}">
+                            <img class="hidden-md-up mobile-search-icon float-right"
+                                 src="{% static "images/search-icon.svg" %}">
                         {% endif %}
                         {% if SEARCH_IS_ENABLED %}
-                          <form class="form-inline navbar__brand__search" action="{% url "search:search" %}">
-                            <div class="mobile-close-search hidden-md-up">
-                              <img src="{% static "images/close-icon.svg" %}">
-                            </div>
-                            <input class="form-control search-input" type="text" name="q" value="{% if query %}{{ query }}{% endif %}" placeholder="{% trans "Search for product" %}">
-                            <button class="btn btn-link" type="submit">
-                              <img src="{% static "images/search-icon.svg" %}">
-                            </button>
-                          </form>
+                            <form class="form-inline navbar__brand__search"
+                                  action="{% url "search:search" %}">
+                                <div class="mobile-close-search hidden-md-up">
+                                    <img src="{% static "images/close-icon.svg" %}">
+                                </div>
+                                <input class="form-control search-input" type="text" name="q"
+                                       value="{% if query %}{{ query }}{% endif %}"
+                                       placeholder="{% trans "Search for product" %}">
+                                <button class="btn btn-link" type="submit">
+                                    <img src="{% static "images/search-icon.svg" %}">
+                                </button>
+                            </form>
                         {% endif %}
-                      </div>
-                      <div class="col-2 col-md-4">
+                    </div>
+                    <div class="col-2 col-md-4">
                         <div class="navbar__brand__cart float-right">
-                          <a class="cart__icon" href="{% url "cart:index" %}">
+                            <a class="cart__icon" href="{% url "cart:index" %}">
                             <span class="cart-label hidden-sm-down">
                                 {% trans "Your Cart" context "Top navbar link" %}
                             </span>
-                            <img class="navbar__brand__cart__icon" src="{% static "images/cart.svg" %}" alt="Cart">
-                            <span class="badge {% if not cart_counter %}empty{% endif %}">
+                                <img class="navbar__brand__cart__icon"
+                                     src="{% static "images/cart.svg" %}" alt="Cart">
+                                <span class="badge {% if not cart_counter %}empty{% endif %}">
                               {% if cart_counter %}
-                                {{ cart_counter }}
+                                  {{ cart_counter }}
                               {% else %}
-                                0
+                                  0
                               {% endif %}
                             </span>
-                          </a>
-                          <div class="cart-dropdown hidden-md-down">
-                          {% include 'cart-dropdown.html' %}
-                          </div>
+                            </a>
+                            <div class="cart-dropdown hidden-md-down">
+                                {% include 'cart-dropdown.html' %}
+                            </div>
                         </div>
-                      </div>
                     </div>
-                  </div>
                 </div>
-                <div class="navbar__menu">
-                  <div class="container">
-                    <nav class="navigation">
-                      {% url 'home' as home_url %}
-                      <ul class="nav navbar-nav{% if request.get_full_path == home_url %} no-border{% endif %}" >
-                        {% for category in categories %}
-                            <li class="nav-item">
-                              <a class="nav-link" href="{{ category.get_absolute_url }}">
-                                  {{ category }}
-                              </a>
-                            </li>
-                        {% endfor %}
-                      </ul>
-                    </nav>
-                  </div>
-                </div>
-            </header>
-        {% endblock %}
-        <div class="container maincontent">
-            {% if messages %}
-                {% for message in messages %}
-                <div class="alert{% if message.tags %} alert-{{ message.tags }}{% endif %}">
-                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                    {{ message }}
-                </div>
-                {% endfor %}
-            {% endif %}
-            {% block breadcrumb %}
-            {% endblock breadcrumb %}
-            {% block content %}
-            {% endblock content %}
+            </div>
         </div>
-        {% block footer %}
-            <footer class="footer">
-                <div class="container">
-                  <div class="row">
-                    <div class="col-md-3">
-                      <a href="/">
-                        <img class="footer__logo" src="{% static "images/saleor-logo.svg" %}" height="40" alt="Testeor - Saleor demo store">
-                      </a>
-                    </div>
-                    <div class="col-md-3 col-sm-6">
-                      <ul>
+        <div class="navbar__menu">
+            <div class="container">
+                <nav class="navigation">
+                    {% url 'home' as home_url %}
+                    <ul class="nav navbar-nav{% if request.get_full_path == home_url %} no-border{% endif %}">
+                        {% block navigation-items %}
+                            {% for category in categories %}
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ category.get_absolute_url }}">
+                                        {{ category }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        {% endblock navigation-items %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+{% endblock %}
+<div class="container maincontent">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert{% if message.tags %} alert-{{ message.tags }}{% endif %}">
+                <button type="button" class="close" data-dismiss="alert"
+                        aria-hidden="true">&times;</button>
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    {% block breadcrumb %}
+    {% endblock breadcrumb %}
+    {% block content %}
+    {% endblock content %}
+</div>
+{% block footer %}
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3">
+                    <a href="/">
+                        <img class="footer__logo" src="{% static "images/saleor-logo.svg" %}"
+                             height="40" alt="Testeor - Saleor demo store">
+                    </a>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <ul>
                         {% for category in categories %}
                             <li>
                                 <a href="{{ category.get_absolute_url }}">
@@ -168,64 +180,66 @@
                                 </a>
                             </li>
                         {% endfor %}
-                      </ul>
-                    </div>
-                    <div class="col-md-3 col-sm-6">
-                      <ul>
+                    </ul>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <ul>
                         <li>
-                          <a href="{% url "cart:index" %}">
-                            {% trans "Cart" context "Top navbar link" %}
-                          </a>
+                            <a href="{% url "cart:index" %}">
+                                {% trans "Cart" context "Top navbar link" %}
+                            </a>
                         </li>
                         {% if user.is_authenticated %}
-                          {% if user.is_staff %}
-                              <li>
-                                <a href="{% url "dashboard:index" %}" target="_blank" rel="noopener">
-                                    {% trans "Dashboard" context "Top navbar link" %}
+                            {% if user.is_staff %}
+                                <li>
+                                    <a href="{% url "dashboard:index" %}" target="_blank"
+                                       rel="noopener">
+                                        {% trans "Dashboard" context "Top navbar link" %}
+                                    </a>
+                                </li>
+                            {% endif %}
+                            <li>
+                                <a href="{% url "profile:details" %}">
+                                    {% trans "Your account" context "Top navbar link" %}
                                 </a>
-                              </li>
-                          {% endif %}
-                          <li>
-                            <a href="{% url "profile:details" %}">
-                              {% trans "Your account" context "Top navbar link" %}
-                            </a>
-                          </li>
-                          <li>
-                            <a href="{% url "account_logout" %}">
-                                {% trans "Log out" context "Top navbar link" %}</a>
-                          </li>
+                            </li>
+                            <li>
+                                <a href="{% url "account_logout" %}">
+                                    {% trans "Log out" context "Top navbar link" %}</a>
+                            </li>
                         {% else %}
-                          <li>
-                            <a href="{% url "account_signup" %}">
-                                {% trans "Register" context "Top navbar link" %}
-                            </a>
-                          </li>
-                          <li>
-                            <a href="{% url "account_login" %}">
-                                {% trans "Log in" context "Top navbar link" %}
-                            </a>
-                          </li>
+                            <li>
+                                <a href="{% url "account_signup" %}">
+                                    {% trans "Register" context "Top navbar link" %}
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url "account_login" %}">
+                                    {% trans "Log in" context "Top navbar link" %}
+                                </a>
+                            </li>
                         {% endif %}
-                      </ul>
-                    </div>
-                    <div class="col-md-3 col-sm-12">
-                      <a target="_blank" rel="noopener" class="github-footer" href="https://github.com/mirumee/saleor">
-                        <img src="{% static "images/github_logo.svg" %}">
-                      </a>
-                      <a target="_blank" rel="noopener" href="https://twitter.com/getsaleor">
-                        <img src="{% static "images/twitter_logo.svg" %}">
-                      </a>
-                    </div>
-                  </div>
+                    </ul>
                 </div>
-            </footer>
-        {% endblock %}
-        {% block footer_scripts %}
-            <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
-            {% render_bundle 'vendor' 'js' %}
-            {% render_bundle 'storefront' 'js' %}
-        {% endblock footer_scripts %}
-    <script type="application/ld+json">{{ webpage_schema|safe }}</script>
-    </body>
+                <div class="col-md-3 col-sm-12">
+                    <a target="_blank" rel="noopener" class="github-footer"
+                       href="https://github.com/mirumee/saleor">
+                        <img src="{% static "images/github_logo.svg" %}">
+                    </a>
+                    <a target="_blank" rel="noopener" href="https://twitter.com/getsaleor">
+                        <img src="{% static "images/twitter_logo.svg" %}">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+{% endblock %}
+{% block footer_scripts %}
+    <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+    {% render_bundle 'vendor' 'js' %}
+    {% render_bundle 'storefront' 'js' %}
+{% endblock footer_scripts %}
+<script type="application/ld+json">{{ webpage_schema|safe }}</script>
+</body>
 </html>
 
