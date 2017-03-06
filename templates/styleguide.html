@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load staticfiles %}
-{% load gross from prices_i18n %}
 {% load bootstrap_form from bootstrap3 %}
 
 {% block header %}
@@ -24,7 +23,6 @@
   <div class="row">
     <div class="col-md-3">
       <nav class="styleguide__nav">
-        <a href="#identity">{% trans "Identity" context "Identity title in style guide" %}</a>
         <a href="#typography">{% trans "Typography" context "Typography title in style guide" %}</a>
         <a href="#colors">{% trans "Colors" context "Colors title in style guide" %}</a>
         <a href="#grid">{% trans "Grid" context "Grid title in style guide" %}</a>
@@ -41,24 +39,11 @@
       </nav>
     </div>
     <div class="col-md-9 styleguide__content">
-      <div id="identity" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">{% trans "Identity" context "Identity title in style guide" %}</h3>
-        <div class="row">
-          <div class="col-md-6">
-            <p>{% trans "Logo" %}</p>
-            <img src="{% static "images/saleor-logo-black.svg" %}" alt="Testeor - Saleor demo store" height="38">
-          </div>
-          <div class="col-md-6">
-            <p>{% trans "Favicon" %}</p>
-            <img src="{% static "images/favicons/ms-icon-150x150.png" %}" alt="Testeor - Saleor demo store" height="38">
-          </div>
-        </div>
-      </div>
       <div id="typography" class="styleguide__content__block">
         <h3 class="styleguide__content__block__title">{% trans "Typography" context "Typography title in style guide" %}</h3>
         <p>
           {% blocktrans context "Fontface description in style guide" %}
-          We use Lato fontface in Regular(400), <span class="styleguide__content__block__light">Light(300)</span> and <span class="styleguide__content__block__bold">Bold(700)</span> weights.
+            We use Lato fontface in Regular(400), <span class="styleguide__content__block__light">Light(300)</span> and <span class="styleguide__content__block__bold">Bold(700)</span> weights.
           {% endblocktrans %}
         </p>
         <h1>{% trans "h1 / Header" context "h1 header example in style guide" %}</h1>
@@ -71,66 +56,66 @@
       <div id="colors" class="styleguide__content__block">
         <h3 class="styleguide__content__block__title">{% trans "Colors" context "Colors title in style guide" %}</h3>
         <div class="row">
-          <div class="col-md-3 styleguide__content__block__color">
+          <div class="col-md-3 col-6 styleguide__content__block__color">
             <div class="styleguide__content__block__color--body-color">
             </div>
             <p>#333333<br>$body-color</p>
           </div>
-          <div class="col-md-3 styleguide__content__block__color">
+          <div class="col-md-3 col-6 styleguide__content__block__color">
             <div class="styleguide__content__block__color--white">
             </div>
             <p>#ffffff<br>$white</p>
           </div>
-          <div class="col-md-3 styleguide__content__block__color">
+          <div class="col-md-3 col-6 styleguide__content__block__color">
             <div class="styleguide__content__block__color--light-gray">
             </div>
             <p>#f2f2f2<br>$light-gray</p>
           </div>
-          <div class="col-md-3 styleguide__content__block__color">
+          <div class="col-md-3 col-6 styleguide__content__block__color">
             <div class="styleguide__content__block__color--gray">
             </div>
             <p>#D3D1D0<br>$gray</p>
           </div>
         </div>
         <div class="row">
-          <div class="col-md-3 styleguide__content__block__color">
+          <div class="col-md-3 col-6 styleguide__content__block__color">
             <div class="styleguide__content__block__color--darken-gray">
             </div>
             <p>#bab7b6<br>$darken-gray</p>
           </div>
-          <div class="col-md-3 styleguide__content__block__color">
+          <div class="col-md-3 col-6 styleguide__content__block__color">
             <div class="styleguide__content__block__color--skull-gray">
             </div>
             <p>#828282<br>$skull-gray</p>
           </div>
-          <div class="col-md-3 styleguide__content__block__color">
+          <div class="col-md-3 col-6 styleguide__content__block__color">
             <div class="styleguide__content__block__color--blue">
             </div>
             <p>#26A5D4<br>$blue</p>
           </div>
-          <div class="col-md-3 styleguide__content__block__color">
+          <div class="col-md-3 col-6 styleguide__content__block__color">
             <div class="styleguide__content__block__color--darken-blue">
             </div>
             <p>#1e83a9<br>$darken-blue</p>
           </div>
         </div>
         <div class="row">
-          <div class="col-md-3 styleguide__content__block__color">
+          <div class="col-md-3 col-6 styleguide__content__block__color">
             <div class="styleguide__content__block__color--red">
             </div>
             <p>#EB5757<br>$red</p>
           </div>
-          <div class="col-md-3 styleguide__content__block__color">
+          <div class="col-md-3 col-6 styleguide__content__block__color">
             <div class="styleguide__content__block__color--dark-red">
             </div>
             <p>#c53636<br>$dark-red</p>
           </div>
-          <div class="col-md-3 styleguide__content__block__color">
+          <div class="col-md-3 col-6 styleguide__content__block__color">
             <div class="styleguide__content__block__color--green">
             </div>
             <p>#27AE60<br>$green</p>
           </div>
-          <div class="col-md-3 styleguide__content__block__color">
+          <div class="col-md-3 col-6 styleguide__content__block__color">
             <div class="styleguide__content__block__color--beige">
             </div>
             <p>#FFFAEC<br>$beige</p>
@@ -141,7 +126,7 @@
         <h3 class="styleguide__content__block__title">{% trans "Grid" context "Grid title in style guide" %}</h3>
         <p>
           {% blocktrans context "bootstrap grid description in style guide" %}
-          We use <a href="https://v4-alpha.getbootstrap.com/getting-started/introduction/">Bootstrap 4</a> responsive grid which is based on a 12 column layout. In most cases we use following combinations:
+            We use <a href="https://v4-alpha.getbootstrap.com/getting-started/introduction/">Bootstrap 4</a> responsive grid which is based on a 12 column layout. In most cases we use following combinations:
           {% endblocktrans %}
         </p>
         <div class="row styleguide__content__block__grid">
@@ -295,7 +280,7 @@
               <div class="form-group">
                 <input class="form-control" id="id_discount-voucher" name="discount-voucher" title="" type="text" required="">
               </div>
-              <button class="btn secondary narrow" type="submit">{% trans "Use" context "Checkout voucher form action" as use_voucher %}</button>
+              <button class="btn secondary narrow" type="submit">{% trans "Use" context "Checkout voucher form action" %}</button>
             </form>
           </div>
         </div>
@@ -351,12 +336,12 @@
         <nav class="navigation">
           <ul class="nav navbar-nav{% if request.get_full_path == home_url %} no-border{% endif %}" >
             {% for category in categories %}
-            {% url 'home' as home_url %}
-            <li class="nav-item">
-              <a class="nav-link" href="{{ category.get_absolute_url }}">
-                {{ category }}
-              </a>
-            </li>
+              {% url 'home' as home_url %}
+              <li class="nav-item">
+                <a class="nav-link" href="{{ category.get_absolute_url }}">
+                  {{ category }}
+                </a>
+              </li>
             {% endfor %}
           </ul>
         </nav>
@@ -450,12 +435,12 @@
             <div class="card card-block">
               <div class="address-details">
                 {% blocktrans context "Adress example in style guide" %}
-                <p>Mr. Walter C. Brown<br>
-                  49 Featherstone Street<br>
-                  London, EC1Y 8SY
-                  <br>
-                  United Kingdom<br>
-                </p>
+                  <p>Mr. Walter C. Brown<br>
+                    49 Featherstone Street<br>
+                    London, EC1Y 8SY
+                    <br>
+                    United Kingdom<br>
+                  </p>
                 {% endblocktrans %}
               </div>
               <ul class="icons">
@@ -467,7 +452,7 @@
                   <button type="submit" class="btn danger narrow float-right">
                     {% trans "Delete Address" context "Delete address form action" %}
                   </button>
-                  <a class="btn btn-link cancel float-right">
+                  <a class="btn btn-link cancel float-md-right">
                     {% trans "Cancel" context "Delete address form action" %}
                   </a>
                 </form>
@@ -482,6 +467,3 @@
   
   {% block footer %}
   {% endblock %}
-  
-  
-  {% load i18n %}
