@@ -31,6 +31,9 @@
   }
 
   .dz-preview {
+    &.dz-image-preview {
+      background: none;
+    }
     .dz-progress {
       border: 0;
       border-radius: 0;
@@ -52,6 +55,13 @@
       .dz-progress {
         height: 0;
       }
+    }
+  }
+
+  &-message {
+    span {
+      font-size: 1.7rem;
+      text-transform: uppercase;
     }
   }
 

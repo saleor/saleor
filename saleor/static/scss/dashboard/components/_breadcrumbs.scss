@@ -5,6 +5,7 @@
   line-height: $subheader-height;
   white-space: nowrap;
   margin-bottom: 0;
+  margin-top: 0;
   @media (max-width: $medium-screen) {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -93,5 +94,4 @@
 
 .breadcrumbs {
   @include breadcrumbs;
-  margin-top: 0;
 }

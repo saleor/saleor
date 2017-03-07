@@ -14,24 +14,6 @@ h6 {
   font-size: 13px;
 }
 
-.page-title {
-  display: block;
-  font-size: $h5-fontsize;
-  line-height: $header-height;
-
-  @media (max-width: $medium-screen) {
-    float: right;
-    width: calc(100% - 38px - 1.5rem);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-.pagination li.disabled span {
-  color: #999;
-}
-
 .no-margin {
   margin: 0;
 }
@@ -102,20 +84,6 @@ h6 {
   @extend .grey-text;
   font-size: 12px;
   font-weight: normal;
-}
-
-.dropzone {
-  .dz-preview {
-    &.dz-image-preview {
-      background: none;
-    }
-  }
-  &-message {
-    span {
-      font-size: 1.7rem;
-      text-transform: uppercase;
-    }
-  }
 }
 
 .help-box {
