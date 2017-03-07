@@ -214,17 +214,6 @@
             </div>
           </div>    
         </div>
-        <div class="row">
-          <div class="col-12">
-            <div class="form-group">
-              <label class="control-label" for="id_first_name">{% trans "Email" context "Form label in style guide" %}</label>
-              <input autocomplete="given-name" class="form-control" id="id_first_name" maxlength="256" name="first_name" title="" type="text">
-              <span class="help-block">
-                <div class="help-block">{% trans "This field is required" context "Text form error message example in style guide" %}.</div>
-              </span>
-            </div>
-          </div>
-        </div>
         <hr>
         <div class="row">
           <div class="col-md-4">
@@ -290,6 +279,39 @@
           <label class="btn btn-secondary variant-picker__option"><input type="radio" name="4" value="on">100g</label>
           <label class="btn btn-secondary variant-picker__option" aria-pressed="true"><input type="radio" name="5" value="on">250g</label>
           <label class="btn btn-secondary variant-picker__option active" aria-pressed="true"><input type="radio" name="6" value="on" checked="">500g</label>
+        </div>
+        <hr>
+        <p>{% trans "Errors" context "Errors forms example in style guide" %}:</p>
+        <p>Errors are always displayed as a small red text below the form explaining what cause the error.</p>
+        <div class="row">
+          <div class="col-12">
+            <div class="form-group">
+              <label class="control-label" for="id_first_name">{% trans "Email" context "Form label in style guide" %}</label>
+              <input autocomplete="given-name" class="form-control" id="id_first_name" maxlength="256" name="first_name" title="" type="text">
+              <span class="help-block">
+                <div class="help-block">{% trans "This field is required" context "Text form error message example in style guide" %}.</div>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-6">
+          <p>{% trans "Quantity" context "Number input label in style guide" %}</p>
+            <form role="form" class="form-cart form-group">
+              <div class="" tabindex="-1">
+                <input id="id_quantity" max="50" min="1" name="quantity" type="number" value="52" required="">
+              </div>
+            </form>
+            <span class="help-block">
+              <div class="help-block">{% trans "Only 32 remaining in stock." context "Quantity input error message example in style guide" %}.</div>
+            </span>
+          </div>
+          <div class="col-6">
+            {% bootstrap_form shipping_method_form show_label=True %}
+            <span class="help-block">
+              <div class="help-block">{% trans "This field is required" context "Text form error message example in style guide" %}.</div>
+            </span>
+          </div>
         </div>
       </div>
       <div id="pagination" class="styleguide__content__block">
