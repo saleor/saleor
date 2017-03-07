@@ -23,70 +23,229 @@
     <div class="row">
       <div class="col m9 styleguide__content">
         <div id="typography" class="styleguide__content__block">
-          <h3>Typography</h3>
+          <h3 class="styleguide__content__block--title">Typography</h3>
           <div class="card">
             <div class="card-content">
-              <h1>H1 example text</h1>
-              <h2>H2 example text</h2>
-              <h3>H3 example text</h3>
-              <h4>H4 example text</h4>
-              <h5>H5 example text</h5>
-              <p>Lorem ipsum dolor sit amet mauris. Etiam sapien quis justo. Maecenas consequat, orci quis blandit ultrices posuere vitae, mollis nunc tempus euismod. Vestibulum ante eget odio. Nam pellentesque ut, turpis. Nam sed est id aliquet elit metus, quis nibh. Morbi augue imperdiet wisi.</p>
-              <a href="#">Link example text</a>
+              <div class="section">
+                <h1>H1 example text</h1>
+                <h2>H2 example text</h2>
+                <h3>H3 example text</h3>
+                <h4>H4 example text</h4>
+                <h5>H5 example text</h5>
+              </div>
+              <div class="section">
+                <p>Lorem ipsum dolor sit amet mauris. Etiam sapien quis justo. Maecenas consequat, orci quis blandit ultrices posuere vitae, mollis nunc tempus euismod. Vestibulum ante eget odio. Nam pellentesque ut, turpis. Nam sed est id aliquet elit metus, quis nibh. Morbi augue imperdiet wisi.</p>
+              </div>
+              <div class="section">
+                <a href="#">Link example text</a>
+              </div>
             </div>
           </div>
         </div>
         <div id="colors" class="styleguide__content__block">
-          <h3>Colors</h3>
+          <h3 class="styleguide__content__block--title">Colors</h3>
+          <div class="row">
+            <div class="col m3">
+              <div class="card">
+                <div class="card-color primary-color" ></div>
+                <div class="card-content">
+                  <p class="center-align">$primary-color</p>
+                </div>
+              </div>
+            </div>
+            <div class="col m3">
+              <div class="card">
+                <div class="card-color primary-color-light" ></div>
+                <div class="card-content">
+                  <p class="center-align">$primary-color-light</p>
+                </div>
+              </div>
+            </div>
+            <div class="col m3">
+              <div class="card">
+                <div class="card-color secondary-color" ></div>
+                <div class="card-content">
+                  <p class="center-align">$secondary-color</p>
+                </div>
+              </div>
+            </div>
+          </div> 
         </div>
         <div id="buttons" class="styleguide__content__block">
-          <h3>Buttons</h3>
+          <h3 class="styleguide__content__block--title">Buttons</h3>
           <div class="card">
             <div class="card-content">
-              <a href="#" class="btn btn-flat primary">Primary</a>
-              <a href="#" class="btn btn-flat">Secondary</a>
+              <div class="row section">
+                <div class="col m4">
+                  <a href="#" class="btn waves-effect waves-light">Primary</a>
+                </div>
+                 <div class="col m4">
+                  <a href="#" class="btn btn-flat">Secondary</a>
+                </div>
+                <div class="col m4">
+                  <a href="#" class="btn btn-floating btn-large waves-effect waves-light">
+                    <i class="material-icons">add</i>
+                  </a>
+                </div>
+              </div>
+              <div class="row section">
+                <div class="col m4">
+                  <a href="#" class="btn waves-effect waves-light disabled">Primary disabled</a>
+                </div>
+                <div class="col m4">
+                  <a href="#" class="btn btn-flat disabled">Secondary disabled</a>
+                </div>
+                <div class="col m4">
+                  <a href="#" class="btn btn-floating btn-large waves-effect waves-light disabled">
+                    <i class="material-icons">add</i>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
         <div id="grid" class="styleguide__content__block">
-          <h3>Grid</h3>
+          <h3 class="styleguide__content__block--title">Grid</h3>
           <div class="row">
-            <div class="col m12 card"><p>col m12</p></div>
+            <div class="col m12">
+              <div class="card">
+                <div class="card-content">
+                  <p>col m12</p>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="row">
-            <div class="col m6 card"><p>col m6</p></div>
-            <div class="col m6 card"><p>col m6</p></div>
+            <div class="col m6">
+              <div class="card">
+                <div class="card-content">
+                  <p>col m6</p>
+                </div>
+              </div>
+            </div>
+            <div class="col m6">
+              <div class="card">
+                <div class="card-content">
+                  <p>col m6</p>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="row">
-            <div class="col m3 card"><p>col m3</p></div>
-            <div class="col m9 card"><p>col m9</p></div>
+            <div class="col m3">
+              <div class="card">
+                <div class="card-content">
+                  <p>col m3</p>
+                </div>
+              </div>
+            </div>
+            <div class="col m9">
+              <div class="card">
+                <div class="card-content">
+                  <p>col m9</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div id="forms" class="styleguide__content__block">
-          <h3>Forms</h3>
+          <h3 class="styleguide__content__block--title">Forms</h3>
           <div class="card">
             <div class="card-content">
-              <div class="input input-field">
-                <label class="active" for="id_name">Name</label>
-                <input id="id_name" maxlength="128" name="name" placeholder="Give your awesome product a name" type="text" value="Lucas, Martinez and Chaney" required="">
+              <div class="section">
+                <h4>Input</h4>
+                <div class="input input-field">
+                  <label class="active" for="id_name">Name</label>
+                  <input id="id_name" maxlength="128" name="name" placeholder="Give your awesome product a name" type="text" value="Lucas, Martinez and Chaney" required="">
+                </div>
               </div>
-              <div class="input input-field">
-                <label class="active" for="id_attribute-coffee-genre">Coffee Genre (optional)</label>
-                <select class=" initialized" id="id_attribute-coffee-genre" name="attribute-coffee-genre">
-                  <option value="">---------</option>
-                  <option value="2">Arabica</option>
-                  <option value="3" selected="selected">Robusta</option>
-                </select>
+              <div class="section">
+                <h4>Datepicker</h4>
+                <div class="input input-field">
+                  <label class="active" for="id_name">Date</label>
+                  <input id="id_name" class="datepicker" maxlength="128" name="name" type="text" value="7 March 2017" required="">
+                </div>
               </div>
-              <div class="input input-field">
-                <textarea id="id_description" class="materialize-textarea" name="description">Voluptatibus voluptate consectetur consectetur adipisci officia aliquid. Enim praesentium voluptatem sed nostrum nesciunt cupiditate deleniti numquam. Labore beatae enim impedit numquam maxime quae.</textarea>
-                <label class="active" for="id_description">Description</label>
+              <div class="section">
+                <h4>Select</h4>
+                <div class="input input-field">
+                  <label class="active" for="id_attribute-coffee-genre">Coffee Genre (optional)</label>
+                  <select class=" initialized" id="id_attribute-coffee-genre" name="attribute-coffee-genre">
+                    <option value="">---------</option>
+                    <option value="2">Arabica</option>
+                    <option value="3" selected="selected">Robusta</option>
+                  </select>
+                </div>
+              </div>
+              <div class="section">
+                <h4>Multiple Select</h4>
+                <div class="input input-field">
+                  <label class="active" for="id_attribute-coffee-genre">Coffee Genre (optional)</label>
+                  <select multiple class=" initialized" id="id_attribute-coffee-genre" name="attribute-coffee-genre">
+                    <option value="">---------</option>
+                    <option value="2">Arabica</option>
+                    <option value="3">Robusta</option>
+                  </select>
+                </div>
+              </div>
+              <div class="section">
+                <h4>Textarea</h4>
+                <div class="input input-field">
+                  <textarea id="id_description" class="materialize-textarea" name="description">Voluptatibus voluptate consectetur consectetur adipisci officia aliquid. Enim praesentium voluptatem sed nostrum nesciunt cupiditate deleniti numquam. Labore beatae enim impedit numquam maxime quae.</textarea>
+                  <label class="active" for="id_description">Description</label>
+                </div>
+              </div>
+              <div class="section">
+                <h4>Radio Buttons</h4>
+                <div class="input input-field">
+                  <p>
+                    <input name="group1" type="radio" id="test1" />
+                    <label for="test1">Radio 1</label>
+                  </p>
+                  <p>
+                    <input name="group1" type="radio" id="test2" />
+                    <label for="test2">Radio 2</label>
+                  </p>
+                  <p>
+                    <input name="group1" type="radio" id="test4" disabled="disabled" />
+                    <label for="test4">Disabled Radio</label>
+                  </p>
+                </div>
+              </div>
+              <div class="section">
+                <h4>Checkboxes</h4>
+                <div class="input input-field">
+                  <p>
+                    <input type="checkbox" class="filled-in" id="filled-in-box" />
+                    <label for="filled-in-box">Check</label>
+                  </p>
+                  <p>
+                    <input type="checkbox" class="filled-in" id="test7" checked="checked" disabled="disabled" />
+                    <label for="test7">Disabled Checked</label>
+                  </p>
+                  <p>
+                    <input type="checkbox" id="test8" disabled="disabled" />
+                    <label for="test8">Disabled</label>
+                  </p>
+                </div>
+              </div>
+              <div class="section">
+                <h4>File input</h4>
+                <div class="file-field input-field">
+                  <div class="btn">
+                    <span>File</span>
+                    <input type="file">
+                  </div>
+                  <div class="file-path-wrapper">
+                    <input class="file-path validate" type="text">
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
         <div id="tables" class="styleguide__content__block">
-          <h3>Tables</h3>
+          <h3 class="styleguide__content__block--title">Tables</h3>
           <div class="card">
             <div class="data-table-header">
               <span class="data-table-title">
@@ -138,58 +297,155 @@
                         299,06&nbsp;<span class="currency">USD</span>
                       </td>
                     </tr>
+                    <tr data-action-go="">
+                      <td>
+                        #11
+                      </td>
+                      <td>
+                        <span class="label label-default">PAYMENT PENDING</span>
+                      </td>
+                      <td>
+                        <span class="label label-default">Pre-authorized</span>
+                      </td>
+                      <td>
+                        frederick.shaw@example.com
+                      </td>
+                      <td>
+                        27 lutego 2017 05:43
+                      </td>
+                      <td class="right-align">
+                        299,06&nbsp;<span class="currency">USD</span>
+                      </td>
+                    </tr>
                 </tbody>
               </table>
             </div>
           </div>
         </div>
         <div id="lists" class="styleguide__content__block">
-          <h3>Lists</h3>
-          <ul class="collection list">
-            <li class="collection-item list-item">
-              <a class="list-item-name" href="#">
-                Groceries
-                <p class="list-item-desc">
-                  <span>
-                      Autem porro rem rem. Laudantium iure ipsam voluptates repellendus nulla esse blanditiis. Facere rerum occaecati adipisci porro quasi quibusdam. asdas as das das das das das
-                  </span>
-                </p>
-              </a>
-            </li>
-            <li class="collection-item list-item">
-              <a class="list-item-name" href="#">
-                Accessories
-                <p class="list-item-desc">
-                  <span>
-                      Consequuntur ducimus laborum qui ea mollitia. Illum cum itaque consequuntur temporibus officia dolore. Atque sed aspernatur eligendi.
-                  </span>
-                </p>
-              </a>
-            </li>
-            <li class="collection-item list-item">
-              <a class="list-item-name" href="#">
-                Apparel
-                <p class="list-item-desc">
-                  <span>
-                    Consequuntur officia enim est. Cum esse accusantium blanditiis quae modi inventore. Quia iusto veniam sed perferendis. 
-                  </span>
-                </p>
-              </a>
-            </li>
-            <li class="collection-item list-item">
-              <a class="list-item-name" href="#">
-                Books
-                <p class="list-item-desc">
-                  <span>
-                    Nemo at repellat praesentium consequuntur at. Velit repellat accusamus corporis consequatur. Possimus error optio a nam officia laudantium. Nulla est iusto laboriosam laboriosam laborum.
-                  </span>
-                </p>
-              </a>
-            </li>
-          </ul>
+          <h3 class="styleguide__content__block--title">Lists</h3>
+          <div class="section">
+            <h4>1 line list</h4>
+            <ul class="collection list">
+              <li class="collection-item list-item">
+                <a class="list-item-name" href="#">
+                  <p class="list-item-name--single">Groceries</p>
+                </a>
+              </li>
+              <li class="collection-item list-item">
+                <a class="list-item-name" href="#">
+                  <p class="list-item-name--single">Accessories</p>
+                </a>
+              </li>
+              <li class="collection-item list-item">
+                <a class="list-item-name" href="#">
+                  <p class="list-item-name--single">Apparel</p>
+                </a>
+              </li>
+              <li class="collection-item list-item">
+                <a class="list-item-name" href="#">
+                  <p class="list-item-name--single">Books</p>
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div class="section">
+            <h4>2 line list</h4>
+            <ul class="collection list">
+              <li class="collection-item list-item">
+                <a class="list-item-name" href="#">
+                  Groceries
+                  <p class="list-item-desc">
+                    <span>
+                        Autem porro rem rem. Laudantium iure ipsam voluptates repellendus nulla esse blanditiis. Facere rerum occaecati adipisci porro quasi quibusdam. asdas as das das das das das
+                    </span>
+                  </p>
+                </a>
+              </li>
+              <li class="collection-item list-item">
+                <a class="list-item-name" href="#">
+                  Accessories
+                  <p class="list-item-desc">
+                    <span>
+                        Consequuntur ducimus laborum qui ea mollitia. Illum cum itaque consequuntur temporibus officia dolore. Atque sed aspernatur eligendi.
+                    </span>
+                  </p>
+                </a>
+              </li>
+              <li class="collection-item list-item">
+                <a class="list-item-name" href="#">
+                  Apparel
+                  <p class="list-item-desc">
+                    <span>
+                      Consequuntur officia enim est. Cum esse accusantium blanditiis quae modi inventore. Quia iusto veniam sed perferendis. 
+                    </span>
+                  </p>
+                </a>
+              </li>
+              <li class="collection-item list-item">
+                <a class="list-item-name" href="#">
+                  Books
+                  <p class="list-item-desc">
+                    <span>
+                      Nemo at repellat praesentium consequuntur at. Velit repellat accusamus corporis consequatur. Possimus error optio a nam officia laudantium. Nulla est iusto laboriosam laboriosam laborum.
+                    </span>
+                  </p>
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div class="section">
+            <h4>List with avatar</h4>
+              <ul class="collection list">
+                <li class="collection-item avatar list-item">
+                  <a href="#">
+                    <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
+                    <span class="title list-item-name">
+                      Miller-Hill
+                    </span>
+                    <p class="list-item-price">
+                      31,40&nbsp<span class="currency">USD</span>
+                    </p>
+                  </a>
+                </li>
+                <li class="collection-item avatar list-item">
+                  <a href="#">
+                    <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
+                    <span class="title list-item-name">
+                      Schmidt and Sons
+                    </span>
+                    <p class="list-item-price">
+                      11,40&nbsp<span class="currency">USD</span>
+                    </p>
+                  </a>
+                </li>
+                <li class="collection-item avatar list-item">
+                  <a href="#">
+                    <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
+                    <span class="title list-item-name">
+                      Ramirez PLC
+                    </span>
+                    <p class="list-item-price">
+                      25,40&nbsp<span class="currency">USD</span>
+                    </p>
+                  </a>
+                </li>
+                <li class="collection-item avatar list-item">
+                  <a href="#">
+                    <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
+                    <span class="title list-item-name">
+                      Foster-Brown
+                    </span>
+                    <p class="list-item-price">
+                      66,40&nbsp<span class="currency">USD</span>
+                    </p>
+                  </a>
+                </li>
+              </ul>
+          </div>
         </div>
         <div id="cards" class="styleguide__content__block">
-          <h3>Cards</h3>
+          <h3 class="styleguide__content__block--title">Cards</h3>
           <div class="row">
             <div class="col m6">
               <div class="card">
@@ -217,7 +473,7 @@
           </div>
         </div>  
         <div id="modals" class="styleguide__content__block">
-          <h3>Modals</h3>
+          <h3 class="styleguide__content__block--title">Modals</h3>
           <div class="card">
             <div class="card-content">
               <a class="waves-effect waves-light btn" href="#modal1">Modal</a>
@@ -234,7 +490,7 @@
           </div>
         </div>
         <div id="pagination" class="styleguide__content__block">
-          <h3>Pagination</h3>
+          <h3 class="styleguide__content__block--title">Pagination</h3>
           <ul class="pagination">
             <li class="disabled">
               <a href="#!">
@@ -242,17 +498,57 @@
               </a>
             </li>
             <li class="active">
-              <a href="?page=1">
+              <a href="">
                 1
               </a>
             </li>
             <li class="waves-effect">
-              <a href="?page=2">
+              <a href="">
                 2
               </a>
             </li>
+            <li class="waves-effect">
+              <a href="">
+                3
+              </a>
+            </li>
+            <li class="waves-effect">
+              <a href="">
+                4
+              </a>
+            </li>
+            <li class="waves-effect">
+              <a href="">
+                5
+              </a>
+            </li>
+            <li class="waves-effect">
+              <a href="">
+                6
+              </a>
+            </li>
+            <li class="waves-effect">
+              <a href="">
+                7
+              </a>
+            </li>
+            <li class="waves-effect">
+              <a href="">
+                8
+              </a>
+            </li>
+            <li class="waves-effect">
+              <a href="">
+                9
+              </a>
+            </li>
+            <li class="waves-effect">
+              <a href="">
+                10
+              </a>
+            </li>
             <li>
-              <a href="?page=2">
+              <a href="">
                 <i class="material-icons">chevron_right</i>
               </a>
             </li>
@@ -261,16 +557,16 @@
       </div>
       <div class="col m3 styleguide__menu">
         <ul>
-          <li><a href="#">Typography</a></li>
-          <li><a href="#">Colors</a></li>
-          <li><a href="#">Buttons</a></li>
-          <li><a href="#">Grid</a></li>
-          <li><a href="#">Forms</a></li>
-          <li><a href="#">Tables</a></li>
-          <li><a href="#">Lists</a></li>
-          <li><a href="#">Cards</a></li>
-          <li><a href="#">Modals</a></li>
-          <li><a href="#">Pagination</a></li>
+          <li><a href="#typography">Typography</a></li>
+          <li><a href="#colors">Colors</a></li>
+          <li><a href="#buttons">Buttons</a></li>
+          <li><a href="#grid">Grid</a></li>
+          <li><a href="#forms">Forms</a></li>
+          <li><a href="#tables">Tables</a></li>
+          <li><a href="#lists">Lists</a></li>
+          <li><a href="#cards">Cards</a></li>
+          <li><a href="#modals">Modals</a></li>
+          <li><a href="#pagination">Pagination</a></li>
         </ul>
       </div>
     </div>

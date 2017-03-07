@@ -1,5 +1,54 @@
 .styleguide {
-  td,th {
-    padding: 15px 5px;
+  &__menu {
+    position: relative;
+    ul {
+      li {
+        padding: 5px 20px;
+        a {
+          color: $sidenav-font-color;
+          &:hover {
+            color: darken($sidenav-font-color, 20%);
+            font-weight: 700;
+          }
+        }
+      }
+    }
+  }
+  &__content {
+    &__block {
+      &--title {
+        color: color("grey", "base");
+        text-transform: uppercase;
+        font-size: 1.5rem;
+      }
+      .card {
+        &-color {
+          height: 5rem;
+          &.primary-color {
+            background: $primary-color;
+          }
+          &.primary-color-light {
+            background: $primary-color-light;
+          }
+          &.secondary-color {
+            background: $secondary-color;
+          }
+        }
+      }
+      .section {
+        h4 {
+          color: $off-black;
+          text-transform: uppercase;
+          font-size: 1.2rem;
+          font-weight: 700;
+          margin: 0;
+        }
+      }
+      .data-table {
+        td, th {
+          padding: 5px 10px;
+        }
+      }
+    }
   }
 }
