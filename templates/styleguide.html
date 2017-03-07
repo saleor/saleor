@@ -3,6 +3,8 @@
 {% load staticfiles %}
 {% load bootstrap_form from bootstrap3 %}
 
+{% block title %}{% trans "Style guide" context "Style guide page title" %} — {{ block.super }}{% endblock %}
+
 {% block header %}
 <div class="container navbar__login">
 </div>
@@ -26,7 +28,6 @@
         <a href="#typography">{% trans "Typography" context "Typography title in style guide" %}</a>
         <a href="#colors">{% trans "Colors" context "Colors title in style guide" %}</a>
         <a href="#grid">{% trans "Grid" context "Grid title in style guide" %}</a>
-        <a href="#icons">{% trans "Icons" context "Icons title in style guide" %}</a>
         <a href="#buttons">{% trans "Buttons" context "Buttons title in style guide" %}</a>
         <a href="#forms">{% trans "Forms" context "Forms title in style guide" %}</a>
         <a href="#pagination">{% trans "Pagination" context "Pagination title in style guide" %}</a>
@@ -388,7 +389,7 @@
           </li>
         </ul>
       </div>
-      <div id="table" class="styleguide__content__block">
+      <div id="tables" class="styleguide__content__block">
         <h3 class="styleguide__content__block__title">{% trans "Tables" context "Tables title in style guide" %}</h3>
         <div class="table__header">
           <div class="row">
