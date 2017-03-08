@@ -474,7 +474,9 @@ class OrderNote(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     date = models.DateTimeField(auto_now_add=True)
     order = models.ForeignKey(Order, related_name='notes')
-    content = models.CharField(max_length=250)
+    content = models.CharField(
+        pgettext_lazy('Order note model', 'content'),
+        max_length=250)
 
     class Meta:
         verbose_name = pgettext_lazy('Order note model', 'Order note')
