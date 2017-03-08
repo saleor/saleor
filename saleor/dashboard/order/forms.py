@@ -31,8 +31,10 @@ class OrderNoteForm(forms.ModelForm):
 
 
 class ManagePaymentForm(forms.Form):
-    amount = PriceField(max_digits=12, decimal_places=2,
-                        currency=settings.DEFAULT_CURRENCY)
+    amount = PriceField(
+        label=pgettext_lazy(
+            'Payment management form (capture, refund, release)', 'Amount'),
+        max_digits=12, decimal_places=2, currency=settings.DEFAULT_CURRENCY)
 
     def __init__(self, *args, **kwargs):
         self.payment = kwargs.pop('payment')
