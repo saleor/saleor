@@ -28,7 +28,7 @@
         <a href="#typography">{% trans "Typography" context "Typography title in style guide" %}</a>
         <a href="#colors">{% trans "Colors" context "Colors title in style guide" %}</a>
         <a href="#grid">{% trans "Grid" context "Grid title in style guide" %}</a>
-        <a href="#buttons">{% trans "Buttons" context "Buttons title in style guide" %}</a>
+        <a href="#s">{% trans "Buttons" context "Buttons title in style guide" %}</a>
         <a href="#forms">{% trans "Forms" context "Forms title in style guide" %}</a>
         <a href="#pagination">{% trans "Pagination" context "Pagination title in style guide" %}</a>
         <a href="#breadcrumbs">{% trans "Breadcrumbs" context "Breadcrumbs title in style guide" %}</a>
@@ -197,6 +197,9 @@
             </button>
           </div>
         </div>
+        <button class="btn primary disabled">
+          {% trans "Disabled" context "Disabled button example in styleguide" %}
+        </button>
       </div>
       <div id="forms" class="styleguide__content__block">
         <h3 class="styleguide__content__block__title">{% trans "Forms" context "Forms title in style guide" %}</h3>
@@ -236,13 +239,16 @@
         </div>
         <hr>
         <div class="row">
-          <div class="col-md-7">
+          <div class="col-12">
             <p>{% trans "Select" context "Select example in style guide" %}:</p>
             <div class="deliveryform">
               {{ country_form }}
             </div>
           </div>
-          <div class="col-md-3">
+        </div>
+        <hr>
+        <div class="row">
+          <div class="col-12">
             <p>{% trans "Number input" context "Number input example in style guide" %}:</p>
             <form role="form" class="form-cart">
               <div class="" tabindex="-1">

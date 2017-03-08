@@ -76,6 +76,11 @@
           margin: $global-margin / 2;
         }
       }
+      .deliveryform {
+        label, select {
+          float: left;
+        }
+      }
       .search-form {
         @include media-breakpoint-down(sm) {
           margin-bottom: $global-margin;
