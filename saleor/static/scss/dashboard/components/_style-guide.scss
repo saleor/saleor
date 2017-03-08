@@ -16,6 +16,9 @@
   }
   &__content {
     &__block {
+      .container {
+        margin-left: 0;
+      }
       &--title {
         color: $grey-color;
         text-transform: uppercase;

@@ -195,6 +195,45 @@
               </div>
             </div>
           </div>
+          <div class="row">
+            <div class="col m3">
+              <div class="card">
+                <div class="card-content">
+                  <p>col m3</p>
+                </div>
+              </div>
+            </div>
+            <div class="col m3">
+              <div class="card">
+                <div class="card-content">
+                  <p>col m3</p>
+                </div>
+              </div>
+            </div>
+            <div class="col m3">
+              <div class="card">
+                <div class="card-content">
+                  <p>col m3</p>
+                </div>
+              </div>
+            </div>
+            <div class="col m3">
+              <div class="card">
+                <div class="card-content">
+                  <p>col m3</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col m10 offset-m1">
+              <div class="card">
+                <div class="card-content">
+                  <p>col m10 offset-m1</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div id="forms" class="styleguide__content__block">
           <h3 class="styleguide__content__block--title">Forms</h3>
@@ -288,6 +327,99 @@
                     <input class="file-path validate" type="text">
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="breadcrumbs" class="styleguide__content__block">
+          <h3 class="styleguide__content__block--title">Breadcrumbs</h3>
+          <div class="subheader top-nav">
+            <div class="container">
+              <ul class="breadcrumbs breadcrumbs--history">
+                <li>
+                  <a class="breadcrumb">
+                    {% trans "Products" context "Product form breadcrumbs" %}
+                  </a>
+                </li>
+                <li class="back-mobile">
+                  <a>
+                    <i class="material-icons">arrow_back</i>
+                  </a>
+                </li>
+                <li>
+                  <span class="breadcrumbs--ellipsed-item">
+                    Lucas, Martinez and Chaney
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div id="tabs" class="styleguide__content__block">
+          <h3 class="styleguide__content__block--title">Tabs</h3>
+          <ul class="tabs">
+            <li class="tab col s3" role="presentation">
+              <a href="#details" class="active" role="tab">
+                <span>
+                  {% trans "Details" context "Product form tab" %}
+                </span>
+                <i class="material-icons">edit</i>
+              </a>
+            </li>
+            <li class="tab col s3" role="presentation">
+              <a href="#variants" role="tab">
+                <span>
+                  {% trans "Variants" context "Product form tab" %}
+                </span>
+                <i class="material-icons">style</i>
+              </a>
+            </li>
+            <li class="tab col s3" role="presentation">
+              <a href="#stock" role="tab">
+                <span>
+                  {% trans "Stock" context "Product form tab" %}
+                </span>
+                <i class="material-icons">store</i>
+              </a>
+            </li>
+            <li class="tab col s3" role="presentation">
+              <a href="#images" role="tab">
+                <span>
+                  {% trans "Images" context "Product form tab" %}
+                </span>
+                <i class="material-icons">collections</i>
+              </a>
+            </li>
+          </ul>
+          <div class="tab-content" id="details">
+            <div class="card">
+              <div class="card-content">
+                <span class="card-title">Details</span>
+                <p>Nemo at repellat praesentium consequuntur at. Velit repellat accusamus corporis consequatur. Possimus error optio a nam officia laudantium. Nulla est iusto laboriosam laboriosam laborum.</p>
+              </div>
+            </div>
+          </div>
+          <div class="tab-content" id="variants">
+            <div class="card">
+              <div class="card-content">
+                <span class="card-title">Variants</span>
+                <p>Nemo at repellat praesentium consequuntur at. Velit repellat accusamus corporis consequatur. Possimus error optio a nam officia laudantium. Nulla est iusto laboriosam laboriosam laborum.</p>
+              </div>
+            </div>
+          </div>
+          <div class="tab-content" id="stock">
+            <div class="card">
+              <div class="card-content">
+                <span class="card-title">Stock</span>
+                <p>Nemo at repellat praesentium consequuntur at. Velit repellat accusamus corporis consequatur. Possimus error optio a nam officia laudantium. Nulla est iusto laboriosam laboriosam laborum.</p>
+              </div>
+            </div>
+          </div>
+          <div class="tab-content" id="images">
+            <div class="card">
+              <div class="card-content">
+                <span class="card-title">Images</span>
+                <p>Nemo at repellat praesentium consequuntur at. Velit repellat accusamus corporis consequatur. Possimus error optio a nam officia laudantium. Nulla est iusto laboriosam laboriosam laborum.</p>
               </div>
             </div>
           </div>
@@ -610,6 +742,8 @@
           <li><a href="#buttons">Buttons</a></li>
           <li><a href="#grid">Grid</a></li>
           <li><a href="#forms">Forms</a></li>
+          <li><a href="#breadcrumbs">Breadcrumbs</a></li>
+          <li><a href="#tabs">Tabs</a></li>
           <li><a href="#tables">Tables</a></li>
           <li><a href="#lists">Lists</a></li>
           <li><a href="#cards">Cards</a></li>

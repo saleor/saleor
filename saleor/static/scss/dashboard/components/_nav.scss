@@ -221,17 +221,7 @@ body.nav-toggled {
   }
   .subheader {
     .container {
-      @media (min-width: $medium-screen) {
-        margin-left: 0;
-      }
-      @media (min-width: $large-screen) {
-        margin-left: 0;
-      }
-      .breadcrumbs {
-        @media (min-width: $medium-screen) {
-          margin-left: 0;
-        }
-      }
+      margin-left: 0;
     }
   }
   .main {
