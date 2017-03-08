@@ -13,14 +13,53 @@ class ReleaseItem extends Component {
     const { release } = this.props;
     let data = {
       "@context": "http://schema.org/",
-      "@type": "Release",
+      "@type": "MusicAlbum",
       "name": release.title,
+      "description": release.artistFirstName + ' ' + release.artistLastName,
+      "url": release.url,
       "image": release.thumbnailUrl,
-      // "offers": {
-      //   "@type": "Offer",
-      //   "priceCurrency": product.price.currency,
-      //   "price": product.price.net,
-      // }
+      "potentialAction": {
+        "@type": "ListenAction",
+        "target": [
+          {
+            "@type": "EntryPoint",
+            "urlTemplate": release.url + "?autoplay=true",
+            "actionPlatform": [
+              "http://schema.org/DesktopWebPlatform",
+              "http://schema.org/IOSPlatform",
+              "http://schema.org/AndroidPlatform"
+            ],
+            "InLanguage": "English"
+          }
+        ],
+        "expectsAcceptanceOf": {
+          "@type": "Offer",
+          "priceCurrency": release.price.currency,
+          "price": release.price.gross,
+          "eligibleRegion": [
+            {
+              "@type": "Country",
+              "name": "DE"
+            },
+            {
+              "@type": "Country",
+              "name": "AT",
+            },
+            {
+              "@type": "Country",
+              "name": "CH",
+            },
+            {
+              "@type": "Country",
+              "name": "FR",
+            },
+            {
+              "@type": "Country",
+              "name": "GB",
+            }
+          ]
+        },
+      },
     };
     return JSON.stringify(data);
   };
@@ -29,7 +68,7 @@ class ReleaseItem extends Component {
     const { release } = this.props;
     let productSchema = this.getSchema();
     return (
-      <div className="col-6 col-md-2 product-list">
+      <div className="col-12 col-sm-4 col-md-3 col-lg-2 product-list">
         <script type="application/ld+json">{productSchema}</script>
         <a href={release.url}>
           <div className="text-center">

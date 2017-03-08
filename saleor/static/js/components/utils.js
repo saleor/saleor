@@ -12,9 +12,11 @@ export const isTablet = () => {
 }
 
 export const getReleaseListColumnNumber = () => {
-  if (isMobile()) {
+  if (window.innerWidth < xsBreakpoint) {
     return 1
-  } else if (isTablet()) {
+  } else if (window.innerWidth < smBreakpoint) {
+    return 3
+  } else if (window.innerWidth < mdBreakpoint) {
     return 4
   } else {
     return 6

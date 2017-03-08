@@ -4,6 +4,8 @@ from django.core.paginator import Paginator, InvalidPage
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import render
+from saleor_oye.utils import releases_with_details
+
 from .forms import SearchForm
 from ..product.utils import products_with_details, products_with_availability
 
@@ -21,8 +23,10 @@ def paginate_results(results, get_data, paginate_by=25):
 def search(request):
     form = SearchForm(data=request.GET or None)
     if form.is_valid():
-        visible_products = products_with_details(request.user)
-        results = form.search(model_or_queryset=visible_products)
+        visible_releases = releases_with_details(request.user)
+        results = form.search(model_or_queryset=visible_releases)
+        # visible_products = products_with_details(request.user)
+        # results = form.search(model_or_queryset=visible_products)
         results = products_with_availability(
             results, discounts=request.discounts,
             local_currency=request.currency)
