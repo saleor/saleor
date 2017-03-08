@@ -5,6 +5,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.utils.encoding import smart_text
 from django_prices.templatetags import prices_i18n
 
+# from saleor.product.models import ProductVariant
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
 from .forms import ProductForm
@@ -58,6 +59,12 @@ def products_with_availability(products, discounts, local_currency):
         yield product, get_availability(product, discounts, local_currency)
 
 
+def product_variants_with_availability(variants, discounts, local_currency):
+    for variant in variants:
+        # variant or variant product
+        yield variant.product, get_variant_availability(variant, discounts, local_currency)
+
+
 ProductAvailability = namedtuple(
     'ProductAvailability', (
         'available', 'price_range', 'price_range_undiscounted', 'discount',
@@ -98,6 +105,46 @@ def get_availability(product, discounts=None, local_currency=None):
         discount=discount,
         price_range_local_currency=price_range_local,
         discount_local_currency=discount_local_currency)
+
+
+def get_variant_availability(variant, discounts=None, local_currency=None):
+    product = variant.product
+    # In default currency
+    # change price range to one variant
+    price_range = product.get_price_range(discounts=discounts)
+    undiscounted = product.get_price_range()
+    if undiscounted.min_price > price_range.min_price:
+        discount = undiscounted.min_price - price_range.min_price
+    else:
+        discount = None
+
+    # Local currency
+    if local_currency:
+        price_range_local = to_local_currency(
+            price_range, local_currency)
+        undiscounted_local = to_local_currency(
+            undiscounted, local_currency)
+        if (undiscounted_local and
+                undiscounted_local.min_price > price_range_local.min_price):
+            discount_local_currency = (
+                undiscounted_local.min_price - price_range_local.min_price)
+        else:
+            discount_local_currency = None
+    else:
+        price_range_local = None
+        discount_local_currency = None
+
+    # change to variant
+    is_available = product.is_in_stock() and product.is_available()
+
+    return ProductAvailability(
+        available=is_available,
+        price_range=price_range,
+        price_range_undiscounted=undiscounted,
+        discount=discount,
+        price_range_local_currency=price_range_local,
+        discount_local_currency=discount_local_currency)
+
 
 
 def handle_cart_form(request, product, create_cart=False):
@@ -230,18 +277,36 @@ def price_range_as_dict(price_range):
 
 
 def get_variant_url_from_product(product, attributes):
+    # type: (Product, dict) -> str
+    """Generate url for exact variant from product and attributes dict
+
+    Attributes:
+    product -- Product instance
+    attributes -- Dict with variant attributes with keys and values as pk
+    """
+    attributes = attributes_dict_with_slugs(product, attributes)
     return '%s?%s' % (product.get_absolute_url(), urlencode(attributes))
 
 
 def get_variant_url(variant):
-    attributes = {}
-    values = {}
-    for attribute in variant.product.product_class.variant_attributes.all():
-        attributes[str(attribute.pk)] = attribute
-        for value in attribute.values.all():
-            values[str(value.pk)] = value
+    # type: (ProductVariant) -> str
+    return get_variant_url_from_product(variant.product, variant.attributes)
 
-    return get_variant_url_from_product(variant.product, attributes)
+
+def attributes_dict_with_slugs(product, variant_attributes):
+    # type: (Product, dict) -> dict
+    """Returns variant_attributes dict with object pk changed into object
+    slugs"""
+    attributes = {}
+    for attribute in product.product_class.variant_attributes.all():
+        attr_pk = smart_text(attribute.pk)
+        if attr_pk in variant_attributes.keys():
+            value_pk = variant_attributes[attr_pk]
+            for value in attribute.values.all():
+                if smart_text(value.pk) == value_pk:
+                    attributes[attribute.name] = value.slug
+                    continue
+    return attributes
 
 
 def get_attributes_display_map(obj, attributes):

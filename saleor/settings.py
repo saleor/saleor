@@ -65,6 +65,8 @@ EMAIL_USE_SSL = email_config['EMAIL_USE_SSL']
 
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 ORDER_FROM_EMAIL = os.getenv('ORDER_FROM_EMAIL', DEFAULT_FROM_EMAIL)
+NOTIFICATION_FROM_EMAIL = os.getenv('NOTIFICATION_FROM_EMAIL',
+                                    DEFAULT_FROM_EMAIL)
 
 
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media')
@@ -161,6 +163,7 @@ INSTALLED_APPS = [
     'saleor.search',
     'saleor.site',
     'saleor.data_feeds',
+    'saleor.wishlist',
 
     # External apps
     'versatileimagefield',

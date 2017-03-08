@@ -12,6 +12,7 @@ import passwordVisible from '../images/pass-visible.svg';
 import VariantPicker from './components/variantPicker/VariantPicker';
 import VariantPrice from './components/variantPicker/VariantPrice';
 import ProductSchema from './components/variantPicker/ProductSchema';
+import WishlistButton from './components/wishlistButton';
 
 let csrftoken = $.cookie('csrftoken');
 
@@ -293,7 +294,22 @@ let $deleteAddress = $('.address-delete');
   $deleteAdressIcons.removeClass('none');
  });
 
+// Wishlist button
 
+const addToWishlistContainer = document.getElementById('add-to-wishlist');
+const variantSelector = document.getElementById('id_variant');
+
+if (addToWishlistContainer) {
+  ReactDOM.render(
+    <WishlistButton
+      product={addToWishlistContainer.dataset.product}
+      variantStore={variantPickerStore}
+      wishlistUrl={addToWishlistContainer.dataset.wishlisturl}
+      variantSelector={variantSelector}
+    />,
+    addToWishlistContainer
+  );
+}
 
 // Cart quantity form
 
@@ -364,4 +380,21 @@ if ($.cookie('alert') === 'true') {
 
 $closeMsg.on('click', (e) => {
   $removeProductSucces.addClass('hidden-xs-up');
+});
+
+// Delete modal
+
+$('.modal-trigger-custom').on('click', function (e) {
+  let that = this;
+  $.ajax({
+    url: $(this).data('href'),
+    method: 'get',
+    success: function (response) {
+      var $modal = $($(that).attr('href'));
+      $modal.html(response);
+      $modal.modal();
+    }
+  });
+
+  e.preventDefault();
 });

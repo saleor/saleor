@@ -48,6 +48,10 @@
                                   {% trans "Your account" context "Top navbar link text" %}</a>
                             </li>
                             <li>
+                              <a href="{% url "wishlist:user-wishlist" %}">
+                                  {% trans "Your wishlist" context "Top navbar link text" %}</a>
+                            </li>
+                            <li>
                               <a href="{% url "account_logout" %}">
                                   {% trans "Log out" context "Top navbar link text" %}</a>
                             </li>
@@ -189,10 +193,6 @@
                             <a href="{% url "profile:details" %}">
                               {% trans "Your account" context "Top navbar link" %}
                             </a>
-                          </li>
-                          <li>
-                            <a href="{% url "account_logout" %}">
-                                {% trans "Log out" context "Top navbar link" %}</a>
                           </li>
                         {% else %}
                           <li>

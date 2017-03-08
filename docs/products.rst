@@ -140,3 +140,14 @@ Max attack  ---
 Game item        Magic Fire Sword  $199     Kings Online      8000 damage             Unique sword for any fighter. Set your enemies in fire!
 Game item        Rapid Pistol      $2500    Target Shooter    250 damage              Fastest pistol in whole game.
 ===============  ================  =======  ================  ======================  =======================================================
+
+
+Wishlist
+========
+
+Every registered user can add variants to its own wishlist. Even if particular variant doesn't exist in the database (because of unique attributes combination).
+After a stock update, a command can be used to dispatch all waiting notifications:
+
+.. code-block:: bash
+
+    $ python manage.py wishlist_notifications

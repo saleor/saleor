@@ -120,6 +120,8 @@
               </div>
             </form>
           {% endif %}
+          <div id="add-to-wishlist" {% if user.is_authenticated %}data-wishlisturl="{% url 'wishlist:add-item' %}"{% endif %}
+               data-product="{{ product.pk }}"></div>
         {% endblock %}
         <div class="product__info__form-error">
           <small class="text-danger"></small>

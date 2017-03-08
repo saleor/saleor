@@ -56,8 +56,9 @@ def product_details(request, slug, product_id, form=None):
         product.available_on is None or product.available_on <= today)
     if form is None:
         form = handle_cart_form(request, product, create_cart=False)[0]
-    availability = get_availability(product, discounts=request.discounts,
-                                    local_currency=request.currency)
+    availability = get_availability(product,
+                                            discounts=request.discounts,
+                                            local_currency=request.currency)
     template_name = 'product/details_%s.html' % (
         type(product).__name__.lower(),)
     templates = [template_name, 'product/details.html']

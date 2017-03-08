@@ -18,11 +18,11 @@ export default class VariantPicker extends Component {
     url: PropTypes.string.isRequired,
     variantAttributes: PropTypes.array.isRequired,
     variants: PropTypes.array.isRequired
-  }
+  };
 
   constructor(props) {
     super(props);
-    const { variants } = this.props;
+    const { store, variants } = this.props;
 
     const variant = variants.filter(v => !!Object.keys(v.attributes).length)[0];
     const params = queryString.parse(location.search);
@@ -49,6 +49,7 @@ export default class VariantPicker extends Component {
       quantity: 1,
       selection: selection
     };
+    store.setSelection(selection);
     this.matchVariantFromSelection();
   }
 
@@ -71,12 +72,14 @@ export default class VariantPicker extends Component {
         }
       });
     }
-  }
+  };
 
   handleAttributeChange = (attrId, valueId) => {
+    const { store } = this.props;
     this.setState({
       selection: Object.assign({}, this.state.selection, { [attrId]: valueId })
     }, () => {
+      store.setSelection(this.state.selection);
       this.matchVariantFromSelection();
       let params = {};
       Object.keys(this.state.selection).forEach(attrId => {
@@ -88,11 +91,11 @@ export default class VariantPicker extends Component {
       });
       history.pushState(null, null, '?' + queryString.stringify(params));
     });
-  }
+  };
 
   handleQuantityChange = (event) => {
     this.setState({quantity: parseInt(event.target.value)});
-  }
+  };
 
   matchAttribute = (id) => {
     const { variantAttributes } = this.props;
