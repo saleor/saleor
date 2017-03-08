@@ -36,9 +36,6 @@
   &__register {
     padding: $global-padding * 2;
     &-link {
-      a {
-        max-width: 12rem;
-      }
       img {
         margin: $global-margin / 2 auto $global-margin * 0.9;
         display: block;
