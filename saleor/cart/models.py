@@ -15,6 +15,7 @@ from django_prices.models import PriceField
 from jsonfield import JSONField
 from satchless.item import ItemLine, ItemList, partition
 
+from django_extensions.db.decorators import modify_fields
 from . import CartStatus, logger
 
 
@@ -56,7 +57,7 @@ class CartQueryset(models.QuerySet):
             'lines__variant__stock')
 
 
-class Cart(models.Model):
+class AbstractCartModel(models.Model):
     status = models.CharField(
         pgettext_lazy('Cart field', 'order status'),
         max_length=32, choices=CartStatus.CHOICES, default=CartStatus.OPEN)
@@ -65,7 +66,7 @@ class Cart(models.Model):
     last_status_change = models.DateTimeField(
         pgettext_lazy('Cart field', 'last status change'), auto_now_add=True)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, blank=True, null=True, related_name='carts',
+        settings.AUTH_USER_MODEL, blank=True, null=True,  # related_name='carts',
         verbose_name=pgettext_lazy('Cart field', 'user'))
     email = models.EmailField(
         pgettext_lazy('Cart field', 'email'), blank=True, null=True)
@@ -87,16 +88,12 @@ class Cart(models.Model):
     quantity = models.PositiveIntegerField(
         pgettext_lazy('Cart field', 'quantity'), default=0)
 
-    objects = CartQueryset.as_manager()
-
     class Meta:
-        ordering = ('-last_status_change',)
-        verbose_name = pgettext_lazy('Cart model', 'Cart')
-        verbose_name_plural = pgettext_lazy('Cart model', 'Carts')
+        abstract = True
 
     def __init__(self, *args, **kwargs):
         self.discounts = kwargs.pop('discounts', None)
-        super(Cart, self).__init__(*args, **kwargs)
+        super(AbstractCartModel, self).__init__(*args, **kwargs)
 
     def update_quantity(self):
         total_lines = self.count()['total_quantity']
@@ -198,6 +195,21 @@ class Cart(models.Model):
         grouper = (
             lambda p: 'physical' if p.is_shipping_required() else 'digital')
         return partition(self.lines.all(), grouper, ProductGroup)
+
+    objects = CartQueryset.as_manager()
+
+
+@modify_fields(
+    user={
+        'related_name': 'carts',
+    }
+)
+class Cart(AbstractCartModel):
+
+    class Meta:
+        ordering = ('-last_status_change',)
+        verbose_name = pgettext_lazy('Cart model', 'Cart')
+        verbose_name_plural = pgettext_lazy('Cart model', 'Carts')
 
 
 @python_2_unicode_compatible

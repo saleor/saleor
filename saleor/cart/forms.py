@@ -79,7 +79,7 @@ class AddToCartForm(forms.Form):
     def save(self):
         """Adds the selected product variant and quantity to the cart"""
         product_variant = self.get_variant(self.cleaned_data)
-        return self.cart.add(variant=product_variant,
+        return self.cart.add(release=product_variant,
                              quantity=self.cleaned_data['quantity'])
 
     def get_variant(self, cleaned_data):
