@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-08 11:20+0100\n"
+"POT-Creation-Date: 2017-03-08 16:07+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -103,4 +103,196 @@ msgstr ""
 
 #: saleor/static/js/components/variantPicker/VariantPicker.js:161
 msgid "Add to cart"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:192
+msgid "Next month"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:193
+msgid "Previous month"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:196
+msgid "Select a month"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:197
+msgid "Select a year"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "January"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "February"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "March"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "April"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200 saleor/static/js/dashboard.js:201
+msgid "May"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "June"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "July"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "August"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "September"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "October"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "November"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "December"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:201
+msgid "Jan"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:201
+msgid "Feb"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:201
+msgid "Mar"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:201
+msgid "Apr"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:201
+msgid "Jun"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:201
+msgid "Jul"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:201
+msgid "Aug"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:201
+msgid "Sep"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:201
+msgid "Oct"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:201
+msgid "Nov"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:201
+msgid "Dec"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:202
+msgid "Sunday"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:202
+msgid "Monday"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:202
+msgid "Tuesday"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:202
+msgid "Wednesday"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:202
+msgid "Thursday"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:202
+msgid "Friday"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:202
+msgid "Saturday"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:203
+msgid "Sun"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:203
+msgid "Mon"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:203
+msgid "Tue"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:203
+msgid "Wed"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:203
+msgid "Thu"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:203
+msgid "Fri"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:203
+msgid "Sat"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:206
+msgid "S"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:206
+msgid "M"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:206
+msgid "T"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:206
+msgid "W"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:206
+msgid "F"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:207
+msgid "Today"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:208 saleor/static/js/dashboard.js:209
+msgid "Clear"
 msgstr ""
