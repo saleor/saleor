@@ -23,27 +23,47 @@
     <div class="row">
       <div class="col m9 styleguide__content">
         <div id="typography" class="styleguide__content__block">
-          <h3 class="styleguide__content__block--title">Typography</h3>
+          <h3 class="styleguide__content__block--title">
+            {% trans "Typography" context "Typography title in style guide" %}
+          </h3>
           <div class="card">
             <div class="card-content">
               <div class="section">
-                <h1>H1 example text</h1>
-                <h2>H2 example text</h2>
-                <h3>H3 example text</h3>
-                <h4>H4 example text</h4>
-                <h5>H5 example text</h5>
+                <h1>
+                  {% trans "H1 example text" context "H1 example text in style guide" %}
+                </h1>
+                <h2>
+                  {% trans "H2 example text" context "H2 example text in style guide" %}
+                </h2>
+                <h3>
+                  {% trans "H3 example text" context "H3 example text in style guide" %}
+                </h3>
+                <h4>
+                  {% trans "H4 example text" context "H4 example text in style guide" %}
+                </h4>
+                <h5>
+                  {% trans "H5 example text" context "H5 example text in style guide" %}
+                </h5>
               </div>
               <div class="section">
-                <p>Lorem ipsum dolor sit amet mauris. Etiam sapien quis justo. Maecenas consequat, orci quis blandit ultrices posuere vitae, mollis nunc tempus euismod. Vestibulum ante eget odio. Nam pellentesque ut, turpis. Nam sed est id aliquet elit metus, quis nibh. Morbi augue imperdiet wisi.</p>
+                <p>
+                {% blocktrans context "Paragraph example text in style guide" %}
+                  Lorem ipsum dolor sit amet mauris. Etiam sapien quis justo. Maecenas consequat, orci quis blandit ultrices posuere vitae, mollis nunc tempus euismod. Vestibulum ante eget odio. Nam pellentesque ut, turpis. Nam sed est id aliquet elit metus, quis nibh. Morbi augue imperdiet wisi.
+                {% endblocktrans %}
+                </p>
               </div>
               <div class="section">
-                <a href="#">Link example text</a>
+                <a href="#">
+                  {% trans "Link example text" context "Link example text in style guide" %}
+                </a>
               </div>
             </div>
           </div>
         </div>
         <div id="colors" class="styleguide__content__block">
-          <h3 class="styleguide__content__block--title">Colors</h3>
+          <h3 class="styleguide__content__block--title">
+            {% trans "Colors" context "Colors title in style guide" %}
+          </h3>
           <div class="row">
             <div class="col m3">
               <div class="card">
@@ -120,15 +140,21 @@
           </div> 
         </div>
         <div id="buttons" class="styleguide__content__block">
-          <h3 class="styleguide__content__block--title">Buttons</h3>
+          <h3 class="styleguide__content__block--title">
+            {% trans "Buttons" context "Buttons title in style guide" %}
+          </h3>
           <div class="card">
             <div class="card-content">
               <div class="row section">
                 <div class="col m4">
-                  <a href="#" class="btn waves-effect waves-light">Primary</a>
+                  <a href="#" class="btn waves-effect waves-light">
+                    {% trans "Primary" context "Primary button text in style guide" %}
+                  </a>
                 </div>
                  <div class="col m4">
-                  <a href="#" class="btn btn-flat">Secondary</a>
+                  <a href="#" class="btn btn-flat">
+                    {% trans "Secondary" context "Secondary button text in style guide" %}
+                  </a>
                 </div>
                 <div class="col m4">
                   <a href="#" class="btn btn-floating btn-large waves-effect waves-light">
@@ -138,10 +164,14 @@
               </div>
               <div class="row section">
                 <div class="col m4">
-                  <a href="#" class="btn waves-effect waves-light disabled">Primary disabled</a>
+                  <a href="#" class="btn waves-effect waves-light disabled">
+                    {% trans "Primary disabled" context "Primary disabled button text in style guide" %}
+                  </a>
                 </div>
                 <div class="col m4">
-                  <a href="#" class="btn btn-flat disabled">Secondary disabled</a>
+                  <a href="#" class="btn btn-flat disabled">
+                    {% trans "Secondary disabled" context "Secondary disabled button text in style guide" %}
+                  </a>
                 </div>
                 <div class="col m4">
                   <a href="#" class="btn btn-floating btn-large waves-effect waves-light disabled">
@@ -153,7 +183,7 @@
           </div>
         </div>
         <div id="grid" class="styleguide__content__block">
-          <h3 class="styleguide__content__block--title">Grid</h3>
+          <h3 class="styleguide__content__block--title">{% trans "Grid" context "Grid title in style guide" %}</h3>
           <div class="row">
             <div class="col m12">
               <div class="card">
@@ -236,91 +266,137 @@
           </div>
         </div>
         <div id="forms" class="styleguide__content__block">
-          <h3 class="styleguide__content__block--title">Forms</h3>
+          <h3 class="styleguide__content__block--title">{% trans "Forms" context "Forms title in style guide" %}</h3>
           <div class="card">
             <div class="card-content">
               <div class="section">
-                <h4>Input</h4>
+                <h4>
+                  {% trans "Input" context "Input subtitle in style guide" %}
+                </h4>
                 <div class="input input-field">
-                  <label class="active" for="id_name">Name</label>
+                  <label class="active" for="id_name">
+                    {% trans "Name" context "Input label in style guide" %}
+                  </label>
                   <input id="id_name" maxlength="128" name="name" placeholder="Give your awesome product a name" type="text" value="Lucas, Martinez and Chaney" required="">
                 </div>
               </div>
               <div class="section">
-                <h4>Datepicker</h4>
+                <h4>{% trans "Datepicker" context "Datepicker subtitle in style guide" %}</h4>
                 <div class="input input-field">
-                  <label class="active" for="id_name">Date</label>
+                  <label class="active" for="id_name">
+                    {% trans "Name" context "Datepicker label in style guide" %}
+                  </label>
                   <input id="id_name" class="datepicker" maxlength="128" name="name" type="text" value="7 March 2017" required="">
                 </div>
               </div>
               <div class="section">
-                <h4>Select</h4>
+                <h4>{% trans "Select" context "Select subtitle in style guide" %}</h4>
                 <div class="input input-field">
-                  <label class="active" for="id_attribute-coffee-genre">Coffee Genre (optional)</label>
+                  <label class="active" for="id_attribute-coffee-genre">
+                    {% trans "Coffee Genre (optional)" context "Select label in style guide" %}
+                  </label>
                   <select class=" initialized" id="id_attribute-coffee-genre" name="attribute-coffee-genre">
                     <option value="">---------</option>
-                    <option value="2">Arabica</option>
-                    <option value="3" selected="selected">Robusta</option>
+                    <option value="2">
+                      {% trans "Arabica" context "Option select in style guide" %}
+                    </option>
+                    <option value="3" selected="selected">
+                      {% trans "Robusta" context "Option select in style guide" %}
+                    </option>
                   </select>
                 </div>
               </div>
               <div class="section">
-                <h4>Multiple Select</h4>
+                <h4>
+                  {% trans "Multiple Select" context "Multiple Select subtitle in style guide" %}
+                </h4>
                 <div class="input input-field">
-                  <label class="active" for="id_attribute-coffee-genre">Coffee Genre (optional)</label>
+                  <label class="active" for="id_attribute-coffee-genre">
+                    {% trans "Coffee Genre (optional)" context "Select label in style guide" %}
+                  </label>
                   <select multiple class=" initialized" id="id_attribute-coffee-genre" name="attribute-coffee-genre">
                     <option value="">---------</option>
-                    <option value="2">Arabica</option>
-                    <option value="3">Robusta</option>
+                    <option value="2">
+                      {% trans "Arabica" context "Option select in style guide" %}
+                    </option>
+                    <option value="3">
+                      {% trans "Robusta" context "Option select in style guide" %}
+                    </option>
                   </select>
                 </div>
               </div>
               <div class="section">
-                <h4>Textarea</h4>
+                <h4>
+                  {% trans "Textarea" context "Textarea subtitle in style guide" %}
+                </h4>
                 <div class="input input-field">
-                  <textarea id="id_description" class="materialize-textarea" name="description">Voluptatibus voluptate consectetur consectetur adipisci officia aliquid. Enim praesentium voluptatem sed nostrum nesciunt cupiditate deleniti numquam. Labore beatae enim impedit numquam maxime quae.</textarea>
-                  <label class="active" for="id_description">Description</label>
+                  <textarea id="id_description" class="materialize-textarea" name="description">
+                  {% blocktrans context "Textarea example text in style guide" %}
+                    Lorem ipsum dolor sit amet mauris. Etiam sapien quis justo. Maecenas consequat, orci quis blandit ultrices posuere vitae, mollis nunc tempus euismod. Vestibulum ante eget odio. Nam pellentesque ut, turpis. Nam sed est id aliquet elit metus, quis nibh. Morbi augue imperdiet wisi.
+                  {% endblocktrans %}
+                  </textarea>
+                  <label class="active" for="id_description">
+                    {% trans "Description" context "Textarea label in style guide" %}
+                  </label>
                 </div>
               </div>
               <div class="section">
-                <h4>Radio Buttons</h4>
+                <h4>
+                  {% trans "Radio Buttons" context "Radio Buttons subtitle in style guide" %}
+                </h4>
                 <div class="input input-field">
                   <p>
                     <input name="group1" type="radio" id="test1" />
-                    <label for="test1">Radio 1</label>
+                    <label for="test1">
+                      {% trans "Radio 1" context "Radio label in style guide" %}
+                    </label>
                   </p>
                   <p>
                     <input name="group1" type="radio" id="test2" />
-                    <label for="test2">Radio 2</label>
+                    <label for="test2">
+                      {% trans "Radio 2" context "Radio label in style guide" %}
+                    </label>
                   </p>
                   <p>
                     <input name="group1" type="radio" id="test4" disabled="disabled" />
-                    <label for="test4">Disabled Radio</label>
+                    <label for="test4">
+                      {% trans "Disabled Radio" context "Disabled Radio label in style guide" %}
+                    </label>
                   </p>
                 </div>
               </div>
               <div class="section">
-                <h4>Checkboxes</h4>
+                <h4>
+                  {% trans "Checkboxes" context "Checkboxes subtitle in style guide" %}
+                </h4>
                 <div class="input input-field">
                   <p>
                     <input type="checkbox" class="filled-in" id="filled-in-box" />
-                    <label for="filled-in-box">Check</label>
+                    <label for="filled-in-box">
+                      {% trans "Check" context "Checkbox label in style guide" %}
+                    </label>
                   </p>
                   <p>
                     <input type="checkbox" class="filled-in" id="test7" checked="checked" disabled="disabled" />
-                    <label for="test7">Disabled Checked</label>
+                    <label for="test7">
+                      {% trans "Disabled Checked" context "Disabled Checkbox label in style guide" %}
+                    </label>
                   </p>
                   <p>
                     <input type="checkbox" id="test8" disabled="disabled" />
-                    <label for="test8">Disabled</label>
+                    <label for="test8">
+                      {% trans "Disabled" context "Disabled checkbox label in style guide" %}
+                    </label>
                   </p>
                 </div>
               </div>
               <div class="section">
-                <h4>File input</h4>
+                <h4>
+                  {% trans "File input" context "File input subtitle in style guide" %}
+                </h4>
                 <div class="file-field input-field">
                   <div class="btn">
-                    <span>File</span>
+                    <span>{% trans "File" context "File button text in style guide" %}</span>
                     <input type="file">
                   </div>
                   <div class="file-path-wrapper">
@@ -332,13 +408,15 @@
           </div>
         </div>
         <div id="breadcrumbs" class="styleguide__content__block">
-          <h3 class="styleguide__content__block--title">Breadcrumbs</h3>
+          <h3 class="styleguide__content__block--title">
+            {% trans "Breadcrumbs" context "Breadcrumbs title in style guide" %}
+          </h3>
           <div class="subheader top-nav">
             <div class="container">
               <ul class="breadcrumbs breadcrumbs--history">
                 <li>
                   <a class="breadcrumb">
-                    {% trans "Products" context "Product form breadcrumbs" %}
+                    {% trans "Products" context "breadcrumbs in style guide" %}
                   </a>
                 </li>
                 <li class="back-mobile">
@@ -348,7 +426,7 @@
                 </li>
                 <li>
                   <span class="breadcrumbs--ellipsed-item">
-                    Lucas, Martinez and Chaney
+                    {% trans "Lucas, Martinez and Chaney" context "Breadcrumbs in style guide" %}
                   </span>
                 </li>
               </ul>
@@ -356,7 +434,9 @@
           </div>
         </div>
         <div id="tabs" class="styleguide__content__block">
-          <h3 class="styleguide__content__block--title">Tabs</h3>
+          <h3 class="styleguide__content__block--title">
+            {% trans "Tabs" context "Tabs title in style guide" %}
+          </h3>
           <ul class="tabs">
             <li class="tab col s3" role="presentation">
               <a href="#details" class="active" role="tab">
@@ -394,42 +474,68 @@
           <div class="tab-content" id="details">
             <div class="card">
               <div class="card-content">
-                <span class="card-title">Details</span>
-                <p>Nemo at repellat praesentium consequuntur at. Velit repellat accusamus corporis consequatur. Possimus error optio a nam officia laudantium. Nulla est iusto laboriosam laboriosam laborum.</p>
+                <span class="card-title">
+                  {% trans "Details" context "Tab title in style guide" %}
+                </span>
+                <p>
+                  {% blocktrans context "Tab details example text in style guide" %}
+                    Lorem ipsum dolor sit amet mauris. Etiam sapien quis justo. Maecenas consequat, orci quis blandit ultrices posuere vitae, mollis nunc tempus euismod. Vestibulum ante eget odio. Nam pellentesque ut, turpis. Nam sed est id aliquet elit metus, quis nibh. Morbi augue imperdiet wisi.
+                  {% endblocktrans %}
+                </p>
               </div>
             </div>
           </div>
           <div class="tab-content" id="variants">
             <div class="card">
               <div class="card-content">
-                <span class="card-title">Variants</span>
-                <p>Nemo at repellat praesentium consequuntur at. Velit repellat accusamus corporis consequatur. Possimus error optio a nam officia laudantium. Nulla est iusto laboriosam laboriosam laborum.</p>
+                <span class="card-title">
+                  {% trans "Variants" context "Tab title in style guide" %}
+                </span>
+                <p>
+                  {% blocktrans context "Tab variants example text in style guide" %}
+                    Lorem ipsum dolor sit amet mauris. Etiam sapien quis justo. Maecenas consequat, orci quis blandit ultrices posuere vitae, mollis nunc tempus euismod. Vestibulum ante eget odio. Nam pellentesque ut, turpis. Nam sed est id aliquet elit metus, quis nibh. Morbi augue imperdiet wisi.
+                  {% endblocktrans %}
+                </p>
               </div>
             </div>
           </div>
           <div class="tab-content" id="stock">
             <div class="card">
               <div class="card-content">
-                <span class="card-title">Stock</span>
-                <p>Nemo at repellat praesentium consequuntur at. Velit repellat accusamus corporis consequatur. Possimus error optio a nam officia laudantium. Nulla est iusto laboriosam laboriosam laborum.</p>
+                <span class="card-title">
+                  {% trans "Stock" context "Tab title in style guide" %}
+                </span>
+                <p>
+                  {% blocktrans context "Tab stock example text in style guide" %}
+                    Lorem ipsum dolor sit amet mauris. Etiam sapien quis justo. Maecenas consequat, orci quis blandit ultrices posuere vitae, mollis nunc tempus euismod. Vestibulum ante eget odio. Nam pellentesque ut, turpis. Nam sed est id aliquet elit metus, quis nibh. Morbi augue imperdiet wisi.
+                  {% endblocktrans %}
+                </p>
               </div>
             </div>
           </div>
           <div class="tab-content" id="images">
             <div class="card">
               <div class="card-content">
-                <span class="card-title">Images</span>
-                <p>Nemo at repellat praesentium consequuntur at. Velit repellat accusamus corporis consequatur. Possimus error optio a nam officia laudantium. Nulla est iusto laboriosam laboriosam laborum.</p>
+                <span class="card-title">
+                  {% trans "Images" context "Tab title in style guide" %}
+                </span>
+                <p>
+                  {% blocktrans context "Tab images example text in style guide" %}
+                    Lorem ipsum dolor sit amet mauris. Etiam sapien quis justo. Maecenas consequat, orci quis blandit ultrices posuere vitae, mollis nunc tempus euismod. Vestibulum ante eget odio. Nam pellentesque ut, turpis. Nam sed est id aliquet elit metus, quis nibh. Morbi augue imperdiet wisi.
+                  {% endblocktrans %}
+                </p>
               </div>
             </div>
           </div>
         </div>
         <div id="tables" class="styleguide__content__block">
-          <h3 class="styleguide__content__block--title">Tables</h3>
+          <h3 class="styleguide__content__block--title">
+            {% trans "Tables" context "Tables title in style guide" %}
+          </h3>
           <div class="card">
             <div class="data-table-header">
               <span class="data-table-title">
-               Orders
+               {% trans "Orders" context "Table title in style guide" %}
               </span>
             </div>
             <div class="data-table-container">
@@ -462,19 +568,24 @@
                         #11
                       </td>
                       <td>
-                        <span class="label label-success">Shipped</span>
+                        <span class="label label-success">
+                          {% trans "#11" context "Table content in style guide" %}Shipped
+                        </span>
                       </td>
                       <td>
-                        <span class="label label-success">Confirmed</span>
+                        <span class="label label-success">
+                          {% trans "Confirmed" context "Table content in style guide" %}
+                        </span>
                       </td>
                       <td>
-                        frederick.shaw@example.com
+                        {% trans "frederick.shaw@example.com" context "Table content in style guide" %}
                       </td>
                       <td>
-                        27 lutego 2017 05:43
+                        {% now "F j, Y, H:i a" %}
                       </td>
                       <td class="right-align">
-                        299,06&nbsp;<span class="currency">USD</span>
+                        299,06&nbsp;
+                        <span class="currency">USD</span>
                       </td>
                     </tr>
                     <tr data-action-go="">
@@ -482,19 +593,24 @@
                         #11
                       </td>
                       <td>
-                        <span class="label label-default">PAYMENT PENDING</span>
+                        <span class="label label-default">
+                          {% trans "PAYMENT PENDING" context "Table content in style guide" %}
+                        </span>
                       </td>
                       <td>
-                        <span class="label label-default">Pre-authorized</span>
+                        <span class="label label-default">
+                          {% trans "Pre-authorized" context "Table content in style guide" %}
+                        </span>
                       </td>
                       <td>
-                        frederick.shaw@example.com
+                        {% trans "frederick.shaw@example.com" context "Table content in style guide" %}
                       </td>
                       <td>
-                        27 lutego 2017 05:43
+                        {% now "F j, Y, H:i a" %}
                       </td>
                       <td class="right-align">
-                        299,06&nbsp;<span class="currency">USD</span>
+                        299,06&nbsp;
+                        <span class="currency">USD</span>
                       </td>
                     </tr>
                 </tbody>
@@ -503,71 +619,93 @@
           </div>
         </div>
         <div id="lists" class="styleguide__content__block">
-          <h3 class="styleguide__content__block--title">Lists</h3>
+          <h3 class="styleguide__content__block--title">
+            {% trans "Lists" context "Lists title in style guide" %}
+          </h3>
           <div class="section">
-            <h4>1 line list</h4>
+            <h4>
+              {% trans "1 line list" context "List subtitle in style guide" %}
+            </h4>
             <ul class="collection list">
               <li class="collection-item list-item">
                 <a class="list-item-name" href="#">
-                  <p class="list-item-name--single">Groceries</p>
+                  <p class="list-item-name--single">
+                    {% trans "Groceries" context "List content in style guide" %}
+                  </p>
                 </a>
               </li>
               <li class="collection-item list-item">
                 <a class="list-item-name" href="#">
-                  <p class="list-item-name--single">Accessories</p>
+                  <p class="list-item-name--single">
+                    {% trans "Accessories" context "List content in style guide" %}
+                  </p>
                 </a>
               </li>
               <li class="collection-item list-item">
                 <a class="list-item-name" href="#">
-                  <p class="list-item-name--single">Apparel</p>
+                  <p class="list-item-name--single">
+                    {% trans "Apparel" context "List content in style guide" %}
+                  </p>
                 </a>
               </li>
               <li class="collection-item list-item">
                 <a class="list-item-name" href="#">
-                  <p class="list-item-name--single">Books</p>
+                  <p class="list-item-name--single">
+                    {% trans "Books" context "List content in style guide" %}
+                  </p>
                 </a>
               </li>
             </ul>
           </div>
           <div class="section">
-            <h4>2 line list</h4>
+            <h4>
+              {% trans "2 line list" context "List subtitle in style guide" %}
+            </h4>
             <ul class="collection list">
               <li class="collection-item list-item">
                 <a class="list-item-name" href="#">
-                  Groceries
+                  {% trans "Groceries" context "List content in style guide" %}
                   <p class="list-item-desc">
                     <span>
+                      {% blocktrans context "List example text in style guide" %}
                         Autem porro rem rem. Laudantium iure ipsam voluptates repellendus nulla esse blanditiis. Facere rerum occaecati adipisci porro quasi quibusdam. asdas as das das das das das
+                      {% endblocktrans %}
                     </span>
                   </p>
                 </a>
               </li>
               <li class="collection-item list-item">
                 <a class="list-item-name" href="#">
-                  Accessories
+                  {% trans "Accessories" context "List content in style guide" %}
                   <p class="list-item-desc">
                     <span>
+                      {% blocktrans context "List example text in style guide" %}
                         Consequuntur ducimus laborum qui ea mollitia. Illum cum itaque consequuntur temporibus officia dolore. Atque sed aspernatur eligendi.
+                      {% endblocktrans %}
                     </span>
                   </p>
                 </a>
               </li>
               <li class="collection-item list-item">
                 <a class="list-item-name" href="#">
-                  Apparel
+                  {% trans "Apparel" context "List content in style guide" %}
                   <p class="list-item-desc">
                     <span>
-                      Consequuntur officia enim est. Cum esse accusantium blanditiis quae modi inventore. Quia iusto veniam sed perferendis. 
+                      {% blocktrans context "List example text in style guide" %}
+                        Consequuntur officia enim est. Cum esse accusantium blanditiis quae modi inventore. Quia iusto veniam sed perferendis. 
+                      {% endblocktrans %}
                     </span>
                   </p>
                 </a>
               </li>
               <li class="collection-item list-item">
                 <a class="list-item-name" href="#">
-                  Books
+                  {% trans "Books" context "List content in style guide" %}
                   <p class="list-item-desc">
                     <span>
-                      Nemo at repellat praesentium consequuntur at. Velit repellat accusamus corporis consequatur. Possimus error optio a nam officia laudantium. Nulla est iusto laboriosam laboriosam laborum.
+                      {% blocktrans context "List example text in style guide" %}
+                        Nemo at repellat praesentium consequuntur at. Velit repellat accusamus corporis consequatur. Possimus error optio a nam officia laudantium. Nulla est iusto laboriosam laboriosam laborum.
+                      {% endblocktrans %}
                     </span>
                   </p>
                 </a>
@@ -575,63 +713,73 @@
             </ul>
           </div>
           <div class="section">
-            <h4>List with avatar</h4>
-              <ul class="collection list">
-                <li class="collection-item avatar list-item">
-                  <a href="#">
-                    <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
-                    <span class="title list-item-name">
-                      Miller-Hill
-                    </span>
-                    <p class="list-item-price">
-                      31,40&nbsp<span class="currency">USD</span>
-                    </p>
-                  </a>
-                </li>
-                <li class="collection-item avatar list-item">
-                  <a href="#">
-                    <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
-                    <span class="title list-item-name">
-                      Schmidt and Sons
-                    </span>
-                    <p class="list-item-price">
-                      11,40&nbsp<span class="currency">USD</span>
-                    </p>
-                  </a>
-                </li>
-                <li class="collection-item avatar list-item">
-                  <a href="#">
-                    <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
-                    <span class="title list-item-name">
-                      Ramirez PLC
-                    </span>
-                    <p class="list-item-price">
-                      25,40&nbsp<span class="currency">USD</span>
-                    </p>
-                  </a>
-                </li>
-                <li class="collection-item avatar list-item">
-                  <a href="#">
-                    <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
-                    <span class="title list-item-name">
-                      Foster-Brown
-                    </span>
-                    <p class="list-item-price">
-                      66,40&nbsp<span class="currency">USD</span>
-                    </p>
-                  </a>
-                </li>
-              </ul>
+            <h4>
+              {% trans "List with avatar" context "List subtitle in style guide" %}
+            </h4>
+            <ul class="collection list">
+              <li class="collection-item avatar list-item">
+                <a href="#">
+                  <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
+                  <span class="title list-item-name">
+                    {% trans "Miller-Hill" context "List content in style guide" %}
+                  </span>
+                  <p class="list-item-price">
+                    31,40&nbsp<span class="currency">USD</span>
+                  </p>
+                </a>
+              </li>
+              <li class="collection-item avatar list-item">
+                <a href="#">
+                  <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
+                  <span class="title list-item-name">
+                    {% trans "Schmidt and Sons" context "List content in style guide" %}
+                  </span>
+                  <p class="list-item-price">
+                    11,40&nbsp<span class="currency">USD</span>
+                  </p>
+                </a>
+              </li>
+              <li class="collection-item avatar list-item">
+                <a href="#">
+                  <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
+                  <span class="title list-item-name">
+                    {% trans "Ramirez PLC" context "List content in style guide" %}
+                  </span>
+                  <p class="list-item-price">
+                    25,40&nbsp<span class="currency">USD</span>
+                  </p>
+                </a>
+              </li>
+              <li class="collection-item avatar list-item">
+                <a href="#">
+                  <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
+                  <span class="title list-item-name">
+                    {% trans "Foster-Brown" context "List content in style guide" %}
+                  </span>
+                  <p class="list-item-price">
+                    66,40&nbsp<span class="currency">USD</span>
+                  </p>
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
         <div id="cards" class="styleguide__content__block">
-          <h3 class="styleguide__content__block--title">Cards</h3>
+          <h3 class="styleguide__content__block--title">
+            {% trans "Cards" context "Cards title in style guide" %}
+          </h3>
           <div class="row">
             <div class="col m6">
               <div class="card">
                 <div class="card-content">
-                  <span class="card-title">Card Title</span>
-                  <p>Nemo at repellat praesentium consequuntur at. Velit repellat accusamus corporis consequatur. Possimus error optio a nam officia laudantium. Nulla est iusto laboriosam laboriosam laborum.</p>
+                  <span class="card-title">
+                    {% trans "Card Title" context "Cards title in style guide" %}
+                  </span>
+                  <p>
+                  {% blocktrans context "Card example text in style guide" %}
+                    Nemo at repellat praesentium consequuntur at. Velit repellat accusamus corporis consequatur. Possimus error optio a nam officia laudantium. Nulla est iusto laboriosam laboriosam laborum.
+                  {% endblocktrans %}
+                  </p>
                 </div>
               </div>
             </div>
@@ -639,38 +787,64 @@
               <div class="card">
                 <div class="card-image">
                   <img src="{% static "images/block1.jpg" %}">
-                  <span class="card-title">Card Title</span>
+                  <span class="card-title">
+                    {% trans "Card Title" context "Cards title in style guide" %}
+                  </span>
                 </div>
                 <div class="card-content">
-                  <p>I am a very simple card. I am good at containing small bits of information.
-                  I am convenient because I require little markup to use effectively.</p>
+                  <p>
+                  {% blocktrans context "Card example text in style guide" %}
+                    I am a very simple card. I am good at containing small bits of information.
+                  I am convenient because I require little markup to use effectively.
+                  {% endblocktrans %}
+                  </p>
                 </div>
                 <div class="card-action">
-                  <a href="#">This is a link</a>
+                  <a href="#" class="btn btn-flat">
+                    {% trans "This is a link" context "Cards action in style guide" %}
+                  </a>
                 </div>
               </div>
             </div>
           </div>
         </div>  
         <div id="modals" class="styleguide__content__block">
-          <h3 class="styleguide__content__block--title">Modals</h3>
+          <h3 class="styleguide__content__block--title">
+            {% trans "Modals" context "Modal title in style guide" %}
+          </h3>
           <div class="card">
             <div class="card-content">
-              <a class="waves-effect waves-light btn" href="#modal1">Modal</a>
+              <a class="waves-effect waves-light btn" href="#modal1">
+                {% trans "Modal" context "Modal button text in style guide" %}
+              </a>
               <div id="modal1" class="modal">
                 <div class="modal-content">
-                  <h4>Modal Header</h4>
-                  <p>A bunch of text</p>
+                  <h4>
+                    {% trans "Modal Header" context "Modal Header in style guide" %}
+                  </h4>
+                  <p>
+                    {% blocktrans context "Card example text in style guide" %}
+                      I am a very simple card. I am good at containing small bits of information.
+                      I am convenient because I require little markup to use effectively.
+                    {% endblocktrans %}
+                  </p>
                 </div>
                 <div class="modal-footer">
-                  <a href="#!" class=" modal-action modal-close waves-effect waves-green btn-flat">Agree</a>
+                  <a href="#!" class=" modal-action modal-close waves-effect waves-green btn-flat">
+                    {% trans "Agree" context "Modal action in style guide" %}
+                  </a>
+                  <a href="#!" class=" modal-action modal-close btn-flat">
+                    {% trans "Cancel" context "Modal action in style guide" %}
+                  </a>
                 </div>
               </div>
             </div>
           </div>
         </div>
         <div id="pagination" class="styleguide__content__block">
-          <h3 class="styleguide__content__block--title">Pagination</h3>
+          <h3 class="styleguide__content__block--title">
+            {% trans "Pagination" context "Pagination title in style guide" %}
+          </h3>
           <ul class="pagination">
             <li class="disabled">
               <a href="#!">
@@ -737,18 +911,66 @@
       </div>
       <div class="col m3 styleguide__menu">
         <ul>
-          <li><a href="#typography">Typography</a></li>
-          <li><a href="#colors">Colors</a></li>
-          <li><a href="#buttons">Buttons</a></li>
-          <li><a href="#grid">Grid</a></li>
-          <li><a href="#forms">Forms</a></li>
-          <li><a href="#breadcrumbs">Breadcrumbs</a></li>
-          <li><a href="#tabs">Tabs</a></li>
-          <li><a href="#tables">Tables</a></li>
-          <li><a href="#lists">Lists</a></li>
-          <li><a href="#cards">Cards</a></li>
-          <li><a href="#modals">Modals</a></li>
-          <li><a href="#pagination">Pagination</a></li>
+          <li>
+            <a href="#typography">
+              {% trans "Typography" context "Typography menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#colors">
+              {% trans "Colors" context "Colors menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#buttons">
+              {% trans "Buttons" context "Buttons menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#grid">
+              {% trans "Grid" context "Grid menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#forms">
+              {% trans "Forms" context "Forms menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#breadcrumbs">
+              {% trans "Breadcrumbs" context "Breadcrumbs menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#tabs">
+              {% trans "Tabs" context "Tabs menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#tables">
+              {% trans "Tables" context "Tables menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#lists">
+              {% trans "Lists" context "Lists menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#cards">
+              {% trans "Cards" context "Cards menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#modals">
+              {% trans "Modals" context "Modals menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#pagination">
+              {% trans "Pagination" context "Pagination menu item in style guide" %}
+            </a>
+          </li>
         </ul>
       </div>
     </div>
