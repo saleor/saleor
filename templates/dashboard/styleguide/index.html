@@ -281,6 +281,18 @@
                 </div>
               </div>
               <div class="section">
+                <h4>{% trans "Input with sufix" context "Input with sufix subtitle in style guide" %}</h4>
+                <div class="input input-field">
+                  <label class="active" for="id_price">
+                    {% trans "Price" context "Price label in style guide" %}
+                  </label>
+                  <div class="input-with-suffix">
+                    <input class=" validate" id="id_price" name="price" step="any" type="number" required="">
+                    <div class="input-text-suffix">USD</div>
+                  </div>
+                </div>
+              </div>
+              <div class="section">
                 <h4>{% trans "Datepicker" context "Datepicker subtitle in style guide" %}</h4>
                 <div class="input input-field">
                   <label class="active" for="id_name">
@@ -290,18 +302,18 @@
                 </div>
               </div>
               <div class="section">
-                <h4>{% trans "Select" context "Select subtitle in style guide" %}</h4>
+                <h4>
+                  {% trans "Select" context "Select subtitle in style guide" %}
+                </h4>
                 <div class="input input-field">
                   <label class="active" for="id_attribute-coffee-genre">
                     {% trans "Coffee Genre (optional)" context "Select label in style guide" %}
                   </label>
                   <select class=" initialized" id="id_attribute-coffee-genre" name="attribute-coffee-genre">
                     <option value="">---------</option>
-                    <option value="2">
-                      {% trans "Arabica" context "Option select in style guide" %}
+                    <option value="2">{% trans "Arabica" context "Option select in style guide" %}
                     </option>
-                    <option value="3" selected="selected">
-                      {% trans "Robusta" context "Option select in style guide" %}
+                    <option value="3" selected="selected">{% trans "Robusta" context "Option select in style guide" %}
                     </option>
                   </select>
                 </div>
@@ -316,11 +328,9 @@
                   </label>
                   <select multiple class=" initialized" id="id_attribute-coffee-genre" name="attribute-coffee-genre">
                     <option value="">---------</option>
-                    <option value="2">
-                      {% trans "Arabica" context "Option select in style guide" %}
+                    <option value="2">{% trans "Arabica" context "Option select in style guide" %}
                     </option>
-                    <option value="3">
-                      {% trans "Robusta" context "Option select in style guide" %}
+                    <option value="3">{% trans "Robusta" context "Option select in style guide" %}
                     </option>
                   </select>
                 </div>
@@ -331,8 +341,7 @@
                 </h4>
                 <div class="input input-field">
                   <textarea id="id_description" class="materialize-textarea" name="description">
-                  {% blocktrans context "Textarea example text in style guide" %}
-                    Lorem ipsum dolor sit amet mauris. Etiam sapien quis justo. Maecenas consequat, orci quis blandit ultrices posuere vitae, mollis nunc tempus euismod. Vestibulum ante eget odio. Nam pellentesque ut, turpis. Nam sed est id aliquet elit metus, quis nibh. Morbi augue imperdiet wisi.
+                  {% blocktrans context "Textarea example text in style guide" %}Lorem ipsum dolor sit amet mauris. Etiam sapien quis justo. Maecenas consequat, orci quis blandit ultrices posuere vitae, mollis nunc tempus euismod. Vestibulum ante eget odio. Nam pellentesque ut, turpis. Nam sed est id aliquet elit metus, quis nibh. Morbi augue imperdiet wisi.
                   {% endblocktrans %}
                   </textarea>
                   <label class="active" for="id_description">
@@ -402,6 +411,18 @@
                   <div class="file-path-wrapper">
                     <input class="file-path validate" type="text">
                   </div>
+                </div>
+              </div>
+              <div class="section">
+                <h4>
+                  {% trans "Errors" context "Errors subtitle in style guide" %}
+                </h4>
+                <div class="input input-field">
+                  <label class="active" for="id_name">
+                    {% trans "Name" context "Input label in style guide" %}
+                  </label>
+                  <input id="id_name" class="invalid" maxlength="128" name="name" placeholder="Give your awesome product a name" type="text" value="" required="">
+                   <p class="help-block materialize-red-text">To pole jest wymagane.</p>
                 </div>
               </div>
             </div>
@@ -569,7 +590,7 @@
                       </td>
                       <td>
                         <span class="label label-success">
-                          {% trans "#11" context "Table content in style guide" %}Shipped
+                          {% trans "Shipped" context "Table content in style guide" %}
                         </span>
                       </td>
                       <td>
@@ -581,7 +602,7 @@
                         {% trans "frederick.shaw@example.com" context "Table content in style guide" %}
                       </td>
                       <td>
-                        {% now "F j, Y, H:i a" %}
+                        {% now "F j, Y, H:i" %}
                       </td>
                       <td class="right-align">
                         299,06&nbsp;
@@ -606,7 +627,7 @@
                         {% trans "frederick.shaw@example.com" context "Table content in style guide" %}
                       </td>
                       <td>
-                        {% now "F j, Y, H:i a" %}
+                        {% now "F j, Y, H:i" %}
                       </td>
                       <td class="right-align">
                         299,06&nbsp;
@@ -841,6 +862,16 @@
             </div>
           </div>
         </div>
+        <div id="toasts" class="styleguide__content__block">
+          <h3 class="styleguide__content__block--title">
+            {% trans "Toasts" context "Toasts title in style guide" %}
+          </h3>
+          <div class="card">
+            <div class="card-content">
+              <a class="btn" onclick="Materialize.toast('Example toast text', 4000)"> {% trans "Toast" context "Toasts button text in style guide" %}</a>
+            </div>
+          </div>
+        </div>
         <div id="pagination" class="styleguide__content__block">
           <h3 class="styleguide__content__block--title">
             {% trans "Pagination" context "Pagination title in style guide" %}
@@ -964,6 +995,11 @@
           <li>
             <a href="#modals">
               {% trans "Modals" context "Modals menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#toasts">
+              {% trans "Toasts" context "Toasts menu item in style guide" %}
             </a>
           </li>
           <li>
