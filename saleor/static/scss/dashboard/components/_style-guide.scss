@@ -17,9 +17,10 @@
   &__content {
     &__block {
       &--title {
-        color: color("grey", "base");
+        color: $grey-color;
         text-transform: uppercase;
         font-size: 1.5rem;
+        padding-top: 30px;
       }
       .card {
         &-color {
@@ -33,6 +34,25 @@
           &.secondary-color {
             background: $secondary-color;
           }
+          &.off-black {
+            background: $off-black;
+          }
+          &.success-color {
+            background: $success-color;
+          }
+          &.error-color {
+            background: $error-color;
+          }
+          &.link-color {
+            background: $link-color;
+          }
+          &.sidenav-font-color {
+            background: $sidenav-font-color;
+          }
+          &.grey-color {
+            background: $grey-color;
+          }
+          
         }
       }
       .section {
