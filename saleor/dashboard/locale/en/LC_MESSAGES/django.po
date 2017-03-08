@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-02 16:37+0100\n"
+"POT-Creation-Date: 2017-03-08 11:20+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -88,49 +88,49 @@ msgctxt "Voucher message"
 msgid "Deleted voucher %s"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:26
+#: saleor/dashboard/order/forms.py:27
 msgctxt "Order note form placeholder"
 msgid "Note"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:47
+#: saleor/dashboard/order/forms.py:48
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be captured"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:58 saleor/dashboard/order/forms.py:80
-#: saleor/dashboard/order/forms.py:105
+#: saleor/dashboard/order/forms.py:59 saleor/dashboard/order/forms.py:81
+#: saleor/dashboard/order/forms.py:106
 #, python-format
 msgctxt "Payment form error"
 msgid "Payment gateway error: %s"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:69
+#: saleor/dashboard/order/forms.py:70
 msgctxt "Payment form error"
 msgid "Only confirmed payments can be refunded"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:95
+#: saleor/dashboard/order/forms.py:96
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be released"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:112
+#: saleor/dashboard/order/forms.py:114
 msgctxt "Move items form label"
 msgid "Quantity"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:114
+#: saleor/dashboard/order/forms.py:117
 msgctxt "Move items form label"
 msgid "Target shipment"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:129
+#: saleor/dashboard/order/forms.py:134
 msgctxt "Delivery group value for `target_group` field"
 msgid "New shipment"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:185
+#: saleor/dashboard/order/forms.py:190
 #, python-format
 msgctxt "Change quantity form error"
 msgid "Only %(remaining)d remaining in stock."
@@ -138,32 +138,32 @@ msgid_plural "Only %(remaining)d remaining in stock."
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/dashboard/order/forms.py:211
+#: saleor/dashboard/order/forms.py:216
 msgctxt "Ship group form field placeholder"
 msgid "Parcel tracking number"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:218
+#: saleor/dashboard/order/forms.py:223
 msgctxt "Ship group form error"
 msgid "Cannot ship this group"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:255
+#: saleor/dashboard/order/forms.py:260
 msgctxt "Cancel order form error"
 msgid "This order can't be cancelled"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:274
+#: saleor/dashboard/order/forms.py:279
 msgctxt "Remove voucher form error"
 msgid "This order has no voucher"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:287
+#: saleor/dashboard/order/forms.py:292
 msgctxt "Order status field value"
 msgid "All"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:292
+#: saleor/dashboard/order/forms.py:297
 msgctxt "Payment status field value"
 msgid "All"
 msgstr ""
@@ -209,40 +209,40 @@ msgctxt "Dashboard message related to delivery groups"
 msgid "Moved %(how_many)s items %(item)s from %(old_group)s to %(new_group)s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:228
+#: saleor/dashboard/order/views.py:229
 #, python-format
 msgctxt "Dashboard message related to an order line"
 msgid "Cancelled item %s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:251
+#: saleor/dashboard/order/views.py:254
 #, python-format
 msgctxt "Dashboard message related to a delivery group"
 msgid "Shipped %s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:273
+#: saleor/dashboard/order/views.py:276
 #, python-format
 msgctxt "Dashboard message related to a delivery group"
 msgid "Cancelled %s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:291
+#: saleor/dashboard/order/views.py:294
 msgctxt "Dashboard message"
 msgid "Updated shipping address"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:296
+#: saleor/dashboard/order/views.py:299
 msgctxt "Dashboard message"
 msgid "Updated billing address"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:313
+#: saleor/dashboard/order/views.py:316
 msgctxt "Dashboard message"
 msgid "Cancelled order"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:332
+#: saleor/dashboard/order/views.py:335
 msgctxt "Dashboard message"
 msgid "Removed voucher from order"
 msgstr ""

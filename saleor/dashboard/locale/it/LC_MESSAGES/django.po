@@ -2,20 +2,20 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-# 
+#
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-02-13 19:26+0100\n"
+"POT-Creation-Date: 2017-03-08 11:21+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Marco Badan <marco.badan@gmail.com>, 2017\n"
 "Language-Team: Italian (https://www.transifex.com/mirumee/teams/34782/it/)\n"
+"Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: it\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: saleor/dashboard/category/views.py:35
@@ -36,33 +36,10 @@ msgctxt "Dashboard message"
 msgid "Deleted category %s"
 msgstr "Categoria %s eliminata"
 
-#: saleor/dashboard/customer/forms.py:13
-msgctxt "Customer search form field label"
-msgid "Email"
-msgstr "Email"
-
-#: saleor/dashboard/customer/forms.py:18
-msgctxt "Customer search form field label"
-msgid "Name"
-msgstr "Nome"
-
-#: saleor/dashboard/customer/forms.py:23
-msgctxt "Customer search form label for field `order_status`"
-msgid "With open orders"
-msgstr "Con ordini aperti"
-
-#: saleor/dashboard/customer/views.py:33
-#, python-format
-msgctxt "Customer list page title"
-msgid "%d result"
-msgid_plural "Results (%d)"
-msgstr[0] "%d risultato"
-msgstr[1] "Risultati (%d)"
-
 #: saleor/dashboard/discount/forms.py:25
 msgctxt "Sale (discount) error"
 msgid "Sale cannot exceed 100%"
-msgstr "Lo sconto non può superare il 100%"
+msgstr "L'offerta non può superare il 100%"
 
 #: saleor/dashboard/discount/forms.py:66
 msgctxt "Shipping voucher form label for `limit` field"
@@ -77,23 +54,23 @@ msgstr "Nazione"
 #: saleor/dashboard/discount/forms.py:90
 msgctxt "Value voucher form label for `limit` field"
 msgid "Only if purchase value is greater than or equal to"
-msgstr "Solo se l'acquisto è maggiore o uguale a"
+msgstr "Solo se il valore dell'acquisto è maggiore o uguale a"
 
 #: saleor/dashboard/discount/views.py:30
 msgctxt "Sale (discount) message"
 msgid "Updated sale"
-msgstr "Saldi aggiornati"
+msgstr "Offerta aggiornata"
 
 #: saleor/dashboard/discount/views.py:31
 msgctxt "Sale (discount) message"
 msgid "Added sale"
-msgstr "Saldi aggiunti"
+msgstr "Offerta aggiunta"
 
 #: saleor/dashboard/discount/views.py:45
 #, python-format
 msgctxt "Sale (discount) message"
 msgid "Deleted sale %s"
-msgstr "Saldi %s eliminati"
+msgstr "Offerta %s eliminata"
 
 #: saleor/dashboard/discount/views.py:90
 msgctxt "Voucher message"
@@ -138,22 +115,22 @@ msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be released"
 msgstr "Solo i pagamenti pre-autorizzati possono essere sbloccati"
 
-#: saleor/dashboard/order/forms.py:113
+#: saleor/dashboard/order/forms.py:114
 msgctxt "Move items form label"
 msgid "Quantity"
 msgstr "Quantità"
 
-#: saleor/dashboard/order/forms.py:115
+#: saleor/dashboard/order/forms.py:117
 msgctxt "Move items form label"
 msgid "Target shipment"
 msgstr "Spedizione obiettivo"
 
-#: saleor/dashboard/order/forms.py:130
+#: saleor/dashboard/order/forms.py:134
 msgctxt "Delivery group value for `target_group` field"
 msgid "New shipment"
 msgstr "Nuova spedizione"
 
-#: saleor/dashboard/order/forms.py:185
+#: saleor/dashboard/order/forms.py:190
 #, python-format
 msgctxt "Change quantity form error"
 msgid "Only %(remaining)d remaining in stock."
@@ -161,59 +138,59 @@ msgid_plural "Only %(remaining)d remaining in stock."
 msgstr[0] "Solo %(remaining)d disponibile."
 msgstr[1] "Solo %(remaining)d disponibili."
 
-#: saleor/dashboard/order/forms.py:211
+#: saleor/dashboard/order/forms.py:216
 msgctxt "Ship group form field placeholder"
 msgid "Parcel tracking number"
-msgstr "Codice tracking della spedizione"
+msgstr "Numero di tracking spedizione"
 
-#: saleor/dashboard/order/forms.py:218
+#: saleor/dashboard/order/forms.py:223
 msgctxt "Ship group form error"
 msgid "Cannot ship this group"
 msgstr "Impossibile spedire questo gruppo"
 
-#: saleor/dashboard/order/forms.py:255
+#: saleor/dashboard/order/forms.py:260
 msgctxt "Cancel order form error"
 msgid "This order can't be cancelled"
 msgstr "Questo ordine non può essere annullato"
 
-#: saleor/dashboard/order/forms.py:274
+#: saleor/dashboard/order/forms.py:279
 msgctxt "Remove voucher form error"
 msgid "This order has no voucher"
 msgstr "Questo ordine non ha voucher"
 
-#: saleor/dashboard/order/forms.py:286
+#: saleor/dashboard/order/forms.py:292
 msgctxt "Order status field value"
 msgid "All"
 msgstr "Tutti"
 
-#: saleor/dashboard/order/forms.py:289
+#: saleor/dashboard/order/forms.py:297
 msgctxt "Payment status field value"
 msgid "All"
 msgstr "Tutti"
 
-#: saleor/dashboard/order/views.py:85
+#: saleor/dashboard/order/views.py:86
 msgctxt "Dashboard message related to an order"
 msgid "Added note"
 msgstr "Nota aggiunta"
 
-#: saleor/dashboard/order/views.py:106
+#: saleor/dashboard/order/views.py:108
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Captured %(amount)s"
 msgstr "%(amount)s acquisiti"
 
-#: saleor/dashboard/order/views.py:128
+#: saleor/dashboard/order/views.py:130
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Refunded %(amount)s"
 msgstr "%(amount)s rimborsati"
 
-#: saleor/dashboard/order/views.py:145
+#: saleor/dashboard/order/views.py:147
 msgctxt "Dashboard message"
 msgid "Released payment"
-msgstr "Sblocca pagamento"
+msgstr "Pagamento sbloccato"
 
-#: saleor/dashboard/order/views.py:169
+#: saleor/dashboard/order/views.py:171
 #, python-format
 msgctxt "Dashboard message related to an order line"
 msgid ""
@@ -223,52 +200,52 @@ msgstr ""
 "Quantità variata per il prodotto %(product)s da %(old_quantity)s a "
 "%(new_quantity)s"
 
-#: saleor/dashboard/order/views.py:200
+#: saleor/dashboard/order/views.py:202
 msgctxt "Dashboard message related to a delivery group"
 msgid "removed group"
 msgstr "gruppo rimosso"
 
-#: saleor/dashboard/order/views.py:203
+#: saleor/dashboard/order/views.py:205
 #, python-format
 msgctxt "Dashboard message related to delivery groups"
 msgid "Moved %(how_many)s items %(item)s from %(old_group)s to %(new_group)s"
 msgstr ""
 "%(how_many)s articoli spostati %(item)s da %(old_group)s a %(new_group)s"
 
-#: saleor/dashboard/order/views.py:226
+#: saleor/dashboard/order/views.py:229
 #, python-format
 msgctxt "Dashboard message related to an order line"
 msgid "Cancelled item %s"
 msgstr "Articolo %s eliminato"
 
-#: saleor/dashboard/order/views.py:249
+#: saleor/dashboard/order/views.py:254
 #, python-format
 msgctxt "Dashboard message related to a delivery group"
 msgid "Shipped %s"
 msgstr "%s spedito"
 
-#: saleor/dashboard/order/views.py:271
+#: saleor/dashboard/order/views.py:276
 #, python-format
 msgctxt "Dashboard message related to a delivery group"
 msgid "Cancelled %s"
 msgstr "%s annullato"
 
-#: saleor/dashboard/order/views.py:289
+#: saleor/dashboard/order/views.py:294
 msgctxt "Dashboard message"
 msgid "Updated shipping address"
 msgstr "Indirizzo di spedizione aggiornato"
 
-#: saleor/dashboard/order/views.py:294
+#: saleor/dashboard/order/views.py:299
 msgctxt "Dashboard message"
 msgid "Updated billing address"
 msgstr "Indirizzo di fatturazione aggiornato"
 
-#: saleor/dashboard/order/views.py:314
+#: saleor/dashboard/order/views.py:316
 msgctxt "Dashboard message"
 msgid "Cancelled order"
 msgstr "Ordine annullato"
 
-#: saleor/dashboard/order/views.py:333
+#: saleor/dashboard/order/views.py:335
 msgctxt "Dashboard message"
 msgid "Removed voucher from order"
 msgstr "Voucher rimosso dall'ordine"
@@ -297,7 +274,7 @@ msgstr "Le varianti prodotto sono disabilitate."
 msgctxt "Product class form error"
 msgid "A single attribute can't belong to both a product and its variant."
 msgstr ""
-"Un singolo attributo non può appartenere sia ad un prodotto sia alle sue "
+"Un singolo attributo non può appartenere sia ad un prodotto e sia alle sue "
 "varianti."
 
 #: saleor/dashboard/product/forms.py:89
@@ -315,125 +292,120 @@ msgctxt "Product form placeholder"
 msgid "Search"
 msgstr "Cerca"
 
-#: saleor/dashboard/product/forms.py:284
-msgctxt "Attribute choice value form error"
-msgid "Name already exists"
-msgstr "Il nome esiste già"
-
-#: saleor/dashboard/product/views.py:42
+#: saleor/dashboard/product/views.py:43
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product type %s"
 msgstr "Tipologia di prodotto %s aggiunta"
 
-#: saleor/dashboard/product/views.py:58
+#: saleor/dashboard/product/views.py:60
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product type %s"
 msgstr "Tipologia di prodotto %s aggiornata"
 
-#: saleor/dashboard/product/views.py:76
+#: saleor/dashboard/product/views.py:78
 #, python-format
 msgctxt "Dashboard message"
 msgid "Deleted product type %s"
 msgstr "Tipologia di prodotto %s eliminata"
 
-#: saleor/dashboard/product/views.py:122
+#: saleor/dashboard/product/views.py:124
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added product %s"
 msgstr "Prodotto %s aggiunto"
 
-#: saleor/dashboard/product/views.py:161
+#: saleor/dashboard/product/views.py:164
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated product %s"
 msgstr "Prodotto %s aggiornato"
 
-#: saleor/dashboard/product/views.py:180
+#: saleor/dashboard/product/views.py:183
 #, python-format
 msgctxt "Dashboard message"
 msgid "Deleted product %s"
 msgstr "Prodotto %s eliminato"
 
-#: saleor/dashboard/product/views.py:198
+#: saleor/dashboard/product/views.py:202
 msgctxt "Dashboard message"
 msgid "Saved stock"
-msgstr "Merce salvata"
+msgstr "Stock salvato"
 
-#: saleor/dashboard/product/views.py:214 saleor/dashboard/product/views.py:231
+#: saleor/dashboard/product/views.py:219 saleor/dashboard/product/views.py:237
 msgctxt "Dashboard message"
 msgid "Deleted stock"
-msgstr "Merce eliminata"
+msgstr "Stock eliminato"
 
-#: saleor/dashboard/product/views.py:252
+#: saleor/dashboard/product/views.py:258
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated image %s"
 msgstr "Immagine %s aggiornata"
 
-#: saleor/dashboard/product/views.py:256
+#: saleor/dashboard/product/views.py:262
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added image %s"
 msgstr "Immagine %s aggiunta"
 
-#: saleor/dashboard/product/views.py:277
+#: saleor/dashboard/product/views.py:283
 #, python-format
 msgctxt "Dashboard message"
 msgid "Deleted image %s"
 msgstr "Immagine %s eliminata"
 
-#: saleor/dashboard/product/views.py:307
+#: saleor/dashboard/product/views.py:313
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated variant %s"
 msgstr "Variante %s aggiornata"
 
-#: saleor/dashboard/product/views.py:311
+#: saleor/dashboard/product/views.py:317
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added variant %s"
 msgstr "Variante %s aggiunta"
 
-#: saleor/dashboard/product/views.py:332
+#: saleor/dashboard/product/views.py:338
 #, python-format
 msgctxt "Dashboard message"
 msgid "Deleted variant %s"
 msgstr "Variante %s eliminata"
 
-#: saleor/dashboard/product/views.py:353
+#: saleor/dashboard/product/views.py:359
 msgctxt "Dashboard message"
 msgid "Deleted variants"
 msgstr "Varianti eliminate"
 
-#: saleor/dashboard/product/views.py:383
+#: saleor/dashboard/product/views.py:389
 msgctxt "Dashboard message"
 msgid "Updated attribute"
 msgstr "Attributo aggiornato"
 
-#: saleor/dashboard/product/views.py:384
+#: saleor/dashboard/product/views.py:390
 msgctxt "Dashboard message"
 msgid "Added attribute"
 msgstr "Attributo aggiunto"
 
-#: saleor/dashboard/product/views.py:401
+#: saleor/dashboard/product/views.py:407
 #, python-format
 msgctxt "Dashboard message"
 msgid "Deleted attribute %s"
 msgstr "Attributo %s eliminato"
 
-#: saleor/dashboard/product/views.py:427
+#: saleor/dashboard/product/views.py:433
 msgctxt "Dashboard message for stock location"
 msgid "Updated location"
 msgstr "Magazzino aggiornato"
 
-#: saleor/dashboard/product/views.py:428
+#: saleor/dashboard/product/views.py:434
 msgctxt "Dashboard message for stock location"
 msgid "Added location"
 msgstr "Magazzino aggiunto"
 
-#: saleor/dashboard/product/views.py:445
+#: saleor/dashboard/product/views.py:451
 #, python-format
 msgctxt "Dashboard message for stock location"
 msgid "Deleted location %s"

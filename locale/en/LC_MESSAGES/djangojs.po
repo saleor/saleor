@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-02-08 03:52-0600\n"
+"POT-Creation-Date: 2017-03-08 11:20+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -47,7 +47,7 @@ msgid "Price range"
 msgstr ""
 
 #: saleor/static/js/components/categoryPage/PriceFilter.js:58
-#: saleor/static/js/components/categoryPage/ProductPrice.js:13
+#: saleor/static/js/components/categoryPage/ProductPrice.js:12
 msgid "from"
 msgstr ""
 
@@ -63,7 +63,7 @@ msgstr ""
 msgid "Load more"
 msgstr ""
 
-#: saleor/static/js/components/categoryPage/ProductPrice.js:16
+#: saleor/static/js/components/categoryPage/ProductPrice.js:15
 msgid "Sale"
 msgstr ""
 
@@ -101,6 +101,6 @@ msgstr ""
 msgid "Quantity"
 msgstr ""
 
-#: saleor/static/js/components/variantPicker/VariantPicker.js:112
+#: saleor/static/js/components/variantPicker/VariantPicker.js:161
 msgid "Add to cart"
 msgstr ""
