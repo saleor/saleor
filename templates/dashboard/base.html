@@ -200,6 +200,7 @@
     <div id="base-modal-fixed" class="modal modal-fixed-footer"></div>
 
     <!-- Core Scripts - Include with every page -->
+    <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
     {% render_bundle 'vendor' 'js' %}
     {% render_bundle 'dashboard' 'js' %}
     <script src="{% static "versatileimagefield/js/versatileimagefield.js" %}"></script>
