@@ -29,7 +29,7 @@
     }
     &__button {
       width: 80%;
-      float: right;
+      float: left;
       margin-top: $global-margin * 2.5;
       button {
         min-width: 100%;
@@ -41,6 +41,31 @@
     &__form-error {
       margin-top: -$global-padding / 2;
       margin-bottom: $global-margin;
+    }
+    &__availability {
+      height: 8px;
+      -moz-border-radius:4px;
+      -webkit-border-radius: 4px;
+      width: 8px;
+      display: inline-flex;
+      position: relative;
+      bottom: 3px;
+      &.available {
+        background-color: #158037;
+      }
+      &.few {
+        background-color: #b3a32f;
+      }
+      &.bla {
+        background-color: black;
+      }
+      &.one {
+        background-color: #f47f10;
+      }
+      &.out {
+        background-color: #c06;
+
+      }
     }
   }
   &__variant-picker {
@@ -86,7 +111,7 @@
         min-width: 60px;
         &.active {
           img {
-            opacity: 0.5;  
+            opacity: 0.5;
           }
         }
       }
