@@ -1,6 +1,5 @@
 .styleguide {
   &__menu {
-    float: right !important;
     position: relative;
     ul {
       li {
@@ -23,7 +22,6 @@
     }
   }
   &__content {
-    float: left !important;
     &__block {
       .container {
         margin-left: 0;
