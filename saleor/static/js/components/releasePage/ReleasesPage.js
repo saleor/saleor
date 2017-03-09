@@ -82,5 +82,5 @@ export default Relay.createContainer(ReleasesPage, {
         }
       }
     `
-  }
+  },
 });

@@ -1,12 +1,18 @@
 import React, { PropTypes } from 'react';
 import ReactDOM from 'react-dom';
+import ReactNative from 'react';
 import Relay from 'react-relay';
+
+var {
+  ScrollView
+} = ReactNative;
 
 import ReleasesPage from './components/releasePage/ReleasesPage';
 import Loading from './components/Loading';
 import {getReleaseListColumnNumber} from "./components/utils";
 
 const releasesPage = document.getElementById('releases-page');
+const releaseData = JSON.parse(releasesPage.getAttribute('data-releases'));
 
 const PAGINATE_BY = 10;
 
@@ -44,18 +50,26 @@ class App extends React.Component {
   }
 
   render() {
-    return <ReleasesPage {...this.props.root} />;
+    var isRefreshing = this.state.loading;
+    return (
+      <div>
+        <ReleasesPage {...this.props.root} />
+        <Loading style={{display: isRefreshing ? 'block' : 'none' }} />
+      </div>
+    );
+
   }
 }
 
 const RelayApp = Relay.createContainer(App, {
   initialVariables: {
-    count: PAGINATE_BY * getReleaseListColumnNumber()
+    count: PAGINATE_BY * getReleaseListColumnNumber(),
+    filterBy: JSON.stringify(releaseData.filterBy)
   },
   fragments: {
     root: () => Relay.QL`
       fragment on Query {
-        releases (first: $count) {
+        releases (first: $count, filterBy: $filterBy) {
           ${ReleasesPage.getFragment('releases')}
         }
        }
