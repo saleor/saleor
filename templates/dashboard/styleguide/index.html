@@ -148,6 +148,124 @@
             </div>
           </div> 
         </div>
+        <div id="helpers" class="styleguide__content__block">
+          <h3 class="styleguide__content__block--title">
+            {% trans "Helpers" context "Helpers title in style guide" %}
+          </h3>
+          <div class="card">
+            <div class="card-content">
+              <div class="section">
+                <h4>
+                  {% trans "Text align" context "helpers subtitle in style guide" %}
+                </h4>
+                  <xmp><p class="left-align">This should be left aligned</p></xmp>
+                  <xmp><p class="right-align">This should be right aligned</p></xmp>
+                  <xmp><p class="center-align">This should be center aligned</p></xmp>
+              </div>
+              <div class="section">
+                <h4>
+                  {% trans "Floats" context "Floats subtitle in style guide" %}
+                </h4>
+                  <xmp><div class="left">Add float:left with !important</div></xmp>
+                  <xmp><div class="right">Add float:right with !important</div></xmp>
+              </div>
+              <div class="section">
+                <h4>
+                  {% trans "Hide content" context "Hide content subtitle in style guide" %}
+                </h4>
+                <div class="data-table-container">
+                  <table class="bordered highlight responsive data-table">
+                    <thead>
+                      <tr>
+                        <th>
+                          {% trans "Class name" context "Hide content table header" %}
+                        </th>
+                        <th>
+                          {% trans "Screen Range" context "Hide content table header" %}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr data-action-go="">
+                        <td>
+                          .hide
+                        </td>
+                        <td>
+                        {% trans "Hidden for all Devices" context "Hide content table" %}
+                        </td>
+                      </tr>
+                      <tr data-action-go="">
+                        <td>
+                          .hide-on-small-only
+                        </td>
+                        <td>
+                          {% trans "Hidden for Mobile Only" context "Hide content table" %}
+                        </td>
+                      </tr>
+                      <tr data-action-go="">
+                        <td>
+                          .hide-on-med-only
+                        </td>
+                        <td>
+                         {% trans "Hidden for Tablet Only" context "Hide content table" %}
+                        </td>
+                      </tr>
+                      <tr data-action-go="">
+                        <td>
+                          .hide-on-med-and-down
+                        </td>
+                        <td>
+                          {% trans "Hidden for Tablet and Below" context "Hide content table" %}
+                        </td>
+                      </tr>
+                      <tr data-action-go="">
+                        <td>
+                          .hide-on-med-and-up
+                        </td>
+                        <td>
+                          {% trans "Hidden for Tablet and Above" context "Hide content table" %}
+                        </td>
+                      </tr>
+                      <tr data-action-go="">
+                        <td>
+                          .hide-on-large-only
+                        </td>
+                        <td>
+                          {% trans "Hidden for Desktop Only" context "Hide content table" %}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <xmp><div class="hide"></div></xmp>
+              </div>
+              <div class="section">
+                <h4>No margin</h4>
+                <xmp><div class="no-margin">Remove all margins</div></xmp>
+              </div>
+              <div class="section">
+                <h4>Labels</h4>
+                <xmp><span class="label"></span></xmp>
+                <span class="label">Example label class</span>
+                <xmp><span class="label label-danger"></span></xmp>
+                <span class="label label-danger">Example label class</span>
+                <xmp><span class="label label-success"></span></xmp>
+                <span class="label label-success">Example label class</span>
+              </div>
+              <div class="section">
+                <h4>Currency</h4>
+                <xmp><span class="currency"></span></xmp>
+                <span class="currency">USD</span>
+              </div>
+              <div class="section">
+                <h4>Text large</h4>
+                <xmp><p class="text-lg"></p></xmp>
+                <p>Regular example text</p>
+                <p class="text-lg">Large example text</p>
+              </div>
+            </div>
+          </div>
+        </div>
         <div id="buttons" class="styleguide__content__block">
           <h3 class="styleguide__content__block--title">
             {% trans "Buttons" context "Buttons title in style guide" %}
@@ -1028,6 +1146,11 @@
           <li>
             <a href="#colors">
               {% trans "Colors" context "Colors menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#helpers">
+              {% trans "Helpers" context "Helpers menu item in style guide" %}
             </a>
           </li>
           <li>

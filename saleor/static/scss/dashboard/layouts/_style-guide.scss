@@ -66,6 +66,12 @@
           font-weight: 700;
           margin: 0;
         }
+        xmp {
+          line-height: 1;
+          padding: 10px;
+          background: #f2f2f2;
+          border: solid 1px $grey-color;
+        }
       }
       .data-table {
         td, th {
