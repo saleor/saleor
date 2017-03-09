@@ -108,7 +108,11 @@
           <div class="card">
             <div class="card-content">
               <div class="section">
-                <p class="text-lg">We use Roboto in Regular(400) and <strong>Bold(700)</strong> weights.</p>
+                <p class="text-lg">
+                  {% blocktrans context "Font info text in style guide" %}
+                    We use Roboto in Regular(400) and <strong>Bold(700)</strong> weights.
+                  {% endblocktrans %}
+                </p>
                 <h1>
                   {% trans "H1 example text" context "H1 example text in style guide" %}
                 </h1>
@@ -320,11 +324,15 @@
                 <xmp><div class="hide"></div></xmp>
               </div>
               <div class="section">
-                <h4>No margin</h4>
+                <h4>
+                  {% trans "No margin" context "Helpers subtitle in style guide" %}
+                </h4>
                 <xmp><div class="no-margin">Remove all margins</div></xmp>
               </div>
               <div class="section">
-                <h4>Labels</h4>
+                <h4>
+                  {% trans "Labels" context "Helpers subtitle in style guide" %}
+                </h4>
                 <xmp><span class="label"></span></xmp>
                 <span class="label">Example label class</span>
                 <xmp><span class="label label-danger"></span></xmp>
@@ -333,15 +341,23 @@
                 <span class="label label-success">Example label class</span>
               </div>
               <div class="section">
-                <h4>Currency</h4>
+                <h4>
+                  {% trans "Currency" context "Helpers subtitle in style guide" %}
+                </h4>
                 <xmp><span class="currency"></span></xmp>
                 <span class="currency">USD</span>
               </div>
               <div class="section">
-                <h4>Text large</h4>
+                <h4>
+                  {% trans "Text large" context "Helpers subtitle in style guide" %}
+                </h4>
                 <xmp><p class="text-lg"></p></xmp>
-                <p>Regular example text</p>
-                <p class="text-lg">Large example text</p>
+                <p>
+                  {% trans "Regular example text" context "example text in style guide" %}
+                </p>
+                <p class="text-lg">
+                  {% trans "Large example text" context "example text in style guide" %}
+                </p>
               </div>
             </div>
           </div>
@@ -391,16 +407,16 @@
         </div>
         <div id="icons" class="styleguide__content__block">
           <h3 class="styleguide__content__block--title">
-            {% trans "Icons" context "ICons title in style guide" %}
+            {% trans "Icons" context "Icons title in style guide" %}
           </h3>
           <div class="card">
             <div class="card-content">
               <div class="section">
-                <h4>Usage:</h4>
+                <h4>{% trans "Usage" context "Icons subtitle in style guide" %}</h4>
                 <xmp><i class="material-icons"></i></xmp>
               </div>
               <div class="section">
-                <h4>Used icons:</h4>
+                <h4>{% trans "Used icons" context "Icons subtitle in style guide" %}:</h4>
                 <i class="material-icons">add</i>
                 <i class="material-icons">account_circle</i>
                 <i class="material-icons">search</i>
@@ -417,7 +433,7 @@
                 <i class="material-icons">history</i>
               </div>
               <div class="section">
-                <h4>All icons:</h4>
+                <h4>{% trans "All icons" context "Icons subtitle in style guide" %}</h4>
                 <a href="https://material.io/icons/" target="_blank">https://material.io/icons/</a>
               </div>
             </div>
@@ -530,7 +546,7 @@
                 <tbody>
                     <tr data-action-go="">
                       <td>
-                        Class Prefix
+                        {% trans "Class Prefix" context "Screen Sizes table header" %}
                       </td>
                       <td>
                        .s
@@ -544,7 +560,7 @@
                     </tr>
                     <tr data-action-go="">
                       <td>
-                        Container Width
+                        {% trans "Container Width" context "Screen Sizes table header" %}
                       </td>
                       <td>
                         85%
@@ -558,7 +574,7 @@
                     </tr>
                     <tr data-action-go="">
                       <td>
-                        Number of Columns
+                        {% trans "Number of Columns" context "Screen Sizes table header" %}
                       </td>
                       <td>
                         12
@@ -650,10 +666,8 @@
                   {% trans "Textarea" context "Textarea subtitle in style guide" %}
                 </h4>
                 <div class="input input-field">
-                  <textarea id="id_description" class="materialize-textarea" name="description">
-                  {% blocktrans context "Textarea example text in style guide" %}Lorem ipsum dolor sit amet mauris. Etiam sapien quis justo. Maecenas consequat, orci quis blandit ultrices posuere vitae, mollis nunc tempus euismod. Vestibulum ante eget odio. Nam pellentesque ut, turpis. Nam sed est id aliquet elit metus, quis nibh. Morbi augue imperdiet wisi.
-                  {% endblocktrans %}
-                  </textarea>
+                  <textarea id="id_description" class="materialize-textarea" name="description">{% blocktrans context "Textarea example text in style guide" %}Lorem ipsum dolor sit amet mauris. Etiam sapien quis justo. Maecenas consequat, orci quis blandit ultrices posuere vitae, mollis nunc tempus euismod. Vestibulum ante eget odio. Nam pellentesque ut, turpis. Nam sed est id aliquet elit metus, quis nibh. Morbi augue imperdiet wisi.
+                  {% endblocktrans %}</textarea>
                   <label class="active" for="id_description">
                     {% trans "Description" context "Textarea label in style guide" %}
                   </label>
@@ -909,7 +923,7 @@
                         </span>
                       </td>
                       <td>
-                        {% trans "frederick.shaw@example.com" context "Table content in style guide" %}
+                        frederick.shaw@example.com
                       </td>
                       <td>
                         {% now "F j, Y, H:i" %}
@@ -934,7 +948,7 @@
                         </span>
                       </td>
                       <td>
-                        {% trans "frederick.shaw@example.com" context "Table content in style guide" %}
+                        frederick.shaw@example.com
                       </td>
                       <td>
                         {% now "F j, Y, H:i" %}
@@ -1052,7 +1066,7 @@
                 <a href="#">
                   <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
                   <span class="title list-item-name">
-                    {% trans "Miller-Hill" context "List content in style guide" %}
+                    Miller-Hill
                   </span>
                   <p class="list-item-price">
                     31,40&nbsp<span class="currency">USD</span>
@@ -1063,7 +1077,7 @@
                 <a href="#">
                   <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
                   <span class="title list-item-name">
-                    {% trans "Schmidt and Sons" context "List content in style guide" %}
+                    Schmidt and Sons
                   </span>
                   <p class="list-item-price">
                     11,40&nbsp<span class="currency">USD</span>
@@ -1074,7 +1088,7 @@
                 <a href="#">
                   <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
                   <span class="title list-item-name">
-                    {% trans "Ramirez PLC" context "List content in style guide" %}
+                    Ramirez PLC
                   </span>
                   <p class="list-item-price">
                     25,40&nbsp<span class="currency">USD</span>
@@ -1085,7 +1099,7 @@
                 <a href="#">
                   <img src="{% static 'images/product-image-placeholder-small.png' %}" alt="" class="circle teal">
                   <span class="title list-item-name">
-                    {% trans "Foster-Brown" context "List content in style guide" %}
+                    Foster-Brown
                   </span>
                   <p class="list-item-price">
                     66,40&nbsp<span class="currency">USD</span>
