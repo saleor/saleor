@@ -273,6 +273,75 @@
               </div>
             </div>
           </div>
+          <div class="card">
+            <div class="data-table-header">
+              <span class="data-table-title">
+               {% trans "Screen Sizes" context "Screen Sizes table header" %}
+              </span>
+            </div>
+            <div class="data-table-container">
+              <table class="bordered highlight responsive data-table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>
+                      {% trans "Mobile Devices <= 600px" context "Screen Sizes table header" %}
+                    </th>
+                    <th>
+                      {% trans "Tablet Devices <= 992px" context "Screen Sizes table header" %}
+                    </th>
+                    <th>
+                      {% trans "Desktop Devices > 992px" context "Screen Sizes table header" %}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                    <tr data-action-go="">
+                      <td>
+                        Class Prefix
+                      </td>
+                      <td>
+                       .s
+                      </td>
+                      <td>
+                        .m
+                      </td>
+                      <td>
+                        .l
+                      </td>
+                    </tr>
+                    <tr data-action-go="">
+                      <td>
+                        Container Width
+                      </td>
+                      <td>
+                        85%
+                      </td>
+                      <td>
+                        85%
+                      </td>
+                      <td>
+                        70%
+                      </td>
+                    </tr>
+                    <tr data-action-go="">
+                      <td>
+                        Number of Columns
+                      </td>
+                      <td>
+                        12
+                      </td>
+                      <td>
+                        12
+                      </td>
+                      <td>
+                        12
+                      </td>
+                    </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
         <div id="forms" class="styleguide__content__block">
           <h3 class="styleguide__content__block--title">{% trans "Forms" context "Forms title in style guide" %}</h3>
