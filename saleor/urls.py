@@ -20,13 +20,14 @@ from .userprofile.views import login as login_view
 from .userprofile.urls import urlpatterns as userprofile_urls
 from .data_feeds.urls import urlpatterns as feed_urls
 from .dashboard.urls import urlpatterns as dashboard_urls
+from saleor_oye.cart.urls import urlpatterns as oye_cart_urls
 
 
 urlpatterns = [
     url(r'^', include(core_urls)),
     url(r'^account/', include('allauth.urls')),
     url(r'^account/login', login_view, name="account_login"),
-    url(r'^cart/', include(cart_urls, namespace='cart')),
+    url(r'^cart/', include(oye_cart_urls, namespace='cart')),
     url(r'^checkout/', include(checkout_urls, namespace='checkout')),
     url(r'^dashboard/', include(dashboard_urls, namespace='dashboard')),
     url(r'^graphql', GraphQLView.as_view(graphiql=settings.DEBUG)),
