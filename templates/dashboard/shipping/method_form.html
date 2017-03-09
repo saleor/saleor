@@ -4,7 +4,7 @@
 {% load mptt_tags %}
 
 {% block title %}
-  {% trans "Shipping methods" context "Shipping method form page title" %}
+  {% trans "Shipping methods" context "Dashboard shipping methods" %}
   {% if shipping_method.pk %}
     - {{ shipping_method }}
   {% else %}
@@ -29,7 +29,7 @@
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
       <a href="{% url 'dashboard:shipping-methods' %}">
-        {% trans "Shipping methods" context "Shipping method form breadcrumbs" %}
+        {% trans "Shipping methods" context "Dashboard shipping method" %}
       </a>
     </li>
     <li class="back-mobile">
@@ -94,7 +94,7 @@
                     {% trans "Price" context "Shipping method country list" %}
                   </th>
                   <th>
-                    {% trans "Delete" context "Shipping method country list" %}
+                    {% trans "Delete" context "Dashboard delete action" %}
                   </th>
                 </tr>
               </thead>
@@ -126,17 +126,17 @@
           <div class="card-action right-align">
             {% if shipping_method.pk %}
               <a href="{% url 'dashboard:shipping-methods' %}" class="btn btn-flat">
-                {% trans "Cancel" context "Shipping method form action" %}
+                {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn btn-flat primary">
-                {% trans "Update" context "Shipping method form action" %}
+                {% trans "Update" context "Dashboard update action" %}
               </button>
             {% else %}
               <a href="{% url 'dashboard:shipping-methods' %}" class="btn btn-flat">
-                {% trans "Cancel" context "Shipping method form action" %}
+                {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn btn-flat primary">
-                {% trans "Create" context "Shipping method form action" %}
+                {% trans "Create" context "Dashboard create action" %}
               </button>
             {% endif %}
           </div>

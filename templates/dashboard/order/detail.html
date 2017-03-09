@@ -7,7 +7,7 @@
 {% load discount_amount_for from prices %}
 
 {% block title %}
-  {{ order }} - {% trans "Orders" context "Order detail page title" %} - {{ block.super }}
+  {{ order }} - {% trans "Orders" context "Dashboard orders list" %} - {{ block.super }}
 {% endblock %}
 
 {% block body_class %}body-orders{% endblock %}
@@ -39,7 +39,7 @@
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
       <a href="{% url "dashboard:orders" %}">
-        {% trans "Orders" context "Order detail breadcrumbs" %}
+        {% trans "Orders" context "Dashboard orders list" %}
       </a>
     </li>
     <li class="back-mobile">
@@ -96,7 +96,7 @@
           <div class="row">
             <div class="col s12 m4 l12">
               <h6>
-                {% trans "Customer" context "Order summary card header" %}
+                {% trans "Customer" context "Dashboard customer" %}
               </h6>
               <p>
                 {% if order.user %}
@@ -205,13 +205,13 @@
               <div class="card">
                 <div class="card-content">
                   <span class="card-title black-text">
-                    {% trans "Shipping address" context "Shipping address card title" %}
+                    {% trans "Shipping address" context "" %}
                   </span>
                   {% include 'dashboard/includes/_address.html' with address=address only %}
                 </div>
                 <div class="card-action">
                   <a class="btn-flat" href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">
-                    {% trans "Edit" context "Shipping address card action" %}
+                    {% trans "Edit" context "Dashboard edit action" %}
                   </a>
                 </div>
               </div>
@@ -222,14 +222,14 @@
               <div class="card-content">
                 {% with order.billing_address as address %}
                   <span class="card-title black-text">
-                    {% trans "Billing address" context "Billing address card title" %}
+                    {% trans "Billing address" context "" %}
                   </span>
                   {% include 'dashboard/includes/_address.html' with address=address only %}
                 {% endwith %}
               </div>
               <div class="card-action">
                 <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}" class=" btn-flat">
-                  {% trans "Edit" context "Billing address card action" %}</a>
+                  {% trans "Edit" context "Dashboard edit action" %}</a>
               </div>
             </div>
           </div>
@@ -388,7 +388,7 @@
                   <td>
                     <a class="dropdown-button" href="#" data-activates="voucher-actions" data-constrainwidth="false">
                       {% blocktrans trimmed with voucher=order.discount_name context "Order totals header" %}
-                      Voucher {{ voucher }}
+                        Voucher {{ voucher }}
                       {% endblocktrans %}
                       <i class="material-icons">arrow_drop_down</i>
                     </a>

@@ -5,7 +5,7 @@
 {% load staticfiles %}
 
 {% block title %}
-  {% trans "Products" context "Product list page title" %} - {{ block.super }}
+  {% trans "Products" context "Dashboard products list" %} - {{ block.super }}
 {% endblock %}
 
 {% block body_class %}body-products{% endblock %}
@@ -25,7 +25,7 @@
 {% block breadcrumbs %}
   <ul class="breadcrumbs">
     <li class="visible-s">
-      {% trans "Products" context "Product list breadcrumbs" %}
+      {% trans "Products" context "Dashboard products list" %}
     </li>
   </ul>
 {% endblock %}
@@ -81,7 +81,7 @@
           <div class="col s12">
             <button class="btn" type="submit">
               <i class="material-icons left">create</i>
-              {% trans "Create new" context "Product list choose product type for new product action" %}
+              {% trans "Create new" context "Dashboard create new action" %}
             </button>
           </div>
         </div>

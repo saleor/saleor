@@ -10,7 +10,7 @@
   {% else %}
     {% trans "Add new stock location" context "Stock location page title" %}
   {% endif %}
-   - {% trans "Stock location" context "Stock location page title" %} - {{ block.super }}
+   - {% trans "Stock location" context "Dashboard stock location" %} - {{ block.super }}
 {% endblock %}
 
 {% block body_class %}body-locations{% endblock %}
@@ -35,7 +35,7 @@
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
       <a href="{% url 'dashboard:product-stock-location-list' %}" class="breadcrumbs--ellipsed-item">
-        {% trans "Stock location" context "Stock location detail breadcrumbs" %}
+        {% trans "Stock location" context "Dashboard stock location" %}
       </a>
     </li>
     <li class="back-mobile">
@@ -71,17 +71,17 @@
           <div class="card-action right-align">
             {% if location.pk %}
               <a href="{% url 'dashboard:product-stock-location-list' %}" class="btn btn-flat">
-                {% trans "Cancel" context "Product stock location secondary action" %}
+                {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn btn-flat primary">
-                {% trans "Update" context "Stock location detail action" %}
+                {% trans "Update" context "Dashboard update action" %}
               </button>
             {% else %}
               <a href="{% url 'dashboard:product-stock-location-list' %}" class="btn btn-flat">
-                {% trans "Cancel" context "Product stock location secondary action" %}
+                {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn btn-flat primary">
-                {% trans "Create" context "Stock location detail action" %}
+                {% trans "Create" context "Dashboard create action" %}
               </button>
             {% endif %}
           </div>
