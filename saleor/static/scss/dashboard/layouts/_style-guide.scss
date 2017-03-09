@@ -65,6 +65,7 @@
           font-size: 1.2rem;
           font-weight: 700;
           margin: 0;
+          padding-bottom: 5px;
         }
         xmp {
           line-height: 1;
@@ -78,6 +79,12 @@
           padding: 5px 10px;
         }
       }
+    }
+  }
+  #icons {
+    i {
+      font-size: 2rem;
+      padding-right: 20px;
     }
   }
 }
