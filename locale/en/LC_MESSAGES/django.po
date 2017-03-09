@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-09 12:07+0100\n"
+"POT-Creation-Date: 2017-03-09 14:36+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1817,9 +1817,7 @@ msgstr ""
 
 #: templates/checkout/shipping_address.html:8
 #: templates/checkout/shipping_method.html:7
-#: templates/dashboard/order/address_form.html:39
-#: templates/dashboard/order/detail.html:208
-msgctxt ""
+msgctxt "Checkout shipping address title"
 msgid "Shipping address"
 msgstr ""
 
@@ -1868,16 +1866,18 @@ msgid "Use"
 msgstr ""
 
 #: templates/checkout/summary.html:7
-#: templates/checkout/summary_without_shipping.html:8
-#: templates/dashboard/order/address_form.html:41
-#: templates/dashboard/order/detail.html:225
-msgctxt ""
+msgctxt "Checkout summary title"
 msgid "Billing address"
 msgstr ""
 
 #: templates/checkout/summary.html:11
 msgctxt "Checkout summary primary action"
 msgid "Order &amp Pay"
+msgstr ""
+
+#: templates/checkout/summary_without_shipping.html:8
+msgctxt "Checkout summary without shipping title"
+msgid "Billing address"
 msgstr ""
 
 #: templates/checkout/summary_without_shipping.html:17
@@ -2069,6 +2069,7 @@ msgstr[1] ""
 #: templates/dashboard/product/product_confirm_delete.html:59
 #: templates/dashboard/product/product_form.html:193
 #: templates/dashboard/product/product_form.html:209
+#: templates/dashboard/product/product_form.html:291
 #: templates/dashboard/product/product_form.html:306
 #: templates/dashboard/product/product_form.html:408
 #: templates/dashboard/product/product_form.html:456
@@ -2574,6 +2575,18 @@ msgctxt ""
 msgid "Edit address"
 msgstr ""
 
+#: templates/dashboard/order/address_form.html:39
+#: templates/dashboard/order/detail.html:208
+msgctxt ""
+msgid "Shipping address"
+msgstr ""
+
+#: templates/dashboard/order/address_form.html:41
+#: templates/dashboard/order/detail.html:225
+msgctxt ""
+msgid "Billing address"
+msgstr ""
+
 #: templates/dashboard/order/detail.html:31
 msgctxt "Order detail action"
 msgid "Cancel Order"
@@ -2600,7 +2613,7 @@ msgid "Order summary"
 msgstr ""
 
 #: templates/dashboard/order/detail.html:99
-#: templates/dashboard/search/results.html:85
+#: templates/dashboard/search/results.html:84
 msgctxt "Dashboard customer"
 msgid "Customer"
 msgstr ""
@@ -3295,11 +3308,6 @@ msgctxt "Product form stock tab table action"
 msgid "Add"
 msgstr ""
 
-#: templates/dashboard/product/product_form.html:291
-msgctxt "Dashboard delte action"
-msgid "Delete"
-msgstr ""
-
 #: templates/dashboard/product/product_form.html:299
 msgctxt "Modal delete stock from variant text"
 msgid "You are about to delete stock for this product variant."
@@ -3552,13 +3560,13 @@ msgctxt "Dashboard order"
 msgid "Order #%(order_number)s"
 msgstr ""
 
-#: templates/dashboard/search/results.html:64
+#: templates/dashboard/search/results.html:63
 #, python-format
 msgctxt "Dashboard customer"
 msgid "Customer: %(email)s"
 msgstr ""
 
-#: templates/dashboard/search/results.html:69
+#: templates/dashboard/search/results.html:68
 #, python-format
 msgctxt "Dashboard order info"
 msgid "Placed on: %(placed)s"
@@ -3570,7 +3578,7 @@ msgctxt "Dashboard user"
 msgid "User %(full_name)s"
 msgstr ""
 
-#: templates/dashboard/search/results.html:97
+#: templates/dashboard/search/results.html:96
 #, python-format
 msgctxt "No Search result message"
 msgid "No results for query \"%(query)s\"."
