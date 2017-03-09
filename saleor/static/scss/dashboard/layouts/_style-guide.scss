@@ -76,9 +76,11 @@
           margin: 0;
           padding-bottom: 5px;
         }
-        xmp {
+        code {
+          display: block;
           line-height: 1;
           padding: 10px;
+          margin: 10px 0;
           background: #f2f2f2;
           border: solid 1px $grey-color;
           @media only screen and (max-width: $small-screen-up) {
