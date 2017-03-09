@@ -55,7 +55,6 @@ $(document).ready(function() {
   let $tabs = $('ul.tabs');
   if ($tabs.length) {
     $tabs.find('.tab').on('click', function (e) {
-      window.history.pushState(null, null, e.target.hash);
       let tabSelector = $(this).find('a').attr('href');
       $('.btn-fab').addClass('btn-fab-hidden');
       $(tabSelector + '-btn').removeClass('btn-fab-hidden');

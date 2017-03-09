@@ -37,69 +37,67 @@
             <li class="collection-item avatar list-item">
               {% if result.content_type == 'product_product' %}
                 {% with product=result %}
-                  <img src="{% product_first_image product size="100x100" method="crop" %}"
-                  class="circle teal" alt="{{ product.name }}">
-                  <a class="title" href="{% url 'dashboard:product-update' pk=product.pk %}">
+                  <a href="{% url 'dashboard:product-update' pk=product.pk %}">
+                    <img src="{% product_first_image product size="100x100" method="crop" %}"
+                    class="circle teal" alt="{{ product.name }}">
                     <span class="list-item-name">
                       {{ product.name }}
                     </span>
+                    <p class="list-item-price">
+                      <small>
+                        {% gross product.price html=True %}
+                      </small>
+                    </p>
                   </a>
-                  <p class="list-item-price">
-                    <small>
-                      {% gross product.price html=True %}
-                    </small>
-                  </p>
                 {% endwith %}
               {% elif result.content_type == 'order_order' %}
-                <i class="small material-icons circle teal">payment</i>
-                <a class="title" href="{% url 'dashboard:order-details' order_pk=result.pk %}">
+                <a href="{% url 'dashboard:order-details' order_pk=result.pk %}">
+                  <i class="small material-icons circle teal">payment</i>
                   <span class="list-item-name">
                     {% blocktrans trimmed with order_number=result.pk context "Dashboard order" %}
                       Order #{{ order_number }}
                     {% endblocktrans %}
                   </span>
+                  <p class="list-item-price">
+                    <small>
+                      {% blocktrans trimmed context "Dashboard customer" with email=result.user_email %}
+                        Customer: {{ email }}
+                      {% endblocktrans %}
+                    </small>
+                    <small>
+                      {% blocktrans trimmed with placed=result.created context "Dashboard order info" %}
+                        Placed on: {{ placed }}
+                      {% endblocktrans %}
+                    </small>
+                  </p>
                 </a>
-                <p class="list-item-price">
-                  <small>
-                    {% blocktrans trimmed context "Dashboard customer" with email=result.user_email %}
-                      Customer: {{ email }}
-                    {% endblocktrans %}
-                  </small>
-                  <small>
-                    {% blocktrans trimmed with placed=result.created context "Dashboard order info" %}
-                      Placed on: {{ placed }}
-                    {% endblocktrans %}
-                  </small>
-                </p>
               {% elif result.content_type == 'userprofile_user' %}
-                <i class="small material-icons circle teal">perm_identity</i>
-                <a class="title" href="{% url 'dashboard:customer-details' pk=result.pk %}">
+                <a href="{% url 'dashboard:customer-details' pk=result.pk %}">
+                  <i class="small material-icons circle teal">perm_identity</i>
                   <span class="list-item-name">
                     {% blocktrans trimmed with full_name=result.get_full_name context "Dashboard user" %}
                       User {{ full_name }}
                     {% endblocktrans %}
                   </span>
+                  <p class="list-item-price">
+                    <small>
+                      {% trans "Customer" context "Dashboard customer" %}
+                    </small>
+                  </p>
                 </a>
-                <p class="list-item-price">
-                  <small>
-                    {% trans "Customer" context "Dashboard customer" %}
-                  </small>
-                </p>
               {% endif %}
             </li>
           {% endfor %}
         </ul>
         {% include "dashboard/includes/_pagination.html" with page_obj=results %}
       {% elif query %}
-        <ul class="collection list">
-          <li class="collection-item list-item">
-            <p class="list-item-name--single">
+        <div class="not-found">
+            <p class="grey-text">
               {% blocktrans trimmed with full_name=result.get_full_name context "No Search result message" %}
                 No results for query "{{ query }}".
               {%  endblocktrans %}
             </p>
-          </li>
-        </ul>
+        </div>
       {% endif %}
     </div>
   </div>
