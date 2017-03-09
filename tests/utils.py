@@ -7,13 +7,14 @@ from django.db.models import Q
 from django.utils.encoding import smart_text
 
 
+def get_url_path(url):
+    parsed_url = urlparse(url)
+    return parsed_url.path
+
+
 def get_redirect_location(response):
     # Due to Django 1.8 compatibility, we have to handle both cases
-    location = response['Location']
-    if location.startswith('http'):
-        url = urlparse(location)
-        location = url.path
-    return location
+    return get_url_path(response['Location'])
 
 
 def filter_products_by_attribute(queryset, attribute_id, value):

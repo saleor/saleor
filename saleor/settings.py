@@ -56,6 +56,7 @@ DATABASE_ROUTERS = ['saleor.dbrouters.OyeRouter', ]
 
 TIME_ZONE = 'Europe/Berlin'
 LANGUAGE_CODE = 'de-de'
+LOCALE_PATHS = [os.path.join(PROJECT_ROOT, 'locale')]
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True

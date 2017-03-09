@@ -98,21 +98,21 @@
         <li class="collection-item list-item">
           <a class="list-item-name" href="{% url "dashboard:category-list" root_pk=node.pk %}">
             {{ node.name }}
-          </a>
-          <p class="list-item-desc">
-            <span>
-              {% if node.description %}
-                {{ node.description }}
-              {% else %}
-                &nbsp;
-              {% endif %}
-            </span>
+            <p class="list-item-desc">
+              <span>
+                {% if node.description %}
+                  {{ node.description }}
+                {% else %}
+                  &nbsp;
+                {% endif %}
+              </span>
             </p>
-          {% if node.hidden %}
-            <span class="list-item-icon">
-              <i class="material-icons">visibility_off</i>
-            </span>
-          {% endif %}
+            {% if node.hidden %}
+              <span class="list-item-icon">
+                <i class="material-icons">visibility_off</i>
+              </span>
+            {% endif %}
+          </a>
         </li>
       {% endfor %}
     </ul>
