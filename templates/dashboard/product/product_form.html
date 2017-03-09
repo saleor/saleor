@@ -403,8 +403,7 @@
                         <a class="btn btn-flat" href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">
                           {% trans "Edit" context "Image card action" %}
                         </a>
-                        <a class="btn btn-flat" href="#base-modal" class="modal-trigger-custom"
-                        data-href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}">
+                        <a href="#base-modal" class="btn btn-flat modal-trigger-custom" data-href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}">
                           {% trans "Delete" context "Image card action" %}
                         </a>
                       </div>

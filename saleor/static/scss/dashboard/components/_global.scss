@@ -8,6 +8,10 @@ html {
   }
 }
 
+strong {
+  font-weight: bold;
+}
+
 h6 {
   @extend .grey-text;
   font-size: 13px;
