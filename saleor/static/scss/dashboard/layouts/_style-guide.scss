@@ -1,20 +1,29 @@
 .styleguide {
   &__menu {
+    float: right !important;
     position: relative;
     ul {
       li {
         padding: 5px 20px;
         a {
           color: $sidenav-font-color;
+          display: block;
           &:hover {
             color: darken($sidenav-font-color, 20%);
             font-weight: 700;
+          }
+        }
+        @media only screen and (max-width: $small-screen-up) {
+          text-align: center;
+          a {
+            font-size: 1.5rem;
           }
         }
       }
     }
   }
   &__content {
+    float: left !important;
     &__block {
       .container {
         margin-left: 0;
@@ -72,6 +81,9 @@
           padding: 10px;
           background: #f2f2f2;
           border: solid 1px $grey-color;
+          @media only screen and (max-width: $small-screen-up) {
+            font-size: 0.75rem;
+          }
         }
       }
       .data-table {

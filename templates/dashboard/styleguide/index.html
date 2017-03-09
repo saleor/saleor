@@ -21,7 +21,86 @@
 {% block content %}
   <div class="styleguide">
     <div class="row">
-      <div class="col m9 styleguide__content">
+      <div class="col m3 s12 styleguide__menu">
+        <ul>
+          <li>
+            <a href="#typography">
+              {% trans "Typography" context "Typography menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#colors">
+              {% trans "Colors" context "Colors menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#helpers">
+              {% trans "Helpers" context "Helpers menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#buttons">
+              {% trans "Buttons" context "Buttons menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#icons">
+              {% trans "Icons" context "Icons menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#grid">
+              {% trans "Grid" context "Grid menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#forms">
+              {% trans "Forms" context "Forms menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#breadcrumbs">
+              {% trans "Breadcrumbs" context "Breadcrumbs menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#tabs">
+              {% trans "Tabs" context "Tabs menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#tables">
+              {% trans "Tables" context "Tables menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#lists">
+              {% trans "Lists" context "Lists menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#cards">
+              {% trans "Cards" context "Cards menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#modals">
+              {% trans "Modals" context "Modals menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#toasts">
+              {% trans "Toasts" context "Toasts menu item in style guide" %}
+            </a>
+          </li>
+          <li>
+            <a href="#pagination">
+              {% trans "Pagination" context "Pagination menu item in style guide" %}
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div class="col m9 s12 styleguide__content">
         <div id="typography" class="styleguide__content__block">
           <h3 class="styleguide__content__block--title">
             {% trans "Typography" context "Typography title in style guide" %}
@@ -66,7 +145,7 @@
             {% trans "Colors" context "Colors title in style guide" %}
           </h3>
           <div class="row">
-            <div class="col m3">
+            <div class="col m3 s6">
               <div class="card">
                 <div class="card-color off-black"></div>
                 <div class="card-content">
@@ -75,7 +154,7 @@
                 </div>
               </div>
             </div>
-            <div class="col m3">
+            <div class="col m3 s6">
               <div class="card">
                 <div class="card-color primary-color"></div>
                 <div class="card-content">
@@ -84,7 +163,7 @@
                 </div>
               </div>
             </div>
-            <div class="col m3">
+            <div class="col m3 s6">
               <div class="card">
                 <div class="card-color primary-color-light"></div>
                 <div class="card-content">
@@ -93,7 +172,7 @@
                 </div>
               </div>
             </div>
-            <div class="col m3">
+            <div class="col m3 s6">
               <div class="card">
                 <div class="card-color secondary-color"></div>
                 <div class="card-content">
@@ -102,7 +181,7 @@
                 </div>
               </div>
             </div>
-            <div class="col m3">
+            <div class="col m3 s6">
               <div class="card">
                 <div class="card-color success-color"></div>
                 <div class="card-content">
@@ -111,7 +190,7 @@
                 </div>
               </div>
             </div>
-            <div class="col m3">
+            <div class="col m3 s6">
               <div class="card">
                 <div class="card-color error-color"></div>
                 <div class="card-content">
@@ -120,7 +199,7 @@
                 </div>
               </div>
             </div>
-            <div class="col m3">
+            <div class="col m3 s6">
               <div class="card">
                 <div class="card-color link-color"></div>
                 <div class="card-content">
@@ -129,7 +208,7 @@
                 </div>
               </div>
             </div>
-            <div class="col m3">
+            <div class="col m3 s6">
               <div class="card">
                 <div class="card-color grey-color"></div>
                 <div class="card-content">
@@ -138,7 +217,7 @@
                 </div>
               </div>
             </div>
-            <div class="col m3">
+            <div class="col m3 s6">
               <div class="card">
                 <div class="card-color sidenav-font-color"></div>
                 <div class="card-content">
@@ -159,16 +238,16 @@
                 <h4>
                   {% trans "Text align" context "helpers subtitle in style guide" %}
                 </h4>
-                  <xmp><p class="left-align">This should be left aligned</p></xmp>
-                  <xmp><p class="right-align">This should be right aligned</p></xmp>
-                  <xmp><p class="center-align">This should be center aligned</p></xmp>
+                  <xmp><p class="left-align">Text left aligned</p></xmp>
+                  <xmp><p class="right-align">Text right aligned</p></xmp>
+                  <xmp><p class="center-align">Text center aligned</p></xmp>
               </div>
               <div class="section">
                 <h4>
                   {% trans "Floats" context "Floats subtitle in style guide" %}
                 </h4>
-                  <xmp><div class="left">Add float:left with !important</div></xmp>
-                  <xmp><div class="right">Add float:right with !important</div></xmp>
+                  <xmp><div class="left">Add float:left</div></xmp>
+                  <xmp><div class="right">Add float:right</div></xmp>
               </div>
               <div class="section">
                 <h4>
@@ -274,34 +353,34 @@
           <div class="card">
             <div class="card-content">
               <div class="row section">
-                <div class="col m4">
+                <div class="col m4 s6">
                   <a href="#" class="btn waves-effect waves-light">
                     {% trans "Primary" context "Primary button text in style guide" %}
                   </a>
                 </div>
-                 <div class="col m4">
+                 <div class="col m4 s6">
                   <a href="#" class="btn btn-flat">
                     {% trans "Secondary" context "Secondary button text in style guide" %}
                   </a>
                 </div>
-                <div class="col m4">
+                <div class="col m4 s6">
                   <a href="#" class="btn btn-floating btn-large waves-effect waves-light">
                     <i class="material-icons">add</i>
                   </a>
                 </div>
               </div>
               <div class="row section">
-                <div class="col m4">
+                <div class="col m4 s6">
                   <a href="#" class="btn waves-effect waves-light disabled">
                     {% trans "Primary disabled" context "Primary disabled button text in style guide" %}
                   </a>
                 </div>
-                <div class="col m4">
+                <div class="col m4 s6">
                   <a href="#" class="btn btn-flat disabled">
                     {% trans "Secondary disabled" context "Secondary disabled button text in style guide" %}
                   </a>
                 </div>
-                <div class="col m4">
+                <div class="col m4 s6">
                   <a href="#" class="btn btn-floating btn-large waves-effect waves-light disabled">
                     <i class="material-icons">add</i>
                   </a>
@@ -321,7 +400,7 @@
                 <xmp><i class="material-icons"></i></xmp>
               </div>
               <div class="section">
-                <h4>Examples:</h4>
+                <h4>Used icons:</h4>
                 <i class="material-icons">add</i>
                 <i class="material-icons">account_circle</i>
                 <i class="material-icons">search</i>
@@ -329,6 +408,13 @@
                 <i class="material-icons">more_vert</i>
                 <i class="material-icons">arrow_back</i>
                 <i class="material-icons">chevron_right</i>
+                <i class="material-icons">edit</i>
+                <i class="material-icons">style</i>
+                <i class="material-icons">store</i>
+                <i class="material-icons">collections</i>
+                <i class="material-icons">description</i>
+                <i class="material-icons">payment</i>
+                <i class="material-icons">history</i>
               </div>
               <div class="section">
                 <h4>All icons:</h4>
@@ -340,39 +426,39 @@
         <div id="grid" class="styleguide__content__block">
           <h3 class="styleguide__content__block--title">{% trans "Grid" context "Grid title in style guide" %}</h3>
           <div class="row">
-            <div class="col m12">
+            <div class="col m12 s12">
               <div class="card">
                 <div class="card-content">
-                  <p>col m12</p>
+                  <p>col m12 s12</p>
                 </div>
               </div>
             </div>
           </div>
           <div class="row">
-            <div class="col m6">
+            <div class="col m6 s6">
               <div class="card">
                 <div class="card-content">
-                  <p>col m6</p>
+                  <p>col m6 s6</p>
                 </div>
               </div>
             </div>
-            <div class="col m6">
+            <div class="col m6 s6">
               <div class="card">
                 <div class="card-content">
-                  <p>col m6</p>
+                  <p>col m6 s6</p>
                 </div>
               </div>
             </div>
           </div>
           <div class="row">
-            <div class="col m3">
+            <div class="col m3 s3">
               <div class="card">
                 <div class="card-content">
-                  <p>col m3</p>
+                  <p>col m3 s6</p>
                 </div>
               </div>
             </div>
-            <div class="col m9">
+            <div class="col m9 s9">
               <div class="card">
                 <div class="card-content">
                   <p>col m9</p>
@@ -381,40 +467,40 @@
             </div>
           </div>
           <div class="row">
-            <div class="col m3">
+            <div class="col m3 s6">
               <div class="card">
                 <div class="card-content">
-                  <p>col m3</p>
+                  <p>col m3 s6</p>
                 </div>
               </div>
             </div>
-            <div class="col m3">
+            <div class="col m3 s6">
               <div class="card">
                 <div class="card-content">
-                  <p>col m3</p>
+                  <p>col m3 s6</p>
                 </div>
               </div>
             </div>
-            <div class="col m3">
+            <div class="col m3 s6">
               <div class="card">
                 <div class="card-content">
-                  <p>col m3</p>
+                  <p>col m3 s6</p>
                 </div>
               </div>
             </div>
-            <div class="col m3">
+            <div class="col m3 s6">
               <div class="card">
                 <div class="card-content">
-                  <p>col m3</p>
+                  <p>col m3 s6</p>
                 </div>
               </div>
             </div>
           </div>
           <div class="row">
-            <div class="col m10 offset-m1">
+            <div class="col m10 offset-m1 s10 offset-s1">
               <div class="card">
                 <div class="card-content">
-                  <p>col m10 offset-m1</p>
+                  <p>col m10 offset-m1 s10 offset-s1</p>
                 </div>
               </div>
             </div>
@@ -1163,85 +1249,6 @@
             </li>
           </ul>
         </div>
-      </div>
-      <div class="col m3 styleguide__menu">
-        <ul>
-          <li>
-            <a href="#typography">
-              {% trans "Typography" context "Typography menu item in style guide" %}
-            </a>
-          </li>
-          <li>
-            <a href="#colors">
-              {% trans "Colors" context "Colors menu item in style guide" %}
-            </a>
-          </li>
-          <li>
-            <a href="#helpers">
-              {% trans "Helpers" context "Helpers menu item in style guide" %}
-            </a>
-          </li>
-          <li>
-            <a href="#buttons">
-              {% trans "Buttons" context "Buttons menu item in style guide" %}
-            </a>
-          </li>
-          <li>
-            <a href="#icons">
-              {% trans "Icons" context "Icons menu item in style guide" %}
-            </a>
-          </li>
-          <li>
-            <a href="#grid">
-              {% trans "Grid" context "Grid menu item in style guide" %}
-            </a>
-          </li>
-          <li>
-            <a href="#forms">
-              {% trans "Forms" context "Forms menu item in style guide" %}
-            </a>
-          </li>
-          <li>
-            <a href="#breadcrumbs">
-              {% trans "Breadcrumbs" context "Breadcrumbs menu item in style guide" %}
-            </a>
-          </li>
-          <li>
-            <a href="#tabs">
-              {% trans "Tabs" context "Tabs menu item in style guide" %}
-            </a>
-          </li>
-          <li>
-            <a href="#tables">
-              {% trans "Tables" context "Tables menu item in style guide" %}
-            </a>
-          </li>
-          <li>
-            <a href="#lists">
-              {% trans "Lists" context "Lists menu item in style guide" %}
-            </a>
-          </li>
-          <li>
-            <a href="#cards">
-              {% trans "Cards" context "Cards menu item in style guide" %}
-            </a>
-          </li>
-          <li>
-            <a href="#modals">
-              {% trans "Modals" context "Modals menu item in style guide" %}
-            </a>
-          </li>
-          <li>
-            <a href="#toasts">
-              {% trans "Toasts" context "Toasts menu item in style guide" %}
-            </a>
-          </li>
-          <li>
-            <a href="#pagination">
-              {% trans "Pagination" context "Pagination menu item in style guide" %}
-            </a>
-          </li>
-        </ul>
       </div>
     </div>
   </div>
