@@ -746,7 +746,9 @@
                     {% trans "Name" context "Input label in style guide" %}
                   </label>
                   <input id="id_name" class="invalid" maxlength="128" name="name" placeholder="Give your awesome product a name" type="text" value="" required="">
-                   <p class="help-block materialize-red-text">To pole jest wymagane.</p>
+                   <p class="help-block materialize-red-text">
+                    {% trans "This field is required" context "error label in style guide" %}
+                   </p>
                 </div>
               </div>
             </div>
