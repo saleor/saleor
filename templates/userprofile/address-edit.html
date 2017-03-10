@@ -34,7 +34,7 @@
     <div class="col-sm-8 col-lg-6 offset-sm-2 offset-lg-3">
         <form method="post" novalidate>
             {% csrf_token %}
-            <h2 class="text-xs-center">
+            <h2 class="text-center">
               {% if address_form.instance.pk %}
                 {% trans "Edit address" context "Edit address title" %}
               {% else %}
