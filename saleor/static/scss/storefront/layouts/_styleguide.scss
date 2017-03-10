@@ -3,8 +3,22 @@
     a {
       display: block;
     }
+    margin-bottom: $global-margin * 2;
   }
   &__content {
+    &__note {
+      border: 1px solid $gray;
+      padding: $global-padding;
+      border-radius: 4px;
+      p {
+        margin-bottom: 0;
+      }
+    }
+    [contenteditable='true'] {
+      &:focus {
+        outline: none;
+      }
+    }
     &__block {
       padding-bottom: $global-padding * 3;
       border-bottom: 1px solid $skull-gray;
@@ -69,6 +83,13 @@
         p {
           background-color: $light-gray;
           padding: $global-padding 0;
+        }
+      }
+      &#icons {
+        img {
+          max-width: 35px;
+          display: inline-block;
+          margin-right: $global-margin;
         }
       }
       &#buttons {
