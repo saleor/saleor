@@ -84,6 +84,11 @@
             </a>
           </li>
           <li>
+            <a href="#dropdowns">
+              Dropdowns
+            </a>
+          </li>
+          <li>
             <a href="#modals">
               Modals
             </a>
@@ -1166,10 +1171,16 @@
                 </a>
               </div>
               <ul id='dropdown1' class='dropdown-content'>
-                <li><a href="#!">one</a></li>
-                <li><a href="#!">two</a></li>
+                <li>
+                  <a href="#!">one</a>
+                </li>
+                <li>
+                  <a href="#!">two</a>
+                </li>
                 <li class="divider"></li>
-                <li><a href="#!">three</a></li>
+                <li>
+                  <a href="#!">three</a>
+                </li>
               </ul>
             </div>
           </div>
@@ -1180,9 +1191,29 @@
           </h3>
           <div class="card">
             <div class="card-content">
-              <a class="waves-effect waves-light btn" href="#modal1">
-                Modal
-              </a>
+              <div class="section">
+                <h4>Button</h4>
+                <a class="waves-effect waves-light btn" href="#modal1">
+                  Modal
+                </a>
+              </div>
+              <div class="section">
+                <h4>Link</h4>
+                <a href="#modal1">
+                  Modal
+                </a>
+              </div>
+              <div class="section">
+                <h4>Dropdown</h4>
+                <a class='dropdown-button' href='#' data-activates='dropdown2'>
+                  <i class="material-icons">more_vert</i>
+                </a>
+                <ul id='dropdown2' class='dropdown-content'>
+                  <li>
+                    <a href="#modal1">Modal</a>
+                  </li>
+                </ul>
+              </div>
               <div id="modal1" class="modal">
                 <div class="modal-content">
                   <h4>
