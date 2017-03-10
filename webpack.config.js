@@ -60,10 +60,6 @@ var config = {
         loader: 'babel'
       },
       {
-        test: /\.json$/,
-        loader: 'json'
-      },
-      {
         test: /\.scss$/,
         loader: ExtractTextPlugin.extract([
           'css?sourceMap',
@@ -82,6 +78,10 @@ var config = {
           resolve('saleor/oye/static/img'),
           resolve('saleor/oye/static/images')
         ]
+      },
+      {
+        test: /\.json$/,
+        loader: 'raw-loader'
       }
     ]
   },

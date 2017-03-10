@@ -1,13 +1,9 @@
-import React, { PropTypes } from 'react';
+import React, {PropTypes} from 'react';
 import ReactDOM from 'react-dom';
-import ReactNative from 'react';
 import Relay from 'react-relay';
 
-var {
-  ScrollView
-} = ReactNative;
-
 import ReleasesPage from './components/releasePage/ReleasesPage';
+import ReleaseDetailView from './components/releasePage/ReleaseDetailView';
 import Loading from './components/Loading';
 import {getReleaseListColumnNumber} from "./components/utils";
 
@@ -25,23 +21,23 @@ class App extends React.Component {
     };
   }
 
-
   static propTypes = {
     root: PropTypes.object,
   }
 
   componentDidMount() {
     window.onscroll = () => {
-      if (!this.state.loading
-              && (window.innerHeight + window.scrollY)
-              >= releasesPage.offsetHeight/3) {
+      if (!this.props.relay.variables.showDetailPage
+        && !this.state.loading
+        && (window.innerHeight + window.scrollY)
+        >= releasesPage.offsetHeight / 3) {
 
         this.setState({loading: true}, () => {
           this.props.relay.setVariables({
             count: this.props.relay.variables.count + PAGINATE_BY * getReleaseListColumnNumber()
           }, (readyState) => {
             if (readyState.done) {
-              this.setState({ loading: false });
+              this.setState({loading: false});
             }
           });
         });
@@ -49,28 +45,45 @@ class App extends React.Component {
     }
   }
 
+  onShowList = () => {
+    this.props.relay.setVariables({
+      showDetailPage: false
+    })
+  }
+
+  onNavigate = (id, updateHistory = true) => {
+    this.props.relay.setVariables({
+      releaseId: id,
+      showDetailPage: true
+    })
+  }
+
   render() {
     var isRefreshing = this.state.loading;
-    return (
+    return this.props.relay.variables.showDetailPage ?
+      <ReleaseDetailView release={this.props.root.release}/> :
       <div>
-        <ReleasesPage {...this.props.root} />
-        <Loading style={{display: isRefreshing ? 'block' : 'none' }} />
+        <ReleasesPage {...this.props.root} onNavigate={this.onNavigate}/>
+        <Loading style={{display: isRefreshing ? 'block' : 'none'}}/>
       </div>
-    );
-
   }
 }
 
 const RelayApp = Relay.createContainer(App, {
   initialVariables: {
     count: PAGINATE_BY * getReleaseListColumnNumber(),
-    filterBy: JSON.stringify(releaseData.filterBy)
+    filterBy: JSON.stringify(releaseData.filterBy),
+    showDetailPage: false,
+    releaseId: window.location.pathname.substr(1)
   },
   fragments: {
     root: () => Relay.QL`
       fragment on Query {
-        releases (first: $count, filterBy: $filterBy) {
+        releases (first: $count, filterBy: $filterBy) @skip(if: $showDetailPage) {
           ${ReleasesPage.getFragment('releases')}
+        }
+        release(pk: $releaseId) @include(if: $showDetailPage) {
+          ${ReleaseDetailView.getFragment('release')}
         }
        }
     `
@@ -84,16 +97,15 @@ const AppRoute = {
       query { root }
     `
   },
-  params: {
-  },
+  params: {},
   name: 'Root'
 };
 
 ReactDOM.render(
   <Relay.RootContainer
-   Component={RelayApp}
-   route={AppRoute}
-   renderLoading={() => <Loading />}
+    Component={RelayApp}
+    route={AppRoute}
+    renderLoading={() => <Loading />}
   />,
   releasesPage
 );

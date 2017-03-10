@@ -70,7 +70,8 @@ class ReleaseItem extends Component {
     return (
       <div className="col-12 col-sm-4 col-md-3 col-lg-2 product-list">
         <script type="application/ld+json">{productSchema}</script>
-        <a href={release.url}>
+        {/*<a href={release.url}></a>*/}
+        <div style={{cursor: 'hand', cursor: 'pointer'}} data-id={this.props.release.pk} onClick={() => this.props.onNavigate(this.props.release.pk)}>
           <div className="text-center">
             <div>
                 <img className="img-responsive" src={release.thumbnailUrl} alt="" />
@@ -83,7 +84,7 @@ class ReleaseItem extends Component {
               <ReleasePrice price={release.price} availability={release.availability} />
             </div>
           </div>
-        </a>
+        </div>
       </div>
     );
   }
@@ -93,7 +94,7 @@ export default Relay.createContainer(ReleaseItem, {
   fragments: {
     release: () => Relay.QL`
       fragment on ArtikelType {
-        id
+        pk
         title
         artistFirstName
         artistLastName
