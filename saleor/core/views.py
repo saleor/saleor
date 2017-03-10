@@ -3,7 +3,6 @@ from django.template.response import TemplateResponse
 from ..core.utils import get_user_shipping_country
 from ..product.utils import products_with_availability, products_for_homepage
 from ..cart.forms import CountryForm
-from ..checkout.forms import ShippingMethodForm
 
 
 def home(request):
@@ -17,7 +16,6 @@ def home(request):
 def styleguide(request):
     default_country = get_user_shipping_country(request)
     country_form = CountryForm(initial={'country': default_country})
-    shipping_method_form = ShippingMethodForm(default_country)
     return TemplateResponse(
         request, 'styleguide.html',
-        {'country_form': country_form, 'shipping_method_form': shipping_method_form})
+        {'country_form': country_form})

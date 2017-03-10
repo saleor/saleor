@@ -39,6 +39,7 @@
         <a href="#tabs">Tabs</a>
         <a href="#tables">Tables</a>
         <a href="#cards">Cards</a>
+        <a href="#product">Product items</a>
       </nav>
     </div>
     <div class="col-md-9 styleguide__content">
@@ -613,6 +614,36 @@
                     Cancel
                   </a>
                 </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="products" class="styleguide__content__block">
+        <h3 class="styleguide__content__block__title">Products <img src="{% static "images/text-cursor.svg" %}"></h3>
+        <div class="row">
+          <div class="col-6 col-lg-3 product-list">
+            <div class="text-center">
+              <div>
+                <img class="img-responsive" src="{% static "images/sample-product.jpg" %}" alt="">
+                <span class="product-list-item-name">Johnson-Brown</span>
+              </div>
+              <div class="panel-footer">
+                <span contenteditable="true">$32.13</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3 product-list">
+            <div class="text-center">
+              <div>
+                <img class="img-responsive" src="{% static "images/sample-product.jpg" %}" alt="">
+                <span class="product-list-item-name" contenteditable="true">Johnson-Brown</span>
+              </div>
+              <div class="panel-footer">
+                <div class="product-list__sale"><img src="{% static "images/sale_bg.svg" %}">
+                  <span contenteditable="true">Sale</span>
+                </div>
+                <span contenteditable="true">FROM $72.25</span>
               </div>
             </div>
           </div>
