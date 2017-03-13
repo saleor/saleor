@@ -1,6 +1,8 @@
 import React, { Component, PropTypes } from 'react';
 import Relay from 'react-relay';
 
+import { Link } from 'react-router'
+
 import ReleasePrice from './ReleasePrice'
 
 class ReleaseItem extends Component {
@@ -71,7 +73,8 @@ class ReleaseItem extends Component {
       <div className="col-12 col-sm-4 col-md-3 col-lg-2 product-list">
         <script type="application/ld+json">{productSchema}</script>
         {/*<a href={release.url}></a>*/}
-        <div style={{cursor: 'hand', cursor: 'pointer'}} data-id={this.props.release.pk} onClick={() => this.props.onNavigate(this.props.release.pk)}>
+        {/*<div style={{cursor: 'hand', cursor: 'pointer'}} data-id={this.props.release.pk} onClick={() => this.props.onNavigate(this.props.release.pk)}>*/}
+        <Link to={release.url} data-id={this.props.release.pk} onClick={() => this.props.onNavigate(this.props.release.pk)}>
           <div className="text-center">
             <div>
                 <img className="img-responsive" src={release.thumbnailUrl} alt="" />
@@ -84,8 +87,9 @@ class ReleaseItem extends Component {
               <ReleasePrice price={release.price} availability={release.availability} />
             </div>
           </div>
+          </Link>
         </div>
-      </div>
+      // </div>
     );
   }
 }

@@ -71,7 +71,7 @@
         <div class="navbar__brand">
             <div class="container">
                 <div class="row no-gutters">
-                    <div class="col-8 col-md-4 navbar__logo">
+                    <div class="col-8 col-md-2 navbar__logo">
                         <div class="menu-icon-mobile hidden-md-up">
                             <img class="navbar__brand__menu-toggle closed open"
                                  src="{% static "images/mobile-bar.svg" %}">
@@ -82,7 +82,15 @@
                                  height="50">
                         </a>
                     </div>
-                    <div class="col-2 col-md-4 navbar__search static">
+                    <div class="col-8 col-md-4">
+                        <audio id="audio_example" class="video-js vjs-default-skin"
+                               controls preload="auto" width="600" height="600"
+                               poster="{% static "images/oye-logo.svg" %}" data-setup='{}'>
+                               <source src="/media/audio/saturday-deetron-mix.mp3" type='audio/mp3'/>
+
+                        </audio>
+                    </div>
+                    <div class="col-2 col-md-3 navbar__search static">
                         {% if SEARCH_IS_ENABLED %}
                             <img class="hidden-md-up mobile-search-icon float-right"
                                  src="{% static "images/search-icon.svg" %}">
@@ -102,7 +110,7 @@
                             </form>
                         {% endif %}
                     </div>
-                    <div class="col-2 col-md-4">
+                    <div class="col-2 col-md-3">
                         <div class="navbar__brand__cart float-right">
                             <a class="cart__icon" href="{% url "cart:index" %}">
                             <span class="cart-label hidden-sm-down">

@@ -1,11 +1,15 @@
-import React, {PropTypes} from 'react';
-import ReactDOM from 'react-dom';
-import Relay from 'react-relay';
-
-import ReleasesPage from './components/releasePage/ReleasesPage';
-import ReleaseDetailView from './components/releasePage/ReleaseDetailView';
-import Loading from './components/Loading';
+import React, {PropTypes} from "react";
+import ReactDOM from "react-dom";
+import Relay from "react-relay";
+import {Router, Route, browserHistory} from "react-router";
+import applyRouterMiddleware from "react-router/lib/applyRouterMiddleware";
+import useRelay from "react-router-relay";
+import ReleasesPage from "./components/releasePage/ReleasesPage";
+import ReleaseDetailView from "./components/releasePage/ReleaseDetailView";
+import Loading from "./components/Loading";
 import {getReleaseListColumnNumber} from "./components/utils";
+
+// url routing/history stuff
 
 const releasesPage = document.getElementById('releases-page');
 const releaseData = JSON.parse(releasesPage.getAttribute('data-releases'));
@@ -61,7 +65,7 @@ class App extends React.Component {
   render() {
     var isRefreshing = this.state.loading;
     return this.props.relay.variables.showDetailPage ?
-      <ReleaseDetailView release={this.props.root.release}/> :
+      <ReleaseDetailView release={this.props.root.release} onShowList={this.onShowList} /> :
       <div>
         <ReleasesPage {...this.props.root} onNavigate={this.onNavigate}/>
         <Loading style={{display: isRefreshing ? 'block' : 'none'}}/>
@@ -102,10 +106,13 @@ const AppRoute = {
 };
 
 ReactDOM.render(
-  <Relay.RootContainer
-    Component={RelayApp}
-    route={AppRoute}
-    renderLoading={() => <Loading />}
-  />,
+  <Router history={browserHistory}
+          render={applyRouterMiddleware(useRelay)}
+          environment={Relay.Store}>
+    <Route name="releases"
+           path="/oye/releases/*"
+           component={RelayApp}
+           queries={AppRoute.queries}/>
+  </Router>,
   releasesPage
 );
