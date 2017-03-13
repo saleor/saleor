@@ -45,7 +45,7 @@
                                     We are currently waiting for an external service to authorize
                                     your payment for this order.
                                 {% endblocktrans %}</p>
-                                <p>{% trans "Current status" context "Payment status text" %}:
+                                <p>{% trans "Current status:" context "Payment status text" %}
                                     <br>
                                     <span class="label label-default">
                                     {{ waiting_payment.get_status_display }}

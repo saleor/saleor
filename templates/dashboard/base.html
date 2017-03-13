@@ -7,7 +7,7 @@
   <head>
     <title>
       {% block title %}
-        {% trans "Dashboard - Saleor" context "Dashboard default page title"  %}
+        {% trans "Dashboard - Saleor" context "Dashboard default page title" %}
       {% endblock %}
     </title>
     {% block meta %}
@@ -169,7 +169,7 @@
             {% if request.user.is_superuser %}
               <li class="side-nav-section" id="version-indicator">
                 <p>
-                  {% trans "Release" context "Dashboard software version" %}: {% version %}
+                  {% trans "Release:" context "Dashboard software version" %} {% version %}
                 </p>
               </li>
             {% endif %}
