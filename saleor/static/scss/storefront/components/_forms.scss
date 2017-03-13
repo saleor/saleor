@@ -136,6 +136,9 @@ input#id_quantity {
   }
   label {
     margin-right: $global-margin;
+    span {
+      display: inline;
+    }
   }
 }
 

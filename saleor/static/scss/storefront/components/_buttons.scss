@@ -69,3 +69,7 @@ a.btn {
     text-transform: none;
   }
 }
+
+button:focus {
+  outline: none;
+}

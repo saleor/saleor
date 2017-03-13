@@ -17,11 +17,14 @@
     [contenteditable='true'] {
       &:focus {
         outline: none;
+        opacity: 0.9;
       }
     }
     &__block {
       padding-bottom: $global-padding * 3;
-      border-bottom: 1px solid $skull-gray;
+      &:not(:last-of-type) {
+        border-bottom: 1px solid $skull-gray;
+      }
       &__title {
         padding-top: $global-padding;
         margin-bottom: $global-margin * 2;
@@ -76,6 +79,7 @@
         }
         &--beige {
           background-color: $beige;
+          border: 1px solid $gray;
         }
       }
       &__grid {
