@@ -9,6 +9,7 @@ a.btn {
   font-size: 1rem;
   cursor: pointer;
   font-family: $font-family-sans-serif;
+  white-space: normal;
   &.home__button {
     text-transform: uppercase;
     font-size: $font-size-h3;

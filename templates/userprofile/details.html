@@ -51,13 +51,13 @@
                 <div class="col-md-3 hidden-sm-down"><small>
                   {% trans "Date" context "Recent orders column title" %}
                 </small></div>
-                <div class="col-md-2 col-6 text-right"><small>
+                <div class="col-md-2 col-4 text-right"><small>
                   {% trans "Summary" context "Recent orders column title" %}
                 </small></div>
                 <div class="col-md-4 hidden-sm-down"><small>
                   {% trans "Status" context "Recent orders column title" %}
                 </small></div>
-                <div class="col-md-1 col-3"></div>
+                <div class="col-md-1 col-5"></div>
               </div>
             </div>
             {% for order in orders %}
@@ -69,13 +69,13 @@
                   <div class="col-md-3 hidden-sm-down">
                     {{ order.created }}
                   </div>
-                  <div class="col-md-2 col-6">
-                    <span class="float-md-right">{% gross order.get_total html=True %}</span>
+                  <div class="col-md-2 col-4">
+                    <span class="float-right">{% gross order.get_total html=True %}</span>
                   </div>
                   <div class="col-md-4 hidden-sm-down">
                     {% render_status order.status order.get_status_display %}
                   </div>
-                  <div class="col-md-1 col-3">
+                  <div class="col-md-1 col-5">
                     <a href="{{ order.get_absolute_url }}" class="float-right link--styled">
                       {% trans "Details" context "Recent orders link text" %}
                     </a>

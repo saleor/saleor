@@ -40,6 +40,7 @@
         <a href="#tables">Tables</a>
         <a href="#cards">Cards</a>
         <a href="#product">Product items</a>
+        <a href="#product-gallery">Product gallery</a>
       </nav>
     </div>
     <div class="col-md-9 styleguide__content">
@@ -55,7 +56,7 @@
         <h1 contenteditable="true">h1 / Header</h1>
         <h2 contenteditable="true">h2 / Header</h2>
         <h3 contenteditable="true">h3 / Header (always uppercased)</h3>
-        <p contenteditable="true">p / Saleor is open and free to use. It is not a bait to force you to pay us later and we profasdfmise to do our bests to fix bugs and improve the code. Some situations however call for a custom solution and extra code to be written. Whether you need us to cover an edsfxotic use case or build you a custom e-commerce appliance, our team can help.</p>
+        <p contenteditable="true">p / Saleor is open and free to use. It is not a bait to force you to pay us later and we promise to do our bests to fix bugs and improve the code. Some situations however call for a custom solution and extra code to be written. Whether you need us to cover an edsfxotic use case or build you a custom e-commerce appliance, our team can help.</p>
         <a href="#" contenteditable="true">a / Simple link</a>
         <a href="#" class="link--styled" contenteditable="true">a / Styled link</a>
       </div>
@@ -171,66 +172,78 @@
         <h3 class="styleguide__content__block__title">Responsive breakpoints</h3>
         <div class="table__header">
           <div class="row">
-            <div class="col-2">
+            <div class="col-4">
             </div>
-            <div class="col-2">
-              <small>Extra small<br><576px</small>
+            <div class="col-4">
+              <small>Max container width</small>
             </div>
-            <div class="col-2">
-              <small>Small<br>≥576px</small>
-            </div>
-            <div class="col-2">
-              <small>Medium<br>≥768px</small>
-            </div>
-            <div class="col-2">
-              <small>Large<br>≥992px</small>
-            </div>
-            <div class="col-2">
-              <small>Extra large<br>≥1200px</small>
+            <div class="col-4">
+              <small>Class prefix</small>
             </div>
           </div>
         </div>
         <div class="table__row">
           <div class="row">
-            <div class="col-2">
-              Max container width
+            <div class="col-4">
+              Extra small<br><576px
             </div>
-            <div class="col-2">
+            <div class="col-4">
               None (auto)
             </div>
-            <div class="col-2">
-              540px
-            </div>
-            <div class="col-2">
-              720px
-            </div>
-            <div class="col-2">
-              960px
-            </div>
-            <div class="col-2">
-              1140px
+            <div class="col-4">
+              .col-
             </div>
           </div>
         </div>
         <div class="table__row">
           <div class="row">
-            <div class="col-2">
-              Class prefix
+            <div class="col-4">
+              Small<br>≥576px
             </div>
-            <div class="col-2">
-              .col-
+            <div class="col-4">
+              540px
             </div>
-            <div class="col-2">
-              .col-sm-
+            <div class="col-4">
+              .col-sm
             </div>
-            <div class="col-2">
-              .col-md-
+          </div>
+        </div>
+        <div class="table__row">
+          <div class="row">
+            <div class="col-4">
+              Medium<br>≥768px
             </div>
-            <div class="col-2">
-              .col-lg-
+            <div class="col-4">
+              720px
             </div>
-            <div class="col-2">
-              .col-xl-
+            <div class="col-4">
+              .col-md
+            </div>
+          </div>
+        </div>
+        <div class="table__row">
+          <div class="row">
+            <div class="col-4">
+              Large<br>≥992px
+            </div>
+            <div class="col-4">
+              960px
+            </div>
+            <div class="col-4">
+              .col-lg
+            </div>
+          </div>
+        </div>
+        <div class="table__row">
+          <div class="row">
+            <div class="col-4">
+              Extra large<br>≥1200px
+            </div>
+            <div class="col-4">
+              1140px
+            </div>
+            <div class="col-4">
+              .col-xl
             </div>
           </div>
         </div>
@@ -273,7 +286,7 @@
         <button class="btn danger narrow">
           <span contenteditable="true">Danger Narrow Button</span>
         </button>
-        <div class="col-sm-12 home__block1">
+        <div class="home__block1">
           <div class="home--square">
             <div class="home--content">
               <div class="home--content-wrapper">
@@ -306,7 +319,7 @@
         </div>
         <hr>
         <div class="row">
-          <div class="col-md-4">
+          <div class="col-lg-4 col-md-6">
             <p><strong>Filters</strong> <img src="{% static "images/text-cursor.svg" %}"></p>
             <div class="product-filters">
               <h3 contenteditable="true">Box Size
@@ -405,18 +418,8 @@
           </div>
         </div>
         <div class="row">
-          <div class="col-6">
-          <p contenteditable="true">Quantity</p>
-            <form role="form" class="form-cart form-group">
-              <div class="" tabindex="-1">
-                <input id="id_quantity" max="50" min="1" name="quantity" type="number" value="52" required="">
-              </div>
-            </form>
-            <span class="help-block">
-              <div class="help-block" contenteditable="true">Only 32 remaining in stock.</div>
-            </span>
-          </div>
-          <div class="col-6">
+          <div class="col-8 col-md-6">
+            <p contenteditable="true">Radio form</p>
             <div class="radio">
               <label>
                 <input type="radio" name="styleguide-radio">
@@ -431,6 +434,17 @@
             </div>
             <span class="help-block">
               <div class="help-block" contenteditable="true">This field is required.</div>
+            </span>
+          </div>
+          <div class="col-4 col-md-6">
+          <p contenteditable="true">Quantity</p>
+            <form role="form" class="form-cart form-group">
+              <div class="" tabindex="-1">
+                <input id="id_quantity" max="50" min="1" name="quantity" type="number" value="52" required="">
+              </div>
+            </form>
+            <span class="help-block">
+              <div class="help-block" contenteditable="true">Only 32 remaining in stock.</div>
             </span>
           </div>
         </div>
@@ -536,13 +550,13 @@
             <div class="col-md-4 hidden-sm-down">
               <small contenteditable="true">Date</small>
             </div>
-            <div class="col-md-2 col-6 text-right">
+            <div class="col-md-2 col-4 text-right">
               <small contenteditable="true">Summary</small>
             </div>
             <div class="col-md-3 hidden-sm-down">
               <small contenteditable="true">Status</small>
             </div>
-            <div class="col-md-1 col-3"></div>
+            <div class="col-md-1 col-5"></div>
           </div>
         </div>
         <div class="table__row">
@@ -553,13 +567,13 @@
             <div class="col-md-4 hidden-sm-down" contenteditable="true">
               {% now "F j, Y, H:i a" %}
             </div>
-            <div class="col-md-2 col-6">
-              <span class="float-md-right" contenteditable="true">$129.35</span>
+            <div class="col-md-2 col-4">
+              <span class="float-right" contenteditable="true">$129.35</span>
             </div>
             <div class="col-md-3 hidden-sm-down">
               <span class="label label-default" contenteditable="true">Payment pending</span>
             </div>
-            <div class="col-md-1 col-3">
+            <div class="col-md-1 col-5">
               <a href="#" class="float-right link--styled" contenteditable="true">
                 Details
               </a>
@@ -574,13 +588,13 @@
             <div class="col-md-4 hidden-sm-down" contenteditable="true">
               {% now "F j, Y, H:i a" %}
             </div>
-            <div class="col-md-2 col-6">
-              <span class="float-md-right" contenteditable="true">$129.35</span>
+            <div class="col-md-2 col-4">
+              <span class="float-right" contenteditable="true">$129.35</span>
             </div>
             <div class="col-md-3 hidden-sm-down">
               <span class="label label-success" contenteditable="true">Fully paid</span>
             </div>
-            <div class="col-md-1 col-3">
+            <div class="col-md-1 col-5">
               <a href="#" class="float-right link--styled" contenteditable="true">
                 Details
               </a>
@@ -619,7 +633,7 @@
           </div>
         </div>
       </div>
-      <div id="products" class="styleguide__content__block">
+      <div id="product" class="styleguide__content__block">
         <h3 class="styleguide__content__block__title">Products <img src="{% static "images/text-cursor.svg" %}"></h3>
         <div class="row">
           <div class="col-6 col-lg-3 product-list">
@@ -650,8 +664,8 @@
         </div>
       </div>
       <div id="product-gallery" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Product Gallery</h3>
-        <div class="col-md-6 col-12 product__gallery">
+        <h3 class="styleguide__content__block__title">Product gallery</h3>
+        <div class="col-md-8 col-lg-6 col-12 product__gallery">
           <div id="carousel-example-generic" class="carousel slide">
             <div class="carousel-inner" role="listbox">  
               <div class="carousel-item active">
