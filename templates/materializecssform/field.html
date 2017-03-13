@@ -180,7 +180,7 @@
         <label class="{{ classes.label }}" for="{{ field.auto_id }}">
           {{ field.label }}
           {% if not field.field.required %}
-            ({% trans "optional" context "Dashboard form labels" %})
+            {% trans "(optional)" context "Dashboard form labels" %}
           {% endif %}
         </label>
         <br>

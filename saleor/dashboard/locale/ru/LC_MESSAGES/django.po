@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-08 11:21+0100\n"
+"POT-Creation-Date: 2017-03-13 14:56+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Evgeny Semenov <john_neg@mail.ru>, 2017\n"
 "Language-Team: Russian (https://www.transifex.com/mirumee/teams/34782/ru/)\n"
@@ -95,44 +95,49 @@ msgctxt "Order note form placeholder"
 msgid "Note"
 msgstr "Заметка"
 
-#: saleor/dashboard/order/forms.py:48
+#: saleor/dashboard/order/forms.py:36
+msgctxt "Payment management form (capture, refund, release)"
+msgid "Amount"
+msgstr "Страна"
+
+#: saleor/dashboard/order/forms.py:50
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be captured"
 msgstr "Только авторизованные платежи могут быть зафиксированы"
 
-#: saleor/dashboard/order/forms.py:59 saleor/dashboard/order/forms.py:81
-#: saleor/dashboard/order/forms.py:106
+#: saleor/dashboard/order/forms.py:61 saleor/dashboard/order/forms.py:83
+#: saleor/dashboard/order/forms.py:108
 #, python-format
 msgctxt "Payment form error"
 msgid "Payment gateway error: %s"
 msgstr "Ошибка платежного шлюза: %s"
 
-#: saleor/dashboard/order/forms.py:70
+#: saleor/dashboard/order/forms.py:72
 msgctxt "Payment form error"
 msgid "Only confirmed payments can be refunded"
 msgstr "Только подтвержденные платежи могут быть возмещены"
 
-#: saleor/dashboard/order/forms.py:96
+#: saleor/dashboard/order/forms.py:98
 msgctxt "Payment form error"
 msgid "Only pre-authorized payments can be released"
 msgstr "Пропущены могут быть только авторизованные платежи"
 
-#: saleor/dashboard/order/forms.py:114
+#: saleor/dashboard/order/forms.py:116
 msgctxt "Move items form label"
 msgid "Quantity"
 msgstr "Количество"
 
-#: saleor/dashboard/order/forms.py:117
+#: saleor/dashboard/order/forms.py:119
 msgctxt "Move items form label"
 msgid "Target shipment"
 msgstr "Место доставки"
 
-#: saleor/dashboard/order/forms.py:134
+#: saleor/dashboard/order/forms.py:136
 msgctxt "Delivery group value for `target_group` field"
 msgid "New shipment"
 msgstr "Новая доставка"
 
-#: saleor/dashboard/order/forms.py:190
+#: saleor/dashboard/order/forms.py:192
 #, python-format
 msgctxt "Change quantity form error"
 msgid "Only %(remaining)d remaining in stock."
@@ -142,32 +147,32 @@ msgstr[1] "Только  %(remaining)d осталось на складе"
 msgstr[2] "Только  %(remaining)d осталось на складе"
 msgstr[3] "Только  %(remaining)d осталось на складе"
 
-#: saleor/dashboard/order/forms.py:216
+#: saleor/dashboard/order/forms.py:218
 msgctxt "Ship group form field placeholder"
 msgid "Parcel tracking number"
 msgstr "Трек-номер посылки"
 
-#: saleor/dashboard/order/forms.py:223
+#: saleor/dashboard/order/forms.py:225
 msgctxt "Ship group form error"
 msgid "Cannot ship this group"
 msgstr "Нельзя отправить эту группу"
 
-#: saleor/dashboard/order/forms.py:260
+#: saleor/dashboard/order/forms.py:262
 msgctxt "Cancel order form error"
 msgid "This order can't be cancelled"
 msgstr "Этот заказ не может быть отменен"
 
-#: saleor/dashboard/order/forms.py:279
+#: saleor/dashboard/order/forms.py:281
 msgctxt "Remove voucher form error"
 msgid "This order has no voucher"
 msgstr "Этот заказ не имеет купона"
 
-#: saleor/dashboard/order/forms.py:292
+#: saleor/dashboard/order/forms.py:294
 msgctxt "Order status field value"
 msgid "All"
 msgstr "Все"
 
-#: saleor/dashboard/order/forms.py:297
+#: saleor/dashboard/order/forms.py:299
 msgctxt "Payment status field value"
 msgid "All"
 msgstr "Все"

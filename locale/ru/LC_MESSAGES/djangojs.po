@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-08 11:20+0100\n"
+"POT-Creation-Date: 2017-03-13 15:02+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Weronika Terpilowska <weronika@mirumee.com>, 2017\n"
 "Language-Team: Russian (https://www.transifex.com/mirumee/teams/34782/ru/)\n"
@@ -68,7 +68,7 @@ msgstr "Загрузить больше"
 
 #: saleor/static/js/components/categoryPage/ProductPrice.js:15
 msgid "Sale"
-msgstr "Скидка"
+msgstr "Sale"
 
 #: saleor/static/js/components/categoryPage/SortBy.js:43
 #: saleor/static/js/components/categoryPage/SortBy.js:50

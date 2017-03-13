@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-09 14:36+0100\n"
+"POT-Creation-Date: 2017-03-13 14:56+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -706,17 +706,22 @@ msgctxt "Order history entry str"
 msgid "OrderHistoryEntry for Order #%d"
 msgstr ""
 
-#: saleor/order/models.py:480
+#: saleor/order/models.py:478
+msgctxt "Order note model"
+msgid "content"
+msgstr ""
+
+#: saleor/order/models.py:482
 msgctxt "Order note model"
 msgid "Order note"
 msgstr ""
 
-#: saleor/order/models.py:481
+#: saleor/order/models.py:483
 msgctxt "Order note model"
 msgid "Order notes"
 msgstr ""
 
-#: saleor/order/models.py:486
+#: saleor/order/models.py:488
 #, python-format
 msgctxt "Order note str"
 msgid "OrderNote for Order #%d"
@@ -1413,13 +1418,18 @@ msgctxt "Login form secondary link"
 msgid "Forgot password?"
 msgstr ""
 
-#: templates/account/password_change.html:7
-msgctxt "Password change breadcrumb"
+#: templates/account/password_change.html:7 templates/cart/index.html:11
+#: templates/order/details.html:16 templates/order/payment.html:19
+#: templates/product/details.html:16 templates/userprofile/address-edit.html:15
+#: templates/userprofile/details.html:14
+msgctxt "Main navigation item"
 msgid "Home"
 msgstr ""
 
-#: templates/account/password_change.html:8
-msgctxt "Password change breadcrumb"
+#: templates/account/password_change.html:8 templates/base.html:48
+#: templates/base.html:190 templates/order/details.html:19
+#: templates/order/payment.html:22 templates/userprofile/details.html:16
+msgctxt "Main navigation item"
 msgid "Your account"
 msgstr ""
 
@@ -1571,28 +1581,23 @@ msgctxt "Meta author text"
 msgid "Mirumee Software"
 msgstr ""
 
-#: templates/base.html:42
-msgctxt "Top navbar link text"
+#: templates/base.html:42 templates/base.html:184
+msgctxt "Main navigation item"
 msgid "Dashboard"
 msgstr ""
 
-#: templates/base.html:48
-msgctxt "Top navbar link text"
-msgid "Your account"
-msgstr ""
-
-#: templates/base.html:52
-msgctxt "Top navbar link text"
+#: templates/base.html:52 templates/base.html:195
+msgctxt "Main navigation item"
 msgid "Log out"
 msgstr ""
 
-#: templates/base.html:57
-msgctxt "Top navbar link text"
+#: templates/base.html:57 templates/base.html:200
+msgctxt "Main navigation item"
 msgid "Register"
 msgstr ""
 
-#: templates/base.html:61
-msgctxt "Top navbar link text"
+#: templates/base.html:61 templates/base.html:205
+msgctxt "Main navigation item"
 msgid "Log in"
 msgstr ""
 
@@ -1605,43 +1610,14 @@ msgstr ""
 msgid "Search for product"
 msgstr ""
 
-#: templates/base.html:102
-msgctxt "Top navbar link"
+#: templates/base.html:102 templates/base.html:177
+msgctxt "Main navigation item"
 msgid "Your Cart"
 msgstr ""
 
-#: templates/base.html:177
-msgctxt "Top navbar link"
-msgid "Cart"
-msgstr ""
-
-#: templates/base.html:184
-msgctxt "Top navbar link"
-msgid "Dashboard"
-msgstr ""
-
-#: templates/base.html:190
-msgctxt "Top navbar link"
-msgid "Your account"
-msgstr ""
-
-#: templates/base.html:195
-msgctxt "Top navbar link"
-msgid "Log out"
-msgstr ""
-
-#: templates/base.html:200
-msgctxt "Top navbar link"
-msgid "Register"
-msgstr ""
-
-#: templates/base.html:205
-msgctxt "Top navbar link"
-msgid "Log in"
-msgstr ""
-
-#: templates/cart-dropdown.html:31
-msgctxt "Cart dropdown text"
+#: templates/cart-dropdown.html:31 templates/cart/index.html:73
+#: templates/dashboard/order/detail.html:372
+msgctxt "Order subtotal"
 msgid "Subtotal"
 msgstr ""
 
@@ -1660,23 +1636,19 @@ msgctxt "Cart dropdown primary action"
 msgid "Checkout"
 msgstr ""
 
-#: templates/cart-dropdown.html:51
+#: templates/cart-dropdown.html:51 templates/cart/index.html:125
+msgctxt "Empty cart message"
 msgid "There are no products in your shopping cart."
 msgstr ""
 
-#: templates/cart-dropdown.html:53
-msgctxt "Empty cart dropdown text"
+#: templates/cart-dropdown.html:53 templates/cart/index.html:126
+msgctxt "Empty cart link"
 msgid "Check out our sales"
 msgstr ""
 
 #: templates/cart/index.html:7
 msgctxt "Cart page title"
 msgid "Your cart"
-msgstr ""
-
-#: templates/cart/index.html:11
-msgctxt "Cart breadcrumb"
-msgid "Home"
 msgstr ""
 
 #: templates/cart/index.html:12
@@ -1704,14 +1676,9 @@ msgctxt "Cart table header"
 msgid "Price"
 msgstr ""
 
-#: templates/cart/index.html:73
-msgctxt "Cart totals"
-msgid "Subtotal"
-msgstr ""
-
 #: templates/cart/index.html:74
 msgctxt "Cart totals help text"
-msgid "Delivery calculated at checkout"
+msgid "(Delivery calculated at checkout)"
 msgstr ""
 
 #: templates/cart/index.html:97
@@ -1722,16 +1689,6 @@ msgstr ""
 #: templates/cart/index.html:102
 msgctxt "Cart secondary title"
 msgid "Calculate shipping cost"
-msgstr ""
-
-#: templates/cart/index.html:125
-msgctxt "Empty cart message"
-msgid "There are no products in your shopping cart."
-msgstr ""
-
-#: templates/cart/index.html:126
-msgctxt "Empty cart link"
-msgid "Check out our sales"
 msgstr ""
 
 #. Translators: Layout may break if character length is different than four.
@@ -1855,9 +1812,13 @@ msgid "Enter a new address"
 msgstr ""
 
 #: templates/checkout/snippets/voucher-form.html:15
-#: templates/checkout/snippets/voucher-form.html:16
 msgctxt "Checkout voucher form action"
 msgid "Remove"
+msgstr ""
+
+#: templates/checkout/snippets/voucher-form.html:16
+msgctxt "Checkout voucher form action"
+msgid "(Remove)"
 msgstr ""
 
 #: templates/checkout/snippets/voucher-form.html:28
@@ -2025,7 +1986,7 @@ msgstr ""
 
 #: templates/dashboard/base.html:172
 msgctxt "Dashboard software version"
-msgid "Release"
+msgid "Release:"
 msgstr ""
 
 #: templates/dashboard/category/category_confirm_delete.html:6
@@ -2488,7 +2449,8 @@ msgid "Total"
 msgstr ""
 
 #: templates/dashboard/includes/_orders_table.html:41
-msgctxt "Customer column anonymous user text"
+#: templates/dashboard/order/detail.html:105
+msgctxt "Anonymous user account value"
 msgid "Guest"
 msgstr ""
 
@@ -2616,11 +2578,6 @@ msgstr ""
 #: templates/dashboard/search/results.html:84
 msgctxt "Dashboard customer"
 msgid "Customer"
-msgstr ""
-
-#: templates/dashboard/order/detail.html:105
-msgctxt "Anonymous user account value"
-msgid "Guest"
 msgstr ""
 
 #: templates/dashboard/order/detail.html:111
@@ -2761,11 +2718,6 @@ msgstr ""
 #: templates/dashboard/order/detail.html:362
 msgctxt "Order totals header"
 msgid "Grand total"
-msgstr ""
-
-#: templates/dashboard/order/detail.html:372
-msgctxt "Order totals header"
-msgid "Subtotal"
 msgstr ""
 
 #: templates/dashboard/order/detail.html:380
@@ -3718,7 +3670,7 @@ msgstr ""
 #: templates/materializecssform/field.html:197
 #: templates/materializecssform/field.html:230
 msgctxt "Dashboard form labels"
-msgid "optional"
+msgid "(optional)"
 msgstr ""
 
 #: templates/materializecssform/field.html:203
@@ -3776,16 +3728,6 @@ msgstr ""
 #, python-format
 msgctxt "Order details page title"
 msgid "Order %(order)s"
-msgstr ""
-
-#: templates/order/details.html:16
-msgctxt "Order details breadcrumb"
-msgid "Home"
-msgstr ""
-
-#: templates/order/details.html:19
-msgctxt "Order details breadcrumb"
-msgid "Your account"
 msgstr ""
 
 #: templates/order/details.html:22
@@ -3876,16 +3818,6 @@ msgctxt "Payment details page title"
 msgid "Pay for order %(order)s"
 msgstr ""
 
-#: templates/order/payment.html:19
-msgctxt "Payment details breadcrumb"
-msgid "Home"
-msgstr ""
-
-#: templates/order/payment.html:22
-msgctxt "Payment details breadcrumb"
-msgid "Your account"
-msgstr ""
-
 #: templates/order/payment.html:25
 #, python-format
 msgctxt "Payment details breadcrumb"
@@ -3906,7 +3838,7 @@ msgstr ""
 
 #: templates/order/payment.html:48
 msgctxt "Payment status text"
-msgid "Current status"
+msgid "Current status:"
 msgstr ""
 
 #: templates/order/payment.html:54
@@ -4003,11 +3935,6 @@ msgctxt "product price range"
 msgid "from"
 msgstr ""
 
-#: templates/product/details.html:16
-msgctxt "Product details breadcrumbs"
-msgid "Home"
-msgstr ""
-
 #: templates/product/details.html:30
 #, python-format
 msgctxt "Product details text"
@@ -4028,13 +3955,10 @@ msgstr ""
 
 #: templates/product/details.html:130
 msgctxt "Product details text"
-msgid ""
-"\n"
-"            This product is currently <strong>unavailable</strong>.\n"
-"          "
+msgid "This product is currently <strong>unavailable</strong>."
 msgstr ""
 
-#: templates/product/details.html:136
+#: templates/product/details.html:134
 msgctxt "Product details title"
 msgid "Description"
 msgstr ""
@@ -4073,11 +3997,6 @@ msgctxt "New address page title"
 msgid "New address"
 msgstr ""
 
-#: templates/userprofile/address-edit.html:15
-msgctxt "Edit/new address breadcrumb"
-msgid "Home"
-msgstr ""
-
 #: templates/userprofile/address-edit.html:18
 msgctxt "Edit/new address breadcrumb"
 msgid "Your profile"
@@ -4111,16 +4030,6 @@ msgstr ""
 #: templates/userprofile/details.html:9
 msgctxt "User profile page title"
 msgid "Your profile"
-msgstr ""
-
-#: templates/userprofile/details.html:14
-msgctxt "User profile breadcrumb"
-msgid "Home"
-msgstr ""
-
-#: templates/userprofile/details.html:16
-msgctxt "User profile breadcrumb"
-msgid "Your account"
 msgstr ""
 
 #: templates/userprofile/details.html:23

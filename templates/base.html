@@ -39,26 +39,26 @@
                             {% if user.is_staff %}
                               <li>
                                 <a href="{% url "dashboard:index" %}" target="_blank" rel="noopener">
-                                    {% trans "Dashboard" context "Top navbar link text" %}
+                                    {% trans "Dashboard" context "Main navigation item" %}
                                 </a>
                               </li>
                             {% endif %}
                             <li>
                               <a href="{% url "profile:details" %}">
-                                  {% trans "Your account" context "Top navbar link text" %}</a>
+                                  {% trans "Your account" context "Main navigation item" %}</a>
                             </li>
                             <li>
                               <a href="{% url "account_logout" %}">
-                                  {% trans "Log out" context "Top navbar link text" %}</a>
+                                  {% trans "Log out" context "Main navigation item" %}</a>
                             </li>
                           {% else %}
                             <li>
                               <a href="{% url "account_signup" %}">
-                                  {% trans "Register" context "Top navbar link text" %}</a>
+                                  {% trans "Register" context "Main navigation item" %}</a>
                             </li>
                             <li>
                               <a href="{% url "account_login" %}">
-                                  {% trans "Log in" context "Top navbar link text" %}
+                                  {% trans "Log in" context "Main navigation item" %}
                               </a>
                             </li>
                           {% endif %}
@@ -99,7 +99,7 @@
                         <div class="navbar__brand__cart float-right">
                           <a class="cart__icon" href="{% url "cart:index" %}">
                             <span class="cart-label hidden-sm-down">
-                                {% trans "Your Cart" context "Top navbar link" %}
+                                {% trans "Your Cart" context "Main navigation item" %}
                             </span>
                             <img class="navbar__brand__cart__icon" src="{% static "images/cart.svg" %}" alt="Cart">
                             <span class="badge {% if not cart_counter %}empty{% endif %}">
@@ -174,35 +174,35 @@
                       <ul>
                         <li>
                           <a href="{% url "cart:index" %}">
-                            {% trans "Cart" context "Top navbar link" %}
+                            {% trans "Your Cart" context "Main navigation item" %}
                           </a>
                         </li>
                         {% if user.is_authenticated %}
                           {% if user.is_staff %}
                               <li>
                                 <a href="{% url "dashboard:index" %}" target="_blank" rel="noopener">
-                                    {% trans "Dashboard" context "Top navbar link" %}
+                                    {% trans "Dashboard" context "Main navigation item" %}
                                 </a>
                               </li>
                           {% endif %}
                           <li>
                             <a href="{% url "profile:details" %}">
-                              {% trans "Your account" context "Top navbar link" %}
+                              {% trans "Your account" context "Main navigation item" %}
                             </a>
                           </li>
                           <li>
                             <a href="{% url "account_logout" %}">
-                                {% trans "Log out" context "Top navbar link" %}</a>
+                                {% trans "Log out" context "Main navigation item" %}</a>
                           </li>
                         {% else %}
                           <li>
                             <a href="{% url "account_signup" %}">
-                                {% trans "Register" context "Top navbar link" %}
+                                {% trans "Register" context "Main navigation item" %}
                             </a>
                           </li>
                           <li>
                             <a href="{% url "account_login" %}">
-                                {% trans "Log in" context "Top navbar link" %}
+                                {% trans "Log in" context "Main navigation item" %}
                             </a>
                           </li>
                         {% endif %}
