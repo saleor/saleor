@@ -371,34 +371,34 @@
             <div class="card-content">
               <div class="row section">
                 <div class="col m4 s12">
-                  <a href="#" class="btn waves-effect waves-light">
+                  <a class="btn waves-effect waves-light">
                     Primary
                   </a>
                 </div>
                  <div class="col m4 s12">
-                  <a href="#" class="btn btn-flat">
+                  <a class="btn btn-flat">
                     Secondary
                   </a>
                 </div>
                 <div class="col m4 s12">
-                  <a href="#" class="btn btn-floating btn-large waves-effect waves-light">
+                  <a class="btn btn-floating btn-large waves-effect waves-light">
                     <i class="material-icons">add</i>
                   </a>
                 </div>
               </div>
               <div class="row section">
                 <div class="col m4 s12">
-                  <a href="#" class="btn waves-effect waves-light disabled">
+                  <a class="btn waves-effect waves-light disabled">
                     Primary disabled
                   </a>
                 </div>
                 <div class="col m4 s12">
-                  <a href="#" class="btn btn-flat disabled">
+                  <a class="btn btn-flat disabled">
                     Secondary disabled
                   </a>
                 </div>
                 <div class="col m4 s12">
-                  <a href="#" class="btn btn-floating btn-large waves-effect waves-light disabled">
+                  <a class="btn btn-floating btn-large waves-effect waves-light disabled">
                     <i class="material-icons">add</i>
                   </a>
                 </div>
@@ -611,156 +611,176 @@
                 <h4>
                   Input
                 </h4>
-                <div class="input input-field">
-                  <label class="active" for="id_name">
-                    Name
-                  </label>
-                  <input id="id_name" maxlength="128" name="name" placeholder="Give your awesome product a name" type="text" value="Lucas, Martinez and Chaney" required="">
-                </div>
+                <form>
+                  <div class="input input-field">
+                    <label class="active" for="id_name">
+                      Name
+                    </label>
+                    <input id="id_name" maxlength="128" name="name" placeholder="Give your awesome product a name" type="text" value="Lucas, Martinez and Chaney" required="">
+                  </div>
+                </form>
               </div>
               <div class="section">
                 <h4>
                   Input with sufix
                 </h4>
-                <div class="input input-field">
-                  <label class="active" for="id_price">
-                    Price
-                  </label>
-                  <div class="input-with-suffix">
-                    <input class=" validate" id="id_price" name="price" step="any" type="number" required="">
-                    <div class="input-text-suffix">USD</div>
+                <form>
+                  <div class="input input-field">
+                    <label class="active" for="id_price">
+                      Price
+                    </label>
+                    <div class="input-with-suffix">
+                      <input class=" validate" id="id_price" name="price" step="any" type="number" required="">
+                      <div class="input-text-suffix">USD</div>
+                    </div>
                   </div>
-                </div>
+                </form>
               </div>
               <div class="section">
                 <h4>
                   Datepicker
                 </h4>
-                <div class="input input-field">
-                  <label class="active" for="id_name">
-                    Name
-                  </label>
-                  <input id="id_name" class="datepicker" maxlength="128" name="name" type="text" value="7 March 2017" required="">
-                </div>
+                <form>
+                  <div class="input input-field">
+                    <label class="active" for="id_name">
+                      Name
+                    </label>
+                    <input id="id_name" class="datepicker" maxlength="128" name="name" type="text" value="7 March 2017" required="">
+                  </div>
+                </form>
               </div>
               <div class="section">
                 <h4>
                   Select
                 </h4>
-                <div class="input input-field">
-                  <label class="active" for="id_attribute-coffee-genre">
-                    Coffee Genre (optional)
-                  </label>
-                  <select class=" initialized" id="id_attribute-coffee-genre" name="attribute-coffee-genre">
-                    <option value="">---------</option>
-                    <option value="2">Arabica</option>
-                    <option value="3" selected="selected">Robusta</option>
-                  </select>
-                </div>
+                <form>
+                  <div class="input input-field">
+                    <label class="active" for="id_attribute-coffee-genre">
+                      Coffee Genre (optional)
+                    </label>
+                    <select class=" initialized" id="id_attribute-coffee-genre" name="attribute-coffee-genre">
+                      <option value="">---------</option>
+                      <option value="2">Arabica</option>
+                      <option value="3" selected="selected">Robusta</option>
+                    </select>
+                  </div>
+                </form>
               </div>
               <div class="section">
                 <h4>
                   Multiple Select
                 </h4>
-                <div class="input input-field">
-                  <label class="active" for="id_attribute-coffee-genre">
-                    Coffee Genre (optional)
-                  </label>
-                  <select multiple class=" initialized" id="id_attribute-coffee-genre" name="attribute-coffee-genre">
-                    <option value="">---------</option>
-                    <option value="2">Arabica</option>
-                    <option value="3" selected="selected">Robusta</option>
-                  </select>
-                </div>
+                <form>
+                  <div class="input input-field">
+                    <label class="active" for="id_attribute-coffee-genre">
+                      Coffee Genre (optional)
+                    </label>
+                    <select multiple class=" initialized" id="id_attribute-coffee-genre" name="attribute-coffee-genre">
+                      <option value="">---------</option>
+                      <option value="2">Arabica</option>
+                      <option value="3" selected="selected">Robusta</option>
+                    </select>
+                  </div>
+                </form>
               </div>
               <div class="section">
                 <h4>
                   Textarea
                 </h4>
-                <div class="input input-field">
-                  <textarea id="id_description" class="materialize-textarea" name="description">Lorem ipsum dolor sit amet mauris. Etiam sapien quis justo. Maecenas consequat, orci quis blandit ultrices posuere vitae, mollis nunc tempus euismod. Vestibulum ante eget odio. Nam pellentesque ut, turpis. Nam sed est id aliquet elit metus, quis nibh. Morbi augue imperdiet wisi.</textarea>
-                  <label class="active" for="id_description">
-                    Description
-                  </label>
-                </div>
+                <form>
+                  <div class="input input-field">
+                    <textarea id="id_description" class="materialize-textarea" name="description">Lorem ipsum dolor sit amet mauris. Etiam sapien quis justo. Maecenas consequat, orci quis blandit ultrices posuere vitae, mollis nunc tempus euismod. Vestibulum ante eget odio. Nam pellentesque ut, turpis. Nam sed est id aliquet elit metus, quis nibh. Morbi augue imperdiet wisi.</textarea>
+                    <label class="active" for="id_description">
+                      Description
+                    </label>
+                  </div>
+                </form>
               </div>
               <div class="section">
                 <h4>
                   Radio Buttons
                 </h4>
-                <div class="input input-field">
-                  <p>
-                    <input name="group1" type="radio" id="test1" />
-                    <label for="test1">
-                      Radio 1
-                    </label>
-                  </p>
-                  <p>
-                    <input name="group1" type="radio" id="test2" />
-                    <label for="test2">
-                      Radio 2
-                    </label>
-                  </p>
-                  <p>
-                    <input name="group1" type="radio" id="test4" disabled="disabled" />
-                    <label for="test4">
-                      Disabled Radio
-                    </label>
-                  </p>
-                </div>
+                <form>
+                  <div class="input input-field">
+                    <p>
+                      <input name="group1" type="radio" id="test1" />
+                      <label for="test1">
+                        Radio 1
+                      </label>
+                    </p>
+                    <p>
+                      <input name="group1" type="radio" id="test2" />
+                      <label for="test2">
+                        Radio 2
+                      </label>
+                    </p>
+                    <p>
+                      <input name="group1" type="radio" id="test4" disabled="disabled" />
+                      <label for="test4">
+                        Disabled Radio
+                      </label>
+                    </p>
+                  </div>
+                </form>
               </div>
               <div class="section">
                 <h4>
                   Checkboxes
                 </h4>
-                <div class="input input-field">
-                  <p>
-                    <input type="checkbox" class="filled-in" id="filled-in-box" />
-                    <label for="filled-in-box">
-                      Check
-                    </label>
-                  </p>
-                  <p>
-                    <input type="checkbox" class="filled-in" id="test7" checked="checked" disabled="disabled" />
-                    <label for="test7">
-                      Disabled Checked
-                    </label>
-                  </p>
-                  <p>
-                    <input type="checkbox" id="test8" disabled="disabled" />
-                    <label for="test8">
-                      Disabled
-                    </label>
-                  </p>
-                </div>
+                <form>
+                  <div class="input input-field">
+                    <p>
+                      <input type="checkbox" class="filled-in" id="filled-in-box" />
+                      <label for="filled-in-box">
+                        Check
+                      </label>
+                    </p>
+                    <p>
+                      <input type="checkbox" class="filled-in" id="test7" checked="checked" disabled="disabled" />
+                      <label for="test7">
+                        Disabled Checked
+                      </label>
+                    </p>
+                    <p>
+                      <input type="checkbox" id="test8" disabled="disabled" />
+                      <label for="test8">
+                        Disabled
+                      </label>
+                    </p>
+                  </div>
+                </form>
               </div>
               <div class="section">
                 <h4>
                   File input
                 </h4>
-                <div class="file-field input-field">
-                  <div class="btn">
-                    <span>File</span>
-                    <input type="file">
+                <form>
+                  <div class="file-field input-field">
+                    <div class="btn">
+                      <span>File</span>
+                      <input type="file">
+                    </div>
+                    <div class="file-path-wrapper">
+                      <input class="file-path validate" type="text">
+                    </div>
                   </div>
-                  <div class="file-path-wrapper">
-                    <input class="file-path validate" type="text">
-                  </div>
-                </div>
+                </form>
               </div>
               <div class="section">
                 <h4>
                   Errors
                 </h4>
-                <div class="input input-field">
-                  <label class="active" for="id_name">
-                    Name
-                  </label>
-                  <input id="id_name" class="invalid" maxlength="128" name="name" placeholder="Give your awesome product a name" type="text" value="" required="">
-                   <p class="help-block materialize-red-text">
-                    This field is required
-                   </p>
-                </div>
+                <form>
+                  <div class="input input-field">
+                    <label class="active" for="id_name">
+                      Name
+                    </label>
+                    <input id="id_name" class="invalid" maxlength="128" name="name" placeholder="Give your awesome product a name" type="text" value="" required="">
+                     <p class="help-block materialize-red-text">
+                      This field is required
+                     </p>
+                  </div>
+                </form>
               </div>
             </div>
           </div>
@@ -1279,31 +1299,6 @@
             <li class="waves-effect">
               <a href="">
                 5
-              </a>
-            </li>
-            <li class="waves-effect">
-              <a href="">
-                6
-              </a>
-            </li>
-            <li class="waves-effect">
-              <a href="">
-                7
-              </a>
-            </li>
-            <li class="waves-effect">
-              <a href="">
-                8
-              </a>
-            </li>
-            <li class="waves-effect">
-              <a href="">
-                9
-              </a>
-            </li>
-            <li class="waves-effect">
-              <a href="">
-                10
               </a>
             </li>
             <li>
