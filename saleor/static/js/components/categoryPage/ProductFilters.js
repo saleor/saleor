@@ -20,12 +20,12 @@ class ProductFilters extends Component {
     onFilterChanged: PropTypes.func.isRequired
   }
 
-  getFilterKey(attributeName, valueSlug) {
-    return `${attributeName}:${valueSlug}`;
+  getFilterKey(attributeSlug, valueSlug) {
+    return `${attributeSlug}:${valueSlug}`;
   }
 
-  onClick = (attributeName, valueSlug) => {
-    this.props.onFilterChanged(this.getFilterKey(attributeName, valueSlug));
+  onClick = (attributeSlug, valueSlug) => {
+    this.props.onFilterChanged(this.getFilterKey(attributeSlug, valueSlug));
   }
 
   changeVisibility = (target) => {
@@ -36,10 +36,10 @@ class ProductFilters extends Component {
 
   componentWillMount() {
     this.props.attributes.map((attribute) => {
-      const attrValue = `${attribute.name}`;
-        this.setState({
-          visibility: Object.assign(this.state.visibility, {[attrValue]: !isMobile()})
-        });
+      const attrValue = `${attribute.slug}`;
+      this.setState({
+        visibility: Object.assign(this.state.visibility, {[attrValue]: !isMobile()})
+      });
     });
   }
 
@@ -88,12 +88,12 @@ export default Relay.createContainer(ProductFilters, {
       fragment on ProductAttributeType @relay(plural: true) {
         id
         pk
-        slug
         name
+        slug
         values {
           id
-          slug
           name
+          slug
           color
         }
       }
