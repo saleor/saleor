@@ -40,7 +40,7 @@
       </ul>
     </div>
     <div class="tab-content col-lg-10 offset-lg-1">
-      <div class="tab-pane active" id="orders" role="tabpanel">
+      <div class="tab-pane active fade show" id="orders" role="tabpanel">
         <div id="accordion" role="tablist" aria-multiselectable="true">
           {% if orders|length %}
             <div class="table__header">
@@ -90,7 +90,7 @@
           {% endif %}
         </div>
       </div>
-      <div class="tab-pane" id="password" role="tabpanel">
+      <div class="tab-pane fade" id="password" role="tabpanel">
         <div class="row ">
           <div class="col-md-8 offset-md-2 col-lg-6 offset-lg-3 userprofile__password">
             <form action="" method="post">
@@ -102,7 +102,7 @@
           </div>
         </div>
       </div>
-      <div class="tab-pane" id="addresses" role="tabpanel">
+      <div class="tab-pane fade" id="addresses" role="tabpanel">
         <div class="card-deck-wrapper userprofile__addresses">
           <div class="row card-deck">
               {% for address in addresses %}

@@ -45,7 +45,7 @@ def address_edit(request, pk):
         address_form.save()
         message = pgettext('Storefront message', 'Address successfully updated.')
         messages.success(request, message)
-        return HttpResponseRedirect(reverse('profile:details'))
+        return HttpResponseRedirect(reverse('profile:details') + '#addresses')
     return TemplateResponse(
         request, 'userprofile/address-edit.html',
         {'address_form': address_form})
