@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load product_first_image from product_images %}
 
 <form action="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=product_image.pk %}" method="post" novalidate>
   {% csrf_token %}
@@ -12,7 +13,9 @@
       </div>
     </div>
     <div class="center-align">
-      <img class="responsive-img" src="{{ product_image.image.crop.400x400 }}" alt="">
+      <img class="responsive-img" src="{% product_first_image product size="255x255" method="crop" %}" 
+           srcset="{% product_first_image product size="255x255" method="crop" %} 1x, {% product_first_image product size="510x510" method="crop" %} 2x" 
+           alt="">
     </div>
     <p>
       {% blocktrans trimmed context "Modal delete image text" %}

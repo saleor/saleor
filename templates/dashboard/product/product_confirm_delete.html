@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load prices_i18n %}
 {% load staticfiles %}
-{% load get_thumbnail from product_images %}
+{% load product_first_image from product_images %}
 
 {% block title %}
   {% trans "Delete" context "Dashboard delete action" %} {{ product }} - {{ block.super }}
@@ -49,11 +49,9 @@
       <div class="col m6 l4">
         <div class="card">
           <div class="card-content">
-            {% if object.images.exists %}
-              <img src="{{ product.images.first.image.crop.400x400 }}" alt="" class="responsive-img">
-            {% else %}
-              <img src="{% static 'images/product-image-placeholder.png' %}" alt="" class="responsive-img">
-            {% endif %}
+            <img src="{% product_first_image product size="255x255" method="crop" %}" 
+                 srcset="{% product_first_image product size="255x255" method="crop" %} 1x, {% product_first_image product size="510x510" method="crop" %} 2x" 
+                 alt="" class="responsive-img">
           </div>
           <div class="card-action">
             <button type="submit" class="card-link">

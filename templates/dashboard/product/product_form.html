@@ -385,7 +385,10 @@
                   <div class="row">
                     <div class="card">
                       <div class="card-image product-gallery-item-image">
-                        <img class="responsive-img" src="{{ image.image.crop.400x400 }}" alt="">
+                        <img class="responsive-img" 
+                             src="{{ image.image.crop.255x255 }}" 
+                             srcset="{{ image.image.crop.255x255 }} 1x, {{ image.image.crop.510x510 }} 2x"
+                             alt="">
                       </div>
                       <div class="card-content">
                         <span class="product-gallery-item-title card-title black-text" title="{{ image.alt }}">
