@@ -1,4 +1,24 @@
 .styleguide {
+  .container {
+    margin-left: 40px;
+    @media only screen and (max-width: $small-screen-up) {
+      margin-left: 15px;
+    }
+  }
+  .nav-wrapper {
+    margin-left: 40px;
+    @media only screen and (max-width: $small-screen-up) {
+      margin-left: 15px;
+    }
+    li {
+      span {
+        display: block;
+        text-transform: uppercase;
+        font-size: 2rem;
+        padding: 30px 20px;
+      }
+    }
+  }
   &__menu {
     position: relative;
     ul {
