@@ -13,7 +13,7 @@
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs">
-    <li class="visible-s">{% trans "Sales" context "Sale (discount) list breadcrumbs" %}</li>
+    <li class="visible-s">{% trans "Sales" context "Dashboard sales (discounts) list." %}</li>
   </ul>
 {% endblock %}
 
@@ -23,7 +23,7 @@
   <div class="card">
     <div class="data-table-header-action">
       <a href="{% url 'dashboard:sale-add' %}" class="btn-data-table btn-flat"  title="{% trans "Add sale" context "Sale (discount) list add button text" %}">
-        {% trans "Add" context "Product form variants tab table action" %}
+        {% trans "Add" context "Dashboard add action" %}
       </a>
     </div>
     <div class="data-table-container">

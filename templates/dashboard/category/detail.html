@@ -9,7 +9,7 @@
   {% else %}
     {% trans "Add new category" context "Category detail page title" %}
   {% endif %} 
-  - {% trans "Categories" context "Category detail page title" %} - {{ block.super }}
+  - {% trans "Categories" context "Dashboard categories list" %} - {{ block.super }}
 {% endblock %}
 
 {% block body_class %}body-categories{% endblock %}
@@ -28,7 +28,7 @@
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
       <a href="{% url 'dashboard:category-list'%}" class="breadcrumbs--ellipsed-item">
-        {% trans "Categories" context "Category detail breadcrumbs" %}
+        {% trans "Categories" context "Dashboard categories list" %}
       </a>
     </li>
     <li class="back-mobile">
@@ -76,20 +76,21 @@
           <div class="card-action right-align">
             {% if category.parent %}
               <a href="{% url 'dashboard:category-list' root_pk=category.parent.pk %}" class="btn btn-flat">
-                {% trans "Cancel" context "Category form secondary action" %}
+                {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
             {% else %}
               <a href="{% url 'dashboard:category-list' %}" class="btn btn-flat">
-                {% trans "Cancel" context "Category form secondary action" %}
+                {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
             {% endif %}
             {% if category.pk %}
               <button type="submit" class="btn waves-effect waves-light">
-                {% trans "Update" context "Category form primary action" %}
+                {% trans "Update" context "Dashboard update action" %}
               </button>
             {% else %}
               <button type="submit" class="btn waves-effect waves-light">
-                {% trans "Create" context "Category form primary action" %}
+                {% trans "Create" context "Dashboard create action" %}
+
               </button>
             {% endif %}
           </div>

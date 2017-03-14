@@ -4,7 +4,7 @@
   {% csrf_token %}
   <div class="modal-content">
     <h5>
-      {% trans "Are you sure?" context "Delete sale (discount) title" %}
+      {% trans "Are you sure?" context "Dashboard confirmation modal" %}
     </h5>
     <p>
       {% blocktrans trimmed context "Delete sale (discount) text" %}
@@ -14,10 +14,10 @@
   </div>
   <div class="modal-footer">
     <button type="submit" class="modal-action btn-flat">
-      {% trans "Delete" context "Delete sale (discount) form primary action" %}
+      {% trans "Delete" context "Dashboard delete action" %}
     </button>
     <a href="#!" class="modal-action modal-close btn-flat">
-      {% trans "Cancel" context "Delete sale (discount) form secondary action" %}
+      {% trans "Cancel" context "Dashboard cancel action" %}
     </a>
   </div>
 </form>

@@ -38,7 +38,7 @@
           <td>
             {% render_status order.get_last_payment_status order.get_last_payment_status_display %}
           </td>
-          {% trans "Guest" context "Customer column anonymous user text" as guest %}
+          {% trans "Guest" context "Anonymous user account value" as guest %}
           <td>
             {{ order.user|default:guest }}
           </td>

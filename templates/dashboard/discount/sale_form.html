@@ -9,7 +9,7 @@
   {% else %}
     {% trans "Add new sale"  context "Sale (discount) page title" %}
   {% endif %} 
-  - {% trans "Sales" context "Sale (discount) page title" %} - {{ block.super }}
+  - {% trans "Sales" context "Dashboard sales (discounts) list." %} - {{ block.super }}
 {% endblock %}
 
 {% block body_class %}body-sales{% endblock %}
@@ -42,7 +42,7 @@
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
       <a href="{% url 'dashboard:sale-list' %}">
-        {% trans "Sales" context "Sale (discount) breadcrumbs" %}
+        {% trans "Sales" context "Dashboard sales (discounts) list." %}
       </a>
     </li>
     <li class="back-mobile">
@@ -95,17 +95,17 @@
           <div class="card-action right-align">
             {% if sale.pk %}
               <a href="{% url 'dashboard:sale-list' %}" class="btn btn-flat">
-                {% trans "Cancel" context "Sale (discount) secondary action" %}
+                {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">
-                {% trans "Update" context "Sale (discount) primary action" %}
+                {% trans "Update" context "Dashboard update action" %}
               </button>
             {% else %}
               <a href="{% url 'dashboard:sale-list' %}" class="btn btn-flat">
-                {% trans "Cancel" context "Sake (discount) secondary action" %}
+                {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">
-                {% trans "Create" context "Sale (discount) primary action" %}
+                {% trans "Create" context "Dashboard create action" %}
               </button>
             {% endif %}
           </div>

@@ -11,7 +11,7 @@
   {% else %}
     {% trans "Add new product" context "Product form page title" %}
   {% endif %}
-   - {% trans "Products" context "Product form page title" %} - {{ block.super }}
+   - {% trans "Products" context "Dashboard products list" %} - {{ block.super }}
 {% endblock %}
 
 {% block body_class %}body-products{% endblock %}
@@ -27,7 +27,7 @@
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
       <a href="{% url "dashboard:product-list" %}" class="breadcrumb">
-        {% trans "Products" context "Product form breadcrumbs" %}
+        {% trans "Products" context "Dashboard products list" %}
       </a>
     </li>
     <li class="back-mobile">
@@ -55,7 +55,7 @@
     <ul id="context-menu" class="dropdown-content">
       <li>
         <a href="{{ product.get_absolute_url }}" target="_blank">
-          {% trans "View on site" context "Product form action" %}
+          {% trans "View on site" context "Dashboard preview action" %}
         </a>
       </li>
       <li>
@@ -87,7 +87,7 @@
             <li class="tab col s3" role="presentation">
               <a href="#variants" role="tab">
                 <span>
-                  {% trans "Variants" context "Product form tab" %}
+                  {% trans "Variants" context "Dashboard variants" %}
                 </span>
                 <i class="material-icons">style</i>
               </a>
@@ -96,7 +96,7 @@
           <li class="tab col s3" role="presentation">
             <a href="#stock" role="tab">
               <span>
-                {% trans "Stock" context "Product form tab" %}
+                {% trans "Stock" context "Dashboard stock" %}
               </span>
               <i class="material-icons">store</i>
             </a>
@@ -160,17 +160,17 @@
           <div class="card-action right-align">
             {% if product.pk %}
               <a href="{% url 'dashboard:product-list' %}" class="btn btn-flat">
-                {% trans "Cancel" context "Product form secondary action" %}
+                {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">
-                {% trans "Update" context "Product form details tab action" %}
+                {% trans "Update" context "Dashboard update action" %}
               </button>
             {% else %}
               <a href="{% url 'dashboard:product-list' %}" class="btn btn-flat">
-                {% trans "Cancel" context "Product form secondary action" %}
+                {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">
-                {% trans "Create" context "Product form details tab action" %}
+                {% trans "Create" context "Dashboard create action" %}
               </button>
             {% endif %}
           </div>
@@ -187,16 +187,16 @@
           {% csrf_token %}
           <div class="data-table-header-action">
             <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked btn-flat">
-              {% trans "Add" context "Product form variants tab table action" %}
+              {% trans "Add" context "Dashboard add action" %}
             </a>
             <a href="#modal-product-variant-delete" class="modal-trigger btn-data-table btn-show-when-checked btn-flat" style="display:none" hidden>
-              {% trans "Delete" context "Product form variants tab table action" %}
+              {% trans "Delete" context "Dashboard delete action" %}
             </a>
 
             <div class="modal" id="modal-product-variant-delete">
               <div class="modal-content">
                 <h5>
-                  {% trans "Are you sure?" context "Modal delete variant from product title" %}
+                  {% trans "Are you sure?" context "Dashboard confirmation modal" %}
                 </h5>
                 <p>
                   {% blocktrans trimmed context "Modal delete variant from product text" %}
@@ -206,10 +206,10 @@
               </div>
               <div class="modal-footer">
                 <button type="submit" class="modal-action btn-flat">
-                  {% trans "Delete" context "Modal delete variant from product primary action" %}
+                  {% trans "Delete" context "Dashboard delete action" %}
                 </button>
                 <a href="#!" class="modal-action modal-close btn-flat">
-                  {% trans "Cancel" context "Modal delete variant from product secondary action" %}
+                  {% trans "Cancel" context "Dashboard cancel action" %}
                 </a>
               </div>
             </div>
@@ -288,12 +288,12 @@
             {% trans "Add" context "Product form stock tab table action" %}
           </a>
           <a href="#modal-product-stock-delete" class="modal-trigger btn-data-table btn-show-when-checked btn-flat" style="display:none" hidden>
-            {% trans "Delete" context "Product form stock tab table action" %}
+            {% trans "Delete" context "Dashboard delete action" %}
           </a>
           <div class="modal" id="modal-product-stock-delete">
             <div class="modal-content">
               <h5>
-                {% trans "Are you sure?" context "Modal delete stock from variant title" %}
+                {% trans "Are you sure?" context "Dashboard confirmation modal" %}
               </h5>
               <p>
                 {% blocktrans trimmed context "Modal delete stock from variant text" %}
@@ -303,10 +303,10 @@
             </div>
             <div class="modal-footer">
               <button type="submit" class="modal-action btn-flat">
-                {% trans "Delete" context "Modal delete stock from variant primary action" %}
+                {% trans "Delete" context "Dashboard delete action" %}
               </button>
               <a href="#!" class="modal-action modal-close btn-flat">
-                {% trans "Cancel" context "Modal delete stock from variant secondary action" %}
+                {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
             </div>
           </div>
@@ -401,10 +401,10 @@
                       <div class="sortable__drag-area"></div>
                       <div class="card-action">
                         <a class="btn btn-flat" href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">
-                          {% trans "Edit" context "Image card action" %}
+                          {% trans "Edit" context "Dashboard edit action" %}
                         </a>
                         <a href="#base-modal" class="btn btn-flat modal-trigger-custom" data-href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}">
-                          {% trans "Delete" context "Image card action" %}
+                          {% trans "Delete" context "Dashboard delete action" %}
                         </a>
                       </div>
                     </div>
@@ -448,11 +448,11 @@
               <div class="sortable__drag-area"></div>
               <div class="card-action">
                 <a class="card-action-edit" href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=0 %}">
-                  {% trans "Edit" context "Image card action" %}
+                  {% trans "Edit" context "Dashboard edit action" %}
                 </a>
                 <a href="#base-modal" class="card-action-delete modal-trigger-custom"
                 data-href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=0 %}">
-                  {% trans "Delete" context "Image card action" %}
+                  {% trans "Delete" context "Dashboard delete action" %}
                 </a>
               </div>
             </div>

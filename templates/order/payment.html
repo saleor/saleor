@@ -16,10 +16,10 @@
     {% if order.user == user %}
     <ul class="breadcrumbs list-unstyled">
         <li><a href="/">
-            {% trans "Home" context "Payment details breadcrumb" %}
+            {% trans "Home" context "Main navigation item" %}
         </a></li>
         <li><a href="{% url "profile:details" %}">
-            {% trans "Your account" context "Payment details breadcrumb" %}
+            {% trans "Your account" context "Main navigation item" %}
         </a></li>
         <li><a href="{{ order.get_absolute_url }}">
             {% blocktrans trimmed context "Payment details breadcrumb" %}
@@ -45,7 +45,7 @@
                                     We are currently waiting for an external service to authorize
                                     your payment for this order.
                                 {% endblocktrans %}</p>
-                                <p>{% trans "Current status" context "Payment status text" %}:
+                                <p>{% trans "Current status:" context "Payment status text" %}
                                     <br>
                                     <span class="label label-default">
                                     {{ waiting_payment.get_status_display }}

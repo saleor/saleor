@@ -4,7 +4,7 @@
 {% load status %}
 
 {% block title %}
-  {% trans "Shipping methods" context "Shipping method list page title" %} - {{ block.super }}
+  {% trans "Shipping methods" context "Dashboard shipping methods list" %} - {{ block.super }}
 {% endblock %}
 
 {% block body_class %}body-shipping-methods{% endblock %}
@@ -14,7 +14,7 @@
 {% block breadcrumbs %}
   <ul class="breadcrumbs">
     <li class="visible-s">
-      {% trans "Shipping methods" context "Shipping method list breadcrumbs" %}
+      {% trans "Shipping methods" context "Dashboard shipping methods list" %}
     </li>
   </ul>
 {% endblock %}
@@ -25,7 +25,7 @@
       <div class="card">
         <div class="data-table-header-action">
           <a href="{% url 'dashboard:shipping-method-add' %}" class="btn-data-table btn-flat" title="{% trans "Add method" context "Shipping method list add button text" %}">
-            {% trans "Add" context "Product form variants tab table action" %}
+            {% trans "Add" context "Dashboard add action" %}
           </a>
         </div>
         <div class="data-table-container">

@@ -8,7 +8,7 @@
   {% else %}
     {% trans "Add new site settings" context "Site settings page title" %}
   {% endif %}
-   - {% trans "Site settings" context "Site settings page title" %} - {{ block.super }}
+   - {% trans "Site settings" context "Dashboard site settings" %} - {{ block.super }}
 {% endblock %}
 
 {% block body_class %}body-settings{% endblock %}
@@ -18,7 +18,7 @@
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li class="visible-s">
-      {% trans "Site settings" context "Site settings breadcrumbs" %}
+      {% trans "Site settings" context "Dashboard site settings" %}
     </li>
   </ul>
 {% endblock %}
@@ -45,10 +45,10 @@
           </div>
           <div class="card-action right-align">
             <a class="btn btn-flat" href="{% url "dashboard:index" %}" traget="_blank">
-              {% trans "Cancel" %}
+              {% trans "Cancel" context "Dashboard cancel action" %}
             </a>
             <button type="submit" class="btn waves-effect waves-light">
-              {% trans "Update" context "Site settings action" %}
+              {% trans "Update" context "Dashboard update action" %}
             </button>
           </div>
         </form>

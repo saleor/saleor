@@ -17,7 +17,9 @@
       display: table-cell;
       text-align: center;
       vertical-align: middle;
-      color: white
+      color: white;
+      padding-left: $global-padding;
+      padding-right: $global-padding;
   }
   &--content {
     position:  absolute;

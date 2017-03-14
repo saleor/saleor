@@ -7,7 +7,7 @@
   <head>
     <title>
       {% block title %}
-        {% trans "Dashboard - Saleor" context "Dashboard default page title"  %}
+        {% trans "Dashboard - Saleor" context "Dashboard default page title" %}
       {% endblock %}
     </title>
     {% block meta %}
@@ -68,7 +68,7 @@
               {% if SEARCH_IS_ENABLED %}
                 <form method="get" action="{% url "dashboard:search" %}" class="hide-on-small-only">
                   <div class="input-field">
-                    <input id="search" type="search" placeholder="{% trans "Search" context "Dashboard search placeholder" %}" name="q" value="{% if query %}{{ query }}{% endif %}">
+                    <input id="search" type="search" placeholder="{% trans "Search" context "Dashboard search" %}" name="q" value="{% if query %}{{ query }}{% endif %}">
                     <label>
                       <i class="material-icons">search</i>
                     </label>
@@ -80,88 +80,88 @@
           <ul class="side-nav">
             <li class="nav-home">
               <a href="{% url 'dashboard:index' %}">
-                {% trans "Home" context "Dashboard side navigation link" %}
+                {% trans "Home" context "Dashboard homepage" %}
               </a>
             </li>
             <li class="side-nav-section" id="first">
               <p>
-                {% trans "Catalogue" context "Dashboard side navigation title" %}
+                {% trans "Catalogue" context "Dashboard catalogue" %}
               </p>
               <ul>
                 <li class="{% block menu_products_class %}{% endblock %}">
                   <a href="{% url 'dashboard:product-list' %}">
-                    {% trans "Products" context "Dashboard side navigation link" %}
+                    {% trans "Products" context "Dashboard products list" %}
                   </a>
                 </li>
                 <li class="{% block menu_categories_class %}{% endblock %}">
                   <a href="{% url 'dashboard:category-list' %}">
-                    {% trans "Categories" context "Dashboard side navigation link" %}
+                    {% trans "Categories" context "Dashboard categories list" %}
                   </a>
                 </li>
                 <li class="{% block menu_location_class %}{% endblock %}">
                   <a href="{% url 'dashboard:product-stock-location-list' %}">
-                  {% trans "Stock locations" context "Dashboard side navigation link" %}
+                  {% trans "Stock locations" context "Dashboard stock loactions list" %}
                   </a>
                 </li>
               </ul>
             </li>
             <li class="side-nav-section">
               <p>
-                {% trans "Discounts" context "Dashboard side navigation title" %}
+                {% trans "Discounts" context "Dashboard discounts list" %}
               </p>
               <ul>
                 <li class="{% block menu_sales_class %}{% endblock %}">
                   <a href="{% url 'dashboard:sale-list' %}">
-                    {% trans "Sales" context "Dashboard side navigation link" %}
+                    {% trans "Sales" context "Dashboard sales (discounts) list" %}
                   </a>
                 </li>
                 <li class="{% block menu_vouchers_class %}{% endblock %}">
                   <a href="{% url 'dashboard:voucher-list' %}">
-                    {% trans "Vouchers" context "Dashboard side navigation link" %}
+                    {% trans "Vouchers" context "Dashboard vouchers list" %}
                   </a>
                 </li>
               </ul>
             </li>
             <li class="side-nav-section">
               <p>
-                {% trans "Sales" context "Dashboard side navigation title. `Sales' is noun of to sell" %}
+                {% trans "Sales" context "Dashboard sales. `Sales' is noun of to sell" %}
               </p>
               <ul>
                 <li class="{% block menu_orders_class %}{% endblock %}">
                   <a href="{% url 'dashboard:orders' %}">
-                    {% trans "Orders" %}
+                    {% trans "Orders" context "Dashboard orders list" %}
                   </a>
                 </li>
                 <li class="{% block menu_customers_class %}{% endblock %}">
                   <a href="{% url 'dashboard:customers' %}">
-                    {% trans "Customers" context "Dashboard side navigation link" %}
+                    {% trans "Customers" context "Dashboard customers list" %}
                   </a>
                 </li>
               </ul>
             </li>
             <li class="side-nav-section">
               <p>
-                {% trans "Configuration"  context "Dashboard side navigation title" %}
+                {% trans "Configuration"  context "Dashboard configuration" %}
               </p>
               <ul>
                 <li class="{% block menu_product_classes_class %}{% endblock %}">
                   <a href="{% url 'dashboard:product-class-list' %}">
-                    {% trans "Product types" context "Dashboard side navigation link" %}
+                    {% trans "Product types" context "Dashboard product types list" %}
                   </a>
                 </li>
                 <li class="{% block menu_attributes_class %}{% endblock %}">
                   <a href="{% url 'dashboard:product-attributes' %}">
-                    {% trans "Attributes" context "Dashboard side navigation link" %}
+                    {% trans "Attributes" context "Dashboard attributes list" %}
                   </a>
                 </li>
                 <li class="{% block menu_delivery_class %}{% endblock %}">
                   <a href="{% url 'dashboard:shipping-methods' %}">
-                    {% trans "Shipping methods" context "Dashboard side navigation link" %}
+                    {% trans "Shipping methods" context "Dashboard shipping methods list" %}
                   </a>
                 </li>
                 <li class="{% block menu_settings_class %}{% endblock %}">
                   <a href="{% url 'dashboard:site-index' %}">
-                    {% trans "Site settings" context "Dashboard side navigation link" %}
+                    {% trans "Site settings" context "Dashboard site settings" %}
                   </a>
                 </li>
               </ul>
@@ -169,7 +169,7 @@
             {% if request.user.is_superuser %}
               <li class="side-nav-section" id="version-indicator">
                 <p>
-                  {% trans "Release" context "Dashboard software version" %}: {% version %}
+                  {% trans "Release:" context "Dashboard software version" %} {% version %}
                 </p>
               </li>
             {% endif %}
@@ -183,7 +183,7 @@
           <ul class="breadcrumbs">
             <li class="visible-s">
               <a href="#">
-                {% trans "Home" context "Dashboard homepage breadcrumbs" %}
+                {% trans "Home" context "Dashboard homepage" %}
               </a>
             </li>
           </ul>
@@ -200,6 +200,7 @@
     <div id="base-modal-fixed" class="modal modal-fixed-footer"></div>
 
     <!-- Core Scripts - Include with every page -->
+    <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
     {% render_bundle 'vendor' 'js' %}
     {% render_bundle 'dashboard' 'js' %}
     <script src="{% static "versatileimagefield/js/versatileimagefield.js" %}"></script>

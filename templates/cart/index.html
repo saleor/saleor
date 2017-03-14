@@ -8,7 +8,7 @@
 
 {% block breadcrumb %}
 <ul class="breadcrumbs list-unstyled">
-  <li><a href="/">{% trans "Home" context "Cart breadcrumb" %}</a></li>
+  <li><a href="/">{% trans "Home" context "Main navigation item" %}</a></li>
   <li><a href="{% url 'cart:index' %}">{% trans "Cart" context "Cart breadcrumb" %}</a></li>
 </ul>
 {% endblock breadcrumb %}
@@ -70,8 +70,8 @@
     <div class="cart__total">
       <div class="row">
         <div class="col-8 cart__total__subtotal">
-          <h3>{% trans "Subtotal" context "Cart totals" %}</h3>
-          <p>({% trans "Delivery calculated at checkout" context "Cart totals help text" %})</p>
+          <h3>{% trans "Subtotal" context "Order subtotal" %}</h3>
+          <p>{% trans "(Delivery calculated at checkout)" context "Cart totals help text" %}</p>
         </div>
         <div class="col-4">
           <p class="cart-total text-right"

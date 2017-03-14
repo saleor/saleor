@@ -7,7 +7,7 @@
     <div class="row">
       <div class="col s12">
         <h5>
-          {% trans "Error" context "Modal delete product class with products title" %}
+          {% trans "Error" context "Dashboard error" %}
         </h5>
       </div>
     </div>
@@ -23,7 +23,7 @@
   </div>
   <div class="modal-footer">
     <a href="#!" class="modal-action modal-close btn-flat">
-      {% trans "Cancel" context "Modal delete product class with products secondary action" %}
+      {% trans "Cancel" context "Dashboard cancel action" %}
     </a>
   </div>
 {% else %}
@@ -33,7 +33,7 @@
       <div class="row">
         <div class="col s12">
           <h5>
-            {% trans "Are you sure?" context "Modal delete product class title" %}
+            {% trans "Are you sure?" context "Dashboard confirmation modal" %}
           </h5>
         </div>
       </div>
@@ -45,10 +45,10 @@
     </div>
     <div class="modal-footer">
       <button type="submit" class="modal-action btn-flat">
-        {% trans "Delete" context "Modal delete product class primary action" %}
+        {% trans "Delete" context "Dashboard delete action" %}
       </button>
       <a href="#!" class="modal-action modal-close btn-flat">
-        {% trans "Cancel" context "Modal delete product class secondary action" %}
+        {% trans "Cancel" context "Dashboard cancel action" %}
       </a>
     </div>
   </form>

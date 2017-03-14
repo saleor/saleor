@@ -29,7 +29,7 @@
       <label class="control-label {{ classes.label }}">
         {{ field.label }}
         {% if not field.field.required %}
-          ({% trans "optional" context "Dashboard form labels" %})
+          {% trans "(optional)" context "Dashboard form labels" %}
         {% endif %}
       </label>
     {% endif %}
@@ -56,7 +56,7 @@
   <div class="input input-field col {{ classes.label }}">
     {% if field.auto_id %}
       <label class="control-label {{ classes.label }}">
-        {{ field.label }}{% if not field.field.required %} ({% trans "optional" context "Dashboard form labels" %}){% endif %}
+        {{ field.label }}{% if not field.field.required %} {% trans "(optional)" context "Dashboard form labels" %}{% endif %}
       </label>
     {% endif %}
     {% for choice in field %}
@@ -83,7 +83,7 @@
       <label class="active" for="{{ field.auto_id }}">
         {{ field.label }}
         {% if not field.field.required %}
-          ({% trans "optional" context "Dashboard form labels" %})
+          {% trans "(optional)" context "Dashboard form labels" %}
         {% endif %}
       </label>
       <input type="date" id="{{ field.auto_id }}" class="datepicker" name="{{ field.name }}"
@@ -106,7 +106,7 @@
         <label class="control-label {{ classes.label }}">
           {{ field.label }}
           {% if not field.field.required %}
-            ({% trans "optional" context "Dashboard form labels" %})
+            {% trans "(optional)" context "Dashboard form labels" %}
           {% endif %}
         </label>
       {% endif %}
@@ -132,7 +132,7 @@
       </div>
     {% else %}
       <label for="{{ field.id_for_label }}">
-        {{ field.label }}{% if not field.field.required %} ({% trans "optional" context "Dashboard form labels" %}){% endif %}
+        {{ field.label }}{% if not field.field.required %} {% trans "(optional)" context "Dashboard form labels" %}{% endif %}
       </label>
       {{ field }}
       {% for error in field.errors %}
@@ -159,7 +159,7 @@
       <label class="active {{ classes.label }}" for="{{ field.auto_id }}">
         {{ field.label }}
         {% if not field.field.required %}
-          ({% trans "optional" context "Dashboard form labels" %})
+          {% trans "(optional)" context "Dashboard form labels" %}
         {% endif %}
       </label>
       {% endif %}
@@ -180,7 +180,7 @@
         <label class="{{ classes.label }}" for="{{ field.auto_id }}">
           {{ field.label }}
           {% if not field.field.required %}
-            ({% trans "optional" context "Dashboard form labels" %})
+            {% trans "(optional)" context "Dashboard form labels" %}
           {% endif %}
         </label>
         <br>
@@ -194,7 +194,7 @@
       <label class="{{ classes.label }}" for="{{ field.auto_id }}">
         {{ field.label }}
         {% if not field.field.required %}
-          ({% trans "optional" context "Dashboard form labels" %})
+          {% trans "(optional)" context "Dashboard form labels" %}
         {% endif %}
       </label>
     {% endif %}
@@ -227,7 +227,7 @@
       <label class="active" for="{{ field.auto_id }}">
         {{ field.label }}
         {% if not field.field.required %}
-          ({% trans "optional" context "Dashboard form labels" %})
+          {% trans "(optional)" context "Dashboard form labels" %}
         {% endif %}
       </label>
     {% endif %}

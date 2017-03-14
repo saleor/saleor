@@ -37,7 +37,7 @@
     <ul id="category-delete" class="dropdown-content">
       <li>
         <a class="modal-trigger-custom" data-href="{% url 'dashboard:category-edit' root_pk=root.pk %}" href="#base-modal">
-          {% trans "Edit category" context "Category list action link" %}
+          {% trans "Edit category" context "Dashboard edit action" %}
         </a>
       </li>
       <li>
@@ -54,13 +54,13 @@
     {% if path %}
       <li>
         <a href="{% url 'dashboard:category-list' %}">
-          {% trans "Categories" context "Category list breadcrumbs" %}
+          {% trans "Categories" context "Dashboard categories list" %}
         </a>
       </li>
     {% else %}
       <li class="visible-s">
         <span>
-          {% trans "Categories" context "Category list breadcrumbs" %}
+          {% trans "Categories" context "Dashboard categories list" %}
         </span>
       </li>
     {% endif %}

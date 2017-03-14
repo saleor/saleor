@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block title %}
-  {% trans "Edit address" context "" %} - {% trans "Orders" context "" %} - {{ block.super }}
+  {% trans "Edit address" context "" %} - {% trans "Orders" context "Dashboard orders list" %} - {{ block.super }}
 {% endblock %}
 
 {% block body_class %}body-orders{% endblock %}
@@ -20,7 +20,7 @@
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
       <a href="{% url "dashboard:orders" %}">
-        {% trans "Orders" context "Breadcrumbs" %}
+        {% trans "Orders" context "Dashboard orders list" %}
       </a>
     </li>
     <li class="hide-on-med-and-down">
@@ -58,10 +58,10 @@
           </div>
           <div class="card-action right-align">
             <a href="{% url "dashboard:order-details" order_pk=order.pk %}" class="btn btn-flat">
-              {% trans "Cancel" context "Address form secondary action" %}
+              {% trans "Cancel" context "Dashboard cancel action" %}
             </a>
             <button type="submit" class="btn waves-effect waves-light">
-              {% trans "Update" context "Address primary action" %}
+              {% trans "Update" context "Dashboard update action" %}
             </button>
           </div>
         </form>
