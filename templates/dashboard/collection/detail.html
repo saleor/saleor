@@ -3,7 +3,7 @@
 {% load i18n %}
 
 {% block title %}
-    {% if collection.pk %}{{ collection }}{% else %}{% trans 'Add new collection' %}{% endif %} - {% trans 'Collections' %} - {{ block.super }}{% endblock %}
+  {% if collection.pk %}{{ collection }}{% else %}{% trans 'Add new collection' %}{% endif %} - {% trans 'Collections' %} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-collections{% endblock %}
 
@@ -12,26 +12,26 @@
 {% block page_title %}{% if collection.pk %}{{ collection }}{% else %}{% trans 'Add new collection' %}{% endif %}{% endblock %}
 
 {% block breadcrumbs %}
-    <ul class="breadcrumbs breadcrumbs--history">
-        <li><a href="{% url "dashboard:collection-list" %}" class="breadcrumb">{% trans "Collections" %}</a></li>
-        <li class="back-mobile"><a href="{% url "dashboard:collection-list" %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a></li>
-        <li><span class="breadcrumbs--ellipsed-item">{% if collection.pk %}{{ collection }}{% else %}{% trans 'Add new collection' %}{% endif %}</span></li>
-    </ul>
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li><a href="{% url "dashboard:collection-list" %}" class="breadcrumb">{% trans "Collections" %}</a></li>
+    <li class="back-mobile"><a href="{% url "dashboard:collection-list" %}" class="breadcrumb"><i class="material-icons">arrow_back</i></a></li>
+    <li><span class="breadcrumbs--ellipsed-item">{% if collection.pk %}{{ collection }}{% else %}{% trans 'Add new collection' %}{% endif %}</span></li>
+  </ul>
 {% endblock %}
 
 {% block header_extra %}
-    {% if collection.pk %}
-        <a class="dropdown-button right" href="#" data-activates="collection-delete" data-constrainwidth="false">
-            <i class="material-icons">more_vert</i>
+  {% if collection.pk %}
+    <a class="dropdown-button right" href="#" data-activates="collection-delete" data-constrainwidth="false">
+      <i class="material-icons">more_vert</i>
+    </a>
+    <ul id="collection-delete" class="dropdown-content">
+      <li>
+        <a class="modal-trigger-custom" data-href="{% url 'dashboard:collection-delete' collection.pk %}" href="#base-modal">
+          {% trans "Remove collection" context "Collection detail action" %}
         </a>
-        <ul id="collection-delete" class="dropdown-content">
-            <li>
-                <a class="modal-trigger-custom" data-href="{% url 'dashboard:collection-delete' collection.pk %}" href="#base-modal">
-                    {% trans "Remove collection" context "Collection detail action" %}
-                </a>
-            </li>
-        </ul>
-    {% endif %}
+      </li>
+    </ul>
+  {% endif %}
 {% endblock %}
 
 {% block content %}
