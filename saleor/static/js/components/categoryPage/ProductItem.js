@@ -15,7 +15,7 @@ class ProductItem extends Component {
       "@context": "http://schema.org/",
       "@type": "Product",
       "name": product.name,
-      "image": product.thumbnailUrl,
+      "image": product.thumbnailUrl1x,
       "offers": {
         "@type": "Offer",
         "priceCurrency": product.price.currency,
@@ -34,7 +34,7 @@ class ProductItem extends Component {
         <a href={product.url}>
           <div className="text-center">
             <div>
-                <img className="img-responsive" src={product.thumbnailUrl} alt="" />
+                <img className="img-responsive" src={product.thumbnailUrl1x} alt="" />
                 <span className="product-list-item-name" title={product.name}>{product.name}</span>
             </div>
             <div className="panel-footer">
@@ -62,7 +62,8 @@ export default Relay.createContainer(ProductItem, {
         availability {
           ${ProductPrice.getFragment('availability')}
         }
-        thumbnailUrl
+        thumbnailUrl1x: thumbnailUrl(size: "255x255")
+        thumbnailUrl2x: thumbnailUrl(size: "500x500")
         url
       }
     `
