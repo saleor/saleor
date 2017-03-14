@@ -62,7 +62,6 @@
           &.grey-color {
             background: $grey-color;
           }
-          
         }
       }
       .section {
@@ -81,9 +80,6 @@
           margin: 10px 0;
           background: #f2f2f2;
           border: solid 1px $grey-color;
-          @media only screen and (max-width: $small-screen-up) {
-            font-size: 0.75rem;
-          }
         }
       }
       .data-table {
@@ -98,6 +94,17 @@
       color: $off-black;
       font-size: 2rem;
       padding-right: 20px;
+    }
+  }
+  
+  @media only screen and (max-width: $small-screen-up) {
+    #buttons {
+      div {
+        text-align: center;
+        a {
+          margin-bottom: 20px;
+        }
+      }
     }
   }
 }
