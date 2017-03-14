@@ -89,6 +89,11 @@
           padding: $global-padding 0;
         }
       }
+      &#helpers {
+        div {
+          margin-bottom: $global-margin * 2;
+        }
+      }
       &#icons {
         img {
           max-width: 35px;
