@@ -25,5 +25,5 @@ def set_country(request):
     response = redirect(next_url)
     if form.is_valid():
         country = form.cleaned_data['country']
-        response.set_cookie(COOKIE_COUNTRY, country)
+        request.session[COOKIE_COUNTRY] = country
     return response

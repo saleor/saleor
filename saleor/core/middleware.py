@@ -36,9 +36,9 @@ class DiscountMiddleware(object):
 class CountryMiddleware(object):
 
     def process_request(self, request):
-        cookie = request.COOKIES.get(COOKIE_COUNTRY)
-        if cookie:
-            request.country = Country(cookie)
+        session_country = request.session.get(COOKIE_COUNTRY)
+        if session_country:
+            request.country = Country(session_country)
             return
         client_ip = get_client_ip(request)
         if client_ip:

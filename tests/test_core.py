@@ -161,6 +161,7 @@ def test_set_country_no_changes(client, method):
     assert redirect_location == reverse('home')
 
 
+@pytest.mark.django_db
 def test_set_country_without_next(client):
     url = reverse('set-country')
     response = client.post(url, {'country': 'DK'})
@@ -168,30 +169,31 @@ def test_set_country_without_next(client):
     redirect_location = get_redirect_location(response)
     assert redirect_location == reverse('home')
 
-    cookie_value = client.cookies.get(COOKIE_COUNTRY).value
+    cookie_value = client.session.get(COOKIE_COUNTRY)
     assert cookie_value == 'DK'
 
 
+@pytest.mark.django_db
 def test_set_country(client):
     url = reverse('set-country')
     response = client.post(url, {'country': 'PL', 'next': 'cart/'})
     assert response.status_code == 302
 
-    cookie_value = client.cookies.get(COOKIE_COUNTRY).value
-    assert cookie_value == 'PL'
+    assert client.session.get(COOKIE_COUNTRY) == 'PL'
 
 
+@pytest.mark.django_db
 def test_set_country_wrong_country(client):
     url = reverse('set-country')
     response = client.post(url, {'country': 'PL124', 'next': 'cart/'})
-    cookie_value = client.cookies.get(COOKIE_COUNTRY)
+    cookie_value = client.session.get(COOKIE_COUNTRY)
     assert cookie_value is None
 
 
 def test_country_middleware_with_cookie():
     country_middleware = CountryMiddleware()
     request = Mock()
-    request.COOKIES = {COOKIE_COUNTRY: 'LI'}
+    request.session = {COOKIE_COUNTRY: 'LI'}
     country_middleware.process_request(request)
     assert request.country.code == 'LI'
 
@@ -200,7 +202,7 @@ def test_country_middleware_without_cookie():
     country_middleware = CountryMiddleware()
     request = Mock()
     request.META = {'HTTP_X_FORWARDED_FOR': '127.0.0.1'}
-    request.COOKIES = {}
+    request.session = {}
     country_middleware.process_request(request)
     default_country = settings.DEFAULT_COUNTRY
     assert request.country.code == default_country
