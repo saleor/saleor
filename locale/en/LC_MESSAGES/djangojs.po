@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-02-08 03:52-0600\n"
+"POT-Creation-Date: 2017-03-13 15:02+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -47,7 +47,7 @@ msgid "Price range"
 msgstr ""
 
 #: saleor/static/js/components/categoryPage/PriceFilter.js:58
-#: saleor/static/js/components/categoryPage/ProductPrice.js:13
+#: saleor/static/js/components/categoryPage/ProductPrice.js:12
 msgid "from"
 msgstr ""
 
@@ -63,7 +63,7 @@ msgstr ""
 msgid "Load more"
 msgstr ""
 
-#: saleor/static/js/components/categoryPage/ProductPrice.js:16
+#: saleor/static/js/components/categoryPage/ProductPrice.js:15
 msgid "Sale"
 msgstr ""
 
@@ -101,6 +101,198 @@ msgstr ""
 msgid "Quantity"
 msgstr ""
 
-#: saleor/static/js/components/variantPicker/VariantPicker.js:112
+#: saleor/static/js/components/variantPicker/VariantPicker.js:161
 msgid "Add to cart"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:191
+msgid "Next month"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:192
+msgid "Previous month"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:195
+msgid "Select a month"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:196
+msgid "Select a year"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:199
+msgid "January"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:199
+msgid "February"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:199
+msgid "March"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:199
+msgid "April"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:199 saleor/static/js/dashboard.js:200
+msgid "May"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:199
+msgid "June"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:199
+msgid "July"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:199
+msgid "August"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:199
+msgid "September"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:199
+msgid "October"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:199
+msgid "November"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:199
+msgid "December"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "Jan"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "Feb"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "Mar"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "Apr"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "Jun"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "Jul"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "Aug"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "Sep"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "Oct"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "Nov"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:200
+msgid "Dec"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:201
+msgid "Sunday"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:201
+msgid "Monday"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:201
+msgid "Tuesday"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:201
+msgid "Wednesday"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:201
+msgid "Thursday"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:201
+msgid "Friday"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:201
+msgid "Saturday"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:202
+msgid "Sun"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:202
+msgid "Mon"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:202
+msgid "Tue"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:202
+msgid "Wed"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:202
+msgid "Thu"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:202
+msgid "Fri"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:202
+msgid "Sat"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:205
+msgid "S"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:205
+msgid "M"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:205
+msgid "T"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:205
+msgid "W"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:205
+msgid "F"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:206
+msgid "Today"
+msgstr ""
+
+#: saleor/static/js/dashboard.js:207 saleor/static/js/dashboard.js:208
+msgid "Clear"
 msgstr ""

@@ -4,7 +4,7 @@
 {% load staticfiles %}
 
 {% block title %}
-  {% trans "Delete" context "Product delete page title" %} {{ product }} - {{ block.super }}
+  {% trans "Delete" context "Dashboard delete action" %} {{ product }} - {{ block.super }}
 {% endblock %}
 
 {% block body_class %}body-store body-products{% endblock %}
@@ -18,7 +18,7 @@
   <ul class="breadcrumbs breadcrumbs--with-menu">
     <li>
       <a href="{% url "dashboard:product-list" %}" class="breadcrumbs--ellipsed-item">
-        {% trans "Products" context "Product delete breadcrumbs" %}
+        {% trans "Products" context "Dashboard products list" %}
       </a>
     </li>
     <li>
@@ -56,7 +56,7 @@
           </div>
           <div class="card-action">
             <button type="submit" class="card-link">
-              {% trans "Delete" context "Product delete primary action" %}
+              {% trans "Delete" context "Dashboard delete action" %}
             </button>
           </div>
         </div>

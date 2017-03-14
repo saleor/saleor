@@ -11,9 +11,9 @@
 {% block breadcrumb %}
   <ul class="breadcrumbs list-unstyled">
     <li><a href="/">
-        {% trans "Home" context "User profile breadcrumb" %}
+        {% trans "Home" context "Main navigation item" %}
     </a></li>
-    <li>{% trans "Your account" context "User profile breadcrumb" %} (<b>{{ user }}</b>)</li>
+    <li>{% trans "Your account" context "Main navigation item" %} (<b>{{ user }}</b>)</li>
   </ul>
 {% endblock breadcrumb %}
 
@@ -127,7 +127,6 @@
                   {% trans "You will see new addresses here after first successful checkout." context "No addresses text" %}
               </h3>
             {% endif %}
-
         </div>
       </div>
     </div>

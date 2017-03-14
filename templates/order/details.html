@@ -13,10 +13,10 @@
     {% if order.user == user %}
       <ul class="breadcrumbs list-unstyled">
         <li><a href="/">
-            {% trans "Home" context "Order details breadcrumb" %}
+            {% trans "Home" context "Main navigation item" %}
         </a></li>
         <li><a href="{% url "profile:details" %}">
-            {% trans "Your account" context "Order details breadcrumb" %}
+            {% trans "Your account" context "Main navigation item" %}
         </a></li>
         <li><a href="{{ order.get_absolute_url }}">
             {% blocktrans trimmed context "Order details breadcrumb" %}

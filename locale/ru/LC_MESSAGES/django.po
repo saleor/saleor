@@ -2,21 +2,23 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-# 
+#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-02-18 12:15+0100\n"
+"POT-Creation-Date: 2017-03-13 14:56+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Weronika Terpilowska <weronika@mirumee.com>, 2017\n"
-"Language-Team: Russian (Russia) (https://www.transifex.com/mirumee/teams/34782/ru_RU/)\n"
+"Language-Team: Russian (https://www.transifex.com/mirumee/teams/34782/ru/)\n"
+"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: ru_RU\n"
-"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n"
+"%100>=11 && n%100<=14)? 2 : 3);\n"
 
 #: saleor/cart/__init__.py:20
 msgctxt "cart status"
@@ -83,72 +85,72 @@ msgctxt "Country form field label"
 msgid "country"
 msgstr "страна"
 
-#: saleor/cart/models.py:67
+#: saleor/cart/models.py:61
 msgctxt "Cart field"
 msgid "order status"
 msgstr "статус заказа"
 
-#: saleor/cart/models.py:70
+#: saleor/cart/models.py:64
 msgctxt "Cart field"
 msgid "created"
 msgstr "создан"
 
-#: saleor/cart/models.py:72
+#: saleor/cart/models.py:66
 msgctxt "Cart field"
 msgid "last status change"
 msgstr "последнее изменение статуса"
 
-#: saleor/cart/models.py:75
+#: saleor/cart/models.py:69
 msgctxt "Cart field"
 msgid "user"
 msgstr "пользователь"
 
-#: saleor/cart/models.py:76
+#: saleor/cart/models.py:71
 msgctxt "Cart field"
 msgid "email"
 msgstr "email"
 
-#: saleor/cart/models.py:78 saleor/cart/models.py:82
+#: saleor/cart/models.py:73 saleor/cart/models.py:78
 msgctxt "Cart field"
 msgid "token"
 msgstr "токен"
 
-#: saleor/cart/models.py:84
+#: saleor/cart/models.py:80
 msgctxt "Cart field"
 msgid "checkout data"
 msgstr "данные об оформлении заказа"
 
-#: saleor/cart/models.py:87
+#: saleor/cart/models.py:84
 msgctxt "Cart field"
 msgid "total"
 msgstr "всего"
 
-#: saleor/cart/models.py:90
+#: saleor/cart/models.py:88
 msgctxt "Cart field"
 msgid "quantity"
 msgstr "количество"
 
-#: saleor/cart/models.py:96
+#: saleor/cart/models.py:94
 msgctxt "Cart model"
 msgid "Cart"
 msgstr "Корзина"
 
-#: saleor/cart/models.py:97
+#: saleor/cart/models.py:95
 msgctxt "Cart model"
 msgid "Carts"
 msgstr "Корзины"
 
-#: saleor/cart/models.py:209
+#: saleor/cart/models.py:208
 msgctxt "Cart line field"
 msgid "cart"
 msgstr "корзина"
 
-#: saleor/cart/models.py:212
+#: saleor/cart/models.py:211
 msgctxt "Cart line field"
 msgid "product"
 msgstr "продукт"
 
-#: saleor/cart/models.py:214
+#: saleor/cart/models.py:213
 msgctxt "Cart line field"
 msgid "quantity"
 msgstr "количество"
@@ -468,12 +470,12 @@ msgctxt "order status"
 msgid "Fully paid"
 msgstr "Оплачен"
 
-#: saleor/order/forms.py:11
+#: saleor/order/forms.py:12
 msgctxt "Payment methods form label"
 msgid "Method"
 msgstr "Способ"
 
-#: saleor/order/forms.py:33
+#: saleor/order/forms.py:35
 msgctxt "Payment delete form error"
 msgid "Payment does not exist"
 msgstr "Платеж отсутствует"
@@ -498,543 +500,538 @@ msgctxt "Order field"
 msgid "user"
 msgstr "пользователь"
 
-#: saleor/order/models.py:63
+#: saleor/order/models.py:64
 msgctxt "Order field"
 msgid "tracking client id"
 msgstr "код клиента"
 
-#: saleor/order/models.py:67
+#: saleor/order/models.py:68
 msgctxt "Order field"
 msgid "billing address"
 msgstr "адрес плательщика"
 
-#: saleor/order/models.py:70
+#: saleor/order/models.py:71
 msgctxt "Order field"
 msgid "shipping address"
 msgstr "адрес доставки"
 
-#: saleor/order/models.py:72
+#: saleor/order/models.py:73
 msgctxt "Order field"
 msgid "user email"
 msgstr "email пользователя"
 
-#: saleor/order/models.py:75
+#: saleor/order/models.py:76
 msgctxt "Order field"
 msgid "token"
 msgstr "токен"
 
-#: saleor/order/models.py:77
+#: saleor/order/models.py:78
 msgctxt "Order field"
 msgid "total net"
 msgstr "Общая нетто"
 
-#: saleor/order/models.py:81
+#: saleor/order/models.py:82
 msgctxt "Order field"
 msgid "total tax"
 msgstr "Налог"
 
-#: saleor/order/models.py:86
+#: saleor/order/models.py:87
 msgctxt "Order field"
 msgid "voucher"
 msgstr "купон"
 
-#: saleor/order/models.py:88
+#: saleor/order/models.py:89
 msgctxt "Order field"
 msgid "discount amount"
 msgstr "размер скидки"
 
-#: saleor/order/models.py:92
+#: saleor/order/models.py:93
 msgctxt "Order field"
 msgid "discount name"
 msgstr "название скидки"
 
-#: saleor/order/models.py:105
+#: saleor/order/models.py:106
 msgctxt "Order model"
 msgid "Order"
 msgstr "Заказ"
 
-#: saleor/order/models.py:106
+#: saleor/order/models.py:107
 msgctxt "Order model"
 msgid "Orders"
 msgstr "Заказы"
 
-#: saleor/order/models.py:230
+#: saleor/order/models.py:231
 msgctxt "Delivery group field"
 msgid "delivery status"
 msgstr "статус доставки"
 
-#: saleor/order/models.py:234
+#: saleor/order/models.py:235
 msgctxt "Delivery group field"
 msgid "shipping price"
 msgstr "стоимость доставки"
 
-#: saleor/order/models.py:238
+#: saleor/order/models.py:239
 msgctxt "Delivery group field"
 msgid "shipping method name"
 msgstr "название способа доставки"
 
-#: saleor/order/models.py:241
+#: saleor/order/models.py:242
 msgctxt "Delivery group field"
 msgid "tracking number"
 msgstr "номер отслеживания"
 
-#: saleor/order/models.py:244
+#: saleor/order/models.py:245
 msgctxt "Delivery group field"
 msgid "last updated"
 msgstr "последнее обновление"
 
-#: saleor/order/models.py:248
+#: saleor/order/models.py:249
 msgctxt "Delivery group model"
 msgid "Delivery Group"
 msgstr "Группа доставки"
 
-#: saleor/order/models.py:249
+#: saleor/order/models.py:250
 msgctxt "Delivery group model"
 msgid "Delivery Groups"
 msgstr "Группы доставки"
 
-#: saleor/order/models.py:253
+#: saleor/order/models.py:254
 #, python-format
 msgctxt "Delivery group str"
 msgid "Shipment #%s"
 msgstr "Отправление #%s"
 
-#: saleor/order/models.py:325
+#: saleor/order/models.py:326
 msgctxt "Ordered item field"
 msgid "delivery group"
 msgstr "группа доставки"
 
-#: saleor/order/models.py:329
+#: saleor/order/models.py:330
 msgctxt "Ordered item field"
 msgid "product"
 msgstr "продукт"
 
-#: saleor/order/models.py:331
+#: saleor/order/models.py:332
 msgctxt "Ordered item field"
 msgid "product name"
 msgstr "название продукта"
 
-#: saleor/order/models.py:333
+#: saleor/order/models.py:334
 msgctxt "Ordered item field"
 msgid "sku"
 msgstr "артикул"
 
-#: saleor/order/models.py:335
+#: saleor/order/models.py:336
 msgctxt "OrderedItem field"
 msgid "stock location"
 msgstr "местоположение склада"
 
-#: saleor/order/models.py:339
+#: saleor/order/models.py:340
 msgctxt "Ordered item field"
 msgid "stock"
 msgstr "склад"
 
-#: saleor/order/models.py:341
+#: saleor/order/models.py:342
 msgctxt "Ordered item field"
 msgid "quantity"
 msgstr "количество"
 
-#: saleor/order/models.py:344
+#: saleor/order/models.py:345
 msgctxt "Ordered item field"
 msgid "unit price (net)"
 msgstr "цена за единицу (нетто)"
 
-#: saleor/order/models.py:347
+#: saleor/order/models.py:348
 msgctxt "Ordered item field"
 msgid "unit price (gross)"
 msgstr "цена за единицу (брутто)"
 
-#: saleor/order/models.py:353
+#: saleor/order/models.py:354
 msgctxt "Ordered item model"
 msgid "Ordered item"
 msgstr "Заказанный товар"
 
-#: saleor/order/models.py:354
+#: saleor/order/models.py:355
 msgctxt "Ordered item model"
 msgid "Ordered items"
 msgstr "Заказанные товары"
 
-#: saleor/order/models.py:388
+#: saleor/order/models.py:389
 msgctxt "Payment field"
 msgid "order"
 msgstr "заказ"
 
-#: saleor/order/models.py:394
+#: saleor/order/models.py:395
 msgctxt "Payment model"
 msgid "Payment"
 msgstr "Платеж"
 
-#: saleor/order/models.py:395
+#: saleor/order/models.py:396
 msgctxt "Payment model"
 msgid "Payments"
 msgstr "Платежи"
 
-#: saleor/order/models.py:443
+#: saleor/order/models.py:444
 msgctxt "Order history entry field"
 msgid "last history change"
 msgstr "последнее изменение"
 
-#: saleor/order/models.py:447
+#: saleor/order/models.py:448
 msgctxt "Order history entry field"
 msgid "order"
 msgstr "заказ"
 
-#: saleor/order/models.py:449
+#: saleor/order/models.py:450
 msgctxt "Order history entry field"
 msgid "order status"
 msgstr "статус заказа"
 
-#: saleor/order/models.py:452
+#: saleor/order/models.py:453
 msgctxt "Order history entry field"
 msgid "comment"
 msgstr "комментарии"
 
-#: saleor/order/models.py:456
+#: saleor/order/models.py:457
 msgctxt "Order history entry field"
 msgid "user"
 msgstr "пользователь"
 
-#: saleor/order/models.py:461
+#: saleor/order/models.py:462
 msgctxt "Order history entry model"
 msgid "Order history entry"
 msgstr "Запись истории заказа"
 
-#: saleor/order/models.py:463
+#: saleor/order/models.py:464
 msgctxt "Order history entry model"
 msgid "Order history entries"
 msgstr "Записи истории заказа"
 
-#: saleor/order/models.py:468
+#: saleor/order/models.py:469
 #, python-format
 msgctxt "Order history entry str"
 msgid "OrderHistoryEntry for Order #%d"
 msgstr "OrderHistoryEntry для Заказа #%d"
 
-#: saleor/order/models.py:479
+#: saleor/order/models.py:478
+msgctxt "Order note model"
+msgid "content"
+msgstr ""
+
+#: saleor/order/models.py:482
 msgctxt "Order note model"
 msgid "Order note"
 msgstr "Примечание к заказу"
 
-#: saleor/order/models.py:480
+#: saleor/order/models.py:483
 msgctxt "Order note model"
 msgid "Order notes"
 msgstr "Примечания к заказу"
 
-#: saleor/order/models.py:485
+#: saleor/order/models.py:488
 #, python-format
 msgctxt "Order note str"
 msgid "OrderNote for Order #%d"
 msgstr "Примечание к Заказу #%d"
 
-#: saleor/order/views.py:83
+#: saleor/order/views.py:89
 #, python-format
 msgctxt "Payment description"
 msgid "Order %(order_number)s"
 msgstr "Заказ %(order_number)s"
 
-#: saleor/order/views.py:104
+#: saleor/order/views.py:111
 msgctxt "Payment gateway error"
 msgid ""
 "Oops, it looks like we were unable to contact the selected payment service"
 msgstr "Ой, похоже мы не можем связаться с выбранным для оплаты сервисом"
 
-#: saleor/order/views.py:157
+#: saleor/order/views.py:164
 msgctxt "storefront message"
 msgid "You've successfully connected order with your account"
 msgstr "Вы успешно добавили заказ в ваш аккаунт"
 
-#: saleor/product/forms.py:21
+#: saleor/product/forms.py:20
 #, python-format
 msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr "%(variant_label)s -  %(price)s"
 
-#: saleor/product/forms.py:47
-msgctxt "Product admin error"
-msgid "You have to create at least one variant"
-msgstr "Вы должны создать хотя бы один вариант"
-
-#: saleor/product/forms.py:60
-msgctxt "Product admin error"
-msgid "You have to add at least one image"
-msgstr "Вы должны добавить хотя бы одно изображение"
-
-#: saleor/product/models/base.py:39
+#: saleor/product/models.py:32
 msgctxt "Category field"
 msgid "name"
 msgstr "имя"
 
-#: saleor/product/models/base.py:41
+#: saleor/product/models.py:34
 msgctxt "Category field"
 msgid "slug"
 msgstr "слаг"
 
-#: saleor/product/models/base.py:43
+#: saleor/product/models.py:36
 msgctxt "Category field"
 msgid "description"
 msgstr "Описание"
 
-#: saleor/product/models/base.py:46
+#: saleor/product/models.py:39
 msgctxt "Category field"
 msgid "parent"
 msgstr "родитель"
 
-#: saleor/product/models/base.py:48
+#: saleor/product/models.py:41
 msgctxt "Category field"
 msgid "hidden"
 msgstr "скрытый"
 
-#: saleor/product/models/base.py:54
+#: saleor/product/models.py:47
 msgctxt "Category model"
 msgid "category"
 msgstr "категория"
 
-#: saleor/product/models/base.py:55
+#: saleor/product/models.py:48
 msgctxt "Category model"
 msgid "categories"
 msgstr "категории"
 
-#: saleor/product/models/base.py:81
+#: saleor/product/models.py:74
 msgctxt "Product class field"
 msgid "name"
 msgstr "имя"
 
-#: saleor/product/models/base.py:83
+#: saleor/product/models.py:76
 msgctxt "Product class field"
 msgid "has variants"
 msgstr "есть варианты"
 
-#: saleor/product/models/base.py:87
+#: saleor/product/models.py:80
 msgctxt "Product class field"
 msgid "product attributes"
 msgstr "атрибуты продукта"
 
-#: saleor/product/models/base.py:90
+#: saleor/product/models.py:83
 msgctxt "Product class field"
 msgid "variant attributes"
 msgstr "варианты атрибутов"
 
-#: saleor/product/models/base.py:92
+#: saleor/product/models.py:85
 msgctxt "Product class field"
 msgid "is shipping required"
 msgstr "требуется доставка"
 
-#: saleor/product/models/base.py:97
+#: saleor/product/models.py:90
 msgctxt "Product class model"
 msgid "product class"
 msgstr "класс продукта"
 
-#: saleor/product/models/base.py:99
+#: saleor/product/models.py:92
 msgctxt "Product class model"
 msgid "product classes"
 msgstr "классы продукта"
 
-#: saleor/product/models/base.py:127
+#: saleor/product/models.py:116
 msgctxt "Product field"
 msgid "product class"
 msgstr "класс продукта"
 
-#: saleor/product/models/base.py:129
+#: saleor/product/models.py:118
 msgctxt "Product field"
 msgid "name"
 msgstr "имя"
 
-#: saleor/product/models/base.py:131
+#: saleor/product/models.py:120
 msgctxt "Product field"
 msgid "description"
 msgstr "Описание"
 
-#: saleor/product/models/base.py:133
+#: saleor/product/models.py:122
 msgctxt "Product field"
 msgid "categories"
 msgstr "категории"
 
-#: saleor/product/models/base.py:136
+#: saleor/product/models.py:125
 msgctxt "Product field"
 msgid "price"
 msgstr "цена"
 
-#: saleor/product/models/base.py:139
+#: saleor/product/models.py:128
 msgctxt "Product field"
 msgid "available on"
 msgstr "доступно на"
 
-#: saleor/product/models/base.py:140
+#: saleor/product/models.py:129
 msgctxt "Product field"
 msgid "attributes"
 msgstr "атрибуты"
 
-#: saleor/product/models/base.py:143
+#: saleor/product/models.py:132
 msgctxt "Product field"
 msgid "updated at"
 msgstr "обновлено"
 
-#: saleor/product/models/base.py:145
+#: saleor/product/models.py:134
 msgctxt "Product field"
 msgid "is featured"
 msgstr "на главной"
 
-#: saleor/product/models/base.py:156
+#: saleor/product/models.py:145
 msgctxt "Product model"
 msgid "product"
 msgstr "продукт"
 
-#: saleor/product/models/base.py:157
+#: saleor/product/models.py:146
 msgctxt "Product model"
 msgid "products"
 msgstr "продукты"
 
-#: saleor/product/models/base.py:218
+#: saleor/product/models.py:207
 msgctxt "Product variant field"
 msgid "SKU"
 msgstr "Артикул"
 
-#: saleor/product/models/base.py:220
+#: saleor/product/models.py:209
 msgctxt "Product variant field"
 msgid "variant name"
 msgstr "имя варианта"
 
-#: saleor/product/models/base.py:223
+#: saleor/product/models.py:212
 msgctxt "Product variant field"
 msgid "price override"
 msgstr "приоритетная цена"
 
-#: saleor/product/models/base.py:228
+#: saleor/product/models.py:217
 msgctxt "Product variant field"
 msgid "attributes"
 msgstr "атрибуты"
 
-#: saleor/product/models/base.py:231
+#: saleor/product/models.py:220
 msgctxt "Product variant field"
 msgid "images"
 msgstr "изображения"
 
-#: saleor/product/models/base.py:235
+#: saleor/product/models.py:224
 msgctxt "Product variant model"
 msgid "product variant"
 msgstr "вариант продукта"
 
-#: saleor/product/models/base.py:236
+#: saleor/product/models.py:225
 msgctxt "Product variant model"
 msgid "product variants"
 msgstr "варианты продуктов"
 
-#: saleor/product/models/base.py:320
+#: saleor/product/models.py:309
 msgctxt "Stock location field"
 msgid "location"
 msgstr "местоположение"
 
-#: saleor/product/models/base.py:346
+#: saleor/product/models.py:335
 msgctxt "Stock item field"
 msgid "variant"
 msgstr "вариант"
 
-#: saleor/product/models/base.py:349
+#: saleor/product/models.py:338
 msgctxt "Stock item field"
 msgid "quantity"
 msgstr "количество"
 
-#: saleor/product/models/base.py:352
+#: saleor/product/models.py:341
 msgctxt "Stock item field"
 msgid "allocated quantity"
 msgstr "зарезервированное количество"
 
-#: saleor/product/models/base.py:355
+#: saleor/product/models.py:344
 msgctxt "Stock item field"
 msgid "cost price"
 msgstr "Наценка"
 
-#: saleor/product/models/base.py:376
+#: saleor/product/models.py:365
 msgctxt "Product attribute field"
 msgid "internal name"
 msgstr "внутренней название"
 
-#: saleor/product/models/base.py:379
+#: saleor/product/models.py:368
 msgctxt "Product attribute field"
 msgid "display name"
 msgstr "отображаемое название"
 
-#: saleor/product/models/base.py:384
+#: saleor/product/models.py:373
 msgctxt "Product attribute model"
 msgid "product attribute"
 msgstr "атрибуты продукта"
 
-#: saleor/product/models/base.py:385
+#: saleor/product/models.py:374
 msgctxt "Product attribute model"
 msgid "product attributes"
 msgstr "атрибуты продукта"
 
-#: saleor/product/models/base.py:400
+#: saleor/product/models.py:389
 msgctxt "Attribute choice value field"
 msgid "display name"
 msgstr "отображаемое название"
 
-#: saleor/product/models/base.py:404
+#: saleor/product/models.py:393
 msgctxt "Attribute choice value field"
 msgid "color"
 msgstr "цвет"
 
-#: saleor/product/models/base.py:413
+#: saleor/product/models.py:403
 msgctxt "Attribute choice value model"
 msgid "attribute choices value"
 msgstr "Значения атрибута"
 
-#: saleor/product/models/base.py:416
+#: saleor/product/models.py:406
 msgctxt "Attribute choice value model"
 msgid "attribute choices values"
 msgstr "Значения атрибута"
 
-#: saleor/product/models/images.py:22
+#: saleor/product/models.py:423
 msgctxt "Product image field"
 msgid "product"
 msgstr "продукт"
 
-#: saleor/product/models/images.py:25
+#: saleor/product/models.py:426
 msgctxt "Product image field"
 msgid "image"
 msgstr "изображение"
 
-#: saleor/product/models/images.py:26
+#: saleor/product/models.py:427
 msgctxt "Product image field"
 msgid "ppoi"
 msgstr "ppoi"
 
-#: saleor/product/models/images.py:28
+#: saleor/product/models.py:429
 msgctxt "Product image field"
 msgid "short description"
 msgstr "краткое описание"
 
-#: saleor/product/models/images.py:31
+#: saleor/product/models.py:432
 msgctxt "Product image field"
 msgid "order"
 msgstr "заказ"
 
-#: saleor/product/models/images.py:39
+#: saleor/product/models.py:440
 msgctxt "Product image model"
 msgid "product image"
 msgstr "изображения продукта"
 
-#: saleor/product/models/images.py:40
+#: saleor/product/models.py:441
 msgctxt "Product image model"
 msgid "product images"
 msgstr "изображения продуктов"
 
-#: saleor/product/models/images.py:62
+#: saleor/product/models.py:463
 msgctxt "Variant image field"
 msgid "variant"
 msgstr "вариант"
 
-#: saleor/product/models/images.py:65
+#: saleor/product/models.py:466
 msgctxt "Variant image field"
 msgid "image"
 msgstr "изображение"
 
-#: saleor/product/models/images.py:69
+#: saleor/product/models.py:470
 msgctxt "Variant image model"
 msgid "variant image"
 msgstr "изображения варианта"
 
-#: saleor/product/models/images.py:71
+#: saleor/product/models.py:472
 msgctxt "Variant image model"
 msgid "variant images"
 msgstr "изображения вариантов"
@@ -1376,22 +1373,26 @@ msgctxt "Email confirmation message"
 msgid ""
 "Hi!\n"
 "\n"
-"You have requested login access to saleor project. To continue visit the link below.\n"
+"You have requested login access to saleor project. To continue visit the "
+"link below.\n"
 "\n"
 "%(activate_url)s\n"
 "\n"
-"If you didn't try to login to saleor please ignore this message. We apologise for inconvenience.\n"
+"If you didn't try to login to saleor please ignore this message. We "
+"apologise for inconvenience.\n"
 "\n"
 "Sincerely,\n"
 "Saleor Team"
 msgstr ""
 "Здравствуйте!\n"
 "\n"
-"Вы запросили доступ к проекту Saleor. Для продолжения перейдите по ссылке ниже.\n"
+"Вы запросили доступ к проекту Saleor. Для продолжения перейдите по ссылке "
+"ниже.\n"
 "\n"
 "%(activate_url)s\n"
 "\n"
-"Если вы не пытались зайти в Saleor пожалуйста проигнорируйте это сообщение. Мы приносим извинения за неудобства.\n"
+"Если вы не пытались зайти в Saleor пожалуйста проигнорируйте это сообщение. "
+"Мы приносим извинения за неудобства.\n"
 "\n"
 "С уважением,\n"
 "Команда Saleor"
@@ -1437,13 +1438,18 @@ msgctxt "Login form secondary link"
 msgid "Forgot password?"
 msgstr "Забыли пароль?"
 
-#: templates/account/password_change.html:7
-msgctxt "Password change breadcrumb"
+#: templates/account/password_change.html:7 templates/cart/index.html:11
+#: templates/order/details.html:16 templates/order/payment.html:19
+#: templates/product/details.html:16 templates/userprofile/address-edit.html:15
+#: templates/userprofile/details.html:14
+msgctxt "Main navigation item"
 msgid "Home"
 msgstr "Домой"
 
-#: templates/account/password_change.html:8
-msgctxt "Password change breadcrumb"
+#: templates/account/password_change.html:8 templates/base.html:48
+#: templates/base.html:190 templates/order/details.html:19
+#: templates/order/payment.html:22 templates/userprofile/details.html:16
+msgctxt "Main navigation item"
 msgid "Your account"
 msgstr "Ваш аккаунт"
 
@@ -1478,8 +1484,8 @@ msgid ""
 "Please let us know the email you have used to register or purchase at our "
 "store."
 msgstr ""
-"Пожалуйста сообщите нам ваш адрес электронной почты, который вы использовали"
-" для регистрации или при совершении покупки в нашем магазине."
+"Пожалуйста сообщите нам ваш адрес электронной почты, который вы использовали "
+"для регистрации или при совершении покупки в нашем магазине."
 
 #: templates/account/password_reset.html:27
 msgctxt "Password reset primary action"
@@ -1502,8 +1508,8 @@ msgid ""
 "We have sent you an e-mail. Please contact us if you do not receive it "
 "within a few minutes."
 msgstr ""
-"Мы послали вам e-mail. Пожалуйста свяжитесь с нами если вы не получите его в"
-" течении нескольких минут."
+"Мы послали вам e-mail. Пожалуйста свяжитесь с нами если вы не получите его в "
+"течении нескольких минут."
 
 #: templates/account/password_reset_from_key.html:6
 msgctxt "Password reset from key page title"
@@ -1523,7 +1529,8 @@ msgid ""
 "reset</a>."
 msgstr ""
 "Ссылка сброса пароля была неверная, возможно\n"
-"потому, что она была уже ранее использована.<br> Пожалуйста запросите <a href=\"%(passwd_reset_url)s\">новый сброс пароля</a>."
+"потому, что она была уже ранее использована.<br> Пожалуйста запросите <a "
+"href=\"%(passwd_reset_url)s\">новый сброс пароля</a>."
 
 #: templates/account/password_reset_from_key.html:23
 msgctxt "Password reset from key form title"
@@ -1557,7 +1564,8 @@ msgstr "Ваш пароль изменен"
 #: templates/account/password_reset_from_key_done.html:10
 #, python-format
 msgctxt "Password reset from key done text"
-msgid "You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
+msgid ""
+"You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
 msgstr ""
 "Теперь вы можете <a href=\"%(login_url)s\">войти</a>, используя ваш новый "
 "пароль"
@@ -1602,28 +1610,23 @@ msgctxt "Meta author text"
 msgid "Mirumee Software"
 msgstr "Mirumee Software"
 
-#: templates/base.html:42
-msgctxt "Top navbar link text"
+#: templates/base.html:42 templates/base.html:184
+msgctxt "Main navigation item"
 msgid "Dashboard"
 msgstr "Панель управления"
 
-#: templates/base.html:48
-msgctxt "Top navbar link text"
-msgid "Your account"
-msgstr "Ваш аккаунт"
-
-#: templates/base.html:52
-msgctxt "Top navbar link text"
+#: templates/base.html:52 templates/base.html:195
+msgctxt "Main navigation item"
 msgid "Log out"
 msgstr "Выйти"
 
-#: templates/base.html:57
-msgctxt "Top navbar link text"
+#: templates/base.html:57 templates/base.html:200
+msgctxt "Main navigation item"
 msgid "Register"
 msgstr "Зарегистрироваться"
 
-#: templates/base.html:61
-msgctxt "Top navbar link text"
+#: templates/base.html:61 templates/base.html:205
+msgctxt "Main navigation item"
 msgid "Log in"
 msgstr "Войти"
 
@@ -1636,43 +1639,14 @@ msgstr "меню"
 msgid "Search for product"
 msgstr "Поиск продукта"
 
-#: templates/base.html:102
-msgctxt "Top navbar link"
+#: templates/base.html:102 templates/base.html:177
+msgctxt "Main navigation item"
 msgid "Your Cart"
 msgstr "Ваша корзина"
 
-#: templates/base.html:177
-msgctxt "Top navbar link"
-msgid "Cart"
-msgstr "Корзина"
-
-#: templates/base.html:184
-msgctxt "Top navbar link"
-msgid "Dashboard"
-msgstr "Панель управления"
-
-#: templates/base.html:190
-msgctxt "Top navbar link"
-msgid "Your account"
-msgstr "Ваш аккаунт"
-
-#: templates/base.html:195
-msgctxt "Top navbar link"
-msgid "Log out"
-msgstr "Выйти"
-
-#: templates/base.html:200
-msgctxt "Top navbar link"
-msgid "Register"
-msgstr "Зарегистрироваться"
-
-#: templates/base.html:205
-msgctxt "Top navbar link"
-msgid "Log in"
-msgstr "Войти"
-
-#: templates/cart-dropdown.html:31
-msgctxt "Cart dropdown text"
+#: templates/cart-dropdown.html:31 templates/cart/index.html:73
+#: templates/dashboard/order/detail.html:372
+msgctxt "Order subtotal"
 msgid "Subtotal"
 msgstr "Промежуточный итог"
 
@@ -1691,12 +1665,13 @@ msgctxt "Cart dropdown primary action"
 msgid "Checkout"
 msgstr "Оформить заказ"
 
-#: templates/cart-dropdown.html:51
+#: templates/cart-dropdown.html:51 templates/cart/index.html:125
+msgctxt "Empty cart message"
 msgid "There are no products in your shopping cart."
 msgstr "В вашей корзине отсутствуют товары."
 
-#: templates/cart-dropdown.html:53
-msgctxt "Empty cart dropdown text"
+#: templates/cart-dropdown.html:53 templates/cart/index.html:126
+msgctxt "Empty cart link"
 msgid "Check out our sales"
 msgstr "Проверьте наши скидки"
 
@@ -1704,11 +1679,6 @@ msgstr "Проверьте наши скидки"
 msgctxt "Cart page title"
 msgid "Your cart"
 msgstr "Ваша корзина"
-
-#: templates/cart/index.html:11
-msgctxt "Cart breadcrumb"
-msgid "Home"
-msgstr "Домой"
 
 #: templates/cart/index.html:12
 msgctxt "Cart breadcrumb"
@@ -1735,15 +1705,13 @@ msgctxt "Cart table header"
 msgid "Price"
 msgstr "Цена"
 
-#: templates/cart/index.html:73
-msgctxt "Cart totals"
-msgid "Subtotal"
-msgstr "Промежуточный итог"
-
 #: templates/cart/index.html:74
+#, fuzzy
+#| msgctxt "Cart dropdown text"
+#| msgid "(Delivery calculated at checkout)"
 msgctxt "Cart totals help text"
-msgid "Delivery calculated at checkout"
-msgstr "Стоимость доставки рассчитывается при оформлении"
+msgid "(Delivery calculated at checkout)"
+msgstr "(Доставка рассчитывается при оформлении)"
 
 #: templates/cart/index.html:97
 msgctxt "Cart primary action"
@@ -1755,21 +1723,11 @@ msgctxt "Cart secondary title"
 msgid "Calculate shipping cost"
 msgstr "Рассчитать стоимость доставки"
 
-#: templates/cart/index.html:125
-msgctxt "Empty cart message"
-msgid "There are no products in your shopping cart."
-msgstr "В вашей корзине отсутствуют товары."
-
-#: templates/cart/index.html:126
-msgctxt "Empty cart link"
-msgid "Check out our sales"
-msgstr "Проверьте наши скидки"
-
 #. Translators: Layout may break if character length is different than four.
 #: templates/category/_items.html:27
 msgctxt "Sale (discount) label for item in product list"
 msgid "Sale"
-msgstr "Распродажа"
+msgstr "Sale"
 
 #: templates/checkout/details.html:7
 msgctxt "Checkout page title"
@@ -1783,7 +1741,7 @@ msgstr "Просто и безопасно!"
 
 #: templates/checkout/details.html:17
 msgctxt "Checkout logo alternate text"
-msgid "Testeor - Saleor demo store"
+msgid "Saleor demo store"
 msgstr "Testeor - демо магазин Saleor"
 
 #: templates/checkout/details.html:20
@@ -1886,9 +1844,13 @@ msgid "Enter a new address"
 msgstr "Введите новый адрес"
 
 #: templates/checkout/snippets/voucher-form.html:15
-#: templates/checkout/snippets/voucher-form.html:16
 msgctxt "Checkout voucher form action"
 msgid "Remove"
+msgstr "Удалить"
+
+#: templates/checkout/snippets/voucher-form.html:16
+msgctxt "Checkout voucher form action"
+msgid "(Remove)"
 msgstr "Удалить"
 
 #: templates/checkout/snippets/voucher-form.html:28
@@ -1904,7 +1866,7 @@ msgstr "Адрес плательщика"
 #: templates/checkout/summary.html:11
 msgctxt "Checkout summary primary action"
 msgid "Order &amp Pay"
-msgstr "Заказ &amp Оплата"
+msgstr "Заказ  и Оплата"
 
 #: templates/checkout/summary_without_shipping.html:8
 msgctxt "Checkout summary without shipping title"
@@ -1916,193 +1878,300 @@ msgctxt "Checkout summary without shipping action"
 msgid "Place order"
 msgstr "Сделать заказ"
 
-#: templates/dashboard/base.html:7
+#: templates/dashboard/base.html:10
 msgctxt "Dashboard default page title"
 msgid "Dashboard - Saleor"
 msgstr "Панель управления"
 
-#: templates/dashboard/base.html:29
+#: templates/dashboard/base.html:38
 msgctxt "Dashboard top navigation action"
 msgid "Visit storefront"
 msgstr "Посетить магазин"
 
-#: templates/dashboard/base.html:32
+#: templates/dashboard/base.html:43
 msgctxt "Dashboard top navigation action"
 msgid "Log out"
 msgstr "Выйти"
 
-#: templates/dashboard/base.html:42
-msgctxt "Dashboard side navigation link"
+#: templates/dashboard/base.html:71 templates/dashboard/search/results.html:14
+#: templates/dashboard/search/results.html:25
+msgctxt "Dashboard search"
+msgid "Search"
+msgstr "Поиск"
+
+#: templates/dashboard/base.html:83 templates/dashboard/base.html:186
+msgctxt "Dashboard homepage"
 msgid "Home"
 msgstr "Домой"
 
-#: templates/dashboard/base.html:45
-msgctxt "Dashboard side navigation title"
+#: templates/dashboard/base.html:88
+msgctxt "Dashboard catalogue"
 msgid "Catalogue"
 msgstr "Каталог"
 
-#: templates/dashboard/base.html:48
-msgctxt "Dashboard side navigation link"
+#: templates/dashboard/base.html:93 templates/dashboard/product/list.html:8
+#: templates/dashboard/product/list.html:28
+#: templates/dashboard/product/product_class_form.html:14
+#: templates/dashboard/product/product_confirm_delete.html:21
+#: templates/dashboard/product/product_form.html:14
+#: templates/dashboard/product/product_form.html:30
+#: templates/dashboard/product/product_image_confirm_delete.html:19
+#: templates/dashboard/product/product_variant_confirm_delete.html:19
+#: templates/dashboard/product/stock_confirm_delete.html:19
+#: templates/dashboard/product/stock_form.html:30
+#: templates/dashboard/product/variant_form.html:26
+msgctxt "Dashboard products list"
 msgid "Products"
 msgstr "Продукты"
 
-#: templates/dashboard/base.html:51
-msgctxt "Dashboard side navigation link"
+#: templates/dashboard/base.html:98 templates/dashboard/category/detail.html:12
+#: templates/dashboard/category/detail.html:31
+#: templates/dashboard/category/list.html:57
+#: templates/dashboard/category/list.html:63
+msgctxt "Dashboard categories list"
 msgid "Categories"
 msgstr "Категории"
 
-#: templates/dashboard/base.html:54
-msgctxt "Dashboard side navigation link"
+#: templates/dashboard/base.html:103
+msgctxt "Dashboard stock loactions list"
 msgid "Stock locations"
 msgstr "Расположение складов"
 
-#: templates/dashboard/base.html:59
-msgctxt "Dashboard side navigation title"
+#: templates/dashboard/base.html:110
+#: templates/dashboard/discount/sale_confirm_delete.html:12
+msgctxt "Dashboard discounts list"
 msgid "Discounts"
 msgstr "Скидки"
 
-#: templates/dashboard/base.html:62
-msgctxt "Dashboard side navigation link"
+#: templates/dashboard/base.html:115
+msgctxt "Dashboard sales (discounts) list"
 msgid "Sales"
-msgstr "Распродажи"
+msgstr "Скидки"
 
-#: templates/dashboard/base.html:65
-msgctxt "Dashboard side navigation link"
+#: templates/dashboard/base.html:120
+#: templates/dashboard/discount/voucher_form.html:12
+#: templates/dashboard/discount/voucher_form.html:44
+#: templates/dashboard/discount/voucher_list.html:7
+#: templates/dashboard/discount/voucher_list.html:17
+msgctxt "Dashboard vouchers list"
 msgid "Vouchers"
 msgstr "Купоны"
 
-#: templates/dashboard/base.html:69
-msgctxt "Dashboard side navigation title. `Sales' is noun of to sell"
+#: templates/dashboard/base.html:127
+msgctxt "Dashboard sales. `Sales' is noun of to sell"
 msgid "Sales"
-msgstr "Продажи"
+msgstr "Скидки"
 
-#: templates/dashboard/base.html:72
+#: templates/dashboard/base.html:132
+#: templates/dashboard/order/address_form.html:7
+#: templates/dashboard/order/address_form.html:23
+#: templates/dashboard/order/detail.html:10
+#: templates/dashboard/order/detail.html:42
+#: templates/dashboard/order/list.html:6 templates/dashboard/order/list.html:14
+msgctxt "Dashboard orders list"
 msgid "Orders"
 msgstr "Заказы"
 
-#: templates/dashboard/base.html:75
-msgctxt "Dashboard side navigation link"
+#: templates/dashboard/base.html:137 templates/dashboard/customer/detail.html:7
+#: templates/dashboard/customer/detail.html:23
+#: templates/dashboard/customer/list.html:7
+#: templates/dashboard/customer/list.html:17
+msgctxt "Dashboard customers list"
 msgid "Customers"
 msgstr "Покупатели"
 
-#: templates/dashboard/base.html:78
-msgctxt "Dashboard side navigation link"
-msgid "Payments"
-msgstr "Платежи"
-
-#: templates/dashboard/base.html:83
-msgctxt "Dashboard side navigation title"
+#: templates/dashboard/base.html:144
+msgctxt "Dashboard configuration"
 msgid "Configuration"
 msgstr "Конфигурация"
 
-#: templates/dashboard/base.html:86
-msgctxt "Dashboard side navigation link"
+#: templates/dashboard/base.html:149
+#: templates/dashboard/product/class_list.html:8
+#: templates/dashboard/product/class_list.html:26
+#: templates/dashboard/product/product_class_form.html:30
+msgctxt "Dashboard product types list"
 msgid "Product types"
 msgstr "Типы продуктов"
 
-#: templates/dashboard/base.html:88
-msgctxt "Dashboard side navigation link"
+#: templates/dashboard/base.html:154
+#: templates/dashboard/product/attributes/confirm_delete.html:12
+#: templates/dashboard/product/attributes/form.html:12
+#: templates/dashboard/product/attributes/form.html:44
+#: templates/dashboard/product/attributes/list.html:6
+#: templates/dashboard/product/attributes/list.html:24
+msgctxt "Dashboard attributes list"
 msgid "Attributes"
 msgstr "Атрибуты"
 
-#: templates/dashboard/base.html:90
-msgctxt "Dashboard side navigation link"
+#: templates/dashboard/base.html:159
+#: templates/dashboard/shipping/method_list.html:7
+#: templates/dashboard/shipping/method_list.html:17
+msgctxt "Dashboard shipping methods list"
 msgid "Shipping methods"
 msgstr "Способ доставки"
 
-#: templates/dashboard/base.html:92
-msgctxt "Dashboard side navigation link"
+#: templates/dashboard/base.html:164 templates/dashboard/sites/detail.html:11
+#: templates/dashboard/sites/detail.html:21
+msgctxt "Dashboard site settings"
 msgid "Site settings"
 msgstr "Настройки сайта"
 
-#: templates/dashboard/base.html:108
-msgctxt "Dashboard search placeholder"
-msgid "Order, product, customer"
-msgstr "Заказ, продукт, покупатель"
+#: templates/dashboard/base.html:172
+msgctxt "Dashboard software version"
+msgid "Release:"
+msgstr "Выпустить"
 
-#: templates/dashboard/base.html:127
-msgctxt "Dashboard homepage breadcrumbs"
-msgid "Home"
-msgstr "Домой"
-
-#: templates/dashboard/category/category_confirm_delete.html:5
+#: templates/dashboard/category/category_confirm_delete.html:6
 msgctxt "Delete category page title"
 msgid "Delete category"
 msgstr "Удалить категорию"
 
-#: templates/dashboard/category/category_confirm_delete.html:16
+#: templates/dashboard/category/category_confirm_delete.html:17
 #, python-format
 msgctxt "Delete category title"
 msgid "Are you sure you want to delete the category %(category)s?"
 msgstr "Вы действительно хотите удалить категорию %(category)s?"
 
 #: templates/dashboard/category/category_confirm_delete.html:26
-#: templates/dashboard/category/modal_delete.html:20
+#: templates/dashboard/category/modal_delete.html:19
 msgctxt "Delete category form text about descendant categories"
 msgid "The following child categories will be deleted:"
 msgstr "Следующие подкатегории будут удалены:"
 
 #: templates/dashboard/category/category_confirm_delete.html:41
-#: templates/dashboard/category/modal_delete.html:37
+#: templates/dashboard/category/modal_delete.html:36
 #, python-format
 msgctxt "Delete category form text about products"
 msgid "There is one product in this category that will be deleted."
 msgid_plural ""
 "There are %(counter)s products in this category that will be deleted."
 msgstr[0] "Есть продукт в этой категории, который будет удален."
-msgstr[1] ""
-"Есть %(counter)s продуктов в этой категории, которые будут удалены."
-msgstr[2] ""
-"Есть %(counter)s продуктов в этой категории, которые будут удалены."
-msgstr[3] ""
-"Есть %(counter)s продуктов в этой категории, которые будут удалены."
+msgstr[1] "Есть %(counter)s продуктов в этой категории, которые будут удалены."
+msgstr[2] "Есть %(counter)s продуктов в этой категории, которые будут удалены."
+msgstr[3] "Есть %(counter)s продуктов в этой категории, которые будут удалены."
 
 #: templates/dashboard/category/category_confirm_delete.html:53
-#: templates/dashboard/category/modal_delete.html:47
-msgctxt "Delete category form primary action"
+#: templates/dashboard/category/modal_delete.html:45
+#: templates/dashboard/discount/sale_confirm_delete.html:44
+#: templates/dashboard/discount/sale_modal_confirm_delete.html:17
+#: templates/dashboard/discount/voucher_modal_confirm_delete.html:17
+#: templates/dashboard/product/attributes/confirm_delete.html:45
+#: templates/dashboard/product/attributes/modal_confirm_delete.html:17
+#: templates/dashboard/product/modal_product_class_confirm_delete.html:48
+#: templates/dashboard/product/modal_product_confirm_delete.html:32
+#: templates/dashboard/product/modal_product_image_confirm_delete.html:25
+#: templates/dashboard/product/product_confirm_delete.html:7
+#: templates/dashboard/product/product_confirm_delete.html:59
+#: templates/dashboard/product/product_form.html:193
+#: templates/dashboard/product/product_form.html:209
+#: templates/dashboard/product/product_form.html:291
+#: templates/dashboard/product/product_form.html:306
+#: templates/dashboard/product/product_form.html:408
+#: templates/dashboard/product/product_form.html:456
+#: templates/dashboard/product/product_image_confirm_delete.html:60
+#: templates/dashboard/product/product_variant_confirm_delete.html:67
+#: templates/dashboard/product/stock_confirm_delete.html:56
+#: templates/dashboard/product/stock_locations/modal_confirm_delete.html:26
+#: templates/dashboard/shipping/method_delete.html:56
+#: templates/dashboard/shipping/method_form.html:97
+msgctxt "Dashboard delete action"
 msgid "Delete"
 msgstr "Удалить"
 
 #: templates/dashboard/category/category_confirm_delete.html:57
-#: templates/dashboard/category/modal_delete.html:50
-msgctxt "Delete category form secondary action"
+#: templates/dashboard/category/detail.html:79
+#: templates/dashboard/category/detail.html:83
+#: templates/dashboard/category/modal_delete.html:48
+#: templates/dashboard/category/modal_edit.html:28
+#: templates/dashboard/discount/sale_confirm_delete.html:40
+#: templates/dashboard/discount/sale_form.html:98
+#: templates/dashboard/discount/sale_form.html:105
+#: templates/dashboard/discount/sale_modal_confirm_delete.html:20
+#: templates/dashboard/discount/voucher_form.html:127
+#: templates/dashboard/discount/voucher_form.html:134
+#: templates/dashboard/discount/voucher_modal_confirm_delete.html:20
+#: templates/dashboard/order/address_form.html:61
+#: templates/dashboard/order/modal_add_note.html:19
+#: templates/dashboard/order/modal_cancel_line.html:63
+#: templates/dashboard/order/modal_capture.html:32
+#: templates/dashboard/order/modal_change_quantity.html:19
+#: templates/dashboard/order/modal_refund.html:32
+#: templates/dashboard/order/modal_release.html:19
+#: templates/dashboard/order/modal_ship_delivery_group.html:23
+#: templates/dashboard/order/modal_split_order_line.html:19
+#: templates/dashboard/product/attributes/confirm_delete.html:41
+#: templates/dashboard/product/attributes/form.html:115
+#: templates/dashboard/product/attributes/form.html:122
+#: templates/dashboard/product/attributes/modal_confirm_delete.html:20
+#: templates/dashboard/product/modal_product_class_confirm_delete.html:26
+#: templates/dashboard/product/modal_product_class_confirm_delete.html:51
+#: templates/dashboard/product/modal_product_confirm_delete.html:35
+#: templates/dashboard/product/modal_product_image_confirm_delete.html:28
+#: templates/dashboard/product/product_class_form.html:98
+#: templates/dashboard/product/product_class_form.html:105
+#: templates/dashboard/product/product_form.html:163
+#: templates/dashboard/product/product_form.html:170
+#: templates/dashboard/product/product_form.html:212
+#: templates/dashboard/product/product_form.html:309
+#: templates/dashboard/product/product_image_confirm_delete.html:56
+#: templates/dashboard/product/product_image_form.html:92
+#: templates/dashboard/product/product_image_form.html:99
+#: templates/dashboard/product/stock_form.html:98
+#: templates/dashboard/product/stock_form.html:105
+#: templates/dashboard/product/stock_locations/form.html:74
+#: templates/dashboard/product/stock_locations/form.html:81
+#: templates/dashboard/product/stock_locations/modal_confirm_delete.html:29
+#: templates/dashboard/product/variant_form.html:100
+#: templates/dashboard/product/variant_form.html:107
+#: templates/dashboard/shipping/method_form.html:129
+#: templates/dashboard/shipping/method_form.html:136
+#: templates/dashboard/sites/detail.html:48
+msgctxt "Dashboard cancel action"
 msgid "Cancel"
 msgstr "Отмена"
 
-#: templates/dashboard/category/detail.html:6
-#: templates/dashboard/category/detail.html:12
+#: templates/dashboard/category/detail.html:10
+#: templates/dashboard/category/detail.html:23
 msgctxt "Category detail page title"
 msgid "Add new category"
 msgstr "Добавить категорию"
 
-#: templates/dashboard/category/detail.html:6
-msgctxt "Category detail page title"
-msgid "Categories"
-msgstr "Категории"
-
-#: templates/dashboard/category/detail.html:17
-msgctxt "Category detail breadcrumbs"
-msgid "Categories"
-msgstr "Категории"
-
-#: templates/dashboard/category/detail.html:28
+#: templates/dashboard/category/detail.html:44
 msgctxt "Category detail breadcrumbs"
 msgid "Add new category"
 msgstr "Добавить категорию"
 
-#: templates/dashboard/category/detail.html:54
-#: templates/dashboard/category/detail.html:57
-msgctxt "Category form secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/category/detail.html:61
-msgctxt "Category form primary action"
+#: templates/dashboard/category/detail.html:88
+#: templates/dashboard/category/modal_edit.html:25
+#: templates/dashboard/discount/sale_form.html:101
+#: templates/dashboard/discount/voucher_form.html:130
+#: templates/dashboard/order/address_form.html:64
+#: templates/dashboard/order/modal_change_quantity.html:16
+#: templates/dashboard/product/attributes/form.html:118
+#: templates/dashboard/product/product_class_form.html:101
+#: templates/dashboard/product/product_form.html:166
+#: templates/dashboard/product/product_image_form.html:95
+#: templates/dashboard/product/stock_form.html:101
+#: templates/dashboard/product/stock_locations/form.html:77
+#: templates/dashboard/product/variant_form.html:103
+#: templates/dashboard/shipping/method_form.html:132
+#: templates/dashboard/sites/detail.html:51
+msgctxt "Dashboard update action"
 msgid "Update"
 msgstr "Обновить"
 
-#: templates/dashboard/category/detail.html:65
-msgctxt "Category form primary action"
+#: templates/dashboard/category/detail.html:92
+#: templates/dashboard/discount/sale_form.html:108
+#: templates/dashboard/discount/voucher_form.html:137
+#: templates/dashboard/product/attributes/form.html:125
+#: templates/dashboard/product/product_class_form.html:108
+#: templates/dashboard/product/product_form.html:173
+#: templates/dashboard/product/product_image_form.html:102
+#: templates/dashboard/product/stock_form.html:108
+#: templates/dashboard/product/stock_locations/form.html:84
+#: templates/dashboard/product/variant_form.html:110
+#: templates/dashboard/shipping/method_form.html:139
+msgctxt "Dashboard create action"
 msgid "Create"
 msgstr "Создать"
 
@@ -2116,28 +2185,22 @@ msgctxt "Category list add button text"
 msgid "Add category"
 msgstr "Добавить категорию"
 
-#: templates/dashboard/category/list.html:43
-msgctxt "Category list action link"
+#: templates/dashboard/category/list.html:40
+msgctxt "Dashboard edit action"
 msgid "Edit category"
 msgstr "Редактировать категорию"
 
-#: templates/dashboard/category/list.html:50
+#: templates/dashboard/category/list.html:45
 msgctxt "Category list action link"
 msgid "Remove category"
 msgstr "Удалить категорию"
 
-#: templates/dashboard/category/list.html:60
-#: templates/dashboard/category/list.html:62
-msgctxt "Category list breadcrumbs"
-msgid "Categories"
-msgstr "Категории"
-
-#: templates/dashboard/category/list.html:114
+#: templates/dashboard/category/list.html:123
 msgctxt "Empty Category list message"
 msgid "No subcategories."
 msgstr "Нет подкатегорий."
 
-#: templates/dashboard/category/list.html:116
+#: templates/dashboard/category/list.html:127
 msgctxt "Empty Category list message"
 msgid "No categories."
 msgstr "Нет категорий."
@@ -2148,223 +2211,153 @@ msgctxt "Delete category modal title"
 msgid "Are you sure you want to delete the category %(category)s?"
 msgstr "Вы действительно хотите удалить категорию %(category)s?"
 
-#: templates/dashboard/category/modal_edit.html:10
+#: templates/dashboard/category/modal_edit.html:11
 #, python-format
 msgctxt "Edit category modal title"
 msgid "Edit %(category)s"
 msgstr "Редактировать %(category)s"
 
-#: templates/dashboard/category/modal_edit.html:25
-msgctxt "Edit category form primary action"
-msgid "Update"
-msgstr "Обновить"
-
-#: templates/dashboard/category/modal_edit.html:28
-msgctxt "Edit category form secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/customer/detail.html:6
-msgctxt "Customer detail page title"
-msgid "Customers"
-msgstr "Покупатели"
-
-#: templates/dashboard/customer/detail.html:19
-msgctxt "Customer details breadcrumbs"
-msgid "Customers"
-msgstr "Покупатели"
-
-#: templates/dashboard/customer/detail.html:36
+#: templates/dashboard/customer/detail.html:40
 msgctxt "Customer orders table title"
 msgid "Order history"
 msgstr "История заказов"
 
-#: templates/dashboard/customer/detail.html:45
+#: templates/dashboard/customer/detail.html:49
 msgctxt "Customer orders table header"
 msgid "Number"
 msgstr "Номер"
 
-#: templates/dashboard/customer/detail.html:46
+#: templates/dashboard/customer/detail.html:52
 msgctxt "Customer orders table header"
 msgid "Placed on"
 msgstr "Дата размещения"
 
-#: templates/dashboard/customer/detail.html:47
-msgctxt "Customer orders table header"
-msgid "Payment"
-msgstr "Платеж"
-
-#: templates/dashboard/customer/detail.html:48
+#: templates/dashboard/customer/detail.html:55
 msgctxt "Customer orders table header"
 msgid "Order status"
 msgstr "Статус заказа"
 
-#: templates/dashboard/customer/detail.html:49
+#: templates/dashboard/customer/detail.html:58
 msgctxt "Customer orders table header"
 msgid "Total"
 msgstr "Сумма"
 
-#: templates/dashboard/customer/detail.html:67
+#: templates/dashboard/customer/detail.html:85
 msgctxt "Empty customer orders table message"
 msgid "No orders found."
 msgstr "Не найдено заказов."
 
-#: templates/dashboard/customer/detail.html:78
+#: templates/dashboard/customer/detail.html:97
 msgctxt "Customer default shipping address card title"
 msgid "Default shipping address"
 msgstr "Адрес доставки по умолчанию"
 
-#: templates/dashboard/customer/detail.html:86
+#: templates/dashboard/customer/detail.html:104
 msgctxt "Customer without default shipping address message"
 msgid "No default shipping address."
 msgstr "Нет установленного адреса доставки"
 
-#: templates/dashboard/customer/detail.html:97
+#: templates/dashboard/customer/detail.html:117
 msgctxt "Customer default billing address card title"
 msgid "Default billing address"
 msgstr "Адрес платежа по умолчанию"
 
-#: templates/dashboard/customer/detail.html:106
+#: templates/dashboard/customer/detail.html:125
 msgctxt "Customer without default billing address message"
 msgid "No default billing address."
 msgstr "Нет платежного адреса по умолчанию."
 
-#: templates/dashboard/customer/list.html:6
-msgctxt "Customer list page title"
-msgid "Customers"
-msgstr "Покупатели"
-
-#: templates/dashboard/customer/list.html:14
-msgctxt "Customer list breadcrumbs"
-msgid "Customers"
-msgstr "Покупатели"
-
-#: templates/dashboard/customer/list.html:27
-msgctxt "Customer list form primary action"
-msgid "Filter"
-msgstr "Фильтр"
-
 #: templates/dashboard/customer/list.html:30
-msgctxt "Customer list form secondary action"
-msgid "Clear"
-msgstr "Очистить"
-
-#: templates/dashboard/customer/list.html:47
 msgctxt "Customers table header"
 msgid "Email"
 msgstr "Email"
 
-#: templates/dashboard/customer/list.html:48
+#: templates/dashboard/customer/list.html:33
 msgctxt "Customers table header"
 msgid "Name"
 msgstr "Имя"
 
-#: templates/dashboard/customer/list.html:49
+#: templates/dashboard/customer/list.html:36
 msgctxt "Customers table header"
 msgid "Location"
 msgstr "Местоположение"
 
-#: templates/dashboard/customer/list.html:50
+#: templates/dashboard/customer/list.html:39
 msgctxt "Customers table header"
 msgid "Number of orders"
 msgstr "Количество заказов"
 
-#: templates/dashboard/customer/list.html:51
+#: templates/dashboard/customer/list.html:42
 msgctxt "Customers table header"
 msgid "Last order"
 msgstr "Последний заказ"
 
-#: templates/dashboard/customer/list.html:78
+#: templates/dashboard/customer/list.html:70
 #, python-format
 msgctxt "Customers table last order data"
 msgid "#%(last_order)s"
 msgstr "#%(last_order)s"
 
-#: templates/dashboard/customer/list.html:91
+#: templates/dashboard/customer/list.html:85
 msgctxt "Empty customers table message"
 msgid "No customers found."
 msgstr "Не найдены покупатели."
 
-#: templates/dashboard/discount/sale_confirm_delete.html:4
+#: templates/dashboard/discount/sale_confirm_delete.html:5
 msgctxt "Delete sale (discount) page title"
 msgid "Delete sale"
 msgstr "Удалить скидку"
 
-#: templates/dashboard/discount/sale_confirm_delete.html:9
-msgctxt "Delete sale (discount) breadcrumbs"
-msgid "Discounts"
-msgstr "Скидка"
-
-#: templates/dashboard/discount/sale_confirm_delete.html:12
+#: templates/dashboard/discount/sale_confirm_delete.html:17
 msgctxt "Delete sale (discount) breadcrumbs"
 msgid "Delete sale"
 msgstr "Удалить скидку"
 
-#: templates/dashboard/discount/sale_confirm_delete.html:18
+#: templates/dashboard/discount/sale_confirm_delete.html:25
 msgctxt "Delete sale (discount) message"
 msgid "Are you sure you want to delete the following sale?"
 msgstr "Вы действительно хотите удалить следующую скидку?"
 
-#: templates/dashboard/discount/sale_confirm_delete.html:32
-msgctxt "Delete sale (discount) secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/discount/sale_confirm_delete.html:34
-msgctxt "Delete sale (discount) primary action"
-msgid "Delete"
-msgstr "Удалить"
-
-#: templates/dashboard/discount/sale_form.html:6
+#: templates/dashboard/discount/sale_form.html:10
 msgctxt "Sale (discount) page title"
 msgid "Add new sale"
 msgstr "Добавить новую скидку"
 
-#: templates/dashboard/discount/sale_form.html:7
-msgctxt "Sale (discount) page title"
+#: templates/dashboard/discount/sale_form.html:12
+#: templates/dashboard/discount/sale_form.html:45
+#: templates/dashboard/discount/sale_list.html:16
+msgctxt "Dashboard sales (discounts) list."
 msgid "Sales"
 msgstr "Скидки"
 
-#: templates/dashboard/discount/sale_form.html:28
+#: templates/dashboard/discount/sale_form.html:34
 msgctxt "Sale (discount) action"
 msgid "Remove sale"
 msgstr "Удалить скидку"
 
-#: templates/dashboard/discount/sale_form.html:38
-msgctxt "Sale (discount) breadcrumbs"
-msgid "Sales"
-msgstr "Скидки"
-
-#: templates/dashboard/discount/sale_form.html:42
+#: templates/dashboard/discount/sale_form.html:58
 msgctxt "Sale (discount) breadcrumbs"
 msgid "Add new sale"
 msgstr "Добавить новую скидку"
 
-#: templates/dashboard/discount/sale_form.html:67
-msgctxt "Sale (discount) primary action"
-msgid "Update"
-msgstr "Обновить"
-
-#: templates/dashboard/discount/sale_form.html:71
-msgctxt "Sale (discount) primary action"
-msgid "Create"
-msgstr "Создать"
-
-#: templates/dashboard/discount/sale_list.html:6
+#: templates/dashboard/discount/sale_list.html:7
 msgid "Sales"
 msgstr "Скидки"
 
-#: templates/dashboard/discount/sale_list.html:15
+#: templates/dashboard/discount/sale_list.html:25
 msgctxt "Sale (discount) list add button text"
 msgid "Add sale"
 msgstr "Добавить скидку"
 
-#: templates/dashboard/discount/sale_list.html:23
-msgctxt "Sale (discount) list breadcrumbs"
-msgid "Sales"
-msgstr "Скидки"
+#: templates/dashboard/discount/sale_list.html:26
+#: templates/dashboard/discount/voucher_list.html:28
+#: templates/dashboard/product/product_form.html:190
+#: templates/dashboard/shipping/method_list.html:28
+msgctxt "Dashboard add action"
+msgid "Add"
+msgstr "Добавить"
 
-#: templates/dashboard/discount/sale_list.html:36
+#: templates/dashboard/discount/sale_list.html:34
 msgctxt "Sale (discount) table header"
 msgid "Name"
 msgstr "Имя"
@@ -2374,577 +2367,511 @@ msgctxt "Sale (discount) table header"
 msgid "Discount"
 msgstr "Скидка"
 
-#: templates/dashboard/discount/sale_list.html:56
-msgctxt "Empty sale (discount) table message"
-msgid "No sales found."
+#: templates/dashboard/discount/sale_list.html:57
+msgctxt "Empty sales table message"
+msgid "No sales found"
 msgstr "Не найдено скидок."
 
-#: templates/dashboard/discount/sale_modal_confirm_delete.html:6
-msgctxt "Delete sale (discount) title"
+#: templates/dashboard/discount/sale_modal_confirm_delete.html:7
+#: templates/dashboard/discount/voucher_modal_confirm_delete.html:7
+#: templates/dashboard/product/attributes/modal_confirm_delete.html:7
+#: templates/dashboard/product/modal_product_class_confirm_delete.html:36
+#: templates/dashboard/product/modal_product_confirm_delete.html:11
+#: templates/dashboard/product/modal_product_image_confirm_delete.html:10
+#: templates/dashboard/product/product_form.html:199
+#: templates/dashboard/product/product_form.html:296
+#: templates/dashboard/product/stock_locations/modal_confirm_delete.html:7
+msgctxt "Dashboard confirmation modal"
 msgid "Are you sure?"
 msgstr "Вы уверены?"
 
-#: templates/dashboard/discount/sale_modal_confirm_delete.html:9
+#: templates/dashboard/discount/sale_modal_confirm_delete.html:10
 #, python-format
 msgctxt "Delete sale (discount) text"
 msgid "You are about to delete <strong>%(sale)s</strong>."
 msgstr "Вы собираетесь удалить <strong>%(sale)s</strong>."
 
-#: templates/dashboard/discount/sale_modal_confirm_delete.html:17
-msgctxt "Delete sale (discount) form primary action"
-msgid "Delete"
-msgstr "Удалить"
-
-#: templates/dashboard/discount/sale_modal_confirm_delete.html:19
-msgctxt "Delete sale (discount) form secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/discount/voucher_form.html:6
+#: templates/dashboard/discount/voucher_form.html:10
 msgctxt "Voucher page title"
 msgid "Add new voucher"
 msgstr "Добавить новый купон"
 
-#: templates/dashboard/discount/voucher_form.html:7
-msgctxt "Voucher page title"
-msgid "Vouchers"
-msgstr "Купоны"
-
-#: templates/dashboard/discount/voucher_form.html:27
+#: templates/dashboard/discount/voucher_form.html:33
 msgctxt "Voucher action"
 msgid "Remove voucher"
 msgstr "Удалить купон"
 
-#: templates/dashboard/discount/voucher_form.html:37
-msgctxt "Voucher breadcrumbs"
-msgid "Vouchers"
-msgstr "Купоны"
-
-#: templates/dashboard/discount/voucher_form.html:41
+#: templates/dashboard/discount/voucher_form.html:57
 msgctxt "Voucher breadcrumbs"
 msgid "Add new voucher"
 msgstr "Добавить новый купон"
 
-#: templates/dashboard/discount/voucher_form.html:87
-msgctxt "Voucher form primary action"
-msgid "Update"
-msgstr "Обновить"
-
-#: templates/dashboard/discount/voucher_form.html:89
-msgctxt "Voucher form primary action"
-msgid "Create"
-msgstr "Создать"
-
-#: templates/dashboard/discount/voucher_list.html:6
-msgctxt "Voucher list page title"
-msgid "Vouchers"
-msgstr "Купоны"
-
-#: templates/dashboard/discount/voucher_list.html:15
+#: templates/dashboard/discount/voucher_list.html:27
 msgctxt "Voucher list add button text"
 msgid "Add voucher"
 msgstr "Добавить купон"
 
-#: templates/dashboard/discount/voucher_list.html:23
-msgctxt "Voucher list breadcrumbs"
-msgid "Vouchers"
-msgstr "Купоны"
-
-#: templates/dashboard/discount/voucher_list.html:36
+#: templates/dashboard/discount/voucher_list.html:37
 msgctxt "Voucher table header"
 msgid "Name"
 msgstr "Имя"
 
-#: templates/dashboard/discount/voucher_list.html:37
+#: templates/dashboard/discount/voucher_list.html:40
 msgctxt "Voucher table header"
 msgid "Discount"
 msgstr "Скидка"
 
-#: templates/dashboard/discount/voucher_list.html:38
-msgctxt "Voucher table header"
-msgid "Start date"
-msgstr "Начальная дата"
-
-#: templates/dashboard/discount/voucher_list.html:39
-msgctxt "Voucher table header"
-msgid "End date"
-msgstr "Конечная дата"
-
-#: templates/dashboard/discount/voucher_list.html:40
-msgctxt "Voucher table header"
-msgid "Used"
-msgstr "Использовано"
-
-#: templates/dashboard/discount/voucher_list.html:41
+#: templates/dashboard/discount/voucher_list.html:43
 msgctxt "Voucher table header"
 msgid "Apply to"
 msgstr "Применить к"
 
-#: templates/dashboard/discount/voucher_list.html:42
+#: templates/dashboard/discount/voucher_list.html:46
+msgctxt "Voucher table header"
+msgid "Start date"
+msgstr "Начальная дата"
+
+#: templates/dashboard/discount/voucher_list.html:49
+msgctxt "Voucher table header"
+msgid "End date"
+msgstr "Конечная дата"
+
+#: templates/dashboard/discount/voucher_list.html:52
+msgctxt "Voucher table header"
+msgid "Used"
+msgstr "Использовано"
+
+#: templates/dashboard/discount/voucher_list.html:55
 msgctxt "Voucher table header"
 msgid "Limit"
 msgstr "Ограничение"
 
-#: templates/dashboard/discount/voucher_list.html:79
-msgctxt "Empty voucher table message"
-msgid "No vouchers found."
+#: templates/dashboard/discount/voucher_list.html:99
+msgctxt "Empty vouchers table message"
+msgid "No vouchers found"
 msgstr "Не найдено купонов."
 
-#: templates/dashboard/discount/voucher_modal_confirm_delete.html:6
-msgctxt "Delete voucher title"
-msgid "Are you sure?"
-msgstr "Вы уверены?"
-
-#: templates/dashboard/discount/voucher_modal_confirm_delete.html:9
+#: templates/dashboard/discount/voucher_modal_confirm_delete.html:10
 #, python-format
 msgctxt "Delete voucher text"
 msgid "You are about to delete <strong>%(voucher)s</strong>."
 msgstr "Вы собираетесь удалить <strong>%(voucher)s</strong>."
 
-#: templates/dashboard/discount/voucher_modal_confirm_delete.html:17
-msgctxt "Delete voucher primary action"
-msgid "Delete"
-msgstr "Удалить"
-
-#: templates/dashboard/discount/voucher_modal_confirm_delete.html:19
-msgctxt "Delete voucher secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/includes/_orders_table.html:10
+#: templates/dashboard/includes/_orders_table.html:13
 msgctxt "Orders table header"
 msgid "Order status"
 msgstr "Статус заказа"
 
-#: templates/dashboard/includes/_orders_table.html:11
+#: templates/dashboard/includes/_orders_table.html:16
 msgctxt "Orders table header"
 msgid "Payment status"
 msgstr "Статус платежа"
 
-#: templates/dashboard/includes/_orders_table.html:12
+#: templates/dashboard/includes/_orders_table.html:19
 msgctxt "Orders table header"
 msgid "Customer"
 msgstr "Покупатель"
 
-#: templates/dashboard/includes/_orders_table.html:13
+#: templates/dashboard/includes/_orders_table.html:22
 msgctxt "Orders table header"
 msgid "Placed on"
 msgstr "Дата размещения"
 
-#: templates/dashboard/includes/_orders_table.html:14
+#: templates/dashboard/includes/_orders_table.html:25
 msgctxt "Orders table header"
 msgid "Total"
 msgstr "Сумма"
 
-#: templates/dashboard/includes/_orders_table.html:25
-msgctxt "Customer column anonymous user text"
-msgid "Guest"
-msgstr "Гость"
-
-#: templates/dashboard/includes/_status_filters.html:8
-msgctxt "Status filter action"
-msgid "Filter"
-msgstr "Фильтр"
-
-#: templates/dashboard/includes/address_short.html:11
-msgctxt "Address detail action"
-msgid "Edit"
-msgstr "Редактирование"
-
-#: templates/dashboard/index.html:12
-msgctxt "Dashboard homepage table title"
-msgid "Preauthorized payments"
-msgstr "Авторизованные платежи"
-
-#: templates/dashboard/index.html:20
-msgctxt "Preauthorized payments table header"
-msgid "Order number"
-msgstr "Номер заказа"
-
-#: templates/dashboard/index.html:21
-msgctxt "Preauthorized payments table header"
-msgid "Date"
-msgstr "Дата"
-
-#: templates/dashboard/index.html:22
-msgctxt "Preauthorized payments table header"
-msgid "Customer"
-msgstr "Покупатель"
-
-#: templates/dashboard/index.html:23
-msgctxt "Preauthorized payments table header"
-msgid "Amount"
-msgstr "Количество"
-
-#: templates/dashboard/index.html:31
-msgid "Guest"
-msgstr "Гость"
-
-#: templates/dashboard/index.html:40
-msgctxt "Empty Preauthorized payments table message"
-msgid "No preauthorized payments."
-msgstr "Нет авторизованных платежей"
-
-#: templates/dashboard/index.html:48
-msgctxt "Dashboard homepage table title"
-msgid "Orders ready for shipment"
-msgstr "Заказы готовы к доставке."
-
-#: templates/dashboard/index.html:56
-msgctxt "Empty order table message"
-msgid "No orders are ready for shipment."
-msgstr "Нет заказов готовых к отправке."
-
-#: templates/dashboard/index.html:63
-msgctxt "Dashboard homepage table title"
-msgid "Products with low stock"
-msgstr "Продукты с малым остатком на складе"
-
-#: templates/dashboard/index.html:76
-msgctxt "Empty low stock table message"
-msgid "No products are low in stock."
-msgstr "Нет продуктов с малым остатком на складе"
-
-#: templates/dashboard/order/detail.html:8
-msgctxt "Order detail page title"
-msgid "Orders"
-msgstr "Заказы"
-
-#: templates/dashboard/order/detail.html:28
-msgctxt "Order detail action"
-msgid "Cancel Order"
-msgstr "Отменить заказ"
-
-#: templates/dashboard/order/detail.html:37
-msgctxt "Order detail breadcrumbs"
-msgid "Orders"
-msgstr "Заказы"
-
-#: templates/dashboard/order/detail.html:48
-msgctxt "Order detail tab"
-msgid "Details"
-msgstr "Подробности"
-
-#: templates/dashboard/order/detail.html:52
-msgctxt "Order detail tab"
-msgid "Payments"
-msgstr "Платежи"
-
-#: templates/dashboard/order/detail.html:56
-msgctxt "Order detail tab"
-msgid "History"
-msgstr "История"
-
-#: templates/dashboard/order/detail.html:66
-msgctxt "Order summary title"
-msgid "Order summary"
-msgstr "Краткое описание заказа"
-
-#: templates/dashboard/order/detail.html:71
-msgctxt "Order summary card header"
-msgid "Account"
-msgstr "Аккаунт"
-
-#: templates/dashboard/order/detail.html:76
+#: templates/dashboard/includes/_orders_table.html:41
+#: templates/dashboard/order/detail.html:105
 msgctxt "Anonymous user account value"
 msgid "Guest"
 msgstr "Гость"
 
+#: templates/dashboard/includes/_status_filters.html:15
+msgctxt "Status filter action"
+msgid "Filter"
+msgstr "Фильтр"
+
+#: templates/dashboard/includes/address_short.html:3
+#: templates/dashboard/order/detail.html:214
+#: templates/dashboard/order/detail.html:232
+#: templates/dashboard/product/product_form.html:404
+#: templates/dashboard/product/product_form.html:452
+msgctxt "Dashboard edit action"
+msgid "Edit"
+msgstr "Редактировать"
+
+#: templates/dashboard/index.html:15
+msgctxt "Dashboard homepage table title"
+msgid "Preauthorized payments"
+msgstr "Авторизованные платежи"
+
+#: templates/dashboard/index.html:24
+msgctxt "Preauthorized payments table header"
+msgid "Order"
+msgstr "Заказ"
+
+#: templates/dashboard/index.html:27
+msgctxt "Preauthorized payments table header"
+msgid "Date"
+msgstr "Дата"
+
+#: templates/dashboard/index.html:30
+msgctxt "Preauthorized payments table header"
+msgid "Customer"
+msgstr "Покупатель"
+
+#: templates/dashboard/index.html:33
+msgctxt "Preauthorized payments table header"
+msgid "Amount"
+msgstr "Количество"
+
+#: templates/dashboard/index.html:47
+msgid "Guest"
+msgstr "Гость"
+
+#: templates/dashboard/index.html:60
+msgctxt "Empty Preauthorized payments table message"
+msgid "No preauthorized payments."
+msgstr "Нет авторизованных платежей"
+
+#: templates/dashboard/index.html:69
+msgctxt "Dashboard homepage table title"
+msgid "Orders ready for shipment"
+msgstr "Заказы готовы к доставке"
+
+#: templates/dashboard/index.html:77
+msgctxt "Empty order table message"
+msgid "No orders are ready for shipment."
+msgstr "Нет заказов готовых к отправке."
+
+#: templates/dashboard/index.html:85
+msgctxt "Dashboard homepage table title"
+msgid "Products with low stock"
+msgstr "Продукты с малым остатком на складе"
+
+#: templates/dashboard/index.html:94
+msgctxt "Low stock product list"
+msgid "Product name"
+msgstr "Название Продукта"
+
+#: templates/dashboard/index.html:97
+msgctxt "Low stock product list"
+msgid "Stock left"
+msgstr "Осталось на складах"
+
+#: templates/dashboard/index.html:118
+msgctxt "Empty low stock table message"
+msgid "No products are low in stock."
+msgstr "Нет продуктов с малым остатком на складе"
+
+#: templates/dashboard/order/address_form.html:7
+msgctxt ""
+msgid "Edit address"
+msgstr "Редактировать адрес"
+
+#: templates/dashboard/order/address_form.html:39
+#: templates/dashboard/order/detail.html:208
+msgctxt ""
+msgid "Shipping address"
+msgstr "Адрес доставки"
+
+#: templates/dashboard/order/address_form.html:41
+#: templates/dashboard/order/detail.html:225
+msgctxt ""
+msgid "Billing address"
+msgstr "Адрес плательщика"
+
+#: templates/dashboard/order/detail.html:31
+msgctxt "Order detail action"
+msgid "Cancel Order"
+msgstr "Отменить заказ"
+
+#: templates/dashboard/order/detail.html:65
+msgctxt "Order detail tab"
+msgid "Details"
+msgstr "Подробности"
+
+#: templates/dashboard/order/detail.html:73
+msgctxt "Order detail tab"
+msgid "Payments"
+msgstr "Платежи"
+
 #: templates/dashboard/order/detail.html:81
+msgctxt "Order detail tab"
+msgid "History"
+msgstr "История"
+
+#: templates/dashboard/order/detail.html:94
+msgctxt "Order summary title"
+msgid "Order summary"
+msgstr "Краткое описание заказа"
+
+#: templates/dashboard/order/detail.html:99
+#: templates/dashboard/search/results.html:84
+msgctxt "Dashboard customer"
+msgid "Customer"
+msgstr "Покупатель"
+
+#: templates/dashboard/order/detail.html:111
 msgctxt "Order summary card header"
 msgid "Order status"
 msgstr "Статус заказа"
 
-#: templates/dashboard/order/detail.html:85
+#: templates/dashboard/order/detail.html:119
 msgctxt "Order summary card header"
 msgid "Payment status"
 msgstr "Статус платежа"
 
-#: templates/dashboard/order/detail.html:88
+#: templates/dashboard/order/detail.html:125
 msgctxt "Payment status not available"
 msgid "N/A"
 msgstr "Недоступно"
 
-#: templates/dashboard/order/detail.html:91
-msgctxt "Order summary card header"
-msgid "Order total"
-msgstr "Сумма заказа"
-
-#: templates/dashboard/order/detail.html:95
-msgctxt "Order summary card header"
-msgid "Preauthorized amount"
-msgstr "Авторизованное число"
-
-#: templates/dashboard/order/detail.html:98
-msgctxt "Preauthorized amount not available"
-msgid "N/A"
-msgstr "Недоступно"
-
-#: templates/dashboard/order/detail.html:101
-msgctxt "Order summary card header"
-msgid "Captured amount"
-msgstr "Зафиксированное число"
-
-#: templates/dashboard/order/detail.html:105
+#: templates/dashboard/order/detail.html:137
 msgctxt "Order summary card header"
 msgid "Outstanding balance"
 msgstr "Выдающийся баланс"
 
-#: templates/dashboard/order/detail.html:116
+#: templates/dashboard/order/detail.html:150
+msgctxt "Order summary card header"
+msgid "Order total"
+msgstr "Сумма заказа"
+
+#: templates/dashboard/order/detail.html:158
+msgctxt "Order summary card header"
+msgid "Preauthorized amount"
+msgstr "Авторизованное число"
+
+#: templates/dashboard/order/detail.html:164
+msgctxt "Preauthorized amount not available"
+msgid "N/A"
+msgstr "Недоступно"
+
+#: templates/dashboard/order/detail.html:170
+msgctxt "Order summary card header"
+msgid "Captured amount"
+msgstr "Зафиксированное число"
+
+#: templates/dashboard/order/detail.html:184
 msgctxt "Order summary card action"
 msgid "Capture"
 msgstr "Зафиксировано"
 
-#: templates/dashboard/order/detail.html:119
+#: templates/dashboard/order/detail.html:189
 msgctxt "Order summary card action"
 msgid "Refund"
 msgstr "Возмещение"
 
-#: templates/dashboard/order/detail.html:123
+#: templates/dashboard/order/detail.html:195
 msgctxt "Order summary card action"
 msgid "Release"
 msgstr "Выпустить"
 
-#: templates/dashboard/order/detail.html:135
-msgctxt "Shipping address card title"
-msgid "Shipping address"
-msgstr "Адрес доставки"
-
-#: templates/dashboard/order/detail.html:147
-msgctxt "Shipping address card action"
-msgid "Edit"
-msgstr "Редактирование"
-
-#: templates/dashboard/order/detail.html:159
-#: templates/dashboard/payments/detail.html:96
-msgctxt "Billing address card title"
-msgid "Billing address"
-msgstr "Платежный адрес"
-
-#: templates/dashboard/order/detail.html:172
-msgctxt "Billing address card action"
-msgid "Edit"
-msgstr "Редактирование"
-
-#: templates/dashboard/order/detail.html:185
+#: templates/dashboard/order/detail.html:244
 #, python-format
 msgctxt "Shipment group table title"
 msgid "Shipment #%(shipment)s"
 msgstr "Доставка #%(shipment)s"
 
-#: templates/dashboard/order/detail.html:198
-#: templates/dashboard/order/detail.html:199
-msgctxt "Shipment group table action"
-msgid "Cancel group"
-msgstr "Отменить группу"
-
-#: templates/dashboard/order/detail.html:209
+#: templates/dashboard/order/detail.html:255
 msgctxt "Shipment group table header"
 msgid "Item"
 msgstr "Предмет"
 
-#: templates/dashboard/order/detail.html:210
+#: templates/dashboard/order/detail.html:258
 msgctxt "Shipment group table header"
 msgid "SKU"
 msgstr "Артикул"
 
-#: templates/dashboard/order/detail.html:211
+#: templates/dashboard/order/detail.html:261
 msgctxt "Shipment group table header"
 msgid "Price"
 msgstr "Цена"
 
-#: templates/dashboard/order/detail.html:212
+#: templates/dashboard/order/detail.html:264
 msgctxt "Shipment group table header"
 msgid "Quantity"
 msgstr "Количество"
 
-#: templates/dashboard/order/detail.html:213
+#: templates/dashboard/order/detail.html:267
 msgctxt "Shipment group table header"
 msgid "Total"
 msgstr "Сумма"
 
-#: templates/dashboard/order/detail.html:222
+#: templates/dashboard/order/detail.html:275
 #, python-format
 msgctxt "Shipment group table item column data"
 msgid "Shipping (%(group_shipping_method_name)s)"
 msgstr "Доставка (%(group_shipping_method_name)s)"
 
-#: templates/dashboard/order/detail.html:252
-#: templates/dashboard/order/detail.html:253
+#: templates/dashboard/order/detail.html:305
+#: templates/dashboard/order/detail.html:306
 msgctxt "Shipment group table row action"
 msgid "Change quantity"
 msgstr "Изменить количество"
 
-#: templates/dashboard/order/detail.html:258
+#: templates/dashboard/order/detail.html:310
 msgctxt "Shipment group table row action"
 msgid "Split line"
 msgstr "Разбить позицию"
 
-#: templates/dashboard/order/detail.html:259
+#: templates/dashboard/order/detail.html:311
 msgctxt "Shipment group table row action"
 msgid "Split order line"
 msgstr "Разбить линию заказа"
 
-#: templates/dashboard/order/detail.html:264
-#: templates/dashboard/order/detail.html:265
+#: templates/dashboard/order/detail.html:315
+#: templates/dashboard/order/detail.html:316
 msgctxt "Shipment group table row action"
-msgid "Cancel line"
-msgstr "Отменить позицию"
+msgid "Remove line"
+msgstr "Удалить линию"
 
-#: templates/dashboard/order/detail.html:280
+#: templates/dashboard/order/detail.html:336
 msgctxt "Shipment group table action"
-msgid "Ship"
-msgstr "Доставка"
+msgid "Dispatch"
+msgstr "Отправить"
 
-#: templates/dashboard/order/detail.html:286
+#: templates/dashboard/order/detail.html:340
+msgctxt "Shipment group table action"
+msgid "Cancel group"
+msgstr "Отменить группу"
+
+#: templates/dashboard/order/detail.html:341
+msgctxt "Shipment group table action"
+msgid "Cancel this shipment"
+msgstr "Отменить это отправление"
+
+#: templates/dashboard/order/detail.html:348
 #, python-format
 msgctxt "Shipment group table text"
 msgid "Tracking number: %(tracking)s"
 msgstr "Трек-номер: %(tracking)s"
 
-#: templates/dashboard/order/detail.html:301
+#: templates/dashboard/order/detail.html:362
 msgctxt "Order totals header"
 msgid "Grand total"
 msgstr "Общая сумма"
 
-#: templates/dashboard/order/detail.html:313
-msgctxt "Order totals header"
-msgid "Subtotal"
-msgstr "Промежуточный итог"
-
-#: templates/dashboard/order/detail.html:321
+#: templates/dashboard/order/detail.html:380
 msgctxt "Order totals header"
 msgid "Shipping"
 msgstr "Доставка"
 
-#: templates/dashboard/order/detail.html:330
+#: templates/dashboard/order/detail.html:390
 #, python-format
 msgctxt "Order totals header"
 msgid "Voucher %(voucher)s"
 msgstr "Купон  %(voucher)s"
 
-#: templates/dashboard/order/detail.html:346
-#: templates/dashboard/order/detail.html:347
+#: templates/dashboard/order/detail.html:398
+#: templates/dashboard/order/detail.html:399
 msgctxt "Order totals action"
 msgid "Remove voucher"
 msgstr "Удалить купон"
 
-#: templates/dashboard/order/detail.html:361
+#: templates/dashboard/order/detail.html:416
 msgctxt "Order notes card title"
 msgid "Order notes"
 msgstr "Примечание к заказу"
 
-#: templates/dashboard/order/detail.html:373
+#: templates/dashboard/order/detail.html:429
 msgctxt "Empty order notes card message"
 msgid "There are no notes associated with this order."
 msgstr "Нет примечаний к данному заказу."
 
-#: templates/dashboard/order/detail.html:379
+#: templates/dashboard/order/detail.html:435
 msgctxt "Order notes card action"
 msgid "Add note"
-msgstr "Добавить примечание."
+msgstr "Добавить примечание"
 
-#: templates/dashboard/order/detail.html:393
+#: templates/dashboard/order/detail.html:449
+msgctxt "Payment history table header"
+msgid "Transaction ID"
+msgstr "ID транзакции"
+
+#: templates/dashboard/order/detail.html:452
 msgctxt "Payment history table header"
 msgid "Date"
 msgstr "Дата"
 
-#: templates/dashboard/order/detail.html:394
+#: templates/dashboard/order/detail.html:455
 msgctxt "Payment history table header"
 msgid "Payment status"
 msgstr "Статус платежа"
 
-#: templates/dashboard/order/detail.html:402
+#: templates/dashboard/order/detail.html:458
+msgctxt "Payment history table header"
+msgid "Fraud status"
+msgstr "Статус проверки на мошенничество"
+
+#: templates/dashboard/order/detail.html:461
+msgctxt "Payment history table header"
+msgid "Amount"
+msgstr "Количество"
+
+#: templates/dashboard/order/detail.html:469
 #, python-format
 msgctxt "Payment item column data"
 msgid "#%(payment_id)s"
 msgstr "#%(payment_id)s"
 
-#: templates/dashboard/order/detail.html:415
+#: templates/dashboard/order/detail.html:493
 msgctxt "Empty payment history table message"
 msgid "No payments made for this order."
 msgstr "Для этого заказа не было сделано платежей."
 
-#: templates/dashboard/order/detail.html:424
+#: templates/dashboard/order/detail.html:503
 msgctxt "Order history table header"
 msgid "Date"
 msgstr "Дата"
 
-#: templates/dashboard/order/detail.html:425
+#: templates/dashboard/order/detail.html:506
 msgctxt "Order history table header"
 msgid "Order status"
 msgstr "Статус заказа"
 
-#: templates/dashboard/order/detail.html:426
+#: templates/dashboard/order/detail.html:509
 msgctxt "Order history table header"
 msgid "User"
 msgstr "Пользователь"
 
-#: templates/dashboard/order/detail.html:427
+#: templates/dashboard/order/detail.html:512
 msgctxt "Order history table header"
 msgid "Comment"
 msgstr "Комментарий"
 
-#: templates/dashboard/order/list.html:6
-msgctxt "Order list page title"
-msgid "Orders"
-msgstr "Заказы"
+#: templates/dashboard/order/list.html:31
+msgctxt "Empty order list message"
+msgid "No orders found."
+msgstr "Не найдено заказов."
 
-#: templates/dashboard/order/list.html:14
-msgctxt "Order list breadcrumbs"
-msgid "Orders"
-msgstr "Заказы"
-
-#: templates/dashboard/order/list.html:29
+#: templates/dashboard/order/list.html:38
 msgctxt "Empty order list message"
 msgid "No orders."
 msgstr "Нет заказов."
 
-#: templates/dashboard/order/modal_add_note.html:7
+#: templates/dashboard/order/modal_add_note.html:8
 msgctxt "Modal add note title"
 msgid "Add note"
-msgstr "Добавить примечание."
+msgstr "Добавить примечание"
 
 #: templates/dashboard/order/modal_add_note.html:16
 msgctxt "Modal add note primary action"
 msgid "Save note"
 msgstr "Сохранить примечание"
 
-#: templates/dashboard/order/modal_add_note.html:19
-msgctxt "Modal add note secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/order/modal_address_edit.html:9
-msgctxt "Modal address title"
-msgid "Edit shipping address"
-msgstr "Редактировать адрес доставки"
-
-#: templates/dashboard/order/modal_address_edit.html:11
-msgctxt "Modal address title"
-msgid "Edit billing address"
-msgstr "Редактировать адрес платежа"
-
-#: templates/dashboard/order/modal_address_edit.html:21
-msgctxt "Modal address primary action"
-msgid "Update"
-msgstr "Обновить"
-
-#: templates/dashboard/order/modal_address_edit.html:24
-msgctxt "Modal address secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
 #: templates/dashboard/order/modal_cancel_delivery_group.html:8
 msgctxt "Modal cancel delivery group title"
 msgid "Cancel delivery group?"
 msgstr "Отменить доставку группы?"
 
-#: templates/dashboard/order/modal_cancel_delivery_group.html:10
+#: templates/dashboard/order/modal_cancel_delivery_group.html:11
 #, python-format
 msgctxt "Modal cancel delivery group text"
 msgid ""
-"After this action, %(group)s will be cancelled. Ordered items will be "
+"After this action %(group)s will be cancelled. Ordered items will be "
 "returned to stock."
 msgstr ""
 "После этого действия, %(group)s будут отменены. Заказанные продукты будут "
@@ -2952,79 +2879,71 @@ msgstr ""
 
 #: templates/dashboard/order/modal_cancel_delivery_group.html:18
 msgctxt "Modal cancel delivery group primary action"
-msgid "Cancel group"
-msgstr "Отменить группу"
+msgid "Cancel this shipment"
+msgstr "Отменить это отправление"
 
-#: templates/dashboard/order/modal_cancel_delivery_group.html:20
-msgctxt "Modal cancel delivery group secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/order/modal_cancel_line.html:8
-msgctxt "Modal cancel order line title"
-msgid "Cancel order line?"
-msgstr "Отменить позицию?"
-
-#: templates/dashboard/order/modal_cancel_line.html:10
-msgctxt "Modal cancel order line text"
-msgid "Are you sure, you want cancel this order line?"
-msgstr "Вы уверены, что хотите отменить эту позицию?"
-
-#: templates/dashboard/order/modal_cancel_line.html:18
-msgctxt "Modal cancel order line table header"
-msgid "Item"
-msgstr "Предмет"
-
-#: templates/dashboard/order/modal_cancel_line.html:19
-msgctxt "Modal cancel order line table header"
-msgid "SKU"
-msgstr "Артикул"
-
-#: templates/dashboard/order/modal_cancel_line.html:20
-msgctxt "Modal cancel order line table header"
-msgid "Price"
-msgstr "Цена"
-
-#: templates/dashboard/order/modal_cancel_line.html:21
-msgctxt "Modal cancel order line table header"
-msgid "Quantity"
-msgstr "Количество"
-
-#: templates/dashboard/order/modal_cancel_line.html:22
-msgctxt "Modal cancel order line table header"
-msgid "Total"
-msgstr "Сумма"
-
-#: templates/dashboard/order/modal_cancel_line.html:41
-msgctxt "Modal cancel order line primary action"
-msgid "Cancel Line"
-msgstr "Отменить позицию"
-
-#: templates/dashboard/order/modal_cancel_line.html:43
-msgctxt "Modal cancel order line secondary action"
+#: templates/dashboard/order/modal_cancel_delivery_group.html:21
+#: templates/dashboard/order/modal_cancel_order.html:23
+#: templates/dashboard/order/modal_order_remove_voucher.html:22
+msgctxt "Dashboard abort action"
 msgid "Abort"
 msgstr "Отмена"
 
-#: templates/dashboard/order/modal_cancel_order.html:5
+#: templates/dashboard/order/modal_cancel_line.html:9
+msgctxt "Modal remove order line title"
+msgid "Remove order line?"
+msgstr "Удалить строку заказа"
+
+#: templates/dashboard/order/modal_cancel_line.html:12
+msgctxt "Modal remove order line text"
+msgid "Are you sure you want remove this order line?"
+msgstr "Вы уверены, что хотите отменить эту позицию?"
+
+#: templates/dashboard/order/modal_cancel_line.html:21
+msgctxt "Modal remove order line table header"
+msgid "Item"
+msgstr "Предмет"
+
+#: templates/dashboard/order/modal_cancel_line.html:24
+msgctxt "Modal remove order line table header"
+msgid "SKU"
+msgstr "Артикул"
+
+#: templates/dashboard/order/modal_cancel_line.html:27
+msgctxt "Modal remove order line table header"
+msgid "Price"
+msgstr "Цена"
+
+#: templates/dashboard/order/modal_cancel_line.html:30
+msgctxt "Modal remove order line table header"
+msgid "Quantity"
+msgstr "Количество"
+
+#: templates/dashboard/order/modal_cancel_line.html:33
+msgctxt "Modal remove order line table header"
+msgid "Total"
+msgstr "Сумма"
+
+#: templates/dashboard/order/modal_cancel_line.html:60
+msgctxt "Dashboard remove action"
+msgid "Remove"
+msgstr "Удалить"
+
+#: templates/dashboard/order/modal_cancel_order.html:6
 msgctxt "Modal cancel order title"
 msgid "Cancel order?"
 msgstr "Отменить заказ?"
 
-#: templates/dashboard/order/modal_cancel_order.html:7
+#: templates/dashboard/order/modal_cancel_order.html:9
 #, python-format
 msgctxt "Modal cancel order text"
 msgid "Are you sure, you want cancel order %(order)s?"
 msgstr "Вы уверены, что хотите отменить заказ %(order)s?"
 
-#: templates/dashboard/order/modal_cancel_order.html:17
+#: templates/dashboard/order/modal_cancel_order.html:20
 msgctxt "Modal cancel order primary action"
 msgid "Cancel Order"
 msgstr "Отменить заказ"
-
-#: templates/dashboard/order/modal_cancel_order.html:19
-msgctxt "Modal cancel order secondary action"
-msgid "Abort"
-msgstr "Отмена"
 
 #: templates/dashboard/order/modal_capture.html:10
 msgctxt "Modal capture payment title"
@@ -3041,56 +2960,36 @@ msgctxt "Modal capture payment list title"
 msgid "Order total:"
 msgstr "Сумма заказа:"
 
-#: templates/dashboard/order/modal_capture.html:21
+#: templates/dashboard/order/modal_capture.html:22
 msgctxt "Modal capture payment list title"
 msgid "Captured amount:"
 msgstr "Зафиксированное число:"
 
-#: templates/dashboard/order/modal_capture.html:28
+#: templates/dashboard/order/modal_capture.html:29
 msgctxt "Modal capture payment primary action"
 msgid "Capture"
 msgstr "Зафиксировано"
 
-#: templates/dashboard/order/modal_capture.html:31
-msgctxt "Modal capture payment secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/order/modal_change_quantity.html:7
+#: templates/dashboard/order/modal_change_quantity.html:8
 msgctxt "Modal change quantity title"
 msgid "Change quantity"
 msgstr "Изменить количество"
 
-#: templates/dashboard/order/modal_change_quantity.html:16
-msgctxt "Modal change quantity primary action"
-msgid "Update"
-msgstr "Обновить"
-
-#: templates/dashboard/order/modal_change_quantity.html:18
-msgctxt "Modal change quantity secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/order/modal_order_remove_voucher.html:5
+#: templates/dashboard/order/modal_order_remove_voucher.html:6
 msgctxt "Modal remove voucher from order title"
 msgid "Remove voucher?"
 msgstr "Удалить купон?"
 
-#: templates/dashboard/order/modal_order_remove_voucher.html:7
+#: templates/dashboard/order/modal_order_remove_voucher.html:9
 #, python-format
 msgctxt "Modal remove voucher from order text"
 msgid "Are you sure, you want remove voucher discount from %(order)s?"
 msgstr "Вы действительно хотите удалить купон на скидку из %(order)s?"
 
-#: templates/dashboard/order/modal_order_remove_voucher.html:18
+#: templates/dashboard/order/modal_order_remove_voucher.html:19
 msgctxt "Modal remove voucher from order primary action"
 msgid "Remove voucher"
 msgstr "Удалить купон"
-
-#: templates/dashboard/order/modal_order_remove_voucher.html:20
-msgctxt "Modal remove voucher from order secondary action"
-msgid "Abort"
-msgstr "Отмена"
 
 #: templates/dashboard/order/modal_refund.html:10
 msgctxt "Modal refund payment title"
@@ -3112,22 +3011,17 @@ msgctxt "Modal refund payment list title"
 msgid "Captured amount:"
 msgstr "Зафиксированное число:"
 
-#: templates/dashboard/order/modal_refund.html:30
+#: templates/dashboard/order/modal_refund.html:29
 msgctxt "Modal refund payment primary action"
 msgid "Refund"
 msgstr "Возврат"
 
-#: templates/dashboard/order/modal_refund.html:33
-msgctxt "Modal refund payment secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/order/modal_release.html:5
+#: templates/dashboard/order/modal_release.html:6
 msgctxt "Modal release payment text"
 msgid "Release payment"
 msgstr "Выпустить платеж"
 
-#: templates/dashboard/order/modal_release.html:7
+#: templates/dashboard/order/modal_release.html:9
 msgctxt "Modal release payment text"
 msgid "Do you want to release the payment?"
 msgstr "Вы хотите выпустить платеж?"
@@ -3137,373 +3031,139 @@ msgctxt "Modal release payment primary action"
 msgid "Release"
 msgstr "Выпустить"
 
-#: templates/dashboard/order/modal_release.html:19
-msgctxt "Modal release payment secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
 #: templates/dashboard/order/modal_ship_delivery_group.html:8
 msgctxt "Modal ship delivery group title"
-msgid "Ship delivery group"
+msgid "Dispatch delivery group"
 msgstr "Доставить группу"
 
-#: templates/dashboard/order/modal_ship_delivery_group.html:9
+#: templates/dashboard/order/modal_ship_delivery_group.html:11
 msgctxt "Modal ship delivery group text"
-msgid "Ship selected delivery group to the following address:"
+msgid "Dispatch this shipment to the following address:"
 msgstr "Доставить выбранную группу на следующий адрес:"
 
-#: templates/dashboard/order/modal_ship_delivery_group.html:18
+#: templates/dashboard/order/modal_ship_delivery_group.html:20
 msgctxt "Modal ship delivery group primary action"
 msgid "Ship"
 msgstr "Доставка"
-
-#: templates/dashboard/order/modal_ship_delivery_group.html:21
-msgctxt "Modal ship delivery group secondary action"
-msgid "Cancel"
-msgstr "Отмена"
 
 #: templates/dashboard/order/modal_split_order_line.html:8
 msgctxt "Modal split order line title"
 msgid "Split order line"
 msgstr "Разбить линию заказа"
 
-#: templates/dashboard/order/modal_split_order_line.html:17
+#: templates/dashboard/order/modal_split_order_line.html:16
 msgctxt "Modal split order line primary action"
 msgid "Split"
 msgstr "Разделить"
 
-#: templates/dashboard/order/modal_split_order_line.html:19
-msgctxt "Modal split order line primary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/payments/detail.html:8
-#, python-format
-msgctxt "Payment detail page title"
-msgid "Payment #%(payment_id)s - Payments"
-msgstr "Платеж #%(payment_id)s - Платежи"
-
-#: templates/dashboard/payments/detail.html:25
-msgctxt "Payment detail breadcrumbs"
-msgid "Payments"
-msgstr "Платежи"
-
-#: templates/dashboard/payments/detail.html:29
-#, python-format
-msgctxt "Payment detail breadcrumbs"
-msgid "#%(payment_id)s"
-msgstr "#%(payment_id)s"
-
-#: templates/dashboard/payments/detail.html:43
-msgctxt "Payment detail card title"
-msgid "Payment details"
-msgstr "Описание платежа"
-
-#: templates/dashboard/payments/detail.html:46
-msgctxt "Payment detail card list item title"
-msgid "Payment status"
-msgstr "Статус платежа"
-
-#: templates/dashboard/payments/detail.html:47
-msgctxt "Payment detail card list item title"
-msgid "Fraud status"
-msgstr "Статус проверки на мошенничество"
-
-#: templates/dashboard/payments/detail.html:48
-msgctxt "Payment detail card list item title"
-msgid "Amount"
-msgstr "Количество"
-
-#: templates/dashboard/payments/detail.html:49
-msgctxt "Payment detail card list item title"
-msgid "Captured amount"
-msgstr "Зафиксированное число"
-
-#: templates/dashboard/payments/detail.html:50
-msgctxt "Payment detail card list item title"
-msgid "Gateway"
-msgstr "Шлюз"
-
-#: templates/dashboard/payments/detail.html:51
-msgctxt "Payment detail card list item title"
-msgid "Transaction ID"
-msgstr "ID транзакции"
-
-#: templates/dashboard/payments/detail.html:52
-msgctxt "Payment detail card list item title"
-msgid "Payment date"
-msgstr "Дата платежа"
-
-#: templates/dashboard/payments/detail.html:59
-msgctxt "Gateway response card title"
-msgid "Gateway response"
-msgstr "Ответ шлюза"
-
-#: templates/dashboard/payments/detail.html:64
-msgctxt "Empty gateway response card message"
-msgid "No response available."
-msgstr "Ответ недоступен."
-
-#: templates/dashboard/payments/detail.html:75
-msgctxt "Customer card title"
-msgid "Customer"
-msgstr "Покупатель"
-
-#: templates/dashboard/payments/detail.html:79
-#: templates/dashboard/payments/detail.html:84
-msgctxt "Customer card item title"
-msgid "Account"
-msgstr "Аккаунт"
-
-#: templates/dashboard/payments/detail.html:84
-msgctxt "Customer card item value"
-msgid "Guest"
-msgstr "Гость"
-
-#: templates/dashboard/payments/list.html:6
-msgctxt "Payment list page title"
-msgid "Payments"
-msgstr "Платежи"
-
-#: templates/dashboard/payments/list.html:14
-msgctxt "Payment list breadcrumbs"
-msgid "Payments"
-msgstr "Платежи"
-
-#: templates/dashboard/payments/list.html:28
-msgctxt "Payments table header"
-msgid "Date"
-msgstr "Дата"
-
-#: templates/dashboard/payments/list.html:29
-msgctxt "Payments table header"
-msgid "Payment"
-msgstr "Платеж"
-
-#: templates/dashboard/payments/list.html:30
-msgctxt "Payments table header"
-msgid "Amount"
-msgstr "Количество"
-
-#: templates/dashboard/payments/list.html:31
-msgctxt "Payments table header"
-msgid "Status"
-msgstr "Статус"
-
-#: templates/dashboard/payments/list.html:38
-#, python-format
-msgctxt "Payments table item data"
-msgid "#%(payment_id)s"
-msgstr "#%(payment_id)s"
-
-#: templates/dashboard/payments/list.html:44
-#, python-format
-msgctxt "Payments table item data"
-msgid "Gateway %(payment_variant)s"
-msgstr "Платежный шлюз %(payment_variant)s"
-
-#: templates/dashboard/payments/list.html:48
-#, python-format
-msgctxt "Payments table item data"
-msgid "Order %(order)s"
-msgstr "Заказ %(order)s"
-
-#: templates/dashboard/payments/list.html:64
-msgctxt "Empty payments table message"
-msgid "No payments found."
-msgstr "Платежи не найдены"
-
-#: templates/dashboard/product/attributes/confirm_delete.html:4
+#: templates/dashboard/product/attributes/confirm_delete.html:5
 msgctxt "Delete attribute page title"
 msgid "Delete attribute"
 msgstr "Удалить атрибут"
 
-#: templates/dashboard/product/attributes/confirm_delete.html:9
-msgctxt "Delete attribute breadcrumbs"
-msgid "Attributes"
-msgstr "Атрибуты"
-
-#: templates/dashboard/product/attributes/confirm_delete.html:11
+#: templates/dashboard/product/attributes/confirm_delete.html:17
 msgctxt "Delete attribute breadcrumbs"
 msgid "Delete attribute"
 msgstr "Удалить атрибут"
 
-#: templates/dashboard/product/attributes/confirm_delete.html:16
+#: templates/dashboard/product/attributes/confirm_delete.html:25
 msgctxt "Delete attribute text"
 msgid "Are you sure you want to delete the following attribute?"
 msgstr "Вы уверены, что хотите удалить следующие атрибуты?"
 
-#: templates/dashboard/product/attributes/confirm_delete.html:30
-msgctxt "Delete attribute secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/product/attributes/confirm_delete.html:32
-msgctxt "Delete attribute primary action"
-msgid "Delete"
-msgstr "Удалить"
-
-#: templates/dashboard/product/attributes/form.html:6
+#: templates/dashboard/product/attributes/form.html:10
 msgctxt "Attribute detail page title"
 msgid "Add new attribute"
 msgstr "Добавить новый атрибут"
 
-#: templates/dashboard/product/attributes/form.html:7
-msgctxt "Attribute detail page title"
-msgid "Attributes"
-msgstr "Атрибуты"
-
-#: templates/dashboard/product/attributes/form.html:27
+#: templates/dashboard/product/attributes/form.html:33
 msgctxt "Attribute detail action"
 msgid "Remove attribute"
 msgstr "Удалить атрибут"
 
-#: templates/dashboard/product/attributes/form.html:37
-msgctxt "Attribute detail breadcrumbs"
-msgid "Attributes"
-msgstr "Атрибуты"
-
-#: templates/dashboard/product/attributes/form.html:41
+#: templates/dashboard/product/attributes/form.html:57
 msgctxt "Attribute detail breadcrumbs"
 msgid "Add new attribute"
 msgstr "Добавить новый атрибут"
 
-#: templates/dashboard/product/attributes/form.html:58
+#: templates/dashboard/product/attributes/form.html:80
 msgctxt "Attribute values formset title"
 msgid "Attribute values"
 msgstr "Значения атрибута"
 
-#: templates/dashboard/product/attributes/form.html:92
-msgctxt "Attribute values formset action"
-msgid "Update"
-msgstr "Обновить"
-
-#: templates/dashboard/product/attributes/form.html:94
-msgctxt "Attribute values formset action"
-msgid "Create"
-msgstr "Создать"
-
-#: templates/dashboard/product/attributes/list.html:5
-msgctxt "Attribute list page title"
-msgid "Attributes"
-msgstr "Атрибуты"
-
-#: templates/dashboard/product/attributes/list.html:14
+#: templates/dashboard/product/attributes/list.html:15
 msgctxt "Attribute list add button text"
 msgid "Add attribute"
 msgstr "Добавить атрибут"
 
-#: templates/dashboard/product/attributes/list.html:22
-msgctxt "Attribute list breadcrumbs"
-msgid "Attributes"
-msgstr "Атрибуты"
-
-#: templates/dashboard/product/attributes/list.html:46
+#: templates/dashboard/product/attributes/list.html:51
 msgctxt "Empty attribute list message"
 msgid "No attributes found."
 msgstr "Атрибуты не найдены."
 
-#: templates/dashboard/product/attributes/modal_confirm_delete.html:6
-msgctxt "Modal delete attribute title"
-msgid "Are you sure?"
-msgstr "Вы уверены?"
-
-#: templates/dashboard/product/attributes/modal_confirm_delete.html:9
+#: templates/dashboard/product/attributes/modal_confirm_delete.html:10
 #, python-format
 msgctxt "Modal delete attribute text"
 msgid "You are about to delete an attribute <strong>%(attribute)s</strong>."
 msgstr "Вы собираетесь удалить атрибут <strong>%(attribute)s</strong>."
-
-#: templates/dashboard/product/attributes/modal_confirm_delete.html:17
-msgctxt "Modal delete attribute primary action"
-msgid "Delete"
-msgstr "Удалить"
-
-#: templates/dashboard/product/attributes/modal_confirm_delete.html:19
-msgctxt "Modal delete attribute secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/product/class_list.html:7
-msgctxt "Product type list page title"
-msgid "Product types"
-msgstr "Типы продуктов"
 
 #: templates/dashboard/product/class_list.html:17
 msgctxt "Product type list add button text"
 msgid "Add product type"
 msgstr "Добавить тип продукта"
 
-#: templates/dashboard/product/class_list.html:26
-msgctxt "Product type list breadcrumbs"
-msgid "Product types"
-msgstr "Типы продуктов"
-
-#: templates/dashboard/product/class_list.html:43
-msgctxt "Product type item list text"
+#: templates/dashboard/product/class_list.html:45
+#: templates/dashboard/product/product_form.html:90
+msgctxt "Dashboard variants"
 msgid "Variants"
 msgstr "Вариант"
 
-#: templates/dashboard/product/class_list.html:43
+#: templates/dashboard/product/class_list.html:47
 msgid "Yes"
 msgstr "Да"
 
-#: templates/dashboard/product/class_list.html:43
+#: templates/dashboard/product/class_list.html:49
 msgid "No"
 msgstr "Нет"
 
-#: templates/dashboard/product/class_list.html:44
+#: templates/dashboard/product/class_list.html:52
 msgctxt "Product type item list text"
 msgid "Variant attributes"
 msgstr "Варианты атрибута"
 
-#: templates/dashboard/product/class_list.html:45
+#: templates/dashboard/product/class_list.html:55
 msgctxt "Product type item list text"
 msgid "Product attributes"
 msgstr "Атрибуты продукта"
 
-#: templates/dashboard/product/class_list.html:52
+#: templates/dashboard/product/class_list.html:66
 msgctxt "Empty product type list message"
 msgid "No product types found."
 msgstr "Продукты не найдены."
 
-#: templates/dashboard/product/class_list.html:68
-msgctxt "Modal add product type action"
+#: templates/dashboard/product/class_list.html:83
+#: templates/dashboard/product/list.html:84
+msgctxt "Dashboard create new action"
 msgid "Create new"
 msgstr "Создать новый"
-
-#: templates/dashboard/product/list.html:7
-msgctxt "Product list page title"
-msgid "Products"
-msgstr "Продукты"
 
 #: templates/dashboard/product/list.html:18
 msgctxt "Product list add button text"
 msgid "Add product"
 msgstr "Добавить продукт"
 
-#: templates/dashboard/product/list.html:27
-msgctxt "Product list breadcrumbs"
-msgid "Products"
-msgstr "Продукты"
-
-#: templates/dashboard/product/list.html:54
+#: templates/dashboard/product/list.html:62
 msgctxt "Empty product list message"
 msgid "No products found."
 msgstr "Не найдены продукты."
 
-#: templates/dashboard/product/list.html:56
+#: templates/dashboard/product/list.html:66
 msgctxt "Empty product list without product types message"
 msgid "Create product type first."
 msgstr "Сначала создайте тип продукта."
 
-#: templates/dashboard/product/list.html:73
-msgctxt "Product list choose product type for new product action"
-msgid "Create new"
-msgstr "Создать новый"
-
 #: templates/dashboard/product/modal_product_class_confirm_delete.html:10
-msgctxt "Modal delete product class with products title"
+msgctxt "Dashboard error"
 msgid "Error"
 msgstr "Ошибка"
 
@@ -3512,17 +3172,7 @@ msgctxt "Modal delete product class with products text"
 msgid "This type is base for created products. Cannot remove it."
 msgstr "Этот типа базовый для созданных продуктов. Его нельзя удалить."
 
-#: templates/dashboard/product/modal_product_class_confirm_delete.html:27
-msgctxt "Modal delete product class with products secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/product/modal_product_class_confirm_delete.html:36
-msgctxt "Modal delete product class title"
-msgid "Are you sure?"
-msgstr "Вы уверены?"
-
-#: templates/dashboard/product/modal_product_class_confirm_delete.html:40
+#: templates/dashboard/product/modal_product_class_confirm_delete.html:41
 #, python-format
 msgctxt "Modal delete product class text"
 msgid ""
@@ -3532,97 +3182,37 @@ msgstr ""
 "Если вы удалите <strong>%(product_class)s</strong> вы потеряете все данные "
 "относящиеся к этому типу продукта."
 
-#: templates/dashboard/product/modal_product_class_confirm_delete.html:48
-msgctxt "Modal delete product class primary action"
-msgid "Delete"
-msgstr "Удалить"
-
-#: templates/dashboard/product/modal_product_class_confirm_delete.html:51
-msgctxt "Modal delete product class secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/product/modal_product_confirm_delete.html:10
-msgctxt "Modal delete product title"
-msgid "Are you sure?"
-msgstr "Вы уверены?"
-
 #: templates/dashboard/product/modal_product_confirm_delete.html:25
 #, python-format
 msgctxt "Modal delete product text"
 msgid ""
-"If you remove <strong>%(product)s</strong> you will lose all data related to"
-" this product."
+"If you remove <strong>%(product)s</strong> you will lose all data related to "
+"this product."
 msgstr ""
 "Если вы удалите <strong>%(product)s</strong> вы потеряете все данные "
 "относящиеся к этому продукту."
 
-#: templates/dashboard/product/modal_product_confirm_delete.html:33
-msgctxt "Modal delete product primary action"
-msgid "Delete"
-msgstr "Удалить"
-
-#: templates/dashboard/product/modal_product_confirm_delete.html:36
-msgctxt "Modal delete product secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/product/modal_product_image_confirm_delete.html:10
-msgctxt "Modal delete image title"
-msgid "Are you sure?"
-msgstr "Вы уверены?"
-
-#: templates/dashboard/product/modal_product_image_confirm_delete.html:19
+#: templates/dashboard/product/modal_product_image_confirm_delete.html:18
 msgctxt "Modal delete image text"
 msgid "You are about to delete this image."
 msgstr "Вы собираетесь удалить это изображение."
 
-#: templates/dashboard/product/modal_product_image_confirm_delete.html:27
-msgctxt "Modal delete image primary action"
-msgid "Delete"
-msgstr "Удалить"
-
-#: templates/dashboard/product/modal_product_image_confirm_delete.html:29
-msgctxt "Modal delete image secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/product/product_class_form.html:9
+#: templates/dashboard/product/product_class_form.html:12
 msgctxt "Product class page title"
 msgid "Add new product type"
 msgstr "Добавить новый тип продукта"
 
-#: templates/dashboard/product/product_class_form.html:9
-msgctxt "Product class page title"
-msgid "Products"
-msgstr "Продукты"
-
-#: templates/dashboard/product/product_class_form.html:23
-msgctxt "Product class breadcrumbs"
-msgid "Product types"
-msgstr "Типы продуктов"
-
-#: templates/dashboard/product/product_class_form.html:28
+#: templates/dashboard/product/product_class_form.html:43
 msgctxt "Product class breadcrumbs"
 msgid "Add new product type"
 msgstr "Добавить новый тип продукта"
 
-#: templates/dashboard/product/product_class_form.html:42
+#: templates/dashboard/product/product_class_form.html:59
 msgctxt "Product class action"
 msgid "Remove product type"
 msgstr "Удалить новый тип продукта"
 
-#: templates/dashboard/product/product_class_form.html:62
-msgctxt "Product class primary action"
-msgid "Update"
-msgstr "Обновить"
-
-#: templates/dashboard/product/product_class_form.html:64
-msgctxt "Product class primary action"
-msgid "Create"
-msgstr "Создать"
-
-#: templates/dashboard/product/product_class_form.html:71
+#: templates/dashboard/product/product_class_form.html:118
 msgctxt "Product class help text"
 msgid ""
 "Product Type is a template used for creating new products. It also controls "
@@ -3631,331 +3221,203 @@ msgstr ""
 "Тип продукта - это шаблон, служащий для создания новых продуктов. Он "
 "определяет какие атрибуты могут быть использованы в процессе создания."
 
-#: templates/dashboard/product/product_confirm_delete.html:6
-msgctxt "Product delete page title"
-msgid "Delete"
-msgstr "Удалить"
-
-#: templates/dashboard/product/product_confirm_delete.html:18
-msgctxt "Product delete breadcrumbs"
-msgid "Products"
-msgstr "Продукты"
-
-#: templates/dashboard/product/product_confirm_delete.html:23
+#: templates/dashboard/product/product_confirm_delete.html:31
 msgctxt "Product delete breadcrumbs"
 msgid "Delete product"
 msgstr "Удалить продукт"
 
-#: templates/dashboard/product/product_confirm_delete.html:26
+#: templates/dashboard/product/product_confirm_delete.html:34
 #, python-format
 msgctxt "Product delete breadcrumbs"
 msgid "Delete %(product)s"
 msgstr "Удалить %(product)s"
 
-#: templates/dashboard/product/product_confirm_delete.html:51
-msgctxt "Product delete primary action"
-msgid "Delete"
-msgstr "Удалить"
-
-#: templates/dashboard/product/product_form.html:9
+#: templates/dashboard/product/product_form.html:12
 msgctxt "Product form page title"
-msgid "Add new product"
-msgstr "Добавить новый продукт"
-
-#: templates/dashboard/product/product_form.html:10
-msgctxt "Product form page title"
-msgid "Products"
-msgstr "Продукты"
-
-#: templates/dashboard/product/product_form.html:24
-msgctxt "Product form breadcrumbs"
-msgid "Products"
-msgstr "Продукты"
-
-#: templates/dashboard/product/product_form.html:30
-msgctxt "Product form breadcrumbs"
 msgid "Add new product"
 msgstr "Добавить новый продукт"
 
 #: templates/dashboard/product/product_form.html:43
-msgctxt "Product form action"
+msgctxt "Product form breadcrumbs"
+msgid "Add new product"
+msgstr "Добавить новый продукт"
+
+#: templates/dashboard/product/product_form.html:58
+msgctxt "Dashboard preview action"
 msgid "View on site"
 msgstr "Посмотреть на сайте"
 
-#: templates/dashboard/product/product_form.html:49
+#: templates/dashboard/product/product_form.html:64
 msgctxt "Product form action"
 msgid "Remove product"
 msgstr "Удалить продукт"
 
-#: templates/dashboard/product/product_form.html:65
+#: templates/dashboard/product/product_form.html:81
 msgctxt "Product form tab"
 msgid "Details"
 msgstr "Подробности"
 
-#: templates/dashboard/product/product_form.html:72
-msgctxt "Product form tab"
-msgid "Variants"
-msgstr "Варианты"
-
-#: templates/dashboard/product/product_form.html:79
-msgctxt "Product form tab"
+#: templates/dashboard/product/product_form.html:99
+msgctxt "Dashboard stock"
 msgid "Stock"
 msgstr "Склад"
 
-#: templates/dashboard/product/product_form.html:86
+#: templates/dashboard/product/product_form.html:107
 msgctxt "Product form tab"
 msgid "Images"
 msgstr "Изображения"
 
-#: templates/dashboard/product/product_form.html:97
-msgctxt "Product form details tab label"
-msgid "Product type"
-msgstr "Тип продукта"
-
-#: templates/dashboard/product/product_form.html:131
-msgctxt "Product form details tab action"
-msgid "Update"
-msgstr "Обновить"
-
-#: templates/dashboard/product/product_form.html:135
-msgctxt "Product form details tab action"
-msgid "Create"
-msgstr "Создать"
-
-#: templates/dashboard/product/product_form.html:150
-msgctxt "Product form variants tab table action"
-msgid "Add"
-msgstr "Добавить"
-
-#: templates/dashboard/product/product_form.html:154
-msgctxt "Product form variants tab table action"
-msgid "Delete"
-msgstr "Удалить"
-
-#: templates/dashboard/product/product_form.html:159
-msgctxt "Modal delete variant from product title"
-msgid "Are you sure?"
-msgstr "Вы уверены?"
-
-#: templates/dashboard/product/product_form.html:160
+#: templates/dashboard/product/product_form.html:202
 msgctxt "Modal delete variant from product text"
 msgid "You are about to delete variants of this product."
 msgstr "Вы собираетесь удалить варианты этого продукта."
 
-#: templates/dashboard/product/product_form.html:167
-msgctxt "Modal delete variant from product primary action"
-msgid "Delete"
-msgstr "Удалить"
-
-#: templates/dashboard/product/product_form.html:169
-msgctxt "Modal delete variant from product secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/product/product_form.html:183
+#: templates/dashboard/product/product_form.html:227
 msgctxt "Product variant table header"
 msgid "SKU"
 msgstr "Артикул"
 
-#: templates/dashboard/product/product_form.html:187
+#: templates/dashboard/product/product_form.html:235
 msgctxt "Product variant table header"
 msgid "Variant name"
 msgstr "Имя варианта"
 
-#: templates/dashboard/product/product_form.html:188
+#: templates/dashboard/product/product_form.html:238
 msgctxt "Product variant table header"
 msgid "Price"
 msgstr "Цена"
 
-#: templates/dashboard/product/product_form.html:200
+#: templates/dashboard/product/product_form.html:244
 msgctxt "Product variant table link title"
 msgid "Edit variant"
 msgstr "Редактировать вариант"
 
-#: templates/dashboard/product/product_form.html:219
+#: templates/dashboard/product/product_form.html:271
 msgctxt "Empty product variant table message"
 msgid "There are no variants for this product"
 msgstr "Нет вариантов для этого продукта"
 
-#: templates/dashboard/product/product_form.html:237
+#: templates/dashboard/product/product_form.html:288
 msgctxt "Product form stock tab table action"
 msgid "Add"
 msgstr "Добавить"
 
-#: templates/dashboard/product/product_form.html:241
-msgctxt "Product form stock tab table action"
-msgid "Delete"
-msgstr "Удалить"
-
-#: templates/dashboard/product/product_form.html:246
-msgctxt "Modal delete stock from variant title"
-msgid "Are you sure?"
-msgstr "Вы уверены?"
-
-#: templates/dashboard/product/product_form.html:249
+#: templates/dashboard/product/product_form.html:299
 msgctxt "Modal delete stock from variant text"
 msgid "You are about to delete stock for this product variant."
 msgstr "Вы собираетесь удалить склад для этого варианта продукта."
 
-#: templates/dashboard/product/product_form.html:257
-msgctxt "Modal delete stock from variant primary action"
-msgid "Delete"
-msgstr "Удалить"
-
-#: templates/dashboard/product/product_form.html:259
-msgctxt "Modal delete stock from variant secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/product/product_form.html:273
+#: templates/dashboard/product/product_form.html:324
 msgctxt "Stock table header"
 msgid "SKU"
 msgstr "Артикул"
 
-#: templates/dashboard/product/product_form.html:274
+#: templates/dashboard/product/product_form.html:327
 msgctxt "Stock table header"
 msgid "Location"
 msgstr "Местоположение"
 
-#: templates/dashboard/product/product_form.html:275
+#: templates/dashboard/product/product_form.html:330
 msgctxt "Stock table header"
 msgid "Quantity"
 msgstr "Количество"
 
-#: templates/dashboard/product/product_form.html:276
+#: templates/dashboard/product/product_form.html:333
 msgctxt "Stock table header"
 msgid "Allocated"
 msgstr "Размещен"
 
-#: templates/dashboard/product/product_form.html:288
+#: templates/dashboard/product/product_form.html:339
 msgctxt "Stock table action"
 msgid "Edit variant"
 msgstr "Редактировать вариант"
 
-#: templates/dashboard/product/product_form.html:302
+#: templates/dashboard/product/product_form.html:364
 msgctxt "Empty stock table message"
 msgid "There is no stock for this product."
 msgstr "Нет складов для этого продукта"
 
-#: templates/dashboard/product/product_form.html:334
+#: templates/dashboard/product/product_form.html:396
 msgctxt "Image card text"
 msgid "No description"
 msgstr "Нет описания"
 
-#: templates/dashboard/product/product_form.html:342
-#: templates/dashboard/product/product_form.html:393
-msgctxt "Image card action"
-msgid "Edit"
-msgstr "Редактирование"
-
-#: templates/dashboard/product/product_form.html:347
-#: templates/dashboard/product/product_form.html:398
-msgctxt "Image card action"
-msgid "Delete"
-msgstr "Удалить"
-
-#: templates/dashboard/product/product_form.html:354
+#: templates/dashboard/product/product_form.html:418
 msgctxt "Empty image gallery message"
 msgid "This product has no images yet."
 msgstr "Этот продукт пока не имеет изображений."
 
-#: templates/dashboard/product/product_form.html:362
+#: templates/dashboard/product/product_form.html:425
 msgctxt "Image gallery upload box text"
 msgid "Drop images here to upload"
 msgstr "Перенесите изображения сюда для загрузки"
 
-#: templates/dashboard/product/product_form.html:384
+#: templates/dashboard/product/product_form.html:445
 msgctxt "Empty image gallery message"
 msgid "No description"
 msgstr "Нет описания"
 
-#: templates/dashboard/product/product_form.html:411
+#: templates/dashboard/product/product_form.html:465
 msgctxt "Add image button text"
 msgid "Add image"
 msgstr "Добавить изображение"
 
-#: templates/dashboard/product/product_image_confirm_delete.html:4
+#: templates/dashboard/product/product_image_confirm_delete.html:5
 msgctxt "Delete image page title"
 msgid "Delete image"
 msgstr "Удалить изображение"
 
-#: templates/dashboard/product/product_image_confirm_delete.html:16
-msgctxt "Delete image breadcrumbs"
-msgid "Products"
-msgstr "Продукты"
-
-#: templates/dashboard/product/product_image_confirm_delete.html:19
+#: templates/dashboard/product/product_image_confirm_delete.html:28
 msgctxt "Delete image breadcrumbs"
 msgid "Delete image"
 msgstr "Удалить изображение"
 
-#: templates/dashboard/product/product_image_confirm_delete.html:28
+#: templates/dashboard/product/product_image_confirm_delete.html:39
 msgctxt "Delete image text"
 msgid "Are you sure you want to delete the following image?"
 msgstr "Вы уверены, что хотите удалить следующее изображение?"
-
-#: templates/dashboard/product/product_image_confirm_delete.html:42
-msgctxt "Delete image text primary action"
-msgid "Cancel"
-msgstr "Отмена"
-
-#: templates/dashboard/product/product_image_confirm_delete.html:44
-msgctxt "Delete image secondary action"
-msgid "Delete"
-msgstr "Удалить"
 
 #: templates/dashboard/product/product_image_form.html:10
 msgid "Add image"
 msgstr "Добавить изображение"
 
-#: templates/dashboard/product/product_image_form.html:32
+#: templates/dashboard/product/product_image_form.html:38
+msgid "No description"
+msgstr "Нет описания"
+
+#: templates/dashboard/product/product_image_form.html:44
 msgctxt "Image form breadcrumbs"
 msgid "Add image"
 msgstr "Добавить изображение"
 
-#: templates/dashboard/product/product_image_form.html:34
+#: templates/dashboard/product/product_image_form.html:47
 #, python-format
 msgctxt "Image form breadcrumbs"
 msgid "Add image for %(product)s"
 msgstr "Добавить изображение для %(product)s"
 
-#: templates/dashboard/product/product_image_form.html:53
+#: templates/dashboard/product/product_image_form.html:73
 msgctxt "Image form text"
 msgid "Pick the most relevant part of the image using the red circle."
 msgstr "Выберите наиболее важную часть изображения используя красный круг."
 
-#: templates/dashboard/product/product_image_form.html:70
-msgctxt "Image form primary action"
-msgid "Update"
-msgstr "Обновить"
-
-#: templates/dashboard/product/product_image_form.html:72
-msgctxt "Image form secondary action"
-msgid "Create"
-msgstr "Создать"
-
-#: templates/dashboard/product/product_variant_confirm_delete.html:4
+#: templates/dashboard/product/product_variant_confirm_delete.html:5
 msgctxt "Delete variant page title"
 msgid "Delete variant"
 msgstr "Удалить вариант"
 
-#: templates/dashboard/product/product_variant_confirm_delete.html:16
-msgctxt "Delete variant breadcrumbs"
-msgid "Products"
-msgstr "Продукты"
-
-#: templates/dashboard/product/product_variant_confirm_delete.html:23
+#: templates/dashboard/product/product_variant_confirm_delete.html:29
 msgctxt "Delete variant breadcrumbs"
 msgid "Delete variant"
 msgstr "Удалить вариант"
 
-#: templates/dashboard/product/product_variant_confirm_delete.html:25
+#: templates/dashboard/product/product_variant_confirm_delete.html:32
 #, python-format
 msgctxt "Delete variant breadcrumbs"
 msgid "Delete variant for %(product)s"
 msgstr "Удалить вариант для %(product)s"
 
-#: templates/dashboard/product/product_variant_confirm_delete.html:44
+#: templates/dashboard/product/product_variant_confirm_delete.html:52
 msgctxt "Delete variant text"
 msgid ""
 "This is the only variant. Deleting it will make the product unavailable for "
@@ -3964,40 +3426,24 @@ msgstr ""
 "Это единственный вариант. Удаление сделает продукт недоступным для "
 "покупателей."
 
-#: templates/dashboard/product/product_variant_confirm_delete.html:55
-msgctxt "Delete variant action"
-msgid "Delete"
-msgstr "Удалить"
-
-#: templates/dashboard/product/stock_confirm_delete.html:4
+#: templates/dashboard/product/stock_confirm_delete.html:5
 msgctxt "Delete stock page title"
 msgid "Delete stock"
 msgstr "Удалить склад"
 
-#: templates/dashboard/product/stock_confirm_delete.html:16
-msgctxt "Delete stock breadcrumbs"
-msgid "Products"
-msgstr "Продукты"
-
-#: templates/dashboard/product/stock_confirm_delete.html:21
+#: templates/dashboard/product/stock_confirm_delete.html:29
 msgctxt "Delete stock breadcrumbs"
 msgid "Delete stock"
 msgstr "Удалить склад"
 
-#: templates/dashboard/product/stock_confirm_delete.html:23
+#: templates/dashboard/product/stock_confirm_delete.html:32
 #, python-format
 msgctxt "Delete stock breadcrumbs"
 msgid "Delete stock for %(product)s"
 msgstr "Удалить склад для продуктов %(product)s"
 
-#: templates/dashboard/product/stock_confirm_delete.html:48
-msgctxt "Delete stock action"
-msgid "Delete"
-msgstr "Удалить"
-
 #: templates/dashboard/product/stock_form.html:8
-#, python-format
-msgctxt "Stock form page title"
+msgctxt "Dashboard stock"
 msgid "Stock %(variant_name)s - %(location)s"
 msgstr "Склад %(variant_name)s - %(location)s"
 
@@ -4006,98 +3452,63 @@ msgctxt "Stock form page title"
 msgid "Add stock"
 msgstr "Добавить склад"
 
-#: templates/dashboard/product/stock_form.html:32
-#, python-format
-msgctxt "Stock form breadcrumbs"
+#: templates/dashboard/product/stock_form.html:46
+msgctxt "Dashboard stock"
 msgid "Stock %(variant)s"
 msgstr "Склад %(variant)s"
 
-#: templates/dashboard/product/stock_form.html:39
+#: templates/dashboard/product/stock_form.html:54
 msgctxt "Stock form breadcrumbs"
 msgid "Add stock"
 msgstr "Добавить склад"
 
-#: templates/dashboard/product/stock_form.html:42
+#: templates/dashboard/product/stock_form.html:57
 #, python-format
 msgctxt "Stock form breadcrumbs"
 msgid "Add stock for %(product)s"
 msgstr "Добавить склад для %(product)s"
 
-#: templates/dashboard/product/stock_form.html:71
-msgctxt "Stock form action"
-msgid "Update"
-msgstr "Обновить"
-
-#: templates/dashboard/product/stock_form.html:75
-msgctxt "Stock form action"
-msgid "Create"
-msgstr "Создать"
-
-#: templates/dashboard/product/stock_locations/form.html:8
+#: templates/dashboard/product/stock_locations/form.html:11
 msgctxt "Stock location page title"
 msgid "Add new stock location"
 msgstr "Добавить новое местоположение"
 
-#: templates/dashboard/product/stock_locations/form.html:9
-msgctxt "Stock location page title"
+#: templates/dashboard/product/stock_locations/form.html:13
+#: templates/dashboard/product/stock_locations/form.html:38
+msgctxt "Dashboard stock location"
 msgid "Stock location"
 msgstr "Местоположение склада"
 
-#: templates/dashboard/product/stock_locations/form.html:22
+#: templates/dashboard/product/stock_locations/form.html:27
 msgctxt "Stock location detail action"
 msgid "Remove location"
 msgstr "Удалить местоположение"
 
-#: templates/dashboard/product/stock_locations/form.html:32
-msgctxt "Stock location detail breadcrumbs"
-msgid "Stock location"
-msgstr "Местоположение склада"
-
-#: templates/dashboard/product/stock_locations/form.html:35
+#: templates/dashboard/product/stock_locations/form.html:51
 msgctxt "Stock location detail breadcrumbs"
 msgid "Add new stock location"
 msgstr "Добавить новое местоположение склада"
 
-#: templates/dashboard/product/stock_locations/form.html:57
-msgctxt "Stock location detail action"
-msgid "Update"
-msgstr "Обновить"
-
-#: templates/dashboard/product/stock_locations/form.html:61
-msgctxt "Stock location detail action"
-msgid "Create"
-msgstr "Создать"
-
-#: templates/dashboard/product/stock_locations/list.html:6
-msgctxt "Stock location list page title"
+#: templates/dashboard/product/stock_locations/list.html:7
+#: templates/dashboard/product/stock_locations/list.html:23
+msgctxt "Dashboard stock location"
 msgid "Stock locations"
-msgstr "Склады"
+msgstr "Расположение складов"
 
 #: templates/dashboard/product/stock_locations/list.html:14
 msgctxt "Stock location list add button text"
 msgid "Add stock location"
 msgstr "Добавить новое местоположение"
 
-#: templates/dashboard/product/stock_locations/list.html:22
-msgctxt "Stock location list breadcrumbs"
-msgid "Stock locations"
-msgstr "Склады"
-
-#: templates/dashboard/product/stock_locations/list.html:43
+#: templates/dashboard/product/stock_locations/list.html:48
 msgctxt "Empty stock location list message"
 msgid "No locations found."
 msgstr "Не найдено местоположение."
 
-#: templates/dashboard/product/stock_locations/modal_confirm_delete.html:6
-msgctxt "Modal delete stock location text"
-msgid "Are you sure?"
-msgstr "Вы уверены?"
-
-#: templates/dashboard/product/stock_locations/modal_confirm_delete.html:10
+#: templates/dashboard/product/stock_locations/modal_confirm_delete.html:11
 #, python-format
 msgctxt "Modal delete stock location text"
-msgid ""
-"You are about to delete a stock location <strong>%(location)s</strong>."
+msgid "You are about to delete a stock location <strong>%(location)s</strong>."
 msgstr "Вы собираетесь удалить склад <strong>%(location)s</strong>."
 
 #: templates/dashboard/product/stock_locations/modal_confirm_delete.html:17
@@ -4120,106 +3531,57 @@ msgstr[3] ""
 "Есть %(counter)s складов находящихся в данном местоположении которые будут "
 "удалены."
 
-#: templates/dashboard/product/stock_locations/modal_confirm_delete.html:27
-msgctxt "Modal delete stock location primary action"
-msgid "Delete"
-msgstr "Удалить"
-
-#: templates/dashboard/product/stock_locations/modal_confirm_delete.html:29
-msgctxt "Modal delete stock location secondary action"
-msgid "Cancel"
-msgstr "Отмена"
-
 #: templates/dashboard/product/variant_form.html:10
 msgctxt "Variant form page title"
 msgid "Add variant"
 msgstr "Добавить вариант"
 
-#: templates/dashboard/product/variant_form.html:27
-#, python-format
-msgctxt "Variant form breadcrumbs"
-msgid "Variant %(variant_sku)s"
-msgstr "Вариант %(variant_sku)s"
-
-#: templates/dashboard/product/variant_form.html:35
+#: templates/dashboard/product/variant_form.html:48
 msgctxt "Variant form breadcrumbs"
 msgid "Add variant"
 msgstr "Добавить вариант"
 
-#: templates/dashboard/product/variant_form.html:38
+#: templates/dashboard/product/variant_form.html:51
 #, python-format
 msgctxt "Variant form breadcrumbs"
 msgid "Add variant for %(product)s"
 msgstr "Добавить вариант для %(product)s"
 
-#: templates/dashboard/product/variant_form.html:62
+#: templates/dashboard/product/variant_form.html:83
 msgctxt "Variant form text"
 msgid "This product has no attributes."
 msgstr "Этот продукт не имеет атрибутов."
 
-#: templates/dashboard/product/variant_form.html:79
-msgctxt "Variant form action"
-msgid "Update"
-msgstr "Обновить"
-
-#: templates/dashboard/product/variant_form.html:83
-msgctxt "Variant form action"
-msgid "Create"
-msgstr "Создать"
-
-#: templates/dashboard/search/results.html:8 templates/search/results.html:7
+#: templates/dashboard/search/results.html:9 templates/search/results.html:7
 msgctxt "Search page title"
 msgid "Search results"
 msgstr "Поиск результатов"
 
-#: templates/dashboard/search/results.html:12
-msgctxt "Search breadcrumbs"
-msgid "Search"
-msgstr "Поиск"
-
-#: templates/dashboard/search/results.html:23
-msgctxt "Search form placeholder"
-msgid "Search"
-msgstr "Поиск"
-
-#: templates/dashboard/search/results.html:55
-#, python-format
-msgctxt "Search order result text"
+#: templates/dashboard/search/results.html:57
+msgctxt "Dashboard order"
 msgid "Order #%(order_number)s"
 msgstr "Заказ #%(order_number)s"
 
-#: templates/dashboard/search/results.html:62
-#, python-format
-msgctxt "Search order result text"
+#: templates/dashboard/search/results.html:63
+msgctxt "Dashboard customer"
 msgid "Customer: %(email)s"
 msgstr "Покупатель: %(email)s"
 
-#: templates/dashboard/search/results.html:67
-#, python-format
-msgctxt "Search order result text"
+#: templates/dashboard/search/results.html:68
+msgctxt "Dashboard order info"
 msgid "Placed on: %(placed)s"
 msgstr "Расположен в: %(placed)s"
 
-#: templates/dashboard/search/results.html:77
-#, python-format
-msgctxt "Search user result text"
+#: templates/dashboard/search/results.html:78
+msgctxt "Dashboard user"
 msgid "User %(full_name)s"
 msgstr "Пользователь %(full_name)s"
 
-#: templates/dashboard/search/results.html:83
-msgctxt "Search user result text"
-msgid "Customer"
-msgstr "Покупатель"
-
-#: templates/dashboard/search/results.html:92
+#: templates/dashboard/search/results.html:96
 #, python-format
 msgctxt "No Search result message"
 msgid "No results for query \"%(query)s\"."
 msgstr "Нет результатов по запросу \"%(query)s\"."
-
-#: templates/dashboard/search/results.html:110
-msgid "Create new"
-msgstr "Создать новый"
 
 #: templates/dashboard/shipping/method_delete.html:6
 #: templates/dashboard/shipping/method_delete.html:14
@@ -4233,137 +3595,96 @@ msgctxt "Delete shipping method breadcrumbs"
 msgid "Subscription methods"
 msgstr "Способ подписки"
 
-#: templates/dashboard/shipping/method_delete.html:32
+#: templates/dashboard/shipping/method_delete.html:35
 msgctxt "Delete shipping method breadcrumbs"
 msgid "Delete"
 msgstr "Удалить"
 
-#: templates/dashboard/shipping/method_delete.html:44
+#: templates/dashboard/shipping/method_delete.html:47
 #, python-format
 msgctxt "Delete shipping method text"
 msgid "Are you sure you want to delete the %(shipping_method_name)s method?"
 msgstr "Вы действительно хотите удалить %(shipping_method_name)s способ?"
 
-#: templates/dashboard/shipping/method_delete.html:52
-msgctxt "Delete shipping method action"
-msgid "Delete"
-msgstr "Удалить"
-
-#: templates/dashboard/shipping/method_form.html:8
-msgctxt "Shipping method form page title"
+#: templates/dashboard/shipping/method_form.html:7
+msgctxt "Dashboard shipping methods"
 msgid "Shipping methods"
 msgstr "Способ доставки"
 
-#: templates/dashboard/shipping/method_form.html:12
-#: templates/dashboard/shipping/method_form.html:22
+#: templates/dashboard/shipping/method_form.html:11
+#: templates/dashboard/shipping/method_form.html:24
 msgctxt "Shipping method form page title"
 msgid "Add new method"
 msgstr "Добавить новый способ"
 
-#: templates/dashboard/shipping/method_form.html:28
-msgctxt "Shipping method form breadcrumbs"
+#: templates/dashboard/shipping/method_form.html:32
+msgctxt "Dashboard shipping method"
 msgid "Shipping methods"
 msgstr "Способ доставки"
 
-#: templates/dashboard/shipping/method_form.html:36
+#: templates/dashboard/shipping/method_form.html:47
 msgctxt "Shipping method form breadcrumbs"
 msgid "Add new method"
 msgstr "Добавить новый способ"
 
-#: templates/dashboard/shipping/method_form.html:52
+#: templates/dashboard/shipping/method_form.html:62
+msgctxt "Shipping method form action"
+msgid "Delete shipping method"
+msgstr "Удалить способ доставки"
+
+#: templates/dashboard/shipping/method_form.html:83
 msgctxt "Shipping method form text"
 msgid "Price per country"
 msgstr "Цена для страны"
 
-#: templates/dashboard/shipping/method_form.html:75
-msgctxt "Shipping method form action"
-msgid "Delete"
-msgstr "Удалить"
+#: templates/dashboard/shipping/method_form.html:91
+msgctxt "Shipping method country list"
+msgid "Country"
+msgstr "Страна"
 
-#: templates/dashboard/shipping/method_form.html:79
-#: templates/dashboard/shipping/method_form.html:86
-msgctxt "Shipping method form action"
-msgid "Cancel"
-msgstr "Отмена"
+#: templates/dashboard/shipping/method_form.html:94
+msgctxt "Shipping method country list"
+msgid "Price"
+msgstr "Цена"
 
-#: templates/dashboard/shipping/method_form.html:80
-msgctxt "Shipping method form action"
-msgid "Update"
-msgstr "Обновить"
-
-#: templates/dashboard/shipping/method_form.html:87
-msgctxt "Shipping method form action"
-msgid "Create"
-msgstr "Создать"
-
-#: templates/dashboard/shipping/method_list.html:6
-msgctxt "Shipping method list page title"
-msgid "Shipping methods"
-msgstr "Способ доставки"
-
-#: templates/dashboard/shipping/method_list.html:14
-msgctxt "Shipping method list breadcrumbs"
-msgid "Shipping methods"
-msgstr "Способ доставки"
-
-#: templates/dashboard/shipping/method_list.html:21
+#: templates/dashboard/shipping/method_list.html:27
 msgctxt "Shipping method list add button text"
 msgid "Add method"
 msgstr "Добавить способ"
 
-#: templates/dashboard/shipping/method_list.html:35
+#: templates/dashboard/shipping/method_list.html:37
 msgctxt "Shipping methods table header"
 msgid "Name"
 msgstr "Имя"
 
-#: templates/dashboard/shipping/method_list.html:36
+#: templates/dashboard/shipping/method_list.html:40
 msgctxt "Shipping methods table header"
 msgid "Price range"
 msgstr "Диапазон цен"
 
-#: templates/dashboard/shipping/method_list.html:37
+#: templates/dashboard/shipping/method_list.html:43
 msgctxt "Shipping methods table header"
 msgid "Countries"
 msgstr "Страны"
 
-#: templates/dashboard/shipping/method_list.html:66
-msgctxt "Empty Shipping methods table"
-msgid "No shipping methods found."
+#: templates/dashboard/shipping/method_list.html:73
+msgctxt "Empty Shipping methods table message"
+msgid "No Shipping methods found"
 msgstr "Не найдено способов доставки."
 
-#: templates/dashboard/sites/detail.html:5
+#: templates/dashboard/sites/detail.html:9
 msgctxt "Site settings page title"
 msgid "Add new site settings"
 msgstr "Добавить новые настройки сайта."
-
-#: templates/dashboard/sites/detail.html:5
-msgctxt "Site settings page title"
-msgid "Site settings"
-msgstr "Настройки сайта"
-
-#: templates/dashboard/sites/detail.html:14
-msgctxt "Site settings breadcrumbs"
-msgid "Site settings"
-msgstr "Настройки сайта"
-
-#: templates/dashboard/sites/detail.html:18
-msgctxt "Site settings breadcrumbs"
-msgid "Add new site settings"
-msgstr "Добавить новые настройки сайта."
-
-#: templates/dashboard/sites/detail.html:39
-msgctxt "Site settings action"
-msgid "Update"
-msgstr "Обновить"
 
 #: templates/home.html:13
 msgctxt "Homepage title"
 msgid "Promo &amp; Sale"
-msgstr "Промо &amp; Скидка"
+msgstr "Промо и Скидка"
 
 #: templates/home.html:14
 msgctxt "Homepage title"
-msgid "form the Northpole"
+msgid "from the Northpole"
 msgstr "с Северного полюса"
 
 #: templates/home.html:16 templates/home.html:31 templates/home.html:43
@@ -4374,7 +3695,7 @@ msgstr "Купить сейчас"
 #: templates/home.html:30
 msgctxt "Homepage title"
 msgid "Size &amp; Colours"
-msgstr "Размер & Цвета"
+msgstr "Размер и Цвета"
 
 #: templates/home.html:42
 msgctxt "Homepage title"
@@ -4386,11 +3707,20 @@ msgctxt "Homepage title"
 msgid "Featured products"
 msgstr "Избранные продукты"
 
-#: templates/materializecssform/field.html:33
-msgid "optional"
+#: templates/materializecssform/field.html:32
+#: templates/materializecssform/field.html:59
+#: templates/materializecssform/field.html:86
+#: templates/materializecssform/field.html:109
+#: templates/materializecssform/field.html:135
+#: templates/materializecssform/field.html:162
+#: templates/materializecssform/field.html:183
+#: templates/materializecssform/field.html:197
+#: templates/materializecssform/field.html:230
+msgctxt "Dashboard form labels"
+msgid "(optional)"
 msgstr "выборочно"
 
-#: templates/materializecssform/field.html:153
+#: templates/materializecssform/field.html:203
 msgid "File"
 msgstr "Файл"
 
@@ -4452,16 +3782,6 @@ msgstr "Продолжить покупки"
 msgctxt "Order details page title"
 msgid "Order %(order)s"
 msgstr "Заказ %(order)s"
-
-#: templates/order/details.html:16
-msgctxt "Order details breadcrumb"
-msgid "Home"
-msgstr "Домой"
-
-#: templates/order/details.html:19
-msgctxt "Order details breadcrumb"
-msgid "Your account"
-msgstr "Ваш аккаунт"
 
 #: templates/order/details.html:22
 #, python-format
@@ -4558,16 +3878,6 @@ msgctxt "Payment details page title"
 msgid "Pay for order %(order)s"
 msgstr "Оплатить заказ %(order)s"
 
-#: templates/order/payment.html:19
-msgctxt "Payment details breadcrumb"
-msgid "Home"
-msgstr "Домой"
-
-#: templates/order/payment.html:22
-msgctxt "Payment details breadcrumb"
-msgid "Your account"
-msgstr "Ваш аккаунт"
-
 #: templates/order/payment.html:25
 #, python-format
 msgctxt "Payment details breadcrumb"
@@ -4589,7 +3899,7 @@ msgstr ""
 
 #: templates/order/payment.html:48
 msgctxt "Payment status text"
-msgid "Current status"
+msgid "Current status:"
 msgstr "Текущий статус"
 
 #: templates/order/payment.html:54
@@ -4656,7 +3966,8 @@ msgid ""
 msgstr ""
 "Привет! \n"
 "\n"
-"Спасибо за оплату. Чтобы увидеть детали платежа перейдите по ссылке: %(order_url)s\n"
+"Спасибо за оплату. Чтобы увидеть детали платежа перейдите по ссылке: "
+"%(order_url)s\n"
 "\n"
 "С уважением,\n"
 "Команда Saleor"
@@ -4697,11 +4008,6 @@ msgctxt "product price range"
 msgid "from"
 msgstr "от"
 
-#: templates/product/details.html:16
-msgctxt "Product details breadcrumbs"
-msgid "Home"
-msgstr "Домой"
-
 #: templates/product/details.html:30
 #, python-format
 msgctxt "Product details text"
@@ -4732,6 +4038,10 @@ msgctxt "Product details title"
 msgid "Description"
 msgstr "Описание"
 
+#: templates/search/results.html:33
+msgid "Search:"
+msgstr "Поиск"
+
 #: templates/search/results.html:35
 msgctxt "Search without results text"
 msgid "Sorry, no matches found for your request."
@@ -4761,11 +4071,6 @@ msgstr "Редактировать адрес"
 msgctxt "New address page title"
 msgid "New address"
 msgstr "Новый адрес"
-
-#: templates/userprofile/address-edit.html:15
-msgctxt "Edit/new address breadcrumb"
-msgid "Home"
-msgstr "Домой"
 
 #: templates/userprofile/address-edit.html:18
 msgctxt "Edit/new address breadcrumb"
@@ -4802,16 +4107,6 @@ msgctxt "User profile page title"
 msgid "Your profile"
 msgstr "Ваш профиль"
 
-#: templates/userprofile/details.html:14
-msgctxt "User profile breadcrumb"
-msgid "Home"
-msgstr "Домой"
-
-#: templates/userprofile/details.html:16
-msgctxt "User profile breadcrumb"
-msgid "Your account"
-msgstr "Ваш аккаунт"
-
 #: templates/userprofile/details.html:23
 msgid "My account"
 msgstr "Мой аккаунт"
@@ -4844,7 +4139,7 @@ msgstr "Дата"
 #: templates/userprofile/details.html:55
 msgctxt "Recent orders column title"
 msgid "Summary"
-msgstr "Краткое описание"
+msgstr "Сумма заказа"
 
 #: templates/userprofile/details.html:58
 msgctxt "Recent orders column title"

@@ -5,7 +5,7 @@
 {% load staticfiles %}
 
 {% block title %}
-  {% trans "Product types" context "Product type list page title" %} - {{ block.super }}
+  {% trans "Product types" context "Dashboard product types list" %} - {{ block.super }}
 {% endblock %}
 
 {% block body_class %}body-products{% endblock %}
@@ -23,7 +23,7 @@
 {% block breadcrumbs %}
   <ul class="breadcrumbs">
     <li class="visible-s">
-      {% trans "Product types" context "Product type list breadcrumbs" %}
+      {% trans "Product types" context "Dashboard product types list" %}
     </li>
   </ul>
 {% endblock %}
@@ -42,7 +42,7 @@
                   {{ name }}
                 </span>
                 <p class="list-item-desc">
-                  {% trans "Variants" context "Product type item list text" %}: 
+                  {% trans "Variants" context "Dashboard variants" %}: 
                   {% if has_variants %}
                     {% trans "Yes" %}
                   {% else %}
@@ -80,7 +80,7 @@
           <div class="col s12">
             <button class="btn" type="submit">
               <i class="material-icons left">create</i> 
-              {% trans "Create new" context "Modal add product type action"  %}
+              {% trans "Create new" context "Dashboard create new action" %}
             </button>
           </div>
         </div>
