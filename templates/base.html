@@ -184,6 +184,11 @@
                                     {% trans "Dashboard" context "Main navigation item" %}
                                 </a>
                               </li>
+                              <li>
+                                <a href="{% url "styleguide" %}">
+                                    {% trans "Style guide" context "Main navigation item" %}
+                                </a>
+                              </li>
                           {% endif %}
                           <li>
                             <a href="{% url "profile:details" %}">
