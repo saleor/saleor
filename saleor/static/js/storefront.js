@@ -365,3 +365,31 @@ if ($.cookie('alert') === 'true') {
 $closeMsg.on('click', (e) => {
   $removeProductSucces.addClass('hidden-xs-up');
 });
+
+
+let $reviewSection = $('#review_section');
+let $reviewForCountryUrl = $reviewSection.data('url');
+$('input[name=address]').on('change', function(e){
+  let address_type = $('form').data('type');
+  let that = this;
+  let address_id = $(that).val();
+  if ($.isNumeric(address_id)) {
+    $.ajax({
+      url: $reviewForCountryUrl,
+      method: 'get',
+      data: {
+        'address_id': address_id,
+        'address_type': address_type,
+      },
+      success: function (response) {
+        $reviewSection.html(response);
+      }
+    });
+  }
+});
+
+let $countryForm = $('#country-form');
+let $countryFormSelect = $('#country-form select');
+$countryFormSelect.on('change', function(e) {
+  $countryForm.submit();
+});

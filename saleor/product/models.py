@@ -23,7 +23,7 @@ from versatileimagefield.fields import VersatileImageField, PPOIField
 
 from ..discount.models import calculate_discounted_price
 from ..search import index
-from .utils import get_attributes_display_map
+from .utils import get_attributes_display_map, get_price_with_vat
 
 
 @python_2_unicode_compatible
@@ -84,6 +84,9 @@ class ProductClass(models.Model):
     is_shipping_required = models.BooleanField(
         pgettext_lazy('Product class field', 'is shipping required'),
         default=False)
+    vat_rate_type = models.CharField(
+        pgettext_lazy('Product class field', 'vat rate type'), max_length=60,
+        default='standard')
 
     class Meta:
         verbose_name = pgettext_lazy(
@@ -192,9 +195,11 @@ class Product(models.Model, ItemRange, index.Indexed):
         self.attributes[smart_text(pk)] = smart_text(value_pk)
 
     def get_price_range(self, discounts=None,  **kwargs):
+        country = kwargs.get('country')
         if not self.variants.exists():
             price = calculate_discounted_price(self, self.price, discounts,
                                                **kwargs)
+            price = get_price_with_vat(self, price, country)
             return PriceRange(price, price)
         else:
             return super(Product, self).get_price_range(
@@ -237,10 +242,11 @@ class ProductVariant(models.Model, Item):
             return 0
         return max([stock.quantity_available for stock in self.stock.all()])
 
-    def get_price_per_item(self, discounts=None, **kwargs):
+    def get_price_per_item(self, discounts=None, country=None, **kwargs):
         price = self.price_override or self.product.price
         price = calculate_discounted_price(self.product, price, discounts,
                                            **kwargs)
+        price = get_price_with_vat(self.product, price, country)
         return price
 
     def get_absolute_url(self):

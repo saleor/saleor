@@ -6,6 +6,7 @@ import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.utils.encoding import smart_text
 from mock import Mock
+from django_prices_vatlayer.models import VAT
 
 from saleor.cart import utils
 from saleor.cart.models import Cart
@@ -122,7 +123,8 @@ def default_category(db):  # pylint: disable=W0613
 def product_class(color_attribute, size_attribute):
     product_class = ProductClass.objects.create(name='Default Class',
                                                 has_variants=False,
-                                                is_shipping_required=True)
+                                                is_shipping_required=True,
+                                                vat_rate_type='books')
     product_class.product_attributes.add(color_attribute)
     product_class.variant_attributes.add(size_attribute)
     return product_class
@@ -259,3 +261,10 @@ def sale(db, default_category):
     sale = Sale.objects.create(name="Sale", value=5)
     sale.categories.add(default_category)
     return sale
+
+
+@pytest.fixture
+def vat(db):
+    data = {'country_name': 'Austria', 'standard_rate': 20,
+            'reduced_rates': {'foodstuffs': 10, 'books': 10}}
+    return VAT.objects.create(country_code='AT', data=data)

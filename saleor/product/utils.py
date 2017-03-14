@@ -4,6 +4,8 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.utils.encoding import smart_text
 from django_prices.templatetags import prices_i18n
+from django_prices_vatlayer.utils import get_tax_for_country
+
 
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
@@ -53,9 +55,11 @@ def get_product_images(product):
     return list(product.images.all())
 
 
-def products_with_availability(products, discounts, local_currency):
+def products_with_availability(products, discounts, local_currency,
+                               country=None):
     for product in products:
-        yield product, get_availability(product, discounts, local_currency)
+        yield product, get_availability(product, discounts, local_currency,
+                                        country)
 
 
 ProductAvailability = namedtuple(
@@ -64,10 +68,12 @@ ProductAvailability = namedtuple(
         'price_range_local_currency', 'discount_local_currency'))
 
 
-def get_availability(product, discounts=None, local_currency=None):
+def get_availability(product, discounts=None, local_currency=None,
+                     country=None):
+
     # In default currency
-    price_range = product.get_price_range(discounts=discounts)
-    undiscounted = product.get_price_range()
+    price_range = product.get_price_range(discounts=discounts, country=country)
+    undiscounted = product.get_price_range(country=country)
     if undiscounted.min_price > price_range.min_price:
         discount = undiscounted.min_price - price_range.min_price
     else:
@@ -107,7 +113,7 @@ def handle_cart_form(request, product, create_cart=False):
         cart = get_cart_from_request(request)
     form = ProductForm(
         cart=cart, product=product, data=request.POST or None,
-        discounts=request.discounts)
+        discounts=request.discounts, country=request.country)
     return form, cart
 
 
@@ -153,8 +159,10 @@ def product_json_ld(product, availability=None, attributes=None):
     return data
 
 
-def get_variant_picker_data(product, discounts=None, local_currency=None):
-    availability = get_availability(product, discounts, local_currency)
+def get_variant_picker_data(product, discounts=None, local_currency=None,
+                            country=None):
+    availability = get_availability(product, discounts, local_currency,
+                                    country=country)
     variants = product.variants.all()
     data = {'variantAttributes': [], 'variants': []}
 
@@ -168,8 +176,8 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
                        for value in attribute.values.all()]})
 
     for variant in variants:
-        price = variant.get_price_per_item(discounts)
-        price_undiscounted = variant.get_price_per_item()
+        price = variant.get_price_per_item(discounts, country=country)
+        price_undiscounted = variant.get_price_per_item(country=country)
         if local_currency:
             price_local_currency = to_local_currency(price, local_currency)
         else:
@@ -256,3 +264,12 @@ def get_attributes_display_map(obj, attributes):
             else:
                 display_map[attribute.pk] = value
     return display_map
+
+
+def get_price_with_vat(product, price, country):
+    if country and settings.VATLAYER_ACCESS_KEY:
+        rate_name = product.product_class.vat_rate_type
+        vat = get_tax_for_country(country, rate_name)
+        if vat:
+            price = vat.apply(price).quantize('0.01')
+    return price

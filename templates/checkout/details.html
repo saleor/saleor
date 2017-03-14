@@ -31,51 +31,8 @@
       <div class="col-md-7">
         {% block forms %}{% endblock %}
       </div>
-      <div class="col-md-5">
-        {% with total=checkout.get_total %}
-          <div class="checkout__review">
-            <h3 class="checkout__review__tittle">{% trans "Order review" context "Order review title" %}</h3>
-            {% for delivery, delivery_cost, total_with_delivery in checkout.deliveries %}
-              {% for item, item_price_per_item, item_price_total in delivery %}
-                <div class="row">
-                  <div class="col-8">
-                    <p><strong>{{ item.variant.product }}</strong> x {{ item.quantity }}<br>
-                      <span class="checkout__review__variant">{{ item.variant }}</span></p>
-                  </div>
-                  <div class="col-4">
-                    <p class="float-right">{% net item_price_total %}</p>
-                  </div>
-                </div>
-              {% endfor %}
-            {% endfor %}
-            <div class="row checkout__review__section">
-              <div class="col-8">
-                <p>{% trans "Delivery" context "Order review section" %}</p>
-              </div>
-              <div class="col-4">
-                <p class="float-right">{% if checkout.shipping_method %}
-                  {% net checkout.get_total_shipping %}
-                {% else %}
-                  &mdash;
-                {% endif %}</p>
-              </div>
-            </div>
-            <div class="row checkout__review__section">
-              <div class="col-12">
-                <h3>{% trans "Promo code" context "Order review section title" %}</h3>
-                {% include "checkout/snippets/voucher-form.html" with discount=checkout.discount form=voucher_form %}
-              </div>
-            </div>
-            <div class="row checkout__review__section">
-              <div class="col-8">
-                <h3>{% trans "Total" context "Order review section title" %}</h3>
-              </div>
-              <div class="col-4">
-                <h3 class="float-right">{% gross total html=True %}</h3>
-              </div>
-            </div>
-          </div>
-        {% endwith %}
+      <div class="col-md-5" id="review_section" data-url="{% url 'checkout:review_for_country' %}">
+        {% include 'checkout/_review_section.html' with deliveries=checkout.deliveries total=checkout.get_total %}
       </div>
   </div>
 {% endblock content %}

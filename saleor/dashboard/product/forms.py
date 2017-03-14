@@ -1,12 +1,14 @@
 from __future__ import unicode_literals
 
 from django import forms
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Count
 from django.forms.models import ModelChoiceIterator, inlineformset_factory
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
+from django_prices_vatlayer.models import RateTypes
 
 from ...product.models import (AttributeChoiceValue, Product, ProductAttribute,
                                ProductClass, ProductImage, ProductVariant,
@@ -58,6 +60,18 @@ class ProductClassForm(forms.ModelForm):
             'product_attributes': pgettext_lazy(
                 'Product class form label',
                 'Attributes common to all variants')}
+
+    def __init__(self, *args, **kwargs):
+        super(ProductClassForm, self).__init__(*args, **kwargs)
+        if settings.VATLAYER_ACCESS_KEY is not None:
+            rate_choices = [('', '--------'), ('standard', 'standard')]
+            rate_types = RateTypes.objects.singleton()
+            if rate_types:
+                rate_choices += [(name, name) for name in rate_types.types]
+            self.fields['vat_rate_type'] = forms.ChoiceField(
+                choices=rate_choices, required=False)
+        else:
+            del self.fields['vat_rate_type']
 
     def clean(self):
         data = super(ProductClassForm, self).clean()

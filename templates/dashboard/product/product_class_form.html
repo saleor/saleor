@@ -10,7 +10,7 @@
     {{ product_class }}
   {% else %}
     {% trans "Add new product type" context "Product class page title" %}
-  {% endif %} 
+  {% endif %}
   - {% trans "Products" context "Dashboard products list" %} - {{ block.super }}
 {% endblock %}
 
@@ -73,6 +73,11 @@
             <div class="row">
               {{ form.name|materializecss }}
             </div>
+            {% if form.vat_rate_type %}
+            <div class="row">
+              {{ form.vat_rate_type|materializecss }}
+            </div>
+            {% endif %}
             <div class="row">
               <div class="col s12 m8">
                 <div class="row">

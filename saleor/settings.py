@@ -96,6 +96,7 @@ context_processors = [
     'saleor.core.context_processors.search_enabled',
     'saleor.site.context_processors.settings',
     'saleor.core.context_processors.webpage_schema',
+    'saleor.core.context_processors.country_form',
 ]
 
 loaders = [
@@ -168,6 +169,7 @@ INSTALLED_APPS = [
     'bootstrap3',
     'django_prices',
     'django_prices_openexchangerates',
+    'django_prices_vatlayer',
     'emailit',
     'graphene_django',
     'mptt',
@@ -385,3 +387,6 @@ GRAPHENE = {
 }
 
 SITE_SETTINGS_ID = 1
+
+
+VATLAYER_ACCESS_KEY = os.environ.get('VATLAYER_ACCESS_KEY', None)

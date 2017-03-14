@@ -1,14 +1,20 @@
 import pytest
 from mock import Mock
 
+from django.core.urlresolvers import reverse
+from django.conf import settings
+
+from saleor.core.middleware import CountryMiddleware
 from saleor.core.utils import (
     Country, create_superuser, get_country_by_ip, get_currency_for_country,
     random_data)
+from saleor.core.views import COOKIE_COUNTRY
 from saleor.discount.models import Sale, Voucher
 from saleor.order.models import Order
 from saleor.product.models import Product
 from saleor.shipping.models import ShippingMethod
 from saleor.userprofile.models import Address, User
+from .utils import get_redirect_location
 
 
 class_schema = {'Vegetable': {
@@ -143,3 +149,60 @@ def test_create_vouchers(db):
     for _ in random_data.create_vouchers():
         pass
     assert Voucher.objects.all().count() == 2
+
+
+@pytest.mark.parametrize('method', ['get', 'post'])
+def test_set_country_no_changes(client, method):
+    url = reverse('set-country')
+    response_function = getattr(client, method)
+    response = response_function(url, {})
+    assert response.status_code == 302
+    redirect_location = get_redirect_location(response)
+    assert redirect_location == reverse('home')
+
+
+@pytest.mark.django_db
+def test_set_country_without_next(client):
+    url = reverse('set-country')
+    response = client.post(url, {'country': 'DK'})
+    assert response.status_code == 302
+    redirect_location = get_redirect_location(response)
+    assert redirect_location == reverse('home')
+
+    cookie_value = client.session.get(COOKIE_COUNTRY)
+    assert cookie_value == 'DK'
+
+
+@pytest.mark.django_db
+def test_set_country(client):
+    url = reverse('set-country')
+    response = client.post(url, {'country': 'PL', 'next': 'cart/'})
+    assert response.status_code == 302
+
+    assert client.session.get(COOKIE_COUNTRY) == 'PL'
+
+
+@pytest.mark.django_db
+def test_set_country_wrong_country(client):
+    url = reverse('set-country')
+    response = client.post(url, {'country': 'PL124', 'next': 'cart/'})
+    cookie_value = client.session.get(COOKIE_COUNTRY)
+    assert cookie_value is None
+
+
+def test_country_middleware_with_cookie():
+    country_middleware = CountryMiddleware()
+    request = Mock()
+    request.session = {COOKIE_COUNTRY: 'LI'}
+    country_middleware.process_request(request)
+    assert request.country.code == 'LI'
+
+
+def test_country_middleware_without_cookie():
+    country_middleware = CountryMiddleware()
+    request = Mock()
+    request.META = {'HTTP_X_FORWARDED_FOR': '127.0.0.1'}
+    request.session = {}
+    country_middleware.process_request(request)
+    default_country = settings.DEFAULT_COUNTRY
+    assert request.country.code == default_country

@@ -68,7 +68,8 @@ class ProductType(DjangoObjectType):
         return self.get_absolute_url()
 
     def resolve_availability(self, args, context, info):
-        a = get_availability(self, context.discounts, context.currency)
+        a = get_availability(self, context.discounts, context.currency,
+                             country=context.country)
         return ProductAvailabilityType(**a._asdict())
 
 
@@ -119,7 +120,8 @@ class CategoryType(DjangoObjectType):
 
         def filter_by_price(queryset, value, operator):
             return [obj for obj in queryset if operator(get_availability(
-                obj, context.discounts).price_range.min_price.gross, value)]
+                obj, context.discounts,
+                country=context.country).price_range.min_price.gross, value)]
 
         tree = self.get_descendants(include_self=True)
         qs = products_for_api(context.user)

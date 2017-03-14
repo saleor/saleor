@@ -1,6 +1,7 @@
 import datetime
 
 from mock import Mock
+from prices import Price
 import pytest
 
 from django.core.urlresolvers import reverse
@@ -9,8 +10,7 @@ from django.utils.encoding import smart_text
 from saleor.cart.models import Cart
 from saleor.cart import CartStatus, utils
 from saleor.product import models
-from saleor.product.utils import get_attributes_display_map
-from saleor.product.utils import get_availability
+from saleor.product.utils import get_availability, get_attributes_display_map
 from tests.utils import filter_products_by_attribute
 
 
@@ -303,3 +303,24 @@ def test_get_attributes_display_map_no_choices(product_in_stock):
         product_in_stock, attributes)
 
     assert attributes_display_map == {product_attr.pk: smart_text(-1)}
+
+
+def test_variant_price_with_vat(product_in_stock, vat, settings):
+    settings.VATLAYER_ACCESS_KEY = '123'
+    variant = product_in_stock.variants.first()
+    price_without_vat = variant.get_price_per_item().quantize(2)
+    expected = Price(net=10, gross=10, currency=price_without_vat.currency)
+    assert price_without_vat == expected
+
+    price_with_vat = variant.get_price_per_item(country='AT').quantize(2)
+    expected = Price(net=10, gross=11, currency=price_with_vat.currency)
+    assert price_with_vat == expected
+
+
+def test_variant_price_without_vatlayer_key(product_in_stock, vat, settings):
+    settings.VATLAYER_ACCESS_KEY = None
+    variant = product_in_stock.variants.first()
+
+    price = variant.get_price_per_item(country='AT').quantize(2)
+    expected = Price(net=10, gross=10, currency=price.currency)
+    assert price == expected

@@ -5,6 +5,7 @@ import json
 from django.conf import settings
 from django.core.urlresolvers import reverse
 
+from ..cart.forms import CountryForm
 from ..core.utils import build_absolute_uri
 from ..site.utils import get_site_settings_from_request
 from ..product.models import Category
@@ -49,3 +50,8 @@ def webpage_schema(request):
             'target': '%s%s?q={search_term}' % (url, reverse('search:search')),
             'query-input': 'required name=search_term'}
     return {'webpage_schema': json.dumps(data)}
+
+
+def country_form(request):
+    return {'request_country_form': CountryForm(
+        initial={'country': request.country})}

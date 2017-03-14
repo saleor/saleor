@@ -19,19 +19,26 @@ class VariantChoiceField(forms.ModelChoiceField):
             'Variant choice field label',
             '%(variant_label)s - %(price)s') % {
                 'variant_label': variant_label,
-                'price': gross(obj.get_price(discounts=self.discounts))}
+                'price': gross(obj.get_price(discounts=self.discounts,
+                                             country=self.country))}
         return label
+
+    def __init__(self, *args, **kwargs):
+        self.country = kwargs.pop('country', None)
+        super(VariantChoiceField, self).__init__(*args, **kwargs)
 
 
 class ProductForm(AddToCartForm):
     variant = VariantChoiceField(queryset=None)
 
     def __init__(self, *args, **kwargs):
+        self.country = kwargs.pop('country', None)
         super(ProductForm, self).__init__(*args, **kwargs)
         variant_field = self.fields['variant']
         variant_field.queryset = self.product.variants
         variant_field.discounts = self.cart.discounts
         variant_field.empty_label = None
+        variant_field.country = self.country
         images_map = {variant.pk: [vi.image.image.url
                                    for vi in variant.variant_images.all()]
                       for variant in self.product.variants.all()}
