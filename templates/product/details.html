@@ -62,7 +62,9 @@
               {% for image in images %}
                 {% if images|length > 1 %}
                   <li data-target="#carousel-example-generic" data-slide-to="{{ forloop.counter0 }}">
-                    <img src="{% get_thumbnail image.image method="crop" size="60x60" %}" alt="">
+                    <img src="{% get_thumbnail image.image method="crop" size="60x60" %}" 
+                         srcset="{% get_thumbnail image.image method="crop" size="60x60" %} 1x, {% get_thumbnail image.image method="crop" size="120x120" %} 2x" 
+                         alt="">
                   </li>
                 {% endif %}
               {% endfor %}
