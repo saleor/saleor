@@ -918,91 +918,342 @@
             Tables
             <i class="material-icons">edit</i>
           </h3>
-          <div class="card">
-            <div class="data-table-header">
-              <span class="data-table-title" contenteditable="true">
-                Orders
-              </span>
+          <div class="section">
+            <h4>
+              Regular Table
+            </h4>
+            <div class="card">
+              <div class="data-table-header">
+                <span class="data-table-title" contenteditable="true">
+                  Orders
+                </span>
+              </div>
+              <div class="data-table-container">
+                <table class="bordered highlight responsive data-table">
+                  <thead>
+                    <tr>
+                      <th contenteditable="true">
+                        #
+                      </th>
+                      <th contenteditable="true">
+                        Order status
+                      </th>
+                      <th contenteditable="true">
+                        Payment status
+                      </th>
+                      <th contenteditable="true">
+                        Customer
+                      </th>
+                      <th contenteditable="true">
+                        Placed on
+                      </th>
+                      <th class="right-align" contenteditable="true">
+                        Total
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                      <tr>
+                        <td contenteditable="true">
+                          #11
+                        </td>
+                        <td>
+                          <span class="label label-success" contenteditable="true">
+                            Shipped
+                          </span>
+                        </td>
+                        <td>
+                          <span class="label label-success" contenteditable="true">
+                            Confirmed
+                          </span>
+                        </td>
+                        <td contenteditable="true">
+                          frederick.shaw@example.com
+                        </td>
+                        <td contenteditable="true">
+                          {% now "F j, Y, H:i" %}
+                        </td>
+                        <td class="right-align" contenteditable="true">
+                          299,06&nbsp;
+                          <span class="currency">USD</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td contenteditable="true">
+                          #11
+                        </td>
+                        <td>
+                          <span class="label label-default" contenteditable="true">
+                            PAYMENT PENDING
+                          </span>
+                        </td>
+                        <td>
+                          <span class="label label-default" contenteditable="true">
+                            Pre-authorized
+                          </span>
+                        </td>
+                        <td contenteditable="true">
+                          frederick.shaw@example.com
+                        </td>
+                        <td contenteditable="true">
+                          {% now "F j, Y, H:i" %}
+                        </td>
+                        <td class="right-align" contenteditable="true">
+                          299,06&nbsp;
+                          <span class="currency">USD</span>
+                        </td>
+                      </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div class="data-table-container">
-              <table class="bordered highlight responsive data-table">
-                <thead>
-                  <tr>
-                    <th contenteditable="true">
-                      #
-                    </th>
-                    <th contenteditable="true">
-                      Order status
-                    </th>
-                    <th contenteditable="true">
-                      Payment status
-                    </th>
-                    <th contenteditable="true">
-                      Customer
-                    </th>
-                    <th contenteditable="true">
-                      Placed on
-                    </th>
-                    <th class="right-align" contenteditable="true">
-                      Total
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
+          <div class="section">
+            <h4>
+              Table with button
+            </h4>
+            <div class="card">
+              <div class="data-table-header-action">
+                <a href="" class="btn-data-table btn-flat" contenteditable="true">
+                  Add
+                </a>
+              </div>
+              <div class="data-table-container">
+                <table class="bordered highlight responsive data-table">
+                  <thead>
                     <tr>
-                      <td contenteditable="true">
-                        #11
-                      </td>
-                      <td>
-                        <span class="label label-success" contenteditable="true">
-                          Shipped
-                        </span>
-                      </td>
-                      <td>
-                        <span class="label label-success" contenteditable="true">
-                          Confirmed
-                        </span>
-                      </td>
-                      <td contenteditable="true">
-                        frederick.shaw@example.com
-                      </td>
-                      <td contenteditable="true">
-                        {% now "F j, Y, H:i" %}
-                      </td>
-                      <td class="right-align" contenteditable="true">
-                        299,06&nbsp;
-                        <span class="currency">USD</span>
-                      </td>
+                      <th contenteditable="true">
+                        #
+                      </th>
+                      <th contenteditable="true">
+                        Order status
+                      </th>
+                      <th contenteditable="true">
+                        Payment status
+                      </th>
+                      <th contenteditable="true">
+                        Customer
+                      </th>
+                      <th contenteditable="true">
+                        Placed on
+                      </th>
+                      <th class="right-align" contenteditable="true">
+                        Total
+                      </th>
                     </tr>
-                    <tr>
-                      <td contenteditable="true">
-                        #11
-                      </td>
-                      <td>
-                        <span class="label label-default" contenteditable="true">
-                          PAYMENT PENDING
-                        </span>
-                      </td>
-                      <td>
-                        <span class="label label-default" contenteditable="true">
-                          Pre-authorized
-                        </span>
-                      </td>
-                      <td contenteditable="true">
-                        frederick.shaw@example.com
-                      </td>
-                      <td contenteditable="true">
-                        {% now "F j, Y, H:i" %}
-                      </td>
-                      <td class="right-align" contenteditable="true">
-                        299,06&nbsp;
-                        <span class="currency">USD</span>
-                      </td>
-                    </tr>
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                      <tr>
+                        <td contenteditable="true">
+                          #11
+                        </td>
+                        <td>
+                          <span class="label label-success" contenteditable="true">
+                            Shipped
+                          </span>
+                        </td>
+                        <td>
+                          <span class="label label-success" contenteditable="true">
+                            Confirmed
+                          </span>
+                        </td>
+                        <td contenteditable="true">
+                          frederick.shaw@example.com
+                        </td>
+                        <td contenteditable="true">
+                          {% now "F j, Y, H:i" %}
+                        </td>
+                        <td class="right-align" contenteditable="true">
+                          299,06&nbsp;
+                          <span class="currency">USD</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td contenteditable="true">
+                          #11
+                        </td>
+                        <td>
+                          <span class="label label-default" contenteditable="true">
+                            PAYMENT PENDING
+                          </span>
+                        </td>
+                        <td>
+                          <span class="label label-default" contenteditable="true">
+                            Pre-authorized
+                          </span>
+                        </td>
+                        <td contenteditable="true">
+                          frederick.shaw@example.com
+                        </td>
+                        <td contenteditable="true">
+                          {% now "F j, Y, H:i" %}
+                        </td>
+                        <td class="right-align" contenteditable="true">
+                          299,06&nbsp;
+                          <span class="currency">USD</span>
+                        </td>
+                      </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div> 
+          <div class="section">
+            <h4>
+              Table with checkbox
+            </h4>
+            <div class="card">
+              <form>
+                <div class="data-table-header-action">
+                  <a href="" class="btn-data-table btn-show-when-unchecked btn-flat" contenteditable="true">
+                    Add
+                  </a>
+                  <a href="" class="btn-data-table btn-show-when-checked btn-flat" style="display:none" hidden contenteditable="true">
+                    Delete
+                  </a>
+                </div>
+                <div class="data-table-container">
+                  <table class="bordered highlight responsive data-table">
+                      <thead>
+                        <tr>
+                          <th class="bulk-checkbox">
+                            <input type="checkbox" id="select-all-variants" class="filled-in select-all switch-actions">
+                            <label for="select-all-variants"></label>
+                          </th>
+                          <th contenteditable="true">
+                            SKU
+                          </th>
+                          <th contenteditable="true">
+                            Box Size
+                          </th>
+                          <th class="wide" contenteditable="true">
+                            Variant
+                          </th>
+                          <th class="right-align" contenteditable="true">
+                            Price
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td class="bulk-checkbox ignore-link">
+                            <input id="id_variants_{{ variant.id }}" name="items" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
+                            <label for="id_variants_{{ variant.id }}"></label>
+                          </td>
+                          <td contenteditable="true">
+                            2-1337
+                          </td>
+                          <td contenteditable="true">
+                             1kg 
+                          </td>
+                          <td>
+                          </td>
+                          <td class="right-align" contenteditable="true">
+                            124,91&nbsp;<span class="currency">USD</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="bulk-checkbox ignore-link">
+                            <input id="id_variants_{{ variant.id }}" name="items" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
+                            <label for="id_variants_{{ variant.id }}"></label>
+                          </td>
+                          <td contenteditable="true">
+                            2-1338
+                          </td>
+                          <td contenteditable="true">
+                             500g 
+                          </td>
+                          <td>
+                          </td>
+                          <td class="right-align" contenteditable="true">
+                            54,91&nbsp;<span class="currency">USD</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="bulk-checkbox ignore-link">
+                            <input id="id_variants_{{ variant.id }}" name="items" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
+                            <label for="id_variants_{{ variant.id }}"></label>
+                          </td>
+                          <td contenteditable="true">
+                            2-1339
+                          </td>
+                          <td contenteditable="true">
+                             200g 
+                          </td>
+                          <td>
+                          </td>
+                          <td class="right-align" contenteditable="true">
+                            34,91&nbsp;<span class="currency">USD</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="bulk-checkbox ignore-link">
+                            <input id="id_variants_{{ variant.id }}" name="items" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
+                            <label for="id_variants_{{ variant.id }}"></label>
+                          </td>
+                          <td contenteditable="true">
+                            2-1340
+                          </td>
+                          <td contenteditable="true">
+                             100g 
+                          </td>
+                          <td>
+                          </td>
+                          <td class="right-align" contenteditable="true">
+                            24,91&nbsp;<span class="currency">USD</span>
+                          </td>
+                        </tr>
+                      </tbody>
+                  </table>
+                </div>
+              </form>
             </div>
           </div>
+          <div class="section">
+            <h4>
+              Empty Table
+            </h4>
+            <div class="card">
+              <div class="data-table-header">
+                <span class="data-table-title" contenteditable="true">
+                  Orders
+                </span>
+              </div>
+              <div class="data-table-container">
+                <table class="bordered highlight responsive data-table">
+                  <thead>
+                    <tr>
+                      <th contenteditable="true">
+                        #
+                      </th>
+                      <th contenteditable="true">
+                        Order status
+                      </th>
+                      <th contenteditable="true">
+                        Payment status
+                      </th>
+                      <th contenteditable="true">
+                        Customer
+                      </th>
+                      <th contenteditable="true">
+                        Placed on
+                      </th>
+                      <th class="right-align" contenteditable="true">
+                        Total
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                      <tr>
+                        <td>
+                          <span contenteditable="true">
+                            No orders found
+                          </span>
+                        </td>
+                      </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div> 
         </div>
         <div id="lists" class="styleguide__content__block">
           <h3 class="styleguide__content__block--title">
@@ -1141,6 +1392,16 @@
                 </a>
               </li>
             </ul>
+          </div>
+          <div class="section">
+            <h4>
+              Empty List
+            </h4>
+            <div class="not-found">
+              <p class="grey-text" contenteditable="true">
+                No categories.
+              </p>
+            </div>
           </div>
         </div>
         <div id="cards" class="styleguide__content__block">
