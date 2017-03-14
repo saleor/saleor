@@ -29,6 +29,8 @@ def index(request):
            'low_stock': low_stock}
     return TemplateResponse(request, 'dashboard/index.html', ctx)
 
+
+@staff_member_required
 def styleguide(request):
     return TemplateResponse(request, 'dashboard/styleguide/index.html', {})
 
