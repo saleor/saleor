@@ -39,7 +39,10 @@ class ProductAvailabilityType(graphene.ObjectType):
 
 class ProductType(DjangoObjectType):
     url = graphene.String()
-    thumbnail_url = graphene.String()
+    thumbnail_url = graphene.String(
+        size=graphene.Argument(
+            graphene.String,
+            description="The size of a thumbnail, for example 255x255"))
     images = graphene.List(lambda: ProductImageType)
     variants = graphene.List(lambda: ProductVariantType)
     availability = graphene.Field(lambda: ProductAvailabilityType)
@@ -50,7 +53,10 @@ class ProductType(DjangoObjectType):
         interfaces = (relay.Node, DjangoPkInterface)
 
     def resolve_thumbnail_url(self, args, context, info):
-        return product_first_image(self, '400x400')
+        size = args.get('size')
+        if not size:
+            size = '255x255'
+        return product_first_image(self, size)
 
     def resolve_images(self, args, context, info):
         return self.images.all()

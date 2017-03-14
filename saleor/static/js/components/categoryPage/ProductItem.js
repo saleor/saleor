@@ -15,7 +15,7 @@ class ProductItem extends Component {
       "@context": "http://schema.org/",
       "@type": "Product",
       "name": product.name,
-      "image": product.thumbnailUrl,
+      "image": product.thumbnailUrl1x,
       "offers": {
         "@type": "Offer",
         "priceCurrency": product.price.currency,
@@ -28,13 +28,14 @@ class ProductItem extends Component {
   render() {
     const { product } = this.props;
     let productSchema = this.getSchema();
+    let srcset = product.thumbnailUrl1x + ' 1x, ' + product.thumbnailUrl2x + ' 2x';
     return (
       <div className="col-6 col-md-4 product-list">
         <script type="application/ld+json">{productSchema}</script>
         <a href={product.url}>
           <div className="text-center">
             <div>
-                <img className="img-responsive" src={product.thumbnailUrl} alt="" />
+                <img className="img-responsive" src={product.thumbnailUrl1x} srcSet={srcset} alt="" />
                 <span className="product-list-item-name" title={product.name}>{product.name}</span>
             </div>
             <div className="panel-footer">
@@ -62,7 +63,8 @@ export default Relay.createContainer(ProductItem, {
         availability {
           ${ProductPrice.getFragment('availability')}
         }
-        thumbnailUrl
+        thumbnailUrl1x: thumbnailUrl(size: "255x255")
+        thumbnailUrl2x: thumbnailUrl(size: "510x510")
         url
       }
     `
