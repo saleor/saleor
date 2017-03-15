@@ -39,16 +39,30 @@ function openModal() {
 }
 
 $(document).ready(function() {
-  let mainNavTop = $('.side-nav').offset().top;
+
+  let styleGuideMenu = $('.styleguide__menu');
+
+  $(window).scroll(function () {
+    if ($(this).scrollTop() > 100) {
+      styleGuideMenu.addClass("fixed");
+    } else {
+      styleGuideMenu.removeClass("fixed");
+    }
+  })
+
+  let mainNavTop = $('.side-nav');
   let $toggleMenu = $('#toggle-menu');
   function toggleMenu(e) {
     $(document.body).toggleClass('nav-toggled');
     e.preventDefault();
   }
   $toggleMenu.click(toggleMenu);
-  onScroll(function() {
-    $(document.body).toggleClass('sticky-nav', Math.floor($(window).scrollTop()) > Math.ceil(mainNavTop));
-  });
+  if (mainNavTop.length > 0) {
+    mainNavTop = mainNavTop.offset().top;
+    onScroll(function() {
+      $(document.body).toggleClass('sticky-nav', Math.floor($(window).scrollTop()) > Math.ceil(mainNavTop));
+    });
+  }
   initSelects();
   $('.modal').modal();
 

@@ -1,0 +1,12 @@
+.btn-flat {
+  color: $secondary-color;
+}
+
+.btn-fab.btn-fab-hidden {
+  transform: scaleX(0) scaleY(0);
+  i {
+    &:before {
+      font-size: 0;
+    }
+  }
+}

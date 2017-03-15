@@ -30,6 +30,11 @@ def index(request):
     return TemplateResponse(request, 'dashboard/index.html', ctx)
 
 
+@staff_member_required
+def styleguide(request):
+    return TemplateResponse(request, 'dashboard/styleguide/index.html', {})
+
+
 def get_low_stock_products():
     threshold = getattr(settings, 'LOW_STOCK_THRESHOLD', 10)
     products = Product.objects.annotate(

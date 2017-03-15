@@ -1,10 +1,11 @@
 @mixin breadcrumbs {
   display: block;
   float: left;
-  font-size: $h5-fontsize;
+  font-size: $h3-fontsize;
   line-height: $subheader-height;
   white-space: nowrap;
   margin-bottom: 0;
+  margin-top: 0;
   @media (max-width: $medium-screen) {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -65,7 +66,7 @@
     a {
       color: white;
       display: inline-block;
-      font-size: $h5-fontsize;
+      font-size: $h3-fontsize;
       padding: 0;
       transition: color $transition-duration;
 
@@ -93,5 +94,4 @@
 
 .breadcrumbs {
   @include breadcrumbs;
-  margin-top: 0;
 }

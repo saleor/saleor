@@ -162,14 +162,14 @@
               <a href="{% url 'dashboard:product-list' %}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
-              <button type="submit" class="btn btn-flat primary">
+              <button type="submit" class="btn waves-effect waves-light">
                 {% trans "Update" context "Dashboard update action" %}
               </button>
             {% else %}
               <a href="{% url 'dashboard:product-list' %}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
-              <button type="submit" class="btn btn-flat primary">
+              <button type="submit" class="btn waves-effect waves-light">
                 {% trans "Create" context "Dashboard create action" %}
               </button>
             {% endif %}
@@ -403,11 +403,10 @@
                       </div>
                       <div class="sortable__drag-area"></div>
                       <div class="card-action">
-                        <a href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">
+                        <a class="btn btn-flat" href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">
                           {% trans "Edit" context "Dashboard edit action" %}
                         </a>
-                        <a href="#base-modal" class="modal-trigger-custom"
-                        data-href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}">
+                        <a href="#base-modal" class="btn btn-flat modal-trigger-custom" data-href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}">
                           {% trans "Delete" context "Dashboard delete action" %}
                         </a>
                       </div>

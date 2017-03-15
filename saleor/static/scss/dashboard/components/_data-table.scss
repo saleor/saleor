@@ -3,12 +3,6 @@
     @media #{$medium-and-down} {
       overflow: scroll;
     }
-
-    .card &:first-child, .card-title + & {
-      th {
-        border-top: none;
-      }
-    }
   }
 
   &-action {
@@ -16,7 +10,7 @@
     padding: 10px 8px;
   }
 
-  &-hader-action {
+  &-header-action {
     border-bottom: 1px solid $table-border-color;
     padding: 14px 8px;
   }
@@ -25,11 +19,9 @@
     align-items: center;
     display: flex;
     height: 64px;
-
     a {
       color: $secondary-color;
     }
-
     .label {
       line-height: 1;
       margin-right: 24px;
@@ -55,10 +47,14 @@
     }
   }
 
+  tr[data-action-go]>td:not(.ignore-link):hover {
+    cursor: pointer;
+  }
+
   th, td {
     height: 48px;
     overflow: hidden;
-    padding: 0 28px;
+    padding: 0 24px;
     text-overflow: ellipsis;
     vertical-align: middle;
     white-space: nowrap;
@@ -100,15 +96,6 @@
 
   tfoot {
     font-weight: bold;
-  }
-
-  .bulk-checkbox {
-    padding: 0 24px;
-    width: 1px;
-
-    + th, + td {
-      padding-left: 0;
-    }
   }
 
   .wide {
