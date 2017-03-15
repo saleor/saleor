@@ -1,10 +1,10 @@
-[![Avast ye landlubbers! Saleor be a Satchless store ye can fork.](http://getsaleor.com/mr-saleor-readme.png)](http://getsaleor.com)
+[![Saleor](http://getsaleor.com/mr-saleor-readme.png)](http://getsaleor.com)
 
 
 Saleor
 ======
 
-Avast ye landlubbers! Saleor be a Satchless store ye can fork. 
+Avast ye landlubbers! Saleor is an open-source e-commerce storefront for Python and Django.
 
 [Saleor homepage](http://getsaleor.com/)
 
