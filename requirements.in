@@ -37,4 +37,5 @@ pytest-django
 requests>=1.2.0
 satchless>=1.1.2,<1.2a0
 text-unidecode
+typing>=3.5.2.2
 uwsgi>=2.0.0

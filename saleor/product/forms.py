@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import json
+from typing import Iterable
 
 from django import forms
 from django.utils.encoding import smart_text
@@ -8,10 +9,11 @@ from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
 
 from ..cart.forms import AddToCartForm
+from ..discount.models import Sale
 
 
 class VariantChoiceField(forms.ModelChoiceField):
-    discounts = None
+    discounts = None  # type: Iterable[Sale]
 
     def label_from_instance(self, obj):
         variant_label = smart_text(obj)
