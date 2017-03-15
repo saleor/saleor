@@ -244,7 +244,7 @@ class Checkout(object):
             shipping_address = None
         billing_address = self._save_order_billing_address()
         self._add_to_user_address_book(
-            self.billing_address, is_billing=True)
+            billing_address, is_billing=True)
 
         order_data = {
             'language_code': get_language(),

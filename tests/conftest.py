@@ -259,3 +259,20 @@ def sale(db, default_category):
     sale = Sale.objects.create(name="Sale", value=5)
     sale.categories.add(default_category)
     return sale
+
+
+@pytest.fixture()
+def valid_address():
+    return {
+        'first_name': 'John',
+        'last_name': 'Doe',
+        'street_address_1': 'Aleje Jerozolimskie 2',
+        'street_address_2': '',
+        'city': 'WARSZAWA',
+        'company_name': 'Mirumee',
+        'city_area': '',
+        'country_area': '',
+        'email': 'test@example.com',
+        'postal_code': '00-374',
+        'phone': '',
+        'country': 'PL'}
