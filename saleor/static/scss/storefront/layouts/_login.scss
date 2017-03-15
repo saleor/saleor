@@ -20,7 +20,7 @@
     img {
       display: block;
       margin: 0 auto;
-    }
+   }
   }
   &__register {
     padding: $global-padding * 2;
@@ -35,6 +35,10 @@
         }
       }
     }
+  }
+  a.social-btn {
+    color: $white;
+    text-decoration: none;
   }
   &__form {
     background: $light-gray;

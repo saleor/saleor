@@ -1,10 +1,8 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-from allauth.account.adapter import get_adapter
-from allauth.account.forms import SetPasswordField, UserForm, PasswordField
-from django import forms
-from django.utils.translation import pgettext
+from django.conf import settings
+from django.contrib.auth import forms as django_forms, update_session_auth_hash
 
 from .i18n import AddressMetaForm, get_address_form_class
 
@@ -36,40 +34,16 @@ def get_address_form(data, country_code, initial=None, instance=None, **kwargs):
     return address_form, preview
 
 
-class SetPasswordForm(forms.Form):
-    password1 = SetPasswordField(
-        label=pgettext('Set password form label', 'New Password'))
-
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
-        self.temp_key = kwargs.pop("temp_key", None)
-        super(SetPasswordForm, self).__init__(*args, **kwargs)
-        self.fields['password1'].user = self.user
-
-    def save(self):
-        get_adapter().set_password(self.user, self.cleaned_data['password1'])
-
-
-class ChangePasswordForm(UserForm):
-
-    oldpassword = PasswordField(
-        label=pgettext('Change password form label', 'Current Password'))
-    password1 = SetPasswordField(
-        label=pgettext('Change password form label', 'New Password'))
-
+class ChangePasswordForm(django_forms.PasswordChangeForm):
     def __init__(self, *args, **kwargs):
         super(ChangePasswordForm, self).__init__(*args, **kwargs)
-        self.fields['password1'].user = self.user
-        self.fields['oldpassword'].widget.attrs['placeholder'] = ''
-        self.fields['password1'].widget.attrs['placeholder'] = ''
+        self.fields['new_password1'].user = self.user
+        self.fields['old_password'].widget.attrs['placeholder'] = ''
+        self.fields['new_password1'].widget.attrs['placeholder'] = ''
+        del self.fields['new_password2']
 
-    def clean_oldpassword(self):
-        if not self.user.check_password(self.cleaned_data.get('oldpassword')):
-            raise forms.ValidationError(
-                pgettext(
-                    'Change password form error',
-                    'Please type your current password.'))
-        return self.cleaned_data['oldpassword']
 
-    def save(self):
-        get_adapter().set_password(self.user, self.cleaned_data['password1'])
+def logout_on_password_change(request, user):
+    if (update_session_auth_hash is not None and
+            not settings.LOGOUT_ON_PASSWORD_CHANGE):
+        update_session_auth_hash(request, user)

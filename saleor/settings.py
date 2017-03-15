@@ -96,6 +96,8 @@ context_processors = [
     'saleor.core.context_processors.search_enabled',
     'saleor.site.context_processors.settings',
     'saleor.core.context_processors.webpage_schema',
+    'social_django.context_processors.backends',
+    'social_django.context_processors.login_redirect',
 ]
 
 loaders = [
@@ -131,6 +133,7 @@ MIDDLEWARE_CLASSES = [
     'saleor.core.middleware.GoogleAnalytics',
     'saleor.core.middleware.CountryMiddleware',
     'saleor.core.middleware.CurrencyMiddleware',
+    'social_django.middleware.SocialAuthExceptionMiddleware',
 ]
 
 INSTALLED_APPS = [
@@ -175,8 +178,7 @@ INSTALLED_APPS = [
     'materializecssform',
     'rest_framework',
     'webpack_loader',
-    'allauth',
-    'allauth.account',
+    'social_django',
     'django_countries',
 ]
 
@@ -337,17 +339,7 @@ WEBPACK_LOADER = {
             r'.+\.map']}}
 
 
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_EMAIL_VERIFICATION = 'none'
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_LOGOUT_ON_GET = True
-ACCOUNT_SESSION_REMEMBER = False
-ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
-ACCOUNT_FORMS = {
-    'reset_password_from_key': 'saleor.userprofile.forms.SetPasswordForm'
-}
+LOGOUT_ON_PASSWORD_CHANGE = False
 
 
 ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
@@ -385,3 +377,27 @@ GRAPHENE = {
 }
 
 SITE_SETTINGS_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    'saleor.registration.backends.facebook.CustomFacebookOAuth2',
+    'saleor.registration.backends.google.CustomGoogleOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+SOCIAL_AUTH_PIPELINE = [
+    'social_core.pipeline.social_auth.social_details',
+    'social_core.pipeline.social_auth.social_uid',
+    'social_core.pipeline.social_auth.auth_allowed',
+    'social_core.pipeline.social_auth.social_user',
+    'social_core.pipeline.social_auth.associate_by_email',
+    'social_core.pipeline.user.create_user',
+    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.social_auth.load_extra_data',
+    'social_core.pipeline.user.user_details',
+]
+
+SOCIAL_AUTH_USERNAME_IS_FULL_EMAIL = True
+SOCIAL_AUTH_USER_MODEL = AUTH_USER_MODEL
+SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
+SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
+    'fields': 'id, email'}

@@ -1,7 +1,3 @@
-from allauth.account.adapter import get_adapter
-from allauth.account.views import login as allauth_login
-from allauth.account.forms import ChangePasswordForm
-from allauth.account.utils import logout_on_password_change
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
@@ -9,8 +5,8 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext
-from ..cart.utils import find_and_assign_anonymous_cart
-from .forms import ChangePasswordForm, get_address_form
+from .forms import (ChangePasswordForm, get_address_form,
+                    logout_on_password_change)
 
 
 @login_required
@@ -28,10 +24,8 @@ def get_or_process_password_form(request):
     if form.is_valid():
         form.save()
         logout_on_password_change(request, form.user)
-        get_adapter(request).add_message(
-            request,
-            messages.SUCCESS,
-            'account/messages/password_changed.txt')
+        messages.success(request, pgettext(
+            'Storefront message', 'Password successfully changed.'))
     return form
 
 
@@ -62,6 +56,3 @@ def address_delete(request, pk):
         return HttpResponseRedirect(reverse('profile:details') + '#addresses')
     return TemplateResponse(
         request, 'userprofile/address-delete.html', {'address': address})
-
-
-login = find_and_assign_anonymous_cart()(allauth_login)

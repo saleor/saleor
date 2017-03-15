@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from .models import SiteSettings
+from .models import SiteSettings, AuthorizationKey
 
 
 def get_site_settings_from_request(request):
@@ -36,3 +36,11 @@ def get_site_settings_uncached(settings_id=None):
     # type: (str) -> SiteSettings
     """Query database for settings object."""
     return SiteSettings.objects.get_or_create(pk=settings_id)[0]
+
+
+def get_authorization_key_for_backend(backend_name):
+    # type: (str) -> AuthorizationKey
+    site_settings_id = getattr(settings, 'SITE_SETTINGS_ID', None)
+    authorization_key = AuthorizationKey.objects.filter(
+        name=backend_name, site_settings__id=site_settings_id)
+    return authorization_key.first()

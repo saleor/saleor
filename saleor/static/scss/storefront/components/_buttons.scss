@@ -29,7 +29,7 @@ a.btn {
     border: none;
     &:hover {
       background-color: $darken-blue;
-    } 
+    }
   }
   &.secondary {
     border: 1px solid $blue;
@@ -74,3 +74,39 @@ a.btn {
 button:focus {
   outline: none;
 }
+
+a.social-btn {
+    border-radius: $button-border-radius;
+    text-align: left;
+    padding: $global-padding / 2 0;
+    color: $white;
+    text-decoration: none;
+    text-transform: uppercase;
+    @include transition(background, 0.2s)
+    &:hover {
+      text-decoration: none;
+    }
+    img {
+      padding: 0 $global-padding / 2;
+      margin-right: $global-margin;
+      display: inline-block;
+      height: 20px;
+      border-right: solid 1px $light-gray;
+    }
+    &.facebook {
+      color: $white;
+      text-decoration: none;
+      background: #3b5998;
+      &:hover {
+        background: darken(#3b5998, 10%)
+      }
+    }
+    &.google {
+      color: $white;
+      text-decoration: none;
+      background: #dd4b39;
+      &:hover {
+        background: darken(#dd4b39, 10%)
+      }
+    }
+  }

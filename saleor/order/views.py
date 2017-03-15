@@ -1,6 +1,5 @@
 import logging
 
-from allauth.account.forms import LoginForm
 from django.conf import settings
 from django.contrib import messages, auth
 from django.contrib.auth.decorators import login_required
@@ -15,6 +14,7 @@ from .forms import PaymentDeleteForm, PaymentMethodsForm, PasswordForm
 from .models import Order, Payment
 from .utils import check_order_status, attach_order_to_user
 from ..core.utils import get_client_ip
+from ..registration.forms import LoginForm
 from ..userprofile.models import User
 from . import OrderStatus
 
