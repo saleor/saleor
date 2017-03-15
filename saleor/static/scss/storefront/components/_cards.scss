@@ -27,8 +27,8 @@
         display: inline-block;
         a {
           line-height: 1.15rem;
-          img {
-            max-width: 1.15rem;
+          svg {
+            float: right;
             cursor: pointer;
           }
         }
@@ -47,9 +47,6 @@
         &:hover {
           color: $blue;
         }
-      }
-      button {
-        text-transform: uppercase;
       }
     }
     @include media-breakpoint-down(sm) {

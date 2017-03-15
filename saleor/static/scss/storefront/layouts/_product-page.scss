@@ -46,7 +46,7 @@
   &__gallery {
     .carousel-control {
       &-prev {
-        img {
+        svg {
           transform: rotate(180deg);
         }
       }

@@ -68,7 +68,7 @@ $(document).ready((e) => {
 
 let $searchIcon = $('.mobile-search-icon');
 let $closeSearchIcon = $('.mobile-close-search');
-let $searchForm = $('.navbar__brand__search');
+let $searchForm = $('.search-form');
 $searchIcon.click((e) => {
   $searchForm.animate({left: 0}, {duration: 500});
 });

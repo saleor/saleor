@@ -77,7 +77,8 @@ var config = {
           resolve('node_modules'),
           resolve('saleor/static/fonts'),
           resolve('saleor/static/images'),
-          resolve('saleor/static/img')
+          resolve('saleor/static/img'),
+          resolve('templates/svg')
         ]
       }
     ]

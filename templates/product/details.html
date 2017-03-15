@@ -52,10 +52,10 @@
             </div>
             {% if images|length > 1 %}
               <a class="carousel-control-prev" href="#carousel-example-generic" role="button" data-slide="prev">
-                <img class="icon-next" src="{% static "images/gallery-arrow.svg" %}">
+                {% include 'svg/gallery-arrow.svg' %}
               </a>
               <a class="carousel-control-next" href="#carousel-example-generic" role="button" data-slide="next">
-                <img class="icon-next" src="{% static "images/gallery-arrow.svg" %}">
+                {% include 'svg/gallery-arrow.svg' %}
               </a>
             {% endif %}
             <ol class="carousel-indicators hidden-sm-down">

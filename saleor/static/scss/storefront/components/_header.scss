@@ -34,13 +34,15 @@
 .navbar {
   padding: 0;
   @include media-breakpoint-down(sm) {
-    img {
+    svg {
       max-height: 30px;
+      width: auto;
     }
   }
   @media (max-width: 370px) { 
-    img {
+    svg {
       max-height: 25px;
+      width: auto;
     }
   }
   &__login {
@@ -78,15 +80,27 @@
           text-transform: uppercase;
           font-size: 0.45rem;
         }
-        img {
-          max-height: 20px;
+        svg {
           vertical-align: top;
         }
+    }
+    svg path {
+      fill: #000;
     }
   }
   &__search {
     padding: $global-padding * 2 0;
-    &__mobile-icon {
+    position: relative;
+    form {
+      svg {
+        width: 1.5rem;
+        height: 1.5rem;
+        vertical-align: middle;
+        padding: 0.1rem;
+      }
+    }
+    .mobile-search-icon {
+      float: right;
       padding-right: $global-padding;
     }
   }
@@ -140,6 +154,13 @@
         }
         .cart-label {
           padding-right: $global-padding / 2;
+          display: inline-block;
+        }
+        .navbar__brand__cart__icon {
+          display: inline-block;
+          svg {
+            vertical-align: middle;
+          }
         }
         .badge {
           position: absolute;
@@ -165,6 +186,7 @@
       max-height: 22px;
       padding-right: $global-padding;
       padding-left: $global-padding;
+      vertical-align: super;
     }
   }
   &__menu {

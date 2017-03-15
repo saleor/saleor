@@ -85,6 +85,10 @@
       a {
         color: $body-color;
       }
+      svg {
+        vertical-align: text-top;
+        margin-right: $global-margin / 2;
+      }
     }
     &__childs {
       padding-left: $global-padding*2.5;

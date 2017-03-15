@@ -71,26 +71,26 @@
                   <div class="container">
                     <div class="row no-gutters">
                       <div class="col-8 col-md-4 navbar__logo">
-                        <div class="menu-icon-mobile hidden-md-up">
-                          <img class="navbar__brand__menu-toggle closed open" src="{% static "images/mobile-bar.svg" %}">
+                        <div class="menu-icon-mobile hidden-md-up navbar__brand__menu-toggle closed open">
+                          {% include 'svg/mobile-bar.svg' %}
                           <span>{% trans "menu" context "Hamburger button text" %}</span>
                         </div>
                         <a href="/">
-                          <img src="{% static "images/saleor-logo-black.svg" %}" alt="Saleor demo store" height="38">
+                          {% include 'svg/saleor-logo.svg' %}
                         </a>
                       </div>
                       <div class="col-2 col-md-4 navbar__search static">
                         {% if SEARCH_IS_ENABLED %}
-                          <img class="hidden-md-up navbar__search__mobile-icon float-right" src="{% static "images/search-icon.svg" %}">
-                        {% endif %}
-                        {% if SEARCH_IS_ENABLED %}
+                          <div class="hidden-md-up mobile-search-icon">
+                            {% include 'svg/search-icon.svg' %}
+                          </div>
                           <form class="form-inline search-form" action="{% url "search:search" %}">
-                            <div class="search-form__close-icon hidden-md-up">
-                              <img src="{% static "images/close-icon.svg" %}">
+                            <div class="mobile-close-search hidden-md-up">
+                              {% include 'svg/close-icon.svg' %}
                             </div>
                             <input class="form-control" type="text" name="q" value="{% if query %}{{ query }}{% endif %}" placeholder="{% trans "Search for product" %}">
                             <button class="btn btn-link" type="submit">
-                              <img src="{% static "images/search-icon.svg" %}">
+                              {% include 'svg/search-icon.svg' %}
                             </button>
                           </form>
                         {% endif %}
@@ -101,7 +101,9 @@
                             <span class="cart-label hidden-sm-down">
                                 {% trans "Your Cart" context "Main navigation item" %}
                             </span>
-                            <img class="navbar__brand__cart__icon" src="{% static "images/cart.svg" %}" alt="Cart">
+                            <div class="navbar__brand__cart__icon">
+                              {% include 'svg/cart.svg' %}
+                            </div>
                             <span class="badge {% if not cart_counter %}empty{% endif %}">
                               {% if cart_counter %}
                                 {{ cart_counter }}
@@ -155,8 +157,8 @@
                 <div class="container">
                   <div class="row">
                     <div class="col-md-3">
-                      <a href="/">
-                        <img class="footer__logo" src="{% static "images/saleor-logo.svg" %}" height="40" alt="Saleor demo store">
+                      <a href="/" class="footer__logo">
+                        {% include 'svg/saleor-logo.svg' %}
                       </a>
                     </div>
                     <div class="col-md-3 col-sm-6">
@@ -215,10 +217,10 @@
                     </div>
                     <div class="col-md-3 col-sm-12">
                       <a target="_blank" rel="noopener" class="github-footer" href="https://github.com/mirumee/saleor">
-                        <img src="{% static "images/github_logo.svg" %}">
+                        {% include 'svg/github_logo.svg' %}
                       </a>
                       <a target="_blank" rel="noopener" href="https://twitter.com/getsaleor">
-                        <img src="{% static "images/twitter_logo.svg" %}">
+                        {% include 'svg/twitter_logo.svg' %}
                       </a>
                     </div>
                   </div>

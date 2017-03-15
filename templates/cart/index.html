@@ -55,7 +55,9 @@
                   </div>
                   {% csrf_token %}
                 </form>
-                <img class="cart-item-delete" src="{% static 'images/icon_delete.svg' %}">
+                <span class="cart-item-delete">
+                  {% include 'svg/icon_delete.svg' %}
+                </span>
                 <small class="cart__line__quantity-error text-danger"></small>
               </div>
               <div class="cart-item-subtotal col-md-5 col-12" data-product-id="{{ line.variant.pk }}">

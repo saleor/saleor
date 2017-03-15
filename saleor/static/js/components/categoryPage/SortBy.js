@@ -1,8 +1,8 @@
 import React, { Component, PropTypes } from 'react';
 import InlineSVG from 'react-inlinesvg';
 
-import arrowUpIcon from '../../../images/arrow-up-icon.svg';
-import arrowDownIcon from '../../../images/arrow-down-icon.svg';
+import arrowUpIcon from '../../../../../templates/svg/arrow-up-icon.svg';
+import arrowDownIcon from '../../../../../templates/svg/arrow-down-icon.svg';
 
 export default class sortBy extends Component {
 

@@ -25,7 +25,10 @@
           {% price_range availability.price_range %}
             {% if availability.discount %}
             {% if availability.price_range_undiscounted.min_price != availability.price_range.min_price %}
-              <div class="product-list__sale"><img src="{% static "images/sale_bg.svg" %}">
+              <div class="product-list__sale">
+                <span class="isvg">
+                  {% include 'svg/sale_bg.svg' %}
+                </span>
                 <span>
                   {% comment %}Translators: Layout may break if character length is different than four.{% endcomment %}
                   {% trans "Sale" context "Sale (discount) label for item in product list" %}

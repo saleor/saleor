@@ -11,9 +11,7 @@
 <header class="checkout__header">
   <div class="container">
     <a href="/">
-      <img src="{% static "images/saleor-logo-black.svg" %}"
-      alt="{% trans "Testeor - Saleor demo store" context "Checkout logo alternate text" %}"
-      height="38">
+      {% include 'svg/saleor-logo.svg' %}
     </a>
     <h1>Style guide</h1>
   </div>
@@ -47,7 +45,7 @@
     <div class="col-md-9 pull-md-3 styleguide__content">
       <div class="styleguide__content__note">
         <h3>Note</h3>
-        <p>If you’re using a recent ver­sion of IE, Fire­fox, Safari or Chrome (though not Opera), you can edit the text in sections marked with edit icon <img src="{% static "images/text-cursor.svg" %}">. Check how our components will look like in your language and with your content.</p>
+        <p>If you’re using a recent ver­sion of IE, Fire­fox, Safari or Chrome (though not Opera), you can edit the text in sections marked with edit icon . Check how our components will look like in your language and with your content.</p>
       </div>
       <hr>
       <div id="typography" class="styleguide__content__block">

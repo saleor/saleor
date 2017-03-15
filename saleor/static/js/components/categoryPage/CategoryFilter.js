@@ -1,4 +1,7 @@
 import React, { Component, PropTypes } from 'react';
+import InlineSVG from 'react-inlinesvg';
+
+import arrowLeftIcon from '../../../../../templates/svg/arrow-left-icon.svg';
 
 export default class CategoryFilter extends Component {
 
@@ -14,7 +17,7 @@ export default class CategoryFilter extends Component {
         <h2><strong>{category.name}</strong></h2>
         {parent && (
           <div className="product-filters__categories__parents">
-            <i className="fa fa-arrow-left" aria-hidden="true"></i>
+            <InlineSVG src={arrowLeftIcon} />
             <a href={parent.url}>{`${gettext('See all')} ${parent.name}`}</a>
           </div>
         )}

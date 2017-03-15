@@ -48,6 +48,9 @@
       cursor: pointer;
       display: inline-block;
       margin-left: $global-margin / 2;
+      svg {
+        vertical-align: text-top;
+      }
     }
   }
   &__total {
