@@ -23,7 +23,7 @@
 {% block content %}
 <div class="container styleguide">
   <div class="row">
-    <div class="col-md-3">
+    <div class="col-md-3 push-md-9">
       <nav class="styleguide__nav">
         <a href="#typography">Typography</a>
         <a href="#colors">Colors</a>
@@ -44,7 +44,7 @@
         <a href="#product-gallery">Product gallery</a>
       </nav>
     </div>
-    <div class="col-md-9 styleguide__content">
+    <div class="col-md-9 pull-md-3 styleguide__content">
       <div class="styleguide__content__note">
         <h3>Note</h3>
         <p>If you’re using a recent ver­sion of IE, Fire­fox, Safari or Chrome (though not Opera), you can edit the text in sections marked with edit icon <img src="{% static "images/text-cursor.svg" %}">. Check how our components will look like in your language and with your content.</p>
@@ -55,16 +55,16 @@
         <p>We use Lato fontface in Regular(400), <span class="styleguide__content__block__light">Light(300)</span> and <span class="styleguide__content__block__bold">Bold(700)</span> weights.<br>
         Lato includes only latin and latin extended characters. For other alphabets the default sans serif font will be used.</p>
         <p><strong>Headers</strong></p>
-        <h1 contenteditable="true">h1 / Header</h1>
-        <h2 contenteditable="true">h2 / Header</h2>
-        <h3 contenteditable="true">h3 / Header (always uppercased)</h3>
+        <h1 contenteditable="true">H1 example text</h1>
+        <h2 contenteditable="true">H2 example text</h2>
+        <h3 contenteditable="true">H3 example text (always uppercased)</h3>
         <hr>
         <p><strong>Paragraph</strong></p>
-        <p contenteditable="true">p / Saleor is open and free to use. It is not a bait to force you to pay us later and we promise to do our bests to fix bugs and improve the code. Some situations however call for a custom solution and extra code to be written. Whether you need us to cover an exotic use case or build you a custom e-commerce appliance, our team can help.</p>
+        <p contenteditable="true">Saleor is open and free to use. It is not a bait to force you to pay us later and we promise to do our bests to fix bugs and improve the code. Some situations however call for a custom solution and extra code to be written. Whether you need us to cover an exotic use case or build you a custom e-commerce appliance, our team can help.</p>
         <hr>
         <p><strong>Links</strong></p>
-        <a href="#" contenteditable="true">a / Simple link</a>
-        <a href="#" class="link--styled" contenteditable="true">a / Styled link</a>
+        <a href="#" contenteditable="true">Link example text</a>
+        <a href="#" class="link--styled" contenteditable="true">Styled link example text</a>
       </div>
       <div id="colors" class="styleguide__content__block">
         <h3 class="styleguide__content__block__title">Colors</h3>
@@ -387,10 +387,10 @@
             <p><strong>Select</strong></p>
             <div class="deliveryform">
               <select>
-                <option>Netherlands</option>
-                <option>Unites States of America</option>
-                <option>Haiti</option>
-                <option>South Georgia and the South Sandwich Islands</option>
+                <option>Option 1 </option>
+                <option>Option 2 </option>
+                <option>Option 3 </option>
+                <option>Option 4 </option>
               </select>
             </div>
           </div>
