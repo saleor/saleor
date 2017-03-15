@@ -92,6 +92,7 @@
         </div>
       </div>
     </div>
+    {% if shipping_required %}
     <div class="row">
       <div class="col-md-12">
         <a href="{% url "checkout:login" %}" class="btn primary float-md-right">
@@ -119,6 +120,7 @@
         </div>
       </div>
     </div>
+    {% endif %}
   {% else %}
     <div class="cart__empty">
       <img src="{% static 'images/pirate_cart.png' %}"

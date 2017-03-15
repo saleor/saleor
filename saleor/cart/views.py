@@ -43,6 +43,7 @@ def index(request, cart):
     return TemplateResponse(
         request, 'cart/index.html',
         {
+            'shipping_required': cart.is_shipping_required(),
             'cart_lines': cart_lines,
             'cart_total': cart_total,
             'local_cart_total': local_cart_total,
