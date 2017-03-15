@@ -4,6 +4,10 @@
       display: block;
     }
     margin-bottom: $global-margin * 2;
+    &.fixed {
+      position: fixed;
+      top: 20px;;
+    }
   }
   &__content {
     &__note {

@@ -349,6 +349,19 @@ $cartLine.each(function() {
   });
 });
 
+// StyleGuide fixed menu
+
+$(document).ready(function() {
+  let styleGuideMenu = $('.styleguide__nav');
+  $(window).scroll(function () {
+    if ($(this).scrollTop() > 100) {
+      styleGuideMenu.addClass("fixed");
+    } else {
+      styleGuideMenu.removeClass("fixed");
+    }
+  })
+});
+
 if ($.cookie('alert') === 'true') {
   $removeProductSucces.removeClass('hidden-xs-up');
   $.cookie('alert', 'false', { path: '/cart' });
