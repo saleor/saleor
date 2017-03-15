@@ -16,9 +16,13 @@ class FieldError(Exception):
 
 
 class BaseSearchQuery(object):
+    """
+    Wraps search query, contains all filters and query parameters.
+    """
     DEFAULT_OPERATOR = 'or'
 
-    def __init__(self, queryset, query_string, fields=None, operator=None, order_by_relevance=True):
+    def __init__(self, queryset, query_string, fields=None, operator=None,
+                 order_by_relevance=True):
         self.queryset = queryset
         self.query_string = query_string
         self.fields = fields
@@ -26,7 +30,6 @@ class BaseSearchQuery(object):
         self.order_by_relevance = order_by_relevance
 
     def _get_filterable_field(self, field_attname):
-        # Get field
         field = dict(
             (field.get_attname(self.queryset.model), field)
             for field in self.queryset.model.get_filterable_search_fields()
@@ -94,6 +97,10 @@ class BaseSearchQuery(object):
 
 
 class BaseSearchResults(object):
+    """
+    This class wraps search results. Core search communication is performed
+    here.
+    """
     def __init__(self, backend, query, prefetch_related=None):
         self.backend = backend
         self.query = query
@@ -105,6 +112,7 @@ class BaseSearchResults(object):
         self._score_field = None
 
     def _set_limits(self, start=None, stop=None):
+        # type (int, int)
         if stop is not None:
             if self.stop is not None:
                 self.stop = min(self.stop, self.start + stop)
@@ -119,12 +127,16 @@ class BaseSearchResults(object):
 
     def _clone(self):
         klass = self.__class__
-        new = klass(self.backend, self.query, prefetch_related=self.prefetch_related)
+        new = klass(self.backend, self.query,
+                    prefetch_related=self.prefetch_related)
         new.start = self.start
         new.stop = self.stop
         return new
 
     def _do_search(self):
+        """
+        Execute search
+        """
         raise NotImplementedError
 
     def _do_count(self):
@@ -217,6 +229,10 @@ class BaseSearchBackend(object):
 
     def search(self, query_string, model_or_queryset, fields=None, filters=None,
                prefetch_related=None, operator=None, order_by_relevance=True):
+        """
+        Applies all fillters and prefetches and constructs SearchQuery and
+        SearchResult objects.
+        """
         # Find model/queryset
         if isinstance(model_or_queryset, QuerySet):
             model = model_or_queryset.model
@@ -224,10 +240,6 @@ class BaseSearchBackend(object):
         else:
             model = model_or_queryset
             queryset = model_or_queryset.objects.all()
-
-        # # Model must be a class that is in the index
-        # if not class_is_indexed(model):
-        #     return []
 
         # Check that theres still a query string after the clean up
         if query_string == "":
@@ -261,6 +273,6 @@ class BaseSearchBackend(object):
 
         # Search
         search_query = self.query_class(
-            queryset, query_string, fields=fields, operator=operator, order_by_relevance=order_by_relevance
-        )
+            queryset, query_string, fields=fields, operator=operator,
+            order_by_relevance=order_by_relevance)
         return self.results_class(self, search_query)
