@@ -131,9 +131,9 @@ class CategoryType(DjangoObjectType):
 
         if attributes_filter:
             attributes = ProductAttribute.objects.prefetch_related('values')
-            attributes_map = {attribute.name: attribute.pk
+            attributes_map = {attribute.slug: attribute.pk
                               for attribute in attributes}
-            values_map = {attr.name: {value.slug: value.pk
+            values_map = {attr.slug: {value.slug: value.pk
                                       for value in attr.values.all()}
                           for attr in attributes}
             queries = {}

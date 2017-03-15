@@ -95,10 +95,10 @@ def test_create_address(db):
 
 
 def test_create_attribute(db):
-    data = {'name': 'best_attribute', 'display': 'Best attribute'}
+    data = {'slug': 'best_attribute', 'name': 'Best attribute'}
     attribute = random_data.create_attribute(**data)
     assert attribute.name == data['name']
-    assert attribute.display == data['display']
+    assert attribute.slug == data['slug']
 
 
 def test_create_product_classes_by_schema(db):

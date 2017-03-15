@@ -116,7 +116,7 @@ class ProductForm(forms.ModelForm):
     def prepare_fields_for_attributes(self):
         for attribute in self.product_attributes:
             field_defaults = {
-                'label': attribute.display,
+                'label': attribute.name,
                 'required': False,
                 'initial': self.instance.get_attribute(attribute.pk)}
             if attribute.has_values():
@@ -182,7 +182,7 @@ class VariantAttributeForm(forms.ModelForm):
         attrs = self.instance.product.product_class.variant_attributes.all()
         self.available_attrs = attrs.prefetch_related('values')
         for attr in self.available_attrs:
-            field_defaults = {'label': attr.display,
+            field_defaults = {'label': attr.name,
                               'required': True,
                               'initial': self.instance.get_attribute(attr.pk)}
             if attr.has_values():
@@ -275,7 +275,7 @@ class AttributeChoiceValueForm(forms.ModelForm):
         exclude = ('slug', )
 
     def save(self, commit=True):
-        self.instance.slug = slugify(self.instance.display)
+        self.instance.slug = slugify(self.instance.name)
         return super(AttributeChoiceValueForm, self).save(commit=commit)
 
 

@@ -30,7 +30,7 @@ export default class VariantPicker extends Component {
     if (Object.keys(params).length) {
       Object.keys(params).some((name) => {
         const valueName = params[name];
-        const attribute = this.matchAttributeByName(name);
+        const attribute = this.matchAttributeBySlug(name);
         const value = this.matchAttributeValueByName(attribute, valueName);
         if (attribute && value) {
           selection[attribute.pk] = value.pk.toString();
@@ -83,7 +83,7 @@ export default class VariantPicker extends Component {
         const attribute = this.matchAttribute(attrId);
         const value = this.matchAttributeValue(attribute, this.state.selection[attrId]);
         if (attribute && value) {
-          params[attribute.name] = value.slug;
+          params[attribute.slug] = value.slug;
         }
       });
       history.pushState(null, null, '?' + queryString.stringify(params));
@@ -100,9 +100,9 @@ export default class VariantPicker extends Component {
     return match.length > 0 ? match[0] : null;
   }
 
-  matchAttributeByName = (name) => {
+  matchAttributeBySlug = (slug) => {
     const { variantAttributes } = this.props;
-    const match = variantAttributes.filter(attribute => attribute.name === name);
+    const match = variantAttributes.filter(attribute => attribute.slug === slug);
     return match.length > 0 ? match[0] : null;
   }
 

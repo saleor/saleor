@@ -143,10 +143,10 @@ def product_json_ld(product, availability=None, attributes=None):
         brand = ''
         for key in attributes:
             if key.name == 'brand':
-                brand = attributes[key].display
+                brand = attributes[key].name
                 break
             elif key.name == 'publisher':
-                brand = attributes[key].display
+                brand = attributes[key].name
 
         if brand:
             data['brand'] = {'@type': 'Thing', 'name': brand}
@@ -162,9 +162,9 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
     for attribute in variant_attributes:
         data['variantAttributes'].append({
             'pk': attribute.pk,
-            'display': attribute.display,
             'name': attribute.name,
-            'values': [{'pk': value.pk, 'display': value.display, 'slug': value.slug}
+            'slug': attribute.slug,
+            'values': [{'pk': value.pk, 'name': value.name, 'slug': value.slug}
                        for value in attribute.values.all()]})
 
     for variant in variants:

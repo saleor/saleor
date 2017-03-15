@@ -20,12 +20,12 @@ class ProductFilters extends Component {
     onFilterChanged: PropTypes.func.isRequired
   }
 
-  getFilterKey(attributeName, valueSlug) {
-    return `${attributeName}:${valueSlug}`;
+  getFilterKey(attributeSlug, valueSlug) {
+    return `${attributeSlug}:${valueSlug}`;
   }
 
-  onClick = (attributeName, valueSlug) => {
-    this.props.onFilterChanged(this.getFilterKey(attributeName, valueSlug));
+  onClick = (attributeSlug, valueSlug) => {
+    this.props.onFilterChanged(this.getFilterKey(attributeSlug, valueSlug));
   }
 
   changeVisibility = (target) => {
@@ -36,10 +36,10 @@ class ProductFilters extends Component {
 
   componentWillMount() {
     this.props.attributes.map((attribute) => {
-      const attrValue = `${attribute.name}`;
-        this.setState({
-          visibility: Object.assign(this.state.visibility, {[attrValue]: !isMobile()})
-        });
+      const attrValue = `${attribute.slug}`;
+      this.setState({
+        visibility: Object.assign(this.state.visibility, {[attrValue]: !isMobile()})
+      });
     });
   }
 
@@ -52,15 +52,15 @@ class ProductFilters extends Component {
           return (
             <div key={attribute.id}>
               <FilterHeader
-                onClick={() => this.changeVisibility(attribute.name)}
-                title={attribute.display}
-                visibility={visibility[attribute.name]}
+                onClick={() => this.changeVisibility(attribute.slug)}
+                title={attribute.name}
+                visibility={visibility[attribute.slug]}
               />
-              <ul id={attribute.name}>
+              <ul id={attribute.slug}>
                 {attribute.values.map((value) => {
-                  const key = this.getFilterKey(attribute.name, value.slug);
+                  const key = this.getFilterKey(attribute.slug, value.slug);
                   const isKeyChecked = checkedAttributes.indexOf(key) > -1;
-                  if (visibility[attribute.name] || isKeyChecked) {
+                  if (visibility[attribute.slug] || isKeyChecked) {
                     return (
                       <li key={value.id} className="item">
                         <AttributeInput
@@ -89,11 +89,11 @@ export default Relay.createContainer(ProductFilters, {
         id
         pk
         name
-        display
+        slug
         values {
           id
+          name
           slug
-          display
           color
         }
       }

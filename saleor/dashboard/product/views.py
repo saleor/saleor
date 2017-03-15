@@ -365,7 +365,7 @@ def variants_bulk_delete(request, product_pk):
 @staff_member_required
 def attribute_list(request):
     attributes = [
-        (attribute.pk, attribute.display, attribute.values.all())
+        (attribute.pk, attribute.name, attribute.values.all())
         for attribute in ProductAttribute.objects.prefetch_related('values')]
     ctx = {'attributes': attributes}
     return TemplateResponse(request, 'dashboard/product/attributes/list.html',
@@ -404,7 +404,7 @@ def attribute_delete(request, pk):
             request,
             pgettext_lazy(
                 'Dashboard message',
-                'Deleted attribute %s') % (attribute.display,))
+                'Deleted attribute %s') % (attribute.name,))
         return redirect('dashboard:product-attributes')
     ctx = {'attribute': attribute}
     return TemplateResponse(

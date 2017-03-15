@@ -10,12 +10,12 @@ const AttributeInput = ({attribute, checked, onClick, value}) => {
     <label>
       <input
         checked={checked}
-        name={attribute.name}
+        name={attribute.slug}
         onChange={handleChange}
         type="checkbox"
         value={value.slug}
       />
-      {value.display}
+      {value.name}
     </label>
   );
 };

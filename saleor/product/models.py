@@ -361,23 +361,23 @@ class Stock(models.Model):
 
 @python_2_unicode_compatible
 class ProductAttribute(models.Model):
-    name = models.SlugField(
+    slug = models.SlugField(
         pgettext_lazy('Product attribute field', 'internal name'),
         max_length=50, unique=True)
-    display = models.CharField(
+    name = models.CharField(
         pgettext_lazy('Product attribute field', 'display name'),
         max_length=100)
 
     class Meta:
-        ordering = ('name', )
+        ordering = ('slug', )
         verbose_name = pgettext_lazy('Product attribute model', 'product attribute')
         verbose_name_plural = pgettext_lazy('Product attribute model', 'product attributes')
 
     def __str__(self):
-        return self.display
+        return self.name
 
     def get_formfield_name(self):
-        return slugify('attribute-%s' % self.name)
+        return slugify('attribute-%s' % self.slug)
 
     def has_values(self):
         return self.values.exists()
@@ -385,7 +385,7 @@ class ProductAttribute(models.Model):
 
 @python_2_unicode_compatible
 class AttributeChoiceValue(models.Model):
-    display = models.CharField(
+    name = models.CharField(
         pgettext_lazy('Attribute choice value field', 'display name'),
         max_length=100)
     slug = models.SlugField()
@@ -397,7 +397,7 @@ class AttributeChoiceValue(models.Model):
     attribute = models.ForeignKey(ProductAttribute, related_name='values')
 
     class Meta:
-        unique_together = ('display', 'attribute')
+        unique_together = ('name', 'attribute')
         verbose_name = pgettext_lazy(
             'Attribute choice value model',
             'attribute choices value')
@@ -406,7 +406,7 @@ class AttributeChoiceValue(models.Model):
             'attribute choices values')
 
     def __str__(self):
-        return self.display
+        return self.name
 
 
 class ImageManager(models.Manager):
