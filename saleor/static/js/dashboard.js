@@ -39,6 +39,17 @@ function openModal() {
 }
 
 $(document).ready(function() {
+
+  let styleGuideMenu = $('.styleguide__menu');
+
+  $(window).scroll(function () {
+    if ($(this).scrollTop() > 100) {
+      styleGuideMenu.addClass("fixed");
+    } else {
+      styleGuideMenu.removeClass("fixed");
+    }
+  })
+
   let mainNavTop = $('.side-nav');
   let $toggleMenu = $('#toggle-menu');
   function toggleMenu(e) {

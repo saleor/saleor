@@ -21,22 +21,24 @@
   }
   &__menu {
     position: relative;
-    ul {
-      li {
-        padding: 5px 20px;
-        a {
-          color: $sidenav-font-color;
-          display: block;
-          &:hover {
-            color: darken($sidenav-font-color, 20%);
-            font-weight: 700;
-          }
+    &.fixed {
+      position: fixed !important;
+      top: 0;
+    }
+    li {
+      padding: 5px 20px;
+      a {
+        color: $sidenav-font-color;
+        display: block;
+        &:hover {
+          color: darken($sidenav-font-color, 20%);
+          font-weight: 700;
         }
-        @media only screen and (max-width: $small-screen-up) {
-          text-align: center;
-          a {
-            font-size: 1.5rem;
-          }
+      }
+      @media only screen and (max-width: $small-screen-up) {
+        text-align: center;
+        a {
+          font-size: 1.5rem;
         }
       }
     }
