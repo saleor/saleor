@@ -32,7 +32,7 @@ class ProductItem extends Component {
     return (
       <div className="col-6 col-md-4 product-list">
         <script type="application/ld+json">{productSchema}</script>
-        <a href={product.url}>
+        <a href={product.url} className="link--clean">
           <div className="text-center">
             <div>
                 <img className="img-responsive" src={product.thumbnailUrl1x} srcSet={srcset} alt="" />

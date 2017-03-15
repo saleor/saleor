@@ -1,6 +1,6 @@
 .product {
   a {
-    color: $dark-gray;
+    color: $darken-gray;
     text-decoration: underline;
   }
   &__info {
@@ -43,21 +43,6 @@
       margin-bottom: $global-margin;
     }
   }
-  &__variant-picker {
-    margin-bottom: $global-margin;
-    &__label {
-      margin-bottom: $global-margin;
-    }
-    label {
-      margin-bottom: 0;
-    }
-    .btn-group {
-      display: block;
-      .btn {
-        margin-bottom: $global-margin / 4;
-      }
-    }
-  }
   &__gallery {
     .carousel-control {
       &-prev {
@@ -74,6 +59,7 @@
       }
     }
     .carousel-indicators {
+      position: relative;
       top: 100%;
       width: auto;
       left: 0;
@@ -83,7 +69,9 @@
         display: inline;
         text-indent: 0;
         margin: 0;
-        min-width: 60px;
+        img {
+          width: 60px;
+        }
         &.active {
           img {
             opacity: 0.5;  

@@ -27,16 +27,15 @@
       height: 5rem;
       border-bottom: solid 1px $gray;
       h3 {
-        font-size: 1rem;
         margin-bottom: 0;
         padding: $global-padding * 1.4;
         span {
-          color: $dark-gray;
+          color: $darken-gray;
         }
         p {
           margin-bottom: 0;
           padding-top: $global-padding * 0.2;
-          color: $dark-gray;
+          color: $darken-gray;
         }
       }
       &:last-child {
@@ -49,7 +48,7 @@
       padding-top: $global-padding * 1.4;
       padding-left: $global-padding * 5;
       span {
-        color: $dark-gray;
+        color: $darken-gray;
         font-size: 0.9rem;
       }
       &.price {
@@ -60,12 +59,6 @@
       }
     }
   }
-  a {
-    color: $body-color;
-    &:hover {
-      text-decoration: none;
-    }
-  }
   &__image {
     float: left;
     width: 60px;
@@ -74,12 +67,6 @@
   }
   &__actions {
     margin-top: $global-margin * 2;
-    .btn {
-      width: 100%;
-      padding: $global-padding / 2;
-      text-transform: uppercase;
-      font-size: 1rem;
-    }
   }
   &__empty {
     img {

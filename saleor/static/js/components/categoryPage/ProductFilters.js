@@ -47,7 +47,7 @@ class ProductFilters extends Component {
     const { attributes, checkedAttributes } = this.props;
     const { visibility } = this.state;
     return (
-      <div className="attributes">
+      <div className="product-filters__attributes">
         {attributes && (attributes.map((attribute) => {
           return (
             <div key={attribute.id}>

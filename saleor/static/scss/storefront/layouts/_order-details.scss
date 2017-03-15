@@ -1,0 +1,29 @@
+.order-details {
+  &__header {
+    margin-bottom: $global-margin * 2;
+  }
+  &__addresses {
+    margin-top: $global-margin * 2;
+  }
+  &__product {
+    a {
+      transition: 0.3s;
+      &:hover {
+        color: $skull-gray;
+      }
+      p {
+        display: inline-block;
+        margin-top: $global-margin / 2;
+        margin-bottom: 0;
+        line-height: 1rem;
+        small {
+          color: $skull-gray;
+        }
+      }
+      img {
+        vertical-align: top;
+        margin-right: $global-margin;
+      }
+    }
+  }
+}

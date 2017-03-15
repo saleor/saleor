@@ -1,3 +1,36 @@
+.navigation {
+  ul {
+    border-bottom: 1px solid $gray;
+    margin-bottom: $global-margin;
+    display: block;
+    text-align: center;
+    &.no-border {
+      border-bottom: 0;
+      margin-bottom: 0;
+    }
+    @include media-breakpoint-down(sm) {
+      border-bottom: 0;
+    }
+    .nav-item {
+      display: inline;
+      + .nav-item {
+        margin-left: 0;
+      }
+      a {
+        color: $body-color;
+        transition: 0.3s;
+        text-transform: uppercase;
+        display: inline-block;
+        padding: $global-padding * 1.5;
+        font-size: 1.5rem;
+        &:hover {
+          color: rgba($body-color, 0.6);
+          
+        }
+      }
+    }
+  }
+}
 .navbar {
   padding: 0;
   @include media-breakpoint-down(sm) {
@@ -53,7 +86,7 @@
   }
   &__search {
     padding: $global-padding * 2 0;
-    .mobile-search-icon {
+    &__mobile-icon {
       padding-right: $global-padding;
     }
   }
@@ -120,7 +153,7 @@
           text-align: center;
           line-height: 2;
           &.empty {
-            background-color: $dark-gray;
+            background-color: $darken-gray;
           }
           @include media-breakpoint-down(sm) {
             right: 0;
@@ -133,102 +166,8 @@
       padding-right: $global-padding;
       padding-left: $global-padding;
     }
-    &__search {
-      width: 100%;
-      position: relative;
-      .mobile-close-search {
-        position: absolute;
-        cursor: pointer;
-        padding: $global-padding * 1.9 $global-padding;
-        img {
-          width: 22px;
-        }
-      }
-      .search-input {
-        width: 100%;
-        border-color: $gray;
-        border-radius: 0;
-        padding-left: $global-padding;
-        &::placeholder {
-          color: $gray;
-          font-family: 'Lato';
-          font-weight: 300;
-        }
-      }
-      .btn {
-        width: 2.3rem;
-        height: 2.3rem;
-        position: absolute;
-        top: 0;
-        right: 0;
-        cursor: pointer;
-        border-left: solid 1px $gray;
-        border-radius: 0;
-        outline: 0;
-        @include transition(background, 0.3s)
-        img {
-          height: 1.5rem;
-          padding: $global-padding / 7;
-        }
-      }
-      @include media-breakpoint-down(sm) {
-        display: block;
-        left: -100vw;
-        position: absolute;
-        max-width: 100%;
-        float: right;
-        top: 0;
-        z-index: 5;
-        margin-top: 0;
-        .search-input {
-          padding: $global-padding * 2 $global-padding * 2 $global-padding * 2 $global-padding * 4;
-          border: 0;
-        }
-        i {
-          position: absolute;
-          padding: $global-padding * 1.7 $global-padding;
-        }
-        .btn {
-          top: 1.6rem;
-          right: 2rem;
-        }
-      }
-    }
   }
   &__menu {
-    .navigation {
-      ul {
-        border-bottom: 1px solid $gray;
-        margin-bottom: $global-margin;
-        display: block;
-        text-align: center;
-        &.no-border {
-          border-bottom: 0;
-          margin-bottom: 0;
-        }
-        @include media-breakpoint-down(sm) {
-          border-bottom: 0;
-        }
-        .nav-item {
-          display: inline;
-          + .nav-item {
-            margin-left: 0;
-          }
-          a {
-            color: $body-color;
-            transition: 0.3s;
-            text-transform: uppercase;
-            display: inline-block;
-            padding: $global-padding * 1.5;
-            font-size: 1.5rem;
-            &:hover {
-              color: rgba($body-color, 0.6);
-              
-            }
-          }
-        }
-      }
-    }
     @include media-breakpoint-down(sm) {
       .navigation {
         position: fixed;
@@ -261,5 +200,3 @@
     }
   }
 }
-
-

@@ -9,22 +9,11 @@
     text-align: center;
   }
   h3 {
-    text-transform: uppercase;
     margin-bottom: $global-margin * 2;
   }
-  p, a {
-    color: $gray;  
-  }
-  a:not(.btn) {
-    text-decoration: underline;
-  }
   .btn {
-    padding: $global-padding / 2 $global-padding * 2.5;
-    font-size: 1rem;
-    text-transform: uppercase;
     margin: auto;
     margin-top: $global-margin;
-    font-family: $font-family-sans-serif;
   }
   &__btn-group {
     text-align: center;
@@ -53,17 +42,6 @@
     @include media-breakpoint-down(md) {
       padding: $global-padding * 2;
     }
-    a {
-      color: $body-color;
-      text-decoration: none;
-      font-size: 0.8rem;
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-    .form-group {
-      text-align: left;
-    }
   }
   &__btn-group {
     a {
@@ -71,35 +49,27 @@
       display: block;
     }
   }
-}
-
-.forgott-password {
-  h2 {
-    font-size: 2rem;
-    padding-top: $global-padding*2;
-    font-weight: 300;
-  }
-  p {
-    font-size: 1rem;
-    padding-top: $global-padding;
-  }
-  fieldset {
-    max-width: 60%;
-    margin: auto;
-    padding-bottom: $global-padding;
-    @include media-breakpoint-down(sm) {
-      max-width: 80%;
-    }
-  }
-  .login__btn-group {
-    .btn {
-      padding: $global-padding / 2 $global-padding * 3;
-      margin: auto;
-      text-transform: uppercase;
-      font-family: $font-family-sans-serif;
-    }
-    img {
+  &__forgot-password {
+    h2 {
       padding-top: $global-padding * 2;
+      text-transform: uppercase;
+    }
+    p {
+      font-size: 1rem;
+      padding-top: $global-padding;
+    }
+    fieldset {
+      max-width: 60%;
+      margin: auto;
+      padding-bottom: $global-padding;
+      @include media-breakpoint-down(sm) {
+        max-width: 80%;
+      }
+    }
+    .login__btn-group {
+      img {
+        padding-top: $global-padding * 2;
+      }
     }
   }
 }

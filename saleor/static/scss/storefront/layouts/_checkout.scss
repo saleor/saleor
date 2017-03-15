@@ -7,14 +7,11 @@
   hr {
     margin: $global-margin * 3 0 $global-margin * 2;
   }
-  .btn {
+  .primary {
     margin-top: $global-margin;
   }
   &__edit-link {
     margin-top: $global-margin;
-    a {
-      color: $blue;
-    }
   }
   &__header {
     background-color: $light-gray;
@@ -55,17 +52,12 @@
     text-align: center;
     h3 {
       margin-bottom: $global-margin * 3;
-      text-transform: uppercase;
     }
     .btn {
       margin: $global-margin * 2 auto 0;
-      padding: $global-padding / 2 $global-padding * 2.5;
     }
     &__continue {
       padding: $global-padding * 2 0 $global-padding;
-      p {
-        font-size: 0.8rem;
-      }
     }
     &__form {
       background-color: $light-gray;
@@ -74,15 +66,9 @@
         padding: $global-padding * 2;
       }
       .form-group {
-        text-align: left;
         &:last-of-type {
           margin-bottom: 0;
         }
-      }
-      a {
-        color: $body-color;
-        text-decoration: underline;
-        font-size: 0.8rem;
       }
     }
   }
@@ -103,20 +89,6 @@
     &__variant {
       color: $skull-gray;
     }
-    &__voucher {
-      position: relative;
-      .btn {
-        position: absolute;
-        top: 0;
-        right: 0;
-        padding: $global-padding / 2 $global-padding * 2;
-        margin-top: 0;
-        background-color: $white;
-      }
-      &-form {
-        margin-bottom: $global-margin;
-      }
-    }
     @include media-breakpoint-down(sm) {
       margin-top: $global-margin * 3;
     } 
@@ -128,21 +100,17 @@
       margin-top: $global-margin * 3;
     }
     h3 {
-      text-transform: uppercase;
       margin-bottom: $global-margin * 3;
     }
     .btn {
       margin-top: $global-margin;
     }
     span {
-      color: $dark-gray;
+      color: $darken-gray;
     }
     h1 {
       font-weight: 300;
       margin-top: -$global-margin * 4;
-      a {
-        color: $blue;
-      }
     }
     &__form {
       margin-top: $global-margin * 6;
@@ -166,11 +134,6 @@
         margin-bottom: $global-margin * 1.2;
         @include media-breakpoint-only(md) {
           margin-bottom: $global-margin * 2.4;
-        }
-      }
-      form {
-        .form-group {
-          text-align: left;
         }
       }
     }

@@ -10,7 +10,7 @@ import SortBy from './SortBy';
 import { ensureAllowedName, getAttributesFromQuery, getFromQuery } from './utils';
 import {isMobile} from '../utils';
 
-const PAGINATE_BY = 20;
+const PAGINATE_BY = 24;
 const SORT_BY_FIELDS = ['name', 'price'];
 
 class CategoryPage extends Component {
@@ -117,8 +117,8 @@ class CategoryPage extends Component {
       <div className="category-page">
         <div className="category-top">
           <div className="row">
-            <div className="col-md-7">
-              <ul className="category-breadcrumbs hidden-sm-down">
+            <div className="col-md-8">
+              <ul className="breadcrumbs list-unstyled hidden-sm-down">
                 <li><a href="/">{gettext('Home')}</a></li>
                   {category.ancestors && (category.ancestors.map((ancestor) => {
                     return (
@@ -130,10 +130,10 @@ class CategoryPage extends Component {
             </div>
             <div className="col-md-5">
               <div className="row">
-                <div className="col-5 col-md-2 col-lg-6 filters-menu">
-                  <span className="filters-menu-label hidden-sm-up" onClick={() => this.toggleMenu(filtersMenu)}>{gettext('Filters')}</span>
+                <div className="col-6 col-md-2 col-lg-6 filters-menu">
+                  <span className="filters-menu__label hidden-sm-up" onClick={() => this.toggleMenu(filtersMenu)}>{gettext('Filters')}</span>
                   {(variables.attributesFilter.length || variables.minPrice || variables.maxPrice) && (
-                    <span className="filters-menu-icon hidden-sm-up"></span>
+                    <span className="filters-menu__icon hidden-sm-up"></span>
                   )}
                 </div>
                 <div className="col-7 col-md-10 col-lg-6">

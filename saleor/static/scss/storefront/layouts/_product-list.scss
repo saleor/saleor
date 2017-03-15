@@ -4,14 +4,6 @@
   img {
     max-width: 100%;
   }
-  a {
-    color: $body-color;
-    position: relative;
-    display: block;
-    &:hover {
-      text-decoration: none;
-    }
-  }
   &-item-name {
     margin: $global-margin / 2 0;
     display: block;

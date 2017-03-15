@@ -41,17 +41,6 @@
       {% with images=product_images %}
         {% if images %}
           <div id="carousel-example-generic" class="carousel slide">
-            <ol class="carousel-indicators hidden-sm-down">
-              {% for image in images %}
-                {% if images|length > 1 %}
-                  <li data-target="#carousel-example-generic" data-slide-to="{{ forloop.counter0 }}">
-                    <img src="{% get_thumbnail image.image method="crop" size="60x60" %}"
-                         srcset="{% get_thumbnail image.image method="crop" size="60x60" %} 1x, {% get_thumbnail image.image method="crop" size="120x1200" %} 2x"
-                         alt="">
-                  </li>
-                {% endif %}
-              {% endfor %}
-            </ol>
             <div class="carousel-inner" role="listbox">
               {% for image in images %}
                 <div class="carousel-item{% if forloop.first %} active{% endif %}">
@@ -69,6 +58,17 @@
                 <img class="icon-next" src="{% static "images/gallery-arrow.svg" %}">
               </a>
             {% endif %}
+            <ol class="carousel-indicators hidden-sm-down">
+              {% for image in images %}
+                {% if images|length > 1 %}
+                  <li data-target="#carousel-example-generic" data-slide-to="{{ forloop.counter0 }}">
+                    <img src="{% get_thumbnail image.image method="crop" size="60x60" %}" 
+                         srcset="{% get_thumbnail image.image method="crop" size="60x60" %} 1x, {% get_thumbnail image.image method="crop" size="120x120" %} 2x" 
+                         alt="">
+                  </li>
+                {% endif %}
+              {% endfor %}
+            </ol>
           </div>
         {% else %}
           <img src="{% static 'images/placeholder540x540.png' %}" 

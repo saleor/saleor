@@ -25,19 +25,19 @@
     </div>
   </div>
 {% endif %}
-<div class="order-details__table-header hidden-sm-down">
+<div class="table__header hidden-sm-down">
   <div class="row">
     <div class="col-md-6">
       <small>
           {% trans "Product" context "Order details column title" %}
       </small>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 text-right">
       <small>
           {% trans "Quantity" context "Order details column title" %}
       </small>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 text-right">
       <small>
           {% trans "Price" context "Order details column title" %}
       </small>
@@ -45,12 +45,11 @@
   </div>
 </div>
 
-<div class="order-details__table">
   {% for item in order %}
     {% for item_line in item %}
       <div class="row">
         <div class="col-md-6 col-9">
-          <a href="{{ item_line.product.get_absolute_url }}">
+          <a class="link--clean" href="{{ item_line.product.get_absolute_url }}">
             <img src="{% product_first_image item_line.product size="60x60" method="crop" %}" 
                  srcset="{% product_first_image item_line.product size="60x60" method="crop" %} 1x, {% product_first_image item_line.product size="120x120" method="crop" %} 2x" 
                  class="float-left">
@@ -114,4 +113,4 @@
       </div>
     </div>
   {% endfor %}
-</div>
+

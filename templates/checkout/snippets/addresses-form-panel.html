@@ -1,4 +1,4 @@
-<div class="radio checkout__shipping__form{% if address or label == _('Same as shipping') %} address_hide{% else %} address_show{% endif %}">
+<div class="radio {% if address or label == _('Same as shipping') %} address_hide{% else %} address_show{% endif %}">
   <label>
       <input type="radio"
              name="{{ radio_name }}"

@@ -8,6 +8,8 @@ a.btn {
   font-weight: 300;
   font-size: 1rem;
   cursor: pointer;
+  font-family: $font-family-sans-serif;
+  white-space: normal;
   &.home__button {
     text-transform: uppercase;
     font-size: $font-size-h3;
@@ -24,33 +26,42 @@ a.btn {
     background-color: $blue;
     color: $white;
     padding: $global-padding $global-padding * 4;
+    border: none;
     &:hover {
-      background-color: darken($blue, 10%);
-    }
+      background-color: $darken-blue;
+    } 
   }
   &.secondary {
     border: 1px solid $blue;
     padding: $global-padding $global-padding * 2;
-    background-color: transparent;
+    background-color: $white;
     color: $blue;
     &:hover {
-      border-color: darken($blue, 10%);
-      color: darken($blue, 10%);
+      border-color: $darken-blue;
+      color: $darken-blue;
     }
   }
   &.danger {
-    background-color: $red;
+    border: 1px solid $red;
+    background-color: transparent;
+    color: $red;
+    padding: $global-padding $global-padding * 4;
+    &:hover {
+      background-color: $dark-red;
+      color: $white;
+    }
+  }
+  &.narrow {
+    padding: $global-padding / 2 $global-padding * 2.5;
+  }
+  &.gray {
+    background-color: $gray;
+    border: 0;
     color: $white;
     padding: $global-padding $global-padding * 4;
     &:hover {
-      background-color: $darkred
+      background-color: $darken-gray;
     }
-  }
-  &.checkout {
-    background-color: $gray;
-    border: 0;
-    padding: $global-padding / 2 $global-padding * 2;
-    text-transform: none;
   }
   &.btn-link {
     padding: 0;
@@ -58,4 +69,8 @@ a.btn {
     color: $gray;
     text-transform: none;
   }
+}
+
+button:focus {
+  outline: none;
 }
