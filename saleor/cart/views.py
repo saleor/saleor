@@ -55,7 +55,12 @@ def get_shipping_options(request):
     country_form = CountryForm(request.POST or None)
     if country_form.is_valid():
         shipments = country_form.get_shipment_options()
-        return JsonResponse({'options': list(shipments)})
+        if shipments:
+            return TemplateResponse(
+                request, 'product/_price_range.html',
+                {'price_range': shipments})
+        else:
+            return JsonResponse({'empty': True})
 
 
 @get_or_empty_db_cart()

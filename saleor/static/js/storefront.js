@@ -197,7 +197,6 @@ $('.product-form button').click((e) => {
 let $deliveryForm = $('.deliveryform');
 let crsfToken = $deliveryForm.data('crsf');
 let $countrySelect = $('#id_country');
-let $newMethod = $('.cart__delivery-info__method');
 let $newPrice = $('.cart__delivery-info__price');
 $countrySelect.on('change', (e) => {
   let newCountry = $countrySelect.val();
@@ -209,12 +208,11 @@ $countrySelect.on('change', (e) => {
       'country': newCountry
     },
     success: (data) => {
-      $newMethod.empty();
-      $newPrice.empty();
-      $.each(data.options, (key, val) => {
-        $newMethod.append('<p>' + val.shipping_method__name + '</p>');
-        $newPrice.append('<p>$' + val.price[1] + '</p>');
-      });
+      if(!data.empty){
+        $newPrice.html(data);
+      } else {
+        $newPrice.empty();
+      }
     }
   });
 });
