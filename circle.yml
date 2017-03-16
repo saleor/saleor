@@ -16,7 +16,7 @@ dependencies:
     - yarn add --force node-sass # force our way around https://github.com/yarnpkg/yarn/issues/1981
     - pip install -r requirements.txt
   override:
-    - yarn run build-assets --production
+    - yarn run build-assets:prod --production
     - ./manage.py collectstatic --no-input
     - sed -i.bak "s#'dev'#'$(git describe --tags)'#" saleor/__init__.py
   post:

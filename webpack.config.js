@@ -24,6 +24,8 @@ var environmentPlugin = new webpack.DefinePlugin({
   }
 });
 
+var uglifyJSPlugin = new webpack.optimize.UglifyJsPlugin();
+
 var providePlugin = new webpack.ProvidePlugin({
   $: 'jquery',
   '_': 'underscore',
@@ -89,7 +91,8 @@ var config = {
     environmentPlugin,
     extractTextPlugin,
     occurenceOrderPlugin,
-    providePlugin
+    providePlugin,
+    uglifyJSPlugin
   ],
   postcss: function() {
     return [autoprefixer];

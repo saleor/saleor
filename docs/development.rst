@@ -29,7 +29,7 @@ To run webpack in *watch* mode run:
 
 .. code-block:: bash
 
-    $ npm start
+    $ yarn start
 
 .. warning::
 
@@ -38,7 +38,7 @@ To run webpack in *watch* mode run:
 
     .. code-block:: bash
 
-        $ npm run build-assets
+        $ yarn run build-assets:prod
 
 
 Working with backend code
