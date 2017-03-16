@@ -14,7 +14,7 @@ var commonsChunkPlugin = new webpack.optimize.CommonsChunkPlugin({
   names: 'vendor'
 });
 
-var extractTextPlugin = new ExtractTextPlugin('[name].css');
+var extractTextPlugin = new ExtractTextPlugin('[name].[contenthash].css');
 
 var occurenceOrderPlugin = new webpack.optimize.OccurenceOrderPlugin();
 
@@ -23,8 +23,6 @@ var environmentPlugin = new webpack.DefinePlugin({
     NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development')
   }
 });
-
-var uglifyJSPlugin = new webpack.optimize.UglifyJsPlugin();
 
 var providePlugin = new webpack.ProvidePlugin({
   $: 'jquery',
@@ -37,7 +35,7 @@ var providePlugin = new webpack.ProvidePlugin({
 
 config.output = {
   path: resolve('saleor/static/assets/'),
-  filename: '[name].js',
+  filename: '[name].[chunkhash].js',
   publicPath: '/'
 };
 
@@ -47,8 +45,7 @@ config.plugins = [
   environmentPlugin,
   extractTextPlugin,
   occurenceOrderPlugin,
-  providePlugin,
-  uglifyJSPlugin
+  providePlugin
 ];
 
 module.exports = config;

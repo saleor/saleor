@@ -88,7 +88,7 @@
     }
   },
   "scripts": {
-    "build-assets": "node ./node_modules/webpack/bin/webpack.js -p",
+    "build-assets": "node ./node_modules/webpack/bin/webpack.js -d",
     "build-assets:prod": "NODE_ENV=production node ./node_modules/webpack/bin/webpack.js --config webpack.production.config.js -p",
     "heroku-postbuild": "yarn add --force node-sass && yarn run build-assets",
     "start": "UV_THREADPOOL_SIZE=8 node ./node_modules/webpack/bin/webpack.js -d --watch"
