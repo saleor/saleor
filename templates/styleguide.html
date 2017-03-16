@@ -11,7 +11,7 @@
 <header class="checkout__header">
   <div class="container">
     <a href="/">
-      <svg data-src="{% static "images/saleor-logo.svg" %}" />
+      <svg data-src="{% static "images/saleor-logo.svg" %}" height="38px" width="176px" />
     </a>
     <h1>Style guide</h1>
   </div>
@@ -429,7 +429,7 @@
             <form class="form-inline search-form" action="{% url "search:search" %}">
               <input class="form-control" type="text" name="q" value="{% if query %}{{ query }}{% endif %}" placeholder="Search for product">
               <button class="btn btn-link" type="submit">
-                <svg data-src="{% static "images/search-icon.svg" %}" />
+                <svg data-src="{% static "images/search-icon.svg" %}" width="19" height="19" />
               </button>
             </form>
           </div>
@@ -665,7 +665,7 @@
               </div>
               <ul class="icons">
                 <li><a href="#" contenteditable="true">Edit</a></li>
-                <li><a class="delete-icon"><svg data-src="{% static "images/icon_delete.svg" %}" /></a></li>
+                <li><a class="delete-icon"><svg data-src="{% static "images/icon_delete.svg" %}" height="20px" width="20px" /></a></li>
               </ul>              
               <div class="address-delete none">
                 <form>
