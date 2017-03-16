@@ -36,9 +36,11 @@
     @include media-breakpoint-down(sm) {
       width: 100%;
     }
-    max-width: 100%;
     background-color: $white;
     height: calc(2.25rem + 2px);
+    @include media-breakpoint-up(sm) {
+      float: right;
+    }
     &:focus {
       outline: none;
     }
