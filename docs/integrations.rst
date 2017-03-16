@@ -23,7 +23,7 @@ By default static files (such as CSS and JS files required to display your pages
 
 If you intend to use S3 for your static files as well, set an additional environment variable:
 
-``AWS_STATIC_BUCKET_NAME``
+``AWS_STORAGE_BUCKET_NAME``
   The S3 bucket name to use for static files.
 
 
