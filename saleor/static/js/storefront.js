@@ -3,6 +3,7 @@ import 'jquery.cookie';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Relay from 'react-relay';
+import SVGInjector from 'svg-injector-2';
 
 import variantPickerStore from './stores/variantPicker';
 
@@ -35,6 +36,8 @@ Relay.injectNetworkLayer(
     }
   })
 );
+
+new SVGInjector().inject(document.querySelectorAll('svg[data-src]'));
 
 let getAjaxError = (response) => {
   let ajaxError = $.parseJSON(response.responseText).error.quantity;

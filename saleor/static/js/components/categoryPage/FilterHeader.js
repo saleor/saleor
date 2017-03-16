@@ -2,8 +2,8 @@ import React, { PropTypes } from 'react';
 
 import InlineSVG from 'react-inlinesvg';
 
-import chevronUpIcon from '../../../../../templates/svg/chevron-up-icon.svg';
-import chevronDownIcon from '../../../../../templates/svg/chevron-down-icon.svg';
+import chevronUpIcon from '../../../images/chevron-up-icon.svg';
+import chevronDownIcon from '../../../images/chevron-down-icon.svg';
 
 const FilterHeader = ({ onClick, title, visibility }) => {
   const imageSrc = visibility ? (chevronUpIcon) : (chevronDownIcon);

@@ -11,7 +11,7 @@
 <header class="checkout__header">
   <div class="container">
     <a href="/">
-      {% include 'svg/saleor-logo.svg' %}
+      <svg data-src="{% static "images/saleor-logo.svg" %}" />
     </a>
     <h1>Style guide</h1>
   </div>
@@ -293,15 +293,15 @@
       </div>
       <div id="icons" class="styleguide__content__block">
         <h3 class="styleguide__content__block__title">Icons</h3>
-        <img src="{% static "images/cart.svg" %}">
-        <img src="{% static "images/chevron-down-icon.svg" %}">
-        <img src="{% static "images/chevron-up-icon.svg" %}">
-        <img src="{% static "images/arrow-down-icon.svg" %}">
-        <img src="{% static "images/arrow-up-icon.svg" %}">
-        <img src="{% static "images/search-icon.svg" %}"> 
-        <img src="{% static "images/gallery-arrow.svg" %}">
-        <img src="{% static "images/icon_delete.svg" %}">
-        <img src="{% static "images/loader.svg" %}">  
+        <svg data-src="{% static "images/cart.svg" %}" />
+        <svg data-src="{% static "images/chevron-down-icon.svg" %}" />
+        <svg data-src="{% static "images/chevron-up-icon.svg" %}" />
+        <svg data-src="{% static "images/arrow-down-icon.svg" %}" />
+        <svg data-src="{% static "images/arrow-up-icon.svg" %}" />
+        <svg data-src="{% static "images/search-icon.svg" %}" />
+        <svg data-src="{% static "images/gallery-arrow.svg" %}" />
+        <svg data-src="{% static "images/icon_delete.svg" %}" />
+        <svg data-src="{% static "images/loader.svg" %}" />
       </div>
       <div id="buttons" class="styleguide__content__block">
         <h3 class="styleguide__content__block__title">Buttons <img src="{% static "images/text-cursor.svg" %}"></h3>
@@ -367,7 +367,7 @@
             <div class="product-filters">
               <h3 contenteditable="true">Box Size
                 <div class="collapse-filters-icon">
-                  <img src="/static/images/chevron-up-icon.svg">
+                  <svg data-src="{% static "images/chevron-up-icon.svg" %}" />
                 </div>
               </h3>
               <ul id="box-size">
@@ -429,7 +429,7 @@
             <form class="form-inline search-form" action="{% url "search:search" %}">
               <input class="form-control" type="text" name="q" value="{% if query %}{{ query }}{% endif %}" placeholder="Search for product">
               <button class="btn btn-link" type="submit">
-                <img src="{% static "images/search-icon.svg" %}">
+                <svg data-src="{% static "images/search-icon.svg" %}" />
               </button>
             </form>
           </div>
@@ -665,7 +665,7 @@
               </div>
               <ul class="icons">
                 <li><a href="#" contenteditable="true">Edit</a></li>
-                <li><a class="delete-icon"><img class="float-right" src="{% static "images/icon_delete.svg" %}"></a></li>
+                <li><a class="delete-icon"><svg data-src="{% static "images/icon_delete.svg" %}" /></a></li>
               </ul>              
               <div class="address-delete none">
                 <form>
@@ -702,7 +702,8 @@
                 <span class="product-list-item-name" contenteditable="true">Johnson-Brown</span>
               </div>
               <div class="panel-footer">
-                <div class="product-list__sale"><img src="{% static "images/sale_bg.svg" %}">
+                <div class="product-list__sale">
+                  <svg data-src="{% static "images/sale_bg.svg" %}" />
                   <span contenteditable="true">Sale</span>
                 </div>
                 <span contenteditable="true">FROM $72.25</span>
@@ -724,10 +725,10 @@
               </div>
             </div>
             <a class="carousel-control-prev" href="#carousel-example-generic" role="button" data-slide="prev">
-              <img class="icon-next" src="{% static "images/gallery-arrow.svg" %}">
+              <svg data-src="{% static "images/gallery-arrow.svg" %}" />
             </a>
             <a class="carousel-control-next" href="#carousel-example-generic" role="button" data-slide="next">
-              <img class="icon-next" src="{% static "images/gallery-arrow.svg" %}">
+              <svg data-src="{% static "images/gallery-arrow.svg" %}" />
             </a>          
             <ol class="carousel-indicators hidden-sm-down">
               <li data-target="#carousel-example-generic" data-slide-to="0" class="active">

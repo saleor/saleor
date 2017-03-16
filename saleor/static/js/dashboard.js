@@ -3,6 +3,7 @@ import $ from 'jquery';
 import 'materialize-css/dist/js/materialize';
 import 'select2';
 import Sortable from 'sortablejs';
+import SVGInjector from 'svg-injector-2';
 
 import '../scss/dashboard/dashboard.scss';
 
@@ -19,6 +20,8 @@ try {
 function onScroll(func) {
   window.addEventListener('scroll', func, supportsPassive ? {passive: true} : false);
 }
+
+new SVGInjector().inject(document.querySelectorAll('svg[data-src]'));
 
 function openModal() {
   $('.modal-trigger-custom').on('click', function (e) {

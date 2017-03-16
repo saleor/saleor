@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import InlineSVG from 'react-inlinesvg';
 
-import arrowLeftIcon from '../../../../../templates/svg/arrow-left-icon.svg';
+import arrowLeftIcon from '../../../images/arrow-left-icon.svg';
 
 export default class CategoryFilter extends Component {
 

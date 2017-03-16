@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 import Relay from 'react-relay';
 import InlineSVG from 'react-inlinesvg';
 
-import SaleImg from '../../../../../templates/svg/sale_bg.svg';
+import SaleImg from '../../../images/sale_bg.svg';
 
 const ProductPrice = ({ availability, price }) => {
   const { discount, priceRange } = availability;
