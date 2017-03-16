@@ -2,6 +2,7 @@
 {% load prices_i18n %}
 {% load i18n %}
 {% load status %}
+{% load static %}
 
 {% block title %}
   {{ customer }} - {% trans "Customers" context "Dashboard customers list" %} - {{ block.super }}
@@ -25,7 +26,8 @@
     </li>
     <li class="back-mobile">
       <a href="{% url "dashboard:customers" %}">
-        <i class="material-icons">arrow_back</i></a>
+        <svg data-src="{% static "images/arrow-left-icon.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
     </li>
     <li><span class="breadcrumbs--elipsed-item">{{ customer }}</span></li>
   </ul>
@@ -103,7 +105,7 @@
               {% else %}
                 <span>{% trans "No default shipping address." context "Customer without default shipping address message" %}</span>
               {% endif %}
-              <i class="material-icons">email</i> 
+              <svg data-src="{% static "images/email.svg" %}" width="14" height="14" />
               <a href="mailto:{{ customer.email }}">
                 {{ customer.email }}
               </a>

@@ -8,8 +8,7 @@
           display: inline;
         }
       }
-      i {
-        font-size: 24px;
+      svg {
         @media (min-width: $small-screen-up) {
           display: none;
         }

@@ -78,11 +78,8 @@
     .dropdown-button {
       color: inherit;
       display: inline-block;
-      i {
-        @extend .grey-text;
-        font-size: 16px;
-        text-align: center;
-        width: 16px;
+      svg {
+        vertical-align: bottom;
       }
     }
   }

@@ -59,11 +59,9 @@
           margin: 0;
 
           &:before {
-            @extend .material-icons;
-            content: "clear";
-            cursor: pointer;
-            font-size: 16px;
-            line-height: 32px;
+            content: "\00d7";
+            font-size: 15px;
+            display: inline-block;
             margin-left: 8px;
           }
         }

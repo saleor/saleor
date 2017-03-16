@@ -2,11 +2,11 @@
   color: $secondary-color;
 }
 
-.btn-fab.btn-fab-hidden {
-  transform: scaleX(0) scaleY(0);
-  i {
-    &:before {
-      font-size: 0;
-    }
+.btn-fab {
+  svg {
+    vertical-align: middle;
+  }
+  &.btn-fab-hidden {
+    transform: scaleX(0) scaleY(0);
   }
 }

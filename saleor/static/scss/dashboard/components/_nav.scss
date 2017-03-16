@@ -28,14 +28,16 @@ header {
             }
             &:focus {
               background-color: white;
+              ~ label {
+                svg {
+                  fill: $off-black;
+                }
+              }
             }
           }
           label {
             transition: color .2s ease-out;
-            i {
-              height: 36px;
-              line-height: 36px;
-            }
+            margin-top: 7px;
           }
         }
       }
@@ -44,6 +46,17 @@ header {
       padding: (($dropdown-item-height - 22) / 2) 16px;
       white-space: normal;
       max-width: 90vw;
+    }
+    #toggle-menu {
+      svg {
+        margin: 16px 0;
+        @media (max-width: $small-screen) {
+          margin: 20px 0;
+        }
+        path {
+          fill: #fff;
+        }
+      }
     }
     .menu-toggle {
       background-color: $primary-color;
@@ -77,10 +90,6 @@ header {
       z-index: 999;
       @media (max-width: $small-screen) {
         top: $header-height/3;
-      }
-      i {
-        height: $header-height/2;
-        line-height: $header-height/2;
       }
     }
 
@@ -179,17 +188,11 @@ header {
       padding-left: 15px;
     }
     .dropdown-button {
-      i {
-        padding-right: 15px;
-      }
-    }
-    i {
-      font-size: $subheader-height/2;
-      line-height: $subheader-height;
-      color: white;
+      padding: 11px 15px 0 0;
+      line-height: 0;
+      max-height: $subheader-height;
     }
   }
-
 }
 
 .main {

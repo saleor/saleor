@@ -24,7 +24,6 @@
     "jquery-match-height": "^0.7.0",
     "jquery-ui": "^1.12.1",
     "jquery.cookie": "^1.4.1",
-    "material-design-icons": "^3.0.1",
     "materialize-css": "^0.97.7",
     "mobx": "^3.0.2",
     "mobx-react": "^4.1.0",

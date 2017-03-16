@@ -2,6 +2,7 @@
 {% load materializecss %}
 {% load i18n %}
 {% load mptt_tags %}
+{% load static %}
 
 {% block title %}
   {% trans "Shipping methods" context "Dashboard shipping methods" %}
@@ -34,7 +35,7 @@
     </li>
     <li class="back-mobile">
       <a href="{% url 'dashboard:shipping-methods' %}">
-        <i class="material-icons">arrow_back</i>
+        <svg data-src="{% static "images/arrow-left-icon.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     <li>
@@ -54,7 +55,7 @@
 {% block header_extra %}
   {% if shipping_method.pk %}
     <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
-      <i class="material-icons">more_vert</i>
+      <svg data-src="{% static "images/more_vert.svg" %}" height="24" width="24" />
     </a>
     <ul id="context-menu" class="dropdown-content">
       <li>
