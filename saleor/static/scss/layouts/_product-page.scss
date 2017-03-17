@@ -23,6 +23,9 @@
     &__quantity {
       width: 17%;
       float: left;
+      @include media-breakpoint-down(sm) {
+        width: 47%;
+      }
       input {
         height: 54px;
       }
@@ -33,6 +36,12 @@
       margin-top: $global-margin * 2.5;
       button {
         min-width: 100%;
+      }
+      @include media-breakpoint-down(sm) {
+        width: 50%;
+        .btn.primary {
+          padding: $global-padding;
+        }
       }
     }
     td {
