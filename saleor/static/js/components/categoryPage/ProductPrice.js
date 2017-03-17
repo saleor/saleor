@@ -13,7 +13,7 @@ const ProductPrice = ({ availability, price }) => {
         {isPriceRange && <span>{gettext('from')} </span>} {priceRange.minPrice.grossLocalized}
       </span>
       {discount && (
-        <div className="product-list__sale"><InlineSVG src={SaleImg} /><span>{gettext('Sale')}</span></div>
+        <div className="product-list__sale"><InlineSVG src={SaleImg} /><span className="product-list__sale__text">{gettext('Sale')}</span></div>
       )}
     </div>
   );

@@ -6,7 +6,10 @@
     margin-bottom: $global-margin * 2;
     &.fixed {
       position: fixed;
-      top: 20px;;
+      top: 20px;
+      @include media-breakpoint-down(sm) {
+        position: relative;
+      }
     }
   }
   &__content {
@@ -14,6 +17,7 @@
       svg {
         fill: $body-color;
         max-height: 14px;
+        max-width: 14px;
         vertical-align: middle;
       }
     }

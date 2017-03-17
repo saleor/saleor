@@ -24,6 +24,9 @@
     &.fixed {
       position: fixed !important;
       top: 0;
+      @media only screen and (max-width: $small-screen-up) {
+        position: relative !important;
+      }
     }
     li {
       padding: 5px 20px;
@@ -44,6 +47,14 @@
     }
   }
   &__content {
+    h3, h4, p {
+      svg {
+        max-height: 14px;
+        max-width: 14px;
+        vertical-align: middle;
+        fill: currentColor;
+      }
+    }
     &__block {
       .container {
         margin-left: 0;
@@ -102,6 +113,14 @@
           margin: 10px 0;
           background: #f2f2f2;
           border: solid 1px $grey-color;
+        }
+      }
+      &#icons {
+        svg {
+          max-height: 24px;
+          max-width: 24px;
+          fill: $off-black;
+          margin-top: 10px;
         }
       }
     }
