@@ -13,6 +13,7 @@ machine:
 dependencies:
   pre:
     - yarn
+    - yarn add --force node-sass # force our way around https://github.com/yarnpkg/yarn/issues/1981
     - pip install -r requirements.txt
   override:
     - yarn run build-assets --production
