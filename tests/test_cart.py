@@ -8,6 +8,7 @@ from babeldjango.templatetags.babel import currencyfmt
 from django.contrib.auth.models import AnonymousUser
 from django.core import signing
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from mock import MagicMock, Mock
 from prices import Price
