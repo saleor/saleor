@@ -63,9 +63,6 @@ header {
       position: absolute;
       width: 237px;
       z-index: 2;
-      i {
-        color: white;
-      }
       a:hover {
         background-color: transparent;
       }
@@ -74,11 +71,6 @@ header {
       float: left;
       margin: 0 $gutter-width;
       display: block;
-      i {
-        font-size: 2.7rem;
-        height: $header-height;
-        line-height: $header-height;
-      }
     }
 
     .dropdown-button {

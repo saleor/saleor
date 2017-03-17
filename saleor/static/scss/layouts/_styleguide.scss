@@ -10,6 +10,13 @@
     }
   }
   &__content {
+    h3, p {
+      svg {
+        fill: $body-color;
+        max-height: 14px;
+        vertical-align: middle;
+      }
+    }
     &__note {
       border: 1px solid $gray;
       padding: $global-padding;

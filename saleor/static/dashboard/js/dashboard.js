@@ -5,7 +5,7 @@ import 'select2';
 import Sortable from 'sortablejs';
 import SVGInjector from 'svg-injector-2';
 
-import '../scss/dashboard/dashboard.scss';
+import '../scss/dashboard.scss';
 
 var supportsPassive = false;
 try {

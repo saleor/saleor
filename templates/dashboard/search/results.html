@@ -24,7 +24,7 @@
         <form class="hide-on-med-and-up" method="get" action="{% url "dashboard:search" %}">
           <input id="icon_prefix" type="text" class="validate left" placeholder="{% trans "Search" context "Dashboard search" %}" name="q" value="{% if query %}{{ query }}{% endif %}">
           <button class="btn-flat" type="submit">
-            <svg data-src="{% static "images/search-icon.svg" %}" width="20" height="20" fill="#E57373" />
+            <svg data-src="{% static "images/search.svg" %}" width="20" height="20" fill="#E57373" />
           </button>
         </form>
         <form class="hide-on-med-and-up row" method="get" action="{% url "dashboard:search" %}">

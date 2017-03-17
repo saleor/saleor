@@ -106,19 +106,6 @@
       }
     }
   }
-  #icons, #dropdowns, #modals {
-    h3 {
-      i {
-        color: $grey-color;
-        font-size: 1.5rem;
-      }
-    }
-    i {
-      color: $off-black;
-      font-size: 2rem;
-      padding-right: 20px;
-    }
-  }
   
   @media only screen and (max-width: $small-screen-up) {
     #buttons {

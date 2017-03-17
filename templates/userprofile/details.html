@@ -115,7 +115,7 @@
                       <li><a href="{% url "profile:address-edit" pk=address.pk %}">
                         {% trans "Edit" context "User address action" %}
                       </a></li>
-                      <li><a class="delete-icon"><svg data-src="{% static "images/icon_delete.svg" %}" height="20px" width="20px" /></a></li>
+                      <li><a class="delete-icon"><svg data-src="{% static "images/delete.svg" %}" height="20px" width="20px" /></a></li>
                     </ul>
                     {% include "userprofile/address-delete.html" with pk=address.pk %}
                   </div>

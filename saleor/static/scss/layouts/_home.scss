@@ -39,7 +39,7 @@
   }
   &__block1 {
     .home--square {
-      background-image: url('../../images/block1.jpg');
+      background-image: url('../images/block1.jpg');
       @include media-breakpoint-up(md) {
         &:before {
           padding-top: 50%;
@@ -50,13 +50,13 @@
   &__block2 {
     margin-top: $global-margin * 2;
     .home--square {
-      background-image: url('../../images/block2.jpg');
+      background-image: url('../images/block2.jpg');
     }
   }
   &__block3 {
     margin-top: $global-margin * 2;
     .home--square {
-      background-image: url('../../images/block3.jpg');
+      background-image: url('../images/block3.jpg');
     }
   }
   &__featured {

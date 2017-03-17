@@ -1,4 +1,4 @@
-import '../scss/storefront/storefront.scss';
+import '../scss/storefront.scss';
 import 'jquery.cookie';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -7,8 +7,8 @@ import SVGInjector from 'svg-injector-2';
 
 import variantPickerStore from './stores/variantPicker';
 
-import passwordIvisible from '../images/pass-invisible.svg';
-import passwordVisible from '../images/pass-visible.svg';
+import passwordIvisible from '../images/pass_invisible.svg';
+import passwordVisible from '../images/pass_visible.svg';
 
 import VariantPicker from './components/variantPicker/VariantPicker';
 import VariantPrice from './components/variantPicker/VariantPrice';

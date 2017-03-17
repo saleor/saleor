@@ -72,25 +72,25 @@
                     <div class="row no-gutters">
                       <div class="col-8 col-md-4 navbar__logo">
                         <div class="menu-icon-mobile hidden-md-up navbar__brand__menu-toggle closed open">
-                          <svg data-src="{% static "images/mobile-bar.svg" %}" width="28px" height="20px" />
+                          <svg data-src="{% static "images/mobile_menu.svg" %}" width="28px" height="20px" />
                           <span>{% trans "menu" context "Hamburger button text" %}</span>
                         </div>
                         <a href="/">
-                          <svg data-src="{% static "images/saleor-logo.svg" %}" height="38px" width="176px" />
+                          <svg data-src="{% static "images/saleor_logo.svg" %}" height="38px" width="176px" />
                         </a>
                       </div>
                       <div class="col-2 col-md-4 navbar__search static">
                         {% if SEARCH_IS_ENABLED %}
                           <div class="hidden-md-up mobile-search-icon">
-                            <svg data-src="{% static "images/search-icon.svg" %}" width="30" height="30" />
+                            <svg data-src="{% static "images/search.svg" %}" width="30" height="30" />
                           </div>
                           <form class="form-inline search-form" action="{% url "search:search" %}">
                             <div class="mobile-close-search hidden-md-up">
-                              <svg data-src="{% static "images/close-icon.svg" %}" width="30" height="30" />
+                              <svg data-src="{% static "images/close.svg" %}" width="30" height="30" />
                             </div>
                             <input class="form-control" type="text" name="q" value="{% if query %}{{ query }}{% endif %}" placeholder="{% trans "Search for product" %}">
                             <button class="btn btn-link" type="submit">
-                              <svg data-src="{% static "images/search-icon.svg" %}" width="30" height="30" />
+                              <svg data-src="{% static "images/search.svg" %}" width="30" height="30" />
                             </button>
                           </form>
                         {% endif %}
@@ -158,7 +158,7 @@
                   <div class="row">
                     <div class="col-md-3">
                       <a href="/" class="footer__logo">
-                        <svg data-src="{% static "images/saleor-logo.svg" %}" height="38px" width="176px" />
+                        <svg data-src="{% static "images/saleor_logo.svg" %}" height="38px" width="176px" />
                       </a>
                     </div>
                     <div class="col-md-3 col-sm-6">
