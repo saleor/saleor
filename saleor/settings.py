@@ -61,7 +61,6 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-
 EMAIL_URL = os.environ.get('EMAIL_URL')
 SENDGRID_USERNAME = os.environ.get('SENDGRID_USERNAME')
 SENDGRID_PASSWORD = os.environ.get('SENDGRID_PASSWORD')
@@ -81,7 +80,6 @@ EMAIL_USE_SSL = email_config['EMAIL_USE_SSL']
 
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 ORDER_FROM_EMAIL = os.getenv('ORDER_FROM_EMAIL', DEFAULT_FROM_EMAIL)
-
 
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media')
 MEDIA_URL = '/media/'
@@ -137,6 +135,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 
 MIDDLEWARE_CLASSES = [
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -200,6 +199,9 @@ INSTALLED_APPS = [
 
     # my proprietary oye stuff
     'saleor_oye',
+    'saleor_oye.discogs',
+
+    'corsheaders',
 ]
 
 LOGGING = {
@@ -270,6 +272,7 @@ def get_host():
     from saleor.site.utils import get_domain
     return get_domain()
 
+
 PAYMENT_HOST = get_host
 
 PAYMENT_MODEL = 'order.Payment'
@@ -318,7 +321,6 @@ AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME')
 AWS_QUERYSTRING_AUTH = ast.literal_eval(
     os.environ.get('AWS_QUERYSTRING_AUTH', 'False'))
 
-
 if USE_AWS and AWS_STORAGE_BUCKET_NAME:
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
@@ -364,7 +366,6 @@ ACCOUNT_FORMS = {
     'reset_password_from_key': 'saleor.userprofile.forms.SetPasswordForm'
 }
 
-
 ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
 SEARCHBOX_URL = os.environ.get('SEARCHBOX_URL')
 BONSAI_URL = os.environ.get('BONSAI_URL')
@@ -389,7 +390,6 @@ if ES_URL:
 else:
     SEARCH_BACKENDS = {}
 
-
 GRAPHENE = {
     'MIDDLEWARE': [
         'graphene_django.debug.DjangoDebugMiddleware'
@@ -401,8 +401,20 @@ GRAPHENE = {
 
 SITE_SETTINGS_ID = 1
 
-
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 25
 }
+
+APPEND_SLASH = True
+
+CORS_ORIGIN_WHITELIST = (
+    'google.com',
+    'localhost:8000',
+    'localhost:8080',
+    '127.0.0.1:9000'
+)
+
+DISCOGS_CONSUMER_KEY = os.environ.get('DISCOGS_CONSUMER_KEY', None)
+DISCOGS_CONSUMER_SECRET = os.environ.get('DISCOGS_CONSUMER_SECRET', None)
+DISCOGS_USER_TOKEN = os.environ.get('DISCOGS_USER_TOKEN', None)

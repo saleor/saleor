@@ -53,7 +53,7 @@ class ReleasesPage extends Component {
       <div>
         <div className="row">
           {edges.length > 0 ? (edges.map((edge, i) => (
-            <ReleaseItem key={i} release={edge.node} />
+            <ReleaseItem key={i} release={edge.node} onNavigate={this.props.onNavigate}/>
           ))) : (<NoResults />)}
         </div>
       </div>
@@ -82,5 +82,5 @@ export default Relay.createContainer(ReleasesPage, {
         }
       }
     `
-  },
+  }
 });

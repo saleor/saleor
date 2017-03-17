@@ -1,3 +1,4 @@
+OYE_APPS = ['saleor_oye', 'discogs']
 __author__ = 'tkolter'
 
 
@@ -11,7 +12,7 @@ class OyeRouter(object):
         """
         Attempts to read auth models go to auth_db.
         """
-        if model._meta.app_label == 'saleor_oye':
+        if model._meta.app_label in OYE_APPS:
             return 'oye_legacy'
         return None
 
@@ -19,7 +20,7 @@ class OyeRouter(object):
         """
         Attempts to write auth models go to auth_db.
         """
-        if model._meta.app_label == 'saleor_oye':
+        if model._meta.app_label in OYE_APPS:
             return 'oye_legacy'
         return None
 
@@ -27,7 +28,7 @@ class OyeRouter(object):
         """
         Allow relations if a model in the auth app is involved.
         """
-        if obj1._meta.app_label == 'saleor_oye' or obj2._meta.app_label == 'saleor_oye':
+        if obj1._meta.app_label in OYE_APPS or obj2._meta.app_label in OYE_APPS:
             return True
         return None
 
@@ -36,6 +37,6 @@ class OyeRouter(object):
         Make sure the auth app only appears in the 'auth_db'
         database.
         """
-        if app_label == 'saleor_oye':
+        if app_label in OYE_APPS:
             return db == 'oye_legacy'
         return None

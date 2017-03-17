@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block navigation-items %}
     <li class="nav-item"><a class="nav-link" href="{% url 'oye:release:new' %}">New Releases</a></li>
-    <li class="nav-item"><a class="nav-link" href="{% url 'oye:genres' %}">Genres</a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'oye:genres:home' %}">Genres</a></li>
     <li class="nav-item"><a class="nav-link" href="{% url 'oye:charts' %}">Charts</a></li>
     <li class="nav-item"><a class="nav-link" href="{% url 'oye:release:pre' %}">Pre-Order</a></li>
     <li class="nav-item"><a class="nav-link" href="{% url 'oye:release:used' %}">Second Hand</a></li>

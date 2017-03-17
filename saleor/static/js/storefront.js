@@ -169,7 +169,7 @@ $('.navbar__brand__cart').hover((e) => {
   $cartDropdown.removeClass('show');
   $cartIcon.removeClass('hover');
 });
-$('.product-form button').click((e) => {
+$(document).on('click', '.product-form button', (e) => {
   e.preventDefault();
   let quantity = $('#id_quantity').val();
   let variant = $('#id_variant').val();
@@ -187,6 +187,10 @@ $('.product-form button').click((e) => {
       onAddToCartError(response);
     }
   });
+});
+
+$(document).on('click', '.product-form button', (e) => {
+
 });
 
 // Delivery information

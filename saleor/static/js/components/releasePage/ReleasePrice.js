@@ -14,6 +14,7 @@ const ReleasePrice = ({ availability, price }) => {
       {discount && (
         <div className="product-list__sale"><img src={SaleImg}/><span>{gettext('Sale')}</span></div>
       )}
+      <div className={'product__info__availability ' + availability.status}></div>
     </div>
   );
 };
