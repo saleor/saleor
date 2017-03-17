@@ -38,7 +38,7 @@ To run webpack in *watch* mode run:
 
     .. code-block:: bash
 
-        $ yarn run build-assets:prod
+        $ yarn run build-assets --production
 
 
 Working with backend code

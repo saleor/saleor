@@ -19,9 +19,9 @@ install:
   - pip install -U pip setuptools wheel
   - pip install tox codecov
   - nvm install 6
-  - yarn
+  - yarn install --production
   - yarn add --force node-sass # force our way around https://github.com/yarnpkg/yarn/issues/1981
-  - yarn run build-assets:prod
+  - yarn run build-assets --production
 script:
   - tox
 env:

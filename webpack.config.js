@@ -6,6 +6,25 @@ var webpack = require('webpack');
 
 var resolve = path.resolve.bind(path, __dirname);
 
+var output;
+var extractTextPlugin;
+
+if (process.env.NODE_ENV === 'production') {
+  output = {
+    path: resolve('saleor/static/assets/'),
+    filename: '[name].[chunkhash].js',
+    publicPath: '/'
+  };
+  extractTextPlugin = new ExtractTextPlugin('[name].[contenthash].css');
+} else {
+  output = {
+    path: resolve('saleor/static/assets/'),
+    filename: '[name].js',
+    publicPath: '/static/assets/'
+  };
+  extractTextPlugin = new ExtractTextPlugin('[name].css');
+}
+
 var bundleTrackerPlugin = new BundleTracker({
   filename: 'webpack-bundle.json'
 });
@@ -15,8 +34,6 @@ var commonsChunkPlugin = new webpack.optimize.CommonsChunkPlugin({
 });
 
 var occurenceOrderPlugin = new webpack.optimize.OccurenceOrderPlugin();
-
-var extractTextPlugin = new ExtractTextPlugin('[name].css');
 
 var environmentPlugin = new webpack.DefinePlugin({
   'process.env': {
@@ -47,11 +64,7 @@ var config = {
       'react-relay'
     ]
   },
-  output: {
-    path: resolve('saleor/static/assets/'),
-    filename: '[name].js',
-    publicPath: '/static/assets/'
-  },
+  output: output,
   module: {
     loaders: [
       {
