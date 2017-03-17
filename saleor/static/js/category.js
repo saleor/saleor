@@ -33,11 +33,6 @@ const RelayApp = Relay.createContainer(App, {
         attributes(categoryPk: $categoryId) {
           ${ProductFilters.getFragment('attributes')}
         }
-        __debug {
-          sql {
-            sql
-          }
-        }
       }
     `
   }
