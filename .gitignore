@@ -1,5 +1,4 @@
-*.py[cod]
-.*
+*.py[cod] .*
 !.babelrc
 !.coveragerc
 !.dockerignore
@@ -22,7 +21,7 @@ dist/
 /docs/_build/
 /media/
 /node_modules/
-/static/
+# s/static/
 /saleor/static/assets/
 webpack-bundle.json
 /venv/

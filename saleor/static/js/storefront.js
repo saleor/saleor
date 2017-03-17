@@ -189,6 +189,10 @@ $(document).on('click', '.product-form button', (e) => {
   });
 });
 
+$(document).on('click', '.product-form button', (e) => {
+
+});
+
 // Delivery information
 
 let $deliveryForm = $('.deliveryform');
