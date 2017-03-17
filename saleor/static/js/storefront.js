@@ -287,7 +287,7 @@ let $deleteAddress = $('.address-delete');
 // Cart quantity form
 
 let $cartLine = $('.cart__line');
-let $total = $('.cart-total');
+let $total = $('.cart-subtotal');
 let $cartBadge = $('.navbar__brand__cart .badge');
 let $removeProductSucces = $('.remove-product-alert');
 let $closeMsg = $('.close-msg');
@@ -295,7 +295,7 @@ $cartLine.each(function() {
   let $quantityInput = $(this).find('#id_quantity');
   let cartFormUrl = $(this).find('.form-cart').attr('action');
   let $qunatityError = $(this).find('.cart__line__quantity-error');
-  let $subtotal = $(this).find('.cart-item-subtotal p');
+  let $subtotal = $(this).find('.cart-item-price p');
   let $deleteIcon = $(this).find('.cart-item-delete');
   $(this).on('change', $quantityInput, (e) => {
     let newQuantity = $quantityInput.val();

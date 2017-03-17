@@ -9,7 +9,7 @@
         <h3>{% trans "Subtotal" context "Order subtotal" %}</h3>
       </div>
       <div class="col-4">
-        <p class="cart-total text-right"
+        <h3 class="text-right cart-subtotal"
            data-value="{% gross cart_total %}"
            {% if local_cart_total %}data-value-local="{% gross local_cart_total %}"{% endif %}>
           {% spaceless %}
@@ -22,24 +22,24 @@
               </small>
             {% endif %}
           {% endspaceless %}
-        </p>
+        </h3>
       </div>
     </div>
   </div>
-  <div class="last table__row">
+  <div class="last table__row cart__delivery-info">
     <div class="row">
       <div class="col-7 cart__total__subtotal deliveryform" data-csrf="{{ csrf_token }}">
-        <h3>{% trans "Shipping cost for:" context "Cart secondary title" %}</h3>
+        <p>{% trans "Shipping cost for:" context "Cart shipping cost form" %}</p>
         {{ country_form.country }}
       </div>
       <div class="col-5">
         <div class="row">
-          <div class="cart-item-subtotal col-md-12 col-12">
-            <h3 class="text-right cart__delivery-info__price">
-            {% if default_country_options %}
-              {% price_range default_country_options %}
-            {% endif %}
-            </h3>
+          <div class="col-md-12 col-12 text-right">
+            <p class="cart__delivery-info__price">
+              {% if default_country_options %}
+                {% price_range default_country_options %}
+              {% endif %}
+            </p>
           </div>
         </div>
       </div>
@@ -52,18 +52,17 @@
       <h3>{% trans "Total" context "Order subtotal" %}</h3>
     </div>
     <div class="col-4">
-      <p class="cart-total">
-        {% spaceless %}
-          <h3 class="text-right">{% price_range total_with_shipment %}</h3>
+      {% spaceless %}
+        <h3 class="text-right cart-total"><span>{% price_range total_with_shipment %}</span>
           {% if total_with_shipment %}
             <br>
-            <h3 class="text-right"><small>
+            <small>
               &asymp;
               {% price_range total_with_shipment %}
-            </small></h3>
+            </small>
           {% endif %}
-        {% endspaceless %}
-      </p>
+        </h3>
+      {% endspaceless %}
     </div>
   </div>
 </div>

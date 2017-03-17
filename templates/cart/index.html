@@ -60,7 +60,7 @@
                 </span>
                 <small class="cart__line__quantity-error text-danger"></small>
               </div>
-              <div class="cart-item-subtotal col-md-5 col-12" data-product-id="{{ line.variant.pk }}">
+              <div class="cart-item-price col-md-5 col-12" data-product-id="{{ line.variant.pk }}">
                 <p class="text-right">{% gross line.get_total html=True %}</p>
               </div>
             </div>
