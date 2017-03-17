@@ -8,8 +8,8 @@ const NoResults = () => {
     <div className="no-results">
       <div className="col-12">
         <InlineSVG src={noResultsImg} />
-        <p>{gettext('Sorry, no matches found for your request.')}</p>
-        <p>{gettext('Try again or shop new arrivals.')}</p>
+        <p>{pgettext('Epty search results', 'Sorry, no matches found for your request.')}</p>
+        <p>{pgettext('Epty search results', 'Try again or shop new arrivals.')}</p>
       </div>
     </div>
   );

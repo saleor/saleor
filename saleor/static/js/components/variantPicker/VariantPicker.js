@@ -158,7 +158,7 @@ export default class VariantPicker extends Component {
               className={addToCartBtnClasses}
               onClick={this.handleAddToCart}
               disabled={disableAddToCart}>
-              {gettext('Add to cart')}
+              {pgettext('Product details primary action', 'Add to cart')}
             </button>
           </div>
         </div>

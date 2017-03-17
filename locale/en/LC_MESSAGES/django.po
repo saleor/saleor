@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-13 14:56+0100\n"
+"POT-Creation-Date: 2017-03-17 14:33+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -78,7 +78,7 @@ msgstr[1] ""
 
 #: saleor/cart/forms.py:129
 msgctxt "Country form field label"
-msgid "country"
+msgid "Country"
 msgstr ""
 
 #: saleor/cart/models.py:61
@@ -1030,6 +1030,24 @@ msgctxt "Variant image model"
 msgid "variant images"
 msgstr ""
 
+#: saleor/registration/forms.py:11
+msgctxt "Form field"
+msgid "Email"
+msgstr ""
+
+#: saleor/registration/forms.py:23
+msgctxt "User form field"
+msgid "Password"
+msgstr ""
+
+#: saleor/registration/views.py:23
+msgid "You have been successfully logged out."
+msgstr ""
+
+#: saleor/registration/views.py:31
+msgid "User has been created"
+msgstr ""
+
 #: saleor/search/forms.py:8
 msgctxt "Search form label"
 msgid "Query"
@@ -1085,44 +1103,39 @@ msgctxt "Shipping method country model"
 msgid "shipping method countries"
 msgstr ""
 
-#: saleor/site/models.py:10
+#: saleor/site/models.py:12
 msgctxt "Site field"
 msgid "domain"
 msgstr ""
 
-#: saleor/site/models.py:13
+#: saleor/site/models.py:15
 msgctxt "Site field"
 msgid "name"
 msgstr ""
 
-#: saleor/site/models.py:15
+#: saleor/site/models.py:17
 msgctxt "Site field"
 msgid "header text"
 msgstr ""
 
-#: saleor/site/models.py:17
+#: saleor/site/models.py:19
 msgctxt "Site field"
 msgid "site description"
 msgstr ""
 
-#: saleor/userprofile/forms.py:41
-msgctxt "Set password form label"
-msgid "New Password"
+#: saleor/site/models.py:33
+msgctxt "Authentiaction field"
+msgid "name"
 msgstr ""
 
-#: saleor/userprofile/forms.py:56
-msgctxt "Change password form label"
-msgid "Current Password"
+#: saleor/site/models.py:35
+msgctxt "Authentication field"
+msgid "key"
 msgstr ""
 
-#: saleor/userprofile/forms.py:58
-msgctxt "Change password form label"
-msgid "New Password"
-msgstr ""
-
-#: saleor/userprofile/forms.py:71
-msgctxt "Change password form error"
-msgid "Please type your current password."
+#: saleor/site/models.py:37
+msgctxt "Authentication field"
+msgid "password"
 msgstr ""
 
 #: saleor/userprofile/i18n.py:16
@@ -1349,12 +1362,17 @@ msgid ""
 "%(street_address_2)s"
 msgstr ""
 
-#: saleor/userprofile/views.py:46
+#: saleor/userprofile/views.py:28
+msgctxt "Storefront message"
+msgid "Password successfully changed."
+msgstr ""
+
+#: saleor/userprofile/views.py:40
 msgctxt "Storefront message"
 msgid "Address successfully updated."
 msgstr ""
 
-#: saleor/userprofile/views.py:61
+#: saleor/userprofile/views.py:55
 msgctxt "Storefront message"
 msgid "Address successfully deleted."
 msgstr ""
@@ -1380,6 +1398,28 @@ msgstr ""
 #: templates/account/email/email_confirmation_subject.txt:2
 msgctxt "Email confirmation subject"
 msgid "Confirm your email address"
+msgstr ""
+
+#: templates/account/email/password_reset_message.txt:1
+#, python-format
+msgid ""
+"Hello from %(site_name)s!\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested a "
+"password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the "
+"link below to reset your password."
+msgstr ""
+
+#: templates/account/email/password_reset_message.txt:8
+#, python-format
+msgid ""
+"Thank you for using %(site_name)s!\n"
+"%(domain)s"
+msgstr ""
+
+#: templates/account/email/password_reset_subject.txt:3
+msgid "Password Reset E-mail"
 msgstr ""
 
 #: templates/account/login.html:5
@@ -1408,17 +1448,25 @@ msgctxt "Already logged in warning message"
 msgid "You are already logged in as %(user_display)s."
 msgstr ""
 
-#: templates/account/partials/login_form.html:16
+#: templates/account/partials/login_form.html:17
 msgctxt "Login form primary action"
 msgid "Log in"
 msgstr ""
 
-#: templates/account/partials/login_form.html:19
+#: templates/account/partials/login_form.html:20
 msgctxt "Login form secondary link"
 msgid "Forgot password?"
 msgstr ""
 
-#: templates/account/password_change.html:7 templates/cart/index.html:11
+#: templates/account/partials/login_form.html:29
+msgid "Facebook"
+msgstr ""
+
+#: templates/account/partials/login_form.html:37
+msgid "Google"
+msgstr ""
+
+#: templates/account/password_change.html:7 templates/cart/index.html:12
 #: templates/order/details.html:16 templates/order/payment.html:19
 #: templates/product/details.html:16 templates/userprofile/address-edit.html:15
 #: templates/userprofile/details.html:14
@@ -1427,7 +1475,7 @@ msgid "Home"
 msgstr ""
 
 #: templates/account/password_change.html:8 templates/base.html:48
-#: templates/base.html:190 templates/order/details.html:19
+#: templates/base.html:197 templates/order/details.html:19
 #: templates/order/payment.html:22 templates/userprofile/details.html:16
 msgctxt "Main navigation item"
 msgid "Your account"
@@ -1470,17 +1518,17 @@ msgctxt "Password reset primary action"
 msgid "Continue"
 msgstr ""
 
-#: templates/account/password_reset_done.html:7
+#: templates/account/password_reset_done.html:6
 msgctxt "Password reset done page title"
 msgid "Password Reset"
 msgstr ""
 
-#: templates/account/password_reset_done.html:11
+#: templates/account/password_reset_done.html:10
 msgctxt "Password reset done title"
 msgid "Password Reset"
 msgstr ""
 
-#: templates/account/password_reset_done.html:15
+#: templates/account/password_reset_done.html:14
 msgctxt "Password reset done text"
 msgid ""
 "We have sent you an e-mail. Please contact us if you do not receive it "
@@ -1581,22 +1629,22 @@ msgctxt "Meta author text"
 msgid "Mirumee Software"
 msgstr ""
 
-#: templates/base.html:42 templates/base.html:184
+#: templates/base.html:42 templates/base.html:186
 msgctxt "Main navigation item"
 msgid "Dashboard"
 msgstr ""
 
-#: templates/base.html:52 templates/base.html:195
+#: templates/base.html:52 templates/base.html:202
 msgctxt "Main navigation item"
 msgid "Log out"
 msgstr ""
 
-#: templates/base.html:57 templates/base.html:200
+#: templates/base.html:57 templates/base.html:207
 msgctxt "Main navigation item"
 msgid "Register"
 msgstr ""
 
-#: templates/base.html:61 templates/base.html:205
+#: templates/base.html:61 templates/base.html:212
 msgctxt "Main navigation item"
 msgid "Log in"
 msgstr ""
@@ -1610,89 +1658,94 @@ msgstr ""
 msgid "Search for product"
 msgstr ""
 
-#: templates/base.html:102 templates/base.html:177
+#: templates/base.html:102 templates/base.html:179
 msgctxt "Main navigation item"
 msgid "Your Cart"
 msgstr ""
 
-#: templates/cart-dropdown.html:31 templates/cart/index.html:73
-#: templates/dashboard/order/detail.html:372
+#: templates/base.html:191
+msgctxt "Main navigation item"
+msgid "Style guide"
+msgstr ""
+
+#: templates/cart-dropdown.html:33 templates/cart/index.html:74
+#: templates/dashboard/order/detail.html:373
 msgctxt "Order subtotal"
 msgid "Subtotal"
 msgstr ""
 
-#: templates/cart-dropdown.html:33
+#: templates/cart-dropdown.html:35
 msgctxt "Cart dropdown text"
 msgid "(Delivery calculated at checkout)"
 msgstr ""
 
-#: templates/cart-dropdown.html:43
+#: templates/cart-dropdown.html:45
 msgctxt "Cart dropdown secondary action"
 msgid "Go to cart"
 msgstr ""
 
-#: templates/cart-dropdown.html:46
+#: templates/cart-dropdown.html:48
 msgctxt "Cart dropdown primary action"
 msgid "Checkout"
 msgstr ""
 
-#: templates/cart-dropdown.html:51 templates/cart/index.html:125
+#: templates/cart-dropdown.html:53 templates/cart/index.html:126
 msgctxt "Empty cart message"
 msgid "There are no products in your shopping cart."
 msgstr ""
 
-#: templates/cart-dropdown.html:53 templates/cart/index.html:126
+#: templates/cart-dropdown.html:55 templates/cart/index.html:127
 msgctxt "Empty cart link"
 msgid "Check out our sales"
 msgstr ""
 
-#: templates/cart/index.html:7
+#: templates/cart/index.html:8
 msgctxt "Cart page title"
 msgid "Your cart"
 msgstr ""
 
-#: templates/cart/index.html:12
+#: templates/cart/index.html:13
 msgctxt "Cart breadcrumb"
 msgid "Cart"
 msgstr ""
 
-#: templates/cart/index.html:18
+#: templates/cart/index.html:19
 msgctxt "Cart message"
 msgid "Product has been deleted from cart"
 msgstr ""
 
-#: templates/cart/index.html:26
+#: templates/cart/index.html:27
 msgctxt "Cart table header"
 msgid "Product"
 msgstr ""
 
-#: templates/cart/index.html:29
+#: templates/cart/index.html:30
 msgctxt "Cart table header"
 msgid "Quantity"
 msgstr ""
 
-#: templates/cart/index.html:32
+#: templates/cart/index.html:33
 msgctxt "Cart table header"
 msgid "Price"
 msgstr ""
 
-#: templates/cart/index.html:74
+#: templates/cart/index.html:75
 msgctxt "Cart totals help text"
 msgid "(Delivery calculated at checkout)"
 msgstr ""
 
-#: templates/cart/index.html:97
+#: templates/cart/index.html:98
 msgctxt "Cart primary action"
 msgid "Checkout"
 msgstr ""
 
-#: templates/cart/index.html:102
+#: templates/cart/index.html:103
 msgctxt "Cart secondary title"
 msgid "Calculate shipping cost"
 msgstr ""
 
 #. Translators: Layout may break if character length is different than four.
-#: templates/category/_items.html:27
+#: templates/category/_items.html:32
 msgctxt "Sale (discount) label for item in product list"
 msgid "Sale"
 msgstr ""
@@ -1707,32 +1760,27 @@ msgctxt "Checkout top message"
 msgid "Easy and secure!"
 msgstr ""
 
-#: templates/checkout/details.html:17
-msgctxt "Checkout logo alternate text"
-msgid "Saleor demo store"
-msgstr ""
-
-#: templates/checkout/details.html:20
+#: templates/checkout/details.html:18
 msgctxt "Checkout title"
 msgid "Checkout"
 msgstr ""
 
-#: templates/checkout/details.html:37
+#: templates/checkout/details.html:34
 msgctxt "Order review title"
 msgid "Order review"
 msgstr ""
 
-#: templates/checkout/details.html:53
+#: templates/checkout/details.html:50
 msgctxt "Order review section"
 msgid "Delivery"
 msgstr ""
 
-#: templates/checkout/details.html:65
+#: templates/checkout/details.html:62
 msgctxt "Order review section title"
 msgid "Promo code"
 msgstr ""
 
-#: templates/checkout/details.html:71
+#: templates/checkout/details.html:68
 msgctxt "Order review section title"
 msgid "Total"
 msgstr ""
@@ -1783,16 +1831,16 @@ msgctxt "Checkout shipping address primary action"
 msgid "Continue"
 msgstr ""
 
-#: templates/checkout/shipping_method.html:10
+#: templates/checkout/shipping_method.html:9
 msgid "Select other address"
 msgstr ""
 
-#: templates/checkout/shipping_method.html:15
+#: templates/checkout/shipping_method.html:13
 msgctxt "Checkout shipping method form title"
 msgid "Shipping method"
 msgstr ""
 
-#: templates/checkout/shipping_method.html:19
+#: templates/checkout/shipping_method.html:17
 msgctxt "Checkout shipping method primary action"
 msgid "Continue"
 msgstr ""
@@ -1856,34 +1904,39 @@ msgctxt "Dashboard top navigation action"
 msgid "Visit storefront"
 msgstr ""
 
-#: templates/dashboard/base.html:43
+#: templates/dashboard/base.html:41
+msgctxt "Dashboard top navigation action"
+msgid "Style guide"
+msgstr ""
+
+#: templates/dashboard/base.html:46
 msgctxt "Dashboard top navigation action"
 msgid "Log out"
 msgstr ""
 
-#: templates/dashboard/base.html:71 templates/dashboard/search/results.html:14
+#: templates/dashboard/base.html:74 templates/dashboard/search/results.html:14
 #: templates/dashboard/search/results.html:25
 msgctxt "Dashboard search"
 msgid "Search"
 msgstr ""
 
-#: templates/dashboard/base.html:83 templates/dashboard/base.html:186
+#: templates/dashboard/base.html:86 templates/dashboard/base.html:189
 msgctxt "Dashboard homepage"
 msgid "Home"
 msgstr ""
 
-#: templates/dashboard/base.html:88
+#: templates/dashboard/base.html:91
 msgctxt "Dashboard catalogue"
 msgid "Catalogue"
 msgstr ""
 
-#: templates/dashboard/base.html:93 templates/dashboard/product/list.html:8
-#: templates/dashboard/product/list.html:28
+#: templates/dashboard/base.html:96 templates/dashboard/product/list.html:9
+#: templates/dashboard/product/list.html:29
 #: templates/dashboard/product/product_class_form.html:14
-#: templates/dashboard/product/product_confirm_delete.html:21
+#: templates/dashboard/product/product_confirm_delete.html:22
 #: templates/dashboard/product/product_form.html:14
 #: templates/dashboard/product/product_form.html:30
-#: templates/dashboard/product/product_image_confirm_delete.html:19
+#: templates/dashboard/product/product_image_confirm_delete.html:20
 #: templates/dashboard/product/product_variant_confirm_delete.html:19
 #: templates/dashboard/product/stock_confirm_delete.html:19
 #: templates/dashboard/product/stock_form.html:30
@@ -1892,31 +1945,32 @@ msgctxt "Dashboard products list"
 msgid "Products"
 msgstr ""
 
-#: templates/dashboard/base.html:98 templates/dashboard/category/detail.html:12
-#: templates/dashboard/category/detail.html:31
-#: templates/dashboard/category/list.html:57
-#: templates/dashboard/category/list.html:63
+#: templates/dashboard/base.html:101
+#: templates/dashboard/category/detail.html:13
+#: templates/dashboard/category/detail.html:32
+#: templates/dashboard/category/list.html:58
+#: templates/dashboard/category/list.html:64
 msgctxt "Dashboard categories list"
 msgid "Categories"
 msgstr ""
 
-#: templates/dashboard/base.html:103
+#: templates/dashboard/base.html:106
 msgctxt "Dashboard stock loactions list"
 msgid "Stock locations"
 msgstr ""
 
-#: templates/dashboard/base.html:110
+#: templates/dashboard/base.html:113
 #: templates/dashboard/discount/sale_confirm_delete.html:12
 msgctxt "Dashboard discounts list"
 msgid "Discounts"
 msgstr ""
 
-#: templates/dashboard/base.html:115
+#: templates/dashboard/base.html:118
 msgctxt "Dashboard sales (discounts) list"
 msgid "Sales"
 msgstr ""
 
-#: templates/dashboard/base.html:120
+#: templates/dashboard/base.html:123
 #: templates/dashboard/discount/voucher_form.html:12
 #: templates/dashboard/discount/voucher_form.html:44
 #: templates/dashboard/discount/voucher_list.html:7
@@ -1925,35 +1979,35 @@ msgctxt "Dashboard vouchers list"
 msgid "Vouchers"
 msgstr ""
 
-#: templates/dashboard/base.html:127
+#: templates/dashboard/base.html:130
 msgctxt "Dashboard sales. `Sales' is noun of to sell"
 msgid "Sales"
 msgstr ""
 
-#: templates/dashboard/base.html:132
+#: templates/dashboard/base.html:135
 #: templates/dashboard/order/address_form.html:7
 #: templates/dashboard/order/address_form.html:23
-#: templates/dashboard/order/detail.html:10
-#: templates/dashboard/order/detail.html:42
+#: templates/dashboard/order/detail.html:11
+#: templates/dashboard/order/detail.html:43
 #: templates/dashboard/order/list.html:6 templates/dashboard/order/list.html:14
 msgctxt "Dashboard orders list"
 msgid "Orders"
 msgstr ""
 
-#: templates/dashboard/base.html:137 templates/dashboard/customer/detail.html:7
-#: templates/dashboard/customer/detail.html:23
+#: templates/dashboard/base.html:140 templates/dashboard/customer/detail.html:8
+#: templates/dashboard/customer/detail.html:24
 #: templates/dashboard/customer/list.html:7
 #: templates/dashboard/customer/list.html:17
 msgctxt "Dashboard customers list"
 msgid "Customers"
 msgstr ""
 
-#: templates/dashboard/base.html:144
+#: templates/dashboard/base.html:147
 msgctxt "Dashboard configuration"
 msgid "Configuration"
 msgstr ""
 
-#: templates/dashboard/base.html:149
+#: templates/dashboard/base.html:152
 #: templates/dashboard/product/class_list.html:8
 #: templates/dashboard/product/class_list.html:26
 #: templates/dashboard/product/product_class_form.html:30
@@ -1961,30 +2015,30 @@ msgctxt "Dashboard product types list"
 msgid "Product types"
 msgstr ""
 
-#: templates/dashboard/base.html:154
+#: templates/dashboard/base.html:157
 #: templates/dashboard/product/attributes/confirm_delete.html:12
 #: templates/dashboard/product/attributes/form.html:12
 #: templates/dashboard/product/attributes/form.html:44
-#: templates/dashboard/product/attributes/list.html:6
-#: templates/dashboard/product/attributes/list.html:24
+#: templates/dashboard/product/attributes/list.html:7
+#: templates/dashboard/product/attributes/list.html:25
 msgctxt "Dashboard attributes list"
 msgid "Attributes"
 msgstr ""
 
-#: templates/dashboard/base.html:159
+#: templates/dashboard/base.html:162
 #: templates/dashboard/shipping/method_list.html:7
 #: templates/dashboard/shipping/method_list.html:17
 msgctxt "Dashboard shipping methods list"
 msgid "Shipping methods"
 msgstr ""
 
-#: templates/dashboard/base.html:164 templates/dashboard/sites/detail.html:11
+#: templates/dashboard/base.html:167 templates/dashboard/sites/detail.html:11
 #: templates/dashboard/sites/detail.html:21
 msgctxt "Dashboard site settings"
 msgid "Site settings"
 msgstr ""
 
-#: templates/dashboard/base.html:172
+#: templates/dashboard/base.html:175
 msgctxt "Dashboard software version"
 msgid "Release:"
 msgstr ""
@@ -2018,38 +2072,38 @@ msgstr[1] ""
 
 #: templates/dashboard/category/category_confirm_delete.html:53
 #: templates/dashboard/category/modal_delete.html:45
-#: templates/dashboard/discount/sale_confirm_delete.html:44
+#: templates/dashboard/discount/sale_confirm_delete.html:42
 #: templates/dashboard/discount/sale_modal_confirm_delete.html:17
 #: templates/dashboard/discount/voucher_modal_confirm_delete.html:17
-#: templates/dashboard/product/attributes/confirm_delete.html:45
+#: templates/dashboard/product/attributes/confirm_delete.html:43
 #: templates/dashboard/product/attributes/modal_confirm_delete.html:17
 #: templates/dashboard/product/modal_product_class_confirm_delete.html:48
-#: templates/dashboard/product/modal_product_confirm_delete.html:32
-#: templates/dashboard/product/modal_product_image_confirm_delete.html:25
-#: templates/dashboard/product/product_confirm_delete.html:7
-#: templates/dashboard/product/product_confirm_delete.html:59
+#: templates/dashboard/product/modal_product_confirm_delete.html:31
+#: templates/dashboard/product/modal_product_image_confirm_delete.html:28
+#: templates/dashboard/product/product_confirm_delete.html:8
+#: templates/dashboard/product/product_confirm_delete.html:58
 #: templates/dashboard/product/product_form.html:193
 #: templates/dashboard/product/product_form.html:209
 #: templates/dashboard/product/product_form.html:291
 #: templates/dashboard/product/product_form.html:306
-#: templates/dashboard/product/product_form.html:408
-#: templates/dashboard/product/product_form.html:456
-#: templates/dashboard/product/product_image_confirm_delete.html:60
+#: templates/dashboard/product/product_form.html:410
+#: templates/dashboard/product/product_form.html:458
+#: templates/dashboard/product/product_image_confirm_delete.html:61
 #: templates/dashboard/product/product_variant_confirm_delete.html:67
 #: templates/dashboard/product/stock_confirm_delete.html:56
 #: templates/dashboard/product/stock_locations/modal_confirm_delete.html:26
 #: templates/dashboard/shipping/method_delete.html:56
-#: templates/dashboard/shipping/method_form.html:97
+#: templates/dashboard/shipping/method_form.html:98
 msgctxt "Dashboard delete action"
 msgid "Delete"
 msgstr ""
 
 #: templates/dashboard/category/category_confirm_delete.html:57
-#: templates/dashboard/category/detail.html:79
-#: templates/dashboard/category/detail.html:83
+#: templates/dashboard/category/detail.html:80
+#: templates/dashboard/category/detail.html:84
 #: templates/dashboard/category/modal_delete.html:48
 #: templates/dashboard/category/modal_edit.html:28
-#: templates/dashboard/discount/sale_confirm_delete.html:40
+#: templates/dashboard/discount/sale_confirm_delete.html:39
 #: templates/dashboard/discount/sale_form.html:98
 #: templates/dashboard/discount/sale_form.html:105
 #: templates/dashboard/discount/sale_modal_confirm_delete.html:20
@@ -2065,21 +2119,21 @@ msgstr ""
 #: templates/dashboard/order/modal_release.html:19
 #: templates/dashboard/order/modal_ship_delivery_group.html:23
 #: templates/dashboard/order/modal_split_order_line.html:19
-#: templates/dashboard/product/attributes/confirm_delete.html:41
+#: templates/dashboard/product/attributes/confirm_delete.html:40
 #: templates/dashboard/product/attributes/form.html:115
 #: templates/dashboard/product/attributes/form.html:122
 #: templates/dashboard/product/attributes/modal_confirm_delete.html:20
 #: templates/dashboard/product/modal_product_class_confirm_delete.html:26
 #: templates/dashboard/product/modal_product_class_confirm_delete.html:51
-#: templates/dashboard/product/modal_product_confirm_delete.html:35
-#: templates/dashboard/product/modal_product_image_confirm_delete.html:28
+#: templates/dashboard/product/modal_product_confirm_delete.html:34
+#: templates/dashboard/product/modal_product_image_confirm_delete.html:31
 #: templates/dashboard/product/product_class_form.html:98
 #: templates/dashboard/product/product_class_form.html:105
 #: templates/dashboard/product/product_form.html:163
 #: templates/dashboard/product/product_form.html:170
 #: templates/dashboard/product/product_form.html:212
 #: templates/dashboard/product/product_form.html:309
-#: templates/dashboard/product/product_image_confirm_delete.html:56
+#: templates/dashboard/product/product_image_confirm_delete.html:58
 #: templates/dashboard/product/product_image_form.html:92
 #: templates/dashboard/product/product_image_form.html:99
 #: templates/dashboard/product/stock_form.html:98
@@ -2089,25 +2143,25 @@ msgstr ""
 #: templates/dashboard/product/stock_locations/modal_confirm_delete.html:29
 #: templates/dashboard/product/variant_form.html:100
 #: templates/dashboard/product/variant_form.html:107
-#: templates/dashboard/shipping/method_form.html:129
-#: templates/dashboard/shipping/method_form.html:136
-#: templates/dashboard/sites/detail.html:48
+#: templates/dashboard/shipping/method_form.html:130
+#: templates/dashboard/shipping/method_form.html:137
+#: templates/dashboard/sites/detail.html:80
 msgctxt "Dashboard cancel action"
 msgid "Cancel"
 msgstr ""
 
-#: templates/dashboard/category/detail.html:10
-#: templates/dashboard/category/detail.html:23
+#: templates/dashboard/category/detail.html:11
+#: templates/dashboard/category/detail.html:24
 msgctxt "Category detail page title"
 msgid "Add new category"
 msgstr ""
 
-#: templates/dashboard/category/detail.html:44
+#: templates/dashboard/category/detail.html:45
 msgctxt "Category detail breadcrumbs"
 msgid "Add new category"
 msgstr ""
 
-#: templates/dashboard/category/detail.html:88
+#: templates/dashboard/category/detail.html:89
 #: templates/dashboard/category/modal_edit.html:25
 #: templates/dashboard/discount/sale_form.html:101
 #: templates/dashboard/discount/voucher_form.html:130
@@ -2120,13 +2174,13 @@ msgstr ""
 #: templates/dashboard/product/stock_form.html:101
 #: templates/dashboard/product/stock_locations/form.html:77
 #: templates/dashboard/product/variant_form.html:103
-#: templates/dashboard/shipping/method_form.html:132
-#: templates/dashboard/sites/detail.html:51
+#: templates/dashboard/shipping/method_form.html:133
+#: templates/dashboard/sites/detail.html:83
 msgctxt "Dashboard update action"
 msgid "Update"
 msgstr ""
 
-#: templates/dashboard/category/detail.html:92
+#: templates/dashboard/category/detail.html:93
 #: templates/dashboard/discount/sale_form.html:108
 #: templates/dashboard/discount/voucher_form.html:137
 #: templates/dashboard/product/attributes/form.html:125
@@ -2136,37 +2190,37 @@ msgstr ""
 #: templates/dashboard/product/stock_form.html:108
 #: templates/dashboard/product/stock_locations/form.html:84
 #: templates/dashboard/product/variant_form.html:110
-#: templates/dashboard/shipping/method_form.html:139
+#: templates/dashboard/shipping/method_form.html:140
 msgctxt "Dashboard create action"
 msgid "Create"
 msgstr ""
 
-#: templates/dashboard/category/list.html:6
+#: templates/dashboard/category/list.html:7
 msgctxt "Category list page title"
 msgid "Categories"
 msgstr ""
 
-#: templates/dashboard/category/list.html:28
+#: templates/dashboard/category/list.html:29
 msgctxt "Category list add button text"
 msgid "Add category"
 msgstr ""
 
-#: templates/dashboard/category/list.html:40
+#: templates/dashboard/category/list.html:41
 msgctxt "Dashboard edit action"
 msgid "Edit category"
 msgstr ""
 
-#: templates/dashboard/category/list.html:45
+#: templates/dashboard/category/list.html:46
 msgctxt "Category list action link"
 msgid "Remove category"
 msgstr ""
 
-#: templates/dashboard/category/list.html:123
+#: templates/dashboard/category/list.html:124
 msgctxt "Empty Category list message"
 msgid "No subcategories."
 msgstr ""
 
-#: templates/dashboard/category/list.html:127
+#: templates/dashboard/category/list.html:128
 msgctxt "Empty Category list message"
 msgid "No categories."
 msgstr ""
@@ -2183,52 +2237,52 @@ msgctxt "Edit category modal title"
 msgid "Edit %(category)s"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:40
+#: templates/dashboard/customer/detail.html:42
 msgctxt "Customer orders table title"
 msgid "Order history"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:49
+#: templates/dashboard/customer/detail.html:51
 msgctxt "Customer orders table header"
 msgid "Number"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:52
+#: templates/dashboard/customer/detail.html:54
 msgctxt "Customer orders table header"
 msgid "Placed on"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:55
+#: templates/dashboard/customer/detail.html:57
 msgctxt "Customer orders table header"
 msgid "Order status"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:58
+#: templates/dashboard/customer/detail.html:60
 msgctxt "Customer orders table header"
 msgid "Total"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:85
+#: templates/dashboard/customer/detail.html:87
 msgctxt "Empty customer orders table message"
 msgid "No orders found."
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:97
+#: templates/dashboard/customer/detail.html:99
 msgctxt "Customer default shipping address card title"
 msgid "Default shipping address"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:104
+#: templates/dashboard/customer/detail.html:106
 msgctxt "Customer without default shipping address message"
 msgid "No default shipping address."
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:117
+#: templates/dashboard/customer/detail.html:119
 msgctxt "Customer default billing address card title"
 msgid "Default billing address"
 msgstr ""
 
-#: templates/dashboard/customer/detail.html:125
+#: templates/dashboard/customer/detail.html:127
 msgctxt "Customer without default billing address message"
 msgid "No default billing address."
 msgstr ""
@@ -2342,8 +2396,8 @@ msgstr ""
 #: templates/dashboard/discount/voucher_modal_confirm_delete.html:7
 #: templates/dashboard/product/attributes/modal_confirm_delete.html:7
 #: templates/dashboard/product/modal_product_class_confirm_delete.html:36
-#: templates/dashboard/product/modal_product_confirm_delete.html:11
-#: templates/dashboard/product/modal_product_image_confirm_delete.html:10
+#: templates/dashboard/product/modal_product_confirm_delete.html:12
+#: templates/dashboard/product/modal_product_image_confirm_delete.html:11
 #: templates/dashboard/product/product_form.html:199
 #: templates/dashboard/product/product_form.html:296
 #: templates/dashboard/product/stock_locations/modal_confirm_delete.html:7
@@ -2449,7 +2503,7 @@ msgid "Total"
 msgstr ""
 
 #: templates/dashboard/includes/_orders_table.html:41
-#: templates/dashboard/order/detail.html:105
+#: templates/dashboard/order/detail.html:106
 msgctxt "Anonymous user account value"
 msgid "Guest"
 msgstr ""
@@ -2460,10 +2514,10 @@ msgid "Filter"
 msgstr ""
 
 #: templates/dashboard/includes/address_short.html:3
-#: templates/dashboard/order/detail.html:214
-#: templates/dashboard/order/detail.html:232
-#: templates/dashboard/product/product_form.html:404
-#: templates/dashboard/product/product_form.html:452
+#: templates/dashboard/order/detail.html:215
+#: templates/dashboard/order/detail.html:233
+#: templates/dashboard/product/product_form.html:407
+#: templates/dashboard/product/product_form.html:454
 msgctxt "Dashboard edit action"
 msgid "Edit"
 msgstr ""
@@ -2538,272 +2592,272 @@ msgid "Edit address"
 msgstr ""
 
 #: templates/dashboard/order/address_form.html:39
-#: templates/dashboard/order/detail.html:208
+#: templates/dashboard/order/detail.html:209
 msgctxt ""
 msgid "Shipping address"
 msgstr ""
 
 #: templates/dashboard/order/address_form.html:41
-#: templates/dashboard/order/detail.html:225
+#: templates/dashboard/order/detail.html:226
 msgctxt ""
 msgid "Billing address"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:31
+#: templates/dashboard/order/detail.html:32
 msgctxt "Order detail action"
 msgid "Cancel Order"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:65
+#: templates/dashboard/order/detail.html:66
 msgctxt "Order detail tab"
 msgid "Details"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:73
+#: templates/dashboard/order/detail.html:74
 msgctxt "Order detail tab"
 msgid "Payments"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:81
+#: templates/dashboard/order/detail.html:82
 msgctxt "Order detail tab"
 msgid "History"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:94
+#: templates/dashboard/order/detail.html:95
 msgctxt "Order summary title"
 msgid "Order summary"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:99
-#: templates/dashboard/search/results.html:84
+#: templates/dashboard/order/detail.html:100
+#: templates/dashboard/search/results.html:85
 msgctxt "Dashboard customer"
 msgid "Customer"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:111
+#: templates/dashboard/order/detail.html:112
 msgctxt "Order summary card header"
 msgid "Order status"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:119
+#: templates/dashboard/order/detail.html:120
 msgctxt "Order summary card header"
 msgid "Payment status"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:125
+#: templates/dashboard/order/detail.html:126
 msgctxt "Payment status not available"
 msgid "N/A"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:137
+#: templates/dashboard/order/detail.html:138
 msgctxt "Order summary card header"
 msgid "Outstanding balance"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:150
+#: templates/dashboard/order/detail.html:151
 msgctxt "Order summary card header"
 msgid "Order total"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:158
+#: templates/dashboard/order/detail.html:159
 msgctxt "Order summary card header"
 msgid "Preauthorized amount"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:164
+#: templates/dashboard/order/detail.html:165
 msgctxt "Preauthorized amount not available"
 msgid "N/A"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:170
+#: templates/dashboard/order/detail.html:171
 msgctxt "Order summary card header"
 msgid "Captured amount"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:184
+#: templates/dashboard/order/detail.html:185
 msgctxt "Order summary card action"
 msgid "Capture"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:189
+#: templates/dashboard/order/detail.html:190
 msgctxt "Order summary card action"
 msgid "Refund"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:195
+#: templates/dashboard/order/detail.html:196
 msgctxt "Order summary card action"
 msgid "Release"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:244
+#: templates/dashboard/order/detail.html:245
 #, python-format
 msgctxt "Shipment group table title"
 msgid "Shipment #%(shipment)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:255
+#: templates/dashboard/order/detail.html:256
 msgctxt "Shipment group table header"
 msgid "Item"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:258
+#: templates/dashboard/order/detail.html:259
 msgctxt "Shipment group table header"
 msgid "SKU"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:261
+#: templates/dashboard/order/detail.html:262
 msgctxt "Shipment group table header"
 msgid "Price"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:264
+#: templates/dashboard/order/detail.html:265
 msgctxt "Shipment group table header"
 msgid "Quantity"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:267
+#: templates/dashboard/order/detail.html:268
 msgctxt "Shipment group table header"
 msgid "Total"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:275
+#: templates/dashboard/order/detail.html:276
 #, python-format
 msgctxt "Shipment group table item column data"
 msgid "Shipping (%(group_shipping_method_name)s)"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:305
 #: templates/dashboard/order/detail.html:306
+#: templates/dashboard/order/detail.html:307
 msgctxt "Shipment group table row action"
 msgid "Change quantity"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:310
+#: templates/dashboard/order/detail.html:311
 msgctxt "Shipment group table row action"
 msgid "Split line"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:311
+#: templates/dashboard/order/detail.html:312
 msgctxt "Shipment group table row action"
 msgid "Split order line"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:315
 #: templates/dashboard/order/detail.html:316
+#: templates/dashboard/order/detail.html:317
 msgctxt "Shipment group table row action"
 msgid "Remove line"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:336
+#: templates/dashboard/order/detail.html:337
 msgctxt "Shipment group table action"
 msgid "Dispatch"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:340
+#: templates/dashboard/order/detail.html:341
 msgctxt "Shipment group table action"
 msgid "Cancel group"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:341
+#: templates/dashboard/order/detail.html:342
 msgctxt "Shipment group table action"
 msgid "Cancel this shipment"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:348
+#: templates/dashboard/order/detail.html:349
 #, python-format
 msgctxt "Shipment group table text"
 msgid "Tracking number: %(tracking)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:362
+#: templates/dashboard/order/detail.html:363
 msgctxt "Order totals header"
 msgid "Grand total"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:380
+#: templates/dashboard/order/detail.html:381
 msgctxt "Order totals header"
 msgid "Shipping"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:390
+#: templates/dashboard/order/detail.html:391
 #, python-format
 msgctxt "Order totals header"
 msgid "Voucher %(voucher)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:398
 #: templates/dashboard/order/detail.html:399
+#: templates/dashboard/order/detail.html:400
 msgctxt "Order totals action"
 msgid "Remove voucher"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:416
+#: templates/dashboard/order/detail.html:417
 msgctxt "Order notes card title"
 msgid "Order notes"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:429
+#: templates/dashboard/order/detail.html:430
 msgctxt "Empty order notes card message"
 msgid "There are no notes associated with this order."
 msgstr ""
 
-#: templates/dashboard/order/detail.html:435
+#: templates/dashboard/order/detail.html:436
 msgctxt "Order notes card action"
 msgid "Add note"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:449
+#: templates/dashboard/order/detail.html:450
 msgctxt "Payment history table header"
 msgid "Transaction ID"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:452
+#: templates/dashboard/order/detail.html:453
 msgctxt "Payment history table header"
 msgid "Date"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:455
+#: templates/dashboard/order/detail.html:456
 msgctxt "Payment history table header"
 msgid "Payment status"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:458
+#: templates/dashboard/order/detail.html:459
 msgctxt "Payment history table header"
 msgid "Fraud status"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:461
+#: templates/dashboard/order/detail.html:462
 msgctxt "Payment history table header"
 msgid "Amount"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:469
+#: templates/dashboard/order/detail.html:470
 #, python-format
 msgctxt "Payment item column data"
 msgid "#%(payment_id)s"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:493
+#: templates/dashboard/order/detail.html:494
 msgctxt "Empty payment history table message"
 msgid "No payments made for this order."
 msgstr ""
 
-#: templates/dashboard/order/detail.html:503
+#: templates/dashboard/order/detail.html:504
 msgctxt "Order history table header"
 msgid "Date"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:506
+#: templates/dashboard/order/detail.html:507
 msgctxt "Order history table header"
 msgid "Order status"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:509
+#: templates/dashboard/order/detail.html:510
 msgctxt "Order history table header"
 msgid "User"
 msgstr ""
 
-#: templates/dashboard/order/detail.html:512
+#: templates/dashboard/order/detail.html:513
 msgctxt "Order history table header"
 msgid "Comment"
 msgstr ""
@@ -3055,12 +3109,12 @@ msgctxt "Attribute values formset title"
 msgid "Attribute values"
 msgstr ""
 
-#: templates/dashboard/product/attributes/list.html:15
+#: templates/dashboard/product/attributes/list.html:16
 msgctxt "Attribute list add button text"
 msgid "Add attribute"
 msgstr ""
 
-#: templates/dashboard/product/attributes/list.html:51
+#: templates/dashboard/product/attributes/list.html:52
 msgctxt "Empty attribute list message"
 msgid "No attributes found."
 msgstr ""
@@ -3105,23 +3159,23 @@ msgctxt "Empty product type list message"
 msgid "No product types found."
 msgstr ""
 
-#: templates/dashboard/product/class_list.html:83
-#: templates/dashboard/product/list.html:84
+#: templates/dashboard/product/class_list.html:82
+#: templates/dashboard/product/list.html:82
 msgctxt "Dashboard create new action"
 msgid "Create new"
 msgstr ""
 
-#: templates/dashboard/product/list.html:18
+#: templates/dashboard/product/list.html:19
 msgctxt "Product list add button text"
 msgid "Add product"
 msgstr ""
 
-#: templates/dashboard/product/list.html:62
+#: templates/dashboard/product/list.html:61
 msgctxt "Empty product list message"
 msgid "No products found."
 msgstr ""
 
-#: templates/dashboard/product/list.html:66
+#: templates/dashboard/product/list.html:65
 msgctxt "Empty product list without product types message"
 msgid "Create product type first."
 msgstr ""
@@ -3144,7 +3198,7 @@ msgid ""
 "related to this product type."
 msgstr ""
 
-#: templates/dashboard/product/modal_product_confirm_delete.html:25
+#: templates/dashboard/product/modal_product_confirm_delete.html:24
 #, python-format
 msgctxt "Modal delete product text"
 msgid ""
@@ -3152,7 +3206,7 @@ msgid ""
 "this product."
 msgstr ""
 
-#: templates/dashboard/product/modal_product_image_confirm_delete.html:18
+#: templates/dashboard/product/modal_product_image_confirm_delete.html:21
 msgctxt "Modal delete image text"
 msgid "You are about to delete this image."
 msgstr ""
@@ -3179,12 +3233,12 @@ msgid ""
 "which attributes can be used during product creation process."
 msgstr ""
 
-#: templates/dashboard/product/product_confirm_delete.html:31
+#: templates/dashboard/product/product_confirm_delete.html:32
 msgctxt "Product delete breadcrumbs"
 msgid "Delete product"
 msgstr ""
 
-#: templates/dashboard/product/product_confirm_delete.html:34
+#: templates/dashboard/product/product_confirm_delete.html:35
 #, python-format
 msgctxt "Product delete breadcrumbs"
 msgid "Delete %(product)s"
@@ -3295,42 +3349,42 @@ msgctxt "Empty stock table message"
 msgid "There is no stock for this product."
 msgstr ""
 
-#: templates/dashboard/product/product_form.html:396
+#: templates/dashboard/product/product_form.html:399
 msgctxt "Image card text"
 msgid "No description"
 msgstr ""
 
-#: templates/dashboard/product/product_form.html:418
+#: templates/dashboard/product/product_form.html:420
 msgctxt "Empty image gallery message"
 msgid "This product has no images yet."
 msgstr ""
 
-#: templates/dashboard/product/product_form.html:425
+#: templates/dashboard/product/product_form.html:427
 msgctxt "Image gallery upload box text"
 msgid "Drop images here to upload"
 msgstr ""
 
-#: templates/dashboard/product/product_form.html:445
+#: templates/dashboard/product/product_form.html:447
 msgctxt "Empty image gallery message"
 msgid "No description"
 msgstr ""
 
-#: templates/dashboard/product/product_form.html:465
+#: templates/dashboard/product/product_form.html:467
 msgctxt "Add image button text"
 msgid "Add image"
 msgstr ""
 
-#: templates/dashboard/product/product_image_confirm_delete.html:5
+#: templates/dashboard/product/product_image_confirm_delete.html:6
 msgctxt "Delete image page title"
 msgid "Delete image"
 msgstr ""
 
-#: templates/dashboard/product/product_image_confirm_delete.html:28
+#: templates/dashboard/product/product_image_confirm_delete.html:29
 msgctxt "Delete image breadcrumbs"
 msgid "Delete image"
 msgstr ""
 
-#: templates/dashboard/product/product_image_confirm_delete.html:39
+#: templates/dashboard/product/product_image_confirm_delete.html:40
 msgctxt "Delete image text"
 msgid "Are you sure you want to delete the following image?"
 msgstr ""
@@ -3506,31 +3560,31 @@ msgctxt "Search page title"
 msgid "Search results"
 msgstr ""
 
-#: templates/dashboard/search/results.html:57
+#: templates/dashboard/search/results.html:58
 #, python-format
 msgctxt "Dashboard order"
 msgid "Order #%(order_number)s"
 msgstr ""
 
-#: templates/dashboard/search/results.html:63
+#: templates/dashboard/search/results.html:64
 #, python-format
 msgctxt "Dashboard customer"
 msgid "Customer: %(email)s"
 msgstr ""
 
-#: templates/dashboard/search/results.html:68
+#: templates/dashboard/search/results.html:69
 #, python-format
 msgctxt "Dashboard order info"
 msgid "Placed on: %(placed)s"
 msgstr ""
 
-#: templates/dashboard/search/results.html:78
+#: templates/dashboard/search/results.html:79
 #, python-format
 msgctxt "Dashboard user"
 msgid "User %(full_name)s"
 msgstr ""
 
-#: templates/dashboard/search/results.html:96
+#: templates/dashboard/search/results.html:97
 #, python-format
 msgctxt "No Search result message"
 msgid "No results for query \"%(query)s\"."
@@ -3559,43 +3613,43 @@ msgctxt "Delete shipping method text"
 msgid "Are you sure you want to delete the %(shipping_method_name)s method?"
 msgstr ""
 
-#: templates/dashboard/shipping/method_form.html:7
+#: templates/dashboard/shipping/method_form.html:8
 msgctxt "Dashboard shipping methods"
 msgid "Shipping methods"
 msgstr ""
 
-#: templates/dashboard/shipping/method_form.html:11
-#: templates/dashboard/shipping/method_form.html:24
+#: templates/dashboard/shipping/method_form.html:12
+#: templates/dashboard/shipping/method_form.html:25
 msgctxt "Shipping method form page title"
 msgid "Add new method"
 msgstr ""
 
-#: templates/dashboard/shipping/method_form.html:32
+#: templates/dashboard/shipping/method_form.html:33
 msgctxt "Dashboard shipping method"
 msgid "Shipping methods"
 msgstr ""
 
-#: templates/dashboard/shipping/method_form.html:47
+#: templates/dashboard/shipping/method_form.html:48
 msgctxt "Shipping method form breadcrumbs"
 msgid "Add new method"
 msgstr ""
 
-#: templates/dashboard/shipping/method_form.html:62
+#: templates/dashboard/shipping/method_form.html:63
 msgctxt "Shipping method form action"
 msgid "Delete shipping method"
 msgstr ""
 
-#: templates/dashboard/shipping/method_form.html:83
+#: templates/dashboard/shipping/method_form.html:84
 msgctxt "Shipping method form text"
 msgid "Price per country"
 msgstr ""
 
-#: templates/dashboard/shipping/method_form.html:91
+#: templates/dashboard/shipping/method_form.html:92
 msgctxt "Shipping method country list"
 msgid "Country"
 msgstr ""
 
-#: templates/dashboard/shipping/method_form.html:94
+#: templates/dashboard/shipping/method_form.html:95
 msgctxt "Shipping method country list"
 msgid "Price"
 msgstr ""
@@ -3628,6 +3682,11 @@ msgstr ""
 #: templates/dashboard/sites/detail.html:9
 msgctxt "Site settings page title"
 msgid "Add new site settings"
+msgstr ""
+
+#: templates/dashboard/sites/detail.html:46
+msgctxt "Authorization keys formset title"
+msgid "Authorization keys"
 msgstr ""
 
 #: templates/home.html:13
@@ -3795,19 +3854,19 @@ msgctxt "Order details column title"
 msgid "Price"
 msgstr ""
 
-#: templates/order/order-details.html:75
+#: templates/order/order-details.html:76
 #, python-format
 msgctxt "Order details delivery row text"
 msgid "Delivery (%(shipping_method_name)s)"
 msgstr ""
 
-#: templates/order/order-details.html:81
+#: templates/order/order-details.html:82
 #, python-format
 msgctxt "Order details delivery row text"
 msgid "Tracking number: %(tracking_number)s"
 msgstr ""
 
-#: templates/order/order-details.html:106
+#: templates/order/order-details.html:107
 msgctxt "Order details total text"
 msgid "Total"
 msgstr ""
@@ -3943,22 +4002,22 @@ msgid ""
 "visible on <strong>%(date)s</strong>."
 msgstr ""
 
-#: templates/product/details.html:80
+#: templates/product/details.html:87
 msgctxt "Product details link text"
 msgid "Edit in dashboard"
 msgstr ""
 
-#: templates/product/details.html:118
+#: templates/product/details.html:125
 msgctxt "Product details primary action"
 msgid "Add to cart"
 msgstr ""
 
-#: templates/product/details.html:130
+#: templates/product/details.html:137
 msgctxt "Product details text"
 msgid "This product is currently <strong>unavailable</strong>."
 msgstr ""
 
-#: templates/product/details.html:134
+#: templates/product/details.html:141
 msgctxt "Product details title"
 msgid "Description"
 msgstr ""
@@ -4041,37 +4100,37 @@ msgctxt "User profile tab"
 msgid "Recent Orders"
 msgstr ""
 
-#: templates/userprofile/details.html:32
+#: templates/userprofile/details.html:33
 msgctxt "User profile tab"
 msgid "Change password"
 msgstr ""
 
-#: templates/userprofile/details.html:37
+#: templates/userprofile/details.html:39
 msgctxt "User profile tab"
 msgid "Addresses book"
 msgstr ""
 
-#: templates/userprofile/details.html:49
+#: templates/userprofile/details.html:51
 msgctxt "Recent orders column title"
 msgid "Order"
 msgstr ""
 
-#: templates/userprofile/details.html:52
+#: templates/userprofile/details.html:54
 msgctxt "Recent orders column title"
 msgid "Date"
 msgstr ""
 
-#: templates/userprofile/details.html:55
+#: templates/userprofile/details.html:57
 msgctxt "Recent orders column title"
 msgid "Summary"
 msgstr ""
 
-#: templates/userprofile/details.html:58
+#: templates/userprofile/details.html:60
 msgctxt "Recent orders column title"
 msgid "Status"
 msgstr ""
 
-#: templates/userprofile/details.html:81
+#: templates/userprofile/details.html:82
 msgctxt "Recent orders link text"
 msgid "Details"
 msgstr ""

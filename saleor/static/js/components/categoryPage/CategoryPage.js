@@ -119,7 +119,7 @@ class CategoryPage extends Component {
           <div className="row">
             <div className="col-md-7">
               <ul className="breadcrumbs list-unstyled hidden-sm-down">
-                <li><a href="/">{gettext('Home')}</a></li>
+                <li><a href="/">{pgettext('Main navigation item', 'Home')}</a></li>
                   {category.ancestors && (category.ancestors.map((ancestor) => {
                     return (
                       <li key={ancestor.pk}><a href={ancestor.url}>{ancestor.name}</a></li>
@@ -131,7 +131,7 @@ class CategoryPage extends Component {
             <div className="col-md-5">
               <div className="row">
                 <div className="col-6 col-md-2 col-lg-6 filters-menu">
-                  <span className="filters-menu__label hidden-sm-up" onClick={() => this.toggleMenu(filtersMenu)}>{gettext('Filters')}</span>
+                  <span className="filters-menu__label hidden-sm-up" onClick={() => this.toggleMenu(filtersMenu)}>{pgettext('Category page filters', 'Filters')}</span>
                   {(variables.attributesFilter.length || variables.minPrice || variables.maxPrice) && (
                     <span className="filters-menu__icon hidden-sm-up"></span>
                   )}
@@ -151,8 +151,8 @@ class CategoryPage extends Component {
             {filtersMenu && (
             <div>
               <h2>
-                {gettext('Filters')}
-                <span className="clear-filters float-right" onClick={this.clearFilters}>{gettext('Clear filters')}</span>
+                {pgettext('Category page filters', 'Filters')}
+                <span className="clear-filters float-right" onClick={this.clearFilters}>{pgettext('Category page filters', 'Clear filters')}</span>
               </h2>
               <div className="product-filters">
                 <ProductFilters
