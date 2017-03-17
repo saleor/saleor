@@ -25,3 +25,5 @@ dist/
 /saleor/static/assets/
 webpack-bundle.json
 /venv/
+.idea
+.env
