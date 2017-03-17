@@ -14,7 +14,7 @@ if (process.env.NODE_ENV === 'production') {
   output = {
     path: resolve('saleor/static/assets/'),
     filename: '[name].[chunkhash].js',
-    publicPath: '/'
+    publicPath: 'https://saleor-demo.s3.amazonaws.com/'
   };
   fileLoaderPath = 'file?name=[name].[hash].[ext]';
   extractTextPlugin = new ExtractTextPlugin('[name].[contenthash].css');
