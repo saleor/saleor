@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% load static from staticfiles %}
+{% load staticfiles %}
 {% load gross from prices_i18n %}
 {% load discount_amount_for from prices %}
 {% load status %}
@@ -115,7 +115,7 @@
                       <li><a href="{% url "profile:address-edit" pk=address.pk %}">
                         {% trans "Edit" context "User address action" %}
                       </a></li>
-                      <li><a class="delete-icon"><img class="float-right" src="{% static "images/icon_delete.svg" %}"></a></li>
+                      <li><a class="delete-icon"><svg data-src="{% static "images/delete.svg" %}" height="20px" width="20px" /></a></li>
                     </ul>
                     {% include "userprofile/address-delete.html" with pk=address.pk %}
                   </div>

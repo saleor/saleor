@@ -1,13 +1,14 @@
-import '../scss/storefront/storefront.scss';
+import '../scss/storefront.scss';
 import 'jquery.cookie';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Relay from 'react-relay';
+import SVGInjector from 'svg-injector-2';
 
 import variantPickerStore from './stores/variantPicker';
 
-import passwordIvisible from '../images/pass-invisible.svg';
-import passwordVisible from '../images/pass-visible.svg';
+import passwordIvisible from '../images/pass_invisible.svg';
+import passwordVisible from '../images/pass_visible.svg';
 
 import VariantPicker from './components/variantPicker/VariantPicker';
 import VariantPrice from './components/variantPicker/VariantPrice';
@@ -35,6 +36,8 @@ Relay.injectNetworkLayer(
     }
   })
 );
+
+new SVGInjector().inject(document.querySelectorAll('svg[data-src]'));
 
 let getAjaxError = (response) => {
   let ajaxError = $.parseJSON(response.responseText).error.quantity;
@@ -68,7 +71,7 @@ $(document).ready((e) => {
 
 let $searchIcon = $('.mobile-search-icon');
 let $closeSearchIcon = $('.mobile-close-search');
-let $searchForm = $('.navbar__brand__search');
+let $searchForm = $('.search-form');
 $searchIcon.click((e) => {
   $searchForm.animate({left: 0}, {duration: 500});
 });

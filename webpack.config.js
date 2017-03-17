@@ -36,7 +36,7 @@ var providePlugin = new webpack.ProvidePlugin({
 var config = {
   entry: {
     category: './saleor/static/js/category.js',
-    dashboard: './saleor/static/js/dashboard.js',
+    dashboard: './saleor/static/dashboard/js/dashboard.js',
     storefront: './saleor/static/js/storefront.js',
     vendor: [
       'babel-es6-polyfill',
@@ -77,7 +77,7 @@ var config = {
           resolve('node_modules'),
           resolve('saleor/static/fonts'),
           resolve('saleor/static/images'),
-          resolve('saleor/static/img')
+          resolve('saleor/static/dashboard/images')
         ]
       }
     ]

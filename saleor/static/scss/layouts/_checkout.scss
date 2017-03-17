@@ -1,0 +1,145 @@
+.checkout {
+  margin-bottom: $global-margin * 5;
+  h2, h3 {
+    text-transform: uppercase;
+    margin: $global-margin * 2 0;
+  }
+  hr {
+    margin: $global-margin * 3 0 $global-margin * 2;
+  }
+  .primary {
+    margin-top: $global-margin;
+  }
+  &__edit-link {
+    margin-top: $global-margin;
+  }
+  &__header {
+    background-color: $light-gray;
+    padding: $global-padding * 1.5 0 $global-padding;
+    margin-bottom: $global-margin;
+    @include media-breakpoint-down(sm) {
+        padding: $global-padding 0;
+      & ~ .maincontent {
+        margin-top: 0;
+      }
+    }
+    a:hover {
+      text-decoration: none;
+    }
+    svg {
+      vertical-align: baseline;
+      margin-right: $global-margin;
+      @include media-breakpoint-down(sm) {
+        max-height: 25px;
+        width: auto;
+        vertical-align: text-bottom;
+        margin-right: 0;
+      }
+      path {
+        fill: $body-color;
+      }
+    }
+    h1 {
+      display: inline-block;
+      font-weight: 300;
+      text-transform: uppercase;
+      @include media-breakpoint-down(sm) {
+        font-size: 1.8rem;
+        margin-bottom: 0;
+      }
+    }
+  }
+  &__login {
+    margin: $global-margin * 5 0 $global-margin * 3;
+    border: 1px solid $gray;
+    border-radius: $button-border-radius;
+    text-align: center;
+    h3 {
+      margin-bottom: $global-margin * 3;
+    }
+    .btn {
+      margin: $global-margin * 2 auto 0;
+    }
+    &__continue {
+      padding: $global-padding * 2 0 $global-padding;
+    }
+    &__form {
+      background-color: $light-gray;
+      padding: $global-padding * 2 $global-padding * 6 $global-padding * 2;
+      @include media-breakpoint-down(md) {
+        padding: $global-padding * 2;
+      }
+      .form-group {
+        &:last-of-type {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+  &__review {
+    background-color: $light-gray;
+    padding: $global-padding $global-padding * 2;
+    border-radius: 3px;
+    h3 {
+      margin: $global-margin 0;
+    }
+    &__section {
+      border-top: 1px solid $gray;
+      padding-top: $global-padding;
+    }
+    &__tittle {
+      margin-bottom: $global-margin * 2;
+    }
+    &__variant {
+      color: $skull-gray;
+    }
+    @include media-breakpoint-down(sm) {
+      margin-top: $global-margin * 3;
+    } 
+  }
+  &__thankyoupage {
+    text-align: center;
+    margin-top: $global-margin * 6;
+    @include media-breakpoint-down(sm) {
+      margin-top: $global-margin * 3;
+    }
+    h3 {
+      margin-bottom: $global-margin * 3;
+    }
+    .btn {
+      margin-top: $global-margin;
+    }
+    span {
+      color: $darken-gray;
+    }
+    h1 {
+      font-weight: 300;
+      margin-top: -$global-margin * 4;
+    }
+    &__form {
+      margin-top: $global-margin * 6;
+      margin-bottom: $global-margin * 3;
+      border: 1px solid $light-gray;
+      border-radius: $button-border-radius;
+      @include media-breakpoint-down(sm) {
+        margin-top: $global-margin * 3;
+      }
+      .col-md-6 {
+        padding: $global-padding * 3 0 $global-padding * 2;
+        &:first-of-type {
+          background-color: $light-gray;
+          padding: $global-padding * 3 $global-padding * 4 $global-padding * 2;
+          @include media-breakpoint-down(md) {
+            padding: $global-padding * 3 $global-padding * 2 $global-padding * 2;
+          }
+        }
+      }
+      img {
+        margin-bottom: $global-margin * 1.2;
+        @include media-breakpoint-only(md) {
+          margin-bottom: $global-margin * 2.4;
+        }
+      }
+    }
+  }
+}

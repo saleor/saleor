@@ -1,16 +1,18 @@
 {% load i18n %}
 {% load utils %}
+{% load staticfiles %}
+
 {% if page_obj.paginator.num_pages > 1 %}
   <ul class="pagination">
     <li
       {% if not page_obj.has_previous %} class="disabled"{% endif %}>
       {% if page_obj.has_previous %}
       <a href="{% construct_get_query page=page_obj.previous_page_number %}">
-        <i class="material-icons">chevron_left</i>
+        <svg data-src="{% static "dashboard/images/chevron_left.svg" %}" fill="#000" />
       </a>
     {% else %}
       <a href="#!">
-        <i class="material-icons">chevron_left</i>
+        <svg data-src="{% static "dashboard/images/chevron_left.svg" %}" fill="#9E9E9E" />
       </a>
     {% endif %}
     </li>
@@ -24,10 +26,12 @@
     <li{% if not page_obj.has_next %} class="disabled"{% endif %}>
       {% if page_obj.has_next %}
         <a href="{% construct_get_query page=page_obj.next_page_number %}">
-          <i class="material-icons">chevron_right</i>
+          <svg data-src="{% static "dashboard/images/chevron_right.svg" %}" fill="#000" />
         </a>
       {% else %}
-        <a href="#!"><i class="material-icons">chevron_right</i></a>
+        <a href="#!">
+          <svg data-src="{% static "dashboard/images/chevron_right.svg" %}" fill="#9E9E9E" />
+        </a>
       {% endif %}
     </li>
   </ul>

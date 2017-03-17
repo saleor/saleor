@@ -1,7 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load materializecss %}
-{% load static %}
+{% load staticfiles %}
 
 {% block title %}
   {% if attribute.pk %}
@@ -24,7 +24,7 @@
 {% block header_extra %}
   {% if attribute.pk %}
     <a class="dropdown-button right" href="#" data-activates="attribute-delete" data-constrainwidth="false">
-      <i class="material-icons">more_vert</i>
+      <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
     </a>
     <ul id="attribute-delete" class="dropdown-content">
       <li>
@@ -46,7 +46,7 @@
     </li>
     <li class="back-mobile">
       <a href="{% url 'dashboard:product-attributes' %}">
-        <i class="material-icons">arrow_back</i>
+        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     <li>

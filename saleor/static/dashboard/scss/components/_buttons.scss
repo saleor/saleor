@@ -1,0 +1,12 @@
+.btn-flat {
+  color: $secondary-color;
+}
+
+.btn-fab, .btn-floating {
+  svg {
+    vertical-align: middle;
+  }
+  &.btn-fab-hidden {
+    transform: scaleX(0) scaleY(0);
+  }
+}

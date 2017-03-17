@@ -1,0 +1,105 @@
+@mixin data-table {
+  &-container {
+    @media #{$medium-and-down} {
+      overflow: scroll;
+    }
+  }
+
+  &-action {
+    border-top: 1px solid $table-border-color;
+    padding: 10px 8px;
+  }
+
+  &-header-action {
+    border-bottom: 1px solid $table-border-color;
+    padding: 14px 8px;
+  }
+
+  &-header {
+    align-items: center;
+    display: flex;
+    height: 64px;
+    a {
+      color: $secondary-color;
+    }
+    .label {
+      line-height: 1;
+      margin-right: 24px;
+    }
+  }
+
+  &-title {
+    flex-grow: 1;
+    font-size: 20px;
+    font-weight: 300;
+    line-height: 1;
+    margin: 0;
+    padding: 0 24px;
+  }
+
+  input[type=checkbox].filled-in + label {
+    margin-top: 5px;
+    padding: 0;
+
+    &:after {
+      display: inline-block;
+      position: static;
+    }
+  }
+
+  tr[data-action-go]>td:not(.ignore-link):hover {
+    cursor: pointer;
+  }
+
+  th, td {
+    height: 48px;
+    overflow: hidden;
+    padding: 0 24px;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+    white-space: nowrap;
+
+    a {
+      color: $secondary-color;
+    }
+
+    &:first-child {
+      padding-left: 24px;
+    }
+
+    &:last-child {
+      padding-right: 24px;
+    }
+
+    &.no-padded {
+      padding: 0;
+    }
+
+    .dropdown-button {
+      color: inherit;
+      display: inline-block;
+      svg {
+        vertical-align: bottom;
+      }
+    }
+  }
+
+  th {
+    color: map_get($grey, darken-1);
+    font-weight: normal;
+    font-size: 12px;
+    height: 56px;
+  }
+
+  tfoot {
+    font-weight: bold;
+  }
+
+  .wide {
+    width: 99%;
+  }
+}
+
+.data-table {
+  @include data-table;
+}

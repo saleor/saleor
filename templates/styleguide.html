@@ -11,9 +11,7 @@
 <header class="checkout__header">
   <div class="container">
     <a href="/">
-      <img src="{% static "images/saleor-logo-black.svg" %}"
-      alt="{% trans "Testeor - Saleor demo store" context "Checkout logo alternate text" %}"
-      height="38">
+      <svg data-src="{% static "images/saleor_logo.svg" %}" height="38px" width="176px" />
     </a>
     <h1>Style guide</h1>
   </div>
@@ -47,11 +45,11 @@
     <div class="col-md-9 pull-md-3 styleguide__content">
       <div class="styleguide__content__note">
         <h3>Note</h3>
-        <p>If you’re using a recent ver­sion of IE, Fire­fox, Safari or Chrome (though not Opera), you can edit the text in sections marked with edit icon <img src="{% static "images/text-cursor.svg" %}">. Check how our components will look like in your language and with your content.</p>
+        <p>If you’re using a recent ver­sion of IE, Fire­fox, Safari or Chrome (though not Opera), you can edit the text in sections marked with edit icon <svg data-src="{% static "images/edit.svg" %}" />. Check how our components will look like in your language and with your content.</p>
       </div>
       <hr>
       <div id="typography" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Typography <img src="{% static "images/text-cursor.svg" %}"></h3>
+        <h3 class="styleguide__content__block__title">Typography <svg data-src="{% static "images/edit.svg" %}" /></h3>
         <p>We use Lato fontface in Regular(400), <span class="styleguide__content__block__light">Light(300)</span> and <span class="styleguide__content__block__bold">Bold(700)</span> weights.<br>
         Lato includes only latin and latin extended characters. For other alphabets the default sans serif font will be used.</p>
         <p><strong>Headers</strong></p>
@@ -295,18 +293,18 @@
       </div>
       <div id="icons" class="styleguide__content__block">
         <h3 class="styleguide__content__block__title">Icons</h3>
-        <img src="{% static "images/cart.svg" %}">
-        <img src="{% static "images/chevron-down-icon.svg" %}">
-        <img src="{% static "images/chevron-up-icon.svg" %}">
-        <img src="{% static "images/arrow-down-icon.svg" %}">
-        <img src="{% static "images/arrow-up-icon.svg" %}">
-        <img src="{% static "images/search-icon.svg" %}"> 
-        <img src="{% static "images/gallery-arrow.svg" %}">
-        <img src="{% static "images/icon_delete.svg" %}">
-        <img src="{% static "images/loader.svg" %}">  
+        <svg data-src="{% static "images/cart.svg" %}" />
+        <svg data-src="{% static "images/chevron_down.svg" %}" />
+        <svg data-src="{% static "images/chevron_up.svg" %}" />
+        <svg data-src="{% static "images/arrow_down.svg" %}" />
+        <svg data-src="{% static "images/arrow_up.svg" %}" />
+        <svg data-src="{% static "images/search.svg" %}" />
+        <svg data-src="{% static "images/gallery_arrow.svg" %}" />
+        <svg data-src="{% static "images/delete.svg" %}" />
+        <svg data-src="{% static "images/loader.svg" %}" />
       </div>
       <div id="buttons" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Buttons <img src="{% static "images/text-cursor.svg" %}"></h3>
+        <h3 class="styleguide__content__block__title">Buttons <svg data-src="{% static "images/edit.svg" %}" /></h3>
         <button class="btn primary">
           <span contenteditable="true">Primary Button (buttons can be really very wide)</span>
         </button>
@@ -347,7 +345,7 @@
       </div>
       <div id="forms" class="styleguide__content__block">
         <h3 class="styleguide__content__block__title">Forms</h3>
-        <p><strong>Text form</strong> <img src="{% static "images/text-cursor.svg" %}"></p>
+        <p><strong>Text form</strong> <svg data-src="{% static "images/edit.svg" %}" /></p>
         <div class="row">
           <div class="col-12 col-md-6">
             <div class="form-group">
@@ -365,11 +363,11 @@
         <hr>
         <div class="row">
           <div class="col-lg-4 col-md-6">
-            <p><strong>Filters</strong> <img src="{% static "images/text-cursor.svg" %}"></p>
+            <p><strong>Filters</strong> <svg data-src="{% static "images/edit.svg" %}" /></p>
             <div class="product-filters">
               <h3 contenteditable="true">Box Size
                 <div class="collapse-filters-icon">
-                  <img src="/static/images/chevron-up-icon.svg">
+                  <svg data-src="{% static "images/chevron_up.svg" %}" />
                 </div>
               </h3>
               <ul id="box-size">
@@ -407,7 +405,7 @@
           </div>
         </div>
         <hr>
-        <p><strong>Radio buttons</strong> <img src="{% static "images/text-cursor.svg" %}"></p>
+        <p><strong>Radio buttons</strong> <svg data-src="{% static "images/edit.svg" %}" /></p>
         <div class="row">
           <div class="col-md-4">
             <div class="radio">
@@ -431,7 +429,7 @@
             <form class="form-inline search-form" action="{% url "search:search" %}">
               <input class="form-control" type="text" name="q" value="{% if query %}{{ query }}{% endif %}" placeholder="Search for product">
               <button class="btn btn-link" type="submit">
-                <img src="{% static "images/search-icon.svg" %}">
+                <svg data-src="{% static "images/search.svg" %}" width="19" height="19" />
               </button>
             </form>
           </div>
@@ -445,7 +443,7 @@
           </div>
         </div>
         <hr>
-        <p><strong>Variant picker</strong> <img src="{% static "images/text-cursor.svg" %}"></p>
+        <p><strong>Variant picker</strong> <svg data-src="{% static "images/edit.svg" %}" /></p>
         <div class="variant-picker">
           <div class="btn-group" data-toggle="buttons">
             <label class="btn btn-secondary variant-picker__option"><input type="radio" name="4"><span contenteditable="true">100g</span></label>
@@ -454,7 +452,7 @@
           </div>
         </div>
         <hr>
-        <p><strong>Errors</strong> <img src="{% static "images/text-cursor.svg" %}"></p>
+        <p><strong>Errors</strong> <svg data-src="{% static "images/edit.svg" %}" /></p>
         <p>Errors are always displayed as a small red text below the form explaining what cause the error.</p>
         <div class="row">
           <div class="col-12">
@@ -500,7 +498,7 @@
         </div>
       </div>
       <div id="pagination" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Pagination <img src="{% static "images/text-cursor.svg" %}"></h3>
+        <h3 class="styleguide__content__block__title">Pagination <svg data-src="{% static "images/edit.svg" %}" /></h3>
         <ul class="pagination">
           <li class="prev disabled"><a>«</a></li>
           <li><a contenteditable="true">1</a></li>
@@ -510,7 +508,7 @@
         </ul>
       </div>
       <div id="breadcrumbs" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Breadcrumbs <img src="{% static "images/text-cursor.svg" %}"></h3>
+        <h3 class="styleguide__content__block__title">Breadcrumbs <svg data-src="{% static "images/edit.svg" %}" /></h3>
         <ul class="breadcrumbs list-unstyled">
           <li><a href="/" contenteditable="true">
             Home
@@ -524,7 +522,7 @@
         </ul>
       </div>
       <div id="notifications" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Notifications <img src="{% static "images/text-cursor.svg" %}"></h3>
+        <h3 class="styleguide__content__block__title">Notifications <svg data-src="{% static "images/edit.svg" %}" /></h3>
         <div class="alert alert-success">
           <button type="button" class="close" aria-hidden="true">&times;</button>
           <span contenteditable="true">This is Success alert.</span>
@@ -539,7 +537,7 @@
         </div>
       </div>
       <div id="mainnav" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Main navigation <img src="{% static "images/text-cursor.svg" %}"></h3>
+        <h3 class="styleguide__content__block__title">Main navigation <svg data-src="{% static "images/edit.svg" %}" /></h3>
         <nav class="navigation">
           <ul class="nav navbar-nav{% if request.get_full_path == home_url %} no-border{% endif %}" >
             {% for category in categories %}
@@ -591,7 +589,7 @@
         </div>
       </div>
       <div id="tables" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Tables <img src="{% static "images/text-cursor.svg" %}"></h3>
+        <h3 class="styleguide__content__block__title">Tables <svg data-src="{% static "images/edit.svg" %}" /></h3>
         <div class="table__header">
           <div class="row">
             <div class="col-md-2 col-3">
@@ -653,7 +651,7 @@
         </div>
       </div>
       <div id="cards" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Cards <img src="{% static "images/text-cursor.svg" %}"></h3>
+        <h3 class="styleguide__content__block__title">Cards <svg data-src="{% static "images/edit.svg" %}" /></h3>
         <div class="row">
           <div class="card-deck col-md-6">
             <div class="card card-block">
@@ -667,7 +665,7 @@
               </div>
               <ul class="icons">
                 <li><a href="#" contenteditable="true">Edit</a></li>
-                <li><a class="delete-icon"><img class="float-right" src="{% static "images/icon_delete.svg" %}"></a></li>
+                <li><a class="delete-icon"><svg data-src="{% static "images/delete.svg" %}" height="20px" width="20px" /></a></li>
               </ul>              
               <div class="address-delete none">
                 <form>
@@ -684,7 +682,7 @@
         </div>
       </div>
       <div id="product" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Products <img src="{% static "images/text-cursor.svg" %}"></h3>
+        <h3 class="styleguide__content__block__title">Products <svg data-src="{% static "images/edit.svg" %}" /></h3>
         <div class="row">
           <div class="col-6 col-lg-3 product-list">
             <div class="text-center">
@@ -704,8 +702,9 @@
                 <span class="product-list-item-name" contenteditable="true">Johnson-Brown</span>
               </div>
               <div class="panel-footer">
-                <div class="product-list__sale"><img src="{% static "images/sale_bg.svg" %}">
-                  <span contenteditable="true">Sale</span>
+                <div class="product-list__sale">
+                  <svg data-src="{% static "images/sale_bg.svg" %}" />
+                  <span class="product-list__sale__text" contenteditable="true">Sale</span>
                 </div>
                 <span contenteditable="true">FROM $72.25</span>
               </div>
@@ -726,10 +725,10 @@
               </div>
             </div>
             <a class="carousel-control-prev" href="#carousel-example-generic" role="button" data-slide="prev">
-              <img class="icon-next" src="{% static "images/gallery-arrow.svg" %}">
+              <svg data-src="{% static "images/gallery_arrow.svg" %}" />
             </a>
             <a class="carousel-control-next" href="#carousel-example-generic" role="button" data-slide="next">
-              <img class="icon-next" src="{% static "images/gallery-arrow.svg" %}">
+              <svg data-src="{% static "images/gallery_arrow.svg" %}" />
             </a>          
             <ol class="carousel-indicators hidden-sm-down">
               <li data-target="#carousel-example-generic" data-slide-to="0" class="active">

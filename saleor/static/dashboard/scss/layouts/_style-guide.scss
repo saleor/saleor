@@ -1,0 +1,139 @@
+.styleguide {
+  .container {
+    margin-left: 40px;
+    @media only screen and (max-width: $small-screen-up) {
+      margin-left: 15px;
+    }
+  }
+  .nav-wrapper {
+    margin-left: 40px;
+    @media only screen and (max-width: $small-screen-up) {
+      margin-left: 15px;
+    }
+    li {
+      span {
+        display: block;
+        text-transform: uppercase;
+        font-size: 2rem;
+        padding: 30px 20px;
+      }
+    }
+  }
+  &__menu {
+    position: relative;
+    &.fixed {
+      position: fixed !important;
+      top: 0;
+      @media only screen and (max-width: $small-screen-up) {
+        position: relative !important;
+      }
+    }
+    li {
+      padding: 5px 20px;
+      a {
+        color: $sidenav-font-color;
+        display: block;
+        &:hover {
+          color: darken($sidenav-font-color, 20%);
+          font-weight: 700;
+        }
+      }
+      @media only screen and (max-width: $small-screen-up) {
+        text-align: center;
+        a {
+          font-size: 1.5rem;
+        }
+      }
+    }
+  }
+  &__content {
+    h3, h4, p {
+      svg {
+        max-height: 14px;
+        max-width: 14px;
+        vertical-align: middle;
+        fill: currentColor;
+      }
+    }
+    &__block {
+      .container {
+        margin-left: 0;
+      }
+      &--title {
+        color: $grey-color;
+        text-transform: uppercase;
+        font-size: 1.5rem;
+        padding-top: 30px;
+      }
+      .card {
+        &-color {
+          height: 5rem;
+          &.primary-color {
+            background: $primary-color;
+          }
+          &.primary-color-light {
+            background: $primary-color-light;
+          }
+          &.secondary-color {
+            background: $secondary-color;
+          }
+          &.off-black {
+            background: $off-black;
+          }
+          &.success-color {
+            background: $success-color;
+          }
+          &.error-color {
+            background: $error-color;
+          }
+          &.link-color {
+            background: $link-color;
+          }
+          &.sidenav-font-color {
+            background: $sidenav-font-color;
+          }
+          &.grey-color {
+            background: $grey-color;
+          }
+        }
+      }
+      .section {
+        h4 {
+          color: $off-black;
+          text-transform: uppercase;
+          font-size: 1.2rem;
+          font-weight: 700;
+          margin: 0;
+          padding-bottom: 5px;
+        }
+        code {
+          display: block;
+          line-height: 1;
+          padding: 10px;
+          margin: 10px 0;
+          background: #f2f2f2;
+          border: solid 1px $grey-color;
+        }
+      }
+      &#icons {
+        svg {
+          max-height: 24px;
+          max-width: 24px;
+          fill: $off-black;
+          margin-top: 10px;
+        }
+      }
+    }
+  }
+  
+  @media only screen and (max-width: $small-screen-up) {
+    #buttons {
+      div {
+        text-align: center;
+        a {
+          margin-bottom: 20px;
+        }
+      }
+    }
+  }
+}

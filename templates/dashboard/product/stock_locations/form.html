@@ -2,7 +2,7 @@
 
 {% load i18n %}
 {% load materializecss %}
-{% load static %}
+{% load staticfiles %}
 
 {% block title %}
   {% if location.pk %}
@@ -18,7 +18,7 @@
 {% block header_extra %}
   {% if location.pk %}
     <a class="dropdown-button right" href="#" data-activates="attribute-delete" data-constrainwidth="false">
-      <i class="material-icons">more_vert</i>
+      <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
     </a>
     <ul id="attribute-delete" class="dropdown-content">
       <li>
@@ -40,7 +40,7 @@
     </li>
     <li class="back-mobile">
       <a href="{% url 'dashboard:sale-list' %}">
-        <i class="material-icons">arrow_back</i>
+        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     <li>
@@ -59,7 +59,7 @@
 
 {% block content %}
   <div class="row">
-    <div class="col m12 l9">
+    <div class="col s12 l9">
       <div class="card">
         <form method="post" id="form-product" novalidate>
           <div class="card-content card-content-form">

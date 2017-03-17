@@ -1,7 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load materializecss %}
-{% load static %}
+{% load staticfiles %}
 
 {% block title %}
   {% if variant.pk %}
@@ -28,7 +28,7 @@
     </li>
     <li class="back-mobile">
       <a href="{% url "dashboard:product-update" pk=product.pk %}#variants">
-        <i class="material-icons">chevron_left</i>
+        <svg data-src="{% static "dashboard/images/chevron_left.svg" %}" />
       </a>
     </li>
     <li>

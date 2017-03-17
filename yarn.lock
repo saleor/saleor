@@ -2816,10 +2816,6 @@ marked@0.3.5:
   version "0.3.5"
   resolved "https://registry.yarnpkg.com/marked/-/marked-0.3.5.tgz#4113a15ac5d7bca158a5aae07224587b9fa15b94"
 
-material-design-icons@^3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/material-design-icons/-/material-design-icons-3.0.1.tgz#9a71c48747218ebca51e51a66da682038cdcb7bf"
-
 materialize-css@^0.97.7:
   version "0.97.8"
   resolved "https://registry.yarnpkg.com/materialize-css/-/materialize-css-0.97.8.tgz#e39ce2056785b0c4e9cd4847c2cdf153e19c47cf"
@@ -4288,6 +4284,10 @@ supports-color@^3.1.0, supports-color@^3.1.1, supports-color@^3.2.3:
   resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-3.2.3.tgz#65ac0504b3954171d8a64946b2ae3cbb8a5f54f6"
   dependencies:
     has-flag "^1.0.0"
+
+svg-injector-2@^2.0.35:
+  version "2.0.35"
+  resolved "https://registry.yarnpkg.com/svg-injector-2/-/svg-injector-2-2.0.35.tgz#b65c5d9fc17951a30fb6b165668ccbb305da4053"
 
 svgo@^0.7.0:
   version "0.7.1"

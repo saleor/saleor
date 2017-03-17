@@ -24,7 +24,6 @@
     "jquery-match-height": "^0.7.0",
     "jquery-ui": "^1.12.1",
     "jquery.cookie": "^1.4.1",
-    "material-design-icons": "^3.0.1",
     "materialize-css": "^0.97.7",
     "mobx": "^3.0.2",
     "mobx-react": "^4.1.0",
@@ -36,6 +35,7 @@
     "react-relay": "^0.10.0",
     "select2": "^4.0.3",
     "sortablejs": "^1.5.0-rc1",
+    "svg-injector-2": "^2.0.35",
     "tether": "^1.4.0",
     "underscore": "^1.8.3"
   },

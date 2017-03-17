@@ -2,7 +2,7 @@
 {% load prices_i18n %}
 {% load i18n %}
 {% load materializecss %}
-{% load static %}
+{% load staticfiles %}
 {% load attributes %}
 
 {% block title %}
@@ -32,7 +32,7 @@
     </li>
     <li class="back-mobile">
       <a href="{% url "dashboard:product-list" %}">
-        <i class="material-icons">arrow_back</i>
+        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     <li>
@@ -50,7 +50,7 @@
 {% block header_extra %}
   {% if product.pk %}
     <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
-      <i class="material-icons">more_vert</i>
+      <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
     </a>
     <ul id="context-menu" class="dropdown-content">
       <li>
@@ -80,7 +80,7 @@
               <span>
                 {% trans "Details" context "Product form tab" %}
               </span>
-              <i class="material-icons">edit</i>
+              <svg data-src="{% static "dashboard/images/edit.svg" %}" width="24" height="24" />
             </a>
           </li>
           {% if product.product_class.has_variants %}
@@ -89,7 +89,7 @@
                 <span>
                   {% trans "Variants" context "Dashboard variants" %}
                 </span>
-                <i class="material-icons">style</i>
+                <svg data-src="{% static "dashboard/images/style.svg" %}" width="24" height="24" />
               </a>
             </li>
           {% endif %}
@@ -98,7 +98,7 @@
               <span>
                 {% trans "Stock" context "Dashboard stock" %}
               </span>
-              <i class="material-icons">store</i>
+              <svg data-src="{% static "dashboard/images/store.svg" %}" width="24" height="24" />
             </a>
           </li>
           <li class="tab col s3" role="presentation">
@@ -106,7 +106,7 @@
               <span>
                 {% trans "Images" context "Product form tab" %}
               </span>
-              <i class="material-icons">collections</i>
+              <svg data-src="{% static "dashboard/images/collections.svg" %}" width="24" height="24" />
             </a>
           </li>
         </ul>
@@ -465,7 +465,7 @@
     </div>
     <div class="fixed-action-btn">
       <a class="btn-fab btn-fab-hidden btn-floating btn-large waves-effect waves-light teal" id="images-btn" href="{% url 'dashboard:product-image-add' product_pk=product.pk %}" title="{% trans "Add image" context "Add image button text" %}">
-        <i class="material-icons">add</i>
+        <svg data-src="{% static "dashboard/images/add.svg" %}" />
       </a>
     </div>
   {% endif %}

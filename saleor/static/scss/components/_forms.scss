@@ -1,0 +1,156 @@
+.form-control, select, input {
+  color: $body-color;
+  border-radius: 2px;
+  border: 1px solid $gray;
+  &:focus {
+    color: $body-color;
+    border-color: $gray;
+    background-color: $beige;
+    outline: none;
+  }
+  &::placeholder {
+    color: $gray;
+    font-family: $font-family-sans-serif;
+    font-weight: 300;
+  }
+}
+
+.form-group {
+  text-align: left;
+  position: relative;
+}
+
+.input-btn {
+  position: relative;
+  .btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin-top: 0;
+  }
+}
+
+.deliveryform {
+  width: 100%;
+  select {
+    @include media-breakpoint-down(sm) {
+      width: 100%;
+    }
+    background-color: $white;
+    height: calc(2.25rem + 2px);
+    @include media-breakpoint-up(sm) {
+      float: right;
+    }
+    &:focus {
+      outline: none;
+    }
+  }
+  label {
+    margin-right: $global-margin;
+    margin-top: $global-margin / 2;
+  }
+}
+
+.search-form {
+  width: 100%;
+  position: relative;
+  &__close-icon {
+    position: absolute;
+    cursor: pointer;
+    padding: $global-padding * 1.9 $global-padding;
+    img {
+      width: 22px;
+    }
+  }
+  .form-control {
+    width: 100%;
+    border-radius: 0;
+    padding-left: $global-padding;
+  }
+  .btn {
+    width: 2.3rem;
+    height: 2.3rem;
+    position: absolute;
+    top: 0;
+    right: 0;
+    cursor: pointer;
+    border-left: solid 1px $gray;
+    border-radius: 0;
+    outline: 0;
+    @include transition(background, 0.3s)
+    img {
+      height: 1.5rem;
+      padding: $global-padding / 7;
+    }
+  }
+  @include media-breakpoint-down(sm) {
+    display: block;
+    left: -100vw;
+    position: absolute;
+    max-width: 100%;
+    float: right;
+    top: 0;
+    z-index: 5;
+    margin-top: 0;
+    input {
+      padding: $global-padding * 2 $global-padding * 2 $global-padding * 2 $global-padding * 4;
+      border: 0;
+    }
+    i {
+      position: absolute;
+      padding: $global-padding * 1.7 $global-padding;
+    }
+    .btn {
+      top: 1.6rem;
+      right: 2rem;
+    }
+  }
+}
+
+input#id_quantity {
+  padding: $global-padding / 2;
+  &:focus {
+    outline: none;
+  }
+}
+
+.help-block {
+  color: $red;
+  font-size: 0.8rem;
+  margin-top: $global-margin / 2;
+}
+
+.radio {
+  margin-bottom: $global-margin / 2;
+  ul {
+    list-style: none;
+    padding-left: 0;
+  }
+  input {
+    display: inline-block;
+    vertical-align: top;
+    margin: $global-margin / 4 $global-margin / 2 0 0;
+  }
+  span, .address-details {
+    display: inline-block;
+  }
+  label {
+    margin-right: $global-margin;
+    span {
+      display: inline;
+    }
+  }
+}
+
+.relative {
+  position: relative;
+}
+
+.passIcon {
+  max-width: 15px;
+  max-height: 15px;
+  position: absolute;
+  top: 2.8rem;
+  right: 0.5rem;
+  cursor: pointer;
+}

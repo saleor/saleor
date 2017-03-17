@@ -12,7 +12,7 @@
 {% block header_extra %}
   <div class="fixed-action-btn">
     <a class="btn-fab btn-floating btn-large waves-effect waves-light teal" href="{% url 'dashboard:product-stock-location-add' %}" title="{% trans "Add stock location" context "Stock location list add button text" %}">
-      <i class="material-icons">add</i>
+      <svg data-src="{% static "dashboard/images/add.svg" %}" />
     </a>
   </div>
 {% endblock %}

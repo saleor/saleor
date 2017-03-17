@@ -1,6 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load materializecss %}
+{% load staticfiles %}
 
 {% block title %}
   {% trans "Attributes" context "Dashboard attributes list" %} - {{ block.super }}
@@ -13,7 +14,7 @@
 {% block header_extra %}
   <div class="fixed-action-btn">
     <a class="btn-fab btn-floating btn-large waves-effect waves-light teal" href="{% url 'dashboard:product-attribute-add' %}" title="{% trans "Add attribute" context "Attribute list add button text" %}">
-      <i class="material-icons">add</i>
+      <svg data-src="{% static "dashboard/images/add.svg" %}" />
     </a>
   </div>
 {% endblock %}

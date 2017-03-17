@@ -1,0 +1,22 @@
+@mixin tabs {
+  background: none;
+  li {
+    a {
+      span {
+        display: none;
+        @media (min-width: $small-screen-up) {
+          display: inline;
+        }
+      }
+      svg {
+        @media (min-width: $small-screen-up) {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
+.tabs {
+  @include tabs;
+}

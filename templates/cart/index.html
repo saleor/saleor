@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load gross from prices_i18n %}
 {% load i18n %}
-{% load static from staticfiles %}
+{% load staticfiles %}
 {% load render_bundle from webpack_loader %}
 {% load get_thumbnail from product_images %}
 
@@ -55,7 +55,9 @@
                   </div>
                   {% csrf_token %}
                 </form>
-                <img class="cart-item-delete" src="{% static 'images/icon_delete.svg' %}">
+                <span class="cart-item-delete">
+                  <svg data-src="{% static "images/delete.svg" %}" height="20px" width="20px" />
+                </span>
                 <small class="cart__line__quantity-error text-danger"></small>
               </div>
               <div class="cart-item-subtotal col-md-5 col-12" data-product-id="{{ line.variant.pk }}">

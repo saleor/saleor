@@ -5,7 +5,7 @@
 {% load gross from prices_i18n %}
 {% load markdown from markdown %}
 {% load price_range from price_ranges %}
-{% load static from staticfiles %}
+{% load staticfiles %}
 {% load get_thumbnail from product_images %}
 
 {% block title %}{{ product }} — {{ block.super }}{% endblock %}
@@ -52,10 +52,10 @@
             </div>
             {% if images|length > 1 %}
               <a class="carousel-control-prev" href="#carousel-example-generic" role="button" data-slide="prev">
-                <img class="icon-next" src="{% static "images/gallery-arrow.svg" %}">
+                <svg data-src="{% static "images/gallery_arrow.svg" %}" />
               </a>
               <a class="carousel-control-next" href="#carousel-example-generic" role="button" data-slide="next">
-                <img class="icon-next" src="{% static "images/gallery-arrow.svg" %}">
+                <svg data-src="{% static "images/gallery_arrow.svg" %}" />
               </a>
             {% endif %}
             <ol class="carousel-indicators hidden-sm-down">
