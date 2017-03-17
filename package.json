@@ -65,7 +65,6 @@
     "postcss": "^5.2.11",
     "postcss-loader": "^1.2.2",
     "sass-loader": "^4.1.1",
-    "url-loader": "^0.5.7",
     "webpack": "^1.13.2",
     "webpack-bundle-tracker": "0.2.0",
     "webpack-dev-server": "^1.16.1"
