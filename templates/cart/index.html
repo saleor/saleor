@@ -4,7 +4,6 @@
 {% load staticfiles %}
 {% load render_bundle from webpack_loader %}
 {% load get_thumbnail from product_images %}
-{% load price_range from price_ranges %}
 
 {% block title %}{% trans "Your cart" context "Cart page title" %} — {{ block.super }}{% endblock %}
 
@@ -69,72 +68,8 @@
         </div>
       </div>
     {% endfor %}
-      {% if shipping_required %}
-        <div class="table__row">
-          <div class="row">
-            <div class="col-8 cart__total__subtotal">
-              <h3>{% trans "Subtotal" context "Order subtotal" %}</h3>
-            </div>
-            <div class="col-4">
-              <p class="cart-total text-right"
-                 data-value="{% gross cart_total %}"
-                 {% if local_cart_total %}data-value-local="{% gross local_cart_total %}"{% endif %}>
-                {% spaceless %}
-                  {% gross cart_total html=True %}
-                  {% if local_cart_total %}
-                    <br>
-                    <small>
-                      &asymp;
-                      {% gross local_cart_total html=True %}
-                    </small>
-                  {% endif %}
-                {% endspaceless %}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div class="cart__line last table__row">
-          <div class="row">
-            <div class="col-7 cart__total__subtotal deliveryform" data-csrf="{{ csrf_token }}">
-              <h3>{% trans "Shipping cost for:" context "Cart secondary title" %}</h3>
-              {{ country_form.country }}
-            </div>
-            <div class="col-5">
-              <div class="row">
-                <div class="cart-item-subtotal col-md-12 col-12">
-                  <h3 class="text-right cart__delivery-info__price">
-                  {% if default_country_options %}
-                    {% price_range default_country_options %}
-                  {% endif %}
-                  </h3>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      {% endif %}
-    <div class="cart__total">
-      <div class="row">
-        <div class="col-8 cart__total__subtotal">
-          <h3>{% trans "Total" context "Order subtotal" %}</h3>
-        </div>
-        <div class="col-4">
-          <p class="cart-total text-right"
-             data-value="{% gross cart_total %}"
-             {% if local_cart_total %}data-value-local="{% gross local_cart_total %}"{% endif %}>
-            {% spaceless %}
-              {% gross cart_total html=True %}
-              {% if local_cart_total %}
-                <br>
-                <small>
-                  &asymp;
-                  {% gross local_cart_total html=True %}
-                </small>
-              {% endif %}
-            {% endspaceless %}
-          </p>
-        </div>
-      </div>
+    <div class="cart__subtotal">
+      {% include 'cart/_subtotal_table.html' %}
     </div>
     <div class="row">
       <div class="col-md-12">

@@ -196,10 +196,10 @@ $('.product-form button').click((e) => {
 
 let $deliveryForm = $('.deliveryform');
 let crsfToken = $deliveryForm.data('crsf');
-let $countrySelect = $('#id_country');
-let $newPrice = $('.cart__delivery-info__price');
-$countrySelect.on('change', (e) => {
-  let newCountry = $countrySelect.val();
+let countrySelect = '#id_country';
+let $cartSubtotal = $('.cart__subtotal');
+$cartSubtotal.on('change', countrySelect, (e) => {
+  let newCountry = $(countrySelect).val();
   $.ajax({
     url: '/cart/shipingoptions/',
     type: 'POST',
@@ -208,11 +208,7 @@ $countrySelect.on('change', (e) => {
       'country': newCountry
     },
     success: (data) => {
-      if(!data.empty){
-        $newPrice.html(data);
-      } else {
-        $newPrice.empty();
-      }
+      $cartSubtotal.html(data);
     }
   });
 });

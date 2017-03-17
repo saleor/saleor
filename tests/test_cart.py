@@ -8,7 +8,6 @@ from babeldjango.templatetags.babel import currencyfmt
 from django.contrib.auth.models import AnonymousUser
 from django.core import signing
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from mock import MagicMock, Mock
 from prices import Price
@@ -20,6 +19,7 @@ from saleor.cart.models import Cart, ProductGroup
 from saleor.cart.views import update
 from saleor.discount.models import Sale
 from saleor.product.models import Category
+from saleor.shipping.utils import get_shipment_options
 
 
 @pytest.fixture()
@@ -718,3 +718,21 @@ def test_get_or_create_db_cart(customer_user, db, rf):
     request.user = AnonymousUser()
     decorated_view(request)
     assert Cart.objects.filter(user__isnull=True).count() == 1
+
+
+def test_get_cart_data(request_cart_with_item, shipping_method):
+    shippment_option = get_shipment_options('PL')
+    cart_data = utils.get_cart_data(
+        request_cart_with_item, shippment_option, 'USD', None)
+    assert cart_data['cart_total'] == Price(net=10, currency='USD')
+    assert cart_data['total_with_shipment'].min_price == Price(
+        net=20, currency='USD')
+
+
+def test_get_cart_data_no_shipping(request_cart_with_item):
+    shippment_option = get_shipment_options('PL')
+    cart_data = utils.get_cart_data(
+        request_cart_with_item, shippment_option, 'USD', None)
+    cart_total = cart_data['cart_total']
+    assert cart_total == Price(net=10, currency='USD')
+    assert cart_data['total_with_shipment'].min_price == cart_total
