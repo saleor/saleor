@@ -52,14 +52,16 @@ def get_shipping_options(request, cart):
     country_form = CountryForm(request.POST or None)
     if country_form.is_valid():
         shipments = country_form.get_shipment_options()
-        ctx = {
-            'default_country_options': shipments,
-            'country_form': country_form}
-        cart_data = get_cart_data(
-            cart, shipments, request.currency, request.discounts)
-        ctx.update(cart_data)
-        return TemplateResponse(
-            request, 'cart/_subtotal_table.html', ctx)
+    else:
+        shipments = None
+    ctx = {
+        'default_country_options': shipments,
+        'country_form': country_form}
+    cart_data = get_cart_data(
+        cart, shipments, request.currency, request.discounts)
+    ctx.update(cart_data)
+    return TemplateResponse(
+        request, 'cart/_subtotal_table.html', ctx)
 
 
 @get_or_empty_db_cart()
