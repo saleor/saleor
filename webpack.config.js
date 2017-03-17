@@ -6,8 +6,9 @@ var webpack = require('webpack');
 
 var resolve = path.resolve.bind(path, __dirname);
 
-var output;
 var extractTextPlugin;
+var fileLoaderPath;
+var output;
 
 if (process.env.NODE_ENV === 'production') {
   output = {
@@ -15,6 +16,7 @@ if (process.env.NODE_ENV === 'production') {
     filename: '[name].[chunkhash].js',
     publicPath: '/'
   };
+  fileLoaderPath = 'file?name=[name].[hash].[ext]';
   extractTextPlugin = new ExtractTextPlugin('[name].[contenthash].css');
 } else {
   output = {
@@ -22,6 +24,7 @@ if (process.env.NODE_ENV === 'production') {
     filename: '[name].js',
     publicPath: '/static/assets/'
   };
+  fileLoaderPath = 'file?name=[name].[ext]';
   extractTextPlugin = new ExtractTextPlugin('[name].css');
 }
 
@@ -86,7 +89,7 @@ var config = {
       },
       {
         test: /\.(eot|otf|png|svg|jpg|ttf|woff|woff2)(\?v=[0-9.]+)?$/,
-        loader: 'file?name=[name].[hash].[ext]',
+        loader: fileLoaderPath,
         include: [
           resolve('node_modules'),
           resolve('saleor/static/fonts'),
@@ -109,7 +112,9 @@ var config = {
   },
   resolve: {
     alias: {
-      'jquery': resolve('node_modules/jquery/dist/jquery.js')
+      'jquery': resolve('node_modules/jquery/dist/jquery.js'),
+      'react': resolve('node_modules/react/dist/react.min.js'),
+      'react-dom': resolve('node_modules/react-dom/dist/react-dom.min.js')
     }
   },
   sassLoader: {
