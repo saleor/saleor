@@ -48,23 +48,23 @@
               </li>
             </ul>
             <a class="dropdown-button" data-constrainwidth="false" href="#" data-activates="user-action">
-              <svg data-src="{% static "images/account_circle.svg" %}" width="24" height="24" fill="#fff" />
+              <svg data-src="{% static "/dashboard/images/account_circle.svg" %}" width="24" height="24" fill="#fff" />
             </a>
             {% if SEARCH_IS_ENABLED %}
               <a href="{% url "dashboard:search" %}" class="hide-on-med-and-up dropdown-button">
-                <svg data-src="{% static "images/search.svg" %}" width="20" height="20" fill="#fff" />
+                <svg data-src="{% static "dashboard/images/search.svg" %}" width="24" height="24" fill="#fff" />
               </a>
             {% endif %}
           </div>
           <ul class="left">
             <li>
               <a href="#" id="toggle-menu">
-                <svg data-src="{% static "images/mobile_menu.svg" %}" width="24" height="24" />
+                <svg data-src="{% static "dashboard/images/mobile_menu.svg" %}" width="24" height="24" />
               </a>
             </li>
             <li>
               <a href="{% url 'dashboard:index' %}" class="logo">
-                <svg data-src="{% static "images/saleor_logo.svg" %}" height="38px" width="176px" />
+                <svg data-src="{% static "dashboard/images/saleor_logo.svg" %}" height="38px" width="176px" />
               </a>
             </li>
             <li class="search">
@@ -73,7 +73,7 @@
                   <div class="input-field">
                     <input id="search" type="search" placeholder="{% trans "Search" context "Dashboard search" %}" name="q" value="{% if query %}{{ query }}{% endif %}">
                     <label>
-                      <svg data-src="{% static "images/search.svg" %}" width="20" height="20" fill="#fff" />
+                      <svg data-src="{% static "dashboard/images/search.svg" %}" width="24" height="24" fill="#fff" />
                     </label>
                   </div>
                 </form>

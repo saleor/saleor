@@ -74,7 +74,8 @@ STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     ('assets', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'assets')),
-    ('images', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'images'))
+    ('images', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'images')),
+    ('dashboard', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'dashboard'))
 ]
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',

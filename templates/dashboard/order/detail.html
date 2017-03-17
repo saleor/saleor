@@ -23,7 +23,7 @@
 {% block header_extra %}
   {% if order.can_cancel %}
     <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
-      <svg data-src="{% static "images/more_vert.svg" %}" height="24" width="24" />
+      <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
     </a>
     <ul id="context-menu" class="dropdown-content">
       <li>
@@ -45,7 +45,7 @@
     </li>
     <li class="back-mobile">
       <a href="{% url "dashboard:orders" %}">
-        <svg data-src="{% static "images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     <li>
@@ -65,7 +65,7 @@
             <span>
               {% trans "Details" context "Order detail tab" %}
             </span>
-            <svg data-src="{% static "images/description.svg" %}" />
+            <svg data-src="{% static "dashboard/images/description.svg" %}" />
           </a>
         </li>
         <li role="presentation" class="tab col s4">
@@ -73,7 +73,7 @@
             <span>
               {% trans "Payments" context "Order detail tab" %}
             </span>
-            <svg data-src="{% static "images/payment.svg" %}" />
+            <svg data-src="{% static "dashboard/images/payment.svg" %}" />
           </a>
         </li>
         <li role="presentation" class="tab col s4">
@@ -81,7 +81,7 @@
             <span>
               {% trans "History" context "Order detail tab" %}
             </span>
-            <svg data-src="{% static "images/history.svg" %}" />
+            <svg data-src="{% static "dashboard/images/history.svg" %}" />
           </a>
         </li>
       </ul>
@@ -299,7 +299,7 @@
                         {% if group.status != 'cancelled' %}
                           <a class="dropdown-button" href="#" data-activates="line-actions-{{ item.pk }}" data-constrainwidth="false">
                             {{ item.quantity }}
-                            <svg data-src="{% static "images/arrow_drop_down.svg" %}" width="24" height="24" />
+                            <svg data-src="{% static "dashboard/images/arrow_drop_down.svg" %}" width="24" height="24" />
                           </a>
                           <ul id="line-actions-{{ item.pk }}" class="dropdown-content">
                             <li>
@@ -391,7 +391,7 @@
                       {% blocktrans trimmed with voucher=order.discount_name context "Order totals header" %}
                         Voucher {{ voucher }}
                       {% endblocktrans %}
-                      <svg data-src="{% static "images/arrow_drop_down.svg" %}" />
+                      <svg data-src="{% static "dashboard/images/arrow_drop_down.svg" %}" />
                     </a>
                     <ul id="voucher-actions" class="dropdown-content">
                       <li>

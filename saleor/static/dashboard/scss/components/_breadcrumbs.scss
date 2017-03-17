@@ -14,7 +14,7 @@
   &--history {
     li {
       &:before {
-        content: url('/static/images/chevron_right.svg');
+        content: url('/static/dashboard/images/chevron_right.svg');
         vertical-align: text-bottom;
         display: inline-block;
       }
@@ -46,7 +46,7 @@
       &.back-mobile {
         display: inline-block;
         svg {
-          vertical-align: text-top;
+          vertical-align: middle;
           margin-right: 10px;
         }
       }

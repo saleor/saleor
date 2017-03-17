@@ -32,7 +32,7 @@
     </li>
     <li class="back-mobile">
       <a href="{% url "dashboard:product-class-list" %}">
-        <svg data-src="{% static "images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     <li>
@@ -50,7 +50,7 @@
 {% block header_extra %}
   {% if product_class.pk %}
     <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
-      <svg data-src="{% static "images/more_vert.svg" %}" height="24" width="24" />
+      <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
     </a>
     <ul id="context-menu" class="dropdown-content">
       <li>
@@ -114,7 +114,7 @@
     </div>
     <div class="col m12 l3 help-box">
       <p class="grey-text">
-        <svg data-src="{% static "images/help.svg" %}" width="18" height="18" />
+        <svg data-src="{% static "dashboard/images/help.svg" %}" width="18" height="18" />
         {% blocktrans trimmed context "Product class help text" %}
         Product Type is a template used for creating new products.
         It also controls which attributes can be used during product creation process.

@@ -35,7 +35,7 @@
     </li>
     <li class="back-mobile">
       <a href="{% url 'dashboard:shipping-methods' %}">
-        <svg data-src="{% static "images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     <li>
@@ -55,7 +55,7 @@
 {% block header_extra %}
   {% if shipping_method.pk %}
     <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
-      <svg data-src="{% static "images/more_vert.svg" %}" height="24" width="24" />
+      <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
     </a>
     <ul id="context-menu" class="dropdown-content">
       <li>

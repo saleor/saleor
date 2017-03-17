@@ -26,7 +26,7 @@
     </li>
     <li class="back-mobile">
       <a href="{% url "dashboard:customers" %}">
-        <svg data-src="{% static "images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     <li><span class="breadcrumbs--elipsed-item">{{ customer }}</span></li>
@@ -105,7 +105,7 @@
               {% else %}
                 <span>{% trans "No default shipping address." context "Customer without default shipping address message" %}</span>
               {% endif %}
-              <svg data-src="{% static "images/email.svg" %}" width="14" height="14" />
+              <svg data-src="{% static "dashboard/images/email.svg" %}" width="14" height="14" />
               <a href="mailto:{{ customer.email }}">
                 {{ customer.email }}
               </a>
