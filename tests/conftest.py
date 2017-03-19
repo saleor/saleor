@@ -218,7 +218,7 @@ def order_with_items_and_stock(order, product_class):
     product = Product.objects.create(
         name='Test product', price=Decimal('10.00'),
         product_class=product_class)
-    variant = ProductVariant.objects.create(product=product, sku='A')
+    variant = ProductVariant.objects.create(product=product, sku='SKU_A')
     warehouse = StockLocation.objects.create(name='Warehouse 1')
     stock = Stock.objects.create(
         variant=variant, cost_price=1, quantity=5, quantity_allocated=3,
@@ -227,7 +227,7 @@ def order_with_items_and_stock(order, product_class):
         delivery_group=group,
         product=product,
         product_name=product.name,
-        product_sku='SKU_%d' % (product.pk,),
+        product_sku='SKU_A',
         quantity=3,
         unit_price_net=Decimal('30.00'),
         unit_price_gross=Decimal('30.00'),
@@ -236,7 +236,7 @@ def order_with_items_and_stock(order, product_class):
     product = Product.objects.create(
         name='Test product 2', price=Decimal('20.00'),
         product_class=product_class)
-    variant = ProductVariant.objects.create(product=product, sku='B')
+    variant = ProductVariant.objects.create(product=product, sku='SKU_B')
     stock = Stock.objects.create(
         variant=variant, cost_price=2, quantity=2, quantity_allocated=2,
         location=warehouse)
@@ -244,7 +244,7 @@ def order_with_items_and_stock(order, product_class):
         delivery_group=group,
         product=product,
         product_name=product.name,
-        product_sku='SKU_%d' % (product.pk,),
+        product_sku='SKU_B',
         quantity=2,
         unit_price_net=Decimal('20.00'),
         unit_price_gross=Decimal('20.00'),

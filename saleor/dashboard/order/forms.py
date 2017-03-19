@@ -168,23 +168,25 @@ class CancelItemsForm(forms.Form):
 
 
 class ChangeQuantityForm(forms.ModelForm):
+    quantity = QuantityField(
+        label=pgettext_lazy('Change quantity form label', 'Quantity'),
+        validators=[MinValueValidator(1)])
+
     class Meta:
         model = OrderedItem
         fields = ['quantity']
 
     def __init__(self, *args, **kwargs):
+        self.variant = kwargs.pop('variant')
         super(ChangeQuantityForm, self).__init__(*args, **kwargs)
         self.initial_quantity = self.instance.quantity
-        self.fields['quantity'].widget.attrs.update({'min': 1})
         self.fields['quantity'].initial = self.initial_quantity
 
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
         delta = quantity - self.initial_quantity
-        variant = get_object_or_404(
-            ProductVariant, sku=self.instance.product_sku)
         try:
-            variant.check_quantity(delta)
+            self.variant.check_quantity(delta)
         except InsufficientStock as e:
             raise forms.ValidationError(
                 npgettext_lazy(

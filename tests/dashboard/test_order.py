@@ -2,9 +2,10 @@ from __future__ import unicode_literals
 
 import pytest
 from django.core.urlresolvers import reverse
-from saleor.dashboard.order.forms import MoveItemsForm
+from saleor.dashboard.order.forms import ChangeQuantityForm, MoveItemsForm
 from saleor.order.models import Order, OrderHistoryEntry, OrderedItem, DeliveryGroup
-from saleor.product.models import Stock
+from saleor.order.utils import add_items_to_delivery_group
+from saleor.product.models import Stock, ProductVariant
 from tests.utils import get_redirect_location, get_url_path
 
 
@@ -48,6 +49,131 @@ def test_view_cancel_order_line(admin_client, order_with_items_and_stock):
     assert DeliveryGroup.objects.count() == 0
     # check success messages after redirect
     assert response.context['messages']
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_change_order_line_quantity(admin_client, order_with_items_and_stock):
+    """
+    user goes to order details page
+    user selects first order line with quantity 3 and changes it to 2
+    """
+    lines_before_quantity_change = order_with_items_and_stock.get_items()
+    lines_before_quantity_change_count = lines_before_quantity_change.count()
+    line = lines_before_quantity_change.first()
+    line_quantity_before_quantity_change = line.quantity
+
+    url = reverse(
+        'dashboard:orderline-change-quantity', kwargs={
+            'order_pk': order_with_items_and_stock.pk,
+            'line_pk': line.pk})
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    response = admin_client.post(
+        url, {'quantity': 2}, follow=True)
+    redirected_to, redirect_status_code = response.redirect_chain[-1]
+    # check redirection
+    assert redirect_status_code == 302
+    assert get_url_path(redirected_to) == reverse(
+        'dashboard:order-details',
+        args=[order_with_items_and_stock.pk])
+    # success messages should appear after redirect
+    assert response.context['messages']
+    lines_after = Order.objects.get().get_items()
+    # order should have the same lines
+    assert lines_before_quantity_change_count == lines_after.count()
+    # stock allocation should be 2 now
+    assert Stock.objects.first().quantity_allocated == 2
+    line.refresh_from_db()
+    # source line quantity should be decreased to 2
+    assert line.quantity == 2
+    # order should have the same delivery groups count
+    assert order_with_items_and_stock.groups.count() == 1
+    # a note in the order's history should be created
+    assert OrderHistoryEntry.objects.get(
+        order=order_with_items_and_stock).comment == (
+            'Changed quantity for product %(product)s from'
+            ' %(old_quantity)s to %(new_quantity)s') % {
+                    'product': line.product,
+                    'old_quantity': line_quantity_before_quantity_change,
+                    'new_quantity': 2}
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_change_order_line_quantity_with_invalid_data(
+        admin_client, order_with_items_and_stock):
+    """
+    user goes to order details page
+    user selects the first order line with quantity 3 and try to change it to 0 and -1
+    user gets an error.
+    """
+    lines = order_with_items_and_stock.get_items()
+    line = lines.first()
+    url = reverse(
+        'dashboard:orderline-change-quantity', kwargs={
+            'order_pk': order_with_items_and_stock.pk,
+            'line_pk': line.pk})
+    response = admin_client.post(
+        url, {'quantity': 0})
+    assert response.status_code == 400
+
+def test_dashboard_change_quantity_form(request_cart_with_item, order):
+    cart = request_cart_with_item
+    group = DeliveryGroup.objects.create(order=order)
+    add_items_to_delivery_group(group, cart.lines.all())
+    order_line = group.items.get()
+    variant = ProductVariant.objects.get(sku=order_line.product_sku)
+
+    # Check max quantity validation
+    form = ChangeQuantityForm(
+        {'quantity': 9999},
+        instance=order_line,
+        variant=variant)
+    assert not form.is_valid()
+    assert form.errors['quantity'] == ['Ensure this value is less than or equal to 50.']
+
+    # Check minimum quantity validation
+    form = ChangeQuantityForm(
+        {'quantity': 0},
+        instance=order_line,
+        variant=variant)
+    assert not form.is_valid()
+    assert group.items.get().stock.quantity_allocated == 1
+
+    # Check available quantity validation
+    form = ChangeQuantityForm(
+        {'quantity': 20},
+        instance=order_line,
+        variant=variant)
+    assert not form.is_valid()
+    assert group.items.get().stock.quantity_allocated == 1
+    assert form.errors['quantity'] == ['Only 4 remaining in stock.']
+
+    # Save same quantity
+    form = ChangeQuantityForm(
+        {'quantity': 1},
+        instance=order_line,
+        variant=variant)
+    assert form.is_valid()
+    form.save()
+    assert group.items.get().stock.quantity_allocated == 1
+    # Increase quantity
+    form = ChangeQuantityForm(
+        {'quantity': 2},
+        instance=order_line,
+        variant = variant)
+    assert form.is_valid()
+    form.save()
+    assert group.items.get().stock.quantity_allocated == 2
+    # Decrease quantity
+    form = ChangeQuantityForm(
+        {'quantity': 1},
+        instance=order_line,
+        variant=variant)
+    assert form.is_valid()
+    form.save()
+    assert group.items.get().stock.quantity_allocated == 1
 
 
 @pytest.mark.integration
