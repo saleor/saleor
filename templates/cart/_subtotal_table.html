@@ -54,11 +54,11 @@
     <div class="col-4">
       {% spaceless %}
         <h3 class="text-right cart-total"><span>{% price_range total_with_shipment %}</span>
-          {% if total_with_shipment %}
+          {% if local_total_with_shipment %}
             <br>
             <small>
               &asymp;
-              {% price_range total_with_shipment %}
+              {% price_range local_total_with_shipment %}
             </small>
           {% endif %}
         </h3>
