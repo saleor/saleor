@@ -137,7 +137,8 @@ class TranslationWrapper(object):
         return getattr(self.instance, item)
 
     def __str__(self):
-        return str(self.instance)
+        instance = self.translation or self.instance
+        return str(instance)
 
 
 class TranslationProxy(object):
