@@ -6,6 +6,9 @@
     margin-top: $global-margin * 2;
   }
   &__product {
+    .col-3 {
+      margin-top: $global-margin / 2;
+    }
     a {
       transition: 0.3s;
       &:hover {
@@ -24,6 +27,18 @@
         vertical-align: top;
         margin-right: $global-margin;
       }
+    }
+  }
+  &__total {
+    padding-top: $global-padding;
+    color: $skull-gray;
+  }
+  &__last-row {
+    border-bottom-color: $skull-gray; 
+  }
+  &__table-footer {
+    @include media-breakpoint-up(sm) {
+      padding-left: 5.75rem;
     }
   }
 }
