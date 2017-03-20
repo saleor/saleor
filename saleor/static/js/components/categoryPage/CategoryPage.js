@@ -136,7 +136,7 @@ class CategoryPage extends Component {
                     <span className="filters-menu__icon hidden-sm-up"></span>
                   )}
                 </div>
-                <div className="col-7 col-md-10 col-lg-6">
+                <div className="col-6 col-md-10 col-lg-6">
                   <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting} />
                 </div>
               </div>
