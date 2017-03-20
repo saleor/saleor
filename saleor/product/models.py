@@ -352,6 +352,9 @@ class ProductVariantTranslation(models.Model):
             class_.__module__, class_.__name__, self.pk, self.name,
             self.product_variant_id)
 
+    def __str__(self):
+        return self.name or str(self.product_variant)
+
 
 class StockLocation(models.Model):
     name = models.CharField(
@@ -446,7 +449,7 @@ class ProductAttributeTranslation(models.Model):
     product_attribute = models.ForeignKey(
         ProductAttribute, related_name='translations',
         verbose_name=pgettext_lazy('Product attribute field', 'product attribute'))
-    display = models.CharField(
+    name = models.CharField(
         pgettext_lazy('Product attribute field', 'display name'),
         max_length=100)
 
@@ -455,6 +458,9 @@ class ProductAttributeTranslation(models.Model):
         return '<%s.%s(pk=%r, name=%r, attribute_pk=%r)>' % (
             class_.__module__, class_.__name__, self.pk, self.name,
             self.product_attribute_id)
+
+    def __str__(self):
+        return self.name
 
 
 class AttributeChoiceValue(models.Model):
@@ -485,7 +491,7 @@ class AttributeChoiceValueTranslation(models.Model):
     attribute_choice_value = models.ForeignKey(
         AttributeChoiceValue, related_name='translations',
         verbose_name=pgettext_lazy('Attribute choice value model', 'product attribute'))
-    display = models.CharField(
+    name = models.CharField(
         pgettext_lazy('Attribute choice value model', 'display name'),
         max_length=100)
 
@@ -494,6 +500,9 @@ class AttributeChoiceValueTranslation(models.Model):
         return '<%s.%s(pk=%r, name=%r, attribute_chiuce_value_pk=%r)>' % (
             class_.__module__, class_.__name__, self.pk, self.name,
             self.attribute_choice_value_id)
+
+    def __str__(self):
+        return self.name
 
 
 class ImageManager(models.Manager):
