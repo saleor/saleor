@@ -18,7 +18,8 @@ from saleor.order.models import DeliveryGroup, Order, OrderLine
 from saleor.order.utils import recalculate_order
 from saleor.product.models import (
     AttributeChoiceValue, Category, Product, ProductAttribute, ProductClass,
-    ProductImage, ProductVariant, Stock, StockLocation)
+    ProductImage, ProductVariant, ProductAttributeTranslation, Stock,
+    StockLocation)
 from saleor.shipping.models import ShippingMethod
 from saleor.site.models import AuthorizationKey, SiteSettings
 from saleor.userprofile.models import Address, User
@@ -534,3 +535,18 @@ def permission_edit_settings():
 @pytest.fixture
 def permission_impersonate_user():
     return Permission.objects.get(codename='impersonate_user')
+
+
+def translated_variant(db, product_in_stock):
+    attribute = product_in_stock.product_class.variant_attributes.first()
+    return ProductAttributeTranslation.objects.create(
+        language_code='fr', product_attribute=attribute,
+        name='Name tranlsated to french')
+
+
+@pytest.fixture
+def translated_product_attribute(db, product_in_stock):
+    attribute = product_in_stock.product_class.product_attributes.first()
+    return ProductAttributeTranslation.objects.create(
+        language_code='fr', product_attribute=attribute,
+        name='Name tranlsated to french')

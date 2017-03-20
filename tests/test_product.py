@@ -5,14 +5,16 @@ from unittest.mock import Mock
 import pytest
 from django.urls import reverse
 from django.utils.encoding import smart_text
+from django.utils.six import iterkeys
 from tests.utils import filter_products_by_attribute
+from mock import Mock
 
 from saleor.cart import CartStatus, utils
 from saleor.cart.models import Cart
 from saleor.product import (
     ProductAvailabilityStatus, VariantAvailabilityStatus, models)
 from saleor.product.utils import (
-    get_attributes_display_map, get_availability,
+    get_attributes_display_map, get_availability, get_product_attributes_data,
     get_product_availability_status, get_variant_availability_status,
     get_variant_picker_data)
 
@@ -479,3 +481,19 @@ def test_view_ajax_available_products_list(admin_client, product_in_stock):
 
     assert response.status_code == 200
     assert resp_decoded == {'results': products_list}
+
+
+def test_variant_picker_data_with_translations(
+        product_in_stock, translated_variant, settings):
+    settings.LANGUAGE_CODE = 'fr'
+    variant_picker_data = get_variant_picker_data(product_in_stock)
+    attribute = variant_picker_data['variantAttributes'][0]
+    assert attribute['name'] == translated_variant.name
+
+
+def test_get_product_attributes_data_translation(
+        product_in_stock, settings, translated_product_attribute):
+    settings.LANGUAGE_CODE = 'fr'
+    attributes_data = get_product_attributes_data(product_in_stock)
+    attributes_keys = [attr.name for attr in iterkeys(attributes_data)]
+    assert translated_product_attribute.name in attributes_keys
