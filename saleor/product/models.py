@@ -226,6 +226,12 @@ class ProductTranslation(models.Model):
     def __str__(self):
         return self.name
 
+    def __repr__(self):
+        class_ = type(self)
+        return '<%s.%s(pk=%r, name=%r, product_pk=%r)>' % (
+            class_.__module__, class_.__name__, self.pk, self.name,
+            self.product_id)
+
 
 class ProductVariant(models.Model, Item):
     sku = models.CharField(
@@ -340,6 +346,12 @@ class ProductVariantTranslation(models.Model):
         pgettext_lazy('Product variant field', 'variant name'), max_length=100,
         blank=True)
 
+    def __repr__(self):
+        class_ = type(self)
+        return '<%s.%s(pk=%r, name=%r, variant_pk=%r)>' % (
+            class_.__module__, class_.__name__, self.pk, self.name,
+            self.product_variant_id)
+
 
 class StockLocation(models.Model):
     name = models.CharField(
@@ -438,6 +450,12 @@ class ProductAttributeTranslation(models.Model):
         pgettext_lazy('Product attribute field', 'display name'),
         max_length=100)
 
+    def __repr__(self):
+        class_ = type(self)
+        return '<%s.%s(pk=%r, name=%r, attribute_pk=%r)>' % (
+            class_.__module__, class_.__name__, self.pk, self.name,
+            self.product_attribute_id)
+
 
 class AttributeChoiceValue(models.Model):
     name = models.CharField(
@@ -470,6 +488,12 @@ class AttributeChoiceValueTranslation(models.Model):
     display = models.CharField(
         pgettext_lazy('Attribute choice value model', 'display name'),
         max_length=100)
+
+    def __repr__(self):
+        class_ = type(self)
+        return '<%s.%s(pk=%r, name=%r, attribute_chiuce_value_pk=%r)>' % (
+            class_.__module__, class_.__name__, self.pk, self.name,
+            self.attribute_choice_value_id)
 
 
 class ImageManager(models.Manager):
