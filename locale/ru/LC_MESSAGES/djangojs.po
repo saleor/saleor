@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-13 15:02+0100\n"
+"POT-Creation-Date: 2017-03-17 15:44+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Weronika Terpilowska <weronika@mirumee.com>, 2017\n"
 "Language-Team: Russian (https://www.transifex.com/mirumee/teams/34782/ru/)\n"
@@ -20,90 +20,257 @@ msgstr ""
 "%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n"
 "%100>=11 && n%100<=14)? 2 : 3);\n"
 
-#: saleor/static/js/components/categoryPage/CategoryFilter.js:18
-msgid "See all"
-msgstr "Смотреть всё"
+#: static/dashboard/js/dashboard.js:208
+msgctxt "Datepicker option"
+msgid "Next month"
+msgstr "Следующий месяц"
 
-#: saleor/static/js/components/categoryPage/CategoryPage.js:122
-msgid "Home"
-msgstr "Домой"
+#: static/dashboard/js/dashboard.js:209
+msgctxt "Datepicker option"
+msgid "Previous month"
+msgstr "Предыдущий месяц"
 
-#: saleor/static/js/components/categoryPage/CategoryPage.js:134
-#: saleor/static/js/components/categoryPage/CategoryPage.js:154
-msgid "Filters"
-msgstr "Фильтры"
+#: static/dashboard/js/dashboard.js:212
+msgctxt "Datepicker option"
+msgid "Select a month"
+msgstr "Выберите месяц"
 
-#: saleor/static/js/components/categoryPage/CategoryPage.js:155
-msgid "Clear filters"
-msgstr "Очистить фильтры"
+#: static/dashboard/js/dashboard.js:213
+msgctxt "Datepicker option"
+msgid "Select a year"
+msgstr "Выберите год"
 
-#: saleor/static/js/components/categoryPage/NoResults.js:11
-msgid "Sorry, no matches found for your request."
-msgstr "Извините, совпадений по вашему запросу не найдено."
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "January"
+msgstr "Январь"
 
-#: saleor/static/js/components/categoryPage/NoResults.js:12
-msgid "Try again or shop new arrivals."
-msgstr "Попробуйте еще раз или посмотрите новые поступления."
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "February"
+msgstr "Февраль"
 
-#: saleor/static/js/components/categoryPage/PriceFilter.js:48
-msgid "Price range"
-msgstr "Диапазон цен"
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "March"
+msgstr "Март"
 
-#: saleor/static/js/components/categoryPage/PriceFilter.js:58
-#: saleor/static/js/components/categoryPage/ProductPrice.js:12
-msgid "from"
-msgstr "от"
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "April"
+msgstr "Апрель"
 
-#: saleor/static/js/components/categoryPage/PriceFilter.js:68
-msgid "to"
-msgstr "до"
+#: static/dashboard/js/dashboard.js:216 static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "May"
+msgstr "Май"
 
-#: saleor/static/js/components/categoryPage/PriceFilter.js:72
-msgid "Update"
-msgstr "Обновить"
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "June"
+msgstr "Июнь"
 
-#: saleor/static/js/components/categoryPage/ProductList.js:29
-msgid "Load more"
-msgstr "Загрузить больше"
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "July"
+msgstr "Июль"
 
-#: saleor/static/js/components/categoryPage/ProductPrice.js:15
-msgid "Sale"
-msgstr "Sale"
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "August"
+msgstr "Август"
 
-#: saleor/static/js/components/categoryPage/SortBy.js:43
-#: saleor/static/js/components/categoryPage/SortBy.js:50
-#: saleor/static/js/components/categoryPage/SortBy.js:57
-#: saleor/static/js/components/categoryPage/SortBy.js:64
-#: saleor/static/js/components/categoryPage/SortBy.js:88
-msgid "Sort by:"
-msgstr "Сортировка по"
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "September"
+msgstr "Сентябрь"
 
-#: saleor/static/js/components/categoryPage/SortBy.js:57
-msgid "default"
-msgstr "по умолчанию"
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "October"
+msgstr "Октябрь"
 
-#: saleor/static/js/components/categoryPage/SortBy.js:64
-msgid "Name"
-msgstr "Имя"
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "November"
+msgstr "Ноябрь"
 
-#: saleor/static/js/components/categoryPage/SortBy.js:67
-#: saleor/static/js/components/categoryPage/SortBy.js:91
-msgid "ascending"
-msgstr "по возрастанию"
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "December"
+msgstr "Декабрь"
 
-#: saleor/static/js/components/categoryPage/SortBy.js:78
-#: saleor/static/js/components/categoryPage/SortBy.js:102
-msgid "descending"
-msgstr "по убыванию"
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Jan"
+msgstr "Янв."
 
-#: saleor/static/js/components/categoryPage/SortBy.js:88
-msgid "Price"
-msgstr "Цена"
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Feb"
+msgstr "Фев."
 
-#: saleor/static/js/components/variantPicker/QuantityInput.js:21
-msgid "Quantity"
-msgstr "Количество"
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Mar"
+msgstr "Мрт."
 
-#: saleor/static/js/components/variantPicker/VariantPicker.js:161
-msgid "Add to cart"
-msgstr "Добавить в корзину"
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Apr"
+msgstr "Апр."
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Jun"
+msgstr "Июн"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Jul"
+msgstr "Июл"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Aug"
+msgstr "Авг."
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Sep"
+msgstr "Сен."
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Oct"
+msgstr "Окт."
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Nov"
+msgstr "Нбр."
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Dec"
+msgstr "Дек."
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Sunday"
+msgstr "Воскресенье"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Monday"
+msgstr "Понедельник"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Tuesday"
+msgstr "Вторник"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Wednesday"
+msgstr "Среда"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Thursday"
+msgstr "Четверг"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Friday"
+msgstr "Пятница"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Saturday"
+msgstr "Суббота"
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Sun"
+msgstr "Вс"
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Mon"
+msgstr "Пн"
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Tue"
+msgstr "Вт."
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Wed"
+msgstr "Ср."
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Thu"
+msgstr "Чт."
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Fri"
+msgstr "Пт."
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Sat"
+msgstr "Сб"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Sunday shortcut"
+msgid "S"
+msgstr "В"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Monday shortcut"
+msgid "M"
+msgstr "П"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Tuesday shortcut"
+msgid "T"
+msgstr "В"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Wednesday shortcut"
+msgid "W"
+msgstr "С"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Thursday shortcut"
+msgid "T"
+msgstr "Ч"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Friday shortcut"
+msgid "F"
+msgstr "П"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Saturday shortcut"
+msgid "S"
+msgstr "С"
+
+#: static/dashboard/js/dashboard.js:223
+msgctxt "Datepicker option"
+msgid "Today"
+msgstr "Сегодня"
+
+#: static/dashboard/js/dashboard.js:224
+msgctxt "Datepicker option"
+msgid "Clear"
+msgstr "Очистить"
+
+#: static/dashboard/js/dashboard.js:225
+msgctxt "Datepicker option"
+msgid "Close"
+msgstr "Закрыть"

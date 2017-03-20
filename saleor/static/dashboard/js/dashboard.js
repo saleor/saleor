@@ -205,24 +205,24 @@ $('.switch-actions').on('change', function() {
 });
 $('.datepicker').pickadate({
   // The title label to use for the month nav buttons
-  labelMonthNext: gettext('Next month'),
-  labelMonthPrev: gettext('Previous month'),
+  labelMonthNext: pgettext('Datepicker option', 'Next month'),
+  labelMonthPrev: pgettext('Datepicker option', 'Previous month'),
 
   // The title label to use for the dropdown selectors
-  labelMonthSelect: gettext('Select a month'),
-  labelYearSelect: gettext('Select a year'),
+  labelMonthSelect: pgettext('Datepicker option', 'Select a month'),
+  labelYearSelect: pgettext('Datepicker option', 'Select a year'),
 
   // Months and weekdays
-  monthsFull: [ gettext('January'), gettext('February'), gettext('March'), gettext('April'), gettext('May'), gettext('June'), gettext('July'), gettext('August'), gettext('September'), gettext('October'), gettext('November'), gettext('December') ],
-  monthsShort: [ gettext('Jan'), gettext('Feb'), gettext('Mar'), gettext('Apr'), gettext('May'), gettext('Jun'), gettext('Jul'), gettext('Aug'), gettext('Sep'), gettext('Oct'), gettext('Nov'), gettext('Dec') ],
-  weekdaysFull: [ gettext('Sunday'), gettext('Monday'), gettext('Tuesday'), gettext('Wednesday'), gettext('Thursday'), gettext('Friday'), gettext('Saturday') ],
-  weekdaysShort: [ gettext('Sun'), gettext('Mon'), gettext('Tue'), gettext('Wed'), gettext('Thu'), gettext('Fri'), gettext('Sat') ],
+  monthsFull: [ pgettext('Datepicker option', 'January'), pgettext('Datepicker option', 'February'), pgettext('Datepicker option', 'March'), pgettext('Datepicker option', 'April'), pgettext('Datepicker option', 'May'), pgettext('Datepicker option', 'June'), pgettext('Datepicker option', 'July'), pgettext('Datepicker option', 'August'), pgettext('Datepicker option', 'September'), pgettext('Datepicker option', 'October'), pgettext('Datepicker option', 'November'), pgettext('Datepicker option', 'December') ],
+  monthsShort: [ pgettext('Datepicker option', 'Jan'), pgettext('Datepicker option', 'Feb'), pgettext('Datepicker option', 'Mar'), pgettext('Datepicker option', 'Apr'), pgettext('Datepicker option', 'May'), pgettext('Datepicker option', 'Jun'), pgettext('Datepicker option', 'Jul'), pgettext('Datepicker option', 'Aug'), pgettext('Datepicker option', 'Sep'), pgettext('Datepicker option', 'Oct'), pgettext('Datepicker option', 'Nov'), pgettext('Datepicker option', 'Dec') ],
+  weekdaysFull: [ pgettext('Datepicker option', 'Sunday'), pgettext('Datepicker option', 'Monday'), pgettext('Datepicker option', 'Tuesday'), pgettext('Datepicker option', 'Wednesday'), pgettext('Datepicker option', 'Thursday'), pgettext('Datepicker option', 'Friday'), pgettext('Datepicker option', 'Saturday') ],
+  weekdaysShort: [ pgettext('Datepicker option', 'Sun'), pgettext('Datepicker option', 'Mon'), pgettext('Datepicker option', 'Tue'), pgettext('Datepicker option', 'Wed'), pgettext('Datepicker option', 'Thu'), pgettext('Datepicker option', 'Fri'), pgettext('Datepicker option', 'Sat') ],
 
   // Materialize modified
-  weekdaysLetter: [ gettext('S'), gettext('M'), gettext('T'), gettext('W'), gettext('T'), gettext('F'), gettext('S') ],
-  today: gettext('Today'),
-  clear: gettext('Clear'),
-  close: gettext('Clear'),
+  weekdaysLetter: [ pgettext('Sunday shortcut','S'), pgettext('Monday shortcut','M'), pgettext('Tuesday shortcut','T'), pgettext('Wednesday shortcut','W'), pgettext('Thursday shortcut','T'), pgettext('Friday shortcut','F'), pgettext('Saturday shortcut','S') ],
+  today: pgettext('Datepicker option', 'Today'),
+  clear: pgettext('Datepicker option', 'Clear'),
+  close: pgettext('Datepicker option','Close'),
   
   format: 'd mmmm yyyy',
   formatSubmit: 'yyyy-mm-dd',

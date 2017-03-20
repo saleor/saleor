@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-13 14:56+0100\n"
+"POT-Creation-Date: 2017-03-17 14:33+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Evgeny Semenov <john_neg@mail.ru>, 2017\n"
+"Last-Translator: Weronika Terpilowska <weronika@mirumee.com>, 2017\n"
 "Language-Team: Russian (https://www.transifex.com/mirumee/teams/34782/ru/)\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
@@ -98,7 +98,7 @@ msgstr "Заметка"
 #: saleor/dashboard/order/forms.py:36
 msgctxt "Payment management form (capture, refund, release)"
 msgid "Amount"
-msgstr "Страна"
+msgstr "Количество"
 
 #: saleor/dashboard/order/forms.py:50
 msgctxt "Payment form error"
@@ -430,7 +430,7 @@ msgctxt "Dashboard message"
 msgid "%(shipping_method_name)s successfully deleted"
 msgstr "%(shipping_method_name)s успешно удален"
 
-#: saleor/dashboard/sites/views.py:24
+#: saleor/dashboard/sites/views.py:29
 #, python-format
 msgid "Updated site %s"
 msgstr "Обновлен сайт %s"

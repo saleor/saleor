@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-13 14:56+0100\n"
+"POT-Creation-Date: 2017-03-17 14:33+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -423,7 +423,7 @@ msgctxt "Dashboard message"
 msgid "%(shipping_method_name)s successfully deleted"
 msgstr ""
 
-#: saleor/dashboard/sites/views.py:24
+#: saleor/dashboard/sites/views.py:29
 #, python-format
 msgid "Updated site %s"
 msgstr ""

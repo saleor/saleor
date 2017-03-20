@@ -45,7 +45,7 @@ export default class PriceFilter extends Component {
       <div className="product-filters__price-range">
         <FilterHeader
           onClick={this.changeVisibility}
-          title={gettext('Price range')}
+          title={pgettext('Price filter on category page', 'Price range')}
           visibility={visibility}
         />
         {(visibility || minPrice || maxPrice) && (
@@ -55,7 +55,7 @@ export default class PriceFilter extends Component {
               defaultValue={minPrice}
               min="0"
               onKeyUp={this.checkKey}
-              placeholder={gettext('from')}
+              placeholder={pgettext('Price filter on category page', 'from')}
               ref={input => (this.minPriceInput = input)}
               type="number"
             />
@@ -65,11 +65,11 @@ export default class PriceFilter extends Component {
               defaultValue={maxPrice}
               min="0"
               onKeyUp={this.checkKey}
-              placeholder={gettext('to')}
+              placeholder={pgettext('Price filter on category page', 'to')}
               ref={input => (this.maxPriceInput = input)}
               type="number"
             />
-            <button className="btn primary" onClick={this.updateFilter}>{gettext('Update')}</button>
+            <button className="btn primary" onClick={this.updateFilter}>{pgettext('Price filter on category page', 'Update')}</button>
           </div>
         )}
       </div>

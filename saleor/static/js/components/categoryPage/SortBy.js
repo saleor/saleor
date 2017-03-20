@@ -40,31 +40,31 @@ export default class sortBy extends Component {
           {sortedValue ? (
             sortedValue.search('-') ? (
               <div>
-                <span>{gettext('Sort by:')} <strong>{sortedValue}</strong></span>
+                <span>{pgettext('Category page filters','Sort by:')} <strong>{sortedValue}</strong></span>
                 <div className="sort-order-icon">
                   <InlineSVG key="arrowUpIcon" src={arrowUpIcon} />
                 </div>
               </div>
             ) : (
                <div>
-                <span>{gettext('Sort by:')} <strong>{sortedValue.replace('-', '')}</strong></span>
+                <span>{pgettext('Category page filters', 'Sort by:')} <strong>{sortedValue.replace('-', '')}</strong></span>
                 <div className="sort-order-icon">
                   <InlineSVG key="arrowDownIcon" src={arrowDownIcon} />
                 </div>
               </div>
             )
           ) : (
-            <span>{gettext('Sort by:')} <strong>{gettext('default')}</strong></span>
+            <span>{pgettext('Category page filters', 'Sort by:')} <strong>{pgettext('Category page filters', 'default')}</strong></span>
           )}
         </button>
         {visibility && (
           <ul className="sort-list">
             <li className="name">
               <div className="row">
-                <div className="col-6">{gettext('Sort by:')} <strong>{gettext('Name')}</strong></div>
+                <div className="col-6">{pgettext('Category page filters', 'Sort by:')} <strong>{gettext('Name')}</strong></div>
                 <div className="col-6">
                     <div className="name" onClick={this.setSorting}>
-                      <span>{gettext('ascending')}</span>
+                      <span>{pgettext('Category page filters', 'ascending')}</span>
                       <div className="float-right sort-order-icon">
                         <InlineSVG src={arrowUpIcon} />
                       </div>
@@ -75,7 +75,7 @@ export default class sortBy extends Component {
                 <div className="col-6"></div>
                 <div className="col-6">
                     <div className="-name" onClick={this.setSorting}>
-                      <span>{gettext('descending')}</span>
+                      <span>{pgettext('Category page filters', 'descending')}</span>
                       <div className="float-right sort-order-icon">
                         <InlineSVG src={arrowDownIcon} />
                       </div>
@@ -85,10 +85,10 @@ export default class sortBy extends Component {
             </li>
             <li className="price">
               <div className="row">
-                <div className="col-6">{gettext('Sort by:')} <strong>{gettext('Price')}</strong></div>
+                <div className="col-6">{pgettext('Category page filters', 'Sort by:')} <strong>{pgettext('Category page filters', 'Price')}</strong></div>
                 <div className="col-6">
                     <div className="price" onClick={this.setSorting}>
-                      <span>{gettext('ascending')}</span>
+                      <span>{pgettext('Category page filters', 'ascending')}</span>
                       <div className="float-right sort-order-icon">
                         <InlineSVG src={arrowUpIcon} />
                       </div>
@@ -99,7 +99,7 @@ export default class sortBy extends Component {
                 <div className="col-6"></div>
                 <div className="col-6">
                     <div className="-price" onClick={this.setSorting}>
-                      <span>{gettext('descending')}</span>
+                      <span>{pgettext('Category page filters', 'descending')}</span>
                       <div className="float-right sort-order-icon">
                         <InlineSVG src={arrowDownIcon} />
                       </div>

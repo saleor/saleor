@@ -18,7 +18,7 @@ export default class CategoryFilter extends Component {
         {parent && (
           <div className="product-filters__categories__parents">
             <InlineSVG src={arrowLeftIcon} />
-            <a href={parent.url}>{`${gettext('See all')} ${parent.name}`}</a>
+            <a href={parent.url}>{`${pgettext('Category page filters', 'See all')} ${parent.name}`}</a>
           </div>
         )}
         <ul className={category.parent ? ('product-filters__categories__childs') : ('product-filters__categories__childs no-parent')}>

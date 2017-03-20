@@ -26,7 +26,7 @@ class ProductList extends Component {
         </div>
         <div className="load-more">
           {hasNextPage && (
-            <button className="btn gray" onClick={this.onLoadMore}>{gettext('Load more')}</button>
+            <button className="btn gray" onClick={this.onLoadMore}>{pgettext('Load more products on category view', 'Load more')}</button>
           )}
         </div>
       </div>
