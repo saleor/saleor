@@ -92,13 +92,14 @@
     top: 0;
     z-index: 5;
     margin-top: 0;
-    input {
+    .form-control {
       padding: $global-padding * 2 $global-padding * 2 $global-padding * 2 $global-padding * 4;
       border: 0;
     }
-    i {
+    .mobile-close-search {
       position: absolute;
-      padding: $global-padding * 1.7 $global-padding;
+      top: 1.7rem;
+      left: 0.5rem;
     }
     .btn {
       top: 1.6rem;
