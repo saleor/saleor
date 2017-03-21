@@ -19,22 +19,22 @@
       <a class="link--styled" href="{% url 'account_reset_password' %}">
         {% trans "Forgot password?" context "Login form secondary link" %}
       </a>
-      <hr>
       {% with available_backends=settings.available_backends %}
+      <hr>
       <div class="row">
-        <div class="col-sm-6">
+        <div class="col-sm-6 col-md-12 col-xl-6">
           {% if 'facebook' in backends.backends and 'facebook' in available_backends %}
-            <a class="social-btn facebook" href="{% url 'social:begin' 'facebook' %}">
-              <svg data-src="{% static "images/facebook.svg" %}" />
-              {% trans 'Facebook' %}
+            <a class="btn social-btn facebook" href="{% url 'social:begin' 'facebook' %}">
+              <svg data-src="{% static "images/facebook.svg" %}" width="18" height="18" />
+              <small>{% trans 'Facebook' %}</small>
             </a>
           {% endif %}
         </div>
-        <div class="col-sm-6">
+        <div class="col-sm-6 col-md-12 col-xl-6">
           {% if 'google-oauth2' in backends.backends and 'google-oauth2' in available_backends %}
-            <a class="social-btn google" href="{% url 'social:begin' 'google-oauth2' %}">
-              <svg data-src="{% static "images/google.svg" %}" />
-              {% trans 'Google' %}
+            <a class="btn social-btn google" href="{% url 'social:begin' 'google-oauth2' %}">
+              <svg data-src="{% static "images/google.svg" %}" width="18" height="18" />
+              <small>{% trans 'Google' %}</small>
             </a>
           {% endif %}
         </div>

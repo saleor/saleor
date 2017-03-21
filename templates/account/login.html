@@ -13,7 +13,7 @@
           <h3>{% trans "Don't have an account yet?" context "Login form secondary title" %}</h3>
           <img src="{% static 'images/pirate_login.png' %}"
                srcset="{% static 'images/pirate_login.png' %} 1x, {% static 'images/pirate_login2x.png' %} 2x">
-          <a href="{{ signup_url }}" class="btn secondary narrow">
+          <a href="{% url 'account_signup' %}" class="btn secondary narrow">
             {% trans "Register" context "Login form secondary action" %}
           </a>
         </div>
