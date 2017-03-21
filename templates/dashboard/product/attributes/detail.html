@@ -1,6 +1,7 @@
 {% extends 'dashboard/base.html' %}
 
 {% load i18n %}
+{% load staticfiles %}
 
 {% block title %}
   {{ attribute }} - {% trans "Attributes" context "Attribute detail page title" %} - {{ block.super }}
@@ -12,7 +13,7 @@
 
 {% block header_extra %}
   <a class="dropdown-button right" href="#" data-activates="attribute-delete" data-constrainwidth="false">
-    <i class="material-icons">more_vert</i>
+    <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
   </a>
   <ul id="attribute-delete" class="dropdown-content">
     <li>
@@ -66,7 +67,7 @@
                 {% trans "Display name" context "Attribute field" %}
               </h5>
               <p>
-                {{ attribute.display }}
+                {{ attribute.name }}
               </p>
             </div>
             <div class="col s12 l9">
@@ -96,7 +97,7 @@
               {% for value in attribute.values.all %}
                 <tr>
                   <td>
-                    {{ value.display }}
+                    {{ value.name }}
                   </td>
                   <td>
                     {{ value.color }}
