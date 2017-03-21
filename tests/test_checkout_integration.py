@@ -1,7 +1,11 @@
+from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from payments import FraudStatus, PaymentStatus
 
 from tests.utils import get_redirect_location
+
+
+User = get_user_model()
 
 
 def test_checkout_flow(request_cart_with_item, client, shipping_method):  # pylint: disable=W0613,R0914
@@ -345,3 +349,19 @@ def test_language_is_saved_in_order(authorized_client, billing_address, customer
     # After summary step, order is created and it waits for payment
     order = payment_method_page.context['order']
     assert order.language_code == user_language
+
+
+def test_create_user_after_order(order, client):
+    order.user_email = 'hello@mirumee.com'
+    order.save()
+    assert not User.objects.filter(email='hello@mirumee.com').exists()
+    data = {'password': 'password'}
+    url = reverse('order:create-password', kwargs={'token': order.token})
+    response = client.post(url, data=data)
+    redirect_location = get_redirect_location(response)
+    detail_url = reverse('order:details', kwargs={'token': order.token})
+    assert redirect_location == detail_url
+    user = User.objects.filter(email='hello@mirumee.com')
+    assert user.exists()
+    user = user.first()
+    assert user.orders.filter(token=order.token).exists()
