@@ -29,7 +29,9 @@
         <div class="nav-wrapper">
           <ul class="left">
             <li class="logo">
-              <svg data-src="{% static "dashboard/images/saleor_logo.svg" %}" height="38px" width="176px" />
+              <a href="{% url 'dashboard:index' %}">
+                <svg data-src="{% static "dashboard/images/saleor_logo.svg" %}" height="38px" width="176px" />
+              </a>
             </li>
             <li>
               <span>Style Guide</span>
