@@ -38,7 +38,7 @@
   }
   &__table-footer {
     @include media-breakpoint-up(sm) {
-      padding-left: 5.75rem;
+      padding-left: calc(60px + #{$global-padding} * 2);
     }
   }
 }
