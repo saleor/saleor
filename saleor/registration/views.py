@@ -27,7 +27,12 @@ def logout(request):
 def signup(request):
     form = SignupForm(request.POST or None)
     if form.is_valid():
-        form.save(request=request)
+        form.save()
+        password = request.POST.get('password')
+        email = request.POST.get('email')
+        user = auth.authenticate(email=email, password=password)
+        if user:
+            auth.login(request, user)
         messages.success(request, _('User has been created'))
         return redirect(settings.LOGIN_REDIRECT_URL)
     ctx = {'form': form}
