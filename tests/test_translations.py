@@ -45,3 +45,11 @@ def test_getattr(
         product_in_stock, settings, product_translation_fr, product_class):
     settings.LANGUAGE_CODE = 'fr'
     assert product_in_stock.translated.product_class == product_class
+
+
+def test_translation_not_override_id(
+        settings, product_in_stock, product_translation_fr):
+    settings.LANGUAGE_CODE = 'fr'
+    translated_product = product_in_stock.translated
+    assert translated_product.id == product_in_stock.id
+    assert not translated_product.id == product_translation_fr

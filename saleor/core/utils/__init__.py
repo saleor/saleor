@@ -132,7 +132,8 @@ class TranslationWrapper(object):
         self.translation = next((t for t in instance.translations.all() if t.language_code == locale), None)
 
     def __getattr__(self, item):
-        if self.translation is not None and hasattr(self.translation, item):
+        if self.translation is not None and hasattr(
+                self.translation, item) and item not in ['id', 'pk']:
             return getattr(self.translation, item)
         return getattr(self.instance, item)
 
