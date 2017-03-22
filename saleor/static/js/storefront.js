@@ -198,7 +198,7 @@ let $deliveryForm = $('.deliveryform');
 let crsfToken = $deliveryForm.data('crsf');
 let countrySelect = '#id_country';
 let $cartSubtotal = $('.cart__subtotal');
-let $deliveryAjax = (e) => {
+let deliveryAjax = (e) => {
   let newCountry = $(countrySelect).val();
   $.ajax({
     url: '/cart/shipingoptions/',
@@ -213,7 +213,7 @@ let $deliveryAjax = (e) => {
   });
 };
 
-$cartSubtotal.on('change', countrySelect, $deliveryAjax);
+$cartSubtotal.on('change', countrySelect, deliveryAjax);
 
 // Open tab from the link
 
@@ -320,7 +320,7 @@ $cartLine.each(function() {
         $cartBadge.html(response.cart.numItems);
         $qunatityError.html('');
         $cartDropdown.load(summaryLink);
-        $deliveryAjax();
+        deliveryAjax();
       },
       error: (response) => {
         $qunatityError.html(getAjaxError(response));
@@ -343,7 +343,7 @@ $cartLine.each(function() {
           $.cookie('alert', 'true', { path: '/cart' });
           location.reload();
         }
-        $deliveryAjax();
+        deliveryAjax();
       }
     });
   });
