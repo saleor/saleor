@@ -726,7 +726,7 @@ def test_get_cart_data(request_cart_with_item, shipping_method):
     cart_data = utils.get_cart_data(
         request_cart_with_item, shippment_option, 'USD', None)
     assert cart_data['cart_total'] == Price(net=10, currency='USD')
-    assert cart_data['total_with_shipment'].min_price == Price(
+    assert cart_data['total_with_shipping'].min_price == Price(
         net=20, currency='USD')
 
 
@@ -736,4 +736,4 @@ def test_get_cart_data_no_shipping(request_cart_with_item):
         request_cart_with_item, shippment_option, 'USD', None)
     cart_total = cart_data['cart_total']
     assert cart_total == Price(net=10, currency='USD')
-    assert cart_data['total_with_shipment'].min_price == cart_total
+    assert cart_data['total_with_shipping'].min_price == cart_total
