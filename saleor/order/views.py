@@ -142,7 +142,7 @@ def create_password(request, token):
         login_form = None
     if register_form.is_valid():
         register_form.save()
-        password = form_data.get('password')
+        password = register_form.cleaned_data.get('password')
         user = auth.authenticate(email=email, password=password)
         auth.login(request, user)
         attach_order_to_user(order, user)

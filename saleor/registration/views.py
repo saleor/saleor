@@ -28,8 +28,8 @@ def signup(request):
     form = SignupForm(request.POST or None)
     if form.is_valid():
         form.save()
-        password = request.POST.get('password')
-        email = request.POST.get('email')
+        password = form.cleaned_data.get('password')
+        email = form.cleaned_data.get('email')
         user = auth.authenticate(email=email, password=password)
         if user:
             auth.login(request, user)
