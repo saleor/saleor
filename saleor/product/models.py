@@ -313,7 +313,8 @@ class ProductVariant(models.Model, Item):
             return smart_text(self.sku)
 
     def display_product(self):
-        return '%s (%s)' % (smart_text(self.product), smart_text(self))
+        return '%s (%s)' % (smart_text(self.product.translated),
+                            smart_text(self))
 
     def get_first_image(self):
         return self.product.get_first_image()

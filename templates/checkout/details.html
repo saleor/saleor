@@ -36,7 +36,7 @@
               {% for item, item_price_per_item, item_price_total in shipment %}
                 <div class="row">
                   <div class="col-8">
-                    <p><strong>{{ item.variant.product }}</strong> x {{ item.quantity }}<br>
+                    <p><strong>{{ item.variant.product.translated }}</strong> x {{ item.quantity }}<br>
                       <span class="checkout__review__variant">{{ item.variant }}</span></p>
                   </div>
                   <div class="col-4">
