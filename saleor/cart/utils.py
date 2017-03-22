@@ -220,21 +220,21 @@ def get_cart_data(cart, shipping_range, currency, discounts):
     cart_total = None
     local_cart_total = None
     shipping_required = False
-    total_with_shipment = None
-    local_total_with_shipment = None
+    total_with_shipping = None
+    local_total_with_shipping = None
     if cart:
         cart_total = cart.get_total(discounts=discounts)
         local_cart_total = to_local_currency(cart_total, currency)
         shipping_required = cart.is_shipping_required()
-        total_with_shipment = PriceRange(cart_total)
+        total_with_shipping = PriceRange(cart_total)
         if shipping_required and shipping_range:
-            total_with_shipment = shipping_range + cart_total
-        local_total_with_shipment = to_local_currency(
-            total_with_shipment, currency)
+            total_with_shipping = shipping_range + cart_total
+        local_total_with_shipping = to_local_currency(
+            total_with_shipping, currency)
 
     return {
         'cart_total': cart_total,
         'local_cart_total': local_cart_total,
         'shipping_required': shipping_required,
-        'total_with_shipment': total_with_shipment,
-        'local_total_with_shipment': local_total_with_shipment}
+        'total_with_shipping': total_with_shipping,
+        'local_total_with_shipping': local_total_with_shipping}

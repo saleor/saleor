@@ -53,12 +53,12 @@
     </div>
     <div class="col-4">
       {% spaceless %}
-        <h3 class="text-right cart-total"><span>{% price_range total_with_shipment %}</span>
-          {% if local_total_with_shipment %}
+        <h3 class="text-right cart-total"><span>{% price_range total_with_shipping %}</span>
+          {% if local_total_with_shipping %}
             <br>
             <small>
               &asymp;
-              {% price_range local_total_with_shipment %}
+              {% price_range local_total_with_shipping %}
             </small>
           {% endif %}
         </h3>
