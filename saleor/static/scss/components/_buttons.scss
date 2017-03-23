@@ -89,7 +89,8 @@ a.btn {
       }
     }
   }
-}
-button:focus {
-  outline: none;
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
 }
