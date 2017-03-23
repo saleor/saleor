@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-17 14:33+0100\n"
+"POT-Creation-Date: 2017-03-23 09:28-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Weronika Terpilowska <weronika@mirumee.com>, 2017\n"
 "Language-Team: Russian (https://www.transifex.com/mirumee/teams/34782/ru/)\n"
@@ -1044,15 +1044,15 @@ msgstr "Email"
 #: saleor/registration/forms.py:23
 msgctxt "User form field"
 msgid "Password"
-msgstr "Новый пароль"
+msgstr "Пароль"
 
 #: saleor/registration/views.py:23
 msgid "You have been successfully logged out."
-msgstr ""
+msgstr "Вы успешно вышли."
 
 #: saleor/registration/views.py:31
 msgid "User has been created"
-msgstr ""
+msgstr "Аккаунт успешно создан."
 
 #: saleor/search/forms.py:8
 msgctxt "Search form label"
@@ -1132,17 +1132,17 @@ msgstr "описание сайта"
 #: saleor/site/models.py:33
 msgctxt "Authentiaction field"
 msgid "name"
-msgstr "имя"
+msgstr "название"
 
 #: saleor/site/models.py:35
 msgctxt "Authentication field"
 msgid "key"
-msgstr ""
+msgstr "ключ"
 
 #: saleor/site/models.py:37
 msgctxt "Authentication field"
 msgid "password"
-msgstr "Новый пароль"
+msgstr "пароль"
 
 #: saleor/userprofile/i18n.py:16
 msgctxt "Address field"
@@ -1373,7 +1373,7 @@ msgstr ""
 #: saleor/userprofile/views.py:28
 msgctxt "Storefront message"
 msgid "Password successfully changed."
-msgstr "Адрес успешно обновлен."
+msgstr "Пароль успешно изменен."
 
 #: saleor/userprofile/views.py:40
 msgctxt "Storefront message"
@@ -1430,6 +1430,11 @@ msgid ""
 "It can be safely ignored if you did not request a password reset. Click the "
 "link below to reset your password."
 msgstr ""
+"Привет из %(site_name)s!\n"
+"Вы получили это письмо потому, что вы или кто-то другой запросили пароль к "
+"аккаунту на %(domain)s.\n"
+"Эта информация может быть проигнорирована, если вы не запрашивали "
+"восстановление пароля. Перейдите по ссылке ниже для восстановления пароля."
 
 #: templates/account/email/password_reset_message.txt:8
 #, python-format
@@ -1437,10 +1442,12 @@ msgid ""
 "Thank you for using %(site_name)s!\n"
 "%(domain)s"
 msgstr ""
+"Спасибо за использование %(site_name)s!\n"
+"%(domain)s"
 
 #: templates/account/email/password_reset_subject.txt:3
 msgid "Password Reset E-mail"
-msgstr "Сбросить пароль"
+msgstr "Восстановление пароля"
 
 #: templates/account/login.html:5
 msgctxt "Login page title"
@@ -1480,11 +1487,11 @@ msgstr "Забыли пароль?"
 
 #: templates/account/partials/login_form.html:29
 msgid "Facebook"
-msgstr ""
+msgstr "Facebook"
 
 #: templates/account/partials/login_form.html:37
 msgid "Google"
-msgstr ""
+msgstr "Google"
 
 #: templates/account/password_change.html:7 templates/cart/index.html:12
 #: templates/order/details.html:16 templates/order/payment.html:19
@@ -1695,7 +1702,7 @@ msgstr "Ваша корзина"
 #: templates/base.html:191
 msgctxt "Main navigation item"
 msgid "Style guide"
-msgstr ""
+msgstr "Руководство по стилю"
 
 #: templates/cart-dropdown.html:33 templates/cart/index.html:74
 #: templates/dashboard/order/detail.html:373
@@ -1936,7 +1943,7 @@ msgstr "Посетить магазин"
 #: templates/dashboard/base.html:41
 msgctxt "Dashboard top navigation action"
 msgid "Style guide"
-msgstr ""
+msgstr "Руководство по стилю"
 
 #: templates/dashboard/base.html:46
 msgctxt "Dashboard top navigation action"
@@ -3737,7 +3744,7 @@ msgstr "Добавить новые настройки сайта."
 #: templates/dashboard/sites/detail.html:46
 msgctxt "Authorization keys formset title"
 msgid "Authorization keys"
-msgstr ""
+msgstr "Ключи авторизации"
 
 #: templates/home.html:13
 msgctxt "Homepage title"
@@ -4232,23 +4239,3 @@ msgstr "Редактировать"
 msgctxt "No addresses text"
 msgid "You will see new addresses here after first successful checkout."
 msgstr "Вы увидите новые адреса после первого успешного оформления заказа."
-
-#~ msgctxt "Country form field label"
-#~ msgid "country"
-#~ msgstr "страна"
-
-#~ msgctxt "Change password form label"
-#~ msgid "Current Password"
-#~ msgstr "Текущий пароль"
-
-#~ msgctxt "Change password form label"
-#~ msgid "New Password"
-#~ msgstr "Новый пароль"
-
-#~ msgctxt "Change password form error"
-#~ msgid "Please type your current password."
-#~ msgstr "Введите ваш текущий пароль"
-
-#~ msgctxt "Checkout logo alternate text"
-#~ msgid "Saleor demo store"
-#~ msgstr "Демо магазин Saleor"

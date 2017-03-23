@@ -2,106 +2,273 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-08 11:20+0100\n"
+"POT-Creation-Date: 2017-03-17 15:40+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Marco Badan <marco.badan@gmail.com>, 2017\n"
 "Language-Team: Italian (https://www.transifex.com/mirumee/teams/34782/it/)\n"
-"Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: it\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: saleor/static/js/components/categoryPage/CategoryFilter.js:18
-msgid "See all"
-msgstr "Vedi tutto"
+#: static/dashboard/js/dashboard.js:208
+msgctxt "Datepicker option"
+msgid "Next month"
+msgstr "Mese seguente"
 
-#: saleor/static/js/components/categoryPage/CategoryPage.js:122
-msgid "Home"
-msgstr "Pagina iniziale"
+#: static/dashboard/js/dashboard.js:209
+msgctxt "Datepicker option"
+msgid "Previous month"
+msgstr "Mese precedente"
 
-#: saleor/static/js/components/categoryPage/CategoryPage.js:134
-#: saleor/static/js/components/categoryPage/CategoryPage.js:154
-msgid "Filters"
-msgstr "Filtri"
+#: static/dashboard/js/dashboard.js:212
+msgctxt "Datepicker option"
+msgid "Select a month"
+msgstr "Seleziona un mese"
 
-#: saleor/static/js/components/categoryPage/CategoryPage.js:155
-msgid "Clear filters"
-msgstr "Azzera filtri"
+#: static/dashboard/js/dashboard.js:213
+msgctxt "Datepicker option"
+msgid "Select a year"
+msgstr "Seleziona un anno"
 
-#: saleor/static/js/components/categoryPage/NoResults.js:11
-msgid "Sorry, no matches found for your request."
-msgstr "Nessun risultato trovato per la tua ricerca."
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "January"
+msgstr "Gennaio"
 
-#: saleor/static/js/components/categoryPage/NoResults.js:12
-msgid "Try again or shop new arrivals."
-msgstr "Riprova ancora o scopri le nostre nuove offerte."
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "February"
+msgstr "Febbraio"
 
-#: saleor/static/js/components/categoryPage/PriceFilter.js:48
-msgid "Price range"
-msgstr "Fascia di prezzo"
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "March"
+msgstr "Marzo"
 
-#: saleor/static/js/components/categoryPage/PriceFilter.js:58
-#: saleor/static/js/components/categoryPage/ProductPrice.js:12
-msgid "from"
-msgstr "da"
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "April"
+msgstr "Aprile"
 
-#: saleor/static/js/components/categoryPage/PriceFilter.js:68
-msgid "to"
-msgstr "a"
+#: static/dashboard/js/dashboard.js:216 static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "May"
+msgstr "Maggio"
 
-#: saleor/static/js/components/categoryPage/PriceFilter.js:72
-msgid "Update"
-msgstr "Aggiorna"
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "June"
+msgstr "Giugno"
 
-#: saleor/static/js/components/categoryPage/ProductList.js:29
-msgid "Load more"
-msgstr "Carica altri prodotti"
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "July"
+msgstr "Luglio"
 
-#: saleor/static/js/components/categoryPage/ProductPrice.js:15
-msgid "Sale"
-msgstr "Saldi"
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "August"
+msgstr "Agosto"
 
-#: saleor/static/js/components/categoryPage/SortBy.js:43
-#: saleor/static/js/components/categoryPage/SortBy.js:50
-#: saleor/static/js/components/categoryPage/SortBy.js:57
-#: saleor/static/js/components/categoryPage/SortBy.js:64
-#: saleor/static/js/components/categoryPage/SortBy.js:88
-msgid "Sort by:"
-msgstr "Ordina per:"
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "September"
+msgstr "Settembre"
 
-#: saleor/static/js/components/categoryPage/SortBy.js:57
-msgid "default"
-msgstr "predefinito"
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "October"
+msgstr "Ottobre"
 
-#: saleor/static/js/components/categoryPage/SortBy.js:64
-msgid "Name"
-msgstr "Nome"
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "November"
+msgstr "Novembre"
 
-#: saleor/static/js/components/categoryPage/SortBy.js:67
-#: saleor/static/js/components/categoryPage/SortBy.js:91
-msgid "ascending"
-msgstr "crescente"
+#: static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker option"
+msgid "December"
+msgstr "Dicembre"
 
-#: saleor/static/js/components/categoryPage/SortBy.js:78
-#: saleor/static/js/components/categoryPage/SortBy.js:102
-msgid "descending"
-msgstr "descrescente"
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Jan"
+msgstr "Gen"
 
-#: saleor/static/js/components/categoryPage/SortBy.js:88
-msgid "Price"
-msgstr "Prezzo"
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Feb"
+msgstr "Feb"
 
-#: saleor/static/js/components/variantPicker/QuantityInput.js:21
-msgid "Quantity"
-msgstr "Quantità"
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Mar"
+msgstr "Mar"
 
-#: saleor/static/js/components/variantPicker/VariantPicker.js:161
-msgid "Add to cart"
-msgstr "Aggiungi al carrello"
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Apr"
+msgstr "Apr"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Jun"
+msgstr "Giu"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Jul"
+msgstr "Lug"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Aug"
+msgstr "Ago"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Sep"
+msgstr "Set"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Oct"
+msgstr "Ott"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Nov"
+msgstr "Nov"
+
+#: static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker option"
+msgid "Dec"
+msgstr "Dic"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Sunday"
+msgstr "Domenica"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Monday"
+msgstr "Lunedì"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Tuesday"
+msgstr "Martedì"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Wednesday"
+msgstr "Mercoledì"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Thursday"
+msgstr "Giovedi"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Friday"
+msgstr "Venerdì"
+
+#: static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker option"
+msgid "Saturday"
+msgstr "Sabato"
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Sun"
+msgstr "Dom"
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Mon"
+msgstr "Lun"
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Tue"
+msgstr "Mar"
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Wed"
+msgstr "Mer"
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Thu"
+msgstr "Gio"
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Fri"
+msgstr "Ven"
+
+#: static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker option"
+msgid "Sat"
+msgstr "Sab"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Sunday shortcut"
+msgid "S"
+msgstr "D"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Monday shortcut"
+msgid "M"
+msgstr "L"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Tuesday shortcut"
+msgid "T"
+msgstr "M"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Wednesday shortcut"
+msgid "W"
+msgstr "M"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Thursday shortcut"
+msgid "T"
+msgstr "G"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Friday shortcut"
+msgid "F"
+msgstr "V"
+
+#: static/dashboard/js/dashboard.js:222
+msgctxt "Saturday shortcut"
+msgid "S"
+msgstr "S"
+
+#: static/dashboard/js/dashboard.js:223
+msgctxt "Datepicker option"
+msgid "Today"
+msgstr "Oggi"
+
+#: static/dashboard/js/dashboard.js:224
+msgctxt "Datepicker option"
+msgid "Clear"
+msgstr "Azzera"
+
+#: static/dashboard/js/dashboard.js:225
+msgctxt "Datepicker option"
+msgid "Close"
+msgstr "Chiudi"
