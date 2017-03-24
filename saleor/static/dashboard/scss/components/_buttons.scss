@@ -1,7 +1,11 @@
 .btn-flat {
   color: $secondary-color;
 }
-
+.btn {
+  &:not(.btn-floating) {
+    box-shadow: none;
+  }
+}
 .btn-fab, .btn-floating {
   svg {
     vertical-align: middle;
