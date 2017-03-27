@@ -12,6 +12,9 @@
     color: $skull-gray;
     text-transform: uppercase;
   }
+  .text-center {
+    position: relative;
+  }
   &__sale {
     svg {
       position: absolute;

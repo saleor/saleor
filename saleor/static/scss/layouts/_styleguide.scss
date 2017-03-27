@@ -12,22 +12,13 @@
       }
     }
   }
-  &__content {
-    h3, p {
-      svg {
-        fill: $body-color;
-        max-height: 14px;
-        max-width: 14px;
-        vertical-align: middle;
-      }
-    }
-    &__note {
-      border: 1px solid $gray;
-      padding: $global-padding;
-      border-radius: 4px;
-      p {
-        margin-bottom: 0;
-      }
+  &__section {
+    border: 2px solid $light-gray;
+    padding: $global-padding;
+    border-radius: 0px;
+    margin-bottom: $global-margin;
+    p {
+      margin-bottom: 0;
     }
     [contenteditable='true'] {
       &:focus {
@@ -35,15 +26,34 @@
         opacity: 0.9;
       }
     }
+  }
+  &__tittle {
+    background-color: $light-gray;
+    margin-bottom: 0;
+    padding: $global-padding;
+    p {
+      margin-bottom: 0;
+      padding-top: $global-padding;
+    }
+    h3 {
+      margin-bottom: 0;
+      padding-top: 0;
+      
+    }
+  }
+  &__sub-tittle {
+    background-color: $light-gray;
+    padding: $global-padding;
+    margin-bottom: 0;
+    margin-top: -$global-padding;
+    p {
+      margin-bottom: 0;
+    }
+  }
+  &__content {
     &__block {
       padding-bottom: $global-padding * 3;
-      &:not(:last-of-type) {
-        border-bottom: 1px solid $skull-gray;
-      }
-      &__title {
-        padding-top: $global-padding;
-        margin-bottom: $global-margin * 2;
-      }
+      border-top: 1px solid $gray;
       &__bold {
         font-weight: 700;
       }
@@ -99,14 +109,19 @@
       }
       &__grid {
         text-align: center;
+        &:not(:last-of-type) {
+          margin-bottom: $global-margin;
+        }
         p {
           background-color: $light-gray;
           padding: $global-padding 0;
         }
       }
       &#helpers {
-        div {
-          margin-bottom: $global-margin * 2;
+        .styleguide__section {
+          div {
+            margin-bottom: $global-margin * 2;
+          }
         }
       }
       &#icons {
@@ -120,6 +135,9 @@
       &#buttons {
         button {
           margin: $global-margin / 2;
+        }
+        .home__block1 {
+          margin-top: $global-margin;
         }
       }
       .deliveryform {
@@ -137,6 +155,9 @@
             right: 0;
           }
         }
+      }
+      .product-list, .card-block, .alert:last-of-type, .form-group {
+        margin-bottom: 0;
       }
     }
   }

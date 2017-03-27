@@ -61,7 +61,7 @@
             <ol class="carousel-indicators hidden-sm-down">
               {% for image in images %}
                 {% if images|length > 1 %}
-                  <li data-target="#carousel-example-generic" data-slide-to="{{ forloop.counter0 }}">
+                  <li data-target="#carousel-example-generic" data-slide-to="{{ forloop.counter0 }}"{% if forloop.first %} class="active"{% endif %}>
                     <img src="{% get_thumbnail image.image method="crop" size="60x60" %}" 
                          srcset="{% get_thumbnail image.image method="crop" size="60x60" %} 1x, {% get_thumbnail image.image method="crop" size="120x120" %} 2x" 
                          alt="">

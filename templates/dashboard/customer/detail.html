@@ -103,7 +103,7 @@
                   {% include 'dashboard/includes/_address.html' with address=address only %}
                 {% endwith %}
               {% else %}
-                <span>{% trans "No default shipping address." context "Customer without default shipping address message" %}</span>
+                <div>{% trans "No default shipping address." context "Customer without default shipping address message" %}</div>
               {% endif %}
               <svg data-src="{% static "dashboard/images/email.svg" %}" width="14" height="14" />
               <a href="mailto:{{ customer.email }}">
@@ -123,9 +123,9 @@
                   {% include 'dashboard/includes/_address.html' with address=address only %}
                 {% endwith %}
               {% else %}
-                <span>
+                <div>
                   {% trans "No default billing address." context "Customer without default billing address message" %}
-                </span>
+                </div>
               {% endif %}
             </div>
           </div>

@@ -29,7 +29,9 @@
         <div class="nav-wrapper">
           <ul class="left">
             <li class="logo">
-              <svg data-src="{% static "dashboard/images/saleor_logo.svg" %}" height="38px" width="176px" />
+              <a href="{% url 'dashboard:index' %}">
+                <svg data-src="{% static "dashboard/images/saleor_logo.svg" %}" height="38px" width="176px" />
+              </a>
             </li>
             <li>
               <span>Style Guide</span>
@@ -1130,8 +1132,8 @@
                             <thead>
                               <tr>
                                 <th class="bulk-checkbox">
-                                  <input type="checkbox" id="select-all-variants" class="filled-in select-all switch-actions">
-                                  <label for="select-all-variants"></label>
+                                  <input type="checkbox" id="one" class="filled-in select-all switch-actions">
+                                  <label for="one"></label>
                                 </th>
                                 <th contenteditable="true">
                                   SKU
@@ -1150,8 +1152,8 @@
                             <tbody>
                               <tr>
                                 <td class="bulk-checkbox ignore-link">
-                                  <input id="id_variants_{{ variant.id }}" name="items" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
-                                  <label for="id_variants_{{ variant.id }}"></label>
+                                  <input id="two" name="items" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
+                                  <label for="two"></label>
                                 </td>
                                 <td contenteditable="true">
                                   2-1337
@@ -1167,8 +1169,8 @@
                               </tr>
                               <tr>
                                 <td class="bulk-checkbox ignore-link">
-                                  <input id="id_variants_{{ variant.id }}" name="items" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
-                                  <label for="id_variants_{{ variant.id }}"></label>
+                                  <input id="three" name="items" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
+                                  <label for="three"></label>
                                 </td>
                                 <td contenteditable="true">
                                   2-1338
@@ -1184,8 +1186,8 @@
                               </tr>
                               <tr>
                                 <td class="bulk-checkbox ignore-link">
-                                  <input id="id_variants_{{ variant.id }}" name="items" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
-                                  <label for="id_variants_{{ variant.id }}"></label>
+                                  <input id="four" name="items" type="checkbox" value="{{ variant.id }}" class="filled-in switch-actions">
+                                  <label for="four"></label>
                                 </td>
                                 <td contenteditable="true">
                                   2-1339

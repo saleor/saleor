@@ -43,300 +43,336 @@
       </nav>
     </div>
     <div class="col-md-9 pull-md-3 styleguide__content">
-      <div class="styleguide__content__note">
-        <h3>Note</h3>
-        <p>If you’re using a recent ver­sion of IE, Fire­fox, Safari or Chrome (though not Opera), you can edit the text in sections marked with edit icon <svg data-src="{% static "images/edit.svg" %}" />. Check how our components will look like in your language and with your content.</p>
-      </div>
-      <hr>
       <div id="typography" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Typography <svg data-src="{% static "images/edit.svg" %}" /></h3>
-        <p>We use Lato fontface in Regular(400), <span class="styleguide__content__block__light">Light(300)</span> and <span class="styleguide__content__block__bold">Bold(700)</span> weights.<br>
-        Lato includes only latin and latin extended characters. For other alphabets the default sans serif font will be used.</p>
-        <p><strong>Headers</strong></p>
-        <h1 contenteditable="true">H1 example text</h1>
-        <h2 contenteditable="true">H2 example text</h2>
-        <h3 contenteditable="true">H3 example text (always uppercased)</h3>
-        <hr>
-        <p><strong>Paragraph</strong></p>
-        <p contenteditable="true">Saleor is open and free to use. It is not a bait to force you to pay us later and we promise to do our bests to fix bugs and improve the code. Some situations however call for a custom solution and extra code to be written. Whether you need us to cover an exotic use case or build you a custom e-commerce appliance, our team can help.</p>
-        <hr>
-        <p><strong>Links</strong></p>
-        <a href="#" contenteditable="true">Link example text</a>
-        <a href="#" class="link--styled" contenteditable="true">Styled link example text</a>
+        <div class="styleguide__tittle">
+          <h3 class="styleguide__content__block__title">Typography</h3>
+          <p>
+            We use Lato fontface in Regular(400), <span class="styleguide__content__block__light">Light(300)</span> and <span class="styleguide__content__block__bold">Bold(700)</span> weights.<br>
+            Lato includes only latin and latin extended characters. For other alphabets the default sans serif font will be used.
+          </p>
+          <p>Click and edit any text below to see how the component looks with different text</p>
+          <p><strong>Headers</strong></p>
+        </div>
+        <div class="styleguide__section">
+          <h1 contenteditable="true">H1 example text</h1>
+          <h2 contenteditable="true">H2 example text</h2>
+          <h3 contenteditable="true">H3 example text (always uppercased)</h3>
+        </div>
+        <div class="styleguide__sub-tittle">
+          <p><strong>Paragraph</strong></p>
+        </div>
+        <div class="styleguide__section">
+          <p contenteditable="true">Saleor is open and free to use. It is not a bait to force you to pay us later and we promise to do our bests to fix bugs and improve the code. Some situations however call for a custom solution and extra code to be written. Whether you need us to cover an exotic use case or build you a custom e-commerce appliance, our team can help.</p>
+        </div>
+        <div class="styleguide__sub-tittle">
+          <p><strong>Links</strong></p>
+        </div>
+        <div class="styleguide__section">
+          <a href="#" contenteditable="true">Link example text</a>
+          <a href="#" class="link--styled" contenteditable="true">Styled link example text</a>
+        </div>
       </div>
       <div id="colors" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Colors</h3>
-        <div class="row">
-          <div class="col-md-3 col-6 styleguide__content__block__color">
-            <div class="styleguide__content__block__color--body-color">
-            </div>
-            <p>#333333<br>$body-color</p>
-          </div>
-          <div class="col-md-3 col-6 styleguide__content__block__color">
-            <div class="styleguide__content__block__color--white">
-            </div>
-            <p>#ffffff<br>$white</p>
-          </div>
-          <div class="col-md-3 col-6 styleguide__content__block__color">
-            <div class="styleguide__content__block__color--light-gray">
-            </div>
-            <p>#f2f2f2<br>$light-gray</p>
-          </div>
-          <div class="col-md-3 col-6 styleguide__content__block__color">
-            <div class="styleguide__content__block__color--gray">
-            </div>
-            <p>#D3D1D0<br>$gray</p>
-          </div>
+        <div class="styleguide__tittle">
+          <h3 class="styleguide__content__block__title">Colors</h3>
         </div>
-        <div class="row">
-          <div class="col-md-3 col-6 styleguide__content__block__color">
-            <div class="styleguide__content__block__color--darken-gray">
+        <div class="styleguide__section">
+          <div class="row">
+            <div class="col-md-3 col-6 styleguide__content__block__color">
+              <div class="styleguide__content__block__color--body-color">
+              </div>
+              <p>#333333<br>$body-color</p>
             </div>
-            <p>#bab7b6<br>$darken-gray</p>
+            <div class="col-md-3 col-6 styleguide__content__block__color">
+              <div class="styleguide__content__block__color--white">
+              </div>
+              <p>#ffffff<br>$white</p>
+            </div>
+            <div class="col-md-3 col-6 styleguide__content__block__color">
+              <div class="styleguide__content__block__color--light-gray">
+              </div>
+              <p>#f2f2f2<br>$light-gray</p>
+            </div>
+            <div class="col-md-3 col-6 styleguide__content__block__color">
+              <div class="styleguide__content__block__color--gray">
+              </div>
+              <p>#D3D1D0<br>$gray</p>
+            </div>
           </div>
-          <div class="col-md-3 col-6 styleguide__content__block__color">
-            <div class="styleguide__content__block__color--skull-gray">
+          <div class="row">
+            <div class="col-md-3 col-6 styleguide__content__block__color">
+              <div class="styleguide__content__block__color--darken-gray">
+              </div>
+              <p>#bab7b6<br>$darken-gray</p>
             </div>
-            <p>#828282<br>$skull-gray</p>
+            <div class="col-md-3 col-6 styleguide__content__block__color">
+              <div class="styleguide__content__block__color--skull-gray">
+              </div>
+              <p>#828282<br>$skull-gray</p>
+            </div>
+            <div class="col-md-3 col-6 styleguide__content__block__color">
+              <div class="styleguide__content__block__color--blue">
+              </div>
+              <p>#26A5D4<br>$blue</p>
+            </div>
+            <div class="col-md-3 col-6 styleguide__content__block__color">
+              <div class="styleguide__content__block__color--darken-blue">
+              </div>
+              <p>#1e83a9<br>$darken-blue</p>
+            </div>
           </div>
-          <div class="col-md-3 col-6 styleguide__content__block__color">
-            <div class="styleguide__content__block__color--blue">
+          <div class="row">
+            <div class="col-md-3 col-6 styleguide__content__block__color">
+              <div class="styleguide__content__block__color--red">
+              </div>
+              <p>#EB5757<br>$red</p>
             </div>
-            <p>#26A5D4<br>$blue</p>
-          </div>
-          <div class="col-md-3 col-6 styleguide__content__block__color">
-            <div class="styleguide__content__block__color--darken-blue">
+            <div class="col-md-3 col-6 styleguide__content__block__color">
+              <div class="styleguide__content__block__color--dark-red">
+              </div>
+              <p>#c53636<br>$dark-red</p>
             </div>
-            <p>#1e83a9<br>$darken-blue</p>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-3 col-6 styleguide__content__block__color">
-            <div class="styleguide__content__block__color--red">
+            <div class="col-md-3 col-6 styleguide__content__block__color">
+              <div class="styleguide__content__block__color--green">
+              </div>
+              <p>#27AE60<br>$green</p>
             </div>
-            <p>#EB5757<br>$red</p>
-          </div>
-          <div class="col-md-3 col-6 styleguide__content__block__color">
-            <div class="styleguide__content__block__color--dark-red">
+            <div class="col-md-3 col-6 styleguide__content__block__color">
+              <div class="styleguide__content__block__color--beige">
+              </div>
+              <p>#FFFAEC<br>$beige</p>
             </div>
-            <p>#c53636<br>$dark-red</p>
-          </div>
-          <div class="col-md-3 col-6 styleguide__content__block__color">
-            <div class="styleguide__content__block__color--green">
-            </div>
-            <p>#27AE60<br>$green</p>
-          </div>
-          <div class="col-md-3 col-6 styleguide__content__block__color">
-            <div class="styleguide__content__block__color--beige">
-            </div>
-            <p>#FFFAEC<br>$beige</p>
           </div>
         </div>
       </div>
       <div id="grid" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Grid</h3>
-        <p>We use <a target="_blank" href="https://v4-alpha.getbootstrap.com/getting-started/introduction/">Bootstrap 4</a> responsive grid which is based on a 12 column layout. In most cases we use following combinations:</p>
-        <div class="row styleguide__content__block__grid">
-          <div class="col-md-3 col-6">
-            <p>col-md-3 col-6</p>
-          </div>
-          <div class="col-md-3 col-6">
-            <p>col-md-3 col-6</p>
-          </div>
-          <div class="col-md-3 col-6">
-            <p>col-md-3 col-6</p>
-          </div>
-          <div class="col-md-3 col-6">
-            <p>col-md-3 col-6</p>
-          </div>
+        <div class="styleguide__tittle">
+          <h3 class="styleguide__content__block__title">Grid</h3>
+          <p>We use <a target="_blank" href="https://v4-alpha.getbootstrap.com/getting-started/introduction/">Bootstrap 4</a> responsive grid which is based on a 12 column layout. In most cases we use following combinations:</p>
         </div>
-        <div class="row styleguide__content__block__grid">
-          <div class="col-md-6">
-            <p>col-md-6</p>
+        <div class="styleguide__section">    
+          <div class="row styleguide__content__block__grid">
+            <div class="col-md-3 col-6">
+              <p>col-md-3 col-6</p>
+            </div>
+            <div class="col-md-3 col-6">
+              <p>col-md-3 col-6</p>
+            </div>
+            <div class="col-md-3 col-6">
+              <p>col-md-3 col-6</p>
+            </div>
+            <div class="col-md-3 col-6">
+              <p>col-md-3 col-6</p>
+            </div>
           </div>
-          <div class="col-md-6">
-            <p>col-md-6</p>
+          <div class="row styleguide__content__block__grid">
+            <div class="col-md-6">
+              <p>col-md-6</p>
+            </div>
+            <div class="col-md-6">
+              <p>col-md-6</p>
+            </div>
           </div>
-        </div>
-        <div class="row styleguide__content__block__grid">
-          <div class="col-lg-10 offset-lg-1">
-            <p>col-lg-10 offset-lg-1</p>
+          <div class="row styleguide__content__block__grid">
+            <div class="col-lg-10 offset-lg-1">
+              <p>col-lg-10 offset-lg-1</p>
+            </div>
           </div>
-        </div>
-        <div class="row styleguide__content__block__grid">
-          <div class="col-md-7">
-            <p>col-md-7</p>
-          </div>
-          <div class="col-md-5 styleguide__content__block__grid">
-            <p>col-md-5</p>
+          <div class="row styleguide__content__block__grid">
+            <div class="col-md-7">
+              <p>col-md-7</p>
+            </div>
+            <div class="col-md-5 styleguide__content__block__grid">
+              <p>col-md-5</p>
+            </div>
           </div>
         </div>
       </div>
       <div id="responsive" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Responsive breakpoints</h3>
-        <div class="table__header">
-          <div class="row">
-            <div class="col-4">
-            </div>
-            <div class="col-4">
-              <small>Max container width</small>
-            </div>
-            <div class="col-4">
-              <small>Class prefix</small>
+        <div class="styleguide__tittle">
+          <h3 class="styleguide__content__block__title">Responsive breakpoints</h3>
+        </div>
+        <div class="styleguide__section">
+          <div class="table__header">
+            <div class="row">
+              <div class="col-4">
+              </div>
+              <div class="col-4">
+                <small>Max container width</small>
+              </div>
+              <div class="col-4">
+                <small>Class prefix</small>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="table__row">
-          <div class="row">
-            <div class="col-4">
-              Extra small<br><576px
-            </div>
-            <div class="col-4">
-              None (auto)
-            </div>
-            <div class="col-4">
-              .col-
-            </div>
-          </div>
-        </div>
-        <div class="table__row">
-          <div class="row">
-            <div class="col-4">
-              Small<br>≥576px
-            </div>
-            <div class="col-4">
-              540px
-            </div>
-            <div class="col-4">
-              .col-sm
+          <div class="table__row">
+            <div class="row">
+              <div class="col-4">
+                Extra small<br><576px
+              </div>
+              <div class="col-4">
+                None (auto)
+              </div>
+              <div class="col-4">
+                .col-
+              </div>
             </div>
           </div>
-        </div>
-        <div class="table__row">
-          <div class="row">
-            <div class="col-4">
-              Medium<br>≥768px
-            </div>
-            <div class="col-4">
-              720px
-            </div>
-            <div class="col-4">
-              .col-md
-            </div>
-          </div>
-        </div>
-        <div class="table__row">
-          <div class="row">
-            <div class="col-4">
-              Large<br>≥992px
-            </div>
-            <div class="col-4">
-              960px
-            </div>
-            <div class="col-4">
-              .col-lg
+          <div class="table__row">
+            <div class="row">
+              <div class="col-4">
+                Small<br>≥576px
+              </div>
+              <div class="col-4">
+                540px
+              </div>
+              <div class="col-4">
+                .col-sm
+              </div>
             </div>
           </div>
-        </div>
-        <div class="table__row">
-          <div class="row">
-            <div class="col-4">
-              Extra large<br>≥1200px
+          <div class="table__row">
+            <div class="row">
+              <div class="col-4">
+                Medium<br>≥768px
+              </div>
+              <div class="col-4">
+                720px
+              </div>
+              <div class="col-4">
+                .col-md
+              </div>
             </div>
-            <div class="col-4">
-              1140px
+          </div>
+          <div class="table__row">
+            <div class="row">
+              <div class="col-4">
+                Large<br>≥992px
+              </div>
+              <div class="col-4">
+                960px
+              </div>
+              <div class="col-4">
+                .col-lg
+              </div>
             </div>
-            <div class="col-4">
-              .col-xl
+          </div>
+          <div class="table__row">
+            <div class="row">
+              <div class="col-4">
+                Extra large<br>≥1200px
+              </div>
+              <div class="col-4">
+                1140px
+              </div>
+              <div class="col-4">
+                .col-xl
+              </div>
             </div>
           </div>
         </div>
       </div>
       <div id="helpers" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Helper classes</h3>
-        <p>Storefront templates built with <a target="_blank" href="https://v4-alpha.getbootstrap.com/getting-started/introduction/">Bootstrap 4</a> framework wich has handful utility classes</p>
-        <p><strong>Responsive floats</strong></p>
-        <div>
-          <p class="float-left">
-            <code>&lt;div class="float-left"&gt;</code>Float left on all viewport sizes<code>&lt;/div&gt;</code>
-          </p>
+        <div class="styleguide__tittle">
+          <h3 class="styleguide__content__block__title">Helper classes</h3>
+          <p>Storefront templates built with <a target="_blank" href="https://v4-alpha.getbootstrap.com/getting-started/introduction/">Bootstrap 4</a> framework wich has handful utility classes:</p>
+          <p><strong>Responsive floats</strong></p>
         </div>
-        <br>
-        <div>
-          <p class="float-right">
-            <code>&lt;div class="float-right"&gt;</code>Float right on all viewport sizes<code>&lt;/div&gt;</code>
-          </p>
+        <div class="styleguide__section">
+          <div>
+            <p class="float-left">
+              <code>&lt;div class="float-left"&gt;</code>Float left on all viewport sizes<code>&lt;/div&gt;</code>
+            </p>
+          </div>
+          <br>
+          <div>
+            <p class="float-right">
+              <code>&lt;div class="float-right"&gt;</code>Float right on all viewport sizes<code>&lt;/div&gt;</code>
+            </p>
+          </div>
+          <br>
+          <div>
+            <p class="float-none">
+              <code>&lt;div class="float-none"&gt;</code>Don't float on all viewport sizes<code>&lt;/div&gt;</code>
+            </p>
+          </div>
+          <br>
+          <div>
+            <p class="float-sm-left">
+              <code>&lt;div class="float-sm-left"&gt;</code>Float left on viewports sized SM (small) or wider<code>&lt;/div&gt;</code>
+            </p>
+          </div>
+          <br>
+          <div>
+            <p class="float-md-right">
+              <code>&lt;div class="float-md-right"&gt;</code>Float right on viewports sized MD (medium) or wider<code>&lt;/div&gt;</code>
+            </p>
+          </div>
+          <br>
         </div>
-        <br>
-        <div>
-          <p class="float-none">
-            <code>&lt;div class="float-none"&gt;</code>Don't float on all viewport sizes<code>&lt;/div&gt;</code>
-          </p>
+        <div class="styleguide__sub-tittle">
+          <p><strong>Responsive utilities</strong></p>
         </div>
-        <br>
-        <div>
-          <p class="float-sm-left">
-            <code>&lt;div class="float-sm-left"&gt;</code>Float left on viewports sized SM (small) or wider<code>&lt;/div&gt;</code>
-          </p>
+        <div class="styleguide__section">
+          <p>The <code>.hidden-*-up</code> classes hide the element when the viewport is at the given breakpoint or wider. For example, <code>.hidden-md-up</code> hides an element on medium, large, and extra-large viewports.</p>
+          <p>The <code>.hidden-*-down</code> classes hide the element when the viewport is at the given breakpoint or smaller. For example, <code>.hidden-md-down</code> hides an element on extra-small, small, and medium viewports.</p>
         </div>
-        <br>
-        <div>
-          <p class="float-md-right">
-            <code>&lt;div class="float-md-right"&gt;</code>Float right on viewports sized MD (medium) or wider<code>&lt;/div&gt;</code>
-          </p>
-        </div>
-        <br>
-        <hr>
-        <p><strong>Responsive utilities</strong></p>
-        <p>The <code>.hidden-*-up</code> classes hide the element when the viewport is at the given breakpoint or wider. For example, <code>.hidden-md-up</code> hides an element on medium, large, and extra-large viewports.</p>
-        <p>The <code>.hidden-*-down</code> classes hide the element when the viewport is at the given breakpoint or smaller. For example, <code>.hidden-md-down</code> hides an element on extra-small, small, and medium viewports.</p>
       </div>
       <div id="icons" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Icons</h3>
-        <svg data-src="{% static "images/cart.svg" %}" />
-        <svg data-src="{% static "images/chevron_down.svg" %}" />
-        <svg data-src="{% static "images/chevron_up.svg" %}" />
-        <svg data-src="{% static "images/arrow_down.svg" %}" />
-        <svg data-src="{% static "images/arrow_up.svg" %}" />
-        <svg data-src="{% static "images/search.svg" %}" />
-        <svg data-src="{% static "images/gallery_arrow.svg" %}" />
-        <svg data-src="{% static "images/delete.svg" %}" />
-        <svg data-src="{% static "images/loader.svg" %}" />
+        <div class="styleguide__tittle">
+          <h3 class="styleguide__content__block__title">Icons</h3>
+        </div>
+        <div class="styleguide__section">
+          <svg data-src="{% static "images/cart.svg" %}" />
+          <svg data-src="{% static "images/chevron_down.svg" %}" />
+          <svg data-src="{% static "images/chevron_up.svg" %}" />
+          <svg data-src="{% static "images/arrow_down.svg" %}" />
+          <svg data-src="{% static "images/arrow_up.svg" %}" />
+          <svg data-src="{% static "images/search.svg" %}" />
+          <svg data-src="{% static "images/gallery_arrow.svg" %}" />
+          <svg data-src="{% static "images/delete.svg" %}" />
+          <svg data-src="{% static "images/loader.svg" %}" />
+        </div>
       </div>
       <div id="buttons" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Buttons <svg data-src="{% static "images/edit.svg" %}" /></h3>
-        <button class="btn primary">
-          <span contenteditable="true">Primary Button (buttons can be really very wide)</span>
-        </button>
-        <button class="btn secondary">
-          <span contenteditable="true">Secondary Button</span>
-        </button>
-        <button class="btn danger">
-          <span contenteditable="true">Danger Button</span>
-        </button>
-        <button class="btn primary disabled">
-          <span contenteditable="true">Disabled Button</span>
-        </button>
-        <button class="btn gray">
-          <span contenteditable="true">Gray Button</span>
-        </button>
-        <button class="btn primary narrow">
-          <span contenteditable="true">Primary Narrow Button</span>
-        </button>
-        <button class="btn secondary narrow">
-          <span contenteditable="true">Secondary Narrow Button</span>
-        </button>
-        <button class="btn danger narrow">
-          <span contenteditable="true">Danger Narrow Button</span>
-        </button>
-        <div class="home__block1">
-          <div class="home--square">
-            <div class="home--content">
-              <div class="home--content-wrapper">
-                <div class="home--content-inner">
+        <div class="styleguide__tittle">
+          <h3 class="styleguide__content__block__title">Buttons</h3>
+          <p>Click and edit any button below to see how the component looks with different text</p>
+        </div>
+        <div class="styleguide__section">
+          <button class="btn primary">
+            <span contenteditable="true">Primary Button (buttons can be really very wide)</span>
+          </button>
+          <button class="btn secondary">
+            <span contenteditable="true">Secondary Button</span>
+          </button>
+          <button class="btn danger">
+            <span contenteditable="true">Danger Button</span>
+          </button>
+          <button class="btn primary disabled">
+            <span contenteditable="true">Disabled Button</span>
+          </button>
+          <button class="btn gray">
+            <span contenteditable="true">Gray Button</span>
+          </button>
+          <button class="btn primary narrow">
+            <span contenteditable="true">Primary Narrow Button</span>
+          </button>
+          <button class="btn secondary narrow">
+            <span contenteditable="true">Secondary Narrow Button</span>
+          </button>
+          <button class="btn danger narrow">
+            <span contenteditable="true">Danger Narrow Button</span>
+          </button>
+          <div class="home__block1">
+            <div class="home--square">
+              <div class="home--content">
+                <div class="home--content-wrapper">
+                  <div class="home--content-inner">
                     <a class="btn btn-secondary home__button" href="#" onclick="return false;">
-                        <span contenteditable="true">Home page button</span>
+                      <span contenteditable="true">Home page button</span>
                     </a>
+                  </div>
                 </div>
               </div>
             </div>
@@ -344,162 +380,190 @@
         </div>
       </div>
       <div id="forms" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Forms</h3>
-        <p><strong>Text form</strong> <svg data-src="{% static "images/edit.svg" %}" /></p>
-        <div class="row">
-          <div class="col-12 col-md-6">
-            <div class="form-group">
-              <label class="control-label" contenteditable="true">Given name</label>
-              <input autocomplete="given-name" class="form-control" maxlength="256" name="first_name" title="" type="text">
-            </div>
-          </div>
-          <div class="col-12 col-md-6">
-            <div class="form-group">
-              <label class="control-label" contenteditable="true">Family name</label>
-              <input autocomplete="family-name" class="form-control" id="id_last_name" maxlength="256" name="last_name" title="" type="text">
-            </div>
-          </div>    
+        <div class="styleguide__tittle">
+          <h3 class="styleguide__content__block__title">Forms</h3>
+          <p><strong>Text form</strong></p>
         </div>
-        <hr>
-        <div class="row">
-          <div class="col-lg-4 col-md-6">
-            <p><strong>Filters</strong> <svg data-src="{% static "images/edit.svg" %}" /></p>
-            <div class="product-filters">
-              <h3 contenteditable="true">Box Size
-                <div class="collapse-filters-icon">
-                  <svg data-src="{% static "images/chevron_up.svg" %}" />
-                </div>
-              </h3>
-              <ul id="box-size">
-                <li class="item"><label><input type="checkbox" name="box-size"><span contenteditable="true">100g</span></label></li>
-                <li class="item"><label><input type="checkbox" name="box-size"><span contenteditable="true">250g</span></label></li>
-                <li class="item"><label><input type="checkbox" name="box-size"><span contenteditable="true">500g</span></label></li>
-                <li class="item"><label><input type="checkbox" name="box-size"><span contenteditable="true">Feel free to place here as long option as you want</span></label></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <hr>
-        <div class="row">
-          <div class="col-12">
-            <p><strong>Select</strong></p>
-            <div class="deliveryform">
-              <select>
-                <option>Option 1 </option>
-                <option>Option 2 </option>
-                <option>Option 3 </option>
-                <option>Option 4 </option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <hr>
-        <div class="row">
-          <div class="col-12">
-            <p><strong>Number input</strong></p>
-            <form role="form" class="form-cart">
-              <div class="" tabindex="-1">
-                <input id="id_quantity" max="50" min="1" name="quantity" type="number" value="2" required="">
-              </div>
-            </form>
-          </div>
-        </div>
-        <hr>
-        <p><strong>Radio buttons</strong> <svg data-src="{% static "images/edit.svg" %}" /></p>
-        <div class="row">
-          <div class="col-md-4">
-            <div class="radio">
-              <label>
-                <input type="radio" name="styleguide-radio">
-                <span contenteditable="true">First option</span>
-              </label>
-            </div>
-            <div class="radio">
-              <label>
-                <input type="radio" name="styleguide-radio">
-                <span contenteditable="true">Feel free to place here as long text as you want</span>
-              </label>
-            </div>
-          </div>
-        </div>
-        <hr>
-        <p><strong>Input groups</strong></p>
-        <div class="row">
-          <div class="col-md-6">
-            <form class="form-inline search-form" action="{% url "search:search" %}">
-              <input class="form-control" type="text" name="q" value="{% if query %}{{ query }}{% endif %}" placeholder="Search for product">
-              <button class="btn btn-link" type="submit">
-                <svg data-src="{% static "images/search.svg" %}" width="19" height="19" />
-              </button>
-            </form>
-          </div>
-          <div class="col-md-6">
-            <form class="form-group input-btn">
+        <div class="styleguide__section">
+          <div class="row">
+            <div class="col-12 col-md-6">
               <div class="form-group">
-                <input class="form-control" id="id_discount-voucher" name="discount-voucher" title="" type="text" required="">
+                <label class="control-label" contenteditable="true">Given name</label>
+                <input autocomplete="given-name" class="form-control" maxlength="256" name="first_name" title="" type="text">
               </div>
-              <button class="btn secondary narrow" type="submit">Use</button>
-            </form>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="form-group">
+                <label class="control-label" contenteditable="true">Family name</label>
+                <input autocomplete="family-name" class="form-control" id="id_last_name" maxlength="256" name="last_name" title="" type="text">
+              </div>
+            </div>    
           </div>
         </div>
-        <hr>
-        <p><strong>Variant picker</strong> <svg data-src="{% static "images/edit.svg" %}" /></p>
-        <div class="variant-picker">
+        <div class="styleguide__sub-tittle">
+          <p><strong>Filters</strong></p>
+        </div>
+        <div class="styleguide__section">
+          <div class="row">
+            <div class="col-lg-4 offset-lg-4 offset-md-3 col-md-6">
+              <div class="styleguide__section">
+                <div class="product-filters">
+                  <h3 contenteditable="true">Box Size
+                    <div class="collapse-filters-icon">
+                      <svg data-src="{% static "images/chevron_up.svg" %}" />
+                    </div>
+                  </h3>
+                  <ul id="box-size">
+                    <li class="item"><label><input type="checkbox" name="box-size"><span contenteditable="true">100g</span></label></li>
+                    <li class="item"><label><input type="checkbox" name="box-size"><span contenteditable="true">250g</span></label></li>
+                    <li class="item"><label><input type="checkbox" name="box-size"><span contenteditable="true">500g</span></label></li>
+                    <li class="item"><label><input type="checkbox" name="box-size"><span contenteditable="true">Feel free to place here as long option as you want</span></label></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="styleguide__sub-tittle">
+          <p><strong>Select</strong></p>
+        </div>
+        <div class="styleguide__section">
+          <div class="row">
+            <div class="col-12">
+              <div class="deliveryform">
+                <select>
+                  <option>Option 1 </option>
+                  <option>Option 2 </option>
+                  <option>Option 3 </option>
+                  <option>Option 4 </option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="styleguide__sub-tittle">
+          <p><strong>Number input</strong></p>
+        </div>
+        <div class="styleguide__section">
+          <div class="row">
+            <div class="col-12">
+              <form role="form" class="form-cart">
+                <div class="" tabindex="-1">
+                  <input id="id_quantity" max="50" min="1" name="quantity" type="number" value="2" required="">
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="styleguide__sub-tittle">
+          <p><strong>Radio buttons</strong></p>
+        </div>
+        <div class="styleguide__section">
+          <div class="row">
+            <div class="col-12">
+              <div class="radio">
+                <label>
+                  <input type="radio" name="styleguide-radio">
+                  <span contenteditable="true">First option</span>
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio" name="styleguide-radio">
+                  <span contenteditable="true">Feel free to place here as long text as you want</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="styleguide__sub-tittle">
+          <p><strong>Input groups</strong></p>
+        </div>
+        <div class="styleguide__section">
+          <div class="row">
+            <div class="col-md-6">
+              <form class="form-inline search-form" action="{% url "search:search" %}">
+                <input class="form-control" type="text" name="q" value="{% if query %}{{ query }}{% endif %}" placeholder="Search for product">
+                <button class="btn btn-link" type="submit">
+                  <svg data-src="{% static "images/search.svg" %}" width="19" height="19" />
+                </button>
+              </form>
+            </div>
+            <div class="col-md-6">
+              <form class="form-group input-btn">
+                <div class="form-group">
+                  <input class="form-control" id="id_discount-voucher" name="discount-voucher" title="" type="text" required="">
+                </div>
+                <button class="btn secondary narrow" type="submit">Use</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="styleguide__sub-tittle">
+          <p><strong>Variant picker</strong></p>
+        </div>
+        <div class="variant-picker styleguide__section">
           <div class="btn-group" data-toggle="buttons">
             <label class="btn btn-secondary variant-picker__option"><input type="radio" name="4"><span contenteditable="true">100g</span></label>
             <label class="btn btn-secondary variant-picker__option" aria-pressed="true"><input type="radio" name="5"><span contenteditable="true">250g</span></label>
             <label class="btn btn-secondary variant-picker__option active" aria-pressed="true"><input type="radio" name="6"><span contenteditable="true">Feel free to place here as long text as you want</span></label>
           </div>
         </div>
-        <hr>
-        <p><strong>Errors</strong> <svg data-src="{% static "images/edit.svg" %}" /></p>
-        <p>Errors are always displayed as a small red text below the form explaining what cause the error.</p>
-        <div class="row">
-          <div class="col-12">
-            <div class="form-group">
-              <label class="control-label" for="id_first_name" contenteditable="true">Email</label>
-              <input autocomplete="given-name" class="form-control" id="id_first_name" maxlength="256" name="first_name" title="" type="text">
+        <div class="styleguide__sub-tittle">
+          <p><strong>Errors</strong></p>
+          <p>Errors are always displayed as a small red text below the form explaining what cause the error.</p>
+        </div>
+        <div class="styleguide__section">
+          <div class="row">
+            <div class="col-12">
+              <div class="form-group">
+                <label class="control-label" for="id_first_name" contenteditable="true">Email</label>
+                <input autocomplete="given-name" class="form-control" id="id_first_name" maxlength="256" name="first_name" title="" type="text">
+                <span class="help-block">
+                  <div class="help-block" contenteditable="true">This field is required</div>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-8 col-md-6">
+              <p contenteditable="true">Radio form</p>
+              <div class="radio">
+                <label>
+                  <input type="radio" name="styleguide-radio">
+                  <span contenteditable="true">First option</span>
+                </label>
+              </div>
+              <div class="radio">
+                <label>
+                  <input type="radio" name="styleguide-radio">
+                  <span contenteditable="true">Feel free to place here as long text as you want</span>
+                </label>
+              </div>
               <span class="help-block">
-                <div class="help-block" contenteditable="true">This field is required</div>
+                <div class="help-block" contenteditable="true">This field is required.</div>
+              </span>
+            </div>
+            <div class="col-4 col-md-6">
+              <p contenteditable="true">Quantity</p>
+              <form role="form" class="form-cart form-group">
+                <div class="" tabindex="-1">
+                  <input id="id_quantity" max="50" min="1" name="quantity" type="number" value="52" required="">
+                </div>
+              </form>
+              <span class="help-block">
+                <div class="help-block" contenteditable="true">Only 32 remaining in stock.</div>
               </span>
             </div>
           </div>
         </div>
-        <div class="row">
-          <div class="col-8 col-md-6">
-            <p contenteditable="true">Radio form</p>
-            <div class="radio">
-              <label>
-                <input type="radio" name="styleguide-radio">
-                <span contenteditable="true">First option</span>
-              </label>
-            </div>
-            <div class="radio">
-              <label>
-                <input type="radio" name="styleguide-radio">
-                <span contenteditable="true">Feel free to place here as long text as you want</span>
-              </label>
-            </div>
-            <span class="help-block">
-              <div class="help-block" contenteditable="true">This field is required.</div>
-            </span>
-          </div>
-          <div class="col-4 col-md-6">
-          <p contenteditable="true">Quantity</p>
-            <form role="form" class="form-cart form-group">
-              <div class="" tabindex="-1">
-                <input id="id_quantity" max="50" min="1" name="quantity" type="number" value="52" required="">
-              </div>
-            </form>
-            <span class="help-block">
-              <div class="help-block" contenteditable="true">Only 32 remaining in stock.</div>
-            </span>
-          </div>
-        </div>
       </div>
       <div id="pagination" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Pagination <svg data-src="{% static "images/edit.svg" %}" /></h3>
-        <ul class="pagination">
+        <div class="styleguide__tittle">
+          <h3 class="styleguide__content__block__title">Pagination</h3>
+          <p>Click and edit any item below to see how the component looks with different text</p>
+        </div>
+        <ul class="pagination styleguide__section">
           <li class="prev disabled"><a>«</a></li>
           <li><a contenteditable="true">1</a></li>
           <li class="active"><a contenteditable="true">2</a></li>
@@ -508,8 +572,11 @@
         </ul>
       </div>
       <div id="breadcrumbs" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Breadcrumbs <svg data-src="{% static "images/edit.svg" %}" /></h3>
-        <ul class="breadcrumbs list-unstyled">
+        <div class="styleguide__tittle">
+          <h3 class="styleguide__content__block__title">Breadcrumbs</h3>
+          <p>Click and edit any item below to see how the component looks with different text</p>
+        </div>
+        <ul class="breadcrumbs list-unstyled styleguide__section">
           <li><a href="/" contenteditable="true">
             Home
           </a></li>
@@ -522,23 +589,31 @@
         </ul>
       </div>
       <div id="notifications" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Notifications <svg data-src="{% static "images/edit.svg" %}" /></h3>
-        <div class="alert alert-success">
-          <button type="button" class="close" aria-hidden="true">&times;</button>
-          <span contenteditable="true">This is Success alert.</span>
+        <div class="styleguide__tittle">
+          <h3 class="styleguide__content__block__title">Notifications</h3>
+          <p>Click and edit any item below to see how the component looks with different text</p>
         </div>
-        <div class="alert alert-danger">
-          <button type="button" class="close" aria-hidden="true">&times;</button>
-          <span contenteditable="true">This is Danger alert.</span>
-        </div>
-        <div class="alert alert-warning">
-          <button type="button" class="close" aria-hidden="true">&times;</button>
-          <span contenteditable="true">This is Warning alert. Notifications content is not limited with container width. Place here as many information as you want or need to.</span>
+        <div class="styleguide__section">
+          <div class="alert alert-success">
+            <button type="button" class="close" aria-hidden="true">&times;</button>
+            <span contenteditable="true">This is Success alert.</span>
+          </div>
+          <div class="alert alert-danger">
+            <button type="button" class="close" aria-hidden="true">&times;</button>
+            <span contenteditable="true">This is Danger alert.</span>
+          </div>
+          <div class="alert alert-warning">
+            <button type="button" class="close" aria-hidden="true">&times;</button>
+            <span contenteditable="true">This is Warning alert. Notifications content is not limited with container width. Place here as many information as you want or need to.</span>
+          </div>
         </div>
       </div>
       <div id="mainnav" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Main navigation <svg data-src="{% static "images/edit.svg" %}" /></h3>
-        <nav class="navigation">
+        <div class="styleguide__tittle">
+          <h3 class="styleguide__content__block__title">Main navigation</h3>
+          <p>Click and edit any item below to see how the component looks with different text</p>
+        </div>
+        <nav class="navigation styleguide__section">
           <ul class="nav navbar-nav{% if request.get_full_path == home_url %} no-border{% endif %}" >
             {% for category in categories %}
               {% url 'home' as home_url %}
@@ -552,198 +627,224 @@
         </nav>
       </div>
       <div id="tabs" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Tabs navigation</h3>
-        <ul class="nav nav-tabs col-lg-10 offset-lg-1" role="tablist">
-          <li class="nav-item">
-            <a class="nav-link active" data-toggle="tab" href="#orders" role="tab">
-              <h3>Recent Orders</h3>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" data-toggle="tab" href="#password" role="tab">
-              <h3>Change password</h3>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" data-toggle="tab" href="#addresses" role="tab">
-              <h3>Addresses book</h3>
-            </a>
-          </li>
-        </ul>
-        <div class="tab-content">
-          <div class="tab-pane active fade show" id="orders" role="tabpanel">
-            <div class="col-lg-10 offset-lg-1">
-              <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent porttitor, felis et volutpat blandit, ex turpis consectetur eros, sit amet malesuada diam elit ut arcu.</p>
+        <div class="styleguide__tittle">
+          <h3 class="styleguide__content__block__title">Tabs navigation</h3>
+        </div>
+        <div class="styleguide__section">
+          <ul class="nav nav-tabs col-lg-10 offset-lg-1" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link active" data-toggle="tab" href="#orders" role="tab">
+                <h3>Recent Orders</h3>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" data-toggle="tab" href="#password" role="tab">
+                <h3>Change password</h3>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" data-toggle="tab" href="#addresses" role="tab">
+                <h3>Addresses book</h3>
+              </a>
+            </li>
+          </ul>
+          <div class="tab-content">
+            <div class="tab-pane active fade show" id="orders" role="tabpanel">
+              <div class="col-lg-10 offset-lg-1">
+                <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent porttitor, felis et volutpat blandit, ex turpis consectetur eros, sit amet malesuada diam elit ut arcu.</p>
+              </div>
             </div>
-          </div>
-          <div class="tab-pane fade" id="password" role="tabpanel">
-            <div class="col-lg-10 offset-lg-1">
-              <p class="text-center">Cras dapibus at turpis eget porta. Donec laoreet nulla nunc, ac euismod diam efficitur et. In hac habitasse platea dictumst. Donec eleifend pharetra est, ac molestie lorem lacinia a.</p>
+            <div class="tab-pane fade" id="password" role="tabpanel">
+              <div class="col-lg-10 offset-lg-1">
+                <p class="text-center">Cras dapibus at turpis eget porta. Donec laoreet nulla nunc, ac euismod diam efficitur et. In hac habitasse platea dictumst. Donec eleifend pharetra est, ac molestie lorem lacinia a.</p>
+              </div>
             </div>
-          </div>
-          <div class="tab-pane fade" id="addresses" role="tabpanel">
-            <div class="col-lg-10 offset-lg-1">
-              <p class="text-center">Nullam sit amet finibus tortor. Curabitur auctor malesuada dui, quis ornare libero posuere quis. Aliquam non faucibus erat, nec hendrerit ex.</p>
+            <div class="tab-pane fade" id="addresses" role="tabpanel">
+              <div class="col-lg-10 offset-lg-1">
+                <p class="text-center">Nullam sit amet finibus tortor. Curabitur auctor malesuada dui, quis ornare libero posuere quis. Aliquam non faucibus erat, nec hendrerit ex.</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
       <div id="tables" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Tables <svg data-src="{% static "images/edit.svg" %}" /></h3>
-        <div class="table__header">
-          <div class="row">
-            <div class="col-md-2 col-3">
-              <small contenteditable="true">Order</small>
-            </div>
-            <div class="col-md-4 hidden-sm-down">
-              <small contenteditable="true">Date</small>
-            </div>
-            <div class="col-md-2 col-4 text-right">
-              <small contenteditable="true">Summary</small>
-            </div>
-            <div class="col-md-3 hidden-sm-down">
-              <small contenteditable="true">Status</small>
-            </div>
-            <div class="col-md-1 col-5"></div>
-          </div>
+        <div class="styleguide__tittle">
+          <h3 class="styleguide__content__block__title">Tables</h3>
+          <p>Click and edit any text below to see how the component looks with different text</p>
         </div>
-        <div class="table__row">
-          <div class="row">
-            <div class="col-md-2 col-3" contenteditable="true">
-              #1
-            </div>
-            <div class="col-md-4 hidden-sm-down" contenteditable="true">
-              {% now "F j, Y, H:i a" %}
-            </div>
-            <div class="col-md-2 col-4">
-              <span class="float-right" contenteditable="true">$129.35</span>
-            </div>
-            <div class="col-md-3 hidden-sm-down">
-              <span class="label label-default" contenteditable="true">Payment pending</span>
-            </div>
-            <div class="col-md-1 col-5">
-              <a href="#" class="float-right link--styled" contenteditable="true">
-                Details
-              </a>
+        <div class="styleguide__section">
+          <div class="table__header">
+            <div class="row">
+              <div class="col-md-2 col-3">
+                <small contenteditable="true">Order</small>
+              </div>
+              <div class="col-md-4 hidden-sm-down">
+                <small contenteditable="true">Date</small>
+              </div>
+              <div class="col-md-2 col-4 text-right">
+                <small contenteditable="true">Summary</small>
+              </div>
+              <div class="col-md-3 hidden-sm-down">
+                <small contenteditable="true">Status</small>
+              </div>
+              <div class="col-md-1 col-5"></div>
             </div>
           </div>
-        </div>
-        <div class="table__row">
-          <div class="row">
-            <div class="col-md-2 col-3" contenteditable="true">
-              #2
+          <div class="table__row">
+            <div class="row">
+              <div class="col-md-2 col-3" contenteditable="true">
+                #1
+              </div>
+              <div class="col-md-4 hidden-sm-down" contenteditable="true">
+                {% now "F j, Y, H:i a" %}
+              </div>
+              <div class="col-md-2 col-4">
+                <span class="float-right" contenteditable="true">$129.35</span>
+              </div>
+              <div class="col-md-3 hidden-sm-down">
+                <span class="label label-default" contenteditable="true">Payment pending</span>
+              </div>
+              <div class="col-md-1 col-5">
+                <a href="#" class="float-right link--styled" contenteditable="true">
+                  Details
+                </a>
+              </div>
             </div>
-            <div class="col-md-4 hidden-sm-down" contenteditable="true">
-              {% now "F j, Y, H:i a" %}
-            </div>
-            <div class="col-md-2 col-4">
-              <span class="float-right" contenteditable="true">$129.35</span>
-            </div>
-            <div class="col-md-3 hidden-sm-down">
-              <span class="label label-success" contenteditable="true">Fully paid</span>
-            </div>
-            <div class="col-md-1 col-5">
-              <a href="#" class="float-right link--styled" contenteditable="true">
-                Details
-              </a>
+          </div>
+          <div class="table__row">
+            <div class="row">
+              <div class="col-md-2 col-3" contenteditable="true">
+                #2
+              </div>
+              <div class="col-md-4 hidden-sm-down" contenteditable="true">
+                {% now "F j, Y, H:i a" %}
+              </div>
+              <div class="col-md-2 col-4">
+                <span class="float-right" contenteditable="true">$129.35</span>
+              </div>
+              <div class="col-md-3 hidden-sm-down">
+                <span class="label label-success" contenteditable="true">Fully paid</span>
+              </div>
+              <div class="col-md-1 col-5">
+                <a href="#" class="float-right link--styled" contenteditable="true">
+                  Details
+                </a>
+              </div>
             </div>
           </div>
         </div>
       </div>
       <div id="cards" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Cards <svg data-src="{% static "images/edit.svg" %}" /></h3>
-        <div class="row">
-          <div class="card-deck col-md-6">
-            <div class="card card-block">
-              <div class="address-details">
+        <div class="styleguide__tittle">
+          <h3 class="styleguide__content__block__title">Cards</h3>
+          <p>Click and edit any text below to see how the component looks with different text</p>
+        </div>
+        <div class="styleguide__section">
+          <div class="row">
+            <div class="card-deck col-md-6 offset-md-3">
+              <div class="card card-block">
+                <div class="address-details">
                   <p contenteditable="true">Mr. Walter C. Brown<br>
                     49 Featherstone Street<br>
                     London, EC1Y 8SY
                     <br>
                     United Kingdom<br>
                   </p>
-              </div>
-              <ul class="icons">
-                <li><a href="#" contenteditable="true">Edit</a></li>
-                <li><a class="delete-icon"><svg data-src="{% static "images/delete.svg" %}" height="20px" width="20px" /></a></li>
-              </ul>              
-              <div class="address-delete none">
-                <form>
-                  <button type="submit" class="btn danger narrow float-right" contenteditable="true">
-                    Delete Address
-                  </button>
-                  <a class="btn btn-link cancel float-md-right" contenteditable="true">
-                    Cancel
-                  </a>
-                </form>
+                </div>
+                <ul class="icons">
+                  <li><a href="#" contenteditable="true">Edit</a></li>
+                  <li><a class="delete-icon"><svg data-src="{% static "images/delete.svg" %}" height="20px" width="20px" /></a></li>
+                </ul>              
+                <div class="address-delete none">
+                  <form>
+                    <button type="submit" class="btn danger narrow float-right" contenteditable="true">
+                      Delete Address
+                    </button>
+                    <a class="btn btn-link cancel float-md-right" contenteditable="true">
+                      Cancel
+                    </a>
+                  </form>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
       <div id="product" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Products <svg data-src="{% static "images/edit.svg" %}" /></h3>
-        <div class="row">
-          <div class="col-6 col-lg-3 product-list">
-            <div class="text-center">
-              <div>
-                <img class="img-responsive" src="{% static "images/sample-product.jpg" %}" alt="">
-                <span class="product-list-item-name" contenteditable="true">Johnson-Brown</span>
-              </div>
-              <div class="panel-footer">
-                <span contenteditable="true">$32.13</span>
+        <div class="styleguide__tittle">
+          <h3 class="styleguide__content__block__title">Products</h3>
+          <p>Click and edit any text below to see how the component looks with different text</p>
+        </div>
+        <div class="styleguide__section">
+          <div class="row">
+            <div class="col-6 col-lg-3 product-list">
+              <div class="text-center">
+                <div>
+                  <img class="img-responsive" src="{% static "images/sample-product.jpg" %}" alt="">
+                  <span class="product-list-item-name" contenteditable="true">Johnson-Brown</span>
+                </div>
+                <div class="panel-footer">
+                  <span contenteditable="true">$32.13</span>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="col-6 col-lg-3 product-list">
-            <div class="text-center">
-              <div>
-                <img class="img-responsive" src="{% static "images/sample-product2.jpg" %}" alt="">
-                <span class="product-list-item-name" contenteditable="true">Johnson-Brown</span>
-              </div>
-              <div class="panel-footer">
-                <div class="product-list__sale">
-                  <svg data-src="{% static "images/sale_bg.svg" %}" />
-                  <span class="product-list__sale__text" contenteditable="true">Sale</span>
+            <div class="col-6 col-lg-3 product-list">
+              <div class="text-center">
+                <div>
+                  <img class="img-responsive" src="{% static "images/sample-product2.jpg" %}" alt="">
+                  <span class="product-list-item-name" contenteditable="true">Johnson-Brown</span>
                 </div>
-                <span contenteditable="true">FROM $72.25</span>
+                <div class="panel-footer">
+                  <div class="product-list__sale">
+                    <svg data-src="{% static "images/sale_bg.svg" %}" />
+                    <span class="product-list__sale__text" contenteditable="true">Sale</span>
+                  </div>
+                  <span contenteditable="true">FROM $72.25</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
       <div id="product-gallery" class="styleguide__content__block">
-        <h3 class="styleguide__content__block__title">Product gallery</h3>
-        <div class="col-md-8 col-lg-6 col-12 product__gallery">
-          <div id="carousel-example-generic" class="carousel slide">
-            <div class="carousel-inner" role="listbox">  
-              <div class="carousel-item active">
-                <img class="d-block img-fluid" src="{% static "images/sample-product.jpg" %}" alt="">
-              </div>
-              <div class="carousel-item">
-                <img class="d-block img-fluid" src="{% static "images/sample-product2.jpg" %}" alt="">
+        <div class="styleguide__tittle">
+          <h3 class="styleguide__content__block__title">Product gallery</h3>
+        </div>
+        <div class="styleguide__section">
+          <div class="row">
+            <div class="col-md-8 offset-md-2 offset-lg-3 col-lg-6 col-12 product__gallery">
+              <div id="carousel-example-generic" class="carousel slide">
+                <div class="carousel-inner" role="listbox">  
+                  <div class="carousel-item active">
+                    <img class="d-block img-fluid" src="{% static "images/sample-product.jpg" %}" alt="">
+                  </div>
+                  <div class="carousel-item">
+                    <img class="d-block img-fluid" src="{% static "images/sample-product2.jpg" %}" alt="">
+                  </div>
+                </div>
+                <a class="carousel-control-prev" href="#carousel-example-generic" role="button" data-slide="prev">
+                  <svg data-src="{% static "images/gallery_arrow.svg" %}" />
+                </a>
+                <a class="carousel-control-next" href="#carousel-example-generic" role="button" data-slide="next">
+                  <svg data-src="{% static "images/gallery_arrow.svg" %}" />
+                </a>          
+                <ol class="carousel-indicators hidden-sm-down">
+                  <li data-target="#carousel-example-generic" data-slide-to="0" class="active">
+                    <img src="{% static "images/sample-product.jpg" %}" alt="">
+                  </li>
+                  <li data-target="#carousel-example-generic" data-slide-to="1" class="">
+                    <img src="{% static "images/sample-product2.jpg" %}" alt="">
+                  </li>
+                </ol>     
               </div>
             </div>
-            <a class="carousel-control-prev" href="#carousel-example-generic" role="button" data-slide="prev">
-              <svg data-src="{% static "images/gallery_arrow.svg" %}" />
-            </a>
-            <a class="carousel-control-next" href="#carousel-example-generic" role="button" data-slide="next">
-              <svg data-src="{% static "images/gallery_arrow.svg" %}" />
-            </a>          
-            <ol class="carousel-indicators hidden-sm-down">
-              <li data-target="#carousel-example-generic" data-slide-to="0" class="active">
-                <img src="{% static "images/sample-product.jpg" %}" alt="">
-              </li>
-              <li data-target="#carousel-example-generic" data-slide-to="1" class="">
-                <img src="{% static "images/sample-product2.jpg" %}" alt="">
-              </li>
-            </ol>     
           </div>
         </div>
       </div>
     </div>
   </div>
-  {% endblock %}
-  
-  {% block footer %}
-  {% endblock %}
+</div>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

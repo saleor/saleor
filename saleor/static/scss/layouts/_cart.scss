@@ -62,7 +62,7 @@
     &__subtotal {
       color: $skull-gray;
       @include media-breakpoint-up(sm) {
-        padding-left: 5.75rem;
+        padding-left: calc(60px + #{$global-padding} * 2);
       }
     }
   }

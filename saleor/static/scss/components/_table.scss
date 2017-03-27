@@ -10,5 +10,8 @@
   &__row {
     border-bottom: 1px solid $gray;
     padding: $global-padding 0;
+    p {
+      margin-bottom: 0;
+    }
   }
 }

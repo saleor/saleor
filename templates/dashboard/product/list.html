@@ -14,13 +14,19 @@
 {% block menu_products_class %}active{% endblock %}
 
 {% block header_extra %}
-  <div class="fixed-action-btn">
-    {% if product_classes %}
-      <a class="btn-fab btn-floating btn-large waves-effect waves-light teal modal-trigger" href="#modal-product-class" title="{% trans "Add product" context "Product list add button text" %}">
-        <svg data-src="{% static "dashboard/images/add.svg" %}" />
-      </a>
-    {% endif %}
-  </div>
+  {% if product_classes %}
+    <div class="fixed-action-btn">
+      {% if product_classes|length > 1 %}
+        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal modal-trigger" href="#modal-product-class" title="{% trans "Add product" context "Product list add button text" %}">
+          <svg data-src="{% static "dashboard/images/add.svg" %}" />
+        </a>
+      {% else %}
+        <a class="btn-fab btn-floating btn-large waves-effect waves-light teal modal-trigger" href="{% url 'dashboard:product-add' product_classes.0.pk %}" title="{% trans "Add product" context "Product list add button text" %}">
+          <svg data-src="{% static "dashboard/images/add.svg" %}" />
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
 {% endblock %}
 
 {% block breadcrumbs %}
