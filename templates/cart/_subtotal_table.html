@@ -29,8 +29,14 @@
   <div class="last table__row cart__delivery-info">
     <div class="row">
       <div class="col-7 cart__total__subtotal deliveryform" data-csrf="{{ csrf_token }}">
-        <p>{% trans "Shipping cost for:" context "Cart shipping cost form" %}</p>
-        {{ country_form.country }}
+        <div class="row">
+          <div class="col-12 col-md-4">
+            <p>{% trans "Shipping cost for:" context "Cart shipping cost form" %}</p>
+          </div>
+          <div class="col-12 col-md-8">
+            {{ country_form.country }}
+          </div>
+        </div>
       </div>
       <div class="col-5">
         <div class="row">

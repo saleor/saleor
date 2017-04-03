@@ -32,12 +32,11 @@
 
 .deliveryform {
   select {
-    @include media-breakpoint-down(sm) {
+    @include media-breakpoint-down(md) {
       width: 100%;
       margin-top: $global-margin / 2;
       margin-left: 0;
     }
-    margin-left: $global-margin;
     background-color: $white;
     height: calc(2.25rem + 2px);
     &:focus {
