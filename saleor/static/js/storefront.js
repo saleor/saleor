@@ -196,11 +196,10 @@ $('.product-form button').click((e) => {
 
 let $deliveryForm = $('.deliveryform');
 let crsfToken = $deliveryForm.data('crsf');
-let $countrySelect = $('#id_country');
-let $newMethod = $('.cart__delivery-info__method');
-let $newPrice = $('.cart__delivery-info__price');
-$countrySelect.on('change', (e) => {
-  let newCountry = $countrySelect.val();
+let countrySelect = '#id_country';
+let $cartSubtotal = $('.cart__subtotal');
+let deliveryAjax = (e) => {
+  let newCountry = $(countrySelect).val();
   $.ajax({
     url: '/cart/shipingoptions/',
     type: 'POST',
@@ -209,15 +208,12 @@ $countrySelect.on('change', (e) => {
       'country': newCountry
     },
     success: (data) => {
-      $newMethod.empty();
-      $newPrice.empty();
-      $.each(data.options, (key, val) => {
-        $newMethod.append('<p>' + val.shipping_method__name + '</p>');
-        $newPrice.append('<p>$' + val.price[1] + '</p>');
-      });
+      $cartSubtotal.html(data);
     }
   });
-});
+};
+
+$cartSubtotal.on('change', countrySelect, deliveryAjax);
 
 // Open tab from the link
 
@@ -293,7 +289,7 @@ let $deleteAddress = $('.address-delete');
 // Cart quantity form
 
 let $cartLine = $('.cart__line');
-let $total = $('.cart-total');
+let $total = $('.cart-subtotal');
 let $cartBadge = $('.navbar__brand__cart .badge');
 let $removeProductSucces = $('.remove-product-alert');
 let $closeMsg = $('.close-msg');
@@ -301,7 +297,7 @@ $cartLine.each(function() {
   let $quantityInput = $(this).find('#id_quantity');
   let cartFormUrl = $(this).find('.form-cart').attr('action');
   let $qunatityError = $(this).find('.cart__line__quantity-error');
-  let $subtotal = $(this).find('.cart-item-subtotal p');
+  let $subtotal = $(this).find('.cart-item-price p');
   let $deleteIcon = $(this).find('.cart-item-delete');
   $(this).on('change', $quantityInput, (e) => {
     let newQuantity = $quantityInput.val();
@@ -321,10 +317,10 @@ $cartLine.each(function() {
         } else {
           $subtotal.html(response.subtotal);
         }
-        $total.html(response.total);
         $cartBadge.html(response.cart.numItems);
         $qunatityError.html('');
         $cartDropdown.load(summaryLink);
+        deliveryAjax();
       },
       error: (response) => {
         $qunatityError.html(getAjaxError(response));
@@ -347,6 +343,7 @@ $cartLine.each(function() {
           $.cookie('alert', 'true', { path: '/cart' });
           location.reload();
         }
+        deliveryAjax();
       }
     });
   });

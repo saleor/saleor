@@ -34,6 +34,9 @@
       }
     }
     &__quantity {
+      @include media-breakpoint-down(sm) {
+        margin-bottom: $global-margin / 2;
+      }
       form {
         display: inline-block;
       }
@@ -64,26 +67,19 @@
       @include media-breakpoint-up(sm) {
         padding-left: calc(60px + #{$global-padding} * 2);
       }
+      &--shipping {
+        color: $body-color;
+      }
     }
   }
   &__delivery-info {
-    margin-top: $global-margin * 2;
-    .deliveryform {
-      padding: $global-padding 0;
-    }
     p {
       margin-bottom: 0;
+      color: $body-color;
+      display: inline-block;
     }
     &__price {
-      p {
-        text-align: right;
-      }
-    }
-    &__list {
-      border-top: 1px solid $gray;
-      .col-6 {
-        padding: 0;
-      }
+      text-transform: uppercase;
     }
   }
   &__empty {

@@ -1,0 +1,68 @@
+{% load i18n %}
+{% load price_range from price_ranges %}
+{% load gross from prices_i18n %}
+
+{% if shipping_required %}
+  <div class="table__row">
+    <div class="row">
+      <div class="col-8 cart__total__subtotal">
+        <h3>{% trans "Subtotal" context "Order subtotal" %}</h3>
+      </div>
+      <div class="col-4">
+        <h3 class="text-right cart-subtotal"
+           data-value="{% gross cart_total %}"
+           {% if local_cart_total %}data-value-local="{% gross local_cart_total %}"{% endif %}>
+          {% spaceless %}
+            {% gross cart_total html=True %}
+            {% if local_cart_total %}
+              <br>
+              <small>
+                &asymp;
+                {% gross local_cart_total html=True %}
+              </small>
+            {% endif %}
+          {% endspaceless %}
+        </h3>
+      </div>
+    </div>
+  </div>
+  <div class="last table__row cart__delivery-info">
+    <div class="row">
+      <div class="col-7 cart__total__subtotal deliveryform" data-csrf="{{ csrf_token }}">
+        <p>{% trans "Shipping cost for:" context "Cart shipping cost form" %}</p>
+        {{ country_form.country }}
+      </div>
+      <div class="col-5">
+        <div class="row">
+          <div class="col-md-12 col-12 text-right">
+            <p class="cart__delivery-info__price">
+              {% if default_country_options %}
+                {% price_range default_country_options %}
+              {% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+<div class="cart__total">
+  <div class="row">
+    <div class="col-8 cart__total__subtotal">
+      <h3>{% trans "Total" context "Order subtotal" %}</h3>
+    </div>
+    <div class="col-4">
+      {% spaceless %}
+        <h3 class="text-right cart-total"><span>{% price_range total_with_shipping %}</span>
+          {% if local_total_with_shipping %}
+            <br>
+            <small>
+              &asymp;
+              {% price_range local_total_with_shipping %}
+            </small>
+          {% endif %}
+        </h3>
+      {% endspaceless %}
+    </div>
+  </div>
+</div>

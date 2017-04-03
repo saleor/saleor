@@ -11,7 +11,8 @@ from ..product.models import ProductVariant
 from ..shipping.utils import get_shipment_options
 from .forms import ReplaceCartLineForm, CountryForm
 from .models import Cart
-from .utils import check_product_availability_and_warn, get_or_empty_db_cart
+from .utils import (check_product_availability_and_warn, get_or_empty_db_cart,
+                    get_cart_data)
 
 
 @get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
@@ -30,31 +31,37 @@ def index(request, cart):
             'get_total': line.get_total(discounts=discounts),
             'form': form})
 
-    cart_total = None
-    local_cart_total = None
-    if cart:
-        cart_total = cart.get_total(discounts=discounts)
-        local_cart_total = to_local_currency(cart_total, request.currency)
-
     default_country = get_user_shipping_country(request)
     country_form = CountryForm(initial={'country': default_country})
     default_country_options = get_shipment_options(default_country)
 
+    cart_data = get_cart_data(
+        cart, default_country_options, request.currency, request.discounts)
+    ctx = {
+        'cart_lines': cart_lines,
+        'country_form': country_form,
+        'default_country_options': default_country_options}
+    ctx.update(cart_data)
+
     return TemplateResponse(
-        request, 'cart/index.html',
-        {
-            'cart_lines': cart_lines,
-            'cart_total': cart_total,
-            'local_cart_total': local_cart_total,
-            'country_form': country_form,
-            'default_country_options': default_country_options})
+        request, 'cart/index.html', ctx)
 
 
-def get_shipping_options(request):
+@get_or_empty_db_cart(cart_queryset=Cart.objects.for_display())
+def get_shipping_options(request, cart):
     country_form = CountryForm(request.POST or None)
     if country_form.is_valid():
         shipments = country_form.get_shipment_options()
-        return JsonResponse({'options': list(shipments)})
+    else:
+        shipments = None
+    ctx = {
+        'default_country_options': shipments,
+        'country_form': country_form}
+    cart_data = get_cart_data(
+        cart, shipments, request.currency, request.discounts)
+    ctx.update(cart_data)
+    return TemplateResponse(
+        request, 'cart/_subtotal_table.html', ctx)
 
 
 @get_or_empty_db_cart()
