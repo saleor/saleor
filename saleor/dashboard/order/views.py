@@ -13,6 +13,7 @@ from prices import Price
 from ...core.utils import get_paginator_items
 from ...order import OrderStatus
 from ...order.models import Order, OrderedItem, OrderNote
+from ...product.models import ProductVariant
 from ...userprofile.i18n import AddressForm
 from ..order.forms import OrderFilterForm
 from ..views import staff_member_required
@@ -160,7 +161,10 @@ def orderline_change_quantity(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
     item = get_object_or_404(OrderedItem.objects.filter(
         delivery_group__order=order), pk=line_pk)
-    form = ChangeQuantityForm(request.POST or None, instance=item)
+    variant = get_object_or_404(
+        ProductVariant, sku=item.product_sku)
+    form = ChangeQuantityForm(
+        request.POST or None, instance=item, variant=variant)
     status = 200
     old_quantity = item.quantity
     if form.is_valid():
@@ -174,6 +178,7 @@ def orderline_change_quantity(request, order_pk, line_pk):
                 'new_quantity': item.quantity}
         order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
+        return redirect('dashboard:order-details', order_pk=order.pk)
     elif form.errors:
         status = 400
     ctx = {'order': order, 'object': item, 'form': form}
