@@ -57,87 +57,49 @@
 {% endblock %}
 
 {% block content %}
-  <div class="row">
-    <div class="col s12">
-      <ul class="tabs">
-        <li class="tab col s3" role="presentation">
-          <a href="#details" class="active" role="tab">
-            <span>
-              {% trans "Details" context "Product form tab" %}
-            </span>
-          </a>
-        </li>
-        {% if product.product_class.has_variants %}
-          <li class="tab col s3" role="presentation">
-            <a href="#variants" role="tab">
-              <span>
-                {% trans "Variants" context "Product form tab" %}
-              </span>
-            </a>
-          </li>
-        {% endif %}
-        <li class="tab col s3" role="presentation">
-          <a href="#stock" role="tab">
-            <span>
-              {% trans "Stock" context "Product form tab" %}
-            </span>
-          </a>
-        </li>
-        <li class="tab col s3" role="presentation">
-          <a href="#images" role="tab">
-            <span>
-              {% trans "Images" context "Product form tab" %}
-            </span>
-          </a>
-        </li>
-      </ul>
-    </div>
-  </div>
-
   <div class="tab-content" id="details">
     <div class="row">
       <div class="col m12 l12">
         <div class="card">
           <div class="card-content">
-            <span class="card-title">{{ product.product_class }}</span>
+            <span class="card-title">{{ product }}</span>
             <div class="row">
-              <div class="col s12 l9">
-                <h5>{% trans "Name" context "Product field" %}</h5>
-                <p>{{ product.name }}</p>
+              <div class="col s12 l3">
+                <h5>{% trans "Sale price" context "Product field" %}</h5>
+                {% with sale_price.min_price as min_price %}
+                {% with sale_price.max_price as max_price %}
+                <p>{% gross min_price %} - {% gross max_price %}</p>
+                {% endwith %}
+                {% endwith %}
               </div>
               <div class="col s12 l3">
-                <h5>{% trans "Price" context "Product field" %}</h5>
-                <p>{% gross product.price %}</p>
+                <h5>{% trans "Purchase cost" context "Product field" %}</h5>
+                {% with sale_price.min_price as min_price %}
+                {% with sale_price.max_price as max_price %}
+                <p>{% net min_price %} - {% net max_price %}</p>
+                {% endwith %}
+                {% endwith %}
               </div>
-              {% for attribute, value in attributes.items %}
-                <div class="col s12 l9">
-                  <h5>{{ attribute }}</h5>
-                  <p>{{ value }}</p>
-                </div>
-              {% endfor %}
-              {% if product.description %}
-                <div class="col s12 l9">
-                  <h5>{% trans "Description" context "Product field" %}</h5>
-                  <p>{{ product.description }}</p>
-                </div>
-              {% endif %}
-              {% if product.categories.all %}
-                <div class="col s12 l9">
-                <h5>{% trans "Categories" context "Product field" %}</h5>
-                <p>
-                  {% for category in product.categories.all %}
-                    {{ category }},
-                  {% endfor %}
-                </p>
-                </div>
-              {% endif %}
-              {% if product.available_on %}
-              <div class="col s12 l9">
-                <h5>{% trans "Available on" context "Product field" %}</h5>
-                <p>{{ product.available_on }}</p>
+              <div class="col s12 l3">
+                <h5>{% trans "Gross margin" context "Product field" %}</h5>
+                {% with gross_price_range.min_price as min_price %}
+                {% with gross_price_range.max_price as max_price %}
+                <p>{% tax min_price %} - {% tax max_price %}</p>
+                {% endwith %}
+                {% endwith %}
               </div>
-              {% endif %}
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tab-content" id="details">
+    <div class="row">
+      <div class="col m12 l12">
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">{% trans "Variant" %}</span>
           </div>
         </div>
       </div>

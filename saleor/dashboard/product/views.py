@@ -13,7 +13,8 @@ from ...core.utils import get_paginator_items
 from ...product.models import (Product, ProductAttribute, ProductClass,
                                ProductImage, ProductVariant, Stock,
                                StockLocation)
-from ...product.utils import get_product_attributes_data
+from ...product.utils import (get_product_attributes_data, get_availability,
+                              price_range_as_dict)
 from ..views import staff_member_required
 
 
@@ -138,7 +139,11 @@ def product_detail(request, pk):
         'product_class__product_attributes__values', 'categories').all()
     product = get_object_or_404(products, pk=pk)
     attributes = get_product_attributes_data(product)
-    ctx = {'product': product, 'attributes': attributes}
+    availability = get_availability(product)
+    sale_price = availability.price_range
+    gross_price_range = product.get_gross_price_range()
+    ctx = {'product': product, 'attributes': attributes,
+           'sale_price': sale_price, 'gross_price_range': gross_price_range}
     return TemplateResponse(
         request, 'dashboard/product/product_detail.html', ctx)
 
