@@ -25,11 +25,9 @@ def read_env():
     directory.
     """
     try:
-        with open('../../.env') as f:
+        with open('../.env') as f:
             content = f.read()
-        print("Loaded content")
     except IOError:
-        print("Can not find file")
         content = ''
 
     for line in content.splitlines():
