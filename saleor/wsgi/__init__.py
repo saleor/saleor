@@ -18,6 +18,7 @@ import re
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'saleor.settings')
 
+
 def read_env():
     """Pulled from Honcho code with minor updates, reads local default
     environment variables from a .env file located in the project root
@@ -44,6 +45,7 @@ def read_env():
             os.environ.setdefault(key, val)
 
 
+read_env()
 
 # This application object is used by any WSGI server configured to use this
 # file. This includes Django's development server, if the WSGI_APPLICATION
