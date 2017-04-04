@@ -34,17 +34,27 @@ class ProductClassSelectorForm(forms.Form):
 class StockForm(forms.ModelForm):
     class Meta:
         model = Stock
-        exclude = ['quantity_allocated']
+        exclude = ['quantity_allocated', 'variant']
 
     def __init__(self, *args, **kwargs):
-        product = kwargs.pop('product')
+        self.variant = kwargs.pop('variant')
         super(StockForm, self).__init__(*args, **kwargs)
-        if not product.product_class.has_variants:
-            initial = product.variants.first()
-        else:
-            initial = None
-        self.fields['variant'] = forms.ModelChoiceField(
-            queryset=product.variants, initial=initial)
+
+    def clean_location(self):
+        location = self.cleaned_data['location']
+        if (
+            not self.instance.pk and
+                self.variant.stock.filter(location=location).exists()):
+            self.add_error(
+                'location',
+                pgettext_lazy(
+                    'stock form error',
+                    'Stock item for this location and variant already exists'))
+        return location
+
+    def save(self, commit=True):
+        self.instance.variant = self.variant
+        return super(StockForm, self).save(commit)
 
 
 class ProductClassForm(forms.ModelForm):

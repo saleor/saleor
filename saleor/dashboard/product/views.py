@@ -124,8 +124,7 @@ def product_create(request, class_pk):
         msg = pgettext_lazy(
             'Dashboard message', 'Added product %s') % product
         messages.success(request, msg)
-        return redirect('dashboard:product-detail',
-                        pk=product.pk)
+        return redirect('dashboard:product-detail', pk=product.pk)
 
     ctx = {'product_form': product_form, 'variant_form': variant_form,
            'product': product}
@@ -200,24 +199,23 @@ def product_delete(request, pk):
 
 
 @staff_member_required
-def stock_edit(request, product_pk, stock_pk=None):
+def stock_edit(request, product_pk, variant_pk, stock_pk=None):
     product = get_object_or_404(Product, pk=product_pk)
+    variant = get_object_or_404(product.variants, pk=variant_pk)
     if stock_pk:
-        stock = get_object_or_404(Stock, pk=stock_pk)
+        stock = get_object_or_404(variant.stock, pk=stock_pk)
     else:
         stock = Stock()
-    form = forms.StockForm(request.POST or None, instance=stock,
-                           product=product)
+    form = forms.StockForm(
+        request.POST or None, instance=stock, variant=variant)
     if form.is_valid():
         form.save()
         messages.success(
             request, pgettext_lazy('Dashboard message', 'Saved stock'))
-        product_url = reverse(
-            'dashboard:product-update', kwargs={'pk': product_pk})
-        success_url = request.POST.get('success_url', product_url)
-        if is_safe_url(success_url, allowed_hosts=request.get_host()):
-            return redirect(success_url)
-    ctx = {'form': form, 'product': product, 'stock': stock}
+        return redirect(
+            'dashboard:variant-details', product_pk=product.pk,
+            variant_pk=variant.pk)
+    ctx = {'form': form, 'product': product, 'variant': variant, 'stock': stock}
     return TemplateResponse(request, 'dashboard/product/stock_form.html', ctx)
 
 
@@ -304,37 +302,40 @@ def product_image_delete(request, product_pk, img_pk):
 
 @staff_member_required
 def variant_edit(request, product_pk, variant_pk=None):
-    product = get_object_or_404(Product.objects.all(),
-                                pk=product_pk)
-    form_initial = {}
+    product = get_object_or_404(
+        Product.objects.all(), pk=product_pk)
     if variant_pk:
-        variant = get_object_or_404(product.variants.all(),
-                                    pk=variant_pk)
+        variant = get_object_or_404(product.variants.all(), pk=variant_pk)
     else:
         variant = ProductVariant(product=product)
-    form = forms.ProductVariantForm(request.POST or None, instance=variant,
-                                    initial=form_initial)
-    attribute_form = forms.VariantAttributeForm(request.POST or None,
-                                                instance=variant)
+    form = forms.ProductVariantForm(request.POST or None, instance=variant)
+    attribute_form = forms.VariantAttributeForm(
+        request.POST or None, instance=variant)
     if all([form.is_valid(), attribute_form.is_valid()]):
         form.save()
         attribute_form.save()
-        if variant_pk:
-            msg = pgettext_lazy(
-                'Dashboard message',
-                'Updated variant %s') % variant.name
-        else:
-            msg = pgettext_lazy(
-                'Dashboard message',
-                'Added variant %s') % variant.name
+        msg = pgettext_lazy(
+            'Dashboard message', 'Saved variant %s') % variant.name
         messages.success(request, msg)
-        success_url = request.POST['success_url']
-        if is_safe_url(success_url, allowed_hosts=request.get_host()):
-            return redirect(success_url)
-    ctx = {'attribute_form': attribute_form, 'form': form, 'product': product,
-           'variant': variant}
+        return redirect(
+            'dashboard:variant-details', product_pk=product.pk,
+            variant_pk=variant.pk)
+    ctx = {
+        'attribute_form': attribute_form, 'form': form, 'product': product,
+        'variant': variant}
     return TemplateResponse(
         request, 'dashboard/product/variant_form.html', ctx)
+
+
+@staff_member_required
+def variant_details(request, product_pk, variant_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    variant = get_object_or_404(
+        product.variants.prefetch_related('stock'), pk=variant_pk)
+    stock = variant.stock.all()
+    ctx = {'product': product, 'variant': variant, 'stock': stock}
+    return TemplateResponse(
+        request, 'dashboard/product/variant_details.html', ctx)
 
 
 @staff_member_required
@@ -348,14 +349,13 @@ def variant_delete(request, product_pk, variant_pk):
             request,
             pgettext_lazy(
                 'Dashboard message', 'Deleted variant %s') % variant.name)
-        success_url = request.POST['success_url']
-        if is_safe_url(success_url, allowed_hosts=request.get_host()):
-            return redirect(success_url)
-    ctx = {'is_only_variant': is_only_variant, 'product': product,
-           'variant': variant}
+        return redirect('dashboard:product-detail', pk=product.pk)
+    ctx = {
+        'is_only_variant': is_only_variant, 'product': product,
+        'variant': variant}
     return TemplateResponse(
         request,
-        'dashboard/product/modal_product_variant_confirm_delete.html', ctx)
+        'dashboard/product/modal_variant_confirm_delete.html', ctx)
 
 
 @staff_member_required
