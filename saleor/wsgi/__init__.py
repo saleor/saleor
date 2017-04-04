@@ -26,6 +26,7 @@ def read_env():
     try:
         with open('../../.env') as f:
             content = f.read()
+        print("Loaded content")
     except IOError:
         print("Can not find file")
         content = ''
