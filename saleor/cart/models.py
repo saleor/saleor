@@ -12,7 +12,7 @@ from django.utils.encoding import python_2_unicode_compatible, smart_str
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_prices.models import PriceField
-from jsonfield import JSONField
+# from jsonfield import JSONField
 from satchless.item import ItemLine, ItemList, partition
 
 from django_extensions.db.decorators import modify_fields
@@ -77,9 +77,9 @@ class AbstractCartModel(models.Model):
         'discount.Voucher', null=True, related_name='+',
         on_delete=models.SET_NULL,
         verbose_name=pgettext_lazy('Cart field', 'token'))
-    checkout_data = JSONField(
-        verbose_name=pgettext_lazy('Cart field', 'checkout data'), null=True,
-        editable=False,)
+    # checkout_data = JSONField(
+    #     verbose_name=pgettext_lazy('Cart field', 'checkout data'), null=True,
+    #     editable=False,)
 
     total = PriceField(
         pgettext_lazy('Cart field', 'total'),
@@ -224,12 +224,12 @@ class CartLine(models.Model, ItemLine):
     quantity = models.PositiveIntegerField(
         pgettext_lazy('Cart line field', 'quantity'),
         validators=[MinValueValidator(0), MaxValueValidator(999)])
-    data = JSONField(
-        blank=True, default={},
-        verbose_name=pgettext_lazy('Cart line field', 'data'))
+    # data = JSONField(
+    #     blank=True, default={},
+    #     verbose_name=pgettext_lazy('Cart line field', 'data'))
 
     class Meta:
-        unique_together = ('cart', 'variant', 'data')
+        unique_together = ('cart', 'variant')
         verbose_name = pgettext_lazy('Cart line model', 'Cart line')
         verbose_name_plural = pgettext_lazy('Cart line model', 'Cart lines')
 
