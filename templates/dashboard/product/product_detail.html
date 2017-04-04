@@ -114,7 +114,7 @@
                 {% for variant in variants %}
                   <tr>
                     <td>{{ variant.sku }}</td>
-                    <td>{{ variant }}</td>
+                    <td><a href="{% url "dashboard:variant-details" product_pk=product.pk variant_pk=variant.pk %}">{{ variant }}</a></td>
                     <td></td>
                     <td>{% gross variant.get_price_per_item %}</td>
                     <td><a href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" class="btn waves-effect waves-light">{% trans "Edit" %}</a></td>
