@@ -100,6 +100,29 @@
         <div class="card">
           <div class="card-content">
             <span class="card-title">{% trans "Variant" %}</span>
+            <table>
+              <thead>
+                <tr>
+                  <th>{% trans "SKU" %}</th>
+                  <th>{% trans "Name" %}</th>
+                  <th>{% trans "Status" %}</th>
+                  <th>{% trans "Price" %}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for variant in variants %}
+                  <tr>
+                    <td>{{ variant.sku }}</td>
+                    <td>{{ variant }}</td>
+                    <td></td>
+                    <td>{% gross variant.get_price_per_item %}</td>
+                    <td><a href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" class="btn waves-effect waves-light">{% trans "Edit" %}</a></td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn waves-effect waves-light">{% trans "Add variant" %}</a>
           </div>
         </div>
       </div>

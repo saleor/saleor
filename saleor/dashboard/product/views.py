@@ -135,15 +135,14 @@ def product_create(request, class_pk):
 
 @staff_member_required
 def product_detail(request, pk):
-    products = Product.objects.select_related('product_class').prefetch_related(
-        'product_class__product_attributes__values', 'categories').all()
+    products = Product.objects.prefetch_related('variants').all()
     product = get_object_or_404(products, pk=pk)
-    attributes = get_product_attributes_data(product)
+    variants = product.variants.all()
     availability = get_availability(product)
     sale_price = availability.price_range
     gross_price_range = product.get_gross_price_range()
-    ctx = {'product': product, 'attributes': attributes,
-           'sale_price': sale_price, 'gross_price_range': gross_price_range}
+    ctx = {'product': product, 'sale_price': sale_price,
+           'gross_price_range': gross_price_range, 'variants': variants}
     return TemplateResponse(
         request, 'dashboard/product/product_detail.html', ctx)
 
