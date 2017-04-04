@@ -20,6 +20,7 @@
     "bootstrap": "^4.0.0-alpha.6",
     "classnames": "^2.2.5",
     "dropzone": "^4.2.0",
+    "favicons-webpack-plugin": "^0.0.7",
     "jquery": "^3.1.1",
     "jquery-match-height": "^0.7.0",
     "jquery-ui": "^1.12.1",
