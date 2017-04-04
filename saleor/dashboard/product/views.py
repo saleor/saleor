@@ -13,8 +13,7 @@ from ...core.utils import get_paginator_items
 from ...product.models import (Product, ProductAttribute, ProductClass,
                                ProductImage, ProductVariant, Stock,
                                StockLocation)
-from ...product.utils import (get_product_attributes_data, get_availability,
-                              price_range_as_dict)
+from ...product.utils import (get_availability)
 from ..views import staff_member_required
 
 
@@ -135,14 +134,17 @@ def product_create(request, class_pk):
 
 @staff_member_required
 def product_detail(request, pk):
-    products = Product.objects.prefetch_related('variants').all()
+    products = Product.objects.prefetch_related(
+        'variants', 'images',
+        'product_class__variant_attributes__values').all()
     product = get_object_or_404(products, pk=pk)
     variants = product.variants.all()
+    images = product.images.all()
     availability = get_availability(product)
     sale_price = availability.price_range
     gross_price_range = product.get_gross_price_range()
-    ctx = {'product': product, 'sale_price': sale_price,
-           'gross_price_range': gross_price_range, 'variants': variants}
+    ctx = {'product': product, 'sale_price': sale_price, 'variants': variants,
+           'gross_price_range': gross_price_range, 'images': images}
     return TemplateResponse(
         request, 'dashboard/product/product_detail.html', ctx)
 
@@ -252,6 +254,15 @@ def stock_bulk_delete(request, product_pk):
         if is_safe_url(success_url, allowed_hosts=request.get_host()):
             return redirect(success_url)
     return redirect('dashboard:product-update', pk=product.pk)
+
+
+@staff_member_required
+def product_images(request, product_pk):
+    product = get_object_or_404(
+        Product.objects.prefetch_related('images'), pk=product_pk)
+    images = product.images.all()
+    ctx = {'product': product, 'images': images}
+    return TemplateResponse(request, 'dashboard/product/images.html', ctx)
 
 
 @staff_member_required

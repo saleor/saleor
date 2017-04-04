@@ -62,7 +62,7 @@
         <form method="post" enctype="multipart/form-data">
           <div class="card-content">
             {% csrf_token %}
-            <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#images">
+            <input type="hidden" name="success_url" value="{% url 'dashboard:product-image-list' product.pk %}">
             <div class="row">
               <div class="col s12 m8">
                 <div class="row">
@@ -88,14 +88,14 @@
           </div>
           <div class="card-action right-align">
             {% if product_image.pk %}
-              <a href="{% url "dashboard:product-update" pk=product.pk %}#images" class="btn btn-flat">
+              <a href="{% url "dashboard:product-image-list" product.pk %}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">
                 {% trans "Update" context "Dashboard update action" %}
               </button>
             {% else %}
-              <a href="{% url "dashboard:product-update" pk=product.pk %}#images" class="btn btn-flat">
+              <a href="{% url "dashboard:product-image-list" product.pk %}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">

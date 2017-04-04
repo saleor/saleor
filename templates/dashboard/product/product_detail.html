@@ -94,7 +94,7 @@
       </div>
     </div>
   </div>
-  <div class="tab-content" id="details">
+  <div class="tab-content" id="variants">
     <div class="row">
       <div class="col m12 l12">
         <div class="card">
@@ -124,6 +124,28 @@
             </table>
             <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn waves-effect waves-light">{% trans "Add variant" %}</a>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tab-content" id="images">
+    <div class="row">
+      <div class="col m12 l12">
+        <div class="card">
+          <span class="card-title">{% trans "Images" %}</span>
+          {% for image in images %}
+            <div class="row">
+              <div class="col s4 m2">
+                <div class="card-image product-gallery-item-image">
+                  <img class="responsive-img"
+                       src="{{ image.image.crop.255x255 }}"
+                       srcset="{{ image.image.crop.255x255 }} 1x, {{ image.image.crop.510x510 }} 2x"
+                       alt="{{ image.alt }}">
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+          <a href="{% url 'dashboard:product-image-list' product.pk %}" class="btn waves-effect waves-light">{% trans "Edit images" %}</a>
         </div>
       </div>
     </div>

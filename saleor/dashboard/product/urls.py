@@ -45,6 +45,8 @@ urlpatterns = [
     url(r'^(?P<product_pk>[0-9]+)/stock/bulk_delete/',
         views.stock_bulk_delete, name='stock-bulk-delete'),
 
+    url(r'^(?P<product_pk>[0-9]+)/images/$', views.product_images,
+        name='product-image-list'),
     url(r'^(?P<product_pk>[0-9]+)/images/(?P<img_pk>[0-9]+)/$',
         views.product_image_edit, name='product-image-update'),
     url(r'^(?P<product_pk>[0-9]+)/images/add/$',
