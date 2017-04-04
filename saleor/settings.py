@@ -34,15 +34,15 @@ else:
     CACHES = {'default': django_cache_url.config()}
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
+    #     'NAME': os.environ.get('RECORDSHOP_DB_NAME'),
+    #     'PASSWORD': os.environ.get('RECORDSHOP_DB_PASSWORD'),
+    #     'USER': os.environ.get('RECORDSHOP_DB_USER'),
+    #     'PORT': os.environ.get('RECORDSHOP_DB_PORT', '5432'),
+    #     'HOST': os.environ.get('RECORDSHOP_DB_HOST', '127.0.0.1'),
+    # },
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.environ.get('RECORDSHOP_DB_NAME'),
-        'PASSWORD': os.environ.get('RECORDSHOP_DB_PASSWORD'),
-        'USER': os.environ.get('RECORDSHOP_DB_USER'),
-        'PORT': os.environ.get('RECORDSHOP_DB_PORT', '5432'),
-        'HOST': os.environ.get('RECORDSHOP_DB_HOST', '127.0.0.1'),
-    },
-    'oye_legacy': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get('RECORDSHOP_LEGACY_DB_NAME'),
         'PASSWORD': os.environ.get('RECORDSHOP_LEGACY_DB_PASSWORD'),
@@ -52,7 +52,7 @@ DATABASES = {
     }
 }
 
-DATABASE_ROUTERS = ['saleor.dbrouters.OyeRouter', ]
+# DATABASE_ROUTERS = ['saleor.dbrouters.OyeRouter', ]
 
 TIME_ZONE = 'Europe/Berlin'
 LANGUAGE_CODE = 'de-de'
@@ -161,6 +161,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.auth',
     'django.contrib.postgres',
+    'django.contrib.admin',
 
     # Local apps
     'saleor.userprofile',
@@ -419,3 +420,8 @@ CORS_ORIGIN_WHITELIST = (
 DISCOGS_CONSUMER_KEY = os.environ.get('DISCOGS_CONSUMER_KEY', None)
 DISCOGS_CONSUMER_SECRET = os.environ.get('DISCOGS_CONSUMER_SECRET', None)
 DISCOGS_USER_TOKEN = os.environ.get('DISCOGS_USER_TOKEN', None)
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'saleor_oye.auth.hashers.BCryptSHA256WrappedMD5PasswordHasher'
+]
