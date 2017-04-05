@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import json
 import pytest
 from django import forms
 from django.core.urlresolvers import reverse
@@ -22,8 +23,9 @@ def test_stock_record_update_works(admin_client, product_in_stock):
     quantity = stock.quantity
     quantity_allocated = stock.quantity_allocated
     url = reverse(
-        'dashboard:product-stock-update', kwargs={
+        'dashboard:variant-stock-update', kwargs={
             'product_pk': product_in_stock.pk,
+            'variant_pk': variant.pk,
             'stock_pk': stock.pk})
     admin_client.post(url, {
         'variant': stock.variant_id, 'location': stock.location.id,
@@ -143,3 +145,14 @@ def test_get_formfield_name_with_unicode_characters(db):
                                                      name=u'ąęαβδηθλμπ')
     assert text_attribute.get_formfield_name() == 'attribute-ąęαβδηθλμπ'
 
+
+def test_view_product_toggle_publish(db, admin_client, product_in_stock):
+    product = product_in_stock
+    url = reverse('dashboard:product-publish', kwargs={'pk': product.pk})
+    response = admin_client.post(url)
+    assert response.status_code == 200
+    data = {'success': True, 'is_published': False}
+    assert json.loads(response.content) == data
+    admin_client.post(url)
+    product.refresh_from_db()
+    assert product.is_published

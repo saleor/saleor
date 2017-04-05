@@ -1,6 +1,8 @@
 from __future__ import unicode_literals
 
 from django.contrib import messages
+from django.core.urlresolvers import reverse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url
@@ -141,13 +143,21 @@ def product_detail(request, pk):
     images = product.images.all()
     availability = get_availability(product)
     sale_price = availability.price_range
-    is_available = availability.available
+    is_published = product.is_published
     gross_price_range = product.get_gross_price_range()
     ctx = {'product': product, 'sale_price': sale_price, 'variants': variants,
            'gross_price_range': gross_price_range, 'images': images,
-           'is_available': is_available}
+           'is_published': is_published}
     return TemplateResponse(
         request, 'dashboard/product/product_detail.html', ctx)
+
+
+@staff_member_required
+def product_toggle_is_published(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    product.is_published = not product.is_published
+    product.save(update_fields=['is_published'])
+    return JsonResponse({'success': True, 'is_published': product.is_published})
 
 
 @staff_member_required

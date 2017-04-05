@@ -307,7 +307,7 @@
             </thead>
             <tbody>
               {% for item in stock_items %}
-                <tr data-action-go="{% url 'dashboard:product-stock-update' product_pk=product.pk stock_pk=item.pk %}" title="{% trans "Edit variant" context "Stock table action" %}">
+                <tr title="{% trans "Edit variant" context "Stock table action" %}">
                   <td class="bulk-checkbox ignore-link">
                     <input name="items" type="checkbox" id="{{ item.id }}" class="filled-in switch-actions" value="{{ item.id }}">
                     <label for="{{ item.id }}"></label>
@@ -344,10 +344,5 @@
       </form>
     </div>
 
-    <div class="fixed-action-btn">
-      <a class="btn-fab btn-fab-hidden btn-floating btn-large waves-effect waves-light teal" id="images-btn" href="{% url 'dashboard:product-image-add' product_pk=product.pk %}" title="{% trans "Add image" context "Add image button text" %}">
-        <svg data-src="{% static "dashboard/images/add.svg" %}" />
-      </a>
-    </div>
   {% endif %}
 {% endblock %}

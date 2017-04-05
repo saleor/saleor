@@ -9,6 +9,8 @@ urlpatterns = [
         views.product_list, name='product-list'),
     url(r'^(?P<pk>[0-9]+)/$',
         views.product_detail, name='product-detail'),
+    url(r'^(?P<pk>[0-9]+)/publish/$', views.product_toggle_is_published,
+        name='product-publish'),
     url(r'^(?P<pk>[0-9]+)/update/$',
         views.product_edit, name='product-update'),
     url(r'^(?P<pk>[0-9]+)/delete/$',

@@ -106,7 +106,8 @@ class ProductManager(models.Manager):
     def get_available_products(self):
         today = datetime.date.today()
         return self.get_queryset().filter(
-            Q(available_on__lte=today) | Q(available_on__isnull=True))
+            Q(available_on__lte=today) | Q(available_on__isnull=True)).filter(
+            is_published=True)
 
 
 @python_2_unicode_compatible
@@ -126,6 +127,8 @@ class Product(models.Model, ItemRange, index.Indexed):
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
     available_on = models.DateField(
         pgettext_lazy('Product field', 'available on'), blank=True, null=True)
+    is_published = models.BooleanField(
+        pgettext_lazy('Product field', 'is published'), default=True)
     attributes = HStoreField(pgettext_lazy('Product field', 'attributes'),
                              default={})
     updated_at = models.DateTimeField(
@@ -204,6 +207,20 @@ class Product(models.Model, ItemRange, index.Indexed):
         grosses = [self.get_price_per_item(item, **kwargs) for item in self]
         grosses = sorted(grosses, key=lambda x: x.tax)
         return PriceRange(min(grosses), max(grosses))
+
+    def get_availibility_status(self):
+        is_available = self.is_available()
+        in_stock = self.is_in_stock()
+        if not self.is_published:
+            return pgettext_lazy('Product status', 'NOT PUBLISHED')
+        if is_available and in_stock:
+            return pgettext_lazy('Product status', 'READY FOR PURCHASE')
+        if not self.variants.exists():
+            return pgettext_lazy('Product status', 'VARIANTS MISSING')
+        if not in_stock:
+            return pgettext_lazy('Product status', 'OUT OF STOCK')
+        if not is_available and self.available_on is not None:
+            return pgettext_lazy('Product status', 'NOT YET AVAILABLE')
 
 
 @python_2_unicode_compatible
