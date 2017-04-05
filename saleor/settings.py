@@ -409,13 +409,13 @@ REST_FRAMEWORK = {
 
 APPEND_SLASH = True
 
-CORS_ORIGIN_WHITELIST = (
+CORS_ORIGIN_WHITELIST = [
     'google.com',
     'localhost:8000',
     'localhost:8080',
     '127.0.0.1:9000',
     'local.oye.com:8000',
-)
+] + os.environ.get('CORS_ORIGIN_WHITELIST', '').split()
 
 DISCOGS_CONSUMER_KEY = os.environ.get('DISCOGS_CONSUMER_KEY', None)
 DISCOGS_CONSUMER_SECRET = os.environ.get('DISCOGS_CONSUMER_SECRET', None)
