@@ -116,6 +116,14 @@
   }
 }
 
+.switch {
+  padding-bottom: 20px;
+  span {
+    font-size: 1.2rem;
+    color: $off-black;
+  }
+}
+
 .input-with-suffix {
   display: table-row;
   input {

@@ -21,7 +21,7 @@
     </li>
     <li class="back-mobile">
       <a href="{% url "dashboard:product-list" %}">
-        <i class="material-icons">arrow_back</i>
+        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     <li>
@@ -31,126 +31,143 @@
     </li>
   </ul>
 {% endblock %}
-
-{% block header_extra %}
-  <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
-    <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
-  </a>
-  <ul id="context-menu" class="dropdown-content">
-    <li>
-      <a href="{{ product.get_absolute_url }}" target="_blank">
-        {% trans "View on site" context "Product action" %}
-      </a>
-    </li>
-    <li>
-      <a href="{% url "dashboard:product-update" product.pk %}">
-        {% trans "Update product" context "Product action" %}
-      </a>
-    </li>
-    <li>
-      <a href="#base-modal" data-href="{% url 'dashboard:product-delete' pk=product.pk %}"
-         class="modal-trigger-custom">
-        {% trans "Remove product" context "Product action" %}
-      </a>
-    </li>
-  </ul>
-{% endblock %}
-
 {% block content %}
-  <div class="tab-content" id="details">
-    <div class="row">
-      <div class="col m12 l12">
-        <div class="card">
-          <div class="card-content">
-            <span class="card-title">{{ product }}</span>
-            <div class="row">
-              <div class="col s12 l3">
-                <h5>{% trans "Sale price" context "Product field" %}</h5>
-                {% with sale_price.min_price as min_price %}
+  <div class="row">
+    <div class="col s12 l9">
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">{{ product }}</span>
+          <div class="row">
+            <div class="col s5 m6">
+              <p class="text-padding">{% trans "Sale price" context "Product field" %}</p>
+            </div>
+            <div class="col s7 m6">
+              {% with sale_price.min_price as min_price %}
                 {% with sale_price.max_price as max_price %}
-                <p>{% gross min_price %} - {% gross max_price %}</p>
+                  <p class="text-padding right-align">{% gross min_price %} - {% gross max_price %}</p>
                 {% endwith %}
-                {% endwith %}
-              </div>
-              <div class="col s12 l3">
-                <h5>{% trans "Purchase cost" context "Product field" %}</h5>
-                {% with sale_price.min_price as min_price %}
+              {% endwith %}
+            </div>
+            <div class="col s5 m6">
+                <p class="text-padding">{% trans "Purchase cost" context "Product field" %}</p>
+            </div>
+            <div class="col s7 m6">
+              {% with sale_price.min_price as min_price %}
                 {% with sale_price.max_price as max_price %}
-                <p>{% net min_price %} - {% net max_price %}</p>
+                  <p class="text-padding right-align">{% net min_price %} - {% net max_price %}</p>
                 {% endwith %}
-                {% endwith %}
-              </div>
-              <div class="col s12 l3">
-                <h5>{% trans "Gross margin" context "Product field" %}</h5>
-                {% with gross_price_range.min_price as min_price %}
+              {% endwith %}
+            </div>
+            <div class="col s5 m6">
+                <p class="text-padding">{% trans "Gross margin" context "Product field" %}</p>
+            </div>
+            <div class="col s7 m6">
+              {% with gross_price_range.min_price as min_price %}
                 {% with gross_price_range.max_price as max_price %}
-                <p>{% tax min_price %} - {% tax max_price %}</p>
+                  <p class="text-padding right-align">{% tax min_price %} - {% tax max_price %}</p>
                 {% endwith %}
-                {% endwith %}
-              </div>
-              <div class="col 12 l3">
-                <h5>{% trans "Is available?" %}</h5>{{ is_available }}
-              </div>
+              {% endwith %}
+            </div>
+            <div class="col s5 m6">
+                <p class="text-padding">{% trans "Is available?" %}</p>
+            </div>
+            <div class="col s7 m6">
+                <p class="text-padding right-align">{{ is_available }}</p>
             </div>
           </div>
         </div>
+        <div class="card-action">
+          <a href="{% url "dashboard:product-update" product.pk %}" class="btn btn-flat">
+            {% trans "Edit product" context "Product action" %}
+          </a>
+          <a href="#base-modal" data-href="{% url 'dashboard:product-delete' pk=product.pk %}" class="modal-trigger-custom btn btn-flat">
+              {% trans "Remove product" context "Product action" %}
+          </a>
+          <a href="{{ product.get_absolute_url }}" target="_blank" class="btn btn-flat">
+            {% trans "View on site" context "Product action" %}
+          </a>
+        </div>
       </div>
-    </div>
-  </div>
-  <div class="tab-content" id="variants">
-    <div class="row">
-      <div class="col m12 l12">
-        <div class="card">
-          <div class="card-content">
-            <span class="card-title">{% trans "Variant" %}</span>
-            <table>
-              <thead>
-                <tr>
-                  <th>{% trans "SKU" %}</th>
-                  <th>{% trans "Name" %}</th>
-                  <th>{% trans "Status" %}</th>
-                  <th>{% trans "Price" %}</th>
-                  <th></th>
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">{% trans "Variant" %}</span>
+        </div>
+        <div class="data-table-header-action">
+            <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-flat">{% trans "Add" %}</a>
+        </div>
+        <div class="data-table-container">
+          <table class="bordered highlight responsive data-table">
+            <thead>
+              <tr>
+                <th>{% trans "SKU" %}</th>
+                <th>{% trans "Name" %}</th>
+                <th>{% trans "Status" %}</th>
+                <th class="right-align">{% trans "Price" %}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for variant in variants %}
+                <tr data-action-go="{% url "dashboard:variant-details" product_pk=product.pk variant_pk=variant.pk %}">
+                  <td>{{ variant.sku }}</td>
+                  <td>{{ variant }}</td>
+                  <td class="wide"></td>
+                  <td class="right-align">{% gross variant.get_price_per_item %}</td>
+                  <td><a href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" class="btn btn-flat">{% trans "Edit" %}</a></td>
                 </tr>
-              </thead>
-              <tbody>
-                {% for variant in variants %}
-                  <tr>
-                    <td>{{ variant.sku }}</td>
-                    <td><a href="{% url "dashboard:variant-details" product_pk=product.pk variant_pk=variant.pk %}">{{ variant }}</a></td>
-                    <td></td>
-                    <td>{% gross variant.get_price_per_item %}</td>
-                    <td><a href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" class="btn waves-effect waves-light">{% trans "Edit" %}</a></td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-            <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn waves-effect waves-light">{% trans "Add variant" %}</a>
-          </div>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
-  </div>
-  <div class="tab-content" id="images">
-    <div class="row">
-      <div class="col m12 l12">
-        <div class="card">
-          <span class="card-title">{% trans "Images" %}</span>
-          {% for image in images %}
-            <div class="row">
-              <div class="col s4 m2">
-                <div class="card-image product-gallery-item-image">
-                  <img class="responsive-img"
-                       src="{{ image.image.crop.255x255 }}"
-                       srcset="{{ image.image.crop.255x255 }} 1x, {{ image.image.crop.510x510 }} 2x"
-                       alt="{{ image.alt }}">
+    <div class="col s12 l3">
+      <div id="status">
+        <div class="row">
+          <div class="col s12">
+            <div class="card">
+              <div class="card-content">
+                <div class="switch">
+                  <label>
+                    <input type="checkbox">
+                    <span class="lever"></span>
+                    <span>Published</span>
+                  </label>
+                </div>
+                <div class="status">
+                  <h5 class="label label-success">Ready for purchase</h5>
                 </div>
               </div>
             </div>
-          {% endfor %}
-          <a href="{% url 'dashboard:product-image-list' product.pk %}" class="btn waves-effect waves-light">{% trans "Edit images" %}</a>
+          </div>
         </div>
       </div>
+    </div>
+   <div class="col s12 l3">
+      <div id="images">
+        <div class="row">
+          <div class="col s12">
+            <div class="card">
+              <div class="card-content">
+              <span class="card-title">{% trans "Images" %}</span>
+                <div class="row">
+                  {% for image in images %}
+                    <div class="col s4">
+                      <img class="responsive-img" src="{{ image.image.crop.255x255 }}" srcset="{{ image.image.crop.255x255 }} 1x, {{ image.image.crop.510x510 }} 2x" alt="{{ image.alt }}">
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+              <div class="card-action">
+                <a href="{% url 'dashboard:product-image-list' product.pk %}" class="btn btn-flat">{% trans "Edit images" %}</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col s12 l9">
+      
     </div>
   </div>
 {% endblock %}
