@@ -19,7 +19,7 @@ from .userprofile.urls import urlpatterns as userprofile_urls
 from .userprofile.views import login as login_view
 
 urlpatterns = [
-    url(r'^', include(core_urls)),
+    # url(r'^', include(core_urls)),
     url(r'^account/', include('allauth.urls')),
     url(r'^account/login', login_view, name="account_login"),
     url(r'^cart/', include(oye_cart_urls, namespace='cart')),
