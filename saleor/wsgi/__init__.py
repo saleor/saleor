@@ -24,8 +24,9 @@ def read_env():
     environment variables from a .env file located in the project root
     directory.
     """
+    env_path = os.path.join(os.path.dirname(__file__), '..', '..', '.env')
     try:
-        with open('../.env') as f:
+        with open(env_path) as f:
             content = f.read()
     except IOError:
         content = ''
@@ -54,6 +55,6 @@ application = get_wsgi_application()
 # Apply WSGI middleware here.
 # from helloworld.wsgi import HelloWorldApplication
 # application = HelloWorldApplication(application)
-from .health_check import health_check
+from saleor.wsgi.health_check import health_check
 
 application = health_check(application, '/health/')
