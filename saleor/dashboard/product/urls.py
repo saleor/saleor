@@ -33,6 +33,8 @@ urlpatterns = [
         views.variant_edit, name='variant-update'),
     url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/delete/$',
         views.variant_delete, name='variant-delete'),
+    url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/images/$',
+        views.variant_images, name='variant-images'),
     url(r'^(?P<product_pk>[0-9]+)/variants/bulk_delete/',
         views.variants_bulk_delete, name='variant-bulk-delete'),
 

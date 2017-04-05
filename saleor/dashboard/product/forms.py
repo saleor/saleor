@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 from django import forms
-from django.db import transaction
 from django.db.models import Count
 from django.forms.models import ModelChoiceIterator, inlineformset_factory
 from django.utils.encoding import smart_text
@@ -243,29 +242,26 @@ class ProductImageForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ProductImageForm, self).__init__(*args, **kwargs)
-        show_variants = self.instance.product.product_class.has_variants
-        if self.instance.product and show_variants:
-            variants = self.fields['variants']
-            variants.queryset = self.instance.product.variants.all()
-            variants.initial = self.instance.variant_images.values_list(
-                'variant', flat=True)
         if self.instance.image:
             self.fields['image'].widget = ImagePreviewWidget()
 
-    @transaction.atomic
-    def save_variant_images(self, instance):
-        variant_images = []
-        # Clean up old mapping
-        instance.variant_images.all().delete()
-        for variant in self.cleaned_data['variants']:
-            variant_images.append(
-                VariantImage(variant=variant, image=instance))
-        VariantImage.objects.bulk_create(variant_images)
 
-    def save(self, commit=True):
-        instance = super(ProductImageForm, self).save(commit=commit)
-        self.save_variant_images(instance)
-        return instance
+class VariantImagesSelectForm(forms.Form):
+    images = forms.ModelMultipleChoiceField(
+        queryset=VariantImage.objects.none())
+
+    def __init__(self, *args, **kwargs):
+        self.variant = kwargs.pop('variant')
+        super(VariantImagesSelectForm, self).__init__(*args, **kwargs)
+        self.fields['images'].queryset = self.variant.product.images.all()
+        self.fields['images'].initial = self.variant.images.all()
+
+    def save(self):
+        images = []
+        self.variant.images.clear()
+        for image in self.cleaned_data['images']:
+            images.append(VariantImage(variant=self.variant, image=image))
+        VariantImage.objects.bulk_create(images)
 
 
 class ProductAttributeForm(forms.ModelForm):

@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 from django.contrib import messages
-from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url
@@ -347,12 +346,31 @@ def variant_edit(request, product_pk, variant_pk=None):
 @staff_member_required
 def variant_details(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
-    variant = get_object_or_404(
-        product.variants.prefetch_related('stock'), pk=variant_pk)
+    qs = product.variants.prefetch_related('images', 'stock')
+    variant = get_object_or_404(qs, pk=variant_pk)
     stock = variant.stock.all()
-    ctx = {'product': product, 'variant': variant, 'stock': stock}
+    images = variant.images.all()
+    ctx = {
+        'images': images, 'product': product, 'stock': stock,
+        'variant': variant}
     return TemplateResponse(
         request, 'dashboard/product/variant_details.html', ctx)
+
+
+@staff_member_required
+def variant_images(request, product_pk, variant_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    qs = product.variants.prefetch_related('images')
+    variant = get_object_or_404(qs, pk=variant_pk)
+    form = forms.VariantImagesSelectForm(request.POST or None, variant=variant)
+    if form.is_valid():
+        form.save()
+        return redirect(
+            'dashboard:variant-details', product_pk=product.pk,
+            variant_pk=variant.pk)
+    ctx = {'form': form, 'product': product, 'variant': variant}
+    return TemplateResponse(
+        request, 'dashboard/product/modal_select_variant_images.html', ctx)
 
 
 @staff_member_required
