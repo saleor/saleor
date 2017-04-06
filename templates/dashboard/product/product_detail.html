@@ -121,16 +121,20 @@
           <div class="col s12">
             <div class="card">
               <div class="card-content">
-                <div class="switch">
+                <div class="switch" data-url="{% url 'dashboard:product-publish' product.pk %}">
                   <label>
-                    <input type="checkbox">
+                    <input type="checkbox" {% if product.is_published %} checked {% endif %}>
                     <span class="lever"></span>
-                    <span>Published</span>
+                    <span class="label">
+                      {% if product.is_published %}
+                        {% trans "Published" context "Product field" %}
+                      {% else %}
+                        {% trans "Draft" context "Product field" %}
+                      {% endif %}
+                    </span>   
                   </label>
                 </div>
-                <div class="status">
-                  <h5 class="label label-success">{{ product.get_availibility_status }}</h5>
-                </div>
+                <h5 class="label label-success">{{ product.get_availibility_status }}</h5>
               </div>
             </div>
           </div>

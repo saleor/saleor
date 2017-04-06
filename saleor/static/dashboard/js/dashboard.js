@@ -271,7 +271,22 @@ $(document).ready(() => {
   }
 });
 
-//Print button
 $('.btn-print').click((e) => {
   window.print();
+});
+
+// Publish product switch
+$(document).ready(() => {
+  let $publishUrl = $('.switch').data('url');
+  let $publishSwitch = $('.switch').find('[type=checkbox]');
+  $publishSwitch.on('change', function (e) {
+    $.ajax({
+      url: $publishUrl,
+      method: 'get',
+      success: function (response) {
+        location.reload();
+      }
+    });
+    e.preventDefault();
+  });
 });

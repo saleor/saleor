@@ -118,9 +118,10 @@
 
 .switch {
   padding-bottom: 20px;
-  span {
-    font-size: 1.2rem;
-    color: $off-black;
+  position: relative;
+  .label {
+    position: absolute;
+    top: 3px;
   }
 }
 
