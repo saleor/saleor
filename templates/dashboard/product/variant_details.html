@@ -21,12 +21,17 @@
     </li>
     <li class="back-mobile">
       <a href="{% url "dashboard:product-list" %}">
-        <i class="material-icons">arrow_back</i>
+        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
+    <li class="hide-on-med-and-down">
+       <a href="{% url "dashboard:product-detail" pk=product.pk %}" class="breadcrumbs--ellipsed-item">
+        {{ product }}
       </a>
     </li>
     <li>
       <span class="breadcrumbs--ellipsed-item">
-        {{ product }}
+        {{ variant.sku }}
       </span>
     </li>
   </ul>
@@ -37,19 +42,25 @@
 
 {% block content %}
   <div class="row">
-    <div class="col m12 l7">
+    <div class="col m12 l9">
       <div class="card">
         <div class="card-content">
-          <span class="card-title">{{ product }} {{ variant }}</span>
-          <p>
-            {% trans "SKU" context "Dashboard variant details view" %} {{ variant.sku }}
-          </p>
-          <p>
-            {% trans "Sale price" context "Dashboard variant details view" %} {% gross variant.get_price %}
-          </p>
-          <p>
-            {% trans "Cost price" context "Dashboard variant details view" %} {% if variant.get_cost_price %}{% gross variant.get_cost_price %}{% else %}-{% endif %}
-          </p>
+          <p class="card-title">{{ product }} {{ variant }} <br> {% trans "SKU" context "Dashboard variant details view" %} {{ variant.sku }}</p>
+          <p></p>
+          <div class="row">
+            <div class="col s5 m6">
+              <p class="text-padding">{% trans "Sale price" context "Dashboard variant details view" %}</p>
+            </div>
+            <div class="col s7 m6">
+              <p class="text-padding right-align">{% gross variant.get_price %}</p>
+            </div>
+            <div class="col s5 m6">
+              <p class="text-padding">{% trans "Cost price" context "Dashboard variant details view" %}</p>
+            </div>
+            <div class="col s7 m6">
+              <p class="text-padding right-align">{% if variant.get_cost_price %}{% gross variant.get_cost_price %}{% else %}-{% endif %}</p>
+            </div>
+          </div>
         </div>
         <div class="card-action">
           <a class="btn btn-flat" href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}">
@@ -61,14 +72,19 @@
         </div>
       </div>
       <div class="card">
-        <div class="data-table-header">
-          <span class="data-table-title">{% trans "Stock" context "Dashboard variant details view" %}</span>
+        <div class="card-content">
+          <span class="card-title">{% trans "Stock" context "Dashboard variant details view" %}</span>
+        </div>
+        <div class="data-table-header-action">
+          <a class="btn btn-flat" href="{% url "dashboard:variant-stock-add" product_pk=product.pk variant_pk=variant.pk %}">
+            {% trans "Add" context "Dashboard action" %}
+          </a>
         </div>
         <div class="data-table-container">
           <table class="bordered highlight responsive data-table">
             <thead>
               <tr>
-                <th>{% trans "Location" %}</th>
+                <th class="wide">{% trans "Location" %}</th>
                 <th>{% trans "Quantity" %}</th>
                 <th>{% trans "Allocated" %}</th>
                 <th class="right-align">{% trans "Cost" %}</th>
@@ -77,7 +93,7 @@
             <tbody>
               {% for stock_item in stock %}
                 <tr data-action-go="{% url "dashboard:variant-stock-update" product_pk=product.pk variant_pk=variant.pk stock_pk=stock_item.pk %}">
-                  <td>{{ stock_item.location }}</td>
+                  <td class="wide">{{ stock_item.location }}</td>
                   <td>{{ stock_item.quantity }}</td>
                   <td>{{ stock_item.quantity_allocated }}</td>
                   <td class="right-align">{% if stock_item.cost_price %}{% gross stock_item.cost_price %}{% else %}-{% endif %}</td>
@@ -86,20 +102,15 @@
             </tbody>
           </table>
         </div>
-        <div class="card-action">
-          <a class="btn btn-flat" href="{% url "dashboard:variant-stock-add" product_pk=product.pk variant_pk=variant.pk %}">
-            {% trans "Add stock" context "Dashboard action" %}
-          </a>
-        </div>
       </div>
     </div>
-    <div class="col m12 l2">
+    <div class="col m12 l3">
       <div class="card">
         <div class="card-content">
           {% if variant.is_in_stock %}
-            <span>{% trans "available" context "Dashboard variant details view" %}</span>
+            <h5 class="label label-success">{% trans "available" context "Dashboard variant details view" %}</h5>
           {% else %}
-            <span>{% trans "out of stock" context "Dashboard variant details view" %}</span>
+            <h5 class="label label-danger">{% trans "out of stock" context "Dashboard variant details view" %}</h5>
           {% endif %}
         </div>
       </div>
@@ -123,6 +134,5 @@
         </div>
       </div>
     </div>
-    <div class="col m12 l3 help-box"></div>
   </div>
 {% endblock %}
