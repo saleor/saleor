@@ -1,0 +1,78 @@
+.print-show {
+  display: none;
+}
+
+@media print {
+  // global print styles
+  .print-show {
+    display: block!important;
+  }
+  .print-hide {
+    display: none!important;
+  }
+  .p6 {
+    width: 50%!important;
+  }
+  html {
+    background-color: white;
+  }
+  .container {
+    margin-top: 0;
+  }
+  .side-nav {
+    display: none;
+  }
+  nav {
+    a:not(.logo) {
+      display: none;
+    }
+    .logo path {
+      fill: $off-black;
+    }
+  }
+  .subheader {
+    display: none;
+  } 
+  .card {
+    box-shadow: none;
+  }
+  .btn, .dropdown-button svg {
+    display: none;
+  }
+  // order page
+  .tabs {
+    svg {
+      display: none;
+    }
+    .print-show {
+      padding-left: 0;
+      color: $off-black!important;
+      float: left;
+      text-decoration: underline;
+      color: $off-black!important;
+    }
+  }
+  .print-tabs {
+    text-transform: uppercase;
+    margin: 14px 24px 18px;
+    font-size: 14px;
+    text-decoration: underline;
+  }
+  .tabs {
+    .tab {
+      a.print-tabs {
+        margin: 1rem 0 2rem;
+        padding-left: 0;
+        font-size: 14px;
+        margin: 14px 24px 18px;
+        text-decoration: underline;
+      }
+    }
+  }
+  .tab-content {
+    display: block!important;
+  }
+  .shipping-table {
+    page-break-inside: avoid;
+  }
+}
