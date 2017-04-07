@@ -203,6 +203,8 @@ INSTALLED_APPS = [
     'saleor_oye.discogs',
 
     'corsheaders',
+    # We authenticate via authtoken
+    'rest_framework.authtoken'
 ]
 
 LOGGING = {
@@ -252,7 +254,7 @@ LOGGING = {
     }
 }
 
-AUTH_USER_MODEL = 'userprofile.User'
+AUTH_USER_MODEL = 'saleor_oye.Kunden'
 
 LOGIN_URL = '/account/login/'
 
@@ -422,6 +424,12 @@ DISCOGS_CONSUMER_SECRET = os.environ.get('DISCOGS_CONSUMER_SECRET', None)
 DISCOGS_USER_TOKEN = os.environ.get('DISCOGS_USER_TOKEN', None)
 
 PASSWORD_HASHERS = [
-    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
-    'saleor_oye.auth.hashers.BCryptSHA256WrappedMD5PasswordHasher'
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'saleor_oye.auth.hashers.Argon2WrappedMD5PasswordHasher'
 ]
+
+AUTHENTICATION_BACKENDS = [
+    'saleor_oye.auth.backends.OyePasswordAuth',
+    'rest_framework.authentication.TokenAuthentication',
+]
+
