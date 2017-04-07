@@ -3,7 +3,6 @@
 }
 
 @media print {
-  // global print styles
   .print-show {
     display: block!important;
   }
@@ -16,14 +15,16 @@
   html {
     background-color: white;
   }
-  .container {
-    margin-top: 0;
+  .main {
+    .container {
+      margin-top: 0;
+    }
   }
   .side-nav {
     display: none;
   }
   nav {
-    a:not(.logo) {
+    a:not(.logo), form {
       display: none;
     }
     .logo path {
@@ -31,48 +32,40 @@
     }
   }
   .subheader {
-    display: none;
+    color: #000;
+    li:first-of-type {
+      display: inline-block!important;
+    }
+    svg {
+      display: none;
+    }
   } 
   .card {
     box-shadow: none;
+    padding: 0;
+  }
+  .data-table-action {
+    display: none;
+  }
+  .data-table th {
+    color: $off-black;
   }
   .btn, .dropdown-button svg {
     display: none;
   }
-  // order page
   .tabs {
-    svg {
-      display: none;
-    }
-    .print-show {
-      padding-left: 0;
-      color: $off-black!important;
-      float: left;
-      text-decoration: underline;
-      color: $off-black!important;
-    }
+    display: none;
   }
   .print-tabs {
     text-transform: uppercase;
-    margin: 14px 24px 18px;
+    margin: 14px 24px;
     font-size: 14px;
     text-decoration: underline;
-  }
-  .tabs {
-    .tab {
-      a.print-tabs {
-        margin: 1rem 0 2rem;
-        padding-left: 0;
-        font-size: 14px;
-        margin: 14px 24px 18px;
-        text-decoration: underline;
-      }
-    }
   }
   .tab-content {
     display: block!important;
   }
-  .shipping-table {
+  .shipment-table, #payment-history, #order-history {
     page-break-inside: avoid;
   }
 }

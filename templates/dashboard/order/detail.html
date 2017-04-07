@@ -21,24 +21,23 @@
 {% endblock %}
 
 {% block header_extra %}
-  {% if order.can_cancel %}
-    <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
-      <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
-    </a>
-    <ul id="context-menu" class="dropdown-content">
+  <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
+    <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
+  </a>
+  <ul id="context-menu" class="dropdown-content">
+    {% if order.can_cancel %}
       <li>
-        <a href="#base-modal" data-href="{% url "dashboard:order-cancel" order_pk=order.pk %}"
-        class="modal-trigger-custom">
+        <a href="#base-modal" data-href="{% url "dashboard:order-cancel" order_pk=order.pk %}" class="modal-trigger-custom">
           {% trans "Cancel Order" context "Order detail action" %}
         </a>
       </li>
-      <li>
-        <a class="btn-print" href="#">
-          {% trans "Print" context "Order detail action" %}
-        </a>
-      </li>
-    </ul>
-  {% endif %}
+    {% endif %}
+    <li>
+      <a class="btn-print" href="#">
+        {% trans "Print" context "Order detail action" %}
+      </a>
+    </li>
+  </ul>
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -66,7 +65,7 @@
     <div class="col s12">
       <ul class="tabs" role="tablist">
         <li role="presentation" class="tab col s4">
-          <a href="#order-details" role="tab" class="active print-tabs">
+          <a href="#order-details" role="tab" class="active">
             <span>
               {% trans "Details" context "Order detail tab" %}
             </span>
@@ -75,7 +74,7 @@
         </li>
         <li role="presentation" class="tab col s4">
           <a href="#payment-history" role="tab">
-            <span class="print-hide">
+            <span>
               {% trans "Payments" context "Order detail tab" %}
             </span>
             <svg data-src="{% static "dashboard/images/payment.svg" %}" />
@@ -83,7 +82,7 @@
         </li>
         <li role="presentation" class="tab col s4">
           <a href="#order-history" role="tab">
-            <span class="print-hide">
+            <span>
               {% trans "History" context "Order detail tab" %}
             </span>
             <svg data-src="{% static "dashboard/images/history.svg" %}" />
@@ -244,7 +243,7 @@
     </div>
     <div class="col s12 l8 switch-two-columns">
       {% for group in groups %}
-        <div class="card shipping-table">
+        <div class="card shipment-table">
           <div class="data-table-header">
             <h5 class="data-table-title">
               {% blocktrans trimmed with shipment=group.id context "Shipment group table title"  %}
