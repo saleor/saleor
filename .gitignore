@@ -1,6 +1,7 @@
 *.py[cod]
 .*
 !.babelrc
+!.codeclimate.yml
 !.coveragerc
 !.dockerignore
 !.flowconfig
