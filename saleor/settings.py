@@ -34,14 +34,6 @@ else:
     CACHES = {'default': django_cache_url.config()}
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
-    #     'NAME': os.environ.get('RECORDSHOP_DB_NAME'),
-    #     'PASSWORD': os.environ.get('RECORDSHOP_DB_PASSWORD'),
-    #     'USER': os.environ.get('RECORDSHOP_DB_USER'),
-    #     'PORT': os.environ.get('RECORDSHOP_DB_PORT', '5432'),
-    #     'HOST': os.environ.get('RECORDSHOP_DB_HOST', '127.0.0.1'),
-    # },
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get('RECORDSHOP_LEGACY_DB_NAME'),
@@ -51,8 +43,6 @@ DATABASES = {
         'HOST': os.environ.get('RECORDSHOP_LEGACY_DB_HOST'),
     }
 }
-
-# DATABASE_ROUTERS = ['saleor.dbrouters.OyeRouter', ]
 
 TIME_ZONE = 'Europe/Berlin'
 LANGUAGE_CODE = 'de-de'
