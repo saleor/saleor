@@ -162,8 +162,9 @@ class Product(models.Model, ItemRange, index.Indexed):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('product:details', kwargs={'slug': self.get_slug(),
-                                                  'product_id': self.id})
+        return reverse(
+            'product:details',
+            kwargs={'slug': self.get_slug(), 'product_id': self.id})
 
     def get_slug(self):
         return slugify(smart_text(unidecode(self.name)))
@@ -196,8 +197,8 @@ class Product(models.Model, ItemRange, index.Indexed):
 
     def get_price_range(self, discounts=None,  **kwargs):
         if not self.variants.exists():
-            price = calculate_discounted_price(self, self.price, discounts,
-                                               **kwargs)
+            price = calculate_discounted_price(
+                self, self.price, discounts, **kwargs)
             return PriceRange(price, price)
         else:
             return super(Product, self).get_price_range(
