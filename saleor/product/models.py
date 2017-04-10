@@ -211,20 +211,6 @@ class Product(models.Model, ItemRange, index.Indexed):
         grosses = sorted(grosses, key=lambda x: x.tax)
         return PriceRange(min(grosses), max(grosses))
 
-    def get_availibility_status(self):
-        is_available = self.is_available()
-        in_stock = self.is_in_stock()
-        if not self.is_published:
-            return pgettext_lazy('Product status', 'NOT PUBLISHED')
-        if is_available and in_stock:
-            return pgettext_lazy('Product status', 'READY FOR PURCHASE')
-        if not self.variants.exists():
-            return pgettext_lazy('Product status', 'VARIANTS MISSING')
-        if not in_stock:
-            return pgettext_lazy('Product status', 'OUT OF STOCK')
-        if not is_available and self.available_on is not None:
-            return pgettext_lazy('Product status', 'NOT YET AVAILABLE')
-
 
 @python_2_unicode_compatible
 class ProductVariant(models.Model, Item):

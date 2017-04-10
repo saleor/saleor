@@ -13,7 +13,7 @@ from ...core.utils import get_paginator_items
 from ...product.models import (Product, ProductAttribute, ProductClass,
                                ProductImage, ProductVariant, Stock,
                                StockLocation)
-from ...product.utils import (get_availability)
+from ...product.utils import get_availability
 from ..views import staff_member_required
 
 
@@ -108,9 +108,8 @@ def product_create(request, class_pk):
     product_form = forms.ProductForm(request.POST or None, instance=product)
     if create_variant:
         variant = ProductVariant(product=product)
-        variant_form = forms.ProductVariantForm(request.POST or None,
-                                                instance=variant,
-                                                prefix='variant')
+        variant_form = forms.ProductVariantForm(
+            request.POST or None, instance=variant, prefix='variant')
         variant_errors = not variant_form.is_valid()
     else:
         variant_form = None
@@ -142,11 +141,10 @@ def product_detail(request, pk):
     images = product.images.all()
     availability = get_availability(product)
     sale_price = availability.price_range
-    is_published = product.is_published
     gross_price_range = product.get_gross_price_range()
-    ctx = {'product': product, 'sale_price': sale_price, 'variants': variants,
-           'gross_price_range': gross_price_range, 'images': images,
-           'is_published': is_published}
+    ctx = {
+        'product': product, 'sale_price': sale_price, 'variants': variants,
+        'gross_price_range': gross_price_range, 'images': images}
     return TemplateResponse(
         request, 'dashboard/product/product_detail.html', ctx)
 

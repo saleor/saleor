@@ -3,10 +3,9 @@
 {% load i18n %}
 {% load prices_i18n %}
 {% load staticfiles %}
+{% load status %}
 
-{% block title %}
-  {{ product }} - {{ block.super }}
-{% endblock %}
+{% block title %}{{ product }} - {{ block.super }}{% endblock %}
 
 {% block body_class %}body-products{% endblock %}
 
@@ -142,7 +141,7 @@
                     </span>   
                   </label>
                 </div>
-                <h5 class="label label-success">{{ product.get_availibility_status }}</h5>
+                <h5>{% render_availability_status product %}</h5>
               </div>
             </div>
           </div>
