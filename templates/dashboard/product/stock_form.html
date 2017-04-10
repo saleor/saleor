@@ -6,7 +6,7 @@
 {% block title %}
   {% if stock.pk %}
     {% blocktrans trimmed with location=stock.location context "Dashboard stock" %}
-      Stock {{ variant }} - {{ location }}
+      Edit - Stock {{ variant }}
     {% endblocktrans %}
   {% else %}
     {% trans "Add stock" context "Stock form page title" %}
@@ -42,11 +42,11 @@
     </li>
     {% if stock.pk %}
     <li>
-      <span class="breadcrumbs--ellipsed-item">
+      <a href="{% url "dashboard:variant-details" product_pk=product.pk variant_pk=variant.pk %}" class="breadcrumbs--ellipsed-item">
         {% blocktrans trimmed with variant=stock.variant context "Dashboard stock" %}
           Stock {{ variant }}
         {% endblocktrans %}
-      </span>
+      </a>
     </li>
     <li>
       <span class="breadcrumbs--ellipsed-item">

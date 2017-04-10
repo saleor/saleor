@@ -5,7 +5,7 @@
 {% load staticfiles %}
 
 {% block title %}
-  {{ product }} - {% trans "Products" context "Product form page title" %} - {{ block.super }}
+  {{ variant }} - {{ block.super }}
 {% endblock %}
 
 {% block body_class %}body-products{% endblock %}
@@ -25,13 +25,13 @@
       </a>
     </li>
     <li class="hide-on-med-and-down">
-       <a href="{% url "dashboard:product-detail" pk=product.pk %}" class="breadcrumbs--ellipsed-item">
+      <a href="{% url "dashboard:product-detail" pk=product.pk %}" class="breadcrumbs--ellipsed-item">
         {{ product }}
       </a>
     </li>
     <li>
       <span class="breadcrumbs--ellipsed-item">
-        {{ variant.sku }}
+        {{ variant }}
       </span>
     </li>
   </ul>

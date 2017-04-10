@@ -5,9 +5,9 @@
 
 {% block title %}
   {% if product_image.pk %}
-    {{ product_image.image.name }}
+    {% trans "Edit - Image" context "Image form text" %}
   {% else %}
-    {% trans "Add image" %}
+    {% trans "Add image" context "Image form text" %}
   {% endif %} - {{ block.super }}
 {% endblock %}
 
@@ -35,7 +35,12 @@
     {% if product_image.pk %}
       <li>
         <span class="breadcrumbs--ellipsed-item">
-          {{ product_image.alt|default:_("No description") }}
+          {% trans "Image" context "Image form text" %}
+        </span>
+      </li>
+      <li>
+        <span class="breadcrumbs--ellipsed-item">
+          {% trans "Edit" context "Image form text" %}
         </span>
       </li>
     {% else %}

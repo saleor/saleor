@@ -4,7 +4,7 @@
 {% load staticfiles %}
 
 {% block title %}
-  {{ product }} - {% trans "Images" %}
+  {% trans "Images" %} - {{ block.super }}
 {% endblock %}
 
 {% block body_class %}body-products{% endblock %}

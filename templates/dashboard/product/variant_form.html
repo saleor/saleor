@@ -5,7 +5,7 @@
 
 {% block title %}
   {% if variant.pk %}
-    {{ variant.sku }}{% if variant.name %} ({{ variant.name }}){% endif %}
+    {% trans "Edit" context "Variant form page title" %} - {{ variant }}
   {% else %}
     {% trans "Add variant" context "Variant form page title" %}
   {% endif %}
@@ -38,9 +38,9 @@
     </li>
     {% if variant.pk %}
       <li>
-        <span class="breadcrumbs--ellipsed-item">
+        <a href="{% url "dashboard:variant-details" product_pk=product.pk variant_pk=variant.pk %}" class="breadcrumbs--ellipsed-item">
           {{ variant }}
-        </span>
+        </a>
       </li>
       <li>
       <span class="breadcrumbs--ellipsed-item">
