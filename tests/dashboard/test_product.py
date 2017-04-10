@@ -152,7 +152,7 @@ def test_view_product_toggle_publish(db, admin_client, product_in_stock):
     response = admin_client.post(url)
     assert response.status_code == 200
     data = {'success': True, 'is_published': False}
-    assert json.loads(response.content) == data
+    assert json.loads(response.content.decode('utf8')) == data
     admin_client.post(url)
     product.refresh_from_db()
     assert product.is_published
