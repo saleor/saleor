@@ -44,6 +44,13 @@
         {% endif %}
       </span>
     </li>
+    {% if product.pk %}
+    <li>
+      <span class="breadcrumbs--ellipsed-item">
+        {% trans "Edit" context "Product form breadcrumbs" %}
+      </span>
+    </li>
+    {% endif %}
   </ul>
 {% endblock %}
 
