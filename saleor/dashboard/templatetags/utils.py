@@ -27,7 +27,7 @@ def is_versatile_image_ppoi_click_widget(field):
     return isinstance(field.field.widget, VersatileImagePPOIClickWidget)
 
 
-@register.inclusion_tag('dashboard/product/_image_select.html')
+@register.inclusion_tag('dashboard/product/_variant_image_select.html')
 def render_image_choice(field):
     choices = zip(field, field.field.queryset)
     return {'field': field, 'choices_with_images': choices}
