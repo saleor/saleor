@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django import forms
 from django.db.models import Count
 from django.forms.models import ModelChoiceIterator, inlineformset_factory
+from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
@@ -248,7 +249,9 @@ class ProductImageForm(forms.ModelForm):
 
 class VariantImagesSelectForm(forms.Form):
     images = forms.ModelMultipleChoiceField(
-        queryset=VariantImage.objects.none())
+        queryset=VariantImage.objects.none(),
+        widget=CheckboxSelectMultiple,
+        required=False)
 
     def __init__(self, *args, **kwargs):
         self.variant = kwargs.pop('variant')
