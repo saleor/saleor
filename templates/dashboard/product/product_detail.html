@@ -113,6 +113,10 @@
                   <td class="right-align">{% gross variant.get_price_per_item %}</td>
                   <td><a href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" class="btn btn-flat">{% trans "Edit" %}</a></td>
                 </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5">{% trans "No variants found" context "Dashboard product details page" %}</td>
+                </tr>
               {% endfor %}
             </tbody>
           </table>

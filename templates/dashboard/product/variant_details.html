@@ -98,6 +98,10 @@
                   <td>{{ stock_item.quantity_allocated }}</td>
                   <td class="right-align">{% if stock_item.cost_price %}{% gross stock_item.cost_price %}{% else %}-{% endif %}</td>
                 </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4">{% trans "No stock records found" context "Dashboard variant details page" %}</td>
+                </tr>
               {% endfor %}
             </tbody>
           </table>
