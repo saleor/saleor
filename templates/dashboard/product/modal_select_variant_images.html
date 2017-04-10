@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load materializecss %}
+{% load utils %}
 
 <form action="{% url "dashboard:variant-images" product_pk=product.pk variant_pk=variant.pk %}" method="post" novalidate>
   {% csrf_token %}
@@ -8,7 +9,7 @@
       {% trans "Select variant images" context "Dashboard variant images modal" %}
     </h5>
     <div class="row">
-      {{ form|materializecss }}
+      <p>{% render_image_choice form.images %}</p>
     </div>
   </div>
   <div class="modal-footer">
