@@ -205,6 +205,8 @@ class Product(models.Model, ItemRange, index.Indexed):
 
     def get_gross_price_range(self, **kwargs):
         grosses = [self.get_price_per_item(item, **kwargs) for item in self]
+        if not grosses:
+            return None
         grosses = sorted(grosses, key=lambda x: x.tax)
         return PriceRange(min(grosses), max(grosses))
 

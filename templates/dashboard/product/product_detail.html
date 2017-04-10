@@ -62,11 +62,15 @@
                 <p class="text-padding">{% trans "Gross margin" context "Product field" %}</p>
             </div>
             <div class="col s7 m6">
+              {% if gross_price_range %}
               {% with gross_price_range.min_price as min_price %}
                 {% with gross_price_range.max_price as max_price %}
                   <p class="text-padding right-align">{% tax min_price %} - {% tax max_price %}</p>
                 {% endwith %}
               {% endwith %}
+              {% else %}
+                <p class="text-padding right-align">-</p>
+              {% endif %}
             </div>
           </div>
         </div>
