@@ -203,6 +203,7 @@ def product_delete(request, pk):
         {'product': product})
 
 
+@staff_member_required
 def stock_details(request, product_pk, variant_pk, stock_pk):
     product = get_object_or_404(Product, pk=product_pk)
     variant = get_object_or_404(product.variants, pk=variant_pk)
