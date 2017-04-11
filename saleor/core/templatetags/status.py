@@ -51,3 +51,14 @@ def render_availability_status(product):
         label_cls = LABEL_SUCCESS
         status = pgettext_lazy('Product status', 'ready for purchase')
     return {'status': status, 'label_cls': label_cls}
+
+
+@register.inclusion_tag('status_label.html')
+def render_variant_availability_status(variant):
+    if variant.is_in_stock():
+        label_cls = LABEL_SUCCESS
+        status = pgettext_lazy('Variant status', 'available')
+    else:
+        label_cls = LABEL_DANGER
+        status = pgettext_lazy('Variant status', 'out of stock')
+    return {'status': status, 'label_cls': label_cls}

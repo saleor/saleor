@@ -3,6 +3,7 @@
 {% load i18n %}
 {% load prices_i18n %}
 {% load staticfiles %}
+{% load status %}
 
 {% block title %}
   {{ variant }} - {{ block.super }}
@@ -111,11 +112,7 @@
     <div class="col m12 l3">
       <div class="card">
         <div class="card-content">
-          {% if variant.is_in_stock %}
-            <h5 class="label label-success">{% trans "available" context "Dashboard variant details view" %}</h5>
-          {% else %}
-            <h5 class="label label-danger">{% trans "out of stock" context "Dashboard variant details view" %}</h5>
-          {% endif %}
+          <h5>{% render_variant_availability_status variant %}</h5>
         </div>
       </div>
       <div class="card">
