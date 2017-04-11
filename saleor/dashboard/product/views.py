@@ -87,6 +87,7 @@ def product_class_delete(request, pk):
 @staff_member_required
 def product_list(request):
     products = Product.objects.prefetch_related('images')
+    products = products.order_by('name')
     product_classes = ProductClass.objects.all()
     form = forms.ProductClassSelectorForm(
         request.POST or None, product_classes=product_classes)
