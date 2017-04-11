@@ -1,6 +1,7 @@
 var autoprefixer = require('autoprefixer');
 var BundleTracker = require('webpack-bundle-tracker');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 var path = require('path');
 var webpack = require('webpack');
 
@@ -51,6 +52,12 @@ var providePlugin = new webpack.ProvidePlugin({
   'window.jQuery': 'jquery',
   'Tether': 'tether',
   'window.Tether': 'tether'
+});
+
+var faviconsWebpackPlugin = new FaviconsWebpackPlugin({
+  logo: './saleor/static/images/favicon.svg',
+  prefix: 'favicons/',
+  title: "Saleor"
 });
 
 var config = {
@@ -105,7 +112,8 @@ var config = {
     environmentPlugin,
     extractTextPlugin,
     occurenceOrderPlugin,
-    providePlugin
+    providePlugin,
+    faviconsWebpackPlugin
   ],
   postcss: function() {
     return [autoprefixer];
