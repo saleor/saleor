@@ -246,7 +246,7 @@ def stock_delete(request, product_pk, variant_pk, stock_pk):
         return redirect(
             'dashboard:variant-details', product_pk=product.pk,
             variant_pk=variant.pk)
-    ctx = {'product': product, 'stock': stock, 'variant': variant.pk}
+    ctx = {'product': product, 'stock': stock, 'variant': variant}
     return TemplateResponse(
         request, 'dashboard/product/modal_stock_confirm_delete.html', ctx)
 
