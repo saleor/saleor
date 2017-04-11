@@ -8,6 +8,10 @@
   }
   .category-list {
     margin-top: $global-margin;
+    &--loading {
+      opacity: 0.5;
+      transition: 0.3s;
+    }
   }
   .category-top {
     border-bottom: solid 1px $gray;
