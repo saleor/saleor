@@ -291,16 +291,16 @@ def product_image_edit(request, product_pk, img_pk=None):
 @staff_member_required
 def product_image_delete(request, product_pk, img_pk):
     product = get_object_or_404(Product, pk=product_pk)
-    product_image = get_object_or_404(product.images, pk=img_pk)
+    image = get_object_or_404(product.images, pk=img_pk)
     if request.method == 'POST':
-        product_image.delete()
+        image.delete()
         messages.success(
             request,
             pgettext_lazy(
                 'Dashboard message',
-                'Deleted image %s') % product_image.image.name)
+                'Deleted image %s') % image.image.name)
         return redirect('dashboard:product-image-list', product_pk=product.pk)
-    ctx = {'product': product, 'product_image': product_image}
+    ctx = {'product': product, 'image': image}
     return TemplateResponse(
         request,
         'dashboard/product/modal_product_image_confirm_delete.html', ctx)
