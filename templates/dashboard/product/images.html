@@ -40,8 +40,8 @@
         <div class="dz-message"></div>
         {% csrf_token %}
         <div class="row">
-          {% if images %}
-            <ul class="product-gallery" id="product-gallery" data-post-url="{% url 'dashboard:product-images-reorder' product_pk=product.pk %}">
+          <ul class="product-gallery" id="product-gallery" data-post-url="{% url 'dashboard:product-images-reorder' product_pk=product.pk %}">
+            {% if images %}    
               {% for image in images %}
                 <li class="col s6 m3 product-gallery-item" data-id="{{ image.pk }}">
                   <div class="row">
@@ -76,12 +76,10 @@
                   </div>
                 </li>
               {% endfor %}
-            </ul>
-        {% else %}
-          <p class="no-images">
-            {% trans "This product has no images yet." context "Empty image gallery message" %}
-          </p>
-        {% endif %}
+            {% else %}
+              <div class="sortable__drag-area"></div>
+            {% endif %}
+          </ul>
         <div class="col s6 m3 product-gallery-item dropzone-message">
           <div class="row">
             <span class="product-gallery-item-title product-gallery-item-title--noclip card-title black-text">

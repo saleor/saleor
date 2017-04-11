@@ -146,7 +146,6 @@ Dropzone.options.productImageForm = {
   init: function() {
     let $dropzoneMessage = $('.dropzone-message');
     let $gallery = $('.product-gallery');
-
     this.on('success', function(e, response) {
       $(e.previewElement).find('.product-gallery-item-desc').html(response.image);
       $(e.previewElement).attr('data-id', response.id);
