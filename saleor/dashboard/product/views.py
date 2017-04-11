@@ -135,7 +135,7 @@ def product_create(request, class_pk):
 @staff_member_required
 def product_detail(request, pk):
     products = Product.objects.prefetch_related(
-        'variants', 'images',
+        'variants__stock', 'images',
         'product_class__variant_attributes__values').all()
     product = get_object_or_404(products, pk=pk)
     variants = product.variants.all()
@@ -143,11 +143,22 @@ def product_detail(request, pk):
     availability = get_availability(product)
     sale_price = availability.price_range
     gross_price_range = product.get_gross_price_range()
-    requires_variants = product.product_class.has_variants
+
+    # no_variants is True for product classes that doesn't require variant.
+    # In this case we're using the first variant under the hood to allow stock
+    # management.
+    no_variants = not product.product_class.has_variants
+    only_variant = variants.first() if no_variants else None
+    if only_variant:
+        stock = only_variant.stock.all()
+    else:
+        stock = Stock.objects.none()
+
     ctx = {
         'product': product, 'sale_price': sale_price, 'variants': variants,
         'gross_price_range': gross_price_range, 'images': images,
-        'requires_variants': requires_variants}
+        'no_variants': no_variants, 'only_variant': only_variant,
+        'stock': stock}
     return TemplateResponse(
         request, 'dashboard/product/product_detail.html', ctx)
 
@@ -179,6 +190,8 @@ def product_edit(request, pk):
 
     if form.is_valid() and not variant_errors:
         product = form.save()
+        if edit_variant:
+            variant_form.save()
         msg = pgettext_lazy(
             'Dashboard message', 'Updated product %s') % product
         messages.success(request, msg)
@@ -338,6 +351,13 @@ def variant_details(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
     qs = product.variants.prefetch_related('images', 'stock')
     variant = get_object_or_404(qs, pk=variant_pk)
+
+    # If the product class of this product assumes no variants, redirect to
+    # product details page that has special UI for products without variants.
+
+    if not product.product_class.has_variants:
+        return redirect('dashboard:product-detail', pk=product.pk)
+
     stock = variant.stock.all()
     images = variant.images.all()
     ctx = {
