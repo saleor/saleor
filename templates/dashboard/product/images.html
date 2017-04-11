@@ -39,7 +39,6 @@
       <form action="{% url 'dashboard:product-images-upload' product_pk=product.pk %}" class="dropzone" id="product-image-form" novalidate>
         <div class="dz-message"></div>
         {% csrf_token %}
-        <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#images">
         <div class="row">
           {% if images %}
             <ul class="product-gallery" id="product-gallery" data-post-url="{% url 'dashboard:product-images-reorder' product_pk=product.pk %}">

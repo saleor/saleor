@@ -160,22 +160,13 @@ def product_toggle_is_published(request, pk):
 @staff_member_required
 def product_edit(request, pk):
     product = get_object_or_404(
-        Product.objects.prefetch_related(
-            'images', 'variants'), pk=pk)
-    edit_variant = not product.product_class.has_variants
-    attributes = product.product_class.variant_attributes.prefetch_related(
-        'values')
-    images = product.images.all()
-    variants = product.variants.all()
-    stock_items = Stock.objects.filter(
-        variant__in=variants).select_related('variant', 'location')
+        Product.objects.prefetch_related('variants'), pk=pk)
 
+    edit_variant = not product.product_class.has_variants
     form = forms.ProductForm(request.POST or None, instance=product)
-    variants_delete_form = forms.VariantBulkDeleteForm()
-    stock_delete_form = forms.StockBulkDeleteForm()
 
     if edit_variant:
-        variant = variants.first()
+        variant = product.variants.first()
         variant_form = forms.ProductVariantForm(
             request.POST or None, instance=variant, prefix='variant')
         variant_errors = not variant_form.is_valid()
@@ -189,11 +180,8 @@ def product_edit(request, pk):
             'Dashboard message', 'Updated product %s') % product
         messages.success(request, msg)
         return redirect('dashboard:product-detail', pk=product.pk)
-    ctx = {'attributes': attributes, 'images': images, 'product_form': form,
-           'product': product, 'stock_delete_form': stock_delete_form,
-           'stock_items': stock_items, 'variants': variants,
-           'variants_delete_form': variants_delete_form,
-           'variant_form': variant_form}
+    ctx = {
+        'product': product, 'product_form': form, 'variant_form': variant_form}
     return TemplateResponse(
         request, 'dashboard/product/product_form.html', ctx)
 
@@ -234,34 +222,20 @@ def stock_edit(request, product_pk, variant_pk, stock_pk=None):
 
 
 @staff_member_required
-def stock_delete(request, product_pk, stock_pk):
+def stock_delete(request, product_pk, variant_pk, stock_pk):
     product = get_object_or_404(Product, pk=product_pk)
+    variant = get_object_or_404(product.variants, pk=variant_pk)
     stock = get_object_or_404(Stock, pk=stock_pk)
     if request.method == 'POST':
         stock.delete()
         messages.success(
             request, pgettext_lazy('Dashboard message', 'Deleted stock'))
-        success_url = request.POST['success_url']
-        if is_safe_url(success_url, allowed_hosts=request.get_host()):
-            return redirect(success_url)
-    ctx = {'product': product, 'stock': stock}
+        return redirect(
+            'dashboard:variant-details', product_pk=product.pk,
+            variant_pk=variant.pk)
+    ctx = {'product': product, 'stock': stock, 'variant': variant.pk}
     return TemplateResponse(
-        request, 'dashboard/product/stock_confirm_delete.html', ctx)
-
-
-@staff_member_required
-@require_http_methods(['POST'])
-def stock_bulk_delete(request, product_pk):
-    product = get_object_or_404(Product, pk=product_pk)
-    form = forms.StockBulkDeleteForm(request.POST)
-    if form.is_valid():
-        form.delete()
-        success_url = request.POST['success_url']
-        messages.success(
-            request, pgettext_lazy('Dashboard message', 'Deleted stock'))
-        if is_safe_url(success_url, allowed_hosts=request.get_host()):
-            return redirect(success_url)
-    return redirect('dashboard:product-update', pk=product.pk)
+        request, 'dashboard/product/modal_stock_confirm_delete.html', ctx)
 
 
 @staff_member_required
@@ -280,7 +254,6 @@ def product_image_edit(request, product_pk, img_pk=None):
         product_image = get_object_or_404(product.images, pk=img_pk)
     else:
         product_image = ProductImage(product=product)
-    show_variants = product.product_class.has_variants
     form = forms.ProductImageForm(request.POST or None, request.FILES or None,
                                   instance=product_image)
     if form.is_valid():
@@ -297,8 +270,7 @@ def product_image_edit(request, product_pk, img_pk=None):
         success_url = request.POST['success_url']
         if is_safe_url(success_url, allowed_hosts=request.get_host()):
             return redirect(success_url)
-    ctx = {'form': form, 'product': product, 'product_image': product_image,
-           'show_variants': show_variants}
+    ctx = {'form': form, 'product': product, 'product_image': product_image}
     return TemplateResponse(
         request, 'dashboard/product/product_image_form.html', ctx)
 
@@ -314,9 +286,7 @@ def product_image_delete(request, product_pk, img_pk):
             pgettext_lazy(
                 'Dashboard message',
                 'Deleted image %s') % product_image.image.name)
-        success_url = request.POST['success_url']
-        if is_safe_url(success_url, allowed_hosts=request.get_host()):
-            return redirect(success_url)
+        return redirect('dashboard:product-image-list', product_pk=product.pk)
     ctx = {'product': product, 'product_image': product_image}
     return TemplateResponse(
         request,
@@ -398,22 +368,6 @@ def variant_delete(request, product_pk, variant_pk):
     return TemplateResponse(
         request,
         'dashboard/product/modal_variant_confirm_delete.html', ctx)
-
-
-@staff_member_required
-@require_http_methods(['POST'])
-def variants_bulk_delete(request, product_pk):
-    product = get_object_or_404(Product, pk=product_pk)
-    form = forms.VariantBulkDeleteForm(request.POST)
-    if form.is_valid():
-        form.delete()
-        success_url = request.POST['success_url']
-        messages.success(
-            request,
-            pgettext_lazy('Dashboard message', 'Deleted variants'))
-        if is_safe_url(success_url, allowed_hosts=request.get_host()):
-            return redirect(success_url)
-    return redirect('dashboard:product-update', pk=product.pk)
 
 
 @staff_member_required

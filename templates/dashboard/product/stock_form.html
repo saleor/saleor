@@ -31,12 +31,12 @@
       </a>
     </li>
     <li class="back-mobile">
-      <a href="{% url "dashboard:product-update" pk=product.pk %}#stock">
+      <a href="{% url "dashboard:product-detail" pk=product.pk %}">
         <svg data-src="{% static "dashboard/images/chevron_left.svg" %}" />
       </a>
     </li>
     <li>
-      <a href="{% url "dashboard:product-update" pk=product.pk %}#stock" class="breadcrumbs--ellipsed-item">
+      <a href="{% url "dashboard:product-detail" pk=product.pk %}" class="breadcrumbs--ellipsed-item">
         {{ product }}
       </a>
     </li>
@@ -77,7 +77,6 @@
         <form method="post" id="form-stock" enctype="multipart/form-data">
           <div class="card-content">
             {% csrf_token %}
-            <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}#stock">
             <div class="row">
               <div class="col s12 m8">
                 <div class="row">
