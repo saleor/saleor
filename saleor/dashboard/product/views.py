@@ -143,9 +143,11 @@ def product_detail(request, pk):
     availability = get_availability(product)
     sale_price = availability.price_range
     gross_price_range = product.get_gross_price_range()
+    requires_variants = product.product_class.has_variants
     ctx = {
         'product': product, 'sale_price': sale_price, 'variants': variants,
-        'gross_price_range': gross_price_range, 'images': images}
+        'gross_price_range': gross_price_range, 'images': images,
+        'requires_variants': requires_variants}
     return TemplateResponse(
         request, 'dashboard/product/product_detail.html', ctx)
 

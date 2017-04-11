@@ -33,11 +33,12 @@ def render_status(status, status_display=None):
 def render_availability_status(product):
     is_available = product.is_available()
     in_stock = product.is_in_stock()
+    requires_variants = product.product_class.has_variants
 
     if not product.is_published:
         label_cls = LABEL_DANGER
         status = pgettext_lazy('Product status', 'not published')
-    elif not product.variants.exists():
+    elif requires_variants and not product.variants.exists():
         label_cls = LABEL_DANGER
         status = pgettext_lazy('Product status', 'variants missing')
     elif not in_stock:
