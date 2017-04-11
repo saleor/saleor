@@ -53,17 +53,11 @@
           <p class="card-title">{{ variant }} <br> {% trans "Stock:" context "Dashboard stock details view" %} {{ stock.location }}</p>
           <p></p>
           <div class="row">
-            <div class="col s5 m6">
-              <p class="text-padding">{% trans "Quantity" context "Dashboard stock details view" %}</p>
+            <div class="col s12">
+              <p class="text-padding">{% trans "Quantity" context "Dashboard stock details view" %}: {{ stock.quantity }}</p>
             </div>
-            <div class="col s7 m6">
-              <p class="text-padding right-align">{{ stock.quantity }}</p>
-            </div>
-            <div class="col s5 m6">
-              <p class="text-padding">{% trans "Allocated" context "Dashboard stock details view" %}</p>
-            </div>
-            <div class="col s7 m6">
-              <p class="text-padding right-align">{{ stock.quantity_allocated }}</p>
+            <div class="col s12">
+              <p class="text-padding">{% trans "Allocated" context "Dashboard stock details view" %}: {{ stock.quantity_allocated }}</p>
             </div>
           </div>
         </div>
