@@ -127,7 +127,7 @@
       </script>
     </div>
     <div class="fixed-action-btn">
-      <a class="btn-fab btn-fab-hidden btn-floating btn-large waves-effect waves-light teal" id="images-btn" href="{% url 'dashboard:product-image-add' product_pk=product.pk %}" title="{% trans "Add image" context "Add image button text" %}">
+      <a class="btn-fab btn-floating btn-large waves-effect waves-light teal" id="images-btn" href="{% url 'dashboard:product-image-add' product_pk=product.pk %}" title="{% trans "Add image" context "Add image button text" %}">
         <svg data-src="{% static "dashboard/images/add.svg" %}" />
       </a>
     </div>
