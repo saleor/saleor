@@ -11,7 +11,7 @@
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs">
-    <li class="visible-s">{% trans "Search" context "Dashboard search" %}</li>
+    <li class="visible-s">{% trans "Search results" context "Dashboard search" %}</li>
   </ul>
 {% endblock %}
 
@@ -37,7 +37,7 @@
             <li class="collection-item avatar list-item">
               {% if result.content_type == 'product_product' %}
                 {% with product=result %}
-                  <a href="{% url 'dashboard:product-update' pk=product.pk %}">
+                  <a href="{% url 'dashboard:product-detail' pk=product.pk %}">
                     <img src="{% product_first_image product size="60x60" method="crop" %}"
                          srcset="{% product_first_image product size="60x60" method="crop" %} 1x, {% product_first_image product size="120x120" method="crop" %} 2x"
                          class="circle teal" alt="{{ product.name }}">
