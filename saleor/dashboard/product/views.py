@@ -203,6 +203,15 @@ def product_delete(request, pk):
         {'product': product})
 
 
+def stock_details(request, product_pk, variant_pk, stock_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    variant = get_object_or_404(product.variants, pk=variant_pk)
+    stock = get_object_or_404(variant.stock, pk=stock_pk)
+    ctx = {'stock': stock, 'product': product, 'variant': variant}
+    return TemplateResponse(
+        request, 'dashboard/product/stock_details.html', ctx)
+
+
 @staff_member_required
 def stock_edit(request, product_pk, variant_pk, stock_pk=None):
     product = get_object_or_404(Product, pk=product_pk)

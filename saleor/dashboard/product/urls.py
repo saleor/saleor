@@ -41,6 +41,8 @@ urlpatterns = [
     url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/stock/add/$',
         views.stock_edit, name='variant-stock-add'),
     url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/stock/(?P<stock_pk>[0-9]+)/$',
+        views.stock_details, name='variant-stock-details'),
+    url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/stock/(?P<stock_pk>[0-9]+)/update/$',
         views.stock_edit, name='variant-stock-update'),
     url(r'^(?P<product_pk>[0-9]+)/variants/(?P<variant_pk>[0-9]+)/stock/(?P<stock_pk>[0-9]+)/delete/$',
         views.stock_delete, name='variant-stock-delete'),

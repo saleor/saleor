@@ -92,7 +92,7 @@
             </thead>
             <tbody>
               {% for stock_item in stock %}
-                <tr data-action-go="{% url "dashboard:variant-stock-update" product_pk=product.pk variant_pk=variant.pk stock_pk=stock_item.pk %}">
+                <tr data-action-go="{% url "dashboard:variant-stock-details" product_pk=product.pk variant_pk=variant.pk stock_pk=stock_item.pk %}">
                   <td class="wide">{{ stock_item.location }}</td>
                   <td>{{ stock_item.quantity }}</td>
                   <td>{{ stock_item.quantity_allocated }}</td>
