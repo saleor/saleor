@@ -111,7 +111,8 @@ class CategoryPage extends Component {
   }
 
   render() {
-    const { attributes, category, relay: { variables } } = this.props;
+    const { attributes, category, relay: { variables }, relay } = this.props;
+    const { pendingVariables } = relay;
     const { filtersMenu } = this.state;
     return (
       <div className="category-page">
@@ -174,6 +175,7 @@ class CategoryPage extends Component {
               <ProductList
                 onLoadMore={this.incrementProductsCount}
                 products={category.products}
+                updating={pendingVariables}
               />
             </div>
           </div>
