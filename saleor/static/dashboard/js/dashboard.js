@@ -34,6 +34,13 @@ function openModal() {
         $modal.html(response);
         initSelects();
         $modal.modal();
+        // Image checkbox selector
+        $('.image_select-item-overlay').on('click', function (e) {
+          let id = $(e.target).attr('id');
+          let checkbox = $('input#'+id).prop('checked');
+          $('input#'+id).prop('checked', !checkbox);
+          $(e.target).toggleClass('checked', !checkbox );
+        });
       }
     });
 
