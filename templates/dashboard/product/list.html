@@ -76,20 +76,21 @@
     </div>
   </div>
   <div id="modal-product-class" class="modal">
-    <div class="modal-content">
-      <form method="post" novalidate>
+    <form method="post" novalidate>
+      <div class="modal-content">
         {% csrf_token %}
         <div class="row">
           {{ form|materializecss }}
         </div>
-        <div class="row">
-          <div class="col s12">
-            <button class="btn" type="submit">
-              {% trans "Create new" context "Dashboard create new action" %}
-            </button>
-          </div>
-        </div>
-      </form>
-    </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="modal-action btn-flat">
+          {% trans "Create new" context "Dashboard add action" %}
+        </button>
+        <a href="#!" class="modal-action modal-close btn-flat">
+          {% trans "Cancel" context "Dashboard cancel action" %}
+        </a>
+      </div>
+    </form>
   </div>
 {% endblock %}
