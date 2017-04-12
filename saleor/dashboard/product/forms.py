@@ -8,27 +8,22 @@ from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 
-from ...product.models import (AttributeChoiceValue, Product, ProductAttribute,
-                               ProductClass, ProductImage, ProductVariant,
-                               Stock, StockLocation, VariantImage)
+from ...product.models import (
+    AttributeChoiceValue, Product, ProductAttribute, ProductClass,
+    ProductImage, ProductVariant, Stock, StockLocation, VariantImage)
 from .widgets import ImagePreviewWidget
 from ...search import index as search_index
 
 
 class ProductClassSelectorForm(forms.Form):
-    MAX_RADIO_SELECT_ITEMS = 5
 
     def __init__(self, *args, **kwargs):
         product_classes = kwargs.pop('product_classes', [])
         super(ProductClassSelectorForm, self).__init__(*args, **kwargs)
         choices = [(obj.pk, obj.name) for obj in product_classes]
-        if len(product_classes) > self.MAX_RADIO_SELECT_ITEMS:
-            widget = forms.Select
-        else:
-            widget = forms.RadioSelect
         self.fields['product_cls'] = forms.ChoiceField(
             label=pgettext_lazy('Product class form label', 'Product type'),
-            choices=choices, widget=widget)
+            choices=choices, widget=forms.RadioSelect)
 
 
 class StockForm(forms.ModelForm):
