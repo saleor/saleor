@@ -102,7 +102,7 @@
                 {% trans "Save" context "Dashboard update action" %}
               </button>
             {% else %}
-              <a href="{% url "dashboard:variant-stock-details" product_pk=product.pk variant_pk=variant.pk stock_pk=stock.pk %}" class="btn btn-flat">
+              <a href="{% url "dashboard:variant-details" product_pk=product.pk variant_pk=variant.pk %}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">
