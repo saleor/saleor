@@ -3,6 +3,7 @@ from django.utils.translation import pgettext_lazy
 from payments import PaymentStatus
 
 from ...order import OrderStatus
+from ...product.models import Stock
 
 register = Library()
 
@@ -32,7 +33,9 @@ def render_status(status, status_display=None):
 @register.inclusion_tag('status_label.html')
 def render_availability_status(product):
     is_available = product.is_available()
-    in_stock = product.is_in_stock()
+    has_stock_records = Stock.objects.filter(variant__product=product)
+    are_all_variants_in_stock = all(variant.is_in_stock() for variant in product)
+    is_in_stock = any(variant.is_in_stock() for variant in product)
     requires_variants = product.product_class.has_variants
 
     if not product.is_published:
@@ -41,9 +44,15 @@ def render_availability_status(product):
     elif requires_variants and not product.variants.exists():
         label_cls = LABEL_DANGER
         status = pgettext_lazy('Product status', 'variants missing')
-    elif not in_stock:
+    elif not has_stock_records:
+        label_cls = LABEL_DANGER
+        status = pgettext_lazy('Product status', 'not carried')
+    elif not is_in_stock:
         label_cls = LABEL_DANGER
         status = pgettext_lazy('Product status', 'out of stock')
+    elif not are_all_variants_in_stock:
+        label_cls = LABEL_DANGER
+        status = pgettext_lazy('Product status', 'stock running low')
     elif not is_available and product.available_on is not None:
         label_cls = LABEL_DANGER
         status = pgettext_lazy('Product status', 'not yet available')
@@ -55,10 +64,14 @@ def render_availability_status(product):
 
 @register.inclusion_tag('status_label.html')
 def render_variant_availability_status(variant):
-    if variant.is_in_stock():
-        label_cls = LABEL_SUCCESS
-        status = pgettext_lazy('Variant status', 'available')
-    else:
+    has_stock_records = variant.stock.exists()
+    if not has_stock_records:
+        label_cls = LABEL_DANGER
+        status = pgettext_lazy('Variant status', 'not carried')
+    elif not variant.is_in_stock():
         label_cls = LABEL_DANGER
         status = pgettext_lazy('Variant status', 'out of stock')
+    else:
+        label_cls = LABEL_SUCCESS
+        status = pgettext_lazy('Variant status', 'available')
     return {'status': status, 'label_cls': label_cls}
