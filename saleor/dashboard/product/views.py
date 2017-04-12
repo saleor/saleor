@@ -347,7 +347,9 @@ def variant_edit(request, product_pk, variant_pk=None):
 @staff_member_required
 def variant_details(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
-    qs = product.variants.prefetch_related('images', 'stock')
+    qs = product.variants.prefetch_related(
+        'stock__location',
+        'product__product_class__variant_attributes__values')
     variant = get_object_or_404(qs, pk=variant_pk)
 
     # If the product class of this product assumes no variants, redirect to
