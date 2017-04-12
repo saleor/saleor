@@ -107,15 +107,15 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         exclude = ['attributes', 'product_class']
+        labels = {
+            'is_published': pgettext_lazy('product form', 'Published'),
+            'is_featured': pgettext_lazy(
+                'product form', 'Feature this product on homepage')}
 
     def __init__(self, *args, **kwargs):
         self.product_attributes = []
         super(ProductForm, self).__init__(*args, **kwargs)
-        field = self.fields['name']
-        field.widget.attrs['placeholder'] = pgettext_lazy(
-            'Product form placeholder', 'Give your awesome product a name')
-        field = self.fields['categories']
-        field.widget.attrs['data-placeholder'] = pgettext_lazy(
+        self.fields['categories'].widget.attrs['data-placeholder'] = pgettext_lazy(
             'Product form placeholder', 'Search')
         product_class = self.instance.product_class
         self.product_attributes = product_class.product_attributes.all()
@@ -192,9 +192,10 @@ class VariantAttributeForm(forms.ModelForm):
         attrs = self.instance.product.product_class.variant_attributes.all()
         self.available_attrs = attrs.prefetch_related('values')
         for attr in self.available_attrs:
-            field_defaults = {'label': attr.name,
-                              'required': True,
-                              'initial': self.instance.get_attribute(attr.pk)}
+            field_defaults = {
+                'label': attr.name,
+                'required': True,
+                'initial': self.instance.get_attribute(attr.pk)}
             if attr.has_values():
                 field = CachingModelChoiceField(
                     queryset=attr.values.all(), **field_defaults)
