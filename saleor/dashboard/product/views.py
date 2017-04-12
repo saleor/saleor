@@ -6,13 +6,12 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url
 from django.utils.translation import pgettext_lazy
-from django.views.decorators.http import require_http_methods
 
 from . import forms
 from ...core.utils import get_paginator_items
-from ...product.models import (Product, ProductAttribute, ProductClass,
-                               ProductImage, ProductVariant, Stock,
-                               StockLocation)
+from ...product.models import (
+    Product, ProductAttribute, ProductClass, ProductImage, ProductVariant,
+    Stock, StockLocation)
 from ...product.utils import get_availability
 from ..views import staff_member_required
 
@@ -168,7 +167,8 @@ def product_toggle_is_published(request, pk):
     product = get_object_or_404(Product, pk=pk)
     product.is_published = not product.is_published
     product.save(update_fields=['is_published'])
-    return JsonResponse({'success': True, 'is_published': product.is_published})
+    return JsonResponse(
+        {'success': True, 'is_published': product.is_published})
 
 
 @staff_member_required
@@ -243,7 +243,8 @@ def stock_edit(request, product_pk, variant_pk, stock_pk=None):
         return redirect(
             'dashboard:variant-details', product_pk=product.pk,
             variant_pk=variant.pk)
-    ctx = {'form': form, 'product': product, 'variant': variant, 'stock': stock}
+    ctx = {
+        'form': form, 'product': product, 'variant': variant, 'stock': stock}
     return TemplateResponse(request, 'dashboard/product/stock_form.html', ctx)
 
 
