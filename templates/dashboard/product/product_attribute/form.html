@@ -5,11 +5,11 @@
 
 {% block title %}
   {% if attribute.pk %}
-    {{ attribute }}
+   {% trans "Edit" context "Dashboard attributes list" %} - {{ attribute }}
   {% else %}
     {% trans "Add new attribute" context "Attribute detail page title" %}
   {% endif %}
-  - {% trans "Attributes" context "Dashboard attributes list" %} - {{ block.super }}
+  - {{ block.super }}
 {% endblock %}
 
 {% block body_class %}body-attributes{% endblock %}
@@ -34,15 +34,24 @@
         <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
+    {% if attribute.pk %}
+    <li>
+      <a href="{% url 'dashboard:product-attribute-detail' attribute.pk %}" class="breadcrumbs--ellipsed-item">
+        {{ attribute }}
+      </a>
+    </li>
     <li>
       <span class="breadcrumbs--ellipsed-item">
-        {% if attribute.pk %}
-          {{ attribute }}
-        {% else %}
-          {% trans "Add new attribute" context "Attribute detail breadcrumbs" %}
-        {% endif %}
+        {% trans "Edit" context "Attribute detail breadcrumbs" %}
       </span>
     </li>
+    {% else %}
+    <li>
+      <span class="breadcrumbs--ellipsed-item">
+        {% trans "Add new attribute" context "Attribute detail breadcrumbs" %}
+      </span>
+    </li>
+    {% endif %}
   </ul>
 {% endblock %}
 
@@ -61,9 +70,9 @@
             <div class="row">
               {{ form.slug|materializecss }}
             </div>
-            <h5 class="card-title">
+            <span class="card-title">
               {% trans "Attribute values" context "Attribute values formset title" %}
-            </h5>
+            </span>
             {{ formset.management_form }}
             {{ formset.non_form_errors.as_ul }}
           </div>
@@ -100,7 +109,7 @@
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">
-                {% trans "Update" context "Dashboard update action" %}
+                {% trans "Save" context "Dashboard update action" %}
               </button>
             {% else %}
               <a href="{% url 'dashboard:product-attributes' %}" class="btn btn-flat">
