@@ -72,4 +72,4 @@ def shipping_method_delete(request, pk):
                     'shipping_method_name': shipping_method})
         return redirect('dashboard:shipping-methods')
     ctx = {'shipping_method': shipping_method}
-    return TemplateResponse(request, 'dashboard/shipping/method_delete.html', ctx)
+    return TemplateResponse(request, 'dashboard/shipping/modal_confirm_delete.html', ctx)
