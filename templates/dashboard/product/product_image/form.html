@@ -67,7 +67,6 @@
         <form method="post" enctype="multipart/form-data">
           <div class="card-content">
             {% csrf_token %}
-            <input type="hidden" name="success_url" value="{% url 'dashboard:product-image-list' product.pk %}">
             <div class="row">
               <div class="col s12 m8">
                 <div class="row">
