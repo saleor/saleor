@@ -120,9 +120,7 @@
           <span class="card-title">{% trans "Images" context "Dashboard variant details view" %}</span>
           <p>
             {% for image in images %}
-              <a href="{% url "dashboard:product-image-update" product_pk=product.pk img_pk=image.pk %}">
-                <img class="responsive-img" src="{{ image.image.crop.60x60 }}" srcset="{{ image.image.crop.60x60 }} 1x" alt="">
-              </a>
+              <img class="responsive-img" src="{{ image.image.crop.60x60 }}" srcset="{{ image.image.crop.60x60 }} 1x" alt="">
             {% empty %}
               {% trans "No images" %}
             {% endfor %}
