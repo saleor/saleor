@@ -21,19 +21,23 @@
 {% endblock %}
 
 {% block header_extra %}
-  {% if order.can_cancel %}
-    <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
-      <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
-    </a>
-    <ul id="context-menu" class="dropdown-content">
+  <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
+    <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
+  </a>
+  <ul id="context-menu" class="dropdown-content">
+    {% if order.can_cancel %}
       <li>
-        <a href="#base-modal" data-href="{% url "dashboard:order-cancel" order_pk=order.pk %}"
-        class="modal-trigger-custom">
+        <a href="#base-modal" data-href="{% url "dashboard:order-cancel" order_pk=order.pk %}" class="modal-trigger-custom">
           {% trans "Cancel Order" context "Order detail action" %}
         </a>
       </li>
-    </ul>
-  {% endif %}
+    {% endif %}
+    <li>
+      <a class="btn-print" href="#">
+        {% trans "Print" context "Order detail action" %}
+      </a>
+    </li>
+  </ul>
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -202,7 +206,7 @@
       {% with order.shipping_address as address %}
         <div class="row">
           {% if address %}
-            <div class="col s12 m6 l12">
+            <div class="col s12 m6 l12 p6">
               <div class="card">
                 <div class="card-content">
                   <span class="card-title black-text">
@@ -218,7 +222,7 @@
               </div>
             </div>
           {% endif %}
-          <div class="col s12 {% if address %}m6{% else %}m12{% endif %} l12">
+          <div class="col s12 {% if address %}m6{% else %}m12{% endif %} l12 p6">
             <div class="card">
               <div class="card-content">
                 {% with order.billing_address as address %}
@@ -239,7 +243,7 @@
     </div>
     <div class="col s12 l8 switch-two-columns">
       {% for group in groups %}
-        <div class="card">
+        <div class="card shipment-table">
           <div class="data-table-header">
             <h5 class="data-table-title">
               {% blocktrans trimmed with shipment=group.id context "Shipment group table title"  %}
@@ -411,7 +415,7 @@
           </table>
         </div>
       </div>
-      <div class="card" id="order-notes">
+      <div class="card{% if not notes %} print-hide{% endif %}" id="order-notes">
         <div class="card-content">
           <span class="card-title black-text">
             {% trans "Order notes" context "Order notes card title" %}
@@ -441,6 +445,7 @@
   </div>
   <div class="tab-content" id="payment-history">
     {% if all_payments %}
+      <p class="print-show print-tabs">{% trans "Payments" context "Order detail tab" %}</p>
       <div class="card">
         <div class="data-table-container">
           <table class="bordered highlight responsive data-table">
@@ -496,6 +501,7 @@
     {% endif %}
   </div>
   <div class="card tab-content" id="order-history">
+    <p class="print-show print-tabs">{% trans "History" context "Order detail tab" %}</p>
     <div class="data-table-container">
       <table class="bordered highlight responsive data-table">
         <thead>

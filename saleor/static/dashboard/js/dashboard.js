@@ -270,3 +270,8 @@ $(document).ready(() => {
     $voucherTypeInput.trigger('change');
   }
 });
+
+//Print button
+$('.btn-print').click((e) => {
+  window.print();
+});
