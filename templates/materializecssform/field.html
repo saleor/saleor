@@ -7,7 +7,7 @@
     <div class="{{ classes.single_value }}">
       <p>
         {% if field.auto_id %}
-          <input id="{{ field.auto_id }}" name="{{ field.name }}" class="filled-in" type="checkbox"{% if field.value %} checked="checked" {% endif %}>
+          <input id="{{ field.auto_id }}" name="{{ field.html_name }}" class="filled-in" type="checkbox"{% if field.value %} checked="checked" {% endif %}>
           <label for="{{ field.auto_id }}">
             {{ field.label }}
           </label>
