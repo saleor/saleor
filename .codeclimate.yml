@@ -8,3 +8,6 @@ engines:
 exclude_paths:
 - migrations/
 - tests/
+ratings:
+  paths:
+  - saleor/**
