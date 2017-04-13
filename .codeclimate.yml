@@ -3,6 +3,8 @@ engines:
     enabled: true
   pep8:
     enabled: true
+  pylint:
+    enabled: true
 exclude_paths:
 - migrations/
 - tests/
