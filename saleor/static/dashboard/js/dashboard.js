@@ -37,9 +37,9 @@ function openModal() {
         // Image checkbox selector
         $('.image_select-item-overlay').on('click', function (e) {
           let id = $(e.target).attr('id');
-          let checkbox = $('input#'+id).prop('checked');
-          $('input#'+id).prop('checked', !checkbox);
-          $(e.target).toggleClass('checked', !checkbox );
+          let checkbox = $('input#' + id).prop('checked');
+          $('input#' + id).prop('checked', !checkbox);
+          $(e.target).toggleClass('checked', !checkbox);
         });
       }
     });
@@ -49,16 +49,15 @@ function openModal() {
 }
 
 $(document).ready(function() {
-
   let styleGuideMenu = $('.styleguide__menu');
 
   $(window).scroll(function () {
     if ($(this).scrollTop() > 100) {
-      styleGuideMenu.addClass("fixed");
+      styleGuideMenu.addClass('fixed');
     } else {
-      styleGuideMenu.removeClass("fixed");
+      styleGuideMenu.removeClass('fixed');
     }
-  })
+  });
 
   let mainNavTop = $('.side-nav');
   let $toggleMenu = $('#toggle-menu');
@@ -130,10 +129,6 @@ $(document).ready(function() {
   }).on('click', '.modal-close', function() {
     $('.modal').modal('close');
   });
-
-  function isTablet() {
-    return !$('.hide-on-med-only').is(':visible');
-  }
 });
 Dropzone.options.productImageForm = {
   paramName: 'image',
@@ -144,8 +139,6 @@ Dropzone.options.productImageForm = {
   previewTemplate: $('#template').html(),
   clickable: false,
   init: function() {
-    let $dropzoneMessage = $('.dropzone-message');
-    let $gallery = $('.product-gallery');
     this.on('success', function(e, response) {
       $(e.previewElement).find('.product-gallery-item-desc').html(response.image);
       $(e.previewElement).attr('data-id', response.id);
@@ -225,11 +218,11 @@ $('.datepicker').pickadate({
   weekdaysShort: [ pgettext('Datepicker weekday shortcut', 'Sun'), pgettext('Datepicker weekday shortcut', 'Mon'), pgettext('Datepicker weekday shortcut', 'Tue'), pgettext('Datepicker weekday shortcut', 'Wed'), pgettext('Datepicker weekday shortcut', 'Thu'), pgettext('Datepicker weekday shortcut', 'Fri'), pgettext('Datepicker weekday shortcut', 'Sat') ],
 
   // Materialize modified
-  weekdaysLetter: [ pgettext('Sunday shortcut','S'), pgettext('Monday shortcut','M'), pgettext('Tuesday shortcut','T'), pgettext('Wednesday shortcut','W'), pgettext('Thursday shortcut','T'), pgettext('Friday shortcut','F'), pgettext('Saturday shortcut','S') ],
+  weekdaysLetter: [ pgettext('Sunday shortcut', 'S'), pgettext('Monday shortcut', 'M'), pgettext('Tuesday shortcut', 'T'), pgettext('Wednesday shortcut', 'W'), pgettext('Thursday shortcut', 'T'), pgettext('Friday shortcut', 'F'), pgettext('Saturday shortcut', 'S') ],
   today: pgettext('Datepicker option', 'Today'),
   clear: pgettext('Datepicker option', 'Clear'),
-  close: pgettext('Datepicker option','Close'),
-  
+  close: pgettext('Datepicker option', 'Close'),
+
   format: 'd mmmm yyyy',
   formatSubmit: 'yyyy-mm-dd',
   selectMonths: true,

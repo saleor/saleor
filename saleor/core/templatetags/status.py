@@ -34,7 +34,8 @@ def render_status(status, status_display=None):
 def render_availability_status(product):
     is_available = product.is_available()
     has_stock_records = Stock.objects.filter(variant__product=product)
-    are_all_variants_in_stock = all(variant.is_in_stock() for variant in product)
+    are_all_variants_in_stock = all(
+        variant.is_in_stock() for variant in product)
     is_in_stock = any(variant.is_in_stock() for variant in product)
     requires_variants = product.product_class.has_variants
 
