@@ -157,6 +157,16 @@ def product_in_stock(product_class, default_category):
 
 
 @pytest.fixture
+def unavailable_product(product_class, default_category):
+    product = Product.objects.create(
+        name='Test product', price=Decimal('10.00'),
+        product_class=product_class,
+        is_published=False)
+    product.categories.add(default_category)
+    return product
+
+
+@pytest.fixture
 def anonymous_checkout():
     return Checkout(Mock(), AnonymousUser(), 'tracking_code')
 

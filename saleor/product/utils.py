@@ -8,6 +8,7 @@ from django_prices.templatetags import prices_i18n
 from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
 from .forms import ProductForm
+from . import ProductAvailabilityStatus, VariantAvailabilityStatus
 
 try:
     from urllib.parse import urlencode
@@ -256,3 +257,43 @@ def get_attributes_display_map(obj, attributes):
             else:
                 display_map[attribute.pk] = value
     return display_map
+
+
+def get_product_availability_status(product):
+    from .models import Stock
+
+    is_available = product.is_available()
+    has_stock_records = Stock.objects.filter(variant__product=product)
+    are_all_variants_in_stock = all(
+        variant.is_in_stock() for variant in product.variants.all())
+    is_in_stock = any(
+        variant.is_in_stock() for variant in product.variants.all())
+    requires_variants = product.product_class.has_variants
+
+    if not product.is_published:
+        return ProductAvailabilityStatus.NOT_PUBLISHED
+    elif requires_variants and not product.variants.exists():
+        # We check the requires_variants flag here in order to not show this
+        # status with product classes that don't require variants, as in that
+        # case variants are hidden from the UI and user doesn't manage them.
+        return ProductAvailabilityStatus.VARIANTS_MISSSING
+    elif not has_stock_records:
+        return ProductAvailabilityStatus.NOT_CARRIED
+    elif not is_in_stock:
+        return ProductAvailabilityStatus.OUT_OF_STOCK
+    elif not are_all_variants_in_stock:
+        return ProductAvailabilityStatus.LOW_STOCK
+    elif not is_available and product.available_on is not None:
+        return ProductAvailabilityStatus.NOT_YET_AVAILABLE
+    else:
+        return ProductAvailabilityStatus.READY_FOR_PURCHASE
+
+
+def get_variant_availability_status(variant):
+    has_stock_records = variant.stock.exists()
+    if not has_stock_records:
+        return VariantAvailabilityStatus.NOT_CARRIED
+    elif not variant.is_in_stock():
+        return VariantAvailabilityStatus.OUT_OF_STOCK
+    else:
+        return VariantAvailabilityStatus.AVAILABLE
