@@ -23,11 +23,19 @@ STORAGE_SESSION_KEY = 'checkout_storage'
 
 
 class Checkout(object):
+    """Represents a checkout session.
+
+    `VERSION` is used to prevent code trying to work with incompatible
+    checkout structures.
+
+    The `modified` attribute keeps track of when checkout state changes and
+    needs to be saved.
+    """
 
     VERSION = '1.0.0'
-    modified = False
 
     def __init__(self, cart, user, tracking_code):
+        self.modified = False
         self.cart = cart
         self.storage = {'version': self.VERSION}
         self.tracking_code = tracking_code
@@ -38,6 +46,11 @@ class Checkout(object):
 
     @classmethod
     def from_storage(cls, storage_data, cart, user, tracking_code):
+        """Restores a previously serialized checkout session.
+
+        `storage_data` is the value previously returned by
+        `Checkout.for_storage()`.
+        """
         checkout = cls(cart, user, tracking_code)
         checkout.storage = storage_data
         try:
@@ -49,6 +62,10 @@ class Checkout(object):
         return checkout
 
     def for_storage(self):
+        """Serializes a checkout session to allow persistence.
+
+        The session can later be restored using `Checkout.from_storage()`.
+        """
         return self.storage
 
     def clear_storage(self):
