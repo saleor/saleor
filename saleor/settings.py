@@ -194,7 +194,8 @@ INSTALLED_APPS = [
 
     'corsheaders',
     # We authenticate via authtoken
-    'rest_framework.authtoken'
+    'rest_framework.authtoken',
+    'constance',
 ]
 
 LOGGING = {
@@ -242,6 +243,10 @@ LOGGING = {
             'propagate': True
         }
     }
+}
+
+CONSTANCE_CONFIG = {
+    'MAIN_GENRE_MAP': ('', 'Holds the artificial meta genre grouping'),
 }
 
 AUTH_USER_MODEL = 'saleor_oye.Kunden'

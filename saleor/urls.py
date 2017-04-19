@@ -1,10 +1,12 @@
 from django.conf import settings
 from django.conf.urls import url, include
 from django.conf.urls.static import static
+from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 from django.contrib.staticfiles.views import serve
 from django.views.i18n import javascript_catalog
 from graphene_django.views import GraphQLView
+
 from saleor_oye.cart.urls import urlpatterns as oye_cart_urls
 
 from .checkout.urls import urlpatterns as checkout_urls
@@ -35,6 +37,7 @@ urlpatterns = [
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
     url(r'^oye/', include('saleor_oye.urls', namespace='oye')),
+    url(r'^admin/', include(admin.site.urls)),
     url(r'', include('payments.urls')),
 ]
 
