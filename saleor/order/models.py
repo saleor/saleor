@@ -27,7 +27,6 @@ from . import OrderStatus
 
 
 class OrderManager(models.Manager):
-
     def recalculate_order(self, order):
         prices = [group.get_total() for group in order
                   if group.status != OrderStatus.CANCELLED]
@@ -121,8 +120,9 @@ class Order(models.Model, ItemSet, index.Indexed):
         return OrderedItem.objects.filter(delivery_group__order=self)
 
     def is_fully_paid(self):
-        total_paid = sum([payment.total for payment in
-                          self.payments.filter(status=PaymentStatus.CONFIRMED)], Decimal())
+        total_paid = sum(
+            [payment.total for payment in
+             self.payments.filter(status=PaymentStatus.CONFIRMED)], Decimal())
         total = self.get_total()
         return total_paid >= total.gross
 
@@ -227,6 +227,10 @@ class Order(models.Model, ItemSet, index.Indexed):
 
 
 class DeliveryGroup(models.Model, ItemSet):
+    """Represents a single shipment.
+
+    A single order can consist of may delivery groups.
+    """
     status = models.CharField(
         pgettext_lazy('Delivery group field', 'delivery status'),
         max_length=32, default=OrderStatus.NEW, choices=OrderStatus.CHOICES)
@@ -287,7 +291,6 @@ class DeliveryGroup(models.Model, ItemSet):
 
 
 class OrderedItemManager(models.Manager):
-
     def move_to_group(self, item, target_group, quantity):
         try:
             target_item = target_group.items.get(
@@ -375,7 +378,6 @@ class OrderedItem(models.Model, ItemLine):
 
 
 class PaymentManager(models.Manager):
-
     def last(self):
         # using .all() here reuses data fetched by prefetch_related
         objects = list(self.all()[:1])
@@ -413,11 +415,12 @@ class Payment(BasePayment):
             from_email=settings.ORDER_FROM_EMAIL)
 
     def get_purchased_items(self):
-        items = [PurchasedItem(
-            name=item.product_name, sku=item.product_sku,
-            quantity=item.quantity,
-            price=item.unit_price_gross.quantize(Decimal('0.01')),
-            currency=settings.DEFAULT_CURRENCY)
+        items = [
+            PurchasedItem(
+                name=item.product_name, sku=item.product_sku,
+                quantity=item.quantity,
+                price=item.unit_price_gross.quantize(Decimal('0.01')),
+                currency=settings.DEFAULT_CURRENCY)
             for item in self.order.get_items()]
 
         voucher = self.order.voucher

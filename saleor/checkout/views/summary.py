@@ -11,6 +11,10 @@ from ...userprofile.models import Address
 
 
 def create_order(checkout):
+    """Finalizes a checkout session.
+
+    `checkout` is a `saleor.checkout.core.Checkout` instance.
+    """
     order = checkout.create_order()
     if not order:
         return None, redirect('checkout:summary')
