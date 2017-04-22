@@ -274,3 +274,16 @@ def test_view_split_order_line_with_invalid_data(admin_client, order_with_items_
         url, {'quantity': quantity, 'target_group': MoveItemsForm.NEW_SHIPMENT})
     assert response.status_code == 400
     assert DeliveryGroup.objects.count() == 1
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_order_invoice(admin_client, order_with_items_and_stock):
+
+    url = reverse(
+        'dashboard:order-invoice', kwargs={
+            'order_pk': order_with_items_and_stock.pk
+        })
+
+    response = admin_client.get(url)
+    assert response.status_code == 200

@@ -39,6 +39,11 @@
         {% trans "Print" context "Order detail action" %}
       </a>
     </li>
+    <li>
+        <a href="#base-modal" data-href="{% url "dashboard:order-invoice" order_pk=order.pk %}" class="modal-trigger-custom">
+          {% trans "PDF Invoice" context "Order detail action" %}
+        </a>
+      </li>
   </ul>
 {% endblock %}
 

@@ -367,3 +367,37 @@ def remove_order_voucher(request, order_pk):
     return TemplateResponse(request,
                             'dashboard/order/modal/order_remove_voucher.html',
                             ctx, status=status)
+
+
+@staff_member_required
+def order_invoice(request, order_pk):
+    qs = (Order.objects
+          .select_related('user', 'shipping_address', 'billing_address')
+          .prefetch_related('notes', 'payments', 'history',
+                            'groups', 'groups__items'))
+    order = get_object_or_404(qs, pk=order_pk)
+    notes = order.notes.all()
+    all_payments = order.payments.exclude(status=PaymentStatus.INPUT)
+    payment = order.payments.last()
+    groups = list(order)
+    captured = preauthorized = Price(0, currency=order.get_total().currency)
+    balance = captured - order.get_total()
+    if payment:
+        can_capture = (
+            payment.status == PaymentStatus.PREAUTH and
+            order.status != OrderStatus.CANCELLED)
+        can_release = payment.status == PaymentStatus.PREAUTH
+        can_refund = payment.status == PaymentStatus.CONFIRMED
+        preauthorized = payment.get_total_price()
+        if payment.status == PaymentStatus.CONFIRMED:
+            captured = payment.get_captured_price()
+            balance = captured - order.get_total()
+    else:
+        can_capture = can_release = can_refund = False
+
+    ctx = {'order': order, 'all_payments': all_payments, 'payment': payment,
+           'notes': notes, 'groups': groups, 'captured': captured,
+           'preauthorized': preauthorized, 'can_capture': can_capture,
+           'can_release': can_release, 'can_refund': can_refund,
+           'balance': balance}
+    return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
