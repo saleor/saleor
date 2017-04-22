@@ -39,3 +39,4 @@ social-auth-app-django>=1.1.0
 text-unidecode
 uwsgi>=2.0.0
 celery[redis]
+weasyprint>=0.36
