@@ -284,7 +284,7 @@ def test_view_order_invoice(admin_client, order_with_items_and_stock, billing_ad
     user selects on extra menu PDF Invoice
     user downloads the invoice as PDF file
     """
-    # TODO: Invoice.html requires address otherwise it throws exception
+    # TODO: Template requires address otherwise it throws an exception
     # perhaps setting this in the order fixture?
     order_with_items_and_stock.shipping_address = billing_address
     order_with_items_and_stock.billing_address = billing_address
@@ -308,7 +308,7 @@ def test_view_order_packing_slips(admin_client, order_with_items_and_stock, bill
     user selects on extra menu Packing Slips
     user downloads the packing slips as PDF file
     """
-    # TODO: Invoice.html requires address otherwise it throws exception
+    # TODO: Template requires address otherwise it throws an exception
     # perhaps setting this in the order fixture?
     order_with_items_and_stock.shipping_address = billing_address
     order_with_items_and_stock.billing_address = billing_address
