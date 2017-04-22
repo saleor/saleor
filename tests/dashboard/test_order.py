@@ -278,7 +278,17 @@ def test_view_split_order_line_with_invalid_data(admin_client, order_with_items_
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_order_invoice(admin_client, order_with_items_and_stock):
+def test_view_order_invoice(admin_client, order_with_items_and_stock, billing_address):
+    """
+    user goes to order details page
+    user selects on extra menu PDF Invoice
+    user downloads the invoice as PDF file
+    """
+    # TODO: Invoice.html requires address otherwise it throws exception
+    # perhaps setting this in the order fixture?
+    order_with_items_and_stock.shipping_address = billing_address
+    order_with_items_and_stock.billing_address = billing_address
+    order_with_items_and_stock.save()
 
     url = reverse(
         'dashboard:order-invoice', kwargs={
@@ -287,3 +297,4 @@ def test_view_order_invoice(admin_client, order_with_items_and_stock):
 
     response = admin_client.get(url)
     assert response.status_code == 200
+    assert response['content-type'] == 'application/pdf'

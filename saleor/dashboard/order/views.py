@@ -3,13 +3,16 @@ from __future__ import unicode_literals
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
+from django.template.loader import get_template
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
+from weasyprint import HTML
 
 from ...core.utils import get_paginator_items
 from ...order import OrderStatus
@@ -400,4 +403,10 @@ def order_invoice(request, order_pk):
            'preauthorized': preauthorized, 'can_capture': can_capture,
            'can_release': can_release, 'can_refund': can_refund,
            'balance': balance}
-    return TemplateResponse(request, 'dashboard/order/detail.html', ctx)
+    invoice_template = 'dashboard/order/invoice.html'
+    html_template = get_template(invoice_template).render(ctx)
+    pdf_file = HTML(string=html_template).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    name = "invoice-{}".format(order.id)
+    response['Content-Disposition'] = 'filename={}'.format(name)
+    return response
