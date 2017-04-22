@@ -18,7 +18,10 @@ ROOT_URLCONF = 'saleor.urls'
 WSGI_APPLICATION = 'saleor.wsgi.application'
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+    (
+        os.environ.get('ADMIN_EMAIL_NAME', 'Your Name'),
+        os.environ.get('ADMIN_EMAIL_ADDRESS', 'your_email@example.com')
+    ),
 )
 MANAGERS = ADMINS
 INTERNAL_IPS = os.environ.get('INTERNAL_IPS', '127.0.0.1').split()
