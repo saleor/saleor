@@ -40,10 +40,15 @@
       </a>
     </li>
     <li>
-        <a href="{% url "dashboard:order-invoice" order_pk=order.pk %}" data-href="" class="">
-          {% trans "PDF Invoice" context "Order detail action" %}
-        </a>
-      </li>
+      <a href="{% url "dashboard:order-invoice" order_pk=order.pk %}" data-href="" class="">
+        {% trans "PDF Invoice" context "Order detail action" %}
+      </a>
+    </li>
+    <li>
+      <a href="{% url "dashboard:order-packing-slips" order_pk=order.pk %}" data-href="" class="">
+        {% trans "Packing Slips" context "Order detail action" %}
+      </a>
+    </li>
   </ul>
 {% endblock %}
 

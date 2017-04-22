@@ -15,6 +15,8 @@ urlpatterns = [
         views.address_view, name='address-edit'),
     url(r'^(?P<order_pk>\d+)/invoice/$',
         views.order_invoice, name='order-invoice'),
+    url(r'^(?P<order_pk>\d+)/packing-slips/$',
+        views.order_packing_slips, name='order-packing-slips'),
 
     url(r'^(?P<order_pk>\d+)/payment/(?P<payment_pk>\d+)/capture/$',
         views.capture_payment, name='capture-payment'),
