@@ -204,52 +204,53 @@ INSTALLED_APPS = [
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s '
-                      '%(process)d %(thread)d %(message)s'
-        },
-        'simple': {
-            'format': '%(levelname)s %(message)s'
-        },
-    },
     'filters': {
         'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
+            '()': 'django.utils.log.RequireDebugFalse',
         },
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue'
-        }
+    },
+    'formatters': {
+        'basic': {
+            'format': '%(asctime)s %(levelname)s %(name)s %(message)s',
+        },
     },
     'handlers': {
+        # Make AdminEmailHandler only send error emails to admins when DEBUG is False
+        # https://docs.djangoproject.com/en/1.8/topics/logging/#django.utils.log.RequireDebugFalse
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
+            'class': 'django.utils.log.AdminEmailHandler',
         },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'filters': ['require_debug_true'],
-            'formatter': 'simple'
+            'formatter': 'basic',
         },
     },
+    'root': {
+        # default logger; config for everything that propagates to the root logger
+        'level': 'INFO',
+        'filters': [],
+        'handlers': ['console'],
+    },
     'loggers': {
+        'django': {
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+        },
         'django.request': {
             'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True
         },
-        'saleor': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True
-        }
-    }
+        'django.security': {
+            'handlers': ['mail_admins'],
+        },
+
+    },
 }
 
 CONSTANCE_CONFIG = {
     'MAIN_GENRE_MAP': ('', 'Holds the artificial meta genre grouping'),
+    'RELEASE_INFO_UPTODATE_HOURS': (48, 'Re-evaluate tracks and discogs release after this amount of hours'),
 }
 
 AUTH_USER_MODEL = 'saleor_oye.Kunden'
