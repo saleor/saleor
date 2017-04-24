@@ -432,7 +432,7 @@ AUTHENTICATION_BACKENDS = [
     'rest_framework.authentication.TokenAuthentication',
 ]
 
-broker_url = 'amqp://{user}:{password}@127.0.0.1:5672/{vhost}'.format(
+CELERY_BROKER_URL = 'amqp://{user}:{password}@127.0.0.1:5672/{vhost}'.format(
     user=os.environ.get('RABBITMQ_USER', 'guest'),
     password=os.environ.get('RABBITMQ_PASSWORD', 'guest'),
     vhost=os.environ.get('RABBITMQ_VHOST', '/'),
