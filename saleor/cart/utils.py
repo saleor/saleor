@@ -161,7 +161,7 @@ def get_or_create_cart_from_request(request, cart_queryset=Cart.objects.all()):
         return get_or_create_user_cart(request.user, cart_queryset)
     else:
         token = request.META.get('HTTP_X_CART_TOKEN', None)
-        unsigned_token = signing.get_cookie_signer(salt='cart').unsign(token)
+        unsigned_token = token if token is None else signing.get_cookie_signer(salt='cart').unsign(token)
         return get_or_create_anonymous_cart_from_token(unsigned_token, cart_queryset)
 
 
