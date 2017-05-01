@@ -141,6 +141,7 @@ class User(PermissionsMixin, AbstractBaseUser, index.Indexed):
     class Meta:
         verbose_name = pgettext_lazy('User model', 'user')
         verbose_name_plural = pgettext_lazy('User model', 'users')
+        abstract = True
 
     def get_full_name(self):
         return self.email
