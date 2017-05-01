@@ -1,15 +1,17 @@
 from django.conf import settings
 from django.conf.urls import url, include
 from django.conf.urls.static import static
+from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 from django.contrib.staticfiles.views import serve
+from django.views.decorators.csrf import csrf_exempt
 from django.views.i18n import javascript_catalog
 from graphene_django.views import GraphQLView
+
 from saleor_oye.cart.urls import urlpatterns as oye_cart_urls
 
 from .checkout.urls import urlpatterns as checkout_urls
 from .core.sitemaps import sitemaps
-from .core.urls import urlpatterns as core_urls
 from .dashboard.urls import urlpatterns as dashboard_urls
 from .data_feeds.urls import urlpatterns as feed_urls
 from .order.urls import urlpatterns as order_urls
@@ -25,7 +27,7 @@ urlpatterns = [
     url(r'^cart/', include(oye_cart_urls, namespace='cart')),
     url(r'^checkout/', include(checkout_urls, namespace='checkout')),
     url(r'^dashboard/', include(dashboard_urls, namespace='dashboard')),
-    url(r'^graphql', GraphQLView.as_view(graphiql=settings.DEBUG)),
+    url(r'^graphql', csrf_exempt(GraphQLView.as_view(graphiql=settings.DEBUG))),
     url(r'^jsi18n/$', javascript_catalog, name='javascript-catalog'),
     url(r'^order/', include(order_urls, namespace='order')),
     url(r'^products/', include(product_urls, namespace='product')),
@@ -35,6 +37,7 @@ urlpatterns = [
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
     url(r'^oye/', include('saleor_oye.urls', namespace='oye')),
+    url(r'^admin/', include(admin.site.urls)),
     url(r'', include('payments.urls')),
 ]
 
