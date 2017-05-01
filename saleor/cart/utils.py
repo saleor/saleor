@@ -5,6 +5,7 @@ from functools import wraps
 from uuid import UUID
 
 from django.contrib import messages
+from django.core import signing
 from django.db import transaction
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
@@ -159,8 +160,9 @@ def get_or_create_cart_from_request(request, cart_queryset=Cart.objects.all()):
     if request.user.is_authenticated():
         return get_or_create_user_cart(request.user, cart_queryset)
     else:
-        token = request.get_signed_cookie(COOKIE_NAME, default=None)
-        return get_or_create_anonymous_cart_from_token(token, cart_queryset)
+        token = request.META.get('HTTP_X_CART_TOKEN', None)
+        unsigned_token = signing.get_cookie_signer(salt='cart').unsign(token)
+        return get_or_create_anonymous_cart_from_token(unsigned_token, cart_queryset)
 
 
 def get_cart_from_request(request, cart_queryset=Cart.objects.all()):

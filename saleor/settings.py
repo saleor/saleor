@@ -18,7 +18,10 @@ ROOT_URLCONF = 'saleor.urls'
 WSGI_APPLICATION = 'saleor.wsgi.application'
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+    (
+        os.environ.get('ADMIN_EMAIL_NAME', 'Your Name'),
+        os.environ.get('ADMIN_EMAIL_ADDRESS', 'your_email@example.com')
+    ),
 )
 MANAGERS = ADMINS
 INTERNAL_IPS = os.environ.get('INTERNAL_IPS', '127.0.0.1').split()
@@ -34,14 +37,6 @@ else:
     CACHES = {'default': django_cache_url.config()}
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
-    #     'NAME': os.environ.get('RECORDSHOP_DB_NAME'),
-    #     'PASSWORD': os.environ.get('RECORDSHOP_DB_PASSWORD'),
-    #     'USER': os.environ.get('RECORDSHOP_DB_USER'),
-    #     'PORT': os.environ.get('RECORDSHOP_DB_PORT', '5432'),
-    #     'HOST': os.environ.get('RECORDSHOP_DB_HOST', '127.0.0.1'),
-    # },
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get('RECORDSHOP_LEGACY_DB_NAME'),
@@ -51,8 +46,6 @@ DATABASES = {
         'HOST': os.environ.get('RECORDSHOP_LEGACY_DB_HOST'),
     }
 }
-
-# DATABASE_ROUTERS = ['saleor.dbrouters.OyeRouter', ]
 
 TIME_ZONE = 'Europe/Berlin'
 LANGUAGE_CODE = 'de-de'
@@ -204,54 +197,60 @@ INSTALLED_APPS = [
 
     'corsheaders',
     # We authenticate via authtoken
-    'rest_framework.authtoken'
+    'rest_framework.authtoken',
+    'constance',
 ]
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s '
-                      '%(process)d %(thread)d %(message)s'
-        },
-        'simple': {
-            'format': '%(levelname)s %(message)s'
-        },
-    },
     'filters': {
         'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
+            '()': 'django.utils.log.RequireDebugFalse',
         },
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue'
-        }
+    },
+    'formatters': {
+        'basic': {
+            'format': '%(asctime)s %(levelname)s %(name)s %(message)s',
+        },
     },
     'handlers': {
+        # Make AdminEmailHandler only send error emails to admins when DEBUG is False
+        # https://docs.djangoproject.com/en/1.8/topics/logging/#django.utils.log.RequireDebugFalse
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
+            'class': 'django.utils.log.AdminEmailHandler',
         },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'filters': ['require_debug_true'],
-            'formatter': 'simple'
+            'formatter': 'basic',
         },
     },
+    'root': {
+        # default logger; config for everything that propagates to the root logger
+        'level': 'INFO',
+        'filters': [],
+        'handlers': ['console'],
+    },
     'loggers': {
+        'django': {
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+        },
         'django.request': {
             'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True
         },
-        'saleor': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True
-        }
-    }
+        'django.security': {
+            'handlers': ['mail_admins'],
+        },
+
+    },
+}
+
+CONSTANCE_CONFIG = {
+    'MAIN_GENRE_MAP': ('', 'Holds the artificial meta genre grouping'),
+    'RELEASE_INFO_UPTODATE_HOURS': (48, 'Re-evaluate tracks and discogs release after this amount of hours'),
 }
 
 AUTH_USER_MODEL = 'saleor_oye.Kunden'
@@ -433,3 +432,27 @@ AUTHENTICATION_BACKENDS = [
     'rest_framework.authentication.TokenAuthentication',
 ]
 
+CELERY_BROKER_URL = 'amqp://{user}:{password}@localhost:5672//'.format(
+    user=os.environ.get('RABBITMQ_USER', 'guest'),
+    password=os.environ.get('RABBITMQ_PASSWORD', 'guest'),
+    # vhost=os.environ.get('RABBITMQ_VHOST', '/'),
+)
+
+CELERY_BROKER_USER = os.environ.get('RABBITMQ_USER', 'guest')
+CELERY_BROKER_PASSWORD = os.environ.get('RABBITMQ_PASSWORD', 'guest')
+CELERY_BROKER_PORT = 5672
+CELERY_BROKER_HOST = 'localhost'
+
+
+CORS_ALLOW_HEADERS = (
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'x-cart-token',
+)
