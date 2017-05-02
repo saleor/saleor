@@ -199,6 +199,7 @@ INSTALLED_APPS = [
     # We authenticate via authtoken
     'rest_framework.authtoken',
     'constance',
+    'django_celery_beat',
 ]
 
 LOGGING = {
@@ -413,6 +414,7 @@ APPEND_SLASH = True
 CORS_ORIGIN_WHITELIST = [
     'google.com',
     'localhost:8000',
+    'localhost:3000',
     'localhost:8080',
     '127.0.0.1:9000',
     'local.oye.com:8000',

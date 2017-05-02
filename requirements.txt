@@ -117,3 +117,4 @@ argon2-cffi==16.3.0
 
 django-constance==2.0.0
 celery==4.0.2
+django-celery-beat==1.0.1
