@@ -3,7 +3,6 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
@@ -122,8 +121,6 @@ msgstr "Name"
 #: saleor/static/assets/category.js:2
 #: saleor/static/js/components/categoryPage/SortBy.js:67
 #: saleor/static/js/components/categoryPage/SortBy.js:91
-#, fuzzy
-#| msgid "ascending"
 msgctxt "Category page filters"
 msgid "ascending"
 msgstr "aufsteigend"
@@ -131,16 +128,12 @@ msgstr "aufsteigend"
 #: saleor/static/assets/category.js:2
 #: saleor/static/js/components/categoryPage/SortBy.js:78
 #: saleor/static/js/components/categoryPage/SortBy.js:102
-#, fuzzy
-#| msgid "descending"
 msgctxt "Category page filters"
 msgid "descending"
 msgstr "absteigend"
 
 #: saleor/static/assets/category.js:2
 #: saleor/static/js/components/categoryPage/SortBy.js:88
-#, fuzzy
-#| msgid "Price"
 msgctxt "Category page filters"
 msgid "Price"
 msgstr "Preis"
@@ -459,16 +452,12 @@ msgstr "Schließen"
 
 #: saleor/static/assets/storefront.js:20
 #: saleor/static/js/components/variantPicker/QuantityInput.js:21
-#, fuzzy
-#| msgid "Quantity"
 msgctxt "Add to cart form field label"
 msgid "Quantity"
 msgstr "Anzahl"
 
 #: saleor/static/assets/storefront.js:20
 #: saleor/static/js/components/variantPicker/VariantPicker.js:161
-#, fuzzy
-#| msgid "Add to cart"
 msgctxt "Product details primary action"
 msgid "Add to cart"
 msgstr "In den Einkaufswagen"

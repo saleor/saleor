@@ -3,7 +3,6 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
@@ -34,9 +33,6 @@ msgid "Saved - for items to be purchased later"
 msgstr "gespeichert - für späteren Kauf gespeichert"
 
 #: saleor/cart/__init__.py:26
-#, fuzzy
-#| msgctxt "Cart"
-#| msgid "Submitted - has been ordered at the checkout"
 msgctxt "cart status"
 msgid "Submitted - an order was placed"
 msgstr "Übermittelt - wurde im Checkout geordert"
@@ -1705,24 +1701,16 @@ msgid "Check out our sales"
 msgstr ""
 
 #: templates/cart/_subtotal_table.html:34
-#, fuzzy
-#| msgctxt "Shipping method form field label"
-#| msgid "Shipping method"
 msgctxt "Cart shipping cost form"
 msgid "Shipping cost for:"
-msgstr "Versandmethode"
+msgstr "Versandkosten für:"
 
 #: templates/cart/_subtotal_table.html:58
-#, fuzzy
-#| msgctxt "Order review section title"
-#| msgid "Total"
 msgctxt "Order subtotal"
 msgid "Total"
 msgstr "Gesamtsumme"
 
 #: templates/cart/index.html:8
-#, fuzzy
-#| msgid "Add to cart"
 msgctxt "Cart page title"
 msgid "Your cart"
 msgstr "In den Warenkorb"
@@ -1824,11 +1812,9 @@ msgid "Existing customer? Log in."
 msgstr ""
 
 #: templates/checkout/payment.html:9
-#, fuzzy
-#| msgid "Payments"
 msgctxt "Checkout payment title"
 msgid "Payment"
-msgstr "Zahlungen"
+msgstr "Zahlung"
 
 #: templates/checkout/payment.html:13
 msgctxt "Checkout payment primary action"
@@ -1931,8 +1917,6 @@ msgstr "Abmelden"
 
 #: templates/dashboard/base.html:74 templates/dashboard/search/results.html:14
 #: templates/dashboard/search/results.html:25
-#, fuzzy
-#| msgid "Search"
 msgctxt "Dashboard search"
 msgid "Search"
 msgstr "Suche"
@@ -2078,29 +2062,14 @@ msgstr "Die folgenden Unterkategorien werden gelöscht"
 
 #: templates/dashboard/category/category_confirm_delete.html:41
 #: templates/dashboard/category/modal_delete.html:36
-#, fuzzy, python-format
-#| msgid ""
-#| "\n"
-#| "                There is one product in this category that will be "
-#| "deleted.\n"
-#| "            "
-#| msgid_plural ""
-#| "\n"
-#| "                There are %(counter)s products in this category that will "
-#| "be deleted.\n"
-#| "            "
 msgctxt "Delete category form text about products"
 msgid "There is one product in this category that will be deleted."
 msgid_plural ""
 "There are %(counter)s products in this category that will be deleted."
 msgstr[0] ""
-"\n"
-"                Ein Produkt in dieser Kategorie wird gelöscht.\n"
-"            "
+" Ein Produkt in dieser Kategorie wird gelöscht."
 msgstr[1] ""
-"\n"
-"                %(counter)s Produkte in dieser Kategorie werden gelöscht.\n"
-"            "
+"%(counter)s Produkte in dieser Kategorie werden gelöscht."
 
 #: templates/dashboard/category/category_confirm_delete.html:53
 #: templates/dashboard/category/modal_delete.html:45
@@ -2999,29 +2968,21 @@ msgid "Capture payment"
 msgstr "Zahlung einlösen"
 
 #: templates/dashboard/order/modal_capture.html:16
-#, fuzzy
-#| msgid "Before this action"
 msgctxt "Modal capture payment title"
 msgid "Before this action"
 msgstr "Vor dieser Aktion"
 
 #: templates/dashboard/order/modal_capture.html:19
-#, fuzzy
-#| msgid "Order total: "
 msgctxt "Modal capture payment list title"
 msgid "Order total:"
 msgstr "Summe der Bestellung: "
 
 #: templates/dashboard/order/modal_capture.html:22
-#, fuzzy
-#| msgid "Captured amount: "
 msgctxt "Modal capture payment list title"
 msgid "Captured amount:"
 msgstr "eingelöster Betrag"
 
 #: templates/dashboard/order/modal_capture.html:29
-#, fuzzy
-#| msgid "Capture"
 msgctxt "Modal capture payment primary action"
 msgid "Capture"
 msgstr "Einlösen"
