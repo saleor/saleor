@@ -34,7 +34,6 @@ django-webpack-loader==0.4.1
 django==1.10.6
 djangorestframework==3.5.3
 docutils==0.13.1          # via botocore
-elasticsearch==2.4.1
 faker==0.7.7
 google-i18n-address==2.0.1
 google-measurement-protocol==0.1.6
@@ -118,3 +117,6 @@ argon2-cffi==16.3.0
 django-constance==2.0.0
 celery==4.0.2
 django-celery-beat==1.0.1
+
+elasticsearch>=5.0.0,<6.0.0
+elasticsearch-dsl=5.2.0

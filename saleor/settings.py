@@ -169,6 +169,7 @@ INSTALLED_APPS = [
     'saleor.search',
     'saleor.site',
     'saleor.data_feeds',
+    'saleor.elasticsearch',
 
     # External apps
     'versatileimagefield',
