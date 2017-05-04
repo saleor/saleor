@@ -119,4 +119,4 @@ celery==4.0.2
 django-celery-beat==1.0.1
 
 elasticsearch>=5.0.0,<6.0.0
-elasticsearch-dsl=5.2.0
+elasticsearch-dsl==5.2.0
