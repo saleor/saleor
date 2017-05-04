@@ -1,6 +1,7 @@
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 from saleor_oye.models import Artikel
+from saleor_oye.utils import visible_products
 
 from saleor.elasticsearch.search import Release
 
@@ -12,6 +13,5 @@ def bulk_indexing():
     es = Elasticsearch()
     bulk(
         client=es,
-        actions=(b.indexing()
-                 for b in
-                 Artikel.objects.all().iterator()))
+        actions=(b.indexing() for b in visible_products())
+    )
