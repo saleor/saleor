@@ -57,6 +57,7 @@ def search(query, size=10, page=1):
                     "query": query,
                     "operator": "and",
                     "fuzziness": "auto",
+                    "prefix_length": 2,
                     "max_expansions": 10
                 }
             }
