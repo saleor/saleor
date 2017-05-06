@@ -16,7 +16,7 @@ class SearchableType(graphene.Interface):
             return ReleaseSearchResult
 
     def resolve_highlight(self, *args):
-        if self.meta.highlight:
+        if hasattr(self.meta, "highlight"):
             return self.meta.highlight.to_dict()
 
 

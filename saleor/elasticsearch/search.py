@@ -1,3 +1,4 @@
+from constance import config
 from elasticsearch_dsl import DocType, Text, Integer, InnerObjectWrapper, Nested, String, Date
 from elasticsearch_dsl import MetaField
 from elasticsearch_dsl import Search
@@ -20,7 +21,10 @@ ngram_analyzer = analyzer(
 
 lowercase_analyzer = analyzer(
     'lowercase_analyzer',
-    tokenizer='lowercase'
+    tokenizer='standard',
+    filter=[
+        'lowercase'
+    ]
 )
 
 
@@ -29,11 +33,11 @@ class Track(InnerObjectWrapper):
 
 
 class Release(DocType):
-    artist_name = String(search_analyzer=lowercase_analyzer, analyzer=ngram_analyzer, fields={"token": String(analyzer='standard')})
-    title = Text(search_analyzer=lowercase_analyzer, analyzer=ngram_analyzer, fields={"token": String(analyzer='standard')})
+    artist_name = String(search_analyzer=lowercase_analyzer, analyzer=lowercase_analyzer)
+    title = Text(search_analyzer=lowercase_analyzer, analyzer=lowercase_analyzer)
     released_at = Date()
-    description = Text(search_analyzer=lowercase_analyzer, analyzer=ngram_analyzer)
-    label = String(search_analyzer=lowercase_analyzer, analyzer=ngram_analyzer, fields={"token": String(analyzer='standard')})
+    description = Text(search_analyzer=lowercase_analyzer, analyzer=lowercase_analyzer)
+    label = String(search_analyzer=lowercase_analyzer, analyzer=lowercase_analyzer)
 
     tracks = Nested({
         'track_pk': Integer(index='not_analyzed'),
@@ -42,24 +46,52 @@ class Release(DocType):
     })
 
     class Meta:
-        all = MetaField(store=True, analyzer=ngram_analyzer, search_analyzer=lowercase_analyzer)
+        all = MetaField(store=True, analyzer=lowercase_analyzer, search_analyzer=lowercase_analyzer)
         index = 'oye'
+
+
+QUERY_FIELDS = [
+    'title.token',
+    'artist_name',
+    'description',
+    'label',
+    '_all',
+]
 
 
 def search(query, size=10, page=1):
     query_dict = {
         "size": size,
-        "from": size * (page-1),
-        "sort": [{"released_at": "desc"}],
+        "from": size * (page - 1),
+        "sort": [
+            # {"_script": {
+            #     "type": "number",
+            #     "order": "desc",
+            #     "script": {
+            #         "lang": "painless",
+            #         "inline": "def sf = new SimpleDateFormat(\"yyyy-MM-dd\"); if (doc['released_at'].value > sf.parse('2016-11-06').getTime()) 1; else 0"
+            #     }
+            # }},
+            {"released_at": "desc"},
+            {"_score": "desc"}
+        ],
         "query": {
-            "match": {
-                "_all": {
-                    "query": query,
-                    "operator": "and",
-                    "fuzziness": "auto",
-                    "prefix_length": 2,
-                    "max_expansions": 10
-                }
+            "bool": {
+                "should": [
+                    {
+                        "match": {
+                            field: {
+                                "query": query,
+                                "fuzziness": config.SEARCH_FUZZINESS,
+                                "operator": "and",
+                                "prefix_length": 2,
+                                "max_expansions": 10,
+                                "analyzer": "standard"
+                            }
+                        }
+                    }
+                    for field in QUERY_FIELDS
+                    ]
             }
         },
         "highlight": {
