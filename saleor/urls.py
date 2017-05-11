@@ -17,11 +17,11 @@ from .userprofile.views import login as login_view
 
 
 def graphql_token_view():
-    view = GraphQLView.as_view(graphiql=settings.DEBUG)
-    # view = csrf_exempt(GraphQLView.as_view(graphiql=settings.DEBUG))
-    view = permission_classes((AllowAny, ))(view)
-    view = authentication_classes((JSONWebTokenAuthentication,))(view)
-    view = api_view(['POST'])(view)
+    # view = GraphQLView.as_view(graphiql=settings.DEBUG)
+    view = csrf_exempt(GraphQLView.as_view(graphiql=settings.DEBUG))
+    # view = permission_classes((AllowAny, ))(view)
+    # view = authentication_classes((JSONWebTokenAuthentication,))(view)
+    # view = api_view(['POST'])(view)
     return view
 
 urlpatterns = [
