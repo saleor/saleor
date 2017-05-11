@@ -27,7 +27,7 @@ urlpatterns = [
     # url(r'^checkout/', include(checkout_urls, namespace='checkout')),
     # url(r'^dashboard/', include(dashboard_urls, namespace='dashboard')),
     url(r'^graphql', graphql_token_view()),
-    url(r'^graphiql', graphql_token_view())
+    url(r'^graphiql', graphql_token_view()),
     # url(r'^jsi18n/$', javascript_catalog, name='javascript-catalog'),
     # url(r'^order/', include(order_urls, namespace='order')),
     # url(r'^products/', include(product_urls, namespace='product')),
