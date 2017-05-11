@@ -100,11 +100,11 @@ def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
                 "match": {
                     field: {
                         "query": query,
-                        "fuzziness": config.SEARCH_FUZZINESS,
+                        "fuzziness":  config.SEARCH_FUZZINESS,
                         "operator": "and",
-                         "prefix_length": 2,
-                         "max_expansions": 10,
-                         # "analyzer": "standard"
+                        "prefix_length": config.SEARCH_PREFIX_LENGTH,
+                        "max_expansions": 10,
+                        # "analyzer": "standard"
                      }
                  }
             }

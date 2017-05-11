@@ -257,6 +257,7 @@ CONSTANCE_CONFIG = {
     'MAIN_GENRE_MAP': ('', 'Holds the artificial meta genre grouping'),
     'RELEASE_INFO_UPTODATE_HOURS': (48, 'Re-evaluate tracks and discogs release after this amount of hours'),
     'SEARCH_FUZZINESS': (0, 'The maximum number of edits between input and target tokens (see https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#fuzziness)'),
+    'SEARCH_PREFIX_LENGTH': (1, 'The minimum number of characters leading the target term')
     'CHARTS_ALLOWED_ITEMS': (10, 'The maximum number of allowed items in charts')
 }
 
