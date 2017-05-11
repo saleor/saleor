@@ -126,3 +126,6 @@ django-ajax-selects==1.5.2
 
 django-rest-auth==0.9.1
 djangorestframework-jwt==1.10.0
+
+django-graphiql==0.4.4
+django-jwt-auth==0.0.2

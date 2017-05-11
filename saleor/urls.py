@@ -11,6 +11,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.permissions import AllowAny
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
+from saleor.graphql.views import OptionalJWTMixin, AuthGraphQLView
 from .core.sitemaps import sitemaps
 from .search.urls import urlpatterns as search_urls
 from .userprofile.views import login as login_view
@@ -18,7 +19,8 @@ from .userprofile.views import login as login_view
 
 def graphql_token_view():
     # view = GraphQLView.as_view(graphiql=settings.DEBUG)
-    view = csrf_exempt(GraphQLView.as_view(graphiql=settings.DEBUG))
+    # view = csrf_exempt(GraphQLView.as_view(graphiql=settings.DEBUG))
+    view = csrf_exempt(AuthGraphQLView.as_view(graphiql=settings.DEBUG))
     # view = permission_classes((AllowAny, ))(view)
     # view = authentication_classes((JSONWebTokenAuthentication,))(view)
     # view = api_view(['POST'])(view)
@@ -32,7 +34,7 @@ urlpatterns = [
     # url(r'^checkout/', include(checkout_urls, namespace='checkout')),
     # url(r'^dashboard/', include(dashboard_urls, namespace='dashboard')),
     url(r'^graphql', graphql_token_view()),
-    url(r'^graphiql', graphql_token_view()),
+    url(r'^graphiql', include('django_graphiql.urls')),
     # url(r'^jsi18n/$', javascript_catalog, name='javascript-catalog'),
     # url(r'^order/', include(order_urls, namespace='order')),
     # url(r'^products/', include(product_urls, namespace='product')),

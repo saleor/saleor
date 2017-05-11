@@ -449,12 +449,13 @@ AUTHENTICATION_BACKENDS = [
     'rest_framework.authentication.TokenAuthentication',
 ]
 
-JWT_AUTH = {
-    'JWT_PAYLOAD_HANDLER':
-        'saleor_oye.auth.jwt.oye_jwt_payload_handler',
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=60 * 60),
-    'JWT_AUTH_COOKIE': 'jwt',
-}
+# JWT_AUTH = {
+JWT_PAYLOAD_HANDLER = 'saleor_oye.auth.jwt.oye_jwt_payload_handler'
+JWT_EXPIRATION_DELTA = datetime.timedelta(seconds=60 * 60)
+JWT_AUTH_COOKIE = 'jwt'
+JWT_AUTH_HEADER_PREFIX = 'JWT'
+JWT_PAYLOAD_GET_USER_ID_HANDLER = lambda payload: payload.get('userId')
+
 
 CELERY_BROKER_URL = 'amqp://{user}:{password}@localhost:5672//'.format(
     user=os.environ.get('RABBITMQ_USER', 'guest'),
