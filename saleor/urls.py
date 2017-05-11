@@ -29,8 +29,8 @@ from ajax_select import urls as ajax_select_urls
 
 def graphql_token_view():
     view = csrf_exempt(GraphQLView.as_view(graphiql=settings.DEBUG))
-    view = authentication_classes((JSONWebTokenAuthentication,))(view)
-    view = api_view(['POST'])(view)
+    # view = authentication_classes((JSONWebTokenAuthentication,))(view)
+    # view = api_view(['POST'])(view)
     return view
 
 urlpatterns = [
