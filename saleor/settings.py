@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import ast
+import datetime
 import os.path
 
 import dj_email_url
@@ -183,10 +184,13 @@ INSTALLED_APPS = [
     'payments',
     'materializecssform',
     'rest_framework',
+    'rest_framework.authtoken',
+    'rest_auth',
     'webpack_loader',
     'allauth',
     'allauth.account',
     'django_countries',
+    'ajax_select',
 
     # developer stuff
     'django_extensions',
@@ -197,7 +201,7 @@ INSTALLED_APPS = [
 
     'corsheaders',
     # We authenticate via authtoken
-    'rest_framework.authtoken',
+    # 'rest_framework.authtoken',
     'constance',
     'django_celery_beat',
 ]
@@ -252,7 +256,8 @@ LOGGING = {
 CONSTANCE_CONFIG = {
     'MAIN_GENRE_MAP': ('', 'Holds the artificial meta genre grouping'),
     'RELEASE_INFO_UPTODATE_HOURS': (48, 'Re-evaluate tracks and discogs release after this amount of hours'),
-    'SEARCH_FUZZINESS': (0, 'The maximum number of edits between input and target tokens (see https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#fuzziness)')
+    'SEARCH_FUZZINESS': (0, 'The maximum number of edits between input and target tokens (see https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#fuzziness)'),
+    'CHARTS_ALLOWED_ITEMS': (10, 'The maximum number of allowed items in charts')
 }
 
 AUTH_USER_MODEL = 'saleor_oye.Kunden'
@@ -406,8 +411,14 @@ GRAPHENE = {
 SITE_SETTINGS_ID = 1
 
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 25
+    'PAGE_SIZE': 25,
+
 }
 
 APPEND_SLASH = True
@@ -430,10 +441,20 @@ PASSWORD_HASHERS = [
     'saleor_oye.auth.hashers.Argon2WrappedMD5PasswordHasher'
 ]
 
+
+
 AUTHENTICATION_BACKENDS = [
+#    'saleor_oye.auth.backends.OyeTokenAuth',
     'saleor_oye.auth.backends.OyePasswordAuth',
     'rest_framework.authentication.TokenAuthentication',
 ]
+
+JWT_AUTH = {
+    'JWT_PAYLOAD_HANDLER':
+        'saleor_oye.auth.jwt.oye_jwt_payload_handler',
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=60 * 60),
+    'JWT_AUTH_COOKIE': 'jwt',
+}
 
 CELERY_BROKER_URL = 'amqp://{user}:{password}@localhost:5672//'.format(
     user=os.environ.get('RABBITMQ_USER', 'guest'),
@@ -458,4 +479,5 @@ CORS_ALLOW_HEADERS = (
     'x-csrftoken',
     'x-requested-with',
     'x-cart-token',
+    'x-oye-token'
 )

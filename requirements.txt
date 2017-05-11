@@ -120,3 +120,9 @@ django-celery-beat==1.0.1
 
 elasticsearch>=5.0.0,<6.0.0
 elasticsearch-dsl==5.2.0
+
+
+django-ajax-selects==1.5.2
+
+django-rest-auth==0.9.1
+djangorestframework-jwt==1.10.0
