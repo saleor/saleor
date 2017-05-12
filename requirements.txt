@@ -128,4 +128,4 @@ django-rest-auth==0.9.1
 djangorestframework-jwt==1.10.0
 
 django-graphiql==0.4.4
-django-jwt-auth==0.0.2
+-e git+git@github.com:tillkolter/django-jwt-auth@master#egg=jwt-auth

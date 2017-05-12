@@ -1,10 +1,8 @@
 from graphene_django.views import GraphQLView
 from jwt_auth.utils import get_authorization_header
+from jwt_auth.mixins import JSONWebTokenAuthMixin
 
 __author__ = 'tkolter'
-
-
-from jwt_auth.mixins import JSONWebTokenAuthMixin
 
 
 class OptionalJWTMixin(JSONWebTokenAuthMixin):
