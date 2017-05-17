@@ -101,6 +101,7 @@ def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
                     field: {
                         "query": query,
                         "fuzziness":  config.SEARCH_FUZZINESS,
+                        # "operator": "or",
                         "operator": "and",
                         "prefix_length": config.SEARCH_PREFIX_LENGTH,
                         "max_expansions": 10,
@@ -141,12 +142,12 @@ def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
             "bool": {
                 "should": should_queries
             }
-        },
-        "highlight": {
-            "fields": {
-                "*": {}
-            },
-            "require_field_match": False
+        # },
+        # "highlight": {
+        #     "fields": {
+        #         "*": {}
+        #     },
+        #     "require_field_match": False
         }
     }
 

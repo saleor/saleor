@@ -1,6 +1,6 @@
 import graphene
 from graphene.types.json import JSONString
-from saleor_oye.graphql.artists import ArtistType
+from saleor_oye.graphql.charts import ArtistType
 from saleor_oye.graphql.releases import ArtikelType
 from saleor_oye.models import Artikel, Artist
 

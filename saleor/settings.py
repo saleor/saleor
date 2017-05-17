@@ -486,6 +486,7 @@ CORS_ALLOW_HEADERS = (
     'dnt',
     'origin',
     'user-agent',
+    'cache-control',
     'x-csrftoken',
     'x-requested-with',
     'x-cart-token',
