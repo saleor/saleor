@@ -198,6 +198,7 @@ INSTALLED_APPS = [
     # my proprietary oye stuff
     'saleor_oye',
     'saleor_oye.discogs',
+    'saleor_oye.customers',
 
     'corsheaders',
     # We authenticate via authtoken
