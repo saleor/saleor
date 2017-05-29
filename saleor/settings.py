@@ -495,3 +495,8 @@ CORS_ALLOW_HEADERS = (
     'x-cart-token',
     'x-oye-token'
 )
+
+
+ADYEN_USER = os.environ.get('ADYEN_USER', None)
+ADYEN_PASSWORD = os.environ.get('ADYEN_PASSWORD', None)
+ADYEN_MERCHANT_ACCOUNT = os.environ.get('ADYEN_MERCHANT_ACCOUNT', None)
