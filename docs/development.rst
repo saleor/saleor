@@ -102,7 +102,7 @@ You will need to install Docker and
 `docker-compose <https://docs.docker.com/compose/install/>`_ before
 performing the following steps.
 
-To build assets you will need `node <https://docs.docker.com/compose/install/>`_, `yarn <https://docs.docker.com/compose/install/>`_ and `webpack module bundler <https://webpack.github.io/>`_.
+To build assets you will need `node <https://nodejs.org/en/download/package-manager/>`_, `yarn <https://yarnpkg.com/en/docs/install>`_ and `webpack module bundler <https://webpack.github.io/>`_.
 
 .. note::
 
