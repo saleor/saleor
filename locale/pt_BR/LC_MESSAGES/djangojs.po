@@ -1,0 +1,562 @@
+# Saleor
+# Copyright (C) 2017 Mirumee Software
+# This file is distributed under the same license as the Saleor package.
+# Mirumee Software <hello@mirumee.com>, 2017.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: master\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 01-05-2017 16:28-0500\n"
+"PO-Revision-Date: DA-MO-YEAR HO:MI+ZONE\n"
+"Last-Translator: Rafael Lima <rafaelslima.py@gmail.com>, 2017\n"
+"Language-Team: None"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: pt_BR\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: saleor/static/assets/category.c398831ad6db9d39e172.js:1
+#: saleor/static/assets/category.f62a2a36d1dda2f67f6a.js:1
+msgid "See all"
+msgstr "Ver tudo"
+
+#: saleor/static/assets/category.c398831ad6db9d39e172.js:1
+#: saleor/static/assets/category.f62a2a36d1dda2f67f6a.js:1
+msgid "Home"
+msgstr "Início"
+
+#: saleor/static/assets/category.c398831ad6db9d39e172.js:1
+#: saleor/static/assets/category.f62a2a36d1dda2f67f6a.js:1
+msgid "Filters"
+msgstr "Filtros"
+
+#: saleor/static/assets/category.c398831ad6db9d39e172.js:1
+#: saleor/static/assets/category.f62a2a36d1dda2f67f6a.js:1
+msgid "Clear filters"
+msgstr "Limpar filtros"
+
+#: saleor/static/assets/category.c398831ad6db9d39e172.js:1
+#: saleor/static/assets/category.f62a2a36d1dda2f67f6a.js:1
+msgid "Sorry, no matches found for your request."
+msgstr "Desculpe, não encontrei..."
+
+#: saleor/static/assets/category.c398831ad6db9d39e172.js:1
+#: saleor/static/assets/category.f62a2a36d1dda2f67f6a.js:1
+msgid "Try again or shop new arrivals."
+msgstr "Você poderia tentar novamente"
+
+#: saleor/static/assets/category.c398831ad6db9d39e172.js:1
+#: saleor/static/assets/category.f62a2a36d1dda2f67f6a.js:1
+msgid "Price range"
+msgstr "Faixa de preço"
+
+#: saleor/static/assets/category.c398831ad6db9d39e172.js:1
+#: saleor/static/assets/category.c398831ad6db9d39e172.js:2
+#: saleor/static/assets/category.f62a2a36d1dda2f67f6a.js:1
+#: saleor/static/assets/category.f62a2a36d1dda2f67f6a.js:2
+msgid "from"
+msgstr "de"
+
+#: saleor/static/assets/category.c398831ad6db9d39e172.js:1
+#: saleor/static/assets/category.f62a2a36d1dda2f67f6a.js:1
+msgid "to"
+msgstr "até"
+
+#: saleor/static/assets/category.c398831ad6db9d39e172.js:1
+#: saleor/static/assets/category.f62a2a36d1dda2f67f6a.js:1
+msgid "Update"
+msgstr "Atualizar"
+
+#: saleor/static/assets/category.c398831ad6db9d39e172.js:2
+#: saleor/static/assets/category.f62a2a36d1dda2f67f6a.js:2
+msgid "Load more"
+msgstr "Carregar mais"
+
+#: saleor/static/assets/category.c398831ad6db9d39e172.js:2
+#: saleor/static/assets/category.f62a2a36d1dda2f67f6a.js:2
+msgid "Sale"
+msgstr "Venda"
+
+#: saleor/static/assets/category.c398831ad6db9d39e172.js:2
+#: saleor/static/assets/category.f62a2a36d1dda2f67f6a.js:2
+msgid "Sort by:"
+msgstr "Agrupado por:"
+
+#: saleor/static/assets/category.c398831ad6db9d39e172.js:2
+#: saleor/static/assets/category.f62a2a36d1dda2f67f6a.js:2
+msgid "default"
+msgstr "padrão"
+
+#: saleor/static/assets/category.c398831ad6db9d39e172.js:2
+#: saleor/static/assets/category.f62a2a36d1dda2f67f6a.js:2
+#: saleor/static/assets/category.js:2
+#: saleor/static/js/components/categoryPage/SortBy.js:64
+msgid "Name"
+msgstr "Nome"
+
+#: saleor/static/assets/category.c398831ad6db9d39e172.js:2
+#: saleor/static/assets/category.f62a2a36d1dda2f67f6a.js:2
+msgid "ascending"
+msgstr "ascendente"
+
+#: saleor/static/assets/category.c398831ad6db9d39e172.js:2
+#: saleor/static/assets/category.f62a2a36d1dda2f67f6a.js:2
+msgid "descending"
+msgstr "descendente"
+
+#: saleor/static/assets/category.c398831ad6db9d39e172.js:2
+#: saleor/static/assets/category.f62a2a36d1dda2f67f6a.js:2
+msgid "Price"
+msgstr "Preço"
+
+#: saleor/static/assets/category.js:1
+#: saleor/static/js/components/categoryPage/CategoryFilter.js:21
+msgctxt "Category page filters"
+msgid "See all"
+msgstr "Ver tudo"
+
+#: saleor/static/assets/category.js:1
+#: saleor/static/js/components/categoryPage/CategoryPage.js:122
+msgctxt "Main navigation item"
+msgid "Home"
+msgstr "Início"
+
+#: saleor/static/assets/category.js:1
+#: saleor/static/js/components/categoryPage/CategoryPage.js:134
+#: saleor/static/js/components/categoryPage/CategoryPage.js:154
+msgctxt "Category page filters"
+msgid "Filters"
+msgstr "Filtros"
+
+#: saleor/static/assets/category.js:1
+#: saleor/static/js/components/categoryPage/CategoryPage.js:155
+msgctxt "Category page filters"
+msgid "Clear filters"
+msgstr "Limpar filtros"
+
+#: saleor/static/assets/category.js:1
+#: saleor/static/js/components/categoryPage/NoResults.js:11
+msgctxt "Epty search results"
+msgid "Sorry, no matches found for your request."
+msgstr "Desculpe, não encontrei..."
+
+#: saleor/static/assets/category.js:1
+#: saleor/static/js/components/categoryPage/NoResults.js:12
+msgctxt "Epty search results"
+msgid "Try again or shop new arrivals."
+msgstr "Você poderia buscar novamente"
+
+#: saleor/static/assets/category.js:1
+#: saleor/static/js/components/categoryPage/PriceFilter.js:48
+msgctxt "Price filter on category page"
+msgid "Price range"
+msgstr "Faixa de preço"
+
+#: saleor/static/assets/category.js:1
+#: saleor/static/js/components/categoryPage/PriceFilter.js:58
+msgctxt "Price filter on category page"
+msgid "from"
+msgstr "de"
+
+#: saleor/static/assets/category.js:1
+#: saleor/static/js/components/categoryPage/PriceFilter.js:68
+msgctxt "Price filter on category page"
+msgid "to"
+msgstr "até"
+
+#: saleor/static/assets/category.js:1
+#: saleor/static/js/components/categoryPage/PriceFilter.js:72
+msgctxt "Price filter on category page"
+msgid "Update"
+msgstr "Atualizar"
+
+#: saleor/static/assets/category.js:2
+#: saleor/static/js/components/categoryPage/ProductList.js:29
+msgctxt "Load more products on category view"
+msgid "Load more"
+msgstr "Carregar mais"
+
+#: saleor/static/assets/category.js:2
+#: saleor/static/js/components/categoryPage/ProductPrice.js:13
+msgctxt "product price range"
+msgid "from"
+msgstr "de"
+
+#: saleor/static/assets/category.js:2
+#: saleor/static/js/components/categoryPage/ProductPrice.js:16
+msgctxt "Sale (discount) label for item in product list"
+msgid "Sale"
+msgstr "Venda"
+
+#: saleor/static/assets/category.js:2
+#: saleor/static/js/components/categoryPage/SortBy.js:43
+#: saleor/static/js/components/categoryPage/SortBy.js:50
+#: saleor/static/js/components/categoryPage/SortBy.js:57
+#: saleor/static/js/components/categoryPage/SortBy.js:64
+#: saleor/static/js/components/categoryPage/SortBy.js:88
+msgctxt "Category page filters"
+msgid "Sort by:"
+msgstr "Agrupado por:"
+
+#: saleor/static/assets/category.js:2
+#: saleor/static/js/components/categoryPage/SortBy.js:57
+msgctxt "Category page filters"
+msgid "default"
+msgstr "padrão"
+
+#: saleor/static/assets/category.js:2
+#: saleor/static/js/components/categoryPage/SortBy.js:67
+#: saleor/static/js/components/categoryPage/SortBy.js:91
+msgctxt "Category page filters"
+msgid "ascending"
+msgstr "ascendente"
+
+#: saleor/static/assets/category.js:2
+#: saleor/static/js/components/categoryPage/SortBy.js:78
+#: saleor/static/js/components/categoryPage/SortBy.js:102
+msgctxt "Category page filters"
+msgid "descending"
+msgstr "descendente"
+
+#: saleor/static/assets/category.js:2
+#: saleor/static/js/components/categoryPage/SortBy.js:88
+msgctxt "Category page filters"
+msgid "Price"
+msgstr "Preço"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:208
+msgctxt "Datepicker option"
+msgid "Next month"
+msgstr "Próximo mês"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:209
+msgctxt "Datepicker option"
+msgid "Previous month"
+msgstr "Mês anterior"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:212
+msgctxt "Datepicker option"
+msgid "Select a month"
+msgstr "Selecione um mês"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:213
+msgctxt "Datepicker option"
+msgid "Select a year"
+msgstr "Selecione um ano"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker month"
+msgid "January"
+msgstr "Janeiro"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker month"
+msgid "February"
+msgstr "Fevereiro"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker month"
+msgid "March"
+msgstr "Março"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker month"
+msgid "April"
+msgstr "Abril"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker month"
+msgid "May"
+msgstr "Maio"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker month"
+msgid "June"
+msgstr "Junho"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker month"
+msgid "July"
+msgstr "Julho"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker month"
+msgid "August"
+msgstr "Agosto"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker month"
+msgid "September"
+msgstr "Setembro"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker month"
+msgid "October"
+msgstr "Outubro"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker month"
+msgid "November"
+msgstr "Novembro"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:216
+msgctxt "Datepicker month"
+msgid "December"
+msgstr "Dezembro"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker month shortcut"
+msgid "Jan"
+msgstr "Jan"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker month shortcut"
+msgid "Feb"
+msgstr "Fev"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker month shortcut"
+msgid "Mar"
+msgstr "Mar"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker month shortcut"
+msgid "Apr"
+msgstr "Abr"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker month shortcut"
+msgid "May"
+msgstr "Mai"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker month shortcut"
+msgid "Jun"
+msgstr "Jun"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker month shortcut"
+msgid "Jul"
+msgstr "Jul"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker month shortcut"
+msgid "Aug"
+msgstr "Ago"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker month shortcut"
+msgid "Sep"
+msgstr "Set"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker month shortcut"
+msgid "Oct"
+msgstr "Out"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker month shortcut"
+msgid "Nov"
+msgstr "Nov"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:217
+msgctxt "Datepicker month shortcut"
+msgid "Dec"
+msgstr "Dec"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker weekday"
+msgid "Sunday"
+msgstr "Domingo"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker weekday"
+msgid "Monday"
+msgstr "Segunda"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker weekday"
+msgid "Tuesday"
+msgstr "Terça"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker weekday"
+msgid "Wednesday"
+msgstr "Quarta"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker weekday"
+msgid "Thursday"
+msgstr "Quinta"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker weekday"
+msgid "Friday"
+msgstr "Sexta"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:218
+msgctxt "Datepicker weekday"
+msgid "Saturday"
+msgstr "Sábado"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker weekday shortcut"
+msgid "Sun"
+msgstr "Dom"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker weekday shortcut"
+msgid "Mon"
+msgstr "Seg"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker weekday shortcut"
+msgid "Tue"
+msgstr "Ter"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker weekday shortcut"
+msgid "Wed"
+msgstr "Qua"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker weekday shortcut"
+msgid "Thu"
+msgstr "Qui"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker weekday shortcut"
+msgid "Fri"
+msgstr "Sex"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:219
+msgctxt "Datepicker weekday shortcut"
+msgid "Sat"
+msgstr "Sáb"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:222
+msgctxt "Sunday shortcut"
+msgid "S"
+msgstr "D"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:222
+msgctxt "Monday shortcut"
+msgid "M"
+msgstr "S"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:222
+msgctxt "Tuesday shortcut"
+msgid "T"
+msgstr "T"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:222
+msgctxt "Wednesday shortcut"
+msgid "W"
+msgstr "Q"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:222
+msgctxt "Thursday shortcut"
+msgid "T"
+msgstr "Q"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:222
+msgctxt "Friday shortcut"
+msgid "F"
+msgstr "S"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:222
+msgctxt "Saturday shortcut"
+msgid "S"
+msgstr "S"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:223
+msgctxt "Datepicker option"
+msgid "Today"
+msgstr "Hoje"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:224
+msgctxt "Datepicker option"
+msgid "Clear"
+msgstr "Limpo"
+
+#: saleor/static/assets/dashboard.js:1
+#: saleor/static/dashboard/js/dashboard.js:225
+msgctxt "Datepicker option"
+msgid "Close"
+msgstr "Fechar"
+
+#: saleor/static/assets/storefront.24ef5f9da7dc8c71dbfd.js:8
+#: saleor/static/assets/storefront.58497497743a6fcec511.js:8
+msgid "Quantity"
+msgstr "Quantidade"
+
+#: saleor/static/assets/storefront.24ef5f9da7dc8c71dbfd.js:8
+#: saleor/static/assets/storefront.58497497743a6fcec511.js:8
+msgid "Add to cart"
+msgstr "Adicionar ao carrinho"
+
+#: saleor/static/assets/storefront.js:20
+#: saleor/static/js/components/variantPicker/QuantityInput.js:21
+msgctxt "Add to cart form field label"
+msgid "Quantity"
+msgstr "Quantidade"
+
+#: saleor/static/assets/storefront.js:20
+#: saleor/static/js/components/variantPicker/VariantPicker.js:161
+msgctxt "Product details primary action"
+msgid "Add to cart"
+msgstr "Adicionar ao carrinho"

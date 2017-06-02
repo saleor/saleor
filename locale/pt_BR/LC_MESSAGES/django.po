@@ -1,0 +1,6130 @@
+# Saleor
+# Copyright (C) 2017 Mirumee Software
+# This file is distributed under the same license as the Saleor package.
+# Mirumee Software <hello@mirumee.com>, 2017.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: master\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 01-05-2017 16:28-0500\n"
+"PO-Revision-Date: DA-MO-YEAR HO:MI+ZONE\n"
+"Last-Translator: Rafael Lima <rafaelslima.py@gmail.com>, 2017\n"
+"Language-Team: None"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: pt_BR\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+
+#: env/lib/python3.5/site-packages/botocore/docs/bcdoc/textwriter.py:469
+#, python-format
+msgid "[image: %s]"
+msgstr "[imagem: %s]"
+
+#: env/lib/python3.5/site-packages/botocore/docs/bcdoc/textwriter.py:470
+msgid "[image]"
+msgstr "[imagem]"
+
+#: env/lib/python3.5/site-packages/django/contrib/messages/apps.py:7
+msgid "Messages"
+msgstr "Mensagens"
+
+#: env/lib/python3.5/site-packages/django/contrib/sitemaps/apps.py:7
+msgid "Site Maps"
+msgstr "Mapas do Site"
+
+#: env/lib/python3.5/site-packages/django/contrib/staticfiles/apps.py:7
+msgid "Static Files"
+msgstr "Arquivos Estáticos"
+
+#: env/lib/python3.5/site-packages/django/contrib/syndication/apps.py:7
+msgid "Syndication"
+msgstr "Sindicação"
+
+#: env/lib/python3.5/site-packages/django/core/validators.py:33
+msgid "Enter a valid value."
+msgstr "Digite um valor válido."
+
+#: env/lib/python3.5/site-packages/django/core/validators.py:106
+#: env/lib/python3.5/site-packages/django/forms/fields.py:663
+msgid "Enter a valid URL."
+msgstr "Digite uma URL válida."
+
+#: env/lib/python3.5/site-packages/django/core/validators.py:159
+msgid "Enter a valid integer."
+msgstr "Digite um número inteiro válido."
+
+#: env/lib/python3.5/site-packages/django/core/validators.py:170
+msgid "Enter a valid email address."
+msgstr "Digite um endereço de e-mail válido."
+
+#: env/lib/python3.5/site-packages/django/core/validators.py:243
+msgid ""
+"Enter a valid 'slug' consisting of letters, numbers, underscores or hyphens."
+msgstr ""
+"Digite uma 'sigla' válida consistindo de letras, números, sublinhados ou "
+"hífens."
+
+#: env/lib/python3.5/site-packages/django/core/validators.py:250
+msgid ""
+"Enter a valid 'slug' consisting of Unicode letters, numbers, underscores, or "
+"hyphens."
+msgstr ""
+"Digite uma 'sigla' válida consistindo de letras Unicode, números, "
+"sublinhados ou hífens."
+
+#: env/lib/python3.5/site-packages/django/core/validators.py:255
+#: env/lib/python3.5/site-packages/django/core/validators.py:274
+msgid "Enter a valid IPv4 address."
+msgstr "Insira um endereço IPv4 válido."
+
+#: env/lib/python3.5/site-packages/django/core/validators.py:260
+#: env/lib/python3.5/site-packages/django/core/validators.py:275
+msgid "Enter a valid IPv6 address."
+msgstr "Digite um endereço IPv6 válido."
+
+#: env/lib/python3.5/site-packages/django/core/validators.py:270
+#: env/lib/python3.5/site-packages/django/core/validators.py:273
+msgid "Enter a valid IPv4 or IPv6 address."
+msgstr "Digite um endereço IPv4 ou IPv6 válido."
+
+#: env/lib/python3.5/site-packages/django/core/validators.py:305
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1110
+msgid "Enter only digits separated by commas."
+msgstr "Digite apenas dígitos separados por vírgulas."
+
+#: env/lib/python3.5/site-packages/django/core/validators.py:311
+#, python-format
+msgid "Ensure this value is %(limit_value)s (it is %(show_value)s)."
+msgstr "Garantir este valor é %(limit_value)s (é %(show_value)s)."
+
+#: env/lib/python3.5/site-packages/django/core/validators.py:342
+#, python-format
+msgid "Ensure this value is less than or equal to %(limit_value)s."
+msgstr "Assegurar este valor é inferior ou igual a %(limit_value)s."
+
+#: env/lib/python3.5/site-packages/django/core/validators.py:351
+#, python-format
+msgid "Ensure this value is greater than or equal to %(limit_value)s."
+msgstr "Assegurar este valor é maior do que ou igual a %(limit_value)s."
+
+#: env/lib/python3.5/site-packages/django/core/validators.py:361
+#, python-format
+msgid ""
+"Ensure this value has at least %(limit_value)d character (it has "
+"%(show_value)d)."
+msgid_plural ""
+"Ensure this value has at least %(limit_value)d characters (it has "
+"%(show_value)d)."
+msgstr[0] ""
+"Garantir este valor tem pelo menos %(limit_value)d personagem  (tem "
+"%(show_value)d)."
+msgstr[1] ""
+"Garantir este valor tem pelo menos %(limit_value)d personagem (tem "
+"%(show_value)d)."
+
+#: env/lib/python3.5/site-packages/django/core/validators.py:376
+#, python-format
+msgid ""
+"Ensure this value has at most %(limit_value)d character (it has "
+"%(show_value)d)."
+msgid_plural ""
+"Ensure this value has at most %(limit_value)d characters (it has "
+"%(show_value)d)."
+msgstr[0] ""
+"Garantir este valor tem no máximo %(limit_value)d personagem  (tem "
+"%(show_value)d)."
+msgstr[1] ""
+"Garantir este valor tem no máximo %(limit_value)d personagem  (tem "
+"%(show_value)d)."
+
+#: env/lib/python3.5/site-packages/django/core/validators.py:396
+#, python-format
+msgid "Ensure that there are no more than %(max)s digit in total."
+msgid_plural "Ensure that there are no more than %(max)s digits in total."
+msgstr[0] "Assegure-se que não há mais do que %(max)s dígitos no total."
+msgstr[1] "Assegure-se que não há mais do que %(max)s dígitos no total."
+
+#: env/lib/python3.5/site-packages/django/core/validators.py:401
+#, python-format
+msgid "Ensure that there are no more than %(max)s decimal place."
+msgid_plural "Ensure that there are no more than %(max)s decimal places."
+msgstr[0] "Certifique-se de que não há mais de %(max)s casa decimal."
+msgstr[1] "Certifique-se de que não há mais de %(max)s casa decimal."
+
+#: env/lib/python3.5/site-packages/django/core/validators.py:406
+#, python-format
+msgid ""
+"Ensure that there are no more than %(max)s digit before the decimal point."
+msgid_plural ""
+"Ensure that there are no more than %(max)s digits before the decimal point."
+msgstr[0] ""
+"Certifique-se de que não há mais de %(max)s dígito antes do ponto decimal."
+msgstr[1] ""
+"Certifique-se de que não há mais de %(max)s dígito antes do ponto decimal."
+
+#: env/lib/python3.5/site-packages/django/db/models/base.py:1191
+#: env/lib/python3.5/site-packages/django/forms/models.py:734
+msgid "and"
+msgstr "e"
+
+#: env/lib/python3.5/site-packages/django/db/models/base.py:1193
+#, python-format
+msgid "%(model_name)s with this %(field_labels)s already exists."
+msgstr "%(model_name)s com este %(field_labels)s é já existe."
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:110
+#, python-format
+msgid "Value %(value)r is not a valid choice."
+msgstr "Valor %(value)r não é uma opção válida."
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:111
+msgid "This field cannot be null."
+msgstr "Este campo não pode ser nulo."
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:112
+msgid "This field cannot be blank."
+msgstr "Este campo não pode estar vazio."
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:113
+#, python-format
+msgid "%(model_name)s with this %(field_label)s already exists."
+msgstr "%(model_name)s com este %(field_label)s é já existe."
+
+#. Translators: The 'lookup_type' is one of 'date', 'year' or 'month'.
+#. Eg: "Title must be unique for pub_date year"
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:117
+#, python-format
+msgid ""
+"%(field_label)s must be unique for %(date_field_label)s %(lookup_type)s."
+msgstr ""
+"%(field_label)s devem ser únicos para %(date_field_label)s %(lookup_type)s."
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:134
+#, python-format
+msgid "Field of type: %(field_type)s"
+msgstr "O campo de tipo: %(field_type)s"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:881
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1788
+msgid "Integer"
+msgstr "Inteiro"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:885
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1786
+#, python-format
+msgid "'%(value)s' value must be an integer."
+msgstr "'%(value)s' valor deve ser um número inteiro."
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:960
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1857
+msgid "Big (8 byte) integer"
+msgstr "Grande (8 byte) inteiro"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:972
+#, python-format
+msgid "'%(value)s' value must be either True or False."
+msgstr "'%(value)s' valor deve ser Verdadeiro ou Falso."
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:974
+msgid "Boolean (Either True or False)"
+msgstr "Booleano (verdadeiro ou falso)"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1040
+#, python-format
+msgid "String (up to %(max_length)s)"
+msgstr "Palavras (até %(max_length)s)"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1094
+msgid "Comma-separated integers"
+msgstr "inteiros separados por vírgulas"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1151
+#, python-format
+msgid ""
+"'%(value)s' value has an invalid date format. It must be in YYYY-MM-DD "
+"format."
+msgstr ""
+"'%(value)s' valor tem um formato de data inválido. Ele deve estar no formato "
+"AAAA-MM-DD."
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1153
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1298
+#, python-format
+msgid ""
+"'%(value)s' value has the correct format (YYYY-MM-DD) but it is an invalid "
+"date."
+msgstr ""
+"'%(value)s' valor tem o formato correto (AAAA-MM-DD), mas é uma data "
+"inválida."
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1156
+msgid "Date (without time)"
+msgstr "Data (sem tempo)"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1296
+#, python-format
+msgid ""
+"'%(value)s' value has an invalid format. It must be in YYYY-MM-DD HH:MM[:ss[."
+"uuuuuu]][TZ] format."
+msgstr ""
+"'%(value)s' valor tem um formato inválido. Deve ser no formato AAAA-MM-DD "
+"HH: MM [: ss [.uuuuuu]] formato [TZ]."
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1300
+#, python-format
+msgid ""
+"'%(value)s' value has the correct format (YYYY-MM-DD HH:MM[:ss[.uuuuuu]]"
+"[TZ]) but it is an invalid date/time."
+msgstr ""
+"'%(value)s' valor tem o formato correto (AAAA-MM-DD HH: MM [: SS [.uuuuuu]] "
+"[TZ]) mas é uma data / hora inválida."
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1304
+msgid "Date (with time)"
+msgstr "Data (com o tempo)"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1454
+#, python-format
+msgid "'%(value)s' value must be a decimal number."
+msgstr "'%(value)s' valor deve ser um número decimal."
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1456
+msgid "Decimal number"
+msgstr "Número decimal"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1607
+#, python-format
+msgid ""
+"'%(value)s' value has an invalid format. It must be in [DD] [HH:[MM:]]ss[."
+"uuuuuu] format."
+msgstr ""
+"'%(value)s' valor tem um formato inválido. Ele deve estar em [DD] [HH: "
+"[MM:]] ss [.uuuuuu] formato."
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1610
+msgid "Duration"
+msgstr "Duração"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1662
+msgid "Email address"
+msgstr "Endereço de e-mail"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1686
+msgid "File path"
+msgstr "Caminho de arquivo"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1752
+#, python-format
+msgid "'%(value)s' value must be a float."
+msgstr "'%(value)s' valor deve ser um flutuador."
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1754
+msgid "Floating point number"
+msgstr "número de ponto flutuante"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1872
+msgid "IPv4 address"
+msgstr "endereço IPv4"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1903
+msgid "IP address"
+msgstr "endereço de IP"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1985
+#, python-format
+msgid "'%(value)s' value must be either None, True or False."
+msgstr "'%(value)s' valor deve ser None, Verdadeiro ou Falso."
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:1987
+msgid "Boolean (Either True, False or None)"
+msgstr "Booleano (True, False ou Nenhum)"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:2054
+msgid "Positive integer"
+msgstr "inteiro positivo"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:2066
+msgid "Positive small integer"
+msgstr "pequeno inteiro positivo"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:2079
+#, python-format
+msgid "Slug (up to %(max_length)s)"
+msgstr "Slug (até%(max_length)s)"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:2113
+msgid "Small integer"
+msgstr "inteiro pequeno"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:2120
+msgid "Text"
+msgstr "Texto"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:2146
+#, python-format
+msgid ""
+"'%(value)s' value has an invalid format. It must be in HH:MM[:ss[.uuuuuu]] "
+"format."
+msgstr ""
+"'%(value)s' valor tem um formato inválido. Ele deve estar em HH: MM [: ss [."
+"uuuuuu]] formato."
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:2148
+#, python-format
+msgid ""
+"'%(value)s' value has the correct format (HH:MM[:ss[.uuuuuu]]) but it is an "
+"invalid time."
+msgstr ""
+"'%(value)s' valor tem o formato correto (HH: MM [: ss [.uuuuuu]]), mas é um "
+"tempo inválido."
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:2151
+msgid "Time"
+msgstr "Tempo"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:2279
+msgid "URL"
+msgstr "URL"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:2302
+msgid "Raw binary data"
+msgstr "dados binários brutos"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/__init__.py:2349
+#, python-format
+msgid "'%(value)s' is not a valid UUID."
+msgstr "'%(value)s' não é um UUID válido."
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/files.py:225
+#: templates/materializecssform/field.html:203
+msgid "File"
+msgstr "Arquivo"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/files.py:387
+msgid "Image"
+msgstr "Imagem"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/related.py:734
+#, python-format
+msgid "%(model)s instance with %(field)s %(value)r does not exist."
+msgstr "%(model)s exemplo, com%(field)s%(value) r não existe."
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/related.py:736
+msgid "Foreign Key (type determined by related field)"
+msgstr "Foreign Key (tipo determinada pelo campo relacionado)"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/related.py:974
+msgid "One-to-one relationship"
+msgstr "Um-para-um relacionamento"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/related.py:1049
+#, python-format
+msgid "%(from)s-%(to)s relationship"
+msgstr "%(from)s -%(to)s relacionamento"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/related.py:1050
+#, python-format
+msgid "%(from)s-%(to)s relationships"
+msgstr "%(from)s -%(to)s relações"
+
+#: env/lib/python3.5/site-packages/django/db/models/fields/related.py:1092
+msgid "Many-to-many relationship"
+msgstr "-Muitos para muitos relação"
+
+#. Translators: If found as last label character, these punctuation
+#. characters will prevent the default label_suffix to be appended to the label
+#: env/lib/python3.5/site-packages/django/forms/boundfield.py:156
+msgid ":?.!"
+msgstr ":?.!"
+
+#: env/lib/python3.5/site-packages/django/forms/fields.py:56
+msgid "This field is required."
+msgstr "Este campo é obrigatório."
+
+#: env/lib/python3.5/site-packages/django/forms/fields.py:250
+msgid "Enter a whole number."
+msgstr "Insira um número inteiro."
+
+#: env/lib/python3.5/site-packages/django/forms/fields.py:295
+#: env/lib/python3.5/site-packages/django/forms/fields.py:332
+msgid "Enter a number."
+msgstr "Digite um número."
+
+#: env/lib/python3.5/site-packages/django/forms/fields.py:410
+#: env/lib/python3.5/site-packages/django/forms/fields.py:1136
+msgid "Enter a valid date."
+msgstr "Insira uma data válida."
+
+#: env/lib/python3.5/site-packages/django/forms/fields.py:434
+#: env/lib/python3.5/site-packages/django/forms/fields.py:1137
+msgid "Enter a valid time."
+msgstr "Digite uma hora válida."
+
+#: env/lib/python3.5/site-packages/django/forms/fields.py:456
+msgid "Enter a valid date/time."
+msgstr "Insira uma data / hora válida."
+
+#: env/lib/python3.5/site-packages/django/forms/fields.py:485
+msgid "Enter a valid duration."
+msgstr "Digite uma duração válida."
+
+#: env/lib/python3.5/site-packages/django/forms/fields.py:542
+msgid "No file was submitted. Check the encoding type on the form."
+msgstr ""
+"Nenhum arquivo foi enviado. Verifique o tipo de codificação no formulário."
+
+#: env/lib/python3.5/site-packages/django/forms/fields.py:543
+msgid "No file was submitted."
+msgstr "Nenhum arquivo foi enviado."
+
+#: env/lib/python3.5/site-packages/django/forms/fields.py:544
+msgid "The submitted file is empty."
+msgstr "O arquivo enviado está vazio."
+
+#: env/lib/python3.5/site-packages/django/forms/fields.py:546
+#, python-format
+msgid "Ensure this filename has at most %(max)d character (it has %(length)d)."
+msgid_plural ""
+"Ensure this filename has at most %(max)d characters (it has %(length)d)."
+msgstr[0] ""
+"Assegurar esse nome de arquivo tem no máximo %(max)d de caráter (tem "
+"%(length)d comprimento)."
+msgstr[1] ""
+"Assegurar esse nome de arquivo tem no máximo %(max)d de caráter (tem "
+"%(length)d comprimento)."
+
+#: env/lib/python3.5/site-packages/django/forms/fields.py:549
+msgid "Please either submit a file or check the clear checkbox, not both."
+msgstr "Por favor, quer enviar um arquivo ou marque a caixa clara, não ambos."
+
+#: env/lib/python3.5/site-packages/django/forms/fields.py:611
+msgid ""
+"Upload a valid image. The file you uploaded was either not an image or a "
+"corrupted image."
+msgstr ""
+"Fazer upload de uma imagem válida. O arquivo enviado era ou não uma imagem "
+"ou uma imagem corrompida."
+
+#: env/lib/python3.5/site-packages/django/forms/fields.py:767
+#: env/lib/python3.5/site-packages/django/forms/fields.py:863
+#: env/lib/python3.5/site-packages/django/forms/models.py:1240
+#, python-format
+msgid "Select a valid choice. %(value)s is not one of the available choices."
+msgstr ""
+"Selecione uma opção válida. %(value)s não é uma das opções disponíveis."
+
+#: env/lib/python3.5/site-packages/django/forms/fields.py:864
+#: env/lib/python3.5/site-packages/django/forms/fields.py:979
+#: env/lib/python3.5/site-packages/django/forms/models.py:1239
+#: env/lib/python3.5/site-packages/graphene_django/forms.py:36
+msgid "Enter a list of values."
+msgstr "Digite uma lista de valores."
+
+#: env/lib/python3.5/site-packages/django/forms/fields.py:980
+msgid "Enter a complete value."
+msgstr "Insira um valor completa."
+
+#: env/lib/python3.5/site-packages/django/forms/fields.py:1195
+msgid "Enter a valid UUID."
+msgstr "Digite um UUID válido."
+
+#. Translators: This is the default suffix added to form field labels
+#: env/lib/python3.5/site-packages/django/forms/forms.py:84
+msgid ":"
+msgstr ":"
+
+#: env/lib/python3.5/site-packages/django/forms/forms.py:199
+#, python-format
+msgid "(Hidden field %(name)s) %(error)s"
+msgstr "(Campo oculto%(name)s)%(error)s"
+
+#: env/lib/python3.5/site-packages/django/forms/formsets.py:97
+msgid "ManagementForm data is missing or has been tampered with"
+msgstr "dados ManagementForm está faltando ou foi adulterado"
+
+#: env/lib/python3.5/site-packages/django/forms/formsets.py:350
+#, python-format
+msgid "Please submit %d or fewer forms."
+msgid_plural "Please submit %d or fewer forms."
+msgstr[0] "Por favor envie %d ou menos formulários."
+msgstr[1] "Por favor envie %d ou menos formulários."
+
+#: env/lib/python3.5/site-packages/django/forms/formsets.py:357
+#, python-format
+msgid "Please submit %d or more forms."
+msgid_plural "Please submit %d or more forms."
+msgstr[0] "Por favor envie %d ou mais formas."
+msgstr[1] "Por favor envie %d ou mais formas."
+
+#: env/lib/python3.5/site-packages/django/forms/formsets.py:385
+#: env/lib/python3.5/site-packages/django/forms/formsets.py:387
+msgid "Order"
+msgstr "Ordem"
+
+#: env/lib/python3.5/site-packages/django/forms/formsets.py:389
+msgid "Delete"
+msgstr "Excluir"
+
+#: env/lib/python3.5/site-packages/django/forms/models.py:729
+#, python-format
+msgid "Please correct the duplicate data for %(field)s."
+msgstr "Corrija os dados duplicados para%(field)s."
+
+#: env/lib/python3.5/site-packages/django/forms/models.py:733
+#, python-format
+msgid "Please correct the duplicate data for %(field)s, which must be unique."
+msgstr "Corrija os dados duplicados para%(field)s, que deve ser único."
+
+#: env/lib/python3.5/site-packages/django/forms/models.py:739
+#, python-format
+msgid ""
+"Please correct the duplicate data for %(field_name)s which must be unique "
+"for the %(lookup)s in %(date_field)s."
+msgstr ""
+"Corrija os dados duplicados para%(field_name)s que deve ser exclusivo para o"
+"%(lookup)s em%(date_field)s."
+
+#: env/lib/python3.5/site-packages/django/forms/models.py:748
+msgid "Please correct the duplicate values below."
+msgstr "Corrija os valores duplicados abaixo."
+
+#: env/lib/python3.5/site-packages/django/forms/models.py:1072
+msgid "The inline foreign key did not match the parent instance primary key."
+msgstr ""
+"A chave estrangeira em linha não corresponde a chave primária instância pai."
+
+#: env/lib/python3.5/site-packages/django/forms/models.py:1133
+msgid "Select a valid choice. That choice is not one of the available choices."
+msgstr ""
+"Selecione uma opção válida. Essa escolha não é uma das opções disponíveis."
+
+#: env/lib/python3.5/site-packages/django/forms/models.py:1242
+#, python-format
+msgid "\"%(pk)s\" is not a valid value for a primary key."
+msgstr "\"%(pk)s\" não é um valor válido para uma chave primária."
+
+#: env/lib/python3.5/site-packages/django/forms/utils.py:172
+#, python-format
+msgid ""
+"%(datetime)s couldn't be interpreted in time zone %(current_timezone)s; it "
+"may be ambiguous or it may not exist."
+msgstr ""
+"%(datetime)s não pode ser interpretado em fuso horário %(current_timezone)s; "
+"pode ser ambígua ou ele pode não existir."
+
+#: env/lib/python3.5/site-packages/django/forms/widgets.py:364
+msgid "Currently"
+msgstr "atualmente"
+
+#: env/lib/python3.5/site-packages/django/forms/widgets.py:365
+msgid "Change"
+msgstr "mudança"
+
+#: env/lib/python3.5/site-packages/django/forms/widgets.py:366
+msgid "Clear"
+msgstr "Claro"
+
+#: env/lib/python3.5/site-packages/django/forms/widgets.py:590
+msgid "Unknown"
+msgstr "Desconhecido"
+
+#: env/lib/python3.5/site-packages/django/forms/widgets.py:591
+#: templates/dashboard/product/class_list.html:47
+msgid "Yes"
+msgstr "sim"
+
+#: env/lib/python3.5/site-packages/django/forms/widgets.py:592
+#: templates/dashboard/product/class_list.html:49
+msgid "No"
+msgstr "Não"
+
+#: env/lib/python3.5/site-packages/django/template/defaultfilters.py:848
+msgid "yes,no,maybe"
+msgstr "sim não Talvez"
+
+#: env/lib/python3.5/site-packages/django/template/defaultfilters.py:877
+#: env/lib/python3.5/site-packages/django/template/defaultfilters.py:894
+#, python-format
+msgid "%(size)d byte"
+msgid_plural "%(size)d bytes"
+msgstr[0] "%(size)d byte"
+msgstr[1] "%(size)d byte"
+
+#: env/lib/python3.5/site-packages/django/template/defaultfilters.py:896
+#, python-format
+msgid "%s KB"
+msgstr "%s KB"
+
+#: env/lib/python3.5/site-packages/django/template/defaultfilters.py:898
+#, python-format
+msgid "%s MB"
+msgstr "%s MB"
+
+#: env/lib/python3.5/site-packages/django/template/defaultfilters.py:900
+#, python-format
+msgid "%s GB"
+msgstr "%s GB"
+
+#: env/lib/python3.5/site-packages/django/template/defaultfilters.py:902
+#, python-format
+msgid "%s TB"
+msgstr "%s TB"
+
+#: env/lib/python3.5/site-packages/django/template/defaultfilters.py:904
+#, python-format
+msgid "%s PB"
+msgstr "%s PB"
+
+#: env/lib/python3.5/site-packages/django/utils/dateformat.py:66
+msgid "p.m."
+msgstr "p.m"
+
+#: env/lib/python3.5/site-packages/django/utils/dateformat.py:67
+msgid "a.m."
+msgstr "a.m"
+
+#: env/lib/python3.5/site-packages/django/utils/dateformat.py:72
+msgid "PM"
+msgstr "PM"
+
+#: env/lib/python3.5/site-packages/django/utils/dateformat.py:73
+msgid "AM"
+msgstr "AM"
+
+#: env/lib/python3.5/site-packages/django/utils/dateformat.py:158
+msgid "midnight"
+msgstr "meia-noite"
+
+#: env/lib/python3.5/site-packages/django/utils/dateformat.py:160
+msgid "noon"
+msgstr "meio-dia"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:6
+msgid "Monday"
+msgstr "Segunda-feira"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:6
+msgid "Tuesday"
+msgstr "Terça"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:6
+msgid "Wednesday"
+msgstr "Quarta-feira"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:6
+msgid "Thursday"
+msgstr "Quinta-feira"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:6
+msgid "Friday"
+msgstr "Sexta-feira"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:7
+msgid "Saturday"
+msgstr "Sábado"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:7
+msgid "Sunday"
+msgstr "Domingo"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:10
+msgid "Mon"
+msgstr "Seg"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:10
+msgid "Tue"
+msgstr "Ter"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:10
+msgid "Wed"
+msgstr "Qua"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:10
+msgid "Thu"
+msgstr "Qui"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:10
+msgid "Fri"
+msgstr "Sex"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:11
+msgid "Sat"
+msgstr "Sáb"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:11
+msgid "Sun"
+msgstr "Dom"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:18
+msgid "January"
+msgstr "Janeiro"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:18
+msgid "February"
+msgstr "Fevereiro"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:18
+msgid "March"
+msgstr "Março"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:18
+msgid "April"
+msgstr "Abril"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:18
+msgid "May"
+msgstr "Maio"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:18
+msgid "June"
+msgstr "Junho"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:19
+msgid "July"
+msgstr "Julho"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:19
+msgid "August"
+msgstr "Agosto"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:19
+msgid "September"
+msgstr "Setembro"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:19
+msgid "October"
+msgstr "Outubro"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:19
+msgid "November"
+msgstr "Novembro"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:20
+msgid "December"
+msgstr "Dezembro"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:23
+msgid "jan"
+msgstr "jan"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:23
+msgid "feb"
+msgstr "fev"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:23
+msgid "mar"
+msgstr "mar"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:23
+msgid "apr"
+msgstr "abr"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:23
+msgid "may"
+msgstr "maio"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:23
+msgid "jun"
+msgstr "jun"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:24
+msgid "jul"
+msgstr "jul"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:24
+msgid "aug"
+msgstr "ago"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:24
+msgid "sep"
+msgstr "set"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:24
+msgid "oct"
+msgstr "out"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:24
+msgid "nov"
+msgstr "nov"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:24
+msgid "dec"
+msgstr "dez"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:31
+msgctxt "abbrev. month"
+msgid "Jan."
+msgstr "Jan."
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:32
+msgctxt "abbrev. month"
+msgid "Feb."
+msgstr "Fev."
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:33
+msgctxt "abbrev. month"
+msgid "March"
+msgstr "marcha"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:34
+msgctxt "abbrev. month"
+msgid "April"
+msgstr "Abril"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:35
+msgctxt "abbrev. month"
+msgid "May"
+msgstr "Maio"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:36
+msgctxt "abbrev. month"
+msgid "June"
+msgstr "Junho"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:37
+msgctxt "abbrev. month"
+msgid "July"
+msgstr "Julho"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:38
+msgctxt "abbrev. month"
+msgid "Aug."
+msgstr "Ago."
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:39
+msgctxt "abbrev. month"
+msgid "Sept."
+msgstr "Set."
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:40
+msgctxt "abbrev. month"
+msgid "Oct."
+msgstr "Out."
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:41
+msgctxt "abbrev. month"
+msgid "Nov."
+msgstr "Nov."
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:42
+msgctxt "abbrev. month"
+msgid "Dec."
+msgstr "Dez."
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:45
+msgctxt "alt. month"
+msgid "January"
+msgstr "Janeiro"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:46
+msgctxt "alt. month"
+msgid "February"
+msgstr "Fevereiro"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:47
+msgctxt "alt. month"
+msgid "March"
+msgstr "marcha"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:48
+msgctxt "alt. month"
+msgid "April"
+msgstr "Abril"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:49
+msgctxt "alt. month"
+msgid "May"
+msgstr "Maio"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:50
+msgctxt "alt. month"
+msgid "June"
+msgstr "Junho"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:51
+msgctxt "alt. month"
+msgid "July"
+msgstr "Julho"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:52
+msgctxt "alt. month"
+msgid "August"
+msgstr "Agosto"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:53
+msgctxt "alt. month"
+msgid "September"
+msgstr "Setembro"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:54
+msgctxt "alt. month"
+msgid "October"
+msgstr "Outubro"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:55
+msgctxt "alt. month"
+msgid "November"
+msgstr "Novembro"
+
+#: env/lib/python3.5/site-packages/django/utils/dates.py:56
+msgctxt "alt. month"
+msgid "December"
+msgstr "Dezembro"
+
+#: env/lib/python3.5/site-packages/django/utils/ipv6.py:12
+msgid "This is not a valid IPv6 address."
+msgstr "Este não é um endereço IPv6 válido."
+
+#: env/lib/python3.5/site-packages/django/utils/text.py:78
+#, python-format
+msgctxt "String to return when truncating text"
+msgid "%(truncated_text)s..."
+msgstr "%(truncated_text)s..."
+
+#: env/lib/python3.5/site-packages/django/utils/text.py:248
+msgid "or"
+msgstr "ou"
+
+#. Translators: This string is used as a separator between list elements
+#: env/lib/python3.5/site-packages/django/utils/text.py:267
+#: env/lib/python3.5/site-packages/django/utils/timesince.py:71
+msgid ", "
+msgstr ", "
+
+#: env/lib/python3.5/site-packages/django/utils/timesince.py:11
+#, python-format
+msgid "%d year"
+msgid_plural "%d years"
+msgstr[0] "%d ano"
+msgstr[1] "%d anos"
+
+#: env/lib/python3.5/site-packages/django/utils/timesince.py:12
+#, python-format
+msgid "%d month"
+msgid_plural "%d months"
+msgstr[0] "%d mês"
+msgstr[1] "%d meses"
+
+#: env/lib/python3.5/site-packages/django/utils/timesince.py:13
+#, python-format
+msgid "%d week"
+msgid_plural "%d weeks"
+msgstr[0] "%d semana"
+msgstr[1] "%d semanas"
+
+#: env/lib/python3.5/site-packages/django/utils/timesince.py:14
+#, python-format
+msgid "%d day"
+msgid_plural "%d days"
+msgstr[0] "%d dia"
+msgstr[1] "%d dias"
+
+#: env/lib/python3.5/site-packages/django/utils/timesince.py:15
+#, python-format
+msgid "%d hour"
+msgid_plural "%d hours"
+msgstr[0] "%d hora"
+msgstr[1] "%d horas"
+
+#: env/lib/python3.5/site-packages/django/utils/timesince.py:16
+#, python-format
+msgid "%d minute"
+msgid_plural "%d minutes"
+msgstr[0] "%d minuto"
+msgstr[1] "%d minutos"
+
+#: env/lib/python3.5/site-packages/django/utils/timesince.py:60
+msgid "0 minutes"
+msgstr "0 minutos"
+
+#: env/lib/python3.5/site-packages/django/views/csrf.py:109
+msgid "Forbidden"
+msgstr "Proibido"
+
+#: env/lib/python3.5/site-packages/django/views/csrf.py:110
+msgid "CSRF verification failed. Request aborted."
+msgstr "verificação CSRF falhou. Pedido abortada."
+
+#: env/lib/python3.5/site-packages/django/views/csrf.py:114
+msgid ""
+"You are seeing this message because this HTTPS site requires a 'Referer "
+"header' to be sent by your Web browser, but none was sent. This header is "
+"required for security reasons, to ensure that your browser is not being "
+"hijacked by third parties."
+msgstr ""
+"Você está vendo esta mensagem porque este site HTTPS requer um 'header "
+"Referer' para ser enviado pelo seu navegador Web, mas nenhum foi enviado. "
+"Este cabeçalho é necessária por razões de segurança, para garantir que seu "
+"navegador não está sendo invadida por terceiros."
+
+#: env/lib/python3.5/site-packages/django/views/csrf.py:119
+msgid ""
+"If you have configured your browser to disable 'Referer' headers, please re-"
+"enable them, at least for this site, or for HTTPS connections, or for 'same-"
+"origin' requests."
+msgstr ""
+"Se tiver configurado seu navegador para desativar cabeçalhos 'Referer', por "
+"favor reativá-los, pelo menos para este site, ou para conexões HTTPS, ou "
+"para pedidos 'de mesma origem'."
+
+#: env/lib/python3.5/site-packages/django/views/csrf.py:124
+msgid ""
+"You are seeing this message because this site requires a CSRF cookie when "
+"submitting forms. This cookie is required for security reasons, to ensure "
+"that your browser is not being hijacked by third parties."
+msgstr ""
+"Você está vendo esta mensagem porque este site requer um cookie CSRF quando "
+"submeter formulários. Este cookie é necessária por razões de segurança, para "
+"garantir que seu navegador não está sendo invadida por terceiros."
+
+#: env/lib/python3.5/site-packages/django/views/csrf.py:129
+msgid ""
+"If you have configured your browser to disable cookies, please re-enable "
+"them, at least for this site, or for 'same-origin' requests."
+msgstr ""
+"Se tiver configurado seu navegador para desativar os cookies, por favor "
+"reativá-los, pelo menos para este site, ou para pedidos 'de mesma origem'."
+
+#: env/lib/python3.5/site-packages/django/views/csrf.py:134
+msgid "More information is available with DEBUG=True."
+msgstr "Mais informações estão disponíveis com DEBUG = True."
+
+#: env/lib/python3.5/site-packages/django/views/debug.py:521
+msgid "Welcome to Django"
+msgstr "Bem-vindo a Django"
+
+#: env/lib/python3.5/site-packages/django/views/debug.py:522
+msgid "It worked!"
+msgstr "Funcionou!"
+
+#: env/lib/python3.5/site-packages/django/views/debug.py:523
+msgid "Congratulations on your first Django-powered page."
+msgstr "Parabéns pela sua primeira página construída em Django."
+
+#: env/lib/python3.5/site-packages/django/views/debug.py:525
+msgid ""
+"Of course, you haven't actually done any work yet. Next, start your first "
+"app by running <code>python manage.py startapp [app_label]</code>."
+msgstr ""
+"Claro, você não tem realmente feito qualquer trabalho ainda. Em seguida, "
+"iniciar o seu primeiro aplicativo, executando <code> python manage.py "
+"startapp [app_label] </ code>."
+
+#: env/lib/python3.5/site-packages/django/views/debug.py:529
+msgid ""
+"You're seeing this message because you have <code>DEBUG = True</code> in "
+"your Django settings file and you haven't configured any URLs. Get to work!"
+msgstr ""
+"Você está vendo esta mensagem porque você tem <code> DEBUG = True </ code> "
+"em seu arquivo de configurações do Django e você não configurou quaisquer "
+"URLs. Ir trabalhar!"
+
+#: env/lib/python3.5/site-packages/django/views/generic/dates.py:48
+msgid "No year specified"
+msgstr "Nenhum ano especificado"
+
+#: env/lib/python3.5/site-packages/django/views/generic/dates.py:104
+msgid "No month specified"
+msgstr "Nenhum mês especificado"
+
+#: env/lib/python3.5/site-packages/django/views/generic/dates.py:163
+msgid "No day specified"
+msgstr "Nenhum dia especificado"
+
+#: env/lib/python3.5/site-packages/django/views/generic/dates.py:219
+msgid "No week specified"
+msgstr "Nenhuma Semana especificado"
+
+#: env/lib/python3.5/site-packages/django/views/generic/dates.py:378
+#: env/lib/python3.5/site-packages/django/views/generic/dates.py:406
+#, python-format
+msgid "No %(verbose_name_plural)s available"
+msgstr "Nenhuma %(verbose_name_plural)s disponível"
+
+#: env/lib/python3.5/site-packages/django/views/generic/dates.py:660
+#, python-format
+msgid ""
+"Future %(verbose_name_plural)s not available because %(class_name)s."
+"allow_future is False."
+msgstr ""
+"Futuro %(verbose_name_plural)s não é disponível porque %(class_name)s."
+"allow_future é Falso."
+
+#: env/lib/python3.5/site-packages/django/views/generic/dates.py:694
+#, python-format
+msgid "Invalid date string '%(datestr)s' given format '%(format)s'"
+msgstr "string de data inválido '%(datestr)s' determinado formato '%(format)s'"
+
+#: env/lib/python3.5/site-packages/django/views/generic/detail.py:55
+#, python-format
+msgid "No %(verbose_name)s found matching the query"
+msgstr "Nenhuma %(verbose_name)s encontradas de acordo com a consulta"
+
+#: env/lib/python3.5/site-packages/django/views/generic/list.py:76
+msgid "Page is not 'last', nor can it be converted to an int."
+msgstr "A página não é 'última', nem pode ser convertido para um int."
+
+#: env/lib/python3.5/site-packages/django/views/generic/list.py:81
+#, python-format
+msgid "Invalid page (%(page_number)s): %(message)s"
+msgstr "Página inválida (%(page_number)s): %(message)s"
+
+#: env/lib/python3.5/site-packages/django/views/generic/list.py:171
+#, python-format
+msgid "Empty list and '%(class_name)s.allow_empty' is False."
+msgstr "Lista vazia e '%(class_name)s.allow_empty' é falsa."
+
+#: env/lib/python3.5/site-packages/django/views/static.py:44
+msgid "Directory indexes are not allowed here."
+msgstr "Índices de diretório não são permitidos aqui."
+
+#: env/lib/python3.5/site-packages/django/views/static.py:46
+#, python-format
+msgid "\"%(path)s\" does not exist"
+msgstr "\"%(path)s\" não existe"
+
+#: env/lib/python3.5/site-packages/django/views/static.py:86
+#, python-format
+msgid "Index of %(directory)s"
+msgstr "Índice de %(directory)s"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:10
+msgid "United Arab Emirates Dirham"
+msgstr "Emirados Árabes Unidos Dirham"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:11
+msgid "Afghan Afghani"
+msgstr "aFEGANE"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:12
+msgid "Albanian Lek"
+msgstr "Lek albanês"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:13
+msgid "Armenian Dram"
+msgstr "Dram armenian"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:14
+msgid "Netherlands Antillean Guilder"
+msgstr "Holanda Florim das Antilhas"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:15
+msgid "Angolan Kwanza"
+msgstr "Kwanza angolano"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:16
+msgid "Argentine Peso"
+msgstr "Peso argentino"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:17
+msgid "Australian Dollar"
+msgstr "Dólar australiano"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:18
+msgid "Aruban Florin"
+msgstr "Aruba Florin"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:19
+msgid "Azerbaijani Manat"
+msgstr "Azerbaijão Manat"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:20
+msgid "Bosnia-Herzegovina Convertible Mark"
+msgstr "Bósnia-Herzegovina conversíveis marca"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:21
+msgid "Barbadian Dollar"
+msgstr "Dólar de Barbados"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:22
+msgid "Bangladeshi Taka"
+msgstr "Bangladesh Teca"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:23
+msgid "Bulgarian Lev"
+msgstr "Lev búlgaro"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:24
+msgid "Bahraini Dinar"
+msgstr "Dinar do Bahrein"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:25
+msgid "Burundian Franc"
+msgstr "Franco do Burundi"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:26
+msgid "Bermudan Dollar"
+msgstr "Dólar Bermudan"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:27
+msgid "Brunei Dollar"
+msgstr "Dólar de Brunei"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:28
+msgid "Bolivian Boliviano"
+msgstr "boliviano"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:29
+msgid "Brazilian Real"
+msgstr "moeda brasileira"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:30
+msgid "Bahamian Dollar"
+msgstr "Dólar das Bahamas"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:31
+msgid "Bitcoin"
+msgstr "Bitcoin"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:32
+msgid "Bhutanese Ngultrum"
+msgstr "Ngultrum"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:33
+msgid "Botswanan Pula"
+msgstr "botswanan Pula"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:34
+msgid "Belarusian Ruble"
+msgstr "Rublo bielorrusso"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:35
+msgid "Belarusian Ruble (pre-2016)"
+msgstr "Rublo Bielorrusso (pré-2016)"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:36
+msgid "Belize Dollar"
+msgstr "Dólar de Belize"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:37
+msgid "Canadian Dollar"
+msgstr "Dólar canadense"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:38
+msgid "Congolese Franc"
+msgstr "Franco congolês"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:39
+msgid "Swiss Franc"
+msgstr "Franco suíço"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:40
+msgid "Chilean Unit of Account (UF)"
+msgstr "Unidade chilena de Conta (UF)"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:41
+msgid "Chilean Peso"
+msgstr "Peso chileno"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:42
+msgid "Chinese Yuan"
+msgstr "Yuan chinês"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:43
+msgid "Colombian Peso"
+msgstr "Peso Colômbia"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:44
+msgid "Costa Rican Colón"
+msgstr "Cólon Costa Rica"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:45
+msgid "Cuban Convertible Peso"
+msgstr "Cubano Conversível Peso"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:46
+msgid "Cuban Peso"
+msgstr "Peso cubano"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:47
+msgid "Cape Verdean Escudo"
+msgstr "Escudo cabo-verdiano"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:48
+msgid "Czech Republic Koruna"
+msgstr "República Checa Coroa"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:49
+msgid "Djiboutian Franc"
+msgstr "Franco do Jibuti"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:50
+msgid "Danish Krone"
+msgstr "Coroa dinamarquesa"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:51
+msgid "Dominican Peso"
+msgstr "Peso dominicano"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:52
+msgid "Algerian Dinar"
+msgstr "Argélia Dinar"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:53
+msgid "Estonian Kroon"
+msgstr "Coroa estoniana"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:54
+msgid "Egyptian Pound"
+msgstr "Libra egípcia"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:55
+msgid "Eritrean Nakfa"
+msgstr "Eritreia Nakfa"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:56
+msgid "Ethiopian Birr"
+msgstr "Birr Ethiopian"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:57
+msgid "Euro"
+msgstr "Euro"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:58
+msgid "Fijian Dollar"
+msgstr "Dólar de Fiji"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:59
+msgid "Falkland Islands Pound"
+msgstr "Libra das Malvinas"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:60
+msgid "British Pound Sterling"
+msgstr "Libra Esterlina"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:61
+msgid "Georgian Lari"
+msgstr "Geórgia Lari"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:62
+msgid "Guernsey Pound"
+msgstr "Guernsey Pound"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:63
+msgid "Ghanaian Cedi"
+msgstr "Cedi Gana"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:64
+msgid "Gibraltar Pound"
+msgstr "Libra de Gibraltar"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:65
+msgid "Gambian Dalasi"
+msgstr "Dalasi Gâmbia"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:66
+msgid "Guinean Franc"
+msgstr "Franco da Guiné"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:67
+msgid "Guatemalan Quetzal"
+msgstr "Quetzal da Guatemala"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:68
+msgid "Guyanaese Dollar"
+msgstr "Dólar Guyanaese"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:69
+msgid "Hong Kong Dollar"
+msgstr "Dólar de Hong Kong"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:70
+msgid "Honduran Lempira"
+msgstr "Lempira hondurenha"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:71
+msgid "Croatian Kuna"
+msgstr "Kuna croata"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:72
+msgid "Haitian Gourde"
+msgstr "Gourde do Haiti"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:73
+msgid "Hungarian Forint"
+msgstr "Forint Hungarian"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:74
+msgid "Indonesian Rupiah"
+msgstr "Rúpia da Indonésia"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:75
+msgid "Israeli New Sheqel"
+msgstr "Israel Shekel"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:76
+msgid "Manx pound"
+msgstr "libra Manx"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:77
+msgid "Indian Rupee"
+msgstr "Rúpia indiana"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:78
+msgid "Iraqi Dinar"
+msgstr "Dinar Iraqi"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:79
+msgid "Iranian Rial"
+msgstr "Rial Iranian"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:80
+msgid "Icelandic Króna"
+msgstr "coroa islandesa"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:81
+msgid "Jersey Pound"
+msgstr "Jersey Pound"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:82
+msgid "Jamaican Dollar"
+msgstr "Dólar jamaicano"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:83
+msgid "Jordanian Dinar"
+msgstr "Dinar jordaniano"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:84
+msgid "Japanese Yen"
+msgstr "Yen japonês"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:85
+msgid "Kenyan Shilling"
+msgstr "Kenyan Shilling"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:86
+msgid "Kyrgystani Som"
+msgstr "Kyrgystani Som"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:87
+msgid "Cambodian Riel"
+msgstr "Riel cambojano"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:88
+msgid "Comorian Franc"
+msgstr "Franco comorense"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:89
+msgid "North Korean Won"
+msgstr "Norte-coreano Won"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:90
+msgid "South Korean Won"
+msgstr "Sul-coreano Won"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:91
+msgid "Kuwaiti Dinar"
+msgstr "Dinar Kuwaiti"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:92
+msgid "Cayman Islands Dollar"
+msgstr "Dólar das Ilhas Cayman"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:93
+msgid "Kazakhstani Tenge"
+msgstr "Kazakhstani Tenge"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:94
+msgid "Laotian Kip"
+msgstr "Laos Kip"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:95
+msgid "Lebanese Pound"
+msgstr "Libra libanesa"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:96
+msgid "Sri Lankan Rupee"
+msgstr "Rúpia do Sri Lanka"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:97
+msgid "Liberian Dollar"
+msgstr "Dólar liberiano"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:98
+msgid "Lesotho Loti"
+msgstr "Lesotho Loti"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:99
+msgid "Lithuanian Litas"
+msgstr "Lita Lituanesa"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:100
+msgid "Latvian Lats"
+msgstr "lats"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:101
+msgid "Libyan Dinar"
+msgstr "Dinar líbio"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:102
+msgid "Moroccan Dirham"
+msgstr "Dirham marroquino"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:103
+msgid "Moldovan Leu"
+msgstr "Leu moldavo"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:104
+msgid "Malagasy Ariary"
+msgstr "Malagasy Ariary"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:105
+msgid "Macedonian Denar"
+msgstr "Dinar macedónio"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:106
+msgid "Myanma Kyat"
+msgstr "Myanma Kyat"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:107
+msgid "Mongolian Tugrik"
+msgstr "Tugrik da Mongólia"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:108
+msgid "Macanese Pataca"
+msgstr "macaense Pataca"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:109
+msgid "Mauritanian Ouguiya"
+msgstr "uguia"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:110
+msgid "Maltese Lira"
+msgstr "Lira maltese"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:111
+msgid "Mauritian Rupee"
+msgstr "Rúpia da maurícia"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:112
+msgid "Maldivian Rufiyaa"
+msgstr "Rufiyaa das Maldivas"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:113
+msgid "Malawian Kwacha"
+msgstr "Kwacha do Malawi"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:114
+msgid "Mexican Peso"
+msgstr "Peso mexicano"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:115
+msgid "Malaysian Ringgit"
+msgstr "Ringgit Malaysian"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:116
+msgid "Mozambican Metical"
+msgstr "Metical"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:117
+msgid "Namibian Dollar"
+msgstr "Dólar namibiano"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:118
+msgid "Nigerian Naira"
+msgstr "Naira Nigéria"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:119
+msgid "Nicaraguan Córdoba"
+msgstr "Nicarágua Córdoba"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:120
+msgid "Norwegian Krone"
+msgstr "Coroa norueguesa"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:121
+msgid "Nepalese Rupee"
+msgstr "Rúpia do Nepal"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:122
+msgid "New Zealand Dollar"
+msgstr "Dólar da Nova Zelândia"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:123
+msgid "Omani Rial"
+msgstr "Omani Rial"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:124
+msgid "Panamanian Balboa"
+msgstr "Balboa panamenho"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:125
+msgid "Peruvian Nuevo Sol"
+msgstr "Peru Novo sol"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:126
+msgid "Papua New Guinean Kina"
+msgstr "Papua Nova Guiné Kina"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:127
+msgid "Philippine Peso"
+msgstr "Peso filipino"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:128
+msgid "Pakistani Rupee"
+msgstr "Rupia Paquistão"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:129
+msgid "Polish Zloty"
+msgstr "Zloty polonês"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:130
+msgid "Paraguayan Guarani"
+msgstr "guarani do Paraguai"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:131
+msgid "Qatari Rial"
+msgstr "Rial de Qatar"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:132
+msgid "Romanian Leu"
+msgstr "Leu Romeno"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:133
+msgid "Serbian Dinar"
+msgstr "Dinar sérvio"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:134
+msgid "Russian Ruble"
+msgstr "Rublo russo"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:135
+msgid "Rwandan Franc"
+msgstr "Franco ruandês"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:136
+msgid "Saudi Riyal"
+msgstr "Rial saudita"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:137
+msgid "Solomon Islands Dollar"
+msgstr "Dólar das Ilhas Salomão"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:138
+msgid "Seychellois Rupee"
+msgstr "Seychelles Rupee"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:139
+msgid "Sudanese Pound"
+msgstr "Libra Sudanese"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:140
+msgid "Swedish Krona"
+msgstr "Coroa sueca"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:141
+msgid "Singapore Dollar"
+msgstr "Dólar de Singapura"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:142
+msgid "Saint Helena Pound"
+msgstr "Libra de Saint Helena"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:143
+msgid "Sierra Leonean Leone"
+msgstr "Serra Leoa Leoa"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:144
+msgid "Somali Shilling"
+msgstr "Shilling somali"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:145
+msgid "Surinamese Dollar"
+msgstr "Dólar do Suriname"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:146
+msgid "São Tomé and Príncipe Dobra"
+msgstr "São Tomé e Príncipe Dobra"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:147
+msgid "Salvadoran Colón"
+msgstr "salvadorenho Colón"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:148
+msgid "Syrian Pound"
+msgstr "Libra síria"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:149
+msgid "Swazi Lilangeni"
+msgstr "Swazi Lilangeni"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:150
+msgid "Thai Baht"
+msgstr "Baht tailandês"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:151
+msgid "Tajikistani Somoni"
+msgstr "Tajikistani Somoni"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:152
+msgid "Turkmenistani Manat"
+msgstr "Turkmenistani Manat"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:153
+msgid "Tunisian Dinar"
+msgstr "Dinar tunisiano"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:154
+msgid "Tongan Pa'anga"
+msgstr "PA'ANGA"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:155
+msgid "Turkish Lira"
+msgstr "Lira turca"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:156
+msgid "Trinidad and Tobago Dollar"
+msgstr "Dólar de Trinidad e Tobago"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:157
+msgid "New Taiwan Dollar"
+msgstr "Novo Dólar de Taiwan"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:158
+msgid "Tanzanian Shilling"
+msgstr "Tanzanian Shilling"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:159
+msgid "Ukrainian Hryvnia"
+msgstr "Hryvnia ukrainian"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:160
+msgid "Ugandan Shilling"
+msgstr "Uganda Shilling"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:161
+msgid "United States Dollar"
+msgstr "Dolar dos Estados Unidos"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:162
+msgid "Uruguayan Peso"
+msgstr "Peso uruguaio"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:163
+msgid "Uzbekistan Som"
+msgstr "Som uzbeque"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:164
+msgid "Venezuelan Bolívar Fuerte"
+msgstr "Venezuela Bolívar Fuerte"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:165
+msgid "Vietnamese Dong"
+msgstr "Dong Vietnamita"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:166
+msgid "Vanuatu Vatu"
+msgstr "Vanuatu Vatu"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:167
+msgid "Samoan Tala"
+msgstr "Samoan Tala"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:168
+msgid "CFA Franc BEAC"
+msgstr "Franco CFA BEAC"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:169
+msgid "Silver Ounce"
+msgstr "Onça de prata"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:170
+msgid "Gold Ounce"
+msgstr "onça de ouro"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:171
+msgid "East Caribbean Dollar"
+msgstr "Dólar do Caribe Oriental"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:172
+msgid "Special Drawing Rights"
+msgstr "Direitos Especiais de Saque"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:173
+msgid "CFA Franc BCEAO"
+msgstr "Franco CFA BCEAO"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:174
+msgid "Palladium Ounce"
+msgstr "Onça Palladium"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:175
+msgid "CFP Franc"
+msgstr "Franco CFP"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:176
+msgid "Platinum Ounce"
+msgstr "Platinum onça"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:177
+msgid "Yemeni Rial"
+msgstr "Rial de Yemeni"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:178
+msgid "South African Rand"
+msgstr "Rand Sul Africano"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:179
+msgid "Zambian Kwacha (pre-2013)"
+msgstr "Zambiano Cuacha (pré-2013)"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:180
+msgid "Zambian Kwacha"
+msgstr "Kwacha zambiana"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/currencies.py:181
+msgid "Zimbabwean Dollar"
+msgstr "Dólar zimbabweano"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/models.py:45
+msgid "To"
+msgstr "Para"
+
+#: env/lib/python3.5/site-packages/django_prices_openexchangerates/models.py:49
+msgid "Conversion rate"
+msgstr "Taxa de conversão"
+
+#: env/lib/python3.5/site-packages/graphene_django/forms.py:12
+msgid "Invalid ID specified."
+msgstr "ID inválida especificada."
+
+#: env/lib/python3.5/site-packages/graphene_django/forms.py:35
+#, python-format
+msgid "One of the specified IDs was invalid (%(value)s)."
+msgstr "Uma das identificações especificadas foi inválido (%(value)s)."
+
+#: env/lib/python3.5/site-packages/graphene_django/tests/models.py:8
+msgid "that"
+msgstr "aquele"
+
+#: env/lib/python3.5/site-packages/graphene_django/tests/test_converter.py:162
+msgid "Spanish"
+msgstr "espanhol"
+
+#: env/lib/python3.5/site-packages/graphene_django/tests/test_converter.py:163
+msgid "English"
+msgstr "Inglês"
+
+#: env/lib/python3.5/site-packages/jsonfield/fields.py:31
+#: env/lib/python3.5/site-packages/jsonfield/fields.py:43
+#: env/lib/python3.5/site-packages/jsonfield/fields.py:81
+msgid "Enter valid JSON"
+msgstr "Digite válida JSON"
+
+#: env/lib/python3.5/site-packages/versatileimagefield/fields.py:41
+msgid "Versatile Image Field"
+msgstr "Campo Imagem versátil"
+
+#: env/lib/python3.5/site-packages/versatileimagefield/widgets.py:26
+msgid "Primary Point of Interest"
+msgstr "Principal ponto de interesse"
+
+#: saleor/cart/__init__.py:20
+msgctxt "cart status"
+msgid "Open - currently active"
+msgstr "Open - atualmente ativo"
+
+#: saleor/cart/__init__.py:22
+msgctxt "cart status"
+msgid "Waiting for payment"
+msgstr "À espera de pagamento"
+
+#: saleor/cart/__init__.py:24
+msgctxt "cart status"
+msgid "Saved - for items to be purchased later"
+msgstr "Salvo - para itens a serem comprados mais tarde"
+
+#: saleor/cart/__init__.py:26
+msgctxt "cart status"
+msgid "Submitted - an order was placed"
+msgstr "Submetido - uma ordem foi colocado"
+
+#: saleor/cart/__init__.py:28
+msgctxt "cart status"
+msgid "Checkout - processed in checkout"
+msgstr "Checkout - processados ​​no check-out"
+
+#: saleor/cart/__init__.py:30
+msgctxt "cart status"
+msgid "Canceled - canceled by user"
+msgstr "Cancelado - cancelada pelo usuário"
+
+#: saleor/cart/forms.py:26
+msgctxt "Add to cart form field label"
+msgid "Quantity"
+msgstr "Quantidade"
+
+#: saleor/cart/forms.py:30
+msgctxt "Add to cart form error"
+msgid "Sorry. This product is currently not available."
+msgstr "Desculpa. Este produto não está disponível no momento."
+
+#: saleor/cart/forms.py:34
+msgctxt "Add to cart form error"
+msgid "Sorry. This product is currently out of stock."
+msgstr "Desculpa. Este produto está atualmente fora de estoque."
+
+#: saleor/cart/forms.py:38
+msgctxt "Add to cart form error"
+msgid "Oops. We could not find that product."
+msgstr "Opa. Nós não conseguimos encontrar esse produto."
+
+#: saleor/cart/forms.py:42
+#, python-format
+msgctxt "Add to cart form error"
+msgid "Only %d remaining in stock."
+msgid_plural "Only %d remaining in stock."
+msgstr[0] "Somente %d restante em estoque."
+msgstr[1] "Somente %d restante em estoque."
+
+#: saleor/cart/forms.py:129
+msgctxt "Country form field label"
+msgid "Country"
+msgstr "País"
+
+#: saleor/cart/models.py:61
+msgctxt "Cart field"
+msgid "order status"
+msgstr "status do pedido"
+
+#: saleor/cart/models.py:64
+msgctxt "Cart field"
+msgid "created"
+msgstr "criada"
+
+#: saleor/cart/models.py:66
+msgctxt "Cart field"
+msgid "last status change"
+msgstr "última mudança de status"
+
+#: saleor/cart/models.py:69
+msgctxt "Cart field"
+msgid "user"
+msgstr "do utilizador"
+
+#: saleor/cart/models.py:71
+msgctxt "Cart field"
+msgid "email"
+msgstr "e-mail"
+
+#: saleor/cart/models.py:73 saleor/cart/models.py:78
+msgctxt "Cart field"
+msgid "token"
+msgstr "símbolo"
+
+#: saleor/cart/models.py:80
+msgctxt "Cart field"
+msgid "checkout data"
+msgstr "dados de checkout"
+
+#: saleor/cart/models.py:84
+msgctxt "Cart field"
+msgid "total"
+msgstr "total"
+
+#: saleor/cart/models.py:88
+msgctxt "Cart field"
+msgid "quantity"
+msgstr "quantidade"
+
+#: saleor/cart/models.py:94
+msgctxt "Cart model"
+msgid "Cart"
+msgstr "Carrinho"
+
+#: saleor/cart/models.py:95
+msgctxt "Cart model"
+msgid "Carts"
+msgstr "Carrinhos"
+
+#: saleor/cart/models.py:208
+msgctxt "Cart line field"
+msgid "cart"
+msgstr "carrinho"
+
+#: saleor/cart/models.py:211
+msgctxt "Cart line field"
+msgid "product"
+msgstr "produtos"
+
+#: saleor/cart/models.py:213
+msgctxt "Cart line field"
+msgid "quantity"
+msgstr "quantidade"
+
+#: saleor/cart/models.py:217
+msgctxt "Cart line field"
+msgid "data"
+msgstr "dados"
+
+#: saleor/cart/models.py:221
+msgctxt "Cart line model"
+msgid "Cart line"
+msgstr "carrinho de linha"
+
+#: saleor/cart/models.py:222
+msgctxt "Cart line model"
+msgid "Cart lines"
+msgstr "Compras linhas"
+
+#: saleor/cart/utils.py:83
+msgctxt "Cart warning message"
+msgid ""
+"Sorry. We don't have that many items in stock. Quantity was set to maximum "
+"available for now."
+msgstr ""
+"Desculpa. Não temos que muitos itens em estoque. Quantidade foi ajustado ao "
+"máximo disponível para agora."
+
+#: saleor/checkout/forms.py:19
+msgctxt "Shipping addresses form choice"
+msgid "Enter a new address"
+msgstr "Introduzir um novo endereço"
+
+#: saleor/checkout/forms.py:23
+msgctxt "Shipping addresses form field label"
+msgid "Address"
+msgstr "Endereço"
+
+#: saleor/checkout/forms.py:41
+msgctxt "Billing addresses form choice"
+msgid "Enter a new address"
+msgstr "Introduzir um novo endereço"
+
+#: saleor/checkout/forms.py:43
+msgctxt "Billing addresses form choice"
+msgid "Same as shipping"
+msgstr "Mesmo que o transporte"
+
+#: saleor/checkout/forms.py:69
+msgctxt "Shipping method form field label"
+msgid "Shipping method"
+msgstr "Método de envio"
+
+#: saleor/checkout/forms.py:87
+msgctxt "Shipping form field label"
+msgid "Email"
+msgstr "E-mail"
+
+#: saleor/checkout/forms.py:94
+msgctxt "Billing form field label"
+msgid "Email"
+msgstr "E-mail"
+
+#: saleor/checkout/views/discount.py:54
+msgctxt "Checkout warning"
+msgid "This voucher has expired. Please review your checkout."
+msgstr "Este voucher expirou. Por favor, reveja o seu check-out."
+
+#: saleor/checkout/views/summary.py:27
+msgctxt "Checkout warning"
+msgid "Please review your checkout."
+msgstr "Por favor, reveja o seu check-out."
+
+#: saleor/discount/forms.py:13
+msgctxt "Voucher form error"
+msgid "Discount code incorrect or expired"
+msgstr "código de desconto incorreto ou expirado"
+
+#: saleor/discount/forms.py:23
+msgctxt "Checkout discount form label for voucher field"
+msgid "Gift card or discount code"
+msgstr "cartão de presente ou código de desconto"
+
+#: saleor/discount/models.py:52
+msgctxt "Voucher application"
+msgid "Apply to a single item"
+msgstr "Aplicar para um único item"
+
+#: saleor/discount/models.py:54
+msgctxt "Voucher application"
+msgid "Apply to all matching products"
+msgstr "Aplicam-se a todos os produtos correspondentes"
+
+#: saleor/discount/models.py:62
+msgctxt "Voucher discount type"
+msgid "%"
+msgstr "%"
+
+#: saleor/discount/models.py:70
+msgctxt "Voucher: discount for"
+msgid "All purchases"
+msgstr "todas as compras"
+
+#: saleor/discount/models.py:71
+msgctxt "Voucher: discount for"
+msgid "One product"
+msgstr "um produto"
+
+#: saleor/discount/models.py:72
+msgctxt "Voucher: discount for"
+msgid "A category of products"
+msgstr "A categoria de produtos"
+
+#: saleor/discount/models.py:73
+msgctxt "Voucher: discount for"
+msgid "Shipping"
+msgstr "Remessa"
+
+#: saleor/discount/models.py:76
+msgctxt "Voucher field"
+msgid "discount for"
+msgstr "desconto para"
+
+#: saleor/discount/models.py:79
+msgctxt "Voucher field"
+msgid "name"
+msgstr "nome"
+
+#: saleor/discount/models.py:82
+msgctxt "Voucher field"
+msgid "code"
+msgstr "código"
+
+#: saleor/discount/models.py:85
+msgctxt "Voucher field"
+msgid "usage limit"
+msgstr "limite de uso"
+
+#: saleor/discount/models.py:88
+msgctxt "Voucher field"
+msgid "start date"
+msgstr "data de início"
+
+#: saleor/discount/models.py:90
+msgctxt "Voucher field"
+msgid "end date"
+msgstr "data final"
+
+#: saleor/discount/models.py:93
+msgctxt "Voucher field"
+msgid "discount type"
+msgstr "tipo de desconto"
+
+#: saleor/discount/models.py:96
+msgctxt "Voucher field"
+msgid "discount value"
+msgstr "valor do desconto"
+
+#: saleor/discount/models.py:102
+msgctxt "Voucher field"
+msgid "product"
+msgstr "produtos"
+
+#: saleor/discount/models.py:105
+msgctxt "Voucher field"
+msgid "category"
+msgstr "categoria"
+
+#: saleor/discount/models.py:107
+msgctxt "Voucher field"
+msgid "apply to"
+msgstr "aplicam-se a"
+
+#: saleor/discount/models.py:110
+msgctxt "Voucher field"
+msgid "limit"
+msgstr "limite"
+
+#: saleor/discount/models.py:122
+msgctxt "Voucher model"
+msgid "voucher"
+msgstr "comprovante"
+
+#: saleor/discount/models.py:123
+msgctxt "Voucher model"
+msgid "vouchers"
+msgstr "comprovantes"
+
+#: saleor/discount/models.py:132
+msgctxt "Voucher type"
+msgid "Free shipping"
+msgstr "Frete grátis"
+
+#: saleor/discount/models.py:134
+#, python-format
+msgctxt "Voucher type"
+msgid "%(discount)s off shipping"
+msgstr "%(discount)s é fora do transporte"
+
+#: saleor/discount/models.py:137
+#, python-format
+msgctxt "Voucher type"
+msgid "%(discount)s off %(product)s"
+msgstr "%(discount)s poupado %(product)s"
+
+#: saleor/discount/models.py:140
+#, python-format
+msgctxt "Voucher type"
+msgid "%(discount)s off %(category)s"
+msgstr "%(discount)s é off %(category)s"
+
+#: saleor/discount/models.py:142
+#, python-format
+msgctxt "Voucher type"
+msgid "%(discount)s off"
+msgstr "%(discount)s poupado"
+
+#: saleor/discount/models.py:148
+msgctxt "Voucher"
+msgid "Any country"
+msgstr "Qualquer país"
+
+#: saleor/discount/models.py:178
+#, python-format
+msgctxt "Voucher not applicable"
+msgid "This offer is only valid for orders over %(amount)s."
+msgstr "Esta oferta só é válida para encomendas superiores %(amount)s."
+
+#: saleor/discount/models.py:190
+msgctxt "Voucher not applicable"
+msgid "Your order does not require shipping."
+msgstr "Seu pedido não requer transporte."
+
+#: saleor/discount/models.py:195
+msgctxt "Voucher not applicable"
+msgid "Please select a shipping method first."
+msgstr "Por favor, selecione um método de envio primeiro."
+
+#: saleor/discount/models.py:200
+#, python-format
+msgctxt "Voucher not applicable"
+msgid "This offer is only valid in %(country)s."
+msgstr "Esta oferta é válida apenas em %(country)s."
+
+#: saleor/discount/models.py:219
+msgctxt "Voucher not applicable"
+msgid "This offer is only valid for selected items."
+msgstr "Esta oferta é válida apenas para os itens selecionados."
+
+#: saleor/discount/models.py:244
+msgctxt "Discount type"
+msgid "%"
+msgstr "%"
+
+#: saleor/discount/models.py:246
+msgctxt "Sale (discount) field"
+msgid "name"
+msgstr "nome"
+
+#: saleor/discount/models.py:248
+msgctxt "Sale (discount) field"
+msgid "type"
+msgstr "tipo"
+
+#: saleor/discount/models.py:251
+msgctxt "Sale (discount) field"
+msgid "value"
+msgstr "valor"
+
+#: saleor/discount/models.py:255
+msgctxt "Sale (discount) field"
+msgid "products"
+msgstr "produtos"
+
+#: saleor/discount/models.py:258
+msgctxt "Sale (discount) field"
+msgid "categories"
+msgstr "categorias"
+
+#: saleor/discount/models.py:262
+msgctxt "Sale (discount) model"
+msgid "sale"
+msgstr "venda"
+
+#: saleor/discount/models.py:263
+msgctxt "Sales (discounts) model"
+msgid "sales"
+msgstr "vendas"
+
+#: saleor/discount/models.py:300
+msgctxt "Voucher not applicable"
+msgid "Discount not applicable for this product"
+msgstr "Desconto não aplicável para este produto"
+
+#: saleor/order/__init__.py:12
+msgctxt "order status"
+msgid "Processing"
+msgstr "Em processamento"
+
+#: saleor/order/__init__.py:13
+msgctxt "order status"
+msgid "Cancelled"
+msgstr "Cancelado"
+
+#: saleor/order/__init__.py:14
+msgctxt "order status"
+msgid "Shipped"
+msgstr "Enviado"
+
+#: saleor/order/__init__.py:15
+msgctxt "order status"
+msgid "Payment pending"
+msgstr "Pagamento pendente"
+
+#: saleor/order/__init__.py:16
+msgctxt "order status"
+msgid "Fully paid"
+msgstr "Totalmente pago"
+
+#: saleor/order/forms.py:12
+msgctxt "Payment methods form label"
+msgid "Method"
+msgstr "Método"
+
+#: saleor/order/forms.py:35
+msgctxt "Payment delete form error"
+msgid "Payment does not exist"
+msgstr "O pagamento não existe"
+
+#: saleor/order/models.py:51
+msgctxt "Order field"
+msgid "order status"
+msgstr "estado do pedido"
+
+#: saleor/order/models.py:54
+msgctxt "Order field"
+msgid "created"
+msgstr "criada"
+
+#: saleor/order/models.py:57
+msgctxt "Order field"
+msgid "last status change"
+msgstr "última mudança de status"
+
+#: saleor/order/models.py:61
+msgctxt "Order field"
+msgid "user"
+msgstr "usuário"
+
+#: saleor/order/models.py:64
+msgctxt "Order field"
+msgid "tracking client id"
+msgstr "código de rastreamento de cliente"
+
+#: saleor/order/models.py:68
+msgctxt "Order field"
+msgid "billing address"
+msgstr "endereço de cobrança"
+
+#: saleor/order/models.py:71
+msgctxt "Order field"
+msgid "shipping address"
+msgstr "endereço de entrega"
+
+#: saleor/order/models.py:73
+msgctxt "Order field"
+msgid "user email"
+msgstr "e-mail do usuário"
+
+#: saleor/order/models.py:76
+msgctxt "Order field"
+msgid "token"
+msgstr "símbolo"
+
+#: saleor/order/models.py:78
+msgctxt "Order field"
+msgid "total net"
+msgstr "total líquido"
+
+#: saleor/order/models.py:82
+msgctxt "Order field"
+msgid "total tax"
+msgstr "imposto total"
+
+#: saleor/order/models.py:87
+msgctxt "Order field"
+msgid "voucher"
+msgstr "comprovante"
+
+#: saleor/order/models.py:89
+msgctxt "Order field"
+msgid "discount amount"
+msgstr "valor do desconto"
+
+#: saleor/order/models.py:93
+msgctxt "Order field"
+msgid "discount name"
+msgstr "nome de desconto"
+
+#: saleor/order/models.py:106
+msgctxt "Order model"
+msgid "Order"
+msgstr "Pedido"
+
+#: saleor/order/models.py:107
+msgctxt "Order model"
+msgid "Orders"
+msgstr "pedidos"
+
+#: saleor/order/models.py:231
+msgctxt "Delivery group field"
+msgid "delivery status"
+msgstr "estado da entrega"
+
+#: saleor/order/models.py:235
+msgctxt "Delivery group field"
+msgid "shipping price"
+msgstr "preço de transporte"
+
+#: saleor/order/models.py:239
+msgctxt "Delivery group field"
+msgid "shipping method name"
+msgstr "Método de envio"
+
+#: saleor/order/models.py:242
+msgctxt "Delivery group field"
+msgid "tracking number"
+msgstr "Numero de rastreio"
+
+#: saleor/order/models.py:245
+msgctxt "Delivery group field"
+msgid "last updated"
+msgstr "Ultima atualização"
+
+#: saleor/order/models.py:249
+msgctxt "Delivery group model"
+msgid "Delivery Group"
+msgstr "Grupo de entrega"
+
+#: saleor/order/models.py:250
+msgctxt "Delivery group model"
+msgid "Delivery Groups"
+msgstr "Grupos de entrega"
+
+#: saleor/order/models.py:254
+#, python-format
+msgctxt "Delivery group str"
+msgid "Shipment #%s"
+msgstr "Envio #%s"
+
+#: saleor/order/models.py:326
+msgctxt "Ordered item field"
+msgid "delivery group"
+msgstr "grupo de entrega"
+
+#: saleor/order/models.py:330
+msgctxt "Ordered item field"
+msgid "product"
+msgstr "produtos"
+
+#: saleor/order/models.py:332
+msgctxt "Ordered item field"
+msgid "product name"
+msgstr "Nome do Produto"
+
+#: saleor/order/models.py:334
+msgctxt "Ordered item field"
+msgid "sku"
+msgstr "sku"
+
+#: saleor/order/models.py:336
+msgctxt "OrderedItem field"
+msgid "stock location"
+msgstr "estoque local"
+
+#: saleor/order/models.py:340
+msgctxt "Ordered item field"
+msgid "stock"
+msgstr "estoque"
+
+#: saleor/order/models.py:342
+msgctxt "Ordered item field"
+msgid "quantity"
+msgstr "quantidade"
+
+#: saleor/order/models.py:345
+msgctxt "Ordered item field"
+msgid "unit price (net)"
+msgstr "preço unitário (líquido)"
+
+#: saleor/order/models.py:348
+msgctxt "Ordered item field"
+msgid "unit price (gross)"
+msgstr "preço unitário (bruto)"
+
+#: saleor/order/models.py:354
+msgctxt "Ordered item model"
+msgid "Ordered item"
+msgstr "item encomendado"
+
+#: saleor/order/models.py:355
+msgctxt "Ordered item model"
+msgid "Ordered items"
+msgstr "artigos encomendados"
+
+#: saleor/order/models.py:389
+msgctxt "Payment field"
+msgid "order"
+msgstr "pedido"
+
+#: saleor/order/models.py:395
+msgctxt "Payment model"
+msgid "Payment"
+msgstr "Forma de pagamento"
+
+#: saleor/order/models.py:396
+msgctxt "Payment model"
+msgid "Payments"
+msgstr "pagamentos"
+
+#: saleor/order/models.py:444
+msgctxt "Order history entry field"
+msgid "last history change"
+msgstr "última alteração história"
+
+#: saleor/order/models.py:448
+msgctxt "Order history entry field"
+msgid "order"
+msgstr "pedido"
+
+#: saleor/order/models.py:450
+msgctxt "Order history entry field"
+msgid "order status"
+msgstr "status do pedido"
+
+#: saleor/order/models.py:453
+msgctxt "Order history entry field"
+msgid "comment"
+msgstr "comente"
+
+#: saleor/order/models.py:457
+msgctxt "Order history entry field"
+msgid "user"
+msgstr "usuário"
+
+#: saleor/order/models.py:462
+msgctxt "Order history entry model"
+msgid "Order history entry"
+msgstr "Histórico de pedidos"
+
+#: saleor/order/models.py:464
+msgctxt "Order history entry model"
+msgid "Order history entries"
+msgstr "Históricos de pedidos"
+
+#: saleor/order/models.py:469
+#, python-format
+msgctxt "Order history entry str"
+msgid "OrderHistoryEntry for Order #%d"
+msgstr "Histórico para Pedido #%d"
+
+#: saleor/order/models.py:478
+msgctxt "Order note model"
+msgid "content"
+msgstr "conteúdo"
+
+#: saleor/order/models.py:482
+msgctxt "Order note model"
+msgid "Order note"
+msgstr "nota da encomenda"
+
+#: saleor/order/models.py:483
+msgctxt "Order note model"
+msgid "Order notes"
+msgstr "notas da encomenda"
+
+#: saleor/order/models.py:488
+#, python-format
+msgctxt "Order note str"
+msgid "OrderNote for Order #%d"
+msgstr "Nota para Pedido #%d"
+
+#: saleor/order/views.py:89
+#, python-format
+msgctxt "Payment description"
+msgid "Order %(order_number)s"
+msgstr "Pedido %(order_number)s"
+
+#: saleor/order/views.py:111
+msgctxt "Payment gateway error"
+msgid ""
+"Oops, it looks like we were unable to contact the selected payment service"
+msgstr ""
+"Opa, parece que não fomos capazes de entrar em contato com o serviço de "
+"pagamento selecionado"
+
+#: saleor/order/views.py:163
+msgctxt "storefront message"
+msgid "You've successfully connected order with your account"
+msgstr "Você conectou com sucesso com a sua conta"
+
+#: saleor/product/forms.py:20
+#, python-format
+msgctxt "Variant choice field label"
+msgid "%(variant_label)s - %(price)s"
+msgstr "%(variant_label)s -%(price)s"
+
+#: saleor/product/models.py:32
+msgctxt "Category field"
+msgid "name"
+msgstr "nome"
+
+#: saleor/product/models.py:34
+msgctxt "Category field"
+msgid "slug"
+msgstr "código"
+
+#: saleor/product/models.py:36
+msgctxt "Category field"
+msgid "description"
+msgstr "descrição"
+
+#: saleor/product/models.py:39
+msgctxt "Category field"
+msgid "parent"
+msgstr "parente"
+
+#: saleor/product/models.py:41
+msgctxt "Category field"
+msgid "hidden"
+msgstr "escondido"
+
+#: saleor/product/models.py:47
+msgctxt "Category model"
+msgid "category"
+msgstr "categoria"
+
+#: saleor/product/models.py:48
+msgctxt "Category model"
+msgid "categories"
+msgstr "categorias"
+
+#: saleor/product/models.py:74
+msgctxt "Product class field"
+msgid "name"
+msgstr "nome"
+
+#: saleor/product/models.py:76
+msgctxt "Product class field"
+msgid "has variants"
+msgstr "tem variações"
+
+#: saleor/product/models.py:80
+msgctxt "Product class field"
+msgid "product attributes"
+msgstr "atributos do produto"
+
+#: saleor/product/models.py:83
+msgctxt "Product class field"
+msgid "variant attributes"
+msgstr "atributos de variações"
+
+#: saleor/product/models.py:85
+msgctxt "Product class field"
+msgid "is shipping required"
+msgstr "O envio é necessário"
+
+#: saleor/product/models.py:90
+msgctxt "Product class model"
+msgid "product class"
+msgstr "classe de produto"
+
+#: saleor/product/models.py:92
+msgctxt "Product class model"
+msgid "product classes"
+msgstr "classes de produtos"
+
+#: saleor/product/models.py:116
+msgctxt "Product field"
+msgid "product class"
+msgstr "classe de produto"
+
+#: saleor/product/models.py:118
+msgctxt "Product field"
+msgid "name"
+msgstr "nome"
+
+#: saleor/product/models.py:120
+msgctxt "Product field"
+msgid "description"
+msgstr "descrição"
+
+#: saleor/product/models.py:122
+msgctxt "Product field"
+msgid "categories"
+msgstr "categorias"
+
+#: saleor/product/models.py:125
+msgctxt "Product field"
+msgid "price"
+msgstr "preço"
+
+#: saleor/product/models.py:128
+msgctxt "Product field"
+msgid "available on"
+msgstr "disponível em"
+
+#: saleor/product/models.py:129
+msgctxt "Product field"
+msgid "attributes"
+msgstr "atributos"
+
+#: saleor/product/models.py:132
+msgctxt "Product field"
+msgid "updated at"
+msgstr "atualizado em"
+
+#: saleor/product/models.py:134
+msgctxt "Product field"
+msgid "is featured"
+msgstr "é destaque"
+
+#: saleor/product/models.py:145
+msgctxt "Product model"
+msgid "product"
+msgstr "produtos"
+
+#: saleor/product/models.py:146
+msgctxt "Product model"
+msgid "products"
+msgstr "produtos"
+
+#: saleor/product/models.py:207
+msgctxt "Product variant field"
+msgid "SKU"
+msgstr "SKU"
+
+#: saleor/product/models.py:209
+msgctxt "Product variant field"
+msgid "variant name"
+msgstr "nome da variação"
+
+#: saleor/product/models.py:212
+msgctxt "Product variant field"
+msgid "price override"
+msgstr "sobrepor preço"
+
+#: saleor/product/models.py:217
+msgctxt "Product variant field"
+msgid "attributes"
+msgstr "atributos"
+
+#: saleor/product/models.py:220
+msgctxt "Product variant field"
+msgid "images"
+msgstr "imagens"
+
+#: saleor/product/models.py:224
+msgctxt "Product variant model"
+msgid "product variant"
+msgstr "variação do produto"
+
+#: saleor/product/models.py:225
+msgctxt "Product variant model"
+msgid "product variants"
+msgstr "variações do produto"
+
+#: saleor/product/models.py:309
+msgctxt "Stock location field"
+msgid "location"
+msgstr "localização"
+
+#: saleor/product/models.py:335
+msgctxt "Stock item field"
+msgid "variant"
+msgstr "variação"
+
+#: saleor/product/models.py:338
+msgctxt "Stock item field"
+msgid "quantity"
+msgstr "quantidade"
+
+#: saleor/product/models.py:341
+msgctxt "Stock item field"
+msgid "allocated quantity"
+msgstr "quantidade atribuída"
+
+#: saleor/product/models.py:344
+msgctxt "Stock item field"
+msgid "cost price"
+msgstr "preço de custo"
+
+#: saleor/product/models.py:365
+msgctxt "Product attribute field"
+msgid "internal name"
+msgstr "nome interno"
+
+#: saleor/product/models.py:368
+msgctxt "Product attribute field"
+msgid "display name"
+msgstr "Mostrar nome"
+
+#: saleor/product/models.py:373
+msgctxt "Product attribute model"
+msgid "product attribute"
+msgstr "atributo do produto"
+
+#: saleor/product/models.py:374
+msgctxt "Product attribute model"
+msgid "product attributes"
+msgstr "atributos do produto"
+
+#: saleor/product/models.py:389
+msgctxt "Attribute choice value field"
+msgid "display name"
+msgstr "Mostrar nome"
+
+#: saleor/product/models.py:393
+msgctxt "Attribute choice value field"
+msgid "color"
+msgstr "cor"
+
+#: saleor/product/models.py:403
+msgctxt "Attribute choice value model"
+msgid "attribute choices value"
+msgstr "valor do atributo escolhas"
+
+#: saleor/product/models.py:406
+msgctxt "Attribute choice value model"
+msgid "attribute choices values"
+msgstr "atribuir valores escolhas"
+
+#: saleor/product/models.py:423
+msgctxt "Product image field"
+msgid "product"
+msgstr "produtos"
+
+#: saleor/product/models.py:426
+msgctxt "Product image field"
+msgid "image"
+msgstr "imagem"
+
+#: saleor/product/models.py:427
+msgctxt "Product image field"
+msgid "ppoi"
+msgstr "IPpoI"
+
+#: saleor/product/models.py:429
+msgctxt "Product image field"
+msgid "short description"
+msgstr "Pequena descrição"
+
+#: saleor/product/models.py:432
+msgctxt "Product image field"
+msgid "order"
+msgstr "ordem"
+
+#: saleor/product/models.py:440
+msgctxt "Product image model"
+msgid "product image"
+msgstr "Imagem do produto"
+
+#: saleor/product/models.py:441
+msgctxt "Product image model"
+msgid "product images"
+msgstr "imagens de produtos"
+
+#: saleor/product/models.py:463
+msgctxt "Variant image field"
+msgid "variant"
+msgstr "variação"
+
+#: saleor/product/models.py:466
+msgctxt "Variant image field"
+msgid "image"
+msgstr "imagem"
+
+#: saleor/product/models.py:470
+msgctxt "Variant image model"
+msgid "variant image"
+msgstr "imagem da variação"
+
+#: saleor/product/models.py:472
+msgctxt "Variant image model"
+msgid "variant images"
+msgstr "imagens variações"
+
+#: saleor/registration/forms.py:10
+msgctxt "Form field"
+msgid "Email"
+msgstr "E-mail"
+
+#: saleor/registration/forms.py:22
+msgctxt "User form field"
+msgid "Password"
+msgstr "Senha"
+
+#: saleor/registration/views.py:23
+msgid "You have been successfully logged out."
+msgstr "Você foi desconectado com sucesso."
+
+#: saleor/registration/views.py:36
+msgid "User has been created"
+msgstr "Usuário foi criado"
+
+#: saleor/search/forms.py:8
+msgctxt "Search form label"
+msgid "Query"
+msgstr "Busca"
+
+#: saleor/shipping/models.py:16
+msgctxt "Country choice"
+msgid "Rest of World"
+msgstr "Resto do mundo"
+
+#: saleor/shipping/models.py:24
+msgctxt "Shipping method field"
+msgid "name"
+msgstr "nome"
+
+#: saleor/shipping/models.py:27
+msgctxt "Shipping method field"
+msgid "description"
+msgstr "descrição"
+
+#: saleor/shipping/models.py:31
+msgctxt "Shipping method model"
+msgid "shipping method"
+msgstr "método de envio"
+
+#: saleor/shipping/models.py:32
+msgctxt "Shipping method model"
+msgid "shipping methods"
+msgstr "Métodos de Envio"
+
+#: saleor/shipping/models.py:76
+msgctxt "Shipping method country field"
+msgid "country code"
+msgstr "Código do país"
+
+#: saleor/shipping/models.py:79
+msgctxt "Shipping method country field"
+msgid "price"
+msgstr "preço"
+
+#: saleor/shipping/models.py:83
+msgctxt "Shipping method country field"
+msgid "shipping method"
+msgstr "método de envio"
+
+#: saleor/shipping/models.py:90
+msgctxt "Shipping method country model"
+msgid "shipping method country"
+msgstr "país método de envio"
+
+#: saleor/shipping/models.py:92
+msgctxt "Shipping method country model"
+msgid "shipping method countries"
+msgstr "países método de envio"
+
+#: saleor/site/models.py:12
+msgctxt "Site field"
+msgid "domain"
+msgstr "domínio"
+
+#: saleor/site/models.py:15
+msgctxt "Site field"
+msgid "name"
+msgstr "nome"
+
+#: saleor/site/models.py:17
+msgctxt "Site field"
+msgid "header text"
+msgstr "texto do cabeçalho"
+
+#: saleor/site/models.py:19
+msgctxt "Site field"
+msgid "site description"
+msgstr "Descrição do Site"
+
+#: saleor/site/models.py:33
+msgctxt "Authentiaction field"
+msgid "name"
+msgstr "nome"
+
+#: saleor/site/models.py:35
+msgctxt "Authentication field"
+msgid "key"
+msgstr "chave"
+
+#: saleor/site/models.py:37
+msgctxt "Authentication field"
+msgid "password"
+msgstr "senha"
+
+#: saleor/userprofile/i18n.py:16
+msgctxt "Address field"
+msgid "Area"
+msgstr "Área"
+
+#: saleor/userprofile/i18n.py:17
+msgctxt "Address field"
+msgid "County"
+msgstr "município"
+
+#: saleor/userprofile/i18n.py:18
+msgctxt "Address field"
+msgid "Department"
+msgstr "Departamento"
+
+#: saleor/userprofile/i18n.py:19
+msgctxt "Address field"
+msgid "District"
+msgstr "Distrito"
+
+#: saleor/userprofile/i18n.py:20
+msgctxt "Address field"
+msgid "Do/si"
+msgstr "Fazer / si"
+
+#: saleor/userprofile/i18n.py:21
+msgctxt "Address field"
+msgid "Emirate"
+msgstr "Emirado"
+
+#: saleor/userprofile/i18n.py:22
+msgctxt "Address field"
+msgid "Island"
+msgstr "ilha"
+
+#: saleor/userprofile/i18n.py:23
+msgctxt "Address field"
+msgid "Neighborhood"
+msgstr "Bairro"
+
+#: saleor/userprofile/i18n.py:24
+msgctxt "Address field"
+msgid "Oblast"
+msgstr "Oblast"
+
+#: saleor/userprofile/i18n.py:25
+msgctxt "Address field"
+msgid "Parish"
+msgstr "Freguesia"
+
+#: saleor/userprofile/i18n.py:26
+msgctxt "Address field"
+msgid "PIN"
+msgstr "PIN"
+
+#: saleor/userprofile/i18n.py:27
+msgctxt "Address field"
+msgid "Postal code"
+msgstr "Código postal"
+
+#: saleor/userprofile/i18n.py:28
+msgctxt "Address field"
+msgid "Prefecture"
+msgstr "Prefeitura"
+
+#: saleor/userprofile/i18n.py:29
+msgctxt "Address field"
+msgid "Province"
+msgstr "Província"
+
+#: saleor/userprofile/i18n.py:30
+msgctxt "Address field"
+msgid "State"
+msgstr "Estado"
+
+#: saleor/userprofile/i18n.py:31
+msgctxt "Address field"
+msgid "Suburb"
+msgstr "Subúrbio"
+
+#: saleor/userprofile/i18n.py:32
+msgctxt "Address field"
+msgid "Townland"
+msgstr "Cidade Natal"
+
+#: saleor/userprofile/i18n.py:33
+msgctxt "Address field"
+msgid "Village/township"
+msgstr "Vila/Município"
+
+#: saleor/userprofile/i18n.py:34
+msgctxt "Address field"
+msgid "ZIP code"
+msgstr "CEP"
+
+#: saleor/userprofile/i18n.py:39
+msgctxt "Address meta form label"
+msgid "preview"
+msgstr "visualização"
+
+#: saleor/userprofile/i18n.py:116
+msgctxt "Address form"
+msgid "This value is invalid for selected country"
+msgstr "Este valor é inválido para país selecionado"
+
+#: saleor/userprofile/models.py:36
+msgctxt "Address field"
+msgid "given name"
+msgstr "nome"
+
+#: saleor/userprofile/models.py:39
+msgctxt "Address field"
+msgid "family name"
+msgstr "sobrenome"
+
+#: saleor/userprofile/models.py:42
+msgctxt "Address field"
+msgid "company or organization"
+msgstr "organização"
+
+#: saleor/userprofile/models.py:45 saleor/userprofile/models.py:48
+msgctxt "Address field"
+msgid "address"
+msgstr "endereço"
+
+#: saleor/userprofile/models.py:51
+msgctxt "Address field"
+msgid "city"
+msgstr "cidade"
+
+#: saleor/userprofile/models.py:54
+msgctxt "Address field"
+msgid "district"
+msgstr "distrito"
+
+#: saleor/userprofile/models.py:57
+msgctxt "Address field"
+msgid "postal code"
+msgstr "Código postal"
+
+#: saleor/userprofile/models.py:60
+msgctxt "Address field"
+msgid "country"
+msgstr "país"
+
+#: saleor/userprofile/models.py:62
+msgctxt "Address field"
+msgid "state or province"
+msgstr "Estado ou Província"
+
+#: saleor/userprofile/models.py:65
+msgctxt "Address field"
+msgid "phone number"
+msgstr "número de telefone"
+
+#: saleor/userprofile/models.py:74
+msgctxt "Address model"
+msgid "address"
+msgstr "endereço"
+
+#: saleor/userprofile/models.py:75
+msgctxt "Address model"
+msgid "addresses"
+msgstr "endereços"
+
+#: saleor/userprofile/models.py:112
+msgctxt "User field"
+msgid "email"
+msgstr "email"
+
+#: saleor/userprofile/models.py:115
+msgctxt "User field"
+msgid "addresses"
+msgstr "endereços"
+
+#: saleor/userprofile/models.py:117
+msgctxt "User field"
+msgid "staff status"
+msgstr "estatuto pessoal"
+
+#: saleor/userprofile/models.py:120
+msgctxt "User field"
+msgid "active"
+msgstr "ativo"
+
+#: saleor/userprofile/models.py:123
+msgctxt "User field"
+msgid "date joined"
+msgstr "data juntou"
+
+#: saleor/userprofile/models.py:128
+msgctxt "User field"
+msgid "default shipping address"
+msgstr "endereço de entrega padrão"
+
+#: saleor/userprofile/models.py:132
+msgctxt "User field"
+msgid "default billing address"
+msgstr "Endereço de Cobrança Padrão"
+
+#: saleor/userprofile/models.py:142
+msgctxt "User model"
+msgid "user"
+msgstr "do utilizador"
+
+#: saleor/userprofile/models.py:143
+msgctxt "User model"
+msgid "users"
+msgstr "Comercial"
+
+#: saleor/userprofile/templatetags/i18n_address_tags.py:15
+#, python-format
+msgctxt "Address data"
+msgid "%(first_name)s %(last_name)s"
+msgstr "%(first_name)s%(last_name)s"
+
+#: saleor/userprofile/templatetags/i18n_address_tags.py:19
+#, python-format
+msgctxt "Address data"
+msgid ""
+"%(street_address_1)s\n"
+"%(street_address_2)s"
+msgstr ""
+"%(street_address_1)s\n"
+"%(street_address_2)s"
+
+#: saleor/userprofile/views.py:28
+msgctxt "Storefront message"
+msgid "Password successfully changed."
+msgstr "Senha mudada com sucesso."
+
+#: saleor/userprofile/views.py:40
+msgctxt "Storefront message"
+msgid "Address successfully updated."
+msgstr "Endereço atualizado com sucesso."
+
+#: saleor/userprofile/views.py:55
+msgctxt "Storefront message"
+msgid "Address successfully deleted."
+msgstr "Endereço excluído com sucesso."
+
+#: templates/account/email/email_confirmation_message.txt:3
+#, python-format
+msgctxt "Email confirmation message"
+msgid ""
+"Hi!\n"
+"\n"
+"You have requested login access to saleor project. To continue visit the "
+"link below.\n"
+"\n"
+"%(activate_url)s\n"
+"\n"
+"If you didn't try to login to saleor please ignore this message. We "
+"apologise for inconvenience.\n"
+"\n"
+"Sincerely,\n"
+"Saleor Team"
+msgstr ""
+"Oi!\n"
+"\n"
+"nVocê solicitou acesso da loja Saleor. Para continuar a visitar o link "
+"abaixo.\n"
+"\n"
+"%(activate_url)s\n"
+"\n"
+"Se você não tentou fazer o login da loja Saleor ignore esta mensagem. "
+"Pedimos desculpas pelo inconveniente.\n"
+"\n"
+"Atentamente,\n"
+"Saleor"
+
+#: templates/account/email/email_confirmation_subject.txt:2
+msgctxt "Email confirmation subject"
+msgid "Confirm your email address"
+msgstr "Confirme seu endereço de e-mail"
+
+#: templates/account/email/password_reset_message.txt:1
+#, python-format
+msgid ""
+"Hello from %(site_name)s!\n"
+"\n"
+"You're receiving this e-mail because you or someone else has requested a "
+"password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the "
+"link below to reset your password."
+msgstr ""
+"Olá, somos a loja %(site_name)s!\n"
+"\n"
+"Você está recebendo este e-mail porque você ou alguém solicitou reinicar a "
+"senha para sua conta de usuário em %(domain)s.\n"
+"Ele pode ser ignorado se você não solicitar uma redefinição de senha. Clique "
+"no link abaixo para redefinir sua senha."
+
+#: templates/account/email/password_reset_message.txt:8
+#, python-format
+msgid ""
+"Thank you for using %(site_name)s!\n"
+"%(domain)s"
+msgstr ""
+"Obrigado por usar %(site_name)s!\n"
+"%(domain)s"
+
+#: templates/account/email/password_reset_subject.txt:3
+msgid "Password Reset E-mail"
+msgstr "Password Reset E-mail"
+
+#: templates/account/login.html:5
+msgctxt "Login page title"
+msgid "Log in"
+msgstr "Entrar"
+
+#: templates/account/login.html:13
+msgctxt "Login form secondary title"
+msgid "Don't have an account yet?"
+msgstr "Não tem uma conta ainda?"
+
+#: templates/account/login.html:17
+msgctxt "Login form secondary action"
+msgid "Register"
+msgstr "Registro"
+
+#: templates/account/login.html:22
+msgctxt "Login form title"
+msgid "Log in"
+msgstr "Entrar"
+
+#: templates/account/partials/already_logged_in.html:7
+#, python-format
+msgctxt "Already logged in warning message"
+msgid "You are already logged in as %(user_display)s."
+msgstr "Você já está conectado como %(user_display)s."
+
+#: templates/account/partials/login_form.html:17
+msgctxt "Login form primary action"
+msgid "Log in"
+msgstr "Entrar"
+
+#: templates/account/partials/login_form.html:20
+msgctxt "Login form secondary link"
+msgid "Forgot password?"
+msgstr "Esqueceu a senha?"
+
+#: templates/account/partials/login_form.html:29
+msgid "Facebook"
+msgstr "Facebook"
+
+#: templates/account/partials/login_form.html:37
+msgid "Google"
+msgstr "Google"
+
+#: templates/account/password_change.html:7 templates/cart/index.html:12
+#: templates/order/details.html:16 templates/order/payment.html:19
+#: templates/product/details.html:16 templates/userprofile/address-edit.html:15
+#: templates/userprofile/details.html:14
+msgctxt "Main navigation item"
+msgid "Home"
+msgstr "Início"
+
+#: templates/account/password_change.html:8 templates/base.html:48
+#: templates/base.html:197 templates/order/details.html:19
+#: templates/order/payment.html:22 templates/userprofile/details.html:16
+msgctxt "Main navigation item"
+msgid "Your account"
+msgstr "Sua conta"
+
+#: templates/account/password_change.html:9
+msgctxt "Password change breadcrumb"
+msgid "Edit"
+msgstr "Editar"
+
+#: templates/account/password_change.html:22
+msgctxt "Password change form legend"
+msgid "Change Password"
+msgstr "Mudar senha"
+
+#: templates/account/password_change.html:28
+msgctxt "Password change form primary action"
+msgid "Save new password"
+msgstr "Salvar a nova senha"
+
+#: templates/account/password_reset.html:6
+msgctxt "Password reset page title"
+msgid "Password reset"
+msgstr "Resetar a senha"
+
+#: templates/account/password_reset.html:15
+msgctxt "Password reset form title"
+msgid "Forgot your password?"
+msgstr "Esqueceu sua senha?"
+
+#: templates/account/password_reset.html:16
+msgctxt "Password reset form help text"
+msgid ""
+"Please let us know the email you have used to register or purchase at our "
+"store."
+msgstr ""
+"Por favor, deixe-nos saber o e-mail que você usou para registrar ou comprar "
+"em nossa loja."
+
+#: templates/account/password_reset.html:27
+msgctxt "Password reset primary action"
+msgid "Continue"
+msgstr "Continuar"
+
+#: templates/account/password_reset_done.html:6
+msgctxt "Password reset done page title"
+msgid "Password Reset"
+msgstr "Resetar a senha"
+
+#: templates/account/password_reset_done.html:10
+msgctxt "Password reset done title"
+msgid "Password Reset"
+msgstr "Resetar a senha"
+
+#: templates/account/password_reset_done.html:14
+msgctxt "Password reset done text"
+msgid ""
+"We have sent you an e-mail. Please contact us if you do not receive it "
+"within a few minutes."
+msgstr ""
+"Enviamos um e-mail. Entre em contato conosco se você não recebê-lo dentro de "
+"alguns minutos."
+
+#: templates/account/password_reset_from_key.html:6
+msgctxt "Password reset from key page title"
+msgid "Change Password"
+msgstr "Mudar senha"
+
+#: templates/account/password_reset_from_key.html:11
+msgid "Bad Token"
+msgstr "Bad token"
+
+#: templates/account/password_reset_from_key.html:13
+#, python-format
+msgctxt "Password reset text if key is invalid"
+msgid ""
+"The password reset link was invalid, possibly because it has already been "
+"used.<br> Please request a <a href=\"%(passwd_reset_url)s\">new password "
+"reset</a>."
+msgstr ""
+"O link de redefinição de senha era inválido, possivelmente porque ele já foi "
+"utilizado.<br> Solicite uma <a href=\"%(passwd_reset_url)s\">nova senha</a>."
+
+#: templates/account/password_reset_from_key.html:23
+msgctxt "Password reset from key form title"
+msgid "Password Reset"
+msgstr "Resetar a senha"
+
+#: templates/account/password_reset_from_key.html:24
+msgctxt "Password reset from key form title"
+msgid "Now you can set new password for you account."
+msgstr "Agora você pode definir uma nova senha."
+
+#: templates/account/password_reset_from_key.html:31
+msgctxt "Password reset from key form primary action"
+msgid "Continue"
+msgstr "Continuar"
+
+#: templates/account/password_reset_from_key_done.html:4
+msgctxt "Password reset from key done page title"
+msgid "Password Changed"
+msgstr "Senha alterada"
+
+#: templates/account/password_reset_from_key_done.html:7
+msgctxt "Password reset from key done title"
+msgid "Password Changed"
+msgstr "Senha alterada"
+
+#: templates/account/password_reset_from_key_done.html:9
+msgid "Your password is now changed."
+msgstr "Sua senha foi alterada."
+
+#: templates/account/password_reset_from_key_done.html:10
+#, python-format
+msgctxt "Password reset from key done text"
+msgid ""
+"You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
+msgstr ""
+"Agora você pode <a href=\"%(login_url)s\"> entrar </a> usando sua nova senha"
+
+#: templates/account/password_set.html:14
+msgctxt "Password set form legend"
+msgid "Password Reset"
+msgstr "Resetar a senha"
+
+#: templates/account/password_set.html:21
+msgctxt "Password set form primary action"
+msgid "Continue"
+msgstr "Continuar"
+
+#: templates/account/signup.html:6
+msgctxt "Signup page title"
+msgid "Sign Up"
+msgstr "Inscrever-se"
+
+#: templates/account/signup.html:13
+msgctxt "Signup form secondary title"
+msgid "Already have an account?"
+msgstr "já tem uma conta?"
+
+#: templates/account/signup.html:17
+msgctxt "Signup form secondary action"
+msgid "Log in"
+msgstr "Entrar"
+
+#: templates/account/signup.html:24
+msgctxt "Signup form title"
+msgid "Create an account"
+msgstr "Registar"
+
+#: templates/account/signup.html:33
+msgctxt "Signup form primary action"
+msgid "Create an account"
+msgstr "Crie a sua conta aqui"
+
+#: templates/base.html:13
+msgctxt "Meta author text"
+msgid "Rafael Lima"
+msgstr ""
+
+#: templates/base.html:42 templates/base.html:186
+msgctxt "Main navigation item"
+msgid "Dashboard"
+msgstr "Painel de controle"
+
+#: templates/base.html:52 templates/base.html:202
+msgctxt "Main navigation item"
+msgid "Log out"
+msgstr "Sair"
+
+#: templates/base.html:57 templates/base.html:207
+msgctxt "Main navigation item"
+msgid "Register"
+msgstr "Registro"
+
+#: templates/base.html:61 templates/base.html:212
+msgctxt "Main navigation item"
+msgid "Log in"
+msgstr "Entrar"
+
+#: templates/base.html:76
+msgctxt "Hamburger button text"
+msgid "menu"
+msgstr "menu"
+
+#: templates/base.html:91
+msgid "Search for product"
+msgstr "Procurar por produto"
+
+#: templates/base.html:102 templates/base.html:179
+msgctxt "Main navigation item"
+msgid "Your Cart"
+msgstr "Seu carrinho"
+
+#: templates/base.html:191
+msgctxt "Main navigation item"
+msgid "Style guide"
+msgstr "Guia de estilo"
+
+#: templates/cart-dropdown.html:33 templates/cart/_subtotal_table.html:9
+#: templates/dashboard/order/detail.html:373
+msgctxt "Order subtotal"
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#: templates/cart-dropdown.html:35
+msgctxt "Cart dropdown text"
+msgid "(Delivery calculated at checkout)"
+msgstr "(Entrega calculado ao confirmar compra)"
+
+#: templates/cart-dropdown.html:45
+msgctxt "Cart dropdown secondary action"
+msgid "Go to cart"
+msgstr "Ir ao carrinho"
+
+#: templates/cart-dropdown.html:48
+msgctxt "Cart dropdown primary action"
+msgid "Checkout"
+msgstr "Comprar"
+
+#: templates/cart-dropdown.html:53 templates/cart/index.html:85
+msgctxt "Empty cart message"
+msgid "There are no products in your shopping cart."
+msgstr "Está vazio!"
+
+#: templates/cart-dropdown.html:55 templates/cart/index.html:86
+msgctxt "Empty cart link"
+msgid "Check out our sales"
+msgstr "Confira nossos produtos"
+
+#: templates/cart/_subtotal_table.html:34
+msgctxt "Cart shipping cost form"
+msgid "Shipping cost for:"
+msgstr "Custo de envio:"
+
+#: templates/cart/_subtotal_table.html:58
+msgctxt "Order subtotal"
+msgid "Total"
+msgstr "Total"
+
+#: templates/cart/index.html:8
+msgctxt "Cart page title"
+msgid "Your cart"
+msgstr "Seu carrinho"
+
+#: templates/cart/index.html:13
+msgctxt "Cart breadcrumb"
+msgid "Cart"
+msgstr "Carrinho"
+
+#: templates/cart/index.html:19
+msgctxt "Cart message"
+msgid "Product has been deleted from cart"
+msgstr "O produto foi excluído do carrinho"
+
+#: templates/cart/index.html:27
+msgctxt "Cart table header"
+msgid "Product"
+msgstr "Produtos"
+
+#: templates/cart/index.html:30
+msgctxt "Cart table header"
+msgid "Quantity"
+msgstr "Quantidade"
+
+#: templates/cart/index.html:33
+msgctxt "Cart table header"
+msgid "Price"
+msgstr "Preço"
+
+#: templates/cart/index.html:77
+msgctxt "Cart primary action"
+msgid "Checkout"
+msgstr "Comprar"
+
+#. Translators: Layout may break if character length is different than four.
+#: templates/category/_items.html:32
+msgctxt "Sale (discount) label for item in product list"
+msgid "Sale"
+msgstr "Venda"
+
+#: templates/checkout/details.html:7
+msgctxt "Checkout page title"
+msgid "Checkout"
+msgstr "Checkout"
+
+#: templates/checkout/details.html:11
+msgctxt "Checkout top message"
+msgid "Easy and secure!"
+msgstr "Fácil e seguro!"
+
+#: templates/checkout/details.html:18
+msgctxt "Checkout title"
+msgid "Checkout"
+msgstr "Checkout"
+
+#: templates/checkout/details.html:34
+msgctxt "Order review title"
+msgid "Order review"
+msgstr "Revisão pedido"
+
+#: templates/checkout/details.html:50
+msgctxt "Order review section"
+msgid "Delivery"
+msgstr "Entrega"
+
+#: templates/checkout/details.html:62
+msgctxt "Order review section title"
+msgid "Promo code"
+msgstr "Código promocional"
+
+#: templates/checkout/details.html:68
+msgctxt "Order review section title"
+msgid "Total"
+msgstr "Total"
+
+#: templates/checkout/login.html:5
+msgctxt "Checkout login page title"
+msgid "Login"
+msgstr "Entrar"
+
+#: templates/checkout/login.html:11
+msgctxt "Checkout login page title"
+msgid "New customer?"
+msgstr "Cliente novo?"
+
+#: templates/checkout/login.html:15
+msgctxt "Checkout login page new users action"
+msgid "Continue"
+msgstr "Continuar"
+
+#: templates/checkout/login.html:17
+msgctxt "Checkout login page new users message"
+msgid "Registration is not required!"
+msgstr "O registo não é necessário!"
+
+#: templates/checkout/login.html:22
+msgctxt "Checkout login form title"
+msgid "Existing customer? Log in."
+msgstr "Cliente existente? Entrar."
+
+#: templates/checkout/payment.html:9
+msgctxt "Checkout payment title"
+msgid "Payment"
+msgstr "Forma de pagamento"
+
+#: templates/checkout/payment.html:13
+msgctxt "Checkout payment primary action"
+msgid "Place order"
+msgstr "Faça a encomenda"
+
+#: templates/checkout/shipping_address.html:8
+#: templates/checkout/shipping_method.html:7
+msgctxt "Checkout shipping address title"
+msgid "Shipping address"
+msgstr "Endereço de entrega"
+
+#: templates/checkout/shipping_address.html:18
+msgctxt "Checkout shipping address primary action"
+msgid "Continue"
+msgstr "Continuar"
+
+#: templates/checkout/shipping_method.html:9
+msgid "Select other address"
+msgstr "Selecione outro endereço"
+
+#: templates/checkout/shipping_method.html:13
+msgctxt "Checkout shipping method form title"
+msgid "Shipping method"
+msgstr "Método de envio"
+
+#: templates/checkout/shipping_method.html:17
+msgctxt "Checkout shipping method primary action"
+msgid "Continue"
+msgstr "Continuar"
+
+#: templates/checkout/snippets/addresses-form-panel.html:1
+msgid "Same as shipping"
+msgstr "Mesmo que o do destino"
+
+#: templates/checkout/snippets/addresses-form.html:4
+msgctxt "Checkout addresses form label"
+msgid "Same as shipping"
+msgstr "Mesmo que o transporte"
+
+#: templates/checkout/snippets/addresses-form.html:11
+msgctxt "Checkout addresses form label"
+msgid "Enter a new address"
+msgstr "Introduzir um novo endereço"
+
+#: templates/checkout/snippets/voucher-form.html:15
+msgctxt "Checkout voucher form action"
+msgid "Remove"
+msgstr "Remover"
+
+#: templates/checkout/snippets/voucher-form.html:16
+msgctxt "Checkout voucher form action"
+msgid "(Remove)"
+msgstr "(Remover)"
+
+#: templates/checkout/snippets/voucher-form.html:28
+msgctxt "Checkout voucher form action"
+msgid "Use"
+msgstr "Usar"
+
+#: templates/checkout/summary.html:7
+msgctxt "Checkout summary title"
+msgid "Billing address"
+msgstr "Endereço de cobrança"
+
+#: templates/checkout/summary.html:11
+msgctxt "Checkout summary primary action"
+msgid "Order &amp Pay"
+msgstr "Pedido e Pagamento"
+
+#: templates/checkout/summary_without_shipping.html:8
+msgctxt "Checkout summary without shipping title"
+msgid "Billing address"
+msgstr "Endereço de cobrança"
+
+#: templates/checkout/summary_without_shipping.html:17
+msgctxt "Checkout summary without shipping action"
+msgid "Place order"
+msgstr "Faça a encomenda"
+
+#: templates/dashboard/base.html:10
+msgctxt "Dashboard default page title"
+msgid "Dashboard - Saleor"
+msgstr "Dashboard - Saleor"
+
+#: templates/dashboard/base.html:38
+msgctxt "Dashboard top navigation action"
+msgid "Visit storefront"
+msgstr "Visitar Loja"
+
+#: templates/dashboard/base.html:41
+msgctxt "Dashboard top navigation action"
+msgid "Style guide"
+msgstr "Guia de estilo"
+
+#: templates/dashboard/base.html:46
+msgctxt "Dashboard top navigation action"
+msgid "Log out"
+msgstr "Sair"
+
+#: templates/dashboard/base.html:74 templates/dashboard/search/results.html:14
+#: templates/dashboard/search/results.html:25
+msgctxt "Dashboard search"
+msgid "Search"
+msgstr "Pesquisa"
+
+#: templates/dashboard/base.html:86 templates/dashboard/base.html:189
+msgctxt "Dashboard homepage"
+msgid "Home"
+msgstr "Início"
+
+#: templates/dashboard/base.html:91
+msgctxt "Dashboard catalogue"
+msgid "Catalogue"
+msgstr "Catálogo"
+
+#: templates/dashboard/base.html:96 templates/dashboard/product/list.html:9
+#: templates/dashboard/product/list.html:35
+#: templates/dashboard/product/product_class_form.html:14
+#: templates/dashboard/product/product_confirm_delete.html:22
+#: templates/dashboard/product/product_form.html:14
+#: templates/dashboard/product/product_form.html:30
+#: templates/dashboard/product/product_image_confirm_delete.html:20
+#: templates/dashboard/product/product_variant_confirm_delete.html:19
+#: templates/dashboard/product/stock_confirm_delete.html:19
+#: templates/dashboard/product/stock_form.html:30
+#: templates/dashboard/product/variant_form.html:26
+msgctxt "Dashboard products list"
+msgid "Products"
+msgstr "Produtos"
+
+#: templates/dashboard/base.html:101
+#: templates/dashboard/category/detail.html:13
+#: templates/dashboard/category/detail.html:32
+#: templates/dashboard/category/list.html:58
+#: templates/dashboard/category/list.html:64
+msgctxt "Dashboard categories list"
+msgid "Categories"
+msgstr "Categorias"
+
+#: templates/dashboard/base.html:106
+msgctxt "Dashboard stock loactions list"
+msgid "Stock locations"
+msgstr "Locais de estoque"
+
+#: templates/dashboard/base.html:113
+#: templates/dashboard/discount/sale_confirm_delete.html:12
+msgctxt "Dashboard discounts list"
+msgid "Discounts"
+msgstr "Descontos"
+
+#: templates/dashboard/base.html:118
+msgctxt "Dashboard sales (discounts) list"
+msgid "Sales"
+msgstr "Vendas"
+
+#: templates/dashboard/base.html:123
+#: templates/dashboard/discount/voucher_form.html:12
+#: templates/dashboard/discount/voucher_form.html:44
+#: templates/dashboard/discount/voucher_list.html:7
+#: templates/dashboard/discount/voucher_list.html:17
+msgctxt "Dashboard vouchers list"
+msgid "Vouchers"
+msgstr "Cupons"
+
+#: templates/dashboard/base.html:130
+msgctxt "Dashboard sales. `Sales' is noun of to sell"
+msgid "Sales"
+msgstr "Vendas"
+
+#: templates/dashboard/base.html:135
+#: templates/dashboard/order/address_form.html:7
+#: templates/dashboard/order/address_form.html:23
+#: templates/dashboard/order/detail.html:11
+#: templates/dashboard/order/detail.html:43
+#: templates/dashboard/order/list.html:6 templates/dashboard/order/list.html:14
+msgctxt "Dashboard orders list"
+msgid "Orders"
+msgstr "Encomendas"
+
+#: templates/dashboard/base.html:140 templates/dashboard/customer/detail.html:8
+#: templates/dashboard/customer/detail.html:24
+#: templates/dashboard/customer/list.html:7
+#: templates/dashboard/customer/list.html:17
+msgctxt "Dashboard customers list"
+msgid "Customers"
+msgstr "Clientes"
+
+#: templates/dashboard/base.html:147
+msgctxt "Dashboard configuration"
+msgid "Configuration"
+msgstr "Configuração"
+
+#: templates/dashboard/base.html:152
+#: templates/dashboard/product/class_list.html:8
+#: templates/dashboard/product/class_list.html:26
+#: templates/dashboard/product/product_class_form.html:30
+msgctxt "Dashboard product types list"
+msgid "Product types"
+msgstr "Tipos de produtos"
+
+#: templates/dashboard/base.html:157
+#: templates/dashboard/product/attributes/confirm_delete.html:12
+#: templates/dashboard/product/attributes/form.html:12
+#: templates/dashboard/product/attributes/form.html:44
+#: templates/dashboard/product/attributes/list.html:7
+#: templates/dashboard/product/attributes/list.html:25
+msgctxt "Dashboard attributes list"
+msgid "Attributes"
+msgstr "Atributos"
+
+#: templates/dashboard/base.html:162
+#: templates/dashboard/shipping/method_list.html:7
+#: templates/dashboard/shipping/method_list.html:17
+msgctxt "Dashboard shipping methods list"
+msgid "Shipping methods"
+msgstr "Métodos de Envio"
+
+#: templates/dashboard/base.html:167 templates/dashboard/sites/detail.html:11
+#: templates/dashboard/sites/detail.html:21
+msgctxt "Dashboard site settings"
+msgid "Site settings"
+msgstr "Configurações do site"
+
+#: templates/dashboard/base.html:175
+msgctxt "Dashboard software version"
+msgid "Release:"
+msgstr "Lançamento:"
+
+#: templates/dashboard/category/category_confirm_delete.html:6
+msgctxt "Delete category page title"
+msgid "Delete category"
+msgstr "Eliminar categoria"
+
+#: templates/dashboard/category/category_confirm_delete.html:17
+#, python-format
+msgctxt "Delete category title"
+msgid "Are you sure you want to delete the category %(category)s?"
+msgstr "Tem certeza de que deseja apagar a categoria %(category)s?"
+
+#: templates/dashboard/category/category_confirm_delete.html:26
+#: templates/dashboard/category/modal_delete.html:19
+msgctxt "Delete category form text about descendant categories"
+msgid "The following child categories will be deleted:"
+msgstr "As seguintes subcategorias serão excluídas:"
+
+#: templates/dashboard/category/category_confirm_delete.html:41
+#: templates/dashboard/category/modal_delete.html:36
+#, python-format
+msgctxt "Delete category form text about products"
+msgid "There is one product in this category that will be deleted."
+msgid_plural ""
+"There are %(counter)s products in this category that will be deleted."
+msgstr[0] "Há um produto nesta categoria que será apagado."
+msgstr[1] "Há alguns produtos nesta categoria que serão apagados."
+
+#: templates/dashboard/category/category_confirm_delete.html:53
+#: templates/dashboard/category/modal_delete.html:45
+#: templates/dashboard/discount/sale_confirm_delete.html:42
+#: templates/dashboard/discount/sale_modal_confirm_delete.html:17
+#: templates/dashboard/discount/voucher_modal_confirm_delete.html:17
+#: templates/dashboard/product/attributes/confirm_delete.html:43
+#: templates/dashboard/product/attributes/modal_confirm_delete.html:17
+#: templates/dashboard/product/modal_product_class_confirm_delete.html:48
+#: templates/dashboard/product/modal_product_confirm_delete.html:31
+#: templates/dashboard/product/modal_product_image_confirm_delete.html:28
+#: templates/dashboard/product/product_confirm_delete.html:8
+#: templates/dashboard/product/product_confirm_delete.html:58
+#: templates/dashboard/product/product_form.html:193
+#: templates/dashboard/product/product_form.html:209
+#: templates/dashboard/product/product_form.html:291
+#: templates/dashboard/product/product_form.html:306
+#: templates/dashboard/product/product_form.html:410
+#: templates/dashboard/product/product_form.html:458
+#: templates/dashboard/product/product_image_confirm_delete.html:61
+#: templates/dashboard/product/product_variant_confirm_delete.html:67
+#: templates/dashboard/product/stock_confirm_delete.html:56
+#: templates/dashboard/product/stock_locations/modal_confirm_delete.html:26
+#: templates/dashboard/shipping/method_delete.html:56
+#: templates/dashboard/shipping/method_form.html:98
+msgctxt "Dashboard delete action"
+msgid "Delete"
+msgstr "Excluir"
+
+#: templates/dashboard/category/category_confirm_delete.html:57
+#: templates/dashboard/category/detail.html:80
+#: templates/dashboard/category/detail.html:84
+#: templates/dashboard/category/modal_delete.html:48
+#: templates/dashboard/category/modal_edit.html:28
+#: templates/dashboard/discount/sale_confirm_delete.html:39
+#: templates/dashboard/discount/sale_form.html:98
+#: templates/dashboard/discount/sale_form.html:105
+#: templates/dashboard/discount/sale_modal_confirm_delete.html:20
+#: templates/dashboard/discount/voucher_form.html:127
+#: templates/dashboard/discount/voucher_form.html:134
+#: templates/dashboard/discount/voucher_modal_confirm_delete.html:20
+#: templates/dashboard/order/address_form.html:61
+#: templates/dashboard/order/modal_add_note.html:19
+#: templates/dashboard/order/modal_cancel_line.html:63
+#: templates/dashboard/order/modal_capture.html:32
+#: templates/dashboard/order/modal_change_quantity.html:19
+#: templates/dashboard/order/modal_refund.html:32
+#: templates/dashboard/order/modal_release.html:19
+#: templates/dashboard/order/modal_ship_delivery_group.html:23
+#: templates/dashboard/order/modal_split_order_line.html:19
+#: templates/dashboard/product/attributes/confirm_delete.html:40
+#: templates/dashboard/product/attributes/form.html:115
+#: templates/dashboard/product/attributes/form.html:122
+#: templates/dashboard/product/attributes/modal_confirm_delete.html:20
+#: templates/dashboard/product/modal_product_class_confirm_delete.html:26
+#: templates/dashboard/product/modal_product_class_confirm_delete.html:51
+#: templates/dashboard/product/modal_product_confirm_delete.html:34
+#: templates/dashboard/product/modal_product_image_confirm_delete.html:31
+#: templates/dashboard/product/product_class_form.html:98
+#: templates/dashboard/product/product_class_form.html:105
+#: templates/dashboard/product/product_form.html:163
+#: templates/dashboard/product/product_form.html:170
+#: templates/dashboard/product/product_form.html:212
+#: templates/dashboard/product/product_form.html:309
+#: templates/dashboard/product/product_image_confirm_delete.html:58
+#: templates/dashboard/product/product_image_form.html:92
+#: templates/dashboard/product/product_image_form.html:99
+#: templates/dashboard/product/stock_form.html:98
+#: templates/dashboard/product/stock_form.html:105
+#: templates/dashboard/product/stock_locations/form.html:74
+#: templates/dashboard/product/stock_locations/form.html:81
+#: templates/dashboard/product/stock_locations/modal_confirm_delete.html:29
+#: templates/dashboard/product/variant_form.html:100
+#: templates/dashboard/product/variant_form.html:107
+#: templates/dashboard/shipping/method_form.html:130
+#: templates/dashboard/shipping/method_form.html:137
+#: templates/dashboard/sites/detail.html:80
+msgctxt "Dashboard cancel action"
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: templates/dashboard/category/detail.html:11
+#: templates/dashboard/category/detail.html:24
+msgctxt "Category detail page title"
+msgid "Add new category"
+msgstr "Adicionar nova categoria"
+
+#: templates/dashboard/category/detail.html:45
+msgctxt "Category detail breadcrumbs"
+msgid "Add new category"
+msgstr "Adicionar nova categoria"
+
+#: templates/dashboard/category/detail.html:89
+#: templates/dashboard/category/modal_edit.html:25
+#: templates/dashboard/discount/sale_form.html:101
+#: templates/dashboard/discount/voucher_form.html:130
+#: templates/dashboard/order/address_form.html:64
+#: templates/dashboard/order/modal_change_quantity.html:16
+#: templates/dashboard/product/attributes/form.html:118
+#: templates/dashboard/product/product_class_form.html:101
+#: templates/dashboard/product/product_form.html:166
+#: templates/dashboard/product/product_image_form.html:95
+#: templates/dashboard/product/stock_form.html:101
+#: templates/dashboard/product/stock_locations/form.html:77
+#: templates/dashboard/product/variant_form.html:103
+#: templates/dashboard/shipping/method_form.html:133
+#: templates/dashboard/sites/detail.html:83
+msgctxt "Dashboard update action"
+msgid "Update"
+msgstr "Atualizar"
+
+#: templates/dashboard/category/detail.html:93
+#: templates/dashboard/discount/sale_form.html:108
+#: templates/dashboard/discount/voucher_form.html:137
+#: templates/dashboard/product/attributes/form.html:125
+#: templates/dashboard/product/product_class_form.html:108
+#: templates/dashboard/product/product_form.html:173
+#: templates/dashboard/product/product_image_form.html:102
+#: templates/dashboard/product/stock_form.html:108
+#: templates/dashboard/product/stock_locations/form.html:84
+#: templates/dashboard/product/variant_form.html:110
+#: templates/dashboard/shipping/method_form.html:140
+msgctxt "Dashboard create action"
+msgid "Create"
+msgstr "Criar"
+
+#: templates/dashboard/category/list.html:7
+msgctxt "Category list page title"
+msgid "Categories"
+msgstr "categorias"
+
+#: templates/dashboard/category/list.html:29
+msgctxt "Category list add button text"
+msgid "Add category"
+msgstr "Adicionar categoria"
+
+#: templates/dashboard/category/list.html:41
+msgctxt "Dashboard edit action"
+msgid "Edit category"
+msgstr "Editar categoria"
+
+#: templates/dashboard/category/list.html:46
+msgctxt "Category list action link"
+msgid "Remove category"
+msgstr "Remover categoria"
+
+#: templates/dashboard/category/list.html:124
+msgctxt "Empty Category list message"
+msgid "No subcategories."
+msgstr "Não há subcategorias."
+
+#: templates/dashboard/category/list.html:128
+msgctxt "Empty Category list message"
+msgid "No categories."
+msgstr "Nenhuma categoria."
+
+#: templates/dashboard/category/modal_delete.html:10
+#, python-format
+msgctxt "Delete category modal title"
+msgid "Are you sure you want to delete the category %(category)s?"
+msgstr "Tem certeza de que deseja apagar a categoria %(category)s?"
+
+#: templates/dashboard/category/modal_edit.html:11
+#, python-format
+msgctxt "Edit category modal title"
+msgid "Edit %(category)s"
+msgstr "Editar %(category)s"
+
+#: templates/dashboard/customer/detail.html:42
+msgctxt "Customer orders table title"
+msgid "Order history"
+msgstr "Histórico de pedidos"
+
+#: templates/dashboard/customer/detail.html:51
+msgctxt "Customer orders table header"
+msgid "Number"
+msgstr "Número"
+
+#: templates/dashboard/customer/detail.html:54
+msgctxt "Customer orders table header"
+msgid "Placed on"
+msgstr "Colocado sobre"
+
+#: templates/dashboard/customer/detail.html:57
+msgctxt "Customer orders table header"
+msgid "Order status"
+msgstr "Status do pedido"
+
+#: templates/dashboard/customer/detail.html:60
+msgctxt "Customer orders table header"
+msgid "Total"
+msgstr "Total"
+
+#: templates/dashboard/customer/detail.html:87
+msgctxt "Empty customer orders table message"
+msgid "No orders found."
+msgstr "Sem pedidos encontrados."
+
+#: templates/dashboard/customer/detail.html:99
+msgctxt "Customer default shipping address card title"
+msgid "Default shipping address"
+msgstr "Endereço de entrega padrão"
+
+#: templates/dashboard/customer/detail.html:106
+msgctxt "Customer without default shipping address message"
+msgid "No default shipping address."
+msgstr "No endereço de entrega padrão."
+
+#: templates/dashboard/customer/detail.html:119
+msgctxt "Customer default billing address card title"
+msgid "Default billing address"
+msgstr "Endereço de Cobrança Padrão"
+
+#: templates/dashboard/customer/detail.html:127
+msgctxt "Customer without default billing address message"
+msgid "No default billing address."
+msgstr "Nenhum endereço de cobrança padrão."
+
+#: templates/dashboard/customer/list.html:30
+msgctxt "Customers table header"
+msgid "Email"
+msgstr "Email"
+
+#: templates/dashboard/customer/list.html:33
+msgctxt "Customers table header"
+msgid "Name"
+msgstr "Nome"
+
+#: templates/dashboard/customer/list.html:36
+msgctxt "Customers table header"
+msgid "Location"
+msgstr "Localização"
+
+#: templates/dashboard/customer/list.html:39
+msgctxt "Customers table header"
+msgid "Number of orders"
+msgstr "Número de pedidos"
+
+#: templates/dashboard/customer/list.html:42
+msgctxt "Customers table header"
+msgid "Last order"
+msgstr "Último pedido"
+
+#: templates/dashboard/customer/list.html:70
+#, python-format
+msgctxt "Customers table last order data"
+msgid "#%(last_order)s"
+msgstr "#%(last_order)s"
+
+#: templates/dashboard/customer/list.html:85
+msgctxt "Empty customers table message"
+msgid "No customers found."
+msgstr "Nenhum cliente encontrado."
+
+#: templates/dashboard/discount/sale_confirm_delete.html:5
+msgctxt "Delete sale (discount) page title"
+msgid "Delete sale"
+msgstr "Excluir venda"
+
+#: templates/dashboard/discount/sale_confirm_delete.html:17
+msgctxt "Delete sale (discount) breadcrumbs"
+msgid "Delete sale"
+msgstr "Excluir venda"
+
+#: templates/dashboard/discount/sale_confirm_delete.html:25
+msgctxt "Delete sale (discount) message"
+msgid "Are you sure you want to delete the following sale?"
+msgstr "Tem certeza de que deseja excluir o seguinte venda?"
+
+#: templates/dashboard/discount/sale_form.html:10
+msgctxt "Sale (discount) page title"
+msgid "Add new sale"
+msgstr "Adicionar nova venda"
+
+#: templates/dashboard/discount/sale_form.html:12
+#: templates/dashboard/discount/sale_form.html:45
+#: templates/dashboard/discount/sale_list.html:16
+msgctxt "Dashboard sales (discounts) list."
+msgid "Sales"
+msgstr "Vendas"
+
+#: templates/dashboard/discount/sale_form.html:34
+msgctxt "Sale (discount) action"
+msgid "Remove sale"
+msgstr "Remover venda"
+
+#: templates/dashboard/discount/sale_form.html:58
+msgctxt "Sale (discount) breadcrumbs"
+msgid "Add new sale"
+msgstr "Adicionar nova venda"
+
+#: templates/dashboard/discount/sale_list.html:7
+msgid "Sales"
+msgstr "Vendas"
+
+#: templates/dashboard/discount/sale_list.html:25
+msgctxt "Sale (discount) list add button text"
+msgid "Add sale"
+msgstr "Adicione venda"
+
+#: templates/dashboard/discount/sale_list.html:26
+#: templates/dashboard/discount/voucher_list.html:28
+#: templates/dashboard/product/product_form.html:190
+#: templates/dashboard/shipping/method_list.html:28
+msgctxt "Dashboard add action"
+msgid "Add"
+msgstr "Adicionar"
+
+#: templates/dashboard/discount/sale_list.html:34
+msgctxt "Sale (discount) table header"
+msgid "Name"
+msgstr "Nome"
+
+#: templates/dashboard/discount/sale_list.html:37
+msgctxt "Sale (discount) table header"
+msgid "Discount"
+msgstr "Desconto"
+
+#: templates/dashboard/discount/sale_list.html:57
+msgctxt "Empty sales table message"
+msgid "No sales found"
+msgstr "Nenhuma venda encontrada"
+
+#: templates/dashboard/discount/sale_modal_confirm_delete.html:7
+#: templates/dashboard/discount/voucher_modal_confirm_delete.html:7
+#: templates/dashboard/product/attributes/modal_confirm_delete.html:7
+#: templates/dashboard/product/modal_product_class_confirm_delete.html:36
+#: templates/dashboard/product/modal_product_confirm_delete.html:12
+#: templates/dashboard/product/modal_product_image_confirm_delete.html:11
+#: templates/dashboard/product/product_form.html:199
+#: templates/dashboard/product/product_form.html:296
+#: templates/dashboard/product/stock_locations/modal_confirm_delete.html:7
+msgctxt "Dashboard confirmation modal"
+msgid "Are you sure?"
+msgstr "Você tem certeza?"
+
+#: templates/dashboard/discount/sale_modal_confirm_delete.html:10
+#, python-format
+msgctxt "Delete sale (discount) text"
+msgid "You are about to delete <strong>%(sale)s</strong>."
+msgstr "Você está prestes a excluir <strong>%(sale)s</strong>."
+
+#: templates/dashboard/discount/voucher_form.html:10
+msgctxt "Voucher page title"
+msgid "Add new voucher"
+msgstr "Adicionar novo comprovante"
+
+#: templates/dashboard/discount/voucher_form.html:33
+msgctxt "Voucher action"
+msgid "Remove voucher"
+msgstr "Remover cupom"
+
+#: templates/dashboard/discount/voucher_form.html:57
+msgctxt "Voucher breadcrumbs"
+msgid "Add new voucher"
+msgstr "Adicionar novo comprovante"
+
+#: templates/dashboard/discount/voucher_list.html:27
+msgctxt "Voucher list add button text"
+msgid "Add voucher"
+msgstr "Adicionar comprovante"
+
+#: templates/dashboard/discount/voucher_list.html:37
+msgctxt "Voucher table header"
+msgid "Name"
+msgstr "Nome"
+
+#: templates/dashboard/discount/voucher_list.html:40
+msgctxt "Voucher table header"
+msgid "Discount"
+msgstr "Desconto"
+
+#: templates/dashboard/discount/voucher_list.html:43
+msgctxt "Voucher table header"
+msgid "Apply to"
+msgstr "aplicar a"
+
+#: templates/dashboard/discount/voucher_list.html:46
+msgctxt "Voucher table header"
+msgid "Start date"
+msgstr "Data de início"
+
+#: templates/dashboard/discount/voucher_list.html:49
+msgctxt "Voucher table header"
+msgid "End date"
+msgstr "Data final"
+
+#: templates/dashboard/discount/voucher_list.html:52
+msgctxt "Voucher table header"
+msgid "Used"
+msgstr "Utilizado"
+
+#: templates/dashboard/discount/voucher_list.html:55
+msgctxt "Voucher table header"
+msgid "Limit"
+msgstr "Limite"
+
+#: templates/dashboard/discount/voucher_list.html:99
+msgctxt "Empty vouchers table message"
+msgid "No vouchers found"
+msgstr "Não vouchers encontrado"
+
+#: templates/dashboard/discount/voucher_modal_confirm_delete.html:10
+#, python-format
+msgctxt "Delete voucher text"
+msgid "You are about to delete <strong>%(voucher)s</strong>."
+msgstr "Você está prestes a excluir <strong>%(voucher)s</strong>."
+
+#: templates/dashboard/includes/_orders_table.html:13
+msgctxt "Orders table header"
+msgid "Order status"
+msgstr "Status do pedido"
+
+#: templates/dashboard/includes/_orders_table.html:16
+msgctxt "Orders table header"
+msgid "Payment status"
+msgstr "Status do pagamento"
+
+#: templates/dashboard/includes/_orders_table.html:19
+msgctxt "Orders table header"
+msgid "Customer"
+msgstr "Cliente"
+
+#: templates/dashboard/includes/_orders_table.html:22
+msgctxt "Orders table header"
+msgid "Placed on"
+msgstr "Colocado sobre"
+
+#: templates/dashboard/includes/_orders_table.html:25
+msgctxt "Orders table header"
+msgid "Total"
+msgstr "Total"
+
+#: templates/dashboard/includes/_orders_table.html:41
+#: templates/dashboard/order/detail.html:106
+msgctxt "Anonymous user account value"
+msgid "Guest"
+msgstr "Convidado"
+
+#: templates/dashboard/includes/_status_filters.html:10
+msgctxt "Status filter action"
+msgid "Filter"
+msgstr "Filtro"
+
+#: templates/dashboard/includes/address_short.html:3
+#: templates/dashboard/order/detail.html:215
+#: templates/dashboard/order/detail.html:233
+#: templates/dashboard/product/product_form.html:407
+#: templates/dashboard/product/product_form.html:454
+msgctxt "Dashboard edit action"
+msgid "Edit"
+msgstr "Editar"
+
+#: templates/dashboard/index.html:15
+msgctxt "Dashboard homepage table title"
+msgid "Preauthorized payments"
+msgstr "Pagamentos pré-autorizados"
+
+#: templates/dashboard/index.html:24
+msgctxt "Preauthorized payments table header"
+msgid "Order"
+msgstr "Encomenda"
+
+#: templates/dashboard/index.html:27
+msgctxt "Preauthorized payments table header"
+msgid "Date"
+msgstr "Data"
+
+#: templates/dashboard/index.html:30
+msgctxt "Preauthorized payments table header"
+msgid "Customer"
+msgstr "Cliente"
+
+#: templates/dashboard/index.html:33
+msgctxt "Preauthorized payments table header"
+msgid "Amount"
+msgstr "Montante"
+
+#: templates/dashboard/index.html:47
+msgid "Guest"
+msgstr "Convidado"
+
+#: templates/dashboard/index.html:60
+msgctxt "Empty Preauthorized payments table message"
+msgid "No preauthorized payments."
+msgstr "Nenhum pagamento pré-autorizado."
+
+#: templates/dashboard/index.html:69
+msgctxt "Dashboard homepage table title"
+msgid "Orders ready for shipment"
+msgstr "Encomendas prontas para envio"
+
+#: templates/dashboard/index.html:77
+msgctxt "Empty order table message"
+msgid "No orders are ready for shipment."
+msgstr "Nenhuma encomenda pronta para envio."
+
+#: templates/dashboard/index.html:85
+msgctxt "Dashboard homepage table title"
+msgid "Products with low stock"
+msgstr "Produtos com poucas unidades"
+
+#: templates/dashboard/index.html:94
+msgctxt "Low stock product list"
+msgid "Product name"
+msgstr "Nome do Produto"
+
+#: templates/dashboard/index.html:97
+msgctxt "Low stock product list"
+msgid "Stock left"
+msgstr "Saida de Estoque"
+
+#: templates/dashboard/index.html:118
+msgctxt "Empty low stock table message"
+msgid "No products are low in stock."
+msgstr "Nenhum produto está em falta no estoque."
+
+#: templates/dashboard/order/address_form.html:7
+msgctxt ""
+msgid "Edit address"
+msgstr "Editar endereço"
+
+#: templates/dashboard/order/address_form.html:39
+#: templates/dashboard/order/detail.html:209
+msgctxt ""
+msgid "Shipping address"
+msgstr "Endereço de entrega"
+
+#: templates/dashboard/order/address_form.html:41
+#: templates/dashboard/order/detail.html:226
+msgctxt ""
+msgid "Billing address"
+msgstr "Endereço de cobrança"
+
+#: templates/dashboard/order/detail.html:32
+msgctxt "Order detail action"
+msgid "Cancel Order"
+msgstr "Cancelar Pedido"
+
+#: templates/dashboard/order/detail.html:66
+msgctxt "Order detail tab"
+msgid "Details"
+msgstr "Detalhes"
+
+#: templates/dashboard/order/detail.html:74
+msgctxt "Order detail tab"
+msgid "Payments"
+msgstr "Pagamentos"
+
+#: templates/dashboard/order/detail.html:82
+msgctxt "Order detail tab"
+msgid "History"
+msgstr "História"
+
+#: templates/dashboard/order/detail.html:95
+msgctxt "Order summary title"
+msgid "Order summary"
+msgstr "Resumo da encomenda"
+
+#: templates/dashboard/order/detail.html:100
+#: templates/dashboard/search/results.html:85
+msgctxt "Dashboard customer"
+msgid "Customer"
+msgstr "Cliente"
+
+#: templates/dashboard/order/detail.html:112
+msgctxt "Order summary card header"
+msgid "Order status"
+msgstr "Status da encomenda"
+
+#: templates/dashboard/order/detail.html:120
+msgctxt "Order summary card header"
+msgid "Payment status"
+msgstr "Status do pagamento"
+
+#: templates/dashboard/order/detail.html:126
+msgctxt "Payment status not available"
+msgid "N/A"
+msgstr "N/D"
+
+#: templates/dashboard/order/detail.html:138
+msgctxt "Order summary card header"
+msgid "Outstanding balance"
+msgstr "Saldo em circulação"
+
+#: templates/dashboard/order/detail.html:151
+msgctxt "Order summary card header"
+msgid "Order total"
+msgstr "Total de pedidos"
+
+#: templates/dashboard/order/detail.html:159
+msgctxt "Order summary card header"
+msgid "Preauthorized amount"
+msgstr "Quantidade pré-autorizada"
+
+#: templates/dashboard/order/detail.html:165
+msgctxt "Preauthorized amount not available"
+msgid "N/A"
+msgstr "N/D"
+
+#: templates/dashboard/order/detail.html:171
+msgctxt "Order summary card header"
+msgid "Captured amount"
+msgstr "Quantidade capturada"
+
+#: templates/dashboard/order/detail.html:185
+msgctxt "Order summary card action"
+msgid "Capture"
+msgstr "Capturar"
+
+#: templates/dashboard/order/detail.html:190
+msgctxt "Order summary card action"
+msgid "Refund"
+msgstr "Restituição"
+
+#: templates/dashboard/order/detail.html:196
+msgctxt "Order summary card action"
+msgid "Release"
+msgstr "Lançamento"
+
+#: templates/dashboard/order/detail.html:245
+#, python-format
+msgctxt "Shipment group table title"
+msgid "Shipment #%(shipment)s"
+msgstr "Embarque #%(shipment)s"
+
+#: templates/dashboard/order/detail.html:256
+msgctxt "Shipment group table header"
+msgid "Item"
+msgstr "Item"
+
+#: templates/dashboard/order/detail.html:259
+msgctxt "Shipment group table header"
+msgid "SKU"
+msgstr "SKU"
+
+#: templates/dashboard/order/detail.html:262
+msgctxt "Shipment group table header"
+msgid "Price"
+msgstr "Preço"
+
+#: templates/dashboard/order/detail.html:265
+msgctxt "Shipment group table header"
+msgid "Quantity"
+msgstr "Quantidade"
+
+#: templates/dashboard/order/detail.html:268
+msgctxt "Shipment group table header"
+msgid "Total"
+msgstr "Total"
+
+#: templates/dashboard/order/detail.html:276
+#, python-format
+msgctxt "Shipment group table item column data"
+msgid "Shipping (%(group_shipping_method_name)s)"
+msgstr "Entrega (%(group_shipping_method_name)s)"
+
+#: templates/dashboard/order/detail.html:306
+#: templates/dashboard/order/detail.html:307
+msgctxt "Shipment group table row action"
+msgid "Change quantity"
+msgstr "Alterar quantidade"
+
+#: templates/dashboard/order/detail.html:311
+msgctxt "Shipment group table row action"
+msgid "Split line"
+msgstr "Linha de divisão"
+
+#: templates/dashboard/order/detail.html:312
+msgctxt "Shipment group table row action"
+msgid "Split order line"
+msgstr "Linha de pedido de divisão"
+
+#: templates/dashboard/order/detail.html:316
+#: templates/dashboard/order/detail.html:317
+msgctxt "Shipment group table row action"
+msgid "Remove line"
+msgstr "Remover linha"
+
+#: templates/dashboard/order/detail.html:337
+msgctxt "Shipment group table action"
+msgid "Dispatch"
+msgstr "Despacho"
+
+#: templates/dashboard/order/detail.html:341
+msgctxt "Shipment group table action"
+msgid "Cancel group"
+msgstr "Cancelar grupo"
+
+#: templates/dashboard/order/detail.html:342
+msgctxt "Shipment group table action"
+msgid "Cancel this shipment"
+msgstr "Cancelar esta expedição"
+
+#: templates/dashboard/order/detail.html:349
+#, python-format
+msgctxt "Shipment group table text"
+msgid "Tracking number: %(tracking)s"
+msgstr "Número de seguimento: %(tracking)s"
+
+#: templates/dashboard/order/detail.html:363
+msgctxt "Order totals header"
+msgid "Grand total"
+msgstr "Total geral"
+
+#: templates/dashboard/order/detail.html:381
+msgctxt "Order totals header"
+msgid "Shipping"
+msgstr "Remessa"
+
+#: templates/dashboard/order/detail.html:391
+#, python-format
+msgctxt "Order totals header"
+msgid "Voucher %(voucher)s"
+msgstr "Comprovante %(voucher)s"
+
+#: templates/dashboard/order/detail.html:399
+#: templates/dashboard/order/detail.html:400
+msgctxt "Order totals action"
+msgid "Remove voucher"
+msgstr "Remover cupom"
+
+#: templates/dashboard/order/detail.html:417
+msgctxt "Order notes card title"
+msgid "Order notes"
+msgstr "Notas de encomenda"
+
+#: templates/dashboard/order/detail.html:430
+msgctxt "Empty order notes card message"
+msgid "There are no notes associated with this order."
+msgstr "Não há notas associadas a esta encomenda."
+
+#: templates/dashboard/order/detail.html:436
+msgctxt "Order notes card action"
+msgid "Add note"
+msgstr "Adicionar nota"
+
+#: templates/dashboard/order/detail.html:450
+msgctxt "Payment history table header"
+msgid "Transaction ID"
+msgstr "ID da transação"
+
+#: templates/dashboard/order/detail.html:453
+msgctxt "Payment history table header"
+msgid "Date"
+msgstr "Data"
+
+#: templates/dashboard/order/detail.html:456
+msgctxt "Payment history table header"
+msgid "Payment status"
+msgstr "Status do pagamento"
+
+#: templates/dashboard/order/detail.html:459
+msgctxt "Payment history table header"
+msgid "Fraud status"
+msgstr "Status de fraude"
+
+#: templates/dashboard/order/detail.html:462
+msgctxt "Payment history table header"
+msgid "Amount"
+msgstr "Montante"
+
+#: templates/dashboard/order/detail.html:470
+#, python-format
+msgctxt "Payment item column data"
+msgid "#%(payment_id)s"
+msgstr "#%(payment_id)s"
+
+#: templates/dashboard/order/detail.html:494
+msgctxt "Empty payment history table message"
+msgid "No payments made for this order."
+msgstr "Nenhum pagamento feito para esta encomenda."
+
+#: templates/dashboard/order/detail.html:504
+msgctxt "Order history table header"
+msgid "Date"
+msgstr "Data"
+
+#: templates/dashboard/order/detail.html:507
+msgctxt "Order history table header"
+msgid "Order status"
+msgstr "Status do pedido"
+
+#: templates/dashboard/order/detail.html:510
+msgctxt "Order history table header"
+msgid "User"
+msgstr "Usuário"
+
+#: templates/dashboard/order/detail.html:513
+msgctxt "Order history table header"
+msgid "Comment"
+msgstr "Comente"
+
+#: templates/dashboard/order/list.html:31
+msgctxt "Empty order list message"
+msgid "No orders found."
+msgstr "Sem pedidos encontrados."
+
+#: templates/dashboard/order/list.html:38
+msgctxt "Empty order list message"
+msgid "No orders."
+msgstr "Sem pedidos."
+
+#: templates/dashboard/order/modal_add_note.html:8
+msgctxt "Modal add note title"
+msgid "Add note"
+msgstr "Adicionar nota"
+
+#: templates/dashboard/order/modal_add_note.html:16
+msgctxt "Modal add note primary action"
+msgid "Save note"
+msgstr "Guardar nota"
+
+#: templates/dashboard/order/modal_cancel_delivery_group.html:8
+msgctxt "Modal cancel delivery group title"
+msgid "Cancel delivery group?"
+msgstr "Anular grupo de entrega?"
+
+#: templates/dashboard/order/modal_cancel_delivery_group.html:11
+#, python-format
+msgctxt "Modal cancel delivery group text"
+msgid ""
+"After this action %(group)s will be cancelled. Ordered items will be "
+"returned to stock."
+msgstr ""
+"Após esta ação %(group)s será cancelado. Artigos encomendados serão "
+"devolvidos ao estoque."
+
+#: templates/dashboard/order/modal_cancel_delivery_group.html:18
+msgctxt "Modal cancel delivery group primary action"
+msgid "Cancel this shipment"
+msgstr "Cancelar esta expedição"
+
+#: templates/dashboard/order/modal_cancel_delivery_group.html:21
+#: templates/dashboard/order/modal_cancel_order.html:23
+#: templates/dashboard/order/modal_order_remove_voucher.html:22
+msgctxt "Dashboard abort action"
+msgid "Abort"
+msgstr "Abortar"
+
+#: templates/dashboard/order/modal_cancel_line.html:9
+msgctxt "Modal remove order line title"
+msgid "Remove order line?"
+msgstr "Remover linha de ordem?"
+
+#: templates/dashboard/order/modal_cancel_line.html:12
+msgctxt "Modal remove order line text"
+msgid "Are you sure you want remove this order line?"
+msgstr "Tem certeza de que deseja remover esta linha do pedido?"
+
+#: templates/dashboard/order/modal_cancel_line.html:21
+msgctxt "Modal remove order line table header"
+msgid "Item"
+msgstr "Item"
+
+#: templates/dashboard/order/modal_cancel_line.html:24
+msgctxt "Modal remove order line table header"
+msgid "SKU"
+msgstr "SKU"
+
+#: templates/dashboard/order/modal_cancel_line.html:27
+msgctxt "Modal remove order line table header"
+msgid "Price"
+msgstr "Preço"
+
+#: templates/dashboard/order/modal_cancel_line.html:30
+msgctxt "Modal remove order line table header"
+msgid "Quantity"
+msgstr "Quantidade"
+
+#: templates/dashboard/order/modal_cancel_line.html:33
+msgctxt "Modal remove order line table header"
+msgid "Total"
+msgstr "Total"
+
+#: templates/dashboard/order/modal_cancel_line.html:60
+msgctxt "Dashboard remove action"
+msgid "Remove"
+msgstr "Remover"
+
+#: templates/dashboard/order/modal_cancel_order.html:6
+msgctxt "Modal cancel order title"
+msgid "Cancel order?"
+msgstr "Cancelar pedido?"
+
+#: templates/dashboard/order/modal_cancel_order.html:9
+#, python-format
+msgctxt "Modal cancel order text"
+msgid "Are you sure, you want cancel order %(order)s?"
+msgstr "Tem certeza, você quer cancelar a encomenda %(order)s?"
+
+#: templates/dashboard/order/modal_cancel_order.html:20
+msgctxt "Modal cancel order primary action"
+msgid "Cancel Order"
+msgstr "Cancelar Encomenda"
+
+#: templates/dashboard/order/modal_capture.html:10
+msgctxt "Modal capture payment title"
+msgid "Capture payment"
+msgstr "Pagamento de captura"
+
+#: templates/dashboard/order/modal_capture.html:16
+msgctxt "Modal capture payment title"
+msgid "Before this action"
+msgstr "Antes desta ação"
+
+#: templates/dashboard/order/modal_capture.html:19
+msgctxt "Modal capture payment list title"
+msgid "Order total:"
+msgstr "Total de pedidos:"
+
+#: templates/dashboard/order/modal_capture.html:22
+msgctxt "Modal capture payment list title"
+msgid "Captured amount:"
+msgstr "Quantidade capturada:"
+
+#: templates/dashboard/order/modal_capture.html:29
+msgctxt "Modal capture payment primary action"
+msgid "Capture"
+msgstr "Capturar"
+
+#: templates/dashboard/order/modal_change_quantity.html:8
+msgctxt "Modal change quantity title"
+msgid "Change quantity"
+msgstr "Alterar quantidade"
+
+#: templates/dashboard/order/modal_order_remove_voucher.html:6
+msgctxt "Modal remove voucher from order title"
+msgid "Remove voucher?"
+msgstr "Remover cupom?"
+
+#: templates/dashboard/order/modal_order_remove_voucher.html:9
+#, python-format
+msgctxt "Modal remove voucher from order text"
+msgid "Are you sure, you want remove voucher discount from %(order)s?"
+msgstr "Tem certeza, você quer remover o cupom de desconto de %(order)s?"
+
+#: templates/dashboard/order/modal_order_remove_voucher.html:19
+msgctxt "Modal remove voucher from order primary action"
+msgid "Remove voucher"
+msgstr "Remover cupom"
+
+#: templates/dashboard/order/modal_refund.html:10
+msgctxt "Modal refund payment title"
+msgid "Refund payment"
+msgstr "O pagamento do reembolso"
+
+#: templates/dashboard/order/modal_refund.html:16
+msgctxt "Modal refund payment title"
+msgid "Before this action"
+msgstr "Antes desta ação"
+
+#: templates/dashboard/order/modal_refund.html:19
+msgctxt "Modal refund payment list title"
+msgid "Order total:"
+msgstr "Total de pedidos:"
+
+#: templates/dashboard/order/modal_refund.html:22
+msgctxt "Modal refund payment list title"
+msgid "Captured amount:"
+msgstr "Quantidade capturada:"
+
+#: templates/dashboard/order/modal_refund.html:29
+msgctxt "Modal refund payment primary action"
+msgid "Refund"
+msgstr "Restituição"
+
+#: templates/dashboard/order/modal_release.html:6
+msgctxt "Modal release payment text"
+msgid "Release payment"
+msgstr "Pagamento de lançamento"
+
+#: templates/dashboard/order/modal_release.html:9
+msgctxt "Modal release payment text"
+msgid "Do you want to release the payment?"
+msgstr "Você quer lançar o pagamento?"
+
+#: templates/dashboard/order/modal_release.html:16
+msgctxt "Modal release payment primary action"
+msgid "Release"
+msgstr "Lançamento"
+
+#: templates/dashboard/order/modal_ship_delivery_group.html:8
+msgctxt "Modal ship delivery group title"
+msgid "Dispatch delivery group"
+msgstr "Despachar grupo de entrega"
+
+#: templates/dashboard/order/modal_ship_delivery_group.html:11
+msgctxt "Modal ship delivery group text"
+msgid "Dispatch this shipment to the following address:"
+msgstr "Despachar esse embarque para o seguinte endereço:"
+
+#: templates/dashboard/order/modal_ship_delivery_group.html:20
+msgctxt "Modal ship delivery group primary action"
+msgid "Ship"
+msgstr "Envio"
+
+#: templates/dashboard/order/modal_split_order_line.html:8
+msgctxt "Modal split order line title"
+msgid "Split order line"
+msgstr "linha de pedido de divisão"
+
+#: templates/dashboard/order/modal_split_order_line.html:16
+msgctxt "Modal split order line primary action"
+msgid "Split"
+msgstr "Dividido"
+
+#: templates/dashboard/product/attributes/confirm_delete.html:5
+msgctxt "Delete attribute page title"
+msgid "Delete attribute"
+msgstr "Excluir atributo"
+
+#: templates/dashboard/product/attributes/confirm_delete.html:17
+msgctxt "Delete attribute breadcrumbs"
+msgid "Delete attribute"
+msgstr "Excluir atributo"
+
+#: templates/dashboard/product/attributes/confirm_delete.html:25
+msgctxt "Delete attribute text"
+msgid "Are you sure you want to delete the following attribute?"
+msgstr "Tem certeza de que deseja excluir o seguinte atributo?"
+
+#: templates/dashboard/product/attributes/form.html:10
+msgctxt "Attribute detail page title"
+msgid "Add new attribute"
+msgstr "Adicionar novo atributo"
+
+#: templates/dashboard/product/attributes/form.html:33
+msgctxt "Attribute detail action"
+msgid "Remove attribute"
+msgstr "Remover atributo"
+
+#: templates/dashboard/product/attributes/form.html:57
+msgctxt "Attribute detail breadcrumbs"
+msgid "Add new attribute"
+msgstr "Adicionar novo atributo"
+
+#: templates/dashboard/product/attributes/form.html:80
+msgctxt "Attribute values formset title"
+msgid "Attribute values"
+msgstr "Os valores dos atributos"
+
+#: templates/dashboard/product/attributes/list.html:16
+msgctxt "Attribute list add button text"
+msgid "Add attribute"
+msgstr "Adicionar atributo"
+
+#: templates/dashboard/product/attributes/list.html:52
+msgctxt "Empty attribute list message"
+msgid "No attributes found."
+msgstr "Nenhum atributo encontrado."
+
+#: templates/dashboard/product/attributes/modal_confirm_delete.html:10
+#, python-format
+msgctxt "Modal delete attribute text"
+msgid "You are about to delete an attribute <strong>%(attribute)s</strong>."
+msgstr ""
+"Você está prestes a excluir um atributo <strong>%(attribute)s</strong>."
+
+#: templates/dashboard/product/class_list.html:17
+msgctxt "Product type list add button text"
+msgid "Add product type"
+msgstr "Adicionar tipo de produto"
+
+#: templates/dashboard/product/class_list.html:45
+#: templates/dashboard/product/product_form.html:90
+msgctxt "Dashboard variants"
+msgid "Variants"
+msgstr "Variações"
+
+#: templates/dashboard/product/class_list.html:52
+msgctxt "Product type item list text"
+msgid "Variant attributes"
+msgstr "Atributos de variações"
+
+#: templates/dashboard/product/class_list.html:55
+msgctxt "Product type item list text"
+msgid "Product attributes"
+msgstr "Atributos do produto"
+
+#: templates/dashboard/product/class_list.html:66
+msgctxt "Empty product type list message"
+msgid "No product types found."
+msgstr "Nenhum tipo do produto."
+
+#: templates/dashboard/product/class_list.html:82
+#: templates/dashboard/product/list.html:88
+msgctxt "Dashboard create new action"
+msgid "Create new"
+msgstr "Crie um novo"
+
+#: templates/dashboard/product/list.html:20
+#: templates/dashboard/product/list.html:24
+msgctxt "Product list add button text"
+msgid "Add product"
+msgstr "Adicionar produto"
+
+#: templates/dashboard/product/list.html:67
+msgctxt "Empty product list message"
+msgid "No products found."
+msgstr "Nenhum produto foi encontrado."
+
+#: templates/dashboard/product/list.html:71
+msgctxt "Empty product list without product types message"
+msgid "Create product type first."
+msgstr "Criar categoria de produto primeiro."
+
+#: templates/dashboard/product/modal_product_class_confirm_delete.html:10
+msgctxt "Dashboard error"
+msgid "Error"
+msgstr "Erro"
+
+#: templates/dashboard/product/modal_product_class_confirm_delete.html:17
+msgctxt "Modal delete product class with products text"
+msgid "This type is base for created products. Cannot remove it."
+msgstr "Este tipo é base para produtos criados. não pode removê-lo."
+
+#: templates/dashboard/product/modal_product_class_confirm_delete.html:41
+#, python-format
+msgctxt "Modal delete product class text"
+msgid ""
+"If you remove <strong>%(product_class)s</strong> you will lose all data "
+"related to this product type."
+msgstr ""
+"Se você remover <strong>%(product_class)s</strong> você perderá todos os "
+"dados relacionados com este tipo de produto."
+
+#: templates/dashboard/product/modal_product_confirm_delete.html:24
+#, python-format
+msgctxt "Modal delete product text"
+msgid ""
+"If you remove <strong>%(product)s</strong> you will lose all data related to "
+"this product."
+msgstr ""
+"Se você remover <strong>%(product)s</strong> você perderá todos os dados "
+"relacionados com este produto."
+
+#: templates/dashboard/product/modal_product_image_confirm_delete.html:21
+msgctxt "Modal delete image text"
+msgid "You are about to delete this image."
+msgstr "Você está prestes a excluir esta imagem."
+
+#: templates/dashboard/product/product_class_form.html:12
+msgctxt "Product class page title"
+msgid "Add new product type"
+msgstr "Adicionar novo tipo de produto"
+
+#: templates/dashboard/product/product_class_form.html:43
+msgctxt "Product class breadcrumbs"
+msgid "Add new product type"
+msgstr "Adicionar novo tipo de produto"
+
+#: templates/dashboard/product/product_class_form.html:59
+msgctxt "Product class action"
+msgid "Remove product type"
+msgstr "Remover tipo de produto"
+
+#: templates/dashboard/product/product_class_form.html:118
+msgctxt "Product class help text"
+msgid ""
+"Product Type is a template used for creating new products. It also controls "
+"which attributes can be used during product creation process."
+msgstr ""
+"Tipo de produto é um modelo usado para a criação de novos produtos. Ele "
+"também controla os atributos que podem ser usados ​​durante o processo de "
+"criação do produto."
+
+#: templates/dashboard/product/product_confirm_delete.html:32
+msgctxt "Product delete breadcrumbs"
+msgid "Delete product"
+msgstr "excluir produto"
+
+#: templates/dashboard/product/product_confirm_delete.html:35
+#, python-format
+msgctxt "Product delete breadcrumbs"
+msgid "Delete %(product)s"
+msgstr "Eliminar %(product)s"
+
+#: templates/dashboard/product/product_form.html:12
+msgctxt "Product form page title"
+msgid "Add new product"
+msgstr "Adicionar novo produto"
+
+#: templates/dashboard/product/product_form.html:43
+msgctxt "Product form breadcrumbs"
+msgid "Add new product"
+msgstr "Adicionar novo produto"
+
+#: templates/dashboard/product/product_form.html:58
+msgctxt "Dashboard preview action"
+msgid "View on site"
+msgstr "Ver no local"
+
+#: templates/dashboard/product/product_form.html:64
+msgctxt "Product form action"
+msgid "Remove product"
+msgstr "remover o produto"
+
+#: templates/dashboard/product/product_form.html:81
+msgctxt "Product form tab"
+msgid "Details"
+msgstr "detalhes"
+
+#: templates/dashboard/product/product_form.html:99
+msgctxt "Dashboard stock"
+msgid "Stock"
+msgstr "estoque"
+
+#: templates/dashboard/product/product_form.html:107
+msgctxt "Product form tab"
+msgid "Images"
+msgstr "imagens"
+
+#: templates/dashboard/product/product_form.html:202
+msgctxt "Modal delete variant from product text"
+msgid "You are about to delete variants of this product."
+msgstr "Você está prestes a excluir variações deste produto."
+
+#: templates/dashboard/product/product_form.html:227
+msgctxt "Product variant table header"
+msgid "SKU"
+msgstr "SKU"
+
+#: templates/dashboard/product/product_form.html:235
+msgctxt "Product variant table header"
+msgid "Variant name"
+msgstr "nome da variação"
+
+#: templates/dashboard/product/product_form.html:238
+msgctxt "Product variant table header"
+msgid "Price"
+msgstr "Preço"
+
+#: templates/dashboard/product/product_form.html:244
+msgctxt "Product variant table link title"
+msgid "Edit variant"
+msgstr "Editar variação"
+
+#: templates/dashboard/product/product_form.html:271
+msgctxt "Empty product variant table message"
+msgid "There are no variants for this product"
+msgstr "Não há variações para este produto"
+
+#: templates/dashboard/product/product_form.html:288
+msgctxt "Product form stock tab table action"
+msgid "Add"
+msgstr "Adicionar"
+
+#: templates/dashboard/product/product_form.html:299
+msgctxt "Modal delete stock from variant text"
+msgid "You are about to delete stock for this product variant."
+msgstr "Você está prestes a excluir estoque para esta variação do produto."
+
+#: templates/dashboard/product/product_form.html:324
+msgctxt "Stock table header"
+msgid "SKU"
+msgstr "SKU"
+
+#: templates/dashboard/product/product_form.html:327
+msgctxt "Stock table header"
+msgid "Location"
+msgstr "Localização"
+
+#: templates/dashboard/product/product_form.html:330
+msgctxt "Stock table header"
+msgid "Quantity"
+msgstr "Quantidade"
+
+#: templates/dashboard/product/product_form.html:333
+msgctxt "Stock table header"
+msgid "Allocated"
+msgstr "alocado"
+
+#: templates/dashboard/product/product_form.html:339
+msgctxt "Stock table action"
+msgid "Edit variant"
+msgstr "Editar variação"
+
+#: templates/dashboard/product/product_form.html:364
+msgctxt "Empty stock table message"
+msgid "There is no stock for this product."
+msgstr "Não temos este produto em estoque."
+
+#: templates/dashboard/product/product_form.html:399
+msgctxt "Image card text"
+msgid "No description"
+msgstr "No description"
+
+#: templates/dashboard/product/product_form.html:420
+msgctxt "Empty image gallery message"
+msgid "This product has no images yet."
+msgstr "Este produto ainda não tem imagens."
+
+#: templates/dashboard/product/product_form.html:427
+msgctxt "Image gallery upload box text"
+msgid "Drop images here to upload"
+msgstr "Largue as imagens aqui para fazer o upload"
+
+#: templates/dashboard/product/product_form.html:447
+msgctxt "Empty image gallery message"
+msgid "No description"
+msgstr "No description"
+
+#: templates/dashboard/product/product_form.html:467
+msgctxt "Add image button text"
+msgid "Add image"
+msgstr "Adicionar imagem"
+
+#: templates/dashboard/product/product_image_confirm_delete.html:6
+msgctxt "Delete image page title"
+msgid "Delete image"
+msgstr "excluir imagem"
+
+#: templates/dashboard/product/product_image_confirm_delete.html:29
+msgctxt "Delete image breadcrumbs"
+msgid "Delete image"
+msgstr "excluir imagem"
+
+#: templates/dashboard/product/product_image_confirm_delete.html:40
+msgctxt "Delete image text"
+msgid "Are you sure you want to delete the following image?"
+msgstr "Tem certeza de que deseja excluir a seguinte imagem?"
+
+#: templates/dashboard/product/product_image_form.html:10
+msgid "Add image"
+msgstr "Adicionar imagem"
+
+#: templates/dashboard/product/product_image_form.html:38
+msgid "No description"
+msgstr "No description"
+
+#: templates/dashboard/product/product_image_form.html:44
+msgctxt "Image form breadcrumbs"
+msgid "Add image"
+msgstr "Adicionar imagem"
+
+#: templates/dashboard/product/product_image_form.html:47
+#, python-format
+msgctxt "Image form breadcrumbs"
+msgid "Add image for %(product)s"
+msgstr "Adicionar imagem para %(product)s"
+
+#: templates/dashboard/product/product_image_form.html:73
+msgctxt "Image form text"
+msgid "Pick the most relevant part of the image using the red circle."
+msgstr "Escolha a parte mais relevante da imagem usando o círculo vermelho."
+
+#: templates/dashboard/product/product_variant_confirm_delete.html:5
+msgctxt "Delete variant page title"
+msgid "Delete variant"
+msgstr "Excluir variação"
+
+#: templates/dashboard/product/product_variant_confirm_delete.html:29
+msgctxt "Delete variant breadcrumbs"
+msgid "Delete variant"
+msgstr "Excluir variação"
+
+#: templates/dashboard/product/product_variant_confirm_delete.html:32
+#, python-format
+msgctxt "Delete variant breadcrumbs"
+msgid "Delete variant for %(product)s"
+msgstr "Excluir variação para %(product)s"
+
+#: templates/dashboard/product/product_variant_confirm_delete.html:52
+msgctxt "Delete variant text"
+msgid ""
+"This is the only variant. Deleting it will make the product unavailable for "
+"your customers."
+msgstr ""
+"Esta é a única variação. Excluí-lo vai tornar o produto disponível para seus "
+"clientes."
+
+#: templates/dashboard/product/stock_confirm_delete.html:5
+msgctxt "Delete stock page title"
+msgid "Delete stock"
+msgstr "excluir estoque"
+
+#: templates/dashboard/product/stock_confirm_delete.html:29
+msgctxt "Delete stock breadcrumbs"
+msgid "Delete stock"
+msgstr "excluir estoque"
+
+#: templates/dashboard/product/stock_confirm_delete.html:32
+#, python-format
+msgctxt "Delete stock breadcrumbs"
+msgid "Delete stock for %(product)s"
+msgstr "Supressão Stock para %(product)s"
+
+#: templates/dashboard/product/stock_form.html:8
+#, python-format
+msgctxt "Dashboard stock"
+msgid "Stock %(variant_name)s - %(location)s"
+msgstr "Estoque %(variant_name)s - %(location)s"
+
+#: templates/dashboard/product/stock_form.html:12
+msgctxt "Stock form page title"
+msgid "Add stock"
+msgstr "Adicione o caldo"
+
+#: templates/dashboard/product/stock_form.html:46
+#, python-format
+msgctxt "Dashboard stock"
+msgid "Stock %(variant)s"
+msgstr "Estoque %(variant)s"
+
+#: templates/dashboard/product/stock_form.html:54
+msgctxt "Stock form breadcrumbs"
+msgid "Add stock"
+msgstr "Adicione o caldo"
+
+#: templates/dashboard/product/stock_form.html:57
+#, python-format
+msgctxt "Stock form breadcrumbs"
+msgid "Add stock for %(product)s"
+msgstr "Adicionar estoque para%(product)s"
+
+#: templates/dashboard/product/stock_locations/form.html:11
+msgctxt "Stock location page title"
+msgid "Add new stock location"
+msgstr "Adicionar nova localização estoque"
+
+#: templates/dashboard/product/stock_locations/form.html:13
+#: templates/dashboard/product/stock_locations/form.html:38
+msgctxt "Dashboard stock location"
+msgid "Stock location"
+msgstr "da localização"
+
+#: templates/dashboard/product/stock_locations/form.html:27
+msgctxt "Stock location detail action"
+msgid "Remove location"
+msgstr "Remover localização"
+
+#: templates/dashboard/product/stock_locations/form.html:51
+msgctxt "Stock location detail breadcrumbs"
+msgid "Add new stock location"
+msgstr "Adicionar nova localização estoque"
+
+#: templates/dashboard/product/stock_locations/list.html:7
+#: templates/dashboard/product/stock_locations/list.html:23
+msgctxt "Dashboard stock location"
+msgid "Stock locations"
+msgstr "locais de estoque"
+
+#: templates/dashboard/product/stock_locations/list.html:14
+msgctxt "Stock location list add button text"
+msgid "Add stock location"
+msgstr "Adicionar estoque local"
+
+#: templates/dashboard/product/stock_locations/list.html:48
+msgctxt "Empty stock location list message"
+msgid "No locations found."
+msgstr "Não há locais encontrados."
+
+#: templates/dashboard/product/stock_locations/modal_confirm_delete.html:11
+#, python-format
+msgctxt "Modal delete stock location text"
+msgid "You are about to delete a stock location <strong>%(location)s</strong>."
+msgstr ""
+"Você está prestes a excluir um local da <strong>%(location)s</strong>."
+
+#: templates/dashboard/product/stock_locations/modal_confirm_delete.html:17
+#, python-format
+msgctxt "Modal delete stock location text"
+msgid ""
+"There is one stock associated with this stock location that will be deleted."
+msgid_plural ""
+"There are %(counter)s stocks associated with this stock location that will "
+"be deleted."
+msgstr[0] "Há um item no estoque associado a este local que será apagado."
+msgstr[1] "Alguns itens no estoque estão associados a este local que será apagado."
+
+#: templates/dashboard/product/variant_form.html:10
+msgctxt "Variant form page title"
+msgid "Add variant"
+msgstr "Adicionar variação"
+
+#: templates/dashboard/product/variant_form.html:48
+msgctxt "Variant form breadcrumbs"
+msgid "Add variant"
+msgstr "Adicionar variação"
+
+#: templates/dashboard/product/variant_form.html:51
+#, python-format
+msgctxt "Variant form breadcrumbs"
+msgid "Add variant for %(product)s"
+msgstr "Adicionar variação para %(product)s"
+
+#: templates/dashboard/product/variant_form.html:83
+msgctxt "Variant form text"
+msgid "This product has no attributes."
+msgstr "Este produto não tem atributos."
+
+#: templates/dashboard/search/results.html:9 templates/search/results.html:7
+msgctxt "Search page title"
+msgid "Search results"
+msgstr "Procurar Resultados"
+
+#: templates/dashboard/search/results.html:58
+#, python-format
+msgctxt "Dashboard order"
+msgid "Order #%(order_number)s"
+msgstr "Pedido #%(order_number)s"
+
+#: templates/dashboard/search/results.html:64
+#, python-format
+msgctxt "Dashboard customer"
+msgid "Customer: %(email)s"
+msgstr "Cliente: %(email)s"
+
+#: templates/dashboard/search/results.html:69
+#, python-format
+msgctxt "Dashboard order info"
+msgid "Placed on: %(placed)s"
+msgstr "Colocadas em: %(placed)s"
+
+#: templates/dashboard/search/results.html:79
+#, python-format
+msgctxt "Dashboard user"
+msgid "User %(full_name)s"
+msgstr "O utilizador %(full_name)s"
+
+#: templates/dashboard/search/results.html:97
+#, python-format
+msgctxt "No Search result message"
+msgid "No results for query \"%(query)s\"."
+msgstr "Nenhum resultado para consulta \"%(query)s\"."
+
+#: templates/dashboard/shipping/method_delete.html:6
+#: templates/dashboard/shipping/method_delete.html:14
+#, python-format
+msgctxt "Delete shipping method page title"
+msgid "Delete %(shipping_method)s"
+msgstr "Eliminar %(shipping_method)s"
+
+#: templates/dashboard/shipping/method_delete.html:25
+msgctxt "Delete shipping method breadcrumbs"
+msgid "Subscription methods"
+msgstr "Métodos de assinatura"
+
+#: templates/dashboard/shipping/method_delete.html:35
+msgctxt "Delete shipping method breadcrumbs"
+msgid "Delete"
+msgstr "Excluir"
+
+#: templates/dashboard/shipping/method_delete.html:47
+#, python-format
+msgctxt "Delete shipping method text"
+msgid "Are you sure you want to delete the %(shipping_method_name)s method?"
+msgstr "Tem certeza de que deseja excluir o método %(shipping_method_name)s?"
+
+#: templates/dashboard/shipping/method_form.html:8
+msgctxt "Dashboard shipping methods"
+msgid "Shipping methods"
+msgstr "Métodos de Envio"
+
+#: templates/dashboard/shipping/method_form.html:12
+#: templates/dashboard/shipping/method_form.html:25
+msgctxt "Shipping method form page title"
+msgid "Add new method"
+msgstr "Adicionar novo método"
+
+#: templates/dashboard/shipping/method_form.html:33
+msgctxt "Dashboard shipping method"
+msgid "Shipping methods"
+msgstr "Métodos de Envio"
+
+#: templates/dashboard/shipping/method_form.html:48
+msgctxt "Shipping method form breadcrumbs"
+msgid "Add new method"
+msgstr "Adicionar novo método"
+
+#: templates/dashboard/shipping/method_form.html:63
+msgctxt "Shipping method form action"
+msgid "Delete shipping method"
+msgstr "Excluir método de envio"
+
+#: templates/dashboard/shipping/method_form.html:84
+msgctxt "Shipping method form text"
+msgid "Price per country"
+msgstr "Preço por país"
+
+#: templates/dashboard/shipping/method_form.html:92
+msgctxt "Shipping method country list"
+msgid "Country"
+msgstr "País"
+
+#: templates/dashboard/shipping/method_form.html:95
+msgctxt "Shipping method country list"
+msgid "Price"
+msgstr "Preço"
+
+#: templates/dashboard/shipping/method_list.html:27
+msgctxt "Shipping method list add button text"
+msgid "Add method"
+msgstr "Adicionar método"
+
+#: templates/dashboard/shipping/method_list.html:37
+msgctxt "Shipping methods table header"
+msgid "Name"
+msgstr "Nome"
+
+#: templates/dashboard/shipping/method_list.html:40
+msgctxt "Shipping methods table header"
+msgid "Price range"
+msgstr "Faixa de preço"
+
+#: templates/dashboard/shipping/method_list.html:43
+msgctxt "Shipping methods table header"
+msgid "Countries"
+msgstr "Países"
+
+#: templates/dashboard/shipping/method_list.html:73
+msgctxt "Empty Shipping methods table message"
+msgid "No Shipping methods found"
+msgstr "Nenhum método de envio encontrado"
+
+#: templates/dashboard/sites/detail.html:9
+msgctxt "Site settings page title"
+msgid "Add new site settings"
+msgstr "Adicionar novas configurações do site"
+
+#: templates/dashboard/sites/detail.html:46
+msgctxt "Authorization keys formset title"
+msgid "Authorization keys"
+msgstr "Chaves de autorização"
+
+#: templates/home.html:13
+msgctxt "Homepage title"
+msgid "Promo &amp; Sale"
+msgstr "Promoções e Venda"
+
+#: templates/home.html:14
+msgctxt "Homepage title"
+msgid "from the Northpole"
+msgstr "do Northpole"
+
+#: templates/home.html:16 templates/home.html:31 templates/home.html:43
+msgctxt "Homepage action"
+msgid "Shop now"
+msgstr "Compre agora"
+
+#: templates/home.html:30
+msgctxt "Homepage title"
+msgid "Size &amp; Colours"
+msgstr "Tamanho e Cores"
+
+#: templates/home.html:42
+msgctxt "Homepage title"
+msgid "Digital Downloads"
+msgstr "Downloads Digitais"
+
+#: templates/home.html:51
+msgctxt "Homepage title"
+msgid "Featured products"
+msgstr "Produtos em destaque"
+
+#: templates/materializecssform/field.html:32
+#: templates/materializecssform/field.html:59
+#: templates/materializecssform/field.html:86
+#: templates/materializecssform/field.html:109
+#: templates/materializecssform/field.html:135
+#: templates/materializecssform/field.html:162
+#: templates/materializecssform/field.html:183
+#: templates/materializecssform/field.html:197
+#: templates/materializecssform/field.html:230
+msgctxt "Dashboard form labels"
+msgid "(optional)"
+msgstr "(opcional)"
+
+#: templates/order/create_password.html:7
+msgctxt "Checkout create password page title"
+msgid "Create password"
+msgstr "Criar senha"
+
+#: templates/order/create_password.html:15
+#, python-format
+msgctxt "Checkout title"
+msgid "Thank you for your <a href=\"%(order_url)s\">order</a>!"
+msgstr "Obrigado pela <a href=\"%(order_url)s\">compra</a>!"
+
+#: templates/order/create_password.html:19
+#, python-format
+msgctxt "Checkout text"
+msgid ""
+"We've sent a confirmation email with details to <span>%(email)s</span>.<br> "
+"If any problems or questions contact us."
+msgstr ""
+"Enviamos um e-mail de confirmação com detalhes para <span>%(email)s</span>."
+"<br>Se qualquer problema ou dúvida entre em contato conosco."
+
+#: templates/order/create_password.html:26
+msgctxt "Checkout text"
+msgid ""
+"It looks like you already are our customer! <br> Please log in to connect "
+"order with your account."
+msgstr ""
+"Parece que você já é nosso cliente! <br> Conecte-se para conectar ordem com "
+"sua conta."
+
+#: templates/order/create_password.html:36
+msgctxt "Checkout title"
+msgid "Why not to create an account"
+msgstr "Por que não criar uma conta"
+
+#: templates/order/create_password.html:37
+msgid ""
+"Make your shopping experience even better! Save your shipping and payment "
+"details for faster checkout."
+msgstr ""
+"Faça a sua experiência de compra ainda melhor! Salve o seu transporte e "
+"detalhes de pagamento para check-out mais rápido."
+
+#: templates/order/create_password.html:46
+msgctxt "Checkout primary action"
+msgid "Create an account"
+msgstr "Crie a sua conta aqui"
+
+#: templates/order/create_password.html:58
+msgctxt "Checkout secondary action"
+msgid "Continue shopping"
+msgstr "Continue comprando"
+
+#: templates/order/details.html:7
+#, python-format
+msgctxt "Order details page title"
+msgid "Order %(order)s"
+msgstr "Pedido %(order)s"
+
+#: templates/order/details.html:22
+#, python-format
+msgctxt "Order details breadcrumb"
+msgid "Order %(order)s"
+msgstr "Pedido %(order)s"
+
+#: templates/order/details.html:38
+#, python-format
+msgctxt "Order detail text"
+msgid "Order %(order)s: %(order_status)s"
+msgstr "Pedido %(order)s: %(order_status)s"
+
+#: templates/order/details.html:45
+msgctxt "Order details link text"
+msgid "Payment details"
+msgstr "Detalhes do pagamento"
+
+#: templates/order/details.html:49
+msgctxt "Order details primary action"
+msgid "Pay for order"
+msgstr "Pagamento"
+
+#: templates/order/emails/confirm_email.body.txt:3
+#, python-format
+msgctxt "Order confirmation email text"
+msgid ""
+"Hi!\n"
+"\n"
+"Thank you for your order. To see your payment details please visit:\n"
+"%(payment_url)s\n"
+"\n"
+"Sincerely,\n"
+"Saleor Team"
+msgstr ""
+"Oi!\n"
+"\n"
+"Obrigado por comprar. Para ver os dados de pagamento, por favor visite:\n"
+"%(payment_url)s\n"
+"\n"
+"Atentamente,\n"
+"Saleor"
+
+#: templates/order/emails/confirm_email.subject.txt:2
+msgctxt "Order confirmation email subject"
+msgid "Order details"
+msgstr "Detalhes do pedido"
+
+#: templates/order/order-details.html:14
+msgctxt "Order details address title"
+msgid "Shipping address"
+msgstr "Endereço de entrega"
+
+#: templates/order/order-details.html:21
+msgctxt "Order details address title"
+msgid "Billing address"
+msgstr "Endereço de cobrança"
+
+#: templates/order/order-details.html:32
+msgctxt "Order details column title"
+msgid "Product"
+msgstr "Produtos"
+
+#: templates/order/order-details.html:37
+msgctxt "Order details column title"
+msgid "Quantity"
+msgstr "Quantidade"
+
+#: templates/order/order-details.html:42
+msgctxt "Order details column title"
+msgid "Price"
+msgstr "Preço"
+
+#: templates/order/order-details.html:79
+#, python-format
+msgctxt "Order details delivery row text"
+msgid "Delivery (%(shipping_method_name)s)"
+msgstr "Entrega (%(shipping_method_name)s)"
+
+#: templates/order/order-details.html:85
+#, python-format
+msgctxt "Order details delivery row text"
+msgid "Tracking number: %(tracking_number)s"
+msgstr "O número de rastreio: %(tracking_number)s"
+
+#: templates/order/order-details.html:113
+msgctxt "Order details total text"
+msgid "Total"
+msgstr "Total"
+
+#: templates/order/payment.html:10
+#, python-format
+msgctxt "Payment details page title"
+msgid "Pay for order %(order)s"
+msgstr "Compra %(order)s"
+
+#: templates/order/payment.html:25
+#, python-format
+msgctxt "Payment details breadcrumb"
+msgid "Order %(order)s"
+msgstr "Pedido %(order)s"
+
+#: templates/order/payment.html:40
+msgctxt "Payment details title"
+msgid "Payment pending"
+msgstr "Pagamento pendente"
+
+#: templates/order/payment.html:44
+msgctxt "Payment pending text"
+msgid ""
+"We are currently waiting for an external service to authorize your payment "
+"for this order."
+msgstr ""
+"No momento, estamos à espera de um serviço externo para autorizar o seu "
+"pagamento para este fim."
+
+#: templates/order/payment.html:48
+msgctxt "Payment status text"
+msgid "Current status:"
+msgstr "Status atual:"
+
+#: templates/order/payment.html:54
+msgctxt "Payment pending text"
+msgid ""
+"Unless you are absolutely sure that the process will not complete (for "
+"example you have closed the browser window before paying), you should wait "
+"before attempting a new payment. Please be warned that if you try again and "
+"the previous transaction succeeds you might end up being charged twice."
+msgstr ""
+"A menos que você tenha certeza absoluta de que o processo não será concluída "
+"(por exemplo, de ter fechado a janela do navegador antes de pagar), você "
+"deve esperar antes de tentar um novo pagamento. Por favor, lembre que se "
+"você tentar novamente e a transação anterior for concluída você pode acabar "
+"sendo cobrado duas vezes."
+
+#: templates/order/payment.html:63
+msgctxt "Payment pending action"
+msgid "I understand, allow me to pay again"
+msgstr "Eu entendo, permita-me pagar novamente"
+
+#: templates/order/payment.html:68
+#, python-format
+msgctxt "Payment details title"
+msgid "Pay for order %(order)s"
+msgstr "Compra %(order)s"
+
+#: templates/order/payment.html:77
+msgctxt "Payment details primary action"
+msgid "Proceed to payment"
+msgstr "Prossiga para o pagamento"
+
+#: templates/order/payment.html:82
+msgctxt "Payment details text"
+msgid "You've authorized transaction. Order is in processing"
+msgstr "Foi autorizada a transação. O pedido está sendo processado"
+
+#: templates/order/payment/default.html:11
+msgctxt "Payment form primary action"
+msgid "Save changes"
+msgstr "Salvar alterações"
+
+#: templates/order/payment/details.html:4
+msgctxt "Payment form page title"
+msgid "Payment"
+msgstr "Forma de pagamento"
+
+#: templates/order/payment/details.html:9
+msgctxt "Payment form title"
+msgid "Payment"
+msgstr "Forma de pagamento"
+
+#: templates/order/payment/emails/confirm_email.body.txt:3
+#, python-format
+msgctxt "Payment confirmation email text"
+msgid ""
+"Hi!\n"
+"\n"
+"Thank you for your payment. To see your payment details please visit:\n"
+"%(order_url)s\n"
+"\n"
+"Sincerely,\n"
+"Saleor Team"
+msgstr ""
+"Oi!\n"
+"\n"
+"Obrigado pela sua compra. Para ver os dados de pagamento, por favor visite:\n"
+"%(order_url)s\n"
+"\n"
+"Atentamente,\n"
+"Saleor"
+
+#: templates/order/payment/emails/confirm_email.subject.txt:2
+msgctxt "Payment confirmation subject"
+msgid "Payment details"
+msgstr "Detalhes do pagamento"
+
+#: templates/order/payment/paypal-card.html:14
+msgctxt "Payment form (PayPal) primary action"
+msgid "Save changes"
+msgstr "Salvar alterações"
+
+#: templates/order/payment/stripe.html:12
+#, fuzzy
+#| msgctxt "Payment form (Stripe)secondary action"
+#| msgid "Change payment method"
+msgctxt "Payment form (Stripe) secondary action"
+msgid "Change payment method"
+msgstr "Mudar o método de pagamento"
+
+#: templates/order/success.html:5
+msgid "Order complete!"
+msgstr "Pedido completo!"
+
+#: templates/order/success.html:9
+msgid "Your order is now complete"
+msgstr "Seu pedido está concluído"
+
+#: templates/order/success.html:10
+msgid "Thank you for your purchase!"
+msgstr "Obrigado para sua compra!"
+
+#: templates/order/success.html:12
+msgid "Your order number is"
+msgstr "O número de sua encomenda é"
+
+#: templates/product/_price_range.html:6
+msgctxt "product price range"
+msgid "from"
+msgstr "de"
+
+#: templates/product/details.html:30
+#, python-format
+msgctxt "Product details text"
+msgid ""
+"<strong>Warning!</strong> You are previewing a product that will become "
+"visible on <strong>%(date)s</strong>."
+msgstr ""
+"<strong>Atenção!</strong> Você está visualizando um produto que se tornará "
+"visível em <strong>%(date)s</strong>."
+
+#: templates/product/details.html:87
+msgctxt "Product details link text"
+msgid "Edit in dashboard"
+msgstr "Editar no painel"
+
+#: templates/product/details.html:125
+msgctxt "Product details primary action"
+msgid "Add to cart"
+msgstr "Adicionar ao carrinho"
+
+#: templates/product/details.html:137
+msgctxt "Product details text"
+msgid "This product is currently <strong>unavailable</strong>."
+msgstr "Este produto está atualmente <strong> indisponível</strong>."
+
+#: templates/product/details.html:141
+msgctxt "Product details title"
+msgid "Description"
+msgstr "Descrição"
+
+#: templates/search/results.html:33
+msgid "Search:"
+msgstr "Pesquisa:"
+
+#: templates/search/results.html:35
+msgctxt "Search without results text"
+msgid "Sorry, no matches found for your request."
+msgstr "Desculpe, não consegui encontrar."
+
+#: templates/search/results.html:36
+msgctxt "Search without results text"
+msgid "Try again or shop new arrivals."
+msgstr "Tente de novamente, ou navegue pelas categorias"
+
+#: templates/userprofile/address-delete.html:6
+msgctxt "Delete address form action"
+msgid "Delete Address"
+msgstr "Excluir Endereço"
+
+#: templates/userprofile/address-delete.html:9
+msgctxt "Delete address form action"
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: templates/userprofile/address-edit.html:7
+msgctxt "Edit address page title"
+msgid "Edit address"
+msgstr "Editar endereço"
+
+#: templates/userprofile/address-edit.html:9
+msgctxt "New address page title"
+msgid "New address"
+msgstr "Novo endereço"
+
+#: templates/userprofile/address-edit.html:18
+msgctxt "Edit/new address breadcrumb"
+msgid "Your profile"
+msgstr "Seu perfil"
+
+#: templates/userprofile/address-edit.html:22
+msgctxt "Edit address breadcrumb"
+msgid "Edit address"
+msgstr "Editar endereço"
+
+#: templates/userprofile/address-edit.html:26
+msgctxt "New address breadcrumb"
+msgid "New address"
+msgstr "Novo endereço"
+
+#: templates/userprofile/address-edit.html:39
+msgctxt "Edit address title"
+msgid "Edit address"
+msgstr "Editar endereço"
+
+#: templates/userprofile/address-edit.html:41
+msgctxt "New address title"
+msgid "New address"
+msgstr "Novo endereço"
+
+#: templates/userprofile/address-edit.html:49
+msgctxt "Edit/new address primary action"
+msgid "Save changes"
+msgstr "Salvar alterações"
+
+#: templates/userprofile/details.html:9
+msgctxt "User profile page title"
+msgid "Your profile"
+msgstr "Seu perfil"
+
+#: templates/userprofile/details.html:23
+msgid "My account"
+msgstr "Minha conta"
+
+#: templates/userprofile/details.html:27
+msgctxt "User profile tab"
+msgid "Recent Orders"
+msgstr "Pedidos recentes"
+
+#: templates/userprofile/details.html:33
+msgctxt "User profile tab"
+msgid "Change password"
+msgstr "Mudar senha"
+
+#: templates/userprofile/details.html:39
+msgctxt "User profile tab"
+msgid "Addresses book"
+msgstr "Lista de Endereços"
+
+#: templates/userprofile/details.html:51
+msgctxt "Recent orders column title"
+msgid "Order"
+msgstr "Encomenda"
+
+#: templates/userprofile/details.html:54
+msgctxt "Recent orders column title"
+msgid "Date"
+msgstr "Data"
+
+#: templates/userprofile/details.html:57
+msgctxt "Recent orders column title"
+msgid "Summary"
+msgstr "Resumo"
+
+#: templates/userprofile/details.html:60
+msgctxt "Recent orders column title"
+msgid "Status"
+msgstr "Estado"
+
+#: templates/userprofile/details.html:82
+msgctxt "Recent orders link text"
+msgid "Details"
+msgstr "Detalhes"
+
+#: templates/userprofile/details.html:90
+msgctxt "No recent orders text"
+msgid "There are not any completed orders yet."
+msgstr "Não existem pedidos concluídos ainda."
+
+#: templates/userprofile/details.html:102
+msgctxt "User profile action"
+msgid "Change password"
+msgstr "Mudar senha"
+
+#: templates/userprofile/details.html:116
+msgctxt "User address action"
+msgid "Edit"
+msgstr "Editar"
+
+#: templates/userprofile/details.html:127
+msgctxt "No addresses text"
+msgid "You will see new addresses here after first successful checkout."
+msgstr ""
+"Você vai ver novos endereços aqui após o primeiro check-out bem sucedido."
+
