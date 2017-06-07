@@ -199,6 +199,7 @@ INSTALLED_APPS = [
     'saleor_oye',
     'saleor_oye.discogs',
     'saleor_oye.customers',
+    # 'saleor_oye.payments',
 
     'corsheaders',
     # We authenticate via authtoken

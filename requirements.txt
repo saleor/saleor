@@ -129,3 +129,5 @@ djangorestframework-jwt==1.10.0
 
 django-graphiql==0.4.4
 -e git+git@github.com:tillkolter/django-jwt-auth@master#egg=jwt-auth
+
+attrdict==2.0.0
