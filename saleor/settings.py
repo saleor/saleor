@@ -501,3 +501,5 @@ CORS_ALLOW_HEADERS = (
 ADYEN_USER = os.environ.get('ADYEN_USER', None)
 ADYEN_PASSWORD = os.environ.get('ADYEN_PASSWORD', None)
 ADYEN_MERCHANT_ACCOUNT = os.environ.get('ADYEN_MERCHANT_ACCOUNT', None)
+ADYEN_HMAC_SECRET = os.environ.get('ADYEN_HMAC_SECRET', None)
+ADYEN_SKIN_CODE = os.environ.get('ADYEN_SKIN_CODE', None)
