@@ -77,9 +77,6 @@ class AbstractCartModel(models.Model):
         'discount.Voucher', null=True, related_name='+',
         on_delete=models.SET_NULL,
         verbose_name=pgettext_lazy('Cart field', 'token'))
-    # checkout_data = JSONField(
-    #     verbose_name=pgettext_lazy('Cart field', 'checkout data'), null=True,
-    #     editable=False,)
 
     total = PriceField(
         pgettext_lazy('Cart field', 'total'),
