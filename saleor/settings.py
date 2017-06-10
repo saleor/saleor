@@ -181,7 +181,6 @@ INSTALLED_APPS = [
     'emailit',
     'graphene_django',
     'mptt',
-    'payments',
     'materializecssform',
     'rest_framework',
     'rest_framework.authtoken',
@@ -199,7 +198,7 @@ INSTALLED_APPS = [
     'saleor_oye',
     'saleor_oye.discogs',
     'saleor_oye.customers',
-    # 'saleor_oye.payments',
+    'saleor_oye.payments',
 
     'corsheaders',
     # We authenticate via authtoken
@@ -447,7 +446,6 @@ PASSWORD_HASHERS = [
 
 
 AUTHENTICATION_BACKENDS = [
-#    'saleor_oye.auth.backends.OyeTokenAuth',
     'saleor_oye.auth.backends.OyePasswordAuth',
     'rest_framework.authentication.TokenAuthentication',
 ]
@@ -455,7 +453,7 @@ AUTHENTICATION_BACKENDS = [
 # JWT_AUTH = {
 JWT_PAYLOAD_HANDLER = 'saleor_oye.auth.jwt.oye_jwt_payload_handler'
 JWT_EXPIRATION_DELTA = datetime.timedelta(seconds=60 * 60)
-# JWT_AUTH_COOKIE = 'jwt'
+
 JWT_AUTH_HEADER_PREFIX = 'JWT'
 JWT_PAYLOAD_GET_USER_ID_HANDLER = 'saleor_oye.auth.jwt.jwt_get_user_id_from_payload_handler'
 JWT_ALLOW_REFRESH = True
@@ -463,7 +461,6 @@ JWT_ALLOW_REFRESH = True
 JWT_AUTH = {
     'JWT_PAYLOAD_HANDLER': 'saleor_oye.auth.jwt.oye_jwt_payload_handler',
     'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=60 * 60),
-    # 'JWT_AUTH_COOKIE': 'jwt',
     'JWT_AUTH_HEADER_PREFIX': 'JWT',
     'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'saleor_oye.auth.jwt.jwt_get_user_id_from_payload_handler',
     'JWT_ALLOW_REFRESH': True
