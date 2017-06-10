@@ -27,20 +27,11 @@ def graphql_token_view():
     return view
 
 urlpatterns = [
-    # url(r'^', include(core_urls)),
-    url(r'^account/', include('allauth.urls')),
-    url(r'^account/login', login_view, name="account_login"),
-    # url(r'^cart/', include(oye_cart_urls, namespace='cart')),
-    # url(r'^checkout/', include(checkout_urls, namespace='checkout')),
-    # url(r'^dashboard/', include(dashboard_urls, namespace='dashboard')),
+    # url(r'^account/', include('allauth.urls')),
+    # url(r'^account/login', login_view, name="account_login"),
     url(r'^graphql', graphql_token_view()),
     url(r'^graphiql', include('django_graphiql.urls')),
-    # url(r'^jsi18n/$', javascript_catalog, name='javascript-catalog'),
-    # url(r'^order/', include(order_urls, namespace='order')),
-    # url(r'^products/', include(product_urls, namespace='product')),
-    # url(r'^profile/', include(userprofile_urls, namespace='profile')),
     url(r'^search/', include(search_urls, namespace='search')),
-    # url(r'^feeds/', include(feed_urls, namespace='data_feeds')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
     url(r'^oye/', include('saleor_oye.urls', namespace='oye')),
