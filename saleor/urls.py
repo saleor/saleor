@@ -3,6 +3,7 @@ from django.conf import settings
 from django.conf.urls import url, include
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.sitemaps import views
 from django.contrib.sitemaps.views import sitemap
 from django.contrib.staticfiles.views import serve
 from django.views.decorators.csrf import csrf_exempt
@@ -32,8 +33,12 @@ urlpatterns = [
     url(r'^graphql', graphql_token_view()),
     url(r'^graphiql', include('django_graphiql.urls')),
     url(r'^search/', include(search_urls, namespace='search')),
-    url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
+    url(r'^sitemap\.xml$', views.index, {'sitemaps': sitemaps}),
+    url(r'^sitemap-(?P<section>.+)\.xml$', views.sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
+
+    # url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
+    #     name='django.contrib.sitemaps.views.sitemap'),
     url(r'^oye/', include('saleor_oye.urls', namespace='oye')),
     url(r'^admin/', include(admin.site.urls)),
     # place it at whatever base url you like
