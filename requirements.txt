@@ -62,7 +62,7 @@ purl==1.3.1
 py==1.4.34                # via pytest
 pyasn1==0.2.3             # via cryptography
 pycparser==2.17           # via cffi
-pyjwt==1.4.2              # via django-payments, social-auth-core
+pyjwt==1.5.0              # via django-payments, social-auth-core
 pyparsing==2.1.10         # via packaging
 pytest-django==3.1.2
 pytest==3.0.5
