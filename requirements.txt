@@ -4,7 +4,7 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
-appdirs==1.4.0            # via setuptools
+appdirs==1.4.3            # via setuptools
 babel==2.3.4
 babeldjango==0.2.2
 boto3==1.4.4
