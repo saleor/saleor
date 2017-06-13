@@ -69,7 +69,7 @@ pytest==3.1.2
 python-dateutil==2.6.0    # via botocore, faker
 pytz==2017.2             # via babel
 redis==2.10.5             # via django-redis
-requests-oauthlib==0.7.0  # via social-auth-core
+requests-oauthlib==0.8.0  # via social-auth-core
 requests==2.12.4
 s3transfer==0.1.10        # via boto3
 satchless==1.1.3
