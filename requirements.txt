@@ -81,7 +81,7 @@ stripe==1.59.0            # via django-payments
 suds-jurko==0.6           # via django-payments
 text-unidecode==1.0
 typing==3.6.1           # via promise
-urllib3==1.19.1           # via elasticsearch
+urllib3==1.21.1           # via elasticsearch
 uwsgi==2.0.14
 xmltodict==0.10.2         # via django-payments
 
