@@ -28,7 +28,7 @@ django-prices-openexchangerates==0.1.15
 django-prices==0.6.2
 django-redis==4.8.0
 django-storages==1.5.2
-django-versatileimagefield==1.6.2
+django-versatileimagefield==1.7.1
 django-webpack-loader==0.4.1
 django==1.10.7
 djangorestframework==3.5.3
