@@ -43,7 +43,7 @@ graphql-core==1.1       # via graphene, graphql-relay
 graphql-relay==0.4.5      # via graphene
 idna==2.5                 # via cryptography
 iso8601==0.1.11           # via graphene-django
-jmespath==0.9.0           # via boto3, botocore
+jmespath==0.9.3           # via boto3, botocore
 jsonfield==1.0.3
 lxml==3.7.2               # via premailer
 markdown==2.6.7
