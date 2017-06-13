@@ -41,7 +41,7 @@ graphene-django==1.3
 graphene==1.4           # via graphene-django
 graphql-core==1.1       # via graphene, graphql-relay
 graphql-relay==0.4.5      # via graphene
-idna==2.2                 # via cryptography
+idna==2.5                 # via cryptography
 iso8601==0.1.11           # via graphene-django
 jmespath==0.9.0           # via boto3, botocore
 jsonfield==1.0.3
