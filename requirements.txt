@@ -56,7 +56,7 @@ pbr==3.0.1               # via mock
 pillow==4.1.1             # via django-versatileimagefield
 premailer==3.0.1          # via django-emailit
 prices==0.5.9
-promise==1.0.0            # via graphene, graphql-core, graphql-relay
+promise==2.0.2            # via graphene, graphql-core, graphql-relay
 psycopg2==2.6.2
 purl==1.3
 py==1.4.32                # via pytest
