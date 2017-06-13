@@ -53,7 +53,7 @@ mock==2.0.0
 oauthlib==2.0.2           # via requests-oauthlib, social-auth-core
 packaging==16.8           # via setuptools
 pbr==3.0.1               # via mock
-pillow==3.4.2             # via django-versatileimagefield
+pillow==4.1.1             # via django-versatileimagefield
 premailer==3.0.1          # via django-emailit
 prices==0.5.8
 promise==1.0.0            # via graphene, graphql-core, graphql-relay
