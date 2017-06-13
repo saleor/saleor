@@ -67,7 +67,7 @@ pyparsing==2.2.0         # via packaging
 pytest-django==3.1.2
 pytest==3.1.2
 python-dateutil==2.6.0    # via botocore, faker
-pytz==2016.10             # via babel
+pytz==2017.2             # via babel
 redis==2.10.5             # via django-redis
 requests-oauthlib==0.7.0  # via social-auth-core
 requests==2.12.4
