@@ -13,7 +13,7 @@ braintree==3.37.2         # via django-payments
 cffi==1.10.0               # via cryptography
 cryptography==1.9       # via django-payments
 cssselect==1.0.1          # via premailer
-cssutils==1.0.1           # via premailer
+cssutils==1.0.2           # via premailer
 dj-database-url==0.4.2
 dj-email-url==0.0.10
 django-absolute==0.3      # via django-emailit
