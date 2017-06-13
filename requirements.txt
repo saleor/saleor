@@ -37,7 +37,7 @@ elasticsearch==5.4.0
 faker==0.7.17
 google-i18n-address==2.0.2
 google-measurement-protocol==0.1.6
-graphene-django==1.2.0
+graphene-django==1.3
 graphene==1.1.2           # via graphene-django
 graphql-core==1.0.1       # via graphene, graphql-relay
 graphql-relay==0.4.5      # via graphene
