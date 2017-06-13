@@ -52,7 +52,7 @@ maxminddb==1.3.0
 mock==2.0.0
 oauthlib==2.0.2           # via requests-oauthlib, social-auth-core
 packaging==16.8           # via setuptools
-pbr==1.10.0               # via mock
+pbr==3.0.1               # via mock
 pillow==3.4.2             # via django-versatileimagefield
 premailer==3.0.1          # via django-emailit
 prices==0.5.8
