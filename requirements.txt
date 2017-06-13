@@ -5,7 +5,7 @@
 #    pip-compile --output-file requirements.txt requirements.in
 #
 appdirs==1.4.3            # via setuptools
-babel==2.3.4
+babel==2.4.0
 babeldjango==0.2.2
 boto3==1.4.4
 botocore==1.5.4           # via boto3, s3transfer
