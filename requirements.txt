@@ -10,7 +10,7 @@ babeldjango==0.2.2
 boto3==1.4.4
 botocore==1.5.67           # via boto3, s3transfer
 braintree==3.37.2         # via django-payments
-cffi==1.9.1               # via cryptography
+cffi==1.10.0               # via cryptography
 cryptography==1.7.1       # via django-payments
 cssselect==1.0.1          # via premailer
 cssutils==1.0.1           # via premailer
