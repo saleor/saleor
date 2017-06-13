@@ -34,7 +34,7 @@ django==1.11.2
 djangorestframework==3.6.3
 docutils==0.13.1          # via botocore
 elasticsearch==5.4.0
-faker==0.7.7
+faker==0.7.17
 google-i18n-address==2.0.1
 google-measurement-protocol==0.1.6
 graphene-django==1.2.0
