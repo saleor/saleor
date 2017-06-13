@@ -30,7 +30,7 @@ django-redis==4.8.0
 django-storages==1.5.2
 django-versatileimagefield==1.7.1
 django-webpack-loader==0.5.0
-django==1.11.2
+django==1.10.7
 djangorestframework==3.6.3
 docutils==0.13.1          # via botocore
 elasticsearch==5.4.0
