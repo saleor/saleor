@@ -46,7 +46,7 @@ iso8601==0.1.11           # via graphene-django
 jmespath==0.9.3           # via boto3, botocore
 jsonfield==2.0.1
 lxml==3.8.0               # via premailer
-markdown==2.6.7
+markdown==2.6.8
 maxminddb-geolite2==2015.708
 maxminddb==1.2.3
 mock==2.0.0
