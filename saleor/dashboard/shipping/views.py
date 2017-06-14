@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
@@ -9,6 +8,7 @@ from django.utils.translation import pgettext_lazy
 from ...core.utils import get_paginator_items
 
 from ...shipping.models import ShippingMethod
+from ..views import staff_member_required
 from .forms import ShippingMethodForm, ShippingMethodCountryFormSet
 
 
