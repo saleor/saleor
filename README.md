@@ -8,7 +8,7 @@ Avast ye landlubbers! Saleor is an open-source e-commerce storefront for Python 
 
 [Saleor homepage](http://getsaleor.com/)
 
-[![Build Status](https://travis-ci.org/mirumee/saleor.png?branch=master)](https://travis-ci.org/mirumee/saleor)
+[![Build Status](https://travis-ci.org/mirumee/saleor.svg?branch=master)](https://travis-ci.org/mirumee/saleor)
 [![Requirements Status](https://requires.io/github/mirumee/saleor/requirements.svg?branch=master)](https://requires.io/github/mirumee/saleor/requirements/?branch=master)
 
 
@@ -27,7 +27,7 @@ Want to see Saleor in action?
 
 Or launch the demo on a free Heroku instance.
 
-[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 Login credentials: `admin@example.com`/`admin`
 
