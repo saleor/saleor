@@ -116,7 +116,8 @@ if not DEBUG:
 
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
-    'DIRS': [os.path.join(PROJECT_ROOT, 'templates')],
+    # 'DIRS': [os.path.join(PROJECT_ROOT, 'templates')],
+    # 'APP_DIRS': True,
     'OPTIONS': {
         'debug': DEBUG,
         'context_processors': context_processors,
@@ -144,6 +145,7 @@ MIDDLEWARE_CLASSES = [
 INSTALLED_APPS = [
     # External apps that need to go before django's
     'storages',
+    'django_nose',
 
     # Django modules
     'django.contrib.contenttypes',
@@ -314,7 +316,7 @@ BOOTSTRAP3 = {
     },
 }
 
-TEST_RUNNER = ''
+TEST_RUNNER = 'saleor_oye.tests.legacy.ManagedModelTestRunner'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split()
 
@@ -501,3 +503,5 @@ ADYEN_PASSWORD = os.environ.get('ADYEN_PASSWORD', None)
 ADYEN_MERCHANT_ACCOUNT = os.environ.get('ADYEN_MERCHANT_ACCOUNT', None)
 ADYEN_HMAC_SECRET = os.environ.get('ADYEN_HMAC_SECRET', None)
 ADYEN_SKIN_CODE = os.environ.get('ADYEN_SKIN_CODE', None)
+
+PASSWORD_CONFIRMATION_TIMEOUT_DAYS = 1
