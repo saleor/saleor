@@ -133,3 +133,4 @@ django-graphiql==0.4.4
 attrdict==2.0.0
 
 nose==1.3.7
+django-nose==1.4.4
