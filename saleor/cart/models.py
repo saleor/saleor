@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 from collections import namedtuple
 from decimal import Decimal
-from prices import Price
 from uuid import uuid4
 
 from django.conf import settings
@@ -11,11 +10,11 @@ from django.db import models
 from django.utils.encoding import python_2_unicode_compatible, smart_str
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
+from django_extensions.db.decorators import modify_fields
 from django_prices.models import PriceField
-# from jsonfield import JSONField
+from prices import Price
 from satchless.item import ItemLine, ItemList, partition
 
-from django_extensions.db.decorators import modify_fields
 from . import CartStatus, logger
 
 
@@ -111,12 +110,25 @@ class AbstractCartModel(models.Model):
         open_cart = Cart.get_user_open_cart(user)
         if open_cart is not None:
             open_cart.change_status(status=CartStatus.CANCELED)
+        for line in open_cart.lines.all():
+            try:
+                new_line = self.lines.get(release=line.release, preorder=line.preorder)
+                new_line.quantity = new_line.quantity + line.quantity
+                new_line.save(update_fields=['quantity'])
+            except line.__class__.DoesNotExist:
+                line.__class__.objects.create(
+                    cart=self,
+                    release=line.release,
+                    preorder=line.preorder,
+                    quantity=line.quantity
+                )
+
         self.user = user
         self.save(update_fields=['user'])
 
     @staticmethod
     def get_user_open_cart(user):
-        carts = user.carts.open()
+        carts = user.oyecart_set.open()
         if len(carts) > 1:
             logger.warning('%s has more than one open basket', user)
             for cart in carts[1:]:
