@@ -417,7 +417,7 @@ SITE_SETTINGS_ID = 1
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
-        # 'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
         # 'rest_framework.authentication.BasicAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
@@ -505,3 +505,5 @@ ADYEN_HMAC_SECRET = os.environ.get('ADYEN_HMAC_SECRET', None)
 ADYEN_SKIN_CODE = os.environ.get('ADYEN_SKIN_CODE', None)
 
 PASSWORD_CONFIRMATION_TIMEOUT_DAYS = 1
+
+# CELERY_ALWAYS_EAGER = True
