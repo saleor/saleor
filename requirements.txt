@@ -5,8 +5,6 @@
 #    pip-compile --output-file requirements.txt requirements.in
 #
 appdirs==1.4.0            # via setuptools
-babel==2.3.4
-babeldjango==0.2.2
 boto3==1.4.4
 botocore==1.5.4           # via boto3, s3transfer
 braintree==3.34.0         # via django-payments

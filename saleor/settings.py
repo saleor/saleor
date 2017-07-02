@@ -177,19 +177,14 @@ INSTALLED_APPS = [
     # External apps
     'versatileimagefield',
     'babeldjango',
-    'bootstrap3',
     'django_prices',
     'django_prices_openexchangerates',
-    'emailit',
     'graphene_django',
     'mptt',
-    'materializecssform',
     'rest_framework',
     'rest_framework.authtoken',
     'rest_auth',
     'webpack_loader',
-    'allauth',
-    'allauth.account',
     'django_countries',
     'ajax_select',
 
@@ -323,34 +318,28 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split()
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# disable to avoid costs during development
-USE_AWS = os.environ.get('USE_AWS', False)
-
-# Amazon S3 configuration
-AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
-AWS_MEDIA_BUCKET_NAME = os.environ.get('AWS_MEDIA_BUCKET_NAME')
-AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME')
-AWS_QUERYSTRING_AUTH = ast.literal_eval(
-    os.environ.get('AWS_QUERYSTRING_AUTH', 'False'))
-
-if USE_AWS and AWS_STORAGE_BUCKET_NAME:
-    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-if USE_AWS and AWS_MEDIA_BUCKET_NAME:
-    DEFAULT_FILE_STORAGE = 'saleor.core.storages.S3MediaStorage'
-    THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
-
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
-    'defaults': [
-        ('list_view', 'crop__100x100'),
-        ('dashboard', 'crop__400x400'),
-        ('product_page_mobile', 'crop__680x680'),
-        ('product_page_big', 'crop__750x750'),
-        ('product_page_thumb', 'crop__280x280')]}
+    'release': [
+        ('release_thumb', 'crop__100x100'),
+        ('release__big', 'crop__600x600'),
+        ('release__list', 'crop__380x380'),
+    ],
+    'artist': [
+        ('artist_admin', 'crop__1200x300'),
+        ('charts', 'crop__600x384'),
+        ('charts_front', 'crop__300x168'),
+    ],
+    'charts': [
+        ('charts', 'crop__600x384'),
+        ('charts_front', 'crop__300x168'),
+    ],
+    'user': [
+        ('charts', 'crop__600x384'),
+        ('charts_front', 'crop__300x168'),
+    ]
+}
 
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment
@@ -506,5 +495,3 @@ ADYEN_HMAC_SECRET = os.environ.get('ADYEN_HMAC_SECRET', None)
 ADYEN_SKIN_CODE = os.environ.get('ADYEN_SKIN_CODE', None)
 
 PASSWORD_CONFIRMATION_TIMEOUT_DAYS = 1
-
-# CELERY_ALWAYS_EAGER = True
