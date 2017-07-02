@@ -159,7 +159,7 @@ INSTALLED_APPS = [
     'django.contrib.admin',
 
     # Local apps
-    # 'saleor.userprofile',
+    'saleor.userprofile',
     'saleor.discount',
     'saleor.product',
     'saleor.cart',
