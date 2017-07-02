@@ -166,7 +166,7 @@ INSTALLED_APPS = [
     'saleor.checkout',
     'saleor.core',
     'saleor.graphql',
-    # 'saleor.order',
+    'saleor.order',
     'saleor.dashboard',
     'saleor.shipping',
     'saleor.search',
@@ -185,6 +185,8 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_auth',
     'webpack_loader',
+    'allauth',
+    'allauth.account',
     'django_countries',
     'ajax_select',
 
