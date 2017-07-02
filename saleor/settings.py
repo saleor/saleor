@@ -40,11 +40,11 @@ else:
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('RECORDSHOP_LEGACY_DB_NAME'),
-        'PASSWORD': os.environ.get('RECORDSHOP_LEGACY_DB_PASSWORD'),
-        'USER': os.environ.get('RECORDSHOP_LEGACY_DB_USER'),
-        'PORT': os.environ.get('RECORDSHOP_LEGACY_DB_PORT'),
-        'HOST': os.environ.get('RECORDSHOP_LEGACY_DB_HOST'),
+        'NAME': os.environ.get('DB_NAME'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'USER': os.environ.get('DB_USER'),
+        'PORT': os.environ.get('DB_PORT'),
+        'HOST': os.environ.get('DB_HOST'),
     }
 }
 
