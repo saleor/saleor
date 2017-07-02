@@ -16,7 +16,6 @@ from django_prices_openexchangerates import exchange_currency
 from geolite2 import geolite2
 from prices import PriceRange
 
-from ...userprofile.models import User
 from ...site.utils import get_site_settings
 
 try:
@@ -118,15 +117,3 @@ def serialize_decimal(obj):
         return str(obj)
     return JSONEncoder.default(obj)
 
-
-def create_superuser(credentials):
-    user, created = User.objects.get_or_create(
-        email=credentials['email'], defaults={
-            'is_active': True, 'is_staff': True, 'is_superuser': True})
-    if created:
-        user.set_password(credentials['password'])
-        user.save()
-        msg = 'Superuser - %(email)s/%(password)s' % credentials
-    else:
-        msg = 'Superuser already exists - %(email)s' % credentials
-    return msg
