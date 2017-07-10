@@ -40,6 +40,7 @@ DATABASES = {
 
 TIME_ZONE = 'America/Chicago'
 LANGUAGE_CODE = 'en-us'
+FORCE_DEFAULT_LOCALE = False
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, 'locale')]
 USE_I18N = True
 USE_L10N = True
@@ -123,6 +124,7 @@ TEMPLATES = [{
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 MIDDLEWARE_CLASSES = [
+    'saleor.core.middleware.ForceDefaultLanguage',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
