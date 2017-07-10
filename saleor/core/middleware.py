@@ -49,3 +49,20 @@ class CurrencyMiddleware(object):
             request.currency = get_currency_for_country(request.country)
         else:
             request.currency = settings.DEFAULT_CURRENCY
+
+
+class ForceDefaultLanguage(object):
+    '''
+    Ignore Accept-Language HTTP headers
+
+    This will force the I18N machinery to always choose settings.LANGUAGE_CODE
+    as the default initial language, unless another one is set via sessions
+    or cookies
+
+    Should be installed *before* any middleware that checks
+    'HTTP_ACCEPT_LANGUAGE' header
+    '''
+    def process_request(self, request):
+        if ('HTTP_ACCEPT_LANGUAGE' in request.META and
+                settings.FORCE_DEFAULT_LOCALE):
+            del request.META['HTTP_ACCEPT_LANGUAGE']
