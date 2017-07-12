@@ -2,7 +2,7 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
@@ -12,10 +12,10 @@ msgstr ""
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Patryk Zawadzki <patrys@room-303.com>, 2017\n"
 "Language-Team: Italian (https://www.transifex.com/mirumee/teams/34782/it/)\n"
-"Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: it\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: saleor/cart/__init__.py:20
@@ -172,8 +172,8 @@ msgid ""
 "Sorry. We don't have that many items in stock. Quantity was set to maximum "
 "available for now."
 msgstr ""
-"Non abbiamo così tanti articoli in magazzino. La quantità è stata fissata al "
-"massimo disponibile per ora."
+"Non abbiamo così tanti articoli in magazzino. La quantità è stata fissata al"
+" massimo disponibile per ora."
 
 #: saleor/checkout/forms.py:19
 msgctxt "Shipping addresses form choice"
@@ -459,7 +459,7 @@ msgstr "Spedito"
 #: saleor/order/__init__.py:15
 msgctxt "order status"
 msgid "Payment pending"
-msgstr "In attesa di pagamento"
+msgstr "Pagamento in corso"
 
 #: saleor/order/__init__.py:16
 msgctxt "order status"
@@ -1389,21 +1389,18 @@ msgctxt "Email confirmation message"
 msgid ""
 "Hi!\n"
 "\n"
-"You have requested login access to saleor project. To continue visit the "
-"link below.\n"
+"You have requested login access to saleor project. To continue visit the link below.\n"
 "\n"
 "%(activate_url)s\n"
 "\n"
-"If you didn't try to login to saleor please ignore this message. We "
-"apologise for inconvenience.\n"
+"If you didn't try to login to saleor please ignore this message. We apologise for inconvenience.\n"
 "\n"
 "Sincerely,\n"
 "Saleor Team"
 msgstr ""
 "Ciao!\n"
 "\n"
-"Hai richiesto un accesso per il progetto Saleor. Per continuare visita il "
-"link seguente.\n"
+"Hai richiesto un accesso per il progetto Saleor. Per continuare visita il link seguente.\n"
 "\n"
 "%(activate_url)s\n"
 "\n"
@@ -1422,17 +1419,13 @@ msgstr "Conferma il tuo indirizzo email"
 msgid ""
 "Hello from %(site_name)s!\n"
 "\n"
-"You're receiving this e-mail because you or someone else has requested a "
-"password for your user account at %(domain)s.\n"
-"It can be safely ignored if you did not request a password reset. Click the "
-"link below to reset your password."
+"You're receiving this e-mail because you or someone else has requested a password for your user account at %(domain)s.\n"
+"It can be safely ignored if you did not request a password reset. Click the link below to reset your password."
 msgstr ""
 "Salve da  %(site_name)s!\n"
 "\n"
-"Hai ricevuto questa email perché tu o qualcun altro ha richiesto di "
-"reimpostare la password per il tuo account per %(domain)s.\n"
-"Puoi ignorare questo messaggio se non hai richiesto il reset della password. "
-"Clicca il link qui sotto per reimpostare la tua password."
+"Hai ricevuto questa email perché tu o qualcun altro ha richiesto di reimpostare la password per il tuo account per %(domain)s.\n"
+"Puoi ignorare questo messaggio se non hai richiesto il reset della password. Clicca il link qui sotto per reimpostare la tua password."
 
 #: templates/account/email/password_reset_message.txt:8
 #, python-format
@@ -1493,7 +1486,8 @@ msgstr "Google"
 
 #: templates/account/password_change.html:7 templates/cart/index.html:12
 #: templates/order/details.html:16 templates/order/payment.html:19
-#: templates/product/details.html:16 templates/userprofile/address-edit.html:15
+#: templates/product/details.html:16
+#: templates/userprofile/address-edit.html:15
 #: templates/userprofile/details.html:14
 msgctxt "Main navigation item"
 msgid "Home"
@@ -1537,8 +1531,8 @@ msgid ""
 "Please let us know the email you have used to register or purchase at our "
 "store."
 msgstr ""
-"Facci sapere quale email hai utilizzato per registrarti o per acquistare dal "
-"nostro negozio."
+"Facci sapere quale email hai utilizzato per registrarti o per acquistare dal"
+" nostro negozio."
 
 #: templates/account/password_reset.html:27
 msgctxt "Password reset primary action"
@@ -1561,8 +1555,8 @@ msgid ""
 "We have sent you an e-mail. Please contact us if you do not receive it "
 "within a few minutes."
 msgstr ""
-"Ti abbiamo inviato un'email. Contattaci se non ricevi nulla entro i prossimi "
-"minuti."
+"Ti abbiamo inviato un'email. Contattaci se non ricevi nulla entro i prossimi"
+" minuti."
 
 #: templates/account/password_reset_from_key.html:6
 msgctxt "Password reset from key page title"
@@ -1582,8 +1576,8 @@ msgid ""
 "reset</a>."
 msgstr ""
 "Il link per la reimpostazione della password non è valido, molto "
-"probabilmente perché è stato già utilizzato. <br> Richiedi una <a href="
-"\"%(passwd_reset_url)s\">nuova reimpostazione della password</a>."
+"probabilmente perché è stato già utilizzato. <br> Richiedi una <a "
+"href=\"%(passwd_reset_url)s\">nuova reimpostazione della password</a>."
 
 #: templates/account/password_reset_from_key.html:23
 msgctxt "Password reset from key form title"
@@ -1617,8 +1611,7 @@ msgstr "La tua password è stata cambiata ora."
 #: templates/account/password_reset_from_key_done.html:10
 #, python-format
 msgctxt "Password reset from key done text"
-msgid ""
-"You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
+msgid "You can now <a href=\"%(login_url)s\">sign in</a> using your new password"
 msgstr ""
 "Ora puoi <a href=\"%(login_url)s\">accedere</a> utilizzando la tua nuova "
 "password"
@@ -2023,12 +2016,14 @@ msgstr "Vendite"
 #: templates/dashboard/order/address_form.html:23
 #: templates/dashboard/order/detail.html:11
 #: templates/dashboard/order/detail.html:43
-#: templates/dashboard/order/list.html:6 templates/dashboard/order/list.html:14
+#: templates/dashboard/order/list.html:6
+#: templates/dashboard/order/list.html:14
 msgctxt "Dashboard orders list"
 msgid "Orders"
 msgstr "Ordini"
 
-#: templates/dashboard/base.html:140 templates/dashboard/customer/detail.html:8
+#: templates/dashboard/base.html:140
+#: templates/dashboard/customer/detail.html:8
 #: templates/dashboard/customer/detail.html:24
 #: templates/dashboard/customer/list.html:7
 #: templates/dashboard/customer/list.html:17
@@ -3235,15 +3230,15 @@ msgid ""
 "If you remove <strong>%(product_class)s</strong> you will lose all data "
 "related to this product type."
 msgstr ""
-"Se elimini <strong>%(product_class)s</strong> perderai tutti i dati relativi "
-"a questa tipologia di prodotto."
+"Se elimini <strong>%(product_class)s</strong> perderai tutti i dati relativi"
+" a questa tipologia di prodotto."
 
 #: templates/dashboard/product/modal_product_confirm_delete.html:24
 #, python-format
 msgctxt "Modal delete product text"
 msgid ""
-"If you remove <strong>%(product)s</strong> you will lose all data related to "
-"this product."
+"If you remove <strong>%(product)s</strong> you will lose all data related to"
+" this product."
 msgstr ""
 "Se elimini <strong>%(product)s</strong> perderai tutti i dati relativi a "
 "questo prodotto."
@@ -3568,7 +3563,8 @@ msgstr "Nessun magazzino trovato."
 #: templates/dashboard/product/stock_locations/modal_confirm_delete.html:11
 #, python-format
 msgctxt "Modal delete stock location text"
-msgid "You are about to delete a stock location <strong>%(location)s</strong>."
+msgid ""
+"You are about to delete a stock location <strong>%(location)s</strong>."
 msgstr "Stai per eliminare il magazzino <strong>%(location)s</strong>."
 
 #: templates/dashboard/product/stock_locations/modal_confirm_delete.html:17
@@ -3805,8 +3801,9 @@ msgid ""
 "We've sent a confirmation email with details to <span>%(email)s</span>.<br> "
 "If any problems or questions contact us."
 msgstr ""
-"Abbiamo inviato un'email di conferma con i dettagli a <span>%(email)s</span>."
-"<br> Per qualsiasi problema o domanda non esitare a contattarci."
+"Abbiamo inviato un'email di conferma con i dettagli a "
+"<span>%(email)s</span>.<br> Per qualsiasi problema o domanda non esitare a "
+"contattarci."
 
 #: templates/order/create_password.html:26
 msgctxt "Checkout text"
@@ -3950,7 +3947,7 @@ msgstr "Ordine %(order)s"
 #: templates/order/payment.html:40
 msgctxt "Payment details title"
 msgid "Payment pending"
-msgstr "In attesa di pagamento"
+msgstr "Pagamento in corso"
 
 #: templates/order/payment.html:44
 msgctxt "Payment pending text"
@@ -3975,10 +3972,10 @@ msgid ""
 "the previous transaction succeeds you might end up being charged twice."
 msgstr ""
 "A meno che tu non sia assolutamente certo che il processo non sarà "
-"completato (per esempio hai chiuso la finestra del browser prima di pagare), "
-"dovresti attendere prima di provare a pagare nuovamente. Se tenti di nuovo e "
-"la precedente operazione ha avuto esito positivo potresti ricevere un doppio "
-"addebito."
+"completato (per esempio hai chiuso la finestra del browser prima di pagare),"
+" dovresti attendere prima di provare a pagare nuovamente. Se tenti di nuovo "
+"e la precedente operazione ha avuto esito positivo potresti ricevere un "
+"doppio addebito."
 
 #: templates/order/payment.html:63
 msgctxt "Payment pending action"
