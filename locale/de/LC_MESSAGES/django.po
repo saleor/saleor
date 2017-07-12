@@ -73,8 +73,8 @@ msgstr "Oohh. Wir konnten das Produkt nicht finden."
 msgctxt "Add to cart form error"
 msgid "Only %d remaining in stock."
 msgid_plural "Only %d remaining in stock."
-msgstr[0] "nur noch %(remaining)d auf Lager."
-msgstr[1] "nur noch %(remaining)d auf Lager."
+msgstr[0] "nur noch %d auf Lager."
+msgstr[1] "nur noch %d auf Lager."
 
 #: saleor/cart/forms.py:129
 msgctxt "Country form field label"
@@ -2343,7 +2343,7 @@ msgstr "Letzte Bestellung"
 #, python-format
 msgctxt "Customers table last order data"
 msgid "#%(last_order)s"
-msgstr "Letzte Bestellung"
+msgstr "#%(last_order)s"
 
 #: templates/dashboard/customer/list.html:85
 msgctxt "Empty customers table message"
@@ -2794,7 +2794,7 @@ msgstr "Versand löschen"
 #, python-format
 msgctxt "Shipment group table text"
 msgid "Tracking number: %(tracking)s"
-msgstr "Trackingnummer:"
+msgstr "Trackingnummer: %(tracking)s"
 
 #: templates/dashboard/order/detail.html:363
 msgctxt "Order totals header"
@@ -3575,7 +3575,7 @@ msgid_plural ""
 "There are %(counter)s stocks associated with this stock location that will "
 "be deleted."
 msgstr[0] "Es gibt ein Lager an dem zu löschenden Ort."
-msgstr[1] "Es gibt %(stock_count)s Lager an dem zu löschenden Ort."
+msgstr[1] "Es gibt %(counter)s Lager an dem zu löschenden Ort."
 
 #: templates/dashboard/product/variant_form.html:10
 msgctxt "Variant form page title"
@@ -3981,7 +3981,7 @@ msgstr "Ich verstehe, lasse Sie mich erneut zahlen"
 #, python-format
 msgctxt "Payment details title"
 msgid "Pay for order %(order)s"
-msgstr "Bestellung bezahlen"
+msgstr "Bestellung %(order)s bezahlen"
 
 #: templates/order/payment.html:77
 msgctxt "Payment details primary action"
