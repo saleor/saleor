@@ -1,6 +1,8 @@
 FROM python:3.5
 ENV PYTHONUNBUFFERED 1
 
+ENV SECRET_KEY=123
+
 RUN \
   apt-get -y update && \
   apt-get install -y gettext npm && \
