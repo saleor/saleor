@@ -1,7 +1,6 @@
 FROM python:3.5
-ENV PYTHONUNBUFFERED 1
 
-ENV SECRET_KEY=123
+ENV PYTHONUNBUFFERED 1
 
 RUN \
   apt-get -y update && \
@@ -10,12 +9,10 @@ RUN \
 
 ADD . /app
 RUN pip install -r /app/requirements.txt
-RUN python /app/manage.py migrate
 RUN npm i n -g && n v6.11.1
 RUN npm i webpack yarn -g
 RUN yarn
 RUN yarn run build-assets
-RUN django-admin.py compilemessages
 
 WORKDIR /app
 
