@@ -14,7 +14,7 @@ RUN pip install -r requirements.txt
 RUN npm i n -g && n v6.11.1
 RUN npm i webpack yarn -g
 RUN yarn
-#RUN yarn run build-assets
+RUN yarn run build-assets
 
 
 EXPOSE 8000
