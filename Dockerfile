@@ -6,16 +6,15 @@ RUN \
   apt-get install -y gettext npm && \
   apt-get clean
 
-ADD requirements.txt /app/
+ADD . /app
 RUN pip install -r /app/requirements.txt
 RUN python /app/manage.py migrate
-RUN npm i n -g && n stable
+RUN npm i n -g && n v6.11.1
 RUN npm i webpack yarn -g
-RUN n v6.11.1
 RUN yarn
 RUN yarn run build-assets
+RUN django-admin.py compilemessages
 
-ADD . /app
 WORKDIR /app
 
 EXPOSE 8000
