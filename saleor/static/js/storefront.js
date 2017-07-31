@@ -60,7 +60,7 @@ $(document).ready((e) => {
 
   $toogleIcon.click((e) => {
     $mobileNav.toggleClass('open');
-    event.stopPropagation();
+    e.stopPropagation();
   });
   $(document).click((e) => {
     $mobileNav.removeClass('open');
