@@ -128,7 +128,7 @@ def cancel_payment(request, order):
 
 
 def create_password(request, token):
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         return redirect('order:details', token=token)
     order = get_object_or_404(Order, token=token)
     email = order.user_email

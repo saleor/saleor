@@ -8,7 +8,6 @@ django-bootstrap3>=8.2.1
 django-cache-url>=1.0.0
 django-countries>=4.1
 django-emailit>=0.2.2
-django-materializecss-form>=0.1
 django-mptt>=0.7.1
 django-payments>=0.11.0,<0.12a0
 django-prices>=0.4.11,<0.5a0

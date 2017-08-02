@@ -21,7 +21,6 @@ django-bootstrap3==8.2.1
 django-cache-url==1.3.1
 django-countries==4.1
 django-emailit==0.2.2
-django-materializecss-form==1.0.1
 django-mptt==0.8.7
 django-payments==0.11.0.3
 django-prices-openexchangerates==0.1.12
@@ -30,7 +29,7 @@ django-redis==4.7.0
 django-storages==1.5.2
 django-versatileimagefield==1.6.2
 django-webpack-loader==0.4.1
-django==1.10.7
+django==1.11.4
 djangorestframework==3.5.3
 docutils==0.13.1          # via botocore
 elasticsearch==2.4.1

@@ -322,7 +322,6 @@ def test_language_is_saved_in_order(authorized_client, billing_address, customer
     customer_user.addresses.add(billing_address)
     request_cart_with_item.user = customer_user
     request_cart_with_item.save()
-
     # Enter checkout
     # Checkout index redirects directly to shipping address step
     shipping_address = authorized_client.get(reverse('checkout:index'),

@@ -104,7 +104,7 @@ def product_add_to_cart(request, slug, product_id):
             response = JsonResponse({'error': form.errors}, status=400)
         else:
             response = product_details(request, slug, product_id, form)
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         set_cart_cookie(cart, response)
     return response
 
