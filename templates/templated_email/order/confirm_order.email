@@ -1,0 +1,15 @@
+{% block html %}
+{% load i18n %}
+
+{% block subject %}
+{% trans "Order details" context "Order confirmation email subject" %}
+{% endblock %}
+
+{% block content %}{% blocktrans context "Order confirmation email text" %}Hi!
+
+Thank you html for your order. To see your payment details please visit:
+{{ payment_url }}
+
+Sincerely,
+Saleor Team{% endblocktrans %}{% endblock %}
+{% endblock %}
