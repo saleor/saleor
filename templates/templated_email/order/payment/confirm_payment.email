@@ -1,16 +1,19 @@
-{% block html %}
 {% load i18n %}
 
 {% block subject %}
-{% trans "Payment details" context "Payment confirmation subject" %}
+	{% trans "Payment details" context "Payment confirmation subject" %}
 {% endblock %}
 
-{% block content %}{% blocktrans context "Payment confirmation email text" %}Hi!
-<div class="footer">
+{% block plain %}
+{% block content %}
+{% blocktrans context "Payment confirmation email text" %}
+Hi!
+
 Thank you for your payment. To see your payment details please visit:
-</div>
 {{ order_url }}
 
 Sincerely,
-Saleor Team{% endblocktrans %}{% endblock %}
+Saleor Team
+{% endblocktrans %}
+{% endblock %}
 {% endblock %}
