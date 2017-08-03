@@ -45,6 +45,7 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
+FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'
 
 EMAIL_URL = os.environ.get('EMAIL_URL')
 SENDGRID_USERNAME = os.environ.get('SENDGRID_USERNAME')
@@ -150,6 +151,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.auth',
     'django.contrib.postgres',
+    'django.forms',
 
     # Local apps
     'saleor.userprofile',
