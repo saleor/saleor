@@ -14,7 +14,7 @@ from .forms import LoginForm, SignupForm, SetPasswordForm
 def login(request):
     kwargs = {
         'template_name': 'account/login.html', 'authentication_form': LoginForm}
-    return django_views.login(request, **kwargs)
+    return django_views.LoginView.as_view(**kwargs)(request, **kwargs)
 
 
 @login_required

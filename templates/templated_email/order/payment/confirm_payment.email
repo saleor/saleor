@@ -5,7 +5,6 @@
 {% endblock %}
 
 {% block plain %}
-{% block content %}
 {% blocktrans context "Payment confirmation email text" %}
 Hi!
 
@@ -15,5 +14,4 @@ Thank you for your payment. To see your payment details please visit:
 Sincerely,
 Saleor Team
 {% endblocktrans %}
-{% endblock %}
 {% endblock %}

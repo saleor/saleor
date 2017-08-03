@@ -2,8 +2,6 @@ from django import forms
 from django.template.loader import get_template
 from django import template
 
-from materializecssform import config
-
 register = template.Library()
 
 
