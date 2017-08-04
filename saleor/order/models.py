@@ -23,6 +23,7 @@ from ..discount.models import Voucher
 from ..product.models import Product
 from ..userprofile.models import Address
 from ..search import index
+from ..site.utils import get_site_name
 from . import OrderStatus
 
 
@@ -172,7 +173,7 @@ class Order(models.Model, ItemSet, index.Indexed):
         email = self.get_user_current_email()
         payment_url = build_absolute_uri(
             reverse('order:details', kwargs={'token': self.token}))
-        context = {'payment_url': payment_url}
+        context = {'payment_url': payment_url, 'site_name': get_site_name()}
         send_templated_mail(
             'order/confirm_order', from_email=settings.ORDER_FROM_EMAIL,
             recipient_list=[email], context=context)
@@ -408,7 +409,7 @@ class Payment(BasePayment):
         email = self.order.get_user_current_email()
         order_url = build_absolute_uri(
             reverse('order:details', kwargs={'token': self.order.token}))
-        context = {'order_url': order_url}
+        context = {'order_url': order_url, 'site_name': get_site_name()}
         send_templated_mail(
             'order/payment/confirm_payment', context=context,
             from_email=settings.ORDER_FROM_EMAIL, recipient_list=[email])

@@ -32,6 +32,11 @@ def get_domain():
     return get_site_settings().domain
 
 
+def get_site_name():
+    """Returns site name from default settings."""
+    return get_site_settings().name
+
+
 def get_site_settings_uncached(settings_id=None):
     # type: (str) -> SiteSettings
     """Query database for settings object."""
