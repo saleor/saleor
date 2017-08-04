@@ -14,6 +14,7 @@ certifi==2017.7.27.1      # via requests
 cffi==1.10.0              # via cryptography
 chardet==3.0.4            # via requests
 cryptography==2.0.2       # via django-payments
+defusedxml==0.5.0         # via python3-openid, social-auth-core
 dj-database-url==0.4.2
 dj-email-url==0.0.10
 django-bootstrap3==8.2.1
@@ -33,9 +34,7 @@ django==1.11.4
 djangorestframework==3.6.3
 docutils==0.13.1          # via botocore
 elasticsearch==2.4.1
-enum34==1.1.6             # via cryptography
 faker==0.7.7
-futures==3.1.1            # via s3transfer
 google-i18n-address==2.0.1
 google-measurement-protocol==0.1.6
 graphene-django==1.2.0
@@ -43,7 +42,6 @@ graphene==1.1.2           # via graphene-django
 graphql-core==1.1         # via graphene, graphql-relay
 graphql-relay==0.4.5      # via graphene
 idna==2.5                 # via cryptography, requests
-ipaddress==1.0.18         # via cryptography, faker, maxminddb
 iso8601==0.1.12           # via graphene-django
 jmespath==0.9.3           # via boto3, botocore
 jsonfield==2.0.2
@@ -52,6 +50,7 @@ maxminddb-geolite2==2015.708
 maxminddb==1.2.3
 mock==2.0.0
 oauthlib==2.0.2           # via requests-oauthlib, social-auth-core
+pbr==3.1.1                # via mock
 pillow==3.4.2             # via django-versatileimagefield
 prices==0.5.9
 promise==2.0.2            # via graphene, graphql-core, graphql-relay
@@ -63,7 +62,7 @@ pyjwt==1.5.2              # via django-payments, social-auth-core
 pytest-django==3.1.2
 pytest==3.0.5
 python-dateutil==2.6.1    # via botocore, faker
-python-openid==2.2.5      # via social-auth-core
+python3-openid==3.1.0     # via social-auth-core
 pytz==2017.2              # via babel, django
 redis==2.10.5             # via django-redis
 requests-oauthlib==0.8.0  # via social-auth-core
@@ -71,7 +70,7 @@ requests==2.18.3
 s3transfer==0.1.10        # via boto3
 satchless==1.1.3
 singledispatch==3.4.0.3   # via graphene-django
-six==1.10.0               # via cryptography, django-templated-email, faker, graphene, graphene-django, graphql-core, graphql-relay, promise, purl, python-dateutil, singledispatch, social-auth-app-django, social-auth-core
+six==1.10.0               # via cryptography, django-templated-email, faker, graphene, graphene-django, graphql-core, graphql-relay, mock, promise, purl, python-dateutil, singledispatch, social-auth-app-django, social-auth-core
 social-auth-app-django==1.2.0
 social-auth-core==1.2.0   # via social-auth-app-django
 stripe==1.62.0            # via django-payments
