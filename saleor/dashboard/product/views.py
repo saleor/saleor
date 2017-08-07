@@ -203,7 +203,7 @@ def stock_edit(request, product_pk, stock_pk=None):
         product_url = reverse(
             'dashboard:product-update', kwargs={'pk': product_pk})
         success_url = request.POST.get('success_url', product_url)
-        if is_safe_url(success_url, request.get_host()):
+        if is_safe_url(success_url, allowed_hosts=request.get_host()):
             return redirect(success_url)
     ctx = {'form': form, 'product': product, 'stock': stock}
     return TemplateResponse(request, 'dashboard/product/stock_form.html', ctx)
@@ -218,7 +218,7 @@ def stock_delete(request, product_pk, stock_pk):
         messages.success(
             request, pgettext_lazy('Dashboard message', 'Deleted stock'))
         success_url = request.POST['success_url']
-        if is_safe_url(success_url, request.get_host()):
+        if is_safe_url(success_url, allowed_hosts=request.get_host()):
             return redirect(success_url)
     ctx = {'product': product, 'stock': stock}
     return TemplateResponse(
@@ -235,7 +235,7 @@ def stock_bulk_delete(request, product_pk):
         success_url = request.POST['success_url']
         messages.success(
             request, pgettext_lazy('Dashboard message', 'Deleted stock'))
-        if is_safe_url(success_url, request.get_host()):
+        if is_safe_url(success_url, allowed_hosts=request.get_host()):
             return redirect(success_url)
     return redirect('dashboard:product-update', pk=product.pk)
 
@@ -262,7 +262,7 @@ def product_image_edit(request, product_pk, img_pk=None):
                 'Added image %s') % product_image.image.name
         messages.success(request, msg)
         success_url = request.POST['success_url']
-        if is_safe_url(success_url, request.get_host()):
+        if is_safe_url(success_url, allowed_hosts=request.get_host()):
             return redirect(success_url)
     ctx = {'form': form, 'product': product, 'product_image': product_image,
            'show_variants': show_variants}
@@ -282,7 +282,7 @@ def product_image_delete(request, product_pk, img_pk):
                 'Dashboard message',
                 'Deleted image %s') % product_image.image.name)
         success_url = request.POST['success_url']
-        if is_safe_url(success_url, request.get_host()):
+        if is_safe_url(success_url, allowed_hosts=request.get_host()):
             return redirect(success_url)
     ctx = {'product': product, 'product_image': product_image}
     return TemplateResponse(
@@ -317,7 +317,7 @@ def variant_edit(request, product_pk, variant_pk=None):
                 'Added variant %s') % variant.name
         messages.success(request, msg)
         success_url = request.POST['success_url']
-        if is_safe_url(success_url, request.get_host()):
+        if is_safe_url(success_url, allowed_hosts=request.get_host()):
             return redirect(success_url)
     ctx = {'attribute_form': attribute_form, 'form': form, 'product': product,
            'variant': variant}
@@ -337,7 +337,7 @@ def variant_delete(request, product_pk, variant_pk):
             pgettext_lazy(
                 'Dashboard message', 'Deleted variant %s') % variant.name)
         success_url = request.POST['success_url']
-        if is_safe_url(success_url, request.get_host()):
+        if is_safe_url(success_url, allowed_hosts=request.get_host()):
             return redirect(success_url)
     ctx = {'is_only_variant': is_only_variant, 'product': product,
            'variant': variant}
@@ -357,7 +357,7 @@ def variants_bulk_delete(request, product_pk):
         messages.success(
             request,
             pgettext_lazy('Dashboard message', 'Deleted variants'))
-        if is_safe_url(success_url, request.get_host()):
+        if is_safe_url(success_url, allowed_hosts=request.get_host()):
             return redirect(success_url)
     return redirect('dashboard:product-update', pk=product.pk)
 
