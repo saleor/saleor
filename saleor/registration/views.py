@@ -17,6 +17,7 @@ def login(request):
         'template_name': 'account/login.html', 'authentication_form': LoginForm}
     return django_views.LoginView.as_view(**kwargs)(request, **kwargs)
 
+
 @login_required
 def logout(request):
     auth.logout(request)
@@ -31,7 +32,7 @@ def signup(request):
         password = form.cleaned_data.get('password')
         email = form.cleaned_data.get('email')
         user = auth.authenticate(request=request, email=email,
-            password=password)
+                                 password=password)
         if user:
             auth.login(request, user)
         messages.success(request, _('User has been created'))
@@ -56,4 +57,5 @@ def password_reset_confirm(request, uidb64=None, token=None):
         'set_password_form': 'SetPasswordForm',
         'token': token,
         'uidb64': uidb64}
-    return django_views.PasswordResetConfirmView.as_view(**kwargs)(request, **kwargs)
+    return django_views.PasswordResetConfirmView.as_view(**kwargs)(
+        request, **kwargs)
