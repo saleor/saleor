@@ -405,7 +405,6 @@ GRAPHENE = {
 }
 
 SITE_SETTINGS_ID = 1
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
