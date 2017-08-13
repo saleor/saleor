@@ -110,18 +110,18 @@ class AbstractCartModel(models.Model):
         open_cart = Cart.get_user_open_cart(user)
         if open_cart is not None:
             open_cart.change_status(status=CartStatus.CANCELED)
-        for line in open_cart.lines.all():
-            try:
-                new_line = self.lines.get(release=line.release, backorder=line.backorder)
-                new_line.quantity = new_line.quantity + line.quantity
-                new_line.save(update_fields=['quantity'])
-            except line.__class__.DoesNotExist:
-                line.__class__.objects.create(
-                    cart=self,
-                    release=line.release,
-                    backorder=line.backorder,
-                    quantity=line.quantity
-                )
+            for line in open_cart.lines.all():
+                try:
+                    new_line = self.lines.get(release=line.release, backorder=line.backorder)
+                    new_line.quantity = new_line.quantity + line.quantity
+                    new_line.save(update_fields=['quantity'])
+                except line.__class__.DoesNotExist:
+                    line.__class__.objects.create(
+                        cart=self,
+                        release=line.release,
+                        backorder=line.backorder,
+                        quantity=line.quantity
+                    )
 
         self.user = user
         self.save(update_fields=['user'])
