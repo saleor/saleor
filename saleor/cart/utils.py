@@ -94,6 +94,10 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
         @wraps(view)
         def func(request, *args, **kwargs):
             response = view(request, *args, **kwargs)
+
+            if response.status_code > 399:
+                return response
+
             signed_token = request.META.get('HTTP_X_CART_TOKEN', None)
             token = (
                 None
@@ -104,7 +108,6 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
             from rest_framework_jwt.serializers import jwt_decode_handler
             from jwt_auth.mixins import jwt_get_user_id_from_payload
             User = get_user_model()
-
             payload = jwt_decode_handler(response.data.get('token', None))
             user_id = jwt_get_user_id_from_payload(payload)
             user = request.user
