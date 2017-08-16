@@ -228,7 +228,7 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler',
         },
         'console': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'basic',
         },
@@ -497,4 +497,4 @@ ADYEN_SKIN_CODE = os.environ.get('ADYEN_SKIN_CODE', None)
 
 PASSWORD_CONFIRMATION_TIMEOUT_DAYS = 1
 
-CELERY_TASK_ALWAYS_EAGER = DEBUG
+# CELERY_TASK_ALWAYS_EAGER = True
