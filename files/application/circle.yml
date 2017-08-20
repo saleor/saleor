@@ -1,3 +1,4 @@
+---
 machine:
   node:
     version: "6.1.0"
@@ -13,7 +14,8 @@ machine:
 dependencies:
   pre:
     - yarn
-    - yarn add --force node-sass # force our way around https://github.com/yarnpkg/yarn/issues/1981
+    - yarn add --force node-sass
+    # force our way around https://github.com/yarnpkg/yarn/issues/1981
     - pip install -r requirements.txt
   override:
     - yarn run build-assets --production
@@ -23,14 +25,30 @@ dependencies:
     - docker build --rm=false -t mirumee/saleor:latest .
 test:
   override:
-    - docker run --net=host -e DATABASE_URL -e DJANGO_SETTINGS_MODULE -e SECRET_KEY mirumee/saleor:latest pytest
+    - 'docker run
+        --net=host
+        -e DATABASE_URL
+        -e DJANGO_SETTINGS_MODULE
+        -e SECRET_KEY mirumee/saleor:latest
+        pytest
+    '
 
 deployment:
   release:
     tag: /v.*/
     commands:
-      - docker login -e $DOCKERCLOUD_EMAIL -u $DOCKERCLOUD_USER -p $DOCKERCLOUD_PASS
+      - 'docker login
+          -e $DOCKERCLOUD_EMAIL
+          -u $DOCKERCLOUD_USER
+          -p $DOCKERCLOUD_PASS
+      '
       - docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_TAG
       - docker push mirumee/saleor:$CIRCLE_TAG
       - docker push mirumee/saleor:latest
-      - curl -X POST https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo?circle-token=$CIRCLE_API_TOKEN
+      - 'curl
+          -X POST
+          https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo
+          ?circle-token=$CIRCLE_API_TOKEN
+      '
+...
+# vim: ft=ansible:
