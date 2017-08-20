@@ -52,5 +52,7 @@ after_success:
   - codecov
 services:
   - postgresql
+notifications:
+  webhooks: 'https://galaxy.ansible.com/api/v1/notifications/'
 ...
 # vim: ft=ansible:
