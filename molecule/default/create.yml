@@ -17,9 +17,14 @@
     - name: Create Dockerfiles from image names
       template:
         src: "{{ molecule_scenario_directory }}/Dockerfile.j2"
-        dest: '{{
-          molecule_ephemeral_directory
-        }}/Dockerfile_{{item.image}}'
+        dest:
+          "{{
+              molecule_ephemeral_directory
+            }}/Dockerfile_{{
+              item.image | regex_replace(
+                '[^a-zA-Z0-9_]', '_'
+              )
+          }}"
       with_items: "{{ molecule_yml.platforms }}"
       register: platforms
 
@@ -27,7 +32,11 @@
       docker_image:
         path: "{{ molecule_ephemeral_directory }}"
         name: "molecule_local/{{ item.item.image }}"
-        dockerfile: "{{ item.item.dockerfile }}"
+        dockerfile: 
+          "{{
+            item.item.dockerfile |
+            default(item.invocation.module_args.dest)
+          }}"
         force: "{{ item.item.force | default(True) }}"
       with_items: "{{ platforms.results }}"
       when: platforms.changed
