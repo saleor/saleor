@@ -12,3 +12,5 @@
         state: absent
         force_kill: "{{ item.force_kill | default(True) }}"
       with_items: "{{ molecule_yml.platforms }}"
+...
+# vim: ft=ansible:
