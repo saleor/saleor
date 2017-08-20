@@ -1,3 +1,4 @@
+---
 engines:
   eslint:
     enabled: true
@@ -6,8 +7,10 @@ engines:
   pylint:
     enabled: true
 exclude_paths:
-- migrations/
-- tests/
+  - migrations/
+  - tests/
 ratings:
   paths:
-  - saleor/**
+    - saleor/**
+...
+# vim: ft=ansible:

@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: 'Alex Harris'
+  description: 'Deploys a website.'
+  company: 'ECLA'
+  license: CC-BY
+  min_ansible_version: 2.4
+  platforms:
+    - name: 'Ubuntu'
+      versions:
+        - 'xenial'
+  galaxy_tags:
+    - ecla
+    - exfonica
+dependencies: []
+...
+# vim: ft=ansible:

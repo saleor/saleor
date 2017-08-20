@@ -1,10 +1,11 @@
+---
 language: python
 cache:
-  pip: true
-  yarn: true
+  # pip: 'yes'
+  # yarn: 'yes'
   directories:
     - node_modules
-sudo: false
+sudo: 'no'
 addons:
   apt:
     sources:
@@ -14,16 +15,20 @@ addons:
     packages:
       - python3.5
       - python3.5-dev
-      - yarn
+      # - yarn
 install:
   - pip install -U pip setuptools wheel
+  - pip install git+https://github.com/metacloud/molecule.git
+  - pip install git+https://github.com/docker/docker-py.git
   - pip install tox codecov
   - nvm install 6
-  - yarn
-  - yarn add --force node-sass # force our way around https://github.com/yarnpkg/yarn/issues/1981
-  - yarn run build-assets --production
+  # - yarn
+  # - yarn add --force node-sass
+  # force our way around https://github.com/yarnpkg/yarn/issues/1981
+  # - yarn run build-assets --production
 script:
-  - tox
+  # - tox
+  - molecule test
 env:
   global:
     - DJANGO_SETTINGS_MODULE=tests.settings
@@ -51,3 +56,8 @@ after_success:
   - codecov
 services:
   - postgresql
+  - docker
+notifications:
+  webhooks: 'https://galaxy.ansible.com/api/v1/notifications/'
+...
+# vim: ft=ansible:
