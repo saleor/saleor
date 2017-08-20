@@ -1,46 +1,38 @@
-[![Saleor](http://getsaleor.com/mr-saleor-readme.png)](http://getsaleor.com)
+Role Name
+=========
 
+A brief description of the role goes here.
 
-Saleor
-======
+Requirements
+------------
 
-Avast ye landlubbers! Saleor is an open-source e-commerce storefront for Python and Django.
+Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
 
-[Saleor homepage](http://getsaleor.com/)
+Role Variables
+--------------
 
-[![Build Status](https://travis-ci.org/mirumee/saleor.png?branch=master)](https://travis-ci.org/mirumee/saleor)
-[![Requirements Status](https://requires.io/github/mirumee/saleor/requirements.svg?branch=master)](https://requires.io/github/mirumee/saleor/requirements/?branch=master)
+A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
 
+Dependencies
+------------
 
-Usage
------
+A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
 
-See the [Saleor docs](https://saleor.readthedocs.io) for installation and deployment instructions.
+Example Playbook
+----------------
 
+Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
 
-Demo
-----
+    - hosts: servers
+      roles:
+         - { role: username.rolename, x: 42 }
 
-Want to see Saleor in action?
+License
+-------
 
-[Saleor live demo](http://demo.getsaleor.com/)
+BSD
 
-Or launch the demo on a free Heroku instance.
-
-[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
-
-Login credentials: `admin@example.com`/`admin`
-
-
-Commercial support
+Author Information
 ------------------
 
-Disclaimer: everything you see here is open and free to use as long as you comply with the [license](LICENSE). It is not a bait to force you to pay us later and we promise to do our best to fix bugs and improve the code.
-
-Some situations however call for extra code being written. Whether you need us to cover an exotic use case or build you a custom e-commerce appliance, our team can help.
-
-### Mirumee Software
-
-http://mirumee.com
-
-hello@mirumee.com
+An optional section for the role authors to include contact information, or a website (HTML is not allowed).
