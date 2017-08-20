@@ -32,7 +32,7 @@
       docker_image:
         path: "{{ molecule_ephemeral_directory }}"
         name: "molecule_local/{{ item.item.image }}"
-        dockerfile: 
+        dockerfile:
           "{{
             item.item.dockerfile |
             default(item.invocation.module_args.dest)
