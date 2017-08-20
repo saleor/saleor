@@ -1,11 +1,11 @@
 ---
 language: python
 cache:
-  pip: 'yes' 
-  yarn: 'yes' 
+  pip: 'yes'
+  yarn: 'yes'
   directories:
     - node_modules
-sudo: 'no' 
+sudo: 'no'
 addons:
   apt:
     sources:
@@ -22,7 +22,8 @@ install:
   - pip install tox codecov
   - nvm install 6
   - yarn
-  - yarn add --force node-sass # force our way around https://github.com/yarnpkg/yarn/issues/1981
+  - yarn add --force node-sass
+  # force our way around https://github.com/yarnpkg/yarn/issues/1981
   - yarn run build-assets --production
 script:
   # - tox
