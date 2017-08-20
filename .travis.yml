@@ -1,8 +1,8 @@
 ---
 language: python
 cache:
-  pip: 'yes'
-  yarn: 'yes'
+  # pip: 'yes'
+  # yarn: 'yes'
   directories:
     - node_modules
 sudo: 'no'
@@ -15,7 +15,7 @@ addons:
     packages:
       - python3.5
       - python3.5-dev
-      - yarn
+      # - yarn
 install:
   - pip install -U pip setuptools wheel
   - pip install git+https://github.com/metacloud/molecule.git 
@@ -56,6 +56,7 @@ after_success:
   - codecov
 services:
   - postgresql
+  - docker
 notifications:
   webhooks: 'https://galaxy.ansible.com/api/v1/notifications/'
 ...
