@@ -25,7 +25,7 @@ install:
   - yarn add --force node-sass # force our way around https://github.com/yarnpkg/yarn/issues/1981
   - yarn run build-assets --production
 script:
-  - tox
+  # - tox
   - molecule test
 env:
   global:
