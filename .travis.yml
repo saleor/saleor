@@ -22,10 +22,10 @@ install:
   - pip install git+https://github.com/docker/docker-py.git 
   - pip install tox codecov
   - nvm install 6
-  - yarn
-  - yarn add --force node-sass
+  # - yarn
+  # - yarn add --force node-sass
   # force our way around https://github.com/yarnpkg/yarn/issues/1981
-  - yarn run build-assets --production
+  # - yarn run build-assets --production
 script:
   # - tox
   - molecule test
