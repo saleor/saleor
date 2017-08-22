@@ -8,12 +8,13 @@ from django.utils.encoding import smart_text
 
 from saleor.cart.models import Cart
 from saleor.cart import CartStatus, utils
+
 from saleor.product import (
     models, ProductAvailabilityStatus, VariantAvailabilityStatus)
 from saleor.product.utils import (
-    get_attributes_display_map, get_availability,
-    get_product_availability_status,
-    get_variant_availability_status)
+    get_attributes_display_map, get_availability, get_variant_picker_data,
+    get_product_availability_status, get_variant_availability_status)
+from saleor.product.utils import get_availability
 from tests.utils import filter_products_by_attribute
 
 
@@ -442,3 +443,16 @@ def test_product_filter_sorted_by_wrong_parameter(
     data = {'sort_by': 'aaa'}
     response = authorized_client.get(url, data)
     assert not list(response.context['filter'].qs)
+
+
+def test_get_variant_picker_data_proper_variant_count(product_in_stock):
+    """
+    test checks if get_variant_picker_data provide proper count of
+    variant information from available product variants and not count
+    of variant attributes from product class
+    """
+    data = get_variant_picker_data(
+        product_in_stock, discounts=None, local_currency=None)
+
+    assert len(data['variantAttributes'][0]['values']) == 1
+
