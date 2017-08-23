@@ -17,7 +17,7 @@ except ImportError:
 
 def products_visible_to_user(user):
     from .models import Product
-    if user.is_authenticated() and user.is_active and user.is_staff:
+    if user.is_authenticated and user.is_active and user.is_staff:
         return Product.objects.all()
     else:
         return Product.objects.get_available_products()

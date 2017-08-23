@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 from decimal import Decimal
 from uuid import uuid4
 
-import emailit.api
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
@@ -17,12 +16,14 @@ from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
 from prices import Price, FixedDiscount
 from satchless.item import ItemLine, ItemSet
+from templated_email import send_templated_mail
 
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product
 from ..userprofile.models import Address
 from ..search import index
+from ..site.utils import get_site_name
 from . import OrderStatus
 
 
@@ -172,11 +173,10 @@ class Order(models.Model, ItemSet, index.Indexed):
         email = self.get_user_current_email()
         payment_url = build_absolute_uri(
             reverse('order:details', kwargs={'token': self.token}))
-        context = {'payment_url': payment_url}
-
-        emailit.api.send_mail(
-            email, context, 'order/emails/confirm_email',
-            from_email=settings.ORDER_FROM_EMAIL)
+        context = {'payment_url': payment_url, 'site_name': get_site_name()}
+        send_templated_mail(
+            'order/confirm_order', from_email=settings.ORDER_FROM_EMAIL,
+            recipient_list=[email], context=context)
 
     def get_last_payment_status(self):
         last_payment = self.payments.last()
@@ -409,10 +409,10 @@ class Payment(BasePayment):
         email = self.order.get_user_current_email()
         order_url = build_absolute_uri(
             reverse('order:details', kwargs={'token': self.order.token}))
-        context = {'order_url': order_url}
-        emailit.api.send_mail(
-            email, context, 'order/payment/emails/confirm_email',
-            from_email=settings.ORDER_FROM_EMAIL)
+        context = {'order_url': order_url, 'site_name': get_site_name()}
+        send_templated_mail(
+            'order/payment/confirm_payment', context=context,
+            from_email=settings.ORDER_FROM_EMAIL, recipient_list=[email])
 
     def get_purchased_items(self):
         items = [

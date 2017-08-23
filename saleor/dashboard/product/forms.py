@@ -222,6 +222,7 @@ class StockBulkDeleteForm(forms.Form):
 
 
 class ProductImageForm(forms.ModelForm):
+    use_required_attribute = False
     variants = forms.ModelMultipleChoiceField(
         queryset=ProductVariant.objects.none(),
         widget=forms.CheckboxSelectMultiple, required=False)

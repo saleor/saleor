@@ -106,7 +106,7 @@ def to_local_currency(price, currency):
 
 
 def get_user_shipping_country(request):
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         default_shipping = request.user.default_shipping_address
         if default_shipping:
             return default_shipping.country

@@ -101,7 +101,7 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
                 token=token, cart_queryset=queryset)
             if cart is None:
                 return response
-            if request.user.is_authenticated():
+            if request.user.is_authenticated:
                 with transaction.atomic():
                     cart.change_user(request.user)
                     carts_to_close = Cart.objects.open().filter(
@@ -158,7 +158,7 @@ def get_or_create_cart_from_request(request, cart_queryset=Cart.objects.all()):
     :type request: django.http.HttpRequest
     :rtype: Cart
     """
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         return get_or_create_user_cart(request.user, cart_queryset)
     else:
         token = request.get_signed_cookie(COOKIE_NAME, default=None)
@@ -172,7 +172,7 @@ def get_cart_from_request(request, cart_queryset=Cart.objects.all()):
     :rtype: Cart
     """
     discounts = request.discounts
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         cart = get_user_cart(request.user, cart_queryset)
         user = request.user
     else:
@@ -195,7 +195,7 @@ def get_or_create_db_cart(cart_queryset=Cart.objects.all()):
         def func(request, *args, **kwargs):
             cart = get_or_create_cart_from_request(request, cart_queryset)
             response = view(request, cart, *args, **kwargs)
-            if not request.user.is_authenticated():
+            if not request.user.is_authenticated:
                 set_cart_cookie(cart, response)
             return response
         return func
