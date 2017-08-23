@@ -30,7 +30,7 @@ django-storages==1.6.5
 django-templated-email==2.2.0
 django-versatileimagefield==1.6.2
 django-webpack-loader==0.5.0
-django==1.11.4
+django==1.11.4            # via django-payments, django-prices, django-prices-openexchangerates, django-render-block, graphene-django, jsonfield
 djangorestframework==3.6.3
 docutils==0.13.1          # via botocore
 elasticsearch==2.4.1
