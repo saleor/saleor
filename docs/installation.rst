@@ -80,6 +80,16 @@ Installation
     $ export SECRET_KEY='<mysecretkey>'
 
 
+#. Create PostgreSQL user:
+
+   .. note::
+
+       You need to create the user to use within your project.
+       Username and password are extracted from ``DATABASE_URL`` environmental variable.
+       If absent, defaults to ``saleor`` and ``saleor``.
+       Consult `PostgreSQL's documentation <https://www.postgresql.org/docs/current/static/app-createuser.html>`_ for details.
+
+
 #. Prepare the database:
 
    .. code-block:: bash
