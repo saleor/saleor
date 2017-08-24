@@ -86,8 +86,9 @@ def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
                 "match_phrase": {
                     field: {
                         "query": query,
-                        "analyzer": "standard"
-                    }
+                        "analyzer": "standard",
+                        "boost": 5
+                    },
                 }
             }
             for field in fields
