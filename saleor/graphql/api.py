@@ -121,7 +121,10 @@ class CategoryType(DjangoObjectType):
             return [obj for obj in queryset if operator(get_availability(
                 obj, context.discounts).price_range.min_price.gross, value)]
 
-        tree = self.get_descendants(include_self=True)
+        if self.is_root_node():
+            tree = self.get_ancestors(include_self=True)
+        else:
+            tree = self.get_descendants(include_self=True)
         qs = products_for_api(context.user)
         qs = qs.filter(categories__in=tree)
         attributes_filter = args.get('attributes')
