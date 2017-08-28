@@ -420,10 +420,12 @@ APPEND_SLASH = True
 
 CORS_ORIGIN_WHITELIST = [
     'google.com',
+    '127.0.0.1',
     'localhost:8000',
     'localhost:3000',
     'localhost:8080',
     '127.0.0.1:9000',
+    '127.0.0.1:8000',
     'local.oye.com:8000',
 ] + os.environ.get('CORS_ORIGIN_WHITELIST', '').split()
 
