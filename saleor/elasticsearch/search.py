@@ -46,6 +46,11 @@ class Release(DocType):
         analyzer=lowercase_analyzer,
         fields={'raw': Keyword()}
     )
+    cat_no = String(
+        search_analyzer=lowercase_analyzer,
+        analyzer=lowercase_analyzer,
+        fields={'raw': Keyword()}
+    )
 
     tracks = Nested({
         'track_pk': Integer(index='not_analyzed'),
@@ -95,6 +100,16 @@ def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
         ]
     )
 
+    should_queries.append({
+        "match_phrase": {
+            "cat_no": {
+                "query": query,
+                "analyzer": "standard",
+                "boost": 100,
+            }
+        }
+    })
+
     should_queries.extend(
         [
             {
@@ -118,24 +133,6 @@ def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
         "size": size,
         "from": size * (page - 1),
         "sort": [
-            # {"_script": {
-            #     "type": "number",
-            #     "order": "desc",
-            #     "script": {
-            #         "lang": "painless",
-            #         "inline": "def sf = new SimpleDateFormat(\"yyyy-MM-dd\"); if (doc['released_at'].value > sf.parse('2016-11-06').getTime()) 1; else 0"
-            #     }
-            # }},
-            # {
-            #     "_script": {
-            #         "type": "string",
-            #         "order": "desc",
-            #         "script": {
-            #             "lang": "painless",
-            #             "inline": "if (doc['_type'].value == 'artist') 1; else 0;"
-            #         }
-            #     }
-            # },
             {"released_at": "desc"},
             {"_score": "desc"}
         ],
@@ -143,12 +140,6 @@ def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
             "bool": {
                 "should": should_queries
             }
-        # },
-        # "highlight": {
-        #     "fields": {
-        #         "*": {}
-        #     },
-        #     "require_field_match": False
         }
     }
 
