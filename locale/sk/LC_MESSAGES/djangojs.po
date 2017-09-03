@@ -10,264 +10,334 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-03-17 15:40+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Last-Translator: Sebastian Simko <simko22@gmail.com>\n"
+"Language-Team: Slovak <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: de\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "Price filter on category page"
+msgid "Price range"
+msgstr "Cena s DPH"
+
+msgctxt "Price filter on category page"
+msgid "from"
+msgstr "od"
+
+msgctxt "Price filter on category page"
+msgid "to"
+msgstr "do"
+
+msgctxt "Price filter on category page"
+msgid "Update"
+msgstr "Filtrovať"
+
+msgctxt "Empty search results"
+msgid "Sorry, no matches found for your request."
+msgstr "Je nám ľúto, žiadna zhoda nebola nájdená."
+
+msgctxt "Category page filters"
+msgid "Sort by:"
+msgstr "Zoradiť podľa:"
+
+msgctxt "Category page filters"
+msgid "default"
+msgstr "predvolené"
+
+msgctxt "Category page filters"
+msgid "ascending"
+msgstr "vzostupne"
+
+msgctxt "Category page filters"
+msgid "descending"
+msgstr "zostupne"
+
+msgctxt "Category page filters"
+msgid "Price"
+msgstr "Cena"
+
+msgctxt "Category page filters"
+msgid "See all"
+msgstr "Zobraziť všetky"
+
+msgctxt "Category page filters"
+msgid "Filters"
+msgstr "Filtre"
+
+msgctxt "Category page filters"
+msgid "Clear filters"
+msgstr "Resetovať filtre"
+
+msgctxt "Main navigation item"
+msgid "Home"
+msgstr "Domov"
+
+msgctxt "Load more products on category view"
+msgid "Load more"
+msgstr "Načítať viac"
+
+msgctxt "Sale (discount) label for item in product list"
+msgid "Sale"
+msgstr "Zľava"
+
+msgctxt "Empty search results"
+msgid "Try again or shop new arrivals."
+msgstr "Skúste to znova alebo zmente parametre."
 
 #: static/dashboard/js/dashboard.js:208
 msgctxt "Datepicker option"
 msgid "Next month"
-msgstr ""
+msgstr "Ďalší mesiac"
 
 #: static/dashboard/js/dashboard.js:209
 msgctxt "Datepicker option"
 msgid "Previous month"
-msgstr ""
+msgstr "Predchádzajúci mesiac"
 
 #: static/dashboard/js/dashboard.js:212
 msgctxt "Datepicker option"
 msgid "Select a month"
-msgstr ""
+msgstr "Vyberte mesiac"
 
 #: static/dashboard/js/dashboard.js:213
 msgctxt "Datepicker option"
 msgid "Select a year"
-msgstr ""
+msgstr "Vyberte rok"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "January"
-msgstr ""
+msgstr "Január"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "February"
-msgstr ""
+msgstr "Február"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "March"
-msgstr ""
+msgstr "Marec"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "April"
-msgstr ""
+msgstr "Apríl"
 
 #: static/dashboard/js/dashboard.js:216 static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "May"
-msgstr ""
+msgstr "Máj"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "June"
-msgstr ""
+msgstr "Jun"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "July"
-msgstr ""
+msgstr "Jul"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "August"
-msgstr ""
+msgstr "August"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "September"
-msgstr ""
+msgstr "September"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "October"
-msgstr ""
+msgstr "Oktober"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "November"
-msgstr ""
+msgstr "November"
 
 #: static/dashboard/js/dashboard.js:216
 msgctxt "Datepicker option"
 msgid "December"
-msgstr ""
+msgstr "December"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Jan"
-msgstr ""
+msgstr "Jan"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Feb"
-msgstr ""
+msgstr "Feb"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Mar"
-msgstr ""
+msgstr "Mar"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Apr"
-msgstr ""
+msgstr "Apr"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Jun"
-msgstr ""
+msgstr "Jun"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Jul"
-msgstr ""
+msgstr "Jul"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Aug"
-msgstr ""
+msgstr "Aug"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Sep"
-msgstr ""
+msgstr "Sep"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Oct"
-msgstr ""
+msgstr "Okt"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Nov"
-msgstr ""
+msgstr "Nov"
 
 #: static/dashboard/js/dashboard.js:217
 msgctxt "Datepicker option"
 msgid "Dec"
-msgstr ""
+msgstr "Dec"
 
 #: static/dashboard/js/dashboard.js:218
 msgctxt "Datepicker option"
 msgid "Sunday"
-msgstr ""
+msgstr "Nedeľa"
 
 #: static/dashboard/js/dashboard.js:218
 msgctxt "Datepicker option"
 msgid "Monday"
-msgstr ""
+msgstr "Pondelok"
 
 #: static/dashboard/js/dashboard.js:218
 msgctxt "Datepicker option"
 msgid "Tuesday"
-msgstr ""
+msgstr "Utorok"
 
 #: static/dashboard/js/dashboard.js:218
 msgctxt "Datepicker option"
 msgid "Wednesday"
-msgstr ""
+msgstr "Streda"
 
 #: static/dashboard/js/dashboard.js:218
 msgctxt "Datepicker option"
 msgid "Thursday"
-msgstr ""
+msgstr "Štvrtok"
 
 #: static/dashboard/js/dashboard.js:218
 msgctxt "Datepicker option"
 msgid "Friday"
-msgstr ""
+msgstr "Piatok"
 
 #: static/dashboard/js/dashboard.js:218
 msgctxt "Datepicker option"
 msgid "Saturday"
-msgstr ""
+msgstr "Sobota"
 
 #: static/dashboard/js/dashboard.js:219
 msgctxt "Datepicker option"
 msgid "Sun"
-msgstr ""
+msgstr "Ne"
 
 #: static/dashboard/js/dashboard.js:219
 msgctxt "Datepicker option"
 msgid "Mon"
-msgstr ""
+msgstr "Po"
 
 #: static/dashboard/js/dashboard.js:219
 msgctxt "Datepicker option"
 msgid "Tue"
-msgstr ""
+msgstr "Ut"
 
 #: static/dashboard/js/dashboard.js:219
 msgctxt "Datepicker option"
 msgid "Wed"
-msgstr ""
+msgstr "St"
 
 #: static/dashboard/js/dashboard.js:219
 msgctxt "Datepicker option"
 msgid "Thu"
-msgstr ""
+msgstr "Št"
 
 #: static/dashboard/js/dashboard.js:219
 msgctxt "Datepicker option"
 msgid "Fri"
-msgstr ""
+msgstr "Pi"
 
 #: static/dashboard/js/dashboard.js:219
 msgctxt "Datepicker option"
 msgid "Sat"
-msgstr ""
+msgstr "So"
 
 #: static/dashboard/js/dashboard.js:222
 msgctxt "Sunday shortcut"
 msgid "S"
-msgstr ""
+msgstr "N"
 
 #: static/dashboard/js/dashboard.js:222
 msgctxt "Monday shortcut"
 msgid "M"
-msgstr ""
+msgstr "P"
 
 #: static/dashboard/js/dashboard.js:222
 msgctxt "Tuesday shortcut"
 msgid "T"
-msgstr ""
+msgstr "U"
 
 #: static/dashboard/js/dashboard.js:222
 msgctxt "Wednesday shortcut"
 msgid "W"
-msgstr ""
+msgstr "S"
 
 #: static/dashboard/js/dashboard.js:222
 msgctxt "Thursday shortcut"
 msgid "T"
-msgstr ""
+msgstr "Š"
 
 #: static/dashboard/js/dashboard.js:222
 msgctxt "Friday shortcut"
 msgid "F"
-msgstr ""
+msgstr "P"
 
 #: static/dashboard/js/dashboard.js:222
 msgctxt "Saturday shortcut"
 msgid "S"
-msgstr ""
+msgstr "S"
 
 #: static/dashboard/js/dashboard.js:223
 msgctxt "Datepicker option"
 msgid "Today"
-msgstr ""
+msgstr "Dnes"
 
 #: static/dashboard/js/dashboard.js:224
 msgctxt "Datepicker option"
 msgid "Clear"
-msgstr ""
+msgstr "Vyčistiť"
 
 #: static/dashboard/js/dashboard.js:225
 msgctxt "Datepicker option"
 msgid "Close"
-msgstr ""
+msgstr "Zatvoriť"
