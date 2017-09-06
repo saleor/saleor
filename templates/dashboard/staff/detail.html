@@ -1,0 +1,167 @@
+{% extends "dashboard/base.html" %}
+{% load materializecss %}
+{% load prices_i18n %}
+{% load i18n %}
+{% load status %}
+{% load staticfiles %}
+
+{% block title %}
+  {{ staff_member }} - {% trans "Customers" context "Dashboard customers list" %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-customers{% endblock %}
+
+{% block menu_staff_class %}active{% endblock %}
+
+{% block header_menu %}
+  {% url "dashboard:staff" as url %}
+  {% include "dashboard/includes/_back-link.html" with url=url %}
+{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url "dashboard:staff" %}">
+        {% trans "Customers" context "Dashboard customers list" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url "dashboard:staff" %}">
+        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
+    <li><span class="breadcrumbs--elipsed-item">{{ staff_member }}</span></li>
+  </ul>
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col s12 l8">
+
+      <div class="card">
+        <div class="data-table-header">
+          <h5 class="data-table-title">
+            Permissions
+          </h5>
+        </div>
+
+        <div class="card-content">
+
+
+
+          <div class="data">
+          <form method="post">
+            {% csrf_token %}
+            {{ form|materializecss }}
+            <button type="submit" class="btn waves-effect waves-light">
+                {% trans "Update" context "Dashboard update action" %}
+            </button>
+          </form>
+          </div>
+
+
+
+
+        </div>
+
+      </div>
+
+
+      <div class="card">
+        <div class="data-table-header{% if not customer_orders %} data-table-header--no-data{% endif %}">
+          <h5 class="data-table-title">
+            {% trans "Order history" context "Customer orders table title" %}
+          </h5>
+        </div>
+        {% if customer_orders %}
+          <div class="data-table-container">
+            <table class="bordered highlight responsive data-table">
+              <thead>
+                <tr>
+                  <th>
+                    {% trans "Number" context "Customer orders table header" %}
+                  </th>
+                  <th>
+                    {% trans "Placed on" context "Customer orders table header" %}
+                  </th>
+                  <th>
+                    {% trans "Order status" context "Customer orders table header" %}
+                  </th>
+                  <th class="right-align">
+                    {% trans "Total" context "Customer orders table header" %}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for order in customer_orders %}
+                  <tr data-action-go="{% url 'dashboard:order-details' order_pk=order.pk %}">
+                    <td>
+                      {{ order }}
+                    </td>
+                    <td>
+                      {{ order.created }}
+                    </td>
+                    <td>
+                      {% render_status order.status order.get_status_display %}
+                    </td>
+                    <td class="right-align">
+                      {% gross order.get_total html=True %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="card-content card-content--no-data">
+            <p>
+              {% trans "No orders found." context "Empty customer orders table message" %}
+            </p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="col s12 l4">
+      <div class="row">
+        <div class="col s12 m6 p6 l12">
+          <div class="card equal-height-on-med">
+            <div class="card-content">
+              <span class="card-title black-text">
+                {% trans "Default shipping address" context "Customer default shipping address card title" %}
+              </span>
+              {% if customer.default_shipping_address %}
+                {% with customer.default_shipping_address as address %}
+                  {% include 'dashboard/includes/_address.html' with address=address only %}
+                {% endwith %}
+              {% else %}
+                <div>{% trans "No default shipping address." context "Customer without default shipping address message" %}</div>
+              {% endif %}
+              <svg data-src="{% static "dashboard/images/email.svg" %}" width="14" height="14" />
+              <a href="mailto:{{ customer.email }}">
+                {{ customer.email }}
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="col s12 m6 p6 l12">
+          <div class="card equal-height-on-med">
+            <div class="card-content">
+              <span class="card-title black-text">
+                {% trans "Default billing address" context "Customer default billing address card title" %}
+              </span>
+              {% if customer.default_billing_address %}
+                {% with customer.default_billing_address as address %}
+                  {% include 'dashboard/includes/_address.html' with address=address only %}
+                {% endwith %}
+              {% else %}
+                <div>
+                  {% trans "No default billing address." context "Customer without default billing address message" %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

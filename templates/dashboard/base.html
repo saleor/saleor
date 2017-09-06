@@ -147,6 +147,11 @@
                 {% trans "Configuration"  context "Dashboard configuration" %}
               </p>
               <ul>
+                <li class="{% block menu_staff_class %}{% endblock %}">
+                  <a href="{% url 'dashboard:staff' %}">
+                    {% trans "Staff" context "Dashboard staff members list" %}
+                  </a>
+                </li>
                 <li class="{% block menu_product_classes_class %}{% endblock %}">
                   <a href="{% url 'dashboard:product-class-list' %}">
                     {% trans "Product types" context "Dashboard product types list" %}

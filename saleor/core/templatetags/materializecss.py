@@ -82,3 +82,4 @@ def is_select(field):
 @register.filter
 def is_checkbox_select_multiple(field):
     return isinstance(field.field.widget, forms.CheckboxSelectMultiple)
+

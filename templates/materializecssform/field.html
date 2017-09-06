@@ -35,7 +35,7 @@
     {% endif %}
     {% for choice in field %}
       <p>
-        <input id="{{ choice.id_for_label }}" name="{{ choice.name }}" class="filled-in" type="checkbox" value="{{ choice.choice_value }}" {% if choice.choice_value in choice.value %} checked="checked" {% endif %}>
+        <input id="{{ choice.id_for_label }}" name="{{ choice.data.name }}" class="filled-in" type="checkbox" value="{{ choice.data.value }}" {% if choice.data.selected%} checked="checked" {% endif %}>
         <label for="{{ choice.id_for_label }}">
           {{ choice.choice_label }}
         </label>
