@@ -38,6 +38,7 @@
   <div class="row">
     <div class="col s12 l8">
 
+      {% if form %}
       <div class="card">
         <div class="data-table-header">
           <h5 class="data-table-title">
@@ -46,8 +47,6 @@
         </div>
 
         <div class="card-content">
-
-
 
           <div class="data">
           <form method="post">
@@ -58,13 +57,10 @@
             </button>
           </form>
           </div>
-
-
-
-
         </div>
 
       </div>
+      {% endif %}
 
 
       <div class="card">
@@ -129,16 +125,16 @@
               <span class="card-title black-text">
                 {% trans "Default shipping address" context "Customer default shipping address card title" %}
               </span>
-              {% if customer.default_shipping_address %}
-                {% with customer.default_shipping_address as address %}
+              {% if staff_member.default_shipping_address %}
+                {% with staff_member.default_shipping_address as address %}
                   {% include 'dashboard/includes/_address.html' with address=address only %}
                 {% endwith %}
               {% else %}
                 <div>{% trans "No default shipping address." context "Customer without default shipping address message" %}</div>
               {% endif %}
               <svg data-src="{% static "dashboard/images/email.svg" %}" width="14" height="14" />
-              <a href="mailto:{{ customer.email }}">
-                {{ customer.email }}
+              <a href="mailto:{{ staff_member.email }}">
+                {{ staff_member.email }}
               </a>
             </div>
           </div>
@@ -149,8 +145,8 @@
               <span class="card-title black-text">
                 {% trans "Default billing address" context "Customer default billing address card title" %}
               </span>
-              {% if customer.default_billing_address %}
-                {% with customer.default_billing_address as address %}
+              {% if staff_member.default_billing_address %}
+                {% with staff_member.default_billing_address as address %}
                   {% include 'dashboard/includes/_address.html' with address=address only %}
                 {% endwith %}
               {% else %}

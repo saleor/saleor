@@ -1,10 +1,9 @@
 from __future__ import unicode_literals
 
-from django import forms
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
-from django.contrib.auth.models import Permission
 
+from saleor.core.permissions import get_user_permissions, update_permissions
 from .forms import PermissionsForm
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items
@@ -27,21 +26,15 @@ def staff_details(request, pk):
     queryset = User.objects.filter(is_staff=True)
     staff_member = get_object_or_404(queryset, pk=pk)
 
-    form = PermissionsForm(request.POST or None)
+    ctx = {'staff_member': staff_member}
 
-    if form.is_valid():
-        print form.cleaned_data
+    if not staff_member.is_superuser:
+        user_permissions = get_user_permissions(user=staff_member)
+        form = PermissionsForm(request.POST or user_permissions)
+        ctx['form'] = form
+        if form.is_valid():
+            for category, permissions in form.cleaned_data.items():
+                update_permissions(
+                    user=staff_member, pk=pk, permissions=permissions)
 
-        for category, permissions in form.cleaned_data.items():
-            add_permissions(user=staff_member, category=category,
-                            permissions=permissions)
-
-    ctx = {'staff_member': staff_member, 'form': form, "permissions": permissions}
     return TemplateResponse(request, 'dashboard/staff/detail.html', ctx)
-
-
-def add_permissions(user, category, permissions):
-    print user.user_permissions
-    # user.user_permissions.set(['product_view'])
-    print user.user_permissions
-

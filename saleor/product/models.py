@@ -21,6 +21,7 @@ from satchless.item import InsufficientStock, Item, ItemRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import VersatileImageField, PPOIField
 
+from ..core.permissions import MODELS_PERMISSIONS as PERMISSIONS
 from ..discount.models import calculate_discounted_price
 from ..search import index
 from .utils import get_attributes_display_map
@@ -147,6 +148,7 @@ class Product(models.Model, ItemRange, index.Indexed):
         app_label = 'product'
         verbose_name = pgettext_lazy('Product model', 'product')
         verbose_name_plural = pgettext_lazy('Product model', 'products')
+        permissions = PERMISSIONS
 
     def __iter__(self):
         if not hasattr(self, '__variants'):

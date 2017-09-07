@@ -91,11 +91,13 @@
                 {% trans "Catalogue" context "Dashboard catalogue" %}
               </p>
               <ul>
+                {% if perms.product.view %}
                 <li class="{% block menu_products_class %}{% endblock %}">
                   <a href="{% url 'dashboard:product-list' %}">
                     {% trans "Products" context "Dashboard products list" %}
                   </a>
                 </li>
+                {% endif %}
                 <li class="{% block menu_categories_class %}{% endblock %}">
                   <a href="{% url 'dashboard:category-list' %}">
                     {% trans "Categories" context "Dashboard categories list" %}
