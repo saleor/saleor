@@ -4,10 +4,8 @@ from django.shortcuts import get_object_or_404
 from saleor.userprofile.models import User
 
 
-MODELS_PERMISSIONS = (('view', 'View Products in Dashboard'),
-                      ('edit', 'Edit Product in Dashboard'))
-
-PERMISSIONS = set([permission[0] for permission in MODELS_PERMISSIONS])
+MODELS_PERMISSIONS = [['view', 'View in Dashboard'],
+                      ['edit', 'Edit in Dashboard']]
 
 
 def get_user_permissions(user):
@@ -21,7 +19,9 @@ def get_user_permissions(user):
     return form_data
 
 
-def update_permissions(user, pk, permissions):
+def update_permissions(user, pk, category, permissions):
+    PERMISSIONS = set([permission[0] + "_" + category
+                       for permission in MODELS_PERMISSIONS])
     permissions = set(permissions)
     permissions_to_add = PERMISSIONS & permissions
     permissions_to_remove = PERMISSIONS - permissions
@@ -33,13 +33,21 @@ def update_permissions(user, pk, permissions):
     u = get_object_or_404(queryset, pk=pk)
 
 
+def add_permissions(permissions_to_add, user):
+    for permission in permissions_to_add:
+        permission = Permission.objects.get(codename=permission)
+        user.user_permissions.add(permission)
+
+
 def remove_permissions(permissions_to_remove, user):
     for permission in permissions_to_remove:
         permission = Permission.objects.get(codename=permission)
         user.user_permissions.remove(permission)
 
 
-def add_permissions(permissions_to_add, user):
-    for permission in permissions_to_add:
-        permission = Permission.objects.get(codename=permission)
-        user.user_permissions.add(permission)
+def build_permission_choices(cls):
+    cls = cls.__name__.lower()
+    choices = []
+    for permission in MODELS_PERMISSIONS:
+        choices.append((permission[0] + "_" + cls, permission[1]))
+    return tuple(choices)

@@ -1,18 +1,17 @@
-from django.contrib.auth.models import Permission
 from django import forms
+
+from ...core.permissions import build_permission_choices
+from ...product.models import Product, Category
 
 
 class PermissionsForm(forms.Form):
-    permission_options = (
-        ('view', 'View'),
-        ('edit', 'Edit'),
-    )
-    product = forms.MultipleChoiceField(label='Product',
-                                        required=False,
-                                        choices=permission_options,
-                                        widget=forms.CheckboxSelectMultiple)
-    # categories = forms.MultipleChoiceField(label='Categories',
-    #                                        required=False,
-    #                                        choices=permission_options,
-    #                                        widget=forms.CheckboxSelectMultiple)
-
+    product = forms.MultipleChoiceField(
+        label='Products',
+        required=False,
+        choices=build_permission_choices(cls=Product),
+        widget=forms.CheckboxSelectMultiple)
+    category = forms.MultipleChoiceField(
+        label='Categories',
+        required=False,
+        choices=build_permission_choices(cls=Category),
+        widget=forms.CheckboxSelectMultiple)

@@ -70,6 +70,23 @@ def admin_client(admin_user):
 
 
 @pytest.fixture()
+def staff_user(db):
+    """A Django staff user"""
+    return User.objects.create_user(
+        email='staff_test@example.com', password='password', is_staff=True,
+        is_active=True)
+
+
+@pytest.fixture()
+def staff_client(staff_user):
+    """A Django test client logged in as an staff member"""
+    from django.test.client import Client
+    client = Client()
+    client.login(username=staff_user.email, password='password')
+    return client
+
+
+@pytest.fixture()
 def authorized_client(client, customer_user):
     client.login(username=customer_user.email, password='password')
     return client
@@ -117,6 +134,11 @@ def size_attribute(db):  # pylint: disable=W0613
 @pytest.fixture
 def default_category(db):  # pylint: disable=W0613
     return Category.objects.create(name='Default', slug='default')
+
+
+@pytest.fixture()
+def default_permissions_choices():
+    return [u'view_product', u'edit_product']
 
 
 @pytest.fixture

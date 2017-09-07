@@ -48,6 +48,8 @@ class Category(MPTTModel):
         verbose_name = pgettext_lazy('Category model', 'category')
         verbose_name_plural = pgettext_lazy('Category model', 'categories')
         app_label = 'product'
+        permissions = (('view_category', 'Can View Category in Dashboard'),
+                       ('edit_category', 'Can Edit Category in Dashboard'))
 
     def __str__(self):
         return self.name
@@ -148,7 +150,8 @@ class Product(models.Model, ItemRange, index.Indexed):
         app_label = 'product'
         verbose_name = pgettext_lazy('Product model', 'product')
         verbose_name_plural = pgettext_lazy('Product model', 'products')
-        permissions = PERMISSIONS
+        permissions = (('view_product', 'Can view Product in Dashboard'),
+                       ('edit_product', 'Can edit Product in Dashboard'))
 
     def __iter__(self):
         if not hasattr(self, '__variants'):

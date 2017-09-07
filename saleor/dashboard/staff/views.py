@@ -16,7 +16,8 @@ def staff_list(request):
         User.objects
         .filter(is_staff=True)
     )
-    staff_members = get_paginator_items(staff_members, 30, request.GET.get('page'))
+    staff_members = get_paginator_items(
+        staff_members, 30, request.GET.get('page'))
     ctx = {'staff': staff_members}
     return TemplateResponse(request, 'dashboard/staff/list.html', ctx)
 
@@ -34,7 +35,7 @@ def staff_details(request, pk):
         ctx['form'] = form
         if form.is_valid():
             for category, permissions in form.cleaned_data.items():
-                update_permissions(
-                    user=staff_member, pk=pk, permissions=permissions)
+                update_permissions(user=staff_member, pk=pk, category=category,
+                                   permissions=permissions)
 
     return TemplateResponse(request, 'dashboard/staff/detail.html', ctx)
