@@ -16,8 +16,8 @@ def test_permission_form(default_permissions):
 
 def test_build_permission_choices():
     choices = build_permission_choices(Product)
-    assert ("view_product", "View in Dashboard") in choices
-    assert ("edit_product", "Edit in Dashboard") in choices
+    assert ("view_product", "View") in choices
+    assert ("edit_product", "Edit") in choices
 
 
 def test_superuser_permissions(admin_user):
