@@ -21,7 +21,7 @@ from satchless.item import InsufficientStock, Item, ItemRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import VersatileImageField, PPOIField
 
-from ..core.permissions import MODELS_PERMISSIONS as PERMISSIONS
+from ..core.permissions import PERMISSIONS_CHOICES as PERMISSIONS
 from ..discount.models import calculate_discounted_price
 from ..search import index
 from .utils import get_attributes_display_map
@@ -48,8 +48,8 @@ class Category(MPTTModel):
         verbose_name = pgettext_lazy('Category model', 'category')
         verbose_name_plural = pgettext_lazy('Category model', 'categories')
         app_label = 'product'
-        permissions = (('view_category', 'Can View Category in Dashboard'),
-                       ('edit_category', 'Can Edit Category in Dashboard'))
+        permissions = (('view_category', 'Can view categories'),
+                       ('edit_category', 'Can edit categories'))
 
     def __str__(self):
         return self.name
@@ -150,8 +150,8 @@ class Product(models.Model, ItemRange, index.Indexed):
         app_label = 'product'
         verbose_name = pgettext_lazy('Product model', 'product')
         verbose_name_plural = pgettext_lazy('Product model', 'products')
-        permissions = (('view_product', 'Can view Product in Dashboard'),
-                       ('edit_product', 'Can edit Product in Dashboard'))
+        permissions = (('view_product', 'Can view products'),
+                       ('edit_product', 'Can edit products'))
 
     def __iter__(self):
         if not hasattr(self, '__variants'):
@@ -326,6 +326,11 @@ class ProductVariant(models.Model, Item):
 class StockLocation(models.Model):
     name = models.CharField(
         pgettext_lazy('Stock location field', 'location'), max_length=100)
+
+    class Meta:
+        permissions = (
+            ('view_stock_location', 'Can view stock location'),
+            ('edit_stock_location', 'Can sdit stock location'))
 
     def __str__(self):
         return self.name

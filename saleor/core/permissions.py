@@ -4,24 +4,29 @@ from django.shortcuts import get_object_or_404
 from saleor.userprofile.models import User
 
 
-MODELS_PERMISSIONS = [['view', 'View in Dashboard'],
-                      ['edit', 'Edit in Dashboard']]
+PERMISSIONS_CHOICES = [['view', 'View'],
+                       ['edit', 'Edit']]
 
 
 def get_user_permissions(user):
     form_data = {}
     permissions = Permission.objects.filter(user=user)
     for permission in permissions:
-        if str(permission.content_type) not in form_data:
-            form_data[str(permission.content_type)] = [permission.codename]
+        category = standarize_name(permission)
+        if category not in form_data:
+            form_data[category] = [permission.codename]
         else:
-            form_data[str(permission.content_type)].append(permission.codename)
+            form_data[category].append(permission.codename)
     return form_data
+
+
+def standarize_name(permission):
+    return str(permission.content_type).replace(' ', '_').lower()
 
 
 def update_permissions(user, category, permissions):
     PERMISSIONS = set([permission[0] + "_" + category
-                       for permission in MODELS_PERMISSIONS])
+                       for permission in PERMISSIONS_CHOICES])
     permissions = set(permissions)
     permissions_to_add = PERMISSIONS & permissions
     permissions_to_remove = PERMISSIONS - permissions
@@ -46,8 +51,20 @@ def remove_permissions(permissions_to_remove, user):
 
 
 def build_permission_choices(cls):
-    cls = cls.__name__.lower()
+    cls = uncamel(cls.__name__).lower()
     choices = []
-    for permission in MODELS_PERMISSIONS:
+    for permission in PERMISSIONS_CHOICES:
         choices.append((permission[0] + "_" + cls, permission[1]))
     return tuple(choices)
+
+
+def uncamel(x):
+    final = ''
+    for item in x:
+        if item.isupper():
+            final += "_" + item.lower()
+        else:
+            final += item
+    if final[0] == "_":
+        final = final[1:]
+    return final

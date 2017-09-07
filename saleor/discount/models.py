@@ -121,6 +121,9 @@ class Voucher(models.Model):
     class Meta:
         verbose_name = pgettext_lazy('Voucher model', 'voucher')
         verbose_name_plural = pgettext_lazy('Voucher model', 'vouchers')
+        permissions = (
+            ('view_voucher', 'Can view vouchers'),
+            ('edit_voucher', 'Can edit vouchers'))
 
     def __str__(self):
         if self.name:
@@ -261,6 +264,9 @@ class Sale(models.Model):
         app_label = 'discount'
         verbose_name = pgettext_lazy('Sale (discount) model', 'sale')
         verbose_name_plural = pgettext_lazy('Sales (discounts) model', 'sales')
+        permissions = (
+            ('view_sale', 'Can view sales'),
+            ('edit_sale', 'Can edit sales'))
 
     def __repr__(self):
         return 'Sale(name=%r, value=%r, type=%s)' % (
