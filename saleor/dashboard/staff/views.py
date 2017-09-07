@@ -35,7 +35,7 @@ def staff_details(request, pk):
         ctx['form'] = form
         if form.is_valid():
             for category, permissions in form.cleaned_data.items():
-                update_permissions(user=staff_member, pk=pk, category=category,
+                update_permissions(user=staff_member, category=category,
                                    permissions=permissions)
 
     return TemplateResponse(request, 'dashboard/staff/detail.html', ctx)

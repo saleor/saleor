@@ -19,7 +19,7 @@ def get_user_permissions(user):
     return form_data
 
 
-def update_permissions(user, pk, category, permissions):
+def update_permissions(user, category, permissions):
     PERMISSIONS = set([permission[0] + "_" + category
                        for permission in MODELS_PERMISSIONS])
     permissions = set(permissions)
@@ -30,7 +30,7 @@ def update_permissions(user, pk, category, permissions):
     remove_permissions(permissions_to_remove, user)
 
     queryset = User.objects.filter(is_staff=True)
-    u = get_object_or_404(queryset, pk=pk)
+    u = get_object_or_404(queryset, pk=user.pk)
 
 
 def add_permissions(permissions_to_add, user):

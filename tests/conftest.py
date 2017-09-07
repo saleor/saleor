@@ -136,9 +136,14 @@ def default_category(db):  # pylint: disable=W0613
     return Category.objects.create(name='Default', slug='default')
 
 
-@pytest.fixture()
-def default_permissions_choices():
+@pytest.fixture
+def default_permissions():
     return [u'view_product', u'edit_product']
+
+
+@pytest.fixture
+def changed_permissions():
+    return [u'view_product']
 
 
 @pytest.fixture
