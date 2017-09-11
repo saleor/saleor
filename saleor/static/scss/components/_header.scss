@@ -25,7 +25,7 @@
         font-size: 1.5rem;
         &:hover {
           color: rgba($body-color, 0.6);
-          
+
         }
       }
     }
@@ -39,19 +39,21 @@
       width: auto;
     }
   }
-  @media (max-width: 370px) { 
+  @media (max-width: 370px) {
     svg {
       max-height: 25px;
       width: auto;
     }
   }
   &__login {
+    width: 100%;
     p {
       font-size: 0.7rem;
       margin-bottom: 0;
       color: $skull-gray;
       line-height: 1.9rem;
-      text-transform: uppercase
+      text-transform: uppercase;
+      width: 100%;
     }
     ul {
       list-style: none;
@@ -105,6 +107,7 @@
     }
   }
   &__brand {
+    width: 100%;
     background-color: $light-gray;
     @include media-breakpoint-down(sm) {
       position: fixed;
@@ -190,6 +193,7 @@
     }
   }
   &__menu {
+    width: 100%;
     @include media-breakpoint-down(sm) {
       .navigation {
         position: fixed;

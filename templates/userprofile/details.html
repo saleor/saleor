@@ -21,7 +21,7 @@
   <div class="userprofile">
     <div class="userprofile__nav container">
       <h2>{% trans "My account" %}</h2>
-      <ul class="nav nav-tabs col-lg-10 offset-lg-1" role="tablist">
+      <ul class="nav nav-tabs col-lg-10 m-auto" role="tablist">
         <li class="nav-item">
           <a class="nav-link active" data-toggle="tab" href="#orders" role="tab"><h3>
             {% trans "Recent Orders" context "User profile tab" %}
@@ -41,7 +41,7 @@
         </li>
       </ul>
     </div>
-    <div class="tab-content col-lg-10 offset-lg-1">
+    <div class="tab-content col-lg-10 m-auto">
       <div class="tab-pane active fade show" id="orders" role="tabpanel">
         <div id="accordion" role="tablist" aria-multiselectable="true">
           {% if orders|length %}
@@ -50,13 +50,13 @@
                 <div class="col-md-2 col-3"><small>
                   {% trans "Order" context "Recent orders column title" %}
                 </small></div>
-                <div class="col-md-3 hidden-sm-down"><small>
+                <div class="col-md-3 d-none d-md-block"><small>
                   {% trans "Date" context "Recent orders column title" %}
                 </small></div>
                 <div class="col-md-2 col-4 text-right"><small>
                   {% trans "Summary" context "Recent orders column title" %}
                 </small></div>
-                <div class="col-md-4 hidden-sm-down"><small>
+                <div class="col-md-4 d-none d-md-block"><small>
                   {% trans "Status" context "Recent orders column title" %}
                 </small></div>
                 <div class="col-md-1 col-5"></div>
@@ -68,13 +68,13 @@
                   <div class="col-md-2 col-3">
                     {{ order }}
                   </div>
-                  <div class="col-md-3 hidden-sm-down">
+                  <div class="col-md-3 d-none d-md-block">
                     {{ order.created }}
                   </div>
                   <div class="col-md-2 col-4">
                     <span class="float-right">{% gross order.get_total html=True %}</span>
                   </div>
-                  <div class="col-md-4 hidden-sm-down">
+                  <div class="col-md-4 d-none d-md-block">
                     {% render_status order.status order.get_status_display %}
                   </div>
                   <div class="col-md-1 col-5">
@@ -94,7 +94,7 @@
       </div>
       <div class="tab-pane fade" id="password" role="tabpanel">
         <div class="row ">
-          <div class="col-md-8 offset-md-2 col-lg-6 offset-lg-3 userprofile__password">
+          <div class="col-md-8 col-lg-6 m-auto userprofile__password">
             <form action="" method="post">
                 {% csrf_token %}
                 {% bootstrap_form change_password_form %}
