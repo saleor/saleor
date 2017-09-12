@@ -151,10 +151,7 @@ def staff_group():
 
 @pytest.fixture
 def product_permission_view():
-    content_type = ContentType.objects.get(
-        model='Product')
-    return Permission.objects.create(
-        codename='product.view_product', content_type=content_type)
+    return Permission.objects.get(codename='view_product')
 
 
 @pytest.fixture
