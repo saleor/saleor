@@ -18,7 +18,6 @@ def customer_list(request):
         .annotate(
             num_orders=Count('orders', distinct=True),
             last_order=Max('orders', distinct=True))
-        .filter(is_staff=False)
     )
     customers = get_paginator_items(customers, 30, request.GET.get('page'))
     ctx = {'customers': customers}
