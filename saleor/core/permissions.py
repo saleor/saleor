@@ -1,70 +1,30 @@
 from django.contrib.auth.models import Permission
-from django.shortcuts import get_object_or_404
+from django.db.models import Q
 
-from saleor.userprofile.models import User
-
-
-PERMISSIONS_CHOICES = [['view', 'View'],
-                       ['edit', 'Edit']]
+from ..settings import GROUP_PERMISSIONS_MODELS
 
 
-def get_user_permissions(user):
-    form_data = {}
-    permissions = Permission.objects.filter(user=user)
-    for permission in permissions:
-        category = standarize_name(permission)
-        if category not in form_data:
-            form_data[category] = [permission.codename]
-        else:
-            form_data[category].append(permission.codename)
-    return form_data
+def get_user_groups(user):
+    return {'groups': list(user.groups.values_list('name', flat=True))}
 
 
-def standarize_name(permission):
-    return str(permission.content_type).replace(' ', '_').lower()
+def get_permissions():
+    app_models_dict = {}
+    permissions = Permission.objects.all()
 
+    for app_model in GROUP_PERMISSIONS_MODELS:
+        app, model = app_model.split(".")
+        app_models_dict.setdefault(app, []).append(model)
 
-def update_permissions(user, category, permissions):
-    PERMISSIONS = set([permission[0] + "_" + category
-                       for permission in PERMISSIONS_CHOICES])
-    permissions = set(permissions)
-    permissions_to_add = PERMISSIONS & permissions
-    permissions_to_remove = PERMISSIONS - permissions
+    q = Q()
 
-    add_permissions(permissions_to_add, user)
-    remove_permissions(permissions_to_remove, user)
+    for app, models in app_models_dict.items():
+        q |= Q(content_type__app_label=app, content_type__model__in=models)
+        q &= ~Q(content_type__app_label=app, codename__startswith='add_')
+        q &= ~Q(content_type__app_label=app, codename__startswith='change_')
+        q &= ~Q(content_type__app_label=app, codename__startswith='delete_')
 
-    queryset = User.objects.filter(is_staff=True)
-    u = get_object_or_404(queryset, pk=user.pk)
+    if q:
+        permissions = permissions.filter(q)
 
-
-def add_permissions(permissions_to_add, user):
-    for permission in permissions_to_add:
-        permission = Permission.objects.get(codename=permission)
-        user.user_permissions.add(permission)
-
-
-def remove_permissions(permissions_to_remove, user):
-    for permission in permissions_to_remove:
-        permission = Permission.objects.get(codename=permission)
-        user.user_permissions.remove(permission)
-
-
-def build_permission_choices(cls):
-    cls = uncamel(cls.__name__).lower()
-    choices = []
-    for permission in PERMISSIONS_CHOICES:
-        choices.append((permission[0] + "_" + cls, permission[1]))
-    return tuple(choices)
-
-
-def uncamel(x):
-    final = ''
-    for item in x:
-        if item.isupper():
-            final += "_" + item.lower()
-        else:
-            final += item
-    if final[0] == "_":
-        final = final[1:]
-    return final
+    return permissions

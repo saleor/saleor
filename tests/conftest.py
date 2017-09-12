@@ -3,8 +3,10 @@ from __future__ import unicode_literals
 
 from decimal import Decimal
 import pytest
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, Group, Permission
 from django.utils.encoding import smart_text
+from django.contrib.contenttypes.models import ContentType
+
 from mock import Mock
 
 from saleor.cart import utils
@@ -136,14 +138,23 @@ def default_category(db):  # pylint: disable=W0613
     return Category.objects.create(name='Default', slug='default')
 
 
-@pytest.fixture
-def default_permissions():
-    return [u'view_product', u'edit_product']
+
+
+
+
 
 
 @pytest.fixture
-def changed_permissions():
-    return [u'view_product']
+def staff_group():
+    return Group.objects.create(name='test')
+
+
+@pytest.fixture
+def product_permission_view():
+    content_type = ContentType.objects.get(
+        model='Product')
+    return Permission.objects.create(
+        codename='product.view_product', content_type=content_type)
 
 
 @pytest.fixture

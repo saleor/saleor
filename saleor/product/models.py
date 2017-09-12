@@ -21,7 +21,6 @@ from satchless.item import InsufficientStock, Item, ItemRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import VersatileImageField, PPOIField
 
-from ..core.permissions import PERMISSIONS_CHOICES as PERMISSIONS
 from ..discount.models import calculate_discounted_price
 from ..search import index
 from .utils import get_attributes_display_map
@@ -330,7 +329,7 @@ class StockLocation(models.Model):
     class Meta:
         permissions = (
             ('view_stock_location', 'Can view stock location'),
-            ('edit_stock_location', 'Can sdit stock location'))
+            ('edit_stock_location', 'Can edit stock location'))
 
     def __str__(self):
         return self.name

@@ -1,23 +1,12 @@
 from __future__ import unicode_literals
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
+from django.test.client import Client
 
-from saleor.dashboard.staff.forms import PermissionsForm
+from saleor.userprofile.models import User
+from saleor.core.permissions import get_permissions
+from saleor.dashboard.groups.forms import PermissionsForm
 from saleor.product.models import Product
-from saleor.core.permissions import ( get_user_permissions,
-    update_permissions, build_permission_choices)
-
-
-def test_permission_form(default_permissions):
-    data = {
-        "products": default_permissions
-    }
-    form = PermissionsForm(data)
-    assert form.is_valid()
-
-
-def test_build_permission_choices():
-    choices = build_permission_choices(Product)
-    assert ("view_product", "View") in choices
-    assert ("edit_product", "Edit") in choices
 
 
 def test_superuser_permissions(admin_user):
@@ -25,51 +14,15 @@ def test_superuser_permissions(admin_user):
     assert admin_user.has_perm("product.edit_product")
 
 
-def test_staffuser_permissions(staff_user, default_permissions):
-    assert not staff_user.has_perm("product.view_product")
-    assert not staff_user.has_perm("product.edit_product")
-
-    # Adding permissions
-    update_permissions(staff_user, "product", default_permissions)
-    # Users permissions are cached so we need to delete cache before check
-    del staff_user._perm_cache
-    del staff_user._user_perm_cache
-    assert staff_user.has_perm("product.view_product")
-    assert staff_user.has_perm("product.edit_product")
+def test_superuser(admin_user):
+    assert isinstance(admin_user, User)
 
 
-def test_get_user_permissions(staff_user, default_permissions):
-    assert not staff_user.has_perm("product.view_product")
-    assert not staff_user.has_perm("product.edit_product")
-
-    # Adding permissions
-    update_permissions(staff_user, "product", default_permissions)
-    # Users permissions are cached so we need to delete cache before check
-    del staff_user._perm_cache
-    del staff_user._user_perm_cache
-    assert staff_user.has_perm("product.view_product")
-    assert staff_user.has_perm("product.edit_product")
-
-    data = get_user_permissions(staff_user)
-    assert "product" in data.keys()
-    assert "view_product" in data["product"]
-
-
-def test_change_user_permissions(staff_user, default_permissions,
-                                 changed_permissions):
-    assert not staff_user.has_perm("product.view_product")
-    assert not staff_user.has_perm("product.edit_product")
-
-    # Adding permissions
-    update_permissions(staff_user, "product", default_permissions)
-    # Users permissions are cached so we need to delete cache before check
-    del staff_user._perm_cache
-    del staff_user._user_perm_cache
-    assert staff_user.has_perm("product.view_product")
-    assert staff_user.has_perm("product.edit_product")
-
-    update_permissions(staff_user, "product", changed_permissions)
-    del staff_user._perm_cache
-    del staff_user._user_perm_cache
-    assert staff_user.has_perm("product.view_product")
-    assert not staff_user.has_perm("product.edit_product")
+# def test_permission_form(staff_user, staff_group, product_permission_view):
+#     assert not staff_user.has_perm("product.view_product")
+#     assert not staff_user.has_perm("product.edit_product")
+#
+#     staff_user.groups.add(staff_group)
+#     staff_group.permissions.add(product_permission_view)
+#
+#     assert not staff_user.has_perm("product.view_product")

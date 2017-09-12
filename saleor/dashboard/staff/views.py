@@ -3,8 +3,7 @@ from __future__ import unicode_literals
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 
-from saleor.core.permissions import get_user_permissions, update_permissions
-from .forms import PermissionsForm
+from .forms import GroupForm
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items
 from ...userprofile.models import User
@@ -27,15 +26,10 @@ def staff_details(request, pk):
     queryset = User.objects.filter(is_staff=True)
     staff_member = get_object_or_404(queryset, pk=pk)
 
-    ctx = {'staff_member': staff_member}
+    form = GroupForm(request.POST or None, instance=staff_member)
+    if form.is_valid():
+        form.save()
 
-    if not staff_member.is_superuser:
-        user_permissions = get_user_permissions(user=staff_member)
-        form = PermissionsForm(request.POST or user_permissions)
-        ctx['form'] = form
-        if form.is_valid():
-            for category, permissions in form.cleaned_data.items():
-                update_permissions(user=staff_member, category=category,
-                                   permissions=permissions)
-
+    ctx = {'staff_member': staff_member,
+           'form': form}
     return TemplateResponse(request, 'dashboard/staff/detail.html', ctx)
