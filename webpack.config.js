@@ -25,7 +25,7 @@ if (process.env.NODE_ENV === 'production') {
     filename: '[name].js',
     publicPath: '/static/assets/'
   };
-  fileLoaderPath = 'file?name=[name].[ext]';
+  fileLoaderPath = 'file-loader?name=[name].[ext]';
   extractTextPlugin = new ExtractTextPlugin('[name].css');
 }
 
@@ -37,7 +37,7 @@ var commonsChunkPlugin = new webpack.optimize.CommonsChunkPlugin({
   names: 'vendor'
 });
 
-var occurenceOrderPlugin = new webpack.optimize.OccurenceOrderPlugin();
+var occurenceOrderPlugin = new webpack.optimize.OccurrenceOrderPlugin();
 
 var environmentPlugin = new webpack.DefinePlugin({
   'process.env': {
@@ -81,18 +81,18 @@ var config = {
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        loader: 'babel'
+        loader: 'babel-loader'
       },
       {
         test: /\.json$/,
-        loader: 'json'
+        loader: 'json-loader'
       },
       {
         test: /\.scss$/,
         loader: ExtractTextPlugin.extract([
-          'css?sourceMap',
-          'postcss',
-          'sass'
+          'css-loader?sourceMap',
+          'postcss-loader?sourceMap',
+          'sass-loader?sourceMap'
         ])
       },
       {
@@ -116,18 +116,12 @@ var config = {
     providePlugin,
     faviconsWebpackPlugin
   ],
-  postcss: function() {
-    return [autoprefixer];
-  },
   resolve: {
     alias: {
       'jquery': resolve('node_modules/jquery/dist/jquery.js'),
       'react': resolve('node_modules/react/dist/react.min.js'),
       'react-dom': resolve('node_modules/react-dom/dist/react-dom.min.js')
     }
-  },
-  sassLoader: {
-    sourceMap: true
   }
 };
 
