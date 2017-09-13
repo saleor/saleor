@@ -138,12 +138,6 @@ def default_category(db):  # pylint: disable=W0613
     return Category.objects.create(name='Default', slug='default')
 
 
-
-
-
-
-
-
 @pytest.fixture
 def staff_group():
     return Group.objects.create(name='test')
@@ -152,6 +146,11 @@ def staff_group():
 @pytest.fixture
 def product_permission_view():
     return Permission.objects.get(codename='view_product')
+
+
+@pytest.fixture
+def product_permission_edit():
+    return Permission.objects.get(codename='edit_product')
 
 
 @pytest.fixture

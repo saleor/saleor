@@ -1,13 +1,6 @@
 from __future__ import unicode_literals
-from django.contrib.auth.models import Group, Permission
-from django.contrib.contenttypes.models import ContentType
-from django.test.client import Client
 
 from saleor.userprofile.models import User
-from saleor.core.permissions import get_permissions
-from saleor.dashboard.groups.forms import PermissionsForm
-from saleor.product.models import Product
-from saleor.dashboard.staff import views
 
 
 def test_superuser_permissions(admin_user):
@@ -54,20 +47,38 @@ def test_customer_detail_view(admin_client, customer_user):
     assert response.status_code == 200
 
 
-# def test_group_create_form_valid(admin_user, staff_group):
-#     data = {'name': 'new_group', 'permissions': 'view_product'}
-#     form = PermissionsForm()
-#     assert form.is_valid()
+def test_staff_cant_access_product_list(staff_client, staff_user):
+    assert not staff_user.has_perm("product.view_product")
+    response = staff_client.get('/dashboard/products/')
+    assert response.status_code == 302
 
 
-# def test_permission_form(staff_user, staff_group, product_permission_view):
-#     assert not staff_user.has_perm("product.view_product")
-#     assert not staff_user.has_perm("product.edit_product")
-#
-#
-#     staff_group.permissions.add(product_permission_view)
-#     staff_user.groups.add(staff_group)
-#
-#     del staff_user._perm_cache
-#     del staff_user._user_perm_cache
-#     assert staff_user.has_perm("product.view_product")
+def test_staff_can_access_product_list(
+        staff_client, staff_user, product_permission_view):
+    assert not staff_user.has_perm("product.view_product")
+    staff_user.user_permissions.add(product_permission_view)
+    del staff_user._perm_cache
+    del staff_user._user_perm_cache
+    assert staff_user.has_perm("product.view_product")
+    response = staff_client.get('/dashboard/products/')
+    assert response.status_code == 200
+
+
+def test_staff_cant_access_product_update(
+        staff_client, staff_user, product_in_stock):
+    assert not staff_user.has_perm("product.edit_product")
+    response = staff_client.get(
+        "/dashboard/products/%s/update/" % product_in_stock.pk)
+    assert response.status_code == 302
+
+
+def test_staff_can_access_product_update(
+        staff_client, staff_user, product_in_stock, product_permission_edit):
+    assert not staff_user.has_perm("product.edit_product")
+    staff_user.user_permissions.add(product_permission_edit)
+    del staff_user._perm_cache
+    del staff_user._user_perm_cache
+    assert staff_user.has_perm("product.edit_product")
+    response = staff_client.get(
+        "/dashboard/products/%s/update/" % product_in_stock.pk)
+    assert response.status_code == 200

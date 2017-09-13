@@ -401,11 +401,3 @@ SOCIAL_AUTH_USER_MODEL = AUTH_USER_MODEL
 SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
 SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
     'fields': 'id, email'}
-
-GROUP_PERMISSIONS_MODELS = ['product.product',
-                            'product.category',
-                            'product.stocklocation',
-                            'discount.sale',
-                            'discount.voucher',
-                            'order.order',
-                            'userprofile.user']
