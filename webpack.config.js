@@ -1,4 +1,3 @@
-var autoprefixer = require('autoprefixer');
 var BundleTracker = require('webpack-bundle-tracker');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var FaviconsWebpackPlugin = require('favicons-webpack-plugin');
