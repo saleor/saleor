@@ -47,10 +47,10 @@ class CategoryPage extends Component {
   }
 
   clearFilters = () => {
-    this.props.relay.setVariables({ 
+    this.props.relay.setVariables({
       attributesFilter: [],
       minPrice: null,
-      maxPrice: null 
+      maxPrice: null
     });
   }
 
@@ -119,7 +119,7 @@ class CategoryPage extends Component {
         <div className="category-top">
           <div className="row">
             <div className="col-md-7">
-              <ul className="breadcrumbs list-unstyled hidden-sm-down">
+              <ul className="breadcrumbs list-unstyled d-none d-md-block">
                 <li><a href="/">{pgettext('Main navigation item', 'Home')}</a></li>
                   {category.ancestors && (category.ancestors.map((ancestor) => {
                     return (
@@ -132,9 +132,9 @@ class CategoryPage extends Component {
             <div className="col-md-5">
               <div className="row">
                 <div className="col-6 col-md-2 col-lg-6 filters-menu">
-                  <span className="filters-menu__label hidden-sm-up" onClick={() => this.toggleMenu(filtersMenu)}>{pgettext('Category page filters', 'Filters')}</span>
+                  <span className="filters-menu__label d-sm-none" onClick={() => this.toggleMenu(filtersMenu)}>{pgettext('Category page filters', 'Filters')}</span>
                   {(variables.attributesFilter.length || variables.minPrice || variables.maxPrice) && (
-                    <span className="filters-menu__icon hidden-sm-up"></span>
+                    <span className="filters-menu__icon d-sm-none"></span>
                   )}
                 </div>
                 <div className="col-6 col-md-10 col-lg-6">

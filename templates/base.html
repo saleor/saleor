@@ -27,9 +27,8 @@
     <body>
         {% block header %}
             <header class="navbar" role="navigation">
-                <div class="navbar__login hidden-sm-down">
-                  <div class="container">
-                    <div class="row">
+                <div class="navbar__login d-none d-md-block container">
+                  <div class="row">
                       <div class="col-6">
                         <p class="text-left">{{ settings.header_text }}</p>
                       </div>
@@ -65,13 +64,11 @@
                         </ul>
                       </div>
                     </div>
-                  </div>
                 </div>
-                <div class="navbar__brand">
-                  <div class="container">
-                    <div class="row no-gutters">
+                <div class="navbar__brand container d-block">
+                  <div class="row no-gutters">
                       <div class="col-8 col-md-4 navbar__logo">
-                        <div class="menu-icon-mobile hidden-md-up navbar__brand__menu-toggle closed open">
+                        <div class="menu-icon-mobile d-md-none navbar__brand__menu-toggle closed open">
                           <svg data-src="{% static "images/mobile_menu.svg" %}" width="28px" height="20px" />
                           <span>{% trans "menu" context "Hamburger button text" %}</span>
                         </div>
@@ -81,11 +78,11 @@
                       </div>
                       <div class="col-2 col-md-4 navbar__search static">
                         {% if SEARCH_IS_ENABLED %}
-                          <div class="hidden-md-up mobile-search-icon">
+                          <div class="d-md-none mobile-search-icon">
                             <svg data-src="{% static "images/search.svg" %}" width="30" height="30" />
                           </div>
                           <form class="form-inline search-form" action="{% url "search:search" %}">
-                            <div class="mobile-close-search hidden-md-up">
+                            <div class="mobile-close-search d-md-none">
                               <svg data-src="{% static "images/close.svg" %}" width="30" height="30" />
                             </div>
                             <input class="form-control" type="text" name="q" value="{% if query %}{{ query }}{% endif %}" placeholder="{% trans "Search for product" %}">
@@ -98,7 +95,7 @@
                       <div class="col-2 col-md-4">
                         <div class="navbar__brand__cart float-right">
                           <a class="cart__icon" href="{% url "cart:index" %}">
-                            <span class="cart-label hidden-sm-down">
+                            <span class="cart-label d-none d-md-inline-block">
                                 {% trans "Your Cart" context "Main navigation item" %}
                             </span>
                             <div class="navbar__brand__cart__icon">
@@ -112,17 +109,15 @@
                               {% endif %}
                             </span>
                           </a>
-                          <div class="cart-dropdown hidden-md-down">
+                          <div class="cart-dropdown d-none">
                             {% include 'cart-dropdown.html' %}
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
                 </div>
-                <div class="navbar__menu">
-                  <div class="container">
-                    <nav class="navigation">
+                <div class="navbar__menu container d-block">
+                  <nav class="navigation">
                       {% url 'home' as home_url %}
                       <ul class="nav navbar-nav{% if request.get_full_path == home_url %} no-border{% endif %}" >
                         {% for category in categories %}
@@ -134,7 +129,6 @@
                         {% endfor %}
                       </ul>
                     </nav>
-                  </div>
                 </div>
             </header>
         {% endblock %}
