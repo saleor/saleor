@@ -46,7 +46,6 @@
     }
   }
   &__login {
-    width: 100%;
     p {
       font-size: 0.7rem;
       margin-bottom: 0;
@@ -107,7 +106,6 @@
     }
   }
   &__brand {
-    width: 100%;
     background-color: $light-gray;
     @include media-breakpoint-down(sm) {
       position: fixed;
@@ -193,7 +191,6 @@
     }
   }
   &__menu {
-    width: 100%;
     @include media-breakpoint-down(sm) {
       .navigation {
         position: fixed;

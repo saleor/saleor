@@ -27,9 +27,8 @@
     <body>
         {% block header %}
             <header class="navbar" role="navigation">
-                <div class="navbar__login d-none d-md-block">
-                  <div class="container">
-                    <div class="row">
+                <div class="navbar__login d-none d-md-block container">
+                  <div class="row">
                       <div class="col-6">
                         <p class="text-left">{{ settings.header_text }}</p>
                       </div>
@@ -65,11 +64,9 @@
                         </ul>
                       </div>
                     </div>
-                  </div>
                 </div>
-                <div class="navbar__brand">
-                  <div class="container">
-                    <div class="row no-gutters">
+                <div class="navbar__brand container d-block">
+                  <div class="row no-gutters">
                       <div class="col-8 col-md-4 navbar__logo">
                         <div class="menu-icon-mobile d-md-none navbar__brand__menu-toggle closed open">
                           <svg data-src="{% static "images/mobile_menu.svg" %}" width="28px" height="20px" />
@@ -118,11 +115,9 @@
                         </div>
                       </div>
                     </div>
-                  </div>
                 </div>
-                <div class="navbar__menu">
-                  <div class="container">
-                    <nav class="navigation">
+                <div class="navbar__menu container d-block">
+                  <nav class="navigation">
                       {% url 'home' as home_url %}
                       <ul class="nav navbar-nav{% if request.get_full_path == home_url %} no-border{% endif %}" >
                         {% for category in categories %}
@@ -134,7 +129,6 @@
                         {% endfor %}
                       </ul>
                     </nav>
-                  </div>
                 </div>
             </header>
         {% endblock %}
