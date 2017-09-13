@@ -7,15 +7,10 @@ from django.contrib.sitemaps import views
 from django.contrib.sitemaps.views import sitemap
 from django.contrib.staticfiles.views import serve
 from django.views.decorators.csrf import csrf_exempt
-from graphene_django.views import GraphQLView
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.permissions import AllowAny
-from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
-from saleor.graphql.views import OptionalJWTMixin, AuthGraphQLView
+from saleor.graphql.views import AuthGraphQLView
 from .core.sitemaps import sitemaps
 from .search.urls import urlpatterns as search_urls
-from .userprofile.views import login as login_view
 
 
 def graphql_token_view():
@@ -43,7 +38,7 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     # place it at whatever base url you like
     url(r'^ajax_select/', include(ajax_select_urls)),
-    url(r'', include('payments.urls')),
+    # url(r'', include('payments.urls')),
 ]
 
 if settings.DEBUG:

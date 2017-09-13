@@ -5,9 +5,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.utils.encoding import smart_text
 from django_prices.templatetags import prices_i18n
 
-from ..cart.utils import get_cart_from_request, get_or_create_cart_from_request
 from ..core.utils import to_local_currency
-from .forms import ProductForm
 
 try:
     from urllib.parse import urlencode
@@ -100,17 +98,6 @@ def get_availability(product, discounts=None, local_currency=None):
         discount_local_currency=discount_local_currency)
 
 
-def handle_cart_form(request, product, create_cart=False):
-    if create_cart:
-        cart = get_or_create_cart_from_request(request)
-    else:
-        cart = get_cart_from_request(request)
-    form = ProductForm(
-        cart=cart, product=product, data=request.POST or None,
-        discounts=request.discounts)
-    return form, cart
-
-
 def products_for_cart(user):
     products = products_visible_to_user(user)
     products = products.prefetch_related(
@@ -150,57 +137,6 @@ def product_json_ld(product, availability=None, attributes=None):
 
         if brand:
             data['brand'] = {'@type': 'Thing', 'name': brand}
-    return data
-
-
-def get_variant_picker_data(product, discounts=None, local_currency=None):
-    availability = get_availability(product, discounts, local_currency)
-    variants = product.variants.all()
-    data = {'variantAttributes': [], 'variants': []}
-
-    variant_attributes = product.product_class.variant_attributes.all()
-    for attribute in variant_attributes:
-        data['variantAttributes'].append({
-            'pk': attribute.pk,
-            'display': attribute.display,
-            'name': attribute.name,
-            'values': [{'pk': value.pk, 'display': value.display, 'slug': value.slug}
-                       for value in attribute.values.all()]})
-
-    for variant in variants:
-        price = variant.get_price_per_item(discounts)
-        price_undiscounted = variant.get_price_per_item()
-        if local_currency:
-            price_local_currency = to_local_currency(price, local_currency)
-        else:
-            price_local_currency = None
-
-        schema_data = {'@type': 'Offer',
-                       'itemCondition': 'http://schema.org/NewCondition',
-                       'priceCurrency': price.currency,
-                       'price': price.net}
-
-        if variant.is_in_stock():
-            schema_data['availability'] = 'http://schema.org/InStock'
-        else:
-            schema_data['availability'] = 'http://schema.org/OutOfStock'
-
-        variant_data = {
-            'id': variant.id,
-            'price': price_as_dict(price),
-            'priceUndiscounted': price_as_dict(price_undiscounted),
-            'attributes': variant.attributes,
-            'priceLocalCurrency': price_as_dict(price_local_currency),
-            'schemaData': schema_data}
-        data['variants'].append(variant_data)
-
-    data['availability'] = {
-        'discount': price_as_dict(availability.discount),
-        'priceRange': price_range_as_dict(availability.price_range),
-        'priceRangeUndiscounted': price_range_as_dict(
-            availability.price_range_undiscounted),
-        'priceRangeLocalCurrency': price_range_as_dict(
-            availability.price_range_local_currency)}
     return data
 
 

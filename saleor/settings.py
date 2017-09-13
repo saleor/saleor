@@ -34,8 +34,14 @@ if os.environ.get('REDIS_URL'):
             'LOCATION': os.environ.get('REDIS_URL')
         }
     }
+    CONSTANCE_REDIS_CONNECTION = {
+        'host': 'redis',
+        'port': 6379,
+        'db': 0,
+    }
 else:
     CACHES = {'default': django_cache_url.config()}
+
 
 DATABASES = {
     'default': {
@@ -136,8 +142,6 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'babeldjango.middleware.LocaleMiddleware',
-    'saleor.core.middleware.DiscountMiddleware',
-    'saleor.core.middleware.GoogleAnalytics',
     'saleor.core.middleware.CountryMiddleware',
     'saleor.core.middleware.CurrencyMiddleware',
 ]
@@ -155,7 +159,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.staticfiles',
     'django.contrib.auth',
-    'django.contrib.postgres',
+    # 'django.contrib.postgres',
     'django.contrib.admin',
 
     # Local apps
@@ -166,7 +170,7 @@ INSTALLED_APPS = [
     'saleor.checkout',
     'saleor.core',
     'saleor.graphql',
-    'saleor.order',
+    # 'saleor.order',
     'saleor.dashboard',
     'saleor.shipping',
     'saleor.search',
@@ -176,15 +180,15 @@ INSTALLED_APPS = [
 
     # External apps
     'versatileimagefield',
-    'babeldjango',
+    # 'babeldjango',
     'django_prices',
-    'django_prices_openexchangerates',
+    # 'django_prices_openexchangerates',
     'graphene_django',
     'mptt',
     'rest_framework',
     'rest_framework.authtoken',
     'rest_auth',
-    'webpack_loader',
+    # 'webpack_loader',
     'allauth',
     'allauth.account',
     'django_countries',
@@ -462,9 +466,10 @@ JWT_AUTH = {
 }
 
 
-CELERY_BROKER_URL = 'amqp://{user}:{password}@localhost:5672//'.format(
+CELERY_BROKER_URL = 'amqp://{user}:{password}@{host}:5672//'.format(
     user=os.environ.get('RABBITMQ_USER', 'guest'),
     password=os.environ.get('RABBITMQ_PASSWORD', 'guest'),
+    host=os.environ.get('RABBITMQ_HOST', 'localhost')
     # vhost=os.environ.get('RABBITMQ_VHOST', '/'),
 )
 

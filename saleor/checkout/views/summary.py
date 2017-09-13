@@ -17,7 +17,7 @@ def create_order(checkout):
     checkout.clear_storage()
     checkout.cart.clear()
     order.create_history_entry()
-    order.send_confirmation_email()
+    # order.send_confirmation_email()
     return order, redirect('order:payment', token=order.token)
 
 

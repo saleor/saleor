@@ -1,35 +1,37 @@
-version: '2'
+version: '3.2'
 services:
-  db:
-    image: postgres
-    environment:
-      - POSTGRES_USER=saleor
-      - POSTGRES_PASSWORD=saleor
-    ports:
-      - '127.0.0.1:5432:5432'
   redis:
     image: redis
     ports:
-      - '127.0.0.1:6379:6379'
+      - '6479:6379'
+
   search:
-    image: elasticsearch:2.4
+    image: elasticsearch:5.5
     ports:
-      - '127.0.0.1:9200:9200'
+      - '9400:9200'
+  rabbitmq:
+    image: 'rabbitmq:3-management'
+    ports:
+      - '14672:15672'
+      - '5472:5672'
+    volumes:
+      - rabbit:/var/lib/rabbitmq
+      - ./conf/:/etc/rabbitmq/
+    command:  bash -c "sleep 10; rabbitmq-server;"
   web:
-    build: .
-    command: python manage.py runserver 0.0.0.0:8000
-    environment:
-      - DATABASE_URL=postgres://saleor:saleor@db/saleor
-      - DEFAULT_FROM_EMAIL=noreply@example.com
-      - ELASTICSEARCH_URL=http://search:9200/
-      - OPENEXCHANGERATES_API_KEY
-      - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=changeme
+    image: builder:latest
+    entrypoint: /app/docker-entrypoint.sh
+#    command: python manage.py runserver 0.0.0.0:8000
+    env_file: .env
     depends_on:
-      - db
       - redis
       - search
+      - rabbitmq
     ports:
       - '8000:8000'
     volumes:
-      - .:/app:Z
+      - /srv/oye.kolter.it/media:/var/www/oye.kolter.it/media
+
+volumes:
+  rabbit:
+    driver: local

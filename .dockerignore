@@ -1,4 +1,6 @@
 .*
 *.sqlite
 media
+static
+venv
 node_modules
