@@ -17,7 +17,7 @@
     "yarn": "0.20.x"
   },
   "dependencies": {
-    "bootstrap": "^4.0.0-alpha.6",
+    "bootstrap": "4.0.0-beta",
     "classnames": "^2.2.5",
     "dropzone": "^5.1.1",
     "favicons-webpack-plugin": "^0.0.7",
