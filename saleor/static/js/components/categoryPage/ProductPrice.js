@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react';
-import Relay from 'react-relay';
+import Relay from 'react-relay/classic';
 import InlineSVG from 'react-inlinesvg';
 
 import SaleImg from '../../../images/sale_bg.svg';

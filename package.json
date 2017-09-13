@@ -34,7 +34,7 @@
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "react-inlinesvg": "^0.6.2",
-    "react-relay": "0.10.0",
+    "react-relay": "^1.3.0",
     "select2": "^4.0.3",
     "sortablejs": "^1.5.0-rc1",
     "svg-injector-2": "^2.0.35",
