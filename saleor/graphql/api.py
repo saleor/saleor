@@ -246,7 +246,7 @@ class Query(graphene.ObjectType):
         pk=graphene.Argument(graphene.Int, required=True))
     node = relay.Node.Field()
     root = graphene.Field(lambda: Query)
-    debug = graphene.Field(DjangoDebug, name='__debug')
+    debug = graphene.Field(DjangoDebug, name='_debug')
 
     def resolve_category(self, args, context, info):
         categories = Category.tree.filter(pk=args.get('pk')).get_cached_trees()
