@@ -44,6 +44,22 @@ def test_group_create_view(admin_client):
     assert response.status_code == 200
 
 
+def test_customers_list_view(admin_client):
+    response = admin_client.get('/dashboard/customers/')
+    assert response.status_code == 200
+
+
+def test_customer_detail_view(admin_client, customer_user):
+    response = admin_client.get('/dashboard/customers/%s/' % customer_user.pk)
+    assert response.status_code == 200
+
+
+# def test_group_create_form_valid(admin_user, staff_group):
+#     data = {'name': 'new_group', 'permissions': 'view_product'}
+#     form = PermissionsForm()
+#     assert form.is_valid()
+
+
 # def test_permission_form(staff_user, staff_group, product_permission_view):
 #     assert not staff_user.has_perm("product.view_product")
 #     assert not staff_user.has_perm("product.edit_product")
