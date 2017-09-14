@@ -13,15 +13,13 @@
 {% block menu_groups_class %}active{% endblock %}
 
 {% block header_extra %}
-  {% if groups %}
     <div class="fixed-action-btn">
       <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
-      title="{% trans "Add group" context "Category list add button text" %}"
-      href="{% url 'dashboard:group-create' %}">
-      <svg data-src="{% static "dashboard/images/add.svg" %}" />
-    </a>
+        title="{% trans "Add group" context "Category list add button text" %}"
+        href="{% url 'dashboard:group-create' %}">
+        <svg data-src="{% static "dashboard/images/add.svg" %}" />
+      </a>
     </div>
-  {% endif %}
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -41,7 +39,7 @@
             {{ group.name }}
             <p class="list-item-desc">
               <span>
-
+                {{ group.permissions }}
               </span>
             </p>
           </a>

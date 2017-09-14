@@ -10,6 +10,6 @@ class PermissionsForm(forms.ModelForm):
         fields = ['name', 'permissions']
 
     permissions = forms.ModelMultipleChoiceField(
-        get_permissions(),
+        queryset=get_permissions(),
         widget=forms.CheckboxSelectMultiple
     )

@@ -37,8 +37,8 @@
 {% block content %}
   <div class="row">
     <div class="col s12 l8">
-      <div class="card">
-        {% if form %}
+      {% if form %}
+        <form method="post" class="card">
           <div class="card">
             <div class="data-table-header">
               <h5 class="data-table-title">
@@ -47,18 +47,24 @@
             </div>
             <div class="card-content">
               <div class="data">
-                <form method="post">
+
                   {% csrf_token %}
+                  <div class="row">
                   {{ form|materializecss }}
-                  <button type="submit" class="btn waves-effect waves-light">
-                      {% trans "Update" context "Dashboard update action" %}
-                  </button>
-                </form>
+                  </div>
               </div>
             </div>
+            <div class="card-action right-align">
+              <a href="{% url 'dashboard:groups-list' %}" class="btn btn-flat">
+                {% trans "Cancel" context "Dashboard cancel action" %}
+              </a>
+              <button type="submit" class="btn waves-effect waves-light">
+                  {% trans "Update" context "Dashboard update action" %}
+              </button>
+            </div>
           </div>
-        {% endif %}
-      </div>
+        </form>
+      {% endif %}
     </div>
   </div>
 {% endblock %}

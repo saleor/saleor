@@ -54,9 +54,9 @@ def test_staff_cant_access_product_list(staff_client, staff_user):
 
 
 def test_staff_can_access_product_list(
-        staff_client, staff_user, product_permission_view):
+        staff_client, staff_user, permission_view_product):
     assert not staff_user.has_perm("product.view_product")
-    staff_user.user_permissions.add(product_permission_view)
+    staff_user.user_permissions.add(permission_view_product)
     del staff_user._perm_cache
     del staff_user._user_perm_cache
     assert staff_user.has_perm("product.view_product")
@@ -73,12 +73,26 @@ def test_staff_cant_access_product_update(
 
 
 def test_staff_can_access_product_update(
-        staff_client, staff_user, product_in_stock, product_permission_edit):
+        staff_client, staff_user, product_in_stock, permission_edit_product):
     assert not staff_user.has_perm("product.edit_product")
-    staff_user.user_permissions.add(product_permission_edit)
+    staff_user.user_permissions.add(permission_edit_product)
     del staff_user._perm_cache
     del staff_user._user_perm_cache
     assert staff_user.has_perm("product.edit_product")
     response = staff_client.get(
         "/dashboard/products/%s/update/" % product_in_stock.pk)
+    assert response.status_code == 200
+
+
+def test_staff_group_member_can_view_products(
+        staff_client, staff_user, staff_group, permission_view_product):
+    assert not staff_user.has_perm("product.view_product")
+    response = staff_client.get('/dashboard/products/')
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_view_product)
+    staff_user.groups.add(staff_group)
+    del staff_user._perm_cache
+    del staff_user._user_perm_cache
+    # assert staff_user.has_perm("product.view_product")
+    response = staff_client.get('/dashboard/products/')
     assert response.status_code == 200

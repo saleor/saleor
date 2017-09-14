@@ -144,12 +144,12 @@ def staff_group():
 
 
 @pytest.fixture
-def product_permission_view():
+def permission_view_product():
     return Permission.objects.get(codename='view_product')
 
 
 @pytest.fixture
-def product_permission_edit():
+def permission_edit_product():
     return Permission.objects.get(codename='edit_product')
 
 
