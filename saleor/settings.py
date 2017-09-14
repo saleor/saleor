@@ -27,16 +27,21 @@ ADMINS = (
 MANAGERS = ADMINS
 INTERNAL_IPS = os.environ.get('INTERNAL_IPS', '127.0.0.1').split()
 
-if os.environ.get('REDIS_URL'):
+redis_host = os.environ.get('REDIS_HOST', None)
+redis_port = os.environ.get('REDIS_PORT', 6379)
+if redis_host:
     CACHES = {
         'default': {
             'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': os.environ.get('REDIS_URL')
+            'LOCATION': 'redis://{host}:{port}'.format(
+                host=redis_host,
+                port=redis_port,
+            )
         }
     }
     CONSTANCE_REDIS_CONNECTION = {
-        'host': 'redis',
-        'port': 6379,
+        'host': redis_host,
+        'port': redis_port,
         'db': 0,
     }
 else:
@@ -86,9 +91,7 @@ MEDIA_URL = '/media/'
 
 STATIC_ROOT = os.environ.get('STATIC_ROOT', os.path.join(PROJECT_ROOT, 'static'))
 STATIC_URL = '/static/'
-# STATICFILES_DIRS = [
-#     ('images', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'images'))
-# ]
+
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder'
@@ -477,7 +480,6 @@ CELERY_BROKER_USER = os.environ.get('RABBITMQ_USER', 'guest')
 CELERY_BROKER_PASSWORD = os.environ.get('RABBITMQ_PASSWORD', 'guest')
 CELERY_BROKER_PORT = 5672
 CELERY_BROKER_HOST = 'localhost'
-# CELERY_ALWAYS_EAGER = False
 
 
 CORS_ALLOW_HEADERS = (
@@ -503,5 +505,3 @@ ADYEN_HMAC_SECRET = os.environ.get('ADYEN_HMAC_SECRET', None)
 ADYEN_SKIN_CODE = os.environ.get('ADYEN_SKIN_CODE', None)
 
 PASSWORD_CONFIRMATION_TIMEOUT_DAYS = 1
-
-# CELERY_TASK_ALWAYS_EAGER = True

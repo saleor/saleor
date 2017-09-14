@@ -1,4 +1,4 @@
-version: '3.2'
+version: '2'
 services:
   redis:
     image: redis
@@ -9,29 +9,58 @@ services:
     image: elasticsearch:5.5
     ports:
       - '9400:9200'
+    environment:
+      - bootstrap.memory_lock=true  # https://www.elastic.co/guide/en/elasticsearch/reference/master/setup-configuration-memory.html#mlockall
+#      - ES_JAVA_OPTS=${ES_JAVA_OPTS}
+    env_file: .env
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    mem_limit: 8g
+    volumes:
+       - ${OYE_ELASTIC_DATA}:/usr/share/elasticsearch/data
+
   rabbitmq:
-    image: 'rabbitmq:3-management'
+    image: 'rabbitmq:3'
+    entrypoint: /app/rabbitmq-entrypoint.sh
+    env_file: .env
     ports:
       - '14672:15672'
       - '5472:5672'
     volumes:
+      - ./rabbitmq-entrypoint.sh:/app/rabbitmq-entrypoint.sh
       - rabbit:/var/lib/rabbitmq
       - ./conf/:/etc/rabbitmq/
-    command:  bash -c "sleep 10; rabbitmq-server;"
-  web:
+  web: &web
     image: builder:latest
     entrypoint: /app/docker-entrypoint.sh
-#    command: python manage.py runserver 0.0.0.0:8000
     env_file: .env
     depends_on:
       - redis
       - search
       - rabbitmq
     ports:
-      - '8000:8000'
+      - '8000'
     volumes:
-      - /srv/oye.kolter.it/media:/var/www/oye.kolter.it/media
+      - ${DOCKER_HOST_OYE_MEDIA_ROOT}:${MEDIA_ROOT}
+
+  celeryworker:
+    image: builder:latest
+    env_file: .env
+    depends_on:
+      - redis
+      - rabbitmq
+    entrypoint: /app/celery-entrypoint.sh
+    volumes:
+      - ./celery-entrypoint.sh:/app/celery-entrypoint.sh
+      - ./wait-for-it.sh:/wait-for-it.sh
 
 volumes:
   rabbit:
+    driver: local
+  esdata:
     driver: local

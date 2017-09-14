@@ -19,10 +19,10 @@ RUN wget -O $PRIVATE_KEY http://$host:8080/v1/secrets/file/id_rsa \
 
 RUN pip install gunicorn
 
-RUN wget -O ~/.env http://$host:8080/v1/secrets/file/my_env
+#RUN wget -O ~/.env http://$host:8080/v1/secrets/file/my_env
 EXPOSE 8000
 
-COPY ./docker-entrypoint.sh /
+#COPY ./docker-entrypoint.sh /
 
 RUN mkdir /srv/logs/
 

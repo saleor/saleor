@@ -1,10 +1,10 @@
 #!/bin/bash
-# source /root/.env
 
 TIMEOUT=120
 
 python manage.py migrate                  # Apply database migrations
 python manage.py collectstatic --noinput  # Collect static files
+python manage.py graphql_schema
 
 # Prepare log files and start outputting logs to stdout
 touch /srv/logs/gunicorn.log
