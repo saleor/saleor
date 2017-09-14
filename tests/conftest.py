@@ -5,7 +5,6 @@ from decimal import Decimal
 import pytest
 from django.contrib.auth.models import AnonymousUser, Group, Permission
 from django.utils.encoding import smart_text
-from django.contrib.contenttypes.models import ContentType
 
 from mock import Mock
 

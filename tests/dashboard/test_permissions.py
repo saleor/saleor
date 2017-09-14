@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from django.core.urlresolvers import reverse
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Group
 
 from saleor.userprofile.models import User
 from saleor.dashboard.group.forms import GroupPermissionsForm
@@ -62,8 +62,7 @@ def test_staff_can_access_product_list(
         staff_client, staff_user, permission_view_product):
     assert not staff_user.has_perm("product.view_product")
     staff_user.user_permissions.add(permission_view_product)
-    del staff_user._perm_cache
-    del staff_user._user_perm_cache
+    staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm("product.view_product")
     response = staff_client.get('/dashboard/products/')
     assert response.status_code == 200
@@ -81,8 +80,7 @@ def test_staff_can_access_product_update(
         staff_client, staff_user, product_in_stock, permission_edit_product):
     assert not staff_user.has_perm("product.edit_product")
     staff_user.user_permissions.add(permission_edit_product)
-    del staff_user._perm_cache
-    del staff_user._user_perm_cache
+    staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm("product.edit_product")
     response = staff_client.get(
         "/dashboard/products/%s/update/" % product_in_stock.pk)
@@ -96,9 +94,8 @@ def test_staff_group_member_can_view_products(
     assert response.status_code == 302
     staff_group.permissions.add(permission_view_product)
     staff_user.groups.add(staff_group)
-    del staff_user._perm_cache
-    del staff_user._user_perm_cache
-    # assert staff_user.has_perm("product.view_product")
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("product.view_product")
     response = staff_client.get('/dashboard/products/')
     assert response.status_code == 200
 
@@ -110,22 +107,63 @@ def test_group_permissions_form_not_valid(db):
 
 
 def test_group_create_form_not_valid(admin_client):
-    admin_client.post(
-        reverse('dashboard:group-create'),
-        {'name': 1, 'permissions': 2}
-    )
+    url = reverse('dashboard:group-create')
+    data = {'name': 1, 'permissions': 2}
+    response = admin_client.post(url, data)
     assert Group.objects.all().count() == 0
+    assert response.template_name == 'dashboard/group/detail.html'
 
 
-# def test_group_create_view_not_valid(admin_client, permission_view_product):
-#     admin_client.post(
-#         reverse('dashboard:group-create'),
-#         {'name': 'view product', 'permissions': permission_view_product}
-#     )
-#     assert Group.objects.all().count() == 1
+def test_group_create_form_valid(admin_client, permission_view_product):
+    url = reverse('dashboard:group-create')
+    data = {'name': 'view product', 'permissions': permission_view_product.pk}
+    response = admin_client.post(url, data)
+    assert Group.objects.all().count() == 1
+    assert response['Location'] == '/dashboard/groups'
+
+
+def test_group_detail_form_valid(
+        admin_client, staff_group, permission_view_product):
+    url = '/dashboard/groups/%s/' % staff_group.pk
+    data = {'name': 'view product', 'permissions': permission_view_product.pk}
+    admin_client.post(url, data)
+    assert Group.objects.all().count() == 1
+    assert staff_group.permissions.get(pk=permission_view_product.pk)
 
 
 def test_user_group_form_not_valid(db):
     data = {'groups': 1}
     form = UserGroupForm(data=data)
     assert not form.is_valid()
+
+
+def test_user_group_form_create_valid(
+        admin_client, staff_user, staff_group):
+    url = '/dashboard/staff/%s/' % staff_user.pk
+    data = {'groups': staff_group.pk}
+    admin_client.post(url, data)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.groups.count() == 1
+
+
+def test_user_group_form_create_not_valid(admin_client, staff_user):
+    url = '/dashboard/staff/%s/' % staff_user.pk
+    data = {'groups': 1}
+    admin_client.post(url, data)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.groups.count() == 0
+
+
+def test_delete_group(admin_client, staff_group):
+    assert Group.objects.all().count() == 1
+    url = '/dashboard/groups/%s/delete/' % staff_group.pk
+    data = {'pk': staff_group.pk}
+    response = admin_client.post(url, data)
+    assert Group.objects.all().count() == 0
+    assert response['Location'] == '/dashboard/groups/'
+
+
+def test_delete_group_no_POST(admin_client, staff_group):
+    url = '/dashboard/groups/%s/delete/' % staff_group.pk
+    admin_client.get(url)
+    assert Group.objects.all().count() == 1
