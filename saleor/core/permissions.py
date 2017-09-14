@@ -4,7 +4,7 @@ from django.contrib.auth.models import Permission
 GROUP_PERMISSIONS_MODELS = [
     'product.product',
     'product.category',
-    'product.stocklocation',
+    'product.stock_location',
     'discount.sale',
     'discount.voucher',
     'order.order',

@@ -153,6 +153,36 @@ def permission_edit_product():
 
 
 @pytest.fixture
+def permission_view_category():
+    return Permission.objects.get(codename='view_category')
+
+
+@pytest.fixture
+def permission_view_stock_location():
+    return Permission.objects.get(codename='view_stock_location')
+
+
+@pytest.fixture
+def permission_view_sale():
+    return Permission.objects.get(codename='view_sale')
+
+
+@pytest.fixture
+def permission_view_voucher():
+    return Permission.objects.get(codename='view_voucher')
+
+
+@pytest.fixture
+def permission_view_order():
+    return Permission.objects.get(codename='view_order')
+
+
+@pytest.fixture
+def permission_view_user():
+    return Permission.objects.get(codename='view_user')
+
+
+@pytest.fixture
 def product_class(color_attribute, size_attribute):
     product_class = ProductClass.objects.create(name='Default Class',
                                                 has_variants=False,

@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.contrib import messages
+from django.contrib.auth.decorators import permission_required
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
@@ -24,6 +25,7 @@ from .forms import (CancelGroupForm, CancelItemsForm, CancelOrderForm,
 
 
 @staff_member_required
+@permission_required('order.view_order')
 def order_list(request):
     orders_all = Order.objects.prefetch_related(
         'groups', 'payments', 'groups__items', 'user')
@@ -42,6 +44,7 @@ def order_list(request):
 
 
 @staff_member_required
+@permission_required('order.view_order')
 def order_details(request, order_pk):
     qs = (Order.objects
           .select_related('user', 'shipping_address', 'billing_address')
@@ -76,6 +79,7 @@ def order_details(request, order_pk):
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def order_add_note(request, order_pk):
     order = get_object_or_404(Order, pk=order_pk)
     note = OrderNote(order=order, user=request.user)
@@ -97,6 +101,7 @@ def order_add_note(request, order_pk):
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def capture_payment(request, order_pk, payment_pk):
     order = get_object_or_404(Order, pk=order_pk)
     payment = get_object_or_404(order.payments, pk=payment_pk)
@@ -119,6 +124,7 @@ def capture_payment(request, order_pk, payment_pk):
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def refund_payment(request, order_pk, payment_pk):
     order = get_object_or_404(Order, pk=order_pk)
     payment = get_object_or_404(order.payments, pk=payment_pk)
@@ -141,6 +147,7 @@ def refund_payment(request, order_pk, payment_pk):
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def release_payment(request, order_pk, payment_pk):
     order = get_object_or_404(Order, pk=order_pk)
     payment = get_object_or_404(order.payments, pk=payment_pk)
@@ -158,6 +165,7 @@ def release_payment(request, order_pk, payment_pk):
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def orderline_change_quantity(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
     item = get_object_or_404(OrderedItem.objects.filter(
@@ -188,6 +196,7 @@ def orderline_change_quantity(request, order_pk, line_pk):
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def orderline_split(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
     item = get_object_or_404(OrderedItem.objects.filter(
@@ -223,6 +232,7 @@ def orderline_split(request, order_pk, line_pk):
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def orderline_cancel(request, order_pk, line_pk):
     order = get_object_or_404(Order, pk=order_pk)
     item = get_object_or_404(OrderedItem.objects.filter(
@@ -247,6 +257,7 @@ def orderline_cancel(request, order_pk, line_pk):
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def ship_delivery_group(request, order_pk, group_pk):
     order = get_object_or_404(Order, pk=order_pk)
     group = get_object_or_404(order.groups.all(), pk=group_pk)
@@ -269,6 +280,7 @@ def ship_delivery_group(request, order_pk, group_pk):
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def cancel_delivery_group(request, order_pk, group_pk):
     order = get_object_or_404(Order, pk=order_pk)
     group = get_object_or_404(order.groups.all(), pk=group_pk)
@@ -291,6 +303,7 @@ def cancel_delivery_group(request, order_pk, group_pk):
 
 
 @staff_member_required
+@permission_required('order.view_order')
 def address_view(request, order_pk, address_type):
     order = Order.objects.get(pk=order_pk)
     if address_type == 'shipping':
@@ -314,6 +327,7 @@ def address_view(request, order_pk, address_type):
 
 
 @staff_member_required
+@permission_required('order.edit_order')
 def cancel_order(request, order_pk):
     status = 200
     order = get_object_or_404(Order, pk=order_pk)

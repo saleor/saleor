@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import permission_required
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
@@ -10,6 +11,7 @@ from . import forms
 
 
 @staff_member_required
+@permission_required('discount.view_sale')
 def sale_list(request):
     sales = Sale.objects.prefetch_related('products')
     ctx = {'sales': sales}
@@ -17,6 +19,7 @@ def sale_list(request):
 
 
 @staff_member_required
+@permission_required('discount.edit_sale')
 def sale_edit(request, pk=None):
     if pk:
         instance = get_object_or_404(Sale, pk=pk)
@@ -36,6 +39,7 @@ def sale_edit(request, pk=None):
 
 
 @staff_member_required
+@permission_required('discount.edit_sale')
 def sale_delete(request, pk):
     instance = get_object_or_404(Sale, pk=pk)
     if request.method == 'POST':
@@ -50,6 +54,7 @@ def sale_delete(request, pk):
 
 
 @staff_member_required
+@permission_required('discount.view_voucher')
 def voucher_list(request):
     vouchers = Voucher.objects.select_related('product', 'category')
     ctx = {'vouchers': vouchers}
@@ -58,6 +63,7 @@ def voucher_list(request):
 
 
 @staff_member_required
+@permission_required('discount.edit_voucher')
 def voucher_edit(request, pk=None):
     if pk is not None:
         instance = get_object_or_404(Voucher, pk=pk)
@@ -99,6 +105,7 @@ def voucher_edit(request, pk=None):
 
 
 @staff_member_required
+@permission_required('discount.edit_voucher')
 def voucher_delete(request, pk):
     instance = get_object_or_404(Voucher, pk=pk)
     if request.method == 'POST':

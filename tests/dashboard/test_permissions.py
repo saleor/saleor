@@ -87,7 +87,7 @@ def test_staff_can_access_product_update(
     assert response.status_code == 200
 
 
-def test_staff_group_member_can_view_products(
+def test_staff_group_member_can_view_product_list(
         staff_client, staff_user, staff_group, permission_view_product):
     assert not staff_user.has_perm("product.view_product")
     response = staff_client.get('/dashboard/products/')
@@ -97,6 +97,84 @@ def test_staff_group_member_can_view_products(
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.has_perm("product.view_product")
     response = staff_client.get('/dashboard/products/')
+    assert response.status_code == 200
+
+
+def test_staff_group_member_can_view_category_list(
+        staff_client, staff_user, staff_group, permission_view_category):
+    assert not staff_user.has_perm("product.view_category")
+    response = staff_client.get('/dashboard/categories/')
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_view_category)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("product.view_category")
+    response = staff_client.get('/dashboard/categories/')
+    assert response.status_code == 200
+
+
+def test_staff_group_member_can_view_stock_location_list(
+        staff_client, staff_user, staff_group, permission_view_stock_location):
+    assert not staff_user.has_perm("product.view_stock_location")
+    response = staff_client.get('/dashboard/products/stocklocations/')
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_view_stock_location)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("product.view_stock_location")
+    response = staff_client.get('/dashboard/products/stocklocations/')
+    assert response.status_code == 200
+
+
+def test_staff_group_member_can_view_sale_list(
+        staff_client, staff_user, staff_group, permission_view_sale):
+    assert not staff_user.has_perm("discount.view_sale")
+    response = staff_client.get('/dashboard/discounts/sale/')
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_view_sale)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("discount.view_sale")
+    response = staff_client.get('/dashboard/discounts/sale/')
+    assert response.status_code == 200
+
+
+def test_staff_group_member_can_view_voucher_list(
+        staff_client, staff_user, staff_group, permission_view_voucher):
+    assert not staff_user.has_perm("discount.view_voucher")
+    response = staff_client.get('/dashboard/discounts/voucher/')
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_view_voucher)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("discount.view_voucher")
+    response = staff_client.get('/dashboard/discounts/voucher/')
+    assert response.status_code == 200
+
+
+def test_staff_group_member_can_view_order_list(
+        staff_client, staff_user, staff_group, permission_view_order):
+    assert not staff_user.has_perm("order.view_order")
+    response = staff_client.get('/dashboard/orders/')
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_view_order)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("order.view_order")
+    response = staff_client.get('/dashboard/orders/')
+    assert response.status_code == 200
+
+
+def test_staff_group_member_can_view_customers_list(
+        staff_client, staff_user, staff_group, permission_view_user):
+    assert not staff_user.has_perm("userprofile.view_user")
+    response = staff_client.get('/dashboard/customers/')
+    assert response.status_code == 302
+    staff_group.permissions.add(permission_view_user)
+    staff_user.groups.add(staff_group)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.has_perm("userprofile.view_user")
+    response = staff_client.get('/dashboard/customers/')
     assert response.status_code == 200
 
 

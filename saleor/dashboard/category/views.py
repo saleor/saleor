@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth.decorators import permission_required
 from django.core.urlresolvers import reverse
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -11,6 +12,7 @@ from .forms import CategoryForm
 
 
 @staff_member_required
+@permission_required('product.view_category')
 def category_list(request, root_pk=None):
     root = None
     path = None
@@ -24,6 +26,7 @@ def category_list(request, root_pk=None):
 
 
 @staff_member_required
+@permission_required('product.edit_category')
 def category_create(request, root_pk=None):
     category = Category()
     form = CategoryForm(request.POST or None, parent_pk=root_pk)
@@ -42,6 +45,7 @@ def category_create(request, root_pk=None):
 
 
 @staff_member_required
+@permission_required('product.edit_category')
 def category_edit(request, root_pk=None):
     category = get_object_or_404(Category, pk=root_pk)
     form = CategoryForm(request.POST or None, instance=category,
@@ -65,6 +69,7 @@ def category_edit(request, root_pk=None):
 
 
 @staff_member_required
+@permission_required('product.edit_category')
 def category_delete(request, pk):
     category = get_object_or_404(Category, pk=pk)
     if request.method == 'POST':
