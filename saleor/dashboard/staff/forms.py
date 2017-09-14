@@ -4,7 +4,7 @@ from django.contrib.admin import widgets
 from ...userprofile.models import User
 
 
-class GroupForm(forms.ModelForm):
+class UserGroupForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['groups']

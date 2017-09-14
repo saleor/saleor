@@ -21,18 +21,35 @@
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
-      <a href="{% url "dashboard:groups-list" %}">
+      <a href="{% url "dashboard:group-list" %}">
         {% trans "Groups" context "Dashboard groups list" %}
       </a>
     </li>
     <li class="back-mobile">
-      <a href="{% url "dashboard:groups-list" %}">
+      <a href="{% url "dashboard:group-list" %}">
         <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
     <li><span class="breadcrumbs--elipsed-item">{{ group }}</span></li>
   </ul>
 {% endblock %}
+
+{% block header_extra %}
+  {% if group.pk %}
+    <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
+      <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
+    </a>
+    <ul id="context-menu" class="dropdown-content">
+      <li>
+        <a href="#base-modal" data-href="{% url 'dashboard:group-delete' pk=group.pk %}"
+        class="modal-trigger-custom">
+          {% trans "Remove group" context "Group form action" %}
+        </a>
+      </li>
+    </ul>
+  {% endif %}
+{% endblock %}
+
 
 {% block content %}
   <div class="row">
@@ -55,7 +72,7 @@
               </div>
             </div>
             <div class="card-action right-align">
-              <a href="{% url 'dashboard:groups-list' %}" class="btn btn-flat">
+              <a href="{% url 'dashboard:group-list' %}" class="btn btn-flat">
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">

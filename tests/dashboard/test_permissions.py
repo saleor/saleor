@@ -1,6 +1,11 @@
 from __future__ import unicode_literals
 
+from django.core.urlresolvers import reverse
+from django.contrib.auth.models import Group, Permission
+
 from saleor.userprofile.models import User
+from saleor.dashboard.group.forms import GroupPermissionsForm
+from saleor.dashboard.staff.forms import UserGroupForm
 
 
 def test_superuser_permissions(admin_user):
@@ -96,3 +101,31 @@ def test_staff_group_member_can_view_products(
     # assert staff_user.has_perm("product.view_product")
     response = staff_client.get('/dashboard/products/')
     assert response.status_code == 200
+
+
+def test_group_permissions_form_not_valid(db):
+    data = {'name': 1, 'permissions': 2}
+    form = GroupPermissionsForm(data=data)
+    assert not form.is_valid()
+
+
+def test_group_create_form_not_valid(admin_client):
+    admin_client.post(
+        reverse('dashboard:group-create'),
+        {'name': 1, 'permissions': 2}
+    )
+    assert Group.objects.all().count() == 0
+
+
+# def test_group_create_view_not_valid(admin_client, permission_view_product):
+#     admin_client.post(
+#         reverse('dashboard:group-create'),
+#         {'name': 'view product', 'permissions': permission_view_product}
+#     )
+#     assert Group.objects.all().count() == 1
+
+
+def test_user_group_form_not_valid(db):
+    data = {'groups': 1}
+    form = UserGroupForm(data=data)
+    assert not form.is_valid()

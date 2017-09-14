@@ -4,7 +4,7 @@ from . import views as core_views
 from .category.urls import urlpatterns as category_urls
 from .customer.urls import urlpatterns as customer_urls
 from .staff.urls import urlpatterns as staff_urls
-from .groups.urls import urlpatterns as groups_urls
+from .group.urls import urlpatterns as groups_urls
 from .order.urls import urlpatterns as order_urls
 from .product.urls import urlpatterns as product_urls
 from .discount.urls import urlpatterns as discount_urls

@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 
-from .forms import GroupForm
+from .forms import UserGroupForm
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items
 from ...userprofile.models import User
@@ -26,7 +26,7 @@ def staff_details(request, pk):
     queryset = User.objects.filter(is_staff=True)
     staff_member = get_object_or_404(queryset, pk=pk)
 
-    form = GroupForm(request.POST or None, instance=staff_member)
+    form = UserGroupForm(request.POST or None, instance=staff_member)
     if form.is_valid():
         form.save()
 

@@ -4,7 +4,7 @@ from django.contrib.auth.models import Group
 from ...core.permissions import get_permissions
 
 
-class PermissionsForm(forms.ModelForm):
+class GroupPermissionsForm(forms.ModelForm):
     class Meta:
         model = Group
         fields = ['name', 'permissions']
