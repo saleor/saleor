@@ -1,4 +1,4 @@
-# coding: utf-8
+ # coding: utf-8
 from __future__ import unicode_literals
 
 from decimal import Decimal
@@ -18,7 +18,7 @@ from saleor.product.models import (AttributeChoiceValue, Category, Product,
 from saleor.shipping.models import ShippingMethod
 from saleor.site.models import SiteSettings, AuthorizationKey
 from saleor.userprofile.models import Address, User
-
+from saleor.wishlist.models import Wishlist
 
 @pytest.fixture
 def cart(db):  # pylint: disable=W0613

@@ -4,6 +4,7 @@ import pytest
 from saleor.product.models import AttributeChoiceValue, ProductVariant
 from saleor.wishlist.models import Wishlist, WishlistItem, WishlistNotification
 from saleor.wishlist import utils
+from saleor.discount.models import Sale
 
 
 @pytest.fixture()
@@ -124,8 +125,7 @@ def test_create_notifications(wishlist_with_items, wishlist_item_available,
     ).variant == available_variant
     wishlist_item_available.refresh_from_db()
     assert wishlist_item_available.watch
-    utils.clear_notifications()
-    utils.create_notifications()
+    utils.update_notifications()
     wishlist_item_available.refresh_from_db()
     assert not wishlist_item_available.watch
 
@@ -139,3 +139,26 @@ def test_get_wishlists_with_notifications(available_variant, wishlist,
     wishlists = utils.get_wishlists_with_notifications()
     assert wishlists.count() == 1
     assert wishlists.first() == wishlist
+
+
+def test_add_variant_to_user_wishlist(available_variant, customer_user):
+    is_added = utils.add_variant_to_user_wishlist(
+    customer_user, available_variant)
+    assert is_added
+    is_added = utils.add_variant_to_user_wishlist(
+    customer_user, available_variant)
+    assert not is_added
+
+def test_wishlist_item_info(wishlist_item_available, wishlist_item_missing_variant):
+    info = utils.wishlist_item_info(wishlist_item_available)
+    assert info.get('variant_name') == 'Size: Big'
+    assert info.get('available')
+
+def test_wishlist_items_with_availability(wishlist_item_unavailable, wishlist_item_available):
+    discounts = Sale.objects.all()
+    items = list(utils.wishlist_items_with_availability([wishlist_item_unavailable, wishlist_item_available], discounts))
+    assert len(items) == 2
+    # check availability for items
+    assert not items[0][1].available
+    assert items[1][1].available
+
