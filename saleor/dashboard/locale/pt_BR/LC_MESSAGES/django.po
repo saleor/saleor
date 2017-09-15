@@ -2,20 +2,21 @@
 # Copyright (C) 2017 Mirumee Software
 # This file is distributed under the same license as the Saleor package.
 # Mirumee Software <hello@mirumee.com>, 2017.
-# 
+#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-23 09:28-0500\n"
+"POT-Creation-Date: 2017-09-15 16:21+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Rafael Lima <rafael.liverpool@gmail.com>, 2017\n"
-"Language-Team: Portuguese (Brazil) (https://www.transifex.com/mirumee/teams/34782/pt_BR/)\n"
+"Language-Team: Portuguese (Brazil) (https://www.transifex.com/mirumee/"
+"teams/34782/pt_BR/)\n"
+"Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: pt_BR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: saleor/dashboard/category/views.py:35
@@ -135,7 +136,15 @@ msgctxt "Delivery group value for `target_group` field"
 msgid "New shipment"
 msgstr "Novo envio"
 
-#: saleor/dashboard/order/forms.py:192
+#: saleor/dashboard/order/forms.py:172
+#, fuzzy
+#| msgctxt "Move items form label"
+#| msgid "Quantity"
+msgctxt "Change quantity form label"
+msgid "Quantity"
+msgstr "Quantidade"
+
+#: saleor/dashboard/order/forms.py:194
 #, python-format
 msgctxt "Change quantity form error"
 msgid "Only %(remaining)d remaining in stock."
@@ -143,59 +152,59 @@ msgid_plural "Only %(remaining)d remaining in stock."
 msgstr[0] "Apenas  %(remaining)d disponível no estoque."
 msgstr[1] "Apenas  %(remaining)d disponíveis no estoque."
 
-#: saleor/dashboard/order/forms.py:218
+#: saleor/dashboard/order/forms.py:220
 msgctxt "Ship group form field placeholder"
 msgid "Parcel tracking number"
 msgstr "Número de rastreamento"
 
-#: saleor/dashboard/order/forms.py:225
+#: saleor/dashboard/order/forms.py:227
 msgctxt "Ship group form error"
 msgid "Cannot ship this group"
 msgstr "Não é possível enviar este grupo"
 
-#: saleor/dashboard/order/forms.py:262
+#: saleor/dashboard/order/forms.py:264
 msgctxt "Cancel order form error"
 msgid "This order can't be cancelled"
 msgstr "Este pedido não pode ser cancelado"
 
-#: saleor/dashboard/order/forms.py:281
+#: saleor/dashboard/order/forms.py:283
 msgctxt "Remove voucher form error"
 msgid "This order has no voucher"
 msgstr "Este pedido não possui cupom"
 
-#: saleor/dashboard/order/forms.py:294
+#: saleor/dashboard/order/forms.py:296
 msgctxt "Order status field value"
 msgid "All"
 msgstr "Tudo"
 
-#: saleor/dashboard/order/forms.py:299
+#: saleor/dashboard/order/forms.py:301
 msgctxt "Payment status field value"
 msgid "All"
 msgstr "Tudo"
 
-#: saleor/dashboard/order/views.py:86
+#: saleor/dashboard/order/views.py:87
 msgctxt "Dashboard message related to an order"
 msgid "Added note"
 msgstr "Nota criada"
 
-#: saleor/dashboard/order/views.py:108
+#: saleor/dashboard/order/views.py:109
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Captured %(amount)s"
 msgstr "Recebido  %(amount)s"
 
-#: saleor/dashboard/order/views.py:130
+#: saleor/dashboard/order/views.py:131
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Refunded %(amount)s"
 msgstr "Reinstituído %(amount)s"
 
-#: saleor/dashboard/order/views.py:147
+#: saleor/dashboard/order/views.py:148
 msgctxt "Dashboard message"
 msgid "Released payment"
 msgstr "Pagamento lançado"
 
-#: saleor/dashboard/order/views.py:171
+#: saleor/dashboard/order/views.py:175
 #, python-format
 msgctxt "Dashboard message related to an order line"
 msgid ""
@@ -205,12 +214,12 @@ msgstr ""
 "A quantidade do produto  %(product)s mudou de  %(old_quantity)s para  "
 "%(new_quantity)s "
 
-#: saleor/dashboard/order/views.py:202
+#: saleor/dashboard/order/views.py:207
 msgctxt "Dashboard message related to a delivery group"
 msgid "removed group"
 msgstr "grupo removido"
 
-#: saleor/dashboard/order/views.py:205
+#: saleor/dashboard/order/views.py:210
 #, python-format
 msgctxt "Dashboard message related to delivery groups"
 msgid "Moved %(how_many)s items %(item)s from %(old_group)s to %(new_group)s"
@@ -218,40 +227,40 @@ msgstr ""
 "Foi transferido  %(how_many)s itens  %(item)s de  %(old_group)s para  "
 "%(new_group)s"
 
-#: saleor/dashboard/order/views.py:229
+#: saleor/dashboard/order/views.py:234
 #, python-format
 msgctxt "Dashboard message related to an order line"
 msgid "Cancelled item %s"
 msgstr "Item %s cancelado"
 
-#: saleor/dashboard/order/views.py:254
+#: saleor/dashboard/order/views.py:259
 #, python-format
 msgctxt "Dashboard message related to a delivery group"
 msgid "Shipped %s"
 msgstr "Enviado %s"
 
-#: saleor/dashboard/order/views.py:276
+#: saleor/dashboard/order/views.py:281
 #, python-format
 msgctxt "Dashboard message related to a delivery group"
 msgid "Cancelled %s"
 msgstr "Cancelado %s"
 
-#: saleor/dashboard/order/views.py:294
+#: saleor/dashboard/order/views.py:299
 msgctxt "Dashboard message"
 msgid "Updated shipping address"
 msgstr "Endereço de entrega atualizado"
 
-#: saleor/dashboard/order/views.py:299
+#: saleor/dashboard/order/views.py:304
 msgctxt "Dashboard message"
 msgid "Updated billing address"
 msgstr "Endereço de cobrnaça atualziado"
 
-#: saleor/dashboard/order/views.py:316
+#: saleor/dashboard/order/views.py:321
 msgctxt "Dashboard message"
 msgid "Cancelled order"
 msgstr "Pedido cancelado"
 
-#: saleor/dashboard/order/views.py:335
+#: saleor/dashboard/order/views.py:340
 msgctxt "Dashboard message"
 msgid "Removed voucher from order"
 msgstr "Cupom removido do pedido"

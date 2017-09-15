@@ -13,8 +13,8 @@
   },
   "homepage": "http://getsaleor.com/",
   "engines": {
-    "node": "*",
-    "yarn": "*"
+    "node": "6.x",
+    "yarn": "0.20.x"
   },
   "dependencies": {
     "bootstrap": "^4.0.0-beta",
