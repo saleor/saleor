@@ -151,7 +151,6 @@ def test_add_variant_to_user_wishlist(available_variant, customer_user):
 
 def test_wishlist_item_info(wishlist_item_available, wishlist_item_missing_variant):
     info = utils.wishlist_item_info(wishlist_item_available)
-    assert info.get('variant_name') == 'Size: Big'
     assert info.get('available')
 
 def test_wishlist_items_with_availability(wishlist_item_unavailable, wishlist_item_available):
