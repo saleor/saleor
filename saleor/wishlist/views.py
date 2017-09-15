@@ -49,6 +49,7 @@ def public_wishlist(request, token):
 
     return TemplateResponse(request, 'wishlist/list.html', ctx)
 
+
 @require_POST
 @login_required
 def add_wishlist_item(request):
@@ -65,8 +66,8 @@ def add_wishlist_item(request):
         product = get_object_or_404(Product, pk=request.POST.get('product'))
         added = utils.add_to_user_wishlist(request.user, product, attributes)
     if added:
-        messages.success(request, pgettext_lazy('wishlist', 
-            'New item added into list'))
+        messages.success(request, pgettext_lazy('wishlist',
+                                                'New item added into list'))
         return JsonResponse(status=201, data={})
     messages.info(request, pgettext_lazy('wishlist', 
         'Item already in wishlist'))
@@ -83,8 +84,8 @@ def delete_wishlist_item(request, item_pk):
         wishlist__user=request.user), pk=item_pk)
     if request.method == 'POST':
         item.delete()
-        messages.success(request, pgettext_lazy('wishlist', 
-            'Item removed from list'))
+        messages.success(request, pgettext_lazy('wishlist',
+                                                'Item removed from list'))
         return redirect('wishlist:user-wishlist')
     ctx = {'item': item,
            'item_name': '%s - %s' % (item.product,

@@ -1,7 +1,6 @@
 import $ from 'jquery';
 import { observer } from 'mobx-react';
 import React, { Component, PropTypes } from 'react';
-
 @observer
 export default class WishlistButton extends Component {
 

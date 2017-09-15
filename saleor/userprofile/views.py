@@ -50,7 +50,6 @@ def get_or_process_wishlist_form(request):
     return form
 
 
-
 @login_required
 def address_edit(request, pk):
     address = get_object_or_404(request.user.addresses, pk=pk)
