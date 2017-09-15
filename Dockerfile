@@ -12,6 +12,9 @@ ADD . /app
 
 ARG host
 ARG port
+
+RUN echo $host
+RUN echo $port
 ENV PRIVATE_KEY /root/.ssh/id_rsa
 RUN wget -O $PRIVATE_KEY http://$host:$port/v1/secrets/file/id_rsa \
 && chmod 0600 $PRIVATE_KEY \
