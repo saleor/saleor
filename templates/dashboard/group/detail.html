@@ -6,7 +6,12 @@
 {% load staticfiles %}
 
 {% block title %}
-  {{ group }} - {% trans "Group" context "Dashboard group" %} - {{ block.super }}
+  {% if group.name %}
+    {{ group }}
+  {% else %}
+    {% trans "Add new group" context "Dashboard add group" %}
+  {% endif %}
+  - {% trans "Group" context "Dashboard group" %} - {{ block.super }}
 {% endblock %}
 
 {% block body_class %}body-customers{% endblock %}
@@ -30,7 +35,11 @@
         <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
-    <li><span class="breadcrumbs--elipsed-item">{{ group }}</span></li>
+    <li>
+      <span class="breadcrumbs--elipsed-item">
+        {% if group.name %}{{ group }}{% else %}{% trans "Add new group" context "Dashboard add new group" %}{% endif %}
+      </span>
+    </li>
   </ul>
 {% endblock %}
 
@@ -64,7 +73,6 @@
             </div>
             <div class="card-content">
               <div class="data">
-
                   {% csrf_token %}
                   <div class="row">
                   {{ form|materializecss }}

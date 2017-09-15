@@ -79,10 +79,8 @@ def staff_user(db):
 
 
 @pytest.fixture()
-def staff_client(staff_user):
+def staff_client(client, staff_user):
     """A Django test client logged in as an staff member"""
-    from django.test.client import Client
-    client = Client()
     client.login(username=staff_user.email, password='password')
     return client
 

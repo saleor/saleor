@@ -21,12 +21,12 @@
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
-      <a href="{% url "dashboard:staff" %}">
+      <a href="{% url "dashboard:staff-list" %}">
         {% trans "Staff" context "Dashboard staff list" %}
       </a>
     </li>
     <li class="back-mobile">
-      <a href="{% url "dashboard:staff" %}">
+      <a href="{% url "dashboard:staff-list" %}">
         <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>

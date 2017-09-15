@@ -12,10 +12,6 @@ GROUP_PERMISSIONS_MODELS = [
 ]
 
 
-def get_user_groups(user):
-    return {'groups': list(user.groups.values_list('name', flat=True))}
-
-
 def get_permissions():
     codenames = []
     for group_permission in GROUP_PERMISSIONS_MODELS:
