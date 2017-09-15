@@ -10,7 +10,7 @@ from saleor.cart.models import Cart
 from saleor.cart import CartStatus, utils
 from saleor.product import models
 from saleor.product.utils import get_attributes_display_map
-from saleor.product.utils import get_availability
+from saleor.product.utils import get_availability, get_variant_availability
 from tests.utils import filter_products_by_attribute
 
 
@@ -303,3 +303,17 @@ def test_get_attributes_display_map_no_choices(product_in_stock):
         product_in_stock, attributes)
 
     assert attributes_display_map == {product_attr.pk: smart_text(-1)}
+
+def test_get_availability_variant(product_in_stock, monkeypatch, settings):
+    variant = product_in_stock.variants.get()
+    availability = get_variant_availability(variant)
+    assert availability.price_range == product_in_stock.get_price_range()
+    assert availability.price_range_local_currency is None
+    monkeypatch.setattr(
+        'django_prices_openexchangerates.models.get_rates',
+        lambda c: {'PLN': Mock(rate=2)})
+    settings.DEFAULT_COUNTRY = 'PL'
+    settings.OPENEXCHANGERATES_API_KEY = 'fake-key'
+    availability = get_variant_availability(variant, local_currency='PLN')
+    assert availability.price_range_local_currency.min_price.currency == 'PLN'
+    assert availability.available
