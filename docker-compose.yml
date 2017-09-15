@@ -3,12 +3,12 @@ services:
   redis:
     image: redis
     ports:
-      - '6479:6379'
+      - 6379
 
   search:
     image: elasticsearch:5.5
     ports:
-      - '9400:9200'
+      - 9200
     environment:
       - bootstrap.memory_lock=true  # https://www.elastic.co/guide/en/elasticsearch/reference/master/setup-configuration-memory.html#mlockall
 #      - ES_JAVA_OPTS=${ES_JAVA_OPTS}
@@ -30,7 +30,7 @@ services:
     env_file: .env
     ports:
       - '14672:15672'
-      - '5472:5672'
+      - 5672
     volumes:
       - ./rabbitmq-entrypoint.sh:/app/rabbitmq-entrypoint.sh
       - rabbit:/var/lib/rabbitmq
@@ -44,7 +44,7 @@ services:
       - search
       - rabbitmq
     ports:
-      - '8000'
+      - '8001:8000'
     volumes:
       - ${DOCKER_HOST_OYE_MEDIA_ROOT}:${MEDIA_ROOT}
 
