@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load slice from shop %}
+{% load static from staticfiles %}
+{% load bootstrap_pagination from bootstrap3 %}
+{% load product_first_image from product_images %}
+{% load price_range from price_ranges %}
+
+
+{% block title %}Wishlist — {{ block.super }}{% endblock %}
+
+{% block breadcrumb %}
+  {{ block.super }}
+  {% for breadcrumb in breadcrumbs %}
+    <li{% if forloop.last %} class="active"{% endif %}>
+    {% if not forloop.last %}
+      <a href="{{ breadcrumb.get_absolute_url }}">{{ breadcrumb }}</a>
+    {% else %}
+      <span>{{ breadcrumb }}</span>
+    {% endif %}
+  </li>
+  {% endfor %}
+{% endblock breadcrumb %}
+
+{% block content %}
+  <h1>{% trans 'Wishlist' context "wishlist" %}</h1>
+  {% if wishlist.user == user %}
+  <p>
+    {% trans "Change settings of your wishlist" context "wishlist" %} <a href="{% url "profile:details" %}#wishlist">{% trans "here" context "wishlist" %}</a>.
+  </p>
+  {% endif %}
+  <div>
+    <div class="row">
+      {% include "wishlist/_items.html" %}
+    </div>
+    {% if items_page.has_other_pages %}
+    {% bootstrap_pagination items_page %}
+    {% endif %}
+  </div>
+  <div class="modal fade" id="base-modal" tabindex="-1" role="dialog" ></div>
+{% endblock content %}

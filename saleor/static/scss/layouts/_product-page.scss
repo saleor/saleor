@@ -3,6 +3,9 @@
     color: $darken-gray;
     text-decoration: underline;
   }
+  #add-to-wishlist {
+    float: right;
+  }
   &__info {
     h3 {
       text-transform: uppercase;
@@ -83,7 +86,7 @@
         }
         &.active {
           img {
-            opacity: 0.5;  
+            opacity: 0.5;
           }
         }
       }

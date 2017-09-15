@@ -17,6 +17,7 @@ from .product.urls import urlpatterns as product_urls
 from .registration.urls import urlpatterns as registration_urls
 from .search.urls import urlpatterns as search_urls
 from .userprofile.urls import urlpatterns as userprofile_urls
+from .wishlist.urls import urlpatterns as wishlist_urls
 
 urlpatterns = [
     url(r'^', include(core_urls)),
@@ -33,6 +34,7 @@ urlpatterns = [
     url(r'^feeds/', include(feed_urls, namespace='data_feeds')),
     url(r'^sitemap\.xml$', sitemap, {'sitemaps': sitemaps},
         name='django.contrib.sitemaps.views.sitemap'),
+    url(r'^wishlist/', include(wishlist_urls, namespace='wishlist')),
     url(r'', include('payments.urls')),
     url('', include('social_django.urls', namespace='social')),
 ]
