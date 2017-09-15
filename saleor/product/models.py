@@ -376,8 +376,8 @@ class ProductAttribute(models.Model):
     def __str__(self):
         return self.name
 
-    def get_formfield_name(self, allow_unicode=True):
-        return slugify('attribute-%s' % self.slug, allow_unicode=allow_unicode)
+    def get_formfield_name(self):
+        return slugify('attribute-%s' % self.slug, allow_unicode=True)
 
     def has_values(self):
         return self.values.exists()
