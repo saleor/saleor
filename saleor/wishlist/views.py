@@ -32,9 +32,9 @@ def public_wishlist(request, token):
     View with items added to wishlist. If wishlist is private, only it's owner
     can see this page.
     """
-    wishlist_query = Wishlist.objects.all().filter(Q(user__pk=request.user.pk)|
-                                                   Q(public=True))
-    wishlist = get_object_or_404(wishlist_query, token=token)
+    query = Wishlist.objects.all()
+    query = query.filter(Q(user__pk=request.user.pk) | Q(public=True))
+    wishlist = get_object_or_404(query, token=token)
     items = WishlistItem.objects.all().filter(
         wishlist=wishlist).select_related(
         'product__product_class').prefetch_related(
@@ -48,7 +48,6 @@ def public_wishlist(request, token):
     ctx = {'wishlist': wishlist, 'items': items, 'items_page': items_page}
 
     return TemplateResponse(request, 'wishlist/list.html', ctx)
-
 
 @require_POST
 @login_required
@@ -66,9 +65,11 @@ def add_wishlist_item(request):
         product = get_object_or_404(Product, pk=request.POST.get('product'))
         added = utils.add_to_user_wishlist(request.user, product, attributes)
     if added:
-        messages.success(request, pgettext_lazy('wishlist', 'New item added into list'))
+        messages.success(request, pgettext_lazy('wishlist', 
+            'New item added into list'))
         return JsonResponse(status=201, data={})
-    messages.info(request, pgettext_lazy('wishlist', 'Item already in wishlist'))
+    messages.info(request, pgettext_lazy('wishlist', 
+        'Item already in wishlist'))
     return JsonResponse(data={})
 
 
@@ -82,7 +83,8 @@ def delete_wishlist_item(request, item_pk):
         wishlist__user=request.user), pk=item_pk)
     if request.method == 'POST':
         item.delete()
-        messages.success(request, pgettext_lazy('wishlist', 'Item removed from list'))
+        messages.success(request, pgettext_lazy('wishlist', 
+            'Item removed from list'))
         return redirect('wishlist:user-wishlist')
     ctx = {'item': item,
            'item_name': '%s - %s' % (item.product,

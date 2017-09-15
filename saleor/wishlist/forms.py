@@ -29,4 +29,3 @@ class WishlistSettingsForm(forms.ModelForm):
         if commit:
             obj.save()
         return obj
-

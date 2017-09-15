@@ -9,7 +9,7 @@ class VariantPickerStore {
   }
 
   setSelection(selection) {
-      this.selection = selection ? selection : {};
+    this.selection = selection || {};
   }
 
   @computed get isEmpty() {
