@@ -11,8 +11,8 @@ from django.utils.translation import pgettext_lazy
 from ...product.models import (
     AttributeChoiceValue, Product, ProductAttribute, ProductClass,
     ProductImage, ProductVariant, Stock, StockLocation, VariantImage)
-from .widgets import ImagePreviewWidget
 from ...search import index as search_index
+from .widgets import ImagePreviewWidget
 
 
 class ProductClassSelectorForm(forms.Form):
@@ -288,3 +288,18 @@ class AttributeChoiceValueForm(forms.ModelForm):
 AttributeChoiceValueFormset = inlineformset_factory(
     ProductAttribute, AttributeChoiceValue, form=AttributeChoiceValueForm,
     extra=1)
+
+
+class UploadImageForm(forms.ModelForm):
+    class Meta:
+        model = ProductImage
+        fields = ('image', )
+
+    def __init__(self, *args, **kwargs):
+        self.product = kwargs.pop('product')
+        super(UploadImageForm, self).__init__(*args, **kwargs)
+
+    def save(self, commit=True):
+        image = super(UploadImageForm, self).save(commit=commit)
+        image.product = self.product
+        return image.save()

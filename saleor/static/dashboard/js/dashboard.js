@@ -134,7 +134,7 @@ $(document).ready(function () {
   });
 });
 Dropzone.options.productImageForm = {
-  paramName: 'image',
+  paramName: 'image_0',
   maxFilesize: 20,
   previewsContainer: '.product-gallery',
   thumbnailWidth: 400,

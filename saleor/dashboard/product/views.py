@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import json
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.http import JsonResponse
@@ -7,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url
 from django.utils.translation import pgettext_lazy
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_POST
 
 from ...core.utils import get_paginator_items
 from ...product.models import (
@@ -555,3 +556,36 @@ def stock_location_delete(request, location_pk):
         request,
         'dashboard/product/stock_location/modal_confirm_delete.html',
         ctx)
+
+
+@require_POST
+@staff_member_required
+def ajax_reorder_product_images(request, product_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    data = json.loads(request.body)
+    order = data["order"]
+    for order, pk in enumerate(order):
+        try:
+            img = product.images.get(pk=pk)
+        except ProductImage.DoesNotExist:
+            pass
+        else:
+            img.order = order
+            img.save()
+    return JsonResponse({}, status=200)
+
+
+@require_POST
+@staff_member_required
+def ajax_upload_image(request, product_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    form = forms.UploadImageForm(
+        request.POST or None, request.FILES or None, product=product)
+    status = 200
+    if form.is_valid():
+        image = form.save()
+        ctx = {'id': image.pk, 'image': image, 'order': image.order}
+    elif form.errors:
+        status = 400
+        ctx = {'errors': form.errors}
+    return JsonResponse(ctx, status=200)

@@ -12,7 +12,6 @@ django-payments>=0.11.0
 django-prices>=0.4.11
 django-prices-openexchangerates>=0.1.12
 django-redis>=4.0.0
-djangorestframework>=3.1
 django-storages>=1.4.1
 django-templated-email>=2.2.0
 django-versatileimagefield>=1.0.1
