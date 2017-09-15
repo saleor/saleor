@@ -1,9 +1,9 @@
 import $ from 'jquery';
 import { observer } from 'mobx-react';
 import React, { Component, PropTypes } from 'react';
+
 @observer
 export default class WishlistButton extends Component {
-
   static propTypes = {
     product: PropTypes.string.isRequired,
     variantStore: PropTypes.object.isRequired,

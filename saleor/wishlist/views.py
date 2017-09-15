@@ -69,8 +69,8 @@ def add_wishlist_item(request):
         messages.success(request, pgettext_lazy('wishlist',
                                                 'New item added into list'))
         return JsonResponse(status=201, data={})
-    messages.info(request, pgettext_lazy('wishlist', 
-        'Item already in wishlist'))
+    messages.info(request, pgettext_lazy('wishlist',
+                                        'Item already in wishlist'))
     return JsonResponse(data={})
 
 
