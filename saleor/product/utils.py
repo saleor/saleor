@@ -101,18 +101,19 @@ def get_discount(price_range, undiscounted):
         discount = undiscounted.min_price - price_range.min_price
     else:
         discount = None
+    return discount
 
 
 def get_local_price_and_discount(price_range, undiscounted, local_currency):
-        price_range_local = to_local_currency(price_range, local_currency)
-        undiscounted_local = to_local_currency(undiscounted, local_currency)
-        if (undiscounted_local and
-                undiscounted_local.min_price > price_range_local.min_price):
-            discount_local_currency = (
-                undiscounted_local.min_price - price_range_local.min_price)
-        else:
-            discount_local_currency = None
-        return discount_local_currency, price_range_local
+    price_range_local = to_local_currency(price_range, local_currency)
+    undiscounted_local = to_local_currency(undiscounted, local_currency)
+    if (undiscounted_local and
+            undiscounted_local.min_price > price_range_local.min_price):
+        discount_local_currency = (
+            undiscounted_local.min_price - price_range_local.min_price)
+    else:
+        discount_local_currency = None
+    return discount_local_currency, price_range_local
 
 
 def get_variant_availability(variant, discounts=None, local_currency=None):

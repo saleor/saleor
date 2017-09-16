@@ -21,7 +21,7 @@ def details(request):
            'orders': request.user.orders.prefetch_related('groups__items'),
            'change_password_form': password_form,
            'wishlist_form': wishlist_form
-           }
+          }
 
     return TemplateResponse(request, 'userprofile/details.html', ctx)
 

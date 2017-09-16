@@ -5,10 +5,9 @@ from django.db.models import Count
 from django.utils.encoding import smart_text
 
 from ..core.utils import build_absolute_uri
-from ..product.models import Product, ProductVariant
+from ..product.models import ProductVariant
 from ..product.utils import (
     get_availability, get_variant_availability, get_variant_url)
-from ..userprofile.models import User
 from .models import Wishlist, WishlistItem, WishlistNotification
 
 
