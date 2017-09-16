@@ -190,7 +190,6 @@ def get_cart_from_request(request, cart_queryset=Cart.objects.all()):
     :type request: django.http.HttpRequest
     :rtype: Cart
     """
-    discounts = request.discounts
     if request.user.is_authenticated():
         cart = get_user_cart(request.user, cart_queryset)
         user = request.user
@@ -199,10 +198,9 @@ def get_cart_from_request(request, cart_queryset=Cart.objects.all()):
         cart = get_anonymous_cart_from_token(token, cart_queryset)
         user = None
     if cart is not None:
-        cart.discounts = discounts
         return cart
     else:
-        return Cart(user=user, discounts=discounts)
+        return Cart(user=user)
 
 
 def get_or_create_db_cart(cart_queryset=Cart.objects.all()):
