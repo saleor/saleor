@@ -3,12 +3,9 @@ build:
   version: 2016-03-14 # version of the build schema.
   steps:
     builder:
-      name: builder
+      name: oyelogic
       dockerfile: Dockerfile
       secrets:
         id_rsa:
           type: file
-          value: /Users/tillkolter/.ssh/id_rsa
-        my_env:
-          type: file
-          value: ./.env
+          value: _env(HOME)/.ssh/id_rsa

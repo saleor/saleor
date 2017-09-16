@@ -11,22 +11,17 @@ RUN mkdir ~/.ssh && ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
 ADD . /app
 
 ARG host
-ARG port
 
-RUN echo $host
-RUN echo $port
 ENV PRIVATE_KEY /root/.ssh/id_rsa
-RUN wget -O $PRIVATE_KEY http://$host:$port/v1/secrets/file/id_rsa \
+
+RUN wget -O $PRIVATE_KEY http://$host:8080/v1/secrets/file/id_rsa \
 && chmod 0600 $PRIVATE_KEY \
 && pip install -r app/requirements.txt \
 && rm $PRIVATE_KEY
 
 RUN pip install gunicorn
 
-#RUN wget -O ~/.env http://$host:8080/v1/secrets/file/my_env
 EXPOSE 8000
-
-#COPY ./docker-entrypoint.sh /
 
 RUN mkdir /srv/logs/
 

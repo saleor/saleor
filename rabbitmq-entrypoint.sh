@@ -15,7 +15,7 @@ then
    rabbitmqctl set_permissions -p / admin  ".*" ".*" ".*"
 
    rabbitmqctl add_user ${RABBITMQ_USER} ${RABBITMQ_PASSWORD}
-   rabbitmqctl set_permissions -p / app  ".*" ".*" ".*"
+   rabbitmqctl set_permissions -p / ${RABBITMQ_USER}  ".*" ".*" ".*"
    echo "setup completed"
 else
    echo "already setup"

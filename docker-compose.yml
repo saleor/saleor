@@ -1,9 +1,11 @@
 version: '2'
 services:
+  
   redis:
     image: redis
     ports:
       - 6379
+    network_mode: "host"
 
   search:
     image: elasticsearch:5.5
@@ -11,7 +13,6 @@ services:
       - 9200
     environment:
       - bootstrap.memory_lock=true  # https://www.elastic.co/guide/en/elasticsearch/reference/master/setup-configuration-memory.html#mlockall
-#      - ES_JAVA_OPTS=${ES_JAVA_OPTS}
     env_file: .env
     ulimits:
       memlock:
@@ -23,6 +24,7 @@ services:
     mem_limit: 8g
     volumes:
        - ${OYE_ELASTIC_DATA}:/usr/share/elasticsearch/data
+    network_mode: "host"
 
   rabbitmq:
     image: 'rabbitmq:3'
@@ -35,8 +37,10 @@ services:
       - ./rabbitmq-entrypoint.sh:/app/rabbitmq-entrypoint.sh
       - rabbit:/var/lib/rabbitmq
       - ./conf/:/etc/rabbitmq/
+    network_mode: "host"
+
   web: &web
-    image: builder:latest
+    image: oyelogic:latest
     entrypoint: /app/docker-entrypoint.sh
     env_file: .env
     depends_on:
@@ -44,12 +48,13 @@ services:
       - search
       - rabbitmq
     ports:
-      - '8001:8000'
+      - '8000'
     volumes:
       - ${DOCKER_HOST_OYE_MEDIA_ROOT}:${MEDIA_ROOT}
+    network_mode: "host"
 
   celeryworker:
-    image: builder:latest
+    image: oyelogic:latest
     env_file: .env
     depends_on:
       - redis
@@ -58,6 +63,7 @@ services:
     volumes:
       - ./celery-entrypoint.sh:/app/celery-entrypoint.sh
       - ./wait-for-it.sh:/wait-for-it.sh
+    network_mode: "host"
 
 volumes:
   rabbit:
