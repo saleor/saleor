@@ -1,21 +1,24 @@
 from django.contrib.auth.models import Permission
 
 
-GROUP_PERMISSIONS_MODELS = [
-    'product.product',
-    'product.category',
-    'product.stock_location',
-    'discount.sale',
-    'discount.voucher',
-    'order.order',
-    'userprofile.user'
+MODELS_PERMISSIONS = [
+    'product.view_product',
+    'product.edit_product',
+    'category.view_category',
+    'category.edit_category',
+    'stock_location.view_stock_location',
+    'stock_location.edit_stock_location',
+    'order.view_order',
+    'order.edit_order',
+    'sale.view_sale',
+    'sale.edit_sale',
+    'user.view_user',
+    'user.edit_user',
+    'voucher.view_voucher',
+    'voucher.edit_voucher',
 ]
 
 
 def get_permissions():
-    codenames = []
-    for group_permission in GROUP_PERMISSIONS_MODELS:
-        model_name = group_permission.split('.')[1]
-        codenames.append('view_%s' % model_name)
-        codenames.append('edit_%s' % model_name)
+    codenames = [permission.split('.')[1] for permission in MODELS_PERMISSIONS]
     return Permission.objects.filter(codename__in=codenames)
