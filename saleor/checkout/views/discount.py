@@ -6,7 +6,6 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext
 from django.views.decorators.http import require_POST
 
-from ..core import load_checkout
 from ...discount.forms import CheckoutDiscountForm
 from ...discount.models import Voucher
 
@@ -59,7 +58,6 @@ def validate_voucher(view):
 
 
 @require_POST
-@load_checkout
 def remove_voucher_view(request, checkout, cart):
     next_url = request.GET.get('next', request.META['HTTP_REFERER'])
     del checkout.discount

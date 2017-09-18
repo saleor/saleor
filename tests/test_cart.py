@@ -58,11 +58,11 @@ def cancelled_user_cart(customer_user):
     return Cart.objects.get_or_create(
         user=customer_user, status=CartStatus.CANCELED)[0]
 
-@pytest.fixture()
-def local_currency(monkeypatch):
-    def side_effect(price, currency):
-        return price
-    monkeypatch.setattr('saleor.cart.views.to_local_currency', side_effect)
+# @pytest.fixture()
+# def local_currency(monkeypatch):
+#     def side_effect(price, currency):
+#         return price
+#     monkeypatch.setattr('saleor.cart.views.to_local_currency', side_effect)
 
 def test_get_or_create_anonymous_cart_from_token(
         opened_anonymous_cart, cancelled_anonymous_cart, opened_user_cart,

@@ -12,11 +12,10 @@ from django.http import Http404
 from django.utils.encoding import iri_to_uri, smart_text
 from django_countries import countries
 from django_countries.fields import Country
-from django_prices_openexchangerates import exchange_currency
-from geolite2 import geolite2
+# from django_prices_openexchangerates import exchange_currency
+# from geolite2 import geolite2
 from prices import PriceRange
 
-from ...userprofile.models import User
 from ...site.utils import get_site_settings
 
 try:
@@ -24,7 +23,7 @@ try:
 except ImportError:
     from urlparse import urljoin
 
-georeader = geolite2.reader()
+# georeader = geolite2.reader()
 
 
 class CategoryChoiceField(forms.ModelChoiceField):
@@ -58,13 +57,13 @@ def get_client_ip(request):
         return ip.split(',')[0].strip()
     return request.META.get('REMOTE_ADDR', None)
 
-
-def get_country_by_ip(ip_address):
-    geo_data = georeader.get(ip_address)
-    if geo_data and 'country' in geo_data and 'iso_code' in geo_data['country']:
-        country_iso_code = geo_data['country']['iso_code']
-        if country_iso_code in countries:
-            return Country(country_iso_code)
+#
+# def get_country_by_ip(ip_address):
+#     geo_data = georeader.get(ip_address)
+#     if geo_data and 'country' in geo_data and 'iso_code' in geo_data['country']:
+#         country_iso_code = geo_data['country']['iso_code']
+#         if country_iso_code in countries:
+#             return Country(country_iso_code)
 
 
 def get_currency_for_country(country):
@@ -118,15 +117,3 @@ def serialize_decimal(obj):
         return str(obj)
     return JSONEncoder.default(obj)
 
-
-def create_superuser(credentials):
-    user, created = User.objects.get_or_create(
-        email=credentials['email'], defaults={
-            'is_active': True, 'is_staff': True, 'is_superuser': True})
-    if created:
-        user.set_password(credentials['password'])
-        user.save()
-        msg = 'Superuser - %(email)s/%(password)s' % credentials
-    else:
-        msg = 'Superuser already exists - %(email)s' % credentials
-    return msg

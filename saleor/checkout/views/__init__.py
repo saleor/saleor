@@ -11,18 +11,15 @@ from .summary import (
 from .validators import (
     validate_cart, validate_shipping_address,
     validate_shipping_method, validate_is_shipping_required)
-from ..core import load_checkout
 from ..forms import ShippingMethodForm
 
 
-@load_checkout
 @validate_cart
 @validate_is_shipping_required
 def index_view(request, checkout):
     return redirect('checkout:shipping-address')
 
 
-@load_checkout
 @validate_voucher
 @validate_cart
 @validate_is_shipping_required
@@ -33,7 +30,6 @@ def shipping_address_view(request, checkout):
     return anonymous_user_shipping_address_view(request, checkout)
 
 
-@load_checkout
 @validate_voucher
 @validate_cart
 @validate_is_shipping_required
@@ -50,7 +46,6 @@ def shipping_method_view(request, checkout):
         'shipping_method_form': shipping_method_form, 'checkout': checkout})
 
 
-@load_checkout
 @validate_voucher
 @validate_cart
 @add_voucher_form
@@ -65,7 +60,6 @@ def summary_view(request, checkout):
         return anonymous_summary_without_shipping(request, checkout)
 
 
-@load_checkout
 @validate_cart
 def login(request, checkout):
     """

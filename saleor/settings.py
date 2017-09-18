@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import ast
+import datetime
 import os.path
 
 import dj_email_url
@@ -9,7 +10,7 @@ from django.contrib.messages import constants as messages
 
 DEBUG = ast.literal_eval(os.environ.get('DEBUG', 'False'))
 
-SITE_ID = 1
+SITE_ID = 2
 
 PROJECT_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -26,24 +27,35 @@ ADMINS = (
 MANAGERS = ADMINS
 INTERNAL_IPS = os.environ.get('INTERNAL_IPS', '127.0.0.1').split()
 
-if os.environ.get('REDIS_URL'):
+redis_host = os.environ.get('REDIS_HOST', None)
+redis_port = os.environ.get('REDIS_PORT', 6379)
+if redis_host:
     CACHES = {
         'default': {
             'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': os.environ.get('REDIS_URL')
+            'LOCATION': 'redis://{host}:{port}'.format(
+                host=redis_host,
+                port=redis_port,
+            )
         }
+    }
+    CONSTANCE_REDIS_CONNECTION = {
+        'host': redis_host,
+        'port': redis_port,
+        'db': 0,
     }
 else:
     CACHES = {'default': django_cache_url.config()}
 
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('RECORDSHOP_LEGACY_DB_NAME'),
-        'PASSWORD': os.environ.get('RECORDSHOP_LEGACY_DB_PASSWORD'),
-        'USER': os.environ.get('RECORDSHOP_LEGACY_DB_USER'),
-        'PORT': os.environ.get('RECORDSHOP_LEGACY_DB_PORT'),
-        'HOST': os.environ.get('RECORDSHOP_LEGACY_DB_HOST'),
+        'NAME': os.environ.get('DB_NAME'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'USER': os.environ.get('DB_USER'),
+        'PORT': os.environ.get('DB_PORT'),
+        'HOST': os.environ.get('DB_HOST'),
     }
 }
 
@@ -77,12 +89,9 @@ ORDER_FROM_EMAIL = os.getenv('ORDER_FROM_EMAIL', DEFAULT_FROM_EMAIL)
 MEDIA_ROOT = os.environ.get('MEDIA_ROOT', os.path.join(PROJECT_ROOT, 'media'))
 MEDIA_URL = '/media/'
 
-STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
+STATIC_ROOT = os.environ.get('STATIC_ROOT', os.path.join(PROJECT_ROOT, 'static'))
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    ('assets', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'assets')),
-    ('images', os.path.join(PROJECT_ROOT, 'saleor', 'static', 'images'))
-]
+
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder'
@@ -116,7 +125,8 @@ if not DEBUG:
 
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
-    'DIRS': [os.path.join(PROJECT_ROOT, 'templates')],
+    # 'DIRS': [os.path.join(PROJECT_ROOT, 'templates')],
+    # 'APP_DIRS': True,
     'OPTIONS': {
         'debug': DEBUG,
         'context_processors': context_processors,
@@ -135,8 +145,6 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'babeldjango.middleware.LocaleMiddleware',
-    'saleor.core.middleware.DiscountMiddleware',
-    'saleor.core.middleware.GoogleAnalytics',
     'saleor.core.middleware.CountryMiddleware',
     'saleor.core.middleware.CurrencyMiddleware',
 ]
@@ -144,6 +152,7 @@ MIDDLEWARE_CLASSES = [
 INSTALLED_APPS = [
     # External apps that need to go before django's
     'storages',
+    'django_nose',
 
     # Django modules
     'django.contrib.contenttypes',
@@ -153,7 +162,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.staticfiles',
     'django.contrib.auth',
-    'django.contrib.postgres',
+    # 'django.contrib.postgres',
     'django.contrib.admin',
 
     # Local apps
@@ -164,29 +173,29 @@ INSTALLED_APPS = [
     'saleor.checkout',
     'saleor.core',
     'saleor.graphql',
-    'saleor.order',
+    # 'saleor.order',
     'saleor.dashboard',
     'saleor.shipping',
     'saleor.search',
     'saleor.site',
     'saleor.data_feeds',
+    'saleor.elasticsearch',
 
     # External apps
     'versatileimagefield',
-    'babeldjango',
-    'bootstrap3',
+    # 'babeldjango',
     'django_prices',
-    'django_prices_openexchangerates',
-    'emailit',
+    # 'django_prices_openexchangerates',
     'graphene_django',
     'mptt',
-    'payments',
-    'materializecssform',
     'rest_framework',
-    'webpack_loader',
+    'rest_framework.authtoken',
+    'rest_auth',
+    # 'webpack_loader',
     'allauth',
     'allauth.account',
     'django_countries',
+    'ajax_select',
 
     # developer stuff
     'django_extensions',
@@ -194,11 +203,14 @@ INSTALLED_APPS = [
     # my proprietary oye stuff
     'saleor_oye',
     'saleor_oye.discogs',
+    'saleor_oye.customers',
+    'saleor_oye.payments',
 
     'corsheaders',
     # We authenticate via authtoken
-    'rest_framework.authtoken',
+    # 'rest_framework.authtoken',
     'constance',
+    'django_celery_beat',
 ]
 
 LOGGING = {
@@ -223,7 +235,7 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler',
         },
         'console': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'basic',
         },
@@ -251,6 +263,10 @@ LOGGING = {
 CONSTANCE_CONFIG = {
     'MAIN_GENRE_MAP': ('', 'Holds the artificial meta genre grouping'),
     'RELEASE_INFO_UPTODATE_HOURS': (48, 'Re-evaluate tracks and discogs release after this amount of hours'),
+    'SEARCH_FUZZINESS': ('0', 'The maximum number of edits between input and target tokens (see https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#fuzziness)'),
+    'SEARCH_PREFIX_LENGTH': (1, 'The minimum number of characters leading the target term'),
+    'CHARTS_ALLOWED_ITEMS': (10, 'The maximum number of allowed items in charts'),
+    'VAT_RATE': (19.0, 'The current VAT tax rate'),
 }
 
 AUTH_USER_MODEL = 'saleor_oye.Kunden'
@@ -305,40 +321,34 @@ BOOTSTRAP3 = {
     },
 }
 
-TEST_RUNNER = ''
+TEST_RUNNER = 'saleor_oye.tests.legacy.ManagedModelTestRunner'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split()
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# disable to avoid costs during development
-USE_AWS = os.environ.get('USE_AWS', False)
-
-# Amazon S3 configuration
-AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
-AWS_MEDIA_BUCKET_NAME = os.environ.get('AWS_MEDIA_BUCKET_NAME')
-AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME')
-AWS_QUERYSTRING_AUTH = ast.literal_eval(
-    os.environ.get('AWS_QUERYSTRING_AUTH', 'False'))
-
-if USE_AWS and AWS_STORAGE_BUCKET_NAME:
-    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-if USE_AWS and AWS_MEDIA_BUCKET_NAME:
-    DEFAULT_FILE_STORAGE = 'saleor.core.storages.S3MediaStorage'
-    THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
-
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
-    'defaults': [
-        ('list_view', 'crop__100x100'),
-        ('dashboard', 'crop__400x400'),
-        ('product_page_mobile', 'crop__680x680'),
-        ('product_page_big', 'crop__750x750'),
-        ('product_page_thumb', 'crop__280x280')]}
+    'release': [
+        ('release_thumb', 'crop__100x100'),
+        ('release__big', 'crop__600x600'),
+        ('release__list', 'crop__380x380'),
+    ],
+    'artist': [
+        ('artist_admin', 'crop__1200x300'),
+        ('charts', 'crop__600x384'),
+        ('charts_front', 'crop__300x168'),
+    ],
+    'charts': [
+        ('charts', 'crop__600x384'),
+        ('charts_front', 'crop__300x168'),
+    ],
+    'user': [
+        ('charts', 'crop__600x384'),
+        ('charts_front', 'crop__300x168'),
+    ]
+}
 
 VERSATILEIMAGEFIELD_SETTINGS = {
     # Images should be pre-generated on Production environment
@@ -402,19 +412,27 @@ GRAPHENE = {
 }
 
 SITE_SETTINGS_ID = 1
-
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication',
+    ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 25
+    'PAGE_SIZE': 25,
+
 }
 
 APPEND_SLASH = True
 
 CORS_ORIGIN_WHITELIST = [
     'google.com',
+    '127.0.0.1',
     'localhost:8000',
+    'localhost:3000',
     'localhost:8080',
     '127.0.0.1:9000',
+    '127.0.0.1:8000',
     'local.oye.com:8000',
 ] + os.environ.get('CORS_ORIGIN_WHITELIST', '').split()
 
@@ -427,14 +445,34 @@ PASSWORD_HASHERS = [
     'saleor_oye.auth.hashers.Argon2WrappedMD5PasswordHasher'
 ]
 
+
+
 AUTHENTICATION_BACKENDS = [
     'saleor_oye.auth.backends.OyePasswordAuth',
     'rest_framework.authentication.TokenAuthentication',
 ]
 
-CELERY_BROKER_URL = 'amqp://{user}:{password}@localhost:5672//'.format(
+# JWT_AUTH = {
+JWT_PAYLOAD_HANDLER = 'saleor_oye.auth.jwt.oye_jwt_payload_handler'
+JWT_EXPIRATION_DELTA = datetime.timedelta(seconds=60 * 60)
+
+JWT_AUTH_HEADER_PREFIX = 'JWT'
+JWT_PAYLOAD_GET_USER_ID_HANDLER = 'saleor_oye.auth.jwt.jwt_get_user_id_from_payload_handler'
+JWT_ALLOW_REFRESH = True
+
+JWT_AUTH = {
+    'JWT_PAYLOAD_HANDLER': 'saleor_oye.auth.jwt.oye_jwt_payload_handler',
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=60 * 60),
+    'JWT_AUTH_HEADER_PREFIX': 'JWT',
+    'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'saleor_oye.auth.jwt.jwt_get_user_id_from_payload_handler',
+    'JWT_ALLOW_REFRESH': True
+}
+
+
+CELERY_BROKER_URL = 'amqp://{user}:{password}@{host}:5672//'.format(
     user=os.environ.get('RABBITMQ_USER', 'guest'),
     password=os.environ.get('RABBITMQ_PASSWORD', 'guest'),
+    host=os.environ.get('RABBITMQ_HOST', 'localhost')
     # vhost=os.environ.get('RABBITMQ_VHOST', '/'),
 )
 
@@ -452,7 +490,18 @@ CORS_ALLOW_HEADERS = (
     'dnt',
     'origin',
     'user-agent',
+    'cache-control',
     'x-csrftoken',
     'x-requested-with',
     'x-cart-token',
+    'x-oye-token'
 )
+
+
+ADYEN_USER = os.environ.get('ADYEN_USER', None)
+ADYEN_PASSWORD = os.environ.get('ADYEN_PASSWORD', None)
+ADYEN_MERCHANT_ACCOUNT = os.environ.get('ADYEN_MERCHANT_ACCOUNT', None)
+ADYEN_HMAC_SECRET = os.environ.get('ADYEN_HMAC_SECRET', None)
+ADYEN_SKIN_CODE = os.environ.get('ADYEN_SKIN_CODE', None)
+
+PASSWORD_CONFIRMATION_TIMEOUT_DAYS = 1

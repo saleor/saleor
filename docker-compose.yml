@@ -1,35 +1,72 @@
 version: '2'
 services:
-  db:
-    image: postgres
-    environment:
-      - POSTGRES_USER=saleor
-      - POSTGRES_PASSWORD=saleor
-    ports:
-      - '127.0.0.1:5432:5432'
+  
   redis:
     image: redis
     ports:
-      - '127.0.0.1:6379:6379'
+      - 6379
+    network_mode: "host"
+
   search:
-    image: elasticsearch:2.4
+    image: elasticsearch:5.5
     ports:
-      - '127.0.0.1:9200:9200'
-  web:
-    build: .
-    command: python manage.py runserver 0.0.0.0:8000
+      - 9200
     environment:
-      - DATABASE_URL=postgres://saleor:saleor@db/saleor
-      - DEFAULT_FROM_EMAIL=noreply@example.com
-      - ELASTICSEARCH_URL=http://search:9200/
-      - OPENEXCHANGERATES_API_KEY
-      - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=changeme
+      - bootstrap.memory_lock=true  # https://www.elastic.co/guide/en/elasticsearch/reference/master/setup-configuration-memory.html#mlockall
+    env_file: .env
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    mem_limit: 8g
+    volumes:
+       - ${OYE_ELASTIC_DATA}:/usr/share/elasticsearch/data
+    network_mode: "host"
+
+  rabbitmq:
+    image: 'rabbitmq:3'
+    entrypoint: /app/rabbitmq-entrypoint.sh
+    env_file: .env
+    ports:
+      - '14672:15672'
+      - 5672
+    volumes:
+      - ./rabbitmq-entrypoint.sh:/app/rabbitmq-entrypoint.sh
+      - rabbit:/var/lib/rabbitmq
+      - ./conf/:/etc/rabbitmq/
+    network_mode: "host"
+
+  web: &web
+    image: oyelogic:latest
+    entrypoint: /app/docker-entrypoint.sh
+    env_file: .env
     depends_on:
-      - db
       - redis
       - search
+      - rabbitmq
     ports:
-      - '8000:8000'
+      - '8000'
     volumes:
-      - .:/app:Z
+      - ${DOCKER_HOST_OYE_MEDIA_ROOT}:${MEDIA_ROOT}
+    network_mode: "host"
+
+  celeryworker:
+    image: oyelogic:latest
+    env_file: .env
+    depends_on:
+      - redis
+      - rabbitmq
+    entrypoint: /app/celery-entrypoint.sh
+    volumes:
+      - ./celery-entrypoint.sh:/app/celery-entrypoint.sh
+      - ./wait-for-it.sh:/wait-for-it.sh
+    network_mode: "host"
+
+volumes:
+  rabbit:
+    driver: local
+  esdata:
+    driver: local

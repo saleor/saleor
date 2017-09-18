@@ -5,6 +5,7 @@ from functools import wraps
 from uuid import UUID
 
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.core import signing
 from django.db import transaction
 from django.utils.timezone import now
@@ -93,18 +94,36 @@ def find_and_assign_anonymous_cart(queryset=Cart.objects.all()):
         @wraps(view)
         def func(request, *args, **kwargs):
             response = view(request, *args, **kwargs)
-            token = request.get_signed_cookie(COOKIE_NAME, default=None)
+
+            if response.status_code > 399:
+                return response
+
+            signed_token = request.META.get('HTTP_X_CART_TOKEN', None)
+            token = (
+                None
+                if not signed_token
+                else signing.get_cookie_signer(salt='cart').unsign(signed_token)
+            )
+            #
+            from rest_framework_jwt.serializers import jwt_decode_handler
+            from jwt_auth.mixins import jwt_get_user_id_from_payload
+            User = get_user_model()
+            payload = jwt_decode_handler(response.data.get('token', None))
+            user_id = jwt_get_user_id_from_payload(payload)
+            user = request.user
+            if user_id:
+                user = User.objects.get(pk=user_id)
+
             if not token_is_valid(token):
                 return response
             cart = get_anonymous_cart_from_token(
                 token=token, cart_queryset=queryset)
             if cart is None:
                 return response
-            if request.user.is_authenticated():
+            if user.is_authenticated():
                 with transaction.atomic():
-                    cart.change_user(request.user)
-                    carts_to_close = Cart.objects.open().filter(
-                        user=request.user)
+                    cart.change_user(user)
+                    carts_to_close = Cart.objects.open().filter(user=user)
                     carts_to_close = carts_to_close.exclude(token=token)
                     carts_to_close.update(
                         status=CartStatus.CANCELED, last_status_change=now())
@@ -161,7 +180,7 @@ def get_or_create_cart_from_request(request, cart_queryset=Cart.objects.all()):
         return get_or_create_user_cart(request.user, cart_queryset)
     else:
         token = request.META.get('HTTP_X_CART_TOKEN', None)
-        unsigned_token = signing.get_cookie_signer(salt='cart').unsign(token)
+        unsigned_token = None if not token else signing.get_cookie_signer(salt='cart').unsign(token)
         return get_or_create_anonymous_cart_from_token(unsigned_token, cart_queryset)
 
 
@@ -171,7 +190,6 @@ def get_cart_from_request(request, cart_queryset=Cart.objects.all()):
     :type request: django.http.HttpRequest
     :rtype: Cart
     """
-    discounts = request.discounts
     if request.user.is_authenticated():
         cart = get_user_cart(request.user, cart_queryset)
         user = request.user
@@ -180,10 +198,9 @@ def get_cart_from_request(request, cart_queryset=Cart.objects.all()):
         cart = get_anonymous_cart_from_token(token, cart_queryset)
         user = None
     if cart is not None:
-        cart.discounts = discounts
         return cart
     else:
-        return Cart(user=user, discounts=discounts)
+        return Cart(user=user)
 
 
 def get_or_create_db_cart(cart_queryset=Cart.objects.all()):

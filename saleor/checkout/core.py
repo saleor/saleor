@@ -11,7 +11,6 @@ from prices import FixedDiscount, Price
 
 from ..cart.models import Cart
 from ..cart.utils import get_or_empty_db_cart
-from ..core import analytics
 from ..discount.models import NotApplicable, Voucher
 from ..order.models import Order
 from ..order.utils import add_items_to_delivery_group
@@ -332,23 +331,3 @@ class Checkout(object):
             for shipment, shipping_cost, total in self.deliveries)
         total = sum(cost_iterator, zero)
         return total
-
-
-def load_checkout(view):
-    @wraps(view)
-    @get_or_empty_db_cart(Cart.objects.for_display())
-    def func(request, cart):
-        try:
-            session_data = request.session[STORAGE_SESSION_KEY]
-        except KeyError:
-            session_data = ''
-        tracking_code = analytics.get_client_id(request)
-
-        checkout = Checkout.from_storage(
-            session_data, cart, request.user, tracking_code)
-        response = view(request, checkout, cart)
-        if checkout.modified:
-            request.session[STORAGE_SESSION_KEY] = checkout.for_storage()
-        return response
-
-    return func
