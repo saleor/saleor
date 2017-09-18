@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-03-23 09:28-0500\n"
+"POT-Creation-Date: 2017-09-15 16:21+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -135,7 +135,12 @@ msgctxt "Delivery group value for `target_group` field"
 msgid "New shipment"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:192
+#: saleor/dashboard/order/forms.py:172
+msgctxt "Change quantity form label"
+msgid "Quantity"
+msgstr ""
+
+#: saleor/dashboard/order/forms.py:194
 #, python-format
 msgctxt "Change quantity form error"
 msgid "Only %(remaining)d remaining in stock."
@@ -143,59 +148,59 @@ msgid_plural "Only %(remaining)d remaining in stock."
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/dashboard/order/forms.py:218
+#: saleor/dashboard/order/forms.py:220
 msgctxt "Ship group form field placeholder"
 msgid "Parcel tracking number"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:225
+#: saleor/dashboard/order/forms.py:227
 msgctxt "Ship group form error"
 msgid "Cannot ship this group"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:262
+#: saleor/dashboard/order/forms.py:264
 msgctxt "Cancel order form error"
 msgid "This order can't be cancelled"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:281
+#: saleor/dashboard/order/forms.py:283
 msgctxt "Remove voucher form error"
 msgid "This order has no voucher"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:294
+#: saleor/dashboard/order/forms.py:296
 msgctxt "Order status field value"
 msgid "All"
 msgstr ""
 
-#: saleor/dashboard/order/forms.py:299
+#: saleor/dashboard/order/forms.py:301
 msgctxt "Payment status field value"
 msgid "All"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:86
+#: saleor/dashboard/order/views.py:87
 msgctxt "Dashboard message related to an order"
 msgid "Added note"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:108
+#: saleor/dashboard/order/views.py:109
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Captured %(amount)s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:130
+#: saleor/dashboard/order/views.py:131
 #, python-format
 msgctxt "Dashboard message related to a payment"
 msgid "Refunded %(amount)s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:147
+#: saleor/dashboard/order/views.py:148
 msgctxt "Dashboard message"
 msgid "Released payment"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:171
+#: saleor/dashboard/order/views.py:175
 #, python-format
 msgctxt "Dashboard message related to an order line"
 msgid ""
@@ -203,51 +208,51 @@ msgid ""
 "%(new_quantity)s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:202
+#: saleor/dashboard/order/views.py:207
 msgctxt "Dashboard message related to a delivery group"
 msgid "removed group"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:205
+#: saleor/dashboard/order/views.py:210
 #, python-format
 msgctxt "Dashboard message related to delivery groups"
 msgid "Moved %(how_many)s items %(item)s from %(old_group)s to %(new_group)s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:229
+#: saleor/dashboard/order/views.py:234
 #, python-format
 msgctxt "Dashboard message related to an order line"
 msgid "Cancelled item %s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:254
+#: saleor/dashboard/order/views.py:259
 #, python-format
 msgctxt "Dashboard message related to a delivery group"
 msgid "Shipped %s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:276
+#: saleor/dashboard/order/views.py:281
 #, python-format
 msgctxt "Dashboard message related to a delivery group"
 msgid "Cancelled %s"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:294
+#: saleor/dashboard/order/views.py:299
 msgctxt "Dashboard message"
 msgid "Updated shipping address"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:299
+#: saleor/dashboard/order/views.py:304
 msgctxt "Dashboard message"
 msgid "Updated billing address"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:316
+#: saleor/dashboard/order/views.py:321
 msgctxt "Dashboard message"
 msgid "Cancelled order"
 msgstr ""
 
-#: saleor/dashboard/order/views.py:335
+#: saleor/dashboard/order/views.py:340
 msgctxt "Dashboard message"
 msgid "Removed voucher from order"
 msgstr ""

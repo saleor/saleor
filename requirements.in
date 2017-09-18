@@ -37,3 +37,4 @@ satchless>=1.1.2,<1.2a0
 social-auth-app-django>=1.1.0
 text-unidecode
 uwsgi>=2.0.0
+django-emailit>=0.2.2

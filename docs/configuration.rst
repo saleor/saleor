@@ -41,6 +41,9 @@ Environment variables
 
   **Example:** ``smtp://user:password@smtp.example.com:465/?ssl=True``
 
+``NOTIFICATION_FROM_EMAIL``
+  Email address to use for outgoing mail with wishlist notifications. Defaults to ``DEFAULT_FROM_EMAIL``
+
 ``INTERNAL_IPS``
   Controls `Django's internal IPs <https://docs.djangoproject.com/en/1.10/ref/settings/#internal-ips>`_ setting. Defaults to ``127.0.0.1``.
 

@@ -11,8 +11,11 @@ except ImportError:
 import i18naddress
 import pytest
 from django.http import QueryDict
+from django.template.response import TemplateResponse
+from mock import Mock
 
-from saleor.userprofile import forms, models, i18n
+
+from saleor.userprofile import forms, models, i18n, views
 
 @pytest.fixture
 def billing_address(db):
@@ -105,3 +108,14 @@ def test_country_aware_form_has_only_supported_countries():
     for country in i18n.UNKNOWN_COUNTRIES:
         assert country not in i18n.COUNTRY_FORMS
         assert country not in country_choices
+
+@pytest.mark.parametrize('details, status_code, url', [
+    (Mock(__len__=Mock(return_value=0)), 200, '/details/'),
+])
+def test_details_view(customer_user, rf, status_code, url, details):
+    request = rf.get('userprofile:details')
+    request.user = customer_user
+    response = views.details(request)
+    assert response.status_code == status_code
+    assert isinstance(response, TemplateResponse)
+

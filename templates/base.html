@@ -43,6 +43,10 @@
                               </li>
                             {% endif %}
                             <li>
+                               <a href="{% url "wishlist:user-wishlist" %}">
+                                   {% trans "Your wishlist" context "Main navigation item" %}</a>
+                            </li>
+                            <li>
                               <a href="{% url "profile:details" %}">
                                   {% trans "Your account" context "Main navigation item" %}</a>
                             </li>
