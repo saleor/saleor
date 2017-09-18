@@ -74,12 +74,14 @@
           </div>
         </div>
         <div class="card-action">
-          <a href="{% url "dashboard:product-update" product.pk %}" class="btn btn-flat">
-            {% trans "Edit product" context "Product action" %}
-          </a>
-          <a href="#base-modal" data-href="{% url 'dashboard:product-delete' pk=product.pk %}" class="modal-trigger-custom btn btn-flat">
-              {% trans "Remove product" context "Product action" %}
-          </a>
+          {% if perms.product.edit_product %}
+            <a href="{% url "dashboard:product-update" product.pk %}" class="btn btn-flat">
+              {% trans "Edit product" context "Product action" %}
+            </a>
+            <a href="#base-modal" data-href="{% url 'dashboard:product-delete' pk=product.pk %}" class="modal-trigger-custom btn btn-flat">
+                {% trans "Remove product" context "Product action" %}
+            </a>
+          {% endif %}
           <a href="{{ product.get_absolute_url }}" target="_blank" class="btn btn-flat">
             {% trans "View on site" context "Product action" %}
           </a>
@@ -101,7 +103,9 @@
                   <th>{% trans "Name" %}</th>
                   <th>{% trans "Status" %}</th>
                   <th class="right-align">{% trans "Price" %}</th>
-                  <th></th>
+                  {% if perms.product.edit_product %}
+                    <th></th>
+                  {% endif %}
                 </tr>
               </thead>
               <tbody>
@@ -111,7 +115,9 @@
                     <td>{{ variant }}</td>
                     <td class="wide">{% render_variant_availability_status variant %}</td>
                     <td class="right-align">{% gross variant.get_price_per_item %}</td>
-                    <td><a href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" class="btn btn-flat">{% trans "Edit" %}</a></td>
+                    {% if perms.product.edit_product %}
+                      <td><a href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" class="btn btn-flat">{% trans "Edit" %}</a></td>
+                    {% endif %}
                   </tr>
                 {% empty %}
                   <tr>
@@ -139,6 +145,7 @@
         </div>
       {% endif %}
     </div>
+    {% if perms.product.edit_product %}
     <div class="col s12 l3">
       <div id="status">
         <div class="row">
@@ -155,7 +162,7 @@
                       {% else %}
                         {% trans "Draft" context "Product field" %}
                       {% endif %}
-                    </span>   
+                    </span>
                   </label>
                 </div>
                 <h5>{% render_availability_status product %}</h5>
@@ -165,6 +172,7 @@
         </div>
       </div>
     </div>
+    {% endif %}
    <div class="col s12 l3">
       <div id="images">
         <div class="row">
@@ -180,9 +188,11 @@
                   {% endfor %}
                 </div>
               </div>
-              <div class="card-action">
-                <a href="{% url 'dashboard:product-image-list' product.pk %}" class="btn btn-flat">{% trans "Edit images" %}</a>
-              </div>
+              {% if perms.product.edit_product %}
+                <div class="card-action">
+                  <a href="{% url 'dashboard:product-image-list' product.pk %}" class="btn btn-flat">{% trans "Edit images" %}</a>
+                </div>
+              {% endif %}
             </div>
           </div>
         </div>

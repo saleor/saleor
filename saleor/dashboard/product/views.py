@@ -23,7 +23,7 @@ from . import forms
 
 
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.view_product')
 def product_class_list(request):
     classes = ProductClass.objects.all().prefetch_related(
         'product_attributes', 'variant_attributes')
@@ -144,6 +144,7 @@ def product_create(request, class_pk):
 
 
 @staff_member_required
+@permission_required('product.view_product')
 def product_detail(request, pk):
     products = Product.objects.prefetch_related(
         'variants__stock', 'images',
@@ -174,6 +175,7 @@ def product_detail(request, pk):
 
 
 @staff_member_required
+@permission_required('product.edit_product')
 def product_toggle_is_published(request, pk):
     product = get_object_or_404(Product, pk=pk)
     product.is_published = not product.is_published
@@ -230,6 +232,7 @@ def product_delete(request, pk):
 
 
 @staff_member_required
+@permission_required('product.view_stock_location')
 def stock_details(request, product_pk, variant_pk, stock_pk):
     product = get_object_or_404(Product, pk=product_pk)
     variant = get_object_or_404(product.variants, pk=variant_pk)
@@ -237,7 +240,6 @@ def stock_details(request, product_pk, variant_pk, stock_pk):
     ctx = {'stock': stock, 'product': product, 'variant': variant}
     return TemplateResponse(
         request, 'dashboard/product/stock/detail.html', ctx)
-
 
 
 @staff_member_required
@@ -281,16 +283,6 @@ def stock_delete(request, product_pk, variant_pk, stock_pk):
         request, 'dashboard/product/stock/modal_confirm_delete.html', ctx)
 
 
-@staff_member_required
-def product_images(request, product_pk):
-    product = get_object_or_404(
-        Product.objects.prefetch_related('images'), pk=product_pk)
-    images = product.images.all()
-    ctx = {'product': product, 'images': images}
-    return TemplateResponse(
-        request, 'dashboard/product/product_image/list.html', ctx)
-
-
 @require_http_methods(['POST'])
 @permission_required('product.edit_stock_location')
 def stock_bulk_delete(request, product_pk):
@@ -304,6 +296,17 @@ def stock_bulk_delete(request, product_pk):
         if is_safe_url(success_url, allowed_hosts=request.get_host()):
             return redirect(success_url)
     return redirect('dashboard:product-update', pk=product.pk)
+
+
+@staff_member_required
+@permission_required('product.view_product')
+def product_images(request, product_pk):
+    product = get_object_or_404(
+        Product.objects.prefetch_related('images'), pk=product_pk)
+    images = product.images.all()
+    ctx = {'product': product, 'images': images}
+    return TemplateResponse(
+        request, 'dashboard/product/product_image/list.html', ctx)
 
 
 @staff_member_required
@@ -381,6 +384,7 @@ def variant_edit(request, product_pk, variant_pk=None):
 
 
 @staff_member_required
+@permission_required('product.view_product')
 def variant_details(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
     qs = product.variants.prefetch_related(
@@ -404,6 +408,7 @@ def variant_details(request, product_pk, variant_pk):
 
 
 @staff_member_required
+@permission_required('product.view_product')
 def variant_images(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
     qs = product.variants.prefetch_related('images')
@@ -459,7 +464,7 @@ def variants_bulk_delete(request, product_pk):
 
 
 @staff_member_required
-@permission_required('product.edit_product')
+@permission_required('product.view_product')
 def attribute_list(request):
     attributes = [
         (attribute.pk, attribute.name, attribute.values.all())
@@ -470,6 +475,7 @@ def attribute_list(request):
 
 
 @staff_member_required
+@permission_required('product.view_product')
 def attribute_detail(request, pk):
     attributes = ProductAttribute.objects.prefetch_related('values').all()
     attribute = get_object_or_404(attributes, pk=pk)
