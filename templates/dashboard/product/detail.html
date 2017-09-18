@@ -92,9 +92,11 @@
           <div class="card-content">
             <span class="card-title">{% trans "Variant" %}</span>
           </div>
-          <div class="data-table-header-action">
-              <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-flat">{% trans "Add" %}</a>
-          </div>
+          {% if perms.product.edit_product %}
+            <div class="data-table-header-action">
+                <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-flat">{% trans "Add" %}</a>
+            </div>
+          {% endif %}
           <div class="data-table-container">
             <table class="bordered highlight responsive data-table">
               <thead>
