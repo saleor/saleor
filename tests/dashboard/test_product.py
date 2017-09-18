@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 import pytest
@@ -130,9 +131,15 @@ def test_change_attributes_in_product_form(db, product_in_stock,
             'description': 'description',
             'attribute-author': new_author,
             'attribute-color': new_color}
-
     form = ProductForm(data, instance=product)
     assert form.is_valid()
     product = form.save()
     assert product.get_attribute(color_attribute.pk) == smart_text(new_color)
     assert product.get_attribute(text_attribute.pk) == new_author
+
+
+def test_get_formfield_name_with_unicode_characters(db):
+    text_attribute = ProductAttribute.objects.create(slug=u'ąęαβδηθλμπ',
+                                                     name=u'ąęαβδηθλμπ')
+    assert text_attribute.get_formfield_name() == 'attribute-ąęαβδηθλμπ'
+
