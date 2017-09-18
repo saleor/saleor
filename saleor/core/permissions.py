@@ -2,16 +2,16 @@ from django.contrib.auth.models import Permission
 
 
 MODELS_PERMISSIONS = [
-    'product.view_product',
-    'product.edit_product',
     'category.view_category',
     'category.edit_category',
-    'stock_location.view_stock_location',
-    'stock_location.edit_stock_location',
     'order.view_order',
     'order.edit_order',
+    'product.view_product',
+    'product.edit_product',
     'sale.view_sale',
     'sale.edit_sale',
+    'stock_location.view_stock_location',
+    'stock_location.edit_stock_location',
     'user.view_user',
     'user.edit_user',
     'voucher.view_voucher',
