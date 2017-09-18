@@ -20,6 +20,11 @@ exposed.
 # Clone git repository
 git clone https://github.com/tillkolter/saleor
 
+# Configure environment file
+cp .env-template .env
+# ... edit .env file and fill the unspecified variable
+vim .env 
+
 # Habitus 
 ./install-habitus.sh
 ./run-habitus.sh [YOUR DOCKER HOST IP]
