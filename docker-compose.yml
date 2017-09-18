@@ -1,6 +1,6 @@
 version: '2'
 services:
-  
+
   redis:
     image: redis
     ports:
@@ -34,7 +34,7 @@ services:
       - '14672:15672'
       - 5672
     volumes:
-      - ./rabbitmq-entrypoint.sh:/app/rabbitmq-entrypoint.sh
+      - ./docker/rabbitmq-entrypoint.sh:/app/rabbitmq-entrypoint.sh
       - rabbit:/var/lib/rabbitmq
       - ./conf/:/etc/rabbitmq/
     network_mode: "host"
@@ -51,6 +51,7 @@ services:
       - '8000'
     volumes:
       - ${DOCKER_HOST_OYE_MEDIA_ROOT}:${MEDIA_ROOT}
+      - ${DOCKER_HOST_OYE_STATIC_ROOT}:${STATIC_ROOT}
     network_mode: "host"
 
   celeryworker:
@@ -61,9 +62,20 @@ services:
       - rabbitmq
     entrypoint: /app/celery-entrypoint.sh
     volumes:
-      - ./celery-entrypoint.sh:/app/celery-entrypoint.sh
+      - ./docker/celery-entrypoint.sh:/app/celery-entrypoint.sh
       - ./wait-for-it.sh:/wait-for-it.sh
     network_mode: "host"
+
+  celerybeat:
+    image: oyelogic:latest
+    env_file: .env
+    depends_on:
+      - rabbitmq
+    entrypoint: /app/celerybeat-entrypoint.sh
+    volumes:
+      - ./docker/celerybeat-entrypoint.sh:/app/celerybeat-entrypoint.sh
+      - ./wait-for-it.sh:/wait-for-it.sh
+
 
 volumes:
   rabbit:

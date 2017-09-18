@@ -1,46 +1,33 @@
-[![Avast ye landlubbers! Saleor be a Satchless store ye can fork.](http://getsaleor.com/mr-saleor-readme.png)](http://getsaleor.com)
-
-
-Saleor
+OYE Records Backend
 ======
 
-Avast ye landlubbers! Saleor be a Satchless store ye can fork. 
+Installation
+------------
 
-[Saleor homepage](http://getsaleor.com/)
+Prerequisites:
+* You need to have `docker` and `docker-compose` installed on 
+your host machine
+* The configuration is set to connect to a database that runs outside the 
+docker ecosystem. Please make sure, you have a running database with a 
+dedicated user with granted r/w access. Please refer to the `.env-template` file 
+to find out more about the configuration documentation.
+* The `docker-compose.yml` is configured to run on `network_mode host`, so make
+sure you have a well configured firewall. Otherwise your app ports could be 
+exposed.
 
-[![Build Status](https://travis-ci.org/mirumee/saleor.png?branch=master)](https://travis-ci.org/mirumee/saleor)
-[![Requirements Status](https://requires.io/github/mirumee/saleor/requirements.svg?branch=master)](https://requires.io/github/mirumee/saleor/requirements/?branch=master)
 
+```
+# Clone git repository
+git clone https://github.com/tillkolter/saleor
+
+# Habitus 
+./install-habitus.sh
+./run-habitus.sh [YOUR DOCKER HOST IP]
+```
 
 Usage
 -----
 
-See the [Saleor docs](https://saleor.readthedocs.io) for installation and deployment instructions.
-
-
-Demo
-----
-
-Want to see Saleor in action?
-
-[Saleor live demo](http://demo.getsaleor.com/)
-
-Or launch the demo on a free Heroku instance.
-
-[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
-
-Login credentials: `admin@example.com`/`admin`
-
-
-Commercial support
-------------------
-
-Disclaimer: everything you see here is open and free to use as long as you comply with the [license](LICENSE). It is not a bait to force you to pay us later and we promise to do our best to fix bugs and improve the code.
-
-Some situations however call for extra code being written. Whether you need us to cover an exotic use case or build you a custom e-commerce appliance, our team can help.
-
-### Mirumee Software
-
-http://mirumee.com
-
-hello@mirumee.com
+```
+docker-compose up -d 
+```
