@@ -1,0 +1,26 @@
+{% load i18n %}
+{% load prices_i18n %}
+{% load staticfiles %}
+
+<form action="{% url "dashboard:variant-delete" product_pk=product.pk variant_pk=variant.pk %}" method="post" novalidate>
+  {% csrf_token %}
+  <div class="modal-content">
+    <div class="row">
+      <div class="col s12">
+        <h4>{% trans "Are you sure?" context "Dashboard confirmation modal" %}</h4>
+        <p>{% blocktrans context "Dashboard confirmation modal" %}Delete variant {{ variant }}.{% endblocktrans %}</p>
+        {% if is_only_variant %}
+            <strong>{% trans "This is the only variant of this product. If you remove it, the product will become unavailable." context "Dashboard confirmation modal" %}</strong>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="modal-action btn-flat">
+      {% trans "Delete" context "Dashboard delete action" %}
+    </button>
+    <a href="#!" class="modal-action modal-close btn-flat">
+      {% trans "Cancel" context "Dashboard cancel action" %}
+    </a>
+  </div>
+</form>

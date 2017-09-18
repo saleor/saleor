@@ -55,7 +55,7 @@ def upload_image(request, product_pk):
     serializer = UploadImageSerializer(data=request.data)
     if serializer.is_valid():
         image = serializer.save(product=product)
-        return Response(ProductImageSerializer(image).data,
-                        status=status.HTTP_200_OK)
+        return Response(
+            ProductImageSerializer(image).data, status=status.HTTP_200_OK)
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

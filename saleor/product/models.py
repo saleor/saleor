@@ -13,7 +13,7 @@ from django.utils.encoding import python_2_unicode_compatible, smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django.utils import six
-from django_prices.models import PriceField
+from django_prices.models import Price, PriceField
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from prices import PriceRange
@@ -106,7 +106,8 @@ class ProductManager(models.Manager):
     def get_available_products(self):
         today = datetime.date.today()
         return self.get_queryset().filter(
-            Q(available_on__lte=today) | Q(available_on__isnull=True))
+            Q(available_on__lte=today) | Q(available_on__isnull=True)).filter(
+            is_published=True)
 
 
 @python_2_unicode_compatible
@@ -126,6 +127,8 @@ class Product(models.Model, ItemRange, index.Indexed):
         currency=settings.DEFAULT_CURRENCY, max_digits=12, decimal_places=2)
     available_on = models.DateField(
         pgettext_lazy('Product field', 'available on'), blank=True, null=True)
+    is_published = models.BooleanField(
+        pgettext_lazy('Product field', 'is published'), default=True)
     attributes = HStoreField(pgettext_lazy('Product field', 'attributes'),
                              default={})
     updated_at = models.DateTimeField(
@@ -159,8 +162,9 @@ class Product(models.Model, ItemRange, index.Indexed):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('product:details', kwargs={'slug': self.get_slug(),
-                                                  'product_id': self.id})
+        return reverse(
+            'product:details',
+            kwargs={'slug': self.get_slug(), 'product_id': self.id})
 
     def get_slug(self):
         return slugify(smart_text(unidecode(self.name)))
@@ -191,14 +195,21 @@ class Product(models.Model, ItemRange, index.Indexed):
     def set_attribute(self, pk, value_pk):
         self.attributes[smart_text(pk)] = smart_text(value_pk)
 
-    def get_price_range(self, discounts=None,  **kwargs):
+    def get_price_range(self, discounts=None, **kwargs):
         if not self.variants.exists():
-            price = calculate_discounted_price(self, self.price, discounts,
-                                               **kwargs)
+            price = calculate_discounted_price(
+                self, self.price, discounts, **kwargs)
             return PriceRange(price, price)
         else:
             return super(Product, self).get_price_range(
                 discounts=discounts, **kwargs)
+
+    def get_gross_price_range(self, **kwargs):
+        grosses = [self.get_price_per_item(item, **kwargs) for item in self]
+        if not grosses:
+            return None
+        grosses = sorted(grosses, key=lambda x: x.tax)
+        return PriceRange(min(grosses), max(grosses))
 
 
 @python_2_unicode_compatible
@@ -289,11 +300,14 @@ class ProductVariant(models.Model, Item):
         return self.product.get_first_image()
 
     def select_stockrecord(self, quantity=1):
-        # By default selects stock with lowest cost price
-        stock = filter(
-            lambda stock: stock.quantity_available >= quantity,
-            self.stock.all())
-        stock = sorted(stock, key=lambda stock: stock.cost_price, reverse=True)
+        # By default selects stock with lowest cost price. If stock cost price
+        # is None we assume price equal to zero to allow sorting.
+        stock = [
+            stock_item for stock_item in self.stock.all()
+            if stock_item.quantity_available >= quantity]
+        zero_price = Price(0, currency=settings.DEFAULT_CURRENCY)
+        stock = sorted(
+            stock, key=(lambda s: s.cost_price or zero_price), reverse=False)
         if stock:
             return stock[0]
 

@@ -1,0 +1,101 @@
+{% extends 'dashboard/base.html' %}
+
+{% load i18n %}
+{% load prices_i18n %}
+{% load staticfiles %}
+
+{% block title %}
+    {{ shipping_method }} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-shipping-methods{% endblock %}
+
+{% block menu_delivery_class %}active{% endblock %}
+
+{% block menu_shipping_class %} active{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url "dashboard:shipping-methods" %}">
+        {% trans "Shipping methods" context "Shipping method form breadcrumbs" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url 'dashboard:shipping-methods' %}"><i class="material-icons">arrow_back</i></a>
+    </li>
+    <li>
+      <span class="breadcrumbs--elipsed-item">
+          {{ shipping_method }}
+      </span>
+    </li>
+  </ul>
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col m12 l9">
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">
+            {{ shipping_method.name }}
+          </span>
+          <div class="row">
+            {% if shipping_method.description %}
+              <div class="col s12 m4 l12">
+                <h4>
+                  {% trans "Description" context "Shipping method field" %}
+                </h4>
+                <p>
+                  {{ shipping_method.description }}
+                </p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        <div class="card-action">
+          <a class="btn btn-flat" href="{% url "dashboard:shipping-method-update" shipping_method.pk %}">
+            {% trans "Edit shipping method" context "Shipping method action" %}
+          </a>
+          <a class="btn btn-flat modal-trigger-custom" href="#base-modal" data-href="{% url "dashboard:shipping-method-delete" shipping_method.pk %}">
+            {% trans "Delete shipping method" context "Shipping method action" %}
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col m12 l9">
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">
+             {% trans "Price per country" %}
+          </span>
+        </div>
+        <div class="data-table-container">
+          <table class="bordered highlight responsive data-table">
+            <thead>
+              <tr>
+                <th>
+                  {% trans "Country" %}
+                </th>
+                <th>{% trans "Price" %}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for price in method_countries %}
+                <tr>
+                  <td>{{ price.get_country_code_display }}</td>
+                  <td>{% gross price.price %}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="2">{% trans "No shippment prices" %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

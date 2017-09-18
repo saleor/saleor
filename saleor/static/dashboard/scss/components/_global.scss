@@ -12,6 +12,13 @@ strong {
   font-weight: bold;
 }
 
+h5 {
+  font-weight: 400;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  padding-top: 10px;
+}
+
 h6 {
   @extend .grey-text;
   font-size: 13px;
@@ -33,6 +40,10 @@ h6 {
 
 .text-lg {
   font-size: 120%;
+}
+
+.text-padding {
+  padding: 5px 0;
 }
 
 .label {
