@@ -154,6 +154,7 @@ INSTALLED_APPS = [
     'storages',
     'django_nose',
 
+
     # Django modules
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -210,6 +211,7 @@ INSTALLED_APPS = [
     # We authenticate via authtoken
     # 'rest_framework.authtoken',
     'constance',
+    'constance.backends.database',
     'django_celery_beat',
 ]
 
@@ -268,6 +270,7 @@ CONSTANCE_CONFIG = {
     'CHARTS_ALLOWED_ITEMS': (10, 'The maximum number of allowed items in charts'),
     'VAT_RATE': (19.0, 'The current VAT tax rate'),
 }
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 
 AUTH_USER_MODEL = 'saleor_oye.Kunden'
 
