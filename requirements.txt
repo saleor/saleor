@@ -13,7 +13,7 @@ braintree==3.37.2         # via django-payments
 certifi==2017.7.27.1      # via requests
 cffi==1.10.0              # via cryptography
 chardet==3.0.4            # via requests
-cryptography==2.0.2       # via django-payments
+cryptography==2.0.3       # via django-payments
 defusedxml==0.5.0         # via python3-openid, social-auth-core
 dj-database-url==0.4.2
 dj-email-url==0.0.10
