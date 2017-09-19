@@ -75,7 +75,7 @@ singledispatch==3.4.0.3   # via graphene-django
 six==1.11.0               # via cryptography, django-templated-email, faker, graphene, graphene-django, graphql-core, graphql-relay, mock, promise, purl, python-dateutil, singledispatch, social-auth-app-django, social-auth-core
 social-auth-app-django==1.2.0
 social-auth-core==1.4.0   # via social-auth-app-django
-stripe==1.62.0            # via django-payments
+stripe==1.65.0            # via django-payments
 suds-jurko==0.6           # via django-payments
 text-unidecode==1.0
 typing==3.6.2             # via promise
