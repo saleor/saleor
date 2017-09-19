@@ -32,16 +32,18 @@ django-versatileimagefield==1.7.1
 django-webpack-loader==0.5.0
 django==1.11.5
 djangorestframework==3.6.3
+dnspython==1.15.0         # via email-validator
 docutils==0.14            # via botocore
 elasticsearch==2.4.1
-faker==0.7.7
+email-validator==1.0.2    # via faker
+faker==0.8.3
 google-i18n-address==2.0.1
 google-measurement-protocol==0.1.6
 graphene-django==1.2.0
 graphene==1.4.1           # via graphene-django
 graphql-core==1.1         # via graphene, graphql-relay
 graphql-relay==0.4.5      # via graphene
-idna==2.5                 # via cryptography, requests
+idna==2.5                 # via cryptography, email-validator, requests
 iso8601==0.1.12           # via graphene-django
 jmespath==0.9.3           # via boto3, botocore
 jsonfield==2.0.2
