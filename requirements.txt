@@ -51,7 +51,7 @@ markdown==2.6.9
 maxminddb-geolite2==2015.708
 maxminddb==1.2.3
 mock==2.0.0
-oauthlib==2.0.2           # via requests-oauthlib, social-auth-core
+oauthlib==2.0.4           # via requests-oauthlib, social-auth-core
 pbr==3.1.1                # via mock
 pillow==3.4.2             # via django-versatileimagefield
 prices==0.5.9
