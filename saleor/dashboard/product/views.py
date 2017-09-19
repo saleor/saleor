@@ -1,12 +1,8 @@
 from __future__ import unicode_literals
 
 from django.contrib import messages
-
-from django.http import JsonResponse
-
 from django.contrib.auth.decorators import permission_required
-from django.core.urlresolvers import reverse
-
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url

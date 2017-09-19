@@ -12,7 +12,8 @@ from .forms import GroupPermissionsForm
 
 @staff_member_required
 def group_list(request):
-    groups = Group.objects.all()
+    groups = [{'name': group, 'permissions': group.permissions.all()}
+              for group in Group.objects.all()]
     ctx = {'groups': groups}
     return TemplateResponse(request, 'dashboard/group/list.html', ctx)
 

@@ -35,11 +35,13 @@
     <ul class="collection list">
       {% for group in groups %}
         <li class="collection-item list-item">
-          <a class="list-item-name" href="{% url 'dashboard:group-details' pk=group.pk %}">
+          <a class="list-item-name" href="{% url 'dashboard:group-details' pk=group.name.pk %}">
             {{ group.name }}
             <p class="list-item-desc">
               <span>
-
+                {% for permission in group.permissions %}
+                  {{ permission.name }},
+                {% endfor %}
               </span>
             </p>
           </a>
