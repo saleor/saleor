@@ -75,6 +75,7 @@ services:
     volumes:
       - ./docker/celerybeat-entrypoint.sh:/app/celerybeat-entrypoint.sh
       - ./wait-for-it.sh:/wait-for-it.sh
+    network_mode: "host"
 
 
 volumes:
