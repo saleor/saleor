@@ -28,7 +28,7 @@ django-redis==4.8.0
 django-render-block==0.5  # via django-templated-email
 django-storages==1.6.5
 django-templated-email==2.2.0
-django-versatileimagefield==1.6.2
+django-versatileimagefield==1.7.1
 django-webpack-loader==0.5.0
 django==1.11.5
 djangorestframework==3.6.3
