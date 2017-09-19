@@ -43,7 +43,7 @@ graphene-django==1.2.0
 graphene==1.4.1           # via graphene-django
 graphql-core==1.1         # via graphene, graphql-relay
 graphql-relay==0.4.5      # via graphene
-idna==2.5                 # via cryptography, email-validator, requests
+idna==2.6                 # via cryptography, email-validator, requests
 iso8601==0.1.12           # via graphene-django
 jmespath==0.9.3           # via boto3, botocore
 jsonfield==2.0.2
