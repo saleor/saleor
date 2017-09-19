@@ -60,7 +60,7 @@ psycopg2==2.7.3
 purl==1.3.1
 py==1.4.34                # via pytest
 pycparser==2.18           # via cffi
-pyjwt==1.5.2              # via django-payments, social-auth-core
+pyjwt==1.5.3              # via django-payments, social-auth-core
 pytest-django==3.1.2
 pytest==3.2.2
 python-dateutil==2.6.1    # via botocore, faker
@@ -74,7 +74,7 @@ satchless==1.1.3
 singledispatch==3.4.0.3   # via graphene-django
 six==1.10.0               # via cryptography, django-templated-email, faker, graphene, graphene-django, graphql-core, graphql-relay, mock, promise, purl, python-dateutil, singledispatch, social-auth-app-django, social-auth-core
 social-auth-app-django==1.2.0
-social-auth-core==1.2.0   # via social-auth-app-django
+social-auth-core==1.4.0   # via social-auth-app-django
 stripe==1.62.0            # via django-payments
 suds-jurko==0.6           # via django-payments
 text-unidecode==1.0
