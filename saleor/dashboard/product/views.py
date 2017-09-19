@@ -14,12 +14,11 @@ from ...product.models import (
     Product, ProductAttribute, ProductClass, ProductImage, ProductVariant,
     Stock, StockLocation)
 from ...product.utils import get_availability
-from ..views import staff_member_required
+from ..views import staff_member_required, superuser_required
 from . import forms
 
 
-@staff_member_required
-@permission_required('product.view_product')
+@superuser_required
 def product_class_list(request):
     classes = ProductClass.objects.all().prefetch_related(
         'product_attributes', 'variant_attributes')
@@ -36,8 +35,7 @@ def product_class_list(request):
         request, 'dashboard/product/product_class/list.html', ctx)
 
 
-@staff_member_required
-@permission_required('product.edit_product')
+@superuser_required
 def product_class_create(request):
     product_class = ProductClass()
     form = forms.ProductClassForm(request.POST or None,
@@ -53,8 +51,7 @@ def product_class_create(request):
         request, 'dashboard/product/product_class/form.html', ctx)
 
 
-@staff_member_required
-@permission_required('product.edit_product')
+@superuser_required
 def product_class_edit(request, pk):
     product_class = get_object_or_404(
         ProductClass, pk=pk)
@@ -71,8 +68,7 @@ def product_class_edit(request, pk):
         request, 'dashboard/product/product_class/form.html', ctx)
 
 
-@staff_member_required
-@permission_required('product.edit_product')
+@superuser_required
 def product_class_delete(request, pk):
     product_class = get_object_or_404(ProductClass, pk=pk)
     products = [str(p) for p in product_class.products.all()]
@@ -279,21 +275,6 @@ def stock_delete(request, product_pk, variant_pk, stock_pk):
         request, 'dashboard/product/stock/modal_confirm_delete.html', ctx)
 
 
-@require_http_methods(['POST'])
-@permission_required('product.edit_stock_location')
-def stock_bulk_delete(request, product_pk):
-    product = get_object_or_404(Product, pk=product_pk)
-    form = forms.StockBulkDeleteForm(request.POST)
-    if form.is_valid():
-        form.delete()
-        success_url = request.POST['success_url']
-        messages.success(
-            request, pgettext_lazy('Dashboard message', 'Deleted stock'))
-        if is_safe_url(success_url, allowed_hosts=request.get_host()):
-            return redirect(success_url)
-    return redirect('dashboard:product-update', pk=product.pk)
-
-
 @staff_member_required
 @permission_required('product.view_product')
 def product_images(request, product_pk):
@@ -442,25 +423,7 @@ def variant_delete(request, product_pk, variant_pk):
         'dashboard/product/product_variant/modal_confirm_delete.html', ctx)
 
 
-@staff_member_required
-@require_http_methods(['POST'])
-@permission_required('product.edit_product')
-def variants_bulk_delete(request, product_pk):
-    product = get_object_or_404(Product, pk=product_pk)
-    form = forms.VariantBulkDeleteForm(request.POST)
-    if form.is_valid():
-        form.delete()
-        success_url = request.POST['success_url']
-        messages.success(
-            request,
-            pgettext_lazy('Dashboard message', 'Deleted variants'))
-        if is_safe_url(success_url, allowed_hosts=request.get_host()):
-            return redirect(success_url)
-    return redirect('dashboard:product-update', pk=product.pk)
-
-
-@staff_member_required
-@permission_required('product.view_product')
+@superuser_required
 def attribute_list(request):
     attributes = [
         (attribute.pk, attribute.name, attribute.values.all())
@@ -470,8 +433,7 @@ def attribute_list(request):
         request, 'dashboard/product/product_attribute/list.html', ctx)
 
 
-@staff_member_required
-@permission_required('product.view_product')
+@superuser_required
 def attribute_detail(request, pk):
     attributes = ProductAttribute.objects.prefetch_related('values').all()
     attribute = get_object_or_404(attributes, pk=pk)
@@ -480,8 +442,7 @@ def attribute_detail(request, pk):
         request, 'dashboard/product/product_attribute/detail.html', ctx)
 
 
-@staff_member_required
-@permission_required('product.edit_product')
+@superuser_required
 def attribute_edit(request, pk=None):
     if pk:
         attribute = get_object_or_404(ProductAttribute, pk=pk)
@@ -503,8 +464,7 @@ def attribute_edit(request, pk=None):
         request, 'dashboard/product/product_attribute/form.html', ctx)
 
 
-@staff_member_required
-@permission_required('product.edit_product')
+@superuser_required
 def attribute_delete(request, pk):
     attribute = get_object_or_404(ProductAttribute, pk=pk)
     if request.method == 'POST':

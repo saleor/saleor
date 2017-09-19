@@ -6,19 +6,19 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
-from ..views import staff_member_required
+from ..views import superuser_required
 from .forms import GroupPermissionsForm
 
 
-@staff_member_required
+@superuser_required
 def group_list(request):
     groups = [{'name': group, 'permissions': group.permissions.all()}
-              for group in Group.objects.all()]
+              for group in Group.objects.all().prefetch_related('permissions')]
     ctx = {'groups': groups}
     return TemplateResponse(request, 'dashboard/group/list.html', ctx)
 
 
-@staff_member_required
+@superuser_required
 def group_create(request):
     group = Group()
     form = GroupPermissionsForm(request.POST or None)
@@ -33,7 +33,7 @@ def group_create(request):
     return TemplateResponse(request, 'dashboard/group/detail.html', ctx)
 
 
-@staff_member_required
+@superuser_required
 def group_details(request, pk):
     group = Group.objects.get(pk=pk)
     form = GroupPermissionsForm(request.POST or None, instance=group)
@@ -47,7 +47,7 @@ def group_details(request, pk):
     return TemplateResponse(request, 'dashboard/group/detail.html', ctx)
 
 
-@staff_member_required
+@superuser_required
 def group_delete(request, pk):
     group = get_object_or_404(Group, pk=pk)
     if request.method == 'POST':

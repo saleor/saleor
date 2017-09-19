@@ -8,11 +8,11 @@ from django.utils.translation import pgettext_lazy
 from ...core.utils import get_paginator_items
 
 from ...shipping.models import ShippingMethod
-from ..views import staff_member_required
+from ..views import superuser_required
 from .forms import ShippingMethodForm, ShippingMethodCountryFormSet
 
 
-@staff_member_required
+@superuser_required
 def shipping_method_list(request):
     methods = ShippingMethod.objects.prefetch_related('price_per_country').all()
     methods = get_paginator_items(methods, 30, request.GET.get('page'))
@@ -20,6 +20,7 @@ def shipping_method_list(request):
     return TemplateResponse(request, 'dashboard/shipping/method_list.html', ctx)
 
 
+@superuser_required
 def shipping_method_edit(request, method):
     form = ShippingMethodForm(request.POST or None, instance=method)
     formset = ShippingMethodCountryFormSet(request.POST or None, instance=method)
@@ -37,19 +38,19 @@ def shipping_method_edit(request, method):
     return TemplateResponse(request, 'dashboard/shipping/method_form.html', ctx)
 
 
-@staff_member_required
+@superuser_required
 def shipping_method_add(request):
     method = ShippingMethod()
     return shipping_method_edit(request, method)
 
 
-@staff_member_required
+@superuser_required
 def shipping_method_update(request, pk):
     method = get_object_or_404(ShippingMethod, pk=pk)
     return shipping_method_edit(request, method)
 
 
-@staff_member_required
+@superuser_required
 def shipping_method_detail(request, pk):
     shipping_methods = ShippingMethod.objects.prefetch_related(
         'price_per_country').all()
@@ -60,7 +61,7 @@ def shipping_method_detail(request, pk):
         request, 'dashboard/shipping/method_detail.html', ctx)
 
 
-@staff_member_required
+@superuser_required
 def shipping_method_delete(request, pk):
     shipping_method = get_object_or_404(ShippingMethod, pk=pk)
     if request.method == 'POST':

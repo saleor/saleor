@@ -4,12 +4,12 @@ from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 
 from .forms import UserGroupForm
-from ..views import staff_member_required
+from ..views import superuser_required
 from ...core.utils import get_paginator_items
 from ...userprofile.models import User
 
 
-@staff_member_required
+@superuser_required
 def staff_list(request):
     staff_members = (User.objects.filter(is_staff=True))
     staff_members = get_paginator_items(
@@ -18,7 +18,7 @@ def staff_list(request):
     return TemplateResponse(request, 'dashboard/staff/list.html', ctx)
 
 
-@staff_member_required
+@superuser_required
 def staff_details(request, pk):
     queryset = User.objects.filter(is_staff=True)
     staff_member = get_object_or_404(queryset, pk=pk)
