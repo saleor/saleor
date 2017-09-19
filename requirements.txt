@@ -45,7 +45,7 @@ idna==2.5                 # via cryptography, requests
 iso8601==0.1.12           # via graphene-django
 jmespath==0.9.3           # via boto3, botocore
 jsonfield==2.0.2
-markdown==2.6.8
+markdown==2.6.9
 maxminddb-geolite2==2015.708
 maxminddb==1.2.3
 mock==2.0.0
