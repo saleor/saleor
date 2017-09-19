@@ -64,7 +64,7 @@ pytest==3.2.2
 python-dateutil==2.6.1    # via botocore, faker
 python3-openid==3.1.0     # via social-auth-core
 pytz==2017.2              # via babel, django
-redis==2.10.5             # via django-redis
+redis==2.10.6             # via django-redis
 requests-oauthlib==0.8.0  # via social-auth-core
 requests==2.18.3
 s3transfer==0.1.10        # via boto3
