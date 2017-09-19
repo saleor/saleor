@@ -79,7 +79,7 @@ def order_details(request, order_pk):
 
 
 @staff_member_required
-@permission_required('order.edit_order')
+@permission_required('order.view_order')
 def order_add_note(request, order_pk):
     order = get_object_or_404(Order, pk=order_pk)
     note = OrderNote(order=order, user=request.user)
@@ -303,7 +303,7 @@ def cancel_delivery_group(request, order_pk, group_pk):
 
 
 @staff_member_required
-@permission_required('order.view_order')
+@permission_required('order.edit_order')
 def address_view(request, order_pk, address_type):
     order = Order.objects.get(pk=order_pk)
     if address_type == 'shipping':

@@ -136,6 +136,11 @@ def default_category(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def default_stock_location(db):
+    return StockLocation.objects.create(name='Warehouse 1')
+
+
+@pytest.fixture
 def staff_group():
     return Group.objects.create(name='test')
 
@@ -156,8 +161,18 @@ def permission_view_category():
 
 
 @pytest.fixture
+def permission_edit_category():
+    return Permission.objects.get(codename='edit_category')
+
+
+@pytest.fixture
 def permission_view_stock_location():
     return Permission.objects.get(codename='view_stock_location')
+
+
+@pytest.fixture
+def permission_edit_stock_location():
+    return Permission.objects.get(codename='edit_stock_location')
 
 
 @pytest.fixture
@@ -166,13 +181,28 @@ def permission_view_sale():
 
 
 @pytest.fixture
+def permission_edit_sale():
+    return Permission.objects.get(codename='edit_sale')
+
+
+@pytest.fixture
 def permission_view_voucher():
     return Permission.objects.get(codename='view_voucher')
 
 
 @pytest.fixture
+def permission_edit_voucher():
+    return Permission.objects.get(codename='edit_voucher')
+
+
+@pytest.fixture
 def permission_view_order():
     return Permission.objects.get(codename='view_order')
+
+
+@pytest.fixture
+def permission_edit_order():
+    return Permission.objects.get(codename='edit_order')
 
 
 @pytest.fixture
