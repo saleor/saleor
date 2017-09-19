@@ -5,7 +5,7 @@
 #    pip-compile --output-file requirements.txt requirements.in
 #
 asn1crypto==0.22.0        # via cryptography
-babel==2.3.4
+babel==2.5.1              # via babeldjango, django-prices
 babeldjango==0.2.2
 boto3==1.4.5
 botocore==1.5.92          # via boto3, s3transfer
@@ -30,7 +30,7 @@ django-storages==1.6.5
 django-templated-email==2.2.0
 django-versatileimagefield==1.6.2
 django-webpack-loader==0.5.0
-django==1.11.5            # via django-payments, django-prices, django-prices-openexchangerates, django-render-block, graphene-django, jsonfield
+django==1.11.5
 djangorestframework==3.6.3
 docutils==0.13.1          # via botocore
 elasticsearch==2.4.1
