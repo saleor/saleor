@@ -47,8 +47,11 @@ class Category(MPTTModel):
         verbose_name = pgettext_lazy('Category model', 'category')
         verbose_name_plural = pgettext_lazy('Category model', 'categories')
         app_label = 'product'
-        permissions = (('view_category', 'Can view categories'),
-                       ('edit_category', 'Can edit categories'))
+        permissions = (
+            ('view_category',
+             pgettext_lazy('Permission description', 'Can view categories')),
+            ('edit_category',
+             pgettext_lazy('Permission description', 'Can edit categories')))
 
     def __str__(self):
         return self.name
@@ -149,8 +152,11 @@ class Product(models.Model, ItemRange, index.Indexed):
         app_label = 'product'
         verbose_name = pgettext_lazy('Product model', 'product')
         verbose_name_plural = pgettext_lazy('Product model', 'products')
-        permissions = (('view_product', 'Can view products'),
-                       ('edit_product', 'Can edit products'))
+        permissions = (
+            ('view_product',
+             pgettext_lazy('Permission description', 'Can view products')),
+            ('edit_product',
+             pgettext_lazy('Permission description', 'Can edit products')))
 
     def __iter__(self):
         if not hasattr(self, '__variants'):
@@ -328,8 +334,12 @@ class StockLocation(models.Model):
 
     class Meta:
         permissions = (
-            ('view_stock_location', 'Can view stock location'),
-            ('edit_stock_location', 'Can edit stock location'))
+            ('view_stock_location',
+             pgettext_lazy('Permission description',
+                           'Can view stock location')),
+            ('edit_stock_location',
+             pgettext_lazy('Permission description',
+                           'Can edit stock location')))
 
     def __str__(self):
         return self.name
