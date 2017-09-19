@@ -78,7 +78,7 @@ social-auth-core==1.4.0   # via social-auth-app-django
 stripe==1.62.0            # via django-payments
 suds-jurko==0.6           # via django-payments
 text-unidecode==1.0
-typing==3.6.1             # via promise
+typing==3.6.2             # via promise
 urllib3==1.22             # via elasticsearch, requests
 uwsgi==2.0.15
 xmltodict==0.11.0         # via django-payments
