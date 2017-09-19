@@ -53,7 +53,7 @@ maxminddb==1.2.3
 mock==2.0.0
 oauthlib==2.0.4           # via requests-oauthlib, social-auth-core
 pbr==3.1.1                # via mock
-pillow==3.4.2             # via django-versatileimagefield
+pillow==4.0.0             # via django-versatileimagefield
 prices==0.5.9
 promise==2.0.2            # via graphene, graphql-core, graphql-relay
 psycopg2==2.7.3
