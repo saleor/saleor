@@ -7,39 +7,228 @@ from saleor.dashboard.group.forms import GroupPermissionsForm
 from saleor.dashboard.staff.forms import UserGroupForm
 
 
-def test_staff_list_view(admin_client):
+def test_admin_can_view_staff_list(admin_client):
     response = admin_client.get(reverse('dashboard:staff-list'))
     assert response.status_code == 200
 
 
-def test_staff_detail_view(admin_client, admin_user):
+def test_staff_cant_view_staff_list(staff_client):
+    response = staff_client.get(reverse('dashboard:staff-list'))
+    assert response.status_code == 302
+
+
+def test_admin_can_view_staff_detail(admin_client, admin_user):
     response = admin_client.get(reverse('dashboard:staff-details',
                                         args=[admin_user.pk]))
     assert response.status_code == 200
 
 
-def test_groups_list_view(admin_client):
+def test_staff_cant_view_staff_detail(staff_client, admin_user):
+    response = staff_client.get(reverse('dashboard:staff-details',
+                                        args=[admin_user.pk]))
+    assert response.status_code == 302
+
+
+def test_admin_can_view_groups_list(admin_client):
     response = admin_client.get(reverse('dashboard:group-list'))
     assert response.status_code == 200
 
 
-def test_group_detail_view(admin_client, staff_group):
+def test_staff_cant_view_groups_list(staff_client):
+    response = staff_client.get(reverse('dashboard:group-list'))
+    assert response.status_code == 302
+
+
+def test_admin_can_view_group_detail(admin_client, staff_group):
     response = admin_client.get(reverse('dashboard:group-details',
                                         args=[staff_group.pk]))
     assert response.status_code == 200
 
 
-def test_group_create_view(admin_client):
+def test_staff_cant_view_group_detail(staff_client, staff_group):
+    response = staff_client.get(reverse('dashboard:group-details',
+                                        args=[staff_group.pk]))
+    assert response.status_code == 302
+
+
+def test_admin_can_view_group_create(admin_client):
     response = admin_client.get(reverse('dashboard:group-create'))
     assert response.status_code == 200
 
 
-def test_customers_list_view(admin_client):
+def test_staff_cant_view_group_create(staff_client):
+    response = staff_client.get(reverse('dashboard:group-create'))
+    assert response.status_code == 302
+
+
+def test_admin_can_view_products_class_list(admin_client):
+    response = admin_client.get(reverse('dashboard:product-class-list'))
+    assert response.status_code == 200
+
+
+def test_staff_cant_view_products_class_list(staff_client):
+    response = staff_client.get(reverse('dashboard:product-class-list'))
+    assert response.status_code == 302
+
+
+def test_admin_can_view_products_class_add(admin_client):
+    response = admin_client.get(reverse('dashboard:product-class-add'))
+    assert response.status_code == 200
+
+
+def test_staff_cant_view_products_class_add(staff_client):
+    response = staff_client.get(reverse('dashboard:product-class-add'))
+    assert response.status_code == 302
+
+
+def test_admin_can_view_products_class_update(admin_client, product_class):
+    response = admin_client.get(reverse('dashboard:product-class-update',
+                                        args=[product_class.pk]))
+    assert response.status_code == 200
+
+
+def test_staff_cant_view_products_class_update(staff_client, product_class):
+    response = staff_client.get(reverse('dashboard:product-class-update',
+                                        args=[product_class.pk]))
+    assert response.status_code == 302
+
+
+def test_admin_can_view_products_class_delete(admin_client, product_class):
+    response = admin_client.get(reverse('dashboard:product-class-delete',
+                                        args=[product_class.pk]))
+    assert response.status_code == 200
+
+
+def test_staff_cant_view_products_class_delete(staff_client, product_class):
+    response = staff_client.get(reverse('dashboard:product-class-delete',
+                                        args=[product_class.pk]))
+    assert response.status_code == 302
+
+
+def test_admin_can_view_products_attribute_list(admin_client):
+    response = admin_client.get(reverse('dashboard:product-attributes'))
+    assert response.status_code == 200
+
+
+def test_staff_cant_view_products_attribute_list(staff_client):
+    response = staff_client.get(reverse('dashboard:product-attributes'))
+    assert response.status_code == 302
+
+
+def test_admin_can_view_products_attribute_add(admin_client):
+    response = admin_client.get(reverse('dashboard:product-attribute-add'))
+    assert response.status_code == 200
+
+
+def test_staff_cant_view_products_attribute_add(staff_client):
+    response = staff_client.get(reverse('dashboard:product-attribute-add'))
+    assert response.status_code == 302
+
+
+def test_admin_can_view_products_attribute_detail(
+        admin_client, color_attribute):
+    response = admin_client.get(reverse('dashboard:product-attribute-detail',
+                                        args=[color_attribute.pk]))
+    assert response.status_code == 200
+
+
+def test_staff_cant_view_products_attribute_detail(
+        staff_client, color_attribute):
+    response = staff_client.get(reverse('dashboard:product-attribute-detail',
+                                        args=[color_attribute.pk]))
+    assert response.status_code == 302
+
+
+def test_admin_can_view_products_attribute_update(
+        admin_client, color_attribute):
+    response = admin_client.get(reverse('dashboard:product-attribute-update',
+                                        args=[color_attribute.pk]))
+    assert response.status_code == 200
+
+
+def test_staff_cant_view_products_attribute_update(
+        staff_client, color_attribute):
+    response = staff_client.get(reverse('dashboard:product-attribute-update',
+                                        args=[color_attribute.pk]))
+    assert response.status_code == 302
+
+
+def test_admin_can_view_products_attribute_delete(
+        admin_client, color_attribute):
+    response = admin_client.get(reverse('dashboard:product-attribute-delete',
+                                        args=[color_attribute.pk]))
+    assert response.status_code == 200
+
+
+def test_staff_cant_view_products_attribute_delete(
+        staff_client, color_attribute):
+    response = staff_client.get(reverse('dashboard:product-attribute-delete',
+                                        args=[color_attribute.pk]))
+    assert response.status_code == 302
+
+
+def test_admin_can_view_shipping_methods_list(admin_client):
+    response = admin_client.get(reverse('dashboard:shipping-methods'))
+    assert response.status_code == 200
+
+
+def test_staff_cant_view_shipping_methods_list(staff_client):
+    response = staff_client.get(reverse('dashboard:shipping-methods'))
+    assert response.status_code == 302
+
+
+def test_admin_can_view_shipping_methods_add(admin_client):
+    response = admin_client.get(reverse('dashboard:shipping-method-add'))
+    assert response.status_code == 200
+
+
+def test_staff_cant_view_shipping_methods_add(staff_client):
+    response = staff_client.get(reverse('dashboard:shipping-method-add'))
+    assert response.status_code == 302
+
+
+def test_admin_can_view_shipping_methods_update(admin_client, shipping_method):
+    response = admin_client.get(reverse('dashboard:shipping-method-update',
+                                        args=[shipping_method.pk]))
+    assert response.status_code == 200
+
+
+def test_staff_cant_view_shipping_methods_update(staff_client, shipping_method):
+    response = staff_client.get(reverse('dashboard:shipping-method-update',
+                                        args=[shipping_method.pk]))
+    assert response.status_code == 302
+
+
+def test_admin_can_view_shipping_methods_detail(admin_client, shipping_method):
+    response = admin_client.get(reverse('dashboard:shipping-method-detail',
+                                        args=[shipping_method.pk]))
+    assert response.status_code == 200
+
+
+def test_staff_cant_view_shipping_methods_detail(staff_client, shipping_method):
+    response = staff_client.get(reverse('dashboard:shipping-method-detail',
+                                        args=[shipping_method.pk]))
+    assert response.status_code == 302
+
+
+def test_admin_can_view_shipping_methods_delete(admin_client, shipping_method):
+    response = admin_client.get(reverse('dashboard:shipping-method-delete',
+                                        args=[shipping_method.pk]))
+    assert response.status_code == 200
+
+
+def test_staff_cant_view_shipping_methods_delete(staff_client, shipping_method):
+    response = staff_client.get(reverse('dashboard:shipping-method-delete',
+                                        args=[shipping_method.pk]))
+    assert response.status_code == 302
+
+
+def test_admin_can_view_customers_list(admin_client):
     response = admin_client.get(reverse('dashboard:customers'))
     assert response.status_code == 200
 
 
-def test_customer_detail_view(admin_client, customer_user):
+def test_admin_can_view_customer_detail_view(admin_client, customer_user):
     response = admin_client.get(reverse('dashboard:customer-details',
                                         args=[customer_user.pk]))
     assert response.status_code == 200
