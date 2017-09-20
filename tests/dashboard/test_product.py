@@ -144,3 +144,11 @@ def test_view_product_toggle_publish(db, admin_client, product_in_stock):
     admin_client.post(url)
     product.refresh_from_db()
     assert product.is_published
+
+
+def test_view_product_delete(db, admin_client, product_in_stock):
+    product = product_in_stock
+    url = reverse('dashboard:product-delete', kwargs={'pk': product.pk})
+    response = admin_client.post(url)
+    assert response.status_code == 302
+    assert not Product.objects.filter(pk=product.pk)
