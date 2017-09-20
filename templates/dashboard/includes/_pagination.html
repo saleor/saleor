@@ -1,18 +1,21 @@
 {% load i18n %}
 {% load utils %}
 {% load staticfiles %}
+{% load bootstrap3 %}
+
 
 {% if page_obj.paginator.num_pages > 1 %}
   <ul class="pagination">
-    <li
-      {% if not page_obj.has_previous %} class="disabled"{% endif %}>
+    <li {% if not page_obj.has_previous %} class="disabled"{% endif %}>
       {% if page_obj.has_previous %}
         <a href="?page=1">
-          First
-        </a>
-        <a href="{% construct_get_query page=page_obj.previous_page_number %}">
           <svg data-src="{% static "dashboard/images/chevron_left.svg" %}" fill="#000" />
         </a>
+        {% if page_obj.number|add:'-4' > 1 %}
+          <a href="{% construct_get_query page=page_obj.number|add:'-4' %}">
+            &hellip;
+          </a>
+        {% endif %}
       {% else %}
         <a href="#!">
           <svg data-src="{% static "dashboard/images/chevron_left.svg" %}" fill="#9E9E9E" />
@@ -36,11 +39,13 @@
       {% endfor %}
     <li{% if not page_obj.has_next %} class="disabled"{% endif %}>
       {% if page_obj.has_next %}
-        <a href="{% construct_get_query page=page_obj.next_page_number %}">
-          <svg data-src="{% static "dashboard/images/chevron_right.svg" %}" fill="#000" />
-        </a>
+        {% if page_obj.number|add:'4' < page_obj.paginator.num_pages %}
+          <a href="{% construct_get_query page=page_obj.number|add:'4' %}">
+            &hellip;
+          </a>
+        {% endif %}
         <a href="?page={{ page_obj.paginator.num_pages }}">
-          Last
+          <svg data-src="{% static "dashboard/images/chevron_right.svg" %}" fill="#000" />
         </a>
       {% else %}
         <a href="#!">
