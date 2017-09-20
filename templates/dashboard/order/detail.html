@@ -445,11 +445,13 @@
             </p>
           {% endif %}
         </div>
-        <div class="card-action">
-          <a data-href="{% url "dashboard:order-add-note" order_pk=order.pk %}" class="modal-trigger-custom btn btn-flat" href="#base-modal">
-            {% trans "Add note" context "Order notes card action" %}
-          </a>
-        </div>
+        {% if perms.order.edit_order %}
+          <div class="card-action">
+            <a data-href="{% url "dashboard:order-add-note" order_pk=order.pk %}" class="modal-trigger-custom btn btn-flat" href="#base-modal">
+              {% trans "Add note" context "Order notes card action" %}
+            </a>
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>

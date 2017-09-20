@@ -72,11 +72,11 @@
               </h5>
             </div>
             <div class="card-content">
-              <div class="data">
-                  {% csrf_token %}
-                  <div class="row">
+              {% csrf_token %}
+              <div class="row">
+                <div class="col s12">
                   {{ form|materializecss }}
-                  </div>
+                </div>
               </div>
             </div>
             <div class="card-action right-align">

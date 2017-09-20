@@ -79,7 +79,7 @@ def order_details(request, order_pk):
 
 
 @staff_member_required
-@permission_required('order.view_order')
+@permission_required('order.edit_order')
 def order_add_note(request, order_pk):
     order = get_object_or_404(Order, pk=order_pk)
     note = OrderNote(order=order, user=request.user)
@@ -347,6 +347,8 @@ def cancel_order(request, order_pk):
                             ctx, status=status)
 
 
+@staff_member_required
+@permission_required('order.edit_order')
 def remove_order_voucher(request, order_pk):
     status = 200
     order = get_object_or_404(Order, pk=order_pk)

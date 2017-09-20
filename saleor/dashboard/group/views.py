@@ -43,6 +43,7 @@ def group_details(request, pk):
             request,
             pgettext_lazy('Dashboard message', 'Updated group %s') % group.name
         )
+        return redirect('dashboard:group-list')
     ctx = {'group': group, 'form': form}
     return TemplateResponse(request, 'dashboard/group/detail.html', ctx)
 
