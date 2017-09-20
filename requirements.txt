@@ -7,8 +7,8 @@
 asn1crypto==0.22.0        # via cryptography
 babel==2.5.1
 babeldjango==0.2.2
-boto3==1.4.5
-botocore==1.5.92          # via boto3, s3transfer
+boto3==1.4.7
+botocore==1.7.14          # via boto3, s3transfer
 braintree==3.37.2         # via django-payments
 certifi==2017.7.27.1      # via requests
 cffi==1.10.0              # via cryptography
