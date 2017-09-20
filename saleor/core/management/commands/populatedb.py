@@ -66,8 +66,6 @@ class Command(BaseCommand):
             self.stdout.write(msg)
         for msg in set_featured_products(16):
             self.stdout.write(msg)
-
-
         self.stdout.write(create_groups())
 
         if options['createsuperuser']:
