@@ -152,3 +152,11 @@ def test_view_product_delete(db, admin_client, product_in_stock):
     response = admin_client.post(url)
     assert response.status_code == 302
     assert not Product.objects.filter(pk=product.pk)
+
+
+def test_view_product_class_delete(db, admin_client, product_in_stock):
+    product_class = product_in_stock.product_class
+    url = reverse('dashboard:product-class-delete', kwargs={'pk': product_class.pk})
+    response = admin_client.post(url)
+    assert response.status_code == 302
+    assert not ProductClass.objects.filter(pk=product_class.pk)
