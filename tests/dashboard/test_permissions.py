@@ -584,31 +584,31 @@ def test_staff_group_member_can_view_order_details(
 
 
 def test_staff_group_member_can_view_order_add_note(
-        staff_client, staff_user, staff_group, permission_view_order, order):
-    assert not staff_user.has_perm("order.view_order")
+        staff_client, staff_user, staff_group, permission_edit_order, order):
+    assert not staff_user.has_perm("order.edit_order")
     response = staff_client.get(reverse('dashboard:order-add-note',
                                         args=[order.pk]))
     assert response.status_code == 302
-    staff_group.permissions.add(permission_view_order)
+    staff_group.permissions.add(permission_edit_order)
     staff_user.groups.add(staff_group)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm("order.view_order")
+    assert staff_user.has_perm("order.edit_order")
     response = staff_client.get(reverse('dashboard:order-add-note',
                                         args=[order.pk]))
     assert response.status_code == 200
 
 
 def test_staff_group_member_can_view_order_cancel(
-        staff_client, staff_user, staff_group, permission_view_order,
+        staff_client, staff_user, staff_group, permission_edit_order,
         order):
-    assert not staff_user.has_perm("order.view_order")
+    assert not staff_user.has_perm("order.edit_order")
     response = staff_client.get(reverse('dashboard:order-add-note',
                                         args=[order.pk]))
     assert response.status_code == 302
-    staff_group.permissions.add(permission_view_order)
+    staff_group.permissions.add(permission_edit_order)
     staff_user.groups.add(staff_group)
     staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.has_perm("order.view_order")
+    assert staff_user.has_perm("order.edit_order")
     response = staff_client.get(reverse('dashboard:order-add-note',
                                         args=[order.pk]))
     assert response.status_code == 200
