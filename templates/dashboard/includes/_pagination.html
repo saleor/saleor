@@ -23,7 +23,7 @@
       {% endif %}
     </li>
       {% for page in page_obj.paginator.page_range %}
-        {% if page_obj == page %}
+        {% if page_obj.number == page %}
           <li class="active">
             <a href="{% construct_get_query page=page %}">
               {{ page }}
