@@ -15,6 +15,10 @@ from ..views import staff_member_required
 from . import forms
 
 
+def was_post(message):
+    return message.method == 'POST'
+
+
 @staff_member_required
 def product_class_list(request):
     classes = ProductClass.objects.all().prefetch_related(
@@ -68,8 +72,7 @@ def product_class_edit(request, pk):
 @staff_member_required
 def product_class_delete(request, pk):
     product_class = get_object_or_404(ProductClass, pk=pk)
-    products = [str(p) for p in product_class.products.all()]
-    if request.method == 'POST':
+    if was_post(request):
         product_class.delete()
         messages.success(
             request,
@@ -77,6 +80,8 @@ def product_class_delete(request, pk):
                 'Dashboard message',
                 'Deleted product type %s') % product_class)
         return redirect('dashboard:product-class-list')
+
+    products = [str(p) for p in product_class.products.all()]
     return TemplateResponse(
         request,
         'dashboard/product/product_class/modal_confirm_delete.html',
@@ -203,7 +208,7 @@ def product_edit(request, pk):
 @staff_member_required
 def product_delete(request, pk):
     product = get_object_or_404(Product, pk=pk)
-    if request.method == 'POST':
+    if was_post(request):
         product.delete()
         messages.success(
             request,
@@ -251,7 +256,7 @@ def stock_delete(request, product_pk, variant_pk, stock_pk):
     product = get_object_or_404(Product, pk=product_pk)
     variant = get_object_or_404(product.variants, pk=variant_pk)
     stock = get_object_or_404(Stock, pk=stock_pk)
-    if request.method == 'POST':
+    if was_post(request):
         stock.delete()
         messages.success(
             request, pgettext_lazy('Dashboard message', 'Deleted stock'))
@@ -303,7 +308,7 @@ def product_image_edit(request, product_pk, img_pk=None):
 def product_image_delete(request, product_pk, img_pk):
     product = get_object_or_404(Product, pk=product_pk)
     image = get_object_or_404(product.images, pk=img_pk)
-    if request.method == 'POST':
+    if was_post(request):
         image.delete()
         messages.success(
             request,
@@ -378,6 +383,7 @@ def variant_images(request, product_pk, variant_pk):
         return redirect(
             'dashboard:variant-details', product_pk=product.pk,
             variant_pk=variant.pk)
+
     ctx = {'form': form, 'product': product, 'variant': variant}
     return TemplateResponse(
         request, 'dashboard/product/product_variant/modal_select_images.html',
@@ -389,13 +395,14 @@ def variant_delete(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
     variant = get_object_or_404(product.variants, pk=variant_pk)
     is_only_variant = product.variants.count() == 1
-    if request.method == 'POST':
+    if was_post(request):
         variant.delete()
         messages.success(
             request,
             pgettext_lazy(
                 'Dashboard message', 'Deleted variant %s') % variant.name)
         return redirect('dashboard:product-detail', pk=product.pk)
+
     ctx = {
         'is_only_variant': is_only_variant, 'product': product,
         'variant': variant}
@@ -425,7 +432,7 @@ def attribute_detail(request, pk):
 
 @staff_member_required
 def attribute_edit(request, pk=None):
-    if pk:
+    if pk is not None:
         attribute = get_object_or_404(ProductAttribute, pk=pk)
     else:
         attribute = ProductAttribute()
@@ -440,6 +447,7 @@ def attribute_edit(request, pk=None):
                 'Dashboard message', 'Added attribute')
         messages.success(request, msg)
         return redirect('dashboard:product-attribute-detail', pk=attribute.pk)
+
     ctx = {'attribute': attribute, 'form': form, 'formset': formset}
     return TemplateResponse(
         request, 'dashboard/product/product_attribute/form.html', ctx)
@@ -448,7 +456,7 @@ def attribute_edit(request, pk=None):
 @staff_member_required
 def attribute_delete(request, pk):
     attribute = get_object_or_404(ProductAttribute, pk=pk)
-    if request.method == 'POST':
+    if was_post(request):
         attribute.delete()
         messages.success(
             request,
@@ -456,6 +464,7 @@ def attribute_delete(request, pk):
                 'Dashboard message',
                 'Deleted attribute %s') % (attribute.name,))
         return redirect('dashboard:product-attributes')
+
     ctx = {'attribute': attribute}
     return TemplateResponse(
         request,
@@ -485,6 +494,7 @@ def stock_location_edit(request, location_pk=None):
                 'Dashboard message for stock location', 'Added location')
         messages.success(request, msg)
         return redirect('dashboard:product-stock-location-list')
+
     ctx = {'form': form, 'location': location}
     return TemplateResponse(
         request, 'dashboard/product/stock_location/form.html', ctx)
@@ -494,7 +504,7 @@ def stock_location_edit(request, location_pk=None):
 def stock_location_delete(request, location_pk):
     location = get_object_or_404(StockLocation, pk=location_pk)
     stock_count = location.stock_set.count()
-    if request.method == 'POST':
+    if was_post(request):
         location.delete()
         messages.success(
             request, pgettext_lazy(
