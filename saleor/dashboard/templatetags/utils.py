@@ -35,7 +35,7 @@ def render_image_choice(field):
 
 @register.inclusion_tag('dashboard/includes/_pagination.html',
                         takes_context=True)
-def paginate(context, page_obj, num_of_pages=3):
+def paginate(context, page_obj, num_of_pages=5):
     context['page_obj'] = page_obj
     context['n_forward'] = num_of_pages+1
     context['n_backward'] = -num_of_pages-1
