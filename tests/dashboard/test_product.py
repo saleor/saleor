@@ -7,6 +7,7 @@ from django import forms
 from django.core.urlresolvers import reverse
 from django.utils.encoding import smart_text
 from mock import Mock
+from http import HTTPStatus
 
 from saleor.dashboard.product.forms import (ProductClassForm,
                                             ProductClassSelectorForm,
@@ -138,7 +139,7 @@ def test_view_product_toggle_publish(db, admin_client, product_in_stock):
     product = product_in_stock
     url = reverse('dashboard:product-publish', kwargs={'pk': product.pk})
     response = admin_client.post(url)
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     data = {'success': True, 'is_published': False}
     assert json.loads(response.content.decode('utf8')) == data
     admin_client.post(url)
@@ -146,11 +147,19 @@ def test_view_product_toggle_publish(db, admin_client, product_in_stock):
     assert product.is_published
 
 
+def test_view_product_not_deleted_before_confirmation(db, admin_client, product_in_stock):
+    product = product_in_stock
+    url = reverse('dashboard:product-delete', kwargs={'pk': product.pk})
+    response = admin_client.get(url)
+    assert response.status_code == HTTPStatus.OK
+    product.refresh_from_db()
+
+
 def test_view_product_delete(db, admin_client, product_in_stock):
     product = product_in_stock
     url = reverse('dashboard:product-delete', kwargs={'pk': product.pk})
     response = admin_client.post(url)
-    assert response.status_code == 302
+    assert response.status_code == HTTPStatus.FOUND
     assert not Product.objects.filter(pk=product.pk)
 
 
@@ -158,5 +167,5 @@ def test_view_product_class_delete(db, admin_client, product_in_stock):
     product_class = product_in_stock.product_class
     url = reverse('dashboard:product-class-delete', kwargs={'pk': product_class.pk})
     response = admin_client.post(url)
-    assert response.status_code == 302
+    assert response.status_code == HTTPStatus.FOUND
     assert not ProductClass.objects.filter(pk=product_class.pk)
