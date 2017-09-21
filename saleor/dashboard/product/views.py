@@ -261,7 +261,7 @@ def stock_edit(request, product_pk, variant_pk, stock_pk=None):
 
 
 @staff_member_required
-def stock_delete(requeconfirm_tmplst, product_pk, variant_pk, stock_pk):
+def stock_delete(request, product_pk, variant_pk, stock_pk):
     product = get_object_or_404(Product, pk=product_pk)
     variant = get_object_or_404(product.variants, pk=variant_pk)
     stock = get_object_or_404(Stock, pk=stock_pk)
@@ -398,7 +398,7 @@ def variant_images(request, product_pk, variant_pk):
 
     ctx = {'form': form, 'product': product, 'variant': variant}
     select_images_tmpl = ('dashboard/product/product_variant/'
-            'modal_select_images.html')
+                          'modal_select_images.html')
     return TemplateResponse(request, select_images_tmpl, ctx)
 
 
@@ -419,7 +419,7 @@ def variant_delete(request, product_pk, variant_pk):
         'is_only_variant': is_only_variant, 'product': product,
         'variant': variant}
     confirm_tmpl = ('dashboard/product/product_variant/'
-            'modal_confirm_delete.html')
+                    'modal_confirm_delete.html')
     return TemplateResponse(request, confirm_tmpl, ctx)
 
 
@@ -479,7 +479,7 @@ def attribute_delete(request, pk):
 
     ctx = {'attribute': attribute}
     confirm_tmpl = ('dashboard/product/product_attribute/'
-            'modal_confirm_delete.html')
+                    'modal_confirm_delete.html')
     return TemplateResponse(request, confirm_tmpl, ctx)
 
 
