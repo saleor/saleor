@@ -4,6 +4,7 @@
 {% load materializecss %}
 {% load staticfiles %}
 {% load product_first_image from product_images %}
+{% load utils %}
 
 {% block title %}
   {% trans "Products" context "Dashboard products list" %} - {{ block.super }}
@@ -62,7 +63,7 @@
             </li>
           {% endfor %}
         </ul>
-        {% include "dashboard/includes/_pagination.html" with page_obj=products %}
+        {% paginate products %}
       {% else %}
         <div class="not-found">
           <p class="grey-text">

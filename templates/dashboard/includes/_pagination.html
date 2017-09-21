@@ -11,8 +11,8 @@
         <a href="?page=1">
           <svg data-src="{% static "dashboard/images/chevron_left.svg" %}" fill="#000" />
         </a>
-        {% if page_obj.number|add:'-4' > 1 %}
-          <a href="{% construct_get_query page=page_obj.number|add:'-4' %}">
+        {% if page_obj.number|add:previous_section >= 1 %}
+          <a href="{% construct_get_query page=page_obj.number|add:previous_section %}">
             &hellip;
           </a>
         {% endif %}
@@ -29,7 +29,7 @@
               {{ page }}
             </a>
           </li>
-        {% elif page > page_obj.number|add:'-2' and page < page_obj.number|add:'2' %}
+        {% elif page > page_obj.number|add:n_backward and page < page_obj.number|add:n_forward %}
           <li class="waves-effect">
             <a href="{% construct_get_query page=page %}">
               {{ page }}
@@ -37,10 +37,10 @@
           </li>
         {% endif %}
       {% endfor %}
-    <li{% if not page_obj.has_next %} class="disabled"{% endif %}>
+    <li {% if not page_obj.has_next %} class="disabled"{% endif %} >
       {% if page_obj.has_next %}
-        {% if page_obj.number|add:'4' < page_obj.paginator.num_pages %}
-          <a href="{% construct_get_query page=page_obj.number|add:'4' %}">
+        {% if page_obj.number|add:next_section <= page_obj.paginator.num_pages %}
+          <a href="{% construct_get_query page=page_obj.number|add:next_section %}">
             &hellip;
           </a>
         {% endif %}
