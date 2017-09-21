@@ -86,11 +86,12 @@ def product_class_delete(request, pk):
 
     products = [str(p) for p in product_class.products.all()]
     context = {'product_class': product_class, 'products': products}
+    url_root = 'dashboard/product/product_class/'
     if products:
-        confirm_tmpl = 'dashboard/product/product_class/modal_cannot_delete_class.html'
+        confirm_tmpl = 'modal_cannot_delete_class.html'
     else:
-        confirm_tmpl = 'dashboard/product/product_class/modal_confirm_delete.html'
-    return TemplateResponse(request, confirm_tmpl, context)
+        confirm_tmpl = 'modal_confirm_delete.html'
+    return TemplateResponse(request, url_root + confirm_tmpl, context)
 
 
 @staff_member_required
@@ -396,7 +397,8 @@ def variant_images(request, product_pk, variant_pk):
             variant_pk=variant.pk)
 
     ctx = {'form': form, 'product': product, 'variant': variant}
-    select_images_tmpl = 'dashboard/product/product_variant/modal_select_images.html'
+    select_images_tmpl = ('dashboard/product/product_variant/'
+            'modal_select_images.html')
     return TemplateResponse(request, select_images_tmpl, ctx)
 
 
@@ -416,7 +418,8 @@ def variant_delete(request, product_pk, variant_pk):
     ctx = {
         'is_only_variant': is_only_variant, 'product': product,
         'variant': variant}
-    confirm_tmpl = 'dashboard/product/product_variant/modal_confirm_delete.html'
+    confirm_tmpl = ('dashboard/product/product_variant/'
+            'modal_confirm_delete.html')
     return TemplateResponse(request, confirm_tmpl, ctx)
 
 
@@ -441,7 +444,10 @@ def attribute_detail(request, pk):
 
 @staff_member_required
 def attribute_edit(request, pk=None):
-    attribute =  get_object_or_404(ProductAttribute, pk=pk) if pk else ProductAttribute()
+    if pk:
+        attribute = get_object_or_404(ProductAttribute, pk=pk)
+    else:
+        attribute = ProductAttribute()
     form = forms.ProductAttributeForm(request.POST or None, instance=attribute)
     formset = forms.AttributeChoiceValueFormset(
         request.POST or None, request.FILES or None, instance=attribute)
@@ -472,7 +478,8 @@ def attribute_delete(request, pk):
         return redirect('dashboard:product-attributes')
 
     ctx = {'attribute': attribute}
-    confirm_tmpl =  'dashboard/product/product_attribute/modal_confirm_delete.html'
+    confirm_tmpl = ('dashboard/product/product_attribute/'
+            'modal_confirm_delete.html')
     return TemplateResponse(request, confirm_tmpl, ctx)
 
 
