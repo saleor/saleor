@@ -86,7 +86,10 @@ def product_class_delete(request, pk):
 
     products = [str(p) for p in product_class.products.all()]
     context = {'product_class': product_class, 'products': products}
-    confirm_tmpl = 'dashboard/product/product_class/modal_confirm_delete.html'
+    if products:
+        confirm_tmpl = 'dashboard/product/product_class/modal_cannot_delete_class.html'
+    else:
+        confirm_tmpl = 'dashboard/product/product_class/modal_confirm_delete.html'
     return TemplateResponse(request, confirm_tmpl, context)
 
 
