@@ -31,9 +31,10 @@ def product_class_list(request):
         (pc.pk, pc.name, pc.has_variants, pc.product_attributes.all(),
          pc.variant_attributes.all())
         for pc in classes.object_list]
+
     ctx = {'form': form, 'product_classes': classes}
-    return TemplateResponse(
-        request, 'dashboard/product/product_class/list.html', ctx)
+    class_list_tmpl = 'dashboard/product/product_class/list.html'
+    return TemplateResponse(request, class_list_tmpl, ctx)
 
 
 @staff_member_required
@@ -47,9 +48,10 @@ def product_class_create(request):
             'Dashboard message', 'Added product type %s') % product_class
         messages.success(request, msg)
         return redirect('dashboard:product-class-list')
+
     ctx = {'form': form, 'product_class': product_class}
-    return TemplateResponse(
-        request, 'dashboard/product/product_class/form.html', ctx)
+    class_form_tmpl = 'dashboard/product/product_class/form.html'
+    return TemplateResponse(request, class_form_tmpl, ctx)
 
 
 @staff_member_required
@@ -64,9 +66,10 @@ def product_class_edit(request, pk):
             'Dashboard message', 'Updated product type %s') % product_class
         messages.success(request, msg)
         return redirect('dashboard:product-class-update', pk=pk)
+
     ctx = {'form': form, 'product_class': product_class}
-    return TemplateResponse(
-        request, 'dashboard/product/product_class/form.html', ctx)
+    class_form_tmpl = 'dashboard/product/product_class/form.html'
+    return TemplateResponse(request, class_form_tmpl, ctx)
 
 
 @staff_member_required
@@ -82,10 +85,9 @@ def product_class_delete(request, pk):
         return redirect('dashboard:product-class-list')
 
     products = [str(p) for p in product_class.products.all()]
-    return TemplateResponse(
-        request,
-        'dashboard/product/product_class/modal_confirm_delete.html',
-        {'product_class': product_class, 'products': products})
+    context = {'product_class': product_class, 'products': products}
+    confirm_tmpl = 'dashboard/product/product_class/modal_confirm_delete.html'
+    return TemplateResponse(request, confirm_tmpl, context)
 
 
 @staff_member_required
@@ -201,8 +203,9 @@ def product_edit(request, pk):
         return redirect('dashboard:product-detail', pk=product.pk)
     ctx = {
         'product': product, 'product_form': form, 'variant_form': variant_form}
-    return TemplateResponse(
-        request, 'dashboard/product/form.html', ctx)
+
+    product_form_tmpl = 'dashboard/product/form.html'
+    return TemplateResponse(request, product_form_tmpl, ctx)
 
 
 @staff_member_required
@@ -214,9 +217,9 @@ def product_delete(request, pk):
             request,
             pgettext_lazy('Dashboard message', 'Deleted product %s') % product)
         return redirect('dashboard:product-list')
-    return TemplateResponse(
-        request, 'dashboard/product/modal_confirm_delete.html',
-        {'product': product})
+
+    modal_confirm_tmpl = 'dashboard/product/modal_confirm_delete.html'
+    return TemplateResponse(request, modal_confirm_tmpl, {'product': product})
 
 
 @staff_member_required
@@ -225,8 +228,8 @@ def stock_details(request, product_pk, variant_pk, stock_pk):
     variant = get_object_or_404(product.variants, pk=variant_pk)
     stock = get_object_or_404(variant.stock, pk=stock_pk)
     ctx = {'stock': stock, 'product': product, 'variant': variant}
-    return TemplateResponse(
-        request, 'dashboard/product/stock/detail.html', ctx)
+    stock_detail_tmpl = 'dashboard/product/stock/detail.html'
+    return TemplateResponse(request, stock_detail_tmpl, ctx)
 
 
 @staff_member_required
@@ -246,13 +249,15 @@ def stock_edit(request, product_pk, variant_pk, stock_pk=None):
         return redirect(
             'dashboard:variant-details', product_pk=product.pk,
             variant_pk=variant.pk)
+
     ctx = {
         'form': form, 'product': product, 'variant': variant, 'stock': stock}
-    return TemplateResponse(request, 'dashboard/product/stock/form.html', ctx)
+    stock_form_tmpl = 'dashboard/product/stock/form.html'
+    return TemplateResponse(request, stock_form_tmpl, ctx)
 
 
 @staff_member_required
-def stock_delete(request, product_pk, variant_pk, stock_pk):
+def stock_delete(requeconfirm_tmplst, product_pk, variant_pk, stock_pk):
     product = get_object_or_404(Product, pk=product_pk)
     variant = get_object_or_404(product.variants, pk=variant_pk)
     stock = get_object_or_404(Stock, pk=stock_pk)
@@ -263,9 +268,10 @@ def stock_delete(request, product_pk, variant_pk, stock_pk):
         return redirect(
             'dashboard:variant-details', product_pk=product.pk,
             variant_pk=variant.pk)
+
     ctx = {'product': product, 'stock': stock, 'variant': variant}
-    return TemplateResponse(
-        request, 'dashboard/product/stock/modal_confirm_delete.html', ctx)
+    confirm_tmpl = 'dashboard/product/stock/modal_confirm_delete.html'
+    return TemplateResponse(request, confirm_tmpl, ctx)
 
 
 @staff_member_required
@@ -274,8 +280,8 @@ def product_images(request, product_pk):
         Product.objects.prefetch_related('images'), pk=product_pk)
     images = product.images.all()
     ctx = {'product': product, 'images': images}
-    return TemplateResponse(
-        request, 'dashboard/product/product_image/list.html', ctx)
+    image_list_tmpl = 'dashboard/product/product_image/list.html'
+    return TemplateResponse(request, image_list_tmpl, ctx)
 
 
 @staff_member_required
@@ -299,9 +305,10 @@ def product_image_edit(request, product_pk, img_pk=None):
                 'Added image %s') % product_image.image.name
         messages.success(request, msg)
         return redirect('dashboard:product-image-list', product_pk=product.pk)
+
     ctx = {'form': form, 'product': product, 'product_image': product_image}
-    return TemplateResponse(
-        request, 'dashboard/product/product_image/form.html', ctx)
+    image_form_tmpl = 'dashboard/product/product_image/form.html'
+    return TemplateResponse(request, image_form_tmpl, ctx)
 
 
 @staff_member_required
@@ -316,10 +323,10 @@ def product_image_delete(request, product_pk, img_pk):
                 'Dashboard message',
                 'Deleted image %s') % image.image.name)
         return redirect('dashboard:product-image-list', product_pk=product.pk)
+
     ctx = {'product': product, 'image': image}
-    return TemplateResponse(
-        request,
-        'dashboard/product/product_image/modal_confirm_delete.html', ctx)
+    confirm_tmpl = 'dashboard/product/product_image/modal_confirm_delete.html'
+    return TemplateResponse(request, confirm_tmpl, ctx)
 
 
 @staff_member_required
@@ -342,11 +349,12 @@ def variant_edit(request, product_pk, variant_pk=None):
         return redirect(
             'dashboard:variant-details', product_pk=product.pk,
             variant_pk=variant.pk)
+
     ctx = {
         'attribute_form': attribute_form, 'form': form, 'product': product,
         'variant': variant}
-    return TemplateResponse(
-        request, 'dashboard/product/product_variant/form.html', ctx)
+    variant_form_tmpl = 'dashboard/product/product_variant/form.html'
+    return TemplateResponse(request, variant_form_tmpl, ctx)
 
 
 @staff_member_required
@@ -368,8 +376,8 @@ def variant_details(request, product_pk, variant_pk):
     ctx = {
         'images': images, 'product': product, 'stock': stock,
         'variant': variant}
-    return TemplateResponse(
-        request, 'dashboard/product/product_variant/detail.html', ctx)
+    variant_detail_tmpl = 'dashboard/product/product_variant/detail.html'
+    return TemplateResponse(request, variant_detail_tmpl, ctx)
 
 
 @staff_member_required
@@ -385,9 +393,8 @@ def variant_images(request, product_pk, variant_pk):
             variant_pk=variant.pk)
 
     ctx = {'form': form, 'product': product, 'variant': variant}
-    return TemplateResponse(
-        request, 'dashboard/product/product_variant/modal_select_images.html',
-        ctx)
+    select_images_tmpl = 'dashboard/product/product_variant/modal_select_images.html'
+    return TemplateResponse(request, select_images_tmpl, ctx)
 
 
 @staff_member_required
@@ -406,9 +413,8 @@ def variant_delete(request, product_pk, variant_pk):
     ctx = {
         'is_only_variant': is_only_variant, 'product': product,
         'variant': variant}
-    return TemplateResponse(
-        request,
-        'dashboard/product/product_variant/modal_confirm_delete.html', ctx)
+    confirm_tmpl = 'dashboard/product/product_variant/modal_confirm_delete.html'
+    return TemplateResponse(request, confirm_tmpl, ctx)
 
 
 @staff_member_required
@@ -417,8 +423,8 @@ def attribute_list(request):
         (attribute.pk, attribute.name, attribute.values.all())
         for attribute in ProductAttribute.objects.prefetch_related('values')]
     ctx = {'attributes': attributes}
-    return TemplateResponse(
-        request, 'dashboard/product/product_attribute/list.html', ctx)
+    attribute_list_tmpl = 'dashboard/product/product_attribute/list.html'
+    return TemplateResponse(request, attribute_list_tmpl, ctx)
 
 
 @staff_member_required
@@ -426,16 +432,13 @@ def attribute_detail(request, pk):
     attributes = ProductAttribute.objects.prefetch_related('values').all()
     attribute = get_object_or_404(attributes, pk=pk)
     ctx = {'attribute': attribute}
-    return TemplateResponse(
-        request, 'dashboard/product/product_attribute/detail.html', ctx)
+    attribute_detail_tmpl = 'dashboard/product/product_attribute/detail.html'
+    return TemplateResponse(request, attribute_detail_tmpl, ctx)
 
 
 @staff_member_required
 def attribute_edit(request, pk=None):
-    if pk is not None:
-        attribute = get_object_or_404(ProductAttribute, pk=pk)
-    else:
-        attribute = ProductAttribute()
+    attribute =  get_object_or_404(ProductAttribute, pk=pk) if pk else ProductAttribute()
     form = forms.ProductAttributeForm(request.POST or None, instance=attribute)
     formset = forms.AttributeChoiceValueFormset(
         request.POST or None, request.FILES or None, instance=attribute)
@@ -449,8 +452,8 @@ def attribute_edit(request, pk=None):
         return redirect('dashboard:product-attribute-detail', pk=attribute.pk)
 
     ctx = {'attribute': attribute, 'form': form, 'formset': formset}
-    return TemplateResponse(
-        request, 'dashboard/product/product_attribute/form.html', ctx)
+    attribute_form_tmpl = 'dashboard/product/product_attribute/form.html'
+    return TemplateResponse(request, attribute_form_tmpl, ctx)
 
 
 @staff_member_required
@@ -466,17 +469,16 @@ def attribute_delete(request, pk):
         return redirect('dashboard:product-attributes')
 
     ctx = {'attribute': attribute}
-    return TemplateResponse(
-        request,
-        'dashboard/product/product_attribute/modal_confirm_delete.html', ctx)
+    confirm_tmpl =  'dashboard/product/product_attribute/modal_confirm_delete.html'
+    return TemplateResponse(request, confirm_tmpl, ctx)
 
 
 @staff_member_required
 def stock_location_list(request):
     stock_locations = StockLocation.objects.all()
     ctx = {'locations': stock_locations}
-    return TemplateResponse(
-        request, 'dashboard/product/stock_location/list.html', ctx)
+    location_list_tmpl = 'dashboard/product/stock_location/list.html'
+    return TemplateResponse(request, location_list_tmpl, ctx)
 
 
 @staff_member_required
@@ -496,8 +498,8 @@ def stock_location_edit(request, location_pk=None):
         return redirect('dashboard:product-stock-location-list')
 
     ctx = {'form': form, 'location': location}
-    return TemplateResponse(
-        request, 'dashboard/product/stock_location/form.html', ctx)
+    form_tmpl = 'dashboard/product/stock_location/form.html'
+    return TemplateResponse(request, form_tmpl, ctx)
 
 
 @staff_member_required
@@ -511,7 +513,7 @@ def stock_location_delete(request, location_pk):
                 'Dashboard message for stock location',
                 'Deleted location %s') % location)
         return redirect('dashboard:product-stock-location-list')
+
     ctx = {'location': location, 'stock_count': stock_count}
-    return TemplateResponse(
-        request, 'dashboard/product/stock_location/modal_confirm_delete.html',
-        ctx)
+    confirm_tmpl = 'dashboard/product/stock_location/modal_confirm_delete.html'
+    return TemplateResponse(request, confirm_tmpl, ctx)
