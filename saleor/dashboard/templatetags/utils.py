@@ -37,8 +37,8 @@ def render_image_choice(field):
                         takes_context=True)
 def paginate(context, page_obj, num_of_pages=5):
     context['page_obj'] = page_obj
-    context['n_forward'] = num_of_pages+1
-    context['n_backward'] = -num_of_pages-1
-    context['next_section'] = (2*num_of_pages)+1
-    context['previous_section'] = (-2*num_of_pages)-1
+    context['n_forward'] = num_of_pages + 1
+    context['n_backward'] = -num_of_pages - 1
+    context['next_section'] = (2*num_of_pages) + 1
+    context['previous_section'] = (-2*num_of_pages) - 1
     return context
