@@ -1,31 +1,19 @@
+{% extends "dashboard/modal_confirm_delete.html" %}
+
 {% load i18n %}
 {% load product_first_image from product_images %}
 
-<form action="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}" method="post" novalidate>
-  {% csrf_token %}
-  <div class="modal-content">
-    <div class="row">
-      <div class="col s12">
-        <h5>
-          {% trans "Are you sure?" context "Dashboard confirmation modal" %}
-        </h5>
-      </div>
-    </div>
-    <div class="center-align">
-      <img class="responsive-img" src="{{ image.image.crop.255x255 }}"  srcset="{{ image.image.crop.255x255 }} 1x, {{ image.image.crop.510x510 }} 2x" alt="">
-    </div>
-    <p>
-      {% blocktrans trimmed context "Modal delete image text" %}
-        You are about to delete this image.
-      {% endblocktrans %}
-    </p>
-  </div>
-  <div class="modal-footer">
-    <button type="submit" class="modal-action btn-flat">
-      {% trans "Delete" context "Dashboard delete action" %}
-    </button>
-    <a href="#!" class="modal-action modal-close btn-flat">
-      {% trans "Cancel" context "Dashboard cancel action" %}
-    </a>
-  </div>
-</form>
+{% block action_url %}
+{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}
+{% endblock %}
+
+{% block content %}
+<div class="center-align">
+  <img class="responsive-img" src="{{ image.image.crop.255x255 }}"  srcset="{{ image.image.crop.255x255 }} 1x, {{ image.image.crop.510x510 }} 2x" alt="">
+</div>
+<p>
+  {% blocktrans trimmed context "Modal delete image text" %}
+    You are about to delete this image.
+  {% endblocktrans %}
+</p>
+{% endblock content %}
