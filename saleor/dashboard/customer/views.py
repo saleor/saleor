@@ -19,8 +19,7 @@ def customer_list(request):
         .select_related('default_billing_address', 'default_shipping_address')
         .annotate(
             num_orders=Count('orders', distinct=True),
-            last_order=Max('orders', distinct=True))
-    )
+            last_order=Max('orders', distinct=True)))
     customers = get_paginator_items(customers, 30, request.GET.get('page'))
     ctx = {'customers': customers}
     return TemplateResponse(request, 'dashboard/customer/list.html', ctx)
