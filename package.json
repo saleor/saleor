@@ -14,7 +14,7 @@
   "homepage": "http://getsaleor.com/",
   "engines": {
     "node": "6.x",
-    "yarn": "0.20.x"
+    "yarn": "1.0.2"
   },
   "dependencies": {
     "bootstrap": "4.0.0-beta",
@@ -39,7 +39,8 @@
     "sortablejs": "^1.5.0-rc1",
     "svg-injector-2": "^2.0.35",
     "tether": "^1.4.0",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "yarn": "^1.0.2"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.4",
