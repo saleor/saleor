@@ -508,3 +508,11 @@ ADYEN_HMAC_SECRET = os.environ.get('ADYEN_HMAC_SECRET', None)
 ADYEN_SKIN_CODE = os.environ.get('ADYEN_SKIN_CODE', None)
 
 PASSWORD_CONFIRMATION_TIMEOUT_DAYS = 1
+
+#
+PAYPAL_LOG_URL = os.environ.get('PAYPAL_LOG_URL', None)
+PAYPAL_API_URL = os.environ.get('PAYPAL_API_URL', None)
+PAYPAL_API_USER = os.environ.get('PAYPAL_API_USER', None)
+PAYPAL_API_PWD = os.environ.get('PAYPAL_API_PWD', None)
+PAYPAL_API_SIG = os.environ.get('PAYPAL_API_SIG', None)
+PAYPAL_API_VERSION = os.environ.get('PAYPAL_API_VERSION', None)
