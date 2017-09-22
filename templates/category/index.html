@@ -1,8 +1,11 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% load slice from shop %}
 {% load staticfiles %}
 {% load bootstrap_pagination from bootstrap3 %}
 {% load render_bundle from webpack_loader %}
+{% load prices_i18n %}
+{% load product_first_image from product_images %}
 
 {% block footer_scripts %}
   {{ block.super }}
@@ -26,4 +29,112 @@
 
 {% block content %}
 
+    <div class="category-page">
+        <div class="category-top">
+          <div class="row">
+            <div class="col-md-7">
+              <ul class="breadcrumbs list-unstyled d-none d-md-block">
+                <li><a href="/">Home</a></li>
+                {% if category.paren %}
+                  <li key=''><a href=''>{{ category.parent.name }}</a></li>
+                {% endif %}
+                <li><a href='{{ category.get_absolute_url }}'>{{ category.name }}</a></li>
+              </ul>
+            </div>
+            <!--<div class="col-md-5">-->
+              <!--<div class="row">-->
+                <!--<div class="col-6 col-md-2 col-lg-6 filters-menu">-->
+                  <!--<span class="filters-menu__label d-sm-none" onClick={() => this.toggleMenu(filtersMenu)}>{pgettext('Category page filters', 'Filters')}</span>-->
+                  <!--{(variables.attributesFilter.length || variables.minPrice || variables.maxPrice) && (-->
+                    <!--<span class="filters-menu__icon d-sm-none"></span>-->
+                  <!--)}-->
+                <!--</div>-->
+                <!--<div class="col-6 col-md-10 col-lg-6">-->
+                  <!--<SortBy sortedValue={variables.sortBy} setSorting={this.setSorting} />-->
+                <!--</div>-->
+              <!--</div>-->
+            <!--</div>-->
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-4 col-lg-3">
+            <div class="product-filters">
+              {% for name, filter in filters.items %}
+                <form method="get">
+                  {{ name }}
+                  {{ filter.form.as_p }}
+                  <button type="submit">Search</button>
+                </form>
+              {% endfor %}
+            </div>
+             <div>
+              <h2>
+                {% trans 'Filters' context 'Filter heading title' %}
+                <span class="clear-filters float-right" onClick="">{% trans 'Clear filters' context 'Category page filters' %}</span>
+              </h2>
+              <div class="product-filters">
+                <div class="product-filters__attributes">
+                  <div key={{ attribute.pk }}>
+                    <h3 onClick="">
+                      {{ title }}
+                      <div class="collapse-filters-icon">
+                        <InlineSVG key={key} src={imageSrc} />
+                      </div>
+                    </h3>
+                    <ul id={{ attribute.slug }}>
+                      <li key={value.id} class="item">
+
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <PriceFilter
+                  onFilterChanged={this.updatePriceFilter}
+                  maxPrice={variables.maxPrice}
+                  minPrice={variables.minPrice}
+                />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-8 col-lg-9 category-list">
+            <div>
+              <!--ProductList-->
+              {% for product in products %}
+                <div class="row">
+
+                  <!--ProductItem-->
+                  <div class="col-6 col-md-4 product-list">
+                    <a href="{{ product.get_absolute_url }}">
+                      <div class="text-center">
+                        <div>
+                            <img class="img-responsive" src="{% product_first_image product size='60x60' method='crop' %}"
+                                 srcset="{% product_first_image product size='120x120' method='crop' %} 1x, {% product_first_image product size='180x180' method='crop' %} 2x"
+                                 alt="" />
+                            <span class="product-list-item-name" title={{ product.name }}>{{ product.name }}</span>
+                        </div>
+                        <div class="panel-footer">
+                          <div>
+                            <span>
+                              {% if product.get_price_range and product.get_gross_price_range|first !=  product.get_gross_price_range|last %}
+                                <span>FROM </span>{% gross product.price html=True %}
+                              {% endif %}
+                            </span>
+
+                            {% if product %}
+                            <div class="product-list__sale">
+                              <InlineSVG src={SaleImg} />
+                              <span class="">Sale</span>
+                            </div>
+                            {% endif %}
+                          </div>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
 {% endblock content %}
