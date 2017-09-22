@@ -402,7 +402,6 @@ def variant_images(request, product_pk, variant_pk):
 def variant_delete(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
     variant = get_object_or_404(product.variants, pk=variant_pk)
-    is_only_variant = product.variants.count() == 1
     if request.method == 'POST':
         variant.delete()
         messages.success(
@@ -411,9 +410,9 @@ def variant_delete(request, product_pk, variant_pk):
                 'Dashboard message', 'Deleted variant %s') % variant.name)
         return redirect('dashboard:product-detail', pk=product.pk)
 
-    ctx = {
-        'is_only_variant': is_only_variant, 'product': product,
-        'variant': variant}
+    ctx = {'is_only_variant': product.variants.count() == 1,
+           'product': product,
+           'variant': variant}
     confirm_tmpl = ('dashboard/product/product_variant/'
                     'modal_confirm_delete.html')
     return TemplateResponse(request, confirm_tmpl, ctx)

@@ -172,3 +172,23 @@ def test_view_product_class_delete(db, admin_client, product_in_stock):
     response = admin_client.post(url)
     assert response.status_code == HTTP_REDIRECTION
     assert not ProductClass.objects.filter(pk=product_class.pk)
+
+
+def test_view_product_variant_not_deleted_before_confirmation(admin_client, product_in_stock):
+    product_variant_pk = product_in_stock.variants.all()[0].pk
+    url = reverse('dashboard:variant-delete',
+                  kwargs={'product_pk':product_in_stock.pk,
+                          'variant_pk': product_variant_pk})
+    response = admin_client.get(url)
+    assert response.status_code == HTTP_STATUS_OK
+    assert ProductVariant.objects.filter(pk=product_variant_pk)
+
+
+def test_view_product_variant_delete(admin_client, product_in_stock):
+    product_variant_pk = product_in_stock.variants.all()[0].pk
+    url = reverse('dashboard:variant-delete',
+                  kwargs={'product_pk':product_in_stock.pk,
+                          'variant_pk': product_variant_pk})
+    response = admin_client.post(url)
+    assert response.status_code == HTTP_REDIRECTION
+    assert not ProductVariant.objects.filter(pk=product_variant_pk)
