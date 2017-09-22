@@ -12,7 +12,7 @@ from saleor.dashboard.product.forms import (ProductClassForm,
                                             ProductClassSelectorForm,
                                             ProductForm)
 from saleor.product.models import (Product, ProductAttribute, ProductClass,
-                                   ProductVariant)
+                                   ProductVariant, Stock)
 
 
 HTTP_STATUS_OK = 200
@@ -175,7 +175,7 @@ def test_view_product_class_delete(db, admin_client, product_in_stock):
 
 
 def test_view_product_variant_not_deleted_before_confirmation(admin_client, product_in_stock):
-    product_variant_pk = product_in_stock.variants.all()[0].pk
+    product_variant_pk = product_in_stock.variants.first().pk
     url = reverse('dashboard:variant-delete',
                   kwargs={'product_pk':product_in_stock.pk,
                           'variant_pk': product_variant_pk})
@@ -185,10 +185,34 @@ def test_view_product_variant_not_deleted_before_confirmation(admin_client, prod
 
 
 def test_view_product_variant_delete(admin_client, product_in_stock):
-    product_variant_pk = product_in_stock.variants.all()[0].pk
+    product_variant_pk = product_in_stock.variants.first().pk
     url = reverse('dashboard:variant-delete',
                   kwargs={'product_pk':product_in_stock.pk,
                           'variant_pk': product_variant_pk})
     response = admin_client.post(url)
     assert response.status_code == HTTP_REDIRECTION
     assert not ProductVariant.objects.filter(pk=product_variant_pk)
+
+
+def test_view_stock_not_deleted_before_confirmation(admin_client, product_in_stock):
+    product_variant = product_in_stock.variants.first()
+    stock = Stock.objects.filter(variant=product_variant).first()
+    url = reverse('dashboard:variant-stock-delete',
+                  kwargs={'product_pk':product_in_stock.pk,
+                          'variant_pk': product_variant.pk,
+                          'stock_pk': stock.pk})
+    response = admin_client.get(url)
+    assert response.status_code == HTTP_STATUS_OK
+    assert Stock.objects.filter(pk=stock.pk)
+
+
+def test_view_stock_delete(admin_client, product_in_stock):
+    product_variant = product_in_stock.variants.first()
+    stock = Stock.objects.filter(variant=product_variant).first()
+    url = reverse('dashboard:variant-stock-delete',
+                  kwargs={'product_pk':product_in_stock.pk,
+                          'variant_pk': product_variant.pk,
+                          'stock_pk': stock.pk})
+    response = admin_client.post(url)
+    assert response.status_code == HTTP_REDIRECTION
+    assert not Stock.objects.filter(pk=stock.pk)
