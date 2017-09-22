@@ -15,10 +15,6 @@ from ..views import staff_member_required
 from . import forms
 
 
-def was_post(message):
-    return message.method == 'POST'
-
-
 @staff_member_required
 def product_class_list(request):
     classes = ProductClass.objects.all().prefetch_related(
@@ -75,7 +71,7 @@ def product_class_edit(request, pk):
 @staff_member_required
 def product_class_delete(request, pk):
     product_class = get_object_or_404(ProductClass, pk=pk)
-    if was_post(request):
+    if request.method == 'POST':
         product_class.delete()
         messages.success(
             request,
@@ -215,7 +211,7 @@ def product_edit(request, pk):
 @staff_member_required
 def product_delete(request, pk):
     product = get_object_or_404(Product, pk=pk)
-    if was_post(request):
+    if request.method == 'POST':
         product.delete()
         messages.success(
             request,
@@ -265,7 +261,7 @@ def stock_delete(request, product_pk, variant_pk, stock_pk):
     product = get_object_or_404(Product, pk=product_pk)
     variant = get_object_or_404(product.variants, pk=variant_pk)
     stock = get_object_or_404(Stock, pk=stock_pk)
-    if was_post(request):
+    if request.method == 'POST':
         stock.delete()
         messages.success(
             request, pgettext_lazy('Dashboard message', 'Deleted stock'))
@@ -319,7 +315,7 @@ def product_image_edit(request, product_pk, img_pk=None):
 def product_image_delete(request, product_pk, img_pk):
     product = get_object_or_404(Product, pk=product_pk)
     image = get_object_or_404(product.images, pk=img_pk)
-    if was_post(request):
+    if request.method == 'POST':
         image.delete()
         messages.success(
             request,
@@ -407,7 +403,7 @@ def variant_delete(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
     variant = get_object_or_404(product.variants, pk=variant_pk)
     is_only_variant = product.variants.count() == 1
-    if was_post(request):
+    if request.method == 'POST':
         variant.delete()
         messages.success(
             request,
@@ -468,7 +464,7 @@ def attribute_edit(request, pk=None):
 @staff_member_required
 def attribute_delete(request, pk):
     attribute = get_object_or_404(ProductAttribute, pk=pk)
-    if was_post(request):
+    if request.method == 'POST':
         attribute.delete()
         messages.success(
             request,
@@ -516,7 +512,7 @@ def stock_location_edit(request, location_pk=None):
 def stock_location_delete(request, location_pk):
     location = get_object_or_404(StockLocation, pk=location_pk)
     stock_count = location.stock_set.count()
-    if was_post(request):
+    if request.method == 'POST':
         location.delete()
         messages.success(
             request, pgettext_lazy(
