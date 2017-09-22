@@ -114,13 +114,26 @@ h6 {
   }
 }
 
-
 li#version-indicator {
   @media (min-height: 750px) {
     position: absolute;
     bottom: 0;
   }
   p {
-      @extend .grey-text, .text-lighten-1;
+    @extend .grey-text, .text-lighten-1;
+  }
+}
+
+.main {
+  form {
+    .input-field {
+      label {
+        pointer-events: auto;
+
+        &:not(.label-icon) {
+          transform: none;
+        }
+      }
+    }
   }
 }
