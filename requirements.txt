@@ -34,7 +34,7 @@ django==1.11.5
 djangorestframework==3.6.3
 dnspython==1.15.0         # via email-validator
 docutils==0.14            # via botocore
-elasticsearch==5.4.0
+elasticsearch==2.4.1
 email-validator==1.0.2    # via faker
 faker==0.8.3
 google-i18n-address==2.0.1

@@ -17,7 +17,7 @@ django-storages>=1.4.1
 django-templated-email>=2.2.0
 django-versatileimagefield>=1.0.1
 django-webpack-loader>=0.3.0
-elasticsearch>=5.4
+elasticsearch>=2.4,<3.0.0
 faker>=0.7.7
 google-measurement-protocol
 google-i18n-address>=2.0.1
