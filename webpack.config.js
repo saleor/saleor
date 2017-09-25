@@ -3,6 +3,7 @@ var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 var path = require('path');
 var webpack = require('webpack');
+var autoprefixer = require('autoprefixer');
 
 var resolve = path.resolve.bind(path, __dirname);
 
@@ -84,11 +85,31 @@ var config = {
       },
       {
         test: /\.scss$/,
-        loader: ExtractTextPlugin.extract([
-          'css-loader?sourceMap',
-          'postcss-loader?sourceMap',
-          'sass-loader?sourceMap'
-        ])
+        loader: ExtractTextPlugin.extract({
+          use: [
+            {
+              loader: 'css-loader',
+              options: {
+                'sourceMap': true
+              }
+            },
+            {
+              loader: 'postcss-loader',
+              options: {
+                'sourceMap': true,
+                'plugins': function () {
+                  return [autoprefixer]
+                }
+              }
+            },
+            {
+              loader: 'sass-loader',
+              options: {
+                'sourceMap': true
+              }
+            }
+          ]
+        })
       },
       {
         test: /\.(eot|otf|png|svg|jpg|ttf|woff|woff2)(\?v=[0-9.]+)?$/,
