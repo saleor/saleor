@@ -240,3 +240,11 @@ def test_view_stock_location_delete(admin_client, stock_location):
     response = admin_client.post(url)
     assert response.status_code == HTTP_REDIRECTION
     assert not StockLocation.objects.filter(pk=stock_location.pk)
+
+
+def test_view_attribute_not_deleted_before_confirmation(admin_client, color_attribute):
+    url = reverse('dashboard:product-attribute-delete',
+                  kwargs={'pk':color_attribute.pk})
+    response = admin_client.get(url)
+    assert response.status_code == HTTP_STATUS_OK
+    assert ProductAttribute.objects.filter(pk=color_attribute.pk)
