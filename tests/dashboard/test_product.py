@@ -233,3 +233,10 @@ def test_view_stock_location_not_deleted_before_confirmation(admin_client, stock
     assert response.status_code == HTTP_STATUS_OK
     assert StockLocation.objects.filter(pk=stock_location.pk)
 
+
+def test_view_stock_location_delete(admin_client, stock_location):
+    url = reverse('dashboard:product-stock-location-delete',
+                  kwargs={'location_pk':stock_location.pk})
+    response = admin_client.post(url)
+    assert response.status_code == HTTP_REDIRECTION
+    assert not StockLocation.objects.filter(pk=stock_location.pk)
