@@ -4,15 +4,14 @@ import datetime
 import json
 
 from django.core.urlresolvers import reverse
-from django.db.models import Prefetch
 from django.http import HttpResponsePermanentRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 
 from ..cart.utils import set_cart_cookie
 from ..core.utils import serialize_decimal
-from .filters import ProductAttributeFilter, CategoryFilter, ProductFilter
-from .models import Category, Product, ProductAttribute, AttributeChoiceValue
+from .filters import ProductFilter
+from .models import Category, Product
 from .utils import (products_with_details, products_for_cart,
                     handle_cart_form, get_availability,
                     get_product_images, get_variant_picker_data,
@@ -122,23 +121,11 @@ def category_index(request, path, category_id):
         'product_class__product_attributes__values',
         'variants__stock').all())
 
-    filters = dict()
-    for product in products:
-        for attribute in product.product_class.variant_attributes.all():
-            filters[attribute] = set()
-        for attribute in product.product_class.product_attributes.all():
-            filters[attribute] = set()
-
-    for name, choices in filters.items():
-        filters[name] = ProductAttributeFilter(
-            request=request.GET,
-            queryset=AttributeChoiceValue.objects.all(),
-            attribute_name=name)
+    product_filters = ProductFilter(request.GET, queryset=products)
 
     if actual_path != path:
         return redirect('product:category', permanent=True, path=actual_path,
                         category_id=category_id)
     return TemplateResponse(request, 'category/index.html',
                             {'category': category,
-                             'products': products,
-                             'filters': filters})
+                             'filter': product_filters})
