@@ -50,16 +50,15 @@ function openModal() {
 }
 
 $(document).ready(function () {
-
   let styleGuideMenu = $('.styleguide__menu');
 
   $(window).scroll(function () {
     if ($(this).scrollTop() > 100) {
-      styleGuideMenu.addClass("fixed");
+      styleGuideMenu.addClass('fixed');
     } else {
-      styleGuideMenu.removeClass("fixed");
+      styleGuideMenu.removeClass('fixed');
     }
-  })
+  });
 
   let mainNavTop = $('.side-nav');
   let $toggleMenu = $('#toggle-menu');
