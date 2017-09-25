@@ -76,7 +76,7 @@ var config = {
   },
   output: output,
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.js$/,
         exclude: /node_modules/,
