@@ -10,12 +10,13 @@ import '../scss/dashboard.scss';
 var supportsPassive = false;
 try {
   var opts = Object.defineProperty({}, 'passive', {
-    get: function() {
+    get: function () {
       supportsPassive = true;
     }
   });
   window.addEventListener('test', null, opts);
-} catch (e) {}
+} catch (e) {
+}
 
 function onScroll(func) {
   window.addEventListener('scroll', func, supportsPassive ? {passive: true} : false);
@@ -48,7 +49,7 @@ function openModal() {
   });
 }
 
-$(document).ready(function() {
+$(document).ready(function () {
 
   let styleGuideMenu = $('.styleguide__menu');
 
@@ -62,14 +63,16 @@ $(document).ready(function() {
 
   let mainNavTop = $('.side-nav');
   let $toggleMenu = $('#toggle-menu');
+
   function toggleMenu(e) {
     $(document.body).toggleClass('nav-toggled');
     e.preventDefault();
   }
+
   $toggleMenu.click(toggleMenu);
   if (mainNavTop.length > 0) {
     mainNavTop = mainNavTop.offset().top;
-    onScroll(function() {
+    onScroll(function () {
       $(document.body).toggleClass('sticky-nav', Math.floor($(window).scrollTop()) > Math.ceil(mainNavTop));
     });
   }
@@ -91,7 +94,7 @@ $(document).ready(function() {
   let timeout = 0;
   let offset = 100;
   let firstMessageOffset = 250;
-  setTimeout(function() {
+  setTimeout(function () {
     $messages.each(function () {
       let that = this;
       setTimeout(function () {
@@ -104,13 +107,13 @@ $(document).ready(function() {
     });
   }, firstMessageOffset);
 
-  $(document).on('submit', '.form-async', function(e) {
+  $(document).on('submit', '.form-async', function (e) {
     let that = this;
     $.ajax({
       url: $(that).attr('action'),
       method: 'post',
       data: $(that).serialize(),
-      complete: function(response) {
+      complete: function (response) {
         if (response.status === 400) {
           $(that).parent().html(response.responseText);
           initSelects();
@@ -118,7 +121,7 @@ $(document).ready(function() {
           $('.modal-close').click();
         }
       },
-      success: function(response) {
+      success: function (response) {
         if (response.redirectUrl) {
           window.location.href = response.redirectUrl;
         } else {
@@ -127,7 +130,7 @@ $(document).ready(function() {
       }
     });
     e.preventDefault();
-  }).on('click', '.modal-close', function() {
+  }).on('click', '.modal-close', function () {
     $('.modal').modal('close');
   });
 
@@ -143,11 +146,11 @@ Dropzone.options.productImageForm = {
   thumbnailHeight: 400,
   previewTemplate: $('#template').html(),
   clickable: false,
-  init: function() {
+  init: function () {
     let $dropzoneMessage = $('.dropzone-message');
     let $gallery = $('.product-gallery');
 
-    this.on('success', function(e, response) {
+    this.on('success', function (e, response) {
       $(e.previewElement).find('.product-gallery-item-desc').html(response.image);
       $(e.previewElement).attr('data-id', response.id);
       let editLinkHref = $(e.previewElement).find('.card-action-edit').attr('href');
@@ -176,7 +179,7 @@ if (el) {
         data: JSON.stringify({
           'order': (function () {
             let postData = [];
-            $(el).find('.product-gallery-item[data-id]').each(function() {
+            $(el).find('.product-gallery-item[data-id]').each(function () {
               postData.push($(this).data('id'));
             });
             return postData;
@@ -191,7 +194,7 @@ if (el) {
     }
   });
 }
-$('.select-all').on('change', function() {
+$('.select-all').on('change', function () {
   let $items = $(this).parents('form').find('.switch-actions');
   if (this.checked) {
     $items.prop('checked', true);
@@ -199,7 +202,7 @@ $('.select-all').on('change', function() {
     $items.prop('checked', false);
   }
 });
-$('.switch-actions').on('change', function() {
+$('.switch-actions').on('change', function () {
   let $btnChecked = $(this).parents('form').find('.btn-show-when-checked');
   let $btnUnchecked = $(this).parents('form').find('.btn-show-when-unchecked');
   if ($(this).parents('form').find('.switch-actions:checked').length) {
@@ -220,22 +223,22 @@ $('.datepicker').pickadate({
   labelYearSelect: pgettext('Datepicker option', 'Select a year'),
 
   // Months and weekdays
-  monthsFull: [ pgettext('Datepicker month', 'January'), pgettext('Datepicker month', 'February'), pgettext('Datepicker month', 'March'), pgettext('Datepicker month', 'April'), pgettext('Datepicker month', 'May'), pgettext('Datepicker month', 'June'), pgettext('Datepicker month', 'July'), pgettext('Datepicker month', 'August'), pgettext('Datepicker month', 'September'), pgettext('Datepicker month', 'October'), pgettext('Datepicker month', 'November'), pgettext('Datepicker month', 'December') ],
-  monthsShort: [ pgettext('Datepicker month shortcut', 'Jan'), pgettext('Datepicker month shortcut', 'Feb'), pgettext('Datepicker month shortcut', 'Mar'), pgettext('Datepicker month shortcut', 'Apr'), pgettext('Datepicker month shortcut', 'May'), pgettext('Datepicker month shortcut', 'Jun'), pgettext('Datepicker month shortcut', 'Jul'), pgettext('Datepicker month shortcut', 'Aug'), pgettext('Datepicker month shortcut', 'Sep'), pgettext('Datepicker month shortcut', 'Oct'), pgettext('Datepicker month shortcut', 'Nov'), pgettext('Datepicker month shortcut', 'Dec') ],
-  weekdaysFull: [ pgettext('Datepicker weekday', 'Sunday'), pgettext('Datepicker weekday', 'Monday'), pgettext('Datepicker weekday', 'Tuesday'), pgettext('Datepicker weekday', 'Wednesday'), pgettext('Datepicker weekday', 'Thursday'), pgettext('Datepicker weekday', 'Friday'), pgettext('Datepicker weekday', 'Saturday') ],
-  weekdaysShort: [ pgettext('Datepicker weekday shortcut', 'Sun'), pgettext('Datepicker weekday shortcut', 'Mon'), pgettext('Datepicker weekday shortcut', 'Tue'), pgettext('Datepicker weekday shortcut', 'Wed'), pgettext('Datepicker weekday shortcut', 'Thu'), pgettext('Datepicker weekday shortcut', 'Fri'), pgettext('Datepicker weekday shortcut', 'Sat') ],
+  monthsFull: [pgettext('Datepicker month', 'January'), pgettext('Datepicker month', 'February'), pgettext('Datepicker month', 'March'), pgettext('Datepicker month', 'April'), pgettext('Datepicker month', 'May'), pgettext('Datepicker month', 'June'), pgettext('Datepicker month', 'July'), pgettext('Datepicker month', 'August'), pgettext('Datepicker month', 'September'), pgettext('Datepicker month', 'October'), pgettext('Datepicker month', 'November'), pgettext('Datepicker month', 'December')],
+  monthsShort: [pgettext('Datepicker month shortcut', 'Jan'), pgettext('Datepicker month shortcut', 'Feb'), pgettext('Datepicker month shortcut', 'Mar'), pgettext('Datepicker month shortcut', 'Apr'), pgettext('Datepicker month shortcut', 'May'), pgettext('Datepicker month shortcut', 'Jun'), pgettext('Datepicker month shortcut', 'Jul'), pgettext('Datepicker month shortcut', 'Aug'), pgettext('Datepicker month shortcut', 'Sep'), pgettext('Datepicker month shortcut', 'Oct'), pgettext('Datepicker month shortcut', 'Nov'), pgettext('Datepicker month shortcut', 'Dec')],
+  weekdaysFull: [pgettext('Datepicker weekday', 'Sunday'), pgettext('Datepicker weekday', 'Monday'), pgettext('Datepicker weekday', 'Tuesday'), pgettext('Datepicker weekday', 'Wednesday'), pgettext('Datepicker weekday', 'Thursday'), pgettext('Datepicker weekday', 'Friday'), pgettext('Datepicker weekday', 'Saturday')],
+  weekdaysShort: [pgettext('Datepicker weekday shortcut', 'Sun'), pgettext('Datepicker weekday shortcut', 'Mon'), pgettext('Datepicker weekday shortcut', 'Tue'), pgettext('Datepicker weekday shortcut', 'Wed'), pgettext('Datepicker weekday shortcut', 'Thu'), pgettext('Datepicker weekday shortcut', 'Fri'), pgettext('Datepicker weekday shortcut', 'Sat')],
 
   // Materialize modified
-  weekdaysLetter: [ pgettext('Sunday shortcut','S'), pgettext('Monday shortcut','M'), pgettext('Tuesday shortcut','T'), pgettext('Wednesday shortcut','W'), pgettext('Thursday shortcut','T'), pgettext('Friday shortcut','F'), pgettext('Saturday shortcut','S') ],
+  weekdaysLetter: [pgettext('Sunday shortcut', 'S'), pgettext('Monday shortcut', 'M'), pgettext('Tuesday shortcut', 'T'), pgettext('Wednesday shortcut', 'W'), pgettext('Thursday shortcut', 'T'), pgettext('Friday shortcut', 'F'), pgettext('Saturday shortcut', 'S')],
   today: pgettext('Datepicker option', 'Today'),
   clear: pgettext('Datepicker option', 'Clear'),
-  close: pgettext('Datepicker option','Close'),
+  close: pgettext('Datepicker option', 'Close'),
 
   format: 'd mmmm yyyy',
   formatSubmit: 'yyyy-mm-dd',
   selectMonths: true,
   hiddenName: true,
-  onClose: function() {
+  onClose: function () {
     $(document.activeElement).blur();
   }
 });
@@ -244,8 +247,9 @@ function initSelects() {
   $('select:not(.browser-default):not([multiple])').material_select();
   $('select[multiple]:not(.browser-default)').select2({width: '100%'});
 }
+
 // Clickable rows in dashboard tables
-$(document).on('click', 'tr[data-action-go]>td:not(.ignore-link)', function() {
+$(document).on('click', 'tr[data-action-go]>td:not(.ignore-link)', function () {
   let target = $(this).parent();
   window.location.href = target.data('action-go');
 });
@@ -278,7 +282,7 @@ $(document).ready(() => {
   }
 });
 
-//Print button
+// Print button
 $('.btn-print').click((e) => {
   window.print();
 });
