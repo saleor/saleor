@@ -12,7 +12,8 @@ from saleor.dashboard.product.forms import (ProductClassForm,
                                             ProductClassSelectorForm,
                                             ProductForm)
 from saleor.product.models import (Product, ProductAttribute, ProductClass,
-                                   ProductVariant, Stock, StockLocation)
+                                   ProductVariant, ProductImage, Stock,
+                                   StockLocation)
 
 
 HTTP_STATUS_OK = 200
@@ -256,3 +257,14 @@ def test_view_attribute_delete(admin_client, color_attribute):
     response = admin_client.post(url)
     assert response.status_code == HTTP_REDIRECTION
     assert not ProductAttribute.objects.filter(pk=color_attribute.pk)
+
+
+def test_view_product_image_delete(admin_client, product_with_image):
+    product_image = product_with_image.images.all()[0]
+    url = reverse('dashboard:product-image-delete',
+                  kwargs={'img_pk': product_image.pk,
+                          'product_pk': product_with_image.pk})
+    response = admin_client.post(url)
+    assert response.status_code == HTTP_REDIRECTION
+    assert not ProductImage.objects.filter(pk=product_image.pk)
+    

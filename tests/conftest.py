@@ -3,9 +3,11 @@ from __future__ import unicode_literals
 
 from decimal import Decimal
 import pytest
+from io import StringIO
 from django.contrib.auth.models import AnonymousUser
 from django.utils.encoding import smart_text
-from mock import Mock
+from django.core.files.uploadedfile import SimpleUploadedFile
+# from mock import Mock
 
 from saleor.cart import utils
 from saleor.cart.models import Cart
@@ -14,7 +16,8 @@ from saleor.discount.models import Voucher, Sale
 from saleor.order.models import Order, OrderedItem, DeliveryGroup
 from saleor.product.models import (AttributeChoiceValue, Category, Product,
                                    ProductAttribute, ProductClass,
-                                   ProductVariant, Stock, StockLocation)
+                                   ProductVariant, ProductImage, Stock,
+                                   StockLocation)
 from saleor.shipping.models import ShippingMethod
 from saleor.site.models import SiteSettings, AuthorizationKey
 from saleor.userprofile.models import Address, User
@@ -160,6 +163,19 @@ def product_in_stock(product_class, default_category):
 def stock_location():
     warehouse_1 = StockLocation.objects.create(name='Warehouse 1')
     return warehouse_1
+
+
+@pytest.fixture
+def product_image():
+    img_data = StringIO()
+    return SimpleUploadedFile('product.jpg', img_data.getvalue())
+
+
+@pytest.fixture
+def product_with_image(product_in_stock, product_image):
+    product = product_in_stock
+    ProductImage.objects.create(product=product, image=product_image)
+    return product
 
 
 @pytest.fixture
