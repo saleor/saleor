@@ -23,11 +23,13 @@
 
 {% block content %}
   <div class="card">
-    <div class="data-table-header-action">
-      <a href="{% url 'dashboard:voucher-add' %}" class="btn-data-table btn-flat" title="{% trans "Add voucher" context "Voucher list add button text" %}">
-        {% trans "Add" context "Dashboard add action" %}
-      </a>
-    </div>
+    {% if perms.voucher.edit_voucher %}
+      <div class="data-table-header-action">
+        <a href="{% url 'dashboard:voucher-add' %}" class="btn-data-table btn-flat" title="{% trans "Add voucher" context "Voucher list add button text" %}">
+          {% trans "Add" context "Dashboard add action" %}
+        </a>
+      </div>
+    {% endif %}
     <div class="data-table-container">
       <table class="bordered highlight responsive data-table">
         {% if vouchers %}
@@ -58,7 +60,7 @@
           </thead>
           {% for voucher in vouchers %}
             <tbody>
-              <tr data-action-go="{% url 'dashboard:voucher-update' pk=voucher.pk %}">
+              <tr data-action-go="{% if perms.voucher.edit_voucher %}{% url 'dashboard:voucher-update' pk=voucher.pk %}{% endif %}">
                 <td>
                   {{ voucher }}
                 </td>

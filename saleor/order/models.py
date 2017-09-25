@@ -105,6 +105,11 @@ class Order(models.Model, ItemSet, index.Indexed):
         ordering = ('-last_status_change',)
         verbose_name = pgettext_lazy('Order model', 'Order')
         verbose_name_plural = pgettext_lazy('Order model', 'Orders')
+        permissions = (
+            ('view_order',
+             pgettext_lazy('Permission description', 'Can view orders')),
+            ('edit_order',
+             pgettext_lazy('Permission description', 'Can edit orders')))
 
     def save(self, *args, **kwargs):
         if not self.token:

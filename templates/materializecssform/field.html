@@ -35,7 +35,7 @@
     {% endif %}
     {% for choice in field %}
       <p>
-        <input id="{{ choice.id_for_label }}" name="{{ choice.name }}" class="filled-in" type="checkbox" value="{{ choice.choice_value }}" {% if choice.choice_value in choice.value %} checked="checked" {% endif %}>
+        <input id="{{ choice.id_for_label }}" name="{{ choice.data.name }}" class="filled-in" type="checkbox" value="{{ choice.data.value }}" {% if choice.data.selected %} checked="checked" {% endif %}>
         <label for="{{ choice.id_for_label }}">
           {{ choice.choice_label }}
         </label>
@@ -150,11 +150,7 @@
 {% elif field|is_textarea %}
   <div class="input input-field col {{ classes.label }}">
     <textarea id="{{ field.auto_id }}" class="materialize-textarea {{ field.field.widget.attrs.class }}"
-    name="{{ field.name }}">
-      {% if field.value %}
-        {{ field.value }}
-      {% endif %}
-    </textarea>
+    name="{{ field.name }}">{% if field.value %}{{ field.value }}{% endif %}</textarea>
     {% if field.auto_id %}
       <label class="active {{ classes.label }}" for="{{ field.auto_id }}">
         {{ field.label }}

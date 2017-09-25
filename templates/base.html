@@ -4,229 +4,233 @@
 {% load render_bundle from webpack_loader %}
 
 <html lang="{{ LANGUAGE_CODE }}" class="no-js">
-    <head>
-        <title>{% block title %}{{ settings.name }}{% endblock %}</title>
-        {% block meta %}
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="{% block meta_description %}{% endblock %}">
-        <meta name="author" content="{% trans "Mirumee Software" context "Meta author text" %}">
-        {% endblock meta %}
-        {% include 'favicon.html' %}
-        {% render_bundle 'vendor' 'css' %}
-        {% render_bundle 'storefront' 'css' %}
+<head>
+  <title>{% block title %}{{ settings.name }}{% endblock %}</title>
+  {% block meta %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}{% endblock %}">
+    <meta name="author" content="{% trans "Mirumee Software" context "Meta author text" %}">
+  {% endblock meta %}
+  {% include 'favicon.html' %}
+  {% render_bundle 'vendor' 'css' %}
+  {% render_bundle 'storefront' 'css' %}
 
-        {% block stylesheet %}{% endblock stylesheet %}
+  {% block stylesheet %}{% endblock stylesheet %}
 
-        <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
-        <!--[if lt IE 9]>
-        <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
-        <![endif]-->
-    </head>
+  <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+  <!--[if lt IE 9]>
+    <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+</head>
 
-    <body>
-        {% block header %}
-            <header class="navbar" role="navigation">
-                <div class="navbar__login d-none d-md-block container">
-                  <div class="row">
-                      <div class="col-6">
-                        <p class="text-left">{{ settings.header_text }}</p>
-                      </div>
-                      <div class="col-6">
-                        <ul class="float-right">
-                          {% if user.is_authenticated %}
-                            {% if user.is_staff %}
-                              <li>
-                                <a href="{% url "dashboard:index" %}" target="_blank" rel="noopener">
-                                    {% trans "Dashboard" context "Main navigation item" %}
-                                </a>
-                              </li>
-                            {% endif %}
-                            <li>
-                              <a href="{% url "profile:details" %}">
-                                  {% trans "Your account" context "Main navigation item" %}</a>
-                            </li>
-                            <li>
-                              <a href="{% url "account_logout" %}">
-                                  {% trans "Log out" context "Main navigation item" %}</a>
-                            </li>
-                          {% else %}
-                            <li>
-                              <a href="{% url "account_signup" %}">
-                                  {% trans "Register" context "Main navigation item" %}</a>
-                            </li>
-                            <li>
-                              <a href="{% url "account_login" %}">
-                                  {% trans "Log in" context "Main navigation item" %}
-                              </a>
-                            </li>
-                          {% endif %}
-                        </ul>
-                      </div>
-                    </div>
-                </div>
-                <div class="navbar__brand container d-block">
-                  <div class="row no-gutters">
-                      <div class="col-8 col-md-4 navbar__logo">
-                        <div class="menu-icon-mobile d-md-none navbar__brand__menu-toggle closed open">
-                          <svg data-src="{% static "images/mobile_menu.svg" %}" width="28px" height="20px" />
-                          <span>{% trans "menu" context "Hamburger button text" %}</span>
-                        </div>
-                        <a href="/">
-                          <svg data-src="{% static "images/saleor_logo.svg" %}" height="38px" width="176px" />
-                        </a>
-                      </div>
-                      <div class="col-2 col-md-4 navbar__search static">
-                        {% if SEARCH_IS_ENABLED %}
-                          <div class="d-md-none mobile-search-icon">
-                            <svg data-src="{% static "images/search.svg" %}" width="30" height="30" />
-                          </div>
-                          <form class="form-inline search-form" action="{% url "search:search" %}">
-                            <div class="mobile-close-search d-md-none">
-                              <svg data-src="{% static "images/close.svg" %}" width="30" height="30" />
-                            </div>
-                            <input class="form-control" type="text" name="q" value="{% if query %}{{ query }}{% endif %}" placeholder="{% trans "Search for product" %}">
-                            <button class="btn btn-link" type="submit">
-                              <svg data-src="{% static "images/search.svg" %}" width="30" height="30" />
-                            </button>
-                          </form>
-                        {% endif %}
-                      </div>
-                      <div class="col-2 col-md-4">
-                        <div class="navbar__brand__cart float-right">
-                          <a class="cart__icon" href="{% url "cart:index" %}">
-                            <span class="cart-label d-none d-md-inline-block">
-                                {% trans "Your Cart" context "Main navigation item" %}
-                            </span>
-                            <div class="navbar__brand__cart__icon">
-                              <svg data-src="{% static "images/cart.svg" %}" width="35" height="30" />
-                            </div>
-                            <span class="badge {% if not cart_counter %}empty{% endif %}">
-                              {% if cart_counter %}
-                                {{ cart_counter }}
-                              {% else %}
-                                0
-                              {% endif %}
-                            </span>
-                          </a>
-                          <div class="cart-dropdown d-none">
-                            {% include 'cart-dropdown.html' %}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                </div>
-                <div class="navbar__menu container d-block">
-                  <nav class="navigation">
-                      {% url 'home' as home_url %}
-                      <ul class="nav navbar-nav{% if request.get_full_path == home_url %} no-border{% endif %}" >
-                        {% for category in categories %}
-                            <li class="nav-item">
-                              <a class="nav-link" href="{{ category.get_absolute_url }}">
-                                  {{ category }}
-                              </a>
-                            </li>
-                        {% endfor %}
-                      </ul>
-                    </nav>
-                </div>
-            </header>
-        {% endblock %}
-        <div class="container maincontent">
-            {% if messages %}
-                {% for message in messages %}
-                <div class="alert{% if message.tags %} alert-{{ message.tags }}{% endif %}">
-                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                    {{ message }}
-                </div>
-                {% endfor %}
-            {% endif %}
-            {% block breadcrumb %}
-            {% endblock breadcrumb %}
-            {% block content %}
-            {% endblock content %}
+<body>
+{% block header %}
+  <header class="navbar" role="navigation">
+    <div class="navbar__login d-none d-md-block container">
+      <div class="row">
+        <div class="col-6">
+          <p class="text-left">{{ settings.header_text }}</p>
         </div>
-        {% block footer %}
-            <footer class="footer">
-                <div class="container">
-                  <div class="row">
-                    <div class="col-md-3">
-                      <a href="/" class="footer__logo">
-                        <svg data-src="{% static "images/saleor_logo.svg" %}" height="38px" width="176px" />
-                      </a>
-                    </div>
-                    <div class="col-md-3 col-sm-6">
-                      <ul>
-                        {% for category in categories %}
-                            <li>
-                                <a href="{{ category.get_absolute_url }}">
-                                    {{ category|capfirst }}
-                                </a>
-                            </li>
-                        {% endfor %}
-                      </ul>
-                    </div>
-                    <div class="col-md-3 col-sm-6">
-                      <ul>
-                        <li>
-                          <a href="{% url "cart:index" %}">
-                            {% trans "Your Cart" context "Main navigation item" %}
-                          </a>
-                        </li>
-                        {% if user.is_authenticated %}
-                          {% if user.is_staff %}
-                              <li>
-                                <a href="{% url "dashboard:index" %}" target="_blank" rel="noopener">
-                                    {% trans "Dashboard" context "Main navigation item" %}
-                                </a>
-                              </li>
-                              <li>
-                                <a href="{% url "styleguide" %}" target="_blank">
-                                    {% trans "Style guide" context "Main navigation item" %}
-                                </a>
-                              </li>
-                          {% endif %}
-                          <li>
-                            <a href="{% url "profile:details" %}">
-                              {% trans "Your account" context "Main navigation item" %}
-                            </a>
-                          </li>
-                          <li>
-                            <a href="{% url "account_logout" %}">
-                                {% trans "Log out" context "Main navigation item" %}</a>
-                          </li>
-                        {% else %}
-                          <li>
-                            <a href="{% url "account_signup" %}">
-                                {% trans "Register" context "Main navigation item" %}
-                            </a>
-                          </li>
-                          <li>
-                            <a href="{% url "account_login" %}">
-                                {% trans "Log in" context "Main navigation item" %}
-                            </a>
-                          </li>
-                        {% endif %}
-                      </ul>
-                    </div>
-                    <div class="col-md-3 col-sm-12">
-                      <a target="_blank" rel="noopener" class="github-footer" href="https://github.com/mirumee/saleor">
-                        <svg data-src="{% static "images/github_logo.svg" %}" width="45px" height="45px"/>
-                      </a>
-                      <a target="_blank" rel="noopener" href="https://twitter.com/getsaleor">
-                        <svg data-src="{% static "images/twitter_logo.svg" %}" width="45px" height="45px" />
-                      </a>
-                    </div>
-                  </div>
+        <div class="col-6">
+          <ul class="float-right">
+            {% if user.is_authenticated %}
+              {% if user.is_staff %}
+                <li>
+                  <a href="{% url "dashboard:index" %}" target="_blank" rel="noopener">
+                    {% trans "Dashboard" context "Main navigation item" %}
+                  </a>
+                </li>
+              {% endif %}
+              <li>
+                <a href="{% url "profile:details" %}">
+                  {% trans "Your account" context "Main navigation item" %}</a>
+              </li>
+              <li>
+                <a href="{% url "account_logout" %}">
+                  {% trans "Log out" context "Main navigation item" %}</a>
+              </li>
+            {% else %}
+              <li>
+                <a href="{% url "account_signup" %}">
+                  {% trans "Register" context "Main navigation item" %}</a>
+              </li>
+              <li>
+                <a href="{% url "account_login" %}">
+                  {% trans "Log in" context "Main navigation item" %}
+                </a>
+              </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="navbar__brand container-fluid d-block">
+      <div class="container">
+        <div class="row no-gutters">
+          <div class="col-8 col-md-4 navbar__logo">
+            <div class="menu-icon-mobile d-md-none navbar__brand__menu-toggle closed open">
+              <svg data-src="{% static "images/mobile_menu.svg" %}" width="28px" height="20px"/>
+              <span>{% trans "menu" context "Hamburger button text" %}</span>
+            </div>
+            <a href="/">
+              <svg data-src="{% static "images/saleor_logo.svg" %}" height="38px" width="176px"/>
+            </a>
+          </div>
+          <div class="col-2 col-md-4 navbar__search static">
+            {% if SEARCH_IS_ENABLED %}
+              <div class="d-md-none mobile-search-icon">
+                <svg data-src="{% static "images/search.svg" %}" width="30" height="30"/>
+              </div>
+              <form class="form-inline search-form" action="{% url "search:search" %}">
+                <div class="mobile-close-search d-md-none">
+                  <svg data-src="{% static "images/close.svg" %}" width="30" height="30"/>
                 </div>
-            </footer>
-        {% endblock %}
-        {% block footer_scripts %}
-            <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
-            {% render_bundle 'vendor' 'js' %}
-            {% render_bundle 'storefront' 'js' %}
-        {% endblock footer_scripts %}
-    <script type="application/ld+json">{{ webpage_schema|safe }}</script>
-    </body>
+                <input class="form-control" type="text" name="q"
+                       value="{% if query %}{{ query }}{% endif %}"
+                       placeholder="{% trans "Search for product" %}">
+                <button class="btn btn-link" type="submit">
+                  <svg data-src="{% static "images/search.svg" %}" width="30" height="30"/>
+                </button>
+              </form>
+            {% endif %}
+          </div>
+          <div class="col-2 col-md-4">
+            <div class="navbar__brand__cart float-right">
+              <a class="cart__icon" href="{% url "cart:index" %}">
+                <span class="cart-label d-none d-md-inline-block">
+                    {% trans "Your Cart" context "Main navigation item" %}
+                </span>
+                <div class="navbar__brand__cart__icon">
+                  <svg data-src="{% static "images/cart.svg" %}" width="35" height="30"/>
+                </div>
+                <span class="badge {% if not cart_counter %}empty{% endif %}">
+                  {% if cart_counter %}
+                    {{ cart_counter }}
+                  {% else %}
+                    0
+                  {% endif %}
+                </span>
+              </a>
+              <div class="cart-dropdown d-none">
+                {% include 'cart-dropdown.html' %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="navbar__menu container d-block">
+      <nav class="navigation">
+        {% url 'home' as home_url %}
+        <ul class="nav navbar-nav{% if request.get_full_path == home_url %} no-border{% endif %}">
+          {% for category in categories %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ category.get_absolute_url }}">
+                {{ category }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </nav>
+    </div>
+  </header>
+{% endblock %}
+<div class="container maincontent">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert{% if message.tags %} alert-{{ message.tags }}{% endif %}">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+  {% block breadcrumb %}
+  {% endblock breadcrumb %}
+  {% block content %}
+  {% endblock content %}
+</div>
+{% block footer %}
+  <footer class="footer">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-3">
+          <a href="/" class="footer__logo">
+            <svg data-src="{% static "images/saleor_logo.svg" %}" height="38px" width="176px"/>
+          </a>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <ul>
+            {% for category in categories %}
+              <li>
+                <a href="{{ category.get_absolute_url }}">
+                  {{ category|capfirst }}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <ul>
+            <li>
+              <a href="{% url "cart:index" %}">
+                {% trans "Your Cart" context "Main navigation item" %}
+              </a>
+            </li>
+            {% if user.is_authenticated %}
+              {% if user.is_staff %}
+                <li>
+                  <a href="{% url "dashboard:index" %}" target="_blank" rel="noopener">
+                    {% trans "Dashboard" context "Main navigation item" %}
+                  </a>
+                </li>
+                <li>
+                  <a href="{% url "styleguide" %}" target="_blank">
+                    {% trans "Style guide" context "Main navigation item" %}
+                  </a>
+                </li>
+              {% endif %}
+              <li>
+                <a href="{% url "profile:details" %}">
+                  {% trans "Your account" context "Main navigation item" %}
+                </a>
+              </li>
+              <li>
+                <a href="{% url "account_logout" %}">
+                  {% trans "Log out" context "Main navigation item" %}</a>
+              </li>
+            {% else %}
+              <li>
+                <a href="{% url "account_signup" %}">
+                  {% trans "Register" context "Main navigation item" %}
+                </a>
+              </li>
+              <li>
+                <a href="{% url "account_login" %}">
+                  {% trans "Log in" context "Main navigation item" %}
+                </a>
+              </li>
+            {% endif %}
+          </ul>
+        </div>
+        <div class="col-md-3 col-sm-12">
+          <a target="_blank" rel="noopener" class="github-footer" href="https://github.com/mirumee/saleor">
+            <svg data-src="{% static "images/github_logo.svg" %}" width="45px" height="45px"/>
+          </a>
+          <a target="_blank" rel="noopener" href="https://twitter.com/getsaleor">
+            <svg data-src="{% static "images/twitter_logo.svg" %}" width="45px" height="45px"/>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+{% endblock %}
+{% block footer_scripts %}
+  <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+  {% render_bundle 'vendor' 'js' %}
+  {% render_bundle 'storefront' 'js' %}
+{% endblock footer_scripts %}
+<script type="application/ld+json">{{ webpage_schema|safe }}</script>
+</body>
 </html>
 
