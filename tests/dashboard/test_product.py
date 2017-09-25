@@ -166,6 +166,14 @@ def test_view_product_delete(db, admin_client, product_in_stock):
     assert not Product.objects.filter(pk=product.pk)
 
 
+def test_view_product_class_not_deleted_before_confirmation(admin_client, product_in_stock):
+    product_class = product_in_stock.product_class
+    url = reverse('dashboard:product-class-delete', kwargs={'pk': product_class.pk})
+    response = admin_client.get(url)
+    assert response.status_code == HTTP_STATUS_OK
+    assert ProductClass.objects.filter(pk=product_class.pk)
+
+
 def test_view_product_class_delete(db, admin_client, product_in_stock):
     product_class = product_in_stock.product_class
     url = reverse('dashboard:product-class-delete', kwargs={'pk': product_class.pk})
