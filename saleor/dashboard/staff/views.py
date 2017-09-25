@@ -11,7 +11,8 @@ from ...userprofile.models import User
 
 @superuser_required
 def staff_list(request):
-    staff_members = (User.objects.filter(is_staff=True))
+    staff_members = (User.objects.filter(is_staff=True)
+                     .prefetch_related('default_billing_address'))
     staff_members = get_paginator_items(
         staff_members, 30, request.GET.get('page'))
     ctx = {'staff': staff_members}
