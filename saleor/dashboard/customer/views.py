@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
+from django.contrib.auth.decorators import permission_required
 
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items
@@ -10,6 +11,7 @@ from ...userprofile.models import User
 
 
 @staff_member_required
+@permission_required('userprofile.view_user')
 def customer_list(request):
     customers = (
         User.objects
@@ -24,6 +26,7 @@ def customer_list(request):
 
 
 @staff_member_required
+@permission_required('userprofile.view_user')
 def customer_details(request, pk):
     queryset = User.objects.prefetch_related(
         'orders', 'addresses').select_related(

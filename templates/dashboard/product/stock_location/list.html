@@ -10,11 +10,13 @@
 {% block body_class %}body-locations{% endblock %}
 
 {% block header_extra %}
-  <div class="fixed-action-btn">
-    <a class="btn-fab btn-floating btn-large waves-effect waves-light teal" href="{% url 'dashboard:product-stock-location-add' %}" title="{% trans "Add stock location" context "Stock location list add button text" %}">
-      <svg data-src="{% static "dashboard/images/add.svg" %}" />
-    </a>
-  </div>
+  {% if perms.product.edit_stock_location %}
+    <div class="fixed-action-btn">
+      <a class="btn-fab btn-floating btn-large waves-effect waves-light teal" href="{% url 'dashboard:product-stock-location-add' %}" title="{% trans "Add stock location" context "Stock location list add button text" %}">
+        <svg data-src="{% static "dashboard/images/add.svg" %}" />
+      </a>
+    </div>
+  {% endif %}
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -34,11 +36,11 @@
         <ul class="collection list">
           {% for location in locations %}
             <li class="collection-item list-item">
-                <a href="{% url 'dashboard:product-stock-location-edit' location.pk %}">
-                  <p class="list-item-name--single">
-                    {{ location }}
-                  </p>
-                </a>
+              <a href="{% if perms.product.edit_stock_location %}{% url 'dashboard:product-stock-location-edit' location.pk %}{% endif %}">
+                <p class="list-item-name--single">
+                  {{ location }}
+                </p>
+              </a>
             </li>
           {% endfor %}
         </ul>

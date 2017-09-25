@@ -3,8 +3,9 @@ from __future__ import unicode_literals
 
 from decimal import Decimal
 import pytest
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, Group, Permission
 from django.utils.encoding import smart_text
+
 from mock import Mock
 
 from saleor.cart import utils
@@ -70,6 +71,21 @@ def admin_client(admin_user):
 
 
 @pytest.fixture()
+def staff_user(db):
+    """A Django staff user"""
+    return User.objects.create_user(
+        email='staff_test@example.com', password='password', is_staff=True,
+        is_active=True)
+
+
+@pytest.fixture()
+def staff_client(client, staff_user):
+    """A Django test client logged in as an staff member"""
+    client.login(username=staff_user.email, password='password')
+    return client
+
+
+@pytest.fixture()
 def authorized_client(client, customer_user):
     client.login(username=customer_user.email, password='password')
     return client
@@ -117,6 +133,81 @@ def size_attribute(db):  # pylint: disable=W0613
 @pytest.fixture
 def default_category(db):  # pylint: disable=W0613
     return Category.objects.create(name='Default', slug='default')
+
+
+@pytest.fixture
+def default_stock_location(db):
+    return StockLocation.objects.create(name='Warehouse 1')
+
+
+@pytest.fixture
+def staff_group():
+    return Group.objects.create(name='test')
+
+
+@pytest.fixture
+def permission_view_product():
+    return Permission.objects.get(codename='view_product')
+
+
+@pytest.fixture
+def permission_edit_product():
+    return Permission.objects.get(codename='edit_product')
+
+
+@pytest.fixture
+def permission_view_category():
+    return Permission.objects.get(codename='view_category')
+
+
+@pytest.fixture
+def permission_edit_category():
+    return Permission.objects.get(codename='edit_category')
+
+
+@pytest.fixture
+def permission_view_stock_location():
+    return Permission.objects.get(codename='view_stock_location')
+
+
+@pytest.fixture
+def permission_edit_stock_location():
+    return Permission.objects.get(codename='edit_stock_location')
+
+
+@pytest.fixture
+def permission_view_sale():
+    return Permission.objects.get(codename='view_sale')
+
+
+@pytest.fixture
+def permission_edit_sale():
+    return Permission.objects.get(codename='edit_sale')
+
+
+@pytest.fixture
+def permission_view_voucher():
+    return Permission.objects.get(codename='view_voucher')
+
+
+@pytest.fixture
+def permission_edit_voucher():
+    return Permission.objects.get(codename='edit_voucher')
+
+
+@pytest.fixture
+def permission_view_order():
+    return Permission.objects.get(codename='view_order')
+
+
+@pytest.fixture
+def permission_edit_order():
+    return Permission.objects.get(codename='edit_order')
+
+
+@pytest.fixture
+def permission_view_user():
+    return Permission.objects.get(codename='view_user')
 
 
 @pytest.fixture

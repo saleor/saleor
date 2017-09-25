@@ -7,7 +7,7 @@ from django.db import connection
 from ...utils.random_data import (
     create_orders, create_users, create_shipping_methods,
     create_products_by_schema, create_product_sales, create_vouchers,
-    set_featured_products, add_address_to_admin)
+    create_groups, set_featured_products, add_address_to_admin)
 from ...utils import create_superuser
 
 
@@ -66,6 +66,7 @@ class Command(BaseCommand):
             self.stdout.write(msg)
         for msg in set_featured_products(16):
             self.stdout.write(msg)
+        self.stdout.write(create_groups())
 
         if options['createsuperuser']:
             credentials = {'email': 'admin@example.com', 'password': 'admin'}

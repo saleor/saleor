@@ -86,90 +86,120 @@
                 {% trans "Home" context "Dashboard homepage" %}
               </a>
             </li>
+            {% if perms.product.view_product or perms.product.view_category or perms.product.view_stock_location %}
             <li class="side-nav-section" id="first">
               <p>
                 {% trans "Catalogue" context "Dashboard catalogue" %}
               </p>
               <ul>
+                {% if perms.product.view_product %}
                 <li class="{% block menu_products_class %}{% endblock %}">
                   <a href="{% url 'dashboard:product-list' %}">
                     {% trans "Products" context "Dashboard products list" %}
                   </a>
                 </li>
+                {% endif %}
+                {% if perms.product.view_category %}
                 <li class="{% block menu_categories_class %}{% endblock %}">
                   <a href="{% url 'dashboard:category-list' %}">
                     {% trans "Categories" context "Dashboard categories list" %}
                   </a>
                 </li>
+                {% endif %}
+                {% if perms.product.view_stock_location %}
                 <li class="{% block menu_location_class %}{% endblock %}">
                   <a href="{% url 'dashboard:product-stock-location-list' %}">
                   {% trans "Stock locations" context "Dashboard stock loactions list" %}
                   </a>
                 </li>
+                {% endif %}
               </ul>
             </li>
+            {% endif %}
+            {% if perms.discount.view_sale or perms.discount.view_voucher %}
             <li class="side-nav-section">
               <p>
                 {% trans "Discounts" context "Dashboard discounts list" %}
               </p>
               <ul>
+                {% if perms.discount.view_sale %}
                 <li class="{% block menu_sales_class %}{% endblock %}">
                   <a href="{% url 'dashboard:sale-list' %}">
                     {% trans "Sales" context "Dashboard sales (discounts) list" %}
                   </a>
                 </li>
+                {% endif %}
+                {% if perms.discount.view_voucher %}
                 <li class="{% block menu_vouchers_class %}{% endblock %}">
                   <a href="{% url 'dashboard:voucher-list' %}">
                     {% trans "Vouchers" context "Dashboard vouchers list" %}
                   </a>
                 </li>
+                {% endif %}
               </ul>
             </li>
+            {% endif %}
+            {% if perms.order.view_order or perms.userprofile.view_user %}
             <li class="side-nav-section">
               <p>
                 {% trans "Sales" context "Dashboard sales. `Sales' is noun of to sell" %}
               </p>
               <ul>
+                {% if perms.order.view_order %}
                 <li class="{% block menu_orders_class %}{% endblock %}">
                   <a href="{% url 'dashboard:orders' %}">
                     {% trans "Orders" context "Dashboard orders list" %}
                   </a>
                 </li>
+                {% endif %}
+                {% if perms.userprofile.view_user %}
                 <li class="{% block menu_customers_class %}{% endblock %}">
                   <a href="{% url 'dashboard:customers' %}">
                     {% trans "Customers" context "Dashboard customers list" %}
                   </a>
                 </li>
+                {% endif %}
               </ul>
             </li>
-            <li class="side-nav-section">
-              <p>
-                {% trans "Configuration"  context "Dashboard configuration" %}
-              </p>
-              <ul>
-                <li class="{% block menu_product_classes_class %}{% endblock %}">
-                  <a href="{% url 'dashboard:product-class-list' %}">
-                    {% trans "Product types" context "Dashboard product types list" %}
-                  </a>
-                </li>
-                <li class="{% block menu_attributes_class %}{% endblock %}">
-                  <a href="{% url 'dashboard:product-attributes' %}">
-                    {% trans "Attributes" context "Dashboard attributes list" %}
-                  </a>
-                </li>
-                <li class="{% block menu_delivery_class %}{% endblock %}">
-                  <a href="{% url 'dashboard:shipping-methods' %}">
-                    {% trans "Shipping methods" context "Dashboard shipping methods list" %}
-                  </a>
-                </li>
-                <li class="{% block menu_settings_class %}{% endblock %}">
-                  <a href="{% url 'dashboard:site-index' %}">
-                    {% trans "Site settings" context "Dashboard site settings" %}
-                  </a>
-                </li>
-              </ul>
-            </li>
-            {% if request.user.is_superuser %}
+            {% endif %}
+            {% if user.is_superuser %}
+              <li class="side-nav-section">
+                <p>
+                  {% trans "Configuration"  context "Dashboard configuration" %}
+                </p>
+                <ul>
+                  <li class="{% block menu_staff_class %}{% endblock %}">
+                    <a href="{% url 'dashboard:staff-list' %}">
+                      {% trans "Staff members" context "Dashboard staff members list" %}
+                    </a>
+                  </li>
+                  <li class="{% block menu_groups_class %}{% endblock %}">
+                    <a href="{% url 'dashboard:group-list' %}">
+                      {% trans "Groups" context "Dashboard groups list" %}
+                    </a>
+                  </li>
+                  <li class="{% block menu_product_classes_class %}{% endblock %}">
+                    <a href="{% url 'dashboard:product-class-list' %}">
+                      {% trans "Product types" context "Dashboard product types list" %}
+                    </a>
+                  </li>
+                  <li class="{% block menu_attributes_class %}{% endblock %}">
+                    <a href="{% url 'dashboard:product-attributes' %}">
+                      {% trans "Attributes" context "Dashboard attributes list" %}
+                    </a>
+                  </li>
+                  <li class="{% block menu_delivery_class %}{% endblock %}">
+                    <a href="{% url 'dashboard:shipping-methods' %}">
+                      {% trans "Shipping methods" context "Dashboard shipping methods list" %}
+                    </a>
+                  </li>
+                  <li class="{% block menu_settings_class %}{% endblock %}">
+                    <a href="{% url 'dashboard:site-index' %}">
+                      {% trans "Site settings" context "Dashboard site settings" %}
+                    </a>
+                  </li>
+                </ul>
+              </li>
               <li class="side-nav-section" id="version-indicator">
                 <p>
                   {% trans "Release:" context "Dashboard software version" %} {% version %}
