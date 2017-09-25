@@ -157,6 +157,12 @@ def product_in_stock(product_class, default_category):
 
 
 @pytest.fixture
+def stock_location():
+    warehouse_1 = StockLocation.objects.create(name='Warehouse 1')
+    return warehouse_1
+
+
+@pytest.fixture
 def unavailable_product(product_class, default_category):
     product = Product.objects.create(
         name='Test product', price=Decimal('10.00'),
