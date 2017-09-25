@@ -259,6 +259,16 @@ def test_view_attribute_delete(admin_client, color_attribute):
     assert not ProductAttribute.objects.filter(pk=color_attribute.pk)
 
 
+def test_view_product_image_not_deleted_before_confirmation(admin_client, product_with_image):
+    product_image = product_with_image.images.all()[0]
+    url = reverse('dashboard:product-image-delete',
+                  kwargs={'img_pk': product_image.pk,
+                          'product_pk': product_with_image.pk})
+    response = admin_client.get(url)
+    assert response.status_code == HTTP_STATUS_OK
+    assert ProductImage.objects.filter(pk=product_image.pk).count()
+
+
 def test_view_product_image_delete(admin_client, product_with_image):
     product_image = product_with_image.images.all()[0]
     url = reverse('dashboard:product-image-delete',

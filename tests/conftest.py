@@ -3,7 +3,8 @@ from __future__ import unicode_literals
 
 from decimal import Decimal
 import pytest
-from io import StringIO
+from io import BytesIO
+from PIL import Image
 from django.contrib.auth.models import AnonymousUser
 from django.utils.encoding import smart_text
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -167,7 +168,9 @@ def stock_location():
 
 @pytest.fixture
 def product_image():
-    img_data = StringIO()
+    img_data = BytesIO()
+    image = Image.new('RGB', size=(1, 1))
+    image.save(img_data, format='JPEG')
     return SimpleUploadedFile('product.jpg', img_data.getvalue())
 
 
