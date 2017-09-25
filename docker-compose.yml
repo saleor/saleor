@@ -81,5 +81,3 @@ services:
 volumes:
   rabbit:
     driver: local
-  esdata:
-    driver: local
