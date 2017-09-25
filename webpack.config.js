@@ -98,7 +98,7 @@ var config = {
               options: {
                 'sourceMap': true,
                 'plugins': function () {
-                  return [autoprefixer]
+                  return [autoprefixer];
                 }
               }
             },
