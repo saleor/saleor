@@ -83,10 +83,6 @@ var config = {
         loader: 'babel-loader'
       },
       {
-        test: /\.json$/,
-        loader: 'json-loader'
-      },
-      {
         test: /\.scss$/,
         loader: ExtractTextPlugin.extract([
           'css-loader?sourceMap',
