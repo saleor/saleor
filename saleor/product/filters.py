@@ -44,7 +44,7 @@ class ProductFilter(FilterSet):
         }
 
 
-def get_attribute_choices(self, attribute):
+def get_attribute_choices(attribute):
     result = [(choice.slug, choice.name)
               for choice in AttributeChoiceValue.objects
                   .filter(attribute__name=attribute.name)]
