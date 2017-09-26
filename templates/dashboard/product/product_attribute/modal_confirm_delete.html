@@ -6,10 +6,14 @@
 {% url "dashboard:product-attribute-delete" pk=attribute.pk %}
 {% endblock %}
 
-{% block content %}
-<p>
+{% block title %}
 {% blocktrans trimmed context "Modal delete attribute text" %}
-You are about to delete an attribute <strong>{{ attribute }}</strong>.
+Delete an attribute <strong>{{ attribute }}</strong>?
 {% endblocktrans %}
-</p>
+{% endblock title %}
+
+{% block content %}
+{% blocktrans trimmed context "Modal delete attribute text" %}
+Are you sure you want to delete an attribute {{ attribute }}?
+{% endblocktrans %}
 {% endblock content %}
