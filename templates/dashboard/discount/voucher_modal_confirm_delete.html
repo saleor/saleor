@@ -6,8 +6,14 @@
 {% url "dashboard:voucher-delete" pk=voucher.pk %}
 {% endblock %}
 
+{% block title %}
+{% blocktrans trimmed context "Delete voucher text" %}
+Delete voucher <strong>{{ voucher }}</strong>?
+{% endblocktrans %}
+{% endblock title %}
+
 {% block content %}
 {% blocktrans trimmed context "Delete voucher text" %}
-You are about to delete <strong>{{ voucher }}</strong>.
+Are you sure you want to delete voucher {{ voucher }}?
 {% endblocktrans %}
 {% endblock content %}
