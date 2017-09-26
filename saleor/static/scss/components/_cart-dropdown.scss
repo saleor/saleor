@@ -73,7 +73,7 @@
       margin: $global-margin 0;
     }
   }
-  @include media-breakpoint-up(sm) {
+  @include media-breakpoint-up(md) {
     &.show {
     display: block !important;
   }

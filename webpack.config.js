@@ -1,9 +1,9 @@
-var autoprefixer = require('autoprefixer');
 var BundleTracker = require('webpack-bundle-tracker');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 var path = require('path');
 var webpack = require('webpack');
+var autoprefixer = require('autoprefixer');
 
 var resolve = path.resolve.bind(path, __dirname);
 
@@ -17,7 +17,7 @@ if (process.env.NODE_ENV === 'production') {
     filename: '[name].[chunkhash].js',
     publicPath: 'https://saleor-demo.s3.amazonaws.com/assets/'
   };
-  fileLoaderPath = 'file?name=[name].[hash].[ext]';
+  fileLoaderPath = 'file-loader?name=[name].[hash].[ext]';
   extractTextPlugin = new ExtractTextPlugin('[name].[contenthash].css');
 } else {
   output = {
@@ -25,7 +25,7 @@ if (process.env.NODE_ENV === 'production') {
     filename: '[name].js',
     publicPath: '/static/assets/'
   };
-  fileLoaderPath = 'file?name=[name].[ext]';
+  fileLoaderPath = 'file-loader?name=[name].[ext]';
   extractTextPlugin = new ExtractTextPlugin('[name].css');
 }
 
@@ -37,7 +37,7 @@ var commonsChunkPlugin = new webpack.optimize.CommonsChunkPlugin({
   names: 'vendor'
 });
 
-var occurenceOrderPlugin = new webpack.optimize.OccurenceOrderPlugin();
+var occurenceOrderPlugin = new webpack.optimize.OccurrenceOrderPlugin();
 
 var environmentPlugin = new webpack.DefinePlugin({
   'process.env': {
@@ -77,23 +77,39 @@ var config = {
   },
   output: output,
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        loader: 'babel'
-      },
-      {
-        test: /\.json$/,
-        loader: 'json'
+        loader: 'babel-loader'
       },
       {
         test: /\.scss$/,
-        loader: ExtractTextPlugin.extract([
-          'css?sourceMap',
-          'postcss',
-          'sass'
-        ])
+        loader: ExtractTextPlugin.extract({
+          use: [
+            {
+              loader: 'css-loader',
+              options: {
+                'sourceMap': true
+              }
+            },
+            {
+              loader: 'postcss-loader',
+              options: {
+                'sourceMap': true,
+                'plugins': function () {
+                  return [autoprefixer];
+                }
+              }
+            },
+            {
+              loader: 'sass-loader',
+              options: {
+                'sourceMap': true
+              }
+            }
+          ]
+        })
       },
       {
         test: /\.(eot|otf|png|svg|jpg|ttf|woff|woff2)(\?v=[0-9.]+)?$/,
@@ -116,18 +132,12 @@ var config = {
     providePlugin,
     faviconsWebpackPlugin
   ],
-  postcss: function() {
-    return [autoprefixer];
-  },
   resolve: {
     alias: {
       'jquery': resolve('node_modules/jquery/dist/jquery.js'),
       'react': resolve('node_modules/react/dist/react.min.js'),
       'react-dom': resolve('node_modules/react-dom/dist/react-dom.min.js')
     }
-  },
-  sassLoader: {
-    sourceMap: true
   }
 };
 

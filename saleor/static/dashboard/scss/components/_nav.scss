@@ -28,6 +28,9 @@ header {
             }
             &:focus {
               background-color: white;
+              border: none;
+              box-shadow: none;
+
               ~ label {
                 svg {
                   fill: $off-black;
@@ -37,7 +40,7 @@ header {
           }
           label {
             transition: color .2s ease-out;
-            margin-top: 7px;
+            margin-top: 22px;
           }
         }
       }
@@ -98,6 +101,7 @@ header {
         margin: 9px 0;
         @media (max-width: $small-screen) {
           height: 30px;
+          width: 130px;
           margin: 17px 0;
         }
       }

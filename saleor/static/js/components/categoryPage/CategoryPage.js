@@ -1,6 +1,6 @@
 import queryString from 'query-string';
 import React, { Component, PropTypes } from 'react';
-import Relay from 'react-relay';
+import Relay from 'react-relay/classic';
 
 import CategoryFilter from './CategoryFilter';
 import PriceFilter from './PriceFilter';

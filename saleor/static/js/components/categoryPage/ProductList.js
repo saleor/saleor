@@ -1,5 +1,5 @@
 import React, { Component, PropTypes } from 'react';
-import Relay from 'react-relay';
+import Relay from 'react-relay/classic';
 
 import ProductItem from './ProductItem';
 import NoResults from './NoResults';
@@ -17,7 +17,7 @@ class ProductList extends Component {
   setSorting = (event) => this.props.setSorting(event);
 
   render() {
-    const { edges, pageInfo: { hasNextPage } } = this.props.products; 
+    const { edges, pageInfo: { hasNextPage } } = this.props.products;
     return (
       <div className={this.props.updating && 'category-list--loading'}>
         <div className="row">
