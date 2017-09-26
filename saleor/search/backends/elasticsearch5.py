@@ -71,7 +71,7 @@ class Elasticsearch5SearchQuery(Elasticsearch2SearchQuery):
 
 
 class Elasticsearch5SearchResults(Elasticsearch2SearchResults):
-    fields_param_name = 'stored_fields'
+    fields_param_name = '_source'
 
 
 class Elasticsearch5SearchBackend(Elasticsearch2SearchBackend):
