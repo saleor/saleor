@@ -286,13 +286,7 @@ def unavailable_product(product_class, default_category):
 
 @pytest.fixture
 def anonymous_checkout():
-    return Checkout(
-      
-      
-      
-      
-      
-      (), AnonymousUser(), 'tracking_code')
+    return Checkout((), AnonymousUser(), 'tracking_code')
 
 
 @pytest.fixture
