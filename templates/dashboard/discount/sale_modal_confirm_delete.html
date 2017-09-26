@@ -4,8 +4,14 @@
 
 {% block action_url %}{% url "dashboard:sale-delete" pk=sale.pk %}{% endblock %}
 
+{% block title %}
+{% blocktrans trimmed context "Delete sale (discount) text" %}
+Delete discount sale <strong>{{ sale }}</strong>?
+{% endblocktrans %}
+{% endblock title %}
+
 {% block content %}
 {% blocktrans trimmed context "Delete sale (discount) text" %}
-You are about to delete <strong>{{ sale }}</strong>.
+Are you sure you want to selete {{ sale }}?
 {% endblocktrans %}
 {% endblock content %}
