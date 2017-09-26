@@ -13,9 +13,9 @@ class ProductFilter(FilterSet):
         variant_attributes = set()
         for product in self.queryset:
             for attribute in product.product_class.variant_attributes.all():
-                product_attributes.add(attribute)
-            for attribute in product.product_class.product_attributes.all():
                 variant_attributes.add(attribute)
+            for attribute in product.product_class.product_attributes.all():
+                product_attributes.add(attribute)
 
         for attribute in product_attributes:
             self.filters[attribute.slug] = \
@@ -46,6 +46,6 @@ class ProductFilter(FilterSet):
 
 def get_attribute_choices(attribute):
     result = [(choice.slug, choice.name)
-              for choice in AttributeChoiceValue.objects
-                  .filter(attribute__name=attribute.name)]
+              for choice in AttributeChoiceValue.objects.filter(
+            attribute__slug=attribute.slug)]
     return result
