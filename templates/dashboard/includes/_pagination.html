@@ -10,6 +10,8 @@
         <a href="?page=1"><svg data-src="{% static "dashboard/images/chevron_left.svg" %}" fill="#000" /></a>
         {% if page_obj.number|add:previous_section >= 1 %}
           <a href="{% construct_get_query page=page_obj.number|add:previous_section %}">&hellip;</a>
+        {% elif page_obj.number|add:previous_section < 1 and page_obj.number|add:n_backward >= 1 %}
+          <a href="?page=1">&hellip;</a>
         {% endif %}
       {% else %}
         <a href="#!"><svg data-src="{% static "dashboard/images/chevron_left.svg" %}" fill="#9E9E9E" /></a>
@@ -30,6 +32,8 @@
       {% if page_obj.has_next %}
         {% if page_obj.number|add:next_section <= page_obj.paginator.num_pages %}
           <a href="{% construct_get_query page=page_obj.number|add:next_section %}">&hellip;</a>
+        {% elif page_obj.number|add:next_section > page_obj.paginator.num_pages and page_obj.number|add:n_forward <= page_obj.paginator.num_pages %}
+          <a href="{% construct_get_query page=page_obj.paginator.num_pages %}">&hellip;</a>
         {% endif %}
         <a href="{% construct_get_query page=page_obj.paginator.num_pages %}"><svg data-src="{% static "dashboard/images/chevron_right.svg" %}" fill="#000" /></a>
       {% else %}
