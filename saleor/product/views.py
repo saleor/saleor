@@ -114,10 +114,10 @@ def category_index(request, path, category_id):
     category = get_object_or_404(Category, id=category_id)
     actual_path = category.get_full_path()
 
-    products = (Product.objects.all()
-                .filter(categories__name=category)
+    products = (Product.objects.filter(categories__name=category)
                 .prefetch_related(
-        'images', 'product_class__variant_attributes__values',
+        'images',
+        'product_class__variant_attributes__values',
         'product_class__product_attributes__values',
         'variants__stock').all())
 
