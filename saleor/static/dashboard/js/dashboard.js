@@ -169,7 +169,7 @@ if (el) {
         dataType: 'json',
         contentType: 'application/json',
         data: JSON.stringify({
-          'order': (function () {
+          'ordered_images': (function () {
             let postData = [];
             $(el).find('.product-gallery-item[data-id]').each(function () {
               postData.push($(this).data('id'));
