@@ -2,12 +2,19 @@
 
 {% load i18n %}
 {% load prices_i18n %}
-{% load staticfiles %}
 
 {% block action_url %}
 {% url 'dashboard:variant-stock-delete' product_pk=product.pk variant_pk=variant.pk stock_pk=stock.pk %}
 {% endblock %}
 
+{% block title %}
+{% blocktrans context "Dashboard confirmation modal" %}
+Delete stock <strong>{{ stock }}</strong>?
+{% endblocktrans %}
+{% endblock title %}
+
 {% block content %}
-<p>{% blocktrans context "Dashboard confirmation modal" %} Delete stock {{ stock }}.{% endblocktrans %}</p>
-{% endblock %}
+{% blocktrans context "Dashboard confirmation modal" %}
+Are you sure you want to delete stock {{ stock }}?
+{% endblocktrans %}
+{% endblock content %}
