@@ -6,9 +6,18 @@
 
 {% block action_url %}{% url "dashboard:product-class-delete" pk=product_class.pk %}{% endblock %}
 {% block content %}
+{% blocktrans trimmed context "Modal delete product class text" %}
+<p>Delete product class <strong>{{ product_class }}</strong>?</p>
+{% endblocktrans %}
 <p>
-  {% blocktrans trimmed context "Modal delete product class text" %}
-    If you remove <strong>{{ product_class }}</strong> you will lose all data related to this product type.
-  {% endblocktrans %}
+{% if products %}
+    {% blocktrans trimmed context "Modal delete product class text" with product_count=products.count %}
+    There are {{ product_count }} products in product class.
+    {% endblocktrans %}
+{% else %}
+    {% blocktrans trimmed context "Modal delete product class text" %}
+    There are no products in this product class.
+    {% endblocktrans %}
+{% endif %}
 </p>
 {% endblock %}
