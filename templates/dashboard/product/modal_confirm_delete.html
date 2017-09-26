@@ -2,22 +2,17 @@
 
 {% load i18n %}
 {% load prices_i18n %}
-{% load staticfiles %}
-{% load product_first_image from product_images %}
 
 {% block action_url %}{% url 'dashboard:product-delete' pk=product.pk %}{% endblock %}
 
+{% block title %}
+{% blocktrans trimmed context "Modal delete product text" %}
+Delete product <strong>{{ product }}</strong>?
+{% endblocktrans %}
+{% endblock %}
+
 {% block content %}
-<div class="row">
-  <div class="col s12 center-align">
-    <img src="{% product_first_image product size="255x255" method="crop" %}" 
-         srcset="{% product_first_image product size="255x255" method="crop" %} 1x, {% product_first_image product size="510x510" method="crop" %} 2x" 
-         alt="" class="responsive-img">
-  </div>
-</div>
-<p>
-  {% blocktrans trimmed context "Modal delete product text" %}
-    If you remove <strong>{{ product }}</strong> you will lose all data related to this product.
-  {% endblocktrans %}
-</p>
+{% blocktrans trimmed context "Modal delete product text" %}
+Are you sure you want to delete product {{ product }}?"
+{% endblocktrans %}
 {% endblock content %}
