@@ -9,12 +9,16 @@
 
 {% block title %}
 {% blocktrans with category=category trimmed context "Delete category modal title" %}
-  Are you sure you want to delete the category {{ category }}?
+Delete category <strong>{{ category }}</strong>?
 {% endblocktrans %}
 {% endblock %}
 
 {% block content %}
+{% blocktrans with category=category trimmed context "Delete category modal title" %}
+Are you sure you want to delete category {{ category }}?
+{% endblocktrans %}
 {% if descendants %}
+<p>
 {% trans "The following child categories will be deleted:" context "Delete category form text about descendant categories" %}
 <ul>
   {% recursetree descendants %}
@@ -28,12 +32,15 @@
   </li>
   {% endrecursetree %}
 </ul>
+</p>
 {% endif %}
 {% if products_count %}
+<p>
 {% blocktrans count counter=products_count trimmed context "Delete category form text about products" %}
   There is one product in this category that will be deleted.
   {% plural %}
   There are {{ counter }} products in this category that will be deleted.
 {% endblocktrans %}
+</p>
 {% endif %}
 {% endblock content %}
