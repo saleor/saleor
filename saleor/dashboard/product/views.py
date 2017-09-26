@@ -30,7 +30,6 @@ def product_class_list(request):
         (pc.pk, pc.name, pc.has_variants, pc.product_attributes.all(),
          pc.variant_attributes.all())
         for pc in classes.object_list]
-
     ctx = {'form': form, 'product_classes': classes}
     class_list_tmpl = 'dashboard/product/product_class/list.html'
     return TemplateResponse(request, class_list_tmpl, ctx)
@@ -47,7 +46,6 @@ def product_class_create(request):
             'Dashboard message', 'Added product type %s') % product_class
         messages.success(request, msg)
         return redirect('dashboard:product-class-list')
-
     ctx = {'form': form, 'product_class': product_class}
     class_form_tmpl = 'dashboard/product/product_class/form.html'
     return TemplateResponse(request, class_form_tmpl, ctx)
@@ -65,7 +63,6 @@ def product_class_edit(request, pk):
             'Dashboard message', 'Updated product type %s') % product_class
         messages.success(request, msg)
         return redirect('dashboard:product-class-update', pk=pk)
-
     ctx = {'form': form, 'product_class': product_class}
     class_form_tmpl = 'dashboard/product/product_class/form.html'
     return TemplateResponse(request, class_form_tmpl, ctx)
@@ -164,7 +161,6 @@ def product_detail(request, pk):
         stock = only_variant.stock.all()
     else:
         stock = Stock.objects.none()
-
     ctx = {
         'product': product, 'sale_price': sale_price, 'variants': variants,
         'gross_price_range': gross_price_range, 'images': images,
@@ -260,7 +256,6 @@ def stock_edit(request, product_pk, variant_pk, stock_pk=None):
         return redirect(
             'dashboard:variant-details', product_pk=product.pk,
             variant_pk=variant.pk)
-
     ctx = {
         'form': form, 'product': product, 'variant': variant, 'stock': stock}
     stock_form_tmpl = 'dashboard/product/stock/form.html'
@@ -280,7 +275,6 @@ def stock_delete(request, product_pk, variant_pk, stock_pk):
         return redirect(
             'dashboard:variant-details', product_pk=product.pk,
             variant_pk=variant.pk)
-
     ctx = {'product': product, 'stock': stock, 'variant': variant}
     confirm_tmpl = 'dashboard/product/stock/modal_confirm_delete.html'
     return TemplateResponse(request, confirm_tmpl, ctx)
@@ -319,7 +313,6 @@ def product_image_edit(request, product_pk, img_pk=None):
                 'Added image %s') % product_image.image.name
         messages.success(request, msg)
         return redirect('dashboard:product-image-list', product_pk=product.pk)
-
     ctx = {'form': form, 'product': product, 'product_image': product_image}
     image_form_tmpl = 'dashboard/product/product_image/form.html'
     return TemplateResponse(request, image_form_tmpl, ctx)
@@ -338,7 +331,6 @@ def product_image_delete(request, product_pk, img_pk):
                 'Dashboard message',
                 'Deleted image %s') % image.image.name)
         return redirect('dashboard:product-image-list', product_pk=product.pk)
-
     ctx = {'product': product, 'image': image}
     confirm_tmpl = 'dashboard/product/product_image/modal_confirm_delete.html'
     return TemplateResponse(request, confirm_tmpl, ctx)
@@ -365,7 +357,6 @@ def variant_edit(request, product_pk, variant_pk=None):
         return redirect(
             'dashboard:variant-details', product_pk=product.pk,
             variant_pk=variant.pk)
-
     ctx = {
         'attribute_form': attribute_form, 'form': form, 'product': product,
         'variant': variant}
@@ -473,7 +464,6 @@ def attribute_edit(request, pk=None):
                 'Dashboard message', 'Added attribute')
         messages.success(request, msg)
         return redirect('dashboard:product-attribute-detail', pk=attribute.pk)
-
     ctx = {'attribute': attribute, 'form': form, 'formset': formset}
     attribute_form_tmpl = 'dashboard/product/product_attribute/form.html'
     return TemplateResponse(request, attribute_form_tmpl, ctx)
@@ -490,7 +480,6 @@ def attribute_delete(request, pk):
                 'Dashboard message',
                 'Deleted attribute %s') % (attribute.name,))
         return redirect('dashboard:product-attributes')
-
     ctx = {'attribute': attribute}
     confirm_tmpl = ('dashboard/product/product_attribute/'
                     'modal_confirm_delete.html')
@@ -522,7 +511,6 @@ def stock_location_edit(request, location_pk=None):
                 'Dashboard message for stock location', 'Added location')
         messages.success(request, msg)
         return redirect('dashboard:product-stock-location-list')
-
     ctx = {'form': form, 'location': location}
     form_tmpl = 'dashboard/product/stock_location/form.html'
     return TemplateResponse(request, form_tmpl, ctx)
@@ -540,7 +528,6 @@ def stock_location_delete(request, location_pk):
                 'Dashboard message for stock location',
                 'Deleted location %s') % location)
         return redirect('dashboard:product-stock-location-list')
-
     ctx = {'location': location, 'stock_count': stock_count}
     confirm_tmpl = 'dashboard/product/stock_location/modal_confirm_delete.html'
     return TemplateResponse(request, confirm_tmpl, ctx)
