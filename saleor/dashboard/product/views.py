@@ -79,15 +79,11 @@ def product_class_delete(request, pk):
                 'Dashboard message',
                 'Deleted product type %s') % product_class)
         return redirect('dashboard:product-class-list')
-
-    products = [str(p) for p in product_class.products.all()]
-    context = {'product_class': product_class, 'products': products}
-    url_root = 'dashboard/product/product_class/'
-    if products:
-        confirm_tmpl = 'modal_cannot_delete_class.html'
-    else:
-        confirm_tmpl = 'modal_confirm_delete.html'
-    return TemplateResponse(request, url_root + confirm_tmpl, context)
+    context = {'product_class': product_class,
+               'products': product_class.products.all()}
+    template = ('dashboard/product/product_class/'
+                'modal_confirm_delete.html')
+    return TemplateResponse(request, template, context)
 
 
 @staff_member_required
