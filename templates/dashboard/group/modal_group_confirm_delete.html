@@ -1,27 +1,18 @@
+{% extends "dashboard/base_modal_confirm_delete.html" %}
+
 {% load i18n %}
 
-<form action="{% url 'dashboard:group-delete' pk=group.pk %}" method="post" novalidate>
-  {% csrf_token %}
-  <div class="modal-content">
-    <div class="row">
-      <div class="col s12">
-        <h5>
-          {% trans "Are you sure?" context "Dashboard confirmation modal" %}
-        </h5>
-      </div>
-    </div>
-    <p>
-      {% blocktrans trimmed context "Modal delete group text" %}
-        If you remove <strong>{{ group }}</strong> users can lose permissions related to this group.
-      {% endblocktrans %}
-    </p>
-  </div>
-  <div class="modal-footer">
-    <button type="submit" class="modal-action btn-flat">
-      {% trans "Delete" context "Dashboard delete action" %}
-    </button>
-    <a href="#!" class="modal-action modal-close btn-flat">
-      {% trans "Cancel" context "Dashboard cancel action" %}
-    </a>
-  </div>
-</form>
+{% block title %}
+{% blocktrans trimmed context "Modal delete group text" %}
+  Delete group <strong>{{ group }}</strong>?
+{% endblocktrans %}
+{% endblock %}
+
+{% block content %}
+{% blocktrans trimmed context "Modal delete group text" %}
+<p>Are you sure you want to delete group {{ group }}?</p>
+<p>Users might lose permissions related to this group.</p>
+{% endblocktrans %}
+{% endblock content %}
+ 
+
