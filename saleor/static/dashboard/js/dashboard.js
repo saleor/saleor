@@ -132,10 +132,6 @@ $(document).ready(function () {
   }).on('click', '.modal-close', function () {
     $('.modal').modal('close');
   });
-
-  // function isTablet() {
-  //   return !$('.hide-on-med-only').is(':visible');
-  // }
 });
 Dropzone.options.productImageForm = {
   paramName: 'image',
@@ -146,9 +142,6 @@ Dropzone.options.productImageForm = {
   previewTemplate: $('#template').html(),
   clickable: false,
   init: function () {
-    // let $dropzoneMessage = $('.dropzone-message');
-    // let $gallery = $('.product-gallery');
-
     this.on('success', function (e, response) {
       $(e.previewElement).find('.product-gallery-item-desc').html(response.image);
       $(e.previewElement).attr('data-id', response.id);
