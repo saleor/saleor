@@ -17,7 +17,7 @@ def shipping_method_list(request):
     methods = ShippingMethod.objects.prefetch_related('price_per_country').all()
     methods = get_paginator_items(methods, 30, request.GET.get('page'))
     ctx = {'shipping_methods': methods}
-    return TemplateResponse(request, 'dashboard/shipping/method_list.html', ctx)
+    return TemplateResponse(request, 'dashboard/shipping/list.html', ctx)
 
 
 @superuser_required
@@ -35,7 +35,7 @@ def shipping_method_edit(request, method):
             'dashboard:shipping-method-detail', pk=shipping_method.pk)
     ctx = {'shipping_method_form': form,
            'price_per_country_formset': formset, 'shipping_method': method}
-    return TemplateResponse(request, 'dashboard/shipping/method_form.html', ctx)
+    return TemplateResponse(request, 'dashboard/shipping/form.html', ctx)
 
 
 @superuser_required
@@ -58,7 +58,7 @@ def shipping_method_detail(request, pk):
     method_countries = method.price_per_country.all()
     ctx = {'shipping_method': method, 'method_countries': method_countries}
     return TemplateResponse(
-        request, 'dashboard/shipping/method_detail.html', ctx)
+        request, 'dashboard/shipping/detail.html', ctx)
 
 
 @superuser_required
