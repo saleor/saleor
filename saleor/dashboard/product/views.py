@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import json
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.http import JsonResponse
@@ -582,8 +581,8 @@ def ajax_upload_image(request, product_pk):
     status = 200
     if form.is_valid():
         image = form.save()
-        ctx = {'id': image.pk, 'image': image, 'order': image.order}
+        ctx = {'id': image.pk, 'image': None, 'order': image.order}
     elif form.errors:
         status = 400
-        ctx = {'errors': form.errors}
-    return JsonResponse(ctx, status=200)
+        ctx = {'error': form.errors}
+    return JsonResponse(ctx, status=status)

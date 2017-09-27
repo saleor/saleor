@@ -6,7 +6,7 @@ import pytest
 from django import forms
 from django.core.urlresolvers import reverse
 from django.utils.encoding import smart_text
-from mock import Mock, MagicMock
+from mock import Mock
 
 from saleor.dashboard.product.forms import (
     ProductClassForm, ProductClassSelectorForm, ProductForm)

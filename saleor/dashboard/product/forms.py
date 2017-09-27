@@ -323,10 +323,6 @@ class UploadImageForm(forms.ModelForm):
         fields = ('image', )
 
     def __init__(self, *args, **kwargs):
-        self.product = kwargs.pop('product')
+        product = kwargs.pop('product')
         super(UploadImageForm, self).__init__(*args, **kwargs)
-
-    def save(self, commit=True):
-        image = super(UploadImageForm, self).save(commit=commit)
-        image.product = self.product
-        return image.save()
+        self.instance.product = product
