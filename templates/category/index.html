@@ -56,7 +56,6 @@
                         <div>
                           <span>{{ field.label }}:<strong>{{ field }}</strong></span>
                           <div class="sort-order-icon">
-
                           </div>
                         </div>
                       </button>
@@ -70,7 +69,13 @@
         <div class="row">
           <div class="col-md-4 col-lg-3">
             <div class="product-filters">
-
+              <div class="product-filters__categories">
+                <h2>
+                  <strong>{{ category.name }}</strong>
+                </h2>
+                <!--This should be dynamic if category has childs/parents-->
+                <ul class="product-filters__categories__childs no-parent"></ul>
+              </div>
             </div>
             <div>
               <h2>

@@ -56,6 +56,6 @@ class ProductFilter(FilterSet):
 
 def get_attribute_choices(attribute):
     result = [(choice.pk, choice.name)
-              for choice in AttributeChoiceValue.objects.filter(
-            attribute__pk=attribute.pk)]
+              for choice in
+              AttributeChoiceValue.objects.filter(attribute__pk=attribute.pk)]
     return result

@@ -4,12 +4,14 @@ from mock import Mock
 import pytest
 
 from django.core.urlresolvers import reverse
+from django.test import RequestFactory
 from django.utils.encoding import smart_text
 
 from saleor.cart.models import Cart
 from saleor.cart import CartStatus, utils
 from saleor.product import (
     models, ProductAvailabilityStatus, VariantAvailabilityStatus)
+from saleor.product.filters import ProductFilter
 from saleor.product.utils import (
     get_attributes_display_map, get_availability,
     get_product_availability_status, get_variant_availability_status)
@@ -369,3 +371,35 @@ def test_variant_availability_status(unavailable_product):
     stock.save()
     status = get_variant_availability_status(variant)
     assert status == VariantAvailabilityStatus.AVAILABLE
+
+
+def test_product_filter_empty_get(product_in_stock, default_category):
+    factory = RequestFactory()
+    products = models.Product.objects.all()
+    request = factory.get(reverse('product:category',
+                                  args=[default_category.slug,
+                                        default_category.pk]))
+    product_filter = ProductFilter(request.GET,
+                                   queryset=products)
+    assert list(products) == list(product_filter.qs)
+
+
+def test_product_filter_product_exist(authorized_client, product_in_stock,
+                                      default_category):
+    factory = RequestFactory()
+    products = models.Product.objects.all()
+    url = reverse('product:category', args=[default_category.slug,
+                                            default_category.pk])
+    data = {u'price_0': [u''], u'price_1': [u'20']}
+    response = authorized_client.get(url, data)
+    assert list(products) == list(response.context['filter'].qs)
+
+
+def test_product_filter_product_not_exist(authorized_client, product_in_stock,
+                                          default_category):
+    products = models.Product.objects.all()
+    url = reverse('product:category', args=[default_category.slug,
+                                            default_category.pk])
+    data = {u'price_0': [u'20'], u'price_1': [u'']}
+    response = authorized_client.get(url, data)
+    assert list(response.context['filter'].qs) == []
