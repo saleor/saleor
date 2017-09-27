@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react';
 import Relay from 'react-relay/classic';
 import InlineSVG from 'react-inlinesvg';
+import {graphql, gql} from 'react-apollo';
 
 import SaleImg from '../../../images/sale_bg.svg';
 
@@ -38,3 +39,14 @@ export default Relay.createContainer(ProductPrice, {
     `
   }
 });
+
+// export default graphql(gql`
+//   fragment on ProductAvailabilityType {
+//     available,
+//     discount { gross },
+//     priceRange {
+//       maxPrice { gross, grossLocalized, currency },
+//       minPrice { gross, grossLocalized, currency }
+//     }
+//   }
+// `)

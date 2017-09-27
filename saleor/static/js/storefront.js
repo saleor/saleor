@@ -16,7 +16,7 @@ import ProductSchema from './components/variantPicker/ProductSchema';
 
 let csrftoken = $.cookie('csrftoken');
 
-function csrfSafeMethod (method) {
+function csrfSafeMethod(method) {
   return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method);
 }
 
@@ -54,8 +54,8 @@ $(document).ready((e) => {
   if (windowWidth < 767) {
     $mobileNav.append('<ul class="nav navbar-nav navbar__menu__login"></ul>');
     $('.navbar__login a').appendTo('.navbar__menu__login')
-                         .wrap('<li class="nav-item login-item"></li>')
-                         .addClass('nav-link');
+      .wrap('<li class="nav-item login-item"></li>')
+      .addClass('nav-link');
   }
 
   $toogleIcon.click((e) => {
@@ -106,7 +106,7 @@ if ($initialValue) {
 
 // Smart address form
 
-$(function() {
+$(function () {
   const $i18nAddresses = $('.i18n-address');
   $i18nAddresses.each(function () {
     const $form = $(this).closest('form');
@@ -122,15 +122,15 @@ $(function() {
 // Input Passwords
 
 let $inputPassword = $('input[type=password]');
-$("<img class='passIcon' src="+passwordIvisible+" />").insertAfter($inputPassword);
+$("<img class='passIcon' src=" + passwordIvisible + " />").insertAfter($inputPassword);
 $inputPassword.parent().addClass('relative');
 $('.passIcon').on('click', (e) => {
   let $input = $(e.target).parent().find('input');
   if ($input.attr('type') == 'password') {
-    $input.attr('type','text');
+    $input.attr('type', 'text');
     $(e.target).attr('src', passwordVisible);
   } else {
-    $input.attr('type','password');
+    $input.attr('type', 'password');
     $(e.target).attr('src', passwordIvisible);
   }
 });
@@ -253,7 +253,7 @@ if (variantPickerContainer) {
 // Product Schema
 const productSchemaContainer = document.getElementById('product-schema-component');
 if (productSchemaContainer) {
-  let productSchema = JSON.parse(document.getElementById('product-schema-component').children[0].text)
+  let productSchema = JSON.parse(document.getElementById('product-schema-component').children[0].text);
   ReactDOM.render(
     <ProductSchema
       variantStore={variantPickerStore}
@@ -270,20 +270,19 @@ let $deleteAdressIcons = $('.icons');
 let $deleteAdressIcon = $('.delete-icon');
 let $deleteAddress = $('.address-delete');
 
- $deleteAdressIcon.on('click', (e) => {
+$deleteAdressIcon.on('click', (e) => {
   if ($deleteAddress.hasClass('none')) {
     $deleteAddress.removeClass('none');
     $deleteAdressIcons.addClass('none');
   } else {
     $deleteAddress.addClass('none');
   }
- });
+});
 
- $deleteAddress.find('.cancel').on('click', (e) => {
+$deleteAddress.find('.cancel').on('click', (e) => {
   $deleteAddress.addClass('none');
   $deleteAdressIcons.removeClass('none');
- });
-
+});
 
 
 // Cart quantity form
@@ -293,7 +292,7 @@ let $total = $('.cart-subtotal');
 let $cartBadge = $('.navbar__brand__cart .badge');
 let $removeProductSucces = $('.remove-product-alert');
 let $closeMsg = $('.close-msg');
-$cartLine.each(function() {
+$cartLine.each(function () {
   let $quantityInput = $(this).find('#id_quantity');
   let cartFormUrl = $(this).find('.form-cart').attr('action');
   let $qunatityError = $(this).find('.cart__line__quantity-error');
@@ -308,7 +307,7 @@ $cartLine.each(function() {
       success: (response) => {
         if (newQuantity == 0) {
           if (response.cart.numLines == 0) {
-            $.cookie('alert', 'true', { path: '/cart' });
+            $.cookie('alert', 'true', {path: '/cart'});
             location.reload();
           } else {
             $removeProductSucces.removeClass('hidden-xs-up');
@@ -340,7 +339,7 @@ $cartLine.each(function() {
           $cartDropdown.load(summaryLink);
           $removeProductSucces.removeClass('hidden-xs-up');
         } else {
-          $.cookie('alert', 'true', { path: '/cart' });
+          $.cookie('alert', 'true', {path: '/cart'});
           location.reload();
         }
         deliveryAjax();
@@ -351,7 +350,7 @@ $cartLine.each(function() {
 
 // StyleGuide fixed menu
 
-$(document).ready(function() {
+$(document).ready(function () {
   let styleGuideMenu = $('.styleguide__nav');
   $(window).scroll(function () {
     if ($(this).scrollTop() > 100) {
@@ -359,12 +358,12 @@ $(document).ready(function() {
     } else {
       styleGuideMenu.removeClass("fixed");
     }
-  })
+  });
 });
 
 if ($.cookie('alert') === 'true') {
   $removeProductSucces.removeClass('hidden-xs-up');
-  $.cookie('alert', 'false', { path: '/cart' });
+  $.cookie('alert', 'false', {path: '/cart'});
 }
 
 $closeMsg.on('click', (e) => {
