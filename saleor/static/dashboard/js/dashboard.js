@@ -165,23 +165,21 @@ if (el) {
   Sortable.create(el, {
     handle: '.sortable__drag-area',
     onUpdate: function () {
+      let orderedImages = (function () {
+        let postData = [];
+        $(el).find('.product-gallery-item[data-id]').each(function() {
+          postData.push($(this).data('id'));
+        });
+        return postData;
+      })();
       $.ajax({
-        dataType: 'json',
-        contentType: 'application/json',
-        data: JSON.stringify({
-          'ordered_images': (function () {
-            let postData = [];
-            $(el).find('.product-gallery-item[data-id]').each(function () {
-              postData.push($(this).data('id'));
-            });
-            return postData;
-          })()
-        }),
+        method: 'post',
+        url: $(el).data('post-url'),
+        data: {ordered_images: orderedImages},
+        traditional: true,
         headers: {
           'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
-        },
-        method: 'post',
-        url: $(el).data('post-url')
+        }
       });
     }
   });

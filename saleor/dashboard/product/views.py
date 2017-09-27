@@ -562,8 +562,7 @@ def stock_location_delete(request, location_pk):
 @staff_member_required
 def ajax_reorder_product_images(request, product_pk):
     product = get_object_or_404(Product, pk=product_pk)
-    ordered_images = json.loads(request.body.decode('utf-8'))
-    form = forms.ReorderProductImagesForm(ordered_images, instance=product)
+    form = forms.ReorderProductImagesForm(request.POST, instance=product)
     status = 200
     ctx = {}
     if form.is_valid():

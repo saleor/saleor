@@ -293,7 +293,8 @@ AttributeChoiceValueFormset = inlineformset_factory(
 class OrderedModelMultipleChoiceField(forms.ModelMultipleChoiceField):
     def clean(self, value):
         qs = super(OrderedModelMultipleChoiceField, self).clean(value)
-        return sorted(qs, key=lambda v: value.index(v.pk))
+        keys = list(map(int, value))
+        return sorted(qs, key=lambda v: keys.index(v.pk))
 
 
 class ReorderProductImagesForm(forms.ModelForm):
@@ -313,6 +314,7 @@ class ReorderProductImagesForm(forms.ModelForm):
         for order, image in enumerate(self.cleaned_data['ordered_images']):
             image.order = order
             image.save()
+        return self.instance
 
 
 class UploadImageForm(forms.ModelForm):
