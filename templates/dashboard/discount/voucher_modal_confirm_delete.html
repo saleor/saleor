@@ -8,12 +8,12 @@
 
 {% block title %}
 {% blocktrans trimmed context "Delete voucher text" %}
-Delete voucher <strong>{{ voucher }}</strong>?
+Delete voucher {{ voucher }}
 {% endblocktrans %}
 {% endblock title %}
 
 {% block content %}
 {% blocktrans trimmed context "Delete voucher text" %}
-Are you sure you want to delete voucher {{ voucher }}?
+Are you sure you want to delete voucher <strong>{{ voucher }}</strong>?
 {% endblocktrans %}
 {% endblock content %}

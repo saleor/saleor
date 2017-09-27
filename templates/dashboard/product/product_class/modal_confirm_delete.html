@@ -8,14 +8,14 @@
 
 {% block title %}
 {% blocktrans trimmed context "Modal delete product class text" %}
-<p>Delete product class <strong>{{ product_class }}</strong>?</p>
+Delete product class {{ product_class }}
 {% endblocktrans %}
 {% endblock title %}
 
 {% block content %}
 <p>
     {% blocktrans trimmed context "Modal delete product class text" %}
-    Are you sure you want to delete product class {{ product_class }}?    
+    Are you sure you want to delete product class <strong>{{ product_class }}</strong>?    
     {% endblocktrans %}
 </p>
 <p>

@@ -8,14 +8,14 @@
 
 {% block title %}
 {% blocktrans trimmed context "Modal delete stock location text" %}
-Delete stock location <strong>{{ location }}</strong>?
+Delete stock location {{ location }}
 {% endblocktrans %}
 {% endblock title %}
 
 {% block content %}
 <p>
 {% blocktrans trimmed context "Modal delete stock location text" %}
-    Are you sure you want to delete stock location {{ location }}?
+    Are you sure you want to delete stock location <strong>{{ location }}</strong>?
 {% endblocktrans %}
 </p>
 {% if stock_count %}

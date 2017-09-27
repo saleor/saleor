@@ -7,12 +7,12 @@
 
 {% block title %}
 {% blocktrans trimmed context "Modal delete product text" %}
-Delete product <strong>{{ product }}</strong>?
+Delete product {{ product }}
 {% endblocktrans %}
 {% endblock %}
 
 {% block content %}
 {% blocktrans trimmed context "Modal delete product text" %}
-Are you sure you want to delete product {{ product }}?
+Are you sure you want to delete product <strong>{{ product }}</strong>?
 {% endblocktrans %}
 {% endblock content %}

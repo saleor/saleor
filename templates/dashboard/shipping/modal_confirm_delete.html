@@ -10,12 +10,12 @@
 
 {% block title %}
 {% blocktrans context "Dashboard confirmation modal" %}
-Delete shipping method <strong>{{ shipping_method }}</strong>?
+Delete shipping method {{ shipping_method }}
 {% endblocktrans %}
 {% endblock %}
 
 {% block content %}
 {% blocktrans context "Dashboard confirmation modal" %}
-Are you sure you want to delete shipping method {{ shipping_method }}?
+Are you sure you want to delete shipping method <strong>{{ shipping_method}}</strong>?
 {% endblocktrans %}
 {% endblock %}
