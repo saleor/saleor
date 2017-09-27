@@ -1,23 +1,17 @@
+{% extends "dashboard/base_modal_confirm_delete.html" %}
+
 {% load i18n %}
 
-<form action="{% url "dashboard:sale-delete" pk=sale.pk %}" method="post" novalidate>
-  {% csrf_token %}
-  <div class="modal-content">
-    <h5>
-      {% trans "Are you sure?" context "Dashboard confirmation modal" %}
-    </h5>
-    <p>
-      {% blocktrans trimmed context "Delete sale (discount) text" %}
-        You are about to delete <strong>{{ sale }}</strong>.
-      {% endblocktrans %}
-    </p>
-  </div>
-  <div class="modal-footer">
-    <button type="submit" class="modal-action btn-flat">
-      {% trans "Delete" context "Dashboard delete action" %}
-    </button>
-    <a href="#!" class="modal-action modal-close btn-flat">
-      {% trans "Cancel" context "Dashboard cancel action" %}
-    </a>
-  </div>
-</form>
+{% block action_url %}{% url "dashboard:sale-delete" pk=sale.pk %}{% endblock %}
+
+{% block title %}
+{% blocktrans trimmed context "Delete sale (discount) text" %}
+Delete sale {{ sale }}
+{% endblocktrans %}
+{% endblock title %}
+
+{% block content %}
+{% blocktrans trimmed context "Delete sale (discount) text" %}
+Are you sure you want to selete <strong>{{ sale }}</strong>?
+{% endblocktrans %}
+{% endblock content %}

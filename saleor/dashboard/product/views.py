@@ -32,7 +32,9 @@ def product_class_list(request):
         for pc in classes.object_list]
     ctx = {'form': form, 'product_classes': classes}
     return TemplateResponse(
-        request, 'dashboard/product/product_class/list.html', ctx)
+        request,
+        'dashboard/product/product_class/list.html',
+        ctx)
 
 
 @superuser_required
@@ -48,7 +50,9 @@ def product_class_create(request):
         return redirect('dashboard:product-class-list')
     ctx = {'form': form, 'product_class': product_class}
     return TemplateResponse(
-        request, 'dashboard/product/product_class/form.html', ctx)
+        request,
+        'dashboard/product/product_class/form.html',
+        ctx)
 
 
 @superuser_required
@@ -65,13 +69,14 @@ def product_class_edit(request, pk):
         return redirect('dashboard:product-class-update', pk=pk)
     ctx = {'form': form, 'product_class': product_class}
     return TemplateResponse(
-        request, 'dashboard/product/product_class/form.html', ctx)
+        request,
+        'dashboard/product/product_class/form.html',
+        ctx)
 
 
 @superuser_required
 def product_class_delete(request, pk):
     product_class = get_object_or_404(ProductClass, pk=pk)
-    products = [str(p) for p in product_class.products.all()]
     if request.method == 'POST':
         product_class.delete()
         messages.success(
@@ -80,10 +85,12 @@ def product_class_delete(request, pk):
                 'Dashboard message',
                 'Deleted product type %s') % product_class)
         return redirect('dashboard:product-class-list')
+    ctx = {'product_class': product_class,
+           'products': product_class.products.all()}
     return TemplateResponse(
         request,
         'dashboard/product/product_class/modal_confirm_delete.html',
-        {'product_class': product_class, 'products': products})
+        ctx)
 
 
 @staff_member_required
@@ -157,7 +164,6 @@ def product_detail(request, pk):
         stock = only_variant.stock.all()
     else:
         stock = Stock.objects.none()
-
     ctx = {
         'product': product, 'sale_price': sale_price, 'variants': variants,
         'gross_price_range': gross_price_range, 'images': images,
@@ -202,10 +208,9 @@ def product_edit(request, pk):
             'Dashboard message', 'Updated product %s') % product
         messages.success(request, msg)
         return redirect('dashboard:product-detail', pk=product.pk)
-    ctx = {
-        'product': product, 'product_form': form, 'variant_form': variant_form}
-    return TemplateResponse(
-        request, 'dashboard/product/form.html', ctx)
+    ctx = {'product': product, 'product_form': form,
+           'variant_form': variant_form}
+    return TemplateResponse(request, 'dashboard/product/form.html', ctx)
 
 
 @staff_member_required
@@ -219,7 +224,8 @@ def product_delete(request, pk):
             pgettext_lazy('Dashboard message', 'Deleted product %s') % product)
         return redirect('dashboard:product-list')
     return TemplateResponse(
-        request, 'dashboard/product/modal_confirm_delete.html',
+        request,
+        'dashboard/product/modal_confirm_delete.html',
         {'product': product})
 
 
@@ -231,7 +237,9 @@ def stock_details(request, product_pk, variant_pk, stock_pk):
     stock = get_object_or_404(variant.stock, pk=stock_pk)
     ctx = {'stock': stock, 'product': product, 'variant': variant}
     return TemplateResponse(
-        request, 'dashboard/product/stock/detail.html', ctx)
+        request,
+        'dashboard/product/stock/detail.html',
+        ctx)
 
 
 @staff_member_required
@@ -252,9 +260,12 @@ def stock_edit(request, product_pk, variant_pk, stock_pk=None):
         return redirect(
             'dashboard:variant-details', product_pk=product.pk,
             variant_pk=variant.pk)
-    ctx = {
-        'form': form, 'product': product, 'variant': variant, 'stock': stock}
-    return TemplateResponse(request, 'dashboard/product/stock/form.html', ctx)
+    ctx = {'form': form, 'product': product,
+           'variant': variant, 'stock': stock}
+    return TemplateResponse(
+        request,
+        'dashboard/product/stock/form.html',
+        ctx)
 
 
 @staff_member_required
@@ -272,7 +283,9 @@ def stock_delete(request, product_pk, variant_pk, stock_pk):
             variant_pk=variant.pk)
     ctx = {'product': product, 'stock': stock, 'variant': variant}
     return TemplateResponse(
-        request, 'dashboard/product/stock/modal_confirm_delete.html', ctx)
+        request,
+        'dashboard/product/stock/modal_confirm_delete.html',
+        ctx)
 
 
 @staff_member_required
@@ -281,9 +294,10 @@ def product_images(request, product_pk):
     product = get_object_or_404(
         Product.objects.prefetch_related('images'), pk=product_pk)
     images = product.images.all()
-    ctx = {'product': product, 'images': images}
     return TemplateResponse(
-        request, 'dashboard/product/product_image/list.html', ctx)
+        request,
+        'dashboard/product/product_image/list.html',
+        {'product': product, 'images': images})
 
 
 @staff_member_required
@@ -310,7 +324,9 @@ def product_image_edit(request, product_pk, img_pk=None):
         return redirect('dashboard:product-image-list', product_pk=product.pk)
     ctx = {'form': form, 'product': product, 'product_image': product_image}
     return TemplateResponse(
-        request, 'dashboard/product/product_image/form.html', ctx)
+        request,
+        'dashboard/product/product_image/form.html',
+        ctx)
 
 
 @staff_member_required
@@ -326,10 +342,10 @@ def product_image_delete(request, product_pk, img_pk):
                 'Dashboard message',
                 'Deleted image %s') % image.image.name)
         return redirect('dashboard:product-image-list', product_pk=product.pk)
-    ctx = {'product': product, 'image': image}
     return TemplateResponse(
         request,
-        'dashboard/product/product_image/modal_confirm_delete.html', ctx)
+        'dashboard/product/product_image/modal_confirm_delete.html',
+        {'product': product, 'image': image})
 
 
 @staff_member_required
@@ -353,11 +369,12 @@ def variant_edit(request, product_pk, variant_pk=None):
         return redirect(
             'dashboard:variant-details', product_pk=product.pk,
             variant_pk=variant.pk)
-    ctx = {
-        'attribute_form': attribute_form, 'form': form, 'product': product,
-        'variant': variant}
+    ctx = {'attribute_form': attribute_form, 'form': form, 'product': product,
+           'variant': variant}
     return TemplateResponse(
-        request, 'dashboard/product/product_variant/form.html', ctx)
+        request,
+        'dashboard/product/product_variant/form.html',
+        ctx)
 
 
 @staff_member_required
@@ -377,11 +394,12 @@ def variant_details(request, product_pk, variant_pk):
 
     stock = variant.stock.all()
     images = variant.images.all()
-    ctx = {
-        'images': images, 'product': product, 'stock': stock,
-        'variant': variant}
+    ctx = {'images': images, 'product': product, 'stock': stock,
+           'variant': variant}
     return TemplateResponse(
-        request, 'dashboard/product/product_variant/detail.html', ctx)
+        request,
+        'dashboard/product/product_variant/detail.html',
+        ctx)
 
 
 @staff_member_required
@@ -398,7 +416,8 @@ def variant_images(request, product_pk, variant_pk):
             variant_pk=variant.pk)
     ctx = {'form': form, 'product': product, 'variant': variant}
     return TemplateResponse(
-        request, 'dashboard/product/product_variant/modal_select_images.html',
+        request,
+        'dashboard/product/product_variant/modal_select_images.html',
         ctx)
 
 
@@ -407,7 +426,6 @@ def variant_images(request, product_pk, variant_pk):
 def variant_delete(request, product_pk, variant_pk):
     product = get_object_or_404(Product, pk=product_pk)
     variant = get_object_or_404(product.variants, pk=variant_pk)
-    is_only_variant = product.variants.count() == 1
     if request.method == 'POST':
         variant.delete()
         messages.success(
@@ -415,12 +433,14 @@ def variant_delete(request, product_pk, variant_pk):
             pgettext_lazy(
                 'Dashboard message', 'Deleted variant %s') % variant.name)
         return redirect('dashboard:product-detail', pk=product.pk)
-    ctx = {
-        'is_only_variant': is_only_variant, 'product': product,
-        'variant': variant}
+
+    ctx = {'is_only_variant': product.variants.count() == 1,
+           'product': product,
+           'variant': variant}
     return TemplateResponse(
         request,
-        'dashboard/product/product_variant/modal_confirm_delete.html', ctx)
+        'dashboard/product/product_variant/modal_confirm_delete.html',
+        ctx)
 
 
 @superuser_required
@@ -428,18 +448,20 @@ def attribute_list(request):
     attributes = [
         (attribute.pk, attribute.name, attribute.values.all())
         for attribute in ProductAttribute.objects.prefetch_related('values')]
-    ctx = {'attributes': attributes}
     return TemplateResponse(
-        request, 'dashboard/product/product_attribute/list.html', ctx)
+        request,
+        'dashboard/product/product_attribute/list.html',
+        {'attributes': attributes})
 
 
 @superuser_required
 def attribute_detail(request, pk):
     attributes = ProductAttribute.objects.prefetch_related('values').all()
     attribute = get_object_or_404(attributes, pk=pk)
-    ctx = {'attribute': attribute}
     return TemplateResponse(
-        request, 'dashboard/product/product_attribute/detail.html', ctx)
+        request,
+        'dashboard/product/product_attribute/detail.html',
+        {'attribute': attribute})
 
 
 @superuser_required
@@ -461,7 +483,9 @@ def attribute_edit(request, pk=None):
         return redirect('dashboard:product-attribute-detail', pk=attribute.pk)
     ctx = {'attribute': attribute, 'form': form, 'formset': formset}
     return TemplateResponse(
-        request, 'dashboard/product/product_attribute/form.html', ctx)
+        request,
+        'dashboard/product/product_attribute/form.html',
+        ctx)
 
 
 @superuser_required
@@ -475,10 +499,10 @@ def attribute_delete(request, pk):
                 'Dashboard message',
                 'Deleted attribute %s') % (attribute.name,))
         return redirect('dashboard:product-attributes')
-    ctx = {'attribute': attribute}
     return TemplateResponse(
         request,
-        'dashboard/product/product_attribute/modal_confirm_delete.html', ctx)
+        'dashboard/product/product_attribute/modal_confirm_delete.html',
+        {'attribute': attribute})
 
 
 @staff_member_required
@@ -487,7 +511,9 @@ def stock_location_list(request):
     stock_locations = StockLocation.objects.all()
     ctx = {'locations': stock_locations}
     return TemplateResponse(
-        request, 'dashboard/product/stock_location/list.html', ctx)
+        request,
+        'dashboard/product/stock_location/list.html',
+        ctx)
 
 
 @staff_member_required
@@ -506,9 +532,10 @@ def stock_location_edit(request, location_pk=None):
                 'Dashboard message for stock location', 'Added location')
         messages.success(request, msg)
         return redirect('dashboard:product-stock-location-list')
-    ctx = {'form': form, 'location': location}
     return TemplateResponse(
-        request, 'dashboard/product/stock_location/form.html', ctx)
+        request,
+        'dashboard/product/stock_location/form.html',
+        {'form': form, 'location': location})
 
 
 @staff_member_required
@@ -525,5 +552,6 @@ def stock_location_delete(request, location_pk):
         return redirect('dashboard:product-stock-location-list')
     ctx = {'location': location, 'stock_count': stock_count}
     return TemplateResponse(
-        request, 'dashboard/product/stock_location/modal_confirm_delete.html',
+        request,
+        'dashboard/product/stock_location/modal_confirm_delete.html',
         ctx)

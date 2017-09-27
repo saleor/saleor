@@ -12,7 +12,12 @@ from saleor.dashboard.product.forms import (ProductClassForm,
                                             ProductClassSelectorForm,
                                             ProductForm)
 from saleor.product.models import (Product, ProductAttribute, ProductClass,
-                                   ProductVariant)
+                                   ProductVariant, ProductImage, Stock,
+                                   StockLocation)
+
+
+HTTP_STATUS_OK = 200
+HTTP_REDIRECTION = 302
 
 
 @pytest.mark.integration
@@ -138,9 +143,138 @@ def test_view_product_toggle_publish(db, admin_client, product_in_stock):
     product = product_in_stock
     url = reverse('dashboard:product-publish', kwargs={'pk': product.pk})
     response = admin_client.post(url)
-    assert response.status_code == 200
+    assert response.status_code == HTTP_STATUS_OK
     data = {'success': True, 'is_published': False}
     assert json.loads(response.content.decode('utf8')) == data
     admin_client.post(url)
     product.refresh_from_db()
     assert product.is_published
+
+
+def test_view_product_not_deleted_before_confirmation(db, admin_client, product_in_stock):
+    product = product_in_stock
+    url = reverse('dashboard:product-delete', kwargs={'pk': product.pk})
+    response = admin_client.get(url)
+    assert response.status_code == HTTP_STATUS_OK
+    product.refresh_from_db()
+
+
+def test_view_product_delete(db, admin_client, product_in_stock):
+    product = product_in_stock
+    url = reverse('dashboard:product-delete', kwargs={'pk': product.pk})
+    response = admin_client.post(url)
+    assert response.status_code == HTTP_REDIRECTION
+    assert not Product.objects.filter(pk=product.pk)
+
+
+def test_view_product_class_not_deleted_before_confirmation(admin_client, product_in_stock):
+    product_class = product_in_stock.product_class
+    url = reverse('dashboard:product-class-delete', kwargs={'pk': product_class.pk})
+    response = admin_client.get(url)
+    assert response.status_code == HTTP_STATUS_OK
+    assert ProductClass.objects.filter(pk=product_class.pk)
+
+
+def test_view_product_class_delete(db, admin_client, product_in_stock):
+    product_class = product_in_stock.product_class
+    url = reverse('dashboard:product-class-delete', kwargs={'pk': product_class.pk})
+    response = admin_client.post(url)
+    assert response.status_code == HTTP_REDIRECTION
+    assert not ProductClass.objects.filter(pk=product_class.pk)
+
+
+def test_view_product_variant_not_deleted_before_confirmation(admin_client, product_in_stock):
+    product_variant_pk = product_in_stock.variants.first().pk
+    url = reverse('dashboard:variant-delete',
+                  kwargs={'product_pk':product_in_stock.pk,
+                          'variant_pk': product_variant_pk})
+    response = admin_client.get(url)
+    assert response.status_code == HTTP_STATUS_OK
+    assert ProductVariant.objects.filter(pk=product_variant_pk)
+
+
+def test_view_product_variant_delete(admin_client, product_in_stock):
+    product_variant_pk = product_in_stock.variants.first().pk
+    url = reverse('dashboard:variant-delete',
+                  kwargs={'product_pk':product_in_stock.pk,
+                          'variant_pk': product_variant_pk})
+    response = admin_client.post(url)
+    assert response.status_code == HTTP_REDIRECTION
+    assert not ProductVariant.objects.filter(pk=product_variant_pk)
+
+
+def test_view_stock_not_deleted_before_confirmation(admin_client, product_in_stock):
+    product_variant = product_in_stock.variants.first()
+    stock = Stock.objects.filter(variant=product_variant).first()
+    url = reverse('dashboard:variant-stock-delete',
+                  kwargs={'product_pk':product_in_stock.pk,
+                          'variant_pk': product_variant.pk,
+                          'stock_pk': stock.pk})
+    response = admin_client.get(url)
+    assert response.status_code == HTTP_STATUS_OK
+    assert Stock.objects.filter(pk=stock.pk)
+
+
+def test_view_stock_delete(admin_client, product_in_stock):
+    product_variant = product_in_stock.variants.first()
+    stock = Stock.objects.filter(variant=product_variant).first()
+    url = reverse('dashboard:variant-stock-delete',
+                  kwargs={'product_pk':product_in_stock.pk,
+                          'variant_pk': product_variant.pk,
+                          'stock_pk': stock.pk})
+    response = admin_client.post(url)
+    assert response.status_code == HTTP_REDIRECTION
+    assert not Stock.objects.filter(pk=stock.pk)
+
+
+def test_view_stock_location_not_deleted_before_confirmation(admin_client, stock_location):
+    url = reverse('dashboard:product-stock-location-delete',
+                  kwargs={'location_pk':stock_location.pk})
+    response = admin_client.get(url)
+    assert response.status_code == HTTP_STATUS_OK
+    assert StockLocation.objects.filter(pk=stock_location.pk)
+
+
+def test_view_stock_location_delete(admin_client, stock_location):
+    url = reverse('dashboard:product-stock-location-delete',
+                  kwargs={'location_pk':stock_location.pk})
+    response = admin_client.post(url)
+    assert response.status_code == HTTP_REDIRECTION
+    assert not StockLocation.objects.filter(pk=stock_location.pk)
+
+
+def test_view_attribute_not_deleted_before_confirmation(admin_client, color_attribute):
+    url = reverse('dashboard:product-attribute-delete',
+                  kwargs={'pk':color_attribute.pk})
+    response = admin_client.get(url)
+    assert response.status_code == HTTP_STATUS_OK
+    assert ProductAttribute.objects.filter(pk=color_attribute.pk)
+
+
+def test_view_attribute_delete(admin_client, color_attribute):
+    url = reverse('dashboard:product-attribute-delete',
+                  kwargs={'pk':color_attribute.pk})
+    response = admin_client.post(url)
+    assert response.status_code == HTTP_REDIRECTION
+    assert not ProductAttribute.objects.filter(pk=color_attribute.pk)
+
+
+def test_view_product_image_not_deleted_before_confirmation(admin_client, product_with_image):
+    product_image = product_with_image.images.all()[0]
+    url = reverse('dashboard:product-image-delete',
+                  kwargs={'img_pk': product_image.pk,
+                          'product_pk': product_with_image.pk})
+    response = admin_client.get(url)
+    assert response.status_code == HTTP_STATUS_OK
+    assert ProductImage.objects.filter(pk=product_image.pk).count()
+
+
+def test_view_product_image_delete(admin_client, product_with_image):
+    product_image = product_with_image.images.all()[0]
+    url = reverse('dashboard:product-image-delete',
+                  kwargs={'img_pk': product_image.pk,
+                          'product_pk': product_with_image.pk})
+    response = admin_client.post(url)
+    assert response.status_code == HTTP_REDIRECTION
+    assert not ProductImage.objects.filter(pk=product_image.pk)
+    

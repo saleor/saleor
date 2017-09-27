@@ -1,0 +1,29 @@
+{% load i18n %}
+
+<form action="{% block action_url %}#!{% endblock %}" method="post" novalidate>
+  {% csrf_token %}
+  <div class="modal-content">
+    <div class="row">
+      <div class="col s12">
+        <h5>
+            {% block title %}
+            {% trans "Delete" context "Dashboard confirmation modal" %}
+            {% endblock %}
+        </h5>
+      </div>
+    </div>
+    {% block content %}
+    {% trans "Are you sure?" context "Dashboard confirmation modal" %}
+    {% endblock %}
+  </div>
+  <div class="modal-footer">
+  {% block footer %}
+    <button type="submit" class="modal-action btn-flat">
+      {% trans "Delete" context "Dashboard delete action" %}
+    </button>
+    <a href="#!" class="modal-action modal-close btn-flat">
+      {% trans "Cancel" context "Dashboard cancel action" %}
+    </a>
+  {% endblock footer %}
+  </div>
+</form>
