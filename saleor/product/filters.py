@@ -20,7 +20,7 @@ class ProductFilter(FilterSet):
         for attribute in product_attributes:
             self.filters[attribute.slug] = \
                 MultipleChoiceFilter(
-                    name='product_class__product_attributes__values__slug',
+                    name='attributes__%s' % attribute.pk,
                     label=attribute.name,
                     widget=CheckboxSelectMultiple,
                     choices=get_attribute_choices(attribute))
@@ -28,7 +28,7 @@ class ProductFilter(FilterSet):
         for attribute in variant_attributes:
             self.filters[attribute.slug] = \
                 MultipleChoiceFilter(
-                    name='product_class__variant_attributes__values__slug',
+                    name='variants__attributes__%s' % attribute.pk,
                     label=attribute.name,
                     widget=CheckboxSelectMultiple,
                     choices=get_attribute_choices(attribute))
@@ -45,7 +45,7 @@ class ProductFilter(FilterSet):
 
 
 def get_attribute_choices(attribute):
-    result = [(choice.slug, choice.name)
+    result = [(choice.pk, choice.name)
               for choice in AttributeChoiceValue.objects.filter(
-            attribute__slug=attribute.slug)]
+            attribute__pk=attribute.pk)]
     return result
