@@ -113,19 +113,13 @@ def product_add_to_cart(request, slug, product_id):
 def category_index(request, path, category_id):
     category = get_object_or_404(Category, id=category_id)
     actual_path = category.get_full_path()
-
-    products = (Product.objects.filter(categories__name=category)
-                .prefetch_related(
-        'images',
-        'product_class__variant_attributes__values',
-        'product_class__product_attributes__values',
-        'variants__stock').all())
-
-    product_filters = ProductFilter(request.GET, queryset=products)
+    products = products_with_details(user=request.user)\
+        .filter(categories__name=category)
+    product_filter = ProductFilter(request.GET, queryset=products)
 
     if actual_path != path:
         return redirect('product:category', permanent=True, path=actual_path,
                         category_id=category_id)
     return TemplateResponse(request, 'category/index.html',
                             {'category': category,
-                             'filter': product_filters})
+                             'filter': product_filter})

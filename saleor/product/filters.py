@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from django_filters import FilterSet, MultipleChoiceFilter, RangeFilter
 from django.forms import CheckboxSelectMultiple
 
@@ -32,6 +34,7 @@ class ProductFilter(FilterSet):
                     label=attribute.name,
                     widget=CheckboxSelectMultiple,
                     choices=get_attribute_choices(attribute))
+        self.filters = OrderedDict(sorted(self.filters.items()))
 
     class Meta:
         model = Product
