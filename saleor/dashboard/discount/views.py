@@ -15,7 +15,7 @@ from . import forms
 def sale_list(request):
     sales = Sale.objects.prefetch_related('products')
     ctx = {'sales': sales}
-    return TemplateResponse(request, 'dashboard/discount/sale_list.html', ctx)
+    return TemplateResponse(request, 'dashboard/discount/sale/list.html', ctx)
 
 
 @staff_member_required
@@ -35,7 +35,7 @@ def sale_edit(request, pk=None):
         messages.success(request, msg)
         return redirect('dashboard:sale-update', pk=instance.pk)
     ctx = {'sale': instance, 'form': form}
-    return TemplateResponse(request, 'dashboard/discount/sale_form.html', ctx)
+    return TemplateResponse(request, 'dashboard/discount/sale/form.html', ctx)
 
 
 @staff_member_required
@@ -50,7 +50,7 @@ def sale_delete(request, pk):
         return redirect('dashboard:sale-list')
     ctx = {'sale': instance}
     return TemplateResponse(
-        request, 'dashboard/discount/sale_modal_confirm_delete.html', ctx)
+        request, 'dashboard/discount/sale/modal_confirm_delete.html', ctx)
 
 
 @staff_member_required
