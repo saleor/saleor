@@ -369,8 +369,8 @@ def variant_edit(request, product_pk, variant_pk=None):
         return redirect(
             'dashboard:variant-details', product_pk=product.pk,
             variant_pk=variant.pk)
-    ctx = {'attribute_form': attribute_form, 'form': form,
-            'product': product, 'variant': variant}
+    ctx = {'attribute_form': attribute_form, 'form': form, 'product': product,
+           'variant': variant}
     return TemplateResponse(
         request,
         'dashboard/product/product_variant/form.html',
