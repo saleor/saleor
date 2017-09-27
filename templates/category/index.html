@@ -41,19 +41,18 @@
                 <li><a href='{{ category.get_absolute_url }}'>{{ category.name }}</a></li>
               </ul>
             </div>
-            <!--<div class="col-md-5">-->
-              <!--<div class="row">-->
-                <!--<div class="col-6 col-md-2 col-lg-6 filters-menu">-->
-                  <!--<span class="filters-menu__label d-sm-none" onClick={() => this.toggleMenu(filtersMenu)}>{pgettext('Category page filters', 'Filters')}</span>-->
-                  <!--{(variables.attributesFilter.length || variables.minPrice || variables.maxPrice) && (-->
-                    <!--<span class="filters-menu__icon d-sm-none"></span>-->
-                  <!--)}-->
-                <!--</div>-->
-                <!--<div class="col-6 col-md-10 col-lg-6">-->
-                  <!--<SortBy sortedValue={variables.sortBy} setSorting={this.setSorting} />-->
-                <!--</div>-->
-              <!--</div>-->
-            <!--</div>-->
+            <div class="col-md-5">
+              <div class="row">
+                {% with filter.form.sort_by as field %}
+                  <div class="col-6 col-md-2 col-lg-6 filters-menu">
+                    {{ field.label }}:
+                  </div>
+                  <div class="col-6 col-md-10 col-lg-6">
+                    {{ field }}
+                  </div>
+                {% endwith %}
+              </div>
+            </div>
           </div>
         </div>
         <div class="row">
@@ -69,18 +68,20 @@
               <div class="product-filters">
                 <div class="product-filters__attributes">
                   <form method="get">
-                    <!--{% csrf_token %}-->
                     {% for field in filter.form %}
-                      <div key={{ attribute.pk }}>
-                        <h3 onClick="">
-                          {{ field.label }}
-                          <!--<div class="collapse-filters-icon">-->
-                            <!--<InlineSVG key={key} src={imageSrc} />-->
-                          <!--</div>-->
-                        </h3>
-                        {{ field }}
+                      {% if field.label != 'Sort by' %}
+                        <div key={{ attribute.pk }}>
+                          <h3 onClick="">
+                            {{ field.label }}
+                            <!--<div class="collapse-filters-icon">-->
+                              <!--<InlineSVG key={key} src={imageSrc} />-->
+                            <!--</div>-->
+                          </h3>
+                          {{ field }}
 
-                      </div>
+
+                        </div>
+                      {% endif %}
                     {% endfor %}
                     <button type="submit">Search</button>
                   </form>
@@ -91,7 +92,7 @@
           <div class="col-md-8 col-lg-9 category-list">
             <div>
               <!--ProductList-->
-              {{ filter.qs.count }}
+              Items found: {{ filter.qs.count }}
               {% for product in filter.qs %}
                 <div class="row">
 
