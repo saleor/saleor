@@ -12,7 +12,7 @@ services:
     ports:
       - '127.0.0.1:6379:6379'
   search:
-    image: elasticsearch:2.4
+    image: elasticsearch:5.4
     ports:
       - '127.0.0.1:9200:9200'
   web:

@@ -447,8 +447,8 @@ class ElasticsearchSearchResults(BaseSearchResults):
         hits = self.backend.es.search(**params)
 
         # Get pks from results
-        pks = [hit['fields']['pk'][0] for hit in hits['hits']['hits']]
-        scores = {str(hit['fields']['pk'][0]): hit['_score']
+        pks = [hit['_source']['pk'] for hit in hits['hits']['hits']]
+        scores = {str(hit['_source']['pk'][0]): hit['_score']
                   for hit in hits['hits']['hits']}
 
         # Initialise results dictionary
