@@ -61,7 +61,7 @@ const apolloClient = new ApolloClient({networkInterface});
 
 ReactDOM.render(
   <ApolloProvider client={apolloClient}>
-    <App categoryId={queryString.parse(ur)}/>
+    <App categoryId={categoryData.id}/>
   </ApolloProvider>,
   categoryPage
 );
