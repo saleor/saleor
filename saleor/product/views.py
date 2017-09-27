@@ -116,10 +116,15 @@ def category_index(request, path, category_id):
     products = products_with_details(user=request.user)\
         .filter(categories__name=category)
     product_filter = ProductFilter(request.GET, queryset=products)
+    products = [(product,
+                 get_availability(product, discounts=request.discounts,
+                                  local_currency=request.currency))
+                for product in product_filter.qs]
 
     if actual_path != path:
         return redirect('product:category', permanent=True, path=actual_path,
                         category_id=category_id)
     return TemplateResponse(request, 'category/index.html',
                             {'category': category,
+                             'products': products,
                              'filter': product_filter})

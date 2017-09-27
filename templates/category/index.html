@@ -45,10 +45,22 @@
               <div class="row">
                 {% with filter.form.sort_by as field %}
                   <div class="col-6 col-md-2 col-lg-6 filters-menu">
-                    {{ field.label }}:
+                    <span class="filters-menu__label hidden-sm-up">Filters</span>
+                    <span class="filters-menu__icon hidden-sm-up"></span>
+
                   </div>
                   <div class="col-6 col-md-10 col-lg-6">
-                    {{ field }}
+                    <div class="sort-by">
+                      <div class="click-area hide"></div>
+                      <button class="btn btn-link">
+                        <div>
+                          <span>{{ field.label }}:<strong>{{ field }}</strong></span>
+                          <div class="sort-order-icon">
+
+                          </div>
+                        </div>
+                      </button>
+                    </div>
                   </div>
                 {% endwith %}
               </div>
@@ -91,42 +103,11 @@
           </div>
           <div class="col-md-8 col-lg-9 category-list">
             <div>
-              <!--ProductList-->
-              Items found: {{ filter.qs.count }}
-              {% for product in filter.qs %}
+              <div>
                 <div class="row">
-
-                  <!--ProductItem-->
-                  <div class="col-6 col-md-4 product-list">
-                    <a href="{{ product.get_absolute_url }}">
-                      <div class="text-center">
-                        <div>
-                            <img class="img-responsive" src="{% product_first_image product size='60x60' method='crop' %}"
-                                 srcset="{% product_first_image product size='120x120' method='crop' %} 1x, {% product_first_image product size='180x180' method='crop' %} 2x"
-                                 alt="" />
-                            <span class="product-list-item-name" title={{ product.name }}>{{ product.name }}</span>
-                        </div>
-                        <div class="panel-footer">
-                          <div>
-                            <span>
-                              {% if product.get_price_range and product.get_gross_price_range|first !=  product.get_gross_price_range|last %}
-                                <span>FROM </span>{% gross product.price html=True %}
-                              {% endif %}
-                            </span>
-
-                            {% if product %}
-                            <div class="product-list__sale">
-                              <InlineSVG src={SaleImg} />
-                              <span class="">Sale</span>
-                            </div>
-                            {% endif %}
-                          </div>
-                        </div>
-                      </div>
-                    </a>
-                  </div>
+                  {% include "category/_items.html" with products=products %}
                 </div>
-              {% endfor %}
+              </div>
             </div>
           </div>
         </div>
