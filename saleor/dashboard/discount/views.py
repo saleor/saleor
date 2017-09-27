@@ -59,7 +59,7 @@ def voucher_list(request):
     vouchers = Voucher.objects.select_related('product', 'category')
     ctx = {'vouchers': vouchers}
     return TemplateResponse(
-        request, 'dashboard/discount/voucher_list.html', ctx)
+        request, 'dashboard/discount/voucher/list.html', ctx)
 
 
 @staff_member_required
@@ -101,7 +101,7 @@ def voucher_edit(request, pk=None):
         'voucher': instance, 'default_currency': settings.DEFAULT_CURRENCY,
         'form': voucher_form, 'type_base_forms': type_base_forms}
     return TemplateResponse(
-        request, 'dashboard/discount/voucher_form.html', ctx)
+        request, 'dashboard/discount/voucher/form.html', ctx)
 
 
 @staff_member_required
@@ -116,4 +116,4 @@ def voucher_delete(request, pk):
         return redirect('dashboard:voucher-list')
     ctx = {'voucher': instance}
     return TemplateResponse(
-        request, 'dashboard/discount/voucher_modal_confirm_delete.html', ctx)
+        request, 'dashboard/discount/voucher/modal_confirm_delete.html', ctx)
