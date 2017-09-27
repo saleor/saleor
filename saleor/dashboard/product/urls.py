@@ -57,6 +57,7 @@ urlpatterns = [
         views.product_image_edit, name='product-image-add'),
     url(r'^(?P<product_pk>[0-9]+)/images/(?P<img_pk>[0-9]+)/delete/$',
         views.product_image_delete, name='product-image-delete'),
+
     url(r'^(?P<product_pk>[0-9]+)/images/reorder/$',
         views.ajax_reorder_product_images, name='product-images-reorder'),
     url(r'^(?P<product_pk>[0-9]+)/images/upload/$',
