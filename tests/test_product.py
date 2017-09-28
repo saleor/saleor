@@ -374,8 +374,9 @@ def test_variant_availability_status(unavailable_product):
 def test_product_filter_empty_get(authorized_client, product_in_stock,
                                   default_category):
     products = models.Product.objects.all()
-    url = reverse('product:category', args=[default_category.slug,
-                                            default_category.pk])
+    url = reverse(
+        'product:category', kwargs={'path': default_category.slug,
+                                    'category_id': default_category.pk})
     response = authorized_client.get(url)
     assert list(products) == list(response.context['filter'].qs)
 
@@ -383,18 +384,19 @@ def test_product_filter_empty_get(authorized_client, product_in_stock,
 def test_product_filter_product_exists(authorized_client, product_in_stock,
                                        default_category):
     products = models.Product.objects.all()
-    url = reverse('product:category', args=[default_category.slug,
-                                            default_category.pk])
-    data = {u'price_0': [u''], u'price_1': [u'20']}
+    url = reverse(
+        'product:category', kwargs={'path': default_category.slug,
+                                    'category_id': default_category.pk})
+    data = {'price_0': [''], 'price_1': ['20']}
     response = authorized_client.get(url, data)
-    assert list(products) == list(response.context['filter'].qs)
+    assert list(response.context['filter'].qs) == list(products)
 
 
 def test_product_filter_product_not_exists(authorized_client, product_in_stock,
                                            default_category):
-    products = models.Product.objects.all()
-    url = reverse('product:category', args=[default_category.slug,
-                                            default_category.pk])
-    data = {u'price_0': [u'20'], u'price_1': [u'']}
+    url = reverse(
+        'product:category', kwargs={'path': default_category.slug,
+                                    'category_id': default_category.pk})
+    data = {'price_0': ['20'], 'price_1': ['']}
     response = authorized_client.get(url, data)
     assert list(response.context['filter'].qs) == []

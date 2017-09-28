@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% load slice from shop %}
+{% load shop %}
 {% load staticfiles %}
 {% load bootstrap_pagination from bootstrap3 %}
 {% load render_bundle from webpack_loader %}
@@ -42,7 +42,6 @@
             </div>
             <div class="col-md-5">
               <div class="row">
-                {% with filter.form.sort_by as field %}
                   <div class="col-6 col-md-2 col-lg-6 filters-menu">
                     <span class="filters-menu__label hidden-sm-up">Filters</span>
                     <span class="filters-menu__icon hidden-sm-up"></span>
@@ -51,16 +50,20 @@
                   <div class="col-6 col-md-10 col-lg-6">
                     <div class="sort-by">
                       <div class="click-area hide"></div>
-                      <button class="btn btn-link">
+                      <!--<button class="btn btn-link">-->
                         <div>
-                          <span>{{ field.label }}:<strong>{{ field }}</strong></span>
+                          <span>Sort by:
+                            <strong>
+                              <a href="{% get_sort_by_url 'name' %}">{% trans "name" %}</a>
+                              <a href="{% get_sort_by_url 'price' %}">{% trans "price" %}</a>
+                            </strong>
+                          </span>
                           <div class="sort-order-icon">
                           </div>
                         </div>
-                      </button>
+                      <!--</button>-->
                     </div>
                   </div>
-                {% endwith %}
               </div>
             </div>
           </div>
@@ -85,7 +88,7 @@
                 <div class="product-filters__attributes">
                   <form method="get">
                     {% for field in filter.form %}
-                      {% if field.label != 'Sort by' %}
+
                         <div key={{ attribute.pk }}>
                           <h3 onClick="">
                             {{ field.label }}
@@ -95,7 +98,7 @@
                           </h3>
                           {{ field }}
                         </div>
-                      {% endif %}
+
                     {% endfor %}
                     <button type="submit">Search</button>
                   </form>
