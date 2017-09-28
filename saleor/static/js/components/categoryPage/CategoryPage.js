@@ -6,7 +6,7 @@ import {graphql, gql} from 'react-apollo';
 // import PriceFilter from './PriceFilter';
 // import ProductFilters from './ProductFilters';
 import ProductList from './ProductList';
-// import SortBy from './SortBy';
+import SortBy from './SortBy';
 // import {ensureAllowedName, getAttributesFromQuery, getFromQuery} from './utils';
 import {isMobile} from '../utils';
 import ProductItem from "./ProductItem";
@@ -22,6 +22,7 @@ class CategoryPage extends Component {
     };
   }
 
+
   static propTypes = {
     attributes: PropTypes.array,
     category: PropTypes.object
@@ -33,11 +34,10 @@ class CategoryPage extends Component {
   //   });
   // };
 
-  // setSorting = (value) => {
-  //   this.props.relay.setVariables({
-  //     sortBy: value
-  //   });
-  // };
+  setSorting = (value) => {
+    this.props.data.variables.sortBy = value;
+    this.render();
+  };
 
   toggleMenu = (target) => {
     this.setState({
@@ -100,39 +100,39 @@ class CategoryPage extends Component {
   //   });
   // };
   //
-  // persistStateInUrl() {
-  //   const {attributesFilter, count, maxPrice, minPrice, sortBy} = this.props.relay.variables;
-  //   let urlParams = {};
-  //   if (minPrice) {
-  //     urlParams['minPrice'] = minPrice;
-  //   }
-  //   if (maxPrice) {
-  //     urlParams['maxPrice'] = maxPrice;
-  //   }
-  //   if (count > PAGINATE_BY) {
-  //     urlParams['count'] = count;
-  //   }
-  //   if (sortBy) {
-  //     urlParams['sortBy'] = sortBy;
-  //   }
-  //   attributesFilter.forEach(filter => {
-  //     const [attributeName, valueSlug] = filter.split(':');
-  //     if (attributeName in urlParams) {
-  //       urlParams[attributeName].push(valueSlug);
-  //     } else {
-  //       urlParams[attributeName] = [valueSlug];
-  //     }
-  //   });
-  //   const url = Object.keys(urlParams).length ? '?' + queryString.stringify(urlParams) : location.href.split('?')[0];
-  //   history.pushState({}, null, url);
-  // }
+  persistStateInUrl() {
+    const {attributesFilter, count, maxPrice, minPrice, sortBy} = this.props.data.variables;
+    let urlParams = {};
+    if (minPrice) {
+      urlParams['minPrice'] = minPrice;
+    }
+    if (maxPrice) {
+      urlParams['maxPrice'] = maxPrice;
+    }
+    if (count > PAGINATE_BY) {
+      urlParams['count'] = count;
+    }
+    if (sortBy) {
+      urlParams['sortBy'] = sortBy;
+    }
+    attributesFilter.forEach(filter => {
+      const [attributeName, valueSlug] = filter.split(':');
+      if (attributeName in urlParams) {
+        urlParams[attributeName].push(valueSlug);
+      } else {
+        urlParams[attributeName] = [valueSlug];
+      }
+    });
+    const url = Object.keys(urlParams).length ? '?' + queryString.stringify(urlParams) : location.href.split('?')[0];
+    history.pushState({}, null, url);
+  }
   //
-  // componentDidUpdate() {
-  //   // Persist current state of relay variables as query string. Current
-  //   // variables are available in props after component rerenders, so it has to
-  //   // be called inside componentDidUpdate method.
-  //   this.persistStateInUrl();
-  // }
+  componentDidUpdate() {
+    // Persist current state of relay variables as query string. Current
+    // variables are available in props after component rerenders, so it has to
+    // be called inside componentDidUpdate method.
+    this.persistStateInUrl();
+  }
 
   render() {
     const attributes = this.props.data.attributes;
@@ -166,7 +166,7 @@ class CategoryPage extends Component {
                   {/*)}*/}
                 </div>
                 <div className="col-6 col-md-10 col-lg-6">
-                  {/*<SortBy sortedValue={variables.sortBy} setSorting={this.setSorting}/>*/}
+                  <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting}/>
                 </div>
               </div>
             </div>
