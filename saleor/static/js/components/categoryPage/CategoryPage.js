@@ -14,8 +14,6 @@ import ProductItem from "./ProductItem";
 const PAGINATE_BY = 24;
 const SORT_BY_FIELDS = ['name', 'price'];
 
-let sortBy = 'name';
-
 class CategoryPage extends Component {
   constructor(props) {
     super(props);
@@ -38,14 +36,21 @@ class CategoryPage extends Component {
 
   setSorting = (value) => {
     this.props.data.variables.sortBy = value;
-    sortBy = value;
-    this.render();
   };
 
   toggleMenu = (target) => {
     this.setState({
       filtersMenu: !target
     });
+  };
+
+  refetch = () => {
+    this.props.data.refetch({
+      variables: {
+        sortBy: this.props.data.variables.sortBy
+      }
+    });
+    this.render();
   };
 
   static fragments = {
@@ -66,7 +71,7 @@ class CategoryPage extends Component {
           slug
         }
         products (
-          orderBy: "${sortBy}"
+          orderBy: $sortBy
         ) {
           ...ProductListFragmentQuery
         }
@@ -131,6 +136,7 @@ class CategoryPage extends Component {
     const url = Object.keys(urlParams).length ? '?' + queryString.stringify(urlParams) : location.href.split('?')[0];
     history.pushState({}, null, url);
   }
+
   //
   componentDidUpdate() {
     // Persist current state of relay variables as query string. Current
@@ -146,6 +152,7 @@ class CategoryPage extends Component {
     // const {pendingVariables} = relay;
     const pendingVariables = {};
     const {filtersMenu} = this.state;
+    // console.log(this.props.data);
     return (
       <div className="category-page">
         <div className="category-top">
@@ -171,7 +178,7 @@ class CategoryPage extends Component {
                   {/*)}*/}
                 </div>
                 <div className="col-6 col-md-10 col-lg-6">
-                  <SortBy sortedValue={sortBy} setSorting={this.setSorting}/>
+                  <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting} refetch={this.refetch}/>
                 </div>
               </div>
             </div>
