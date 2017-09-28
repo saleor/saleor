@@ -1,6 +1,5 @@
 from django.conf.urls import url
 
-from . import api
 from . import views
 
 
@@ -58,10 +57,11 @@ urlpatterns = [
         views.product_image_edit, name='product-image-add'),
     url(r'^(?P<product_pk>[0-9]+)/images/(?P<img_pk>[0-9]+)/delete/$',
         views.product_image_delete, name='product-image-delete'),
+
     url(r'^(?P<product_pk>[0-9]+)/images/reorder/$',
-        api.reorder_product_images, name='product-images-reorder'),
+        views.ajax_reorder_product_images, name='product-images-reorder'),
     url(r'^(?P<product_pk>[0-9]+)/images/upload/$',
-        api.upload_image, name='product-images-upload'),
+        views.ajax_upload_image, name='product-images-upload'),
 
     url(r'attributes/$',
         views.attribute_list, name='product-attributes'),

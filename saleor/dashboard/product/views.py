@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url
 from django.utils.translation import pgettext_lazy
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_POST
 
 from ...core.utils import get_paginator_items
 from ...product.models import (
@@ -555,3 +555,34 @@ def stock_location_delete(request, location_pk):
         request,
         'dashboard/product/stock_location/modal_confirm_delete.html',
         ctx)
+
+
+@require_POST
+@staff_member_required
+def ajax_reorder_product_images(request, product_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    form = forms.ReorderProductImagesForm(request.POST, instance=product)
+    status = 200
+    ctx = {}
+    if form.is_valid():
+        form.save()
+    elif form.errors:
+        status = 400
+        ctx = {'error': form.errors}
+    return JsonResponse(ctx, status=status)
+
+
+@require_POST
+@staff_member_required
+def ajax_upload_image(request, product_pk):
+    product = get_object_or_404(Product, pk=product_pk)
+    form = forms.UploadImageForm(
+        request.POST or None, request.FILES or None, product=product)
+    status = 200
+    if form.is_valid():
+        image = form.save()
+        ctx = {'id': image.pk, 'image': None, 'order': image.order}
+    elif form.errors:
+        status = 400
+        ctx = {'error': form.errors}
+    return JsonResponse(ctx, status=status)

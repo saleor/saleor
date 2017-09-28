@@ -176,7 +176,6 @@ INSTALLED_APPS = [
     'graphene_django',
     'mptt',
     'payments',
-    'rest_framework',
     'webpack_loader',
     'social_django',
     'django_countries',

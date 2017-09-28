@@ -8,12 +8,11 @@ from django.core.urlresolvers import reverse
 from django.utils.encoding import smart_text
 from mock import Mock
 
-from saleor.dashboard.product.forms import (ProductClassForm,
-                                            ProductClassSelectorForm,
-                                            ProductForm)
-from saleor.product.models import (Product, ProductAttribute, ProductClass,
-                                   ProductVariant, ProductImage, Stock,
-                                   StockLocation)
+from saleor.dashboard.product.forms import (
+    ProductClassForm, ProductClassSelectorForm, ProductForm)
+from saleor.product.models import (
+    Product, ProductAttribute, ProductClass, ProductImage, ProductVariant,
+    Stock, StockLocation)
 
 
 HTTP_STATUS_OK = 200
@@ -278,3 +277,31 @@ def test_view_product_image_delete(admin_client, product_with_image):
     assert response.status_code == HTTP_REDIRECTION
     assert not ProductImage.objects.filter(pk=product_image.pk)
     
+def test_view_reorder_product_images(admin_client, product_with_images):
+    order_before = [img.pk for img in product_with_images.images.all()]
+    ordered_images = list(reversed(order_before))
+    url = reverse(
+        'dashboard:product-images-reorder',
+        kwargs={'product_pk': product_with_images.pk})
+    data = {'ordered_images': ordered_images}
+    response = admin_client.post(
+        url, data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    order_after = [img.pk for img in product_with_images.images.all()]
+    assert response.status_code == 200
+    assert order_after == ordered_images
+
+
+def test_view_invalid_reorder_product_images(
+        admin_client, product_with_images):
+    order_before = [img.pk for img in product_with_images.images.all()]
+    ordered_images = list(reversed(order_before)).append(3)
+    url = reverse(
+        'dashboard:product-images-reorder',
+        kwargs={'product_pk': product_with_images.pk})
+    data = {'ordered_images': ordered_images}
+    response = admin_client.post(
+        url, data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+    assert response.status_code == 400
+    resp_decoded = json.loads(response.content.decode('utf-8'))
+    assert 'error' in resp_decoded
+    assert 'ordered_images' in resp_decoded['error']

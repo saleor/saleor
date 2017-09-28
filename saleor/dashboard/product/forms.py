@@ -11,8 +11,8 @@ from django.utils.translation import pgettext_lazy
 from ...product.models import (
     AttributeChoiceValue, Product, ProductAttribute, ProductClass,
     ProductImage, ProductVariant, Stock, StockLocation, VariantImage)
-from .widgets import ImagePreviewWidget
 from ...search import index as search_index
+from .widgets import ImagePreviewWidget
 
 
 class ProductClassSelectorForm(forms.Form):
@@ -288,3 +288,41 @@ class AttributeChoiceValueForm(forms.ModelForm):
 AttributeChoiceValueFormset = inlineformset_factory(
     ProductAttribute, AttributeChoiceValue, form=AttributeChoiceValueForm,
     extra=1)
+
+
+class OrderedModelMultipleChoiceField(forms.ModelMultipleChoiceField):
+    def clean(self, value):
+        qs = super(OrderedModelMultipleChoiceField, self).clean(value)
+        keys = list(map(int, value))
+        return sorted(qs, key=lambda v: keys.index(v.pk))
+
+
+class ReorderProductImagesForm(forms.ModelForm):
+    ordered_images = OrderedModelMultipleChoiceField(
+        queryset=ProductImage.objects.none())
+
+    class Meta:
+        model = Product
+        fields = ()
+
+    def __init__(self, *args, **kwargs):
+        super(ReorderProductImagesForm, self).__init__(*args, **kwargs)
+        if self.instance:
+            self.fields['ordered_images'].queryset = self.instance.images.all()
+
+    def save(self):
+        for order, image in enumerate(self.cleaned_data['ordered_images']):
+            image.order = order
+            image.save()
+        return self.instance
+
+
+class UploadImageForm(forms.ModelForm):
+    class Meta:
+        model = ProductImage
+        fields = ('image', )
+
+    def __init__(self, *args, **kwargs):
+        product = kwargs.pop('product')
+        super(UploadImageForm, self).__init__(*args, **kwargs)
+        self.instance.product = product

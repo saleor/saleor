@@ -11,7 +11,10 @@ from django.contrib.auth.models import AnonymousUser
 from django.utils.encoding import smart_text
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import AnonymousUser, Group, Permission
+from django.core.files import File
 from django.utils.encoding import smart_text
+
+from mock import MagicMock
 
 from saleor.cart import utils
 from saleor.cart.models import Cart
@@ -281,6 +284,21 @@ def unavailable_product(product_class, default_category):
         product_class=product_class,
         is_published=False)
     product.categories.add(default_category)
+    return product
+
+
+@pytest.fixture
+def product_with_images(product_class, default_category):
+    product = Product.objects.create(
+        name='Test product', price=Decimal('10.00'),
+        product_class=product_class)
+    product.categories.add(default_category)
+    file_mock_0 = MagicMock(spec=File, name='FileMock0')
+    file_mock_0.name = 'image0.jpg'
+    file_mock_1 = MagicMock(spec=File, name='FileMock1')
+    file_mock_1.name = 'image1.jpg'
+    product.images.create(image=file_mock_0)
+    product.images.create(image=file_mock_1)
     return product
 
 
