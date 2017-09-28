@@ -64,7 +64,7 @@ def category_edit(request, root_pk=None):
     elif form.errors:
         status = 400
     ctx = {'category': category, 'form': form, 'status': status}
-    template = 'dashboard/category/modal_edit.html'
+    template = 'dashboard/category/modal/edit.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
@@ -96,4 +96,4 @@ def category_delete(request, pk):
            'descendants': list(category.get_descendants()),
            'products_count': len(category.products.all())}
     return TemplateResponse(
-        request, 'dashboard/category/modal_confirm_delete.html', ctx)
+        request, 'dashboard/category/modal/confirm_delete.html', ctx)

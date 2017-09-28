@@ -89,7 +89,7 @@ def product_class_delete(request, pk):
            'products': product_class.products.all()}
     return TemplateResponse(
         request,
-        'dashboard/product/product_class/modal_confirm_delete.html',
+        'dashboard/product/product_class/modal/confirm_delete.html',
         ctx)
 
 
@@ -225,7 +225,7 @@ def product_delete(request, pk):
         return redirect('dashboard:product-list')
     return TemplateResponse(
         request,
-        'dashboard/product/modal_confirm_delete.html',
+        'dashboard/product/modal/confirm_delete.html',
         {'product': product})
 
 
@@ -284,7 +284,7 @@ def stock_delete(request, product_pk, variant_pk, stock_pk):
     ctx = {'product': product, 'stock': stock, 'variant': variant}
     return TemplateResponse(
         request,
-        'dashboard/product/stock/modal_confirm_delete.html',
+        'dashboard/product/stock/modal/confirm_delete.html',
         ctx)
 
 
@@ -344,7 +344,7 @@ def product_image_delete(request, product_pk, img_pk):
         return redirect('dashboard:product-image-list', product_pk=product.pk)
     return TemplateResponse(
         request,
-        'dashboard/product/product_image/modal_confirm_delete.html',
+        'dashboard/product/product_image/modal/confirm_delete.html',
         {'product': product, 'image': image})
 
 
@@ -417,7 +417,7 @@ def variant_images(request, product_pk, variant_pk):
     ctx = {'form': form, 'product': product, 'variant': variant}
     return TemplateResponse(
         request,
-        'dashboard/product/product_variant/modal_select_images.html',
+        'dashboard/product/product_variant/modal/select_images.html',
         ctx)
 
 
@@ -439,7 +439,7 @@ def variant_delete(request, product_pk, variant_pk):
            'variant': variant}
     return TemplateResponse(
         request,
-        'dashboard/product/product_variant/modal_confirm_delete.html',
+        'dashboard/product/product_variant/modal/confirm_delete.html',
         ctx)
 
 
@@ -501,7 +501,7 @@ def attribute_delete(request, pk):
         return redirect('dashboard:product-attributes')
     return TemplateResponse(
         request,
-        'dashboard/product/product_attribute/modal_confirm_delete.html',
+        'dashboard/product/product_attribute/modal/confirm_delete.html',
         {'attribute': attribute})
 
 
@@ -553,5 +553,5 @@ def stock_location_delete(request, location_pk):
     ctx = {'location': location, 'stock_count': stock_count}
     return TemplateResponse(
         request,
-        'dashboard/product/stock_location/modal_confirm_delete.html',
+        'dashboard/product/stock_location/modal/confirm_delete.html',
         ctx)

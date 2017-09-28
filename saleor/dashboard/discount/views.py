@@ -50,7 +50,7 @@ def sale_delete(request, pk):
         return redirect('dashboard:sale-list')
     ctx = {'sale': instance}
     return TemplateResponse(
-        request, 'dashboard/discount/sale/modal_confirm_delete.html', ctx)
+        request, 'dashboard/discount/sale/modal/confirm_delete.html', ctx)
 
 
 @staff_member_required
@@ -116,4 +116,4 @@ def voucher_delete(request, pk):
         return redirect('dashboard:voucher-list')
     ctx = {'voucher': instance}
     return TemplateResponse(
-        request, 'dashboard/discount/voucher/modal_confirm_delete.html', ctx)
+        request, 'dashboard/discount/voucher/modal/confirm_delete.html', ctx)
