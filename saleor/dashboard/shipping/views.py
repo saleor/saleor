@@ -6,16 +6,17 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
-
 from ...shipping.models import ShippingMethod
 from ..views import superuser_required
+from ...settings import DASHBOARD_PAGINATE_BY
 from .forms import ShippingMethodForm, ShippingMethodCountryFormSet
 
 
 @superuser_required
 def shipping_method_list(request):
     methods = ShippingMethod.objects.prefetch_related('price_per_country').all()
-    methods = get_paginator_items(methods, 30, request.GET.get('page'))
+    methods = get_paginator_items(
+        methods, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {'shipping_methods': methods}
     return TemplateResponse(request, 'dashboard/shipping/list.html', ctx)
 

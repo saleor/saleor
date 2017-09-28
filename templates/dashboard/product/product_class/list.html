@@ -3,6 +3,7 @@
 {% load prices_i18n %}
 {% load materializecss %}
 {% load staticfiles %}
+{% load utils %}
 
 {% block title %}
   {% trans "Product types" context "Dashboard product types list" %} - {{ block.super }}
@@ -42,7 +43,7 @@
                   {{ name }}
                 </span>
                 <p class="list-item-desc">
-                  {% trans "Variants" context "Dashboard variants" %}: 
+                  {% trans "Variants" context "Dashboard variants" %}:
                   {% if has_variants %}
                     {% trans "Yes" %}
                   {% else %}
@@ -59,7 +60,7 @@
             </li>
           {% endfor %}
         </ul>
-        {% include "dashboard/includes/_pagination.html" with page_obj=product_classes %}
+        {% paginate product_classes %}
       {% else %}
         <div class="not-found">
           <p class="grey-text">

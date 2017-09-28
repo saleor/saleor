@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load prices_i18n %}
 {% load materializecss %}
+{% load utils %}
 
 {% block title %}
   {% trans "Vouchers" context "Dashboard vouchers list" %} - {{ block.super }}
@@ -107,5 +108,5 @@
       </table>
     </div>
   </div>
-  {% include "dashboard/includes/_pagination.html" %}
+  {% paginate vouchers %}
 {% endblock %}

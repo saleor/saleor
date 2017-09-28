@@ -16,6 +16,7 @@ from ...order import OrderStatus
 from ...order.models import Order, OrderedItem, OrderNote
 from ...product.models import ProductVariant
 from ...userprofile.i18n import AddressForm
+from ...settings import DASHBOARD_PAGINATE_BY
 from ..order.forms import OrderFilterForm
 from ..views import staff_member_required
 from .forms import (CancelGroupForm, CancelItemsForm, CancelOrderForm,
@@ -29,16 +30,16 @@ from .forms import (CancelGroupForm, CancelItemsForm, CancelOrderForm,
 def order_list(request):
     orders_all = Order.objects.prefetch_related(
         'groups', 'payments', 'groups__items', 'user')
-    active_status = request.GET.get('status')
-    if active_status:
-        orders = orders_all.filter(status=active_status)
+    status = request.GET.get('status')
+    if status:
+        orders = orders_all.filter(status=status)
     else:
         orders = orders_all.all()
-    page = get_paginator_items(orders, 20, request.GET.get('page'))
+    orders = get_paginator_items(
+        orders, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     form = OrderFilterForm(
-        request.POST or None, initial={'status': active_status or None})
-    ctx = {'object_list': page.object_list, 'orders_all': orders_all.exists(),
-           'page_obj': page, 'is_paginated': page.has_other_pages(),
+        request.POST or None, initial={'status': status or None})
+    ctx = {'orders': orders,
            'form': form}
     return TemplateResponse(request, 'dashboard/order/list.html', ctx)
 
