@@ -2,9 +2,9 @@ import queryString from 'query-string';
 import React, {Component, PropTypes} from 'react';
 import {graphql, gql} from 'react-apollo';
 
-// import CategoryFilter from './CategoryFilter';
-// import PriceFilter from './PriceFilter';
-// import ProductFilters from './ProductFilters';
+import CategoryFilter from './CategoryFilter';
+import PriceFilter from './PriceFilter';
+import ProductFilters from './ProductFilters';
 import ProductList from './ProductList';
 import SortBy from './SortBy';
 // import {ensureAllowedName, getAttributesFromQuery, getFromQuery} from './utils';
@@ -28,11 +28,10 @@ class CategoryPage extends Component {
     category: PropTypes.object
   };
 
-  // incrementProductsCount = () => {
-  //   this.props.relay.setVariables({
-  //     count: this.props.relay.variables.count + PAGINATE_BY
-  //   });
-  // };
+  incrementProductsCount = () => {
+    this.props.data.variables.first += PAGINATE_BY;
+    this.refetch();
+  };
 
   setSorting = (value) => {
     this.props.data.variables.sortBy = value;
@@ -45,9 +44,11 @@ class CategoryPage extends Component {
   };
 
   refetch = () => {
+    console.log(this.props.data);
     this.props.data.refetch({
       variables: {
-        sortBy: this.props.data.variables.sortBy
+        sortBy: this.props.data.variables.sortBy,
+        first: this.props.data.variables.first
       }
     });
     this.render();
@@ -68,9 +69,10 @@ class CategoryPage extends Component {
           name
           pk
           url
-          slug
+          slug  
         }
         products (
+          first: $first
           orderBy: $sortBy
         ) {
           ...ProductListFragmentQuery
@@ -198,14 +200,14 @@ class CategoryPage extends Component {
                 </h2>
                 <div className="product-filters">
                   {/*<ProductFilters*/}
-                  {/*attributes={attributes}*/}
-                  {/*checkedAttributes={variables.attributesFilter}*/}
-                  {/*onFilterChanged={this.updateAttributesFilter}*/}
+                    {/*attributes={attributes}*/}
+                    {/*checkedAttributes={variables.attributesFilter}*/}
+                    {/*onFilterChanged={this.updateAttributesFilter}*/}
                   {/*/>*/}
                   {/*<PriceFilter*/}
-                  {/*onFilterChanged={this.updatePriceFilter}*/}
-                  {/*maxPrice={variables.maxPrice}*/}
-                  {/*minPrice={variables.minPrice}*/}
+                    {/*onFilterChanged={this.updatePriceFilter}*/}
+                    {/*maxPrice={variables.maxPrice}*/}
+                    {/*minPrice={variables.minPrice}*/}
                   {/*/>*/}
                 </div>
               </div>
