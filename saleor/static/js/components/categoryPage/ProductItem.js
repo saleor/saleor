@@ -36,10 +36,14 @@ class ProductItem extends Component {
           grossLocalized
           net
         }
+        availability {
+          ...ProductPriceFragmentQuery
+        }
         thumbnailUrl1x: thumbnailUrl(size: "255x255")
         thumbnailUrl2x: thumbnailUrl(size: "510x510")
         url
       }
+      ${ProductPrice.fragments.availability}
     `
   };
 
@@ -57,7 +61,7 @@ class ProductItem extends Component {
                 <span className="product-list-item-name" title={product.name}>{product.name}</span>
             </div>
             <div className="panel-footer">
-              {/*<ProductPrice price={product.price} availability={product.availability} />*/}
+              <ProductPrice availability={product.availability} />
             </div>
           </div>
         </a>
