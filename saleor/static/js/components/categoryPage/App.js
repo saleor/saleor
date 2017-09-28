@@ -16,7 +16,6 @@ class App extends React.Component {
     if (!this.props.categoryId) {
       this.props.categoryId = 1;
     }
-    this.props.sortBy = '';
   }
 
   render() {
@@ -29,7 +28,7 @@ class App extends React.Component {
 }
 
 const rootQuery = gql`
-  query Root($categoryId: Int!, $sortBy: String) {
+  query Root($categoryId: Int!, $sortBy: String, $first: Int) {
     category(pk: $categoryId) {
       ...CategoryPageFragmentQuery
 
@@ -42,7 +41,11 @@ const rootQuery = gql`
 `;
 
 export default graphql(rootQuery, {
-  options: ({categoryId, sortBy}) => ({
-    variables: {categoryId, sortBy}
+  options: ({categoryId, sortBy, first}) => ({
+    variables: {
+      categoryId,
+      sortBy: '',
+      first: 24
+    }
   })
 })(App);
