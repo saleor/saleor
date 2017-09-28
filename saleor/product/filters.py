@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from collections import OrderedDict
 
 from django_filters import FilterSet, MultipleChoiceFilter, RangeFilter, \
