@@ -14,7 +14,10 @@ class ProductList extends Component {
   };
 
   onLoadMore = () => this.props.onLoadMore();
-  setSorting = (event) => this.props.setSorting(event);
+  setSorting = (event) => {
+    this.props.setSorting(event);
+    console.log('ProductList: setSorting');
+  };
 
   static fragments = {
     products: gql`
@@ -35,7 +38,7 @@ class ProductList extends Component {
   render() {
     const { edges, pageInfo: { hasNextPage } } = this.props.products;
     return (
-      <div className={this.props.updating && 'category-list--loading'}>
+      <div className={this.props.loading && 'category-list--loading'}>
         <div className="row">
           {edges.length > 0 ? (edges.map((edge, i) => (
             <ProductItem key={i} product={edge.node} />
@@ -43,7 +46,9 @@ class ProductList extends Component {
         </div>
         <div className="load-more">
           {hasNextPage && (
-            <button className="btn gray" onClick={this.onLoadMore}>{pgettext('Load more products on category view', 'Load more')}</button>
+            <button className="btn gray" onClick={this.onLoadMore}>
+              {pgettext('Load more products on category view', 'Load more')}
+            </button>
           )}
         </div>
       </div>
