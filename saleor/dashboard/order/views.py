@@ -96,7 +96,7 @@ def order_add_note(request, order_pk):
         status = 400
     ctx = {'order': order, 'form': form}
     ctx.update(csrf(request))
-    template = 'dashboard/order/modal_add_note.html'
+    template = 'dashboard/order/modal/add_note.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
@@ -119,7 +119,7 @@ def capture_payment(request, order_pk, payment_pk):
     status = 400 if form.errors else 200
     ctx = {'captured': payment.captured_amount, 'currency': payment.currency,
            'form': form, 'order': order, 'payment': payment}
-    return TemplateResponse(request, 'dashboard/order/modal_capture.html', ctx,
+    return TemplateResponse(request, 'dashboard/order/modal/capture.html', ctx,
                             status=status)
 
 
@@ -142,7 +142,7 @@ def refund_payment(request, order_pk, payment_pk):
     status = 400 if form.errors else 200
     ctx = {'captured': payment.captured_amount, 'currency': payment.currency,
            'form': form, 'order': order, 'payment': payment}
-    return TemplateResponse(request, 'dashboard/order/modal_refund.html', ctx,
+    return TemplateResponse(request, 'dashboard/order/modal/refund.html', ctx,
                             status=status)
 
 
@@ -160,7 +160,7 @@ def release_payment(request, order_pk, payment_pk):
     status = 400 if form.errors else 200
     ctx = {'captured': payment.captured_amount, 'currency': payment.currency,
            'form': form, 'order': order, 'payment': payment}
-    return TemplateResponse(request, 'dashboard/order/modal_release.html', ctx,
+    return TemplateResponse(request, 'dashboard/order/modal/release.html', ctx,
                             status=status)
 
 
@@ -191,7 +191,7 @@ def orderline_change_quantity(request, order_pk, line_pk):
     elif form.errors:
         status = 400
     ctx = {'order': order, 'object': item, 'form': form}
-    template = 'dashboard/order/modal_change_quantity.html'
+    template = 'dashboard/order/modal/change_quantity.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
@@ -227,7 +227,7 @@ def orderline_split(request, order_pk, line_pk):
     elif form.errors:
         status = 400
     ctx = {'order': order, 'object': item, 'form': form, 'line_pk': line_pk}
-    template = 'dashboard/order/modal_split_order_line.html'
+    template = 'dashboard/order/modal/split_order_line.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
@@ -252,7 +252,7 @@ def orderline_cancel(request, order_pk, line_pk):
         status = 400
     ctx = {'order': order, 'item': item, 'form': form}
     return TemplateResponse(
-        request, 'dashboard/order/modal_cancel_line.html',
+        request, 'dashboard/order/modal/cancel_line.html',
         ctx, status=status)
 
 
@@ -275,7 +275,7 @@ def ship_delivery_group(request, order_pk, group_pk):
     elif form.errors:
         status = 400
     ctx = {'order': order, 'group': group, 'form': form}
-    template = 'dashboard/order/modal_ship_delivery_group.html'
+    template = 'dashboard/order/modal/ship_delivery_group.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
@@ -298,7 +298,7 @@ def cancel_delivery_group(request, order_pk, group_pk):
     elif form.errors:
         status = 400
     ctx = {'order': order, 'group': group}
-    template = 'dashboard/order/modal_cancel_delivery_group.html'
+    template = 'dashboard/order/modal/cancel_delivery_group.html'
     return TemplateResponse(request, template, ctx, status=status)
 
 
@@ -343,7 +343,7 @@ def cancel_order(request, order_pk):
     elif form.errors:
         status = 400
     ctx = {'order': order}
-    return TemplateResponse(request, 'dashboard/order/modal_cancel_order.html',
+    return TemplateResponse(request, 'dashboard/order/modal/cancel_order.html',
                             ctx, status=status)
 
 
@@ -364,5 +364,5 @@ def remove_order_voucher(request, order_pk):
         status = 400
     ctx = {'order': order}
     return TemplateResponse(request,
-                            'dashboard/order/modal_order_remove_voucher.html',
+                            'dashboard/order/modal/order_remove_voucher.html',
                             ctx, status=status)
