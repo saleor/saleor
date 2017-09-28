@@ -19,10 +19,10 @@ class App extends React.Component {
   }
 
   render() {
-    if (this.props.data.loading) {
+    if (this.props.data.loading && !this.props.data.category) {
       return <Loading/>;
     } else {
-      return <CategoryPage {...this.props} />;
+      return <div><CategoryPage {...this.props} /></div>;
     }
   }
 }
