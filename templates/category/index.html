@@ -28,15 +28,14 @@
 {% endblock breadcrumb %}
 
 {% block content %}
-
     <div class="category-page">
         <div class="category-top">
           <div class="row">
             <div class="col-md-7">
               <ul class="breadcrumbs list-unstyled d-none d-md-block">
                 <li><a href="/">Home</a></li>
-                {% if category.paren %}
-                  <li key=''><a href=''>{{ category.parent.name }}</a></li>
+                {% if category.parent %}
+                  <li key=''><a href='(( category.parent.name.get_absule_url }}'>{{ category.parent.name }}</a></li>
                 {% endif %}
                 <li><a href='{{ category.get_absolute_url }}'>{{ category.name }}</a></li>
               </ul>
@@ -95,8 +94,6 @@
                             <!--</div>-->
                           </h3>
                           {{ field }}
-
-
                         </div>
                       {% endif %}
                     {% endfor %}

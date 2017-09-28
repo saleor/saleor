@@ -380,8 +380,8 @@ def test_product_filter_empty_get(authorized_client, product_in_stock,
     assert list(products) == list(response.context['filter'].qs)
 
 
-def test_product_filter_product_exist(authorized_client, product_in_stock,
-                                      default_category):
+def test_product_filter_product_exists(authorized_client, product_in_stock,
+                                       default_category):
     products = models.Product.objects.all()
     url = reverse('product:category', args=[default_category.slug,
                                             default_category.pk])
@@ -390,8 +390,8 @@ def test_product_filter_product_exist(authorized_client, product_in_stock,
     assert list(products) == list(response.context['filter'].qs)
 
 
-def test_product_filter_product_not_exist(authorized_client, product_in_stock,
-                                          default_category):
+def test_product_filter_product_not_exists(authorized_client, product_in_stock,
+                                           default_category):
     products = models.Product.objects.all()
     url = reverse('product:category', args=[default_category.slug,
                                             default_category.pk])

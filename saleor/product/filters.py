@@ -21,20 +21,18 @@ class ProductFilter(FilterSet):
                 product_attributes.add(attribute)
 
         for attribute in product_attributes:
-            self.filters[attribute.slug] = \
-                MultipleChoiceFilter(
-                    name='attributes__%s' % attribute.pk,
-                    label=attribute.name,
-                    widget=CheckboxSelectMultiple,
-                    choices=get_attribute_choices(attribute))
+            self.filters[attribute.slug] = MultipleChoiceFilter(
+                name='attributes__%s' % attribute.pk,
+                label=attribute.name,
+                widget=CheckboxSelectMultiple,
+                choices=get_attribute_choices(attribute))
 
         for attribute in variant_attributes:
-            self.filters[attribute.slug] = \
-                MultipleChoiceFilter(
-                    name='variants__attributes__%s' % attribute.pk,
-                    label=attribute.name,
-                    widget=CheckboxSelectMultiple,
-                    choices=get_attribute_choices(attribute))
+            self.filters[attribute.slug] = MultipleChoiceFilter(
+                name='variants__attributes__%s' % attribute.pk,
+                label=attribute.name,
+                widget=CheckboxSelectMultiple,
+                choices=get_attribute_choices(attribute))
         self.filters = OrderedDict(sorted(self.filters.items()))
 
     sort_by = OrderingFilter(
@@ -46,7 +44,6 @@ class ProductFilter(FilterSet):
     class Meta:
         model = Product
         fields = ['price']
-        exclude = []
         filter_overrides = {
             PriceField: {
                 'filter_class': RangeFilter
@@ -55,7 +52,4 @@ class ProductFilter(FilterSet):
 
 
 def get_attribute_choices(attribute):
-    result = [(choice.pk, choice.name)
-              for choice in
-              AttributeChoiceValue.objects.filter(attribute__pk=attribute.pk)]
-    return result
+    return [(choice.pk, choice.name) for choice in attribute.values.all()]
