@@ -14,6 +14,8 @@ import ProductItem from "./ProductItem";
 const PAGINATE_BY = 24;
 const SORT_BY_FIELDS = ['name', 'price'];
 
+let sortBy = 'name';
+
 class CategoryPage extends Component {
   constructor(props) {
     super(props);
@@ -36,6 +38,7 @@ class CategoryPage extends Component {
 
   setSorting = (value) => {
     this.props.data.variables.sortBy = value;
+    sortBy = value;
     this.render();
   };
 
@@ -62,7 +65,9 @@ class CategoryPage extends Component {
           url
           slug
         }
-        products {
+        products (
+          orderBy: "${sortBy}"
+        ) {
           ...ProductListFragmentQuery
         }
       }
@@ -166,7 +171,7 @@ class CategoryPage extends Component {
                   {/*)}*/}
                 </div>
                 <div className="col-6 col-md-10 col-lg-6">
-                  <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting}/>
+                  <SortBy sortedValue={sortBy} setSorting={this.setSorting}/>
                 </div>
               </div>
             </div>
