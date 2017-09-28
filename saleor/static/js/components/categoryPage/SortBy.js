@@ -8,7 +8,8 @@ export default class sortBy extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      visibility: false
+      visibility: false,
+      sortBy: this.props.sortBy
     };
   }
 
@@ -21,6 +22,14 @@ export default class sortBy extends Component {
     const value = event.currentTarget.className;
     this.props.setSorting(value);
     this.changeVisibility();
+    this.changeLabel(value);
+  };
+
+  changeLabel = (value) => {
+    this.props.sortedValue = value;
+    this.setState({
+      sortBy: value
+    });
   };
 
   changeVisibility = () => {
