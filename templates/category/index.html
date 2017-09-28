@@ -7,10 +7,6 @@
 {% load prices_i18n %}
 {% load product_first_image from product_images %}
 
-{% block footer_scripts %}
-  {{ block.super }}
-  {% render_bundle 'category' 'js' %}
-{% endblock footer_scripts %}
 
 {% block title %}{{ category }} — {{ block.super }}{% endblock %}
 
@@ -54,8 +50,8 @@
                         <div>
                           <span>Sort by:
                             <strong>
-                              <a href="{% get_sort_by_url 'name' %}">{% trans "name" %}</a>
-                              <a href="{% get_sort_by_url 'price' %}">{% trans "price" %}</a>
+                              <a href="{% get_sort_by_url 'name' %}">{% trans "name" context "Product name" %}</a>
+                              <a href="{% get_sort_by_url 'price' %}">{% trans "price" context "Product price" %}</a>
                             </strong>
                           </span>
                           <div class="sort-order-icon">
@@ -89,14 +85,16 @@
                   <form method="get">
                     {% for field in filter.form %}
 
-                        <div key={{ attribute.pk }}>
-                          <h3 onClick="">
+                        <div>
+                          <h3 onClick="toggle('{{ field.name }}', '{{ field.name }}-arrow')">
                             {{ field.label }}
-                            <!--<div class="collapse-filters-icon">-->
-                              <!--<InlineSVG key={key} src={imageSrc} />-->
-                            <!--</div>-->
+                            <div id="{{ field.name }}-arrow" class="collapse-filters-icon">
+                              <img src="{% static "assets/chevron_up.svg" %}">
+                            </div>
                           </h3>
-                          {{ field }}
+                          <div id="{{ field.name }}" style="display:block">
+                            {{ field }}
+                          </div>
                         </div>
 
                     {% endfor %}
@@ -118,3 +116,20 @@
         </div>
       </div>
 {% endblock content %}
+
+{% block footer_scripts %}
+  {{ block.super }}
+  <script type="text/javascript">
+    function toggle(showHideDiv, switchImgTag) {
+      var ele = document.getElementById(showHideDiv);
+      var imageEle = document.getElementById(switchImgTag);
+      if(ele.style.display == "block") {
+        ele.style.display = "none";
+		    imageEle.innerHTML = '<img src="{% static "assets/chevron_down.svg" %}">';
+      } else {
+        ele.style.display = "block";
+        imageEle.innerHTML = '<img src="{% static "assets/chevron_up.svg" %}">';
+      }
+    }
+  </script>
+{% endblock footer_scripts %}
