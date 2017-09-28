@@ -44,7 +44,6 @@ class CategoryPage extends Component {
   };
 
   refetch = () => {
-    console.log(this.props.data);
     this.props.data.refetch({
       variables: {
         sortBy: this.props.data.variables.sortBy,
@@ -219,6 +218,7 @@ class CategoryPage extends Component {
                 onLoadMore={this.incrementProductsCount}
                 products={category.products}
                 updating={pendingVariables}
+                loading={this.props.data.loading}
               />
             </div>
           </div>
