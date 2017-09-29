@@ -99,23 +99,4 @@ class ProductFilters extends Component {
   }
 }
 
-// export default Relay.createContainer(ProductFilters, {
-//   fragments: {
-//     attributes: () => Relay.QL`
-//       fragment on ProductAttributeType @relay(plural: true) {
-//         id
-//         pk
-//         name
-//         slug
-//         values {
-//           id
-//           name
-//           slug
-//           color
-//         }
-//       }
-//     `
-//   }
-// });
-
 export default ProductFilters;

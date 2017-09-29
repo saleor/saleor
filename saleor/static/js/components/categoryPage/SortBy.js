@@ -23,7 +23,6 @@ export default class sortBy extends Component {
     this.props.setSorting(value);
     this.changeVisibility();
     this.changeLabel(value);
-    this.props.refetch();
   };
 
   changeLabel = (value) => {
@@ -40,8 +39,6 @@ export default class sortBy extends Component {
   };
 
   render() {
-    // console.log(this.props);
-    // console.log(this.state);
     const sortedValue = this.props.sortedValue;
     const visibility = this.state.visibility;
     return (

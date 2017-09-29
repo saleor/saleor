@@ -70,27 +70,4 @@ class ProductItem extends Component {
   }
 }
 
-// export default Relay.createContainer(ProductItem, {
-//   fragments: {
-//     product: () => Relay.QL`
-//       fragment on ProductType {
-//         id
-//         name
-//         price {
-//           currency
-//           gross
-//           grossLocalized
-//           net
-//         }
-//         availability {
-//           ${ProductPrice.getFragment('availability')}
-//         }
-//         thumbnailUrl1x: thumbnailUrl(size: "255x255")
-//         thumbnailUrl2x: thumbnailUrl(size: "510x510")
-//         url
-//       }
-//     `
-//   }
-// });
-
 export default ProductItem;

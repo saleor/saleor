@@ -14,10 +14,6 @@ class ProductList extends Component {
   };
 
   onLoadMore = () => this.props.onLoadMore();
-  setSorting = (event) => {
-    this.props.setSorting(event);
-    console.log('ProductList: setSorting');
-  };
 
   static fragments = {
     products: gql`
@@ -55,22 +51,5 @@ class ProductList extends Component {
     );
   }
 }
-
-// export default Relay.createContainer(ProductList, {
-//   fragments: {
-//     products: () => Relay.QL`
-//       fragment on ProductTypeConnection {
-//         edges {
-//           node {
-//             ${ProductItem.getFragment('product')}
-//           }
-//         }
-//         pageInfo {
-//           hasNextPage
-//         }
-//       }
-//     `
-//   }
-// });
 
 export default ProductList;
