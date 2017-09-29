@@ -370,3 +370,22 @@ if ($.cookie('alert') === 'true') {
 $closeMsg.on('click', (e) => {
   $removeProductSucces.addClass('hidden-xs-up');
 });
+
+
+$('.toggle-filter').each(function(){
+  let icon = $(this).find('.collapse-filter-icon');
+  let ele = $(this).find('.filter-form-field');
+
+  let filter_arrow_down = 'static/assets/chevron_down.svg';
+  let filter_arrow_up = 'static/assets/chevron_up.svg';
+
+  $(this).on('click', () => {
+    if(ele.css("display") == "block") {
+      ele.css("display", "none");
+      icon.text('<img src=' + filter_arrow_down + '>');
+    } else {
+      ele.css("display", "block");
+      icon.text('<img src=' + filter_arrow_up + '>');
+    }
+  });
+})

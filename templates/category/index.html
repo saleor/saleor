@@ -7,6 +7,9 @@
 {% load prices_i18n %}
 {% load product_first_image from product_images %}
 
+{% block footer_scripts %}
+  {{ block.super }}
+{% endblock footer_scripts %}
 
 {% block title %}{{ category }} — {{ block.super }}{% endblock %}
 
@@ -41,24 +44,33 @@
                   <div class="col-6 col-md-2 col-lg-6 filters-menu">
                     <span class="filters-menu__label hidden-sm-up">Filters</span>
                     <span class="filters-menu__icon hidden-sm-up"></span>
-
                   </div>
                   <div class="col-6 col-md-10 col-lg-6">
                     <div class="sort-by">
-                      <button class="btn btn-link" onclick="changeVisibility('sort-by-box');">
-                        <span>Sort by:
-                          <div id='sort-by-box' class="click-area hide">
-                            <strong>
-                              <a href="{% get_sort_by_url 'name' %}">
-                                {% trans "name" context "Product name" %}
-                              </a>
-                              <a href="{% get_sort_by_url 'price' %}">{% trans "price" context "Product price" %}</a>
-                            </strong>
-                          </div>
-                        </span>
-                        <div class="sort-order-icon">
-                        </div>
-                      </button>
+                      <span>Sort by:
+                        <strong>
+                          <a href="{% get_sort_by_url 'name' %}" onclick="toggleSort('name-arrow')">
+                            {% trans "name" context "Product name" %}
+                          </a>
+                          {% if request.GET.sort_by == 'name' %}
+                            <div class="sort-order-icon"><img src="{% static "assets/arrow_up.svg" %}"></div>
+                          {% elif request.GET.sort_by == '-name' %}
+                            <div class="sort-order-icon"><img src="{% static "assets/arrow_down.svg" %}"></div>
+                          {% else %}
+                          {% endif %}
+                          <a href="{% get_sort_by_url 'price' %}" onclick="toggleSort('price-arrow')">
+                            {% trans "price" context "Product price" %}
+                          </a>
+                          {% if request.GET.sort_by == 'price' %}
+                            <div class="sort-order-icon"><img src="{% static "assets/arrow_up.svg" %}"></div>
+                          {% elif request.GET.sort_by == '-price' %}
+                            <div class="sort-order-icon"><img src="{% static "assets/arrow_down.svg" %}"></div>
+                          {% else %}
+                          {% endif %}
+                        </strong>
+                      </span>
+                      <div class="sort-order-icon">
+                      </div>
                     </div>
                   </div>
               </div>
@@ -85,21 +97,34 @@
                 <div class="product-filters__attributes">
                   <form method="get">
                     {% for field in filter.form %}
-
-                        <div>
-                          <h3 onclick="toggle('{{ field.name }}', '{{ field.name }}-arrow')">
+                      {% if field.label == 'Price' %}
+                        <div class="toggle-filter product-filters__price-range">
+                          <h3>
                             {{ field.label }}
-                            <div id="{{ field.name }}-arrow" class="collapse-filters-icon">
+                            <div id="{{ field.name }}-chevron" class="collapse-filters-icon">
                               <img src="{% static "assets/chevron_up.svg" %}">
                             </div>
                           </h3>
-                          <div id="{{ field.name }}" style="display:block">
+                          <div class="filter-form-field" style="display:block">
                             {{ field }}
                           </div>
                         </div>
-
+                      {% elif field.label == 'Sort by' %}
+                      {% else %}
+                        <div class="toggle-filter">
+                          <h3>
+                            {{ field.label }}
+                            <div class="collapse-filters-icon">
+                              <img src="{% static "assets/chevron_up.svg" %}">
+                            </div>
+                          </h3>
+                          <div class="filter-form-field" style="display:block">
+                            {{ field }}
+                          </div>
+                        </div>
+                      {% endif %}
                     {% endfor %}
-                    <button type="submit">Search</button>
+                    <button class="btn primary" type="submit">Search</button>
                   </form>
                 </div>
               </div>
@@ -117,31 +142,3 @@
         </div>
       </div>
 {% endblock content %}
-
-{% block footer_scripts %}
-  {{ block.super }}
-  <script type="text/javascript">
-    function toggle(showHideDiv, switchImgTag) {
-      var ele = document.getElementById(showHideDiv);
-      var imageEle = document.getElementById(switchImgTag);
-      if(ele.style.display == "block") {
-        ele.style.display = "none";
-		    imageEle.innerHTML = '<img src="{% static "assets/chevron_down.svg" %}">';
-      } else {
-        ele.style.display = "block";
-        imageEle.innerHTML = '<img src="{% static "assets/chevron_up.svg" %}">';
-      }
-    }
-
-    function changeVisibility(showHideDiv) {
-      var ele = document.getElementById(showHideDiv);
-      var imageEle = document.getElementById(switchImgTag);
-
-      if(ele.className.match(/(?:^|\s)hide(?!\S)/) {
-        ele.className = ele.className.replace( /(?:^|\s)hide(?!\S)/g , '' );
-      } else {
-        ele.className += " hide";
-      }
-    }
-  </script>
-{% endblock footer_scripts %}
