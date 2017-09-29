@@ -53,11 +53,11 @@ export default graphql(rootQuery, {
   options: ({categoryId, sortBy, first, attributesFilter, minPrice, maxPrice}) => ({
     variables: {
       categoryId,
-      sortBy: '',
+      sortBy: sortBy,
       first: 24,
-      attributesFilter: [],
-      minPrice: null,
-      maxPrice: null
+      attributesFilter: attributesFilter,
+      minPrice: minPrice,
+      maxPrice: maxPrice
     }
   })
 })(App);

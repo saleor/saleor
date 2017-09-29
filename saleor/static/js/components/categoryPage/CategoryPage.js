@@ -7,12 +7,10 @@ import PriceFilter from './PriceFilter';
 import ProductFilters from './ProductFilters';
 import ProductList from './ProductList';
 import SortBy from './SortBy';
-// import {ensureAllowedName, getAttributesFromQuery, getFromQuery} from './utils';
 import {isMobile} from '../utils';
 import ProductItem from "./ProductItem";
 
 const PAGINATE_BY = 24;
-const SORT_BY_FIELDS = ['name', 'price'];
 
 class CategoryPage extends Component {
   constructor(props) {
