@@ -45,10 +45,8 @@ class CategoryPage extends Component {
 
   refetch = () => {
     this.props.data.refetch({
-      variables: {
-        sortBy: this.props.data.variables.sortBy,
-        first: this.props.data.variables.first
-      }
+      sortBy: this.props.data.variables.sortBy,
+      first: this.props.data.variables.first
     });
     this.render();
   };
@@ -68,11 +66,14 @@ class CategoryPage extends Component {
           name
           pk
           url
-          slug  
+          slug
         }
         products (
           first: $first
           orderBy: $sortBy
+          attributes: $attributesFilter
+          priceGte: $minPrice,
+          priceLte: $maxPrice,
         ) {
           ...ProductListFragmentQuery
         }
@@ -81,36 +82,45 @@ class CategoryPage extends Component {
     `
   };
 
-  // clearFilters = () => {
-  //   this.props.relay.setVariables({
-  //     attributesFilter: [],
-  //     minPrice: null,
-  //     maxPrice: null
-  //   });
-  // };
+  clearFilters = () => {
+    this.props.data.refetch({
+      attributesFilter: [],
+      minPrice: null,
+      maxPrice: null
+    })
+  };
 
-  // updateAttributesFilter = (key) => {
-  //   // Create a new attributesFilter array by cloning the current one to make
-  //   // Relay refetch products with new attributes. Passing the same array (even
-  //   // if it's modified) would not result in new query, but would return cached
-  //   // results.
-  //   const attributesFilter = this.props.relay.variables.attributesFilter.slice(0);
-  //   const index = attributesFilter.indexOf(key);
-  //   if (index < 0) {
-  //     attributesFilter.push(key);
-  //   } else {
-  //     attributesFilter.splice(index, 1);
-  //   }
-  //   this.props.relay.setVariables({attributesFilter});
-  // };
-  //
-  // updatePriceFilter = (minPrice, maxPrice) => {
-  //   this.props.relay.setVariables({
-  //     minPrice: parseInt(minPrice) || null,
-  //     maxPrice: parseInt(maxPrice) || null
-  //   });
-  // };
-  //
+  updateAttributesFilter = (key) => {
+    // Create a new attributesFilter array by cloning the current one to make
+    // Relay refetch products with new attributes. Passing the same array (even
+    // if it's modified) would not result in new query, but would return cached
+    // results.
+    // const attributesFilter = this.props.relay.variables.attributesFilter.slice(0);
+    // const index = attributesFilter.indexOf(key);
+    // if (index < 0) {
+    //   attributesFilter.push(key);
+    // } else {
+    //   attributesFilter.splice(index, 1);
+    // }
+    // this.props.relay.setVariables({attributesFilter});
+    const index = this.props.data.variables.attributesFilter.indexOf(key);
+    if (index < 0) {
+      this.props.data.variables.attributesFilter.push(key);
+    } else {
+      this.props.data.variables.attributesFilter.splice(index, 1);
+    }
+    this.props.data.refetch({
+      attributesFilter: this.props.data.variables.attributesFilter
+    });
+  };
+
+  updatePriceFilter = (minPrice, maxPrice) => {
+    this.props.data.refetch({
+      minPrice: parseFloat(minPrice) || null,
+      maxPrice: parseFloat(maxPrice) || null
+    });
+  };
+
   persistStateInUrl() {
     const {attributesFilter, count, maxPrice, minPrice, sortBy} = this.props.data.variables;
     let urlParams = {};
@@ -153,7 +163,7 @@ class CategoryPage extends Component {
     // const {pendingVariables} = relay;
     const pendingVariables = {};
     const {filtersMenu} = this.state;
-    // console.log(this.props.data);
+    console.log(this.props.data);
     return (
       <div className="category-page">
         <div className="category-top">
@@ -174,9 +184,9 @@ class CategoryPage extends Component {
                 <div className="col-6 col-md-2 col-lg-6 filters-menu">
                   <span className="filters-menu__label d-sm-none"
                         onClick={() => this.toggleMenu(filtersMenu)}>{pgettext('Category page filters', 'Filters')}</span>
-                  {/*{(variables.attributesFilter.length || variables.minPrice || variables.maxPrice) && (*/}
-                  {/*<span className="filters-menu__icon d-sm-none"></span>*/}
-                  {/*)}*/}
+                  {(variables.attributesFilter.length || variables.minPrice || variables.maxPrice) && (
+                    <span className="filters-menu__icon d-sm-none"></span>
+                  )}
                 </div>
                 <div className="col-6 col-md-10 col-lg-6">
                   <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting} refetch={this.refetch}/>
@@ -188,7 +198,7 @@ class CategoryPage extends Component {
         <div className="row">
           <div className="col-md-4 col-lg-3">
             <div className="product-filters">
-              {/*<CategoryFilter category={category}/>*/}
+              <CategoryFilter category={category}/>
             </div>
             {filtersMenu && (
               <div>
@@ -198,16 +208,16 @@ class CategoryPage extends Component {
                         onClick={this.clearFilters}>{pgettext('Category page filters', 'Clear filters')}</span>
                 </h2>
                 <div className="product-filters">
-                  {/*<ProductFilters*/}
-                    {/*attributes={attributes}*/}
-                    {/*checkedAttributes={variables.attributesFilter}*/}
-                    {/*onFilterChanged={this.updateAttributesFilter}*/}
-                  {/*/>*/}
-                  {/*<PriceFilter*/}
-                    {/*onFilterChanged={this.updatePriceFilter}*/}
-                    {/*maxPrice={variables.maxPrice}*/}
-                    {/*minPrice={variables.minPrice}*/}
-                  {/*/>*/}
+                  <ProductFilters
+                    attributes={attributes}
+                    checkedAttributes={variables.attributesFilter}
+                    onFilterChanged={this.updateAttributesFilter}
+                  />
+                  <PriceFilter
+                    onFilterChanged={this.updatePriceFilter}
+                    maxPrice={variables.maxPrice}
+                    minPrice={variables.minPrice}
+                  />
                 </div>
               </div>
             )}

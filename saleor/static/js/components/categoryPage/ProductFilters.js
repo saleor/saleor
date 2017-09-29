@@ -1,5 +1,5 @@
 import React, { Component, PropTypes } from 'react';
-import Relay from 'react-relay/classic';
+import {gql} from 'react-apollo';
 
 import AttributeInput from './AttributeInput';
 import FilterHeader from './FilterHeader';
@@ -18,7 +18,7 @@ class ProductFilters extends Component {
     attributes: PropTypes.array,
     checkedAttributes: PropTypes.array,
     onFilterChanged: PropTypes.func.isRequired
-  }
+  };
 
   getFilterKey(attributeSlug, valueSlug) {
     return `${attributeSlug}:${valueSlug}`;
@@ -26,13 +26,13 @@ class ProductFilters extends Component {
 
   onClick = (attributeSlug, valueSlug) => {
     this.props.onFilterChanged(this.getFilterKey(attributeSlug, valueSlug));
-  }
+  };
 
   changeVisibility = (target) => {
     this.setState({
       visibility: Object.assign(this.state.visibility, {[target]: !this.state.visibility[target]})
     });
-  }
+  };
 
   componentWillMount() {
     this.props.attributes.map((attribute) => {
@@ -42,6 +42,23 @@ class ProductFilters extends Component {
       });
     });
   }
+
+  static fragments = {
+    attributes: gql`
+      fragment ProductFiltersFragmentQuery on ProductAttributeType {
+        id
+        pk
+        name
+        slug
+        values {
+          id
+          name
+          slug
+          color
+        }
+      }
+    `
+  };
 
   render() {
     const { attributes, checkedAttributes } = this.props;
@@ -82,21 +99,23 @@ class ProductFilters extends Component {
   }
 }
 
-export default Relay.createContainer(ProductFilters, {
-  fragments: {
-    attributes: () => Relay.QL`
-      fragment on ProductAttributeType @relay(plural: true) {
-        id
-        pk
-        name
-        slug
-        values {
-          id
-          name
-          slug
-          color
-        }
-      }
-    `
-  }
-});
+// export default Relay.createContainer(ProductFilters, {
+//   fragments: {
+//     attributes: () => Relay.QL`
+//       fragment on ProductAttributeType @relay(plural: true) {
+//         id
+//         pk
+//         name
+//         slug
+//         values {
+//           id
+//           name
+//           slug
+//           color
+//         }
+//       }
+//     `
+//   }
+// });
+
+export default ProductFilters;
