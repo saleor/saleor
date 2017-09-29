@@ -341,15 +341,15 @@ VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
     'artist': [
         ('artist_admin', 'crop__1200x300'),
         ('charts', 'crop__600x384'),
-        ('charts_front', 'crop__300x168'),
+        ('charts_front', 'crop__410x208'),
     ],
     'charts': [
         ('charts', 'crop__600x384'),
-        ('charts_front', 'crop__300x168'),
+        ('charts_front', 'crop__410x208'),
     ],
     'user': [
         ('charts', 'crop__600x384'),
-        ('charts_front', 'crop__300x168'),
+        ('charts_front', 'crop__410x208'),
     ]
 }
 

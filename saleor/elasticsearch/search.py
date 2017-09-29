@@ -9,7 +9,8 @@ from elasticsearch_dsl.connections import connections
 
 __author__ = 'tkolter'
 
-connections.create_connection()
+connections.create_connection(hosts=['localhost:9201'])
+
 
 ngram_analyzer = analyzer(
     'autocomplete_analyzer',
@@ -60,7 +61,7 @@ class Release(DocType):
 
     class Meta:
         all = MetaField(store=True, analyzer=lowercase_analyzer, search_analyzer=lowercase_analyzer)
-        index = 'oye'
+        index = 'oye-releases'
 
 
 class Artist(DocType):
@@ -70,7 +71,7 @@ class Artist(DocType):
     )
 
     class Meta:
-        index = 'oye'
+        index = 'oye-artists'
 
 
 QUERY_FIELDS = [
@@ -91,7 +92,7 @@ def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
                 "match_phrase": {
                     field: {
                         "query": query,
-                        "analyzer": "standard",
+                        "analyzer": lowercase_analyzer,
                         "boost": 5
                     },
                 }
@@ -104,7 +105,7 @@ def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
         "match_phrase": {
             "cat_no": {
                 "query": query,
-                "analyzer": "standard",
+                "analyzer": lowercase_analyzer,
                 "boost": 100,
             }
         }
