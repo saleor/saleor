@@ -5,9 +5,10 @@ from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.contrib.auth.decorators import permission_required
 
-from ..views import staff_member_required
 from ...core.utils import get_paginator_items
 from ...userprofile.models import User
+from ...settings import DASHBOARD_PAGINATE_BY
+from ..views import staff_member_required
 
 
 @staff_member_required
@@ -20,7 +21,8 @@ def customer_list(request):
         .annotate(
             num_orders=Count('orders', distinct=True),
             last_order=Max('orders', distinct=True)))
-    customers = get_paginator_items(customers, 30, request.GET.get('page'))
+    customers = get_paginator_items(
+        customers, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {'customers': customers}
     return TemplateResponse(request, 'dashboard/customer/list.html', ctx)
 

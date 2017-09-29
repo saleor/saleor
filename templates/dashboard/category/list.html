@@ -3,6 +3,7 @@
 {% load mptt_tags %}
 {% load materializecss %}
 {% load staticfiles %}
+{% load utils %}
 
 {% block title %}{% trans "Categories" context "Category list page title" %} - {{ block.super }}{% endblock %}
 
@@ -119,6 +120,7 @@
         </li>
       {% endfor %}
     </ul>
+    {% paginate categories %}
   {% else %}
     <div class="not-found">
       {% if root %}

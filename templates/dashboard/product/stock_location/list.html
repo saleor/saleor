@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load materializecss %}
 {% load staticfiles %}
+{% load utils %}
 
 {% block title %}
   {% trans "Stock locations" context "Dashboard stock location" %} - {{ block.super }}
@@ -44,6 +45,7 @@
             </li>
           {% endfor %}
         </ul>
+        {% paginate locations %}
       {% else %}
         <div class="not-found">
           <p class="grey-text">

@@ -5,7 +5,9 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
+from ...core.utils import get_paginator_items
 from ...discount.models import Sale, Voucher
+from ...settings import DASHBOARD_PAGINATE_BY
 from ..views import staff_member_required
 from . import forms
 
@@ -14,6 +16,8 @@ from . import forms
 @permission_required('discount.view_sale')
 def sale_list(request):
     sales = Sale.objects.prefetch_related('products')
+    sales = get_paginator_items(
+        sales, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {'sales': sales}
     return TemplateResponse(request, 'dashboard/discount/sale/list.html', ctx)
 
@@ -57,6 +61,8 @@ def sale_delete(request, pk):
 @permission_required('discount.view_voucher')
 def voucher_list(request):
     vouchers = Voucher.objects.select_related('product', 'category')
+    vouchers = get_paginator_items(
+        vouchers, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {'vouchers': vouchers}
     return TemplateResponse(
         request, 'dashboard/discount/voucher/list.html', ctx)

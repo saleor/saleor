@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load materializecss %}
 {% load staticfiles %}
+{% load utils %}
 
 {% block title %}
   {% trans "Attributes" context "Dashboard attributes list" %} - {{ block.super }}
@@ -46,6 +47,7 @@
         </li>
       {% endfor %}
     </ul>
+    {% paginate attributes %}
   {% else %}
     <div class="not-found">
       <p class="grey-text">

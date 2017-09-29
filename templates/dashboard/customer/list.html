@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load prices_i18n %}
 {% load materializecss %}
+{% load utils %}
 
 {% block title %}
   {% trans "Customers" context "Dashboard customers list" %} - {{ block.super }}
@@ -86,5 +87,5 @@
       </p>
     </div>
   {% endif %}
-  {% include "dashboard/includes/_pagination.html" with page_obj=customers %}
+  {% paginate customers %}
 {% endblock %}

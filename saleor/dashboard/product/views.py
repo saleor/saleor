@@ -15,6 +15,7 @@ from ...product.models import (
     Stock, StockLocation)
 from ...product.utils import get_availability
 from ..views import staff_member_required, superuser_required
+from ...settings import DASHBOARD_PAGINATE_BY
 from . import forms
 
 
@@ -25,7 +26,8 @@ def product_class_list(request):
     form = forms.ProductClassForm(request.POST or None)
     if form.is_valid():
         return redirect('dashboard:product-class-add')
-    classes = get_paginator_items(classes, 30, request.GET.get('page'))
+    classes = get_paginator_items(
+        classes, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     classes.object_list = [
         (pc.pk, pc.name, pc.has_variants, pc.product_attributes.all(),
          pc.variant_attributes.all())
@@ -104,7 +106,8 @@ def product_list(request):
     if form.is_valid():
         return redirect(
             'dashboard:product-add', class_pk=form.cleaned_data['product_cls'])
-    products = get_paginator_items(products, 30, request.GET.get('page'))
+    products = get_paginator_items(
+        products, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {
         'form': form, 'products': products, 'product_classes': product_classes}
     return TemplateResponse(request, 'dashboard/product/list.html', ctx)
@@ -448,10 +451,13 @@ def attribute_list(request):
     attributes = [
         (attribute.pk, attribute.name, attribute.values.all())
         for attribute in ProductAttribute.objects.prefetch_related('values')]
+    attributes = get_paginator_items(
+        attributes, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
+    ctx = {'attributes': attributes}
     return TemplateResponse(
         request,
         'dashboard/product/product_attribute/list.html',
-        {'attributes': attributes})
+        ctx)
 
 
 @superuser_required
@@ -509,6 +515,8 @@ def attribute_delete(request, pk):
 @permission_required('product.view_stock_location')
 def stock_location_list(request):
     stock_locations = StockLocation.objects.all()
+    stock_locations = get_paginator_items(
+        stock_locations, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {'locations': stock_locations}
     return TemplateResponse(
         request,
