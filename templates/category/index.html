@@ -94,7 +94,7 @@
                 <span class="clear-filters float-right" onClick="">{% trans 'Clear filters' context 'Category page filters' %}</span>
               </h2>
               <div class="product-filters">
-                <div class="product-filters__attributes">
+                <div class="product-filters__attributes" data-icon-up="{% static "assets/chevron_up.svg" %}" data-icon-down="{% static "assets/chevron_down.svg" %}">
                   <form method="get">
                     {% for field in filter.form %}
                       {% if field.label == 'Price' %}

@@ -376,16 +376,16 @@ $('.toggle-filter').each(function(){
   let icon = $(this).find('.collapse-filters-icon');
   let ele = $(this).find('.filter-form-field');
 
-  let filter_arrow_down = '/static/assets/chevron_down.svg';
-  let filter_arrow_up = '/static/assets/chevron_up.svg';
+  let filter_arrow_down = $('.product-filters__attributes').data('icon-down');
+  let filter_arrow_up = $('.product-filters__attributes').data('icon-up');
 
   $(this).find('.filter-label').on('click', () => {
-    if(ele.css("display") == "block") {
-      ele.css("display", "none");
-      icon.html('<img src="' + filter_arrow_down + '">');
+    if(ele.css('display') == 'block') {
+      ele.css('display', 'none');
+      icon.find('img').attr('src', filter_arrow_down);
     } else {
-      ele.css("display", "block");
-      icon.html('<img src="' + filter_arrow_up + '">');
+      ele.css('display', 'block');
+      icon.find('img').attr('src', filter_arrow_up);
     }
   });
 })
