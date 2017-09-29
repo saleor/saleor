@@ -5,7 +5,7 @@ import 'jquery.cookie';
 
 import App from './components/categoryPage/App';
 
-import {ensureAllowedName, getAttributesFromQuery, getFromQuery} from './Components/categoryPage/utils';
+import {ensureAllowedName, getAttributesFromQuery, getFromQuery} from './components/categoryPage/utils';
 
 const categoryPage = document.getElementById('category-page');
 const categoryData = JSON.parse(categoryPage.getAttribute('data-category'));
