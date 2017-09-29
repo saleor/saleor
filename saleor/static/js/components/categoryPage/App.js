@@ -4,6 +4,7 @@ import {ApolloProvider, ApolloClient, gql, graphql} from 'react-apollo';
 
 import Loading from '../Loading';
 import CategoryPage from './CategoryPage';
+import ProductFilters from "./ProductFilters";
 
 
 class App extends React.Component {
@@ -28,24 +29,35 @@ class App extends React.Component {
 }
 
 const rootQuery = gql`
-  query Root($categoryId: Int!, $sortBy: String, $first: Int) {
+  query Root(
+    $categoryId: Int!,
+    $sortBy: String,
+    $first: Int,
+    $attributesFilter: [AttributesFilterScalar],
+    $minPrice: Float,
+    $maxPrice: Float
+  ) {
     category(pk: $categoryId) {
       ...CategoryPageFragmentQuery
 
     }
     attributes(categoryPk: $categoryId) {
-      id
+      ...ProductFiltersFragmentQuery
     }
   }
   ${CategoryPage.fragments.category}
+  ${ProductFilters.fragments.attributes}
 `;
 
 export default graphql(rootQuery, {
-  options: ({categoryId, sortBy, first}) => ({
+  options: ({categoryId, sortBy, first, attributesFilter, minPrice, maxPrice}) => ({
     variables: {
       categoryId,
       sortBy: '',
-      first: 24
+      first: 24,
+      attributesFilter: [],
+      minPrice: null,
+      maxPrice: null
     }
   })
 })(App);
