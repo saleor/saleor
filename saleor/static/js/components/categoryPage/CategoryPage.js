@@ -25,14 +25,15 @@ class CategoryPage extends Component {
   };
 
   incrementProductsCount = () => {
-    this.props.data.variables.first += this.props.PAGINATE_BY;
-    this.props.data.refetch();
+    this.props.data.refetch({
+      first: this.props.data.variables.first + this.props.PAGINATE_BY
+    });
   };
 
   setSorting = (value) => {
     this.props.data.refetch({
       sortBy: value
-    })
+    });
   };
 
   toggleMenu = (target) => {
@@ -77,18 +78,19 @@ class CategoryPage extends Component {
       attributesFilter: [],
       minPrice: null,
       maxPrice: null
-    })
+    });
   };
 
   updateAttributesFilter = (key) => {
     const index = this.props.data.variables.attributesFilter.indexOf(key);
+    let attributesFilter = this.props.data.variables.attributesFilter.splice(0);
     if (index < 0) {
-      this.props.data.variables.attributesFilter.push(key);
+      attributesFilter.push(key);
     } else {
-      this.props.data.variables.attributesFilter.splice(index, 1);
+      attributesFilter.splice(index, 1);
     }
     this.props.data.refetch({
-      attributesFilter: this.props.data.variables.attributesFilter
+      attributesFilter: attributesFilter
     });
   };
 
@@ -164,7 +166,7 @@ class CategoryPage extends Component {
                   )}
                 </div>
                 <div className="col-6 col-md-10 col-lg-6">
-                  <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting} />
+                  <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting}/>
                 </div>
               </div>
             </div>
