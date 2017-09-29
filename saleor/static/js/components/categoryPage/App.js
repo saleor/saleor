@@ -1,6 +1,5 @@
 import React, {PropTypes} from 'react';
-import ReactDOM from 'react-dom';
-import {ApolloProvider, ApolloClient, gql, graphql} from 'react-apollo';
+import {gql, graphql} from 'react-apollo';
 
 import Loading from '../Loading';
 import CategoryPage from './CategoryPage';
