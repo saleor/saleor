@@ -13,9 +13,6 @@ class App extends React.Component {
 
   constructor(props) {
     super(props);
-    if (!this.props.categoryId) {
-      this.props.categoryId = 1;
-    }
   }
 
   render() {
@@ -49,11 +46,11 @@ const rootQuery = gql`
 `;
 
 export default graphql(rootQuery, {
-  options: ({categoryId, sortBy, first, attributesFilter, minPrice, maxPrice}) => ({
+  options: ({categoryId, sortBy, PAGINATE_BY, attributesFilter, minPrice, maxPrice}) => ({
     variables: {
       categoryId,
       sortBy: sortBy,
-      first: 24,
+      first: PAGINATE_BY,
       attributesFilter: attributesFilter,
       minPrice: minPrice,
       maxPrice: maxPrice
