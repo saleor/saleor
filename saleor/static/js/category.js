@@ -8,8 +8,11 @@ import 'jquery.cookie';
 import ProductFilters from './components/categoryPage/ProductFilters';
 import App from './components/categoryPage/App';
 
+import {ensureAllowedName, getAttributesFromQuery, getFromQuery} from './Components/CategoryPage/utils';
+
 const categoryPage = document.getElementById('category-page');
 const categoryData = JSON.parse(categoryPage.getAttribute('data-category'));
+const SORT_BY_FIELDS = ['name', 'price'];
 
 const networkInterface = createNetworkInterface({
   uri: '/graphql',
@@ -61,7 +64,13 @@ const apolloClient = new ApolloClient({networkInterface});
 
 ReactDOM.render(
   <ApolloProvider client={apolloClient}>
-    <App categoryId={categoryData.id}/>
+    <App
+      categoryId={categoryData.id}
+      minPrice={parseInt(getFromQuery('minPrice')) || null}
+      maxPrice={parseInt(getFromQuery('maxPrice')) || null}
+      attributesFilter={getAttributesFromQuery(['count', 'minPrice', 'maxPrice', 'sortBy']) || []}
+      sortBy={ensureAllowedName(getFromQuery('sortBy', 'name'), SORT_BY_FIELDS)}
+    />
   </ApolloProvider>,
   categoryPage
 );
