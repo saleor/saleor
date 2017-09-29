@@ -2,7 +2,6 @@ import '../scss/storefront.scss';
 import 'jquery.cookie';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Relay from 'react-relay/classic';
 import SVGInjector from 'svg-injector-2';
 
 import variantPickerStore from './stores/variantPicker';
@@ -27,15 +26,6 @@ $.ajaxSetup({
     }
   }
 });
-
-Relay.injectNetworkLayer(
-  new Relay.DefaultNetworkLayer('/graphql/', {
-    credentials: 'same-origin',
-    headers: {
-      'X-CSRFToken': csrftoken
-    }
-  })
-);
 
 new SVGInjector().inject(document.querySelectorAll('svg[data-src]'));
 
