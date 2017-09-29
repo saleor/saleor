@@ -9,7 +9,6 @@ import ProductList from './ProductList';
 import SortBy from './SortBy';
 import {isMobile} from '../utils';
 
-const PAGINATE_BY = 24;
 
 class CategoryPage extends Component {
   constructor(props) {
@@ -26,8 +25,8 @@ class CategoryPage extends Component {
   };
 
   incrementProductsCount = () => {
-    this.props.data.variables.first += PAGINATE_BY;
-    this.refetch();
+    this.props.data.variables.first += this.props.PAGINATE_BY;
+    this.props.data.refetch();
   };
 
   setSorting = (value) => {
@@ -109,7 +108,7 @@ class CategoryPage extends Component {
     if (maxPrice) {
       urlParams['maxPrice'] = maxPrice;
     }
-    if (count > PAGINATE_BY) {
+    if (count > this.props.PAGINATE_BY) {
       urlParams['count'] = count;
     }
     if (sortBy) {
@@ -127,7 +126,6 @@ class CategoryPage extends Component {
     history.pushState({}, null, url);
   }
 
-  //
   componentDidUpdate() {
     // Persist current state of relay variables as query string. Current
     // variables are available in props after component rerenders, so it has to
@@ -141,7 +139,6 @@ class CategoryPage extends Component {
     const variables = this.props.data.variables;
     const pendingVariables = {};
     const {filtersMenu} = this.state;
-    console.log(this.props.data);
     return (
       <div className="category-page">
         <div className="category-top">
