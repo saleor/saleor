@@ -71,8 +71,7 @@ var config = {
       'bootstrap',
       'jquery',
       'jquery.cookie',
-      'react',
-      'react-relay'
+      'react'
     ]
   },
   output: output,
