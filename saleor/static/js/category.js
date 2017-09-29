@@ -10,6 +10,7 @@ import {ensureAllowedName, getAttributesFromQuery, getFromQuery} from './Compone
 const categoryPage = document.getElementById('category-page');
 const categoryData = JSON.parse(categoryPage.getAttribute('data-category'));
 const SORT_BY_FIELDS = ['name', 'price'];
+const PAGINATE_BY = 24;
 
 const networkInterface = createNetworkInterface({
   uri: '/graphql',
@@ -30,6 +31,7 @@ ReactDOM.render(
       maxPrice={parseInt(getFromQuery('maxPrice')) || null}
       attributesFilter={getAttributesFromQuery(['count', 'minPrice', 'maxPrice', 'sortBy']) || []}
       sortBy={ensureAllowedName(getFromQuery('sortBy', 'name'), SORT_BY_FIELDS)}
+      PAGINATE_BY={PAGINATE_BY}
     />
   </ApolloProvider>,
   categoryPage
