@@ -45,19 +45,20 @@
                   </div>
                   <div class="col-6 col-md-10 col-lg-6">
                     <div class="sort-by">
-                      <div class="click-area hide"></div>
-                      <!--<button class="btn btn-link">-->
-                        <div>
-                          <span>Sort by:
+                      <button class="btn btn-link" onclick="changeVisibility('sort-by-box');">
+                        <span>Sort by:
+                          <div id='sort-by-box' class="click-area hide">
                             <strong>
-                              <a href="{% get_sort_by_url 'name' %}">{% trans "name" context "Product name" %}</a>
+                              <a href="{% get_sort_by_url 'name' %}">
+                                {% trans "name" context "Product name" %}
+                              </a>
                               <a href="{% get_sort_by_url 'price' %}">{% trans "price" context "Product price" %}</a>
                             </strong>
-                          </span>
-                          <div class="sort-order-icon">
                           </div>
+                        </span>
+                        <div class="sort-order-icon">
                         </div>
-                      <!--</button>-->
+                      </button>
                     </div>
                   </div>
               </div>
@@ -86,7 +87,7 @@
                     {% for field in filter.form %}
 
                         <div>
-                          <h3 onClick="toggle('{{ field.name }}', '{{ field.name }}-arrow')">
+                          <h3 onclick="toggle('{{ field.name }}', '{{ field.name }}-arrow')">
                             {{ field.label }}
                             <div id="{{ field.name }}-arrow" class="collapse-filters-icon">
                               <img src="{% static "assets/chevron_up.svg" %}">
@@ -129,6 +130,17 @@
       } else {
         ele.style.display = "block";
         imageEle.innerHTML = '<img src="{% static "assets/chevron_up.svg" %}">';
+      }
+    }
+
+    function changeVisibility(showHideDiv) {
+      var ele = document.getElementById(showHideDiv);
+      var imageEle = document.getElementById(switchImgTag);
+
+      if(ele.className.match(/(?:^|\s)hide(?!\S)/) {
+        ele.className = ele.className.replace( /(?:^|\s)hide(?!\S)/g , '' );
+      } else {
+        ele.className += " hide";
       }
     }
   </script>
