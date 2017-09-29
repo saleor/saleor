@@ -373,19 +373,19 @@ $closeMsg.on('click', (e) => {
 
 
 $('.toggle-filter').each(function(){
-  let icon = $(this).find('.collapse-filter-icon');
+  let icon = $(this).find('.collapse-filters-icon');
   let ele = $(this).find('.filter-form-field');
 
-  let filter_arrow_down = 'static/assets/chevron_down.svg';
-  let filter_arrow_up = 'static/assets/chevron_up.svg';
+  let filter_arrow_down = '/static/assets/chevron_down.svg';
+  let filter_arrow_up = '/static/assets/chevron_up.svg';
 
-  $(this).on('click', () => {
+  $(this).find('.filter-label').on('click', () => {
     if(ele.css("display") == "block") {
       ele.css("display", "none");
-      icon.text('<img src=' + filter_arrow_down + '>');
+      icon.html('<img src="' + filter_arrow_down + '">');
     } else {
       ele.css("display", "block");
-      icon.text('<img src=' + filter_arrow_up + '>');
+      icon.html('<img src="' + filter_arrow_up + '">');
     }
   });
 })

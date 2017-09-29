@@ -99,9 +99,9 @@
                     {% for field in filter.form %}
                       {% if field.label == 'Price' %}
                         <div class="toggle-filter product-filters__price-range">
-                          <h3>
+                          <h3 class="filter-label">
                             {{ field.label }}
-                            <div id="{{ field.name }}-chevron" class="collapse-filters-icon">
+                            <div class="collapse-filters-icon">
                               <img src="{% static "assets/chevron_up.svg" %}">
                             </div>
                           </h3>
@@ -112,7 +112,7 @@
                       {% elif field.label == 'Sort by' %}
                       {% else %}
                         <div class="toggle-filter">
-                          <h3>
+                          <h3 class="filter-label">
                             {{ field.label }}
                             <div class="collapse-filters-icon">
                               <img src="{% static "assets/chevron_up.svg" %}">
