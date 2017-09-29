@@ -1,6 +1,6 @@
 import queryString from 'query-string';
 import React, {Component, PropTypes} from 'react';
-import {graphql, gql} from 'react-apollo';
+import {gql} from 'react-apollo';
 
 import CategoryFilter from './CategoryFilter';
 import PriceFilter from './PriceFilter';
@@ -8,7 +8,6 @@ import ProductFilters from './ProductFilters';
 import ProductList from './ProductList';
 import SortBy from './SortBy';
 import {isMobile} from '../utils';
-import ProductItem from "./ProductItem";
 
 const PAGINATE_BY = 24;
 
@@ -32,21 +31,15 @@ class CategoryPage extends Component {
   };
 
   setSorting = (value) => {
-    this.props.data.variables.sortBy = value;
+    this.props.data.refetch({
+      sortBy: value
+    })
   };
 
   toggleMenu = (target) => {
     this.setState({
       filtersMenu: !target
     });
-  };
-
-  refetch = () => {
-    this.props.data.refetch({
-      sortBy: this.props.data.variables.sortBy,
-      first: this.props.data.variables.first
-    });
-    this.render();
   };
 
   static fragments = {
@@ -89,18 +82,6 @@ class CategoryPage extends Component {
   };
 
   updateAttributesFilter = (key) => {
-    // Create a new attributesFilter array by cloning the current one to make
-    // Relay refetch products with new attributes. Passing the same array (even
-    // if it's modified) would not result in new query, but would return cached
-    // results.
-    // const attributesFilter = this.props.relay.variables.attributesFilter.slice(0);
-    // const index = attributesFilter.indexOf(key);
-    // if (index < 0) {
-    //   attributesFilter.push(key);
-    // } else {
-    //   attributesFilter.splice(index, 1);
-    // }
-    // this.props.relay.setVariables({attributesFilter});
     const index = this.props.data.variables.attributesFilter.indexOf(key);
     if (index < 0) {
       this.props.data.variables.attributesFilter.push(key);
@@ -158,7 +139,6 @@ class CategoryPage extends Component {
     const attributes = this.props.data.attributes;
     const category = this.props.data.category;
     const variables = this.props.data.variables;
-    // const {pendingVariables} = relay;
     const pendingVariables = {};
     const {filtersMenu} = this.state;
     console.log(this.props.data);
@@ -187,7 +167,7 @@ class CategoryPage extends Component {
                   )}
                 </div>
                 <div className="col-6 col-md-10 col-lg-6">
-                  <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting} refetch={this.refetch}/>
+                  <SortBy sortedValue={variables.sortBy} setSorting={this.setSorting} />
                 </div>
               </div>
             </div>
@@ -235,44 +215,5 @@ class CategoryPage extends Component {
     );
   }
 }
-
-// export default Relay.createContainer(CategoryPage, {
-//   initialVariables: {
-//     attributesFilter: getAttributesFromQuery(['count', 'minPrice', 'maxPrice', 'sortBy']),
-//     count: parseInt(getFromQuery('count', PAGINATE_BY)) || PAGINATE_BY,
-//     minPrice: parseInt(getFromQuery('minPrice')) || null,
-//     maxPrice: parseInt(getFromQuery('maxPrice')) || null,
-//     sortBy: ensureAllowedName(getFromQuery('sortBy', 'name'), SORT_BY_FIELDS)
-//   },
-//   fragments: {
-//     category: () => Relay.QL`
-//       fragment on CategoryType {
-//         pk
-//         name
-//         url
-//         ancestors {
-//           name
-//           pk
-//           url
-//         }
-//         children {
-//           name
-//           pk
-//           url
-//           slug
-//         }
-//         products (
-//           first: $count,
-//           attributes: $attributesFilter,
-//           priceGte: $minPrice,
-//           priceLte: $maxPrice,
-//           orderBy: $sortBy
-//         ) {
-//           ${ProductList.getFragment('products')}
-//         }
-//       }
-//     `
-//   }
-// });
 
 export default CategoryPage;
