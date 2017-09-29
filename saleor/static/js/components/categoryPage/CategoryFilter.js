@@ -7,7 +7,7 @@ export default class CategoryFilter extends Component {
 
   static propTypes = {
     category: PropTypes.object.isRequired
-  }
+  };
 
   render() {
     const { category } = this.props;
