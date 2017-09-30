@@ -269,6 +269,7 @@ CONSTANCE_CONFIG = {
     'SEARCH_PREFIX_LENGTH': (1, 'The minimum number of characters leading the target term'),
     'CHARTS_ALLOWED_ITEMS': (10, 'The maximum number of allowed items in charts'),
     'VAT_RATE': (19.0, 'The current VAT tax rate'),
+    'SEARCH_PHRASE_PREFIX': (True, 'Use Match Phrase Prefix instead of Match Phrase')
 }
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 

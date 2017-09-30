@@ -9,7 +9,7 @@ from elasticsearch_dsl.connections import connections
 
 __author__ = 'tkolter'
 
-connections.create_connection()
+connections.create_connection(hosts=['localhost:9201'])
 
 
 ngram_analyzer = analyzer(
@@ -86,20 +86,20 @@ QUERY_FIELDS = [
 
 def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
     should_queries = []
-    should_queries.extend(
-        [
-            {
-                "match_phrase": {
-                    field: {
-                        "query": query,
-                        "analyzer": "standard",
-                        "boost": 5
-                    },
+
+    match_prefix = config.SEARCH_PHRASE_PREFIX
+    match_phrase = "match_phrase_prefix" if match_prefix else "match_phrase"
+    for field in fields:
+
+        should_queries.append({
+            match_phrase: {
+                field: {
+                    "query": query,
+                    "analyzer": "standard",
+                    "boost": 5
                 }
             }
-            for field in fields
-        ]
-    )
+        })
 
     should_queries.append({
         "match_phrase": {
