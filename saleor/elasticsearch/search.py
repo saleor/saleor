@@ -92,7 +92,7 @@ def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
                 "match_phrase": {
                     field: {
                         "query": query,
-                        "analyzer": lowercase_analyzer,
+                        "analyzer": "standard",
                         "boost": 5
                     },
                 }
@@ -105,7 +105,7 @@ def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
         "match_phrase": {
             "cat_no": {
                 "query": query,
-                "analyzer": lowercase_analyzer,
+                "analyzer": "standard",
                 "boost": 100,
             }
         }
@@ -130,13 +130,16 @@ def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
         ]
     )
 
+    sort_criterias = list()
+    if doc_type == 'release':
+        sort_criterias.append({"released_at": "desc"})
+
+    sort_criterias.append({"_score": "desc"})
+
     query_dict = {
         "size": size,
         "from": size * (page - 1),
-        "sort": [
-            {"released_at": "desc"},
-            {"_score": "desc"}
-        ],
+        "sort": sort_criterias,
         "query": {
             "bool": {
                 "should": should_queries
@@ -144,6 +147,13 @@ def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
         }
     }
 
-    s = Search().from_dict(query_dict).doc_type(doc_type)
+    search_params = {}
+    print(doc_type)
+    if doc_type == 'artist':
+        search_params['index'] = 'oye-artists'
+    elif doc_type == 'release':
+        search_params['index'] = 'oye-releases'
+
+    s = Search(**search_params).from_dict(query_dict).index(search_params['index']).doc_type(doc_type)
     response = s.execute()
     return response
