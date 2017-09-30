@@ -9,7 +9,7 @@ from elasticsearch_dsl.connections import connections
 
 __author__ = 'tkolter'
 
-connections.create_connection(hosts=['localhost:9201'])
+connections.create_connection()
 
 
 ngram_analyzer = analyzer(
