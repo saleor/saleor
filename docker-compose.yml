@@ -36,7 +36,6 @@ services:
     volumes:
       - ./docker/rabbitmq-entrypoint.sh:/app/rabbitmq-entrypoint.sh
       - rabbit:/var/lib/rabbitmq
-      - ./conf/:/etc/rabbitmq/
     network_mode: "host"
 
   web: &web
