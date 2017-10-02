@@ -372,20 +372,20 @@ $closeMsg.on('click', (e) => {
 });
 
 
-$('.toggle-filter').each(function(){
+$('.toggle-filter').each(function() {
   let icon = $(this).find('.collapse-filters-icon');
   let ele = $(this).find('.filter-form-field');
 
-  let filter_arrow_down = $('.product-filters__attributes').data('icon-down');
-  let filter_arrow_up = $('.product-filters__attributes').data('icon-up');
+  let filterArrowDown = $('.product-filters__attributes').data('icon-down');
+  let filterArrowUp = $('.product-filters__attributes').data('icon-up');
 
   $(this).find('.filter-label').on('click', () => {
-    if(ele.css('display') == 'block') {
+    if (ele.css('display') == 'block') {
       ele.css('display', 'none');
-      icon.find('img').attr('src', filter_arrow_down);
+      icon.find('img').attr('src', filterArrowDown);
     } else {
       ele.css('display', 'block');
-      icon.find('img').attr('src', filter_arrow_up);
+      icon.find('img').attr('src', filterArrowUp);
     }
   });
 })
