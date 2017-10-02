@@ -83,11 +83,6 @@
       "@babel/plugin-proposal-object-rest-spread"
     ]
   },
-  "metadata": {
-    "graphql": {
-      "schema": "./saleor/static/schema.json"
-    }
-  },
   "scripts": {
     "build-assets": "node ./node_modules/webpack/bin/webpack.js -p --progress",
     "heroku-postbuild": "npm run build-assets && npm run build-emails",
