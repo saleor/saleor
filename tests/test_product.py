@@ -400,3 +400,29 @@ def test_product_filter_product_not_exists(authorized_client, product_in_stock,
     data = {'price_0': ['20'], 'price_1': ['']}
     response = authorized_client.get(url, data)
     assert list(response.context['filter'].qs) == []
+
+
+def test_product_filter_form(authorized_client, product_in_stock,
+                                      default_category):
+    products = models.Product.objects.all()
+    url = reverse(
+        'product:category', kwargs={'path': default_category.slug,
+                                    'category_id': default_category.pk})
+    data = {'price_0': [''], 'price_1': ['20']}
+    response = authorized_client.get(url, data)
+    assert 'price' in response.context['filter'].form.fields.keys()
+    assert 'sort_by' in response.context['filter'].form.fields.keys()
+
+
+def test_product_filter_standard_form(authorized_client, product_in_stock,
+                                      default_category):
+    products = models.Product.objects.all()
+    url = reverse(
+        'product:category', kwargs={'path': default_category.slug,
+                                    'category_id': default_category.pk})
+    data = {'price_0': [''], 'price_1': ['20']}
+    response = authorized_client.get(url, data)
+    assert 'price' not in \
+           response.context['filter'].standard_form.fields.keys()
+    assert 'sort_by' not in \
+           response.context['filter'].standard_form.fields.keys()
