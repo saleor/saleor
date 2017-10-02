@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 from collections import OrderedDict
+from copy import deepcopy
 
 from django_filters import FilterSet, MultipleChoiceFilter, RangeFilter, \
     OrderingFilter
@@ -7,7 +8,7 @@ from django.forms import CheckboxSelectMultiple
 
 from django_prices.models import PriceField
 
-from .models import Product, AttributeChoiceValue
+from .models import Product
 
 
 class ProductFilter(FilterSet):
@@ -50,6 +51,20 @@ class ProductFilter(FilterSet):
                 'filter_class': RangeFilter
             }
         }
+
+    @property
+    def standard_form(self):
+        """
+        This method returns only those filters that ware dynamically generated
+        in __init__().
+        In this case 'price' and 'sort_by' are rendered in template differently
+        than rest of the filters.
+        :return:
+        """
+        standard_form = deepcopy(self.form)
+        del standard_form.fields['price']
+        del standard_form.fields['sort_by']
+        return standard_form
 
 
 def get_attribute_choices(attribute):

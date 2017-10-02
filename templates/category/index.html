@@ -42,8 +42,7 @@
             <div class="col-md-5">
               <div class="row">
                   <div class="col-6 col-md-2 col-lg-6 filters-menu">
-                    <span class="filters-menu__label hidden-sm-up">Filters</span>
-                    <span class="filters-menu__icon hidden-sm-up"></span>
+
                   </div>
                   <div class="col-6 col-md-10 col-lg-6">
                     <div class="sort-by">
@@ -96,35 +95,31 @@
               <div class="product-filters">
                 <div class="product-filters__attributes" data-icon-up="{% static "assets/chevron_up.svg" %}" data-icon-down="{% static "assets/chevron_down.svg" %}">
                   <form method="get">
-                    {% for field in filter.form %}
-                      {% if field.label == 'Price' %}
-                        <div class="toggle-filter product-filters__price-range">
-                          <h3 class="filter-label">
-                            {{ field.label }}
-                            <div class="collapse-filters-icon">
-                              <img src="{% static "assets/chevron_up.svg" %}">
-                            </div>
-                          </h3>
-                          <div class="filter-form-field" style="display:block">
-                            {{ field }}
+                    {% for field in filter.standard_form %}
+                      <div class="toggle-filter">
+                        <h3 class="filter-label">
+                          {{ field.label }}
+                          <div class="collapse-filters-icon">
+                            <img src="{% static "assets/chevron_up.svg" %}">
                           </div>
+                        </h3>
+                        <div class="filter-form-field" style="display:block">
+                          {{ field }}
                         </div>
-                      {% elif field.label == 'Sort by' %}
-                      {% else %}
-                        <div class="toggle-filter">
-                          <h3 class="filter-label">
-                            {{ field.label }}
-                            <div class="collapse-filters-icon">
-                              <img src="{% static "assets/chevron_up.svg" %}">
-                            </div>
-                          </h3>
-                          <div class="filter-form-field" style="display:block">
-                            {{ field }}
-                          </div>
-                        </div>
-                      {% endif %}
+                      </div>
                     {% endfor %}
-                    <button class="btn primary" type="submit">Search</button>
+                      <div class="toggle-filter product-filters__price-range">
+                        <h3 class="filter-label">
+                          {{ filter.form.fields.price.label }}
+                          <div class="collapse-filters-icon">
+                            <img src="{% static "assets/chevron_up.svg" %}">
+                          </div>
+                        </h3>
+                        <div class="filter-form-field" style="display:block">
+                          <input id="price_0" name="price_0" type="number" min="0" class="form-control" placeholder="from"><span>-</span><input id="price_1" name="price_1" type="number" min="0" class="form-control" placeholder="to">
+                          <button class="btn primary" type="submit">Update</button>
+                        </div>
+                      </div>
                   </form>
                 </div>
               </div>

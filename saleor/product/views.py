@@ -11,7 +11,7 @@ from django.template.response import TemplateResponse
 from ..cart.utils import set_cart_cookie
 from ..core.utils import serialize_decimal
 from .filters import ProductFilter
-from .models import Category, Product
+from .models import Category
 from .utils import (products_with_details, products_for_cart,
                     handle_cart_form, get_availability,
                     get_product_images, get_variant_picker_data,
@@ -116,6 +116,7 @@ def category_index(request, path, category_id):
     products = products_with_details(
         user=request.user).filter(categories__name=category)
     product_filter = ProductFilter(request.GET, queryset=products)
+
     products = [
         (product, get_availability(product, request.discounts, request.currency))
         for product in product_filter.qs]
