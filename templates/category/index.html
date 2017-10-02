@@ -46,30 +46,76 @@
             </div>
             <div class="col-6 col-md-10 col-lg-6">
               <div class="sort-by">
-                <span>Sort by:
-                  <strong>
-                    <a href="{% get_sort_by_url 'name' %}" onclick="toggleSort('name-arrow');">
-                      {% trans "name" context "Product name" %}
-                    </a>
-                    {% if request.GET.sort_by == 'name' %}
-                      <div class="sort-order-icon"><img src="{% static "assets/arrow_up.svg" %}"></div>
-                    {% elif request.GET.sort_by == '-name' %}
-                      <div class="sort-order-icon"><img src="{% static "assets/arrow_down.svg" %}"></div>
-                    {% else %}
-                    {% endif %}
-                    <a href="{% get_sort_by_url 'price' %}" onclick="toggleSort('price-arrow');">
-                      {% trans "price" context "Product price" %}
-                    </a>
-                    {% if request.GET.sort_by == 'price' %}
-                      <div class="sort-order-icon"><img src="{% static "assets/arrow_up.svg" %}"></div>
-                    {% elif request.GET.sort_by == '-price' %}
-                      <div class="sort-order-icon"><img src="{% static "assets/arrow_down.svg" %}"></div>
-                    {% else %}
-                    {% endif %}
-                  </strong>
-                </span>
-                <div class="sort-order-icon">
-                </div>
+                <div class="click-area d-none"></div>
+                <button class="btn btn-link">
+                  <div>
+                    <span>
+                      Sort by:&nbsp;
+                      <strong>
+                        {% if request.GET.sort_by == 'name' or request.GET.sort_by == '-name' %}
+                          {% trans "name" context "Product name" %}
+                        {% elif request.GET.sort_by == 'price' or request.GET.sort_by == '-price' %}
+                          {% trans "price" context "Product price" %}
+                        {% endif %}
+                      </strong>
+                    </span>
+                    <div class="sort-order-icon">
+                      {% if request.GET.sort_by == '-name' or request.GET.sort_by == '-price' %}
+                        <svg data-src="{% static "assets/arrow_down.svg" %}">
+                      {% else %}
+                        <svg data-src="{% static "assets/arrow_up.svg" %}">
+                      {% endif %}
+                    </div>
+                  </div>
+                </button>
+                <ul class="sort-list d-none">
+                  <li class="name">
+                    <div class="row">
+                      <div class="col-6">
+                        Sort by: <strong>{% trans "name" context "Product name" %}</strong>
+                      </div>
+                      <div class="col-6">
+                        <div class="name">
+                          <a href="{% get_sort_by_url 'name' %}">
+                            <span>ascending</span>
+                            <div class="sort-order-icon float-right">
+                              <img src="{% static "assets/arrow_up.svg" %}">
+                            </div>
+                          </a>
+                          <a href="{% get_sort_by_url '-name' %}">
+                            <span>descending</span>
+                            <div class="sort-order-icon float-right">
+                              <img src="{% static "assets/arrow_down.svg" %}">
+                            </div>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                  <li class="price">
+                    <div class="row">
+                      <div class="col-6">
+                        Sort by: <strong>{% trans "price" context "Product price" %}</strong>
+                      </div>
+                      <div class="col-6">
+                        <div class="name">
+                          <a href="{% get_sort_by_url 'price' %}">
+                            <span>ascending</span>
+                            <div class="sort-order-icon float-right">
+                              <img src="{% static "assets/arrow_up.svg" %}">
+                            </div>
+                          </a>
+                          <a href="{% get_sort_by_url '-price' %}">
+                            <span>descending</span>
+                            <div class="sort-order-icon float-right">
+                              <img src="{% static "assets/arrow_down.svg" %}">
+                            </div>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
