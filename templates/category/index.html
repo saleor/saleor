@@ -97,7 +97,7 @@
               <div class="product-filters">
                 <div class="product-filters__attributes" data-icon-up="{% static "assets/chevron_up.svg" %}" data-icon-down="{% static "assets/chevron_down.svg" %}">
                   <form method="get">
-                    {% for field in filter.standard_form %}
+                    {% for field in filter.product_attributes_filter_form %}
                       <div class="toggle-filter">
                         <h3 class="filter-label">
                           {{ field.label }}

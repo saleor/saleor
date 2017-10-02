@@ -53,7 +53,7 @@ class ProductFilter(FilterSet):
         }
 
     @property
-    def standard_form(self):
+    def product_attributes_filter_form(self):
         """
         This method returns only those filters that ware dynamically generated
         in __init__().
@@ -61,10 +61,10 @@ class ProductFilter(FilterSet):
         than rest of the filters.
         :return:
         """
-        standard_form = deepcopy(self.form)
-        del standard_form.fields['price']
-        del standard_form.fields['sort_by']
-        return standard_form
+        form = deepcopy(self.form)
+        del form.fields['price']
+        del form.fields['sort_by']
+        return form
 
 
 def get_attribute_choices(attribute):
