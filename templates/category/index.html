@@ -14,131 +14,134 @@
 {% block title %}{{ category }} — {{ block.super }}{% endblock %}
 
 {% block breadcrumb %}
-    {{ block.super }}
-    {% for breadcrumb in breadcrumbs %}
-        <li{% if forloop.last %} class="active"{% endif %}>
-            {% if not forloop.last %}
-                <a href="{{ breadcrumb.get_absolute_url }}">{{ breadcrumb }}</a>
-            {% else %}
-                <span>{{ breadcrumb }}</span>
-            {% endif %}
-        </li>
-    {% endfor %}
+  {{ block.super }}
+  {% for breadcrumb in breadcrumbs %}
+    <li{% if forloop.last %} class="active"{% endif %}>
+      {% if not forloop.last %}
+        <a href="{{ breadcrumb.get_absolute_url }}">{{ breadcrumb }}</a>
+      {% else %}
+        <span>{{ breadcrumb }}</span>
+      {% endif %}
+    </li>
+  {% endfor %}
 {% endblock breadcrumb %}
 
 {% block content %}
-    <div id="category-page">
-        <div class="category-top">
-          <div class="row">
-            <div class="col-md-7">
-              <ul class="breadcrumbs list-unstyled d-none d-md-block">
-                <li><a href="/">Home</a></li>
-                {% for ancestor in category.get_ancestors %}
-                  <li><a href='{{ ancestor.get_absolute_url }}'>{{ ancestor.name }}</a></li>
-                {% endfor %}
-                <li><a href='{{ category.get_absolute_url }}'>{{ category.name }}</a></li>
-              </ul>
-            </div>
-            <div class="col-md-5">
-              <div class="row">
-                  <div class="col-6 col-md-2 col-lg-6 filters-menu">
-
-                  </div>
-                  <div class="col-6 col-md-10 col-lg-6">
-                    <div class="sort-by">
-                      <span>Sort by:
-                        <strong>
-                          <a href="{% get_sort_by_url 'name' %}" onclick="toggleSort('name-arrow')">
-                            {% trans "name" context "Product name" %}
-                          </a>
-                          {% if request.GET.sort_by == 'name' %}
-                            <div class="sort-order-icon"><img src="{% static "assets/arrow_up.svg" %}"></div>
-                          {% elif request.GET.sort_by == '-name' %}
-                            <div class="sort-order-icon"><img src="{% static "assets/arrow_down.svg" %}"></div>
-                          {% else %}
-                          {% endif %}
-                          <a href="{% get_sort_by_url 'price' %}" onclick="toggleSort('price-arrow')">
-                            {% trans "price" context "Product price" %}
-                          </a>
-                          {% if request.GET.sort_by == 'price' %}
-                            <div class="sort-order-icon"><img src="{% static "assets/arrow_up.svg" %}"></div>
-                          {% elif request.GET.sort_by == '-price' %}
-                            <div class="sort-order-icon"><img src="{% static "assets/arrow_down.svg" %}"></div>
-                          {% else %}
-                          {% endif %}
-                        </strong>
-                      </span>
-                      <div class="sort-order-icon">
-                      </div>
-                    </div>
-                  </div>
-              </div>
-            </div>
-          </div>
+  <div id="category-page">
+    <div class="category-top">
+      <div class="row">
+        <div class="col-md-7">
+          <ul class="breadcrumbs list-unstyled d-none d-md-block">
+            <li><a href="/">Home</a></li>
+            {% for ancestor in category.get_ancestors %}
+              <li><a href='{{ ancestor.get_absolute_url }}'>{{ ancestor.name }}</a></li>
+            {% endfor %}
+            <li><a href='{{ category.get_absolute_url }}'>{{ category.name }}</a></li>
+          </ul>
         </div>
-        <div class="row">
-          <div class="col-md-4 col-lg-3">
-            <div class="product-filters">
-              <div class="product-filters__categories">
-                <h2>
-                  <strong>{{ category.name }}</strong>
-                </h2>
-                <ul class="product-filters__categories__childs no-parent">
-                  {% for child in category.get_children %}
-                    <li><a href="{{ child.get_absolute_url }}">{{ child.name }}</a></li>
-                  {% endfor %}
-                </ul>
-              </div>
+        <div class="col-md-5">
+          <div class="row">
+            <div class="col-6 col-md-2 col-lg-6 filters-menu">
+
             </div>
-            <div>
-              <h2>
-                {% trans 'Filters' context 'Filter heading title' %}
-                <a href="?">
-                  <span class="clear-filters float-right">{% trans 'Clear filters' context 'Category page filters' %}</span>
-                </a>
-              </h2>
-              <div class="product-filters">
-                <div class="product-filters__attributes" data-icon-up="{% static "assets/chevron_up.svg" %}" data-icon-down="{% static "assets/chevron_down.svg" %}">
-                  <form method="get">
-                    {% for field in filter.product_attributes_filter_form %}
-                      <div class="toggle-filter">
-                        <h3 class="filter-label">
-                          {{ field.label }}
-                          <div class="collapse-filters-icon">
-                            <img src="{% static "assets/chevron_up.svg" %}">
-                          </div>
-                        </h3>
-                        <div class="filter-form-field" style="display:block">
-                          {{ field }}
-                        </div>
-                      </div>
-                    {% endfor %}
-                      <div class="toggle-filter product-filters__price-range">
-                        <h3 class="filter-label">
-                          {{ filter.form.fields.price.label }}
-                          <div class="collapse-filters-icon">
-                            <img src="{% static "assets/chevron_up.svg" %}">
-                          </div>
-                        </h3>
-                        <div class="filter-form-field" style="display:block">
-                          <input id="price_0" name="price_0" type="number" min="0" class="form-control" placeholder="from"><span>-</span><input id="price_1" name="price_1" type="number" min="0" class="form-control" placeholder="to">
-                          <button class="btn primary" type="submit">Update</button>
-                        </div>
-                      </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-8 col-lg-9 category-list">
-            <div>
-              <div>
-                <div class="row">
-                  {% include "category/_items.html" with products=products %}
+            <div class="col-6 col-md-10 col-lg-6">
+              <div class="sort-by">
+                <span>Sort by:
+                  <strong>
+                    <a href="{% get_sort_by_url 'name' %}" onclick="toggleSort('name-arrow');">
+                      {% trans "name" context "Product name" %}
+                    </a>
+                    {% if request.GET.sort_by == 'name' %}
+                      <div class="sort-order-icon"><img src="{% static "assets/arrow_up.svg" %}"></div>
+                    {% elif request.GET.sort_by == '-name' %}
+                      <div class="sort-order-icon"><img src="{% static "assets/arrow_down.svg" %}"></div>
+                    {% else %}
+                    {% endif %}
+                    <a href="{% get_sort_by_url 'price' %}" onclick="toggleSort('price-arrow');">
+                      {% trans "price" context "Product price" %}
+                    </a>
+                    {% if request.GET.sort_by == 'price' %}
+                      <div class="sort-order-icon"><img src="{% static "assets/arrow_up.svg" %}"></div>
+                    {% elif request.GET.sort_by == '-price' %}
+                      <div class="sort-order-icon"><img src="{% static "assets/arrow_down.svg" %}"></div>
+                    {% else %}
+                    {% endif %}
+                  </strong>
+                </span>
+                <div class="sort-order-icon">
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+    <div class="row">
+      <div class="col-md-4 col-lg-3">
+        <div class="product-filters">
+          <div class="product-filters__categories">
+            <h2>
+              <strong>{{ category.name }}</strong>
+            </h2>
+            <ul class="product-filters__categories__childs no-parent">
+              {% for child in category.get_children %}
+                <li><a href="{{ child.get_absolute_url }}">{{ child.name }}</a></li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        <div>
+          <h2>
+            {% trans 'Filters' context 'Filter heading title' %}
+            <a href="?">
+              <span class="clear-filters float-right">{% trans 'Clear filters' context 'Category page filters' %}</span>
+            </a>
+          </h2>
+          <div class="product-filters">
+            <div class="product-filters__attributes" data-icon-up="{% static "assets/chevron_up.svg" %}"
+                 data-icon-down="{% static "assets/chevron_down.svg" %}">
+              <form method="get">
+                {% for field in filter.product_attributes_filter_form %}
+                  <div class="toggle-filter">
+                    <h3 class="filter-label">
+                      {{ field.label }}
+                      <div class="collapse-filters-icon">
+                        <img src="{% static "assets/chevron_up.svg" %}">
+                      </div>
+                    </h3>
+                    <div class="filter-form-field" style="display:block">
+                      {{ field }}
+                    </div>
+                  </div>
+                {% endfor %}
+                <div class="toggle-filter product-filters__price-range">
+                  <h3 class="filter-label">
+                    {{ filter.form.fields.price.label }}
+                    <div class="collapse-filters-icon">
+                      <img src="{% static "assets/chevron_up.svg" %}">
+                    </div>
+                  </h3>
+                  <div class="filter-form-field" style="display:block">
+                    <input id="price_0" name="price_0" type="number" min="0" class="form-control"
+                           placeholder="from"><span>-</span><input id="price_1" name="price_1" type="number" min="0"
+                                                                   class="form-control" placeholder="to">
+                    <button class="btn primary" type="submit">Update</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-8 col-lg-9 category-list">
+        <div>
+          <div>
+            <div class="row">
+              {% include "category/_items.html" with products=products %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock content %}
