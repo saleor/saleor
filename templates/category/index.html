@@ -90,7 +90,9 @@
             <div>
               <h2>
                 {% trans 'Filters' context 'Filter heading title' %}
-                <span class="clear-filters float-right" onClick="">{% trans 'Clear filters' context 'Category page filters' %}</span>
+                <a href="?">
+                  <span class="clear-filters float-right">{% trans 'Clear filters' context 'Category page filters' %}</span>
+                </a>
               </h2>
               <div class="product-filters">
                 <div class="product-filters__attributes" data-icon-up="{% static "assets/chevron_up.svg" %}" data-icon-down="{% static "assets/chevron_down.svg" %}">
