@@ -83,11 +83,6 @@
       "transform-object-rest-spread"
     ]
   },
-  "metadata": {
-    "graphql": {
-      "schema": "./saleor/static/schema.json"
-    }
-  },
   "scripts": {
     "build-assets": "node ./node_modules/webpack/bin/webpack.js -p",
     "heroku-postbuild": "yarn add --force node-sass && yarn run build-assets",
