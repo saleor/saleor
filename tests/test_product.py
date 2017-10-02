@@ -412,6 +412,7 @@ def test_product_filter_form(authorized_client, product_in_stock,
     response = authorized_client.get(url, data)
     assert 'price' in response.context['filter'].form.fields.keys()
     assert 'sort_by' in response.context['filter'].form.fields.keys()
+    assert list(response.context['filter'].qs) == list(products)
 
 
 def test_product_filter_standard_form(authorized_client, product_in_stock,
@@ -426,3 +427,4 @@ def test_product_filter_standard_form(authorized_client, product_in_stock,
            response.context['filter'].standard_form.fields.keys()
     assert 'sort_by' not in \
            response.context['filter'].standard_form.fields.keys()
+    assert list(response.context['filter'].qs) == list(products)
