@@ -33,9 +33,9 @@
             <div class="col-md-7">
               <ul class="breadcrumbs list-unstyled d-none d-md-block">
                 <li><a href="/">Home</a></li>
-                {% if category.parent %}
-                  <li key=''><a href='(( category.parent.name.get_absule_url }}'>{{ category.parent.name }}</a></li>
-                {% endif %}
+                {% for ancestor in category.get_ancestors %}
+                  <li><a href='{{ ancestor.get_absolute_url }}'>{{ ancestor.name }}</a></li>
+                {% endfor %}
                 <li><a href='{{ category.get_absolute_url }}'>{{ category.name }}</a></li>
               </ul>
             </div>
@@ -83,8 +83,11 @@
                 <h2>
                   <strong>{{ category.name }}</strong>
                 </h2>
-                <!--This should be dynamic if category has childs/parents-->
-                <ul class="product-filters__categories__childs no-parent"></ul>
+                <ul class="product-filters__categories__childs no-parent">
+                  {% for child in category.get_children %}
+                    <li><a href="{{ child.get_absolute_url }}">{{ child.name }}</a></li>
+                  {% endfor %}
+                </ul>
               </div>
             </div>
             <div>
