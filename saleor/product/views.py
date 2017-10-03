@@ -9,7 +9,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 
 from ..cart.utils import set_cart_cookie
-from ..core.utils import serialize_decimal
+from ..core.utils import serialize_decimal, get_paginator_items
+from ..settings import PAGINATE_BY
 from .filters import ProductFilter
 from .models import Category
 from .utils import (products_with_details, products_for_cart,
@@ -116,14 +117,14 @@ def category_index(request, path, category_id):
     products = products_with_details(
         user=request.user).filter(categories__name=category)
     product_filter = ProductFilter(request.GET, queryset=products)
-
     products = [
         (product, get_availability(product, request.discounts, request.currency))
         for product in product_filter.qs]
-
     if actual_path != path:
         return redirect('product:category', permanent=True, path=actual_path,
                         category_id=category_id)
+    products = get_paginator_items(
+        products, PAGINATE_BY, request.GET.get('page'))
     context = {'category': category, 'products': products,
                'filter': product_filter}
     return TemplateResponse(request, 'category/index.html', context)
