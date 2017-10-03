@@ -1,11 +1,11 @@
 {% extends "base.html" %}
+{% load bootstrap_pagination from bootstrap3 %}
 {% load i18n %}
 {% load shop %}
 {% load staticfiles %}
-{% load bootstrap_pagination from bootstrap3 %}
+{% load sort_by from sort_by %}
 {% load render_bundle from webpack_loader %}
 {% load prices_i18n %}
-{% load product_first_image from product_images %}
 
 {% block footer_scripts %}
   {{ block.super }}
@@ -69,52 +69,9 @@
                   </div>
                 </button>
                 <ul class="sort-list d-none">
-                  <li class="name">
-                    <div class="row">
-                      <div class="col-6">
-                        Sort by: <strong>{% trans "name" context "Product name" %}</strong>
-                      </div>
-                      <div class="col-6">
-                        <div class="name">
-                          <a href="{% get_sort_by_url 'name' %}">
-                            <span>ascending</span>
-                            <div class="sort-order-icon float-right">
-                              <img src="{% static "assets/arrow_up.svg" %}">
-                            </div>
-                          </a>
-                          <a href="{% get_sort_by_url '-name' %}">
-                            <span>descending</span>
-                            <div class="sort-order-icon float-right">
-                              <img src="{% static "assets/arrow_down.svg" %}">
-                            </div>
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                  <li class="price">
-                    <div class="row">
-                      <div class="col-6">
-                        Sort by: <strong>{% trans "price" context "Product price" %}</strong>
-                      </div>
-                      <div class="col-6">
-                        <div class="name">
-                          <a href="{% get_sort_by_url 'price' %}">
-                            <span>ascending</span>
-                            <div class="sort-order-icon float-right">
-                              <img src="{% static "assets/arrow_up.svg" %}">
-                            </div>
-                          </a>
-                          <a href="{% get_sort_by_url '-price' %}">
-                            <span>descending</span>
-                            <div class="sort-order-icon float-right">
-                              <img src="{% static "assets/arrow_down.svg" %}">
-                            </div>
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </li>
+                  {% for choice in sort_by_choices %}
+                    {% sort_by choice.0 %}
+                  {% endfor %}
                 </ul>
               </div>
             </div>
@@ -147,34 +104,40 @@
             <div class="product-filters__attributes" data-icon-up="{% static "assets/chevron_up.svg" %}"
                  data-icon-down="{% static "assets/chevron_down.svg" %}">
               <form method="get">
-                {% for field in filter.product_attributes_filter_form %}
-                  <div class="toggle-filter">
-                    <h3 class="filter-label">
-                      {{ field.label }}
-                      <div class="collapse-filters-icon">
-                        <img src="{% static "assets/chevron_up.svg" %}">
+                {% for field in filter.form %}
+                  {% if field.name == 'price' %}
+                    <div class="toggle-filter product-filters__price-range">
+                      <h3 class="filter-label">
+                        {{ field.label }}
+                        <div class="collapse-filters-icon">
+                          <img src="{% static "assets/chevron_up.svg" %}">
+                        </div>
+                      </h3>
+                      <div class="filter-form-field" style="display:block">
+                        <input id="{{ field.auto_id }}_0" name="{{ field.name }}_0" value="{% if field.value.0 %}{{ field.value.0 }}{% endif %}" type="number" min="0" class="form-control"
+                               placeholder="from"><span>-</span><input id="{{ field.auto_id }}_1" name="{{ field.name }}_1" value="{% if field.value.1 %}{{ field.value.1 }}{% endif %}" type="number" min="0"
+                                                                       class="form-control" placeholder="to">
+                        <button class="btn primary" type="submit">Update</button>
                       </div>
-                    </h3>
-                    <div class="filter-form-field" style="display:block">
-                      {{ field }}
                     </div>
-                  </div>
+                  {% elif field.name == 'sort_by' %}
+                    <!--Field 'sort_by' is hidden because it is rendered in header.
+                    This is required if you want to have sorting to be kept during further filtering.-->
+                    <input type="hidden" name="sort_by" value="{% if request.GET.sort_by %}{{ request.GET.sort_by }}{% endif %}">
+                  {% else %}
+                    <div class="toggle-filter">
+                      <h3 class="filter-label">
+                        {{ field.label }}
+                        <div class="collapse-filters-icon">
+                          <img src="{% static "assets/chevron_up.svg" %}">
+                        </div>
+                      </h3>
+                      <div class="filter-form-field" style="display:block">
+                        {{ field }}
+                      </div>
+                    </div>
+                  {% endif %}
                 {% endfor %}
-                <div class="toggle-filter product-filters__price-range">
-                  <h3 class="filter-label">
-                    {{ filter.form.fields.price.label }}
-                    <div class="collapse-filters-icon">
-                      <img src="{% static "assets/chevron_up.svg" %}">
-                    </div>
-                  </h3>
-                  <div class="filter-form-field" style="display:block">
-                    <input id="price_0" name="price_0" type="number" min="0" class="form-control"
-                           placeholder="from"><span>-</span><input id="price_1" name="price_1" type="number" min="0"
-                                                                   class="form-control" placeholder="to">
-                    <input type="hidden" name="sort_by" value="{{ request.GET.sort_by }}">
-                    <button class="btn primary" type="submit">Update</button>
-                  </div>
-                </div>
               </form>
             </div>
           </div>
@@ -185,6 +148,11 @@
           <div>
             <div class="row">
               {% include "category/_items.html" with products=products %}
+            </div>
+            <div class="row">
+              <div class="m-auto">
+                {% bootstrap_pagination products extra=request.GET.urlencode %}
+              </div>
             </div>
           </div>
         </div>

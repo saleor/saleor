@@ -1,0 +1,27 @@
+{% load i18n %}
+{% load shop %}
+{% load staticfiles %}
+
+<li class="{{ attribute }}">
+  <div class="row">
+    <div class="col-6">
+      Sort by: <strong>{% blocktrans %}{{ attribute }}{% endblocktrans %}</strong>
+    </div>
+    <div class="col-6">
+      <div class="{{ attribute }}">
+        <a href="{% get_sort_by_url attribute %}">
+          <span>ascending</span>
+          <div class="sort-order-icon float-right">
+            <img src="{% static "assets/arrow_up.svg" %}">
+          </div>
+        </a>
+        <a href="{% get_sort_by_url negativ_attribute %}">
+          <span>descending</span>
+          <div class="sort-order-icon float-right">
+            <img src="{% static "assets/arrow_down.svg" %}">
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</li>

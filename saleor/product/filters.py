@@ -2,13 +2,16 @@ from __future__ import unicode_literals
 from collections import OrderedDict
 from copy import deepcopy
 
-from django_filters import FilterSet, MultipleChoiceFilter, RangeFilter, \
-    OrderingFilter
+from django_filters import (FilterSet, MultipleChoiceFilter, RangeFilter,
+                            OrderingFilter)
 from django.forms import CheckboxSelectMultiple
 
 from django_prices.models import PriceField
 
 from .models import Product
+
+SORT_BY_FIELDS = (('price', 'price'),
+                  ('name', 'name'))
 
 
 class ProductFilter(FilterSet):
@@ -39,8 +42,7 @@ class ProductFilter(FilterSet):
 
     sort_by = OrderingFilter(
         label='Sort by',
-        fields=(('price', 'price'),
-                ('name', 'name'))
+        fields=SORT_BY_FIELDS
     )
 
     class Meta:
@@ -51,20 +53,6 @@ class ProductFilter(FilterSet):
                 'filter_class': RangeFilter
             }
         }
-
-    @property
-    def product_attributes_filter_form(self):
-        """
-        This method returns only those filters that ware dynamically generated
-        in __init__().
-        In this case 'price' and 'sort_by' are rendered in template differently
-        than rest of the filters.
-        :return:
-        """
-        form = deepcopy(self.form)
-        del form.fields['price']
-        del form.fields['sort_by']
-        return form
 
 
 def get_attribute_choices(attribute):
