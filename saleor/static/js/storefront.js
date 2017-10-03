@@ -13,6 +13,12 @@ import VariantPicker from './components/variantPicker/VariantPicker';
 import VariantPrice from './components/variantPicker/VariantPrice';
 import ProductSchema from './components/variantPicker/ProductSchema';
 
+import './mobile/navbar';
+import './mobile/search';
+import './mobile/filters-menu';
+import './components/cart';
+import './components/sorter';
+
 let csrftoken = $.cookie('csrftoken');
 
 function csrfSafeMethod(method) {
@@ -33,41 +39,6 @@ let getAjaxError = (response) => {
   let ajaxError = $.parseJSON(response.responseText).error.quantity;
   return ajaxError;
 };
-
-// Mobile menu
-
-$(document).ready((e) => {
-  let $toogleIcon = $('.navbar__brand__menu-toggle');
-  let $mobileNav = $('nav');
-  let windowWidth = $(window).width();
-
-  if (windowWidth < 767) {
-    $mobileNav.append('<ul class="nav navbar-nav navbar__menu__login"></ul>');
-    $('.navbar__login a').appendTo('.navbar__menu__login')
-      .wrap('<li class="nav-item login-item"></li>')
-      .addClass('nav-link');
-  }
-
-  $toogleIcon.click((e) => {
-    $mobileNav.toggleClass('open');
-    e.stopPropagation();
-  });
-  $(document).click((e) => {
-    $mobileNav.removeClass('open');
-  });
-});
-
-// Mobile search form
-
-let $searchIcon = $('.mobile-search-icon');
-let $closeSearchIcon = $('.mobile-close-search');
-let $searchForm = $('.search-form');
-$searchIcon.click((e) => {
-  $searchForm.animate({left: 0}, {duration: 500});
-});
-$closeSearchIcon.click((e) => {
-  $searchForm.animate({left: '-100vw'}, {duration: 500});
-});
 
 // Sticky footer
 
@@ -109,39 +80,6 @@ $(function () {
   });
 });
 
-// Sorter dropdown
-
-$(document).ready((e) => {
-  $('.sort-by button').on('click', (e) => {
-    const t = $(e.currentTarget).parent();
-    const l = t.find('.sort-list');
-    if (l.hasClass('d-none')) {
-      l.removeClass('d-none');
-      t.find('.click-area').removeClass('d-none');
-    } else {
-      l.addClass('d-none');
-      t.find('.click-area').addClass('d-none');
-    }
-  });
-  $('.sort-by .click-area').on('click', (e) => {
-    $('.sort-by .sort-list').addClass('d-none');
-    $(e.currentTarget).addClass('d-none');
-  });
-});
-
-// Mobile filters menu
-
-$(document).ready((e) => {
-  $('.filters-menu').on('click', (e) => {
-    const t = $('.filters-menu__body');
-    if (t.hasClass('d-none')) {
-      t.removeClass('d-none');
-    } else {
-      t.addClass('d-none');
-    }
-  });
-});
-
 // Input Passwords
 
 let $inputPassword = $('input[type=password]');
@@ -156,63 +94,6 @@ $('.passIcon').on('click', (e) => {
     $input.attr('type', 'password');
     $(e.target).attr('src', passwordIvisible);
   }
-});
-
-// Cart dropdown
-
-let summaryLink = '/cart/summary/';
-let $cartDropdown = $('.cart-dropdown');
-let $cartIcon = $('.cart__icon');
-let $addToCartError = $('.product__info__form-error small');
-
-const onAddToCartSuccess = () => {
-  $.get(summaryLink, (data) => {
-    $cartDropdown.html(data);
-    $addToCartError.html('');
-    var newQunatity = $('.cart-dropdown__total').data('quantity');
-    $('.badge').html(newQunatity).removeClass('empty');
-    $cartDropdown.addClass('show');
-    $cartIcon.addClass('hover');
-    $cartDropdown.find('.cart-dropdown__list').scrollTop($cartDropdown.find('.cart-dropdown__list')[0].scrollHeight);
-    setTimeout((e) => {
-      $cartDropdown.removeClass('show');
-      $cartIcon.removeClass('hover');
-    }, 2500);
-  });
-};
-
-const onAddToCartError = (response) => {
-  $addToCartError.html(getAjaxError(response));
-};
-
-$.get(summaryLink, (data) => {
-  $cartDropdown.html(data);
-});
-$('.navbar__brand__cart').hover((e) => {
-  $cartDropdown.addClass('show');
-  $cartIcon.addClass('hover');
-}, (e) => {
-  $cartDropdown.removeClass('show');
-  $cartIcon.removeClass('hover');
-});
-$('.product-form button').click((e) => {
-  e.preventDefault();
-  let quantity = $('#id_quantity').val();
-  let variant = $('#id_variant').val();
-  $.ajax({
-    url: $('.product-form').attr('action'),
-    type: 'POST',
-    data: {
-      variant: variant,
-      quantity: quantity
-    },
-    success: () => {
-      onAddToCartSuccess();
-    },
-    error: (response) => {
-      onAddToCartError(response);
-    }
-  });
 });
 
 // Delivery information
