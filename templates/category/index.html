@@ -171,6 +171,7 @@
                     <input id="price_0" name="price_0" type="number" min="0" class="form-control"
                            placeholder="from"><span>-</span><input id="price_1" name="price_1" type="number" min="0"
                                                                    class="form-control" placeholder="to">
+                    <input type="hidden" name="sort_by" value="{{ request.GET.sort_by }}">
                     <button class="btn primary" type="submit">Update</button>
                   </div>
                 </div>
