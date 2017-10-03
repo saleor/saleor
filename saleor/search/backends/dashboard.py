@@ -94,7 +94,7 @@ class DashboardSearchResults(DEFAULT_BACKEND_RESULTS_CLASS):
         scores = {}
         for hit in hits['hits']['hits']:
             hit_type = hit['_type']
-            hit_pk = hit['fields']['pk'][0]
+            hit_pk = hit['_source']['pk']
             search_hits[hit_type].append(hit_pk)
             scores[hit['_id']] = hit['_score']
 
