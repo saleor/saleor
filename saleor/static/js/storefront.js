@@ -139,6 +139,19 @@ $(document).ready((e) => {
   });
 });
 
+// Mobile filters menu
+
+$(document).ready((e) => {
+  $('.filters-menu').on('click', (e) => {
+    const t = $('.filters-menu__body');
+    if(t.hasClass('d-none')) {
+      t.removeClass('d-none');
+    } else {
+      t.addClass('d-none');
+    }
+  });
+});
+
 // Input Passwords
 
 let $inputPassword = $('input[type=password]');
