@@ -2,19 +2,16 @@
 
 {% load i18n %}
 
-{% block action_url %}{% url 'dashboard:group-delete' pk=group.pk %}{% endblock %}
+{% block action_url %}{% url 'dashboard:staff-delete' pk=staff.pk %}{% endblock %}
 
 {% block title %}
 {% blocktrans trimmed context "Modal delete group text" %}
-  Delete group <strong>{{ group }}</strong>?
+  Delete staff member <strong>{{ staff }}</strong>?
 {% endblocktrans %}
 {% endblock %}
 
 {% block content %}
 {% blocktrans trimmed context "Modal delete group text" %}
-<p>Are you sure you want to delete group {{ group }}?</p>
-<p>Users might lose permissions related to this group.</p>
+<p>Are you sure you want to delete staff member {{ staff }}?</p>
 {% endblocktrans %}
 {% endblock content %}
-
-

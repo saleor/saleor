@@ -63,6 +63,4 @@ def group_delete(request, pk):
         )
         return redirect('dashboard:group-list')
     return TemplateResponse(
-        request, 'dashboard/group/modal/confirm_delete.html',
-        {'group': group}
-    )
+        request, 'dashboard/group/modal/confirm_delete.html', {'group': group})

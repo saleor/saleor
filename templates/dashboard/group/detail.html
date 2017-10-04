@@ -50,7 +50,7 @@
       <li>
         <a href="#base-modal" data-href="{% url 'dashboard:group-delete' pk=group.pk %}"
         class="modal-trigger-custom">
-          {% trans "Remove group" context "Group form action" %}
+          {% trans 'Remove group' context 'Group form action' %}
         </a>
       </li>
     </ul>
@@ -82,7 +82,11 @@
                 {% trans "Cancel" context "Dashboard cancel action" %}
               </a>
               <button type="submit" class="btn waves-effect waves-light">
-                  {% trans "Update" context "Dashboard update action" %}
+                {% if group.name %}
+                  {% trans 'Update' context 'Dashboard update action' %}
+                {% else %}
+                  {% trans 'Add' context 'Dashboard add action' %}
+                {% endif %}
               </button>
             </div>
           </div>
