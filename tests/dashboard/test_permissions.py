@@ -693,13 +693,13 @@ def test_group_detail_form_valid(
     assert staff_group.permissions.get(pk=permission_view_product.pk)
 
 
-def test_user_group_form_not_valid(db):
+def test_staff_form_not_valid(db):
     data = {'groups': 1}
     form = StaffForm(data=data)
     assert not form.is_valid()
 
 
-def test_user_group_form_create_valid(
+def test_staff_form_create_valid(
         admin_client, staff_user, staff_group):
     url = reverse('dashboard:staff-details', args=[staff_user.pk])
     data = {'email': 'staff@example.com', 'groups': staff_group.pk}
@@ -708,7 +708,7 @@ def test_user_group_form_create_valid(
     assert staff_user.groups.count() == 1
 
 
-def test_user_group_form_create_not_valid(admin_client, staff_user):
+def test_staff_form_create_not_valid(admin_client, staff_user):
     url = reverse('dashboard:staff-details', args=[staff_user.pk])
     data = {'groups': 1}
     admin_client.post(url, data)
