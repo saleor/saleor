@@ -401,12 +401,20 @@ $('.toggle-filter').each(function () {
   let filterArrowDown = $('.product-filters__attributes').data('icon-down');
   let filterArrowUp = $('.product-filters__attributes').data('icon-up');
 
+  ele.attr('aria-expanded', '');
+
   $(this).find('.filter-label').on('click', () => {
-    if (ele.css('display') == 'block') {
-      ele.css('display', 'none');
+    if (ele.attr('aria-expanded') !== undefined) {
+      ele.removeAttr('aria-expanded').find('input[type="checkbox"]').each((i, el) => {
+        if (!el.checked) {
+          $(el.parentNode.parentNode).addClass('d-none');
+        }
+      });
       icon.find('img').attr('src', filterArrowDown);
     } else {
-      ele.css('display', 'block');
+      ele.attr('aria-expanded', '').find('input[type="checkbox"]').each((i, el) => {
+        $(el.parentNode.parentNode).removeClass('d-none');
+      });
       icon.find('img').attr('src', filterArrowUp);
     }
   });
