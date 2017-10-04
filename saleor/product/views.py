@@ -9,14 +9,15 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 
 from ..cart.utils import set_cart_cookie
-from ..core.utils import serialize_decimal, get_paginator_items
+from ..core.utils import get_paginator_items, serialize_decimal
 from ..settings import PAGINATE_BY
-from .filters import ProductFilter, SORT_BY_FIELDS
+from .filters import SORT_BY_FIELDS, ProductFilter
 from .models import Category
 from .utils import (products_with_details, products_for_cart,
                     handle_cart_form, get_availability,
                     get_product_images, get_variant_picker_data,
-                    get_product_attributes_data, product_json_ld)
+                    get_product_attributes_data,
+                    product_json_ld, products_with_availability)
 
 
 def product_details(request, slug, product_id, form=None):
@@ -114,17 +115,17 @@ def product_add_to_cart(request, slug, product_id):
 def category_index(request, path, category_id):
     category = get_object_or_404(Category, id=category_id)
     actual_path = category.get_full_path()
-    products = products_with_details(
-        user=request.user).filter(categories__name=category)
-    product_filter = ProductFilter(request.GET, queryset=products)
-    products_with_availability = [
-        (product, get_availability(product, request.discounts, request.currency))
-        for product in product_filter.qs]
     if actual_path != path:
         return redirect('product:category', permanent=True, path=actual_path,
                         category_id=category_id)
+    products = products_with_details(
+        user=request.user).filter(categories__name=category)
+    product_filter = ProductFilter(request.GET, queryset=products)
+    products = list(products_with_availability(
+        product_filter.qs, request.discounts, request.currency))
     products_paginated = get_paginator_items(
-        products_with_availability, PAGINATE_BY, request.GET.get('page'))
-    context = {'category': category, 'products': products_paginated,
-               'filter': product_filter, 'sort_by_choices': SORT_BY_FIELDS}
+        products, PAGINATE_BY, request.GET.get('page'))
+    context = {'category': category, 'filter': product_filter,
+               'products': products_paginated,
+               'sort_by_choices': [choice[1] for choice in SORT_BY_FIELDS]}
     return TemplateResponse(request, 'category/index.html', context)

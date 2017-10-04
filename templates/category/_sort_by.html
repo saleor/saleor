@@ -2,21 +2,21 @@
 {% load shop %}
 {% load staticfiles %}
 
-<li class="{{ attribute }}">
+<li>
   <div class="row">
     <div class="col-6">
-      Sort by: <strong>{% blocktrans %}{{ attribute }}{% endblocktrans %}</strong>
+      Sort by: <strong>{{ ascending_attribute }}</strong>
     </div>
     <div class="col-6">
-      <div class="{{ attribute }}">
-        <a href="{% get_sort_by_url attribute %}">
-          <span>ascending</span>
+      <div>
+        <a href="{% get_sort_by_url ascending_attribute %}">
+          <span>{% trans 'ascending' context 'sort by option' %}</span>
           <div class="sort-order-icon float-right">
             <img src="{% static "assets/arrow_up.svg" %}">
           </div>
         </a>
-        <a href="{% get_sort_by_url negativ_attribute %}">
-          <span>descending</span>
+        <a href="{% get_sort_by_url descending_attribute %}">
+          <span>{% trans 'descending' context 'sort by option' %}</span>
           <div class="sort-order-icon float-right">
             <img src="{% static "assets/arrow_down.svg" %}">
           </div>
