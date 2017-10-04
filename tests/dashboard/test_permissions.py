@@ -702,7 +702,7 @@ def test_user_group_form_not_valid(db):
 def test_user_group_form_create_valid(
         admin_client, staff_user, staff_group):
     url = reverse('dashboard:staff-details', args=[staff_user.pk])
-    data = {'groups': staff_group.pk}
+    data = {'email': 'staff@example.com', 'groups': staff_group.pk}
     admin_client.post(url, data)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.groups.count() == 1
