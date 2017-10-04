@@ -117,14 +117,14 @@ def category_index(request, path, category_id):
     products = products_with_details(
         user=request.user).filter(categories__name=category)
     product_filter = ProductFilter(request.GET, queryset=products)
-    products = [
+    products_with_availability = [
         (product, get_availability(product, request.discounts, request.currency))
         for product in product_filter.qs]
     if actual_path != path:
         return redirect('product:category', permanent=True, path=actual_path,
                         category_id=category_id)
-    products = get_paginator_items(
-        products, PAGINATE_BY, request.GET.get('page'))
-    context = {'category': category, 'products': products,
+    products_paginated = get_paginator_items(
+        products_with_availability, PAGINATE_BY, request.GET.get('page'))
+    context = {'category': category, 'products': products_paginated,
                'filter': product_filter, 'sort_by_choices': SORT_BY_FIELDS}
     return TemplateResponse(request, 'category/index.html', context)

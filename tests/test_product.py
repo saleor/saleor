@@ -371,8 +371,8 @@ def test_variant_availability_status(unavailable_product):
     assert status == VariantAvailabilityStatus.AVAILABLE
 
 
-def test_product_filter_empty_get(authorized_client, product_in_stock,
-                                  default_category):
+def test_product_filter_before_filtering(
+        authorized_client, product_in_stock, default_category):
     products = models.Product.objects.all()
     url = reverse(
         'product:category', kwargs={'path': default_category.slug,
@@ -392,8 +392,8 @@ def test_product_filter_product_exists(authorized_client, product_in_stock,
     assert list(response.context['filter'].qs) == list(products)
 
 
-def test_product_filter_product_not_exists(authorized_client, product_in_stock,
-                                           default_category):
+def test_product_filter_product_does_not_exists(
+        authorized_client, product_in_stock, default_category):
     url = reverse(
         'product:category', kwargs={'path': default_category.slug,
                                     'category_id': default_category.pk})
@@ -408,23 +408,7 @@ def test_product_filter_form(authorized_client, product_in_stock,
     url = reverse(
         'product:category', kwargs={'path': default_category.slug,
                                     'category_id': default_category.pk})
-    data = {'price_0': [''], 'price_1': ['20']}
-    response = authorized_client.get(url, data)
+    response = authorized_client.get(url)
     assert 'price' in response.context['filter'].form.fields.keys()
     assert 'sort_by' in response.context['filter'].form.fields.keys()
-    assert list(response.context['filter'].qs) == list(products)
-
-
-def test_product_filter_standard_form(authorized_client, product_in_stock,
-                                      default_category):
-    products = models.Product.objects.all()
-    url = reverse(
-        'product:category', kwargs={'path': default_category.slug,
-                                    'category_id': default_category.pk})
-    data = {'price_0': [''], 'price_1': ['20']}
-    response = authorized_client.get(url, data)
-    assert 'price' not in \
-           response.context['filter'].product_attributes_filter_form.fields.keys()
-    assert 'sort_by' not in \
-           response.context['filter'].product_attributes_filter_form.fields.keys()
     assert list(response.context['filter'].qs) == list(products)
