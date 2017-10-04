@@ -1,8 +1,6 @@
 {% extends "dashboard/base.html" %}
 {% load materializecss %}
-{% load prices_i18n %}
 {% load i18n %}
-{% load status %}
 {% load staticfiles %}
 
 {% block title %}
@@ -41,7 +39,7 @@
         <form class="card" method="post">
           <div class="card-content">
             <span class="card-title">
-              User groups
+              {% trans 'User details' context "User details header" %}
             </span>
             <div class="data">
                 {% csrf_token %}
@@ -52,7 +50,7 @@
           </div>
           <div class="card-action right-align">
             <button type="submit" class="btn waves-effect waves-light">
-                {% trans "Update" context "Dashboard update action" %}
+              {% trans "Update" context "Dashboard update action" %}
             </button>
           </div>
         </form>

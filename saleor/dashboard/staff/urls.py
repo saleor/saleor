@@ -6,4 +6,5 @@ from . import views
 urlpatterns = [
     url(r'^$', views.staff_list, name='staff-list'),
     url(r'^(?P<pk>[0-9]+)/$', views.staff_details, name='staff-details'),
+    url(r'^add/$', views.staff_create, name='staff-create'),
 ]

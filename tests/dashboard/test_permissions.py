@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.models import Group
 from saleor.userprofile.models import User
 from saleor.dashboard.group.forms import GroupPermissionsForm
-from saleor.dashboard.staff.forms import UserGroupForm
+from saleor.dashboard.staff.forms import StaffForm
 
 
 def test_admin_can_view_staff_list(admin_client):
@@ -695,7 +695,7 @@ def test_group_detail_form_valid(
 
 def test_user_group_form_not_valid(db):
     data = {'groups': 1}
-    form = UserGroupForm(data=data)
+    form = StaffForm(data=data)
     assert not form.is_valid()
 
 
