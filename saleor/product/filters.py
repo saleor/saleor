@@ -10,8 +10,13 @@ from django_prices.models import PriceField
 
 from .models import Product, ProductAttribute
 
-SORT_BY_FIELDS = (('name', pgettext_lazy('Sort by filter', 'name')),
-                  ('price', pgettext_lazy('Sort by filter', 'price')))
+# SORT_BY_FIELDS = (('name', pgettext_lazy('Sort by filter', 'name')),
+#                   ('price', pgettext_lazy()))
+
+SORT_BY_FIELDS = [{'value': 'name',
+                   'label': pgettext_lazy('Sort by filter', 'name')},
+                  {'value': 'price',
+                   'label': pgettext_lazy('Sort by filter', 'price')}]
 
 
 class ProductFilter(FilterSet):
@@ -26,7 +31,7 @@ class ProductFilter(FilterSet):
 
     sort_by = OrderingFilter(
         label='Sort by',
-        fields=SORT_BY_FIELDS
+        fields=[(field['value'], field['value']) for field in SORT_BY_FIELDS]
     )
 
     class Meta:
