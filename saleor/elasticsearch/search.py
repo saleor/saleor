@@ -148,7 +148,6 @@ def search(query, size=10, page=1, doc_type=None, fields=QUERY_FIELDS):
     }
 
     search_params = {}
-    print(doc_type)
     if doc_type == 'artist':
         search_params['index'] = 'oye-artists'
     elif doc_type == 'release':
