@@ -130,5 +130,5 @@ def category_index(request, path, category_id):
            'products': products_and_availability,
            'products_paginated': products_paginated,
            'sort_by_choices': SORT_BY_FIELDS,
-           'show_pagination': len(products) > PAGINATE_BY }
+           'show_pagination': len(products) > PAGINATE_BY}
     return TemplateResponse(request, 'category/index.html', ctx)
