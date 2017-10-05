@@ -26,7 +26,6 @@ def search(request):
         results = products_with_availability(
             results, discounts=request.discounts,
             local_currency=request.currency)
-        results = list(results)
         query = form.cleaned_data.get('q', '')
     else:
         results = []
