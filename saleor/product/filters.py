@@ -10,8 +10,8 @@ from django_prices.models import PriceField
 
 from .models import Product, ProductAttribute
 
-SORT_BY_FIELDS = (('price', pgettext_lazy('Sort by filter', 'price')),
-                  ('name', pgettext_lazy('Sort by filter', 'name')))
+SORT_BY_FIELDS = (('name', pgettext_lazy('Sort by filter', 'name')),
+                  ('price', pgettext_lazy('Sort by filter', 'price')))
 
 
 class ProductFilter(FilterSet):

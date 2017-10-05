@@ -1,0 +1,30 @@
+{% load sort_by from sort_by %}
+{% load staticfiles %}
+{% load i18n %}
+{% load shop %}
+
+<div class="sort-by">
+  <div class="click-area d-none"></div>
+  <button class="btn btn-link">
+    <div>
+      <span>
+        Sort by:&nbsp;
+        <strong>
+          {{ choice }}
+        </strong>
+      </span>
+      <div class="sort-order-icon">
+        {% if arrow_up %}
+          <svg data-src="{% static "assets/arrow_up.svg" %}">
+        {% else %}
+          <svg data-src="{% static "assets/arrow_down.svg" %}">
+        {% endif %}
+      </div>
+    </div>
+  </button>
+  <ul class="sort-list d-none">
+    {% for choice in sort_by_choices %}
+      {% sort_by choice %}
+    {% endfor %}
+  </ul>
+</div>

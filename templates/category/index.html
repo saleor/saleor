@@ -3,7 +3,7 @@
 {% load i18n %}
 {% load shop %}
 {% load staticfiles %}
-{% load sort_by from sort_by %}
+{% load sort_menu from sort_menu %}
 {% load render_bundle from webpack_loader %}
 {% load prices_i18n %}
 
@@ -45,35 +45,7 @@
               <span class="filters-menu__label d-sm-none">Filters</span>
             </div>
             <div class="col-6 col-md-10 col-lg-6">
-              <div class="sort-by">
-                <div class="click-area d-none"></div>
-                <button class="btn btn-link">
-                  <div>
-                    <span>
-                      Sort by:&nbsp;
-                      <strong>
-                        {% if request.GET.sort_by in sort_by_choices %}
-                          {% trans "name" context "Product name" %}
-                        {% elif request.GET.sort_by == 'price' or request.GET.sort_by == '-price' %}
-                          {% trans "price" context "Product price" %}
-                        {% endif %}
-                      </strong>
-                    </span>
-                    <div class="sort-order-icon">
-                      {% if request.GET.sort_by == '-name' or request.GET.sort_by == '-price' %}
-                        <svg data-src="{% static "assets/arrow_down.svg" %}">
-                      {% else %}
-                        <svg data-src="{% static "assets/arrow_up.svg" %}">
-                      {% endif %}
-                    </div>
-                  </div>
-                </button>
-                <ul class="sort-list d-none">
-                  {% for choice in sort_by_choices %}
-                    {% sort_by choice %}
-                  {% endfor %}
-                </ul>
-              </div>
+              {% sort_menu sort_by_choices %}
             </div>
           </div>
         </div>
