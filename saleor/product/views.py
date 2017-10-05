@@ -126,9 +126,9 @@ def category_index(request, path, category_id):
         product_filter.qs, PAGINATE_BY, request.GET.get('page'))
     products_and_availability = list(products_with_availability(
         products_paginated, request.discounts, request.currency))
-    context = {'category': category, 'filter': product_filter,
-               'products': products_and_availability,
-               'products_paginated': products_paginated,
-               'sort_by_choices': [choice[1] for choice in SORT_BY_FIELDS],
-               'show_pagination': True if len(products) > PAGINATE_BY else False}
-    return TemplateResponse(request, 'category/index.html', context)
+    ctx = {'category': category, 'filter': product_filter,
+           'products': products_and_availability,
+           'products_paginated': products_paginated,
+           'sort_by_choices': [choice[1] for choice in SORT_BY_FIELDS],
+           'show_pagination': True if len(products) > PAGINATE_BY else False}
+    return TemplateResponse(request, 'category/index.html', ctx)
