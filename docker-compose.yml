@@ -11,6 +11,17 @@ services:
     image: redis
     ports:
       - '127.0.0.1:6379:6379'
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery worker -A saleor.celery
+    volumes:
+      - .:/app:Z
+    links:
+      - redis
+    depends_on:
+      - redis
   search:
     image: elasticsearch:5.4
     ports:
@@ -24,6 +35,7 @@ services:
       - ELASTICSEARCH_URL=http://search:9200
       - OPENEXCHANGERATES_API_KEY
       - REDIS_URL=redis://redis:6379/0
+      - REDIS_BROKER_URL=redis://redis:6379/1
       - SECRET_KEY=changeme
     depends_on:
       - db
