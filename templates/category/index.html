@@ -52,7 +52,7 @@
                     <span>
                       Sort by:&nbsp;
                       <strong>
-                        {% if request.GET.sort_by == 'name' or request.GET.sort_by == '-name' %}
+                        {% if request.GET.sort_by in sort_by_choices %}
                           {% trans "name" context "Product name" %}
                         {% elif request.GET.sort_by == 'price' or request.GET.sort_by == '-price' %}
                           {% trans "price" context "Product price" %}
@@ -160,7 +160,7 @@
             </div>
             <div class="row">
               <div class="m-auto">
-                {% bootstrap_pagination products extra=request.GET.urlencode %}
+                {% bootstrap_pagination products_paginated extra=request.GET.urlencode %}
               </div>
             </div>
           </div>

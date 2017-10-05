@@ -121,11 +121,12 @@ def category_index(request, path, category_id):
     products = products_with_details(
         user=request.user).filter(categories__name=category)
     product_filter = ProductFilter(request.GET, queryset=products)
-    products = list(products_with_availability(
-        product_filter.qs, request.discounts, request.currency))
     products_paginated = get_paginator_items(
-        products, PAGINATE_BY, request.GET.get('page'))
+        product_filter.qs, PAGINATE_BY, request.GET.get('page'))
+    products_and_availability = list(products_with_availability(
+        products_paginated, request.discounts, request.currency))
     context = {'category': category, 'filter': product_filter,
-               'products': products_paginated,
+               'products': products_and_availability,
+               'products_paginated': products_paginated,
                'sort_by_choices': [choice[1] for choice in SORT_BY_FIELDS]}
     return TemplateResponse(request, 'category/index.html', context)
