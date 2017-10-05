@@ -12,7 +12,7 @@ from ..cart.utils import set_cart_cookie
 from ..core.utils import get_paginator_items, serialize_decimal
 from ..settings import PAGINATE_BY
 from .filters import SORT_BY_FIELDS, ProductFilter
-from .models import Category
+from .models import Category, ProductAttribute, AttributeChoiceValue
 from .utils import (products_with_details, products_for_cart,
                     handle_cart_form, get_availability,
                     get_product_images, get_variant_picker_data,
@@ -120,7 +120,8 @@ def category_index(request, path, category_id):
                         category_id=category_id)
     products = products_with_details(
         user=request.user).filter(categories__name=category)
-    product_filter = ProductFilter(request.GET, queryset=products)
+    product_filter = ProductFilter(
+        request.GET, queryset=products, category=category)
     products_paginated = get_paginator_items(
         product_filter.qs, PAGINATE_BY, request.GET.get('page'))
     products_and_availability = list(products_with_availability(
