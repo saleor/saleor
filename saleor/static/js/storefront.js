@@ -405,14 +405,14 @@ $('.toggle-filter').each(function () {
 
   $(this).find('.filter-label').on('click', () => {
     if (ele.attr('aria-expanded') !== undefined) {
-      ele.removeAttr('aria-expanded').find('input[type="checkbox"]').each((i, el) => {
+      ele.removeAttr('aria-expanded').find('input[type="checkbox"], input[type="number"]').each((i, el) => {
         if (!el.checked) {
           $(el.parentNode.parentNode).addClass('d-none');
         }
       });
       icon.find('img').attr('src', filterArrowDown);
     } else {
-      ele.attr('aria-expanded', '').find('input[type="checkbox"]').each((i, el) => {
+      ele.attr('aria-expanded', '').find('input[type="checkbox"], input[type="number"]').each((i, el) => {
         $(el.parentNode.parentNode).removeClass('d-none');
       });
       icon.find('img').attr('src', filterArrowUp);
