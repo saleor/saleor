@@ -160,7 +160,9 @@
             </div>
             <div class="row">
               <div class="m-auto">
-                {% bootstrap_pagination products_paginated extra=request.GET.urlencode %}
+                {% if show_pagination %}
+                  {% bootstrap_pagination products_paginated extra=request.GET.urlencode %}
+                {% endif %}
               </div>
             </div>
           </div>
