@@ -8,7 +8,7 @@ from django.utils.translation import pgettext_lazy
 
 from django_prices.models import PriceField
 
-from .models import Product, ProductAttribute, AttributeChoiceValue
+from .models import Product, ProductAttribute
 
 SORT_BY_FIELDS = (('price', pgettext_lazy('Sort by filter', 'price')),
                   ('name', pgettext_lazy('Sort by filter', 'name')))
@@ -40,16 +40,16 @@ class ProductFilter(FilterSet):
 
     def _get_attributes(self, category):
         product_attributes = \
-            (ProductAttribute.objects
+            (ProductAttribute.objects.all()
              .prefetch_related('values')
              .filter(products_class__products__categories=category)
              .distinct())
         variant_attributes = \
-            (ProductAttribute.objects
+            (ProductAttribute.objects.all()
              .prefetch_related('values')
              .filter(product_variants_class__products__categories=category)
              .distinct())
-        return list(product_attributes), list(variant_attributes)
+        return product_attributes, variant_attributes
 
     def _add_product_attributes_filters(self):
         for attribute in self.product_attributes:

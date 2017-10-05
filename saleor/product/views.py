@@ -12,7 +12,7 @@ from ..cart.utils import set_cart_cookie
 from ..core.utils import get_paginator_items, serialize_decimal
 from ..settings import PAGINATE_BY
 from .filters import SORT_BY_FIELDS, ProductFilter
-from .models import Category, ProductAttribute, AttributeChoiceValue
+from .models import Category
 from .utils import (products_with_details, products_for_cart,
                     handle_cart_form, get_availability,
                     get_product_images, get_variant_picker_data,
