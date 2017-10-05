@@ -66,6 +66,7 @@ services:
       - rabbitmq
     entrypoint: /app/celery-entrypoint.sh
     volumes:
+      - ${DOCKER_HOST_OYE_MEDIA_ROOT}:${MEDIA_ROOT}
       - ./docker/celery-entrypoint.sh:/app/celery-entrypoint.sh
       - ./wait-for-it.sh:/wait-for-it.sh
     network_mode: "host"
