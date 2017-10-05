@@ -312,7 +312,6 @@ MESSAGE_TAGS = {
     messages.ERROR: 'danger'}
 
 LOW_STOCK_THRESHOLD = 10
-MAX_CART_LINE_QUANTITY = os.environ.get('MAX_CART_LINE_QUANTITY', 50)
 
 PAGINATE_BY = 16
 
@@ -360,34 +359,12 @@ VERSATILEIMAGEFIELD_SETTINGS = {
         os.environ.get('CREATE_IMAGES_ON_DEMAND', 'True')),
 }
 
-WEBPACK_LOADER = {
-    'DEFAULT': {
-        'CACHE': not DEBUG,
-        'BUNDLE_DIR_NAME': 'assets/',
-        'STATS_FILE': os.path.join(PROJECT_ROOT, 'webpack-bundle.json'),
-        'POLL_INTERVAL': 0.1,
-        'IGNORE': [
-            r'.+\.hot-update\.js',
-            r'.+\.map']}}
-
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_EMAIL_VERIFICATION = 'none'
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_LOGOUT_ON_GET = True
-ACCOUNT_SESSION_REMEMBER = False
-ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
-ACCOUNT_FORMS = {
-    'reset_password_from_key': 'saleor.userprofile.forms.SetPasswordForm'
-}
 
 ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
-SEARCHBOX_URL = os.environ.get('SEARCHBOX_URL')
-BONSAI_URL = os.environ.get('BONSAI_URL')
+
 # We'll support couple of elasticsearch add-ons, but finally we'll use single
 # variable
-ES_URL = ELASTICSEARCH_URL or SEARCHBOX_URL or BONSAI_URL or ''
+ES_URL = ELASTICSEARCH_URL or ''
 if ES_URL:
     SEARCH_BACKENDS = {
         'default': {
@@ -420,7 +397,6 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        # 'rest_framework.authentication.BasicAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 25,
