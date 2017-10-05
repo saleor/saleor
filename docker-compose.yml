@@ -3,12 +3,14 @@ services:
 
   redis:
     image: redis
+    restart: always
     ports:
       - 6379
     network_mode: "host"
 
   search:
     image: elasticsearch:5.5
+    restart: always
     ports:
       - 9200
     environment:
@@ -28,6 +30,7 @@ services:
 
   rabbitmq:
     image: 'rabbitmq:3'
+    restart: always
     entrypoint: /app/rabbitmq-entrypoint.sh
     env_file: .env
     ports:
@@ -40,6 +43,7 @@ services:
 
   web: &web
     image: oyelogic:latest
+    restart: always
     entrypoint: /app/docker-entrypoint.sh
     env_file: .env
     depends_on:
@@ -55,6 +59,7 @@ services:
 
   celeryworker:
     image: oyelogic:latest
+    restart: always
     env_file: .env
     depends_on:
       - redis
@@ -67,6 +72,7 @@ services:
 
   celerybeat:
     image: oyelogic:latest
+    restart: always
     env_file: .env
     depends_on:
       - rabbitmq
