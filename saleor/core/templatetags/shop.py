@@ -21,9 +21,5 @@ def slice(items, group_size=1):
 def get_sort_by_url(context, field):
     request = context['request']
     request_get = request.GET.dict()
-    if field == request_get.get('sort_by'):
-        new_sort_by = '-%s' % field  # descending sort
-    else:
-        new_sort_by = field  # ascending sort
-    request_get['sort_by'] = new_sort_by
+    request_get['sort_by'] = field
     return '%s?%s' % (request.path, urlencode(request_get))
