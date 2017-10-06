@@ -5,7 +5,7 @@ register = template.Library()
 
 @register.inclusion_tag('category/_sort_by.html', takes_context=True)
 def sort_by(context, attribute):
-    context['label'] = attribute['label']
-    context['ascending_attribute'] = attribute['value']
-    context['descending_attribute'] = '-' + str(attribute['value'])
-    return context
+    return {'request': context['request'],
+            'label': attribute['label'],
+            'ascending_attribute': attribute['value'],
+            'descending_attribute': '-' + str(attribute['value'])}

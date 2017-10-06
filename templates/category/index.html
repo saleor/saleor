@@ -132,7 +132,7 @@
             </div>
             <div class="row">
               <div class="m-auto">
-                {% if show_pagination %}
+                {% if products_paginated.has_other_pages %}
                   {% bootstrap_pagination products_paginated extra=request.GET.urlencode %}
                 {% endif %}
               </div>
