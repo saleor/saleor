@@ -220,10 +220,12 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
         if lookup == 'exact':
             if value is None:
                 return {
-                    'missing': {
-                        'field': column_name,
+                    'bool': {
+                        'must_not': {
+                            'field': column_name,
+                            }
+                        }
                     }
-                }
             else:
                 return {
                     'term': {
@@ -234,10 +236,12 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
         if lookup == 'isnull':
             if value:
                 return {
-                    'missing': {
-                        'field': column_name,
+                    'bool': {
+                        'must_not': {
+                            'field': column_name,
+                            }
+                        }
                     }
-                }
             else:
                 return {
                     'exists': {
