@@ -179,6 +179,7 @@ INSTALLED_APPS = [
     'webpack_loader',
     'social_django',
     'django_countries',
+    'django_filters',
 ]
 
 LOGGING = {

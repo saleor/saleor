@@ -63,7 +63,6 @@ var faviconsWebpackPlugin = new FaviconsWebpackPlugin({
 
 var config = {
   entry: {
-    category: './saleor/static/js/category.js',
     dashboard: './saleor/static/dashboard/js/dashboard.js',
     storefront: './saleor/static/js/storefront.js',
     vendor: [
@@ -71,8 +70,7 @@ var config = {
       'bootstrap',
       'jquery',
       'jquery.cookie',
-      'react',
-      'react-relay'
+      'react'
     ]
   },
   output: output,
