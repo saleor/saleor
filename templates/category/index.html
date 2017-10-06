@@ -3,7 +3,6 @@
 {% load i18n %}
 {% load shop %}
 {% load staticfiles %}
-{% load sort_menu from sort_menu %}
 {% load render_bundle from webpack_loader %}
 {% load prices_i18n %}
 
@@ -45,7 +44,7 @@
               <span class="filters-menu__label d-sm-none">Filters</span>
             </div>
             <div class="col-6 col-md-10 col-lg-6">
-              {% sort_menu sort_by_choices %}
+              {% sort_by sort_by_choices %}
             </div>
           </div>
         </div>

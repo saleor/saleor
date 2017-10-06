@@ -1,27 +1,51 @@
+{% load staticfiles %}
 {% load i18n %}
 {% load shop %}
-{% load staticfiles %}
 
-<li>
-  <div class="row">
-    <div class="col-6">
-      Sort by: <strong>{{ label }}</strong>
-    </div>
-    <div class="col-6">
-      <div>
-        <a href="{% get_sort_by_url ascending_attribute %}">
-          <span>{% trans 'ascending' context 'sort by option' %}</span>
-          <div class="sort-order-icon float-right">
-            <img src="{% static "assets/arrow_up.svg" %}">
-          </div>
-        </a>
-        <a href="{% get_sort_by_url descending_attribute %}">
-          <span>{% trans 'descending' context 'sort by option' %}</span>
-          <div class="sort-order-icon float-right">
-            <img src="{% static "assets/arrow_down.svg" %}">
-          </div>
-        </a>
+<div class="sort-by">
+  <div class="click-area d-none"></div>
+  <button class="btn btn-link">
+    <div>
+      <span>
+        Sort by:&nbsp;
+        <strong>
+          {{ sort_by }}
+        </strong>
+      </span>
+      <div class="sort-order-icon">
+        {% if arrow_down %}
+          <svg data-src="{% static "assets/arrow_down.svg" %}">
+        {% else %}
+          <svg data-src="{% static "assets/arrow_up.svg" %}">
+        {% endif %}
       </div>
     </div>
-  </div>
-</li>
+  </button>
+  <ul class="sort-list d-none">
+    {% for choice in sort_by_choices %}
+      <li>
+        <div class="row">
+          <div class="col-6">
+            Sort by: <strong>{{ choice.label }}</strong>
+          </div>
+          <div class="col-6">
+            <div>
+              <a href="{% get_sort_by_url choice.value %}">
+                <span>{% trans 'ascending' context 'sort by option' %}</span>
+                <div class="sort-order-icon float-right">
+                  <img src="{% static "assets/arrow_up.svg" %}">
+                </div>
+              </a>
+              <a href="{% get_sort_by_url choice.value descending=True %}">
+                <span>{% trans 'descending' context 'sort by option' %}</span>
+                <div class="sort-order-icon float-right">
+                  <img src="{% static "assets/arrow_down.svg" %}">
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
