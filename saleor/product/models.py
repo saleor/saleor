@@ -146,7 +146,8 @@ class Product(models.Model, ItemRange, index.Indexed):
     search_fields = [
         index.SearchField('name', partial_match=True),
         index.SearchField('description'),
-        index.FilterField('available_on')]
+        index.FilterField('available_on'),
+        index.FilterField('is_published')]
 
     class Meta:
         app_label = 'product'
