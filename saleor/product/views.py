@@ -11,7 +11,7 @@ from django.template.response import TemplateResponse
 from ..cart.utils import set_cart_cookie
 from ..core.utils import get_paginator_items, serialize_decimal
 from ..settings import PAGINATE_BY
-from .filters import SORT_BY_FIELDS, ProductFilter
+from .filters import DEFAULT_SORT, ProductFilter, SORT_BY_FIELDS
 from .models import Category
 from .utils import (products_with_details, products_for_cart,
                     handle_cart_form, get_availability,
@@ -118,8 +118,9 @@ def category_index(request, path, category_id):
     if actual_path != path:
         return redirect('product:category', permanent=True, path=actual_path,
                         category_id=category_id)
-    products = products_with_details(
-        user=request.user).filter(categories__name=category).order_by('name')
+    products = (products_with_details(user=request.user)
+                .filter(categories__name=category)
+                .order_by(DEFAULT_SORT))
     product_filter = ProductFilter(
         request.GET, queryset=products, category=category)
     products_paginated = get_paginator_items(

@@ -11,6 +11,9 @@ from django_prices.models import PriceField
 from .models import Product, ProductAttribute
 
 
+DEFAULT_SORT = 'name'
+
+
 SORT_BY_FIELDS = [{'value': 'name',
                    'label': pgettext_lazy('Sort by filter', 'name')},
                   {'value': 'price',
