@@ -9,9 +9,9 @@ register = template.Library()
 def sort_menu(context, attributes):
     ctx = {
         'request': context['request'],
-        'sort_by':
-            context['request'].GET.get('sort_by', DEFAULT_SORT).strip('-'),
+        'sort_by': (context['request'].GET.get('sort_by', DEFAULT_SORT)
+                    .strip('-')),
         'sort_by_choices': attributes,
-        'arrow_down':
-            context['request'].GET.get('sort_by', DEFAULT_SORT).startswith('-')}
+        'arrow_down': (context['request'].GET.get('sort_by', DEFAULT_SORT)
+                       .startswith('-'))}
     return ctx
