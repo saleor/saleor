@@ -26,8 +26,8 @@ class ProductFilter(FilterSet):
         super(ProductFilter, self).__init__(*args, **kwargs)
         self.product_attributes, self.variant_attributes = (
             self._get_attributes())
-        self.filters.update(self._add_product_attributes_filters())
-        self.filters.update(self._add_product_variants_attributes_filters())
+        self.filters.update(self._get_product_attributes_filters())
+        self.filters.update(self._get_product_variants_attributes_filters())
         self.filters = OrderedDict(sorted(self.filters.items()))
 
     sort_by = OrderingFilter(
@@ -57,7 +57,7 @@ class ProductFilter(FilterSet):
             .distinct())
         return product_attributes, variant_attributes
 
-    def _add_product_attributes_filters(self):
+    def _get_product_attributes_filters(self):
         filters = {}
         for attribute in self.product_attributes:
             filters[attribute.slug] = MultipleChoiceFilter(
@@ -67,7 +67,7 @@ class ProductFilter(FilterSet):
                 choices=self._get_attribute_choices(attribute))
         return filters
 
-    def _add_product_variants_attributes_filters(self):
+    def _get_product_variants_attributes_filters(self):
         filters = {}
         for attribute in self.variant_attributes:
             filters[attribute.slug] = MultipleChoiceFilter(
