@@ -10,14 +10,14 @@
       <span>
         Sort by:&nbsp;
         <strong>
-          {{ choice }}
+          {{ sort_by }}
         </strong>
       </span>
       <div class="sort-order-icon">
-        {% if arrow_up %}
-          <svg data-src="{% static "assets/arrow_up.svg" %}">
-        {% else %}
+        {% if arrow_down %}
           <svg data-src="{% static "assets/arrow_down.svg" %}">
+        {% else %}
+          <svg data-src="{% static "assets/arrow_up.svg" %}">
         {% endif %}
       </div>
     </div>
