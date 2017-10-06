@@ -29,6 +29,16 @@ def test_staff_cant_view_staff_detail(staff_client, admin_user):
     assert response.status_code == 302
 
 
+def test_admin_can_view_staff_create(admin_client):
+    response = admin_client.get(reverse('dashboard:staff-create'))
+    assert response.status_code == 200
+
+
+def test_staff_cant_view_staff_create(staff_client):
+    response = staff_client.get(reverse('dashboard:staff-create'))
+    assert response.status_code == 302
+
+
 def test_admin_can_view_groups_list(admin_client):
     response = admin_client.get(reverse('dashboard:group-list'))
     assert response.status_code == 200
@@ -729,3 +739,18 @@ def test_delete_group_no_POST(admin_client, staff_group):
     url = reverse('dashboard:group-delete', args=[staff_group.pk])
     admin_client.get(url)
     assert Group.objects.all().count() == 1
+
+
+def test_delete_staff(admin_client, staff_user):
+    assert User.objects.all().count() == 2
+    url = reverse('dashboard:staff-delete', kwargs={'pk': staff_user.pk})
+    data = {'pk': staff_user.pk}
+    response = admin_client.post(url, data)
+    assert User.objects.all().count() == 1
+    assert response['Location'] == '/dashboard/staff/'
+
+
+def test_delete_staff_no_POST(admin_client, staff_user):
+    url = reverse('dashboard:staff-delete', args=[staff_user.pk])
+    admin_client.get(url)
+    assert User.objects.all().count() == 2
