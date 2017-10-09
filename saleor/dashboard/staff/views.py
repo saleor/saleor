@@ -27,13 +27,8 @@ def staff_list(request):
 def staff_details(request, pk):
     queryset = User.objects.filter(is_staff=True)
     staff_member = get_object_or_404(queryset, pk=pk)
-
-    # if int(pk) == int(request.user.pk):
-    #     print pk
-    #     print request.user.pk
-    #     print "Same users"
-
-    form = StaffForm(request.POST or None, instance=staff_member)
+    form = StaffForm(request.POST or None, instance=staff_member,
+                     admin=request.user)
     if form.is_valid():
         form.save()
     ctx = {'staff_member': staff_member, 'form': form}
