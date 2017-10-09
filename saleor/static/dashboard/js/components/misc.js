@@ -1,6 +1,6 @@
 import SVGInjector from 'svg-injector-2';
 
-import {initSelects} from "./utils";
+import {initSelects} from './utils';
 
 export default $(document).ready((e) => {
   new SVGInjector().inject(document.querySelectorAll('svg[data-src]'));
@@ -18,5 +18,4 @@ export default $(document).ready((e) => {
     let target = $(this).parent();
     window.location.href = target.data('action-go');
   });
-
 });

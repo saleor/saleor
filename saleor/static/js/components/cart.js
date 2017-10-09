@@ -1,4 +1,4 @@
-import {getAjaxError} from "./misc";
+import {getAjaxError} from './misc';
 
 export const summaryLink = '/cart/summary/';
 export const $cartDropdown = $('.cart-dropdown');
@@ -81,8 +81,8 @@ export default $(document).ready((e) => {
         method: 'POST',
         data: {quantity: newQuantity},
         success: (response) => {
-          if (newQuantity == 0) {
-            if (response.cart.numLines == 0) {
+          if (newQuantity === 0) {
+            if (response.cart.numLines === 0) {
               $.cookie('alert', 'true', {path: '/cart'});
               location.reload();
             } else {

@@ -1,5 +1,5 @@
 import SVGInjector from 'svg-injector-2';
-import {$removeProductSuccess} from "./cart";
+import {$removeProductSuccess} from './cart';
 
 export const getAjaxError = (response) => {
   let ajaxError = $.parseJSON(response.responseText).error.quantity;
@@ -31,5 +31,4 @@ export default $(document).ready((e) => {
 
   let hash = window.location.hash;
   $('.nav-tabs a[href="' + hash + '"]').tab('show');
-
 });

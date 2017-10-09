@@ -47,5 +47,4 @@ export default $(document).ready((e) => {
   } else {
     $addressForm.slideUp(0);
   }
-
 });

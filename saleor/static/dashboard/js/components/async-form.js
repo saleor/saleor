@@ -1,3 +1,5 @@
+import {initSelects} from './utils';
+
 export default $(document).on('submit', '.form-async', function (e) {
   let that = this;
   $.ajax({

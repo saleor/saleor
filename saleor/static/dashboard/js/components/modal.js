@@ -1,4 +1,4 @@
-import {initSelects} from "./utils";
+import {initSelects} from './utils';
 
 export default $(document).ready((e) => {
   $('body').on('click', '.modal-trigger-custom', function (e) {

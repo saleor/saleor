@@ -1,4 +1,4 @@
-import {onScroll} from "./utils";
+import {onScroll} from './utils';
 
 export default $(document).ready((e) => {
   let mainNavTop = $('.side-nav');
