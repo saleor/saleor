@@ -223,7 +223,7 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
                     'bool': {
                         'must_not': {
                             'term': {
-                                'field': column_name,
+                                'field': column_name
                                 }
                             }
                         }
@@ -241,7 +241,7 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
                     'bool': {
                         'must_not': {
                             'term': {
-                                'field': column_name,
+                                'field': column_name
                                 }
                             }
                         }
