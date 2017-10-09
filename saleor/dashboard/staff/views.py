@@ -5,11 +5,12 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
+from saleor.dashboard.staff.emails import send_set_password_email
 from .forms import StaffForm
 from ..views import superuser_required
 from ...core.utils import get_paginator_items
-from ...userprofile.models import User
 from ...settings import DASHBOARD_PAGINATE_BY
+from ...userprofile.models import User
 
 
 @superuser_required
@@ -38,14 +39,15 @@ def staff_details(request, pk):
 @superuser_required
 def staff_create(request):
     staff = User()
-    staff_form = StaffForm()
-    if staff_form.is_valid():
-        staff = staff_form.save()
+    form = StaffForm(request.POST or None, instance=staff)
+    if form.is_valid():
+        form.save()
         msg = pgettext_lazy(
             'Dashboard message', 'Added staff member %s') % staff
         messages.success(request, msg)
-        return redirect('dashboard:staff-list', pk=staff.pk)
-    ctx = {'form': staff_form}
+        send_set_password_email(staff)
+        return redirect('dashboard:staff-list')
+    ctx = {'form': form}
     return TemplateResponse(request, 'dashboard/staff/detail.html', ctx)
 
 

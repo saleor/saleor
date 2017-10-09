@@ -60,7 +60,7 @@
         <form class="card" method="post">
           <div class="card-content">
             <span class="card-title">
-              {% trans 'User details' context 'User details header' %}
+              {% trans 'Staff member details' context 'Staff member details header' %}
             </span>
             <div class="data">
                 {% csrf_token %}
@@ -74,7 +74,7 @@
               {% if staff_member %}
                 {% trans 'Update' context 'Dashboard update action' %}
               {% else %}
-                {% trans 'Add' context 'Dashboard create action' %}
+                {% trans 'Add' context 'Dashboard add action' %}
               {% endif %}
             </button>
           </div>
