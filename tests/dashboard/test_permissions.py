@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 
+from django.core import mail
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import Group
+from ..utils import get_redirect_location
+
 from saleor.userprofile.models import User
 from saleor.dashboard.group.forms import GroupPermissionsForm
 from saleor.dashboard.staff.forms import StaffForm
@@ -716,6 +719,26 @@ def test_staff_form_create_valid(
     admin_client.post(url, data)
     staff_user = User.objects.get(pk=staff_user.pk)
     assert staff_user.groups.count() == 1
+
+
+def test_staff_create_email_with_set_link_password(
+        admin_client, staff_client, staff_user, staff_group):
+    url = reverse('dashboard:staff-create')
+    data = {'email': 'staff3@example.com', 'groups': staff_group.pk,
+            'is_staff': True}
+    response = admin_client.post(url, data)
+    assert User.objects.count() == 3
+    assert len(mail.outbox) == 1
+
+    uidb64 = response.context[0]['uid']
+    token = response.context[0]['token']
+    url = reverse('account_reset_password_confirm', kwargs={'uidb64': uidb64,
+                                                            'token': token})
+    response = staff_client.get(url)
+    assert response.status_code == 302
+    redirect_location = get_redirect_location(response)
+    assert (redirect_location ==
+            '/account/password/reset/%s/set-password/' % uidb64)
 
 
 def test_staff_form_create_not_valid(admin_client, staff_user):
