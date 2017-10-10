@@ -1,4 +1,3 @@
-
 from __future__ import absolute_import, unicode_literals
 
 from django.db.models.lookups import Lookup
@@ -49,8 +48,9 @@ class BaseSearchQuery(object):
 
         if field is None:
             raise FieldError(
-                'Cannot filter search results with field "' + field_attname + '". Please add index.FilterField(\'' +
-                field_attname + '\') to ' + self.queryset.model.__name__ + '.search_fields.'
+                'Cannot filter search results with field "' + field_attname +
+                '". Please add index.FilterField(\'' + field_attname +
+                '\') to ' + self.queryset.model.__name__ + '.search_fields.'
             )
 
         # Process the lookup
@@ -58,8 +58,9 @@ class BaseSearchQuery(object):
 
         if result is None:
             raise FilterError(
-                'Could not apply filter on search results: "' + field_attname + '__' +
-                lookup + ' = ' + text_type(value) + '". Lookup "' + lookup + '"" not recognised.'
+                'Could not apply filter on search results: "' + field_attname +
+                '__' + lookup + ' = ' + text_type(value) + '". Lookup "' +
+                lookup + '"" not recognised.'
             )
 
         return result
@@ -79,18 +80,23 @@ class BaseSearchQuery(object):
             return self._process_filter(field_attname, lookup, value)
 
         elif isinstance(where_node, SubqueryConstraint):
-            raise FilterError('Could not apply filter on search results: Subqueries are not allowed.')
+            raise FilterError('Could not apply filter on search results: '
+                              'Subqueries are not allowed.')
 
         elif isinstance(where_node, WhereNode):
             # Get child filters
             connector = where_node.connector
-            child_filters = [self._get_filters_from_where_node(child) for child in where_node.children]
-            child_filters = [child_filter for child_filter in child_filters if child_filter]
+            child_filters = [self._get_filters_from_where_node(child)
+                             for child in where_node.children]
+            child_filters = [child_filter
+                             for child_filter in child_filters if child_filter]
 
-            return self._connect_filters(child_filters, connector, where_node.negated)
+            return self._connect_filters(child_filters, connector,
+                                         where_node.negated)
 
         else:
-            raise FilterError('Could not apply filter on search results: Unknown where node: ' + str(type(where_node)))
+            raise FilterError('Could not apply filter on search results: '
+                              'Unknown where node: ' + str(type(where_node)))
 
     def _get_filters_from_queryset(self):
         return self._get_filters_from_where_node(self.queryset.query.where)
@@ -101,12 +107,14 @@ class BaseSearchResults(object):
     This class wraps search results. Core search communication is performed
     here.
     """
-    def __init__(self, backend, query, prefetch_related=None):
+
+    def __init__(self, backend, query, prefetch_related=None,
+                 page=None, page_size=None):
         self.backend = backend
         self.query = query
         self.prefetch_related = prefetch_related
-        self.start = 0
-        self.stop = None
+        self.start = (page - 1) * page_size
+        self.stop = page * page_size
         self._results_cache = None
         self._count_cache = None
         self._score_field = None
@@ -227,8 +235,10 @@ class BaseSearchBackend(object):
     def delete(self, obj):
         raise NotImplementedError
 
-    def search(self, query_string, model_or_queryset, fields=None, filters=None,
-               prefetch_related=None, operator=None, order_by_relevance=True):
+    def search(self, query_string, model_or_queryset, fields=None,
+               filters=None,
+               prefetch_related=None, operator=None, order_by_relevance=True,
+               page=1, page_size=16):
         """
         Applies all fillters and prefetches and constructs SearchQuery and
         SearchResult objects.
@@ -247,13 +257,15 @@ class BaseSearchBackend(object):
 
         # Only fields that are indexed as a SearchField can be passed in fields
         if fields:
-            allowed_fields = {field.field_name for field in model.get_searchable_search_fields()}
+            allowed_fields = {field.field_name for field
+                              in model.get_searchable_search_fields()}
 
             for field_name in fields:
                 if field_name not in allowed_fields:
                     raise FieldError(
-                        'Cannot search with field "' + field_name + '". Please add index.SearchField(\'' +
-                        field_name + '\') to ' + model.__name__ + '.search_fields.'
+                        'Cannot search with field "' + field_name +
+                        '". Please add index.SearchField(\'' + field_name +
+                        '\') to ' + model.__name__ + '.search_fields.'
                     )
 
         # Apply filters to queryset
@@ -275,4 +287,5 @@ class BaseSearchBackend(object):
         search_query = self.query_class(
             queryset, query_string, fields=fields, operator=operator,
             order_by_relevance=order_by_relevance)
-        return self.results_class(self, search_query)
+        return self.results_class(self, search_query, page=page,
+                                  page_size=page_size)

@@ -79,12 +79,14 @@ class ElasticsearchMapping(object):
             nested_mapping = type(self)(nested_model)
 
             for sub_field in field.fields:
-                sub_field_name, sub_field_mapping = nested_mapping.get_field_mapping(sub_field)
+                sub_field_name, sub_field_mapping = nested_mapping.get_field_mapping(
+                    sub_field)
                 mapping['properties'][sub_field_name] = sub_field_mapping
 
             return self.get_field_column_name(field), mapping
         else:
-            mapping = {'type': self.type_map.get(field.get_type(self.model), 'string')}
+            mapping = {'type': self.type_map.get(field.get_type(self.model),
+                                                 'string')}
 
             if isinstance(field, SearchField):
                 if mapping['type'] == 'string':
@@ -118,7 +120,8 @@ class ElasticsearchMapping(object):
     def get_mapping(self):
         # Make field list
         fields = {
-            'pk': dict(type=self.keyword_type, store=True, include_in_all=False),
+            'pk': dict(type=self.keyword_type, store=True,
+                       include_in_all=False),
             'content_type': dict(type=self.keyword_type, include_in_all=False),
             '_partials': dict(type=self.text_type, include_in_all=False),
         }
@@ -131,7 +134,8 @@ class ElasticsearchMapping(object):
             fields['content_type']['index'] = 'not_analyzed'
 
         fields.update(dict(
-            self.get_field_mapping(field) for field in self.model.get_search_fields()
+            self.get_field_mapping(field) for field in
+            self.model.get_search_fields()
         ))
         return {
             self.get_document_type(): {
@@ -160,7 +164,8 @@ class ElasticsearchMapping(object):
 
     def get_document(self, obj):
         # Build document
-        doc = dict(pk=str(obj.pk), content_type=self.model.indexed_get_content_type())
+        doc = dict(pk=str(obj.pk),
+                   content_type=self.model.indexed_get_content_type())
         partials = []
         for field in self.model.get_search_fields():
             value = field.get_value(obj)
@@ -170,13 +175,15 @@ class ElasticsearchMapping(object):
                     nested_docs = []
 
                     for nested_obj in value.all():
-                        nested_doc, extra_partials = self._get_nested_document(field.fields, nested_obj)
+                        nested_doc, extra_partials = self._get_nested_document(
+                            field.fields, nested_obj)
                         nested_docs.append(nested_doc)
                         partials.extend(extra_partials)
 
                     value = nested_docs
                 elif isinstance(value, models.Model):
-                    value, extra_partials = self._get_nested_document(field.fields, value)
+                    value, extra_partials = self._get_nested_document(
+                        field.fields, value)
                     partials.extend(extra_partials)
 
             doc[self.get_field_column_name(field)] = value
@@ -205,10 +212,12 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
         # Convert field names into index column names
         if self.fields:
             fields = []
-            searchable_fields = {f.field_name: f for f in self.queryset.model.get_searchable_search_fields()}
+            searchable_fields = {f.field_name: f for f in
+                                 self.queryset.model.get_searchable_search_fields()}
             for field_name in self.fields:
                 if field_name in searchable_fields:
-                    field_name = self.mapping.get_field_column_name(searchable_fields[field_name])
+                    field_name = self.mapping.get_field_column_name(
+                        searchable_fields[field_name])
 
                 fields.append(field_name)
 
@@ -440,10 +449,11 @@ class ElasticsearchSearchResults(BaseSearchResults):
     def _do_search(self):
         # Params for elasticsearch query
         params = dict(
-            index=self.backend.get_index_for_model(self.query.queryset.model).name,
+            index=self.backend.get_index_for_model(
+                self.query.queryset.model).name,
             body=self._get_es_body(),
             _source=False,
-            from_=self.start,
+            from_=self.start
         )
 
         params[self.fields_param_name] = 'pk'
@@ -451,6 +461,7 @@ class ElasticsearchSearchResults(BaseSearchResults):
         # Add size if set
         if self.stop is not None:
             params['size'] = self.stop - self.start
+
         # Send to Elasticsearch
         hits = self.backend.es.search(**params)
 
@@ -471,12 +482,14 @@ class ElasticsearchSearchResults(BaseSearchResults):
                 setattr(obj, self._score_field, scores.get(str(obj.pk)))
 
         # Return results in order given by Elasticsearch
-        return [results[str(pk)] for pk in pks if results[str(pk)]]
+        return [results[str(pk)] for pk in pks if results[str(pk)]], \
+               hits['hits']['total']
 
     def _do_count(self):
         # Get count
         hit_count = self.backend.es.count(
-            index=self.backend.get_index_for_model(self.query.queryset.model).name,
+            index=self.backend.get_index_for_model(
+                self.query.queryset.model).name,
             body=self._get_es_body(for_count=True),
         )['count']
         # Add limits
@@ -536,7 +549,8 @@ class ElasticsearchIndex(object):
 
         # Put mapping
         self.es.indices.put_mapping(
-            index=self.name, doc_type=mapping.get_document_type(), body=mapping.get_mapping()
+            index=self.name, doc_type=mapping.get_document_type(),
+            body=mapping.get_mapping()
         )
 
     def add_item(self, item):
@@ -549,7 +563,8 @@ class ElasticsearchIndex(object):
 
         # Add document to index
         self.es.index(
-            self.name, mapping.get_document_type(), mapping.get_document(item), id=mapping.get_document_id(item)
+            self.name, mapping.get_document_type(), mapping.get_document(item),
+            id=mapping.get_document_id(item)
         )
 
     def add_items(self, model, items):

@@ -8,11 +8,15 @@ from .forms import SearchForm
 from ..product.utils import products_with_details, products_with_availability
 
 
-def paginate_results(results, get_data, paginate_by=25):
+def paginate_results(results, page_counter, total,
+                     paginate_by=settings.PAGINATE_BY):
     paginator = Paginator(results, paginate_by)
-    page_number = get_data.get('page', 1)
+    # TODO: Think about clean and nice solution to pagination problem
+    page_number = 1
     try:
         page = paginator.page(page_number)
+        page.number = page_counter
+        page.paginator.num_pages = total // settings.PAGINATE_BY + 1
     except InvalidPage:
         raise Http404('No such page!')
     return page
@@ -20,9 +24,14 @@ def paginate_results(results, get_data, paginate_by=25):
 
 def search(request):
     form = SearchForm(data=request.GET or None)
+    page_counter = int(request.GET.get('page', 1))
+    total = 0
+
     if form.is_valid():
         visible_products = products_with_details(request.user)
-        results = form.search(model_or_queryset=visible_products)
+        results, total = form.search(model_or_queryset=visible_products,
+                                     page=page_counter,
+                                     page_size=settings.PAGINATE_BY)
         results = products_with_availability(
             results, discounts=request.discounts,
             local_currency=request.currency)
@@ -31,9 +40,12 @@ def search(request):
     else:
         results = []
         query = ''
-    page = paginate_results(results, request.GET, settings.PAGINATE_BY)
+
+    page = paginate_results(results, page_counter, total)
+
     ctx = {
         'query': query,
         'results': page,
-        'query_string': '?q=%s' % query}
+        'pages': total,
+        'query_string': '?q=%s&%s' % (query, page_counter)}
     return render(request, 'search/results.html', ctx)
