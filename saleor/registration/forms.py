@@ -61,8 +61,9 @@ class PasswordSetUpForm(django_forms.PasswordResetForm):
         active_users = User.objects.filter(email__iexact=email, is_active=True)
         return active_users
 
-    def send_mail(self, subject_template_name, email_template_name,
-                  context, from_email, to_email, html_email_template_name=None):
+    def send_mail(
+            self, subject_template_name, email_template_name, context,
+            from_email, to_email, html_email_template_name=None):
         reset_url = HttpRequest.build_absolute_uri(
             reverse(
                 'account_reset_password_confirm',
