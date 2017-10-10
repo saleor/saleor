@@ -482,8 +482,8 @@ class ElasticsearchSearchResults(BaseSearchResults):
                 setattr(obj, self._score_field, scores.get(str(obj.pk)))
 
         # Return results in order given by Elasticsearch
-        return [results[str(pk)] for pk in pks if results[str(pk)]], \
-               hits['hits']['total']
+        return ([results[str(pk)] for pk in pks if results[str(pk)]],
+                hits['hits']['total'])
 
     def _do_count(self):
         # Get count
@@ -770,7 +770,8 @@ class ElasticsearchSearchBackend(BaseSearchBackend):
                 port = parsed_url.port or (443 if use_ssl else 80)
 
                 http_auth = None
-                if parsed_url.username is not None and parsed_url.password is not None:
+                if (parsed_url.username is not None
+                    and parsed_url.password is not None):
                     http_auth = (parsed_url.username, parsed_url.password)
 
                 self.hosts.append({
