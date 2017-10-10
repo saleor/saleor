@@ -238,7 +238,7 @@ class BaseSearchBackend(object):
     def search(self, query_string, model_or_queryset, fields=None,
                filters=None,
                prefetch_related=None, operator=None, order_by_relevance=True,
-               page=1, page_size=16):
+               page=1, page_size=None):
         """
         Applies all fillters and prefetches and constructs SearchQuery and
         SearchResult objects.

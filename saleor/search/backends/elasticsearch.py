@@ -481,9 +481,10 @@ class ElasticsearchSearchResults(BaseSearchResults):
             if self._score_field:
                 setattr(obj, self._score_field, scores.get(str(obj.pk)))
 
-        # Return results in order given by Elasticsearch
-        return ([results[str(pk)] for pk in pks if results[str(pk)]],
-                hits['hits']['total'])
+        total_results = hits['hits']['total']
+        sorted_results = [results[str(pk)] for pk in pks if results[str(pk)]]
+
+        return sorted_results, total_results
 
     def _do_count(self):
         # Get count

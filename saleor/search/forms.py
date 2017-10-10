@@ -8,7 +8,7 @@ class SearchForm(forms.Form):
     q = forms.CharField(label=pgettext('Search form label', 'Query'),
                         required=True)
 
-    def search(self, model_or_queryset, page=1, page_size=16):
+    def search(self, model_or_queryset, page=1, page_size=None):
         backend = get_search_backend('default')
         query = self.cleaned_data['q']
         results = backend.search(query, model_or_queryset=model_or_queryset,

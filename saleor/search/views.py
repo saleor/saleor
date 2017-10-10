@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+from math import ceil
 
 from django.core.paginator import Paginator, InvalidPage
 from django.conf import settings
@@ -16,7 +17,7 @@ def paginate_results(results, page_counter, total,
     try:
         page = paginator.page(page_number)
         page.number = page_counter
-        page.paginator.num_pages = total // settings.PAGINATE_BY + 1
+        page.paginator.num_pages = ceil(total / settings.PAGINATE_BY)
     except InvalidPage:
         raise Http404('No such page!')
     return page
