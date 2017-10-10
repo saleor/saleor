@@ -180,6 +180,7 @@ INSTALLED_APPS = [
     'social_django',
     'django_countries',
     'django_filters',
+    'django_celery_results',
 ]
 
 LOGGING = {
