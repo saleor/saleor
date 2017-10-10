@@ -113,8 +113,8 @@ class BaseSearchResults(object):
         self.backend = backend
         self.query = query
         self.prefetch_related = prefetch_related
-        self.start = (page - 1) * page_size
-        self.stop = page * page_size
+        self.start = (page - 1) * page_size if (page and page_size) else 0
+        self.stop = page * page_size if (page and page_size) else None
         self._results_cache = None
         self._count_cache = None
         self._score_field = None
