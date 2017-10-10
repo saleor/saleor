@@ -15,7 +15,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: celery worker -A saleor.celery
+    env_file: common.env
+    command: celery -A celery_mail worker --app=saleor.celery_mail:app --loglevel=info
     volumes:
       - .:/app:Z
     links:
@@ -29,14 +30,7 @@ services:
   web:
     build: .
     command: python manage.py runserver 0.0.0.0:8000
-    environment:
-      - DATABASE_URL=postgres://saleor:saleor@db/saleor
-      - DEFAULT_FROM_EMAIL=noreply@example.com
-      - ELASTICSEARCH_URL=http://search:9200
-      - OPENEXCHANGERATES_API_KEY
-      - REDIS_URL=redis://redis:6379/0
-      - REDIS_BROKER_URL=redis://redis:6379/1
-      - SECRET_KEY=changeme
+    env_file: common.env
     depends_on:
       - db
       - redis
