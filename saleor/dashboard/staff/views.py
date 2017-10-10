@@ -42,10 +42,6 @@ def staff_create(request):
     form = StaffForm(request.POST or None, instance=staff)
     if form.is_valid():
         form.save()
-        password = User.objects.make_random_password()
-        staff.set_password(password)
-        staff.save()
-
         msg = pgettext_lazy(
             'Dashboard message', 'Added staff member %s') % staff
         messages.success(request, msg)

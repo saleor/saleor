@@ -722,23 +722,14 @@ def test_staff_form_create_valid(
 
 
 def test_staff_create_email_with_set_link_password(
-        admin_client, staff_client, staff_user, staff_group):
+        admin_client, staff_group):
     url = reverse('dashboard:staff-create')
     data = {'email': 'staff3@example.com', 'groups': staff_group.pk,
             'is_staff': True}
     response = admin_client.post(url, data)
     assert User.objects.count() == 3
     assert len(mail.outbox) == 1
-
-    uidb64 = response.context[0]['uid']
-    token = response.context[0]['token']
-    url = reverse('account_reset_password_confirm', kwargs={'uidb64': uidb64,
-                                                            'token': token})
-    response = staff_client.get(url)
-    assert response.status_code == 302
-    redirect_location = get_redirect_location(response)
-    assert (redirect_location ==
-            '/account/password/reset/%s/set-password/' % uidb64)
+    assert response['Location'] == reverse('dashboard:staff-list')
 
 
 def test_staff_form_create_not_valid(admin_client, staff_user):
