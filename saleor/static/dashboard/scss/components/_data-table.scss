@@ -1,8 +1,6 @@
 @mixin data-table {
   &-container {
-    @media #{$medium-and-down} {
-      overflow: scroll;
-    }
+    overflow: auto;
   }
 
   &-action {
