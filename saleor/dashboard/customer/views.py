@@ -36,7 +36,7 @@ def customer_details(request, pk):
         'orders', 'addresses').select_related(
         'default_billing_address', 'default_shipping_address')
     customer = get_object_or_404(queryset, pk=pk)
-    form = StaffPromoteForm(request.POST or None, instance=customer)
+    form = StaffPromoteForm(request.POST or None, instance=customer, admin=request.user)
     if form.is_valid():
         form.save()
     customer_orders = customer.orders.all()
