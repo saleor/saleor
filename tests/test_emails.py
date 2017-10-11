@@ -6,18 +6,29 @@ import pytest
 import mock
 
 
-EMAIL_DATA = {'from_email': settings.ORDER_FROM_EMAIL,
-              'template_name': emails.CONFIRMATION_TEMPLATE}
+EMAIL = "foo@bar.com"
+SITE_NAME = 'WOOBALOOBA'
+URL = 'wooba/looba'
+EMAIL_FROM = settings.ORDER_FROM_EMAIL
 
 
-@mock.patch('saleor.order.emails.get_site_name', return_value='WOOBALOOBA')
+@mock.patch('saleor.order.emails.get_site_name', return_value=SITE_NAME)
 @mock.patch('saleor.order.emails.send_templated_mail')
 def test_send_confirmation_using_templated_email(mocked_templated_email,
                                                  mocked_get_site_name):
-    email_address = 'foo@bar.com'
-    url = 'wooba/looba'
-    emails.send_confirmation(email_address, url)
-    context = {'site_name': mocked_get_site_name(),
-               'payment_url': url}
+    emails.send_order_confirmation(EMAIL, URL)
+    context = {'site_name': SITE_NAME, 'order_url': URL}
     mocked_templated_email.assert_called_once_with(
-        recipient_list=[email_address], context=context, **EMAIL_DATA)
+        recipient_list=[EMAIL], context=context, from_email=EMAIL_FROM,
+        template_name=emails.CONFIRM_ORDER_TEMPLATE)
+
+
+@mock.patch('saleor.order.emails.get_site_name', return_value=SITE_NAME)
+@mock.patch('saleor.order.emails.send_templated_mail')
+def test_send_order_payment_confirmation(mocked_templated_email,
+                                         mocked_get_site_name):
+    emails.send_payment_confirmation(EMAIL, URL)
+    context = {'site_name': SITE_NAME, 'payment_url': URL}
+    mocked_templated_email.assert_called_once_with(
+        recipient_list=[EMAIL], context=context, from_email=EMAIL_FROM,
+        template_name=emails.CONFIRM_PAYMENT_TEMPLATE)
