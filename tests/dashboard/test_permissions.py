@@ -727,7 +727,7 @@ def test_staff_create_email_with_set_link_password(
     data = {'email': 'staff3@example.com', 'groups': staff_group.pk,
             'is_staff': True}
     response = admin_client.post(url, data)
-    assert User.objects.count() == 3
+    assert User.objects.count() == 2
     assert len(mail.outbox) == 1
     assert response['Location'] == reverse('dashboard:staff-list')
 
