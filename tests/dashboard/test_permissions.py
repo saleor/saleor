@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+import re
 
 from django.core import mail
 from django.core.urlresolvers import reverse
@@ -730,6 +731,11 @@ def test_staff_create_email_with_set_link_password(
     assert User.objects.count() == 2
     assert len(mail.outbox) == 1
     assert response['Location'] == reverse('dashboard:staff-list')
+
+    match = re.search('http.*', mail.outbox[0].body)
+    link = match.group(0)
+    response = admin_client.get(link)
+    assert response.status_code == 302
 
 
 def test_staff_form_create_not_valid(admin_client, staff_user):

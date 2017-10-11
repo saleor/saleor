@@ -8,7 +8,8 @@ from ...settings import DEFAULT_FROM_EMAIL, get_host
 
 
 def send_set_password_email(staff):
-    ctx = {'domain': get_host(),
+    ctx = {'protocol': 'http',
+           'domain': get_host(),
            'site_name': 'saleor',
            'uid': urlsafe_base64_encode(force_bytes(staff.pk)),
            'token': default_token_generator.make_token(staff)}
