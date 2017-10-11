@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-10-11 05:15-0500\n"
+"POT-Creation-Date: 2017-10-11 08:30-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Patryk Zawadzki <patrys@room-303.com>, 2017\n"
 "Language-Team: German (https://www.transifex.com/mirumee/teams/34782/de/)\n"
@@ -1980,6 +1980,19 @@ msgctxt "Sale (discount) label for item in product list"
 msgid "Sale"
 msgstr "Angebot"
 
+#: templates/category/index.html:34
+#, fuzzy
+#| msgctxt "Main navigation item"
+#| msgid "Home"
+msgctxt "Category breadcrumbs home"
+msgid "Home"
+msgstr "Home"
+
+#: templates/category/index.html:52 templates/category/index.html:71
+msgctxt "Category page filters"
+msgid "Sort by"
+msgstr ""
+
 #: templates/category/index.html:76
 msgctxt "sort by option"
 msgid "ascending"
@@ -2002,6 +2015,27 @@ msgstr "Filtern"
 msgctxt "Category page filters"
 msgid "Clear filters"
 msgstr ""
+
+#: templates/category/index.html:158
+#, fuzzy
+#| msgctxt "product price range"
+#| msgid "from"
+msgctxt "Category price filter"
+msgid "from"
+msgstr "ab"
+
+#: templates/category/index.html:160
+msgctxt "Category price filter"
+msgid "to"
+msgstr ""
+
+#: templates/category/index.html:163
+#, fuzzy
+#| msgctxt "Dashboard update action"
+#| msgid "Update"
+msgctxt "Category price filter"
+msgid "Update"
+msgstr "Ändern"
 
 #: templates/checkout/details.html:7
 msgctxt "Checkout page title"
