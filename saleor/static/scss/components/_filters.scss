@@ -160,6 +160,9 @@
       svg {
         margin-top: $global-padding/3;
       }
+      a {
+        color: inherit;
+      }
       &:last-child {
         border: none;
         padding-bottom: 0;
