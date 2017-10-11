@@ -77,6 +77,6 @@ class ProductFilter(FilterSet):
         return [(choice.pk, choice.name) for choice in attribute.values.all()]
 
 
-def get_prepared_choices(filter):
+def get_sort_by_choices(filter):
     return [(choice[0], choice[1].lower()) for choice in
             filter.filters['sort_by'].field.choices[1::2]]
