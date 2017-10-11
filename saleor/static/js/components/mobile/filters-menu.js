@@ -1,10 +1,10 @@
 export default $(document).ready((e) => {
   $('.filters-menu').on('click', (e) => {
-    const t = $('.filters-menu__body');
-    if (t.hasClass('d-none')) {
-      t.removeClass('d-none');
+    const menu_container = $('.filters-menu__body');
+    if (menu_container.hasClass('d-none')) {
+      menu_container.removeClass('d-none');
     } else {
-      t.addClass('d-none');
+      menu_container.addClass('d-none');
     }
   });
 });

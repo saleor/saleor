@@ -1,14 +1,14 @@
 export default $(document).ready((e) => {
   $(document).ready((e) => {
     $('.sort-by button').on('click', (e) => {
-      const t = $(e.currentTarget).parent();
-      const l = t.find('.sort-list');
-      if (l.hasClass('d-none')) {
-        l.removeClass('d-none');
-        t.find('.click-area').removeClass('d-none');
+      const parent_container = $(e.currentTarget).parent();
+      const list = parent_container.find('.sort-list');
+      if (list.hasClass('d-none')) {
+        list.removeClass('d-none');
+        parent_container.find('.click-area').removeClass('d-none');
       } else {
-        l.addClass('d-none');
-        t.find('.click-area').addClass('d-none');
+        list.addClass('d-none');
+        parent_container.find('.click-area').addClass('d-none');
       }
     });
     $('.sort-by .click-area').on('click', (e) => {
