@@ -47,11 +47,8 @@ var environmentPlugin = new webpack.DefinePlugin({
 
 var providePlugin = new webpack.ProvidePlugin({
   $: 'jquery',
-  '_': 'underscore',
   jQuery: 'jquery',
   'window.jQuery': 'jquery',
-  'Tether': 'tether',
-  'window.Tether': 'tether',
   'Popper': 'popper.js'
 });
 
