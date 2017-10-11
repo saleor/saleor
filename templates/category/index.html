@@ -31,7 +31,7 @@
       <div class="row">
         <div class="col-md-7">
           <ul class="breadcrumbs list-unstyled d-none d-md-block">
-            <li><a href="/">Home</a></li>
+            <li><a href="/">{% trans "Home"  context 'Category breadcrumbs home' %}</a></li>
             {% for ancestor in category.get_ancestors %}
               <li><a href='{{ ancestor.get_absolute_url }}'>{{ ancestor.name }}</a></li>
             {% endfor %}
@@ -49,7 +49,7 @@
                 <button class="btn btn-link">
                   <div>
                     <span>
-                      Sort by:&nbsp;
+                     {% trans 'Sort by' context 'Category page filters' %}:&nbsp;
                       <strong>
                         {{ sort_by_label }}
                       </strong>
@@ -68,7 +68,7 @@
                     <li>
                       <div class="row">
                         <div class="col-6">
-                          Sort by: <strong>{{ choice.label }}</strong>
+                          {% trans 'Sort by' context 'Category page filters' %}: <strong>{{ choice.label }}</strong>
                         </div>
                         <div class="col-6">
                           <div>
@@ -155,12 +155,12 @@
                           <input id="{{ field.auto_id }}_0" name="{{ field.name }}_0"
                                  value="{% if field.value.0 %}{{ field.value.0 }}{% endif %}" type="number" min="0"
                                  class="form-control d-inline"
-                                 placeholder="from"><span>-</span><input id="{{ field.auto_id }}_1" name="{{ field.name }}_1"
+                                 placeholder="{% trans 'from' context 'Category price filter' %}"><span>-</span><input id="{{ field.auto_id }}_1" name="{{ field.name }}_1"
                                  value="{% if field.value.1 %}{{ field.value.1 }}{% endif %}" type="number" min="0"
-                                 class="form-control d-inline" placeholder="to">
+                                 class="form-control d-inline" placeholder="{% trans 'to' context 'Category price filter' %}">
                         </div>
                       </div>
-                      <button class="btn primary" type="submit">Update</button>
+                      <button class="btn primary" type="submit">{% trans 'Update' context 'Category price filter' %}</button>
                     </div>
                   {% endif %}
                 {% endfor %}
