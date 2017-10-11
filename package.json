@@ -36,6 +36,7 @@
     "select2": "^4.0.3",
     "sortablejs": "^1.5.0-rc1",
     "svg-injector-2": "^2.0.35",
+    "svg2png": "^4.1.1",
     "tether": "^1.4.0",
     "underscore": "^1.8.3",
     "yarn": "^1.0.2"
