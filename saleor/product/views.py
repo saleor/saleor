@@ -7,17 +7,19 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponsePermanentRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
+from django.utils.translation import pgettext_lazy
 
-from ..cart.utils import set_cart_cookie
-from ..core.utils import get_paginator_items, serialize_decimal
-from ..settings import PAGINATE_BY
-from .filters import DEFAULT_SORT, ProductFilter, SORT_BY_FIELDS
+from saleor.product.filters import get_prepared_choices
+from .filters import DEFAULT_SORT, ProductFilter
 from .models import Category
 from .utils import (products_with_details, products_for_cart,
                     handle_cart_form, get_availability,
                     get_product_images, get_variant_picker_data,
                     get_product_attributes_data,
                     product_json_ld, products_with_availability)
+from ..cart.utils import set_cart_cookie
+from ..core.utils import get_paginator_items, serialize_decimal
+from ..settings import PAGINATE_BY
 
 
 def product_details(request, slug, product_id, form=None):
@@ -131,7 +133,8 @@ def category_index(request, path, category_id):
     ctx = {'category': category, 'filter': product_filter,
            'products': products_and_availability,
            'products_paginated': products_paginated,
-           'sort_by_choices': SORT_BY_FIELDS,
-           'sort_by_label': sort_by.strip('-'),
+           'sort_by_choices': get_prepared_choices(product_filter),
+           'now_sorted_by': pgettext_lazy(
+               'Product field', sort_by.strip('-')),
            'is_descending': sort_by.startswith('-')}
     return TemplateResponse(request, 'category/index.html', ctx)

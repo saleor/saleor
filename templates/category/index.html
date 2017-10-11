@@ -49,9 +49,9 @@
                 <button class="btn btn-link">
                   <div>
                     <span>
-                     {% trans 'Sort by' context 'Category page filters' %}:&nbsp;
+                     {% trans 'Sort by' context 'Category page filters' %}
                       <strong>
-                        {{ sort_by_label }}
+                        {{ now_sorted_by }}
                       </strong>
                     </span>
                     <div class="sort-order-icon">
@@ -64,7 +64,7 @@
                   </div>
                 </button>
                 <ul class="sort-list d-none">
-                  {% for choice in sort_by_choices %}
+                  {% for choice, label in sort_by_choices %}
                     <li>
                       <div class="row">
                         <div class="col-6">
@@ -72,13 +72,13 @@
                         </div>
                         <div class="col-6">
                           <div>
-                            <a href="{% get_sort_by_url choice.value %}">
+                            <a href="{% get_sort_by_url choice %}">
                               <span>{% trans 'ascending' context 'sort by option' %}</span>
                               <div class="sort-order-icon float-right">
                                 <img src="{% static "assets/arrow_up.svg" %}">
                               </div>
                             </a>
-                            <a href="{% get_sort_by_url choice.value descending=True %}">
+                            <a href="{% get_sort_by_url choice descending=True %}">
                               <span>{% trans 'descending' context 'sort by option' %}</span>
                               <div class="sort-order-icon float-right">
                                 <img src="{% static "assets/arrow_down.svg" %}">

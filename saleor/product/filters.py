@@ -14,12 +14,6 @@ from .models import Product, ProductAttribute
 DEFAULT_SORT = 'name'
 
 
-SORT_BY_FIELDS = [{'value': 'name',
-                   'label': pgettext_lazy('Sort by filter', 'name')},
-                  {'value': 'price',
-                   'label': pgettext_lazy('Sort by filter', 'price')}]
-
-
 class ProductFilter(FilterSet):
     def __init__(self, *args, **kwargs):
         self.category = kwargs.pop('category')
@@ -31,8 +25,10 @@ class ProductFilter(FilterSet):
         self.filters = OrderedDict(sorted(self.filters.items()))
 
     sort_by = OrderingFilter(
-        label='Sort by',
-        fields=[(field['value'], field['value']) for field in SORT_BY_FIELDS]
+        label=pgettext_lazy('Sort by label', 'Sort by'),
+        fields=(
+            ('price', 'price'),
+            ('name', 'name'))
     )
 
     class Meta:
@@ -79,3 +75,8 @@ class ProductFilter(FilterSet):
 
     def _get_attribute_choices(self, attribute):
         return [(choice.pk, choice.name) for choice in attribute.values.all()]
+
+
+def get_prepared_choices(filter):
+    return [(choice[0], choice[1].lower()) for choice in
+            filter.filters['sort_by'].field.choices[1::2]]
