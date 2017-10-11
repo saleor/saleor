@@ -16,14 +16,12 @@ from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
 from prices import Price, FixedDiscount
 from satchless.item import ItemLine, ItemSet
-from templated_email import send_templated_mail
 
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product
 from ..userprofile.models import Address
 from ..search import index
-from ..site.utils import get_site_name
 from . import OrderStatus
 from . import emails
 
