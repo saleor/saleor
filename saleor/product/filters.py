@@ -11,9 +11,6 @@ from django_prices.models import PriceField
 from .models import Product, ProductAttribute
 
 
-DEFAULT_SORT = 'name'
-
-
 class ProductFilter(FilterSet):
     def __init__(self, *args, **kwargs):
         self.category = kwargs.pop('category')
