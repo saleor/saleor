@@ -8,7 +8,8 @@ from django.http import HttpResponsePermanentRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 
-from .filters import get_now_sorted_by, get_sort_by_choices, ProductFilter
+from .filters import (get_now_sorted_by, get_sort_by_choices,
+                      ProductFilter)
 from .models import Category
 from .utils import (products_with_details, products_for_cart,
                     handle_cart_form, get_availability,

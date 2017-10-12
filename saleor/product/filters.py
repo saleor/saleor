@@ -79,11 +79,7 @@ class ProductFilter(FilterSet):
         return [(choice.pk, choice.name) for choice in attribute.values.all()]
 
     def validate_sort_by(self, value):
-        choices = []
-        for field in SORT_BY_FIELDS.keys():
-            choices.append(field)
-            choices.append('-' + field)
-        if value not in choices:
+        if value.strip('-') not in SORT_BY_FIELDS:
             raise ValidationError(
                 ('%s is not an even number' % value)
             )
@@ -94,8 +90,8 @@ def get_sort_by_choices(filter):
             filter.filters['sort_by'].field.choices[1::2]]
 
 
-def get_now_sorted_by(product_filter):
-    sort_by = product_filter.form.cleaned_data.get('sort_by')
+def get_now_sorted_by(filter):
+    sort_by = filter.form.cleaned_data.get('sort_by')
     if sort_by:
         sort_by = SORT_BY_FIELDS[sort_by[0].strip('-')]
     else:
