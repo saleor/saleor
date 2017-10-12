@@ -92,3 +92,12 @@ class ProductFilter(FilterSet):
 def get_sort_by_choices(filter):
     return [(choice[0], choice[1].lower()) for choice in
             filter.filters['sort_by'].field.choices[1::2]]
+
+
+def get_now_sorted_by(product_filter):
+    sort_by = product_filter.form.cleaned_data.get('sort_by')
+    if sort_by:
+        sort_by = SORT_BY_FIELDS[sort_by[0].strip('-')]
+    else:
+        sort_by = SORT_BY_FIELDS['name']
+    return sort_by
