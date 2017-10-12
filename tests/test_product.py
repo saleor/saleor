@@ -403,7 +403,7 @@ def test_product_filter_product_does_not_exists(
 
 
 def test_product_filter_form(authorized_client, product_in_stock,
-                                      default_category):
+                             default_category):
     products = models.Product.objects.all()
     url = reverse(
         'product:category', kwargs={'path': default_category.slug,
@@ -412,3 +412,28 @@ def test_product_filter_form(authorized_client, product_in_stock,
     assert 'price' in response.context['filter'].form.fields.keys()
     assert 'sort_by' in response.context['filter'].form.fields.keys()
     assert list(response.context['filter'].qs) == list(products)
+
+
+def test_product_filter_sorted_by_price_descending(
+        authorized_client, product_in_stock, default_category):
+    products = models.Product.objects.all()
+    url = reverse(
+        'product:category', kwargs={'path': default_category.slug,
+                                    'category_id': default_category.pk})
+    data = {'sort_by': '-price'}
+    response = authorized_client.get(url, data)
+    assert 'price' in response.context['filter'].form.fields.keys()
+    assert 'sort_by' in response.context['filter'].form.fields.keys()
+    assert list(response.context['filter'].qs) == list(products)
+
+
+def test_product_filter_sorted_by_wrong_parameter(
+        authorized_client, product_in_stock, default_category):
+    url = reverse(
+        'product:category', kwargs={'path': default_category.slug,
+                                    'category_id': default_category.pk})
+    data = {'sort_by': 'aaa'}
+    response = authorized_client.get(url, data)
+    assert 'price' in response.context['filter'].form.fields.keys()
+    assert 'sort_by' in response.context['filter'].form.fields.keys()
+    assert list(response.context['filter'].qs) == list()
