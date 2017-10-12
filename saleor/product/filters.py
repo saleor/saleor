@@ -11,8 +11,9 @@ from django_prices.models import PriceField
 from .models import Product, ProductAttribute
 
 
-SORT_BY_FIELDS = {'name': pgettext_lazy('Product field', 'name'),
-                  'price': pgettext_lazy('Product field', 'price')}
+SORT_BY_FIELDS = {'name': pgettext_lazy('Product list sorting option', 'name'),
+                  'price': pgettext_lazy(
+                      'Product list sorting option', 'price')}
 
 
 class ProductFilter(FilterSet):
