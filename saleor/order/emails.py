@@ -1,6 +1,7 @@
 from templated_email import send_templated_mail
 from ..site.utils import get_site_name
 from django.conf import settings
+from celery import shared_task
 
 
 CONFIRM_ORDER_TEMPLATE = 'order/confirm_order'
@@ -15,9 +16,11 @@ def __send_confirmation(address, url, template):
                         template_name=template)
 
 
+@shared_task
 def send_order_confirmation(address, url):
     __send_confirmation(address, url, CONFIRM_ORDER_TEMPLATE)
 
 
+@shared_task
 def send_payment_confirmation(address, url):
     __send_confirmation(address, url, CONFIRM_PAYMENT_TEMPLATE)

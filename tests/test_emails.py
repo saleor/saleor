@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 from django.conf import settings
 
 import saleor.order.emails as emails
-import pytest
 import mock
 
 
@@ -32,3 +31,4 @@ def test_send_order_payment_confirmation(mocked_templated_email,
     mocked_templated_email.assert_called_once_with(
         recipient_list=[EMAIL], context=context, from_email=EMAIL_FROM,
         template_name=emails.CONFIRM_PAYMENT_TEMPLATE)
+
