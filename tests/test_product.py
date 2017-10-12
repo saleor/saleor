@@ -436,4 +436,4 @@ def test_product_filter_sorted_by_wrong_parameter(
     response = authorized_client.get(url, data)
     assert 'price' in response.context['filter'].form.fields.keys()
     assert 'sort_by' in response.context['filter'].form.fields.keys()
-    assert list(response.context['filter'].qs) == list()
+    assert not list(response.context['filter'].qs)
