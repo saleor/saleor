@@ -16,7 +16,7 @@ services:
       context: .
       dockerfile: Dockerfile
     env_file: common.env
-    command: celery -A celery_mail worker --app=saleor.celery_mail:app --loglevel=info
+    command: celery -A saleor worker --app=saleor.celeryconf:app --loglevel=info
     volumes:
       - .:/app:Z
     links:
