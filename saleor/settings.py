@@ -114,23 +114,23 @@ context_processors = [
     'saleor_oye.cart.context_processors.cart_counter',
 ]
 
-loaders = [
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-    # TODO: this one is slow, but for now need for mptt?
-    'django.template.loaders.eggs.Loader']
-
-if not DEBUG:
-    loaders = [('django.template.loaders.cached.Loader', loaders)]
+# loaders = [
+#     'django.template.loaders.filesystem.Loader',
+#     'django.template.loaders.app_directories.Loader',
+#     # TODO: this one is slow, but for now need for mptt?
+#     'django.template.loaders.eggs.Loader']
+#
+# if not DEBUG:
+#     loaders = [('django.template.loaders.cached.Loader', loaders)]
 
 TEMPLATES = [{
     'BACKEND': 'django.template.backends.django.DjangoTemplates',
     # 'DIRS': [os.path.join(PROJECT_ROOT, 'templates')],
-    # 'APP_DIRS': True,
+    'APP_DIRS': True,
     'OPTIONS': {
         'debug': DEBUG,
         'context_processors': context_processors,
-        'loaders': loaders,
+        # 'loaders': loaders,
         'string_if_invalid': '<< MISSING VARIABLE "%s" >>' if DEBUG else ''}}]
 
 # Make this unique, and don't share it with anybody.
@@ -213,6 +213,7 @@ INSTALLED_APPS = [
     'constance',
     'constance.backends.database',
     'django_celery_beat',
+
 ]
 
 LOGGING = {
@@ -493,3 +494,6 @@ PAYPAL_API_USER = os.environ.get('PAYPAL_API_USER', None)
 PAYPAL_API_PWD = os.environ.get('PAYPAL_API_PWD', None)
 PAYPAL_API_SIG = os.environ.get('PAYPAL_API_SIG', None)
 PAYPAL_API_VERSION = os.environ.get('PAYPAL_API_VERSION', None)
+
+
+PDF_STORAGE_ROOT = os.environ.get('PDF_STORAGE_ROOT', '/tmp/')
