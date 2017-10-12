@@ -415,15 +415,13 @@ def test_product_filter_form(authorized_client, product_in_stock,
 
 
 def test_product_filter_sorted_by_price_descending(
-        authorized_client, product_in_stock, default_category):
-    products = models.Product.objects.all()
+        authorized_client, product_list, default_category):
+    products = models.Product.objects.all().order_by('-price')
     url = reverse(
         'product:category', kwargs={'path': default_category.slug,
                                     'category_id': default_category.pk})
     data = {'sort_by': '-price'}
     response = authorized_client.get(url, data)
-    assert 'price' in response.context['filter'].form.fields.keys()
-    assert 'sort_by' in response.context['filter'].form.fields.keys()
     assert list(response.context['filter'].qs) == list(products)
 
 
@@ -434,6 +432,4 @@ def test_product_filter_sorted_by_wrong_parameter(
                                     'category_id': default_category.pk})
     data = {'sort_by': 'aaa'}
     response = authorized_client.get(url, data)
-    assert 'price' in response.context['filter'].form.fields.keys()
-    assert 'sort_by' in response.context['filter'].form.fields.keys()
     assert not list(response.context['filter'].qs)

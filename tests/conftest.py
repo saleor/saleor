@@ -257,6 +257,25 @@ def product_in_stock(product_class, default_category):
 
 
 @pytest.fixture
+def product_list(product_class, default_category):
+    product_attr = product_class.product_attributes.first()
+    attr_value = product_attr.values.first()
+    attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
+
+    product_1 = Product.objects.create(
+        name='Test product 1', price=Decimal('10.00'),
+        product_class=product_class, attributes=attributes)
+    product_1.categories.add(default_category)
+
+    product_2 = Product.objects.create(
+        name='Test product 2', price=Decimal('20.00'),
+        product_class=product_class, attributes=attributes)
+    product_2.categories.add(default_category)
+
+    return [product_1, product_2]
+
+
+@pytest.fixture
 def stock_location():
     warehouse_1 = StockLocation.objects.create(name='Warehouse 1')
     return warehouse_1
