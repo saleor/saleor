@@ -81,7 +81,8 @@ class ProductFilter(FilterSet):
     def validate_sort_by(self, value):
         if value.strip('-') not in SORT_BY_FIELDS:
             raise ValidationError(
-                ('%s is not a valid sorting option' % value)
+                _('%(value)s is not a valid sorting option'),
+                params={'value': value}
             )
 
 
