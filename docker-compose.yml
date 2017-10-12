@@ -13,7 +13,7 @@ services:
       - '127.0.0.1:6379:6379'
   search:
     image: elasticsearch:5.4.3
-    mem_limit: 1g
+    mem_limit: 512m
     environment:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ports:
