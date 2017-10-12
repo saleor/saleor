@@ -87,6 +87,7 @@ class ProductFilter(FilterSet):
                 ('%s is not an even number' % value)
             )
 
+
 def get_sort_by_choices(filter):
     return [(choice[0], choice[1].lower()) for choice in
             filter.filters['sort_by'].field.choices[1::2]]
