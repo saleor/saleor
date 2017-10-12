@@ -198,7 +198,7 @@ class ElasticsearchMapping(object):
         return doc
 
     def __repr__(self):
-        return '<ElasticsearchMapping: %s>' % (self.model.__name__, )
+        return '<ElasticsearchMapping: %s>' % (self.model.__name__,)
 
 
 class ElasticsearchSearchQuery(BaseSearchQuery):
@@ -212,8 +212,9 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
         # Convert field names into index column names
         if self.fields:
             fields = []
-            searchable_fields = {f.field_name: f for f in
-                                 self.queryset.model.get_searchable_search_fields()}
+            searchable_fields = {
+                f.field_name: f for f in
+                self.queryset.model.get_searchable_search_fields()}
             for field_name in self.fields:
                 if field_name in searchable_fields:
                     field_name = self.mapping.get_field_column_name(
@@ -233,10 +234,10 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
                         'must_not': {
                             'term': {
                                 'field': column_name
-                                }
                             }
                         }
                     }
+                }
             else:
                 return {
                     'term': {
@@ -251,10 +252,10 @@ class ElasticsearchSearchQuery(BaseSearchQuery):
                         'must_not': {
                             'term': {
                                 'field': column_name
-                                }
                             }
                         }
                     }
+                }
             else:
                 return {
                     'exists': {
@@ -771,8 +772,8 @@ class ElasticsearchSearchBackend(BaseSearchBackend):
                 port = parsed_url.port or (443 if use_ssl else 80)
 
                 http_auth = None
-                if (parsed_url.username is not None
-                    and parsed_url.password is not None):
+                if (parsed_url.username is not None and
+                        parsed_url.password is not None):
                     http_auth = (parsed_url.username, parsed_url.password)
 
                 self.hosts.append({
