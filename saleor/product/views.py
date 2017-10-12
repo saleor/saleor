@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
-from .filters import ProductFilter, get_sort_by_choices
+from .filters import get_sort_by_choices, ProductFilter, SORT_BY_FIELDS
 from .models import Category
 from .utils import (products_with_details, products_for_cart,
                     handle_cart_form, get_availability,
@@ -128,13 +128,15 @@ def category_index(request, path, category_id):
         product_filter.qs, PAGINATE_BY, request.GET.get('page'))
     products_and_availability = list(products_with_availability(
         products_paginated, request.discounts, request.currency))
-    sort_by = request.GET.get(
-        'sort_by', pgettext_lazy('Product field', 'name'))
+    sort_by = product_filter.form.cleaned_data.get('sort_by')
+    if sort_by:
+        sort_by = SORT_BY_FIELDS[sort_by[0].strip('-')]
+    else:
+        sort_by = SORT_BY_FIELDS['name']
     ctx = {'category': category, 'filter': product_filter,
            'products': products_and_availability,
            'products_paginated': products_paginated,
            'sort_by_choices': get_sort_by_choices(product_filter),
-           'now_sorted_by': pgettext_lazy(
-               'Product field', sort_by.strip('-')),
+           'now_sorted_by': sort_by,
            'is_descending': sort_by.startswith('-')}
     return TemplateResponse(request, 'category/index.html', ctx)

@@ -68,7 +68,7 @@
                     <li>
                       <div class="row">
                         <div class="col-6">
-                          {% trans 'Sort by' context 'Category page filters' %}: <strong>{{ choice.label }}</strong>
+                          {% trans 'Sort by' context 'Category page filters' %}: <strong>{{ label }}</strong>
                         </div>
                         <div class="col-6">
                           <div>
@@ -172,16 +172,28 @@
       <div class="col-md-8 col-lg-9 category-list">
         <div>
           <div>
-            <div class="row">
-              {% include "category/_items.html" with products=products %}
-            </div>
-            <div class="row">
-              <div class="m-auto">
-                {% if products_paginated.has_other_pages %}
-                  {% bootstrap_pagination products_paginated extra=request.GET.urlencode %}
-                {% endif %}
+            {% if products %}
+              <div class="row">
+
+                  {% include "category/_items.html" with products=products %}
+
               </div>
-            </div>
+              <div class="row">
+                <div class="m-auto">
+                  {% if products_paginated.has_other_pages %}
+                    {% bootstrap_pagination products_paginated extra=request.GET.urlencode %}
+                  {% endif %}
+                </div>
+              </div>
+            {% else %}
+              <div class="row no-results">
+                <div class="col-12">
+                  <svg data-src="{% static "images/pirate.svg" %}" width="360" height="360"/>
+                  <p>{% trans "Sorry, no matches found for your request." context "Search without results text" %}</p>
+                  <p>{% trans "Try again or shop new arrivals." context "Search without results text" %}</p>
+                </div>
+              </div>
+            {% endif %}
           </div>
         </div>
       </div>
