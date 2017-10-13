@@ -22,7 +22,7 @@ from . import forms
 @superuser_required
 def product_class_list(request):
     classes = ProductClass.objects.all().prefetch_related(
-        'product_attributes', 'variant_attributes')
+        'product_attributes', 'variant_attributes').order_by('name')
     form = forms.ProductClassForm(request.POST or None)
     if form.is_valid():
         return redirect('dashboard:product-class-add')
@@ -514,7 +514,7 @@ def attribute_delete(request, pk):
 @staff_member_required
 @permission_required('product.view_stock_location')
 def stock_location_list(request):
-    stock_locations = StockLocation.objects.all()
+    stock_locations = StockLocation.objects.all().order_by('name')
     stock_locations = get_paginator_items(
         stock_locations, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {'locations': stock_locations}
