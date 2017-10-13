@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
-from saleor.dashboard.staff.emails import send_set_password_email
+from emails import send_set_password_email
 from .forms import StaffForm
 from ..views import superuser_required
 from ...core.utils import get_paginator_items
@@ -32,6 +32,10 @@ def staff_details(request, pk):
                      admin=request.user)
     if form.is_valid():
         form.save()
+        msg = pgettext_lazy(
+            'Dashboard message', 'Updated staff member %s') % staff_member
+        messages.success(request, msg)
+        redirect('dashboard:staff-list')
     ctx = {'staff_member': staff_member, 'form': form}
     return TemplateResponse(request, 'dashboard/staff/detail.html', ctx)
 

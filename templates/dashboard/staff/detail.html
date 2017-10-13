@@ -70,6 +70,9 @@
             </div>
           </div>
           <div class="card-action right-align">
+            <a href="{% url 'dashboard:staff-list' %}" class="btn btn-flat">
+              {% trans "Cancel" context "Dashboard cancel action" %}
+            </a>
             <button type="submit" class="btn waves-effect waves-light">
               {% if staff_member %}
                 {% trans 'Update' context 'Dashboard update action' %}
