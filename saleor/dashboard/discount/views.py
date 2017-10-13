@@ -15,7 +15,7 @@ from . import forms
 @staff_member_required
 @permission_required('discount.view_sale')
 def sale_list(request):
-    sales = Sale.objects.prefetch_related('products')
+    sales = Sale.objects.prefetch_related('products').order_by('name')
     sales = get_paginator_items(
         sales, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {'sales': sales}
@@ -60,7 +60,8 @@ def sale_delete(request, pk):
 @staff_member_required
 @permission_required('discount.view_voucher')
 def voucher_list(request):
-    vouchers = Voucher.objects.select_related('product', 'category')
+    vouchers = (Voucher.objects.select_related('product', 'category')
+                .order_by('name'))
     vouchers = get_paginator_items(
         vouchers, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {'vouchers': vouchers}
