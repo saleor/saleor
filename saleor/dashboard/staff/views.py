@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
-from emails import send_set_password_email
+from .emails import send_set_password_email
 from .forms import StaffForm
 from ..views import superuser_required
 from ...core.utils import get_paginator_items
@@ -57,7 +57,10 @@ def staff_create(request):
 
 @superuser_required
 def staff_delete(request, pk):
-    staff = get_object_or_404(User, pk=pk)
+    queryset = User.objects.prefetch_related(
+        'orders')
+    staff = get_object_or_404(queryset, pk=pk)
+    all_orders_count = staff.orders.count()
     if request.method == 'POST':
         staff.delete()
         msg = pgettext_lazy(
@@ -65,4 +68,5 @@ def staff_delete(request, pk):
         messages.success(request, msg)
         return redirect('dashboard:staff-list')
     return TemplateResponse(
-        request, 'dashboard/staff/modal/confirm_delete.html', {'staff': staff})
+        request, 'dashboard/staff/modal/confirm_delete.html',
+        {'staff': staff, 'orders': all_orders_count})
