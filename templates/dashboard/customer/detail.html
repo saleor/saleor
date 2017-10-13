@@ -104,7 +104,7 @@
                 {% csrf_token %}
                 {{ form|materializecss }}
                 <div class="card-action right-align">
-                  <button type="submit" class="btn waves-effect waves-light" {% if not user.is_superuser %}disabled{% endif %}>
+                  <button type="submit" class="btn waves-effect waves-light" {% if not user.is_superuser  or user == customer %}disabled{% endif %}>
                     {% trans 'Update' context 'Dashboard update action' %}
                   </button>
                 </div>
