@@ -16,15 +16,14 @@ from payments import PaymentStatus, PurchasedItem
 from payments.models import BasePayment
 from prices import Price, FixedDiscount
 from satchless.item import ItemLine, ItemSet
-from templated_email import send_templated_mail
 
 from ..core.utils import build_absolute_uri
 from ..discount.models import Voucher
 from ..product.models import Product
 from ..userprofile.models import Address
 from ..search import index
-from ..site.utils import get_site_name
 from . import OrderStatus
+from . import emails
 
 
 class OrderManager(models.Manager):
@@ -178,10 +177,7 @@ class Order(models.Model, ItemSet, index.Indexed):
         email = self.get_user_current_email()
         payment_url = build_absolute_uri(
             reverse('order:details', kwargs={'token': self.token}))
-        context = {'payment_url': payment_url, 'site_name': get_site_name()}
-        send_templated_mail(
-            'order/confirm_order', from_email=settings.ORDER_FROM_EMAIL,
-            recipient_list=[email], context=context)
+        emails.send_order_confirmation.delay(email, payment_url)
 
     def get_last_payment_status(self):
         last_payment = self.payments.last()
@@ -414,10 +410,7 @@ class Payment(BasePayment):
         email = self.order.get_user_current_email()
         order_url = build_absolute_uri(
             reverse('order:details', kwargs={'token': self.order.token}))
-        context = {'order_url': order_url, 'site_name': get_site_name()}
-        send_templated_mail(
-            'order/payment/confirm_payment', context=context,
-            from_email=settings.ORDER_FROM_EMAIL, recipient_list=[email])
+        emails.send_payment_confirmation.delay(email, order_url)
 
     def get_purchased_items(self):
         items = [

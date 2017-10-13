@@ -9,7 +9,7 @@
 Hi!
 
 Thank you for your payment. To see your payment details please visit:
-{{ order_url }}
+{{ url }}
 
 Sincerely,
 {{ site_name }}
