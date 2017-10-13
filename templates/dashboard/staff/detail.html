@@ -38,7 +38,7 @@
 {% endblock %}
 
 {% block header_extra %}
-  {% if user != staff_member %}
+  {% if user != staff_member and staff_member.pk %}
     <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
       <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
     </a>
