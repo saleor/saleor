@@ -9,6 +9,6 @@ import './components/image-gallery';
 import './components/coupons';
 import './components/async-form';
 import './components/styleguide';
-import './components/switch';
+import './components/bulk-actions';
 import './components/tab';
 import './components/misc';

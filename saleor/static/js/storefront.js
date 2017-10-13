@@ -2,7 +2,6 @@ import '../scss/storefront.scss';
 
 import './components/mobile/navbar';
 import './components/mobile/search';
-import './components/mobile/filters-menu';
 import './components/cart';
 import './components/sorter';
 import './components/variant-picker';

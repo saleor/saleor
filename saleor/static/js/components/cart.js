@@ -146,4 +146,9 @@ export default $(document).ready((e) => {
   };
 
   $cartSubtotal.on('change', countrySelect, deliveryAjax);
+
+  if ($.cookie('alert') === 'true') {
+    $removeProductSuccess.removeClass('hidden-xs-up');
+    $.cookie('alert', 'false', {path: '/cart'});
+  }
 });
