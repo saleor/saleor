@@ -3,17 +3,17 @@ from ..site.utils import get_site_name
 from django.conf import settings
 from celery import shared_task
 
-
 CONFIRM_ORDER_TEMPLATE = 'order/confirm_order'
 CONFIRM_PAYMENT_TEMPLATE = 'order/payment/confirm_payment'
 
 
 def _send_confirmation(address, url, template):
-    send_templated_mail(from_email=settings.ORDER_FROM_EMAIL,
-                        recipient_list=[address],
-                        context={'site_name': get_site_name(),
-                                 'url': url},
-                        template_name=template)
+    send_templated_mail(
+        from_email=settings.ORDER_FROM_EMAIL,
+        recipient_list=[address],
+        context={'site_name': get_site_name(),
+                 'url': url},
+        template_name=template)
 
 
 @shared_task
