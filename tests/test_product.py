@@ -12,7 +12,7 @@ from saleor.product import (
     models, ProductAvailabilityStatus, VariantAvailabilityStatus)
 from saleor.product.utils import (
     get_attributes_display_map, get_availability,
-    get_product_availability_status, products_with_details,
+    get_product_availability_status,
     get_variant_availability_status)
 from tests.utils import filter_products_by_attribute
 
