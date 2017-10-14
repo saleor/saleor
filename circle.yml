@@ -27,10 +27,10 @@ test:
 
 deployment:
   release:
-    tag: /v.*/
+    branch: demo
     commands:
       - docker login -e $DOCKERCLOUD_EMAIL -u $DOCKERCLOUD_USER -p $DOCKERCLOUD_PASS
-      - docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_TAG
-      - docker push mirumee/saleor:$CIRCLE_TAG
+      - docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_SHA1
+      - docker push mirumee/saleor:$CIRCLE_SHA1
       - docker push mirumee/saleor:latest
       - curl -X POST https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo?circle-token=$CIRCLE_API_TOKEN

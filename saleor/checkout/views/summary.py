@@ -73,7 +73,7 @@ def get_billing_forms_with_shipping(data, addresses, billing_address, shipping_a
 
 
 def summary_with_shipping_view(request, checkout):
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         additional_addresses = request.user.addresses.all()
     else:
         additional_addresses = Address.objects.none()

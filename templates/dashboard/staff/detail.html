@@ -1,0 +1,62 @@
+{% extends "dashboard/base.html" %}
+{% load materializecss %}
+{% load prices_i18n %}
+{% load i18n %}
+{% load status %}
+{% load staticfiles %}
+
+{% block title %}
+  {{ staff_member }} - {% trans "Customers" context "Dashboard customers list" %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-customers{% endblock %}
+
+{% block menu_staff_class %}active{% endblock %}
+
+{% block header_menu %}
+  {% url "dashboard:staff" as url %}
+  {% include "dashboard/includes/_back-link.html" with url=url %}
+{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url "dashboard:staff-list" %}">
+        {% trans "Staff" context "Dashboard staff list" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url "dashboard:staff-list" %}">
+        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
+    <li><span class="breadcrumbs--elipsed-item">{{ staff_member }}</span></li>
+  </ul>
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col s12 l8">
+      {% if form %}
+        <form class="card" method="post">
+          <div class="card-content">
+            <span class="card-title">
+              User groups
+            </span>
+            <div class="data">
+                {% csrf_token %}
+                <div class="row">
+                  {{ form|materializecss }}
+                </div>
+            </div>
+          </div>
+          <div class="card-action right-align">
+            <button type="submit" class="btn waves-effect waves-light">
+                {% trans "Update" context "Dashboard update action" %}
+            </button>
+          </div>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

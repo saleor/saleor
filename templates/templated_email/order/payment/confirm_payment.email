@@ -1,0 +1,17 @@
+{% load i18n %}
+
+{% block subject %}
+	{% trans "Payment details" context "Payment confirmation subject" %}
+{% endblock %}
+
+{% block plain %}
+{% blocktrans context "Payment confirmation email text" %}
+Hi!
+
+Thank you for your payment. To see your payment details please visit:
+{{ url }}
+
+Sincerely,
+{{ site_name }}
+{% endblocktrans %}
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "dashboard/base_modal_confirm_delete.html" %}
+
+{% load i18n %}
+{% load prices_i18n %}
+
+{% block action_url %}
+{% url 'dashboard:variant-stock-delete' product_pk=product.pk variant_pk=variant.pk stock_pk=stock.pk %}
+{% endblock %}
+
+{% block title %}
+{% blocktrans context "Dashboard confirmation modal" %}
+Delete stock {{ stock }}
+{% endblocktrans %}
+{% endblock title %}
+
+{% block content %}
+{% blocktrans context "Dashboard confirmation modal" %}
+Are you sure you want to delete stock <strong>{{ stock }}</strong>?
+{% endblocktrans %}
+{% endblock content %}

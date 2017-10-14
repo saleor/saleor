@@ -1,50 +1,55 @@
 from __future__ import unicode_literals
 
 from django import forms
-from django.db import transaction
 from django.db.models import Count
 from django.forms.models import ModelChoiceIterator, inlineformset_factory
+from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 
-from ...product.models import (AttributeChoiceValue, Product, ProductAttribute,
-                               ProductClass, ProductImage, ProductVariant,
-                               Stock, StockLocation, VariantImage)
-from .widgets import ImagePreviewWidget
+from ...product.models import (
+    AttributeChoiceValue, Product, ProductAttribute, ProductClass,
+    ProductImage, ProductVariant, Stock, StockLocation, VariantImage)
 from ...search import index as search_index
+from .widgets import ImagePreviewWidget
 
 
 class ProductClassSelectorForm(forms.Form):
-    MAX_RADIO_SELECT_ITEMS = 5
 
     def __init__(self, *args, **kwargs):
         product_classes = kwargs.pop('product_classes', [])
         super(ProductClassSelectorForm, self).__init__(*args, **kwargs)
         choices = [(obj.pk, obj.name) for obj in product_classes]
-        if len(product_classes) > self.MAX_RADIO_SELECT_ITEMS:
-            widget = forms.Select
-        else:
-            widget = forms.RadioSelect
         self.fields['product_cls'] = forms.ChoiceField(
             label=pgettext_lazy('Product class form label', 'Product type'),
-            choices=choices, widget=widget)
+            choices=choices, widget=forms.RadioSelect)
 
 
 class StockForm(forms.ModelForm):
     class Meta:
         model = Stock
-        exclude = ['quantity_allocated']
+        exclude = ['quantity_allocated', 'variant']
 
     def __init__(self, *args, **kwargs):
-        product = kwargs.pop('product')
+        self.variant = kwargs.pop('variant')
         super(StockForm, self).__init__(*args, **kwargs)
-        if not product.product_class.has_variants:
-            initial = product.variants.first()
-        else:
-            initial = None
-        self.fields['variant'] = forms.ModelChoiceField(
-            queryset=product.variants, initial=initial)
+
+    def clean_location(self):
+        location = self.cleaned_data['location']
+        if (
+            not self.instance.pk and
+                self.variant.stock.filter(location=location).exists()):
+            self.add_error(
+                'location',
+                pgettext_lazy(
+                    'stock form error',
+                    'Stock item for this location and variant already exists'))
+        return location
+
+    def save(self, commit=True):
+        self.instance.variant = self.variant
+        return super(StockForm, self).save(commit)
 
 
 class ProductClassForm(forms.ModelForm):
@@ -97,16 +102,16 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         exclude = ['attributes', 'product_class']
+        labels = {
+            'is_published': pgettext_lazy('product form', 'Published'),
+            'is_featured': pgettext_lazy(
+                'product form', 'Feature this product on homepage')}
 
     def __init__(self, *args, **kwargs):
         self.product_attributes = []
         super(ProductForm, self).__init__(*args, **kwargs)
-        field = self.fields['name']
-        field.widget.attrs['placeholder'] = pgettext_lazy(
-            'Product form placeholder', 'Give your awesome product a name')
-        field = self.fields['categories']
-        field.widget.attrs['data-placeholder'] = pgettext_lazy(
-            'Product form placeholder', 'Search')
+        self.fields['categories'].widget.attrs['data-placeholder'] = (
+            pgettext_lazy('Product form placeholder', 'Search'))
         product_class = self.instance.product_class
         self.product_attributes = product_class.product_attributes.all()
         self.product_attributes = self.product_attributes.prefetch_related(
@@ -182,9 +187,10 @@ class VariantAttributeForm(forms.ModelForm):
         attrs = self.instance.product.product_class.variant_attributes.all()
         self.available_attrs = attrs.prefetch_related('values')
         for attr in self.available_attrs:
-            field_defaults = {'label': attr.name,
-                              'required': True,
-                              'initial': self.instance.get_attribute(attr.pk)}
+            field_defaults = {
+                'label': attr.name,
+                'required': True,
+                'initial': self.instance.get_attribute(attr.pk)}
             if attr.has_values():
                 field = CachingModelChoiceField(
                     queryset=attr.values.all(), **field_defaults)
@@ -222,6 +228,7 @@ class StockBulkDeleteForm(forms.Form):
 
 
 class ProductImageForm(forms.ModelForm):
+    use_required_attribute = False
     variants = forms.ModelMultipleChoiceField(
         queryset=ProductVariant.objects.none(),
         widget=forms.CheckboxSelectMultiple, required=False)
@@ -232,29 +239,28 @@ class ProductImageForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ProductImageForm, self).__init__(*args, **kwargs)
-        show_variants = self.instance.product.product_class.has_variants
-        if self.instance.product and show_variants:
-            variants = self.fields['variants']
-            variants.queryset = self.instance.product.variants.all()
-            variants.initial = self.instance.variant_images.values_list(
-                'variant', flat=True)
         if self.instance.image:
             self.fields['image'].widget = ImagePreviewWidget()
 
-    @transaction.atomic
-    def save_variant_images(self, instance):
-        variant_images = []
-        # Clean up old mapping
-        instance.variant_images.all().delete()
-        for variant in self.cleaned_data['variants']:
-            variant_images.append(
-                VariantImage(variant=variant, image=instance))
-        VariantImage.objects.bulk_create(variant_images)
 
-    def save(self, commit=True):
-        instance = super(ProductImageForm, self).save(commit=commit)
-        self.save_variant_images(instance)
-        return instance
+class VariantImagesSelectForm(forms.Form):
+    images = forms.ModelMultipleChoiceField(
+        queryset=VariantImage.objects.none(),
+        widget=CheckboxSelectMultiple,
+        required=False)
+
+    def __init__(self, *args, **kwargs):
+        self.variant = kwargs.pop('variant')
+        super(VariantImagesSelectForm, self).__init__(*args, **kwargs)
+        self.fields['images'].queryset = self.variant.product.images.all()
+        self.fields['images'].initial = self.variant.images.all()
+
+    def save(self):
+        images = []
+        self.variant.images.clear()
+        for image in self.cleaned_data['images']:
+            images.append(VariantImage(variant=self.variant, image=image))
+        VariantImage.objects.bulk_create(images)
 
 
 class ProductAttributeForm(forms.ModelForm):
@@ -282,3 +288,41 @@ class AttributeChoiceValueForm(forms.ModelForm):
 AttributeChoiceValueFormset = inlineformset_factory(
     ProductAttribute, AttributeChoiceValue, form=AttributeChoiceValueForm,
     extra=1)
+
+
+class OrderedModelMultipleChoiceField(forms.ModelMultipleChoiceField):
+    def clean(self, value):
+        qs = super(OrderedModelMultipleChoiceField, self).clean(value)
+        keys = list(map(int, value))
+        return sorted(qs, key=lambda v: keys.index(v.pk))
+
+
+class ReorderProductImagesForm(forms.ModelForm):
+    ordered_images = OrderedModelMultipleChoiceField(
+        queryset=ProductImage.objects.none())
+
+    class Meta:
+        model = Product
+        fields = ()
+
+    def __init__(self, *args, **kwargs):
+        super(ReorderProductImagesForm, self).__init__(*args, **kwargs)
+        if self.instance:
+            self.fields['ordered_images'].queryset = self.instance.images.all()
+
+    def save(self):
+        for order, image in enumerate(self.cleaned_data['ordered_images']):
+            image.order = order
+            image.save()
+        return self.instance
+
+
+class UploadImageForm(forms.ModelForm):
+    class Meta:
+        model = ProductImage
+        fields = ('image', )
+
+    def __init__(self, *args, **kwargs):
+        product = kwargs.pop('product')
+        super(UploadImageForm, self).__init__(*args, **kwargs)
+        self.instance.product = product

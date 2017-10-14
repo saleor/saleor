@@ -1,0 +1,17 @@
+{% extends "dashboard/base_modal_confirm_delete.html" %}
+
+{% load i18n %}
+
+{% block action_url %}{% url "dashboard:sale-delete" pk=sale.pk %}{% endblock %}
+
+{% block title %}
+{% blocktrans trimmed context "Delete sale (discount) text" %}
+Delete sale {{ sale }}
+{% endblocktrans %}
+{% endblock title %}
+
+{% block content %}
+{% blocktrans trimmed context "Delete sale (discount) text" %}
+Are you sure you want to selete <strong>{{ sale }}</strong>?
+{% endblocktrans %}
+{% endblock content %}

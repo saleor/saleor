@@ -25,12 +25,14 @@
     <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
   </a>
   <ul id="context-menu" class="dropdown-content">
-    {% if order.can_cancel %}
-      <li>
-        <a href="#base-modal" data-href="{% url "dashboard:order-cancel" order_pk=order.pk %}" class="modal-trigger-custom">
-          {% trans "Cancel Order" context "Order detail action" %}
-        </a>
-      </li>
+    {% if perms.order.edit_order %}
+      {% if order.can_cancel %}
+        <li>
+          <a href="#base-modal" data-href="{% url "dashboard:order-cancel" order_pk=order.pk %}" class="modal-trigger-custom">
+            {% trans "Cancel Order" context "Order detail action" %}
+          </a>
+        </li>
+      {% endif %}
     {% endif %}
     <li>
       <a class="btn-print" href="#">
@@ -181,26 +183,28 @@
             </tbody>
           </table>
         </div>
-        {% if can_capture or can_refund or can_release %}
-          <div class="data-table-action">
-            {% if can_capture %}
-              <a href="#base-modal" data-href="{% url 'dashboard:capture-payment' order_pk=order.pk payment_pk=payment.pk %}"
-            class="btn btn-flat modal-trigger-custom">
-                {% trans "Capture" context "Order summary card action" %}
-              </a>
-            {% elif can_refund %}
-              <a href="#base-modal" data-href="{% url 'dashboard:refund-payment' order_pk=order.pk payment_pk=payment.pk %}"
-            class="btn btn-flat modal-trigger-custom">
-                {% trans "Refund" context "Order summary card action" %}
-              </a>
-            {% endif %}
-            {% if can_release %}
-              <a href="#base-modal" data-href="{% url 'dashboard:release-payment' order_pk=order.pk payment_pk=payment.pk %}"
-            class="btn btn-flat modal-trigger-custom">
-                {% trans "Release" context "Order summary card action" %}
-              </a>
-            {% endif %}
-          </div>
+        {% if perms.order.edit_order %}
+          {% if can_capture or can_refund or can_release %}
+            <div class="data-table-action">
+              {% if can_capture %}
+                <a href="#base-modal" data-href="{% url 'dashboard:capture-payment' order_pk=order.pk payment_pk=payment.pk %}"
+              class="btn btn-flat modal-trigger-custom">
+                  {% trans "Capture" context "Order summary card action" %}
+                </a>
+              {% elif can_refund %}
+                <a href="#base-modal" data-href="{% url 'dashboard:refund-payment' order_pk=order.pk payment_pk=payment.pk %}"
+              class="btn btn-flat modal-trigger-custom">
+                  {% trans "Refund" context "Order summary card action" %}
+                </a>
+              {% endif %}
+              {% if can_release %}
+                <a href="#base-modal" data-href="{% url 'dashboard:release-payment' order_pk=order.pk payment_pk=payment.pk %}"
+              class="btn btn-flat modal-trigger-custom">
+                  {% trans "Release" context "Order summary card action" %}
+                </a>
+              {% endif %}
+            </div>
+          {% endif %}
         {% endif %}
       </div>
       {% with order.shipping_address as address %}
@@ -214,11 +218,13 @@
                   </span>
                   {% include 'dashboard/includes/_address.html' with address=address only %}
                 </div>
-                <div class="card-action">
-                  <a class="btn btn-flat" href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">
-                    {% trans "Edit" context "Dashboard edit action" %}
-                  </a>
-                </div>
+                {% if perms.order.edit_order %}
+                  <div class="card-action">
+                    <a class="btn btn-flat" href="{% url "dashboard:address-edit" order_pk=order.pk address_type="shipping" %}">
+                      {% trans "Edit" context "Dashboard edit action" %}
+                    </a>
+                  </div>
+                {% endif %}
               </div>
             </div>
           {% endif %}
@@ -232,10 +238,12 @@
                   {% include 'dashboard/includes/_address.html' with address=address only %}
                 {% endwith %}
               </div>
-              <div class="card-action">
-                <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}" class="btn btn-flat">
-                  {% trans "Edit" context "Dashboard edit action" %}</a>
-              </div>
+              {% if perms.order.edit_order %}
+                <div class="card-action">
+                  <a href="{% url "dashboard:address-edit" order_pk=order.pk address_type="billing" %}" class="btn btn-flat">
+                    {% trans "Edit" context "Dashboard edit action" %}</a>
+                </div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -334,26 +342,28 @@
               </tbody>
             </table>
           </div>
-          {% if group.can_ship or group.can_cancel %}
-            <div class="data-table-action">
-              {% if group.can_ship %}
-                <a href="#base-modal" data-href="{% url 'dashboard:ship-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn btn-flat modal-trigger-custom">
-                  {% trans "Dispatch" context "Shipment group table action" %}
-                </a>
-              {% endif %}
-              {% if group.can_cancel %}
-                <a href="#base-modal" data-href="{% url 'dashboard:cancel-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn btn-flat modal-trigger-custom" title="{% trans "Cancel group" context "Shipment group table action" %}">
-                  {% trans "Cancel this shipment" context "Shipment group table action" %}
-                </a>
-              {% endif %}
-            </div>
-          {% else %}
-            {% if group.tracking_number %}
-              <div class="card-action">
-                {% blocktrans trimmed with tracking=group.tracking_number context "Shipment group table text" %}
-                  Tracking number: {{ tracking }}
-                {% endblocktrans %}
+          {% if perms.order.edit_order %}
+            {% if group.can_ship or group.can_cancel %}
+              <div class="data-table-action">
+                {% if group.can_ship %}
+                  <a href="#base-modal" data-href="{% url 'dashboard:ship-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn btn-flat modal-trigger-custom">
+                    {% trans "Dispatch" context "Shipment group table action" %}
+                  </a>
+                {% endif %}
+                {% if group.can_cancel %}
+                  <a href="#base-modal" data-href="{% url 'dashboard:cancel-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="btn btn-flat modal-trigger-custom" title="{% trans "Cancel group" context "Shipment group table action" %}">
+                    {% trans "Cancel this shipment" context "Shipment group table action" %}
+                  </a>
+                {% endif %}
               </div>
+            {% else %}
+              {% if group.tracking_number %}
+                <div class="card-action">
+                  {% blocktrans trimmed with tracking=group.tracking_number context "Shipment group table text" %}
+                    Tracking number: {{ tracking }}
+                  {% endblocktrans %}
+                </div>
+              {% endif %}
             {% endif %}
           {% endif %}
         </div>
@@ -435,11 +445,13 @@
             </p>
           {% endif %}
         </div>
-        <div class="card-action">
-          <a data-href="{% url "dashboard:order-add-note" order_pk=order.pk %}" class="modal-trigger-custom btn btn-flat" href="#base-modal">
-            {% trans "Add note" context "Order notes card action" %}
-          </a>
-        </div>
+        {% if perms.order.edit_order %}
+          <div class="card-action">
+            <a data-href="{% url "dashboard:order-add-note" order_pk=order.pk %}" class="modal-trigger-custom btn btn-flat" href="#base-modal">
+              {% trans "Add note" context "Order notes card action" %}
+            </a>
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>

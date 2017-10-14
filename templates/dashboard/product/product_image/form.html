@@ -1,0 +1,108 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load materializecss %}
+{% load staticfiles %}
+
+{% block title %}
+  {% if product_image.pk %}
+    {% trans "Edit - Image" context "Image form text" %}
+  {% else %}
+    {% trans "Add image" context "Image form text" %}
+  {% endif %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-store body-products{% endblock %}
+
+{% block menu_products_class %}active{% endblock %}
+
+{% block header_menu %}
+  {% url "dashboard:product-detail" pk=product.pk as url %}
+  {% include "dashboard/includes/_back-link.html" with url=url %}
+{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url "dashboard:product-detail" pk=product.pk %}" class="breadcrumbs--ellipsed-item">
+        {{ product }}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url "dashboard:product-detail" pk=product.pk %}" class="breadcrumb">
+        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
+    {% if product_image.pk %}
+      <li>
+        <span class="breadcrumbs--ellipsed-item">
+          {% trans "Image" context "Image form text" %}
+        </span>
+      </li>
+      <li>
+        <span class="breadcrumbs--ellipsed-item">
+          {% trans "Edit" context "Image form text" %}
+        </span>
+      </li>
+    {% else %}
+      <li>
+        <span class="hide-on-med-and-down">
+          {% trans "Add image" context "Image form breadcrumbs" %}
+        </span>
+        <span class="hide-on-large-only breadcrumbs--ellipsed-item">
+          {% blocktrans trimmed context "Image form breadcrumbs"  %}
+            Add image for {{ product }}
+          {% endblocktrans %}
+        </span>
+      </li>
+    {% endif %}
+  </ul>
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col s12 m9">
+      <div class="card">
+        <form method="post" enctype="multipart/form-data">
+          <div class="card-content">
+            {% csrf_token %}
+            <div class="row">
+              <div class="col s12 m8">
+                <div class="row">
+                  {{ form.image|materializecss }}
+                </div>
+                {% if product_image.pk %}
+                  <p class="no-margin">
+                    {% trans "Pick the most relevant part of the image using the red circle." context "Image form text" %}
+                  </p>
+                {% endif %}
+              </div>
+            </div>
+            <div class="row">
+              {{ form.alt|materializecss }}
+            </div>
+          </div>
+          <div class="card-action right-align">
+            {% if product_image.pk %}
+              <a href="{% url "dashboard:product-image-list" product.pk %}" class="btn btn-flat">
+                {% trans "Cancel" context "Dashboard cancel action" %}
+              </a>
+              <button type="submit" class="btn waves-effect waves-light">
+                {% trans "Save" context "Dashboard update action" %}
+              </button>
+            {% else %}
+              <a href="{% url "dashboard:product-image-list" product.pk %}" class="btn btn-flat">
+                {% trans "Cancel" context "Dashboard cancel action" %}
+              </a>
+              <button type="submit" class="btn waves-effect waves-light">
+                {% trans "Create" context "Dashboard create action" %}
+              </button>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="col s12 m3 help-box"></div>
+  </div>
+{% endblock %}

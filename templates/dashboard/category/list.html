@@ -3,6 +3,7 @@
 {% load mptt_tags %}
 {% load materializecss %}
 {% load staticfiles %}
+{% load utils %}
 
 {% block title %}{% trans "Categories" context "Category list page title" %} - {{ block.super }}{% endblock %}
 
@@ -24,29 +25,31 @@
 {% endblock %}
 
 {% block header_extra %}
-  <div class="fixed-action-btn">
-    <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
-    title="{% trans "Add category" context "Category list add button text" %}"
-    href="{% if root %}{% url 'dashboard:category-add' root_pk=root.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}">
-      <svg data-src="{% static "dashboard/images/add.svg" %}" />
-    </a>
-  </div>
-  {% if root %}
-    <a class="dropdown-button right" href="#" data-activates="category-delete" data-constrainwidth="false">
-      <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
-    </a>
-    <ul id="category-delete" class="dropdown-content">
-      <li>
-        <a class="modal-trigger-custom" data-href="{% url 'dashboard:category-edit' root_pk=root.pk %}" href="#base-modal">
-          {% trans "Edit category" context "Dashboard edit action" %}
-        </a>
-      </li>
-      <li>
-        <a class="modal-trigger-custom" data-href="{% url 'dashboard:category-delete' pk=root.pk %}" href="#base-modal">
-          {% trans "Remove category" context "Category list action link" %}
-        </a>
-      </li>
-    </ul>
+  {% if perms.product.edit_category %}
+    <div class="fixed-action-btn">
+      <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
+      title="{% trans "Add category" context "Category list add button text" %}"
+      href="{% if root %}{% url 'dashboard:category-add' root_pk=root.pk %}{% else %}{% url 'dashboard:category-add' %}{% endif %}">
+        <svg data-src="{% static "dashboard/images/add.svg" %}" />
+      </a>
+    </div>
+    {% if root %}
+      <a class="dropdown-button right" href="#" data-activates="category-delete" data-constrainwidth="false">
+        <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
+      </a>
+      <ul id="category-delete" class="dropdown-content">
+        <li>
+          <a class="modal-trigger-custom" data-href="{% url 'dashboard:category-edit' root_pk=root.pk %}" href="#base-modal">
+            {% trans "Edit category" context "Dashboard edit action" %}
+          </a>
+        </li>
+        <li>
+          <a class="modal-trigger-custom" data-href="{% url 'dashboard:category-delete' pk=root.pk %}" href="#base-modal">
+            {% trans "Remove category" context "Category list action link" %}
+          </a>
+        </li>
+      </ul>
+    {% endif %}
   {% endif %}
 {% endblock %}
 
@@ -117,6 +120,7 @@
         </li>
       {% endfor %}
     </ul>
+    {% paginate categories %}
   {% else %}
     <div class="not-found">
       {% if root %}

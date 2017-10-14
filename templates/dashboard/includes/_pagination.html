@@ -2,36 +2,37 @@
 {% load utils %}
 {% load staticfiles %}
 
+
 {% if page_obj.paginator.num_pages > 1 %}
   <ul class="pagination">
-    <li
-      {% if not page_obj.has_previous %} class="disabled"{% endif %}>
       {% if page_obj.has_previous %}
-      <a href="{% construct_get_query page=page_obj.previous_page_number %}">
-        <svg data-src="{% static "dashboard/images/chevron_left.svg" %}" fill="#000" />
-      </a>
-    {% else %}
-      <a href="#!">
-        <svg data-src="{% static "dashboard/images/chevron_left.svg" %}" fill="#9E9E9E" />
-      </a>
-    {% endif %}
-    </li>
-    {% for page in page_obj.paginator.page_range %}
-      <li class="{% if page == page_obj.number %}active{% else %}waves-effect{% endif %}">
-        <a href="{% construct_get_query page=page %}">
-          {{ page }}
-        </a>
-      </li>
-    {% endfor %}
-    <li{% if not page_obj.has_next %} class="disabled"{% endif %}>
-      {% if page_obj.has_next %}
-        <a href="{% construct_get_query page=page_obj.next_page_number %}">
-          <svg data-src="{% static "dashboard/images/chevron_right.svg" %}" fill="#000" />
-        </a>
+        <li><a href="?page=1"><svg data-src="{% static "dashboard/images/chevron_left.svg" %}" fill="#000" /></a></li>
+        {% if page_obj.number|add:previous_section >= 1 %}
+          <li><a href="{% construct_get_query page=page_obj.number|add:previous_section %}">&hellip;</a></li>
+        {% elif page_obj.number|add:previous_section < 1 and page_obj.number|add:n_backward >= 1 %}
+          <li><a href="?page=1">&hellip;</a></li>
+        {% endif %}
       {% else %}
-        <a href="#!">
-          <svg data-src="{% static "dashboard/images/chevron_right.svg" %}" fill="#9E9E9E" />
-        </a>
+        <li class="disabled"><a href="#!"><svg data-src="{% static "dashboard/images/chevron_left.svg" %}" fill="#9E9E9E" /></a></li>
+      {% endif %}
+
+    {% for page in page_obj.paginator.page_range %}
+      {% if page_obj.number == page %}
+        <li class="active"><a href="{% construct_get_query page=page %}">{{ page }}</a></li>
+      {% elif page > page_obj.number|add:n_backward and page < page_obj.number|add:n_forward %}
+        <li class="waves-effect"><a href="{% construct_get_query page=page %}">{{ page }}</a></li>
+      {% endif %}
+    {% endfor %}
+
+      {% if page_obj.has_next %}
+        {% if page_obj.number|add:next_section <= page_obj.paginator.num_pages %}
+          <li><a href="{% construct_get_query page=page_obj.number|add:next_section %}">&hellip;</a></li>
+        {% elif page_obj.number|add:next_section > page_obj.paginator.num_pages and page_obj.number|add:n_forward <= page_obj.paginator.num_pages %}
+          <li><a href="{% construct_get_query page=page_obj.paginator.num_pages %}">&hellip;</a></li>
+        {% endif %}
+        <li><a href="{% construct_get_query page=page_obj.paginator.num_pages %}"><svg data-src="{% static "dashboard/images/chevron_right.svg" %}" fill="#000" /></a></li>
+      {% else %}
+        <li class="disabled"><a href="#!"><svg data-src="{% static "dashboard/images/chevron_right.svg" %}" fill="#9E9E9E" /></a></li>
       {% endif %}
     </li>
   </ul>

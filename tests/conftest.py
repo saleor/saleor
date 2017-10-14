@@ -3,9 +3,18 @@ from __future__ import unicode_literals
 
 from decimal import Decimal
 import pytest
+
+from io import BytesIO
+from PIL import Image
+
 from django.contrib.auth.models import AnonymousUser
 from django.utils.encoding import smart_text
-from mock import Mock
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.contrib.auth.models import AnonymousUser, Group, Permission
+from django.core.files import File
+from django.utils.encoding import smart_text
+
+from mock import MagicMock
 
 from saleor.cart import utils
 from saleor.cart.models import Cart
@@ -14,7 +23,8 @@ from saleor.discount.models import Voucher, Sale
 from saleor.order.models import Order, OrderedItem, DeliveryGroup
 from saleor.product.models import (AttributeChoiceValue, Category, Product,
                                    ProductAttribute, ProductClass,
-                                   ProductVariant, Stock, StockLocation)
+                                   ProductVariant, ProductImage, Stock,
+                                   StockLocation)
 from saleor.shipping.models import ShippingMethod
 from saleor.site.models import SiteSettings, AuthorizationKey
 from saleor.userprofile.models import Address, User
@@ -70,6 +80,21 @@ def admin_client(admin_user):
 
 
 @pytest.fixture()
+def staff_user(db):
+    """A Django staff user"""
+    return User.objects.create_user(
+        email='staff_test@example.com', password='password', is_staff=True,
+        is_active=True)
+
+
+@pytest.fixture()
+def staff_client(client, staff_user):
+    """A Django test client logged in as an staff member"""
+    client.login(username=staff_user.email, password='password')
+    return client
+
+
+@pytest.fixture()
 def authorized_client(client, customer_user):
     client.login(username=customer_user.email, password='password')
     return client
@@ -120,6 +145,81 @@ def default_category(db):  # pylint: disable=W0613
 
 
 @pytest.fixture
+def default_stock_location(db):
+    return StockLocation.objects.create(name='Warehouse 1')
+
+
+@pytest.fixture
+def staff_group():
+    return Group.objects.create(name='test')
+
+
+@pytest.fixture
+def permission_view_product():
+    return Permission.objects.get(codename='view_product')
+
+
+@pytest.fixture
+def permission_edit_product():
+    return Permission.objects.get(codename='edit_product')
+
+
+@pytest.fixture
+def permission_view_category():
+    return Permission.objects.get(codename='view_category')
+
+
+@pytest.fixture
+def permission_edit_category():
+    return Permission.objects.get(codename='edit_category')
+
+
+@pytest.fixture
+def permission_view_stock_location():
+    return Permission.objects.get(codename='view_stock_location')
+
+
+@pytest.fixture
+def permission_edit_stock_location():
+    return Permission.objects.get(codename='edit_stock_location')
+
+
+@pytest.fixture
+def permission_view_sale():
+    return Permission.objects.get(codename='view_sale')
+
+
+@pytest.fixture
+def permission_edit_sale():
+    return Permission.objects.get(codename='edit_sale')
+
+
+@pytest.fixture
+def permission_view_voucher():
+    return Permission.objects.get(codename='view_voucher')
+
+
+@pytest.fixture
+def permission_edit_voucher():
+    return Permission.objects.get(codename='edit_voucher')
+
+
+@pytest.fixture
+def permission_view_order():
+    return Permission.objects.get(codename='view_order')
+
+
+@pytest.fixture
+def permission_edit_order():
+    return Permission.objects.get(codename='edit_order')
+
+
+@pytest.fixture
+def permission_view_user():
+    return Permission.objects.get(codename='view_user')
+
+
+@pytest.fixture
 def product_class(color_attribute, size_attribute):
     product_class = ProductClass.objects.create(name='Default Class',
                                                 has_variants=False,
@@ -157,8 +257,73 @@ def product_in_stock(product_class, default_category):
 
 
 @pytest.fixture
+def product_list(product_class, default_category):
+    product_attr = product_class.product_attributes.first()
+    attr_value = product_attr.values.first()
+    attributes = {smart_text(product_attr.pk): smart_text(attr_value.pk)}
+
+    product_1 = Product.objects.create(
+        name='Test product 1', price=Decimal('10.00'),
+        product_class=product_class, attributes=attributes)
+    product_1.categories.add(default_category)
+
+    product_2 = Product.objects.create(
+        name='Test product 2', price=Decimal('20.00'),
+        product_class=product_class, attributes=attributes)
+    product_2.categories.add(default_category)
+
+    return [product_1, product_2]
+
+
+@pytest.fixture
+def stock_location():
+    warehouse_1 = StockLocation.objects.create(name='Warehouse 1')
+    return warehouse_1
+
+
+@pytest.fixture
+def product_image():
+    img_data = BytesIO()
+    image = Image.new('RGB', size=(1, 1))
+    image.save(img_data, format='JPEG')
+    return SimpleUploadedFile('product.jpg', img_data.getvalue())
+
+
+@pytest.fixture
+def product_with_image(product_in_stock, product_image):
+    product = product_in_stock
+    ProductImage.objects.create(product=product, image=product_image)
+    return product
+
+
+@pytest.fixture
+def unavailable_product(product_class, default_category):
+    product = Product.objects.create(
+        name='Test product', price=Decimal('10.00'),
+        product_class=product_class,
+        is_published=False)
+    product.categories.add(default_category)
+    return product
+
+
+@pytest.fixture
+def product_with_images(product_class, default_category):
+    product = Product.objects.create(
+        name='Test product', price=Decimal('10.00'),
+        product_class=product_class)
+    product.categories.add(default_category)
+    file_mock_0 = MagicMock(spec=File, name='FileMock0')
+    file_mock_0.name = 'image0.jpg'
+    file_mock_1 = MagicMock(spec=File, name='FileMock1')
+    file_mock_1.name = 'image1.jpg'
+    product.images.create(image=file_mock_0)
+    product.images.create(image=file_mock_1)
+    return product
+
+
+@pytest.fixture
 def anonymous_checkout():
-    return Checkout(Mock(), AnonymousUser(), 'tracking_code')
+    return Checkout((), AnonymousUser(), 'tracking_code')
 
 
 @pytest.fixture

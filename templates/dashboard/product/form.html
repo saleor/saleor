@@ -1,0 +1,131 @@
+{% extends "dashboard/base.html" %}
+{% load prices_i18n %}
+{% load i18n %}
+{% load materializecss %}
+{% load staticfiles %}
+{% load attributes %}
+
+{% block title %}
+  {% if product.pk %}
+    {% trans "Edit" context "Dashboard products list" %} - {{ product }}
+  {% else %}
+    {% trans "Add new product" context "Product form page title" %}
+  {% endif %}
+   - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-products{% endblock %}
+
+{% block menu_products_class %}active{% endblock %}
+
+{% block header_menu %}
+  {% url "dashboard:product-list" as url %}
+  {% include "dashboard/includes/_back-link.html" with url=url %}
+{% endblock %}
+
+{% block breadcrumbs %}
+  <ul class="breadcrumbs breadcrumbs--history">
+    <li>
+      <a href="{% url "dashboard:product-list" %}" class="breadcrumb">
+        {% trans "Products" context "Dashboard products list" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url "dashboard:product-list" %}">
+        <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
+    <li>
+        {% if product.pk %}
+        <a href="{% url "dashboard:product-detail" pk=product.pk %}" class="breadcrumbs--ellipsed-item">
+          {{ product }}
+        </a>
+        {% else %}
+          <span class="breadcrumbs--ellipsed-item">
+            {% trans "Add new product" context "Product form breadcrumbs" %}
+          </span>
+        {% endif %}
+    </li>
+    {% if product.pk %}
+    <li>
+      <span class="breadcrumbs--ellipsed-item">
+        {% trans "Edit" context "Product form breadcrumbs" %}
+      </span>
+    </li>
+    {% endif %}
+  </ul>
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
+{% block content %}
+  <div class="tab-content" id="details">
+    <div class="row">
+      <div class="col m12 l9">
+        <form method="post" class="card" id="form-product" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+          <div class="card-content">
+            <span class="card-title">
+              {{ product.product_class }}
+            </span>
+            <div class="row">
+              <div class="col s12 l8" >
+                <div class="row">
+                  {{ product_form.name|materializecss }}
+                </div>
+                {% for attribute_field in product_form.iter_attribute_fields %}
+                  <div class="row">
+                    {{ attribute_field|materializecss:"input-field s12" }}
+                  </div>
+                {% endfor %}
+                <div class="row">
+                  {{ product_form.description|materializecss }}
+                </div>
+              </div>
+              <div class="col s12 l4">
+                <div class="row">
+                  {{ product_form.price|materializecss }}
+                </div>
+                {% if not product.product_class.has_variants %}
+                  <div class="row">
+                    {{ variant_form.sku|materializecss }}
+                  </div>
+                {% endif %}
+                <div class="row">
+                  {{ product_form.categories|materializecss }}
+                </div>
+                <div class="row">
+                  {{ product_form.available_on|materializecss }}
+                </div>
+                <div class="row">
+                  {{ product_form.is_featured|materializecss }}
+                </div>
+                <div class="row">
+                  {{ product_form.is_published|materializecss }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-action right-align">
+            {% if product.pk %}
+              <a href="{% url 'dashboard:product-detail' product.pk %}" class="btn btn-flat">
+                {% trans "Cancel" context "Dashboard cancel action" %}
+              </a>
+              <button type="submit" class="btn waves-effect waves-light">
+                {% trans "Save" context "Dashboard update action" %}
+              </button>
+            {% else %}
+              <a href="{% url 'dashboard:product-list' %}" class="btn btn-flat">
+                {% trans "Cancel" context "Dashboard cancel action" %}
+              </a>
+              <button type="submit" class="btn waves-effect waves-light">
+                {% trans "Create" context "Dashboard create action" %}
+              </button>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+      <div class="col m12 l3 help-box"></div>
+    </div>
+  </div>
+{% endblock %}

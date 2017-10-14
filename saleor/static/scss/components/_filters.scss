@@ -59,6 +59,9 @@
   }
   &__categories {
     padding: $global-padding*2 0;
+    @include media-breakpoint-down(sm) {
+      padding: $global-padding*3 0 $global-padding*2;
+    }
     h2 {
       font-size: 1.8rem;
       color: $body-color;
@@ -156,6 +159,9 @@
       }
       svg {
         margin-top: $global-padding/3;
+      }
+      a {
+        color: inherit;
       }
       &:last-child {
         border: none;

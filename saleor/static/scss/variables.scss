@@ -19,6 +19,17 @@ $beige: #FFFAEC;
 
 // TYPOGRAPHY
 $font-family-sans-serif: 'Lato', sans-serif;
-$font-size-h1: 3rem;
-$font-size-h2: 1.3rem;
-$font-size-h3: 1rem;
+$h1-font-size: 3rem;
+$h2-font-size: 1.3rem;
+$h3-font-size: 1rem;
+
+$theme-colors: (
+  primary: $blue,
+  secondary: $white,
+  success: $green,
+  info: #17a2b8,
+  warning: #ffc107,
+  danger: $red,
+  light: #f8f9fa,
+  dark: #343a40
+);

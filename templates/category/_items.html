@@ -13,13 +13,13 @@
   <a href="{{ product.get_absolute_url }}" class="link--clean">
     <div class="text-center">
       <div>
-        <img class="img-responsive" 
-             src="{% product_first_image product method="crop" size="255x255" %}" 
+        <img class="img-responsive"
+             src="{% product_first_image product method="crop" size="255x255" %}"
              srcset="{% product_first_image product method="crop" size="255x255" %} 1x, {% product_first_image product method="crop" size="510x510" %} 2x"
              alt="">
         <span class="product-list-item-name" title="{{ product }}">{{ product }}</span>
       </div>
-      
+
       <div class="panel-footer">
         {% if availability.available %}
           {% price_range availability.price_range %}
