@@ -305,6 +305,29 @@ def cancel_delivery_group(request, order_pk, group_pk):
 
 @staff_member_required
 @permission_required('order.edit_order')
+def add_item_delivery_group(request, order_pk, group_pk):
+    order = get_object_or_404(Order, pk=order_pk)
+    group = get_object_or_404(order.groups.all(), pk=group_pk)
+    form = AddDeliveryGroupItemForm(request.POST or None, group=group)
+    status = 200
+    if form.is_valid():
+        with transaction.atomic():
+            form.save()
+        msg = pgettext_lazy(
+            'Dashboard message related to a delivery group',
+            'Added %s to %s') % (form.cleaned_data['variant'], group)
+        messages.success(request, msg)
+        group.order.create_history_entry(comment=msg, user=request.user)
+        return redirect('dashboard:order-details', order_pk=order_pk)
+    elif form.errors:
+        status = 400
+    ctx = {'order': order, 'group': group, 'form': form}
+    template = 'dashboard/order/modal_add_item_delivery_group.html'
+    return TemplateResponse(request, template, ctx, status=status)
+
+
+@staff_member_required
+@permission_required('order.edit_order')
 def address_view(request, order_pk, address_type):
     order = Order.objects.get(pk=order_pk)
     if address_type == 'shipping':
