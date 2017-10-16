@@ -53,7 +53,7 @@ def test_send_set_password_email(staff_user):
                         context=ctx)
     assert len(mail.outbox) == 1
     generated_link = ('http://%s/account/password/reset/%s/%s/' %
-                      (ctx['domain'], str(ctx['uid']), ctx['token']))
+                      (ctx['domain'], ctx['uid'].decode('utf-8'), ctx['token']))
     sended_message = mail.outbox[0].body
     assert generated_link in sended_message
 
