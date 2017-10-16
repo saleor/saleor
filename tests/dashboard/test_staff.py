@@ -4,7 +4,6 @@ from django.core import mail
 from django.core.urlresolvers import reverse
 
 from django.contrib.auth.tokens import default_token_generator
-from django.test.client import Client
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from templated_email import send_templated_mail
@@ -65,6 +64,7 @@ def test_create_staff_and_set_password(admin_client, staff_group):
     response = admin_client.post(url, data)
     assert response.status_code == 302
     new_user = User.objects.get(email='staff3@example.com')
+    assert not new_user.has_usable_password()
     uid = urlsafe_base64_encode(force_bytes(new_user.pk)),
     token = default_token_generator.make_token(new_user)
     response = admin_client.get(reverse('account_reset_password_confirm',
