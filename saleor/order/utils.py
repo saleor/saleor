@@ -10,7 +10,7 @@ from satchless.item import InsufficientStock
 from ..core import analytics
 from ..product.models import Stock
 from ..userprofile.utils import store_user_address
-from .models import Order
+from .models import Order, OrderedItem
 from . import OrderStatus
 
 logger = logging.getLogger(__name__)
@@ -83,6 +83,28 @@ def create_order_lines_in_delivery_group(
             Stock.objects.allocate_stock(stock, quantity)
             # refresh for reading quantity_available in next select_stockrecord
             stock.refresh_from_db()
+
+
+def add_item_to_delivery_group(group, variant, quantity):
+    stock = variant.select_stockrecord(quantity=quantity)
+    try:
+        item = group.items.get(
+            product=variant.product, product_sku=variant.sku)
+        item.quantity += quantity
+        item.save()
+    except OrderedItem.DoesNotExist:
+        price = variant.get_price_per_item()
+        item = group.items.create(
+            product=variant.product,
+            product_name=variant.display_product(),
+            product_sku=variant.sku,
+            quantity=quantity,
+            unit_price_net=price.net,
+            unit_price_gross=price.gross,
+            stock=stock,
+            stock_location=stock.location.name if stock else None)
+    Stock.objects.allocate_stock(stock, quantity)
+    return item
 
 
 def cancel_delivery_group(group, cancel_order=True):
