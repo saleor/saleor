@@ -5,10 +5,10 @@ from ...userprofile.models import User
 
 class StaffForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        self.admin = kwargs.pop('admin', None)
+        self.user = kwargs.pop('user', None)
         kwargs.update(initial={'is_staff': True})
         super(StaffForm, self).__init__(*args, **kwargs)
-        if self.admin == self.instance:
+        if self.user == self.instance:
             self.fields['is_superuser'].widget.attrs['disabled'] = True
 
     class Meta:

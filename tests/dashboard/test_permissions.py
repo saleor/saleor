@@ -1,14 +1,8 @@
 from __future__ import unicode_literals
-import re
 
-from django.core import mail
 from django.core.urlresolvers import reverse
-from django.contrib.auth.models import Group
-from ..utils import get_redirect_location
 
 from saleor.userprofile.models import User
-from saleor.dashboard.group.forms import GroupPermissionsForm
-from saleor.dashboard.staff.forms import StaffForm
 
 
 def test_admin_can_view_staff_list(admin_client):
@@ -674,103 +668,3 @@ def test_staff_group_member_can_view_customer_details(
     response = staff_client.get(reverse('dashboard:order-details',
                                         args=[order_with_items_and_stock.pk]))
     assert response.status_code == 302
-
-
-def test_group_permissions_form_not_valid(db):
-    data = {'name': 1, 'permissions': 2}
-    form = GroupPermissionsForm(data=data)
-    assert not form.is_valid()
-
-
-def test_group_create_form_not_valid(admin_client):
-    url = reverse('dashboard:group-create')
-    data = {'name': 1, 'permissions': 2}
-    response = admin_client.post(url, data)
-    assert Group.objects.all().count() == 0
-    assert response.template_name == 'dashboard/group/detail.html'
-
-
-def test_group_create_form_valid(admin_client, permission_view_product):
-    url = reverse('dashboard:group-create')
-    data = {'name': 'view product', 'permissions': permission_view_product.pk}
-    response = admin_client.post(url, data)
-    assert Group.objects.all().count() == 1
-    assert response['Location'] == '/dashboard/groups/'
-
-
-def test_group_detail_form_valid(
-        admin_client, staff_group, permission_view_product):
-    url = reverse('dashboard:group-details', args=[staff_group.pk])
-    data = {'name': 'view product', 'permissions': permission_view_product.pk}
-    admin_client.post(url, data)
-    assert Group.objects.all().count() == 1
-    assert staff_group.permissions.get(pk=permission_view_product.pk)
-
-
-def test_staff_form_not_valid(db):
-    data = {'groups': 1}
-    form = StaffForm(data=data)
-    assert not form.is_valid()
-
-
-def test_staff_form_create_valid(
-        admin_client, staff_user, staff_group):
-    url = reverse('dashboard:staff-details', args=[staff_user.pk])
-    data = {'email': 'staff@example.com', 'groups': staff_group.pk}
-    admin_client.post(url, data)
-    staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.groups.count() == 1
-
-
-def test_staff_create_email_with_set_link_password(
-        admin_client, staff_group):
-    url = reverse('dashboard:staff-create')
-    data = {'email': 'staff3@example.com', 'groups': staff_group.pk,
-            'is_staff': True}
-    response = admin_client.post(url, data)
-    assert User.objects.count() == 2
-    assert len(mail.outbox) == 1
-    assert response['Location'] == reverse('dashboard:staff-list')
-
-    match = re.search('http.*', mail.outbox[0].body)
-    link = match.group(0)
-    response = admin_client.get(link)
-    assert response.status_code == 302
-
-
-def test_staff_form_create_not_valid(admin_client, staff_user):
-    url = reverse('dashboard:staff-details', args=[staff_user.pk])
-    data = {'groups': 1}
-    admin_client.post(url, data)
-    staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.groups.count() == 0
-
-
-def test_delete_group(admin_client, staff_group):
-    assert Group.objects.all().count() == 1
-    url = reverse('dashboard:group-delete', args=[staff_group.pk])
-    data = {'pk': staff_group.pk}
-    response = admin_client.post(url, data)
-    assert Group.objects.all().count() == 0
-    assert response['Location'] == '/dashboard/groups/'
-
-
-def test_delete_group_no_POST(admin_client, staff_group):
-    url = reverse('dashboard:group-delete', args=[staff_group.pk])
-    admin_client.get(url)
-    assert Group.objects.all().count() == 1
-
-
-def test_delete_staff(admin_client, staff_user):
-    assert User.objects.all().count() == 2
-    url = reverse('dashboard:staff-delete', kwargs={'pk': staff_user.pk})
-    data = {'pk': staff_user.pk}
-    response = admin_client.post(url, data)
-    assert User.objects.all().count() == 1
-    assert response['Location'] == '/dashboard/staff/'
-
-
-def test_delete_staff_no_POST(admin_client, staff_user):
-    url = reverse('dashboard:staff-delete', args=[staff_user.pk])
-    admin_client.get(url)
-    assert User.objects.all().count() == 2
