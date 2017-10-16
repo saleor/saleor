@@ -179,8 +179,7 @@ class Voucher(models.Model):
         limit = self.limit if self.limit is not None else value
         if value < limit:
             msg = pgettext(
-                'Voucher not applicable',
-                'This offer is only valid for orders over %(amount)s.')
+                'Voucher not applicable', 'This offer is only valid for orders over %(amount)s.')
             raise NotApplicable(msg % {'amount': net(limit)})
 
     def get_discount_for_checkout(self, checkout):
@@ -306,8 +305,7 @@ class Sale(models.Model):
             return self.get_discount()
         raise NotApplicable(
             pgettext(
-                'Voucher not applicable',
-                'Discount not applicable for this product'))
+                'Voucher not applicable', 'Discount not applicable for this product'))
 
 
 def get_product_discounts(product, discounts, **kwargs):
