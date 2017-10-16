@@ -1,6 +1,6 @@
 {% load i18n %}
 
-<form action="#!" method="post" novalidate>
+<form action="{% url 'dashboard:customer-promote' pk=customer.pk %}" method="post" novalidate>
   {% csrf_token %}
   <div class="modal-content">
     <div class="row">

@@ -52,7 +52,7 @@ def customer_promote_to_staff(request, pk):
             'Dashboard message',
             'Customer %s promoted to staff member') % customer
         messages.success(request, msg)
-        return redirect('dashboard:staff-list')
+        return redirect('dashboard:customer-details', pk=customer.pk)
     return TemplateResponse(
         request, 'dashboard/customer/modal/confirm_promote.html',
         {'customer': customer})

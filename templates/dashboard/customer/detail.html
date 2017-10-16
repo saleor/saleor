@@ -36,7 +36,7 @@
 
 
 {% block header_extra %}
-  {% if customer.pk %}
+  {% if customer.pk and not customer.is_staff and request.user.is_superuser %}
     <a class="dropdown-button right" href="#" data-activates="context-menu" data-constrainwidth="false">
       <svg data-src="{% static "dashboard/images/more_vert.svg" %}" height="24" width="24" />
     </a>
