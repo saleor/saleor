@@ -20,4 +20,5 @@ def test_customer_promote_to_staff(admin_client, customer_user):
     data = {'pk': customer_user.pk}
     response = admin_client.post(url, data)
     assert User.objects.filter(is_staff=True).count() == 2
-    assert response['Location'] == reverse('dashboard:staff-list')
+    assert response['Location'] == reverse('dashboard:customer-details',
+                                           kwargs={'pk': customer_user.pk})
