@@ -36,6 +36,7 @@ psycopg2>=2.6
 purl>=0.4.1
 pytest>=3.2.2
 pytest-django
+pytest-vcr
 requests>=1.2.0
 satchless>=1.1.2,<1.2a0
 social-auth-app-django>=2.0.0
