@@ -55,6 +55,7 @@ services:
     volumes:
       - ${DOCKER_HOST_OYE_MEDIA_ROOT}:${MEDIA_ROOT}
       - ${DOCKER_HOST_OYE_STATIC_ROOT}:${STATIC_ROOT}
+      - ${DOCKER_HOST_OYE_INVOICES_ROOT}:${PDF_STORAGE_ROOT}
     network_mode: "host"
 
   celeryworker:
@@ -67,6 +68,7 @@ services:
     entrypoint: /app/celery-entrypoint.sh
     volumes:
       - ${DOCKER_HOST_OYE_MEDIA_ROOT}:${MEDIA_ROOT}
+      - ${DOCKER_HOST_OYE_INVOICES_ROOT}:${PDF_STORAGE_ROOT}
       - ./docker/celery-entrypoint.sh:/app/celery-entrypoint.sh
       - ./wait-for-it.sh:/wait-for-it.sh
     network_mode: "host"
