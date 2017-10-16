@@ -14,7 +14,6 @@ from saleor.product import (
 from saleor.product.utils import (
     get_attributes_display_map, get_availability, get_variant_picker_data,
     get_product_availability_status, get_variant_availability_status)
-from saleor.product.utils import get_availability
 from tests.utils import filter_products_by_attribute
 
 
