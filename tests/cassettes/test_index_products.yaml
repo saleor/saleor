@@ -1,0 +1,456 @@
+interactions:
+- request:
+    body: null
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: DELETE
+    uri: http://search:9200/storefront__userprofile_user
+  response:
+    body: {string: '{"acknowledged":true}'}
+    headers:
+      content-length: ['21']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: '{"settings": {"analysis": {"tokenizer": {"edgengram_tokenizer": {"type":
+      "edgeNGram", "min_gram": 2, "max_gram": 15, "side": "front"}, "ngram_tokenizer":
+      {"type": "nGram", "min_gram": 3, "max_gram": 15}}, "filter": {"edgengram": {"type":
+      "edgeNGram", "min_gram": 1, "max_gram": 15}, "ngram": {"type": "nGram", "min_gram":
+      3, "max_gram": 15}}, "analyzer": {"edgengram_analyzer": {"tokenizer": "lowercase",
+      "type": "custom", "filter": ["asciifolding", "edgengram"]}, "ngram_analyzer":
+      {"tokenizer": "lowercase", "type": "custom", "filter": ["asciifolding", "ngram"]}}}}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: PUT
+    uri: http://search:9200/storefront__userprofile_user
+  response:
+    body: {string: '{"acknowledged":true,"shards_acknowledged":true}'}
+    headers:
+      content-length: ['48']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: '{"userprofile_user": {"properties": {"_partials": {"type": "text", "search_analyzer":
+      "standard", "analyzer": "edgengram_analyzer", "include_in_all": false}, "pk":
+      {"store": true, "type": "keyword", "include_in_all": false}, "email": {"type":
+      "text", "include_in_all": true}, "content_type": {"type": "keyword", "include_in_all":
+      false}}}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: PUT
+    uri: http://search:9200/storefront__userprofile_user/_mapping/userprofile_user?update_all_types=true
+  response:
+    body: {string: '{"acknowledged":true}'}
+    headers:
+      Warning: ['299 Elasticsearch-5.4.3-eed30a8 "field [include_in_all] is deprecated,
+          as [_all] is deprecated, and will be disallowed in 6.0, use [copy_to] instead."
+          "Mon, 16 Oct 2017 11:46:08 GMT"']
+      content-length: ['21']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: null
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: POST
+    uri: http://search:9200/storefront__userprofile_user/_refresh
+  response:
+    body: {string: '{"_shards":{"total":10,"successful":5,"failed":0}}'}
+    headers:
+      content-length: ['50']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: null
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: DELETE
+    uri: http://search:9200/storefront__product_product
+  response:
+    body: {string: '{"acknowledged":true}'}
+    headers:
+      content-length: ['21']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: '{"settings": {"analysis": {"tokenizer": {"edgengram_tokenizer": {"type":
+      "edgeNGram", "min_gram": 2, "max_gram": 15, "side": "front"}, "ngram_tokenizer":
+      {"type": "nGram", "min_gram": 3, "max_gram": 15}}, "filter": {"edgengram": {"type":
+      "edgeNGram", "min_gram": 1, "max_gram": 15}, "ngram": {"type": "nGram", "min_gram":
+      3, "max_gram": 15}}, "analyzer": {"edgengram_analyzer": {"tokenizer": "lowercase",
+      "type": "custom", "filter": ["asciifolding", "edgengram"]}, "ngram_analyzer":
+      {"tokenizer": "lowercase", "type": "custom", "filter": ["asciifolding", "ngram"]}}}}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: PUT
+    uri: http://search:9200/storefront__product_product
+  response:
+    body: {string: '{"acknowledged":true,"shards_acknowledged":true}'}
+    headers:
+      content-length: ['48']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: '{"product_product": {"properties": {"name": {"type": "text", "include_in_all":
+      true, "analyzer": "edgengram_analyzer", "search_analyzer": "standard"}, "is_published_filter":
+      {"type": "boolean", "include_in_all": false}, "pk": {"store": true, "type":
+      "keyword", "include_in_all": false}, "available_on_filter": {"type": "date",
+      "include_in_all": false}, "_partials": {"type": "text", "search_analyzer": "standard",
+      "analyzer": "edgengram_analyzer", "include_in_all": false}, "content_type":
+      {"type": "keyword", "include_in_all": false}, "description": {"type": "text",
+      "include_in_all": true}}}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: PUT
+    uri: http://search:9200/storefront__product_product/_mapping/product_product?update_all_types=true
+  response:
+    body: {string: '{"acknowledged":true}'}
+    headers:
+      Warning: ['299 Elasticsearch-5.4.3-eed30a8 "field [include_in_all] is deprecated,
+          as [_all] is deprecated, and will be disallowed in 6.0, use [copy_to] instead."
+          "Mon, 16 Oct 2017 11:46:08 GMT"']
+      content-length: ['21']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: '{"index": {"_id": "product_product:1", "_type": "product_product", "_index":
+      "storefront__product_product"}}
+
+      {"name": "Test product 1", "content_type": ["product.Product"], "description":
+      "", "is_published_filter": true, "pk": "1", "available_on_filter": null, "_partials":
+      ["Test product 1"]}
+
+      {"index": {"_id": "product_product:2", "_type": "product_product", "_index":
+      "storefront__product_product"}}
+
+      {"name": "Test product 2", "content_type": ["product.Product"], "description":
+      "", "is_published_filter": true, "pk": "2", "available_on_filter": null, "_partials":
+      ["Test product 2"]}
+
+'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: POST
+    uri: http://search:9200/_bulk
+  response:
+    body: {string: '{"took":5,"errors":false,"items":[{"index":{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:1","_version":1,"result":"created","_shards":{"total":2,"successful":1,"failed":0},"created":true,"status":201}},{"index":{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:2","_version":1,"result":"created","_shards":{"total":2,"successful":1,"failed":0},"created":true,"status":201}}]}'}
+    headers:
+      content-length: ['457']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: null
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: POST
+    uri: http://search:9200/storefront__product_product/_refresh
+  response:
+    body: {string: '{"_shards":{"total":10,"successful":5,"failed":0}}'}
+    headers:
+      content-length: ['50']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: null
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: DELETE
+    uri: http://search:9200/storefront__order_order
+  response:
+    body: {string: '{"acknowledged":true}'}
+    headers:
+      content-length: ['21']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: '{"settings": {"analysis": {"tokenizer": {"edgengram_tokenizer": {"type":
+      "edgeNGram", "min_gram": 2, "max_gram": 15, "side": "front"}, "ngram_tokenizer":
+      {"type": "nGram", "min_gram": 3, "max_gram": 15}}, "filter": {"edgengram": {"type":
+      "edgeNGram", "min_gram": 1, "max_gram": 15}, "ngram": {"type": "nGram", "min_gram":
+      3, "max_gram": 15}}, "analyzer": {"edgengram_analyzer": {"tokenizer": "lowercase",
+      "type": "custom", "filter": ["asciifolding", "edgengram"]}, "ngram_analyzer":
+      {"tokenizer": "lowercase", "type": "custom", "filter": ["asciifolding", "ngram"]}}}}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: PUT
+    uri: http://search:9200/storefront__order_order
+  response:
+    body: {string: '{"acknowledged":true,"shards_acknowledged":true}'}
+    headers:
+      content-length: ['48']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: '{"order_order": {"properties": {"_index_shipping_phone": {"type": "text",
+      "include_in_all": true}, "get_user_current_email": {"type": "text", "include_in_all":
+      true}, "pk": {"store": true, "type": "keyword", "include_in_all": false}, "_partials":
+      {"type": "text", "search_analyzer": "standard", "analyzer": "edgengram_analyzer",
+      "include_in_all": false}, "id": {"type": "integer", "include_in_all": true},
+      "content_type": {"type": "keyword", "include_in_all": false}, "_index_billing_phone":
+      {"type": "text", "include_in_all": true}}}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: PUT
+    uri: http://search:9200/storefront__order_order/_mapping/order_order?update_all_types=true
+  response:
+    body: {string: '{"acknowledged":true}'}
+    headers:
+      Warning: ['299 Elasticsearch-5.4.3-eed30a8 "field [include_in_all] is deprecated,
+          as [_all] is deprecated, and will be disallowed in 6.0, use [copy_to] instead."
+          "Mon, 16 Oct 2017 11:46:09 GMT"']
+      content-length: ['21']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: null
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: POST
+    uri: http://search:9200/storefront__order_order/_refresh
+  response:
+    body: {string: '{"_shards":{"total":10,"successful":5,"failed":0}}'}
+    headers:
+      content-length: ['50']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: null
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: DELETE
+    uri: http://search:9200/storefront__userprofile_user
+  response:
+    body: {string: '{"acknowledged":true}'}
+    headers:
+      content-length: ['21']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: '{"settings": {"analysis": {"tokenizer": {"edgengram_tokenizer": {"type":
+      "edgeNGram", "min_gram": 2, "max_gram": 15, "side": "front"}, "ngram_tokenizer":
+      {"type": "nGram", "min_gram": 3, "max_gram": 15}}, "filter": {"edgengram": {"type":
+      "edgeNGram", "min_gram": 1, "max_gram": 15}, "ngram": {"type": "nGram", "min_gram":
+      3, "max_gram": 15}}, "analyzer": {"edgengram_analyzer": {"tokenizer": "lowercase",
+      "type": "custom", "filter": ["asciifolding", "edgengram"]}, "ngram_analyzer":
+      {"tokenizer": "lowercase", "type": "custom", "filter": ["asciifolding", "ngram"]}}}}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: PUT
+    uri: http://search:9200/storefront__userprofile_user
+  response:
+    body: {string: '{"acknowledged":true,"shards_acknowledged":true}'}
+    headers:
+      content-length: ['48']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: '{"userprofile_user": {"properties": {"_partials": {"type": "text", "search_analyzer":
+      "standard", "analyzer": "edgengram_analyzer", "include_in_all": false}, "pk":
+      {"store": true, "type": "keyword", "include_in_all": false}, "email": {"type":
+      "text", "include_in_all": true}, "content_type": {"type": "keyword", "include_in_all":
+      false}}}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: PUT
+    uri: http://search:9200/storefront__userprofile_user/_mapping/userprofile_user?update_all_types=true
+  response:
+    body: {string: '{"acknowledged":true}'}
+    headers:
+      Warning: ['299 Elasticsearch-5.4.3-eed30a8 "field [include_in_all] is deprecated,
+          as [_all] is deprecated, and will be disallowed in 6.0, use [copy_to] instead."
+          "Mon, 16 Oct 2017 11:46:09 GMT"']
+      content-length: ['21']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: null
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: POST
+    uri: http://search:9200/storefront__userprofile_user/_refresh
+  response:
+    body: {string: '{"_shards":{"total":10,"successful":5,"failed":0}}'}
+    headers:
+      content-length: ['50']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: null
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: DELETE
+    uri: http://search:9200/storefront__product_product
+  response:
+    body: {string: '{"acknowledged":true}'}
+    headers:
+      content-length: ['21']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: '{"settings": {"analysis": {"tokenizer": {"edgengram_tokenizer": {"type":
+      "edgeNGram", "min_gram": 2, "max_gram": 15, "side": "front"}, "ngram_tokenizer":
+      {"type": "nGram", "min_gram": 3, "max_gram": 15}}, "filter": {"edgengram": {"type":
+      "edgeNGram", "min_gram": 1, "max_gram": 15}, "ngram": {"type": "nGram", "min_gram":
+      3, "max_gram": 15}}, "analyzer": {"edgengram_analyzer": {"tokenizer": "lowercase",
+      "type": "custom", "filter": ["asciifolding", "edgengram"]}, "ngram_analyzer":
+      {"tokenizer": "lowercase", "type": "custom", "filter": ["asciifolding", "ngram"]}}}}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: PUT
+    uri: http://search:9200/storefront__product_product
+  response:
+    body: {string: '{"acknowledged":true,"shards_acknowledged":true}'}
+    headers:
+      content-length: ['48']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: '{"product_product": {"properties": {"name": {"type": "text", "include_in_all":
+      true, "analyzer": "edgengram_analyzer", "search_analyzer": "standard"}, "is_published_filter":
+      {"type": "boolean", "include_in_all": false}, "pk": {"store": true, "type":
+      "keyword", "include_in_all": false}, "available_on_filter": {"type": "date",
+      "include_in_all": false}, "_partials": {"type": "text", "search_analyzer": "standard",
+      "analyzer": "edgengram_analyzer", "include_in_all": false}, "content_type":
+      {"type": "keyword", "include_in_all": false}, "description": {"type": "text",
+      "include_in_all": true}}}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: PUT
+    uri: http://search:9200/storefront__product_product/_mapping/product_product?update_all_types=true
+  response:
+    body: {string: '{"acknowledged":true}'}
+    headers:
+      Warning: ['299 Elasticsearch-5.4.3-eed30a8 "field [include_in_all] is deprecated,
+          as [_all] is deprecated, and will be disallowed in 6.0, use [copy_to] instead."
+          "Mon, 16 Oct 2017 11:46:09 GMT"']
+      content-length: ['21']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: '{"index": {"_id": "product_product:1", "_type": "product_product", "_index":
+      "storefront__product_product"}}
+
+      {"name": "Test product 1", "content_type": ["product.Product"], "description":
+      "", "is_published_filter": true, "pk": "1", "available_on_filter": null, "_partials":
+      ["Test product 1"]}
+
+      {"index": {"_id": "product_product:2", "_type": "product_product", "_index":
+      "storefront__product_product"}}
+
+      {"name": "Test product 2", "content_type": ["product.Product"], "description":
+      "", "is_published_filter": true, "pk": "2", "available_on_filter": null, "_partials":
+      ["Test product 2"]}
+
+'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: POST
+    uri: http://search:9200/_bulk
+  response:
+    body: {string: '{"took":5,"errors":false,"items":[{"index":{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:1","_version":1,"result":"created","_shards":{"total":2,"successful":1,"failed":0},"created":true,"status":201}},{"index":{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:2","_version":1,"result":"created","_shards":{"total":2,"successful":1,"failed":0},"created":true,"status":201}}]}'}
+    headers:
+      content-length: ['457']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: null
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: POST
+    uri: http://search:9200/storefront__product_product/_refresh
+  response:
+    body: {string: '{"_shards":{"total":10,"successful":5,"failed":0}}'}
+    headers:
+      content-length: ['50']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: null
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: DELETE
+    uri: http://search:9200/storefront__order_order
+  response:
+    body: {string: '{"acknowledged":true}'}
+    headers:
+      content-length: ['21']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: '{"settings": {"analysis": {"tokenizer": {"edgengram_tokenizer": {"type":
+      "edgeNGram", "min_gram": 2, "max_gram": 15, "side": "front"}, "ngram_tokenizer":
+      {"type": "nGram", "min_gram": 3, "max_gram": 15}}, "filter": {"edgengram": {"type":
+      "edgeNGram", "min_gram": 1, "max_gram": 15}, "ngram": {"type": "nGram", "min_gram":
+      3, "max_gram": 15}}, "analyzer": {"edgengram_analyzer": {"tokenizer": "lowercase",
+      "type": "custom", "filter": ["asciifolding", "edgengram"]}, "ngram_analyzer":
+      {"tokenizer": "lowercase", "type": "custom", "filter": ["asciifolding", "ngram"]}}}}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: PUT
+    uri: http://search:9200/storefront__order_order
+  response:
+    body: {string: '{"acknowledged":true,"shards_acknowledged":true}'}
+    headers:
+      content-length: ['48']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: '{"order_order": {"properties": {"_index_shipping_phone": {"type": "text",
+      "include_in_all": true}, "get_user_current_email": {"type": "text", "include_in_all":
+      true}, "pk": {"store": true, "type": "keyword", "include_in_all": false}, "_partials":
+      {"type": "text", "search_analyzer": "standard", "analyzer": "edgengram_analyzer",
+      "include_in_all": false}, "id": {"type": "integer", "include_in_all": true},
+      "content_type": {"type": "keyword", "include_in_all": false}, "_index_billing_phone":
+      {"type": "text", "include_in_all": true}}}}'
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: PUT
+    uri: http://search:9200/storefront__order_order/_mapping/order_order?update_all_types=true
+  response:
+    body: {string: '{"acknowledged":true}'}
+    headers:
+      Warning: ['299 Elasticsearch-5.4.3-eed30a8 "field [include_in_all] is deprecated,
+          as [_all] is deprecated, and will be disallowed in 6.0, use [copy_to] instead."
+          "Mon, 16 Oct 2017 11:46:09 GMT"']
+      content-length: ['21']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+- request:
+    body: null
+    headers:
+      connection: [keep-alive]
+      content-type: [application/json]
+    method: POST
+    uri: http://search:9200/storefront__order_order/_refresh
+  response:
+    body: {string: '{"_shards":{"total":10,"successful":5,"failed":0}}'}
+    headers:
+      content-length: ['50']
+      content-type: [application/json; charset=UTF-8]
+    status: {code: 200, message: OK}
+version: 1
