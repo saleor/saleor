@@ -2,7 +2,8 @@ from prices import Price
 
 from saleor.cart.models import Cart
 from saleor.order import models
-from saleor.order.utils import create_order_lines_in_delivery_group
+from saleor.order.utils import (
+    add_item_to_delivery_group, create_order_lines_in_delivery_group)
 
 
 def test_total_property():
@@ -45,3 +46,62 @@ def test_order_discount(sale, order, request_cart_with_item):
         group, cart.lines.all(), discounts=cart.discounts)
     item = group.items.first()
     assert item.get_price_per_item() == Price(currency="USD", net=5)
+
+
+def test_add_item_to_delivery_group_adds_item_for_new_variant(
+        order_with_items, product_in_stock):
+    group = order_with_items.groups.get()
+    variant = product_in_stock.variants.get()
+    items_before = group.items.count()
+
+    item = add_item_to_delivery_group(group, variant, 1)
+
+    assert group.items.count() == items_before + 1
+    assert group.items.last().pk == item.pk
+    assert item.product_sku == variant.sku
+    assert item.quantity == 1
+
+
+def test_add_item_to_delivery_group_allocates_stock_for_new_variant(
+        order_with_items, product_in_stock):
+    group = order_with_items.groups.get()
+    variant = product_in_stock.variants.get()
+    stock = variant.select_stockrecord(quantity=1)
+    stock_before = stock.quantity_allocated
+
+    add_item_to_delivery_group(group, variant, 1)
+
+    stock.refresh_from_db()
+    assert stock.quantity_allocated == stock_before + 1
+
+
+def test_add_item_to_delivery_group_edits_item_for_existing_variant(
+        order_with_items_and_stock):
+    order = order_with_items_and_stock
+    group = order.groups.get()
+    existing_item = group.items.first()
+    variant = existing_item.product.variants.get()
+    items_before = group.items.count()
+    item_quantity_before = existing_item.quantity
+
+    item = add_item_to_delivery_group(group, variant, 1)
+
+    assert group.items.count() == items_before
+    assert item.pk == existing_item.pk
+    assert item.product_sku == variant.sku
+    assert item.quantity == item_quantity_before + 1
+
+
+def test_add_item_to_delivery_group_allocates_stock_for_existing_variant(
+        order_with_items_and_stock):
+    order = order_with_items_and_stock
+    group = order.groups.get()
+    existing_item = group.items.first()
+    variant = existing_item.product.variants.get()
+    stock = existing_item.stock
+    stock_before = stock.quantity_allocated
+
+    add_item_to_delivery_group(group, variant, 1)
+
+    stock.refresh_from_db()
+    assert stock.quantity_allocated == stock_before + 1
