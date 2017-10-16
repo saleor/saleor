@@ -3,12 +3,14 @@ from __future__ import unicode_literals
 from django import forms
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.shortcuts import reverse
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_prices.forms import PriceField
 from payments import PaymentError, PaymentStatus
 from satchless.item import InsufficientStock
 
 from ...cart.forms import QuantityField
+from ...core.forms import AjaxSelect2ChoiceField
 from ...discount.models import Voucher
 from ...order import OrderStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
@@ -353,7 +355,7 @@ class ChangeStockForm(forms.ModelForm):
 
 
 class AddDeliveryGroupItemForm(forms.Form):
-    variant = forms.ModelChoiceField(queryset=ProductVariant.objects.all())
+    variant = AjaxSelect2ChoiceField(queryset=ProductVariant.objects.all())
     quantity = QuantityField(
         label=pgettext_lazy('Variant quantity form label', 'Quantity'),
         validators=[MinValueValidator(1)])
@@ -361,6 +363,8 @@ class AddDeliveryGroupItemForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.group = kwargs.pop('group')
         super(AddDeliveryGroupItemForm, self).__init__(*args, **kwargs)
+        self.fields['variant'].set_fetch_data_url(
+            reverse('dashboard:ajax-variants'))
 
     def clean(self):
         cleaned_data = super(AddDeliveryGroupItemForm, self).clean()
