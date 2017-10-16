@@ -45,12 +45,6 @@ class SignupForm(forms.ModelForm):
         return user
 
 
-class SetPasswordForm(django_forms.SetPasswordForm):
-    def __init__(self, *args, **kwargs):
-        super(SetPasswordForm, self).__init__(*args, **kwargs)
-        del self.fields['new_password2']
-
-
 class PasswordSetUpForm(django_forms.PasswordResetForm):
     """
         PasswordSetUpForm that overrides sending emails to use templated email.

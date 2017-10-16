@@ -47,6 +47,7 @@ def customer_promote_to_staff(request, pk):
     customer = get_object_or_404(User, pk=pk)
     if request.method == 'POST':
         customer.is_staff = True
+        customer.save()
         msg = pgettext_lazy(
             'Dashboard message',
             'Customer %s promoted to staff member') % customer

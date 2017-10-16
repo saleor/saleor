@@ -8,7 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.template.response import TemplateResponse
 
 from saleor.cart.utils import find_and_assign_anonymous_cart
-from .forms import LoginForm, PasswordSetUpForm, SignupForm, SetPasswordForm
+from .forms import LoginForm, PasswordSetUpForm, SignupForm
 
 
 @find_and_assign_anonymous_cart()

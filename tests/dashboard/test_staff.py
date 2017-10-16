@@ -23,7 +23,7 @@ def test_staff_form_not_valid(db):
 
 def test_staff_form_create_valid(
         admin_client, staff_user, staff_group):
-    url = reverse('dashboard:staff-details', args=[staff_user.pk])
+    url = reverse('dashboard:staff-details', kwargs={'pk': staff_user.pk})
     data = {'email': 'staff@example.com', 'groups': staff_group.pk}
     admin_client.post(url, data)
     staff_user = User.objects.get(pk=staff_user.pk)
@@ -79,7 +79,7 @@ def test_create_staff_and_set_password(admin_client, staff_group):
 
 
 def test_staff_form_create_not_valid(admin_client, staff_user):
-    url = reverse('dashboard:staff-details', args=[staff_user.pk])
+    url = reverse('dashboard:staff-details', kwargs={'pk': staff_user.pk})
     data = {'groups': 1}
     admin_client.post(url, data)
     staff_user = User.objects.get(pk=staff_user.pk)
@@ -96,6 +96,6 @@ def test_delete_staff(admin_client, staff_user):
 
 
 def test_delete_staff_no_POST(admin_client, staff_user):
-    url = reverse('dashboard:staff-delete', args=[staff_user.pk])
+    url = reverse('dashboard:staff-delete', kwargs={'pk': staff_user.pk})
     admin_client.get(url)
     assert User.objects.all().count() == 2
