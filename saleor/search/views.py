@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 from math import ceil
 
-from django.core.paginator import Paginator, InvalidPage
+from django.core.paginator import Paginator, InvalidPage, EmptyPage, PageNotAnInteger, Page
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import render
@@ -9,18 +9,30 @@ from .forms import SearchForm
 from ..product.utils import products_with_details, products_with_availability
 
 
-def paginate_results(results, page_counter, total,
-                     paginate_by=settings.PAGINATE_BY):
-    paginator = Paginator(results, paginate_by)
-    # TODO: Think about clean and nice solution to pagination problem
-    page_number = 1
+class SaleorPaginator(Paginator):
+    def __init__(self, *args, **kwargs):
+        total = kwargs.pop('total', 0)
+        super(SaleorPaginator, self).__init__(*args, **kwargs)
+        self._count = total
+
+    def page(self, number):
+        number = self.validate_number(number)
+        return Page(self.object_list, number, self)
+
+    @property
+    def count(self):
+        return self._count
+
+
+def get_saleor_paginator_items(items, paginate_by, page, total):
+    paginator = SaleorPaginator(items, paginate_by, total=total)
     try:
-        page = paginator.page(page_number)
-        page.number = page_counter
-        page.paginator.num_pages = ceil(total / settings.PAGINATE_BY)
-    except InvalidPage:
-        raise Http404('No such page!')
-    return page
+        items = paginator.page(page)
+    except PageNotAnInteger:
+        items = paginator.page(1)
+    except EmptyPage:
+        items = paginator.page(paginator.num_pages)
+    return items
 
 
 def search(request):
@@ -42,7 +54,8 @@ def search(request):
         results = []
         query = ''
 
-    page = paginate_results(results, page_counter, total)
+    page = get_saleor_paginator_items(
+        results, settings.PAGINATE_BY, page_counter, total=total)
 
     ctx = {
         'query': query,
