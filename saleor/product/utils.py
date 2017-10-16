@@ -198,19 +198,17 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
                 int(variant_value))
 
     for attribute in variant_attributes:
-        availabel_variants = filter_available_variants.get(attribute.pk, None)
+        available_variants = filter_available_variants.get(attribute.pk, None)
 
-        if not availabel_variants:
-            continue
-
-        data['variantAttributes'].append({
-            'pk': attribute.pk,
-            'name': attribute.name,
-            'slug': attribute.slug,
-            'values': [
-                {'pk': value.pk, 'name': value.name, 'slug': value.slug}
-                for value in attribute.values.filter(
-                    pk__in=availabel_variants)]})
+        if available_variants:
+            data['variantAttributes'].append({
+                'pk': attribute.pk,
+                'name': attribute.name,
+                'slug': attribute.slug,
+                'values': [
+                    {'pk': value.pk, 'name': value.name, 'slug': value.slug}
+                    for value in attribute.values.filter(
+                        pk__in=available_variants)]})
 
     data['availability'] = {
         'discount': price_as_dict(availability.discount),
