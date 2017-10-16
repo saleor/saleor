@@ -1,0 +1,23 @@
+{% load i18n %}
+{% load materializecss %}
+
+<form id="add-item-delivery-group-form" method="post" role="form" action="{% url 'dashboard:add-item-delivery-group' order_pk=order.pk group_pk=group.pk %}" class="form-async" novalidate>
+  {% csrf_token %}
+  <div class="modal-content">
+    <h5>
+      {% trans "Add item to delivery group" context "Modal delivery group add item title" %}
+    </h5>
+    <div class="row">
+      {{ form.variant|materializecss:"s12 m8" }}
+      {{ form.quantity|materializecss:"s12 m4" }}
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="modal-action btn-flat">
+      {% trans "Add" context "Modal delivery group add item primary action" %}
+    </button>
+    <a href="#!" aria-hidden="true" class="modal-action modal-close btn-flat">
+      {% trans "Cancel" context "Dashboard cancel action" %}
+    </a>
+  </div>
+</form>

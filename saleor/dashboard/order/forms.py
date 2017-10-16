@@ -13,9 +13,9 @@ from ...discount.models import Voucher
 from ...order import OrderStatus
 from ...order.models import DeliveryGroup, Order, OrderLine, OrderNote
 from ...order.utils import (
-    cancel_order, cancel_delivery_group, change_order_line_quantity,
-    merge_duplicated_lines)
-from ...product.models import Stock
+    add_item_to_delivery_group, cancel_order, cancel_delivery_group,
+    change_order_line_quantity, merge_duplicated_lines)
+from ...product.models import ProductVariant, Stock
 
 
 class OrderNoteForm(forms.ModelForm):
@@ -350,3 +350,38 @@ class ChangeStockForm(forms.ModelForm):
         super(ChangeStockForm, self).save(commit)
         merge_duplicated_lines(self.instance)
         return self.instance
+
+
+class AddDeliveryGroupItemForm(forms.Form):
+    variant = forms.ModelChoiceField(queryset=ProductVariant.objects.all())
+    quantity = QuantityField(
+        label=pgettext_lazy('Variant quantity form label', 'Quantity'),
+        validators=[MinValueValidator(1)])
+
+    def __init__(self, *args, **kwargs):
+        self.group = kwargs.pop('group')
+        super(AddDeliveryGroupItemForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super(AddDeliveryGroupItemForm, self).clean()
+        if 'variant' in cleaned_data and 'quantity' in cleaned_data:
+            variant = cleaned_data['variant']
+            quantity = cleaned_data['quantity']
+            try:
+                variant.check_quantity(quantity)
+            except InsufficientStock as e:
+                error = forms.ValidationError(
+                    pgettext_lazy(
+                        'Add item form error',
+                        'Could not add item. '
+                        'Only %(remaining).2f remaining in stock.' %
+                        {'remaining': e.item.get_stock_quantity()}))
+                self.add_error('quantity', error)
+        return cleaned_data
+
+    def save(self):
+        variant = self.cleaned_data['variant']
+        quantity = self.cleaned_data['quantity']
+        line = add_item_to_delivery_group(self.group, variant, quantity)
+        Order.objects.recalculate_order(self.group.order)
+        return line
