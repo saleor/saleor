@@ -370,7 +370,7 @@ if ES_URL:
             'URLS': [ES_URL],
             'INDEX': os.environ.get('ELASTICSEARCH_INDEX_NAME', 'storefront'),
             'TIMEOUT': 5,
-            'AUTO_UPDATE': True},
+            'AUTO_UPDATE': False},
         'dashboard': {
             'BACKEND': 'saleor.search.backends.dashboard',
             'URLS': [ES_URL],
