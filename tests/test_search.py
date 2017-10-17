@@ -1,8 +1,12 @@
 from saleor.product.models import Product
 from django.core.management import call_command
 from django.core.urlresolvers import reverse
+
 from decimal import Decimal
 import pytest
+
+MATCH_SEARCH_REQUEST = ['method', 'host', 'port', 'path', 'body']
+PRODUCTS_FOUND = [41, 59]  # same as in recorded data!
 
 
 @pytest.mark.integration
@@ -10,10 +14,6 @@ import pytest
 def test_index_products(product_list):
     options = {'backend_name': 'default'}
     call_command('update_index', **options)
-
-
-MATCH_SEARCH_REQUEST = ['method', 'host', 'port', 'path', 'body']
-PRODUCTS_FOUND = [41, 59]  # same as in recorded data!
 
 
 @pytest.mark.integration
@@ -34,23 +34,20 @@ def indexed_products(product_class, default_category):
     Purpose of this fixture is for integration with search service only!
     pks must be in response in appropiate recorded cassette.
     '''
-
-    def gen_product_with_id(id):
+    def gen_product_with_id(object_id):
         product = Product.objects.create(
-            pk=id,
-            name='Test product ' + str(id),
+            pk=object_id,
+            name='Test product ' + str(object_id),
             price=Decimal(10.0),
             product_class=product_class)
         product.categories.add(default_category)
         return product
-
     return [gen_product_with_id(prod) for prod in PRODUCTS_FOUND]
 
 
 def _extract_pks(object_list):
     def get_pk(prod):
         return prod.pk
-
     return [get_pk(prod) for prod, _ in object_list]
 
 
