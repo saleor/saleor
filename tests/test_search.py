@@ -13,6 +13,7 @@ def test_index_products(product_list):
 
 
 MATCH_SEARCH_REQUEST = ['method', 'host', 'port', 'path', 'body']
+PRODUCTS_FOUND = [41, 59]  # same as in recorded data!
 
 
 @pytest.mark.integration
@@ -33,27 +34,31 @@ def indexed_products(product_class, default_category):
     Purpose of this fixture is for integration with search service only!
     pks must be in response in appropiate recorded cassette.
     '''
-    first_product = Product.objects.create(
-        pk=59,
-        name='Test product',
-        price=Decimal(10.0),
-        product_class=product_class)
-    first_product.categories.add(default_category)
-    second_product = Product.objects.create(
-        pk=41,
-        name='Test product',
-        price=Decimal(10.0),
-        product_class=product_class)
-    second_product.categories.add(default_category)
-    return [first_product, second_product]
+
+    def gen_product_with_id(id):
+        product = Product.objects.create(
+            pk=id,
+            name='Test product ' + str(id),
+            price=Decimal(10.0),
+            product_class=product_class)
+        product.categories.add(default_category)
+        return product
+
+    return [gen_product_with_id(prod) for prod in PRODUCTS_FOUND]
+
+
+def _extract_pks(object_list):
+    def get_pk(prod):
+        return prod.pk
+
+    return [get_pk(prod) for prod, _ in object_list]
 
 
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
-def test_search_with_result(db, product_in_stock, indexed_products, client):
+def test_search_with_result(db, indexed_products, client):
     EXISTING_PHRASE = 'Group'
     response = client.get(reverse('search:search'), {'q': EXISTING_PHRASE})
-    print(response.context['results'].object_list)
-    assert len(indexed_products) == len(
-        response.context['results'].object_list)
+    found_products = _extract_pks(response.context['results'].object_list)
+    assert PRODUCTS_FOUND == sorted(found_products)
     assert EXISTING_PHRASE == response.context['query']
