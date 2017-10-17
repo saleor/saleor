@@ -4,16 +4,16 @@ interactions:
       {"bool": {"must": [{"bool": {"should": [{"range": {"available_on_filter": {"lte":
       "2017-10-17"}}}, {"bool": {"must_not": {"term": {"field": "available_on_filter"}}}}]}},
       {"term": {"is_published_filter": true}}]}}], "must": {"multi_match": {"fields":
-      ["_all", "_partials"], "query": "foo"}}}}}'
+      ["_all", "_partials"], "query": "Group"}}}}}'
     headers:
       connection: [keep-alive]
       content-type: [application/json]
     method: GET
     uri: http://search:9200/storefront__product_product/_search?from=0&_source=pk
   response:
-    body: {string: '{"took":114,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":0,"max_score":null,"hits":[]}}'}
+    body: {string: '{"took":8,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":3,"max_score":3.2523599,"hits":[{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:29","_score":3.2523599,"_source":{"pk":"29"}},{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:41","_score":1.7389073,"_source":{"pk":"41"}},{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:59","_score":1.7389073,"_source":{"pk":"59"}}]}}'}
     headers:
-      content-length: ['124']
+      content-length: ['531']
       content-type: [application/json; charset=UTF-8]
     status: {code: 200, message: OK}
 version: 1
