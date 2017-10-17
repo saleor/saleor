@@ -376,39 +376,20 @@ def remove_order_voucher(request, order_pk):
 def order_invoice(request, order_pk):
     qs = (Order.objects
           .select_related('user', 'shipping_address', 'billing_address')
-          .prefetch_related('notes', 'payments', 'history',
-                            'groups', 'groups__items'))
+          .prefetch_related('history', 'groups', 'groups__items'))
     order = get_object_or_404(qs, pk=order_pk)
-    notes = order.notes.all()
-    all_payments = order.payments.exclude(status=PaymentStatus.INPUT)
-    payment = order.payments.last()
     groups = list(order)
-    captured = preauthorized = Price(0, currency=order.get_total().currency)
-    balance = captured - order.get_total()
-    if payment:
-        can_capture = (
-            payment.status == PaymentStatus.PREAUTH and
-            order.status != OrderStatus.CANCELLED)
-        can_release = payment.status == PaymentStatus.PREAUTH
-        can_refund = payment.status == PaymentStatus.CONFIRMED
-        preauthorized = payment.get_total_price()
-        if payment.status == PaymentStatus.CONFIRMED:
-            captured = payment.get_captured_price()
-            balance = captured - order.get_total()
-    else:
-        can_capture = can_release = can_refund = False
 
-    ctx = {'order': order, 'all_payments': all_payments, 'payment': payment,
-           'notes': notes, 'groups': groups, 'captured': captured,
-           'preauthorized': preauthorized, 'can_capture': can_capture,
-           'can_release': can_release, 'can_refund': can_refund,
-           'balance': balance}
-    invoice_template = 'dashboard/order/invoice.html'
-    html_template = get_template(invoice_template).render(ctx)
-    pdf_file = HTML(string=html_template).write_pdf()
+    ctx = {'order': order,
+           'groups': groups}
+
+    rendered_template = get_template(
+        'dashboard/order/pdf/invoice.html').render(ctx)
+
+    pdf_file = HTML(string=rendered_template).write_pdf()
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    name = "invoice-{}".format(order.id)
-    response['Content-Disposition'] = 'filename={}'.format(name)
+    name = "invoice-%s" % order.id
+    response['Content-Disposition'] = 'filename=%s' % name
     return response
 
 
@@ -443,7 +424,7 @@ def order_packing_slips(request, order_pk):
            'preauthorized': preauthorized, 'can_capture': can_capture,
            'can_release': can_release, 'can_refund': can_refund,
            'balance': balance}
-    invoice_template = 'dashboard/order/packing_slips.html'
+    invoice_template = 'dashboard/order/pdf/packing_slips.html'
     html_template = get_template(invoice_template).render(ctx)
     pdf_file = HTML(string=html_template).write_pdf()
     response = HttpResponse(pdf_file, content_type='application/pdf')
