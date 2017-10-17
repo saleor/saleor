@@ -25,6 +25,14 @@ def test_search_with_empty_result(db, client):
     assert WORD == response.context['query']
 
 
+@pytest.mark.integration
+@pytest.mark.vcr(record_mode='once', match_on=MATCH_SEARCH_REQUEST)
+def test_search_multiple_words(db, client):
+    ''' Check request format for multiple word phrases '''
+    PHRASE = 'how fortunate the man with none'
+    client.get(reverse('search:search'), {'q': PHRASE})
+
+
 @pytest.fixture
 def indexed_products(product_class, default_category):
     ''' Products to be found by search backend
