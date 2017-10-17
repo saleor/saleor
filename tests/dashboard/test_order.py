@@ -278,47 +278,47 @@ def test_view_split_order_line_with_invalid_data(admin_client, order_with_items_
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_order_invoice(admin_client, order_with_items_and_stock, billing_address):
+def test_view_order_invoice(admin_client, order_with_items_and_stock,
+                            billing_address):
     """
     user goes to order details page
-    user selects on extra menu PDF Invoice
+    user clicks on Invoice button
     user downloads the invoice as PDF file
     """
-    # TODO: Template requires address otherwise it throws an exception
-    # perhaps setting this in the order fixture?
     order_with_items_and_stock.shipping_address = billing_address
     order_with_items_and_stock.billing_address = billing_address
     order_with_items_and_stock.save()
-
     url = reverse(
         'dashboard:order-invoice', kwargs={
-            'order_pk': order_with_items_and_stock.pk
+            'order_pk': order_with_items_and_stock.pk,
+            'group_pk': order_with_items_and_stock.groups.all()[0].pk
         })
-
     response = admin_client.get(url)
     assert response.status_code == 200
     assert response['content-type'] == 'application/pdf'
+    name = "invoice-%s" % order_with_items_and_stock.id
+    assert response['Content-Disposition'] == 'filename=%s' % name
 
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_order_packing_slips(admin_client, order_with_items_and_stock, billing_address):
+def test_view_order_packing_slips(admin_client, order_with_items_and_stock,
+                                  billing_address):
     """
     user goes to order details page
-    user selects on extra menu Packing Slips
+    user clicks on Packing Slips button
     user downloads the packing slips as PDF file
     """
-    # TODO: Template requires address otherwise it throws an exception
-    # perhaps setting this in the order fixture?
     order_with_items_and_stock.shipping_address = billing_address
     order_with_items_and_stock.billing_address = billing_address
     order_with_items_and_stock.save()
-
     url = reverse(
         'dashboard:order-packing-slips', kwargs={
-            'order_pk': order_with_items_and_stock.pk
+            'order_pk': order_with_items_and_stock.pk,
+            'group_pk': order_with_items_and_stock.groups.all()[0].pk
         })
-
     response = admin_client.get(url)
     assert response.status_code == 200
     assert response['content-type'] == 'application/pdf'
+    name = "packing-slip-%s" % order_with_items_and_stock.id
+    assert response['Content-Disposition'] == 'filename=%s' % name

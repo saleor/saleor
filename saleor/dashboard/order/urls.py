@@ -13,10 +13,10 @@ urlpatterns = [
         views.cancel_order, name='order-cancel'),
     url(r'^(?P<order_pk>\d+)/address/(?P<address_type>billing|shipping)/$',
         views.address_view, name='address-edit'),
-    url(r'^(?P<order_pk>\d+)/invoice/$',
+    url(r'^(?P<order_pk>\d+)/(?P<group_pk>\d+)/invoice/$',
         views.order_invoice, name='order-invoice'),
-    url(r'^(?P<order_pk>\d+)/packing-slips/$',
-        views.order_packing_slips, name='order-packing-slips'),
+    url(r'^(?P<order_pk>\d+)/(?P<group_pk>\d+)/packing-slips/$',
+        views.order_packing_slip, name='order-packing-slips'),
 
     url(r'^(?P<order_pk>\d+)/payment/(?P<payment_pk>\d+)/capture/$',
         views.capture_payment, name='capture-payment'),
