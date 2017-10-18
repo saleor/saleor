@@ -1,19 +1,19 @@
 interactions:
 - request:
-    body: '{"query": {"bool": {"filter": [{"match": {"content_type": "product.Product"}},
+    body: '{"query": {"bool": {"must": {"multi_match": {"query": "Group", "fields":
+      ["_all", "_partials"]}}, "filter": [{"match": {"content_type": "product.Product"}},
       {"bool": {"must": [{"bool": {"should": [{"range": {"available_on_filter": {"lte":
-      "2017-10-17"}}}, {"bool": {"must_not": {"term": {"field": "available_on_filter"}}}}]}},
-      {"term": {"is_published_filter": true}}]}}], "must": {"multi_match": {"fields":
-      ["_all", "_partials"], "query": "Group"}}}}}'
+      "2017-10-18"}}}, {"bool": {"must_not": {"term": {"field": "available_on_filter"}}}}]}},
+      {"term": {"is_published_filter": true}}]}}]}}}'
     headers:
       connection: [keep-alive]
       content-type: [application/json]
     method: GET
-    uri: http://search:9200/storefront__product_product/_search?from=0&_source=pk
+    uri: http://search:9200/storefront__product_product/_search?_source=pk&from=0
   response:
-    body: {string: '{"took":8,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":3,"max_score":3.2523599,"hits":[{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:29","_score":3.2523599,"_source":{"pk":"29"}},{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:41","_score":1.7389073,"_source":{"pk":"41"}},{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:59","_score":1.7389073,"_source":{"pk":"59"}}]}}'}
+    body: {string: '{"took":174,"timed_out":false,"_shards":{"total":5,"successful":5,"failed":0},"hits":{"total":4,"max_score":4.4128766,"hits":[{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:3","_score":4.4128766,"_source":{"pk":"3"}},{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:99","_score":4.3689632,"_source":{"pk":"41"}},{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:72","_score":3.2007272,"_source":{"pk":"72"}},{"_index":"storefront__product_product","_type":"product_product","_id":"product_product:92","_score":3.2007272,"_source":{"pk":"59"}}]}}'}
     headers:
-      content-length: ['531']
+      content-length: ['666']
       content-type: [application/json; charset=UTF-8]
     status: {code: 200, message: OK}
 version: 1
