@@ -4,9 +4,21 @@ from django.core.urlresolvers import reverse
 
 from decimal import Decimal
 import pytest
+import vcr
 
 MATCH_SEARCH_REQUEST = ['method', 'host', 'port', 'path', 'body']
 PRODUCTS_FOUND = [41, 59]  # same as in recorded data!
+DATE_OF_RECORDING = '2017-10-18'
+
+@pytest.fixture(scope='function', autouse=True)
+def recorded_on_date(freezer):
+    '''Freeze date during tests to date of recording
+
+    Current date is used in search query, please change used constant to new
+    current date when re-recording communication with live elasticsearch.
+    Leave changed date as new fixed time.
+    '''
+    freezer.move_to(DATE_OF_RECORDING)
 
 
 @pytest.mark.integration
@@ -67,3 +79,22 @@ def test_search_with_result(db, indexed_products, client):
     found_products = _extract_pks(response.context['results'].object_list)
     assert PRODUCTS_FOUND == sorted(found_products)
     assert EXISTING_PHRASE == response.context['query']
+
+
+@pytest.fixture
+def new_search_backend():
+    import saleor.search.forms
+    old_backend = saleor.search.forms.USE_BACKEND
+    saleor.search.forms.USE_BACKEND = 'newelastic'
+    yield new_search_backend
+    saleor.search.forms.USE_BACKEND = old_backend
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(record_mode='none', match_on=MATCH_SEARCH_REQUEST)
+@vcr.use_cassette('test_search_with_empty_results.yaml')
+def test_new_search_with_empty_results(db, client, new_search_backend):
+    WORD = 'foo'
+    response = client.get(reverse('search:search'), {'q': WORD})
+    assert 0 == len(response.context['results'].object_list)
+    assert WORD == response.context['query']
