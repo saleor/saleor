@@ -240,7 +240,14 @@ def product_in_stock(product_class, default_category):
         product_class=product_class, attributes=attributes)
     product.categories.add(default_category)
 
-    variant = ProductVariant.objects.create(product=product, sku='123')
+    variant_attr = product_class.variant_attributes.first()
+    variant_attr_value = variant_attr.values.first()
+    variant_attributes = {
+        smart_text(variant_attr.pk): smart_text(variant_attr_value.pk)
+    }
+
+    variant = ProductVariant.objects.create(
+        product=product, sku='123', attributes=variant_attributes)
     warehouse_1 = StockLocation.objects.create(name='Warehouse 1')
     warehouse_2 = StockLocation.objects.create(name='Warehouse 2')
     warehouse_3 = StockLocation.objects.create(name='Warehouse 3')

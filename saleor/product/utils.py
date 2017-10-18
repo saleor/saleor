@@ -1,4 +1,6 @@
-from collections import namedtuple
+from collections import defaultdict, namedtuple
+
+from six import iteritems
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
@@ -160,13 +162,9 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
     data = {'variantAttributes': [], 'variants': []}
 
     variant_attributes = product.product_class.variant_attributes.all()
-    for attribute in variant_attributes:
-        data['variantAttributes'].append({
-            'pk': attribute.pk,
-            'name': attribute.name,
-            'slug': attribute.slug,
-            'values': [{'pk': value.pk, 'name': value.name, 'slug': value.slug}
-                       for value in attribute.values.all()]})
+
+    # Collect only available variants
+    filter_available_variants = defaultdict(list)
 
     for variant in variants:
         price = variant.get_price_per_item(discounts)
@@ -194,6 +192,23 @@ def get_variant_picker_data(product, discounts=None, local_currency=None):
             'priceLocalCurrency': price_as_dict(price_local_currency),
             'schemaData': schema_data}
         data['variants'].append(variant_data)
+
+        for variant_key, variant_value in iteritems(variant.attributes):
+            filter_available_variants[int(variant_key)].append(
+                int(variant_value))
+
+    for attribute in variant_attributes:
+        available_variants = filter_available_variants.get(attribute.pk, None)
+
+        if available_variants:
+            data['variantAttributes'].append({
+                'pk': attribute.pk,
+                'name': attribute.name,
+                'slug': attribute.slug,
+                'values': [
+                    {'pk': value.pk, 'name': value.name, 'slug': value.slug}
+                    for value in attribute.values.filter(
+                        pk__in=available_variants)]})
 
     data['availability'] = {
         'discount': price_as_dict(availability.discount),
