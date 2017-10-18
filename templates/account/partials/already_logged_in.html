@@ -1,11 +1,9 @@
 {% load i18n %}
-{% load account %}
 
-{% user_display user as user_display %}
 <div class="alert alert-warning" role="alert">
   <p>
     {% blocktrans trimmed context "Already logged in warning message" %}
-      You are already logged in as {{ user_display }}.
+      You are already logged in as {{ user }}.
     {% endblocktrans %}
   </p>
 </div>
