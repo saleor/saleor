@@ -76,7 +76,7 @@ pyphen==0.9.4             # via weasyprint
 pytest-django==3.1.2
 pytest==3.2.2
 python-dateutil==2.6.1    # via botocore, faker
-python-openid==2.2.5      # via social-auth-core
+python3-openid==3.1.0     # via social-auth-core
 pytz==2017.2              # via babel, celery, django
 redis==2.10.6             # via celery, django-redis
 requests-oauthlib==0.8.0  # via social-auth-core
