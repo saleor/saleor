@@ -1,4 +1,5 @@
 from versatileimagefield.widgets import VersatileImagePPOIClickWidget
+from base64 import b64encode
 
 try:
     from urllib.parse import urlencode
@@ -27,6 +28,12 @@ def is_versatile_image_ppoi_click_widget(field):
     return isinstance(field.field.widget, VersatileImagePPOIClickWidget)
 
 
+@register.filter
+def svg_url(value):
+    prefix = "data:image/svg+xml;charset=utf-8;base64,"
+    return prefix + str(b64encode(bytes(value, 'utf-8')), 'utf-8')
+
+
 @register.inclusion_tag('dashboard/product/product_variant/_image_select.html')
 def render_image_choice(field):
     choices = zip(field, field.field.queryset)
@@ -42,3 +49,4 @@ def paginate(context, page_obj, num_of_pages=5):
     context['next_section'] = (2 * num_of_pages) + 1
     context['previous_section'] = (-2 * num_of_pages) - 1
     return context
+

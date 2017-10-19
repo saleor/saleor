@@ -13,7 +13,6 @@ from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
 from weasyprint import HTML
-from base64 import b64encode
 
 from ...core.utils import get_paginator_items
 from ...order import OrderStatus
@@ -382,11 +381,8 @@ def order_invoice(request, order_pk, group_pk):
     ctx = {'order': order,
            'group': group}
     with open('/app/saleor/static/images/saleor_logo.svg') as f:
-        ctx['logo'] = "data:image/svg+xml;charset=utf-8;base64," \
-                      + str(b64encode(bytes(f.read()
-                                            .replace('white', '#333'),
-                                            'utf-8')),
-                            'utf-8')
+        ctx['logo'] = f.read().replace('white', '#333')
+
     rendered_template = get_template(
         'dashboard/order/pdf/invoice.html').render(ctx)
     pdf_file = HTML(string=rendered_template).write_pdf()
@@ -405,11 +401,7 @@ def order_packing_slip(request, order_pk, group_pk):
     ctx = {'order': order,
            'group': group}
     with open('/app/saleor/static/images/saleor_logo.svg') as f:
-        ctx['logo'] = "data:image/svg+xml;charset=utf-8;base64," \
-                      + str(b64encode(bytes(f.read()
-                                            .replace('white', '#333'),
-                                            'utf-8')),
-                            'utf-8')
+        ctx['logo'] = f.read().replace('white', '#333')
     rendered_template = get_template(
         'dashboard/order/pdf/packing_slip.html').render(ctx)
     pdf_file = HTML(string=rendered_template).write_pdf()

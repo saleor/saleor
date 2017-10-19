@@ -1,12 +1,13 @@
 {% load i18n static %}
 {% load prices_i18n %}
 {% load discount_amount_for from prices %}
+{% load utils %}
 
 {% include 'dashboard/order/pdf/style.html' %}
 
 <header>
   <div style="float:left">
-    <img src="{{ logo|safe }}">
+    <img src="{{ logo|svg_url|safe }}">
   </div>
   <div
       style="float:right">{{ order.created }}<br>{% trans "Order ID:" %} {{ order.id }}
