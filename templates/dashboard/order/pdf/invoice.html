@@ -1,55 +1,8 @@
 {% load i18n static %}
 {% load prices_i18n %}
 {% load discount_amount_for from prices %}
-{% load staticfiles %}
-<style>
-  {{ style }}
-  html, body {
-    font-size: 12px;
-  }
 
-  .order-table {
-    margin-bottom: 30px;
-  }
-
-  .data-table {
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .data-table tr {
-    border-bottom: 1px #d0d0d0 solid;
-  }
-
-  .data-table tr:last-child {
-    border-bottom: none;
-  }
-
-  .data-table td {
-    height: 30px;
-    padding: 10px;
-  }
-
-  header {
-    margin-bottom: 5rem;
-  }
-
-  #invoice-footer {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    text-align: center;
-  }
-
-  @page {
-    @bottom-center {
-      content: "Saleor eCommerce, Mirumee Software";
-    }
-    @bottom-right {
-      content: "Page " counter(page) "/" counter(pages);
-    }
-  }
-</style>
+{% include 'dashboard/order/pdf/style.html' %}
 
 <header>
   <div style="float:left">

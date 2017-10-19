@@ -381,25 +381,19 @@ def order_invoice(request, order_pk, group_pk):
     group = DeliveryGroup.objects.prefetch_related('items').get(pk=group_pk)
     ctx = {'order': order,
            'group': group}
-    with open('/app/saleor/static/assets/dashboard.css') as f:
-        ctx['style'] = f.read()
     with open('/app/saleor/static/images/saleor_logo.svg') as f:
         ctx['logo'] = "data:image/svg+xml;charset=utf-8;base64," \
                       + str(b64encode(bytes(f.read()
                                             .replace('white', '#333'),
                                             'utf-8')),
                             'utf-8')
-    # rendered_template = get_template(
-    #     'dashboard/order/pdf/invoice.html').render(ctx)
-    # pdf_file = HTML(string=rendered_template).write_pdf()
-    # response = HttpResponse(pdf_file, content_type='application/pdf')
-    # name = "invoice-%s" % order.id
-    # response['Content-Disposition'] = 'filename=%s' % name
-    # return response
-
-    return TemplateResponse(request,
-                            'dashboard/order/pdf/invoice.html',
-                            ctx)
+    rendered_template = get_template(
+        'dashboard/order/pdf/invoice.html').render(ctx)
+    pdf_file = HTML(string=rendered_template).write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    name = "invoice-%s" % order.id
+    response['Content-Disposition'] = 'filename=%s' % name
+    return response
 
 
 @staff_member_required
@@ -410,8 +404,6 @@ def order_packing_slip(request, order_pk, group_pk):
     group = DeliveryGroup.objects.prefetch_related('items').get(pk=group_pk)
     ctx = {'order': order,
            'group': group}
-    with open('/app/saleor/static/assets/dashboard.css') as f:
-        ctx['style'] = f.read()
     with open('/app/saleor/static/images/saleor_logo.svg') as f:
         ctx['logo'] = "data:image/svg+xml;charset=utf-8;base64," \
                       + str(b64encode(bytes(f.read()
