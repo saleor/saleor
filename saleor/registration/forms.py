@@ -1,6 +1,10 @@
 from django import forms
 from django.contrib.auth import forms as django_forms
+from django.core.urlresolvers import reverse
+from django.http.request import HttpRequest
 from django.utils.translation import pgettext
+
+from templated_email import send_templated_mail
 
 from saleor.userprofile.models import User
 
@@ -41,7 +45,24 @@ class SignupForm(forms.ModelForm):
         return user
 
 
-class SetPasswordForm(django_forms.SetPasswordForm):
-    def __init__(self, *args, **kwargs):
-        super(SetPasswordForm, self).__init__(*args, **kwargs)
-        del self.fields['new_password2']
+class PasswordSetUpForm(django_forms.PasswordResetForm):
+    """
+        PasswordSetUpForm that overrides sending emails to use templated email.
+        Allows setting password for new users that have no usable password.
+    """
+
+    def get_users(self, email):
+        active_users = User.objects.filter(email__iexact=email, is_active=True)
+        return active_users
+
+    def send_mail(
+            self, subject_template_name, email_template_name, context,
+            from_email, to_email, html_email_template_name=None):
+        reset_url = HttpRequest.build_absolute_uri(
+            reverse(
+                'account_reset_password_confirm',
+                kwargs={'uidb64': context['uid'], 'token': context['token']}))
+        context['reset_url'] = reset_url
+        send_templated_mail(
+            'account/password_set', from_email=from_email,
+            recipient_list=[to_email], context=context)

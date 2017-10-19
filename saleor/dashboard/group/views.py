@@ -6,6 +6,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
+from ...core.utils import get_paginator_items
+from ...settings import DASHBOARD_PAGINATE_BY
 from ..views import superuser_required
 from .forms import GroupPermissionsForm
 
@@ -14,6 +16,8 @@ from .forms import GroupPermissionsForm
 def group_list(request):
     groups = [{'name': group, 'permissions': group.permissions.all()}
               for group in Group.objects.all().prefetch_related('permissions')]
+    groups = get_paginator_items(
+        groups, DASHBOARD_PAGINATE_BY, request.GET.get('page'))
     ctx = {'groups': groups}
     return TemplateResponse(request, 'dashboard/group/list.html', ctx)
 
@@ -59,6 +63,4 @@ def group_delete(request, pk):
         )
         return redirect('dashboard:group-list')
     return TemplateResponse(
-        request, 'dashboard/group/modal/confirm_delete.html',
-        {'group': group}
-    )
+        request, 'dashboard/group/modal/confirm_delete.html', {'group': group})

@@ -8,7 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.template.response import TemplateResponse
 
 from saleor.cart.utils import find_and_assign_anonymous_cart
-from .forms import LoginForm, SignupForm, SetPasswordForm
+from .forms import LoginForm, PasswordSetUpForm, SignupForm
 
 
 @find_and_assign_anonymous_cart()
@@ -50,12 +50,20 @@ def password_reset(request):
     return django_views.PasswordResetView.as_view(**kwargs)(request, **kwargs)
 
 
+class PasswordResetConfirm(django_views.PasswordResetConfirmView):
+    template_name = 'account/password_reset_from_key.html'
+    success_url = reverse_lazy('account_reset_password_complete')
+    set_password_form = PasswordSetUpForm
+    token = None
+    uidb64 = None
+
+
 def password_reset_confirm(request, uidb64=None, token=None):
     kwargs = {
         'template_name': 'account/password_reset_from_key.html',
         'success_url': reverse_lazy('account_reset_password_complete'),
-        'set_password_form': 'SetPasswordForm',
+        'set_password_form': 'PasswordSetUpForm',
         'token': token,
         'uidb64': uidb64}
-    return django_views.PasswordResetConfirmView.as_view(**kwargs)(
+    return PasswordResetConfirm.as_view(**kwargs)(
         request, **kwargs)

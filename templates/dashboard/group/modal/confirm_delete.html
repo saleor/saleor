@@ -2,6 +2,8 @@
 
 {% load i18n %}
 
+{% block action_url %}{% url 'dashboard:group-delete' pk=group.pk %}{% endblock %}
+
 {% block title %}
 {% blocktrans trimmed context "Modal delete group text" %}
   Delete group <strong>{{ group }}</strong>?
@@ -14,5 +16,5 @@
 <p>Users might lose permissions related to this group.</p>
 {% endblocktrans %}
 {% endblock content %}
- 
+
 

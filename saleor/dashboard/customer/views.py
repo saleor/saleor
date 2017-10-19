@@ -1,14 +1,16 @@
 from __future__ import unicode_literals
 
-from django.db.models import Count, Max
-from django.shortcuts import get_object_or_404
-from django.template.response import TemplateResponse
+from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.db.models import Count, Max
+from django.shortcuts import get_object_or_404, redirect
+from django.template.response import TemplateResponse
+from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ...userprofile.models import User
 from ...settings import DASHBOARD_PAGINATE_BY
-from ..views import staff_member_required
+from ..views import staff_member_required, superuser_required
 
 
 @staff_member_required
@@ -38,3 +40,19 @@ def customer_details(request, pk):
     customer_orders = customer.orders.all()
     ctx = {'customer': customer, 'customer_orders': customer_orders}
     return TemplateResponse(request, 'dashboard/customer/detail.html', ctx)
+
+
+@superuser_required
+def customer_promote_to_staff(request, pk):
+    customer = get_object_or_404(User, pk=pk)
+    if request.method == 'POST':
+        customer.is_staff = True
+        customer.save()
+        msg = pgettext_lazy(
+            'Dashboard message',
+            'Customer %s promoted to staff member') % customer
+        messages.success(request, msg)
+        return redirect('dashboard:customer-details', pk=customer.pk)
+    return TemplateResponse(
+        request, 'dashboard/customer/modal/confirm_promote.html',
+        {'customer': customer})

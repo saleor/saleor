@@ -2,6 +2,8 @@
 {% load i18n %}
 {% load prices_i18n %}
 {% load materializecss %}
+{% load staticfiles %}
+{% load utils %}
 
 {% block title %}
   {% trans "Staff" context "Dashboard staff members list" %} - {{ block.super }}
@@ -10,6 +12,16 @@
 {% block body_class %}body-customers{% endblock %}
 
 {% block menu_staff_class %}active{% endblock %}
+
+{% block header_extra %}
+    <div class="fixed-action-btn">
+      <a class="btn-fab btn-floating btn-large waves-effect waves-light teal"
+        title="{% trans "Add staff member" context "Staff members list add button text" %}"
+        href="{% url 'dashboard:staff-create' %}">
+        <svg data-src="{% static "dashboard/images/add.svg" %}" />
+      </a>
+    </div>
+{% endblock %}
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs">
@@ -65,5 +77,7 @@
       </p>
     </div>
   {% endif %}
-  {% include "dashboard/includes/_pagination.html" with page_obj=customers %}
+
+  {% paginate staff %}
+
 {% endblock %}

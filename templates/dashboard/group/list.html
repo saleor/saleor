@@ -1,8 +1,8 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
-{% load prices_i18n %}
 {% load materializecss %}
 {% load staticfiles %}
+{% load utils %}
 
 {% block title %}
   {% trans "Groups" context "Dashboard groups list" %} - {{ block.super }}
@@ -56,6 +56,7 @@
     </div>
   {% endif %}
 
-  {% include "dashboard/includes/_pagination.html" with page_obj=customers %}
+  {% paginate groups %}
+
 {% endblock %}
 
