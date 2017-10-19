@@ -1,168 +1,207 @@
 {% load i18n static %}
 {% load prices_i18n %}
 {% load discount_amount_for from prices %}
+{% load staticfiles %}
+<style>
+  {{ style }}
+  html, body {
+    font-size: 12px;
+  }
 
-<table width="100%" border="0">
-    <tr>
-        <td>{% trans "Order ID:" %} {{ order.id }}</td>
-        <td align="right">{{ order.created }}</td>
-    </tr>
-</table>
+  .order-table {
+    margin-bottom: 30px;
+  }
+
+  .data-table {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .data-table tr {
+    border-bottom: 1px #d0d0d0 solid;
+  }
+
+  .data-table tr:last-child {
+    border-bottom: none;
+  }
+
+  .data-table td {
+    height: 30px;
+    padding: 10px;
+  }
+
+  header {
+    margin-bottom: 5rem;
+  }
+
+  #invoice-footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+  }
+
+  @page {
+    @bottom-center {
+      content: "Saleor eCommerce, Mirumee Software";
+    }
+    @bottom-right {
+      content: "Page " counter(page) "/" counter(pages);
+    }
+  }
+</style>
+
+<header>
+  <div style="float:left">
+    <img src="{{ logo|safe }}">
+  </div>
+  <div
+      style="float:right">{{ order.created }}<br>{% trans "Order ID:" %} {{ order.id }}
+  </div>
+</header>
 
 <h2>{% trans "Company Details" context "Order invoice" %}</h2>
-<table width="100%" border="1" cellspacing="0" cellpadding="10">
-<tr>
+<table width="100%" border="1" cellspacing="0">
+  <thead>
+  <tr>
     <th align="left" width="50%">{% trans "Shipping Details" %}</th>
     <th align="left" width="50%">{% trans "Billing Details" %}</th>
-</tr>
-<tr>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
     <td valign="top">
-        <table border="0">
-        <div class="row">
-            <div class="col s12 m6 l12 p6">
-            {% with order.shipping_address as address %}
-              <div class="card">
-                <div class="card-content">
-                  <span class="card-title black-text">
-                    {% trans "Shipping address" context "" %}
-                  </span>
-                  {% include 'dashboard/includes/_address.html' with address=address only %}
-                </div>
-              </div>
-            </div>
-          {% endwith %}
-        </div>
-        </table>
+      {% with order.shipping_address as address %}
+        <h2>
+          {% trans "Shipping address" context "" %}
+        </h2>
+        {% include 'dashboard/includes/_address.html' with address=address only %}
+      {% endwith %}
     </td>
     <td valign="top">
-        <table border="0">
-          <div class="col s12 {% if address %}m6{% else %}m12{% endif %} l12 p6">
-            <div class="card">
-              <div class="card-content">
-                {% with order.billing_address as address %}
-                  <span class="card-title black-text">
-                    {% trans "Billing address" context "" %}
-                  </span>
-                  {% include 'dashboard/includes/_address.html' with address=address only %}
-                {% endwith %}
-              </div>
-            </div>
-          </div>
-        </table>
+      {% with order.billing_address as address %}
+        <h2>
+          {% trans "Billing address" context "" %}
+        </h2>
+        {% include 'dashboard/includes/_address.html' with address=address only %}
+      {% endwith %}
     </td>
-</tr>
+  </tr>
+  </tbody>
 </table>
 
 <h2>{% trans "Items Ordered" context "Order invoice" %}</h2>
-  {% if group %}
-  <table class="bordered highlight responsive data-table">
+{% if group %}
+  <table class="highlight data-table order-table bordered">
     <thead>
-      <tr>
-        <th class="wide">
-          {% trans "Item" context "Shipment group table header" %}
-        </th>
-        <th>
-          {% trans "SKU" context "Shipment group table header" %}
-        </th>
-        <th class="right-align">
-          {% trans "Price" context "Shipment group table header" %}
-        </th>
-        <th class="right-align">
-          {% trans "Quantity" context "Shipment group table header" %}
-        </th>
-        <th class="right-align">
-          {% trans "Total" context "Shipment group table header" %}
-        </th>
-      </tr>
+    <tr>
+      <th class="wide">
+        {% trans "Item" context "Shipment group table header" %}
+      </th>
+      <th>
+        {% trans "SKU" context "Shipment group table header" %}
+      </th>
+      <th class="right-align">
+        {% trans "Price" context "Shipment group table header" %}
+      </th>
+      <th class="right-align">
+        {% trans "Quantity" context "Shipment group table header" %}
+      </th>
+      <th class="right-align">
+        {% trans "Total" context "Shipment group table header" %}
+      </th>
+    </tr>
     </thead>
-    <tfoot>
-      {% if group.shipping_price.gross or group.is_shipping_required %}
-        <tr>
-          <td colspan="4">
-            {% blocktrans trimmed with group_shipping_method_name=group.shipping_method_name context "Shipment group table item column data" %}
-              Shipping ({{ group_shipping_method_name }})
-            {% endblocktrans %}
-          </td>
-          <td class="right-align">
-            {% gross group.shipping_price html=True %}
-          </td>
-        </tr>
-      {% endif %}
-    </tfoot>
-      <tbody>
-        {% for item in group.items.all %}
-          <tr>
-            <td>
-              {{ item.product_name }}<br>
-            </td>
-            <td>
-              {{ item.product_sku }}
-            </td>
-            <td class="right-align">
-              {% gross item.get_price_per_item html=True %}
-            </td>
-            <td class="right-align">
-              {{ item.quantity }}
+    <tbody>
+    {% for item in group.items.all %}
+      <tr>
+        <td>
+          {{ item.product_name|truncatechars:40 }}<br>
+        </td>
+        <td>
+          {{ item.product_sku }}
+        </td>
+        <td class="right-align">
+          {% gross item.get_price_per_item html=True %}
+        </td>
+        <td class="right-align">
+          {{ item.quantity }}
         </td>
         <td class="right-align">
           {% gross item.get_total html=True %}
         </td>
       </tr>
-      {% endfor %}
-    </tbody>
-  </table>
- {% endif %}
-
- <table class="bordered highlight responsive data-table">
-  <tfoot>
-    <tr>
-      <td>
-        {% trans "Grand total" context "Order totals header" %}
-      </td>
-      <td>
-        {% gross order.get_total html=True %}
-      </td>
-    </tr>
-  </tfoot>
-  <tbody>
-    <tr>
-      <td class="wide">
-        {% trans "Subtotal" context "Order subtotal" %}
-      </td>
-      <td class="right-align">
-        {% gross order.get_subtotal_without_voucher html=True %}
-      </td>
-    </tr>
-    <tr>
-      <td>
-        {% trans "Total Shipping Price" context "Order totals header" %}
-      </td>
-      <td class="right-align">
-        {% gross order.get_total_shipping html=True %}
-      </td>
-    </tr>
-    {% if order.discount_amount.gross %}
+    {% endfor %}
+    {% if group.shipping_price.gross or group.is_shipping_required %}
       <tr>
-        <td>
-          <a class="dropdown-button" href="#" data-activates="voucher-actions" data-constrainwidth="false">
-            {% blocktrans trimmed with voucher=order.discount_name context "Order totals header" %}
-              Voucher {{ voucher }}
-            {% endblocktrans %}
-            <svg data-src="{% static "dashboard/images/arrow_drop_down.svg" %}" />
-          </a>
-          <ul id="voucher-actions" class="dropdown-content">
-            <li>
-              <a href="#base-modal" data-href="{% url 'dashboard:order-remove-voucher' order_pk=order.pk %}"
-              class="modal-trigger-custom" title="{% trans "Remove voucher" context "Order totals action" %}">
-                {% trans "Remove voucher" context "Order totals action" %}
-              </a>
-            </li>
-          </ul>
+        <td colspan="4">
+          {% blocktrans trimmed with group_shipping_method_name=group.shipping_method_name context "Shipment group table item column data" %}
+            Shipping ({{ group_shipping_method_name }})
+          {% endblocktrans %}
         </td>
         <td class="right-align">
-          {% gross order.discount|discount_amount_for:order.total html=True %}
+          {% gross group.shipping_price html=True %}
         </td>
       </tr>
+    {% endif %}
+    </tbody>
+  </table>
+{% endif %}
+
+<table class="bordered highlight responsive data-table">
+  <tfoot>
+  <tr>
+    <td>
+      {% trans "Grand total" context "Order totals header" %}
+    </td>
+    <td>
+      {% gross order.get_total html=True %}
+    </td>
+  </tr>
+  </tfoot>
+  <tbody>
+  <tr>
+    <td class="wide">
+      {% trans "Subtotal" context "Order subtotal" %}
+    </td>
+    <td class="right-align">
+      {% gross order.get_subtotal_without_voucher html=True %}
+    </td>
+  </tr>
+  <tr>
+    <td>
+      {% trans "Total Shipping Price" context "Order totals header" %}
+    </td>
+    <td class="right-align">
+      {% gross order.get_total_shipping html=True %}
+    </td>
+  </tr>
+  {% if order.discount_amount.gross %}
+    <tr>
+      <td>
+        <a class="dropdown-button" href="#" data-activates="voucher-actions"
+           data-constrainwidth="false">
+          {% blocktrans trimmed with voucher=order.discount_name context "Order totals header" %}
+            Voucher {{ voucher }}
+          {% endblocktrans %}
+          <svg data-src="{% static "dashboard/images/arrow_drop_down.svg" %}"/>
+        </a>
+        <ul id="voucher-actions" class="dropdown-content">
+          <li>
+            <a href="#base-modal"
+               data-href="{% url 'dashboard:order-remove-voucher' order_pk=order.pk %}"
+               class="modal-trigger-custom"
+               title="{% trans "Remove voucher" context "Order totals action" %}">
+              {% trans "Remove voucher" context "Order totals action" %}
+            </a>
+          </li>
+        </ul>
+      </td>
+      <td class="right-align">
+        {% gross order.discount|discount_amount_for:order.total html=True %}
+      </td>
+    </tr>
   {% endif %}
   </tbody>
 </table>
+

@@ -13,6 +13,7 @@ from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
 from weasyprint import HTML
+from base64 import b64encode
 
 from ...core.utils import get_paginator_items
 from ...order import OrderStatus
@@ -187,8 +188,8 @@ def orderline_change_quantity(request, order_pk, line_pk):
             'Dashboard message related to an order line',
             'Changed quantity for product %(product)s from'
             ' %(old_quantity)s to %(new_quantity)s') % {
-                'product': item.product, 'old_quantity': old_quantity,
-                'new_quantity': item.quantity}
+                  'product': item.product, 'old_quantity': old_quantity,
+                  'new_quantity': item.quantity}
         order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
@@ -223,8 +224,8 @@ def orderline_split(request, order_pk, line_pk):
             'Dashboard message related to delivery groups',
             'Moved %(how_many)s items %(item)s from %(old_group)s'
             ' to %(new_group)s') % {
-                'how_many': how_many, 'item': item, 'old_group': old_group,
-                'new_group': target_group}
+                  'how_many': how_many, 'item': item, 'old_group': old_group,
+                  'new_group': target_group}
         order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
@@ -380,13 +381,25 @@ def order_invoice(request, order_pk, group_pk):
     group = DeliveryGroup.objects.prefetch_related('items').get(pk=group_pk)
     ctx = {'order': order,
            'group': group}
-    rendered_template = get_template(
-        'dashboard/order/pdf/invoice.html').render(ctx)
-    pdf_file = HTML(string=rendered_template).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    name = "invoice-%s" % order.id
-    response['Content-Disposition'] = 'filename=%s' % name
-    return response
+    with open('/app/saleor/static/assets/dashboard.css') as f:
+        ctx['style'] = f.read()
+    with open('/app/saleor/static/images/saleor_logo.svg') as f:
+        ctx['logo'] = "data:image/svg+xml;charset=utf-8;base64," \
+                      + str(b64encode(bytes(f.read()
+                                            .replace('white', '#333'),
+                                            'utf-8')),
+                            'utf-8')
+    # rendered_template = get_template(
+    #     'dashboard/order/pdf/invoice.html').render(ctx)
+    # pdf_file = HTML(string=rendered_template).write_pdf()
+    # response = HttpResponse(pdf_file, content_type='application/pdf')
+    # name = "invoice-%s" % order.id
+    # response['Content-Disposition'] = 'filename=%s' % name
+    # return response
+
+    return TemplateResponse(request,
+                            'dashboard/order/pdf/invoice.html',
+                            ctx)
 
 
 @staff_member_required
@@ -397,6 +410,14 @@ def order_packing_slip(request, order_pk, group_pk):
     group = DeliveryGroup.objects.prefetch_related('items').get(pk=group_pk)
     ctx = {'order': order,
            'group': group}
+    with open('/app/saleor/static/assets/dashboard.css') as f:
+        ctx['style'] = f.read()
+    with open('/app/saleor/static/images/saleor_logo.svg') as f:
+        ctx['logo'] = "data:image/svg+xml;charset=utf-8;base64," \
+                      + str(b64encode(bytes(f.read()
+                                            .replace('white', '#333'),
+                                            'utf-8')),
+                            'utf-8')
     rendered_template = get_template(
         'dashboard/order/pdf/packing_slip.html').render(ctx)
     pdf_file = HTML(string=rendered_template).write_pdf()
