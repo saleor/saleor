@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 from math import ceil
 
-from django.core.paginator import Paginator, InvalidPage, EmptyPage, PageNotAnInteger, Page
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger, Page
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import render
