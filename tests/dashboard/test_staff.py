@@ -29,6 +29,29 @@ def test_staff_form_create_valid(
     assert staff_user.groups.count() == 1
 
 
+def test_staff_form_create_not_valid(admin_client, staff_user):
+    url = reverse('dashboard:staff-details', kwargs={'pk': staff_user.pk})
+    data = {'groups': 1}
+    admin_client.post(url, data)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert staff_user.groups.count() == 0
+
+
+def test_delete_staff(admin_client, staff_user):
+    assert User.objects.all().count() == 2
+    url = reverse('dashboard:staff-delete', kwargs={'pk': staff_user.pk})
+    data = {'pk': staff_user.pk}
+    response = admin_client.post(url, data)
+    assert User.objects.all().count() == 1
+    assert response['Location'] == '/dashboard/staff/'
+
+
+def test_delete_staff_no_POST(admin_client, staff_user):
+    url = reverse('dashboard:staff-delete', kwargs={'pk': staff_user.pk})
+    admin_client.get(url)
+    assert User.objects.all().count() == 2
+
+
 def test_staff_create_email_with_set_link_password(
         admin_client, staff_group):
     url = reverse('dashboard:staff-create')
@@ -76,26 +99,3 @@ def test_create_staff_and_set_password(admin_client, staff_group):
     assert response['Location'] == reverse('account_reset_password_complete')
     new_user = User.objects.get(email='staff3@example.com')
     assert new_user.has_usable_password()
-
-
-def test_staff_form_create_not_valid(admin_client, staff_user):
-    url = reverse('dashboard:staff-details', kwargs={'pk': staff_user.pk})
-    data = {'groups': 1}
-    admin_client.post(url, data)
-    staff_user = User.objects.get(pk=staff_user.pk)
-    assert staff_user.groups.count() == 0
-
-
-def test_delete_staff(admin_client, staff_user):
-    assert User.objects.all().count() == 2
-    url = reverse('dashboard:staff-delete', kwargs={'pk': staff_user.pk})
-    data = {'pk': staff_user.pk}
-    response = admin_client.post(url, data)
-    assert User.objects.all().count() == 1
-    assert response['Location'] == '/dashboard/staff/'
-
-
-def test_delete_staff_no_POST(admin_client, staff_user):
-    url = reverse('dashboard:staff-delete', kwargs={'pk': staff_user.pk})
-    admin_client.get(url)
-    assert User.objects.all().count() == 2

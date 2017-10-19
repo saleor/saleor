@@ -28,7 +28,8 @@ def staff_list(request):
 def staff_details(request, pk):
     queryset = User.objects.filter(is_staff=True)
     staff_member = get_object_or_404(queryset, pk=pk)
-    form = StaffForm(request.POST or None, instance=staff_member)
+    form = StaffForm(
+        request.POST or None, instance=staff_member, user=request.user)
     if form.is_valid():
         form.save()
         msg = pgettext_lazy(
