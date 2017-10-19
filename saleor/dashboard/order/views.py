@@ -380,7 +380,7 @@ def order_invoice(request, order_pk, group_pk):
     group = DeliveryGroup.objects.prefetch_related('items').get(pk=group_pk)
     ctx = {'order': order,
            'group': group}
-    with open('/app/saleor/static/images/saleor_logo.svg') as f:
+    with open('static/images/saleor_logo.svg') as f:
         ctx['logo'] = f.read().replace('white', '#333')
 
     rendered_template = get_template(
@@ -400,7 +400,7 @@ def order_packing_slip(request, order_pk, group_pk):
     group = DeliveryGroup.objects.prefetch_related('items').get(pk=group_pk)
     ctx = {'order': order,
            'group': group}
-    with open('/app/saleor/static/images/saleor_logo.svg') as f:
+    with open('static/images/saleor_logo.svg') as f:
         ctx['logo'] = f.read().replace('white', '#333')
     rendered_template = get_template(
         'dashboard/order/pdf/packing_slip.html').render(ctx)
