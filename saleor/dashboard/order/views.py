@@ -12,7 +12,7 @@ from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
-from weasyprint import HTML
+from weasyprint import HTML, CSS
 
 from ...core.utils import get_paginator_items
 from ...order import OrderStatus
@@ -385,7 +385,8 @@ def order_invoice(request, order_pk, group_pk):
 
     rendered_template = get_template(
         'dashboard/order/pdf/invoice.html').render(ctx)
-    pdf_file = HTML(string=rendered_template).write_pdf()
+    stylesheet = CSS('saleor/static/assets/document.css')
+    pdf_file = HTML(string=rendered_template).write_pdf(stylesheets=[stylesheet])
     response = HttpResponse(pdf_file, content_type='application/pdf')
     name = "invoice-%s" % order.id
     response['Content-Disposition'] = 'filename=%s' % name
@@ -404,7 +405,8 @@ def order_packing_slip(request, order_pk, group_pk):
         ctx['logo'] = f.read().replace('white', '#333')
     rendered_template = get_template(
         'dashboard/order/pdf/packing_slip.html').render(ctx)
-    pdf_file = HTML(string=rendered_template).write_pdf()
+    stylesheet = CSS('saleor/static/assets/document.css')
+    pdf_file = HTML(string=rendered_template).write_pdf(stylesheets=[stylesheet])
     response = HttpResponse(pdf_file, content_type='application/pdf')
     name = "packing-slip-%s" % order.id
     response['Content-Disposition'] = 'filename=%s' % name

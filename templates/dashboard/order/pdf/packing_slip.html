@@ -3,8 +3,11 @@
 {% load discount_amount_for from prices %}
 {% load utils %}
 
-{% include 'dashboard/order/pdf/style.html' %}
-
+<html>
+<head>
+  <title>Packing slip</title>
+</head>
+<body>
 <header>
   <div style="float:left">
     <img src="{{ logo|svg_url|safe }}">
@@ -77,5 +80,5 @@
     </tbody>
   </table>
 {% endif %}
-
-
+</body>
+</html>

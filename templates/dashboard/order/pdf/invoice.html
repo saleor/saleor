@@ -2,10 +2,14 @@
 {% load prices_i18n %}
 {% load discount_amount_for from prices %}
 {% load utils %}
+{% load static %}
 
-{% include 'dashboard/order/pdf/style.html' %}
-
-<header>
+<html>
+<head>
+  <title>Invoice, order ID: {{ order.id }}</title>
+</head>
+<body>
+  <header>
   <div style="float:left">
     <img src="{{ logo|svg_url|safe }}">
   </div>
@@ -158,4 +162,6 @@
   {% endif %}
   </tbody>
 </table>
+</body>
+</html>
 
