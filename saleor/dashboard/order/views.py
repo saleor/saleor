@@ -19,7 +19,7 @@ from ...order import OrderStatus
 from ...order.models import Order, OrderedItem, OrderNote, DeliveryGroup
 from ...product.models import ProductVariant
 from ...userprofile.i18n import AddressForm
-from ...settings import DASHBOARD_PAGINATE_BY
+from ...settings import DASHBOARD_PAGINATE_BY, STATIC_ROOT
 from ..order.forms import OrderFilterForm
 from ..views import staff_member_required
 from .forms import (CancelGroupForm, CancelItemsForm, CancelOrderForm,
@@ -187,8 +187,8 @@ def orderline_change_quantity(request, order_pk, line_pk):
             'Dashboard message related to an order line',
             'Changed quantity for product %(product)s from'
             ' %(old_quantity)s to %(new_quantity)s') % {
-                  'product': item.product, 'old_quantity': old_quantity,
-                  'new_quantity': item.quantity}
+                'product': item.product, 'old_quantity': old_quantity,
+                'new_quantity': item.quantity}
         order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
@@ -223,8 +223,8 @@ def orderline_split(request, order_pk, line_pk):
             'Dashboard message related to delivery groups',
             'Moved %(how_many)s items %(item)s from %(old_group)s'
             ' to %(new_group)s') % {
-                  'how_many': how_many, 'item': item, 'old_group': old_group,
-                  'new_group': target_group}
+                'how_many': how_many, 'item': item, 'old_group': old_group,
+                'new_group': target_group}
         order.create_history_entry(comment=msg, user=request.user)
         messages.success(request, msg)
         return redirect('dashboard:order-details', order_pk=order.pk)
@@ -380,13 +380,13 @@ def order_invoice(request, order_pk, group_pk):
     group = DeliveryGroup.objects.prefetch_related('items').get(pk=group_pk)
     ctx = {'order': order,
            'group': group}
-    with open('static/images/saleor_logo.svg') as f:
-        ctx['logo'] = f.read().replace('white', '#333')
-
+    with open('static/images/saleor_logo.svg', 'rb') as f:
+        ctx['logo'] = f.read().replace(b'white', b'#333')
     rendered_template = get_template(
         'dashboard/order/pdf/invoice.html').render(ctx)
-    stylesheet = CSS('saleor/static/assets/document.css')
-    pdf_file = HTML(string=rendered_template).write_pdf(stylesheets=[stylesheet])
+    stylesheet = CSS(STATIC_ROOT + '/assets/document.css')
+    pdf_file = (HTML(string=rendered_template)
+                .write_pdf(stylesheets=[stylesheet]))
     response = HttpResponse(pdf_file, content_type='application/pdf')
     name = "invoice-%s" % order.id
     response['Content-Disposition'] = 'filename=%s' % name
@@ -401,12 +401,13 @@ def order_packing_slip(request, order_pk, group_pk):
     group = DeliveryGroup.objects.prefetch_related('items').get(pk=group_pk)
     ctx = {'order': order,
            'group': group}
-    with open('static/images/saleor_logo.svg') as f:
-        ctx['logo'] = f.read().replace('white', '#333')
+    with open('static/images/saleor_logo.svg', 'rb') as f:
+        ctx['logo'] = f.read().replace(b'white', b'#333')
     rendered_template = get_template(
         'dashboard/order/pdf/packing_slip.html').render(ctx)
-    stylesheet = CSS('saleor/static/assets/document.css')
-    pdf_file = HTML(string=rendered_template).write_pdf(stylesheets=[stylesheet])
+    stylesheet = CSS(STATIC_ROOT + '/assets/document.css')
+    pdf_file = (HTML(string=rendered_template)
+                .write_pdf(stylesheets=[stylesheet]))
     response = HttpResponse(pdf_file, content_type='application/pdf')
     name = "packing-slip-%s" % order.id
     response['Content-Disposition'] = 'filename=%s' % name
