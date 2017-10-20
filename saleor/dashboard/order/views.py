@@ -397,7 +397,17 @@ def order_packing_slip(request, group_pk):
 @staff_member_required
 @permission_required('order.edit_order')
 def orderline_change_stock(request, order_pk, line_pk):
+    line = get_object_or_404(OrderedItem, pk=line_pk)
     status = 200
-    ctx = {'order_pk': order_pk, 'line_pk': line_pk}
+    form = ChangeStockForm(request.POST or None, instance=line)
+    if form.is_valid():
+        form.save()
+        msg = pgettext_lazy(
+            'Dashboard message',
+            'Stock location changed for %s') % form.instance.product_sku
+        messages.success(request, msg)
+    elif form.errors:
+        status = 400
+    ctx = {'order_pk': order_pk, 'line_pk': line_pk, 'form': form}
     template = 'dashboard/order/modal/delivery_group_stock.html'
     return TemplateResponse(request, template, ctx, status=status)
