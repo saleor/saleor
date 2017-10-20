@@ -51,4 +51,7 @@ Environment variables
 
 
 ``MAX_CART_LINE_QUANTITY``
-  Controls maximum number of items in one cart line. Defaults to ``50``
+  Controls maximum number of items in one cart line. Defaults to ``50``.
+
+``ASSETS_PRODUCTION``
+  Controls production assets' mount path. Defaults to ``/static/assets/``.
