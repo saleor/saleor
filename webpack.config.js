@@ -26,7 +26,7 @@ if (process.env.NODE_ENV === 'production') {
   output = {
     path: resolve('saleor/static/assets/'),
     filename: '[name].js',
-    publicPath: process.env.ASSETS_DEV
+    publicPath: '/static/assets/'
   };
   fileLoaderPath = 'file-loader?name=[name].[ext]';
   extractTextPlugin = new ExtractTextPlugin('[name].css');
