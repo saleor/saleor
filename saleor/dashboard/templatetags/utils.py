@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from versatileimagefield.widgets import VersatileImagePPOIClickWidget
 from base64 import b64encode
 
@@ -30,8 +32,8 @@ def is_versatile_image_ppoi_click_widget(field):
 
 @register.filter
 def svg_url(value):
-    prefix = "data:image/svg+xml;charset=utf-8;base64,"
-    return prefix + str(b64encode(bytes(value, 'utf-8')), 'utf-8')
+    prefix = u"data:image/svg+xml;charset=utf-8;base64,"
+    return prefix + b64encode(value).decode('utf-8')
 
 
 @register.inclusion_tag('dashboard/product/product_variant/_image_select.html')
@@ -49,4 +51,3 @@ def paginate(context, page_obj, num_of_pages=5):
     context['next_section'] = (2 * num_of_pages) + 1
     context['previous_section'] = (-2 * num_of_pages) - 1
     return context
-
