@@ -31,8 +31,7 @@ if (process.env.NODE_ENV === 'production') {
   fileLoaderPath = 'file-loader?name=[name].[ext]';
   extractTextPlugin = new ExtractTextPlugin('[name].css');
 }
-console.log(output.publicPath);
-return true;
+
 var bundleTrackerPlugin = new BundleTracker({
   filename: 'webpack-bundle.json'
 });
