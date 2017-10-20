@@ -392,3 +392,12 @@ def order_packing_slip(request, group_pk):
     name = "packing-slip-%s-%s" % (group.order.id, group.id)
     response['Content-Disposition'] = 'filename=%s' % name
     return response
+
+
+@staff_member_required
+@permission_required('order.edit_order')
+def orderline_change_stock(request, order_pk, line_pk):
+    status = 200
+    ctx = {'order_pk': order_pk, 'line_pk': line_pk}
+    template = 'dashboard/order/modal/delivery_group_stock.html'
+    return TemplateResponse(request, template, ctx, status=status)
