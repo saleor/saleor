@@ -123,7 +123,7 @@
     <div class="navbar__menu container d-block">
       <nav class="navigation">
         {% url 'home' as home_url %}
-        <ul class="nav navbar-nav{% if request.get_full_path == home_url %} no-border{% endif %}">
+        <ul class="nav navbar-nav mb-4 mb-md-0{% if request.get_full_path == home_url %} no-border{% endif %}">
           {% for category in categories %}
             <li class="nav-item">
               <a class="nav-link" href="{{ category.get_absolute_url }}">
