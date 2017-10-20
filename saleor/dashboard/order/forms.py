@@ -307,3 +307,42 @@ class OrderFilterForm(forms.Form):
 
 class PaymentFilterForm(forms.Form):
     status = forms.ChoiceField(choices=PAYMENT_STATUS_CHOICES)
+
+
+class StockChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.location.name
+
+class ChangeStockForm(forms.ModelForm):
+    stock = StockChoiceField(queryset=Stock.objects.none())
+
+    class Meta:
+        model = OrderedItem
+        fields = ['stock']
+
+    def __init__(self, *args, **kwargs):
+        super(ChangeStockForm, self).__init__(*args, **kwargs)
+        sku = self.instance.product_sku
+        self.fields['stock'].queryset = Stock.objects.filter(variant__sku=sku)
+        self.old_stock = self.instance.stock
+
+    def clean_stock(self):
+        stock = self.cleaned_data['stock']
+        if stock and stock.quantity_available < self.instance.quantity:
+            raise forms.ValidationError(
+                pgettext_lazy(
+                    'Change stock form error',
+                    'Only %(remaining)d remaining in this stock.')
+                    % {'remaining': stock.quantity_available})
+        return stock
+
+    def save(self, commit=True):
+        quantity = self.instance.quantity
+        if self.old_stock is not None:
+            Stock.objects.deallocate_stock(self.old_stock, quantity)
+        stock = self.instance.stock
+        if stock is not None:
+            self.instance.stock_location = (
+                stock.location.name if stock.location else '')
+            Stock.objects.allocate_stock(stock, quantity)
+        return super(ChangeStockForm, self).save(commit)
