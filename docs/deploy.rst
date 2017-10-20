@@ -12,7 +12,7 @@ Before building the image make sure you have all of the front-end assets prepare
 
 .. code-block:: bash
 
- $ yarn run build-assets --production
+ $ npm run build-assets --production
  $ python manage.py collectstatic
 
 Then use Docker to build the image:
