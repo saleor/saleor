@@ -27,6 +27,8 @@ urlpatterns = [
         views.orderline_split, name='orderline-split'),
     url(r'^(?P<order_pk>\d+)/line/(?P<line_pk>\d+)/cancel/$',
         views.orderline_cancel, name='orderline-cancel'),
+    url(r'^(?P<order_pk>\d+)/line/(?P<line_pk>\d+)/change-stock/$',
+        views.orderline_change_stock, name='orderline-change-stock'),
     url(r'^(?P<order_pk>\d+)/remove-voucher/$',
         views.remove_order_voucher, name='order-remove-voucher'),
     url(r'^(?P<order_pk>\d+)/shipment/(?P<group_pk>\d+)/ship/$',
