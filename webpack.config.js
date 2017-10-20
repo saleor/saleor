@@ -4,6 +4,7 @@ var FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 var path = require('path');
 var webpack = require('webpack');
 var autoprefixer = require('autoprefixer');
+var dotenv = require('dotenv');
 
 var resolve = path.resolve.bind(path, __dirname);
 
@@ -11,11 +12,13 @@ var extractTextPlugin;
 var fileLoaderPath;
 var output;
 
+dotenv.config({path: 'common.env'});
+
 if (process.env.NODE_ENV === 'production') {
   output = {
     path: resolve('saleor/static/assets/'),
     filename: '[name].[chunkhash].js',
-    publicPath: 'https://saleor-demo.s3.amazonaws.com/assets/'
+    publicPath: process.env.ASSETS_PRODUCTION
   };
   fileLoaderPath = 'file-loader?name=[name].[hash].[ext]';
   extractTextPlugin = new ExtractTextPlugin('[name].[contenthash].css');
@@ -23,12 +26,13 @@ if (process.env.NODE_ENV === 'production') {
   output = {
     path: resolve('saleor/static/assets/'),
     filename: '[name].js',
-    publicPath: '/static/assets/'
+    publicPath: process.env.ASSETS_DEV
   };
   fileLoaderPath = 'file-loader?name=[name].[ext]';
   extractTextPlugin = new ExtractTextPlugin('[name].css');
 }
-
+console.log(output.publicPath);
+return true;
 var bundleTrackerPlugin = new BundleTracker({
   filename: 'webpack-bundle.json'
 });
