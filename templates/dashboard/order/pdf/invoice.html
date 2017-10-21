@@ -1,7 +1,6 @@
 {% load i18n static %}
 {% load prices_i18n %}
 {% load discount_amount_for from prices %}
-{% load utils %}
 {% load static %}
 
 <html>
@@ -11,7 +10,7 @@
 <body>
   <header>
   <div style="float:left">
-    <img src="{{ logo|svg_url|safe }}">
+    <img src="{{ logo_uri }}">
   </div>
   <div
       style="float:right">{{ order.created }}<br>{% trans "Order ID:" %} {{ order.id }}

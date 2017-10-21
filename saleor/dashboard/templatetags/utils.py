@@ -30,12 +30,6 @@ def is_versatile_image_ppoi_click_widget(field):
     return isinstance(field.field.widget, VersatileImagePPOIClickWidget)
 
 
-@register.filter
-def svg_url(value):
-    prefix = u"data:image/svg+xml;charset=utf-8;base64,"
-    return prefix + b64encode(value).decode('utf-8')
-
-
 @register.inclusion_tag('dashboard/product/product_variant/_image_select.html')
 def render_image_choice(field):
     choices = zip(field, field.field.queryset)

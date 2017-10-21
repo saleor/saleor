@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -13,13 +14,14 @@ from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
 from weasyprint import HTML, CSS
+from weasyprint.urls import URLFetchingError
 
 from ...core.utils import get_paginator_items
 from ...order import OrderStatus
 from ...order.models import Order, OrderedItem, OrderNote, DeliveryGroup
 from ...product.models import ProductVariant
 from ...userprofile.i18n import AddressForm
-from ...settings import DASHBOARD_PAGINATE_BY, STATIC_ROOT
+from ...settings import DASHBOARD_PAGINATE_BY
 from ..order.forms import OrderFilterForm
 from ..views import staff_member_required
 from .forms import (CancelGroupForm, CancelItemsForm, CancelOrderForm,
@@ -378,15 +380,18 @@ def order_invoice(request, order_pk, group_pk):
           .select_related('user', 'shipping_address', 'billing_address'))
     order = get_object_or_404(qs, pk=order_pk)
     group = DeliveryGroup.objects.prefetch_related('items').get(pk=group_pk)
-    ctx = {'order': order,
-           'group': group}
-    with open('static/images/saleor_logo.svg', 'rb') as f:
-        ctx['logo'] = f.read().replace(b'white', b'#333')
+    ctx = {'order': order, 'group': group,
+           'logo_uri': request.build_absolute_uri(
+               static('/images/saleor_logo_black.svg'))}
     rendered_template = get_template(
         'dashboard/order/pdf/invoice.html').render(ctx)
-    stylesheet = CSS(STATIC_ROOT + '/assets/document.css')
+    try:
+        stylesheet = [CSS(
+            url=request.build_absolute_uri(static('/assets/document.css')))]
+    except URLFetchingError:
+        stylesheet = None
     pdf_file = (HTML(string=rendered_template)
-                .write_pdf(stylesheets=[stylesheet]))
+                .write_pdf(stylesheets=stylesheet))
     response = HttpResponse(pdf_file, content_type='application/pdf')
     name = "invoice-%s" % order.id
     response['Content-Disposition'] = 'filename=%s' % name
@@ -399,15 +404,18 @@ def order_packing_slip(request, order_pk, group_pk):
           .select_related('user', 'shipping_address', 'billing_address'))
     order = get_object_or_404(qs, pk=order_pk)
     group = DeliveryGroup.objects.prefetch_related('items').get(pk=group_pk)
-    ctx = {'order': order,
-           'group': group}
-    with open('static/images/saleor_logo.svg', 'rb') as f:
-        ctx['logo'] = f.read().replace(b'white', b'#333')
+    ctx = {'order': order, 'group': group,
+           'logo_uri': request.build_absolute_uri(
+               static('/images/saleor_logo_black.svg'))}
     rendered_template = get_template(
         'dashboard/order/pdf/packing_slip.html').render(ctx)
-    stylesheet = CSS(STATIC_ROOT + '/assets/document.css')
+    try:
+        stylesheet = [CSS(
+            url=request.build_absolute_uri(static('/assets/document.css')))]
+    except URLFetchingError:
+        stylesheet = None
     pdf_file = (HTML(string=rendered_template)
-                .write_pdf(stylesheets=[stylesheet]))
+                .write_pdf(stylesheets=stylesheet))
     response = HttpResponse(pdf_file, content_type='application/pdf')
     name = "packing-slip-%s" % order.id
     response['Content-Disposition'] = 'filename=%s' % name
