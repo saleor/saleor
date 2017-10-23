@@ -9,8 +9,8 @@ class StaffForm(forms.ModelForm):
         kwargs.update(initial={'is_staff': True})
         super(StaffForm, self).__init__(*args, **kwargs)
         if self.user == self.instance:
-            self.fields['is_staff'].widget.attrs['disabled'] = True
-            self.fields['is_active'].widget.attrs['disabled'] = True
+            self.fields['is_staff'].disabled = True
+            self.fields['is_active'].disabled = True
 
     class Meta:
         model = User
