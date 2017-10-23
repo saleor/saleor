@@ -37,6 +37,20 @@ def test_staff_form_create_not_valid(admin_client, staff_user):
     assert staff_user.groups.count() == 0
 
 
+def test_admin_cant_change_his_permissions(admin_client, admin_user):
+    assert admin_user.is_active
+    assert admin_user.is_staff
+
+    url = reverse('dashboard:staff-details', kwargs={'pk': admin_user.pk})
+    data = {'is_active': False, 'is_staff': False}
+    response = admin_client.post(url, data)
+    admin_user = User.objects.get(pk=admin_user.pk)
+
+    assert response.status_code == 200
+    assert admin_user.is_active
+    assert admin_user.is_staff
+
+
 def test_delete_staff(admin_client, staff_user):
     assert User.objects.all().count() == 2
     url = reverse('dashboard:staff-delete', kwargs={'pk': staff_user.pk})
