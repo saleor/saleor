@@ -21,7 +21,7 @@ from ..order.forms import OrderFilterForm
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items
 from ...order import OrderStatus
-from ...order.models import Order, OrderedItem, OrderNote, DeliveryGroup
+from ...order.models import Order, OrderedItem, OrderNote
 from ...product.models import ProductVariant
 from ...settings import DASHBOARD_PAGINATE_BY
 from ...userprofile.i18n import AddressForm
@@ -375,11 +375,9 @@ def remove_order_voucher(request, order_pk):
 def order_invoice(request, order_pk, group_pk):
     qs = (Order.objects
           .select_related('user', 'shipping_address', 'billing_address'))
-    order = get_object_or_404(qs, pk=order_pk)
-    group = DeliveryGroup.objects.prefetch_related('items').get(pk=group_pk)
-    pdf_file = create_invoice_pdf(group, order, request)
+    pdf_file, order_id = create_invoice_pdf(qs, group_pk, order_pk, request)
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    name = "invoice-%s" % order.id
+    name = "invoice-%s" % order_id
     response['Content-Disposition'] = 'filename=%s' % name
     return response
 
@@ -388,10 +386,9 @@ def order_invoice(request, order_pk, group_pk):
 def order_packing_slip(request, order_pk, group_pk):
     qs = (Order.objects
           .select_related('user', 'shipping_address', 'billing_address'))
-    order = get_object_or_404(qs, pk=order_pk)
-    group = DeliveryGroup.objects.prefetch_related('items').get(pk=group_pk)
-    pdf_file = create_packing_slip_pdf(group, order, request)
+    pdf_file, order_id = create_packing_slip_pdf(
+        qs, group_pk, order_pk, request)
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    name = "packing-slip-%s" % order.id
+    name = "packing-slip-%s" % order_id
     response['Content-Disposition'] = 'filename=%s' % name
     return response
