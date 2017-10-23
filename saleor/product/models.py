@@ -257,22 +257,12 @@ class ProductVariant(models.Model, Item):
         return self.name or self.display_variant()
 
     def check_quantity(self, quantity):
-        available_quantity = self.get_stock_quantity()
-        if quantity > available_quantity:
-            raise InsufficientStock(self)
-
-    def check_quantity_sum(self, quantity):
-        total_available_quantity = self.get_stock_quantity_total()
+        total_available_quantity = self.get_stock_quantity()
         if quantity > total_available_quantity:
             raise InsufficientStock(self)
 
-    def get_stock_quantity_total(self):
-        return sum([stock.quantity_available for stock in self.stock.all()])
-
     def get_stock_quantity(self):
-        if not len(self.stock.all()):
-            return 0
-        return max([stock.quantity_available for stock in self.stock.all()])
+        return sum([stock.quantity_available for stock in self.stock.all()])
 
     def get_price_per_item(self, discounts=None, **kwargs):
         price = self.price_override or self.product.price
