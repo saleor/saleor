@@ -12,11 +12,12 @@ from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
 
+from saleor.dashboard.order.utils import get_absolute_url
 from .forms import (CancelGroupForm, CancelItemsForm, CancelOrderForm,
                     CapturePaymentForm, ChangeQuantityForm, MoveItemsForm,
                     OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
                     RemoveVoucherForm, ShipGroupForm)
-from .tasks import create_packing_slip_pdf, create_invoice_pdf
+from .utils import create_packing_slip_pdf, create_invoice_pdf
 from ..order.forms import OrderFilterForm
 from ..views import staff_member_required
 from ...core.utils import get_paginator_items
@@ -372,23 +373,22 @@ def remove_order_voucher(request, order_pk):
 
 
 @staff_member_required
-def order_invoice(request, order_pk, group_pk):
-    qs = (Order.objects
-          .select_related('user', 'shipping_address', 'billing_address'))
-    pdf_file, order_id = create_invoice_pdf(qs, group_pk, order_pk, request)
+@permission_required('order.edit_order')
+def order_invoice(request, group_pk):
+    absolute_url = get_absolute_url(request)
+    pdf_file, group = create_invoice_pdf(group_pk, absolute_url)
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    name = "invoice-%s" % order_id
+    name = "invoice-%s-%s" % (group.order.id, group.id)
     response['Content-Disposition'] = 'filename=%s' % name
     return response
 
 
 @staff_member_required
-def order_packing_slip(request, order_pk, group_pk):
-    qs = (Order.objects
-          .select_related('user', 'shipping_address', 'billing_address'))
-    pdf_file, order_id = create_packing_slip_pdf(
-        qs, group_pk, order_pk, request)
+@permission_required('order.edit_order')
+def order_packing_slip(request, group_pk):
+    absolute_url = get_absolute_url(request)
+    pdf_file, group = create_packing_slip_pdf(group_pk, absolute_url)
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    name = "packing-slip-%s" % order_id
+    name = "packing-slip-%s-%s" % (group.order.id, group.id)
     response['Content-Disposition'] = 'filename=%s' % name
     return response

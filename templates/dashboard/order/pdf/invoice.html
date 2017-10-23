@@ -5,15 +5,16 @@
 
 <html>
 <head>
-  <title>Invoice, order ID: {{ order.id }}</title>
+  <title>Invoice, order ID: {{ group.order.id }}</title>
+  <link rel="stylesheet" type="text/css" href="{% static '/assets/document.css' %}" />
 </head>
 <body>
   <header>
   <div style="float:left">
-    <img src="{{ logo_uri }}">
+    <img src="{% static '/images/saleor_logo_black.svg' %}">
   </div>
   <div
-      style="float:right">{{ order.created }}<br>{% trans 'Order ID:' context 'Invoice header' %} {{ order.id }}
+      style="float:right">{{ group.order.created }}<br>{% trans 'Order ID:' context 'Invoice header' %} {{ group.order.id }}
   </div>
 </header>
 
@@ -28,7 +29,7 @@
   <tbody>
   <tr>
     <td valign="top">
-      {% with order.shipping_address as address %}
+      {% with group.order.shipping_address as address %}
         <h2>
           {% trans "Shipping address" context "Invoice shipping address" %}
         </h2>
@@ -36,7 +37,7 @@
       {% endwith %}
     </td>
     <td valign="top">
-      {% with order.billing_address as address %}
+      {% with group.order.billing_address as address %}
         <h2>
           {% trans "Billing address" context "Invoice billing address" %}
         </h2>
@@ -112,7 +113,7 @@
         {% trans "Subtotal" context "Order subtotal" %}
       </td>
       <td class="right-align">
-        {% gross order.get_subtotal_without_voucher html=True %}
+        {% gross group.order.get_subtotal_without_voucher html=True %}
       </td>
     </tr>
     <tr>
@@ -120,7 +121,7 @@
         {% trans "Total Shipping Price" context "Order totals header" %}
       </td>
       <td class="right-align">
-        {% gross order.get_total_shipping html=True %}
+        {% gross group.order.get_total_shipping html=True %}
       </td>
     </tr>
   </tbody>
@@ -130,7 +131,7 @@
         {% trans "Grand total" context "Order totals header" %}
       </td>
       <td>
-        {% gross order.get_total html=True %}
+        {% gross group.order.get_total html=True %}
       </td>
     </tr>
   </tfoot>

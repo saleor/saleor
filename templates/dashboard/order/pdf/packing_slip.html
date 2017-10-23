@@ -1,17 +1,20 @@
+{% load discount_amount_for from prices %}
 {% load i18n static %}
 {% load prices_i18n %}
-{% load discount_amount_for from prices %}
+{% load shop %}
 
 <html>
 <head>
   <title>Packing slip</title>
+  <link rel="stylesheet" type="text/css" href="{% static '/assets/document.css' %}" />
 </head>
 <body>
 <header>
   <div style="float:left">
-    <img src="{{ logo_uri }}">  </div>
+    <img src="{% static '/images/saleor_logo_black.svg' %}">
+  </div>
   <div
-      style="float:right">{{ order.created }}<br>{% trans "Order ID:" context "Packing slip header" %} {{ order.id }}
+      style="float:right">{{ group.order.created }}<br>{% trans "Order ID:" context "Packing slip header" %} {{ group.order.id }}
   </div>
 </header>
 
@@ -26,7 +29,7 @@
   <tbody>
   <tr>
     <td valign="top">
-      {% with order.shipping_address as address %}
+      {% with group.order.shipping_address as address %}
         <h2>
           {% trans "Shipping address" context "Packing slip shipping address" %}
         </h2>
@@ -34,7 +37,7 @@
       {% endwith %}
     </td>
     <td valign="top">
-      {% with order.billing_address as address %}
+      {% with group.order.billing_address as address %}
         <h2>
           {% trans "Billing address" context "Packing slip billing address" %}
         </h2>
