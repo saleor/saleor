@@ -281,7 +281,7 @@ def test_view_split_order_line_with_invalid_data(admin_client, order_with_items_
 @pytest.mark.django_db
 @mock.patch('saleor.dashboard.order.views.CSS')
 def test_view_order_invoice(
-        css_patch, admin_client, order_with_items_and_stock, billing_address):
+    css_patch, admin_client, order_with_items_and_stock, billing_address):
     """
     user goes to order details page
     user clicks on Invoice button
@@ -306,7 +306,7 @@ def test_view_order_invoice(
 @pytest.mark.django_db
 @mock.patch('saleor.dashboard.order.views.CSS')
 def test_view_order_packing_slips(
-        css_patch, admin_client, order_with_items_and_stock, billing_address):
+    css_patch, admin_client, order_with_items_and_stock, billing_address):
     """
     user goes to order details page
     user clicks on Packing Slips button
