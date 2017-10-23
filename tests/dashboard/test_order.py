@@ -280,7 +280,7 @@ def test_view_split_order_line_with_invalid_data(admin_client, order_with_items_
 
 @pytest.mark.integration
 @pytest.mark.django_db
-@mock.patch('saleor.dashboard.order.views.CSS')
+@mock.patch('saleor.dashboard.order.tasks.CSS')
 def test_view_order_invoice(
         css_patch, admin_client, order_with_items_and_stock, billing_address):
     """
@@ -305,7 +305,7 @@ def test_view_order_invoice(
 
 @pytest.mark.integration
 @pytest.mark.django_db
-@mock.patch('saleor.dashboard.order.views.CSS')
+@mock.patch('saleor.dashboard.order.tasks.CSS')
 def test_view_order_packing_slips(
         css_patch, admin_client, order_with_items_and_stock, billing_address):
     """

@@ -1,33 +1,30 @@
 from __future__ import unicode_literals
 
-from celery import shared_task
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
-from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.context_processors import csrf
-from django.template.loader import get_template
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
-from weasyprint import HTML, CSS
 
-from ...core.utils import get_paginator_items
-from ...order import OrderStatus
-from ...order.models import Order, OrderedItem, OrderNote, DeliveryGroup
-from ...product.models import ProductVariant
-from ...userprofile.i18n import AddressForm
-from ...settings import DASHBOARD_PAGINATE_BY
-from ..order.forms import OrderFilterForm
-from ..views import staff_member_required
 from .forms import (CancelGroupForm, CancelItemsForm, CancelOrderForm,
                     CapturePaymentForm, ChangeQuantityForm, MoveItemsForm,
                     OrderNoteForm, RefundPaymentForm, ReleasePaymentForm,
                     RemoveVoucherForm, ShipGroupForm)
+from .tasks import create_packing_slip_pdf, create_invoice_pdf
+from ..order.forms import OrderFilterForm
+from ..views import staff_member_required
+from ...core.utils import get_paginator_items
+from ...order import OrderStatus
+from ...order.models import Order, OrderedItem, OrderNote, DeliveryGroup
+from ...product.models import ProductVariant
+from ...settings import DASHBOARD_PAGINATE_BY
+from ...userprofile.i18n import AddressForm
 
 
 @staff_member_required
@@ -374,44 +371,26 @@ def remove_order_voucher(request, order_pk):
                             ctx, status=status)
 
 
-@shared_task
 @staff_member_required
 def order_invoice(request, order_pk, group_pk):
     qs = (Order.objects
           .select_related('user', 'shipping_address', 'billing_address'))
     order = get_object_or_404(qs, pk=order_pk)
     group = DeliveryGroup.objects.prefetch_related('items').get(pk=group_pk)
-    ctx = {'order': order, 'group': group,
-           'logo_uri': request.build_absolute_uri(
-               static('/images/saleor_logo_black.svg'))}
-    rendered_template = get_template(
-        'dashboard/order/pdf/invoice.html').render(ctx)
-    stylesheet = [CSS(
-        url=request.build_absolute_uri(static('/assets/document.css')))]
-    pdf_file = (HTML(string=rendered_template)
-                .write_pdf(stylesheets=stylesheet))
+    pdf_file = create_invoice_pdf(group, order, request)
     response = HttpResponse(pdf_file, content_type='application/pdf')
     name = "invoice-%s" % order.id
     response['Content-Disposition'] = 'filename=%s' % name
     return response
 
 
-@shared_task
 @staff_member_required
 def order_packing_slip(request, order_pk, group_pk):
     qs = (Order.objects
           .select_related('user', 'shipping_address', 'billing_address'))
     order = get_object_or_404(qs, pk=order_pk)
     group = DeliveryGroup.objects.prefetch_related('items').get(pk=group_pk)
-    ctx = {'order': order, 'group': group,
-           'logo_uri': request.build_absolute_uri(
-               static('/images/saleor_logo_black.svg'))}
-    rendered_template = get_template(
-        'dashboard/order/pdf/packing_slip.html').render(ctx)
-    stylesheet = [CSS(
-        url=request.build_absolute_uri(static('/assets/document.css')))]
-    pdf_file = (HTML(string=rendered_template)
-                .write_pdf(stylesheets=stylesheet))
+    pdf_file = create_packing_slip_pdf(group, order, request)
     response = HttpResponse(pdf_file, content_type='application/pdf')
     name = "packing-slip-%s" % order.id
     response['Content-Disposition'] = 'filename=%s' % name
