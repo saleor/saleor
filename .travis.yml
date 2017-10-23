@@ -1,16 +1,14 @@
 language: python
+python:
+  - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
 cache:
   pip: true
   directories:
     - node_modules
 sudo: false
-addons:
-  apt:
-    sources:
-      - deadsnakes
-    packages:
-      - python3.5
-      - python3.5-dev
 install:
   - pip install -U pip setuptools wheel
   - pip install tox codecov
