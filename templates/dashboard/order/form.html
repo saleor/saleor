@@ -1,0 +1,71 @@
+{% extends "dashboard/base.html" %}
+
+{% load i18n %}
+{% load materializecss %}
+{% load static %}
+
+{% block title %}
+    {% trans "Add order" %} - {% trans "Orders" %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-customers{% endblock %}
+
+{% block menu_orders_class %}active{% endblock %}
+
+{% block header_menu %}
+    {% url "dashboard:orders" as url %}
+    {% include "dashboard/includes/_back-link.html" with url=url %}
+{% endblock %}
+
+{% block breadcrumbs %}
+    <ul class="breadcrumbs breadcrumbs--history">
+        <li>
+            <a href="{% url "dashboard:orders" %}" class="breadcrumb">
+                {% trans "Orders" context "Dashboard orders list" %}
+            </a>
+        </li>
+        <li class="back-mobile">
+            <a href="{% url "dashboard:orders" %}">
+                <svg data-src="{% static "dashboard/images/arrow_left.svg" %}"
+                     fill="#fff" width="20px" height="20px"/>
+            </a>
+        </li>
+        <li>
+            <span class="breadcrumbs--elipsed-item">
+                {% trans "Add order" context "Order form breadcrumbs" %}
+            </span>
+        </li>
+    </ul>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col m12 l9">
+            <div class="card">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="card-content">
+                        {% if form.non_field_errors %}
+                            <blockquote>
+                                {% for non_field_error in form.non_field_errors %}
+                                {{ non_field_error }}
+                                {% endfor %}
+                            </blockquote>
+                        {% endif %}
+                        <div class="row">
+                            {{ form.user|materializecss }}
+                        </div>
+                    </div>
+                    <div class="card-action right-align">
+                        <a href="{% url 'dashboard:orders' %}" class="btn btn-flat">
+                            {% trans "Cancel" context "Dashboard cancel action" %}
+                        </a>
+                        <button type="submit" class="btn waves-effect waves-light">
+                            {% trans "Save" context "Dashboard update action" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -16,6 +16,7 @@ from ...order.utils import (
     cancel_order, cancel_delivery_group, change_order_line_quantity,
     merge_duplicated_lines)
 from ...product.models import Stock
+from ...userprofile.models import Address
 
 
 class OrderNoteForm(forms.ModelForm):
@@ -351,3 +352,22 @@ class ChangeStockForm(forms.ModelForm):
         super(ChangeStockForm, self).save(commit)
         merge_duplicated_lines(self.instance)
         return self.instance
+
+
+class CreateOrderForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ('user',)
+
+    def save(self, commit=True):
+        user = self.instance.user
+        if user:
+            self.instance.user_email = user.email
+            self.instance.billing_address = user.default_billing_address
+            self.instance.shipping_address = user.default_shipping_address
+        else:
+            self.instance.billing_address = Address.objects.create(
+                country=settings.DEFAULT_COUNTRY)
+        order = super(CreateOrderForm, self).save(commit)
+        Order.objects.recalculate_order(order)
+        return order

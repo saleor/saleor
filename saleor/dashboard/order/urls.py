@@ -5,6 +5,7 @@ from . import views
 
 urlpatterns = [
     url(r'^$', views.order_list, name='orders'),
+    url(r'^add/$', views.order_add, name='order-add'),
     url(r'^(?P<order_pk>\d+)/$',
         views.order_details, name='order-details'),
     url(r'^(?P<order_pk>\d+)/add-note/$',

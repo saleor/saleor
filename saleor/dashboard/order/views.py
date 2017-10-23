@@ -12,20 +12,21 @@ from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
 
-from .forms import (
-    CancelGroupForm, CancelItemsForm, CancelOrderForm, CapturePaymentForm,
-    ChangeStockForm, ChangeQuantityForm, MoveItemsForm, OrderNoteForm,
-    RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm, ShipGroupForm)
 from .utils import (create_packing_slip_pdf, create_invoice_pdf,
                     get_statics_absolute_url)
-from ..order.forms import OrderFilterForm
-from ..views import staff_member_required
 from ...core.utils import get_paginator_items
 from ...order import OrderStatus
 from ...order.models import Order, OrderedItem, OrderNote
 from ...product.models import ProductVariant
 from ...settings import DASHBOARD_PAGINATE_BY
 from ...userprofile.i18n import AddressForm
+from ..order.forms import OrderFilterForm
+from ..views import staff_member_required
+from .forms import (
+    CancelGroupForm, CancelItemsForm, CancelOrderForm, CapturePaymentForm,
+    ChangeQuantityForm, ChangeStockForm, CreateOrderForm, MoveItemsForm,
+    OrderNoteForm, RefundPaymentForm, ReleasePaymentForm, RemoveVoucherForm,
+    ShipGroupForm)
 
 
 @staff_member_required
@@ -408,3 +409,15 @@ def orderline_change_stock(request, order_pk, line_pk):
     ctx = {'order_pk': order_pk, 'line_pk': line_pk, 'form': form}
     template = 'dashboard/order/modal/delivery_group_stock.html'
     return TemplateResponse(request, template, ctx, status=status)
+
+
+@staff_member_required
+@permission_required('order.edit_order')
+def order_add(request):
+    form = CreateOrderForm(request.POST or None)
+    if form.is_valid():
+        order = form.save()
+        return redirect('dashboard:order-details', order_pk=order.pk)
+    ctx = {'form': form}
+    template = 'dashboard/order/form.html'
+    return TemplateResponse(request, template, ctx)
