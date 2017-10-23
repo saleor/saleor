@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from celery import shared_task
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.staticfiles.templatetags.staticfiles import static
@@ -374,6 +375,7 @@ def remove_order_voucher(request, order_pk):
                             ctx, status=status)
 
 
+@shared_task
 @staff_member_required
 def order_invoice(request, order_pk, group_pk):
     qs = (Order.objects
@@ -398,6 +400,7 @@ def order_invoice(request, order_pk, group_pk):
     return response
 
 
+@shared_task
 @staff_member_required
 def order_packing_slip(request, order_pk, group_pk):
     qs = (Order.objects
