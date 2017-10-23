@@ -15,7 +15,6 @@ from django_prices.templatetags.prices_i18n import gross
 from payments import PaymentStatus
 from prices import Price
 from weasyprint import HTML, CSS
-from weasyprint.urls import URLFetchingError
 
 from ...core.utils import get_paginator_items
 from ...order import OrderStatus

@@ -4,7 +4,8 @@ import mock
 import pytest
 from django.core.urlresolvers import reverse
 from saleor.dashboard.order.forms import ChangeQuantityForm, MoveItemsForm
-from saleor.order.models import Order, OrderHistoryEntry, OrderedItem, DeliveryGroup
+from saleor.order.models import (Order, OrderHistoryEntry, OrderedItem,
+                                 DeliveryGroup)
 from saleor.order.utils import add_items_to_delivery_group
 from saleor.product.models import Stock, ProductVariant
 from tests.utils import get_redirect_location, get_url_path
