@@ -300,19 +300,29 @@ class OrderedItemManager(models.Manager):
         try:
             target_item = target_group.items.get(
                 product=item.product, product_name=item.product_name,
-                product_sku=item.product_sku)
+                product_sku=item.product_sku, stock=item.stock)
         except ObjectDoesNotExist:
             target_group.items.create(
                 delivery_group=target_group, product=item.product,
                 product_name=item.product_name, product_sku=item.product_sku,
                 quantity=quantity, unit_price_net=item.unit_price_net,
                 stock=item.stock,
+                stock_location=item.stock_location,
                 unit_price_gross=item.unit_price_gross)
         else:
             target_item.quantity += quantity
             target_item.save()
         item.quantity -= quantity
         self.remove_empty_groups(item)
+
+    def merge_duplicates(self, item):
+        lines = item.delivery_group.items.filter(
+            product=item.product, product_name=item.product_name,
+            product_sku=item.product_sku, stock=item.stock)
+        if lines.count() > 1:
+            item.quantity = sum([line.quantity for line in lines])
+            item.save()
+            lines.exclude(pk=item.pk).delete()
 
     def remove_empty_groups(self, item, force=False):
         source_group = item.delivery_group

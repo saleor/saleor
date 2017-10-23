@@ -346,4 +346,6 @@ class ChangeStockForm(forms.ModelForm):
             self.instance.stock_location = (
                 stock.location.name if stock.location else '')
             Stock.objects.allocate_stock(stock, quantity)
-        return super(ChangeStockForm, self).save(commit)
+        super(ChangeStockForm, self).save(commit)
+        OrderedItem.objects.merge_duplicates(self.instance)
+        return self.instance
