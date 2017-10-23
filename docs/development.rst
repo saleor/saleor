@@ -29,7 +29,7 @@ To run webpack in *watch* mode run:
 
 .. code-block:: bash
 
-    $ yarn start
+    $ npm start
 
 .. warning::
 
@@ -38,7 +38,7 @@ To run webpack in *watch* mode run:
 
     .. code-block:: bash
 
-        $ yarn run build-assets --production
+        $ npm run build-assets --production
 
 
 Working with backend code
@@ -102,7 +102,7 @@ You will need to install Docker and
 `docker-compose <https://docs.docker.com/compose/install/>`_ before
 performing the following steps.
 
-To build assets you will need `node <https://nodejs.org/en/download/package-manager/>`_, `yarn <https://yarnpkg.com/en/docs/install>`_ and `webpack module bundler <https://webpack.github.io/>`_.
+To build assets you will need `node <https://nodejs.org/en/download/package-manager/>`_ and `webpack module bundler <https://webpack.github.io/>`_.
 
 .. note::
 
@@ -116,14 +116,14 @@ Usage
 
    .. code-block:: bash
 
-    $ yarn
+    $ npm install
 
 
 2. Prepare static assets
 
    .. code-block:: bash
 
-    $ yarn run build-assets
+    $ npm run build-assets
 
 
 3. Build the containers using ``docker-compose``

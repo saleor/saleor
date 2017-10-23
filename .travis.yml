@@ -1,7 +1,6 @@
 language: python
 cache:
   pip: true
-  yarn: true
   directories:
     - node_modules
 sudo: false
@@ -9,19 +8,15 @@ addons:
   apt:
     sources:
       - deadsnakes
-      - sourceline: 'deb https://dl.yarnpkg.com/debian/ stable main'
-        key_url: 'https://dl.yarnpkg.com/debian/pubkey.gpg'
     packages:
       - python3.5
       - python3.5-dev
-      - yarn
 install:
   - pip install -U pip setuptools wheel
   - pip install tox codecov
-  - nvm install 6
-  - yarn
-  - yarn add --force node-sass # force our way around https://github.com/yarnpkg/yarn/issues/1981
-  - yarn run build-assets --production
+  - nvm install 8
+  - npm i
+  - npm run build-assets --production
 script:
   - tox
 env:
