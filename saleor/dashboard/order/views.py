@@ -388,7 +388,7 @@ def order_invoice(request, order_pk, group_pk):
     rendered_template = get_template(
         'dashboard/order/pdf/invoice.html').render(ctx)
     stylesheet = [CSS(
-            url=request.build_absolute_uri(static('/assets/document.css')))]
+        url=request.build_absolute_uri(static('/assets/document.css')))]
     pdf_file = (HTML(string=rendered_template)
                 .write_pdf(stylesheets=stylesheet))
     response = HttpResponse(pdf_file, content_type='application/pdf')
@@ -410,7 +410,7 @@ def order_packing_slip(request, order_pk, group_pk):
     rendered_template = get_template(
         'dashboard/order/pdf/packing_slip.html').render(ctx)
     stylesheet = [CSS(
-            url=request.build_absolute_uri(static('/assets/document.css')))]
+        url=request.build_absolute_uri(static('/assets/document.css')))]
     pdf_file = (HTML(string=rendered_template)
                 .write_pdf(stylesheets=stylesheet))
     response = HttpResponse(pdf_file, content_type='application/pdf')
