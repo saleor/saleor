@@ -228,7 +228,7 @@ class Cart(models.Model):
                 quantity, new_quantity))
 
         if check_quantity:
-            variant.check_quantity(new_quantity)
+            variant.check_quantity_sum(new_quantity)
 
         cart_line.quantity = new_quantity
 

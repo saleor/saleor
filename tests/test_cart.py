@@ -372,12 +372,12 @@ def test_get_product_variants_and_prices():
 
 def test_contains_unavailable_variants():
     missing_variant = Mock(
-        check_quantity=Mock(side_effect=InsufficientStock('')))
+        check_quantity_sum=Mock(side_effect=InsufficientStock('')))
     cart = MagicMock()
     cart.lines.all.return_value = [Mock(variant=missing_variant)]
     assert utils.contains_unavailable_variants(cart)
 
-    variant = Mock(check_quantity=Mock())
+    variant = Mock(check_quantity_sum=Mock())
     cart.lines.all.return_value = [Mock(variant=variant)]
     assert not utils.contains_unavailable_variants(cart)
 
@@ -422,7 +422,7 @@ def test_add_to_cart_form():
     data = {'quantity': 1}
     form = forms.AddToCartForm(data=data, cart=cart, product=Mock())
 
-    product_variant = Mock(check_quantity=Mock(return_value=None))
+    product_variant = Mock(check_quantity_sum=Mock(return_value=None))
     form.get_variant = Mock(return_value=product_variant)
 
     assert form.is_valid()
@@ -458,8 +458,8 @@ def test_add_to_cart_form_when_empty_stock():
 
     form = forms.AddToCartForm(data={'quantity': 1}, cart=cart, product=Mock())
     exception_mock = InsufficientStock(
-        Mock(get_stock_quantity=Mock(return_value=1)))
-    product_variant = Mock(check_quantity=Mock(side_effect=exception_mock))
+        Mock(get_stock_quantity_total=Mock(return_value=1)))
+    product_variant = Mock(check_quantity_sum=Mock(side_effect=exception_mock))
     form.get_variant = Mock(return_value=product_variant)
     assert not form.is_valid()
 
@@ -472,8 +472,8 @@ def test_add_to_cart_form_when_insufficient_stock():
 
     form = forms.AddToCartForm(data={'quantity': 1}, cart=cart, product=Mock())
     exception_mock = InsufficientStock(
-        Mock(get_stock_quantity=Mock(return_value=4)))
-    product_variant = Mock(check_quantity=Mock(side_effect=exception_mock))
+        Mock(get_stock_quantity_total=Mock(return_value=4)))
+    product_variant = Mock(check_quantity_sum=Mock(side_effect=exception_mock))
     form.get_variant = Mock(return_value=product_variant)
     assert not form.is_valid()
 
@@ -499,9 +499,9 @@ def test_replace_cartline_form_when_insufficient_stock(
 
     cart.add(variant, initial_quantity)
     exception_mock = InsufficientStock(
-        Mock(get_stock_quantity=Mock(return_value=2)))
+        Mock(get_stock_quantity_total=Mock(return_value=2)))
     monkeypatch.setattr(
-        'saleor.product.models.ProductVariant.check_quantity',
+        'saleor.product.models.ProductVariant.check_quantity_sum',
         Mock(side_effect=exception_mock))
     data = {'quantity': replaced_quantity}
     form = forms.ReplaceCartLineForm(data=data, cart=cart, variant=variant)

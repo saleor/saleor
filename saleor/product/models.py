@@ -261,6 +261,14 @@ class ProductVariant(models.Model, Item):
         if quantity > available_quantity:
             raise InsufficientStock(self)
 
+    def check_quantity_sum(self, quantity):
+        total_available_quantity = self.get_stock_quantity_total()
+        if quantity > total_available_quantity:
+            raise InsufficientStock(self)
+
+    def get_stock_quantity_total(self):
+        return sum([stock.quantity_available for stock in self.stock.all()])
+
     def get_stock_quantity(self):
         if not len(self.stock.all()):
             return 0
@@ -399,6 +407,7 @@ class Stock(models.Model):
 
     @property
     def quantity_available(self):
+        self.refresh_from_db()
         return max(self.quantity - self.quantity_allocated, 0)
 
 

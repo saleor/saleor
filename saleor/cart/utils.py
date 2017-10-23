@@ -31,7 +31,7 @@ def contains_unavailable_variants(cart):
     """Return `True` if cart contains any unfulfillable lines."""
     try:
         for line in cart.lines.all():
-            line.variant.check_quantity(line.quantity)
+            line.variant.check_quantity_sum(line.quantity)
     except InsufficientStock:
         return True
     return False
