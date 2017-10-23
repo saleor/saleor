@@ -7,7 +7,7 @@ from saleor.dashboard.order.forms import ChangeQuantityForm, MoveItemsForm
 from saleor.order.models import (
     DeliveryGroup, Order, OrderedItem, OrderHistoryEntry)
 from saleor.order.utils import add_items_to_delivery_group
-from saleor.product.models import ProductVariant, Stock
+from saleor.product.models import ProductVariant, Stock, StockLocation
 from tests.utils import get_redirect_location, get_url_path
 
 
@@ -347,3 +347,67 @@ def test_view_order_packing_slips(
         order_with_items_and_stock.id,
         order_with_items_and_stock.groups.all()[0].pk)
     assert response['Content-Disposition'] == 'filename=%s' % name
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_change_order_line_stock_valid(
+        admin_client, order_with_items_and_stock):
+    order = order_with_items_and_stock
+    line = order.get_items().last()
+    old_stock = line.stock
+    variant = ProductVariant.objects.get(sku=line.product_sku)
+    stock_location = StockLocation.objects.create(name='Warehouse 2')
+    stock = Stock.objects.create(
+        variant=variant, cost_price=2, quantity=2, quantity_allocated=0,
+        location=stock_location)
+
+    url = reverse(
+        'dashboard:orderline-change-stock', kwargs={
+            'order_pk': order.pk,
+            'line_pk': line.pk})
+    data = {'stock': stock.pk}
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 200
+
+    line.refresh_from_db()
+    assert line.stock == stock
+    assert line.stock_location == stock.location.name
+    assert line.stock.quantity_allocated == 2
+
+    old_stock.refresh_from_db()
+    assert old_stock.quantity_allocated == 0
+
+
+@pytest.mark.integration
+@pytest.mark.django_db
+def test_view_change_order_line_stock_insufficient_stock(
+        admin_client, order_with_items_and_stock):
+    order = order_with_items_and_stock
+    line = order.get_items().last()
+    old_stock = line.stock
+    variant = ProductVariant.objects.get(sku=line.product_sku)
+    stock_location = StockLocation.objects.create(name='Warehouse 2')
+    stock = Stock.objects.create(
+        variant=variant, cost_price=2, quantity=2, quantity_allocated=1,
+        location=stock_location)
+
+    url = reverse(
+        'dashboard:orderline-change-stock', kwargs={
+            'order_pk': order.pk,
+            'line_pk': line.pk})
+    data = {'stock': stock.pk}
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 400
+
+    line.refresh_from_db()
+    assert line.stock == old_stock
+    assert line.stock_location == old_stock.location.name
+
+    old_stock.refresh_from_db()
+    assert old_stock.quantity_allocated == 2
+
+    stock.refresh_from_db()
+    assert stock.quantity_allocated == 1
