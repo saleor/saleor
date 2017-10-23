@@ -150,7 +150,7 @@ def test_dashboard_change_quantity_form(request_cart_with_item, order):
         variant=variant)
     assert not form.is_valid()
     assert group.items.get().stock.quantity_allocated == 1
-    assert form.errors['quantity'] == ['Only 4 remaining in stock.']
+    assert form.errors['quantity'] == ['Only 5 remaining in stock.']
 
     # Save same quantity
     form = ChangeQuantityForm(

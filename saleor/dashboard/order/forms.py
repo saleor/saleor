@@ -184,15 +184,15 @@ class ChangeQuantityForm(forms.ModelForm):
     def clean_quantity(self):
         quantity = self.cleaned_data['quantity']
         delta = quantity - self.initial_quantity
-        try:
-            self.variant.check_quantity(delta)
-        except InsufficientStock as e:
+        stock = self.instance.stock
+        if stock and delta > stock.quantity_available:
             raise forms.ValidationError(
                 npgettext_lazy(
                     'Change quantity form error',
                     'Only %(remaining)d remaining in stock.',
                     'Only %(remaining)d remaining in stock.',
-                    'remaining') % {'remaining': e.item.get_stock_quantity()})
+                    'remaining') % {'remaining': (
+                        self.initial_quantity + stock.quantity_available)})
         return quantity
 
     def save(self):

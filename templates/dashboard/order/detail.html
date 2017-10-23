@@ -290,7 +290,7 @@
               <tfoot>
                 {% if group.shipping_price.gross or group.is_shipping_required %}
                   <tr>
-                    <td colspan="4">
+                    <td colspan="5">
                       {% blocktrans trimmed with group_shipping_method_name=group.shipping_method_name context "Shipment group table item column data" %}
                         Shipping ({{ group_shipping_method_name }})
                       {% endblocktrans %}

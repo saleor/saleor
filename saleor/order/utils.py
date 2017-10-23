@@ -56,20 +56,28 @@ def add_items_to_delivery_group(delivery_group, partition, discounts=None):
     for item_line in partition:
         product_variant = item_line.variant
         price = item_line.get_price_per_item(discounts)
-        quantity = item_line.get_quantity()
-        stock = product_variant.select_stockrecord(quantity)
-        delivery_group.items.create(
-            product=product_variant.product,
-            quantity=quantity,
-            unit_price_net=price.net,
-            product_name=product_variant.display_product(),
-            product_sku=product_variant.sku,
-            unit_price_gross=price.gross,
-            stock=stock,
-            stock_location=stock.location.name if stock else None)
-        if stock:
-            # allocate quantity to avoid overselling
-            Stock.objects.allocate_stock(stock, quantity)
+        total_quantity = item_line.get_quantity()
+
+        while total_quantity > 0:
+            stock = product_variant.select_stockrecord()
+            quantity = (
+                stock.quantity_available
+                if stock and total_quantity > stock.quantity_available
+                else total_quantity
+            )
+            delivery_group.items.create(
+                product=product_variant.product,
+                quantity=quantity,
+                unit_price_net=price.net,
+                product_name=product_variant.display_product(),
+                product_sku=product_variant.sku,
+                unit_price_gross=price.gross,
+                stock=stock,
+                stock_location=stock.location.name if stock else None)
+            total_quantity -= quantity
+            if stock:
+                # allocate quantity to avoid overselling
+                Stock.objects.allocate_stock(stock, quantity)
 
 
 def cancel_delivery_group(group, cancel_order=True):
