@@ -11,16 +11,16 @@
   <div style="float:left">
     <img src="{{ logo_uri }}">  </div>
   <div
-      style="float:right">{{ order.created }}<br>{% trans "Order ID:" %} {{ order.id }}
+      style="float:right">{{ order.created }}<br>{% trans "Order ID:" context "Packing slip header" %} {{ order.id }}
   </div>
 </header>
 
-<h2>{% trans "Packing Slips" %}</h2>
+<h2>{% trans "Packing Slips" context "Packing slips header" %}</h2>
 <table width="100%" border="1" cellspacing="0">
   <thead>
   <tr>
-    <th align="left" width="50%">{% trans "Shipping Details" %}</th>
-    <th align="left" width="50%">{% trans "Billing Details" %}</th>
+    <th align="left" width="50%">{% trans "Shipping Details" context "Packing slip shipping details" %}</th>
+    <th align="left" width="50%">{% trans "Billing Details" context "Packing slip shipping details" %}</th>
   </tr>
   </thead>
   <tbody>
@@ -28,7 +28,7 @@
     <td valign="top">
       {% with order.shipping_address as address %}
         <h2>
-          {% trans "Shipping address" context "" %}
+          {% trans "Shipping address" context "Packing slip shipping address" %}
         </h2>
         {% include 'dashboard/includes/_address.html' with address=address only %}
       {% endwith %}
@@ -36,7 +36,7 @@
     <td valign="top">
       {% with order.billing_address as address %}
         <h2>
-          {% trans "Billing address" context "" %}
+          {% trans "Billing address" context "Packing slip billing address" %}
         </h2>
         {% include 'dashboard/includes/_address.html' with address=address only %}
       {% endwith %}

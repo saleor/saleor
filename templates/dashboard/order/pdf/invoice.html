@@ -13,11 +13,11 @@
     <img src="{{ logo_uri }}">
   </div>
   <div
-      style="float:right">{{ order.created }}<br>{% trans "Order ID:" %} {{ order.id }}
+      style="float:right">{{ order.created }}<br>{% trans 'Order ID:' context 'Invoice header' %} {{ order.id }}
   </div>
 </header>
 
-<h2>{% trans "Company Details" context "Order invoice" %}</h2>
+<h2>{% trans "Invoice" context "Order invoice" %}</h2>
 <table width="100%" border="1" cellspacing="0">
   <thead>
   <tr>
@@ -30,7 +30,7 @@
     <td valign="top">
       {% with order.shipping_address as address %}
         <h2>
-          {% trans "Shipping address" context "" %}
+          {% trans "Shipping address" context "Invoice shipping address" %}
         </h2>
         {% include 'dashboard/includes/_address.html' with address=address only %}
       {% endwith %}
@@ -38,7 +38,7 @@
     <td valign="top">
       {% with order.billing_address as address %}
         <h2>
-          {% trans "Billing address" context "" %}
+          {% trans "Billing address" context "Invoice billing address" %}
         </h2>
         {% include 'dashboard/includes/_address.html' with address=address only %}
       {% endwith %}
@@ -106,60 +106,34 @@
 {% endif %}
 
 <table class="bordered highlight responsive data-table">
-  <tfoot>
-  <tr>
-    <td>
-      {% trans "Grand total" context "Order totals header" %}
-    </td>
-    <td>
-      {% gross order.get_total html=True %}
-    </td>
-  </tr>
-  </tfoot>
   <tbody>
-  <tr>
-    <td class="wide">
-      {% trans "Subtotal" context "Order subtotal" %}
-    </td>
-    <td class="right-align">
-      {% gross order.get_subtotal_without_voucher html=True %}
-    </td>
-  </tr>
-  <tr>
-    <td>
-      {% trans "Total Shipping Price" context "Order totals header" %}
-    </td>
-    <td class="right-align">
-      {% gross order.get_total_shipping html=True %}
-    </td>
-  </tr>
-  {% if order.discount_amount.gross %}
     <tr>
-      <td>
-        <a class="dropdown-button" href="#" data-activates="voucher-actions"
-           data-constrainwidth="false">
-          {% blocktrans trimmed with voucher=order.discount_name context "Order totals header" %}
-            Voucher {{ voucher }}
-          {% endblocktrans %}
-          <svg data-src="{% static "dashboard/images/arrow_drop_down.svg" %}"/>
-        </a>
-        <ul id="voucher-actions" class="dropdown-content">
-          <li>
-            <a href="#base-modal"
-               data-href="{% url 'dashboard:order-remove-voucher' order_pk=order.pk %}"
-               class="modal-trigger-custom"
-               title="{% trans "Remove voucher" context "Order totals action" %}">
-              {% trans "Remove voucher" context "Order totals action" %}
-            </a>
-          </li>
-        </ul>
+      <td class="wide">
+        {% trans "Subtotal" context "Order subtotal" %}
       </td>
       <td class="right-align">
-        {% gross order.discount|discount_amount_for:order.total html=True %}
+        {% gross order.get_subtotal_without_voucher html=True %}
       </td>
     </tr>
-  {% endif %}
+    <tr>
+      <td>
+        {% trans "Total Shipping Price" context "Order totals header" %}
+      </td>
+      <td class="right-align">
+        {% gross order.get_total_shipping html=True %}
+      </td>
+    </tr>
   </tbody>
+  <tfoot>
+    <tr>
+      <td>
+        {% trans "Grand total" context "Order totals header" %}
+      </td>
+      <td>
+        {% gross order.get_total html=True %}
+      </td>
+    </tr>
+  </tfoot>
 </table>
 </body>
 </html>
