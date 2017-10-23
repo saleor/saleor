@@ -313,6 +313,7 @@ class StockChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return obj.location.name
 
+
 class ChangeStockForm(forms.ModelForm):
     stock = StockChoiceField(queryset=Stock.objects.none())
 
@@ -332,8 +333,8 @@ class ChangeStockForm(forms.ModelForm):
             raise forms.ValidationError(
                 pgettext_lazy(
                     'Change stock form error',
-                    'Only %(remaining)d remaining in this stock.')
-                    % {'remaining': stock.quantity_available})
+                    'Only %(remaining)d remaining in this stock.') % {
+                        'remaining': stock.quantity_available})
         return stock
 
     def save(self, commit=True):
