@@ -387,11 +387,8 @@ def order_invoice(request, order_pk, group_pk):
                static('/images/saleor_logo_black.svg'))}
     rendered_template = get_template(
         'dashboard/order/pdf/invoice.html').render(ctx)
-    try:
-        stylesheet = [CSS(
+    stylesheet = [CSS(
             url=request.build_absolute_uri(static('/assets/document.css')))]
-    except URLFetchingError:
-        stylesheet = None
     pdf_file = (HTML(string=rendered_template)
                 .write_pdf(stylesheets=stylesheet))
     response = HttpResponse(pdf_file, content_type='application/pdf')
@@ -412,11 +409,8 @@ def order_packing_slip(request, order_pk, group_pk):
                static('/images/saleor_logo_black.svg'))}
     rendered_template = get_template(
         'dashboard/order/pdf/packing_slip.html').render(ctx)
-    try:
-        stylesheet = [CSS(
+    stylesheet = [CSS(
             url=request.build_absolute_uri(static('/assets/document.css')))]
-    except URLFetchingError:
-        stylesheet = None
     pdf_file = (HTML(string=rendered_template)
                 .write_pdf(stylesheets=stylesheet))
     response = HttpResponse(pdf_file, content_type='application/pdf')

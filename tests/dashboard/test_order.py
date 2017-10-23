@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import mock
 import pytest
 from django.core.urlresolvers import reverse
 from saleor.dashboard.order.forms import ChangeQuantityForm, MoveItemsForm
@@ -278,8 +279,9 @@ def test_view_split_order_line_with_invalid_data(admin_client, order_with_items_
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_order_invoice(admin_client, order_with_items_and_stock,
-                            billing_address):
+@mock.patch('saleor.dashboard.order.views.CSS')
+def test_view_order_invoice(
+        css_patch, admin_client, order_with_items_and_stock, billing_address):
     """
     user goes to order details page
     user clicks on Invoice button
@@ -302,8 +304,9 @@ def test_view_order_invoice(admin_client, order_with_items_and_stock,
 
 @pytest.mark.integration
 @pytest.mark.django_db
-def test_view_order_packing_slips(admin_client, order_with_items_and_stock,
-                                  billing_address):
+@mock.patch('saleor.dashboard.order.views.CSS')
+def test_view_order_packing_slips(
+        css_patch, admin_client, order_with_items_and_stock, billing_address):
     """
     user goes to order details page
     user clicks on Packing Slips button
