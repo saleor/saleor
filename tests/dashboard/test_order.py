@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from decimal import Decimal
+
 import pytest
 from django.urls import reverse
 
@@ -411,3 +413,44 @@ def test_view_change_order_line_stock_insufficient_stock(
 
     stock.refresh_from_db()
     assert stock.quantity_allocated == 1
+
+
+def test_view_change_order_line_stock_merges_lines(
+        admin_client, order_with_items_and_stock):
+    order = order_with_items_and_stock
+    line = order.get_items().first()
+    group = line.delivery_group
+    old_stock = line.stock
+    variant = ProductVariant.objects.get(sku=line.product_sku)
+    stock_location = StockLocation.objects.create(name='Warehouse 2')
+    stock = Stock.objects.create(
+        variant=variant, cost_price=2, quantity=2, quantity_allocated=2,
+        location=stock_location)
+    line_2 = group.items.create(
+        delivery_group=group,
+        product=line.product,
+        product_name=line.product.name,
+        product_sku='SKU_A',
+        quantity=2,
+        unit_price_net=Decimal('30.00'),
+        unit_price_gross=Decimal('30.00'),
+        stock=stock,
+        stock_location=stock.location.name
+    )
+    lines_before = group.items.count()
+
+    url = reverse(
+        'dashboard:orderline-change-stock', kwargs={
+            'order_pk': order.pk,
+            'line_pk': line_2.pk})
+    data = {'stock': old_stock.pk}
+    response = admin_client.post(url, data)
+
+    assert response.status_code == 200
+    assert group.items.count() == lines_before - 1
+
+    old_stock.refresh_from_db()
+    assert old_stock.quantity_allocated == 5
+
+    stock.refresh_from_db()
+    assert stock.quantity_allocated == 0
