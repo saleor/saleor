@@ -415,7 +415,8 @@ def order_with_items_and_stock(order, product_class):
         quantity=3,
         unit_price_net=Decimal('30.00'),
         unit_price_gross=Decimal('30.00'),
-        stock=stock
+        stock=stock,
+        stock_location=stock.location.name
     )
     product = Product.objects.create(
         name='Test product 2', price=Decimal('20.00'),
@@ -432,7 +433,8 @@ def order_with_items_and_stock(order, product_class):
         quantity=2,
         unit_price_net=Decimal('20.00'),
         unit_price_gross=Decimal('20.00'),
-        stock=stock
+        stock=stock,
+        stock_location=stock.location.name
     )
     Order.objects.recalculate_order(order)
     order.refresh_from_db()
